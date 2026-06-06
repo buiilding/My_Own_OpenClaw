@@ -38,8 +38,8 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd`
   - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore "**/__pycache__/**" ../backend/src/api/routes`
-  - `cd frontend && npm run test:ci -- ../tests/frontend/ApiClient.test.ts ../tests/frontend/ChatStreamEventUtils.test.ts ../tests/frontend/LatestVisibleAssistantReply.test.js ../tests/frontend/ChatboxSurfaceState.test.js ../tests/frontend/MessageListState.test.js ../tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts ../tests/frontend/SurfaceOrchestratorWindowVisibility.test.ts ../tests/frontend/DisplayAffinityRuntime.test.cjs ../tests/frontend/WindowVisibilityRuntime.test.cjs ../tests/frontend/OverlayVisibilityHandler.test.cjs`
-  - `./scripts/test-backend tests/backend/test_interaction_tool_call_bridge.py tests/backend/test_parser_types.py tests/backend/test_remote_tools.py tests/backend/test_tool_registry_schema.py`
+  - `bin/windie test frontend -- ../tests/frontend/ApiClient.test.ts ../tests/frontend/ChatStreamEventUtils.test.ts ../tests/frontend/LatestVisibleAssistantReply.test.js ../tests/frontend/ChatboxSurfaceState.test.js ../tests/frontend/MessageListState.test.js ../tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts ../tests/frontend/SurfaceOrchestratorWindowVisibility.test.ts ../tests/frontend/DisplayAffinityRuntime.test.cjs ../tests/frontend/WindowVisibilityRuntime.test.cjs ../tests/frontend/OverlayVisibilityHandler.test.cjs`
+  - `bin/windie test backend tests/backend/test_interaction_tool_call_bridge.py tests/backend/test_parser_types.py tests/backend/test_remote_tools.py tests/backend/test_tool_registry_schema.py`
 - Audit delta:
   - `react-compiler`/`deprecation` lint audits clean.
   - `knip` clean.
@@ -95,7 +95,7 @@ read_when:
     - added `tests/frontend/WakewordBridgeRuntime.test.cjs`.
     - reran `tests/frontend/WakewordBridge.test.cjs`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/WakewordBridge.test.cjs ../tests/frontend/WakewordBridgeRuntime.test.cjs`
+    - `bin/windie test frontend -- ../tests/frontend/WakewordBridge.test.cjs ../tests/frontend/WakewordBridgeRuntime.test.cjs`
     - `cd frontend && npm run lint -- src/main/wakeword_bridge.cjs src/main/wakeword_bridge_runtime.cjs`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`
@@ -116,7 +116,7 @@ read_when:
     - added `tests/frontend/MainProcessBootstrapRuntime.test.cjs`.
     - reran `tests/frontend/MainProcessLifecycleRuntime.test.cjs`, `tests/frontend/MainWindowRuntime.test.cjs`, `tests/frontend/MainWindowIconRuntime.test.cjs`, and `tests/frontend/MainWindowOverlayRuntime.test.cjs`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/MainProcessLifecycleRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainWindowIconRuntime.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs`
+    - `bin/windie test frontend -- ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/MainProcessLifecycleRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainWindowIconRuntime.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs`
     - `cd frontend && npm run lint -- src/main/index.cjs src/main/main_process_bootstrap_runtime.cjs src/main/main_window_runtime.cjs src/main/main_window_icon_runtime.cjs src/main/main_window_overlay_runtime.cjs`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`
@@ -142,7 +142,7 @@ read_when:
     - added `tests/frontend/MainWindowOverlayRuntime.test.cjs`.
     - reran `tests/frontend/MainWindowRuntime.test.cjs`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainWindowIconRuntime.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs`
+    - `bin/windie test frontend -- ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainWindowIconRuntime.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs`
     - `cd frontend && npm run lint -- src/main/main_window_runtime.cjs src/main/main_window_icon_runtime.cjs src/main/main_window_overlay_runtime.cjs`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -170,7 +170,7 @@ read_when:
     - added `tests/frontend/IpcTranscriptSessionSync.test.cjs`.
     - reran `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, and `tests/frontend/VmWorkerRuntime.test.cjs`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcTranscriptSessionSync.test.cjs ../tests/frontend/IpcMainBridge.lifecycle.test.cjs ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/VmWorkerRuntime.test.cjs`
+    - `bin/windie test frontend -- ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcTranscriptSessionSync.test.cjs ../tests/frontend/IpcMainBridge.lifecycle.test.cjs ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/VmWorkerRuntime.test.cjs`
     - `cd frontend && npm run lint -- src/main/ipc.cjs src/main/ipc/ipc_query_runtime.cjs src/main/ipc/ipc_transcript_session_sync.cjs`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -200,7 +200,7 @@ read_when:
     - reran `tests/frontend/LocalBackendBridge.rpc.test.cjs`, `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`, and `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`.
   - verification:
     - `cd frontend && npm run lint -- src/main/local_backend_bridge.cjs src/main/local_backend_bridge_display_bounds.cjs src/main/local_backend_bridge_screenshot_attachment.cjs src/main/display_affinity_runtime.cjs src/main/ipc/ipc_runtime_helpers.cjs src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/noop.ts src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/windows.ts src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/macos.ts src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts src/renderer/infrastructure/services/toolExecution/ToolScreenshotDebugTrace.ts src/renderer/features/chat/session/conversationSessionRuntime.ts src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
-    - `cd frontend && npm run test:ci -- ../tests/frontend/DisplayAffinityRuntime.test.cjs ../tests/frontend/ChatMessageSenderUtils.test.ts ../tests/frontend/ScreenshotAttachmentPipeline.test.ts ../tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs ../tests/frontend/LocalBackendBridge.rpc.test.cjs ../tests/frontend/LocalBackendBridgeToolArgs.test.cjs ../tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`
+    - `bin/windie test frontend -- ../tests/frontend/DisplayAffinityRuntime.test.cjs ../tests/frontend/ChatMessageSenderUtils.test.ts ../tests/frontend/ScreenshotAttachmentPipeline.test.ts ../tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs ../tests/frontend/LocalBackendBridge.rpc.test.cjs ../tests/frontend/LocalBackendBridgeToolArgs.test.cjs ../tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`
   - audit delta:
@@ -218,7 +218,7 @@ read_when:
     - added `tests/frontend/MemorySectionState.test.js`.
     - reran `tests/frontend/MemorySection.test.jsx`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/MemorySectionState.test.js ../tests/frontend/MemorySection.test.jsx`
+    - `bin/windie test frontend -- ../tests/frontend/MemorySectionState.test.js ../tests/frontend/MemorySection.test.jsx`
     - `cd frontend && npm run lint -- src/renderer/features/dashboard/components/sections/MemorySection.jsx src/renderer/features/dashboard/components/sections/memorySectionState.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -240,7 +240,7 @@ read_when:
     - added `tests/frontend/ChatBoxState.test.js`.
     - reran `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/ChatBoxState.test.js ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
+    - `bin/windie test frontend -- ../tests/frontend/ChatBoxState.test.js ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
     - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatBox.jsx src/renderer/features/chat/utils/state/chatBoxState.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -262,7 +262,7 @@ read_when:
     - added `tests/frontend/ChatBoxResponseState.test.js`.
     - reran `tests/frontend/ChatBoxResponse.state.test.jsx`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/ChatBoxResponseState.test.js ../tests/frontend/ChatBoxResponse.state.test.jsx`
+    - `bin/windie test frontend -- ../tests/frontend/ChatBoxResponseState.test.js ../tests/frontend/ChatBoxResponse.state.test.jsx`
     - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatBoxResponse.jsx src/renderer/features/chat/utils/state/chatBoxResponseState.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -284,7 +284,7 @@ read_when:
     - added `tests/frontend/ToolExecutionScreenshotSelection.test.ts`.
     - reran `tests/frontend/ToolExecutionService.test.ts`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/ToolExecutionScreenshotSelection.test.ts ../tests/frontend/ToolExecutionService.test.ts`
+    - `bin/windie test frontend -- ../tests/frontend/ToolExecutionScreenshotSelection.test.ts ../tests/frontend/ToolExecutionService.test.ts`
     - `cd frontend && npm run lint -- src/renderer/infrastructure/services/ToolExecutionService.ts src/renderer/infrastructure/services/ToolExecutionScreenshotSelection.ts`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -306,7 +306,7 @@ read_when:
     - added `tests/frontend/MessageListState.test.js`.
     - reran `MessageListScrollBehavior`, `MessageListAssistantActions`, and `MessageListThinkingDisplay` suites.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/MessageListState.test.js ../tests/frontend/MessageListScrollBehavior.test.jsx ../tests/frontend/MessageListAssistantActions.test.jsx ../tests/frontend/MessageListThinkingDisplay.test.jsx`
+    - `bin/windie test frontend -- ../tests/frontend/MessageListState.test.js ../tests/frontend/MessageListScrollBehavior.test.jsx ../tests/frontend/MessageListAssistantActions.test.jsx ../tests/frontend/MessageListThinkingDisplay.test.jsx`
     - `cd frontend && npm run lint -- src/renderer/features/chat/components/MessageList.jsx src/renderer/features/chat/utils/message/messageListState.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -328,7 +328,7 @@ read_when:
     - added `tests/frontend/DashboardConversationLoad.test.js`.
     - reran `tests/frontend/ChatGptDashboardShell.test.jsx` for integration parity.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/DashboardConversationLoad.test.js ../tests/frontend/ChatGptDashboardShell.test.jsx`
+    - `bin/windie test frontend -- ../tests/frontend/DashboardConversationLoad.test.js ../tests/frontend/ChatGptDashboardShell.test.jsx`
     - `cd frontend && npm run lint -- src/renderer/features/dashboard/hooks/useDashboardConversations.js src/renderer/features/dashboard/utils/dashboardConversationLoad.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -350,7 +350,7 @@ read_when:
   - regression coverage:
     - expanded `tests/frontend/WakewordDetectionHook.test.ts` with local-error stickiness + no-immediate-retry assertion.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/WakewordDetectionHook.test.ts`
+    - `bin/windie test frontend -- ../tests/frontend/WakewordDetectionHook.test.ts`
     - `cd frontend && npm run lint -- src/renderer/features/voice/hooks/useWakewordDetection.ts`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -373,7 +373,7 @@ read_when:
     - added `tests/frontend/ChatStreamMetadataHandlers.test.ts`.
     - reran `ChatStreamThinkingStatus.state/metadata` suites for integration-level behavior parity.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamCompactionHandlers.test.ts ../tests/frontend/ChatStreamMetadataHandlers.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`
+    - `bin/windie test frontend -- ../tests/frontend/ChatStreamCompactionHandlers.test.ts ../tests/frontend/ChatStreamMetadataHandlers.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`
     - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers.ts src/renderer/features/chat/hooks/chatStream/useChatStreamMetadataHandlers.ts`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -395,7 +395,7 @@ read_when:
     - added `tests/frontend/ChatWorkspaceState.test.ts`.
     - reran `tests/frontend/ChatStore.test.ts`.
   - verification:
-    - `cd frontend && npm run test:ci -- ../tests/frontend/ChatWorkspaceState.test.ts ../tests/frontend/ChatStore.test.ts`
+    - `bin/windie test frontend -- ../tests/frontend/ChatWorkspaceState.test.ts ../tests/frontend/ChatStore.test.ts`
     - `cd frontend && npm run lint -- src/renderer/features/chat/stores/chatStore.ts src/renderer/features/chat/stores/chatWorkspaceState.ts`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
@@ -419,9 +419,9 @@ read_when:
     - `tests/sidecar/test_tool_registry.py::test_execute_computer_use_routes_to_selected_subtool`
   - verification:
     - `cd frontend && npm run lint && npm run lint:audit && npm run audit:knip && npm run audit:jscpd`
-    - `./scripts/test-backend`
-    - `./scripts/test-sidecar`
-    - `cd frontend && npm run test:ci`
+    - `bin/windie test backend`
+    - `bin/windie test sidecar`
+    - `bin/windie test frontend`
   - result:
     - backend suite restored to green (`1454 passed`), sidecar green (`763 passed`), frontend green (`174 suites / 1140 tests`).
 
@@ -444,8 +444,8 @@ read_when:
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`
-    - `cd frontend && npm run test:ci`
-    - `./scripts/test-sidecar`
+    - `bin/windie test frontend`
+    - `bin/windie test sidecar`
   - audit delta:
     - frontend+backend `jscpd` total clones reduced from `8` to `4`.
     - `knip` reduced unused exports from `5` to `2` (remaining two are known CJS/JSX false positives).
@@ -515,7 +515,7 @@ read_when:
     - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
   - preserved message payload shape for both single-tool and bundled-tool output messages.
   - verification:
-    - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerMessages.test.ts`
+    - `bin/windie test frontend -- tests/frontend/ToolRunnerMessages.test.ts`
     - `cd frontend && npm run lint`
   - audit delta:
     - frontend+backend `jscpd` total clones reduced from `23` to `22`.
@@ -526,9 +526,9 @@ read_when:
     - replaced repeated `waitFor` bootstrap polling with deterministic microtask flush helper.
     - used fake timers in `search chats` test to advance the 180ms debounced search path directly.
   - verification:
-    - `cd frontend && npm run test:ci -- tests/frontend/ChatGptDashboardShell.test.jsx`
+    - `bin/windie test frontend -- tests/frontend/ChatGptDashboardShell.test.jsx`
     - `cd frontend && npm run lint`
-    - `cd frontend && npm run test:ci`
+    - `bin/windie test frontend`
   - runtime delta:
     - `ChatGptDashboardShell.test.jsx` duration improved from `1084ms` to `843ms` in `.audit/plan1/jest-report.json` (~22.2% faster).
 - Frontend async-test warning cleanup:
@@ -539,7 +539,7 @@ read_when:
     - awaited initial memory load completion in close-button test before ending assertions.
     - replaced `await Promise.resolve()` timing assumptions with `waitFor(...)` assertions that observe completion of sudo pending-state reset.
   - verification:
-    - `cd frontend && npm run test:ci -- tests/frontend/MemorySection.test.jsx tests/frontend/SettingsSection.test.jsx`
+    - `bin/windie test frontend -- tests/frontend/MemorySection.test.jsx tests/frontend/SettingsSection.test.jsx`
     - `cd frontend && npm run lint`
 - Backend browser warning-log dedupe:
   - rewrote legacy-alias warning log assembly in:
@@ -648,8 +648,8 @@ read_when:
   - `cd frontend && npm run lint:audit`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd`
-  - `./scripts/test`
-  - `./bin/docs-list`
+  - `bin/windie test all`
+  - `bin/windie docs list`
 - Audit delta:
   - frontend+backend combined `jscpd` run reduced clones from `41` to `33`.
 
@@ -720,8 +720,8 @@ read_when:
     - `tests/frontend/ToolRunnerHook.callbacks.test.ts`
   - Preserve all current assertions while reducing per-file complexity.
 - Success checks:
-  - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
-  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `bin/windie test frontend -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
+  - `bin/windie test frontend -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
   - `cd frontend && npm run lint`
 
 ## Phase 3
@@ -742,8 +742,8 @@ read_when:
   - Add direct unit tests for `useMemoryContextMenuHotkeys` (`Escape` closes; `Delete` triggers delete only with active menu/target).
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js`
-  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `bin/windie test frontend -- tests/frontend/useMemoryContextMenuHotkeys.test.js`
+  - `bin/windie test frontend -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
   - `cd frontend && npm run audit:knip` (expect one fewer unused file finding)
 
 ## Phase 4
@@ -763,7 +763,7 @@ read_when:
   - codify intentional/tooling-only dependencies in `frontend/knip.json` using explicit ignore list (for CLI-invoked lint plugins and manual codegen tooling).
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
+  - `bin/windie test frontend -- tests/frontend/useMemoryContextMenuHotkeys.test.js tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
   - `cd frontend && npm run audit:knip` (expect dependency findings count reduction)
 
 ## Phase 5
@@ -792,7 +792,7 @@ read_when:
   - de-export transcript session storage key constant (`TRANSCRIPT_SESSION_STORAGE_KEY`) and update tests to use explicit fixture key value.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/ToolExecutionService.test.ts`
+  - `bin/windie test frontend -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/ToolExecutionService.test.ts`
   - `cd frontend && npm run audit:knip` (expect remaining `unused exported types` section to clear)
 
 ## Phase 7
@@ -816,7 +816,7 @@ read_when:
   - update `tests/frontend/configStorage.test.js` and `tests/frontend/configFilter.test.js` to use fixture constants + public behavior checks.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js`
+  - `bin/windie test frontend -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
 ## Phase 8
@@ -837,7 +837,7 @@ read_when:
   - update `MessageSendUiPolicy`, `ChatSelectors`, `MessageInputUtils`, and `TokenCounts` tests to validate behavior through public exported APIs only.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js`
+  - `bin/windie test frontend -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
 ## Phase 9
@@ -858,7 +858,7 @@ read_when:
   - update logger test assertions to validate truncation/missing-id behavior via `logToolStart` return value.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx`
+  - `bin/windie test frontend -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
 ## Phase 10
@@ -878,8 +878,8 @@ read_when:
   - migrate tests away from private helper imports and keep behavioral assertions on public entrypoints.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/EpisodicMemoryUtils.test.js tests/frontend/MessageFormatter.test.ts tests/frontend/ToolExecutionCapture.test.ts`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/EpisodicMemoryUtils.test.js tests/frontend/MessageFormatter.test.ts tests/frontend/ToolExecutionCapture.test.ts`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
 ## Phase 11
@@ -899,8 +899,8 @@ read_when:
     - captured `process.on('beforeExit', ...)` cleanup callback
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/WakewordBridge.test.cjs`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/WakewordBridge.test.cjs`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction to zero)
 
 ## Phase 12
@@ -921,8 +921,8 @@ read_when:
     - suppressed wakeword helper messaging visibility
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/SettingsSection.test.jsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -939,8 +939,8 @@ read_when:
   - reuse the shared constant in both `MessageItem.propTypes` and `MessageList.propTypes`.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/MessageListClasses.test.js tests/frontend/MessageListThinkingDisplay.test.jsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/MessageListClasses.test.js tests/frontend/MessageListThinkingDisplay.test.jsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -962,8 +962,8 @@ read_when:
   - add focused helper tests verifying phase normalization/listener cleanup and frame-size rounding behavior.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.test.jsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.test.jsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -982,8 +982,8 @@ read_when:
     - Your Choice
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/landing/LandingPage.test.jsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1003,8 +1003,8 @@ read_when:
     - `frontend/src/landing/components/PrivacySection.jsx`
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/landing/LandingPage.test.jsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1030,9 +1030,9 @@ read_when:
   - add focused utility tests for cleanup helpers (safe close + ref reset behavior).
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts`
+  - `bin/windie test frontend -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts`
   - `cd frontend && npm run lint:audit`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1050,8 +1050,8 @@ read_when:
   - refactor `TranscriptWriter.ts` repeated resolve/store/catch queue blocks to shared internal helpers.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1072,8 +1072,8 @@ read_when:
   - keep local backend bridge path caching behavior unchanged.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/WakewordBridge.test.cjs`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/WakewordBridge.test.cjs`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1093,8 +1093,8 @@ read_when:
   - update sender/stream hooks to consume the shared selector helper.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1114,8 +1114,8 @@ read_when:
   - remove duplicated ref declarations in both voice hooks.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1136,8 +1136,8 @@ read_when:
   - retain section-specific declarations where they differ.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx tests/frontend/SemanticMemorySection.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/SettingsSection.test.jsx tests/frontend/SemanticMemorySection.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
@@ -1497,7 +1497,7 @@ read_when:
   - Update folder structure notes that still reference removed legacy hooks.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/configStorage.test.js tests/frontend/TranscriptSessionState.test.ts tests/frontend/ChatStreamFormatting.test.ts tests/frontend/ArtifactUploader.test.ts tests/frontend/BackendEndpoints.test.cjs`
+  - `bin/windie test frontend -- tests/frontend/AppProvider.test.tsx tests/frontend/configStorage.test.js tests/frontend/TranscriptSessionState.test.ts tests/frontend/ChatStreamFormatting.test.ts tests/frontend/ArtifactUploader.test.ts tests/frontend/BackendEndpoints.test.cjs`
   - `cd frontend && npm run audit:knip` (expect export/type findings count reduction)
 
 ## Tracking
@@ -1517,7 +1517,7 @@ read_when:
 - Verification:
   - `cd frontend && npm run lint`
   - `cd frontend && npm run lint:audit`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend`
   - `pytest tests/backend/test_memory_routes.py`
 
 ## Phase 2 Outcome (2026-02-23)
@@ -1535,9 +1535,9 @@ read_when:
   - duplicated tokens: `29922 -> 29329`
 - Verification:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
-  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
-  - `cd frontend && npm run test:ci`
+  - `bin/windie test frontend -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
+  - `bin/windie test frontend -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `bin/windie test frontend`
   - `cd frontend && npm run audit:jscpd`
   - `cd frontend && npm run audit:knip` (findings unchanged; still requires triage)
 
@@ -1551,8 +1551,8 @@ read_when:
   - added `tests/frontend/useMemoryContextMenuHotkeys.test.js` covering Escape/Delete/no-menu behavior for the shared hook.
 - Verification:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js`
-  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `bin/windie test frontend -- tests/frontend/useMemoryContextMenuHotkeys.test.js`
+  - `bin/windie test frontend -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
   - `cd frontend && npm run audit:knip` (unused files section remained absent; export/dependency/type findings unchanged)
 
 ## Phase 4 Outcome (2026-02-23)
@@ -1573,7 +1573,7 @@ read_when:
   - remaining findings (unchanged category): `unused exports (42)`, `unused exported types (23)`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
+  - `bin/windie test frontend -- tests/frontend/useMemoryContextMenuHotkeys.test.js tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
   - `cd frontend && npm run audit:knip` (dependency findings removed; command still non-zero from export/type findings)
 
 ## Phase 5 Outcome (2026-02-23)
@@ -1601,8 +1601,8 @@ read_when:
   - unused exported types: `23 -> 17`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/configStorage.test.js tests/frontend/TranscriptSessionState.test.ts tests/frontend/ChatStreamFormatting.test.ts tests/frontend/ArtifactUploader.test.ts` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/displaySelection.test.ts tests/frontend/SystemCapture.test.ts tests/frontend/ToolExecutionInvoker.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
+  - `bin/windie test frontend -- tests/frontend/AppProvider.test.tsx tests/frontend/configStorage.test.js tests/frontend/TranscriptSessionState.test.ts tests/frontend/ChatStreamFormatting.test.ts tests/frontend/ArtifactUploader.test.ts` (pass)
+  - `bin/windie test frontend -- tests/frontend/displaySelection.test.ts tests/frontend/SystemCapture.test.ts tests/frontend/ToolExecutionInvoker.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual export/type findings)
 
 ## Phase 6 Outcome (2026-02-23)
@@ -1621,8 +1621,8 @@ read_when:
   - unused exported types: `17 -> 0`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
-  - `cd frontend && npm run test:ci` (pass)
+  - `bin/windie test frontend -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
+  - `bin/windie test frontend` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
 
 ## Phase 7 Outcome (2026-02-23)
@@ -1643,8 +1643,8 @@ read_when:
   - unused exported types: `0 -> 0`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js` (pass)
-  - `cd frontend && npm run test:ci` (pass)
+  - `bin/windie test frontend -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js` (pass)
+  - `bin/windie test frontend` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
 
 ## Phase 8 Outcome (2026-02-23)
@@ -1669,8 +1669,8 @@ read_when:
   - unused exported types: `0 -> 0`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js` (pass)
-  - `cd frontend && npm run test:ci` (pass)
+  - `bin/windie test frontend -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js` (pass)
+  - `bin/windie test frontend` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
 
 ## Phase 9 Outcome (2026-02-23)
@@ -1687,8 +1687,8 @@ read_when:
   - unused exported types: `0 -> 0`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 78 suites after dead-module test removal)
+  - `bin/windie test frontend -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx` (pass)
+  - `bin/windie test frontend` (pass; 78 suites after dead-module test removal)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
 
 ## Phase 10 Outcome (2026-02-23)
@@ -1711,8 +1711,8 @@ read_when:
     - `stopWakewordService`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/EpisodicMemoryUtils.test.js tests/frontend/MessageFormatter.test.ts tests/frontend/ToolExecutionCapture.test.ts` (pass)
-  - `cd frontend && npm run test:ci` (pass; 78 suites)
+  - `bin/windie test frontend -- tests/frontend/EpisodicMemoryUtils.test.js tests/frontend/MessageFormatter.test.ts tests/frontend/ToolExecutionCapture.test.ts` (pass)
+  - `bin/windie test frontend` (pass; 78 suites)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual wakeword exports only)
 
 ## Phase 11 Outcome (2026-02-23)
@@ -1733,8 +1733,8 @@ read_when:
   - remaining findings: none (`knip` exit code `0`)
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/WakewordBridge.test.cjs` (pass)
-  - `cd frontend && npm run test:ci` (pass; 78 suites)
+  - `bin/windie test frontend -- tests/frontend/WakewordBridge.test.cjs` (pass)
+  - `bin/windie test frontend` (pass; 78 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
 
 ## Phase 12 Outcome (2026-02-23)
@@ -1754,8 +1754,8 @@ read_when:
   - duplicated tokens: `29329 -> 29060`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 79 suites)
+  - `bin/windie test frontend -- tests/frontend/SettingsSection.test.jsx` (pass)
+  - `bin/windie test frontend` (pass; 79 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1771,8 +1771,8 @@ read_when:
   - duplicated tokens: `29060 -> 28963`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/MessageListClasses.test.js tests/frontend/MessageListThinkingDisplay.test.jsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 79 suites)
+  - `bin/windie test frontend -- tests/frontend/MessageListClasses.test.js tests/frontend/MessageListThinkingDisplay.test.jsx` (pass)
+  - `bin/windie test frontend` (pass; 79 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1800,8 +1800,8 @@ read_when:
   - duplicated tokens: `28963 -> 28878`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/OverlayFrameSize.test.js tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.test.jsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 81 suites)
+  - `bin/windie test frontend -- tests/frontend/OverlayFrameSize.test.js tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.test.jsx` (pass)
+  - `bin/windie test frontend` (pass; 81 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1819,8 +1819,8 @@ read_when:
   - duplicated tokens: `28878 -> 28722`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 81 suites)
+  - `bin/windie test frontend -- tests/frontend/landing/LandingPage.test.jsx` (pass)
+  - `bin/windie test frontend` (pass; 81 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1843,8 +1843,8 @@ read_when:
   - duplicated tokens: `28722 -> 28487`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 81 suites)
+  - `bin/windie test frontend -- tests/frontend/landing/LandingPage.test.jsx` (pass)
+  - `bin/windie test frontend` (pass; 81 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1871,9 +1871,9 @@ read_when:
   - duplicated tokens: `28487 -> 28350`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts` (pass)
+  - `bin/windie test frontend -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts` (pass)
   - `cd frontend && npm run lint:audit` (pass; deprecation warnings only)
-  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `bin/windie test frontend` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1893,8 +1893,8 @@ read_when:
   - duplicated tokens: `28350 -> 28138`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts` (pass)
-  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `bin/windie test frontend -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts` (pass)
+  - `bin/windie test frontend` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1917,8 +1917,8 @@ read_when:
   - duplicated tokens: `28138 -> 28043`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/WakewordBridge.test.cjs` (pass)
-  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `bin/windie test frontend -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/WakewordBridge.test.cjs` (pass)
+  - `bin/windie test frontend` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1937,8 +1937,8 @@ read_when:
   - duplicated tokens: `28043 -> 27952`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `bin/windie test frontend -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass)
+  - `bin/windie test frontend` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1957,8 +1957,8 @@ read_when:
   - duplicated tokens: `27952 -> 27860`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts` (pass)
-  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `bin/windie test frontend -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts` (pass)
+  - `bin/windie test frontend` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -1977,8 +1977,8 @@ read_when:
   - duplicated tokens: `27860 -> 27753`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx tests/frontend/SemanticMemorySection.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx` (pass)
-  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `bin/windie test frontend -- tests/frontend/SettingsSection.test.jsx tests/frontend/SemanticMemorySection.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx` (pass)
+  - `bin/windie test frontend` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
 
@@ -2324,9 +2324,9 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; warnings only)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
-  - `cd frontend && npm run test:ci` (pass; 86 suites, 607 tests)
-  - `./scripts/test-backend` (pass; 966 tests)
-  - `./scripts/test-sidecar` (pass; 462 tests)
+  - `bin/windie test frontend` (pass; 86 suites, 607 tests)
+  - `bin/windie test backend` (pass; 966 tests)
+  - `bin/windie test sidecar` (pass; 462 tests)
 
 ## Phase 41 Outcome (2026-02-24)
 
@@ -2343,7 +2343,7 @@ read_when:
   - note: larger gain was readability/stability; runtime change is modest.
 - Verification:
   - `cd frontend && npm test -- IpcMainBridge.lifecycle.test.cjs IpcMainBridge.query.test.cjs` (pass; 27 tests)
-  - `cd frontend && npm run test:ci -- --json --outputFile ../.audit/plan1/jest-report-latest.json` (pass; 86 suites, 607 tests)
+  - `bin/windie test frontend -- --json --outputFile ../.audit/plan1/jest-report-latest.json` (pass; 86 suites, 607 tests)
 
 ## Phase 42 Outcome (2026-02-24)
 
@@ -2384,11 +2384,11 @@ read_when:
     - `cd frontend && npm run audit:jscpd` (pass)
     - snapshot totals: clones `182`, duplicated lines `2779`, duplicated tokens `24683`
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 86 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 86 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests)
+    - `bin/windie test sidecar` (pass; 462 tests)
 
 ## Phase 45 Outcome (2026-02-24)
 
@@ -2415,7 +2415,7 @@ read_when:
 - Verification:
   - `cd frontend && npm test -- tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass; 30 tests)
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci` (pass; 88 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 88 suites, 607 tests)
 
 ## Phase 47 Outcome (2026-02-24)
 
@@ -2427,7 +2427,7 @@ read_when:
     - `tests/frontend/__mocks__/localBackendBridgeHarness.cjs`
   - preserved existing bridge request/response, process-exit, readiness-timeout, and force-kill timer assertions (`22` tests total).
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
+  - `bin/windie test frontend -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
   - `cd frontend && npm run lint` (pass)
 
 ## Phase 48 Outcome (2026-02-24)
@@ -2444,21 +2444,21 @@ read_when:
   - duplicated lines: `2709 -> 2682`
   - duplicated tokens: `23928 -> 23709`
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 49 tests)
+  - `bin/windie test frontend -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 49 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 89 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 89 suites, 607 tests)
 
 ## Phase 49 Outcome (2026-02-24)
 
 - Full-gate revalidation after test-suite and harness restructuring:
   - frontend:
-    - `cd frontend && npm run test:ci` (pass; 89 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 89 suites, 607 tests)
   - backend:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar:
-    - `./scripts/test-sidecar` (pass; 462 tests; 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests; 3 known swig deprecation warnings)
 
 ## Phase 50 Outcome (2026-02-24)
 
@@ -2475,12 +2475,12 @@ read_when:
   - duplicated lines: `2682 -> 2667`
   - duplicated tokens: `23709 -> 23619`
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts` (pass; 20 tests)
+  - `bin/windie test frontend -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts` (pass; 20 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 91 suites, 607 tests)
 
 ## Phase 51 Outcome (2026-02-24)
 
@@ -2489,9 +2489,9 @@ read_when:
     - `tests/frontend/WakewordBridge.test.cjs`
   - removed wakeword subprocess log spam from full frontend CI test runs while preserving behavior assertions.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/WakewordBridge.test.cjs` (pass; 6 tests)
+  - `bin/windie test frontend -- tests/frontend/WakewordBridge.test.cjs` (pass; 6 tests)
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 91 suites, 607 tests)
 
 ## Phase 52 Outcome (2026-02-24)
 
@@ -2503,7 +2503,7 @@ read_when:
   - scope intentionally constrained to React 18 typing line; no React major upgrade introduced.
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 91 suites, 607 tests)
 
 ## Phase 53 Outcome (2026-02-24)
 
@@ -2516,11 +2516,11 @@ read_when:
     - `cd frontend && npm run audit:jscpd` (pass)
     - snapshot totals: clones `178`, duplicated lines `2667`, duplicated tokens `23619`
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 91 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests; 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests; 3 known swig deprecation warnings)
 
 ## Phase 54 Outcome (2026-02-24)
 
@@ -2533,12 +2533,12 @@ read_when:
     - `frontend/src/main/local_backend_bridge_windows.cjs`
   - simplified `frontend/src/main/local_backend_bridge.cjs` to bridge orchestration only and reduced file size from `766` LOC to `447` LOC.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 49 tests)
+  - `bin/windie test frontend -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 49 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; totals unchanged at clones `178`, duplicated lines `2667`, duplicated tokens `23619`)
-  - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 91 suites, 607 tests)
 
 ## Phase 55 Outcome (2026-02-24)
 
@@ -2550,9 +2550,9 @@ read_when:
     - `tests/frontend/AppConfigProvider.testUtils.tsx`
   - preserved full behavior coverage (`25` assertions) while reducing per-file complexity.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/AppConfigProvider.models.test.tsx tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` (pass; 25 tests)
+  - `bin/windie test frontend -- tests/frontend/AppConfigProvider.models.test.tsx tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` (pass; 25 tests)
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
 
 ## Phase 56 Outcome (2026-02-24)
 
@@ -2567,7 +2567,7 @@ read_when:
       - `emitReadiness`
   - preserved bridge RPC/lifecycle behavior coverage while removing repeated response fixture boilerplate.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
+  - `bin/windie test frontend -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
   - jscpd snapshot deltas:
@@ -2583,11 +2583,11 @@ read_when:
   - dead-code audit:
     - `cd frontend && npm run audit:knip` (pass)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 58 Outcome (2026-02-24)
 
@@ -2600,10 +2600,10 @@ read_when:
       - `expectNoShowChatboxCall`
   - reduced repeated hook setup + send/assert boilerplate without changing test coverage (`17` assertions preserved).
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx` (pass; 17 tests)
+  - `bin/windie test frontend -- tests/frontend/ChatMessageSender.test.tsx` (pass; 17 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `170 -> 163`
     - duplicated lines: `2588 -> 2510`
@@ -2620,12 +2620,12 @@ read_when:
   - preserved latest-config cache updates after successful disk save and initial settings-sync bootstrap reads.
   - reduced `frontend/src/main/ipc.cjs` size from `692` LOC to `663` LOC.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 27 tests)
+  - `bin/windie test frontend -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 27 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; totals unchanged at clones `163`, duplicated lines `2510`, duplicated tokens `22274`)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
 
 ## Phase 60 Outcome (2026-02-24)
 
@@ -2638,10 +2638,10 @@ read_when:
   - removed repeated ws-open/query-send/message-parse boilerplate while preserving all `27` IPC query/lifecycle assertions.
   - reduced `tests/frontend/IpcMainBridge.query.test.cjs` size from `425` LOC to `369` LOC.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass; 27 tests)
+  - `bin/windie test frontend -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass; 27 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `163 -> 161`
     - duplicated lines: `2510 -> 2490`
@@ -2666,12 +2666,12 @@ read_when:
       - `initializeBridgeHarness`
   - reduced duplicated setup across `initBridge` and `initBridgeWithProcesses` while preserving existing mock process wiring and return contract.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
+  - `bin/windie test frontend -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `161 -> 160`
     - duplicated lines: `2490 -> 2470`
@@ -2690,12 +2690,12 @@ read_when:
   - reduced repeated ws-open/message/config-fixture boilerplate while preserving all lifecycle/config assertions.
   - reduced file size from `202` LOC to `177` LOC.
 - Verification:
-  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 27 tests)
+  - `bin/windie test frontend -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 27 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `160 -> 159`
     - duplicated lines: `2470 -> 2464`
@@ -2711,11 +2711,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `159`, duplicated lines `2464`, duplicated tokens `21842`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 65 Outcome (2026-02-24)
 
@@ -2732,7 +2732,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `159 -> 157`
     - duplicated lines: `2464 -> 2442`
@@ -2752,7 +2752,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `157 -> 152`
     - duplicated lines: `2442 -> 2377`
@@ -2771,7 +2771,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `152 -> 150`
     - duplicated lines: `2377 -> 2357`
@@ -2787,11 +2787,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `150`, duplicated lines `2357`, duplicated tokens `20962`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 69 Outcome (2026-02-24)
 
@@ -2807,7 +2807,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `150 -> 148`
     - duplicated lines: `2357 -> 2333`
@@ -2828,7 +2828,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `148 -> 146`
     - duplicated lines: `2333 -> 2312`
@@ -2844,11 +2844,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `146`, duplicated lines `2312`, duplicated tokens `20565`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 72 Outcome (2026-02-24)
 
@@ -2863,7 +2863,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `146 -> 145`
     - duplicated lines: `2312 -> 2306`
@@ -2884,7 +2884,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `145 -> 144`
     - duplicated lines: `2306 -> 2296`
@@ -2904,7 +2904,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `144 -> 142`
     - duplicated lines: `2296 -> 2279`
@@ -2920,11 +2920,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `142`, duplicated lines `2279`, duplicated tokens `20137`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 76 Outcome (2026-02-24)
 
@@ -2942,7 +2942,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `142 -> 139`
     - duplicated lines: `2279 -> 2251`
@@ -2958,11 +2958,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `139`, duplicated lines `2251`, duplicated tokens `19857`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 78 Outcome (2026-02-24)
 
@@ -2979,7 +2979,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `139 -> 138`
     - duplicated lines: `2251 -> 2244`
@@ -3000,7 +3000,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `138 -> 137`
     - duplicated lines: `2244 -> 2238`
@@ -3016,7 +3016,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `137 -> 136`
     - duplicated lines: `2238 -> 2233`
@@ -3033,7 +3033,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `136 -> 135`
     - duplicated lines: `2233 -> 2225`
@@ -3049,11 +3049,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `135`, duplicated lines `2225`, duplicated tokens `19470`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 83 Outcome (2026-02-24)
 
@@ -3070,7 +3070,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `135 -> 134`
     - duplicated lines: `2225 -> 2218`
@@ -3086,11 +3086,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `134`, duplicated lines `2218`, duplicated tokens `19383`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 85 Outcome (2026-02-24)
 
@@ -3105,7 +3105,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `134 -> 131`
     - duplicated lines: `2218 -> 2199`
@@ -3122,7 +3122,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `131 -> 131`
     - duplicated lines: `2199 -> 2197`
@@ -3138,11 +3138,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `131`, duplicated lines `2197`, duplicated tokens `19154`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 88 Outcome (2026-02-24)
 
@@ -3156,7 +3156,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `131 -> 129`
     - duplicated lines: `2197 -> 2168`
@@ -3172,11 +3172,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `129`, duplicated lines `2168`, duplicated tokens `18971`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 90 Outcome (2026-02-24)
 
@@ -3189,7 +3189,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `129 -> 128`
     - duplicated lines: `2168 -> 2147`
@@ -3206,7 +3206,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `128 -> 127`
     - duplicated lines: `2147 -> 2138`
@@ -3222,11 +3222,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `127`, duplicated lines `2138`, duplicated tokens `18728`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 93 Outcome (2026-02-24)
 
@@ -3239,7 +3239,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `127 -> 126`
     - duplicated lines: `2138 -> 2125`
@@ -3257,7 +3257,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `126 -> 126`
     - duplicated lines: `2125 -> 2125`
@@ -3275,7 +3275,7 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
-  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - jscpd snapshot deltas:
     - clones: `126 -> 126`
     - duplicated lines: `2125 -> 2125`
@@ -3291,11 +3291,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `126`, duplicated lines `2125`, duplicated tokens `18624`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 97 Outcome (2026-02-24)
 
@@ -3307,11 +3307,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `124`, duplicated lines `2088`, duplicated tokens `18383`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 98 Outcome (2026-02-24)
 
@@ -3323,11 +3323,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `123`, duplicated lines `2072`, duplicated tokens `18286`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 99 Outcome (2026-02-24)
 
@@ -3339,11 +3339,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `122`, duplicated lines `2065`, duplicated tokens `18203`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 100 Outcome (2026-02-24)
 
@@ -3355,11 +3355,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `122`, duplicated lines `2066`, duplicated tokens `18196`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 101 Outcome (2026-02-24)
 
@@ -3371,11 +3371,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `120`, duplicated lines `2049`, duplicated tokens `18034`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 102 Outcome (2026-02-24)
 
@@ -3387,11 +3387,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `119`, duplicated lines `2044`, duplicated tokens `17942`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 103 Outcome (2026-02-24)
 
@@ -3403,11 +3403,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `118`, duplicated lines `2029`, duplicated tokens `17819`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 104 Outcome (2026-02-24)
 
@@ -3419,11 +3419,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `115`, duplicated lines `1978`, duplicated tokens `17398`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 105 Outcome (2026-02-24)
 
@@ -3435,11 +3435,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `114`, duplicated lines `1968`, duplicated tokens `17314`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 106 Outcome (2026-02-24)
 
@@ -3451,11 +3451,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `113`, duplicated lines `1958`, duplicated tokens `17233`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 107 Outcome (2026-02-24)
 
@@ -3467,11 +3467,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `111`, duplicated lines `1937`, duplicated tokens `17071`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 108 Outcome (2026-02-24)
 
@@ -3483,11 +3483,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `111`, duplicated lines `1937`, duplicated tokens `17071`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 109 Outcome (2026-02-24)
 
@@ -3499,11 +3499,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `111`, duplicated lines `1937`, duplicated tokens `17071`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 110 Outcome (2026-02-24)
 
@@ -3515,11 +3515,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `110`, duplicated lines `1926`, duplicated tokens `16975`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 111 Outcome (2026-02-24)
 
@@ -3531,11 +3531,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `107`, duplicated lines `1867`, duplicated tokens `16537`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 112 Outcome (2026-02-24)
 
@@ -3547,11 +3547,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `105`, duplicated lines `1829`, duplicated tokens `16261`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 113 Outcome (2026-02-24)
 
@@ -3563,11 +3563,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `105`, duplicated lines `1829`, duplicated tokens `16261`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 114 Outcome (2026-02-24)
 
@@ -3579,11 +3579,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `105`, duplicated lines `1829`, duplicated tokens `16261`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 115 Outcome (2026-02-24)
 
@@ -3595,11 +3595,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `105`, duplicated lines `1829`, duplicated tokens `16261`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 116 Outcome (2026-02-24)
 
@@ -3611,11 +3611,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `105`, duplicated lines `1829`, duplicated tokens `16261`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 117 Outcome (2026-02-24)
 
@@ -3627,11 +3627,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `105`, duplicated lines `1829`, duplicated tokens `16261`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 118 Outcome (2026-02-24)
 
@@ -3643,11 +3643,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `105`, duplicated lines `1829`, duplicated tokens `16261`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 119 Outcome (2026-02-24)
 
@@ -3659,11 +3659,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `101`, duplicated lines `1766`, duplicated tokens `15819`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 120 Outcome (2026-02-24)
 
@@ -3675,11 +3675,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `99`, duplicated lines `1746`, duplicated tokens `15659`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 121 Outcome (2026-02-24)
 
@@ -3691,11 +3691,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `95`, duplicated lines `1712`, duplicated tokens `15334`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 122 Outcome (2026-02-24)
 
@@ -3707,11 +3707,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `93`, duplicated lines `1680`, duplicated tokens `15133`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 123 Outcome (2026-02-24)
 
@@ -3723,11 +3723,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `91`, duplicated lines `1654`, duplicated tokens `14952`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 124 Outcome (2026-02-24)
 
@@ -3739,11 +3739,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `89`, duplicated lines `1624`, duplicated tokens `14768`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 125 Outcome (2026-02-24)
 
@@ -3755,11 +3755,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `88`, duplicated lines `1602`, duplicated tokens `14664`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 126 Outcome (2026-02-24)
 
@@ -3771,11 +3771,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `86`, duplicated lines `1577`, duplicated tokens `14456`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 127 Outcome (2026-02-24)
 
@@ -3787,11 +3787,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `72`, duplicated lines `1416`, duplicated tokens `13009`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 128 Outcome (2026-02-24)
 
@@ -3803,11 +3803,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `71`, duplicated lines `1410`, duplicated tokens `12927`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 129 Outcome (2026-02-24)
 
@@ -3819,11 +3819,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `68`, duplicated lines `1367`, duplicated tokens `12626`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 130 Outcome (2026-02-24)
 
@@ -3835,11 +3835,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `66`, duplicated lines `1330`, duplicated tokens `12368`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 131 Outcome (2026-02-24)
 
@@ -3851,11 +3851,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `66`, duplicated lines `1330`, duplicated tokens `12368`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
 
 ## Phase 132 Outcome (2026-02-24)
 
@@ -3867,11 +3867,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `65`, duplicated lines `1322`, duplicated tokens `12275`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 458 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 458 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 133 Outcome (2026-02-24)
 
@@ -3883,11 +3883,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `64`, duplicated lines `1308`, duplicated tokens `12136`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 460 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 460 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 134 Outcome (2026-02-24)
 
@@ -3899,11 +3899,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `64`, duplicated lines `1308`, duplicated tokens `12136`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 460 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 460 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 135 Outcome (2026-02-24)
 
@@ -3915,11 +3915,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `63`, duplicated lines `1284`, duplicated tokens `11945`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 136 Outcome (2026-02-24)
 
@@ -3931,11 +3931,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `62`, duplicated lines `1274`, duplicated tokens `11854`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 137 Outcome (2026-02-24)
 
@@ -3947,11 +3947,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `62`, duplicated lines `1274`, duplicated tokens `11854`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 138 Outcome (2026-02-24)
 
@@ -3963,11 +3963,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `62`, duplicated lines `1274`, duplicated tokens `11854`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 139 Outcome (2026-02-24)
 
@@ -3979,11 +3979,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `59`, duplicated lines `1247`, duplicated tokens `11584`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 966 tests)
+    - `bin/windie test backend` (pass; 966 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 140 Outcome (2026-02-24)
 
@@ -3995,11 +3995,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `59`, duplicated lines `1233`, duplicated tokens `11501`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 968 tests)
+    - `bin/windie test backend` (pass; 968 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 141 Outcome (2026-02-24)
 
@@ -4011,11 +4011,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `47`, duplicated lines `1013`, duplicated tokens `9736`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 973 tests)
+    - `bin/windie test backend` (pass; 973 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 142 Outcome (2026-02-24)
 
@@ -4027,11 +4027,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `47`, duplicated lines `1027`, duplicated tokens `9819`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 974 tests)
+    - `bin/windie test backend` (pass; 974 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 143 Outcome (2026-02-24)
 
@@ -4043,11 +4043,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `42`, duplicated lines `959`, duplicated tokens `9194`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 975 tests)
+    - `bin/windie test backend` (pass; 975 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 144 Outcome (2026-02-24)
 
@@ -4059,11 +4059,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `40`, duplicated lines `932`, duplicated tokens `8957`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 975 tests)
+    - `bin/windie test backend` (pass; 975 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 145 Outcome (2026-02-24)
 
@@ -4075,11 +4075,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `40`, duplicated lines `932`, duplicated tokens `8957`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 978 tests)
+    - `bin/windie test backend` (pass; 978 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 146 Outcome (2026-02-24)
 
@@ -4091,11 +4091,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `44`, duplicated lines `866`, duplicated tokens `8536`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 980 tests)
+    - `bin/windie test backend` (pass; 980 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 147 Outcome (2026-02-24)
 
@@ -4107,11 +4107,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `42`, duplicated lines `832`, duplicated tokens `8273`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 982 tests)
+    - `bin/windie test backend` (pass; 982 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 469 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 469 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 148 Outcome (2026-02-24)
 
@@ -4123,11 +4123,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `33`, duplicated lines `721`, duplicated tokens `7109`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 982 tests)
+    - `bin/windie test backend` (pass; 982 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 485 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 485 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 149 Outcome (2026-02-24)
 
@@ -4139,11 +4139,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `33`, duplicated lines `721`, duplicated tokens `7109`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 982 tests)
+    - `bin/windie test backend` (pass; 982 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 488 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 488 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 150 Outcome (2026-02-24)
 
@@ -4155,11 +4155,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `30`, duplicated lines `658`, duplicated tokens `6759`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 982 tests)
+    - `bin/windie test backend` (pass; 982 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 498 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 498 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 151 Outcome (2026-02-24)
 
@@ -4171,11 +4171,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `29`, duplicated lines `651`, duplicated tokens `6661`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+    - `bin/windie test frontend` (pass; 92 suites, 607 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 983 tests)
+    - `bin/windie test backend` (pass; 983 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 498 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 498 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 152 Outcome (2026-02-24)
 
@@ -4204,11 +4204,11 @@ read_when:
   - duplication audit:
     - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `29`, duplicated lines `553`, duplicated tokens `5375`)
   - frontend tests:
-    - `cd frontend && npm run test:ci` (pass; 94 suites, 616 tests)
+    - `bin/windie test frontend` (pass; 94 suites, 616 tests)
   - backend tests:
-    - `./scripts/test-backend` (pass; 1010 tests)
+    - `bin/windie test backend` (pass; 1010 tests)
   - sidecar tests:
-    - `./scripts/test-sidecar` (pass; 500 tests, 4 skipped, 3 known swig deprecation warnings)
+    - `bin/windie test sidecar` (pass; 500 tests, 4 skipped, 3 known swig deprecation warnings)
 
 ## Phase 153 Outcome (2026-02-24)
 
@@ -4220,7 +4220,7 @@ read_when:
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run lint:audit` (pass)
 - Full-gate validation:
-  - `./scripts/test` (pass)
+  - `bin/windie test all` (pass)
     - backend: `1010 passed`
     - sidecar: `500 passed, 4 skipped`
     - frontend: `94 suites`, `616 tests`
@@ -4252,7 +4252,7 @@ read_when:
     - javascript duplicates reduced (`30 -> 15` lines)
     - jsx duplicates reduced (`19 -> 14` lines)
 - Full-gate validation:
-  - `./scripts/test` (pass)
+  - `bin/windie test all` (pass)
     - backend: `1012 passed`
     - sidecar: `500 passed, 4 skipped`
     - frontend: `94 suites`, `629 tests`
@@ -4271,7 +4271,7 @@ read_when:
 - Audit deltas:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `31`, duplicated lines `564`, duplicated tokens `5485`)
-  - `cd frontend && npm run test:ci -- --json --outputFile ../.audit/plan1/jest-report.json` (pass; `95` suites, `629` tests)
+  - `bin/windie test frontend -- --json --outputFile ../.audit/plan1/jest-report.json` (pass; `95` suites, `629` tests)
 - Slow-test check:
   - top suite remains tool-ghost behavior (`ChatBoxResponse.toolGhost.test.jsx`, ~`941ms`), now isolated from non-ghost state assertions for targeted follow-up optimization.
 
@@ -4298,7 +4298,7 @@ read_when:
     - `tests/frontend/useLatestRef.test.ts`
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/useLatestRef.test.ts tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass)
+  - `bin/windie test frontend -- tests/frontend/useLatestRef.test.ts tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass)
 
 ## Phase 158 Outcome (2026-02-25)
 
@@ -4311,7 +4311,7 @@ read_when:
     - `ToolRunnerHook.events.test.ts` reduced `460` -> `311` LOC.
     - stale-turn guard behaviors now isolated in one dedicated suite (`172` LOC).
 - Validation:
-  - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.turnGuards.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
+  - `bin/windie test frontend -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.turnGuards.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; snapshot totals unchanged at clones `29`, duplicated lines `550`, duplicated tokens `5347`)
 
@@ -4325,7 +4325,7 @@ read_when:
   - added explicit stable-ref dependencies in callbacks/effects to satisfy strict hooks lint rules.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/AppConfigProvider.models.test.tsx tests/frontend/AppConfigProvider.storageAndIpc.test.tsx tests/frontend/AppConfigContext.test.tsx` (pass)
+  - `bin/windie test frontend -- tests/frontend/AppProvider.test.tsx tests/frontend/AppConfigProvider.models.test.tsx tests/frontend/AppConfigProvider.storageAndIpc.test.tsx tests/frontend/AppConfigContext.test.tsx` (pass)
 
 ## Phase 160 Outcome (2026-02-25)
 
@@ -4337,7 +4337,7 @@ read_when:
   - added explicit ref dependencies to hook dependency arrays to satisfy strict lint rule configuration.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/useLatestRef.test.ts` (pass)
+  - `bin/windie test frontend -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/useLatestRef.test.ts` (pass)
 
 ## Phase 161 Outcome (2026-02-25)
 
@@ -4345,7 +4345,7 @@ read_when:
   - updated `tests/frontend/ToolGhostPreview.test.js` fallback test to assert behavior/shape instead of duplicating full preview object literal.
   - removed the last frontend javascript clone reported between test and `toolGhostPreview.js`.
 - Validation:
-  - `cd frontend && npm run test:ci -- tests/frontend/ToolGhostPreview.test.js` (pass)
+  - `bin/windie test frontend -- tests/frontend/ToolGhostPreview.test.js` (pass)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `28`, duplicated lines `535`, duplicated tokens `5248`; javascript clone bucket now `0`)
 
@@ -4360,7 +4360,7 @@ read_when:
     - reduced `index.cjs` inline IPC branch size and isolated tricky fullscreen/visibility control flow for targeted maintenance.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
+  - `bin/windie test frontend -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
 
 ## Phase 163 Outcome (2026-02-25)
 
@@ -4373,7 +4373,7 @@ read_when:
     - reduced main-process IPC branch size in `index.cjs`, making resize path easier to test and maintain.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
+  - `bin/windie test frontend -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
 
 ## Phase 164 Outcome (2026-02-25)
 
@@ -4390,13 +4390,13 @@ read_when:
     - reduced inline main-process event-branch complexity and locked move/resize helper behavior with direct unit coverage.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
+  - `bin/windie test frontend -- tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
 
 ## Phase 165 Outcome (2026-02-25)
 
 - Full-gate revalidation after main-process overlay handler extraction wave:
   - full gate:
-    - `./scripts/test` (pass)
+    - `bin/windie test all` (pass)
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `98 suites`, `638 tests` passed
@@ -4413,7 +4413,7 @@ read_when:
     - unavailable-window and fullscreen/resize failure message paths
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+  - `bin/windie test frontend -- tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
 
 ## Phase 167 Outcome (2026-02-25)
 
@@ -4432,13 +4432,13 @@ read_when:
     - reduced `index.cjs` size and isolated window-control availability/toggle behavior for direct unit coverage.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
+  - `bin/windie test frontend -- tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
 
 ## Phase 168 Outcome (2026-02-25)
 
 - Full-gate revalidation after overlay + main-window handler extraction/test coverage wave:
   - full gate:
-    - `./scripts/test` (pass)
+    - `bin/windie test all` (pass)
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `100 suites`, `654 tests` passed
@@ -4457,7 +4457,7 @@ read_when:
     - reduced inline overlay IPC branch complexity and isolated mouse-ignore behavior behind direct unit coverage.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` (pass)
+  - `bin/windie test frontend -- tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` (pass)
 
 ## Phase 170 Outcome (2026-02-25)
 
@@ -4473,13 +4473,13 @@ read_when:
     - reduced main-process IPC mapping boilerplate in `index.cjs` and locked display payload shape with direct unit coverage.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+  - `bin/windie test frontend -- tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
 
 ## Phase 171 Outcome (2026-02-25)
 
 - Full-gate revalidation after overlay/main-window/display handler extraction wave:
   - full gate:
-    - `./scripts/test` (pass)
+    - `bin/windie test all` (pass)
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `102 suites`, `661 tests` passed
@@ -4504,7 +4504,7 @@ read_when:
     - further reduced main-process IPC branch logic in `index.cjs` and locked visibility behavior with direct unit coverage.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+  - `bin/windie test frontend -- tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
 
 ## Phase 173 Outcome (2026-02-25)
 
@@ -4522,13 +4522,13 @@ read_when:
     - removed duplicate registration branches and centralized overlay renderer-window registration behavior.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+  - `bin/windie test frontend -- tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
 
 ## Phase 174 Outcome (2026-02-25)
 
 - Full-gate revalidation after visibility/overlay-registration dedupe wave:
   - full gate:
-    - `./scripts/test` (pass)
+    - `bin/windie test all` (pass)
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `104 suites`, `668 tests` passed
@@ -4550,7 +4550,7 @@ read_when:
     - removed a high-branch control-flow block from `index.cjs` and locked overlay phase behavior with direct unit coverage.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+  - `bin/windie test frontend -- tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
 
 ## Phase 176 Outcome (2026-02-25)
 
@@ -4571,13 +4571,13 @@ read_when:
     - reduced stateful window-manager logic in `index.cjs` and locked focus-tracker behavior with direct unit coverage.
 - Validation:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/ExternalFocusTracker.test.cjs tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
+  - `bin/windie test frontend -- tests/frontend/ExternalFocusTracker.test.cjs tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
 
 ## Phase 177 Outcome (2026-02-25)
 
 - Full-gate revalidation after response-phase and external-focus tracker extractions:
   - full gate:
-    - `./scripts/test` (pass)
+    - `bin/windie test all` (pass)
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `106 suites`, `683 tests` passed
@@ -4606,7 +4606,7 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run lint:audit` (pass)
-  - `cd frontend && npm run test:ci` (pass, `107` suites / `688` tests)
+  - `bin/windie test frontend` (pass, `107` suites / `688` tests)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; `28` total clones, javascript `0`)
 
@@ -5142,8 +5142,8 @@ read_when:
     - `deprecation/deprecation`: clean
 - Validation:
   - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStream/chatStreamTransparency.ts` (pass)
-  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamTransparency.test.ts` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx` (pass)
+  - `bin/windie test frontend -- ../tests/frontend/ChatStreamTransparency.test.ts` (pass)
+  - `bin/windie test frontend -- tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx` (pass)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
@@ -5182,7 +5182,7 @@ read_when:
     - `deprecation/deprecation`: clean
 - Validation:
   - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatInterface.jsx src/renderer/features/chat/utils/chatModelOptions.js` (pass)
-  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatModelOptions.test.js ../tests/frontend/ChatInterfaceWiring.test.jsx ../tests/frontend/ToolExecutionService.test.ts` (pass)
+  - `bin/windie test frontend -- ../tests/frontend/ChatModelOptions.test.js ../tests/frontend/ChatInterfaceWiring.test.jsx ../tests/frontend/ToolExecutionService.test.ts` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
   - `cd frontend && npm run lint:audit` (pass)
@@ -5222,7 +5222,7 @@ read_when:
     - `deprecation/deprecation`: clean
 - Validation:
   - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts` (pass)
-  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamEventRuntime.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatGptDashboardShell.test.jsx` (pass)
+  - `bin/windie test frontend -- ../tests/frontend/ChatStreamEventRuntime.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatGptDashboardShell.test.jsx` (pass)
   - `cd frontend && NODE_OPTIONS=--no-deprecation npx jest --config jest.config.cjs --runInBand --json --outputFile ../.audit/plan1/jest-report-current.json` (pass; 184 suites)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
@@ -5262,9 +5262,9 @@ read_when:
     - `deprecation/deprecation`: clean
 - Validation:
   - `cd frontend && npm run lint -- src/renderer/infrastructure/transcript/TranscriptWriter.ts src/renderer/infrastructure/transcript/transparencyNormalization.ts src/renderer/infrastructure/transcript/sessionSyncPayload.ts` (pass)
-  - `cd frontend && npm run test:ci -- ../tests/frontend/TranscriptWriter.userAssistant.test.ts ../tests/frontend/TranscriptWriter.session.test.ts ../tests/frontend/TranscriptTransparencyNormalization.test.ts ../tests/frontend/TranscriptSessionSyncPayload.test.ts` (pass)
-  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatGptDashboardShell.test.jsx ../tests/frontend/ChatStreamEventRuntime.test.ts` (pass)
-  - `cd frontend && npm run test:ci` (pass; 186 suites / 1213 tests)
+  - `bin/windie test frontend -- ../tests/frontend/TranscriptWriter.userAssistant.test.ts ../tests/frontend/TranscriptWriter.session.test.ts ../tests/frontend/TranscriptTransparencyNormalization.test.ts ../tests/frontend/TranscriptSessionSyncPayload.test.ts` (pass)
+  - `bin/windie test frontend -- ../tests/frontend/ChatGptDashboardShell.test.jsx ../tests/frontend/ChatStreamEventRuntime.test.ts` (pass)
+  - `bin/windie test frontend` (pass; 186 suites / 1213 tests)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
@@ -5301,7 +5301,7 @@ read_when:
     - `deprecation/deprecation`: clean
 - Validation:
   - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useToolRunner.ts src/renderer/features/chat/utils/toolRunner/toolRunnerEventGuards.ts src/renderer/features/chat/utils/toolRunner/toolRunnerExecutionState.ts` (pass)
-  - `cd frontend && npm run test:ci -- ../tests/frontend/ToolRunnerHook.turnGuards.test.ts ../tests/frontend/ToolRunnerHook.events.test.ts ../tests/frontend/ToolRunnerExecutionState.test.ts ../tests/frontend/ChatInterfaceWiring.test.jsx` (pass)
+  - `bin/windie test frontend -- ../tests/frontend/ToolRunnerHook.turnGuards.test.ts ../tests/frontend/ToolRunnerHook.events.test.ts ../tests/frontend/ToolRunnerExecutionState.test.ts ../tests/frontend/ChatInterfaceWiring.test.jsx` (pass)
   - `cd frontend && NODE_OPTIONS=--no-deprecation npx jest --config jest.config.cjs --runInBand --json --outputFile ../.audit/plan1/jest-report-current.json` (pass; 187 suites / 1217 tests)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
@@ -5336,7 +5336,7 @@ read_when:
     - `deprecation/deprecation`: clean
 - Validation:
   - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatMessageSender.ts src/renderer/features/chat/utils/chatMessageSenderPayloads.ts` (pass)
-  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatMessageSender.test.tsx ../tests/frontend/ChatMessageSenderPayloads.test.ts ../tests/frontend/ChatMessageSenderUtils.test.ts` (pass)
+  - `bin/windie test frontend -- ../tests/frontend/ChatMessageSender.test.tsx ../tests/frontend/ChatMessageSenderPayloads.test.ts ../tests/frontend/ChatMessageSenderUtils.test.ts` (pass)
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
@@ -5359,7 +5359,7 @@ read_when:
   - backend API routes `jscpd`: `0` clones
   - remaining combined `jscpd` hits are only in the separate in-progress backend reasoning provider work and were intentionally left out of this refactor slice
 - Validation:
-  - `cd frontend && npm run test:ci -- ../tests/frontend/WindowSuppressionRuntime.test.cjs ../tests/frontend/WindowVisibilityRuntime.test.cjs ../tests/frontend/OverlayVisibilityHandler.test.cjs ../tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
+  - `bin/windie test frontend -- ../tests/frontend/WindowSuppressionRuntime.test.cjs ../tests/frontend/WindowVisibilityRuntime.test.cjs ../tests/frontend/OverlayVisibilityHandler.test.cjs ../tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
   - `cd frontend && npm run lint -- src/main/window_visibility_runtime.cjs src/main/window_suppression_runtime.cjs`
   - `cd frontend && npm run audit:jscpd`
   - `cd frontend && npm run audit:knip`

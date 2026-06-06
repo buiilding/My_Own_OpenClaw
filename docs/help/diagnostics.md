@@ -26,11 +26,11 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 ## Useful Commands
 
 ```bash
-./bin/docs-list
+bin/windie docs list
 git status --short --branch
-./scripts/test-backend
-./scripts/test-sidecar
-cd frontend && npm run test:ci
+bin/windie test backend
+bin/windie test sidecar
+bin/windie test frontend
 cd frontend && npm run lint
 ```
 

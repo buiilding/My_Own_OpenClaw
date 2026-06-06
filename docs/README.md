@@ -40,8 +40,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, sidecar runtime bundling, reinstall/reset loops, and install troubleshooting
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
 - [**Release and Packaging Change Workflow**](operations/release_packaging_change_workflow.md) - Owner routing for Electron Builder targets, bundled sidecar runtime, local reinstall helpers, smoke checks, and release workflow behavior
-- [**Commands and Scripts**](cli/README.md) - Current developer commands, package scripts, cloudflared helpers, and planned CLI boundary
-- [**Command Matrix**](cli/command_matrix.md) - Repo scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers
+- [**Commands and Scripts**](cli/README.md) - Windie CLI command hub for developer, operator, docs, tests, packaging, backend, endpoint, and self-host workflows
+- [**Command Matrix**](cli/command_matrix.md) - Full `bin/windie` command surface and command groups
 - [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Sidecar runtime build, Electron package, smoke, reinstall, and release guardrail commands
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior
@@ -65,7 +65,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
 - [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and validation routing map
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
-- [**Canonical Docs Navigation**](docs.json) - Machine-readable local docs navigation map validated by `./bin/docs-list`
+- [**Canonical Docs Navigation**](docs.json) - Machine-readable local docs navigation map validated by `bin/windie docs list`
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local backend bridge
@@ -468,7 +468,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Commit and Changelog Workflow**](development/commit_and_changelog_workflow.md) - Commit scope, Conventional Commit subjects, changelog entries, and validation reporting
 - [**Validation Commands**](cli/validation_commands.md) - Command-focused validation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
 - [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
-- Developer Guide includes current local automation scripts (`bin/docs-list` or `node scripts/docs-list.js`, `scripts/test`, `scripts/test-backend`, `scripts/test-sidecar`, `scripts/committer`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
+- Developer Guide includes current Windie CLI automation (`bin/windie docs list`, `bin/windie test all`, `bin/windie test backend`, `bin/windie test sidecar`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
 - [**Dev Tool Selection**](development/dev_tool_selection.md) - Backend-only tool schema allow/denylist controls for development
 - [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
 - [**API Reference**](reference/api_reference.md) - Complete API documentation

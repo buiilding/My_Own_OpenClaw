@@ -80,7 +80,7 @@ effects, and renderer broadcasting.
 - `npm run test -- IpcMainSdkRuntimeBoundary ModularRefactorCompletionBoundary WindieSdkDesktopAgent IpcMainBridge.query IpcMainBridge.lifecycle WindieSdkClient --runInBand`
 - `npm run typecheck` in `frontend`
 - `npm run lint` in `frontend`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 
 The follow-up clean-startup slice also validated:

@@ -57,7 +57,7 @@ read_when:
 1. **Run from Correct Directory**:
    ```bash
    cd /path/to/WindieOS
-   ./scripts/run-backend
+   bin/windie start backend
    ```
 
 2. **Check PYTHONPATH**:
@@ -138,9 +138,9 @@ read_when:
    - Cause: `frontend/node_modules/electron` was installed on Linux/macOS, so the package contains `dist/electron` and `.so` files instead of `electron.exe`.
    - Fix: delete `frontend/node_modules` on Windows and run `npm install` again in `frontend`.
 
-5. **`docs-list` opens the Windows app chooser**:
-   - Cause: `bin/docs-list` is a Bash wrapper with no Windows executable extension.
-   - Fix: run `.\bin\docs-list.cmd` or `node .\scripts\docs-list.js`.
+5. **Docs listing fails from the wrong working directory**:
+   - Cause: `bin/windie docs list` must run from the repository root.
+   - Fix: `cd` to the WindieOS checkout and rerun `bin/windie docs list`.
 
 #### Electron Sandbox Error (Linux)
 
@@ -150,7 +150,7 @@ read_when:
 **Solutions**:
 1. **Disable Electron sandbox (local dev)**:
    ```bash
-   ELECTRON_DISABLE_SANDBOX=1 ./scripts/run-frontend-electron
+   ELECTRON_DISABLE_SANDBOX=1 bin/windie start desktop
    ```
 2. **Set chrome-sandbox permissions** (system-specific; may require root):
    - Ensure `node_modules/electron/dist/chrome-sandbox` is owned by root and mode `4755`
@@ -447,7 +447,7 @@ read_when:
 **Enable Debug Logging**:
 ```bash
 export DESKTOP_ASSISTANT_LOG_LEVEL=DEBUG
-./scripts/run-backend
+bin/windie start backend
 ```
 
 ### Common Error Messages

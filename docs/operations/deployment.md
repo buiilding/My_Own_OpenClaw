@@ -52,7 +52,7 @@ Supporting scripts in this repo:
 - `scripts/cloudflared/install-backend-user-service`
 - `scripts/cloudflared/setup-windieos-tunnel`
 - `scripts/cloudflared/bootstrap-windieos-host`
-- `scripts/deploy/update-remote-backend`
+- `bin/windie backend deploy --host <host>`
 
 For automatic backend refresh after pushes to `main`, use the GitHub Actions
 runbook:
@@ -67,14 +67,14 @@ runbook:
 - Linux: AppImage + deb + rpm.
 
 Current repo packaging entrypoints (run from `frontend/`):
-- `npm run package:win`
-- `npm run package:mac`
-- `npm run package:linux`
+- `bin/windie package win`
+- `bin/windie package mac`
+- `bin/windie package linux`
 
 Bundled sidecar-runtime packaging profile:
-- `npm run package:win:bundled-python`
-- `npm run package:mac:bundled-python`
-- `npm run package:linux:bundled-python`
+- `bin/windie package win:bundled-python`
+- `bin/windie package mac:bundled-python`
+- `bin/windie package linux:bundled-python`
 - These use the bundled Python sidecar runtime with system-browser-first packaging.
 - runtime build guide: `docs/operations/sidecar_runtime_packaging.md`
 

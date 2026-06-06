@@ -416,7 +416,7 @@ it adds the product-feature guardrails those plans need.
   providers, permissions, SDK, extensions, artifacts, or VM runs can name the
   focused feature-preservation tests it ran.
 
-  Validation: `./bin/docs-list`, focused tests named by the changed feature,
+  Validation: `bin/windie docs list`, focused tests named by the changed feature,
   and `git diff --check`.
 
 ## Do Not Lose These Boundaries
@@ -437,7 +437,7 @@ it adds the product-feature guardrails those plans need.
 
 ## Baseline Validation Commands
 
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 - `cd frontend && npm run test -- ChatBoxOverlayMouseIgnore ChatBoxResponse ChatInterfaceWiring ConversationSessionRuntime DesktopChatStreamIngressRuntime --runInBand`
 - `cd frontend && npm run test -- ChatMessageSender ConversationReplayActions DesktopLiveTurnRuntimeClient DesktopSettingsRuntimeClient --runInBand`

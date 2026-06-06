@@ -14,7 +14,7 @@ WindieOS does not currently have one canonical `doctor` command. Use this checkl
 
 ```bash
 git status --short --branch
-./bin/docs-list
+bin/windie docs list
 node --version
 python --version
 ```
@@ -57,15 +57,15 @@ Frontend:
 ```bash
 cd frontend
 npm install
-npm run electron:dev
+bin/windie start desktop
 ```
 
 Focused tests:
 
 ```bash
-./scripts/test-backend
-./scripts/test-sidecar
-cd frontend && npm run test:ci
+bin/windie test backend
+bin/windie test sidecar
+bin/windie test frontend
 ```
 
 ## Sidecar
@@ -74,7 +74,7 @@ Use debug logging only while collecting evidence:
 
 ```bash
 cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG npm run electron:dev
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
 ```
 
 Confirm:

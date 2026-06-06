@@ -14,11 +14,11 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 
 | Scope | Command |
 | --- | --- |
-| docs listing/front matter | `./bin/docs-list` or `node scripts/docs-list.js` |
-| all Python backend tests | `./scripts/test-backend` |
-| all Python sidecar tests | `./scripts/test-sidecar` |
-| backend + sidecar + frontend CI tests when `frontend/node_modules` exists | `./scripts/test` |
-| frontend Jest CI | `cd frontend && npm run test:ci` |
+| docs listing/front matter | `bin/windie docs list` |
+| all Python backend tests | `bin/windie test backend` |
+| all Python sidecar tests | `bin/windie test sidecar` |
+| backend + sidecar + frontend CI tests when `frontend/node_modules` exists | `bin/windie test all` |
+| frontend Jest CI | `bin/windie test frontend` |
 | frontend typecheck | `cd frontend && npm run typecheck` |
 | frontend lint | `cd frontend && npm run lint` |
 | frontend React/deprecation audit | `cd frontend && npm run lint:audit` |
@@ -30,17 +30,17 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 
 | Change | First command | Widen when |
 | --- | --- | --- |
-| backend route/handler/schema | `./scripts/python-in-env backend python -m pytest tests/backend/<focused_test>.py` | run `./scripts/test-backend` for shared API or session behavior |
-| backend agent loop/history/tool processing | focused backend test under `tests/backend` | run `./scripts/test-backend` for loop or history contract changes |
-| LLM provider/model catalog | focused provider/model tests under `tests/backend` | run backend provider/model suite and docs-list |
-| sidecar tool | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/<focused_test>.py` | run `./scripts/test-sidecar` for registry or shared result changes |
-| frontend renderer state/UI | `cd frontend && npm run test:ci -- <test_file>` | run `cd frontend && npm run lint && npm run test:ci` for broader UI changes |
-| Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `cd frontend && npm run test:ci` for shared bridge changes |
+| backend route/handler/schema | `./scripts/python-in-env backend python -m pytest tests/backend/<focused_test>.py` | run `bin/windie test backend` for shared API or session behavior |
+| backend agent loop/history/tool processing | focused backend test under `tests/backend` | run `bin/windie test backend` for loop or history contract changes |
+| LLM provider/model catalog | focused provider/model tests under `tests/backend` | run backend provider/model suite and `bin/windie docs list` |
+| sidecar tool | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/<focused_test>.py` | run `bin/windie test sidecar` for registry or shared result changes |
+| frontend renderer state/UI | `bin/windie test frontend -- <test_file>` | run `cd frontend && npm run lint && bin/windie test frontend` for broader UI changes |
+| Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `bin/windie test frontend` for shared bridge changes |
 | transcript/replay | focused transcript tests | include backend rehydrate/history tests when backend replay shape changes |
 | tool schema/result contract | backend schema/policy tests plus SDK runtime/router and sidecar parity tests | add renderer projection tests when visible UI rows change |
 | browser runtime | backend browser schema tests plus sidecar browser tests | include browser UI/session tests when renderer controls change |
-| docs-only | `./bin/docs-list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
-| packaging/reinstall | docs-list plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |
+| docs-only | `bin/windie docs list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
+| packaging/reinstall | `bin/windie docs list` plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |
 | runtime config/env vars | focused backend/frontend/sidecar config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
 
 ## Common Focused Test Paths
@@ -81,15 +81,15 @@ Frontend:
 
 Use the target OS:
 
-- macOS package: `cd frontend && npm run package:mac`
-- Windows package: `cd frontend && npm run package:win`
-- Linux package: `cd frontend && npm run package:linux`
+- macOS package: `cd frontend && bin/windie package mac`
+- Windows package: `cd frontend && bin/windie package win`
+- Linux package: `cd frontend && bin/windie package linux`
 
 Local reinstall helpers:
 
-- macOS: `./scripts/reinstall-windieos-macos.sh`
-- Windows: `.\scripts\reinstall-windieos-windows.ps1`
-- Linux: `./scripts/reinstall-windieos-linux.sh`
+- macOS: `bin/windie reinstall mac`
+- Windows: `bin/windie reinstall win`
+- Linux: `bin/windie reinstall linux`
 
 CI smoke helpers:
 

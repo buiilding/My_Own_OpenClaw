@@ -271,7 +271,7 @@ Validation:
     `mockIpcListeners` initialization warning.
 - Passed: `cd frontend && npm run typecheck`
 - Passed: `cd frontend && npm run lint`
-- Passed: `./bin/docs-list`
+- Passed: `bin/windie docs list`
 - Passed: `git diff --check`
 
 ## Remaining Success Criteria

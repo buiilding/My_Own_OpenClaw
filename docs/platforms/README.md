@@ -28,7 +28,7 @@ WindieOS platform docs cover behavior that differs across macOS, Windows, and Li
 - Permission services: `frontend/src/main/permission_service*.cjs`
 - Sidecar platform adapters: `frontend/src/main/python/core/platform/*`
 - Computer tools: `frontend/src/main/python/tools/computer/*`
-- Packaging scripts: `scripts/reinstall-windieos-*.sh`, `scripts/reinstall-windieos-windows.ps1`
+- Packaging scripts: `bin/windie reinstall <platform>.sh`, `bin/windie reinstall win`
 - CI smoke helpers: `scripts/ci/*`
 
 ## Cross-Platform Rule

@@ -140,7 +140,7 @@ Tool events are both UI state and SDK runtime execution requests.
 | renderer stream state/terminal behavior | focused `ChatStream*`, `StreamPhaseState`, and terminal handoff tests |
 | tool event changes | backend tool formatter/result tests plus frontend `ToolRunner` and `ToolExecution` tests |
 | audio event changes | backend TTS tests plus `cd frontend && npm run test -- BackendAudioEvents` |
-| docs-only event workflow | `./bin/docs-list`, `git diff --check`, focused Markdown link check |
+| docs-only event workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
 
 ## Review Checklist
 

@@ -48,7 +48,7 @@ WindieOS/
 │   └── sdk/                       # SDK runtime, transport, projection, store tests
 ├── docs/                          # agent-facing docs, runtime maps, workflows, references
 ├── scripts/                       # test wrappers, environment launchers, commit helper
-├── bin/                           # generated or wrapper commands such as docs-list
+├── bin/                           # repo-root command wrappers such as windie
 ├── plugins/                       # WindieOS extension/plugin examples and contracts
 ├── skills/                        # WindieOS skill prompt layers
 ├── mcps/                          # MCP server docs/config examples
@@ -189,7 +189,7 @@ Key entry points:
 For deeper source maps, start with `docs/getting-started/docs_hub.md`,
 `docs/reference/code_change_surface_index.md`,
 `docs/architecture/runtime_boundary_matrix.md`, and the subsystem docs listed by
-`docs-list`.
+`bin/windie docs list`.
 
 ## SDK Architecture
 

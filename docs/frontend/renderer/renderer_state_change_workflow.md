@@ -115,7 +115,7 @@ For UI-only changes:
 | Dashboard shell/sidebar | `cd frontend && npm run test -- Dashboard ChatGptDashboardShell` |
 | Settings/config provider | `cd frontend && npm run test -- Settings AppConfigProvider IpcSettingsSync` |
 | Transcript/replay | `cd frontend && npm run test -- Transcript StoredTranscript ConversationReplay` |
-| Docs-only renderer workflow updates | `./bin/docs-list`, `git diff --check`, focused Markdown link checks |
+| Docs-only renderer workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist
 

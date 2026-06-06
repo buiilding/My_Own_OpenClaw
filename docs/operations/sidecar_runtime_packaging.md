@@ -59,9 +59,9 @@ This creates:
 From `frontend/`:
 
 ```bash
-npm run package:win
-npm run package:mac
-npm run package:linux
+bin/windie package win
+bin/windie package mac
+bin/windie package linux
 ```
 
 Use only the command for the OS you are currently building on.

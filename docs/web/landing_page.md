@@ -59,7 +59,7 @@ npm run lint
 For content-only docs updates, run:
 
 ```bash
-./bin/docs-list
+bin/windie docs list
 ```
 
 ## Related Docs

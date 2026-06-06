@@ -57,4 +57,4 @@ When a security boundary changes, run the focused tests for that boundary:
 - credentials/config: config loader and provider credential tests
 - permissions/platform: renderer onboarding, main permission service, platform-specific tests
 
-Always run `./bin/docs-list` after docs updates.
+Always run `bin/windie docs list` after docs updates.

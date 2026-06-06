@@ -8,9 +8,9 @@ read_when:
 
 ## Getting Started
 
-1. Start the backend: `./scripts/run-backend`
-2. Start the frontend UI: `./scripts/run-frontend-dev`
-3. Launch Electron: `./scripts/run-frontend-electron`
+1. Start the backend: `bin/windie start backend`
+2. Start the frontend UI: `bin/windie start frontend`
+3. Launch Electron: `bin/windie start desktop`
 
 ## First-Run Onboarding
 

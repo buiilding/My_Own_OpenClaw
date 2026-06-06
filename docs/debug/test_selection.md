@@ -33,13 +33,13 @@ cd frontend && npm run lint
 | Backend tool schemas | `bin/windie test backend -- tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py -q` |
 | Backend OCR/vision | `bin/windie test backend -- tests/backend/test_ocr_service.py tests/backend/test_vision_service.py tests/backend/test_coordinate_scaling.py -q` |
 | Backend SDK routes | `bin/windie test backend -- tests/backend/test_sdk_routes.py tests/backend/test_sdk_helpers.py -q` |
-| Electron main IPC | `cd frontend && npm run test:ci -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
-| Overlay windows/phases | `cd frontend && npm run test:ci -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs SurfaceOrchestratorPhases.test.ts WindowVisibilityRuntime.test.cjs` |
-| Renderer chat stream | `cd frontend && npm run test:ci -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx` |
-| Renderer dashboard/settings | `cd frontend && npm run test:ci -- ChatGptDashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
-| Permissions/onboarding | `cd frontend && npm run test:ci -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx FrontendOnboardingSlideshow.test.jsx` |
-| Artifacts/screenshots | `cd frontend && npm run test:ci -- ArtifactUploader.test.ts ScreenshotAttachmentPipeline.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts` |
-| Voice/wakeword | `cd frontend && npm run test:ci -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
+| Electron main IPC | `bin/windie test frontend -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
+| Overlay windows/phases | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs SurfaceOrchestratorPhases.test.ts WindowVisibilityRuntime.test.cjs` |
+| Renderer chat stream | `bin/windie test frontend -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx` |
+| Renderer dashboard/settings | `bin/windie test frontend -- ChatGptDashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
+| Permissions/onboarding | `bin/windie test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx FrontendOnboardingSlideshow.test.jsx` |
+| Artifacts/screenshots | `bin/windie test frontend -- ArtifactUploader.test.ts ScreenshotAttachmentPipeline.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts` |
+| Voice/wakeword | `bin/windie test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
 | Sidecar protocol/tools | `bin/windie test sidecar -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
 | Sidecar filesystem/shell | `bin/windie test sidecar -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
 | Sidecar browser | `bin/windie test sidecar -- tests/sidecar/test_browser_registry.py tests/sidecar/test_browser_runtime_architecture.py -q` |
@@ -53,8 +53,8 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | --- | --- |
 | Backend model-facing tool schema and frontend executable tools | `bin/windie test backend -- tests/backend/test_remote_tool_contract.py -q` plus `bin/windie test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
 | Tool result envelope | `bin/windie test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `bin/windie test frontend -- ToolResultEnvelope.test.ts ToolResultContractParity.test.ts` |
-| Response overlay phase names | `cd frontend && npm run test:ci -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
-| Transcript/replay payloads | `cd frontend && npm run test:ci -- DesktopTranscriptProjectionRuntimeClient.test.ts DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts` |
+| Response overlay phase names | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
+| Transcript/replay payloads | `bin/windie test frontend -- DesktopTranscriptProjectionRuntimeClient.test.ts DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts` |
 | Artifact refs and URLs | `bin/windie test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `bin/windie test frontend -- ArtifactUploader.test.ts IpcArtifactFetch.test.cjs` |
 | SDK HTTP/trace helpers | `bin/windie test backend -- tests/backend/test_sdk_routes.py -q` plus `bin/windie test frontend -- WindieSdkClient.test.ts WindieSdkClientExports.test.ts` |
 

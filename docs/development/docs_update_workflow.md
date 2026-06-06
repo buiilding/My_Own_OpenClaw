@@ -1,5 +1,5 @@
 ---
-summary: "Docs update workflow for WindieOS agents, covering docs-list, read_when routing, hub updates, changelog entries, link checks, whitespace checks, and when docs-only changes need tests."
+summary: "Docs update workflow for WindieOS agents, covering docs listing, read_when routing, hub updates, changelog entries, link checks, whitespace checks, and when docs-only changes need tests."
 read_when:
   - When adding, moving, renaming, or expanding WindieOS documentation.
   - When behavior changes require docs updates across hubs, references, runbooks, and changelog entries.
@@ -14,13 +14,13 @@ Use this workflow for docs-only work and for implementation changes that require
 
 ```bash
 git status --short --branch
-./bin/docs-list
+bin/windie docs list
 ```
 
-If `./bin/docs-list` is unavailable:
+If `bin/windie docs list` is unavailable:
 
 ```bash
-node scripts/docs-list.js
+bin/windie docs list
 ```
 
 ## Choose The Doc Type
@@ -71,7 +71,7 @@ Do not add every deep implementation page to every hub. Add pages that materiall
 Run:
 
 ```bash
-./bin/docs-list
+bin/windie docs list
 git diff --check
 ```
 

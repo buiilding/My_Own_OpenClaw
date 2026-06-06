@@ -281,8 +281,8 @@ Validate:
 
 | Changed storage boundary | Minimum focused validation |
 | --- | --- |
-| SDK transcript writes/session storage | `cd frontend && npm run test:ci -- DesktopTranscriptProjectionRuntimeClient TranscriptStorage TranscriptPending TranscriptSession` |
-| Frontend config persistence | `cd frontend && npm run test:ci -- configStorage AppConfigPersistence AppConfigProvider` |
+| SDK transcript writes/session storage | `bin/windie test frontend -- DesktopTranscriptProjectionRuntimeClient TranscriptStorage TranscriptPending TranscriptSession` |
+| Frontend config persistence | `bin/windie test frontend -- configStorage AppConfigPersistence AppConfigProvider` |
 | Electron install auth state | focused frontend install-auth/IPC tests plus backend auth tests if contract changes |
 | Sidecar SQLite/memory schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py` |
 | Sidecar FAISS/vector mapping | sidecar local-store delete/search/init tests and corrupted-index coverage |
@@ -291,7 +291,7 @@ Validate:
 | Backend install-auth DB | `./scripts/python-in-env backend pytest tests/backend/test_install_auth.py` |
 | Backend tool/result caches | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_storage.py tests/backend/test_resolved_tool_call_storage.py tests/backend/test_cache_layer.py` |
 | VM run state | `./scripts/python-in-env backend pytest tests/backend/test_run_control_routes.py` |
-| Docs-only storage changes | `./bin/docs-list`, `git diff --check`, and a focused Markdown link check over touched docs |
+| Docs-only storage changes | `bin/windie docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 
 ## Review Checklist
 

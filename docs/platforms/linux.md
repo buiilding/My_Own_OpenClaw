@@ -17,7 +17,7 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 - Content protection runtime: `frontend/src/main/platform/content_protection/linux.cjs`
 - Sudo access handler: `frontend/src/main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md`
 - Package target: `frontend/package.json` `package:linux`
-- Reinstall helper: `scripts/reinstall-windieos-linux.sh`
+- Reinstall helper: `bin/windie reinstall linux`
 
 ## Rules
 

@@ -22,14 +22,14 @@ Enable the narrowest flag that proves which boundary broke. Do not leave verbose
 Example:
 
 ```sh
-LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose ./scripts/run-backend
+LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
 ```
 
 ## Electron Main and Renderer
 
 | Flag | Effect |
 | --- | --- |
-| `WINDIE_DEV_UI=1` | Enables developer UI/transparency paths; set by `npm run electron:dev`. |
+| `WINDIE_DEV_UI=1` | Enables developer UI/transparency paths; set by `bin/windie start desktop`. |
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation and main IPC stream logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables chat pill and response overlay trace logs. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
@@ -39,9 +39,9 @@ Examples:
 
 ```sh
 cd frontend
-WINDIE_DEBUG_STREAM_EVENTS=1 npm run electron:dev
-WINDIE_DEBUG_CHAT_PILL=1 npm run electron:dev
-WINDIE_DEBUG_TOOL_SCREENSHOT=1 npm run electron:dev
+WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
+WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
+WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 ```
 
 ## Sidecar

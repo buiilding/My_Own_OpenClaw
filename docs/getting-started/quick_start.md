@@ -74,13 +74,13 @@ export OPENAI_API_KEY="your-api-key"
 # Note: The backend can start without a key, but requests to that provider will fail.
 
 # Run the backend from the project root (auto-uses `jarvis` env if present)
-./scripts/run-backend
+bin/windie start backend
 ```
 
 **Terminal 2: Start the Frontend UI (Vite)**
 
 ```bash
-./scripts/run-frontend-dev
+bin/windie start frontend
 ```
 
 Windows PowerShell:
@@ -92,7 +92,7 @@ Windows PowerShell:
 **Terminal 3: Start the Frontend App (Electron)**
 
 ```bash
-./scripts/run-frontend-electron
+bin/windie start desktop
 ```
 
 Windows PowerShell:

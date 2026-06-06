@@ -16,14 +16,14 @@ For implementation routing, start with [Release and Packaging Change Workflow](.
 
 | Platform | Package command | Targets | Local reinstall helper | Smoke helper |
 | --- | --- | --- | --- | --- |
-| macOS | `cd frontend && npm run package:mac` | DMG, ZIP | `./scripts/reinstall-windieos-macos.sh` | `scripts/ci/smoke-macos-packages.sh` |
-| Windows | `cd frontend && npm run package:win` | NSIS installer | `.\scripts\reinstall-windieos-windows.ps1` | `scripts/ci/smoke-windows-packages.ps1` |
-| Linux | `cd frontend && npm run package:linux` | AppImage, DEB, RPM | `./scripts/reinstall-windieos-linux.sh` | `scripts/ci/smoke-linux-packages.sh` |
+| macOS | `bin/windie package mac` | DMG, ZIP | `bin/windie reinstall mac` | `scripts/ci/smoke-macos-packages.sh` |
+| Windows | `bin/windie package win` | NSIS installer | `bin/windie reinstall win` | `scripts/ci/smoke-windows-packages.ps1` |
+| Linux | `bin/windie package linux` | AppImage, DEB, RPM | `bin/windie reinstall linux` | `scripts/ci/smoke-linux-packages.sh` |
 
-All package commands run `npm run release:check` before producing distributable
-artifacts. `release:check` runs frontend typecheck, lint, and `test:ci`; only
-then do package commands run `npm run build:sidecar-runtime`, `npm run build`,
-and Electron Builder.
+All package commands run the frontend release check before producing
+distributable artifacts. That check runs frontend typecheck, lint, and tests;
+only then do package commands run `bin/windie build sidecar-runtime`,
+`bin/windie build frontend`, and Electron Builder.
 
 ## Bundled Runtime Rules
 
@@ -47,7 +47,7 @@ and Electron Builder.
 
 For platform packaging changes:
 
-1. Run `cd frontend && npm run build:sidecar-runtime`.
+1. Run `bin/windie build sidecar-runtime`.
 2. Run the platform package command on the target OS.
 3. Inspect package contents for `resources/python-runtime`.
 4. Launch the installed app, not only Electron dev.

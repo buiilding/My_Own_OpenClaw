@@ -16,11 +16,11 @@ Run from `frontend/`:
 
 | Command | Builds | Notes |
 | --- | --- | --- |
-| `npm run package` | Default Electron Builder targets for current OS | Runs `build:sidecar-runtime` and frontend build first |
-| `npm run package:mac` | macOS DMG and ZIP | Must run on macOS |
-| `npm run package:win` | Windows NSIS installer | Must run on Windows |
-| `npm run package:linux` | Linux AppImage, DEB, RPM | Must run on Linux |
-| `npm run build:sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime` |
+| `bin/windie package <platform>` | Electron Builder targets for the chosen OS | Runs sidecar-runtime and frontend builds first |
+| `bin/windie package mac` | macOS DMG and ZIP | Must run on macOS |
+| `bin/windie package win` | Windows NSIS installer | Must run on Windows |
+| `bin/windie package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
+| `bin/windie build sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime` |
 
 Compatibility aliases:
 
@@ -56,7 +56,7 @@ Runtime expectations:
 Command:
 
 ```bash
-./scripts/reinstall-windieos-macos.sh
+bin/windie reinstall mac
 ```
 
 What it does:
@@ -92,7 +92,7 @@ Useful overrides:
 Command:
 
 ```powershell
-.\scripts\reinstall-windieos-windows.ps1
+bin/windie reinstall win
 ```
 
 Options:
@@ -110,7 +110,7 @@ What it does:
 - Removes leftover install roots.
 - Resets local app state unless `-SkipDataReset` is set.
 - Cleans `dist`, `release`, `python-runtime`, and `python-runtime.tar.gz`.
-- Runs `npm run package:win:bundled-python`.
+- Runs `bin/windie package win:bundled-python`.
 - Installs the newest `*Setup*.exe` silently.
 - Launches the installed app unless `-SkipLaunch` is set.
 
@@ -126,7 +126,7 @@ Useful overrides:
 Command:
 
 ```bash
-./scripts/reinstall-windieos-linux.sh
+bin/windie reinstall linux
 ```
 
 What it does:
@@ -139,7 +139,7 @@ What it does:
 - Runs `sudo apt autoremove -y`.
 - Cleans `release`, `dist`, `python-runtime`, and `python-runtime.tar.gz`.
 - Runs `conda run -n frontend_jarvis npm ci`.
-- Runs `npm run package:linux`.
+- Runs `bin/windie package linux`.
 - Installs the newest `release/windieos_*_amd64.deb`.
 - Verifies bundled runtime Python and `_tkinter`.
 

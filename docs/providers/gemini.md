@@ -63,15 +63,15 @@ Gemini uses `StreamingToolCallAggregationMixin` because stream payloads can incl
 Focused backend tests:
 
 ```bash
-./scripts/test-backend tests/backend/test_gemini_provider.py tests/backend/test_models_config.py -q
-./scripts/test-backend tests/backend/test_llm_provider_utils.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
-./scripts/test-backend tests/backend/test_web_search_capabilities.py tests/backend/test_web_search_tool.py -q
+bin/windie test backend tests/backend/test_gemini_provider.py tests/backend/test_models_config.py -q
+bin/windie test backend tests/backend/test_llm_provider_utils.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
+bin/windie test backend tests/backend/test_web_search_capabilities.py tests/backend/test_web_search_tool.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-npm run test:ci -- ChatInterfaceWiring.test.jsx ModelThinkingCapabilities.test.ts ModelCardData.test.js MarkdownMessage.test.jsx
+bin/windie test frontend -- ChatInterfaceWiring.test.jsx ModelThinkingCapabilities.test.ts ModelCardData.test.js MarkdownMessage.test.jsx
 ```
 

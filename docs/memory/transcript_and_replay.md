@@ -102,8 +102,8 @@ Key files:
 
 ```bash
 cd frontend
-npm run test:ci -- DesktopTranscriptProjectionRuntimeClient.test.ts TranscriptPendingQueue.test.ts TranscriptPendingFlush.test.ts
-npm run test:ci -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationReplayActions.test.jsx
+bin/windie test frontend -- DesktopTranscriptProjectionRuntimeClient.test.ts TranscriptPendingQueue.test.ts TranscriptPendingFlush.test.ts
+bin/windie test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationReplayActions.test.jsx
 ```
 
 ## Change Workflow

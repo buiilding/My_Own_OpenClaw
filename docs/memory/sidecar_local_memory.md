@@ -56,6 +56,6 @@ Conversation title storage and listing belong in sidecar memory title runtime. H
 
 ```bash
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_memory_summarizer.py -q
-./scripts/test-sidecar tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_list_runtime.py tests/sidecar/test_conversation_title_runtime.py -q
-./scripts/test-sidecar tests/sidecar/test_remote_semantic_client.py -q
+bin/windie test sidecar tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_list_runtime.py tests/sidecar/test_conversation_title_runtime.py -q
+bin/windie test sidecar tests/sidecar/test_remote_semantic_client.py -q
 ```

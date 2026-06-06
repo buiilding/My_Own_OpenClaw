@@ -38,32 +38,29 @@ curl -fsSL http://127.0.0.1:8765/api/embeddings/health
 Frontend:
 
 ```bash
-cd frontend
-npm install
-npm run build
-npm run electron:dev
+(cd frontend && npm install)
+bin/windie build frontend
+bin/windie start desktop
 ```
 
 Sidecar:
 
 ```bash
-./scripts/test-sidecar
-cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG npm run electron:dev
+bin/windie test sidecar
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
 ```
 
 Packaging:
 
 ```bash
-cd frontend
-npm run build:sidecar-runtime
-npm run package
+bin/windie build sidecar-runtime
+bin/windie package mac
 ```
 
 Docs:
 
 ```bash
-./bin/docs-list
+bin/windie docs list
 ```
 
 ## When Source Works But Packaged Fails

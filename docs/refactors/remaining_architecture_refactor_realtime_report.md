@@ -67,7 +67,7 @@ Validation:
 
 - `./scripts/python-in-env backend pytest tests/backend/test_query_context_prompt_rendering.py tests/backend/test_query_execution_inputs.py tests/backend/test_websocket_message_handler.py tests/backend/test_api_handlers.py -q`
 - `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle IpcQueryRuntime QueryPayloadBuilder --runInBand`
-- `./bin/docs-list`
+- `bin/windie docs list`
 
 Skipped or failed validation:
 
@@ -128,7 +128,7 @@ Validation:
 - `cd frontend && npm run test -- RendererChatRuntimeBoundary --runInBand`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 
 Skipped or failed validation:
@@ -190,7 +190,7 @@ Validation:
 - `./scripts/python-in-env backend pytest tests/backend/test_settings_payload_builder.py tests/backend/test_api_handlers.py::test_load_settings_handler_redacts_provider_api_keys tests/backend/test_validation_utils.py -q`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 
 Skipped or failed validation:
@@ -262,7 +262,7 @@ Validation:
 - `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py::test_build_prompt_openai_projection_filters_grounded_tools_after_projection tests/backend/test_computer_use_schema_contract.py::test_provider_projection_is_noop_for_openai_computer_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_config_disabled_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_available_tools_allowlist -q`
 - `cd frontend && npm run test -- AgentCapabilityHandshake WindieSdkMainRuntime WindieSdkClient McpRuntime --runInBand`
 - `cd frontend && npm run lint`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 
 Skipped or failed validation:
@@ -381,9 +381,9 @@ Validation:
 - `node -e "console.log(typeof require('./frontend/src/main/ipc/ipc_chat_query_handlers.cjs').createChatQueryHandlers, typeof require('./frontend/src/main/ipc/ipc_frontend_config_handlers.cjs').registerFrontendConfigHandlers, typeof require('./frontend/src/main/ipc/ipc_response_overlay_handlers.cjs').registerResponseOverlayHandlers)"`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
-- `cd frontend && npm run electron:dev`
+- `bin/windie start desktop`
 
 Skipped or failed validation:
 
@@ -443,7 +443,7 @@ Validation:
 - `node -e "const router=require('./packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js'); const sdk=require('./packages/windie-sdk-js/cjs'); const projector=require('./packages/windie-sdk-js/cjs/projections/currentTurnProjection.js'); console.log(Boolean(router.routeSdkToolEventToLocalRuntime), Boolean(router.markRendererToolEventDisplayOnly), Boolean(sdk.createConversationRuntime), Boolean(projector.createCurrentTurnProjector));"`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 
 Skipped or failed validation:
@@ -502,7 +502,7 @@ Validation:
 - `cd frontend && npm run test -- WindieSdkConversationRuntime --runInBand`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 
 Skipped or failed validation:

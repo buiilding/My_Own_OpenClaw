@@ -168,7 +168,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | replay/rehydrate payload | `cd frontend && npm run test -- RehydratePayload ConversationReplayState ConversationReplayActions ConversationReplayToolMessages` |
 | backend rehydrate services | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py` |
 | sidecar conversation storage/list/search/title | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_*.py` |
-| docs-only identity workflow | `./bin/docs-list`, `git diff --check`, focused Markdown link check |
+| docs-only identity workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
 
 ## Review Checklist
 

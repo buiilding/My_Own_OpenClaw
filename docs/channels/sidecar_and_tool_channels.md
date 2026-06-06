@@ -127,4 +127,4 @@ Use the narrowest test set for the changed boundary:
 - sidecar pytest tests for executable tool behavior
 - parity tests when backend schema and sidecar executable payloads must stay aligned
 
-Run `./bin/docs-list` after docs updates.
+Run `bin/windie docs list` after docs updates.

@@ -19,7 +19,7 @@ Do not immediately change production code after a test fails. First identify whe
 | websocket event mismatch | backend formatter and renderer consumer contracts |
 | sidecar JSON parse failure | stdout contamination or malformed JSON-RPC response |
 | frontend hook/component failure | changed state contract or stale mocked event payload |
-| docs-list failure | missing front matter or bad `read_when` structure |
+| docs listing failure | missing front matter or bad `read_when` structure |
 | package build failure | bundled runtime path, target OS, package script, signing/env |
 
 ## Environment Check

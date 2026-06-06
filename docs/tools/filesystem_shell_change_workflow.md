@@ -137,7 +137,7 @@ flowchart LR
 | SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkDesktopAgent ToolResult` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- ChatStreamEventUtils ChatBoxResponse ChatStreamToolHandlers` |
 | Workspace default-folder behavior | Workspace tests plus the focused shell/read-file tests that exercise selected-workspace path resolution |
-| Docs-only changes | `./bin/docs-list`, `git diff --check`, focused Markdown link checks |
+| Docs-only changes | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
 
 If a listed test file has moved, search by the test stem before adding a new test. Do not skip the boundary just because one filename changed.
 

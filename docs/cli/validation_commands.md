@@ -14,12 +14,12 @@ Pick validation based on the owner boundary you changed. WindieOS does not curre
 
 | Scope | Command |
 | --- | --- |
-| docs front matter and read hints | `./bin/docs-list` or `node scripts/docs-list.js` |
+| docs front matter and read hints | `bin/windie docs list` |
 | whitespace in changed files | `git diff --check` |
-| backend tests | `./scripts/test-backend` |
-| sidecar tests | `./scripts/test-sidecar` |
-| backend + sidecar + frontend CI when dependencies exist | `./scripts/test` |
-| frontend Jest CI | `cd frontend && npm run test:ci` |
+| backend tests | `bin/windie test backend` |
+| sidecar tests | `bin/windie test sidecar` |
+| backend + sidecar + frontend CI when dependencies exist | `bin/windie test all` |
+| frontend Jest CI | `bin/windie test frontend` |
 | frontend lint | `cd frontend && npm run lint` |
 | frontend typecheck | `cd frontend && npm run typecheck` |
 
@@ -28,13 +28,13 @@ Pick validation based on the owner boundary you changed. WindieOS does not curre
 | Change | Start with |
 | --- | --- |
 | backend route/schema/handler | `./scripts/python-in-env backend python -m pytest tests/backend/<focused_test>.py -q` |
-| backend agent/session/history/tool loop | focused backend pytest for the touched module, then `./scripts/test-backend` when shared state changes |
-| provider/model catalog | focused backend provider/model tests plus docs-list |
+| backend agent/session/history/tool loop | focused backend pytest for the touched module, then `bin/windie test backend` when shared state changes |
+| provider/model catalog | focused backend provider/model tests plus `bin/windie docs list` |
 | sidecar JSON-RPC/tool | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/<focused_test>.py -q` |
-| frontend renderer/hook/store | `cd frontend && npm run test:ci -- <test_file>` |
-| Electron main/IPC | focused Jest/CJS test under `tests/frontend`, then `cd frontend && npm run test:ci` if shared |
+| frontend renderer/hook/store | `bin/windie test frontend -- <test_file>` |
+| Electron main/IPC | focused Jest/CJS test under `tests/frontend`, then `bin/windie test frontend` if shared |
 | tool schema parity | backend schema tests plus sidecar parity tests |
-| docs-only | `./bin/docs-list`, focused markdown link check, `git diff --check` |
+| docs-only | `bin/windie docs list`, focused markdown link check, `git diff --check` |
 | packaging | target OS package command plus smoke helper where available |
 
 ## Environment Launcher
@@ -44,7 +44,7 @@ Use `./scripts/python-in-env` instead of manually activating conda:
 ```sh
 ./scripts/python-in-env backend python -m pytest tests/backend/test_session_manager.py -q
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_registry.py -q
-./scripts/python-in-env frontend npm --prefix frontend run test:ci -- ToolRunnerHook.events.test.ts
+bin/windie test frontend -- ToolRunnerHook.events.test.ts
 ```
 
 Default env names:

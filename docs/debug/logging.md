@@ -28,8 +28,8 @@ Backend logger names matter because the important profile demotes several noisy 
 Useful backend commands:
 
 ```bash
-LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose ./scripts/run-backend
-LOG_LEVEL=DEBUG ./scripts/test-backend tests/backend/test_websocket_route.py -q
+LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
+LOG_LEVEL=DEBUG bin/windie test backend tests/backend/test_websocket_route.py -q
 ```
 
 ## Electron Main Logs
@@ -40,10 +40,10 @@ Useful commands:
 
 ```bash
 cd frontend
-npm run electron:dev
-WINDIE_DEBUG_STREAM_EVENTS=1 npm run electron:dev
-WINDIE_DEBUG_CHAT_PILL=1 npm run electron:dev
-WINDIE_DEBUG_TOOL_SCREENSHOT=1 npm run electron:dev
+bin/windie start desktop
+WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
+WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
+WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 npm run test:ghost-cursor
 ```
 
@@ -51,7 +51,7 @@ Important main-process flags:
 
 | Flag | Effect |
 | --- | --- |
-| `WINDIE_DEV_UI=1` | Set by `npm run electron:dev`; enables developer UI/transparency paths. |
+| `WINDIE_DEV_UI=1` | Set by `bin/windie start desktop`; enables developer UI/transparency paths. |
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation into renderer URLs and main IPC trace logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables main chat pill trace logs in `frontend/src/main/chat_pill_trace_runtime.cjs`. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
@@ -95,15 +95,15 @@ Useful command:
 
 ```bash
 cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG npm run electron:dev
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
 ```
 
 ## Packaged App Logs
 
 Packaged reinstall scripts expose log controls:
 
-- macOS: `scripts/reinstall-windieos-macos.sh`
-- Windows: `scripts/reinstall-windieos-windows.ps1`
-- Linux: `scripts/reinstall-windieos-linux.sh`
+- macOS: `bin/windie reinstall mac`
+- Windows: `bin/windie reinstall win`
+- Linux: `bin/windie reinstall linux`
 
 On macOS, `WINDIE_LOG_FILE` defaults to `~/windieos-packaged-run.log` in the reinstall helper. Keep packaged debugging separate from source-run debugging because app paths, Python paths, and permission state differ.

@@ -60,8 +60,8 @@ Provider availability and error normalization live in backend embedding/provider
 ## Tests
 
 ```bash
-./scripts/test-backend tests/backend/test_conversation_history.py tests/backend/test_rehydrate_execution_service.py -q
-./scripts/test-backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py tests/backend/test_rehydrate_transparency_resolution.py -q
-./scripts/test-backend tests/backend/test_memory_routes.py tests/backend/test_embeddings_service.py tests/backend/test_remote_embedding_provider.py tests/backend/test_semantic_parser_service.py -q
+bin/windie test backend tests/backend/test_conversation_history.py tests/backend/test_rehydrate_execution_service.py -q
+bin/windie test backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py tests/backend/test_rehydrate_transparency_resolution.py -q
+bin/windie test backend tests/backend/test_memory_routes.py tests/backend/test_embeddings_service.py tests/backend/test_remote_embedding_provider.py tests/backend/test_semantic_parser_service.py -q
 ```
 

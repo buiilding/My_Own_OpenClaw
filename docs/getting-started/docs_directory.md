@@ -8,7 +8,7 @@ title: "Docs Directory"
 
 # Docs Directory
 
-This is the compact local docs directory. For the complete canonical navigation map, use `docs/docs.json`. For agent-facing implementation routing, use [Documentation Hub](docs_hub.md). For searchable front matter and `read_when` hints, run `./bin/docs-list` from the repo root.
+This is the compact local docs directory. For the complete canonical navigation map, use `docs/docs.json`. For agent-facing implementation routing, use [Documentation Hub](docs_hub.md). For searchable front matter and `read_when` hints, run `bin/windie docs list` from the repo root.
 
 ## Start Here
 

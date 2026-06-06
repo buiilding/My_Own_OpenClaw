@@ -335,11 +335,11 @@ Rules:
 
 ## Validation Commands
 
-- `cd frontend && npm run test:ci -- WindieSdkConversationRuntime.test.ts`
-- `cd frontend && npm run test:ci -- ChatSelectors.test.js ChatBoxResponseState.test.js MessagePresentationPipeline.test.js ChatInterfaceWiring.test.jsx`
-- `cd frontend && npm run test:ci -- SdkDisplayChatMessageProjection.test.ts ConversationLocalSnapshotLoader.test.ts`
+- `bin/windie test frontend -- WindieSdkConversationRuntime.test.ts`
+- `bin/windie test frontend -- ChatSelectors.test.js ChatBoxResponseState.test.js MessagePresentationPipeline.test.js ChatInterfaceWiring.test.jsx`
+- `bin/windie test frontend -- SdkDisplayChatMessageProjection.test.ts ConversationLocalSnapshotLoader.test.ts`
 - `cd packages/windie-sdk-js && npm run build`
 - `cd frontend && npm run lint`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git --no-pager diff --check`
 

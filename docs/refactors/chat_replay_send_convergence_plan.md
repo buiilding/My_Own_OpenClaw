@@ -275,7 +275,7 @@ the replay path.
   them.
 
   Success criteria: A regression that reintroduces a replay-only transport path
-  fails tests before it reaches `npm run electron:dev`.
+  fails tests before it reaches `bin/windie start desktop`.
 
 ## Do Not Implement
 
@@ -297,6 +297,6 @@ the replay path.
 - `cd frontend && npm run test -- WindieSdkConversationRuntime ConversationContinuityService --runInBand`
 - `cd frontend && npm run lint`
 - `cd frontend && npm run typecheck`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check -- docs/refactors/chat_replay_send_convergence_plan.md frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts frontend/src/renderer/app/runtime/desktopBackendTransport.ts packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 

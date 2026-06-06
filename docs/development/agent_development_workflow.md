@@ -16,13 +16,13 @@ Run:
 
 ```bash
 git status --short --branch
-./bin/docs-list
+bin/windie docs list
 ```
 
-If `./bin/docs-list` is unavailable:
+If `bin/windie docs list` is unavailable:
 
 ```bash
-node scripts/docs-list.js
+bin/windie docs list
 ```
 
 Use `git status` to see existing changes. Do not revert unrelated user or agent changes. Work around unrelated dirty files unless they block your task.
@@ -83,7 +83,7 @@ Keep each patch around one behavior boundary:
 - IPC channel plus bridge tests
 - sidecar executable plus sidecar tests
 - renderer UI state plus renderer tests
-- docs-only routing update plus docs-list/link checks
+- docs-only routing update plus docs listing/link checks
 
 Widen only when the boundary requires it, for example a tool schema change that must update backend schema, sidecar registry, renderer result handling, docs, and parity tests.
 
@@ -93,8 +93,8 @@ Choose the narrowest meaningful command first, then widen if the change has broa
 
 - backend: `./scripts/python-in-env backend python -m pytest tests/backend/path_or_test.py`
 - sidecar: `./scripts/python-in-env sidecar python -m pytest tests/sidecar/path_or_test.py`
-- frontend: `cd frontend && npm run test:ci -- path/to/test`
-- docs: `./bin/docs-list`
+- frontend: `bin/windie test frontend -- path/to/test`
+- docs: `bin/windie docs list`
 
 See [Validation Matrix](validation_matrix.md) for broader gates.
 

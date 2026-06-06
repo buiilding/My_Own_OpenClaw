@@ -94,7 +94,7 @@ passes too.
   - Result: 2 suites passed, 12 tests passed.
 - Passed: `cd frontend && npm run typecheck`
 - Passed: `cd frontend && npm run lint`
-- Passed: `./bin/docs-list`
+- Passed: `bin/windie docs list`
 - Passed: `git diff --check`
 - Passed: `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle --runInBand`
   - Result: 2 suites passed, 60 tests passed.

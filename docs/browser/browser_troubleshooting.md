@@ -39,7 +39,7 @@ Focused tests:
 
 ```bash
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_use_engine.py -q
-cd frontend && npm run test:ci -- PermissionService.test.cjs
+bin/windie test frontend -- PermissionService.test.cjs
 ```
 
 ## Snapshot Has No Useful Elements
@@ -101,7 +101,7 @@ Focused test:
 
 ```bash
 cd frontend
-npm run test:ci -- ChatBrowserSessionControl.test.jsx
+bin/windie test frontend -- ChatBrowserSessionControl.test.jsx
 ```
 
 ## Browser File Or Download Path Is Wrong
@@ -137,7 +137,7 @@ Inspect in order:
 Focused tests:
 
 ```bash
-./scripts/test-backend tests/backend/test_browser_remote_tool.py -q
-cd frontend && npm run test:ci -- WindieSdkDesktopAgent.test.ts WindieSdkDesktopAgent.test.ts
+bin/windie test backend tests/backend/test_browser_remote_tool.py -q
+bin/windie test frontend -- WindieSdkDesktopAgent.test.ts WindieSdkDesktopAgent.test.ts
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py -q
 ```

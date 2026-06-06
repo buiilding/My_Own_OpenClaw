@@ -264,7 +264,7 @@ Renderer stream invariants:
 
 Docs-only change:
 
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`
 - focused Markdown link check for touched docs
 

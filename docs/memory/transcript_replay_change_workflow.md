@@ -117,7 +117,7 @@ flowchart LR
 | Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py tests/backend/test_rehydrate_transparency_resolution.py` |
 | Sidecar transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_list_runtime.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_conversation_titles.py tests/sidecar/test_local_store_delete_cleanup.py` |
 | Sidecar conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_runtime.py tests/sidecar/test_conversation_search_helpers.py` |
-| Docs-only transcript workflow | `./bin/docs-list`, `git diff --check`, focused Markdown link check |
+| Docs-only transcript workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
 
 ## Debug Playbooks
 

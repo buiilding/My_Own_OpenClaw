@@ -343,7 +343,7 @@ Validate:
 | Frontend provider settings | `cd frontend && npm run test -- ModelsSection AppConfigPersistence configStorage configFilter` |
 | OAuth helper | `cd frontend && npm run test -- OpenAICodexOAuth` plus backend config-loader tests if backend consumption changes |
 | Sidecar remote auth | focused sidecar remote-client pytest module plus backend auth-route test for the called endpoint |
-| Docs-only credential changes | `./bin/docs-list`, `git diff --check`, and a focused Markdown link check over touched docs |
+| Docs-only credential changes | `bin/windie docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 
 ## Review Checklist
 

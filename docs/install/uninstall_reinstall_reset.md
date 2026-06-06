@@ -14,14 +14,14 @@ Use reinstall helpers when you need to validate installed app behavior, reset st
 
 | OS | Helper | Package path | Main reset behavior |
 | --- | --- | --- | --- |
-| macOS | `./scripts/reinstall-windieos-macos.sh` | `/Applications/WindieOS.app` | stops app, resets known TCC/privacy grants, removes app copies and app state, rebuilds unpacked app, ad-hoc signs, launches, tails log |
-| Windows | `.\scripts\reinstall-windieos-windows.ps1` | newest `*Setup*.exe` under `frontend/release` | stops app, runs existing uninstaller, removes install roots, resets app data unless skipped, packages NSIS installer, installs silently |
-| Linux | `./scripts/reinstall-windieos-linux.sh` | newest `release/windieos_*_amd64.deb` | stops app, purges installed packages, cleans runtime/build artifacts, packages Linux targets, installs DEB, verifies runtime Python |
+| macOS | `bin/windie reinstall mac` | `/Applications/WindieOS.app` | stops app, resets known TCC/privacy grants, removes app copies and app state, rebuilds unpacked app, ad-hoc signs, launches, tails log |
+| Windows | `bin/windie reinstall win` | newest `*Setup*.exe` under `frontend/release` | stops app, runs existing uninstaller, removes install roots, resets app data unless skipped, packages NSIS installer, installs silently |
+| Linux | `bin/windie reinstall linux` | newest `release/windieos_*_amd64.deb` | stops app, purges installed packages, cleans runtime/build artifacts, packages Linux targets, installs DEB, verifies runtime Python |
 
 ## macOS Local Loop
 
 ```bash
-./scripts/reinstall-windieos-macos.sh
+bin/windie reinstall mac
 ```
 
 Useful overrides:
@@ -29,7 +29,7 @@ Useful overrides:
 ```bash
 WINDIE_LOG_FILE=~/windieos-packaged-run.log \
 WINDIE_SIDECAR_LOG_LEVEL=DEBUG \
-./scripts/reinstall-windieos-macos.sh
+bin/windie reinstall mac
 ```
 
 Important boundary:
@@ -42,14 +42,14 @@ Important boundary:
 ## Windows Local Loop
 
 ```powershell
-.\scripts\reinstall-windieos-windows.ps1
+bin/windie reinstall win
 ```
 
 Useful options:
 
 ```powershell
-.\scripts\reinstall-windieos-windows.ps1 -SkipDataReset
-.\scripts\reinstall-windieos-windows.ps1 -SkipLaunch
+bin/windie reinstall win -SkipDataReset
+bin/windie reinstall win -SkipLaunch
 ```
 
 The helper expects `npm` and Bash. If `bash` is not on `PATH`, it probes common Git Bash install paths.
@@ -57,7 +57,7 @@ The helper expects `npm` and Bash. If `bash` is not on `PATH`, it probes common 
 ## Linux Local Loop
 
 ```bash
-./scripts/reinstall-windieos-linux.sh
+bin/windie reinstall linux
 ```
 
 The helper targets Debian/Ubuntu systems with `apt`, packages Linux targets, installs the newest DEB, and verifies bundled runtime Python plus `_tkinter`.

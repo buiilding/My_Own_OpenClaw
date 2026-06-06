@@ -77,14 +77,14 @@ If search results disappear:
 Focused backend tests:
 
 ```bash
-./scripts/test-backend tests/backend/test_openai_provider.py tests/backend/test_openai_embedding_provider.py -q
-./scripts/test-backend tests/backend/test_web_search_capabilities.py tests/backend/test_prompt_constructor_utils.py -q
-./scripts/test-backend tests/backend/test_llm_provider_base.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
+bin/windie test backend tests/backend/test_openai_provider.py tests/backend/test_openai_embedding_provider.py -q
+bin/windie test backend tests/backend/test_web_search_capabilities.py tests/backend/test_prompt_constructor_utils.py -q
+bin/windie test backend tests/backend/test_llm_provider_base.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-npm run test:ci -- OpenAICodexOAuth.test.cjs ModelThinkingCapabilities.test.ts ChatInterfaceWiring.test.jsx
+bin/windie test frontend -- OpenAICodexOAuth.test.cjs ModelThinkingCapabilities.test.ts ChatInterfaceWiring.test.jsx
 ```

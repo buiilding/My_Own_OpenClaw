@@ -37,8 +37,8 @@ Before coding or answering implementation questions:
 
 - Check canonical docs navigation in `docs/docs.json` and the compact route map
   in `docs/getting-started/docs_directory.md` when choosing docs.
-- Run docs listing when available: prefer `./bin/docs-list`, fall back to
-  `node scripts/docs-list.js`, ignore only if neither exists.
+- Run docs listing when available: use `bin/windie docs list`; ignore only if
+  the Windie CLI is unavailable.
 - Read the nearest `read_when` docs until the domain and behavior are clear.
 - Before fixing a bug or adding behavior, inspect recent related commits for
   the files, symbols, or subsystem you are touching. Use `git log`, `git show`,
@@ -174,19 +174,19 @@ Install and run:
 
 - Backend deps: `pip install -r backend/requirements.txt`
 - Frontend deps: `cd frontend && npm install`
-- Backend dev server: `python -m backend.src.main`
-- Frontend UI with Vite: `cd frontend && npm run dev`
-- Electron dev app: `cd frontend && npm run electron:dev`
+- Backend dev server: `bin/windie start backend`
+- Frontend UI with Vite: `bin/windie start frontend`
+- Electron dev app: `bin/windie start desktop`
 - Electron customer app: `cd frontend && npm run electron`
 
 Validation:
 
-- Backend tests: `./scripts/test-backend`
-- Sidecar tests: `./scripts/test-sidecar`
-- Frontend tests: `cd frontend && npm run test`
-- Frontend CI tests: `cd frontend && npm run test:ci`
+- Backend tests: `bin/windie test backend`
+- Sidecar tests: `bin/windie test sidecar`
+- Frontend tests: `bin/windie test frontend`
+- Frontend CI tests: `bin/windie test frontend`
 - Frontend lint: `cd frontend && npm run lint`
-- Docs listing: `./bin/docs-list`
+- Docs listing: `bin/windie docs list`
 
 ## Coding Standards
 
@@ -270,7 +270,7 @@ For every completed fix or behavior change, explain:
 - What the previous behavior was.
 - What the current behavior is after the fix.
 - Which validation commands were run, including focused tests,
-  lint/typecheck/build checks, docs-list, and diff checks when relevant.
+  lint/typecheck/build checks, docs listing, and diff checks when relevant.
 - Any validation command that was intentionally skipped or could not run, with
   the reason.
 
@@ -416,7 +416,7 @@ durable source of truth for the task, not the conversational history.
   classify each finding as fixed, intentionally out of scope, or still requiring
   work. If any in-scope finding remains, design the next slice and continue.
 - Treat validation as supporting evidence, not the final inspection. Grep
-  inventories, tests, typechecks, builds, docs-list, and `git diff --check` can
+  inventories, tests, typechecks, builds, docs listing, and `git diff --check` can
   support the report, but they do not prove the target architecture is complete
   unless the live code has also been inspected and the remaining paths have been
   classified.

@@ -12,25 +12,25 @@ Packaging commands are OS-sensitive. Build and smoke the target package on the t
 
 Use [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md) before changing these commands, release workflow inputs, smoke scripts, or reinstall helpers.
 
-## Frontend Package Commands
+## Package Commands
 
-Run from `frontend/`.
+Run from the repository root.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run build:sidecar-runtime` | Build bundled Python sidecar runtime via `../scripts/build-sidecar-runtime`. |
-| `npm run package` | Build sidecar runtime, Vite frontend, and Electron package using `electron-builder.bundled-python.yml`. |
-| `npm run package:mac` | Build macOS DMG/ZIP. |
-| `npm run package:win` | Build Windows NSIS installer. |
-| `npm run package:linux` | Build Linux AppImage/DEB/RPM. |
+| `bin/windie build frontend` | Build the Vite frontend bundle. |
+| `bin/windie build sidecar-runtime` | Build bundled Python sidecar runtime. |
+| `bin/windie package mac` | Build macOS DMG/ZIP. |
+| `bin/windie package win` | Build Windows NSIS installer. |
+| `bin/windie package linux` | Build Linux AppImage/DEB/RPM. |
 
 ## Local Reinstall Helpers
 
 | OS | Command |
 | --- | --- |
-| macOS | `./scripts/reinstall-windieos-macos.sh` |
-| Linux | `./scripts/reinstall-windieos-linux.sh` |
-| Windows | `./scripts/reinstall-windieos-windows.ps1` |
+| macOS | `bin/windie reinstall mac` |
+| Linux | `bin/windie reinstall linux` |
+| Windows | `bin/windie reinstall win` |
 
 Local macOS reinstall loops intentionally skip Apple notarization and release signing waits. Do not treat a local reinstall as release-signing validation.
 

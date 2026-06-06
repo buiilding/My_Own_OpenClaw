@@ -27,7 +27,7 @@ Enable:
 
 ```bash
 cd frontend
-WINDIE_DEBUG_STREAM_EVENTS=1 npm run electron:dev
+WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
 ```
 
 Expected markers:
@@ -54,7 +54,7 @@ Enable:
 
 ```bash
 cd frontend
-WINDIE_DEBUG_CHAT_PILL=1 npm run electron:dev
+WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
 ```
 
 Expected markers:
@@ -92,7 +92,7 @@ Enable:
 
 ```bash
 cd frontend
-WINDIE_DEBUG_TOOL_SCREENSHOT=1 npm run electron:dev
+WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 ```
 
 Expected marker:
@@ -114,7 +114,7 @@ Enable sidecar debug:
 
 ```bash
 cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG npm run electron:dev
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
 ```
 
 If a sidecar result is missing, check for all of these before editing:

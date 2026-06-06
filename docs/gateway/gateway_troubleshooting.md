@@ -59,7 +59,7 @@ journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 Developer-only live log helper:
 
 ```bash
-WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs --service both
+WINDIE_BACKEND_SSH_HOST=windie-prod bin/windie logs backend --service both
 ```
 
 The helper defaults to system services for the hosted DigitalOcean droplet and
@@ -135,7 +135,7 @@ Update gateway docs when changing:
 
 Validation:
 
-- `./bin/docs-list`
+- `bin/windie docs list`
 - route/schema tests for the changed endpoint
 - auth/websocket tests for auth changes
 - focused SDK/frontend tests for client-visible route changes

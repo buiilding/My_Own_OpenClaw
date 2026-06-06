@@ -84,7 +84,7 @@ code should not invoke the generic `execute-tool` bridge directly.
 ## Tests
 
 ```bash
-./scripts/test-backend tests/backend/test_browser_remote_tool.py -q
+bin/windie test backend tests/backend/test_browser_remote_tool.py -q
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
-cd frontend && npm run test:ci -- ChatBrowserSessionControl.test.jsx
+bin/windie test frontend -- ChatBrowserSessionControl.test.jsx
 ```

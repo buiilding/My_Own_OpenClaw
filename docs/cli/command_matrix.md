@@ -1,70 +1,99 @@
 ---
-summary: "Command matrix for WindieOS repo scripts, frontend package scripts, backend module launchers, docs tooling, commit helper, and Cloudflare helpers."
+summary: "Command matrix for the first-class WindieOS CLI surface."
 read_when:
   - When choosing the correct WindieOS command for local development, docs work, tests, packaging, commits, or hosted tunnel setup.
-  - When changing scripts or package.json command behavior.
+  - When changing `bin/windie`, command docs, scripts wrapped by the CLI, or package command behavior.
 title: "Command Matrix"
 ---
 
 # Command Matrix
 
-WindieOS command-line entrypoints are repo scripts and frontend package scripts. A first-class user CLI is planned separately; do not document repo scripts as a shipped user CLI.
+WindieOS command-line entrypoints start with `bin/windie ...` from the
+repository root. Lower-level scripts and package tasks are implementation
+adapters; document them only when changing the adapter itself.
 
-## Repo-Root Commands
-
-Run from the repo root unless noted.
-
-| Command | Owner | Purpose |
-| --- | --- | --- |
-| `./scripts/python-in-env <backend|frontend|sidecar> <cmd...>` | `scripts/python-in-env` | Runs commands in `jarvis` for backend or `frontend_jarvis` for frontend/sidecar when conda is available; otherwise falls back to current shell env. |
-| `./scripts/run-backend` | `scripts/run-backend` | Runs `python -m backend.src.main` through the backend env launcher. |
-| `./scripts/run-frontend-dev` | `scripts/run-frontend-dev` | Runs `npm --prefix frontend run dev` through the frontend env launcher. |
-| `./scripts/run-frontend-electron` | `scripts/run-frontend-electron` | Runs `npm --prefix frontend run electron:dev` through the frontend env launcher. |
-| `./scripts/test-backend [pytest args...]` | `scripts/test-backend` | Runs backend pytest under `tests/backend`. |
-| `./scripts/test-sidecar [pytest args...]` | `scripts/test-sidecar` | Runs sidecar pytest under `tests/sidecar`. |
-| `./scripts/test` | `scripts/test` | Runs backend tests, sidecar tests, and frontend `test:ci` when `frontend/node_modules` exists. |
-| `./scripts/build-sidecar-runtime` | `scripts/build-sidecar-runtime` | Builds the bundled Python sidecar runtime used by packaged app builds. |
-| `./scripts/committer "<subject>" --body "<body>" -- <paths...>` | `scripts/committer` | Stages only listed paths and commits them. Requires at least one body describing the issue, fix, previous behavior, and behavior after the fix. Supports repeated `--body` and `--no-verify`. |
-| `./bin/docs-list` | generated binary when present | Lists docs front matter and `read_when` hints. |
-| `node scripts/docs-list.js` | `scripts/docs-list.js` | Fallback docs-list implementation. |
-
-## Frontend Package Scripts
-
-Run from `frontend/`.
-
-The `frontend/package.json` package is private because it is the Electron
-desktop app bootstrap, not the reusable npm SDK surface. Publishable JavaScript
-client APIs live in `packages/windie-sdk-js` as `@windie/sdk`.
+## Status and Diagnostics
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` | Vite renderer dev server. |
-| `npm run electron:dev` | Electron development app launcher. |
-| `npm run electron` | Electron customer app launcher. |
-| `npm run electron:no-summarizer` | Electron launcher with summarizer disabled. |
-| `npm run build` | Vite production build. |
-| `npm run typecheck` | TypeScript no-emit check. |
-| `npm run lint` | ESLint strict lint. |
-| `npm run lint:audit` | React compiler and deprecation audit. |
-| `npm run audit:jscpd` | Duplication audit writing under `.audit/plan1`. |
-| `npm run audit:knip` | Dead-file/dependency/export audit. |
-| `npm run test` | Jest test suite. |
-| `npm run test:ci` | Jest in-band CI mode. |
-| `npm run test:shell` | Manual shell-tool smoke harness. |
-| `npm run build:sidecar-runtime` | Invokes `../scripts/build-sidecar-runtime`. |
-| `npm run package` | Build sidecar runtime, build frontend, and package Electron app. |
-| `npm run package:mac` | Package macOS DMG/ZIP. |
-| `npm run package:win` | Package Windows NSIS installer. |
-| `npm run package:linux` | Package Linux AppImage/DEB/RPM. |
+| `bin/windie status` | Concise repo/runtime health. |
+| `bin/windie status --all` | Backend, frontend, sidecar, docs, and dependency summary. |
+| `bin/windie status --json` | Machine-readable status output. |
+| `bin/windie doctor` | Local diagnostic pass. |
+| `bin/windie doctor --fix` | Safe repairs only. |
+| `bin/windie doctor --deep` | Slower probes such as ports and sidecar imports. |
+| `bin/windie doctor --json` | Machine-readable diagnostic output. |
 
-## Cloudflare Helpers
+## Lifecycle and Logs
 
 | Command | Purpose |
 | --- | --- |
-| `scripts/cloudflared/install-cloudflared-user` | Install `cloudflared` into a user-local bin directory. |
-| `scripts/cloudflared/install-backend-user-service` | Install a user-level backend service. |
-| `scripts/cloudflared/setup-windieos-tunnel` | Create/configure the Cloudflare Tunnel to the backend origin. |
-| `scripts/cloudflared/bootstrap-windieos-host` | Run the install/service/tunnel setup sequence. |
+| `bin/windie start backend` | Start the backend dev server. |
+| `bin/windie start frontend` | Start the Vite renderer dev server. |
+| `bin/windie start desktop` | Start the Electron development app. |
+| `bin/windie start all` | Start backend, frontend, and Electron development app together. |
+| `bin/windie stop` | Stop tracked Windie dev processes when process tracking exists. |
+| `bin/windie restart desktop` | Restart the Electron development app. |
+| `bin/windie logs backend` | Tail local or configured backend logs. |
+| `bin/windie logs backend --remote --host windie-prod` | Tail remote backend logs through SSH. |
+| `bin/windie logs desktop` | Print current desktop-log collection guidance. |
+| `bin/windie logs sidecar` | Print current sidecar-log collection guidance. |
+
+## Tests and Docs
+
+| Command | Purpose |
+| --- | --- |
+| `bin/windie test backend [pytest args...]` | Run backend pytest. |
+| `bin/windie test sidecar [pytest args...]` | Run sidecar pytest. |
+| `bin/windie test frontend [jest args...]` | Run frontend Jest CI tests. |
+| `bin/windie test all` | Run backend, sidecar, and frontend tests. |
+| `bin/windie test pick <area>` | Print or run test-selection presets. |
+| `bin/windie docs list` | List docs front matter and `read_when` hints. |
+| `bin/windie docs check` | Run docs listing plus whitespace checks. |
+| `bin/windie docs open <topic>` | Search docs and print the best matching path. |
+
+## Build, Package, and Reinstall
+
+| Command | Purpose |
+| --- | --- |
+| `bin/windie build frontend` | Build the frontend bundle. |
+| `bin/windie build sidecar-runtime` | Build the bundled Python sidecar runtime. |
+| `bin/windie package mac` | Package macOS DMG/ZIP. |
+| `bin/windie package win` | Package Windows NSIS installer. |
+| `bin/windie package linux` | Package Linux AppImage/DEB/RPM. |
+| `bin/windie reinstall mac` | Rebuild, reinstall, and launch the local macOS app. |
+| `bin/windie reinstall win` | Rebuild and reinstall the local Windows app. |
+| `bin/windie reinstall linux` | Rebuild and reinstall the local Linux app. |
+
+## Backend, Endpoint, and Self-Host
+
+| Command | Purpose |
+| --- | --- |
+| `bin/windie backend health` | Probe backend health. |
+| `bin/windie backend deploy --host <host>` | Deploy/restart a remote backend host. |
+| `bin/windie backend deploy --local` | Run the deploy helper locally. |
+| `bin/windie backend service status` | Inspect backend service state. |
+| `bin/windie backend service start` | Start the backend service. |
+| `bin/windie backend service stop` | Stop the backend service. |
+| `bin/windie backend service restart` | Restart the backend service. |
+| `bin/windie endpoint show` | Print resolved HTTP/WebSocket endpoint values. |
+| `bin/windie endpoint local` | Print local endpoint exports. |
+| `bin/windie endpoint hosted` | Print hosted endpoint exports. |
+| `bin/windie endpoint probe` | Probe the resolved endpoint. |
+| `bin/windie self-host bootstrap` | Run self-host bootstrap setup. |
+| `bin/windie self-host tunnel setup` | Configure Cloudflare Tunnel for the backend origin. |
+| `bin/windie self-host service install-backend` | Install the backend service. |
+| `bin/windie self-host service install-cloudflared` | Install the cloudflared service. |
+| `bin/windie self-host status` | Check backend and tunnel service status. |
+
+## Developer Helpers
+
+| Command | Purpose |
+| --- | --- |
+| `bin/windie extension create <id>` | Scaffold a Windie extension package. |
+| `bin/windie tools manifest generate` | Generate the executable tool manifest. |
+| `bin/windie mock backend` | Start the local SDK mock backend. |
+| `./scripts/committer "<subject>" --body "<body>" -- <paths...>` | Stage listed files and create a scoped commit. |
 
 Read [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) before running or changing these scripts.
 

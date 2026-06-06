@@ -41,7 +41,7 @@ Use this checklist when a planning item becomes implemented behavior. The goal i
 1. Update stable docs and hub links.
 2. Update or trim planning docs.
 3. Update `CHANGELOG.md`.
-4. Run `./bin/docs-list`.
+4. Run `bin/windie docs list`.
 5. Run focused tests for the behavior.
 6. Run link/whitespace checks for touched docs.
 7. Commit the docs with the implementation or as the immediate follow-up.

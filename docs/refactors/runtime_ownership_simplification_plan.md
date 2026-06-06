@@ -11,7 +11,7 @@ title: "Runtime Ownership Simplification Plan"
 - Goal: make every runtime dumb at the boundary it does not own.
 - Goal: delete duplicate interpretation paths instead of wrapping them with more facades.
 - Goal: keep Electron as the host shell, the SDK as the reusable runtime, the sidecar as the local executor/store, and the backend as the hosted model loop and policy owner.
-- Goal: make failed contracts visible in tests before they reach `npm run electron:dev`.
+- Goal: make failed contracts visible in tests before they reach `bin/windie start desktop`.
 
 ## Issues, Implementation, and Success Criteria
 
@@ -69,7 +69,7 @@ title: "Runtime Ownership Simplification Plan"
 
 - Issue: docs already describe the desired SDK-first architecture, but some docs now read more complete than the code. This creates false confidence when a bug is caused by remaining migration debt.
   - Implement: update architecture docs to distinguish "current behavior", "target behavior", and "known migration debt" for query send, live turn projection, raw backend events, settings/model sync, and conversation storage. Keep this refactor plan as the deletion checklist and link specific completed changes back to it.
-  - Success criteria: docs do not imply raw backend event interpretation is gone until searches and tests prove it; every remaining duplicate path has an owner, deletion condition, and test target; `./bin/docs-list` passes after each related change.
+  - Success criteria: docs do not imply raw backend event interpretation is gone until searches and tests prove it; every remaining duplicate path has an owner, deletion condition, and test target; `bin/windie docs list` passes after each related change.
 
 ## Do Not Implement
 
@@ -88,5 +88,5 @@ title: "Runtime Ownership Simplification Plan"
 - `cd packages/windie-sdk-js && npm run build`
 - `./scripts/python-in-env backend pytest tests/backend/test_api_handlers.py tests/backend/test_query_execution_service_helpers.py tests/backend/test_sdk_runtime_backend_compatibility.py -q`
 - `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_local_backend.py -q`
-- `./bin/docs-list`
+- `bin/windie docs list`
 - `git diff --check`

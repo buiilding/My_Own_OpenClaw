@@ -22,7 +22,7 @@ Validate:
 
 ```bash
 cd frontend
-npm run test:ci -- WindieSdkConversationRuntime.test.ts ModularRefactorCompletionBoundary.test.ts
+bin/windie test frontend -- WindieSdkConversationRuntime.test.ts ModularRefactorCompletionBoundary.test.ts
 ```
 
 ## Conversation Appears In Dashboard But Replay Is Wrong
@@ -38,7 +38,7 @@ Validate:
 
 ```bash
 cd frontend
-npm run test:ci -- ConversationReplayState.test.ts ConversationReplayActions.test.jsx ConversationReplayToolMessages.test.js RehydratePayload.test.js
+bin/windie test frontend -- ConversationReplayState.test.ts ConversationReplayActions.test.jsx ConversationReplayToolMessages.test.js RehydratePayload.test.js
 ```
 
 ## Tool Rows Lose Linkage After Rehydrate
@@ -53,8 +53,8 @@ Inspect:
 Validate:
 
 ```bash
-./scripts/test-backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py -q
-cd frontend && npm run test:ci -- WindieSdkConversationRuntime.test.ts ConversationReplayToolMessages.test.js
+bin/windie test backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py -q
+bin/windie test frontend -- WindieSdkConversationRuntime.test.ts ConversationReplayToolMessages.test.js
 ```
 
 ## Search Finds Old Or Wrong Memory
@@ -69,7 +69,7 @@ Inspect:
 Validate:
 
 ```bash
-./scripts/test-sidecar tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_runtime.py -q
+bin/windie test sidecar tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_runtime.py -q
 ```
 
 ## Semantic Memory Is Missing
@@ -84,8 +84,8 @@ Inspect:
 Validate:
 
 ```bash
-./scripts/test-sidecar tests/sidecar/test_memory_summarizer.py tests/sidecar/test_conversation_semanticization_runtime.py tests/sidecar/test_remote_semantic_client.py -q
-./scripts/test-backend tests/backend/test_memory_routes.py tests/backend/test_semantic_parser_service.py -q
+bin/windie test sidecar tests/sidecar/test_memory_summarizer.py tests/sidecar/test_conversation_semanticization_runtime.py tests/sidecar/test_remote_semantic_client.py -q
+bin/windie test backend tests/backend/test_memory_routes.py tests/backend/test_semantic_parser_service.py -q
 ```
 
 ## Conversation Title Stays Generic
@@ -99,6 +99,6 @@ Inspect:
 Validate:
 
 ```bash
-./scripts/test-sidecar tests/sidecar/test_conversation_title_runtime.py tests/sidecar/test_conversation_title_helpers.py -q
-./scripts/test-backend tests/backend/test_memory_routes.py -q
+bin/windie test sidecar tests/sidecar/test_conversation_title_runtime.py tests/sidecar/test_conversation_title_helpers.py -q
+bin/windie test backend tests/backend/test_memory_routes.py -q
 ```

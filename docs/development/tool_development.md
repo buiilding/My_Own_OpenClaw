@@ -208,8 +208,8 @@ Run:
 Then run full suites relevant to your change:
 
 ```bash
-./scripts/test-backend
-./scripts/test-sidecar
+bin/windie test backend
+bin/windie test sidecar
 ```
 
 ## Sidecar Result Contract

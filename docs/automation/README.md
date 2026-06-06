@@ -68,7 +68,7 @@ Validate:
 
 - backend runs route tests
 - API reference examples
-- `./bin/docs-list`
+- `bin/windie docs list`
 
 ### Change Run Assignment, Status, or Controls
 
