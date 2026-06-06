@@ -519,9 +519,22 @@ describe('Windie SDK conversation runtime core', () => {
     expect(awaiting.presentation).toMatchObject({
       phase: 'awaiting',
       typingVisible: true,
-      overlayVisible: false,
+      overlayVisible: true,
       hasVisibleContent: false,
       entries: [],
+      awaitingAnchor: expect.objectContaining({
+        kind: 'user-message',
+        rowId: awaiting.userMessageRowId,
+        turnRef: 'turn-1',
+        conversationRef: 'conv-sdk-runtime',
+      }),
+      overlayIntent: {
+        visible: true,
+        mode: 'awaiting',
+        turnRef: 'turn-1',
+        conversationRef: 'conv-sdk-runtime',
+        staleGuardRef: 'turn-1',
+      },
     });
 
     const thinking = buildCurrentTurnProjection([
@@ -534,6 +547,11 @@ describe('Windie SDK conversation runtime core', () => {
       typingVisible: false,
       overlayVisible: true,
       hasVisibleContent: true,
+      awaitingAnchor: null,
+      overlayIntent: expect.objectContaining({
+        visible: true,
+        mode: 'response',
+      }),
       entries: [
         expect.objectContaining({
           type: 'thinking',
@@ -607,7 +625,17 @@ describe('Windie SDK conversation runtime core', () => {
       toolEvents: [],
       presentation: expect.objectContaining({
         typingVisible: true,
-        overlayVisible: false,
+        overlayVisible: true,
+        awaitingAnchor: expect.objectContaining({
+          kind: 'user-message',
+          rowId: projection.userMessageRowId,
+          turnRef: 'turn-2',
+        }),
+        overlayIntent: expect.objectContaining({
+          visible: true,
+          mode: 'awaiting',
+          staleGuardRef: 'turn-2',
+        }),
         entries: [],
       }),
     });
@@ -2451,7 +2479,12 @@ describe('Windie SDK conversation runtime core', () => {
       ]);
       expect(snapshots.at(-1).currentTurn.presentation).toMatchObject({
         typingVisible: true,
-        overlayVisible: false,
+        overlayVisible: true,
+        overlayIntent: expect.objectContaining({
+          visible: true,
+          mode: 'awaiting',
+          staleGuardRef: 'turn-slow-enrich',
+        }),
       });
     });
 

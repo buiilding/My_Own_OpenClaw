@@ -25,6 +25,7 @@ export function useResponseOverlayWindowSync({
   shellRef,
   isVisible,
   overlayLayoutMode,
+  overlayIntent = null,
   responseEntrySignature,
   showResponse,
   thinkingText,
@@ -53,6 +54,8 @@ export function useResponseOverlayWindowSync({
           visible: false,
           width: 0,
           height: 0,
+          turn_ref: overlayIntent?.turnRef ?? null,
+          stale_guard_ref: overlayIntent?.staleGuardRef ?? overlayIntent?.turnRef ?? null,
         });
       } catch (error) {
         console.warn('[MinimalResponseOverlay] Failed to hide response overlay:', error);
@@ -101,6 +104,8 @@ export function useResponseOverlayWindowSync({
         show_response: showResponse,
         thinking_text_length: typeof thinkingText === 'string' ? thinkingText.length : 0,
         compact_hover: Boolean(compactHover),
+        turn_ref: overlayIntent?.turnRef ?? null,
+        stale_guard_ref: overlayIntent?.staleGuardRef ?? overlayIntent?.turnRef ?? null,
         width,
         height,
       });
@@ -109,11 +114,13 @@ export function useResponseOverlayWindowSync({
         width,
         height,
         compact_hover: Boolean(compactHover),
+        turn_ref: overlayIntent?.turnRef ?? null,
+        stale_guard_ref: overlayIntent?.staleGuardRef ?? overlayIntent?.turnRef ?? null,
       });
     } catch (error) {
       console.warn('[MinimalResponseOverlay] Failed to resize response overlay:', error);
     }
-  }, [shellRef, showResponse, thinkingText]);
+  }, [overlayIntent?.staleGuardRef, overlayIntent?.turnRef, shellRef, showResponse, thinkingText]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {

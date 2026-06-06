@@ -115,6 +115,60 @@ describe('useChatSurfaceController', () => {
     }));
   });
 
+  test('uses SDK awaiting anchor as dashboard typing dot target', () => {
+    const { result } = renderController({
+      presentationState: {
+        isBusy: true,
+        awaitingDotTargetMessageId: 'legacy-user-row',
+      },
+      props: {
+        currentTurnProjection: {
+          phase: 'awaiting',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          userMessageRowId: 'user-row-1',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            phase: 'awaiting',
+            entries: [],
+            hasVisibleContent: false,
+            typingVisible: true,
+            overlayVisible: true,
+            isBusy: true,
+            isTerminal: false,
+            lastError: null,
+            awaitingAnchor: {
+              kind: 'user-message',
+              rowId: 'user-row-1',
+              turnRef: 'turn-1',
+              conversationRef: 'conv-1',
+            },
+            overlayIntent: {
+              visible: true,
+              mode: 'awaiting',
+              turnRef: 'turn-1',
+              conversationRef: 'conv-1',
+              staleGuardRef: 'turn-1',
+            },
+          },
+        },
+      },
+    });
+
+    expect(result.current.currentTurnPresentationState).toMatchObject({
+      loopUiState: 'awaiting-reply',
+      showAssistantAwaitingDot: true,
+      awaitingDotTargetMessageId: 'user-row-1',
+      showChatboxAwaitingReply: true,
+      showChatboxResponse: false,
+    });
+  });
+
   test('runs pill and dashboard config toggles through one busy gate', () => {
     const { result, updateConfig, rerender } = renderController();
 

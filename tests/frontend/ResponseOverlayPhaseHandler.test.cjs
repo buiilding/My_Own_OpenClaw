@@ -94,18 +94,32 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
   });
 
-  test('handles streaming phase by making overlay visible and restoring bounds', () => {
+  test('active streaming phase records phase but defers native window show to renderer size intent', () => {
     const deps = createDeps();
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
 
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.STREAMING);
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
-    expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
-    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(true);
+    expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
     expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
     expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
+  });
+
+  test('renderer send preflight can prime awaiting fallback before size intent arrives', () => {
+    const deps = createDeps();
+
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.AWAITING_FIRST_CHUNK,
+      source: 'renderer-send-preflight',
+    }, deps);
+
+    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
+    expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
+    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
   });
 
   test('streaming phase does not force overlay click-through when hit-test is active', () => {
@@ -130,7 +144,7 @@ describe('response_overlay_phase_handler', () => {
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.TOOL_CALL }, deps);
 
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(true);
     expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
   });
@@ -213,7 +227,7 @@ describe('response_overlay_phase_handler', () => {
       PHASE.AWAITING_FIRST_CHUNK,
       PHASE.STREAMING,
     ]);
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenLastCalledWith(true);
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(false);
     expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(activeCorrelationId).toBe('response-b');
   });

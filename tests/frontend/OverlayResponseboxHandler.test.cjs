@@ -42,6 +42,8 @@ describe('overlay_responsebox_handler', () => {
       getResponseWindowBounds: jest.fn((width, height) => ({ x: 1, y: 2, width, height })),
       setResponseOverlayVisibilityState: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
+      getActiveResponseOverlayGuardRef: jest.fn(() => null),
+      setActiveResponseOverlayGuardRef: jest.fn(),
       ...overrides,
     };
   }
@@ -217,6 +219,65 @@ describe('overlay_responsebox_handler', () => {
     expect(result).toEqual({ success: true, visible: true, width: 300, height: 140 });
     expect(deps.getResponseWindowBounds).toHaveBeenCalledWith(300, 140, { compactHover: true });
     expect(deps.responseWindow.setBounds).toHaveBeenCalledWith({ x: 1, y: 2, width: 300, height: 140 }, false);
+  });
+
+  test('records active turn guard after a successful visible resize', async () => {
+    const deps = createDeps();
+
+    const result = await handleSetResponseboxSize({
+      visible: true,
+      width: 320,
+      height: 180,
+      turn_ref: 'turn-b',
+      stale_guard_ref: 'turn-b',
+    }, deps);
+
+    expect(result).toEqual({ success: true, visible: true, width: 320, height: 180 });
+    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith('turn-b');
+    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+  });
+
+  test('ignores stale hide from a previous turn guard', async () => {
+    const deps = createDeps({
+      getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-b'),
+    });
+
+    const result = await handleSetResponseboxSize({
+      visible: false,
+      width: 0,
+      height: 0,
+      turn_ref: 'turn-a',
+      stale_guard_ref: 'turn-a',
+    }, deps);
+
+    expect(result).toEqual({
+      success: true,
+      visible: true,
+      ignored: true,
+      reason: 'stale-hide',
+    });
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
+    expect(deps.responseWindow.hide).not.toHaveBeenCalled();
+    expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
+  });
+
+  test('clears matching active turn guard on hide', async () => {
+    const deps = createDeps({
+      getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-b'),
+    });
+
+    const result = await handleSetResponseboxSize({
+      visible: false,
+      width: 0,
+      height: 0,
+      turn_ref: 'turn-b',
+      stale_guard_ref: 'turn-b',
+    }, deps);
+
+    expect(result).toEqual({ success: true, visible: false });
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
   });
 
   test('returns unavailable result when response window is missing', async () => {

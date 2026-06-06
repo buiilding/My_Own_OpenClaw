@@ -6,12 +6,18 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend/main: add SDK live-turn awaiting anchors and overlay intent,
+  route dashboard typing dots and response-overlay sizing through that contract,
+  and demote Electron overlay phases to lifecycle/preflight handling with
+  guarded renderer size requests.
 - frontend/tests: add a database-backed edit/resend replay integration test
   that seeds canonical `chat_events`, drives the renderer replay hook, verifies
   backend rehydrate, confirms stale stored tail rows are cut before resend, and
   identifies renderer-message mapping, session-user, sidecar-rewrite, and
   backend-rehydrate preparation failures, including first-turn edits that
-  rewrite the whole stored tail before sending.
+  rewrite the whole stored tail before sending; cover the real Electron
+  `windie:invoke` replay-preparation bridge so adapter forwarding and stale
+  transcript-session users fail in main-process tests.
 - sidecar/chat: derive recent-conversation sidebar metadata from user-facing
   chat events only, so SDK lifecycle events no longer appear as chat titles,
   previews, or workspace grouping sources.

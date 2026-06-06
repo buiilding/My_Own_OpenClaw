@@ -68,7 +68,10 @@ function resolveSdkPresentationTypingVisible(currentTurn: SdkCurrentTurnProjecti
 
 function resolveSdkPresentationHasVisibleContent(currentTurn: SdkCurrentTurnProjection): boolean {
   const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
-  return presentation?.hasVisibleContent === true || presentation?.overlayVisible === true;
+  if (typeof presentation?.hasVisibleContent === 'boolean') {
+    return presentation.hasVisibleContent;
+  }
+  return presentation?.overlayVisible === true;
 }
 
 function isSkipFrontendExecutionToolEvent(toolEvent: CurrentTurnToolEvent): boolean {

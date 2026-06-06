@@ -35,6 +35,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     broadcastResponseOverlayVisibility = () => {},
     showResponseWindowWhenChatVisible,
     showResponseWindowInactive,
+    getActiveResponseOverlayGuardRef = () => null,
+    setActiveResponseOverlayGuardRef = () => {},
     setActiveDisplayAffinity = () => {},
     showChatWindow,
     hideChatWindow,
@@ -95,6 +97,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       getResponseWindowBounds,
       setResponseOverlayVisibilityState,
       showResponseWindowWhenChatVisible,
+      getActiveResponseOverlayGuardRef,
+      setActiveResponseOverlayGuardRef,
       getResponseOverlayVisible: () => {
         const currentResponseWindow = getWindows().responseWindow;
         return Boolean(

@@ -97,6 +97,7 @@ function createSurfaceRuntime({
     responseOverlayVisible: false,
     responseOverlayPhase: 'idle',
     activeResponseOverlayCorrelationId: null,
+    activeResponseOverlayGuardRef: null,
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
     chatPillUserHidden: initialChatPillUserHidden === true,
@@ -119,10 +120,14 @@ function createSurfaceRuntime({
       windows: getWindows(),
       vmWorkerRuntime: state.vmWorkerRuntime,
       responseOverlayPhase: state.responseOverlayPhase,
+      activeResponseOverlayGuardRef: state.activeResponseOverlayGuardRef,
       chatPillUserHidden: state.chatPillUserHidden,
       applyResponseOverlayPhase,
       setResponseOverlayVisible: (nextVisible) => {
         state.responseOverlayVisible = Boolean(nextVisible);
+      },
+      setActiveResponseOverlayGuardRef: (nextGuardRef) => {
+        state.activeResponseOverlayGuardRef = nextGuardRef;
       },
     };
   }
@@ -634,6 +639,7 @@ function createSurfaceRuntime({
     getMainWindowMode,
     getPrimarySurface,
     getResponseWindow: () => state.responseWindow,
+    getActiveResponseOverlayGuardRef: () => state.activeResponseOverlayGuardRef,
     getState,
     getWindows,
     hideChatWindow,
@@ -655,6 +661,9 @@ function createSurfaceRuntime({
       state.mainWindow = nextWindow;
     },
     setResponseOverlayVisibilityState,
+    setActiveResponseOverlayGuardRef: (nextGuardRef) => {
+      state.activeResponseOverlayGuardRef = nextGuardRef;
+    },
     setResponseWindow: (nextWindow) => {
       state.responseWindow = nextWindow;
     },

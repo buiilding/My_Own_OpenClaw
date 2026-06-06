@@ -14,27 +14,66 @@ function hasSdkLiveTurnPresentation(currentTurnProjection) {
   );
 }
 
-function buildSdkCurrentTurnPresentationState(currentTurnProjection) {
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+function resolveSdkOverlayIntentMode(presentation) {
+  const mode = presentation?.overlayIntent?.mode;
+  if (mode === 'awaiting' || mode === 'response' || mode === 'hidden') {
+    return mode;
+  }
+  if (presentation?.overlayVisible === true) {
+    return 'response';
+  }
+  if (presentation?.typingVisible === true) {
+    return 'awaiting';
+  }
+  return 'hidden';
+}
+
+function resolveSdkAwaitingDotTargetMessageId(presentation, fallbackState) {
+  if (!presentation || !hasOwn(presentation, 'awaitingAnchor')) {
+    return fallbackState?.awaitingDotTargetMessageId ?? null;
+  }
+  const anchor = presentation.awaitingAnchor;
+  if (
+    anchor
+    && anchor.kind === 'user-message'
+    && typeof anchor.rowId === 'string'
+    && anchor.rowId.trim()
+  ) {
+    return anchor.rowId;
+  }
+  return null;
+}
+
+function buildSdkCurrentTurnPresentationState(currentTurnProjection, fallbackState) {
   const presentation = currentTurnProjection?.presentation;
   if (!presentation) {
     return null;
   }
+  const overlayIntentMode = resolveSdkOverlayIntentMode(presentation);
+  const awaitingVisible = overlayIntentMode === 'awaiting';
+  const responseVisible = overlayIntentMode === 'response';
   return {
     activeResponse: null,
     hasVisibleReply: presentation.hasVisibleContent === true,
-    loopUiState: presentation.overlayVisible ? 'active-response' : (presentation.typingVisible ? 'awaiting-reply' : 'idle'),
+    loopUiState: responseVisible ? 'active-response' : (awaitingVisible ? 'awaiting-reply' : 'idle'),
     isBusy: presentation.isBusy === true,
-    isAwaitingReply: presentation.typingVisible === true,
-    showAssistantAwaitingDot: presentation.typingVisible === true,
-    awaitingDotTargetMessageId: null,
+    isAwaitingReply: awaitingVisible,
+    showAssistantAwaitingDot: awaitingVisible,
+    awaitingDotTargetMessageId: awaitingVisible
+      ? resolveSdkAwaitingDotTargetMessageId(presentation, fallbackState)
+      : null,
     visibleResponse: null,
-    chatboxSurfaceState: presentation.overlayVisible ? 'response' : (presentation.typingVisible ? 'awaiting-reply' : 'compact'),
-    showChatboxAwaitingReply: presentation.typingVisible === true,
-    showChatboxResponse: presentation.overlayVisible === true,
+    chatboxSurfaceState: responseVisible ? 'response' : (awaitingVisible ? 'awaiting-reply' : 'compact'),
+    showChatboxAwaitingReply: awaitingVisible,
+    showChatboxResponse: responseVisible,
     isTransportConnected: true,
-    overlayTurnLifecycle: presentation.typingVisible
+    overlayTurnLifecycle: awaitingVisible
       ? 'awaiting'
-      : (presentation.overlayVisible && presentation.isBusy ? 'active' : (presentation.isTerminal ? 'terminal' : 'idle')),
+      : (responseVisible && presentation.isBusy ? 'active' : (presentation.isTerminal ? 'terminal' : 'idle')),
   };
 }
 
@@ -72,7 +111,7 @@ export function useChatSurfaceController({
     allowedTypes,
   });
   const resolvedCurrentTurnPresentationState = hasSdkLiveTurnPresentation(currentTurnProjection)
-    ? buildSdkCurrentTurnPresentationState(currentTurnProjection)
+    ? buildSdkCurrentTurnPresentationState(currentTurnProjection, currentTurnPresentationState)
     : currentTurnPresentationState;
   const isBusy = resolvedCurrentTurnPresentationState.isBusy === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;

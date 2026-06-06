@@ -10,6 +10,7 @@ import {
   mapCurrentTurnProjectionPhase,
 } from '../../chat/utils/state/liveTurnSurfaceState';
 import {
+  buildCurrentTurnMessagesFromProjection,
   isResponseCloseable,
   normalizeThinkingText,
   resolveSourceTagForResponse,
@@ -26,6 +27,27 @@ function hasSdkLiveTurnPresentation(currentTurnProjection) {
       && typeof presentation.typingVisible === 'boolean'
       && typeof presentation.overlayVisible === 'boolean',
   );
+}
+
+function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
+  const intent = presentation?.overlayIntent;
+  if (
+    intent
+    && typeof intent === 'object'
+    && (intent.mode === 'hidden' || intent.mode === 'awaiting' || intent.mode === 'response')
+  ) {
+    return intent;
+  }
+  const mode = presentation?.overlayVisible
+    ? 'response'
+    : (presentation?.typingVisible ? 'awaiting' : 'hidden');
+  return {
+    visible: mode !== 'hidden',
+    mode,
+    turnRef: currentTurnProjection?.turnRef ?? null,
+    conversationRef: currentTurnProjection?.conversationRef ?? '',
+    staleGuardRef: currentTurnProjection?.turnRef ?? null,
+  };
 }
 
 function normalizeSdkPresentationEntries(currentTurnProjection) {
@@ -50,14 +72,80 @@ function normalizeSdkPresentationEntries(currentTurnProjection) {
     .filter((entry) => entry.text.trim().length > 0);
 }
 
-function resolveSdkOverlayLifecycle(presentation) {
+function asRecord(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : null;
+}
+
+function normalizeOptionalText(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function readToolCallExplanation(message) {
+  const modelFacingToolCall = asRecord(message?.modelFacingToolCall);
+  const modelArguments = asRecord(modelFacingToolCall?.arguments);
+  const toolCallDetails = asRecord(message?.toolCallDetails);
+  const detailArguments = asRecord(toolCallDetails?.arguments) || asRecord(toolCallDetails?.parameters);
+  const directExplanation = (
+    normalizeOptionalText(modelArguments?.explanation)
+    || normalizeOptionalText(detailArguments?.explanation)
+  );
+  if (directExplanation) {
+    return directExplanation;
+  }
+  try {
+    const parsedText = JSON.parse(message?.text || '');
+    const parsedArguments = asRecord(parsedText?.arguments);
+    return normalizeOptionalText(parsedArguments?.explanation);
+  } catch {
+    return null;
+  }
+}
+
+function resolveProjectedEntryText(message) {
+  if (message?.type === 'tool-call' || message?.type === 'tool-explanation') {
+    const explanation = readToolCallExplanation(message);
+    if (explanation) {
+      return explanation;
+    }
+  }
+  return (
+    typeof message.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()
+      ? message.toolCallDisplayText
+      : message.text
+  );
+}
+
+function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
+  return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
+    .map((message) => ({
+      message,
+      text: message && message.sender === 'assistant' ? resolveProjectedEntryText(message) : '',
+    }))
+    .filter(({ text }) => typeof text === 'string' && text.trim().length > 0)
+    .map(({ message, text }) => ({
+      id: message.id,
+      type: message.type || 'llm-text',
+      text,
+      sourceEventType: message.sourceEventType || null,
+      sourceChannel: message.sourceChannel || 'windie:current-turn',
+      turnRef: message.turnRef || currentTurnProjection?.turnRef || undefined,
+      modelId: message.modelId || null,
+      modelProvider: message.modelProvider || null,
+      isComplete: message.isComplete === true,
+      toolName: message.toolName || null,
+    }));
+}
+
+function resolveSdkOverlayLifecycle(presentation, overlayIntent) {
   if (!presentation) {
     return OVERLAY_TURN_LIFECYCLE.IDLE;
   }
-  if (presentation.typingVisible) {
+  if (overlayIntent?.mode === 'awaiting') {
     return OVERLAY_TURN_LIFECYCLE.AWAITING;
   }
-  if (presentation.overlayVisible && presentation.isBusy) {
+  if (overlayIntent?.mode === 'response' && presentation.isBusy) {
     return OVERLAY_TURN_LIFECYCLE.ACTIVE;
   }
   if (presentation.isTerminal) {
@@ -80,21 +168,25 @@ function buildSdkCurrentTurnPresentationState({
       ? latestEntry
       : null
   );
-  const overlayTurnLifecycle = resolveSdkOverlayLifecycle(presentation);
+  const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
+  const awaitingVisible = overlayIntent.mode === 'awaiting';
+  const responseVisible = overlayIntent.mode === 'response';
+  const overlayTurnLifecycle = resolveSdkOverlayLifecycle(presentation, overlayIntent);
   return {
     activeResponse: visibleResponse,
     hasVisibleReply: presentation?.hasVisibleContent === true,
-    loopUiState: presentation?.overlayVisible ? 'active-response' : (presentation?.typingVisible ? 'awaiting-reply' : 'idle'),
+    loopUiState: responseVisible ? 'active-response' : (awaitingVisible ? 'awaiting-reply' : 'idle'),
     isBusy: presentation?.isBusy === true,
-    isAwaitingReply: presentation?.typingVisible === true,
-    showAssistantAwaitingDot: presentation?.typingVisible === true,
+    isAwaitingReply: awaitingVisible,
+    showAssistantAwaitingDot: awaitingVisible,
     awaitingDotTargetMessageId: null,
     visibleResponse,
-    chatboxSurfaceState: presentation?.overlayVisible ? 'response' : (presentation?.typingVisible ? 'awaiting-reply' : 'compact'),
-    showChatboxAwaitingReply: presentation?.typingVisible === true,
-    showChatboxResponse: presentation?.overlayVisible === true,
+    chatboxSurfaceState: responseVisible ? 'response' : (awaitingVisible ? 'awaiting-reply' : 'compact'),
+    showChatboxAwaitingReply: awaitingVisible,
+    showChatboxResponse: responseVisible,
     isTransportConnected: true,
     overlayTurnLifecycle,
+    overlayIntent,
   };
 }
 
@@ -119,8 +211,12 @@ export function useResponseOverlayViewModel({
     )
   );
   const currentTurnMessages = useMemo(
-    () => (useLocalSendLatch ? messages : []),
-    [messages, useLocalSendLatch],
+    () => (
+      useLocalSendLatch
+        ? messages
+        : buildCurrentTurnMessagesFromProjection(currentTurnProjection)
+    ),
+    [currentTurnProjection, messages, useLocalSendLatch],
   );
   const currentTurnPhase = useLocalSendLatch
     ? RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
@@ -137,12 +233,19 @@ export function useResponseOverlayViewModel({
   });
 
   const responseOverlayEntries = useMemo(
-    () => (
-      useSdkLiveTurnPresentation
-        ? normalizeSdkPresentationEntries(currentTurnProjection)
-        : []
-    ),
-    [currentTurnProjection, useSdkLiveTurnPresentation],
+    () => {
+      if (useLocalSendLatch) {
+        return [];
+      }
+      if (useSdkLiveTurnPresentation) {
+        const sdkEntries = normalizeSdkPresentationEntries(currentTurnProjection);
+        return sdkEntries.length > 0
+          ? sdkEntries
+          : normalizeProjectedCurrentTurnEntries(currentTurnProjection);
+      }
+      return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
+    },
+    [currentTurnProjection, useLocalSendLatch, useSdkLiveTurnPresentation],
   );
 
   const resolvedCurrentTurnPresentationState = useMemo(
@@ -266,6 +369,7 @@ export function useResponseOverlayViewModel({
 
   return {
     currentTurnPresentationState: resolvedCurrentTurnPresentationState,
+    overlayIntent: resolvedCurrentTurnPresentationState.overlayIntent ?? null,
     responseOverlayEntries,
     latestSourceTaggedResponseEntry,
     responseEntrySignature,

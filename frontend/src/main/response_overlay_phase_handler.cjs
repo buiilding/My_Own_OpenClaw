@@ -22,6 +22,8 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
     phase = null,
+    source = null,
+    usePhaseVisibilityFallback = false,
   } = deps;
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN) {
@@ -45,6 +47,22 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
   }
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP) {
+    if (usePhaseVisibilityFallback !== true) {
+      console.log('[ResponseOverlayWindow][main]', {
+        action: 'defer-show-to-renderer',
+        mode,
+        phase,
+        source,
+        response_window_visible: safeWindowVisible(responseWindow),
+      });
+      logChatPillMainTrace({
+        source: 'phase-handler',
+        action: 'defer-response-window-to-renderer',
+        phase,
+        responseWindow,
+      }, deps);
+      return;
+    }
     setResponseOverlayVisibilityState(true);
     if (!responseWindow || responseWindow.isDestroyed()) {
       return;
@@ -55,6 +73,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       action: 'show-from-phase',
       mode,
       phase,
+      source,
       response_window_visible: safeWindowVisible(responseWindow),
     });
     logChatPillMainTrace({
@@ -107,6 +126,13 @@ function shouldApplyResponseOverlayPhaseEvent({
     return isStreamingResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE);
   }
   return isStreamingResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE);
+}
+
+function shouldUsePhaseVisibilityFallback(event = {}, nextPhase, RESPONSE_OVERLAY_PHASE = {}) {
+  return (
+    event?.source === 'renderer-send-preflight'
+    && nextPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
+  );
 }
 
 function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
@@ -173,12 +199,19 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 
   setResponseOverlayPhase(nextPhase);
   const windowMode = resolveResponseOverlayWindowMode(nextPhase, RESPONSE_OVERLAY_PHASE);
+  const usePhaseVisibilityFallback = shouldUsePhaseVisibilityFallback(
+    event,
+    nextPhase,
+    RESPONSE_OVERLAY_PHASE,
+  );
   logChatPillMainTrace({
     source: 'phase-handler',
     action: 'phase-change',
     phase: nextPhase,
     correlationId: eventCorrelationId,
     reason: windowMode,
+    eventSource: event?.source || null,
+    visibilityFallback: usePhaseVisibilityFallback,
   }, {
     ...deps,
     getResponseOverlayPhase,
@@ -193,6 +226,8 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     showResponseWindowInactive,
     syncContextLabelWindowVisibility,
     phase: nextPhase,
+    source: event?.source || null,
+    usePhaseVisibilityFallback,
     getResponseOverlayPhase,
   });
 }

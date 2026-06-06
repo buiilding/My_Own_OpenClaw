@@ -673,11 +673,13 @@ describe('ChatBoxResponse state behavior', () => {
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith(
         'set-responsebox-size',
-        {
+        expect.objectContaining({
           visible: false,
           width: 0,
           height: 0,
-        },
+          turn_ref: null,
+          stale_guard_ref: null,
+        }),
       );
     });
   });

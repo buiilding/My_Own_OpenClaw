@@ -35,6 +35,21 @@ function resolveFullscreenBounds({
   };
 }
 
+function normalizeResponseOverlayGuardRef(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized || null;
+}
+
+function shouldIgnoreStaleHide({
+  staleGuardRef,
+  activeGuardRef,
+}) {
+  return Boolean(staleGuardRef && activeGuardRef && staleGuardRef !== activeGuardRef);
+}
+
 async function handleSetResponseboxSize(
   {
     width,
@@ -42,6 +57,8 @@ async function handleSetResponseboxSize(
     visible,
     full_screen: fullScreen = false,
     compact_hover: compactHover = false,
+    turn_ref: turnRef = null,
+    stale_guard_ref: staleGuardRef = null,
   } = {},
   deps = {},
 ) {
@@ -58,6 +75,8 @@ async function handleSetResponseboxSize(
     showResponseWindowWhenChatVisible,
     getResponseOverlayVisible = () => false,
     getResponseOverlayPhase = () => null,
+    getActiveResponseOverlayGuardRef = () => null,
+    setActiveResponseOverlayGuardRef = () => {},
   } = deps;
 
   if (!responseWindow || responseWindow.isDestroyed()) {
@@ -65,8 +84,45 @@ async function handleSetResponseboxSize(
   }
 
   const shouldShow = Boolean(visible);
+  const normalizedTurnRef = normalizeResponseOverlayGuardRef(turnRef);
+  const normalizedStaleGuardRef = normalizeResponseOverlayGuardRef(staleGuardRef)
+    || normalizedTurnRef;
   if (!shouldShow) {
+    const activeGuardRef = normalizeResponseOverlayGuardRef(getActiveResponseOverlayGuardRef());
+    if (shouldIgnoreStaleHide({
+      staleGuardRef: normalizedStaleGuardRef,
+      activeGuardRef,
+    })) {
+      console.log('[ResponseOverlayWindow][main]', {
+        action: 'ignore-stale-hide-from-size',
+        phase: getResponseOverlayPhase(),
+        turn_ref: normalizedTurnRef,
+        stale_guard_ref: normalizedStaleGuardRef,
+        active_guard_ref: activeGuardRef,
+        response_window_visible: safeWindowVisible(responseWindow),
+        response_overlay_visible_flag: getResponseOverlayVisible(),
+      });
+      logChatPillMainTrace({
+        source: 'responsebox-size',
+        action: 'ignore-stale-hide',
+        phase: getResponseOverlayPhase(),
+        responseWindow,
+        responseOverlayVisibleFlag: getResponseOverlayVisible(),
+        turnRef: normalizedTurnRef,
+        staleGuardRef: normalizedStaleGuardRef,
+        activeGuardRef,
+      }, deps);
+      return {
+        success: true,
+        visible: true,
+        ignored: true,
+        reason: 'stale-hide',
+      };
+    }
     setResponseOverlayVisibilityState(false);
+    if (!normalizedStaleGuardRef || normalizedStaleGuardRef === activeGuardRef) {
+      setActiveResponseOverlayGuardRef(null);
+    }
     if (responseWindow.isVisible()) {
       responseWindow.hide();
     }
@@ -74,6 +130,8 @@ async function handleSetResponseboxSize(
       action: 'hide-from-size',
       phase: getResponseOverlayPhase(),
       requested_visible: false,
+      turn_ref: normalizedTurnRef,
+      stale_guard_ref: normalizedStaleGuardRef,
       response_window_visible: safeWindowVisible(responseWindow),
       response_overlay_visible_flag: getResponseOverlayVisible(),
     });
@@ -83,6 +141,8 @@ async function handleSetResponseboxSize(
       phase: getResponseOverlayPhase(),
       responseWindow,
       responseOverlayVisibleFlag: false,
+      turnRef: normalizedTurnRef,
+      staleGuardRef: normalizedStaleGuardRef,
     }, deps);
     return { success: true, visible: false };
   }
@@ -98,12 +158,17 @@ async function handleSetResponseboxSize(
         getActiveDisplayAffinity,
       });
       responseWindow.setBounds(nextBounds, false);
+      if (normalizedStaleGuardRef) {
+        setActiveResponseOverlayGuardRef(normalizedStaleGuardRef);
+      }
       setResponseOverlayVisibilityState(true);
       showResponseWindowWhenChatVisible();
       console.log('[ResponseOverlayWindow][main]', {
         action: 'show-fullscreen-from-size',
         phase: getResponseOverlayPhase(),
         requested_visible: true,
+        turn_ref: normalizedTurnRef,
+        stale_guard_ref: normalizedStaleGuardRef,
         response_window_visible: safeWindowVisible(responseWindow),
         response_overlay_visible_flag: getResponseOverlayVisible(),
         width: nextBounds.width,
@@ -115,6 +180,8 @@ async function handleSetResponseboxSize(
         phase: getResponseOverlayPhase(),
         responseWindow,
         responseOverlayVisibleFlag: getResponseOverlayVisible(),
+        turnRef: normalizedTurnRef,
+        staleGuardRef: normalizedStaleGuardRef,
       }, deps);
       return {
         success: true,
@@ -135,6 +202,9 @@ async function handleSetResponseboxSize(
       ? getResponseWindowBounds(nextWidth, nextHeight, { compactHover: true })
       : getResponseWindowBounds(nextWidth, nextHeight);
     responseWindow.setBounds(bounds, false);
+    if (normalizedStaleGuardRef) {
+      setActiveResponseOverlayGuardRef(normalizedStaleGuardRef);
+    }
     setResponseOverlayVisibilityState(true);
     showResponseWindowWhenChatVisible();
     console.log('[ResponseOverlayWindow][main]', {
@@ -144,6 +214,8 @@ async function handleSetResponseboxSize(
       response_window_visible: safeWindowVisible(responseWindow),
       response_overlay_visible_flag: getResponseOverlayVisible(),
       response_layout_mode: compactHover ? 'awaiting-typing' : 'response',
+      turn_ref: normalizedTurnRef,
+      stale_guard_ref: normalizedStaleGuardRef,
       width: nextWidth,
       height: nextHeight,
     });
@@ -154,6 +226,8 @@ async function handleSetResponseboxSize(
       responseWindow,
       responseOverlayVisibleFlag: getResponseOverlayVisible(),
       responseLayoutMode: compactHover ? 'awaiting-typing' : 'response',
+      turnRef: normalizedTurnRef,
+      staleGuardRef: normalizedStaleGuardRef,
     }, deps);
     return {
       success: true,

@@ -504,6 +504,7 @@ function emptyCurrentTurnProjection(conversationRef, turnRef = null) {
         conversationRef,
         turnRef,
         phase: turnRef ? 'awaiting' : 'idle',
+        userMessageRowId: null,
         assistantText: '',
         reasoningText: null,
         toolEvents: [],
@@ -627,17 +628,35 @@ function buildLiveTurnPresentation(projection) {
     ]);
     const hasVisibleContent = entries.length > 0;
     const isBusy = activePhases.has(projection.phase);
+    const typingVisible = projection.phase === 'awaiting' && !hasVisibleContent;
+    const overlayIntentMode = hasVisibleContent ? 'response' : (typingVisible ? 'awaiting' : 'hidden');
+    const overlayVisible = overlayIntentMode !== 'hidden';
     return {
         conversationRef: projection.conversationRef,
         turnRef: projection.turnRef,
         phase: projection.phase,
         entries,
         hasVisibleContent,
-        typingVisible: projection.phase === 'awaiting' && !hasVisibleContent,
-        overlayVisible: hasVisibleContent,
+        typingVisible,
+        overlayVisible,
         isBusy,
         isTerminal: terminalPhases.has(projection.phase),
         lastError: projection.lastError,
+        awaitingAnchor: typingVisible && projection.userMessageRowId
+            ? {
+                kind: 'user-message',
+                rowId: projection.userMessageRowId,
+                turnRef: projection.turnRef,
+                conversationRef: projection.conversationRef,
+            }
+            : null,
+        overlayIntent: {
+            visible: overlayVisible,
+            mode: overlayIntentMode,
+            turnRef: projection.turnRef,
+            conversationRef: projection.conversationRef,
+            staleGuardRef: projection.turnRef,
+        },
     };
 }
 function withLiveTurnPresentation(projection) {
@@ -657,7 +676,13 @@ function buildCurrentTurnProjection(events) {
             projection = { ...projection, turnRef: event.turnRef };
         }
         if (event.type === 'turn_started' || event.type === 'user_message') {
-            projection = advanceCurrentTurnPhase(projection, 'awaiting');
+            const nextProjection = advanceCurrentTurnPhase(projection, 'awaiting');
+            projection = event.type === 'user_message'
+                ? {
+                    ...nextProjection,
+                    userMessageRowId: displayRowId(event, 0),
+                }
+                : nextProjection;
             continue;
         }
         if (event.type === 'reasoning_delta') {

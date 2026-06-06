@@ -282,6 +282,23 @@ export type LiveTurnPresentationEntry = {
   payload?: JsonRecord | null;
 };
 
+export type LiveTurnAwaitingAnchor = {
+  kind: 'user-message';
+  rowId: string;
+  turnRef: string | null;
+  conversationRef: string;
+};
+
+export type LiveTurnOverlayIntentMode = 'hidden' | 'awaiting' | 'response';
+
+export type LiveTurnOverlayIntent = {
+  visible: boolean;
+  mode: LiveTurnOverlayIntentMode;
+  turnRef: string | null;
+  conversationRef: string;
+  staleGuardRef: string | null;
+};
+
 export type LiveTurnPresentation = {
   conversationRef: string;
   turnRef: string | null;
@@ -293,12 +310,15 @@ export type LiveTurnPresentation = {
   isBusy: boolean;
   isTerminal: boolean;
   lastError: string | null;
+  awaitingAnchor: LiveTurnAwaitingAnchor | null;
+  overlayIntent: LiveTurnOverlayIntent;
 };
 
 export type CurrentTurnProjection = {
   conversationRef: string;
   turnRef: string | null;
   phase: CurrentTurnProjectionPhase;
+  userMessageRowId: string | null;
   assistantText: string;
   reasoningText: string | null;
   toolEvents: CurrentTurnToolEvent[];
