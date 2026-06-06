@@ -77,9 +77,6 @@ describe('response_overlay_phase_handler', () => {
 
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
-    expect(deps.responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, {
-      forward: true,
-    });
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
     expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
@@ -95,7 +92,6 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
-    expect(deps.responseWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
   });
 
   test('idle phase does not own chat pill hit-testing', () => {

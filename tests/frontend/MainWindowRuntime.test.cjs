@@ -363,7 +363,6 @@ describe('main_window_runtime createResponseWindow', () => {
       loadURL: jest.fn(),
       loadFile: jest.fn(),
       hide: jest.fn(),
-      setIgnoreMouseEvents: jest.fn(),
       on: jest.fn((eventName, handler) => {
         handlers[eventName] = handler;
       }),
@@ -449,21 +448,6 @@ describe('main_window_runtime createResponseWindow', () => {
     handlers.show();
 
     expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_tool_screenshot=1'));
-  });
-
-  test('makes prevented response window close click-through before hiding', () => {
-    const { deps, handlers, responseWindow } = createDeps();
-    const closeEvent = { preventDefault: jest.fn() };
-
-    createResponseWindow(deps);
-    handlers.close(closeEvent);
-
-    expect(closeEvent.preventDefault).toHaveBeenCalledTimes(1);
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
-    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, {
-      forward: true,
-    });
-    expect(responseWindow.hide).toHaveBeenCalledTimes(1);
   });
 
   test('applies capturable always-on-top policy on mac for response overlay', () => {

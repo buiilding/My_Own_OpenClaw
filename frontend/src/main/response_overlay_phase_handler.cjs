@@ -9,9 +9,6 @@ const {
   logLiveSurfaceTrace,
   summarizeWindow,
 } = require('./live_surface_trace_runtime.cjs');
-const {
-  safeSetResponseOverlayHitTest,
-} = require('./response_overlay_hit_test_runtime.cjs');
 
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
@@ -64,13 +61,6 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       return;
     }
     setResponseOverlayVisibilityState(false);
-    safeSetResponseOverlayHitTest(responseWindow, {
-      ignoreMouseEvents: true,
-      source: 'phase-handler',
-      reason: 'phase-hidden',
-      phase,
-      overlayMode: mode,
-    });
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
       responseWindow.hide();
       logLiveSurfaceTrace('response_overlay.window.hide', {

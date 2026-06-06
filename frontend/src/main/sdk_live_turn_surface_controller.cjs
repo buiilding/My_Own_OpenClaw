@@ -5,9 +5,6 @@ const {
   summarizeCurrentTurn,
   summarizeWindow,
 } = require('./live_surface_trace_runtime.cjs');
-const {
-  safeSetResponseOverlayHitTest,
-} = require('./response_overlay_hit_test_runtime.cjs');
 
 const RESPONSE_OVERLAY_WIDTH = 520;
 const RESPONSE_OVERLAY_AWAITING_HEIGHT = (
@@ -248,16 +245,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
         conversationRef: intent.conversationRef,
       });
     }
-    safeSetResponseOverlayHitTest(responseWindow, {
-      ignoreMouseEvents: true,
-      source: 'sdk-live-turn-surface',
-      reason: 'sdk-overlay-hide',
-      turnRef: intent.turnRef,
-      conversationRef: intent.conversationRef,
-      guardRef: intent.staleGuardRef,
-      phase: getResponseOverlayPhase(),
-      overlayMode: intent.mode,
-    });
     if (responseWindow.isVisible?.()) {
       responseWindow.hide();
       logLiveSurfaceTrace('response_overlay.window.hide', {

@@ -2,9 +2,6 @@ const {
   normalizeChatSurfaceWindowOptions,
   normalizeMainSurfaceWindowOptions,
 } = require('./surface_window_options_runtime.cjs');
-const {
-  safeSetResponseOverlayHitTest,
-} = require('./response_overlay_hit_test_runtime.cjs');
 
 function handleShowMainWindow(options = {}, deps = {}) {
   const {
@@ -108,11 +105,6 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
     }
     setResponseOverlayVisibilityState(true);
     ensureResponseOverlayFallbackBounds();
-    safeSetResponseOverlayHitTest(responseWindow, {
-      ignoreMouseEvents: false,
-      source: 'overlay-visibility-handler',
-      reason: 'screenshot-restore-response',
-    });
     showResponseWindowInactive();
     syncContextLabelWindowVisibility();
     return { success: true, restored: true };
@@ -218,11 +210,6 @@ async function handlePrepareSurfaceForScreenshot(
       hideResult = await hideMainWindow({ suppressForScreenshot: true });
     } else if (hiddenSurface === 'response') {
       if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
-        safeSetResponseOverlayHitTest(responseWindow, {
-          ignoreMouseEvents: true,
-          source: 'overlay-visibility-handler',
-          reason: 'screenshot-prepare-hide-response',
-        });
         responseWindow.hide();
       }
       if (contextLabelWindow && !contextLabelWindow.isDestroyed() && contextLabelWindow.isVisible()) {

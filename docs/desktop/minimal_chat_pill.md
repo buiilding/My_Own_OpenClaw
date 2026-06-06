@@ -45,9 +45,6 @@ The chat pill is the small always-available desktop command surface. It is rende
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill
   hit-test policy in `finally`.
-- Hidden or dismissed response overlay windows must be click-through at the
-  native `BrowserWindow` layer so invisible overlay bounds cannot block apps
-  underneath.
 - Screenshot invisibility is also lease-scoped. Electron main applies the
   capture policy immediately around SDK-local `screenshot` execution and
   restores the window policy in `finally`.

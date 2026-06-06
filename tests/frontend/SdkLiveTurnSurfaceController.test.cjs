@@ -19,7 +19,6 @@ function createWindow({ visible = false } = {}) {
     hide: jest.fn(() => {
       isVisible = false;
     }),
-    setIgnoreMouseEvents: jest.fn(),
   };
 }
 
@@ -198,7 +197,6 @@ describe('sdk_live_turn_surface_controller', () => {
     });
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
-    expect(deps.responseWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
   });
 
   test('hides overlay from matching SDK hidden intent', () => {
@@ -220,9 +218,6 @@ describe('sdk_live_turn_surface_controller', () => {
     });
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
-    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, {
-      forward: true,
-    });
     expect(responseWindow.hide).toHaveBeenCalledTimes(1);
   });
 

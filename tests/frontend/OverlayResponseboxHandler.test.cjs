@@ -12,7 +12,6 @@ describe('overlay_responsebox_handler', () => {
         isVisible: jest.fn().mockReturnValue(true),
         hide: jest.fn(),
         setBounds: jest.fn(),
-        setIgnoreMouseEvents: jest.fn(),
       },
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
@@ -56,9 +55,6 @@ describe('overlay_responsebox_handler', () => {
 
     expect(result).toEqual({ success: true, visible: false });
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
-    expect(deps.responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, {
-      forward: true,
-    });
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
   });
@@ -70,7 +66,6 @@ describe('overlay_responsebox_handler', () => {
         isVisible: jest.fn().mockReturnValue(false),
         hide: jest.fn(),
         setBounds: jest.fn(),
-        setIgnoreMouseEvents: jest.fn(),
       },
     });
 
@@ -78,9 +73,6 @@ describe('overlay_responsebox_handler', () => {
 
     expect(result).toEqual({ success: true, visible: false });
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
-    expect(deps.responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, {
-      forward: true,
-    });
   });
 
   test('resizes in fullscreen mode using active surface display affinity from the visible chat window', async () => {
@@ -290,7 +282,6 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
     expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
-    expect(deps.responseWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
   });
 
   test('ignores unguarded hide while a guarded SDK response is active', async () => {
@@ -313,7 +304,6 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
     expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
-    expect(deps.responseWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
   });
 
   test('clears matching active turn guard on hide', async () => {
@@ -331,9 +321,6 @@ describe('overlay_responsebox_handler', () => {
 
     expect(result).toEqual({ success: true, visible: false });
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
-    expect(deps.responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, {
-      forward: true,
-    });
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
   });
