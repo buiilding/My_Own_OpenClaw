@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: add the SDK-owned send optimistic-row refactor plan for moving
+  immediate user-message display out of renderer-local transcript state and
+  into SDK `displayRows`.
 - sdk/frontend: make SDK `displayRows` the live and historical chat transcript
   source, including streaming assistant rows from normalized events, and remove
   renderer current-turn row materialization from dashboard chat rendering.
