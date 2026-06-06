@@ -475,7 +475,7 @@ describe('useChatMessageSender', () => {
     expectSingleSendQueryCall('hello', 'conv_msg-1');
   });
 
-  test('sends uploaded screenshot refs to backend and updates message attachment', async () => {
+  test('sends uploaded screenshot refs to the SDK without adding a renderer-local row', async () => {
     mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'base64-shot',
       screenshotContentType: 'image/png',
@@ -498,12 +498,7 @@ describe('useChatMessageSender', () => {
       '/api/artifacts/artifact-1',
       ['artifact-1'],
     );
-    expect(useChatStore.getState().messages[0]).toEqual(
-      expect.objectContaining({
-        screenshotRef: 'artifact-1',
-        screenshotUrl: '/api/artifacts/artifact-1',
-      }),
-    );
+    expect(useChatStore.getState().messages).toEqual([]);
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -528,12 +523,7 @@ describe('useChatMessageSender', () => {
       'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
       ['artifact-auto-1'],
     );
-    expect(useChatStore.getState().messages[0]).toEqual(
-      expect.objectContaining({
-        screenshotRef: 'artifact-auto-1',
-        screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
-      }),
-    );
+    expect(useChatStore.getState().messages).toEqual([]);
   });
 
   test('uploads pasted clipboard image and sends its artifact ref', async () => {
@@ -571,20 +561,7 @@ describe('useChatMessageSender', () => {
       null,
       ['clipboard-image.png'],
     );
-    expect(useChatStore.getState().messages[0]).toEqual(
-      expect.objectContaining({
-        text: 'Please inspect this image',
-        screenshot: 'clipboard-image-base64',
-        screenshotRef: 'artifact-clipboard-1',
-        screenshotUrl: '/api/artifacts/artifact-clipboard-1',
-        screenshots: [
-          expect.objectContaining({
-            screenshotRef: 'artifact-clipboard-1',
-            screenshotUrl: '/api/artifacts/artifact-clipboard-1',
-          }),
-        ],
-      }),
-    );
+    expect(useChatStore.getState().messages).toEqual([]);
   });
 
   test('uploads multiple pasted clipboard images and sends all screenshot refs', async () => {
@@ -639,23 +616,7 @@ describe('useChatMessageSender', () => {
       null,
       ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
     );
-    expect(useChatStore.getState().messages[0]).toEqual(
-      expect.objectContaining({
-        text: 'Please inspect both images',
-        screenshotRef: 'artifact-clipboard-1',
-        screenshotUrl: '/api/artifacts/artifact-clipboard-1',
-        screenshots: [
-          expect.objectContaining({
-            screenshotRef: 'artifact-clipboard-1',
-            screenshotUrl: '/api/artifacts/artifact-clipboard-1',
-          }),
-          expect.objectContaining({
-            screenshotRef: 'artifact-clipboard-2',
-            screenshotUrl: '/api/artifacts/artifact-clipboard-2',
-          }),
-        ],
-      }),
-    );
+    expect(useChatStore.getState().messages).toEqual([]);
   });
 
   test('reads selected non-image files via read_file and injects hidden attachment context', async () => {
@@ -697,12 +658,7 @@ describe('useChatMessageSender', () => {
       ['notes.txt'],
     );
 
-    expect(useChatStore.getState().messages[0]).toEqual(
-      expect.objectContaining({
-        text: 'Summarize the attached file',
-        attachmentFilenames: ['notes.txt'],
-      }),
-    );
+    expect(useChatStore.getState().messages).toEqual([]);
   });
 
   test('blocks send and surfaces an error when a readable file cannot be read', async () => {

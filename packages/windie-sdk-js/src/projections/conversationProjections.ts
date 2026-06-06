@@ -8,6 +8,8 @@ import type {
   DisplayConversation,
   DisplayMessage,
   JsonRecord,
+  LiveTurnPresentation,
+  LiveTurnPresentationEntry,
   RehydrateSnapshot,
   SdkDisplayRow,
   SdkDisplayRowMetadata,
@@ -375,6 +377,24 @@ function displayRowFromEvent(event: ConversationEvent, index: number): SdkDispla
   return null;
 }
 
+function mergeUserMessageMetadata(
+  row: Extract<SdkDisplayRow, { type: 'user_message' }>,
+  event: ConversationEvent,
+): Extract<SdkDisplayRow, { type: 'user_message' }> {
+  const metadata = displayRowMetadata(event);
+  return {
+    ...row,
+    metadata: {
+      ...row.metadata,
+      ...metadata,
+      raw: {
+        ...(recordFromUnknown(row.metadata?.raw) ?? {}),
+        ...event.payload,
+      },
+    },
+  };
+}
+
 type StreamingAssistantDisplayRow = Extract<SdkDisplayRow, { type: 'assistant_message' }>;
 
 type StreamingAssistantState = {
@@ -444,7 +464,17 @@ function buildFinalAssistantRow(
 export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
   const rows: SdkDisplayRow[] = [];
   const streamingAssistants = new Map<string, StreamingAssistantState>();
+  const userRowsByTurn = new Map<string, number>();
   for (const event of events) {
+    if (event.type === 'user_message_metadata') {
+      const key = userMetadataKey(event);
+      const rowIndex = key ? userRowsByTurn.get(key) : undefined;
+      const row = typeof rowIndex === 'number' ? rows[rowIndex] : null;
+      if (row?.type === 'user_message') {
+        rows[rowIndex] = mergeUserMessageMetadata(row, event);
+      }
+      continue;
+    }
     if (event.type === 'assistant_delta' || event.type === 'reasoning_delta') {
       const key = streamingAssistantKey(event);
       const current = streamingAssistants.get(key) ?? {
@@ -495,9 +525,22 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
     const row = displayRowFromEvent(event, rows.length);
     if (row) {
       rows.push(row);
+      if (row.type === 'user_message') {
+        const key = userMetadataKey(event);
+        if (key) {
+          userRowsByTurn.set(key, rows.length - 1);
+        }
+      }
     }
   }
   return rows;
+}
+
+function userMetadataKey(event: ConversationEvent): string | null {
+  if (event.turnRef) {
+    return `${event.conversationRef}:${event.turnRef}`;
+  }
+  return null;
 }
 
 function statusFromToolPayload(payload: JsonRecord): string | null {
@@ -543,7 +586,7 @@ function emptyCurrentTurnProjection(
   conversationRef: string,
   turnRef: string | null = null,
 ): CurrentTurnProjection {
-  return {
+  const projection: Omit<CurrentTurnProjection, 'presentation'> = {
     conversationRef,
     turnRef,
     phase: turnRef ? 'awaiting' : 'idle',
@@ -552,6 +595,7 @@ function emptyCurrentTurnProjection(
     toolEvents: [],
     lastError: null,
   };
+  return withLiveTurnPresentation(projection);
 }
 
 function resetCurrentTurnIfNeeded(
@@ -586,6 +630,126 @@ function advanceCurrentTurnPhase(
     return current;
   }
   return { ...current, phase };
+}
+
+function visibleText(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? value : null;
+}
+
+function toolEntryText(toolEvent: CurrentTurnToolEvent): string {
+  const text = visibleText(toolEvent.text);
+  if (text) {
+    return text;
+  }
+  const toolName = visibleText(toolEvent.toolName ?? null);
+  if (toolEvent.kind === 'tool_output') {
+    return toolName ? `${toolName} completed` : 'Tool completed';
+  }
+  if (toolEvent.kind === 'tool_progress') {
+    return toolName ? `${toolName} is running` : 'Tool is running';
+  }
+  return toolName ? `Using ${toolName}` : 'Using tool';
+}
+
+function toolEntryType(toolEvent: CurrentTurnToolEvent): LiveTurnPresentationEntry['type'] {
+  if (toolEvent.kind === 'tool_output') {
+    return 'tool-output';
+  }
+  if (toolEvent.kind === 'tool_progress') {
+    return 'tool-progress';
+  }
+  return 'tool-call';
+}
+
+function buildLiveTurnPresentation(
+  projection: Omit<CurrentTurnProjection, 'presentation'>,
+): LiveTurnPresentation {
+  const baseId = `${projection.conversationRef || 'conversation'}:${projection.turnRef || 'turn'}`;
+  const entries: LiveTurnPresentationEntry[] = [];
+  const reasoningText = visibleText(projection.reasoningText);
+  if (reasoningText) {
+    entries.push({
+      id: `${baseId}:thinking`,
+      type: 'thinking',
+      text: reasoningText,
+      sourceEventType: 'reasoning_delta',
+      sourceChannel: 'windie:current-turn',
+      turnRef: projection.turnRef,
+    });
+  }
+  projection.toolEvents.forEach((toolEvent, index) => {
+    entries.push({
+      id: `${baseId}:tool:${toolEvent.id || index}`,
+      type: toolEntryType(toolEvent),
+      text: toolEntryText(toolEvent),
+      sourceEventType: toolEvent.kind,
+      sourceChannel: 'windie:current-turn',
+      turnRef: projection.turnRef,
+      toolName: toolEvent.toolName ?? null,
+      payload: toolEvent.payload,
+    });
+  });
+  const assistantText = visibleText(projection.assistantText);
+  if (assistantText) {
+    entries.push({
+      id: `${baseId}:assistant`,
+      type: 'llm-text',
+      text: assistantText,
+      sourceEventType: 'assistant_delta',
+      sourceChannel: 'windie:current-turn',
+      turnRef: projection.turnRef,
+      isComplete: projection.phase === 'complete',
+    });
+  }
+  const errorText = visibleText(projection.lastError);
+  if (errorText) {
+    entries.push({
+      id: `${baseId}:error`,
+      type: 'error',
+      text: errorText,
+      sourceEventType: 'runtime_error',
+      sourceChannel: 'windie:current-turn',
+      turnRef: projection.turnRef,
+      isComplete: true,
+    });
+  }
+  const activePhases = new Set<CurrentTurnProjectionPhase>([
+    'awaiting',
+    'streaming',
+    'tool_call',
+    'tool_output',
+  ]);
+  const terminalPhases = new Set<CurrentTurnProjectionPhase>([
+    'complete',
+    'error',
+  ]);
+  const hasVisibleContent = entries.length > 0;
+  const isBusy = activePhases.has(projection.phase);
+  return {
+    conversationRef: projection.conversationRef,
+    turnRef: projection.turnRef,
+    phase: projection.phase,
+    entries,
+    hasVisibleContent,
+    typingVisible: projection.phase === 'awaiting' && !hasVisibleContent,
+    overlayVisible: hasVisibleContent,
+    isBusy,
+    isTerminal: terminalPhases.has(projection.phase),
+    lastError: projection.lastError,
+  };
+}
+
+function withLiveTurnPresentation(
+  projection: Omit<CurrentTurnProjection, 'presentation'>,
+): CurrentTurnProjection {
+  return {
+    ...projection,
+    presentation: buildLiveTurnPresentation(projection),
+  };
 }
 
 export function buildCurrentTurnProjection(events: ConversationEvent[]): CurrentTurnProjection {
@@ -657,7 +821,7 @@ export function buildCurrentTurnProjection(events: ConversationEvent[]): Current
       };
     }
   }
-  return projection;
+  return withLiveTurnPresentation(projection);
 }
 
 function toolOutputDedupeKey(event: ConversationEvent): string | null {

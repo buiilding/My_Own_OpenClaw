@@ -332,6 +332,20 @@ function displayRowFromEvent(event, index) {
     }
     return null;
 }
+function mergeUserMessageMetadata(row, event) {
+    const metadata = displayRowMetadata(event);
+    return {
+        ...row,
+        metadata: {
+            ...row.metadata,
+            ...metadata,
+            raw: {
+                ...((0, toolOutputContent_js_1.recordFromUnknown)(row.metadata?.raw) ?? {}),
+                ...event.payload,
+            },
+        },
+    };
+}
 function buildStreamingAssistantRow(event, index, assistantText, reasoningText, eventIds) {
     const raw = {
         ...event.payload,
@@ -380,7 +394,17 @@ function buildFinalAssistantRow(event, index, streamingState) {
 function buildDisplayRows(events) {
     const rows = [];
     const streamingAssistants = new Map();
+    const userRowsByTurn = new Map();
     for (const event of events) {
+        if (event.type === 'user_message_metadata') {
+            const key = userMetadataKey(event);
+            const rowIndex = key ? userRowsByTurn.get(key) : undefined;
+            const row = typeof rowIndex === 'number' ? rows[rowIndex] : null;
+            if (row?.type === 'user_message') {
+                rows[rowIndex] = mergeUserMessageMetadata(row, event);
+            }
+            continue;
+        }
         if (event.type === 'assistant_delta' || event.type === 'reasoning_delta') {
             const key = streamingAssistantKey(event);
             const current = streamingAssistants.get(key) ?? {
@@ -422,9 +446,21 @@ function buildDisplayRows(events) {
         const row = displayRowFromEvent(event, rows.length);
         if (row) {
             rows.push(row);
+            if (row.type === 'user_message') {
+                const key = userMetadataKey(event);
+                if (key) {
+                    userRowsByTurn.set(key, rows.length - 1);
+                }
+            }
         }
     }
     return rows;
+}
+function userMetadataKey(event) {
+    if (event.turnRef) {
+        return `${event.conversationRef}:${event.turnRef}`;
+    }
+    return null;
 }
 function statusFromToolPayload(payload) {
     if (typeof payload.status === 'string') {
@@ -464,7 +500,7 @@ function currentTurnToolEventFrom(event) {
     };
 }
 function emptyCurrentTurnProjection(conversationRef, turnRef = null) {
-    return {
+    const projection = {
         conversationRef,
         turnRef,
         phase: turnRef ? 'awaiting' : 'idle',
@@ -473,6 +509,7 @@ function emptyCurrentTurnProjection(conversationRef, turnRef = null) {
         toolEvents: [],
         lastError: null,
     };
+    return withLiveTurnPresentation(projection);
 }
 function resetCurrentTurnIfNeeded(current, event) {
     if (!event.turnRef || current.turnRef === event.turnRef) {
@@ -497,6 +534,117 @@ function advanceCurrentTurnPhase(current, phase) {
         return current;
     }
     return { ...current, phase };
+}
+function visibleText(value) {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? value : null;
+}
+function toolEntryText(toolEvent) {
+    const text = visibleText(toolEvent.text);
+    if (text) {
+        return text;
+    }
+    const toolName = visibleText(toolEvent.toolName ?? null);
+    if (toolEvent.kind === 'tool_output') {
+        return toolName ? `${toolName} completed` : 'Tool completed';
+    }
+    if (toolEvent.kind === 'tool_progress') {
+        return toolName ? `${toolName} is running` : 'Tool is running';
+    }
+    return toolName ? `Using ${toolName}` : 'Using tool';
+}
+function toolEntryType(toolEvent) {
+    if (toolEvent.kind === 'tool_output') {
+        return 'tool-output';
+    }
+    if (toolEvent.kind === 'tool_progress') {
+        return 'tool-progress';
+    }
+    return 'tool-call';
+}
+function buildLiveTurnPresentation(projection) {
+    const baseId = `${projection.conversationRef || 'conversation'}:${projection.turnRef || 'turn'}`;
+    const entries = [];
+    const reasoningText = visibleText(projection.reasoningText);
+    if (reasoningText) {
+        entries.push({
+            id: `${baseId}:thinking`,
+            type: 'thinking',
+            text: reasoningText,
+            sourceEventType: 'reasoning_delta',
+            sourceChannel: 'windie:current-turn',
+            turnRef: projection.turnRef,
+        });
+    }
+    projection.toolEvents.forEach((toolEvent, index) => {
+        entries.push({
+            id: `${baseId}:tool:${toolEvent.id || index}`,
+            type: toolEntryType(toolEvent),
+            text: toolEntryText(toolEvent),
+            sourceEventType: toolEvent.kind,
+            sourceChannel: 'windie:current-turn',
+            turnRef: projection.turnRef,
+            toolName: toolEvent.toolName ?? null,
+            payload: toolEvent.payload,
+        });
+    });
+    const assistantText = visibleText(projection.assistantText);
+    if (assistantText) {
+        entries.push({
+            id: `${baseId}:assistant`,
+            type: 'llm-text',
+            text: assistantText,
+            sourceEventType: 'assistant_delta',
+            sourceChannel: 'windie:current-turn',
+            turnRef: projection.turnRef,
+            isComplete: projection.phase === 'complete',
+        });
+    }
+    const errorText = visibleText(projection.lastError);
+    if (errorText) {
+        entries.push({
+            id: `${baseId}:error`,
+            type: 'error',
+            text: errorText,
+            sourceEventType: 'runtime_error',
+            sourceChannel: 'windie:current-turn',
+            turnRef: projection.turnRef,
+            isComplete: true,
+        });
+    }
+    const activePhases = new Set([
+        'awaiting',
+        'streaming',
+        'tool_call',
+        'tool_output',
+    ]);
+    const terminalPhases = new Set([
+        'complete',
+        'error',
+    ]);
+    const hasVisibleContent = entries.length > 0;
+    const isBusy = activePhases.has(projection.phase);
+    return {
+        conversationRef: projection.conversationRef,
+        turnRef: projection.turnRef,
+        phase: projection.phase,
+        entries,
+        hasVisibleContent,
+        typingVisible: projection.phase === 'awaiting' && !hasVisibleContent,
+        overlayVisible: hasVisibleContent,
+        isBusy,
+        isTerminal: terminalPhases.has(projection.phase),
+        lastError: projection.lastError,
+    };
+}
+function withLiveTurnPresentation(projection) {
+    return {
+        ...projection,
+        presentation: buildLiveTurnPresentation(projection),
+    };
 }
 function buildCurrentTurnProjection(events) {
     let projection = emptyCurrentTurnProjection(events[0]?.conversationRef ?? '');
@@ -566,7 +714,7 @@ function buildCurrentTurnProjection(events) {
             };
         }
     }
-    return projection;
+    return withLiveTurnPresentation(projection);
 }
 function toolOutputDedupeKey(event) {
     if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {

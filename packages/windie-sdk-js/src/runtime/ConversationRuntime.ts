@@ -9,6 +9,7 @@ import type {
   CurrentTurnProjection,
   DisplayConversation,
   JsonRecord,
+  LiveTurnPresentation,
   LocalToolExecutionLifecycle,
   LocalRuntime,
   MemoryStoreChangedPayload,
@@ -46,6 +47,7 @@ export type ConversationSnapshot = {
   displayRows: SdkDisplayRow[];
   rehydrate: RehydrateSnapshot;
   currentTurn: CurrentTurnProjection;
+  liveTurnPresentation: LiveTurnPresentation;
 };
 
 export type SendInput = {
@@ -253,14 +255,6 @@ export class SdkConversationRuntime {
     const emitMemoryDiagnostic = (diagnostic: MemoryRetrievalDiagnostic): void => {
       memoryDiagnostics.push(diagnostic);
     };
-    const enrichedPayload = this.options.enrichQuery
-      ? await this.options.enrichQuery({
-        text: input.text,
-        conversationRef: this.options.conversationRef,
-        payload: input.payload ?? {},
-        emitDiagnostic: emitMemoryDiagnostic,
-      })
-      : (input.payload ?? {});
     const pendingTurn: PendingTurn = {
       turnRef,
       conversationRef: this.options.conversationRef,
@@ -279,6 +273,26 @@ export class SdkConversationRuntime {
         source: 'sdk',
         payload: {},
       }));
+      await this.applyEvent(createConversationEvent({
+        eventId: this.nextLocalEventId(turnRef, 'user_message'),
+        type: 'user_message',
+        conversationRef: this.options.conversationRef,
+        revisionId,
+        turnRef,
+        source: 'ui',
+        payload: {
+          ...(input.payload ?? {}),
+          text: input.text,
+        },
+      }));
+      const enrichedPayload = this.options.enrichQuery
+        ? await this.options.enrichQuery({
+          text: input.text,
+          conversationRef: this.options.conversationRef,
+          payload: input.payload ?? {},
+          emitDiagnostic: emitMemoryDiagnostic,
+        })
+        : (input.payload ?? {});
       for (const diagnostic of memoryDiagnostics) {
         await this.applyEvent(createConversationEvent({
           eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
@@ -292,18 +306,20 @@ export class SdkConversationRuntime {
           },
         }));
       }
-      await this.applyEvent(createConversationEvent({
-        eventId: this.nextLocalEventId(turnRef, 'user_message'),
-        type: 'user_message',
-        conversationRef: this.options.conversationRef,
-        revisionId,
-        turnRef,
-        source: 'ui',
-        payload: {
-          ...enrichedPayload,
-          text: input.text,
-        },
-      }));
+      if (this.options.enrichQuery) {
+        await this.applyEvent(createConversationEvent({
+          eventId: this.nextLocalEventId(turnRef, 'user_message_metadata'),
+          type: 'user_message_metadata',
+          conversationRef: this.options.conversationRef,
+          revisionId,
+          turnRef,
+          source: 'sdk',
+          payload: {
+            ...enrichedPayload,
+            text: input.text,
+          },
+        }));
+      }
       if (!this.options.transport) {
         queryMessageId = turnRef;
       } else {
@@ -321,6 +337,18 @@ export class SdkConversationRuntime {
       }
     } catch (error) {
       this.pendingTurns.delete(turnRef);
+      await this.applyEvent(createConversationEvent({
+        eventId: this.nextLocalEventId(turnRef, 'turn_error'),
+        type: 'turn_error',
+        conversationRef: this.options.conversationRef,
+        revisionId,
+        turnRef,
+        source: 'sdk',
+        payload: {
+          error: error instanceof Error ? error.message : String(error),
+          reason: 'send_failed',
+        },
+      }));
       throw error;
     }
     return { turnRef, queryMessageId };
@@ -865,12 +893,14 @@ export class SdkConversationRuntime {
   }
 
   private snapshot(events: ConversationEvent[]): ConversationSnapshot {
+    const currentTurn = buildCurrentTurnProjection(events);
     return {
       state: this.state,
       display: buildDisplayConversation(events),
       displayRows: buildDisplayRows(events),
       rehydrate: buildRehydrateSnapshot(events),
-      currentTurn: buildCurrentTurnProjection(events),
+      currentTurn,
+      liveTurnPresentation: currentTurn.presentation,
     };
   }
 }

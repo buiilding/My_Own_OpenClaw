@@ -4,7 +4,6 @@ import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiv
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import type { WindieModelSelection } from '../../../../infrastructure/api/windieSdkClient';
-import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
 import { fetchActiveWorkspaceSelection } from '../../../../infrastructure/workspace/workspaceAccess';
 import {
   getConversationWorkspaceBinding,
@@ -35,7 +34,6 @@ import {
   type ReadableFileAttachmentFailure,
 } from './readableFileAttachmentContext';
 import {
-  buildPendingUserMessage,
   hasUserMessages,
 } from './chatMessageSenderUtils';
 import { resolveQueryScreenshotArtifacts } from './queryScreenshotPipeline';
@@ -55,13 +53,6 @@ type WorkspaceBinding = {
 
 type PrepareDesktopChatSendDependencies = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
-  updateMessage: (
-    id: string,
-    patch: Partial<ChatMessage>,
-    conversationRef?: string | null,
-  ) => void;
-  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
-  setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setChatActiveConversationRef: (conversationRef: string | null) => void;
   stopPlayback?: () => void;
 };
@@ -194,7 +185,6 @@ export async function prepareDesktopChatSend({
   const text = normalizedPayload.text;
   const clipboardImages = normalizedPayload.clipboardImages;
   const readableFiles = normalizedPayload.readableFiles;
-  const firstClipboardImage = clipboardImages[0] || null;
   const attachmentFilenames = normalizeAttachmentFilenames(clipboardImages, readableFiles);
 
   dependencies.stopPlayback?.();
@@ -226,15 +216,6 @@ export async function prepareDesktopChatSend({
   const attachmentContext = attachmentContextResult.context;
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
-  const userMessageScreenshotContentType = firstClipboardImage
-    ? normalizeArtifactImageContentType(firstClipboardImage.contentType)
-    : null;
-  const userMessageScreenshots = clipboardImages.map((clipboardImage) => ({
-    screenshot: clipboardImage.base64,
-    screenshotContentType: normalizeArtifactImageContentType(clipboardImage.contentType),
-    screenshotRef: null,
-    screenshotUrl: null,
-  }));
 
   logRendererChatPillTrace({
     source: 'renderer-send',
@@ -243,20 +224,6 @@ export async function prepareDesktopChatSend({
     include_query_screenshot: sendLifecycle.shouldCaptureQueryScreenshot,
     reason: sendLifecycle.surfaceReason,
   }, conversationRef);
-
-  dependencies.addMessage({
-    ...buildPendingUserMessage(turnId, text),
-    turnRef: turnId,
-    sourceEventType: 'renderer-compose',
-    sourceChannel: 'renderer-local',
-    screenshot: firstClipboardImage?.base64 || null,
-    screenshotContentType: userMessageScreenshotContentType,
-    screenshots: userMessageScreenshots.length > 0 ? userMessageScreenshots : null,
-    attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
-    timestamp,
-  }, conversationRef);
-  dependencies.setIsSending(true, conversationRef);
-  dependencies.setThinkingStatus(null, conversationRef);
 
   logUserSentMessage({
     conversationRef,
@@ -275,7 +242,6 @@ export async function prepareDesktopChatSend({
 
   const {
     captureMeta,
-    uploadedScreenshotEntries,
     screenshotRef,
     screenshotUrl,
     screenshotRefs,
@@ -289,12 +255,6 @@ export async function prepareDesktopChatSend({
       surfaceReason: sendLifecycle.surfaceReason,
     },
   });
-
-  dependencies.updateMessage(turnId, {
-    screenshotRef,
-    screenshotUrl,
-    screenshots: uploadedScreenshotEntries.length > 0 ? uploadedScreenshotEntries : null,
-  }, conversationRef);
 
   return {
     attachmentContext,

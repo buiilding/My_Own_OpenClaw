@@ -33,7 +33,7 @@ export function useChatMessageSender(
   stopPlayback?: () => void,
   options: ChatMessageSenderOptions = {},
 ) {
-  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatCommonActions();
+  const { addMessage, setIsSending } = useChatCommonActions();
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config } = useAppConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
@@ -62,9 +62,6 @@ export function useChatMessageSender(
       config,
       dependencies: {
         addMessage,
-        updateMessage,
-        setIsSending,
-        setThinkingStatus,
         setChatActiveConversationRef,
         stopPlayback,
       },
@@ -87,9 +84,7 @@ export function useChatMessageSender(
   }, [
     addMessage,
     appendSendFailureMessage,
-    updateMessage,
     setIsSending,
-    setThinkingStatus,
     stopPlayback,
     senderSurface,
     sendLifecycle,

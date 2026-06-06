@@ -133,13 +133,18 @@ This section distinguishes current behavior from target behavior and known migra
 
 1. User enters message in `renderer/features/chat/components/MessageInput.jsx`.
 2. `useChatMessageSender` builds payload and optional screenshot metadata.
-3. The message sender records the user projection through a focused transcript helper, then `DesktopLiveTurnRuntimeClient.sendQuery()` forwards the user intent as the SDK-shaped `conversation.send` command.
+3. The message sender forwards the user intent and attachment metadata through
+   `DesktopLiveTurnRuntimeClient.sendQuery()` as the SDK-shaped
+   `conversation.send` command; it does not create a renderer-local visible user
+   row on the successful send path.
 4. The desktop backend transport maps SDK runtime interface calls to `windie:invoke` command names.
 5. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
    - Runs blur-only overlay pre-capture prep for chatbox-surface sends.
    - Resolves sender-window display affinity in main (including virtual desktop bounds) and stores it for follow-on tool screenshots when the dashboard renderer is hidden.
-   - Starts the turn replay buffer with the query message id; the SDK emits the renderer-visible user row/event.
+   - Starts the turn replay buffer with the query message id; the SDK runtime
+     emits `turn_started`, the renderer-visible `user_message` row, and any
+     later `user_message_metadata` merge events.
    - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
    - Resolves applicable local `AGENTS.md` files from the active workspace and forwards them as contextual prompt messages, which is required when the backend is hosted remotely and cannot read local repo paths.
    - Sends normalized `query` through the SDK runtime, which owns the hosted backend WebSocket.
@@ -168,7 +173,15 @@ revive the retired direct runtime IPC channel family.
 1. Backend WebSocket events arrive in the SDK desktop agent.
 2. The SDK normalizes backend events, updates display rows/current-turn projection, and coordinates any local tool execution.
 3. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`) and forwards SDK outputs on `windie:rows`, `windie:conversation-event`, `windie:current-turn`, and `windie:status`.
-4. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useConversationRuntimeProjectionStream` also derives live thinking text, first assistant chunk tracking, tool phase tracking, terminal complete/error phase tracking, and send-latch clears from that projection. Renderer `useChatStream` consumes SDK-normalized `windie:conversation-event` payloads for scoped transcript/session side effects and metadata; production live row shaping and active assistant/reasoning/tool/terminal phase state do not fall back to raw backend events.
+4. Renderer dashboard and response-overlay live assistant/tool rows render from
+   the SDK `currentTurn` projection and its `presentation` contract. Renderer
+   `useConversationRuntimeProjectionStream` also derives live thinking text,
+   first assistant chunk tracking, tool phase tracking, terminal complete/error
+   phase tracking, and send-latch clears from that projection. Renderer
+   `useChatStream` consumes SDK-normalized `windie:conversation-event` payloads
+   for scoped transcript/session side effects and metadata; production live row
+   shaping and active assistant/reasoning/tool/terminal phase state do not fall
+   back to raw backend events.
 5. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
    - Keeps transcript-session identity side effects for SDK events when
@@ -211,8 +224,9 @@ context, overlay, permission, and window behavior.
 
 1. SDK `ConversationRuntime` is the live durable writer for user, assistant,
    tool, and terminal conversation events.
-2. Renderer chat hooks may keep pending visible messages and materialize SDK
-   current-turn projections, but they do not append live transcript rows.
+2. Renderer chat hooks cache SDK display rows and render SDK current-turn
+   presentation state, but they do not append successful-send or live transcript
+   rows.
 3. `DesktopTranscriptSessionRuntimeClient` owns active conversation/user identity for app and dashboard surfaces.
 4. Dashboard conversation-list/load/delete/search and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to SDK-shaped commands so dashboard feature code does not construct Electron store adapters or import transcript storage/snapshot infrastructure.
 5. Renderer-local conversation helpers request SDK snapshots through

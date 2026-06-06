@@ -4,6 +4,40 @@ import { runManualCompaction as runManualCompactionCommand } from '../utils/sess
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
 import { resolveLiveTurnPresentationInput } from '../utils/state/liveTurnSurfaceState';
 
+function hasSdkLiveTurnPresentation(currentTurnProjection) {
+  const presentation = currentTurnProjection?.presentation;
+  return Boolean(
+    presentation
+      && typeof presentation === 'object'
+      && typeof presentation.typingVisible === 'boolean'
+      && typeof presentation.overlayVisible === 'boolean',
+  );
+}
+
+function buildSdkCurrentTurnPresentationState(currentTurnProjection) {
+  const presentation = currentTurnProjection?.presentation;
+  if (!presentation) {
+    return null;
+  }
+  return {
+    activeResponse: null,
+    hasVisibleReply: presentation.hasVisibleContent === true,
+    loopUiState: presentation.overlayVisible ? 'active-response' : (presentation.typingVisible ? 'awaiting-reply' : 'idle'),
+    isBusy: presentation.isBusy === true,
+    isAwaitingReply: presentation.typingVisible === true,
+    showAssistantAwaitingDot: presentation.typingVisible === true,
+    awaitingDotTargetMessageId: null,
+    visibleResponse: null,
+    chatboxSurfaceState: presentation.overlayVisible ? 'response' : (presentation.typingVisible ? 'awaiting-reply' : 'compact'),
+    showChatboxAwaitingReply: presentation.typingVisible === true,
+    showChatboxResponse: presentation.overlayVisible === true,
+    isTransportConnected: true,
+    overlayTurnLifecycle: presentation.typingVisible
+      ? 'awaiting'
+      : (presentation.overlayVisible && presentation.isBusy ? 'active' : (presentation.isTerminal ? 'terminal' : 'idle')),
+  };
+}
+
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
     return false;
@@ -37,7 +71,10 @@ export function useChatSurfaceController({
     messages,
     allowedTypes,
   });
-  const isBusy = currentTurnPresentationState.isBusy === true;
+  const resolvedCurrentTurnPresentationState = hasSdkLiveTurnPresentation(currentTurnProjection)
+    ? buildSdkCurrentTurnPresentationState(currentTurnProjection)
+    : currentTurnPresentationState;
+  const isBusy = resolvedCurrentTurnPresentationState.isBusy === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
@@ -83,7 +120,7 @@ export function useChatSurfaceController({
 
   return {
     config,
-    currentTurnPresentationState,
+    currentTurnPresentationState: resolvedCurrentTurnPresentationState,
     includeQueryScreenshot,
     isBusy,
     canStop: isBusy,

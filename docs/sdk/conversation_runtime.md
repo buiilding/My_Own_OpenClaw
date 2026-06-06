@@ -26,7 +26,7 @@ SDK interfaces such as `ConversationStore` and `BackendTransport`.
 | normalized conversation events | SDK runtime | source of truth for local client-side conversation state |
 | event store adapters | SDK-defined interface; adapter implementation owns persistence mechanics | stores append/load events and snapshots, but do not interpret display or rehydrate shape |
 | display transcript | SDK projection | React, CLI, and custom UIs render this projection |
-| current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, and error state for live UI surfaces |
+| current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
 | backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
 | tool execution coordination | SDK runtime | claimed local tools must return exactly one backend result or failure |
 | sidecar execution | local sidecar | sidecar runs local tools; it does not own conversation replay semantics |
@@ -44,6 +44,7 @@ The runtime records normalized events:
 - `turn_stopped`
 - `turn_error`
 - `user_message`
+- `user_message_metadata`
 - `assistant_delta`
 - `reasoning_delta`
 - `assistant_message`
@@ -88,10 +89,16 @@ UI adapters:
 - `reasoningText`: accumulated reasoning/thinking deltas
 - `toolEvents`: normalized tool call/progress/output rows
 - `lastError`: normalized terminal runtime error text
+- `presentation`: SDK-owned live-turn UI contract with ordered visible entries,
+  `hasVisibleContent`, `typingVisible`, `overlayVisible`, `isBusy`, and
+  `isTerminal`
 
-Electron main also emits this projection to renderer surfaces as
-`conversation-runtime-updated`. Renderer overlays should render this projection
-instead of independently interpreting raw backend stream/tool events.
+Runtime snapshots also expose `snapshot.liveTurnPresentation` as an alias of
+`snapshot.currentTurn.presentation` for hosts that want the UI contract without
+re-reading the whole current-turn object. Electron main emits the projection to
+renderer surfaces as `conversation-runtime-updated`. Renderer overlays should
+render `currentTurn.presentation.entries` instead of independently interpreting
+raw backend stream/tool events or synthesizing current-turn chat messages.
 Electron main emits SDK-normalized conversation side-effect events separately
 as `conversation-event`; chat transcript/session handlers consume that channel
 instead of subscribing to raw `from-backend` stream semantics.
@@ -133,6 +140,15 @@ Renderer surfaces must not fall back from `currentTurn` to renderer
 `streamTracking` or `response-overlay-phase` for active turn state.
 `streamTracking` remains telemetry/transcript bookkeeping, and
 `response-overlay-phase` remains an Electron window/layout signal only.
+
+`ConversationRuntime.send()` emits `turn_started` and a base `user_message`
+before SDK memory enrichment or backend transport. If enrichment changes
+display metadata such as screenshot refs or attachment filenames, the runtime
+emits `user_message_metadata`; the display projection merges that metadata into
+the existing turn-scoped user row without changing the row identity. If backend
+transport fails after the base row exists, the runtime emits a terminal
+`turn_error` so typing state and overlays settle from SDK state rather than a
+renderer-local failure row.
 
 The display projection is the canonical live and historical transcript state.
 It renders user, assistant, tool, and terminal error rows from canonical

@@ -161,6 +161,77 @@ describe('useChatStream state + stream handling', () => {
     }));
   });
 
+  test('hides typing state when SDK presentation exposes visible thinking content', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-thinking',
+          phase: 'awaiting',
+          assistantText: '',
+          reasoningText: '',
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            conversationRef: 'conv-test',
+            turnRef: 'turn-thinking',
+            phase: 'awaiting',
+            entries: [],
+            typingVisible: true,
+            overlayVisible: false,
+            hasVisibleContent: false,
+            isBusy: true,
+            isTerminal: false,
+          },
+        },
+      });
+    });
+
+    expect(useChatStore.getState().isSending).toBe(true);
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-thinking',
+          phase: 'awaiting',
+          assistantText: '',
+          reasoningText: 'Inspecting the screen.',
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            conversationRef: 'conv-test',
+            turnRef: 'turn-thinking',
+            phase: 'awaiting',
+            entries: [{
+              id: 'turn-thinking:thinking:0',
+              type: 'thinking',
+              text: 'Inspecting the screen.',
+              turnRef: 'turn-thinking',
+              eventId: null,
+              toolName: null,
+            }],
+            typingVisible: false,
+            overlayVisible: true,
+            hasVisibleContent: true,
+            isBusy: true,
+            isTerminal: false,
+          },
+        },
+      });
+    });
+
+    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+      isSending: false,
+      thinkingStatus: 'Inspecting the screen.',
+      thinkingSourceEventType: 'llm-thought',
+    }));
+  });
+
   test('does not track live thinking from raw llm-thought events', () => {
     const { emitBackendEvent } = registerBackendListener();
 

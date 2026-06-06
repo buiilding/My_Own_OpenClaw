@@ -107,14 +107,6 @@ class SdkConversationRuntime {
         const emitMemoryDiagnostic = (diagnostic) => {
             memoryDiagnostics.push(diagnostic);
         };
-        const enrichedPayload = this.options.enrichQuery
-            ? await this.options.enrichQuery({
-                text: input.text,
-                conversationRef: this.options.conversationRef,
-                payload: input.payload ?? {},
-                emitDiagnostic: emitMemoryDiagnostic,
-            })
-            : (input.payload ?? {});
         const pendingTurn = {
             turnRef,
             conversationRef: this.options.conversationRef,
@@ -133,6 +125,26 @@ class SdkConversationRuntime {
                 source: 'sdk',
                 payload: {},
             }));
+            await this.applyEvent((0, events_js_1.createConversationEvent)({
+                eventId: this.nextLocalEventId(turnRef, 'user_message'),
+                type: 'user_message',
+                conversationRef: this.options.conversationRef,
+                revisionId,
+                turnRef,
+                source: 'ui',
+                payload: {
+                    ...(input.payload ?? {}),
+                    text: input.text,
+                },
+            }));
+            const enrichedPayload = this.options.enrichQuery
+                ? await this.options.enrichQuery({
+                    text: input.text,
+                    conversationRef: this.options.conversationRef,
+                    payload: input.payload ?? {},
+                    emitDiagnostic: emitMemoryDiagnostic,
+                })
+                : (input.payload ?? {});
             for (const diagnostic of memoryDiagnostics) {
                 await this.applyEvent((0, events_js_1.createConversationEvent)({
                     eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
@@ -146,18 +158,20 @@ class SdkConversationRuntime {
                     },
                 }));
             }
-            await this.applyEvent((0, events_js_1.createConversationEvent)({
-                eventId: this.nextLocalEventId(turnRef, 'user_message'),
-                type: 'user_message',
-                conversationRef: this.options.conversationRef,
-                revisionId,
-                turnRef,
-                source: 'ui',
-                payload: {
-                    ...enrichedPayload,
-                    text: input.text,
-                },
-            }));
+            if (this.options.enrichQuery) {
+                await this.applyEvent((0, events_js_1.createConversationEvent)({
+                    eventId: this.nextLocalEventId(turnRef, 'user_message_metadata'),
+                    type: 'user_message_metadata',
+                    conversationRef: this.options.conversationRef,
+                    revisionId,
+                    turnRef,
+                    source: 'sdk',
+                    payload: {
+                        ...enrichedPayload,
+                        text: input.text,
+                    },
+                }));
+            }
             if (!this.options.transport) {
                 queryMessageId = turnRef;
             }
@@ -177,6 +191,18 @@ class SdkConversationRuntime {
         }
         catch (error) {
             this.pendingTurns.delete(turnRef);
+            await this.applyEvent((0, events_js_1.createConversationEvent)({
+                eventId: this.nextLocalEventId(turnRef, 'turn_error'),
+                type: 'turn_error',
+                conversationRef: this.options.conversationRef,
+                revisionId,
+                turnRef,
+                source: 'sdk',
+                payload: {
+                    error: error instanceof Error ? error.message : String(error),
+                    reason: 'send_failed',
+                },
+            }));
             throw error;
         }
         return { turnRef, queryMessageId };
@@ -666,12 +692,14 @@ class SdkConversationRuntime {
         }
     }
     snapshot(events) {
+        const currentTurn = (0, conversationProjections_js_1.buildCurrentTurnProjection)(events);
         return {
             state: this.state,
             display: (0, conversationProjections_js_1.buildDisplayConversation)(events),
             displayRows: (0, conversationProjections_js_1.buildDisplayRows)(events),
             rehydrate: (0, conversationProjections_js_1.buildRehydrateSnapshot)(events),
-            currentTurn: (0, conversationProjections_js_1.buildCurrentTurnProjection)(events),
+            currentTurn,
+            liveTurnPresentation: currentTurn.presentation,
         };
     }
 }

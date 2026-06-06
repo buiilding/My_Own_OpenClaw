@@ -8,7 +8,8 @@ title: "SDK-Owned Live Turn Presentation Refactor Plan"
 
 # SDK-Owned Live Turn Presentation Refactor Plan
 
-Status: awaiting approval.
+Status: implemented; see the matching realtime report for validation and
+classified remaining host-enrichment debt.
 
 ## User Intent
 

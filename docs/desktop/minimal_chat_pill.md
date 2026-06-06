@@ -38,7 +38,9 @@ The chat pill is the small always-available desktop command surface. It is rende
 - Screenshot capture behavior differs by platform; Linux hides WindieOS overlays, Windows/macOS do not.
 - Drag and resize behavior should preserve the user-perceived anchor, especially when multiline input or image previews grow.
 - The pill should avoid focus stealing unless explicitly requested.
-- The response overlay phase must stay synchronized with the pill's awaiting/streaming state.
+- SDK current-turn presentation owns whether the pill shows typing or response
+  content. The response overlay phase stays synchronized as BrowserWindow shell
+  policy, not as a second source of content state.
 - Active agent turns do not make the pill click-through by themselves. Electron
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill

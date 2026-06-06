@@ -35,7 +35,8 @@ rather than the React component that happens to render the symptom.
   protection for the capture window only and disable it immediately afterward.
 - Renderer code must not directly own loop-wide interactivity toggles. It may
   report normal drag/hit-test intent; Electron main applies native policy.
-- Minimal chat pill awaiting state comes from SDK `currentTurnProjection`;
+- Minimal chat pill awaiting state comes from SDK
+  `currentTurnProjection.presentation`;
   overlay phase must not decide typing, busy, stop, or response content state.
 - Avoid focus-recovery hacks in renderer chat-pill code. If focus changes are
   needed, route them through Electron main/window policy.
@@ -70,7 +71,7 @@ sequenceDiagram
     Producer->>SDKLifecycle: before local pointer/screenshot tool
     SDKLifecycle->>Windows: lease-scoped click-through/protection
     MainHandler->>Windows: response overlay visibility mode
-    Renderer->>Renderer: render from SDK currentTurnProjection
+    Renderer->>Renderer: render from SDK currentTurnProjection.presentation
 ```
 
 ## Change Sequence
@@ -166,8 +167,9 @@ Read these files before changing what the user sees:
 
 Renderer rules:
 
-- Derive visible layout from SDK `currentTurnProjection`. Do not add timers or
-  renderer phase listeners that compete with SDK current-turn state.
+- Derive visible layout from SDK `currentTurnProjection.presentation`. Do not
+  add timers or renderer phase listeners that compete with SDK current-turn
+  state.
 - Keep `awaiting-typing` and `response` frame sizes stable. Avoid per-token
   resize churn.
 - Keep awaiting-to-response transitions non-animated in the minimal pill loop.

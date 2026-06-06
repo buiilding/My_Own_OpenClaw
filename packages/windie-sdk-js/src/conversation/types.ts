@@ -260,6 +260,41 @@ export type CurrentTurnToolEvent = {
   payload: JsonRecord;
 };
 
+export type LiveTurnPresentationEntryType =
+  | 'thinking'
+  | 'llm-text'
+  | 'tool-call'
+  | 'tool-progress'
+  | 'tool-output'
+  | 'error';
+
+export type LiveTurnPresentationEntry = {
+  id: string;
+  type: LiveTurnPresentationEntryType;
+  text: string;
+  sourceEventType?: string | null;
+  sourceChannel?: string | null;
+  turnRef?: string | null;
+  toolName?: string | null;
+  modelId?: string | null;
+  modelProvider?: string | null;
+  isComplete?: boolean;
+  payload?: JsonRecord | null;
+};
+
+export type LiveTurnPresentation = {
+  conversationRef: string;
+  turnRef: string | null;
+  phase: CurrentTurnProjectionPhase;
+  entries: LiveTurnPresentationEntry[];
+  hasVisibleContent: boolean;
+  typingVisible: boolean;
+  overlayVisible: boolean;
+  isBusy: boolean;
+  isTerminal: boolean;
+  lastError: string | null;
+};
+
 export type CurrentTurnProjection = {
   conversationRef: string;
   turnRef: string | null;
@@ -268,6 +303,7 @@ export type CurrentTurnProjection = {
   reasoningText: string | null;
   toolEvents: CurrentTurnToolEvent[];
   lastError: string | null;
+  presentation: LiveTurnPresentation;
 };
 
 export type RehydrateSnapshot = {

@@ -31,6 +31,7 @@ type ProjectionCursor = {
   assistantLength: number;
   reasoningLength: number;
   phase: string | null;
+  typingVisible: boolean | null;
   lastError: string | null;
   toolEventIds: Set<string>;
 };
@@ -56,6 +57,18 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : null;
+}
+
+function resolveSdkPresentationTypingVisible(currentTurn: SdkCurrentTurnProjection): boolean | null {
+  const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
+  return typeof presentation?.typingVisible === 'boolean'
+    ? presentation.typingVisible
+    : null;
+}
+
+function resolveSdkPresentationHasVisibleContent(currentTurn: SdkCurrentTurnProjection): boolean {
+  const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
+  return presentation?.hasVisibleContent === true || presentation?.overlayVisible === true;
 }
 
 function isSkipFrontendExecutionToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
@@ -163,6 +176,7 @@ export function useConversationRuntimeProjectionStream(): void {
         assistantLength: 0,
         reasoningLength: 0,
         phase: null,
+        typingVisible: null,
         lastError: null,
         toolEventIds: new Set<string>(),
       };
@@ -180,9 +194,12 @@ export function useConversationRuntimeProjectionStream(): void {
         reasoningText,
         previousCursor.reasoningLength,
       );
+      const sdkTypingVisible = resolveSdkPresentationTypingVisible(currentTurn);
+      const shouldShowTyping = sdkTypingVisible ?? (currentTurn.phase === 'awaiting');
+      const hasSdkVisibleContent = resolveSdkPresentationHasVisibleContent(currentTurn);
 
       if (currentTurn.phase === 'awaiting' && previousCursor.phase !== 'awaiting') {
-        setIsSending(true, conversationRef);
+        setIsSending(shouldShowTyping, conversationRef);
         setThinkingStatus(null, conversationRef);
         setThinkingSourceEventType(null, conversationRef);
         recordTrackingEventRuntime(
@@ -195,6 +212,10 @@ export function useConversationRuntimeProjectionStream(): void {
           },
           conversationRef,
         );
+      }
+
+      if (!shouldShowTyping && previousCursor.typingVisible === true) {
+        setIsSending(false, conversationRef);
       }
 
       if (reasoningDelta) {
@@ -211,6 +232,10 @@ export function useConversationRuntimeProjectionStream(): void {
           {},
           conversationRef,
         );
+      }
+
+      if (hasSdkVisibleContent) {
+        setIsSending(false, conversationRef);
       }
 
       if (assistantDelta) {
@@ -302,6 +327,7 @@ export function useConversationRuntimeProjectionStream(): void {
         assistantLength: assistantText.length,
         reasoningLength: reasoningText.length,
         phase: currentTurn.phase,
+        typingVisible: shouldShowTyping,
         lastError: currentTurn.lastError ?? null,
         toolEventIds: nextToolEventIds,
       });

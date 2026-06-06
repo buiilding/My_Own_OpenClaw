@@ -9,6 +9,14 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/chat: derive recent-conversation sidebar metadata from user-facing
   chat events only, so SDK lifecycle events no longer appear as chat titles,
   previews, or workspace grouping sources.
+- backend/llm: retry one pre-output transient provider sampling failure
+  (`502`/`503`/`504` or normalized transport timeout/reset) inside
+  `LLMStreamProcessor`, with provider-normalized error metadata and without
+  replaying user-message history admission or tool execution.
+- sdk/frontend: move successful send-time user rows, typing visibility, and
+  response-overlay live entries into SDK-owned display/current-turn presentation
+  projections, so renderer chat surfaces no longer append an optimistic user row
+  before SDK rows arrive.
 - docs/plans: add the SDK-owned live-turn presentation refactor plan for moving
   immediate user-message display, typing state, and response overlay entries
   out of renderer-local semantics and into SDK-owned projections.

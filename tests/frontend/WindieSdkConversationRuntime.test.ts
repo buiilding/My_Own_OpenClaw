@@ -32,6 +32,21 @@ function event(
   });
 }
 
+function eventForTurn(
+  turnRef: string,
+  type: ConversationEvent['type'],
+  payload: Record<string, unknown> = {},
+): ConversationEvent {
+  return createConversationEvent({
+    type,
+    conversationRef: 'conv-sdk-runtime',
+    revisionId: 'rev-1',
+    turnRef,
+    source: 'sdk',
+    payload,
+  });
+}
+
 async function tick(): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 0));
 }
@@ -355,6 +370,49 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('SDK display rows merge user message metadata into the existing user row', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'ui',
+      payload: { text: 'hello' },
+    });
+    const metadata = createConversationEvent({
+      eventId: 'evt-user-metadata',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'sdk',
+      payload: {
+        text: 'hello',
+        screenshotRef: 'artifact-1',
+        screenshotUrl: '/api/artifacts/artifact-1',
+        attachmentFilenames: ['notes.txt'],
+      },
+    });
+
+    const rows = buildDisplayRows([user, metadata]);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: 'evt-user',
+      type: 'user_message',
+      content: 'hello',
+      metadata: expect.objectContaining({
+        eventId: 'evt-user-metadata',
+        screenshotRef: 'artifact-1',
+        screenshotUrl: '/api/artifacts/artifact-1',
+        raw: expect.objectContaining({
+          attachmentFilenames: ['notes.txt'],
+        }),
+      }),
+    });
+  });
+
   test('orphan empty-chat greeting is not display or rehydrate history', () => {
     const events = [
       event('conversation_rewritten', { reason: 'retry' }),
@@ -449,6 +507,109 @@ describe('Windie SDK conversation runtime core', () => {
           status: 'success',
         }),
       ],
+    });
+  });
+
+  test('current-turn projection exposes SDK-owned live-turn presentation state', () => {
+    const awaiting = buildCurrentTurnProjection([
+      event('turn_started', {}),
+      event('user_message', { text: 'inspect files' }),
+    ]);
+
+    expect(awaiting.presentation).toMatchObject({
+      phase: 'awaiting',
+      typingVisible: true,
+      overlayVisible: false,
+      hasVisibleContent: false,
+      entries: [],
+    });
+
+    const thinking = buildCurrentTurnProjection([
+      event('turn_started', {}),
+      event('user_message', { text: 'inspect files' }),
+      event('reasoning_delta', { text: 'Checking the workspace.' }),
+    ]);
+
+    expect(thinking.presentation).toMatchObject({
+      typingVisible: false,
+      overlayVisible: true,
+      hasVisibleContent: true,
+      entries: [
+        expect.objectContaining({
+          type: 'thinking',
+          text: 'Checking the workspace.',
+          sourceEventType: 'reasoning_delta',
+        }),
+      ],
+    });
+
+    const toolAndText = buildCurrentTurnProjection([
+      event('turn_started', {}),
+      event('user_message', { text: 'inspect files' }),
+      event('reasoning_delta', { text: 'Checking the workspace.' }),
+      event('tool_call', { toolName: 'read_file', requestId: 'req-read' }),
+      event('tool_output', {
+        toolName: 'read_file',
+        requestId: 'req-read',
+        text: 'README contents',
+        success: true,
+      }),
+      event('assistant_delta', { text: 'Done.' }),
+    ]);
+
+    expect(toolAndText.presentation).toMatchObject({
+      phase: 'streaming',
+      typingVisible: false,
+      overlayVisible: true,
+      isBusy: true,
+      entries: [
+        expect.objectContaining({ type: 'thinking' }),
+        expect.objectContaining({ type: 'tool-call', text: 'Using read_file' }),
+        expect.objectContaining({ type: 'tool-output', text: 'README contents' }),
+        expect.objectContaining({ type: 'llm-text', text: 'Done.' }),
+      ],
+    });
+
+    const complete = buildCurrentTurnProjection([
+      event('turn_started', {}),
+      event('user_message', { text: 'inspect files' }),
+      event('assistant_delta', { text: 'Done.' }),
+      event('turn_completed', {}),
+    ]);
+
+    expect(complete.presentation).toMatchObject({
+      phase: 'complete',
+      typingVisible: false,
+      overlayVisible: true,
+      isBusy: false,
+      isTerminal: true,
+      entries: [
+        expect.objectContaining({ type: 'llm-text', text: 'Done.', isComplete: true }),
+      ],
+    });
+  });
+
+  test('current-turn presentation resets to typing for a consecutive user turn', () => {
+    const projection = buildCurrentTurnProjection([
+      eventForTurn('turn-1', 'turn_started', {}),
+      eventForTurn('turn-1', 'user_message', { text: 'first' }),
+      eventForTurn('turn-1', 'assistant_delta', { text: 'first answer' }),
+      eventForTurn('turn-1', 'turn_completed', {}),
+      eventForTurn('turn-2', 'turn_started', {}),
+      eventForTurn('turn-2', 'user_message', { text: 'second' }),
+    ]);
+
+    expect(projection).toMatchObject({
+      turnRef: 'turn-2',
+      phase: 'awaiting',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      presentation: expect.objectContaining({
+        typingVisible: true,
+        overlayVisible: false,
+        entries: [],
+      }),
     });
   });
 
@@ -2246,6 +2407,74 @@ describe('Windie SDK conversation runtime core', () => {
     expect(bundlePayload.step_results[0].output).not.toHaveProperty('screenshot');
   });
 
+  test('conversation runtime emits base user row before slow enrichment and transport', async () => {
+    let releaseEnrichment: (() => void) | null = null;
+    const enrichmentGate = new Promise<void>(resolve => {
+      releaseEnrichment = resolve;
+    });
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-after-enrichment'),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+      enrichQuery: async () => {
+        await enrichmentGate;
+        return {
+          content: '<user_query>hello</user_query>',
+          screenshotRef: 'artifact-1',
+        };
+      },
+    });
+    const events: ConversationEvent[] = [];
+    const snapshots: any[] = [];
+    runtime.subscribeEvents((event, snapshot) => {
+      events.push(event);
+      snapshots.push(snapshot);
+    });
+
+    const sendPromise = runtime.send({ text: 'hello', turnRef: 'turn-slow-enrich' });
+
+    await waitForExpect(() => {
+      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+        'turn_started',
+        'user_message',
+      ]);
+      expect(transport.sendQuery).not.toHaveBeenCalled();
+      expect(snapshots.at(-1).displayRows).toEqual([
+        expect.objectContaining({
+          type: 'user_message',
+          content: 'hello',
+          turnRef: 'turn-slow-enrich',
+        }),
+      ]);
+      expect(snapshots.at(-1).currentTurn.presentation).toMatchObject({
+        typingVisible: true,
+        overlayVisible: false,
+      });
+    });
+
+    releaseEnrichment?.();
+    await sendPromise;
+
+    await waitForExpect(() => {
+      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+        'turn_started',
+        'user_message',
+        'user_message_metadata',
+      ]);
+      expect(transport.sendQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: 'hello',
+          conversation_ref: 'conv-sdk-runtime',
+          screenshotRef: 'artifact-1',
+        }),
+        { messageId: 'turn-slow-enrich' },
+      );
+    });
+  });
+
   test('conversation runtime stores events and sends rehydrate from projection', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];
@@ -2323,7 +2552,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
-  test('conversation runtime records memory diagnostics emitted during query enrichment', async () => {
+	  test('conversation runtime records memory diagnostics emitted during query enrichment', async () => {
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -2344,16 +2573,17 @@ describe('Windie SDK conversation runtime core', () => {
 
     await runtime.send({ text: 'hello', turnRef: 'turn-memory-diag' });
 
-    const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
-      'turn_started',
-      'memory_retrieval_diagnostic',
-      'user_message',
-    ]);
-    expect(events[1]).toMatchObject({
-      type: 'memory_retrieval_diagnostic',
-      source: 'sdk',
-      turnRef: 'turn-memory-diag',
+	    const events = await store.loadEvents('conv-sdk-runtime');
+	    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+	      'turn_started',
+	      'user_message',
+	      'memory_retrieval_diagnostic',
+	      'user_message_metadata',
+	    ]);
+	    expect(events[2]).toMatchObject({
+	      type: 'memory_retrieval_diagnostic',
+	      source: 'sdk',
+	      turnRef: 'turn-memory-diag',
       payload: expect.objectContaining({
         stage: 'embedding_request_failed',
         error: '503 Service Unavailable',
@@ -3030,9 +3260,10 @@ describe('Windie SDK conversation runtime core', () => {
 
   test('conversation runtime rejects when transport cannot send a query', async () => {
     const sendQuery = jest.fn(async () => null);
+    const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
-      store: new InMemoryConversationStore(),
+      store,
       transport: createMockBackendTransport({
         sendQuery: sendQuery as unknown as BackendTransport['sendQuery'],
       }),
@@ -3043,6 +3274,20 @@ describe('Windie SDK conversation runtime core', () => {
       turnRef: 'turn-send-failure',
     })).rejects.toThrow('Failed to send query to backend');
     expect(sendQuery).toHaveBeenCalledTimes(1);
+    expect((await store.loadEvents('conv-sdk-runtime')).map(storedEvent => storedEvent.type)).toEqual([
+      'turn_started',
+      'user_message',
+      'turn_error',
+    ]);
+    expect((await runtime.load()).currentTurn).toMatchObject({
+      turnRef: 'turn-send-failure',
+      phase: 'error',
+      presentation: expect.objectContaining({
+        typingVisible: false,
+        overlayVisible: true,
+        isTerminal: true,
+      }),
+    });
   });
 
   test('conversation runtime close clears snapshot and event listeners', async () => {
