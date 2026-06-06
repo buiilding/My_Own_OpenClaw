@@ -17,6 +17,9 @@ import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/win
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 let mockCommandHandler: (command: string, payload?: Record<string, unknown>) => Promise<unknown>;
+let mockSessionConversationRef = 'conv-replay-db';
+let mockSessionUserId: string | null = 'user-replay-db';
+let mockBackendRehydrateFailure: Error | null = null;
 
 jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => ({
   invokeWindieCommand: jest.fn((command: string, payload?: Record<string, unknown>) => (
@@ -26,10 +29,10 @@ jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', (
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
-    getActiveConversationRef: jest.fn(() => 'conv-replay-db'),
+    getActiveConversationRef: jest.fn(() => mockSessionConversationRef),
     getTranscriptSessionInfo: jest.fn(() => ({
-      conversationRef: 'conv-replay-db',
-      userId: 'user-replay-db',
+      conversationRef: mockSessionConversationRef,
+      userId: mockSessionUserId,
     })),
     updateTranscriptSession: jest.fn(),
   },
@@ -298,6 +301,7 @@ function runPythonSqliteBridge<T>(
 class SqliteConversationHistory {
   readonly dir = mkdtempSync(join(tmpdir(), 'windie-replay-db-'));
   readonly dbPath = join(this.dir, 'episodic.db');
+  rewriteFailure: string | null = null;
 
   constructor() {
     runPythonSqliteBridge('init', this.dbPath);
@@ -325,6 +329,12 @@ class SqliteConversationHistory {
   }
 
   async rpc({ method, params }: { method: string; params?: JsonRecord }): Promise<JsonRecord> {
+    if (method === 'rewrite_chat_conversation_after_event' && this.rewriteFailure) {
+      return {
+        success: false,
+        error: this.rewriteFailure,
+      };
+    }
     return runPythonSqliteBridge('rpc', this.dbPath, {
       method,
       params: params ?? {},
@@ -332,14 +342,55 @@ class SqliteConversationHistory {
   }
 }
 
+const BASE_MESSAGES = [
+  { id: 'renderer-user-1', sender: 'user', text: 'first question' },
+  { id: 'renderer-assistant-1', sender: 'assistant', text: 'first answer' },
+  {
+    id: 'renderer-user-2',
+    sender: 'user',
+    text: 'second question',
+    screenshotRef: 'artifact-old',
+  },
+  { id: 'renderer-assistant-2', sender: 'assistant', text: 'second answer' },
+];
+
+function renderReplayHook(messages: Array<Record<string, unknown>>) {
+  useChatStore.getState().setMessages(messages as never, 'conv-replay-db');
+  return renderHook(() => useConversationReplayActions({
+    messages,
+    setMessages: useChatStore.getState().setMessages,
+    setThinkingStatus: useChatStore.getState().setThinkingStatus,
+    setThinkingSourceEventType: useChatStore.getState().setThinkingSourceEventType,
+    setIsSending: useChatStore.getState().setIsSending,
+  }));
+}
+
+function expectReplayPreparationErrorMessage(): void {
+  expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
+    ...BASE_MESSAGES,
+    expect.objectContaining({
+      sender: 'assistant',
+      type: 'error',
+      sourceEventType: 'renderer-replay',
+      text: expect.stringContaining('could not prepare the conversation replay'),
+    }),
+  ]);
+}
+
 describe('conversation replay database integration', () => {
   let history: SqliteConversationHistory;
   const sentQueries: JsonRecord[] = [];
   const backendRehydrates: JsonRecord[] = [];
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSessionConversationRef = 'conv-replay-db';
+    mockSessionUserId = 'user-replay-db';
+    mockBackendRehydrateFailure = null;
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     useChatStore.setState({ activeConversationRef: 'conv-replay-db' });
+    useChatStore.getState().clearMessages('conv-replay-db');
     sentQueries.length = 0;
     backendRehydrates.length = 0;
     history = new SqliteConversationHistory();
@@ -383,6 +434,13 @@ describe('conversation replay database integration', () => {
 
     mockCommandHandler = async (command, payload = {}) => {
       if (command === 'conversation.prepareEditAndResend') {
+        if (payload.userId !== 'user-replay-db') {
+          throw new Error(
+            payload.userId
+              ? 'Windie SDK command user id does not match the active user.'
+              : 'Windie SDK command requires an active user id.',
+          );
+        }
         const store = new SidecarConversationStore({
           userId: String(payload.userId),
           runtime: {
@@ -395,6 +453,9 @@ describe('conversation replay database integration', () => {
           transport: {
             rehydrateConversation: async rehydratePayload => {
               backendRehydrates.push(rehydratePayload);
+              if (mockBackendRehydrateFailure) {
+                throw mockBackendRehydrateFailure;
+              }
             },
           } as never,
         });
@@ -420,29 +481,12 @@ describe('conversation replay database integration', () => {
   });
 
   afterEach(() => {
+    consoleErrorSpy.mockRestore();
     history.close();
   });
 
   test('edit and resend cuts stored chat_events, rehydrates backend history, and dispatches the edited turn', async () => {
-    const messages = [
-      { id: 'renderer-user-1', sender: 'user', text: 'first question' },
-      { id: 'renderer-assistant-1', sender: 'assistant', text: 'first answer' },
-      {
-        id: 'renderer-user-2',
-        sender: 'user',
-        text: 'second question',
-        screenshotRef: 'artifact-old',
-      },
-      { id: 'renderer-assistant-2', sender: 'assistant', text: 'second answer' },
-    ];
-
-    const { result } = renderHook(() => useConversationReplayActions({
-      messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: useChatStore.getState().setThinkingStatus,
-      setThinkingSourceEventType: useChatStore.getState().setThinkingSourceEventType,
-      setIsSending: useChatStore.getState().setIsSending,
-    }));
+    const { result } = renderReplayHook(BASE_MESSAGES);
 
     await act(async () => {
       await expect(result.current.handleEditFromUser(
@@ -497,5 +541,133 @@ describe('conversation replay database integration', () => {
     expect(storedRows.map(row => row.message_index)).toEqual([1, 2, 3]);
     expect(storedRows.some(row => row.id === 'stored-user-2')).toBe(false);
     expect(storedRows.some(row => row.id === 'stored-assistant-2')).toBe(false);
+  });
+
+  test('reports preparation failure when renderer message identity cannot map to a stored user_message', async () => {
+    const messages = [
+      ...BASE_MESSAGES,
+      { id: 'renderer-user-3', sender: 'user', text: 'third question' },
+      { id: 'renderer-assistant-3', sender: 'assistant', text: 'third answer' },
+    ];
+    const { result } = renderReplayHook(messages);
+
+    await act(async () => {
+      await expect(result.current.handleEditFromUser(
+        'renderer-user-3',
+        'edited third question',
+      )).resolves.toBe(false);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[ChatInterface] Failed to edit user message:',
+      expect.objectContaining({
+        message: expect.stringContaining('Cannot edit missing user message'),
+      }),
+    );
+    expect(backendRehydrates).toEqual([]);
+    expect(sentQueries).toEqual([]);
+    expect(history.rows('conv-replay-db').map(row => row.id)).toEqual([
+      'stored-user-1',
+      'stored-assistant-1',
+      'stored-user-2',
+      'stored-assistant-2',
+    ]);
+    expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
+      ...messages,
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'error',
+        sourceEventType: 'renderer-replay',
+        text: expect.stringContaining('could not prepare the conversation replay'),
+      }),
+    ]);
+  });
+
+  test.each([
+    {
+      label: 'missing',
+      userId: null,
+      error: 'Windie SDK command requires an active user id.',
+    },
+    {
+      label: 'stale',
+      userId: 'user-stale',
+      error: 'Windie SDK command user id does not match the active user.',
+    },
+  ])('reports preparation failure when transcript session user binding is $label', async ({ userId, error }) => {
+    mockSessionUserId = userId;
+    const { result } = renderReplayHook(BASE_MESSAGES);
+
+    await act(async () => {
+      await expect(result.current.handleEditFromUser(
+        'renderer-user-2',
+        'edited second question',
+      )).resolves.toBe(false);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[ChatInterface] Failed to edit user message:',
+      expect.objectContaining({ message: error }),
+    );
+    expect(backendRehydrates).toEqual([]);
+    expect(sentQueries).toEqual([]);
+    expect(history.rows('conv-replay-db').map(row => row.id)).toEqual([
+      'stored-user-1',
+      'stored-assistant-1',
+      'stored-user-2',
+      'stored-assistant-2',
+    ]);
+    expectReplayPreparationErrorMessage();
+  });
+
+  test('reports preparation failure when sidecar SQLite cutoff rewrite fails', async () => {
+    history.rewriteFailure = 'forced sqlite rewrite failure';
+    const { result } = renderReplayHook(BASE_MESSAGES);
+
+    await act(async () => {
+      await expect(result.current.handleEditFromUser(
+        'renderer-user-2',
+        'edited second question',
+      )).resolves.toBe(false);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[ChatInterface] Failed to edit user message:',
+      expect.objectContaining({ message: 'forced sqlite rewrite failure' }),
+    );
+    expect(backendRehydrates).toEqual([]);
+    expect(sentQueries).toEqual([]);
+    expect(history.rows('conv-replay-db').map(row => row.id)).toEqual([
+      'stored-user-1',
+      'stored-assistant-1',
+      'stored-user-2',
+      'stored-assistant-2',
+    ]);
+    expectReplayPreparationErrorMessage();
+  });
+
+  test('reports preparation failure when backend rehydrate fails before final send', async () => {
+    mockBackendRehydrateFailure = new Error('forced backend rehydrate failure');
+    const { result } = renderReplayHook(BASE_MESSAGES);
+
+    await act(async () => {
+      await expect(result.current.handleEditFromUser(
+        'renderer-user-2',
+        'edited second question',
+      )).resolves.toBe(false);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[ChatInterface] Failed to edit user message:',
+      expect.objectContaining({ message: 'forced backend rehydrate failure' }),
+    );
+    expect(backendRehydrates).toHaveLength(1);
+    expect(sentQueries).toEqual([]);
+    expect(history.rows('conv-replay-db').map(row => row.id)).toEqual([
+      'stored-user-1',
+      'stored-assistant-1',
+      expect.stringMatching(/conversation_rewritten$/),
+    ]);
+    expectReplayPreparationErrorMessage();
   });
 });
