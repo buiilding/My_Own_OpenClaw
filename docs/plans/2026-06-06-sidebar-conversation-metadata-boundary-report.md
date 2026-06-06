@@ -132,7 +132,9 @@ metadata.
 
 ## Commits
 
-- Pending.
+- `2e5c2ab45 fix(sidecar): filter sidebar metadata events`
+  - Implements the sidecar metadata eligibility boundary, adds regression
+    tests, records validation, and updates the changelog.
 
 ## Blockers
 
