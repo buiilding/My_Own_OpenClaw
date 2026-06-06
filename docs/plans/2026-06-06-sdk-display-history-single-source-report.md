@@ -202,3 +202,4 @@ Initial search findings:
 ## Commits
 
 - `92e9417f1 refactor(frontend): render chat history from sdk display rows`
+- `da19cec68 docs(plans): record sdk display history migration commit`
