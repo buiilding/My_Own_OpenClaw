@@ -1,4 +1,7 @@
-import { buildChatMessagesFromDisplayConversation } from '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection';
+import {
+  buildChatMessagesFromDisplayConversation,
+  buildChatMessagesFromSdkDisplayRows,
+} from '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection';
 import type { DisplayConversation } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
 describe('sdkDisplayChatMessageProjection', () => {
@@ -130,5 +133,36 @@ describe('sdkDisplayChatMessageProjection', () => {
       }),
     ]);
     expect(buildChatMessagesFromDisplayConversation(display)[0]).not.toHaveProperty('screenshot');
+  });
+
+  test('projects SDK streaming assistant rows with reasoning text', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'conv-1:turn-1:assistant',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Partial answer',
+        isStreaming: true,
+        metadata: {
+          raw: {
+            reasoningText: 'Thinking through it.',
+          },
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'Partial answer',
+        isComplete: false,
+        thinkingText: 'Thinking through it.',
+        thinkingSourceEventType: 'reasoning_delta',
+        sourceEventType: 'assistant_delta',
+      }),
+    ]);
   });
 });

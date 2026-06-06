@@ -244,21 +244,48 @@ describe('Windie SDK conversation runtime core', () => {
 			    });
 			  });
 
-  test('SDK display rows exclude live-only assistant and reasoning deltas', () => {
-    const events = [
+  test('SDK display rows project live assistant deltas and settle to the final assistant row', () => {
+    const liveEvents = [
       event('user_message', { text: 'hey' }),
       event('reasoning_delta', { text: 'Thinking privately.' }),
       event('assistant_delta', { text: 'Hey' }),
       event('assistant_delta', { text: ' there' }),
+    ];
+    const events = [
+      ...liveEvents,
       event('assistant_message', { text: 'Hey there' }),
     ];
 
+    const liveRows = buildDisplayRows(liveEvents);
     const rows = buildDisplayRows(events);
 
+    expect(liveRows.map(row => row.type)).toEqual([
+      'user_message',
+      'assistant_message',
+    ]);
+    expect(liveRows[1]).toMatchObject({
+      id: 'conv-sdk-runtime:turn-1:assistant',
+      content: 'Hey there',
+      isStreaming: true,
+      metadata: expect.objectContaining({
+        raw: expect.objectContaining({
+          reasoningText: 'Thinking privately.',
+        }),
+      }),
+    });
     expect(rows.map(row => row.type)).toEqual([
       'user_message',
       'assistant_message',
     ]);
+    expect(rows[1]).toMatchObject({
+      id: liveRows[1].id,
+      metadata: expect.objectContaining({
+        raw: expect.objectContaining({
+          reasoningText: 'Thinking privately.',
+        }),
+      }),
+    });
+    expect(rows[1]).not.toHaveProperty('isStreaming');
     expect(rows.map(row => row.content)).toEqual([
       'hey',
       'Hey there',

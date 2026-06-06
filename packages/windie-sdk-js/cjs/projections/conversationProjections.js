@@ -223,6 +223,9 @@ function toolRowIdentity(event, index) {
     return String(index);
 }
 function displayRowId(event, index) {
+    if (event.type === 'assistant_message') {
+        return assistantDisplayRowId(event);
+    }
     if (event.type === 'tool_call'
         || event.type === 'tool_output'
         || event.type === 'tool_bundle_call'
@@ -230,6 +233,14 @@ function displayRowId(event, index) {
         return `${event.eventId}:${event.type}:${toolRowIdentity(event, index)}`;
     }
     return event.eventId;
+}
+function assistantDisplayRowId(event) {
+    return event.turnRef
+        ? `${event.conversationRef}:${event.turnRef}:assistant`
+        : event.eventId;
+}
+function streamingAssistantKey(event) {
+    return `${event.conversationRef}:${event.turnRef ?? event.eventId}`;
 }
 function displayRowBase(event, index) {
     return {
@@ -321,9 +332,93 @@ function displayRowFromEvent(event, index) {
     }
     return null;
 }
+function buildStreamingAssistantRow(event, index, assistantText, reasoningText, eventIds) {
+    const raw = {
+        ...event.payload,
+        assistantText,
+        reasoningText,
+        sourceEventIds: eventIds,
+    };
+    return {
+        id: assistantDisplayRowId(event),
+        conversationRef: event.conversationRef,
+        turnRef: event.turnRef,
+        index,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: assistantText,
+        isStreaming: true,
+        metadata: {
+            ...displayRowMetadata(event),
+            raw,
+        },
+    };
+}
+function buildFinalAssistantRow(event, index, streamingState) {
+    const reasoningText = streamingState?.reasoningText ?? null;
+    const raw = reasoningText
+        ? {
+            ...event.payload,
+            reasoningText,
+            sourceEventIds: streamingState?.eventIds ?? [],
+        }
+        : event.payload;
+    return {
+        id: assistantDisplayRowId(event),
+        conversationRef: event.conversationRef,
+        turnRef: event.turnRef,
+        index,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: textFromPayload(event.payload),
+        metadata: {
+            ...displayRowMetadata(event),
+            raw,
+        },
+    };
+}
 function buildDisplayRows(events) {
     const rows = [];
+    const streamingAssistants = new Map();
     for (const event of events) {
+        if (event.type === 'assistant_delta' || event.type === 'reasoning_delta') {
+            const key = streamingAssistantKey(event);
+            const current = streamingAssistants.get(key) ?? {
+                rowIndex: rows.length,
+                assistantText: '',
+                reasoningText: null,
+                eventIds: [],
+            };
+            const text = textFromPayload(event.payload);
+            const nextState = {
+                rowIndex: current.rowIndex,
+                assistantText: event.type === 'assistant_delta'
+                    ? `${current.assistantText}${text}`
+                    : current.assistantText,
+                reasoningText: event.type === 'reasoning_delta'
+                    ? `${current.reasoningText ?? ''}${text}`
+                    : current.reasoningText,
+                eventIds: [...current.eventIds, event.eventId],
+            };
+            streamingAssistants.set(key, nextState);
+            const row = buildStreamingAssistantRow(event, nextState.rowIndex, nextState.assistantText, nextState.reasoningText, nextState.eventIds);
+            if (nextState.rowIndex === rows.length) {
+                rows.push(row);
+            }
+            else {
+                rows[nextState.rowIndex] = row;
+            }
+            continue;
+        }
+        if (event.type === 'assistant_message') {
+            const key = streamingAssistantKey(event);
+            const streamingState = streamingAssistants.get(key);
+            if (streamingState) {
+                rows[streamingState.rowIndex] = buildFinalAssistantRow(event, streamingState.rowIndex, streamingState);
+                streamingAssistants.delete(key);
+                continue;
+            }
+        }
         const row = displayRowFromEvent(event, rows.length);
         if (row) {
             rows.push(row);

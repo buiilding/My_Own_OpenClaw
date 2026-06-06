@@ -134,13 +134,16 @@ Renderer surfaces must not fall back from `currentTurn` to renderer
 `streamTracking` remains telemetry/transcript bookkeeping, and
 `response-overlay-phase` remains an Electron window/layout signal only.
 
-The display projection is historical, not live-streaming state. It must render
-complete user, assistant, tool, and terminal error rows from canonical
-conversation events, but it must not render `assistant_delta` or
-`reasoning_delta` as message rows. Those live-only chunks are consumed by
-`snapshot.currentTurn` so dashboard, response overlay, and minimal chat pill can
-show progressive assistant text without duplicating rows when the stored
-conversation is reopened.
+The display projection is the canonical live and historical transcript state.
+It renders user, assistant, tool, and terminal error rows from canonical
+conversation events. During a live turn, `assistant_delta` and
+`reasoning_delta` events update a stable streaming assistant display row keyed
+by conversation and turn. When the final `assistant_message` event arrives, that
+same row identity becomes the completed assistant row. Dashboard and custom UIs
+render `snapshot.displayRows`; they must not reconstruct transcript rows from
+`snapshot.currentTurn`. `snapshot.currentTurn` remains the SDK-owned
+phase/status/overlay projection for busy state, stop eligibility, active turn
+identity, and overlay-specific progressive state.
 
 ## Store Rule
 

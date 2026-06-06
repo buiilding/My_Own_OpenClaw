@@ -1,8 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore } from '../stores/chatStore';
-import type { SdkCurrentTurnProjection } from '../stores/chatStore';
-import type { CurrentTurnToolEvent } from '../../../infrastructure/api/windieSdkClient';
+import type { ChatMessage, SdkCurrentTurnProjection } from '../stores/chatStore';
+import type {
+  CurrentTurnToolEvent,
+  SdkDisplayRow,
+} from '../../../infrastructure/api/windieSdkClient';
+import {
+  buildChatMessagesFromSdkDisplayRows,
+} from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { buildThinkingStatus } from '../utils/chatStream/chatStreamFormatting';
 import { GENERIC_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import {
@@ -63,8 +69,58 @@ function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: SdkCurrentTurnProje
   return currentTurn.phase === 'awaiting';
 }
 
+function isSdkDisplayRow(value: unknown): value is SdkDisplayRow {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const row = value as Partial<SdkDisplayRow>;
+  return typeof row.id === 'string'
+    && typeof row.conversationRef === 'string'
+    && typeof row.type === 'string'
+    && typeof row.role === 'string';
+}
+
+function isSdkDisplayRows(value: unknown): value is SdkDisplayRow[] {
+  return Array.isArray(value) && value.every(isSdkDisplayRow);
+}
+
+function resolveRowsConversationRef(rows: SdkDisplayRow[]): string | null {
+  for (const row of rows) {
+    if (typeof row.conversationRef === 'string' && row.conversationRef.trim()) {
+      return row.conversationRef;
+    }
+  }
+  return null;
+}
+
+function mergeRendererAnnotations(
+  sdkMessages: ChatMessage[],
+  currentMessages: ChatMessage[],
+): ChatMessage[] {
+  if (sdkMessages.length === 0 || currentMessages.length === 0) {
+    return sdkMessages;
+  }
+  const currentById = new Map(currentMessages.map((message) => [message.id, message]));
+  return sdkMessages.map((message) => {
+    const current = currentById.get(message.id);
+    if (!current) {
+      return message;
+    }
+    return {
+      ...message,
+      ...(current.systemPrompt ? { systemPrompt: current.systemPrompt } : {}),
+      ...(current.toolSchemas ? { toolSchemas: current.toolSchemas } : {}),
+      ...(current.fullUserMessage ? { fullUserMessage: current.fullUserMessage } : {}),
+      ...(current.fullAssistantMessage ? { fullAssistantMessage: current.fullAssistantMessage } : {}),
+      ...(current.feedback ? { feedback: current.feedback } : {}),
+      ...(current.tokenCounts ? { tokenCounts: current.tokenCounts } : {}),
+    };
+  });
+}
+
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
+  const setMessages = useChatStore((state) => state.setMessages);
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -260,4 +316,28 @@ export function useConversationRuntimeProjectionStream(): void {
     setThinkingStatus,
     updateStreamTracking,
   ]);
+
+  useEffect(() => {
+    if (!ON_CHANNELS.WINDIE_ROWS) {
+      return undefined;
+    }
+    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_ROWS, (payload: unknown) => {
+      if (!isSdkDisplayRows(payload)) {
+        return;
+      }
+      const conversationRef = resolveRowsConversationRef(payload);
+      if (!conversationRef) {
+        return;
+      }
+      const sdkMessages = buildChatMessagesFromSdkDisplayRows(payload);
+      const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+      setMessages(
+        mergeRendererAnnotations(sdkMessages, workspace.messages),
+        conversationRef,
+      );
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, [setMessages]);
 }

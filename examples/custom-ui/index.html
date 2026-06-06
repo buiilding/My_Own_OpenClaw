@@ -159,16 +159,13 @@
 
       function render(snapshot) {
         messages.replaceChildren();
-        for (const message of snapshot.display.messages) {
+        for (const message of snapshot.displayRows) {
           const row = document.createElement('article');
-          row.className = `message ${message.sender}`;
-          row.textContent = `${message.sender}: ${message.text || message.messageType}`;
-          messages.append(row);
-        }
-        if (snapshot.state.stream.text) {
-          const row = document.createElement('article');
-          row.className = 'message assistant';
-          row.textContent = `assistant: ${snapshot.state.stream.text}`;
+          row.className = `message ${message.role}`;
+          const content = typeof message.content === 'string'
+            ? message.content
+            : JSON.stringify(message.content);
+          row.textContent = `${message.role}: ${content || message.type}`;
           messages.append(row);
         }
       }

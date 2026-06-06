@@ -38,6 +38,25 @@ describe('messagePresentationPipeline', () => {
     expect(rendered).toBe(messages);
   });
 
+  test('buildThreadPresentationMessages ignores current-turn transcript rows', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
+    ];
+    const currentTurnMessages = [
+      {
+        id: 'projected-tool-1',
+        sender: 'assistant',
+        text: 'tool call',
+        type: 'tool-call',
+        sourceChannel: 'windie:current-turn',
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnMessages,
+    })).toBe(messages);
+  });
+
   test('buildCurrentTurnResponseOverlayEntries includes live tool explanations only for tool calls', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Find OCR code' },

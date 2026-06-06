@@ -98,12 +98,16 @@ function buildUserChatMessage(message: DisplayMessage): ChatMessage {
 }
 
 function buildAssistantChatMessage(message: DisplayMessage): ChatMessage {
+  const payload = recordPayload(message);
+  const thinkingText = stringField(payload, 'reasoningText', 'reasoning_text');
   const base = buildAssistantTextChatMessageState({
     id: message.id,
     text: message.text,
     sourceEventType: message.messageType,
     turnRef: message.turnRef ?? null,
-    isComplete: true,
+    isComplete: message.messageType !== 'assistant_delta',
+    thinkingText,
+    thinkingSourceEventType: thinkingText ? 'reasoning_delta' : null,
   }) as ChatMessage;
   return {
     ...base,

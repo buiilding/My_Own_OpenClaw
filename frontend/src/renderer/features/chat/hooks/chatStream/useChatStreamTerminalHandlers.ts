@@ -10,14 +10,8 @@ import {
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
-import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
-import {
-  buildMaterializedCurrentTurnMessage,
-  upsertMaterializedCurrentTurnProjectionMessages,
-} from '../../utils/chatStream/currentTurnMessageMaterialization';
 
 type UseChatStreamTerminalHandlersDeps = {
-  modelContextRef: { current: TranscriptModelContext };
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;
 };
 
@@ -37,7 +31,6 @@ function usagePayloadFromEvent(event: ConversationEvent): Record<string, unknown
 }
 
 export function useChatStreamTerminalHandlers({
-  modelContextRef,
   recordTrackingEvent,
 }: UseChatStreamTerminalHandlersDeps) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
@@ -63,40 +56,14 @@ export function useChatStreamTerminalHandlers({
     recordTrackingEvent,
   ]);
 
-  const handleError = useCallback((event: ConversationEvent, _conversationRef?: string | null) => {
+  const handleError = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     const errorPayload = terminalPayloadWithoutRawEvent(event);
     if (shouldIgnoreStreamError(errorPayload)) {
       return;
     }
     const errorText = resolveErrorText(errorPayload);
-    const modelContext = modelContextRef.current;
-    const workspace = useChatStore.getState().getWorkspaceState(event.conversationRef);
-    const currentMessages = workspace.messages;
-    const currentTurnProjection = workspace.currentTurnProjection;
-    const materializedMessage = buildMaterializedCurrentTurnMessage({
-      conversationRef: event.conversationRef,
-      turnRef: event.turnRef,
-      currentTurnProjection,
-      fallbackText: errorText,
-      modelContext,
-      type: 'error',
-    });
-
-    if (materializedMessage) {
-      const nextMessages = upsertMaterializedCurrentTurnProjectionMessages({
-        messages: currentMessages,
-        currentTurnProjection,
-        assistantMessage: materializedMessage,
-        turnRef: event.turnRef,
-      });
-      if (nextMessages !== currentMessages) {
-        useChatStore.getState().setMessages(nextMessages, event.conversationRef);
-      }
-    }
-
-  }, [
-    modelContextRef,
-  ]);
+    recordTrackingEvent('error', event.turnRef, { errorText }, conversationRef ?? event.conversationRef);
+  }, [recordTrackingEvent]);
 
   return {
     handleError,

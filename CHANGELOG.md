@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: make SDK `displayRows` the live and historical chat transcript
+  source, including streaming assistant rows from normalized events, and remove
+  renderer current-turn row materialization from dashboard chat rendering.
 - frontend/renderer: preserve completed SDK current-turn tool call/output cards
   in chat display state so repeated screenshot turns keep their earlier tool
   rows instead of showing only the latest live projection.

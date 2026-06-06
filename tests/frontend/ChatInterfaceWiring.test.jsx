@@ -1299,11 +1299,22 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
-  test('renders SDK current-turn tool rows without mutating chat messages from conversation events', () => {
+  test('renders SDK display tool rows without reading current-turn tool rows as transcript', () => {
     mockChatState.streamTracking.phase = 'tool-call';
     mockChatState.isSending = false;
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'build a dashboard', type: 'user', turnRef: 'turn_test' },
+      {
+        id: 'tool-call-row-1',
+        sender: 'assistant',
+        type: 'tool-call',
+        text: '{"tool":"run_shell_command"}',
+        turnRef: 'turn_test',
+        correlationId: 'request-tool-1',
+        toolCallDetails: {
+          toolName: 'run_shell_command',
+        },
+      },
     ];
     setMockCurrentTurnProjection('tool-call', {
       toolEvents: [{
@@ -1329,10 +1340,9 @@ describe('ChatInterface wiring', () => {
       sender: 'user',
     }));
     expect(renderedMessages[1]).toEqual(expect.objectContaining({
-      id: 'conv_existing:turn_test:tool:tool-call-1',
+      id: 'tool-call-row-1',
       sender: 'assistant',
       type: 'tool-call',
-      sourceChannel: 'windie:current-turn',
       correlationId: 'request-tool-1',
       toolCallDetails: expect.objectContaining({
         toolName: 'run_shell_command',

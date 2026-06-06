@@ -255,7 +255,7 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().messages).toEqual([]);
   });
 
-  test('commits SDK current-turn projection into message history on completion', () => {
+  test('does not commit SDK current-turn projection into message history on completion', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -282,13 +282,6 @@ describe('useChatStream state + stream handling', () => {
 
     expect(useChatStore.getState().messages).toEqual([
       { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
-      expect.objectContaining({
-        id: 'conv-test:turn-live:assistant',
-        text: 'Projected answer',
-        thinkingText: 'Projected thought',
-        sourceChannel: 'windie:current-turn',
-        type: 'llm-text',
-      }),
     ]);
   });
 
@@ -831,7 +824,7 @@ describe('useChatStream state + stream handling', () => {
       lastEventType: 'streaming-complete',
     }));
     expect(state.messages.at(-1)).toEqual(expect.objectContaining({
-      isComplete: true,
+      isComplete: false,
       text: 'done',
     }));
   });
@@ -936,7 +929,7 @@ describe('useChatStream state + stream handling', () => {
     expect(state.thinkingStatus).toBeNull();
   });
 
-  test('adds local user message to store', () => {
+  test('local user event updates send state without adding transcript rows', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -948,8 +941,10 @@ describe('useChatStream state + stream handling', () => {
 
     const messages = useChatStore.getState().messages;
     const last = messages[messages.length - 1];
-    expect(last.sender).toBe('user');
-    expect(last.text).toBe('hello from chatbox');
+    expect(last).not.toEqual(expect.objectContaining({
+      sender: 'user',
+      text: 'hello from chatbox',
+    }));
     expect(useChatStore.getState().isSending).toBe(true);
   });
 
@@ -1543,10 +1538,9 @@ describe('useChatStream state + stream handling', () => {
       lastEventType: 'error',
       lastError: 'Gateway request failed',
     }));
-    expect(state.messages.at(-1)).toEqual(expect.objectContaining({
+    expect(state.messages.at(-1)).not.toEqual(expect.objectContaining({
       text: 'Gateway request failed',
       type: 'error',
-      sourceChannel: 'windie:current-turn',
     }));
   });
 

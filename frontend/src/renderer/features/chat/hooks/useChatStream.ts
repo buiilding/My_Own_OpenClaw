@@ -30,7 +30,6 @@ import {
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
-    addMessage,
     updateMessage,
     setIsSending,
     setThinkingStatus,
@@ -114,7 +113,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const handleLocalUserMessage = useChatStreamLocalUserHandler({
-    addMessage,
     modelContextRef,
     recordTrackingEvent,
     setIsSending,
@@ -123,7 +121,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const processStreamingComplete = useChatStreamCompletionHandler({
-    modelContextRef,
     recordTrackingEvent,
     setIsSending,
     setThinkingSourceEventType,
@@ -134,7 +131,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleError,
     handleTokenCount,
   } = useChatStreamTerminalHandlers({
-    modelContextRef,
     recordTrackingEvent,
   });
 

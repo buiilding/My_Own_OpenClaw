@@ -345,7 +345,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain("recordTrackingEvent('memory-store'");
   });
 
-  test('chat stream local-user display consumes SDK user-message events directly', async () => {
+  test('chat stream local-user display is owned by SDK display rows', async () => {
     const streamSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatStream.ts'),
       'utf8',
@@ -359,7 +359,8 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).toContain("event.type !== 'user_message'");
     expect(handlerSource).not.toContain('LocalUserMessageEvent');
     expect(handlerSource).toContain("event.type !== 'user_message'");
-    expect(handlerSource).toContain('payload?.screenshotRefs');
+    expect(handlerSource).not.toContain('payload?.screenshotRefs');
+    expect(handlerSource).not.toContain('addMessage(');
   });
 
   test('chat stream tool progress state is owned by the SDK current-turn projection listener', async () => {
