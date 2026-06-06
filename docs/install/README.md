@@ -29,8 +29,9 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 ## Main Commands
 
 - Backend dev server: `bin/windie start backend`
-- Frontend Vite dev server: `bin/windie start frontend`
-- Electron dev app: `bin/windie start desktop`
+- Desktop dev loop: `bin/windie start dev`
+- Focused Vite dev server: `bin/windie start frontend`
+- Focused Electron dev app: `bin/windie start desktop`
 - Frontend package build: `bin/windie package mac`, `bin/windie package win`, or `bin/windie package linux`
 - Sidecar runtime build: `bin/windie build sidecar-runtime`
 - Command health summary: `bin/windie status --all`

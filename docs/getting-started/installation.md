@@ -188,14 +188,9 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 bin/windie start backend
 ```
 
-**Terminal 2: Frontend Dev Server**
+**Terminal 2: Desktop Dev Loop**
 ```bash
-bin/windie start frontend
-```
-
-**Terminal 3: Electron App**
-```bash
-bin/windie start desktop
+bin/windie start dev
 ```
 
 ### Production Mode
@@ -213,7 +208,7 @@ bin/windie start backend
 
 **Launch Electron**:
 ```bash
-bin/windie start desktop
+bin/windie start dev
 ```
 
 ### Package Installers (Frontend App)

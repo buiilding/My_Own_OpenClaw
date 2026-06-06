@@ -77,28 +77,16 @@ export OPENAI_API_KEY="your-api-key"
 bin/windie start backend
 ```
 
-**Terminal 2: Start the Frontend UI (Vite)**
+**Terminal 2: Start the Desktop Dev Loop**
 
 ```bash
-bin/windie start frontend
+bin/windie start dev
 ```
 
 Windows PowerShell:
 
 ```powershell
-.\scripts\run-frontend-dev
-```
-
-**Terminal 3: Start the Frontend App (Electron)**
-
-```bash
-bin/windie start desktop
-```
-
-Windows PowerShell:
-
-```powershell
-.\scripts\run-frontend-electron
+bin/windie start dev
 ```
 
 ## Hosted Mode (Planned)

@@ -24,6 +24,7 @@ surface.
 | `bin/windie start backend` | Start the backend dev server. |
 | `bin/windie start frontend` | Start Vite dev server. |
 | `bin/windie start desktop` | Start Electron dev app. |
+| `bin/windie start dev` | Start Vite dev server and Electron dev app together. |
 | `bin/windie start all` | Start backend, frontend, and desktop dev processes together. |
 | `bin/windie stop` | Stop tracked Windie dev processes when process tracking exists. |
 | `bin/windie logs backend --remote --host windie-prod` | Tail remote backend logs through the guarded backend log command. |

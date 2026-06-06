@@ -40,14 +40,14 @@ Frontend:
 ```bash
 (cd frontend && npm install)
 bin/windie build frontend
-bin/windie start desktop
+bin/windie start dev
 ```
 
 Sidecar:
 
 ```bash
 bin/windie test sidecar
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start dev
 ```
 
 Packaging:

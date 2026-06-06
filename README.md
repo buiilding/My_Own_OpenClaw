@@ -154,22 +154,17 @@ cd ..
 ./scripts/python-in-env sidecar python -m pip install -r frontend/src/main/python/requirements.txt
 ```
 
-Start the renderer:
-
-```bash
-bin/windie start frontend
-```
-
-In another terminal, start the backend:
+Start the backend:
 
 ```bash
 bin/windie start backend
 ```
 
-In another terminal, start Electron:
+In another terminal, start the desktop dev loop. This starts the Vite renderer
+dev server and Electron dev app together; Ctrl-C stops both.
 
 ```bash
-bin/windie start desktop
+bin/windie start dev
 ```
 
 By default, the Electron client talks to the configured WindieOS backend. Use

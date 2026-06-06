@@ -40,7 +40,7 @@ Launch Electron against it:
 ```bash
 BACKEND_HTTP_URL=http://127.0.0.1:8765 \
 BACKEND_WS_URL=ws://127.0.0.1:8765/ws \
-bin/windie start desktop
+bin/windie start dev
 ```
 
 Health check:
@@ -56,7 +56,7 @@ Launch with no endpoint overrides to use the default hosted backend, or set expl
 ```bash
 BACKEND_HTTP_URL=https://api.windieos.com \
 BACKEND_WS_URL=wss://api.windieos.com/ws \
-bin/windie start desktop
+bin/windie start dev
 ```
 
 If a hosted route returns auth errors, confirm that the install token or runs API key belongs to the same backend host the app is using.

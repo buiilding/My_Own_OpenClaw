@@ -24,6 +24,7 @@ Lifecycle and logs:
   windie start backend
   windie start frontend
   windie start desktop
+  windie start dev
   windie start all
   windie stop
   windie restart desktop
@@ -195,6 +196,12 @@ function runStart(target) {
   if (target === 'desktop') {
     return runForeground(script('scripts/run-frontend-electron'), [], { cwd: REPO_ROOT });
   }
+  if (target === 'dev') {
+    return runConcurrent([
+      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+      { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
+    ]).then((code) => process.exit(code));
+  }
   if (target === 'all') {
     return runConcurrent([
       { label: 'backend', command: script('scripts/run-backend'), cwd: REPO_ROOT },
@@ -202,7 +209,7 @@ function runStart(target) {
       { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
     ]).then((code) => process.exit(code));
   }
-  throw new Error('Usage: windie start backend|frontend|desktop|all');
+  throw new Error('Usage: windie start backend|frontend|desktop|dev|all');
 }
 
 function runRestart(target) {
@@ -469,13 +476,13 @@ async function runEndpoint(args) {
   if (action === 'local') {
     console.log('BACKEND_HTTP_URL=http://127.0.0.1:8765');
     console.log('BACKEND_WS_URL=ws://127.0.0.1:8765/ws');
-    console.log('windie start desktop');
+    console.log('windie start dev');
     return;
   }
   if (action === 'hosted') {
     console.log('BACKEND_HTTP_URL=https://api.windieos.com');
     console.log('BACKEND_WS_URL=wss://api.windieos.com/ws');
-    console.log('windie start desktop');
+    console.log('windie start dev');
     return;
   }
   if (action === 'probe') {
@@ -613,6 +620,14 @@ function getSpawnPlan(argv) {
   }
   if (command === 'start' && args[0] === 'desktop') {
     return { command: script('scripts/run-frontend-electron'), args: [], cwd: REPO_ROOT };
+  }
+  if (command === 'start' && args[0] === 'dev') {
+    return {
+      concurrent: [
+        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+        { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
+      ],
+    };
   }
   if (command === 'test' && args[0] === 'backend') {
     return { command: script('scripts/test-backend'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };

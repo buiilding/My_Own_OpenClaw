@@ -41,16 +41,14 @@ npm.cmd install
 
 ```bash
 bin/windie start backend
-bin/windie start frontend
-bin/windie start desktop
+bin/windie start dev
 ```
 
 Windows PowerShell equivalents:
 
 ```powershell
 bin/windie start backend
-bin/windie start frontend
-bin/windie start desktop
+bin/windie start dev
 ```
 
 To force Electron dev to use the local backend:
@@ -58,7 +56,7 @@ To force Electron dev to use the local backend:
 ```bash
 BACKEND_HTTP_URL=http://127.0.0.1:8765 \
 BACKEND_WS_URL=ws://127.0.0.1:8765/ws \
-bin/windie start desktop
+bin/windie start dev
 ```
 
 Windows PowerShell:
@@ -66,7 +64,7 @@ Windows PowerShell:
 ```powershell
 $env:BACKEND_HTTP_URL = "http://127.0.0.1:8765"
 $env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
-bin/windie start desktop
+bin/windie start dev
 ```
 
 Convenience scripts also exist:
@@ -74,6 +72,7 @@ Convenience scripts also exist:
 - `bin/windie start backend`
 - `bin/windie start frontend`
 - `bin/windie start desktop`
+- `bin/windie start dev`
 
 ## Test
 

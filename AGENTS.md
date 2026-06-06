@@ -175,8 +175,9 @@ Install and run:
 - Backend deps: `pip install -r backend/requirements.txt`
 - Frontend deps: `cd frontend && npm install`
 - Backend dev server: `bin/windie start backend`
-- Frontend UI with Vite: `bin/windie start frontend`
-- Electron dev app: `bin/windie start desktop`
+- Desktop dev loop: `bin/windie start dev`
+- Focused Vite dev server: `bin/windie start frontend`
+- Focused Electron dev app: `bin/windie start desktop`
 - Electron customer app: `cd frontend && npm run electron`
 
 Validation:

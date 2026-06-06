@@ -31,6 +31,7 @@ adapters; document them only when changing the adapter itself.
 | `bin/windie start backend` | Start the backend dev server. |
 | `bin/windie start frontend` | Start the Vite renderer dev server. |
 | `bin/windie start desktop` | Start the Electron development app. |
+| `bin/windie start dev` | Start the Vite renderer dev server and Electron development app together; Ctrl-C stops both. |
 | `bin/windie start all` | Start backend, frontend, and Electron development app together. |
 | `bin/windie stop` | Stop tracked Windie dev processes when process tracking exists. |
 | `bin/windie restart desktop` | Restart the Electron development app. |
