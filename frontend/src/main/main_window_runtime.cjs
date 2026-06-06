@@ -19,7 +19,7 @@ const {
 } = require('./ipc/ipc_install_auth_state.cjs');
 
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
-const CHATBOX_OVERLAY_FIXED_HEIGHT = 220;
+const CHATBOX_OVERLAY_FIXED_HEIGHT = 70;
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,

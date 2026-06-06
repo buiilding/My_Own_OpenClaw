@@ -65,10 +65,11 @@ export function useChatboxDragWindowBindings(handleDragMove, stopDragging) {
 export function useChatboxVisualAnchorBindings({
   shellRef,
   hasImagePreview,
+  frameHeight = null,
 }) {
   useEffect(() => {
     let cancelled = false;
-    let lastReportedHeight = null;
+    let lastReportedSignature = null;
     let scheduledFrame = null;
     let scheduledTimeout = null;
     const shellElement = shellRef?.current || null;
@@ -79,13 +80,22 @@ export function useChatboxVisualAnchorBindings({
         hasImagePreview,
         shellHeight: shellElement?.offsetHeight ?? null,
       });
-      if (nextAnchorHeight === lastReportedHeight) {
+      const nextFrameHeight = Math.round(Number(frameHeight));
+      const normalizedFrameHeight = Number.isFinite(nextFrameHeight) && nextFrameHeight > 0
+        ? nextFrameHeight
+        : null;
+      const nextSignature = `${nextAnchorHeight}:${normalizedFrameHeight || ''}`;
+      if (nextSignature === lastReportedSignature) {
         return;
       }
-      lastReportedHeight = nextAnchorHeight;
-      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
+      lastReportedSignature = nextSignature;
+      const payload = {
         height: nextAnchorHeight,
-      }).catch((error) => {
+      };
+      if (normalizedFrameHeight !== null) {
+        payload.frameHeight = normalizedFrameHeight;
+      }
+      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, payload).catch((error) => {
         if (!cancelled) {
           console.warn('[MinimalChatPill] Failed to sync visual anchor height:', error);
         }
@@ -159,7 +169,7 @@ export function useChatboxVisualAnchorBindings({
       }
       resizeObserver.disconnect();
     };
-  }, [hasImagePreview, shellRef]);
+  }, [frameHeight, hasImagePreview, shellRef]);
 
   useEffect(() => {
     return () => {

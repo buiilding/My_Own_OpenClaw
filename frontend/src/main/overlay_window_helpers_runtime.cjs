@@ -2,7 +2,7 @@ const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
 const responseOverlayLayoutContract = require('../shared/response_overlay_layout_contract.json');
 
 const CHAT_WINDOW_FRAME_HEIGHT_PADDING = 6;
-const CHAT_WINDOW_FIXED_FRAME_HEIGHT = 220;
+const CHAT_WINDOW_MIN_FRAME_HEIGHT = 1;
 const RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT = (
   Number(responseOverlayLayoutContract?.awaiting_frame_height) || 24
 );
@@ -76,11 +76,15 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     });
   }
 
-  function getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight) {
+  function getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight, options = {}) {
     const normalizedAnchorHeight = Math.max(1, Math.round(Number(anchorHeight) || 0));
+    const requestedFrameHeight = Math.round(Number(options?.frameHeight));
     return Math.max(
-      CHAT_WINDOW_FIXED_FRAME_HEIGHT,
+      CHAT_WINDOW_MIN_FRAME_HEIGHT,
       normalizedAnchorHeight + CHAT_WINDOW_FRAME_HEIGHT_PADDING,
+      Number.isFinite(requestedFrameHeight) && requestedFrameHeight > 0
+        ? requestedFrameHeight
+        : 0,
     );
   }
 
@@ -188,7 +192,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     positionContextLabelWindow();
   }
 
-  function resizeChatWindowForVisualAnchorHeight(anchorHeight) {
+  function resizeChatWindowForVisualAnchorHeight(anchorHeight, options = {}) {
     const chatWindow = getChatWindow();
     if (
       !chatWindow
@@ -206,7 +210,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
         ? chatWindowHeightOverride
         : Math.round(Number(currentHeightRaw) || 0),
     );
-    const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight);
+    const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight, options);
 
     if (currentHeight === nextHeight) {
       return false;
@@ -232,7 +236,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     return false;
   }
 
-  function setChatWindowBoundsForVisualAnchorHeight(anchorHeight) {
+  function setChatWindowBoundsForVisualAnchorHeight(anchorHeight, options = {}) {
     const chatWindow = getChatWindow();
     if (
       !chatWindow
@@ -244,7 +248,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
 
     const [widthRaw, currentHeightRaw] = chatWindow.getSize();
     const width = Math.max(1, Math.round(Number(widthRaw) || 0));
-    const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight);
+    const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight, options);
 
     if (typeof chatWindow.setBounds === 'function' && typeof chatWindow.getBounds === 'function') {
       const currentBounds = chatWindow.getBounds();

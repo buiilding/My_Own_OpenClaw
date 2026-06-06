@@ -1,6 +1,7 @@
 function handleSetChatboxVisualAnchorHeight(
   {
     height,
+    frameHeight,
   } = {},
   deps = {},
 ) {
@@ -21,17 +22,27 @@ function handleSetChatboxVisualAnchorHeight(
       reason: 'Invalid chatbox visual anchor height',
     };
   }
+  const nextFrameHeight = frameHeight == null ? null : Math.round(Number(frameHeight));
+  if (frameHeight != null && (!Number.isFinite(nextFrameHeight) || nextFrameHeight <= 0)) {
+    return {
+      success: false,
+      reason: 'Invalid chatbox native frame height',
+    };
+  }
+  const frameOptions = nextFrameHeight == null
+    ? {}
+    : { frameHeight: nextFrameHeight };
 
   try {
     const didChange = typeof setChatVisualAnchorHeight === 'function'
       ? setChatVisualAnchorHeight(nextHeight)
       : true;
-    if (didChange) {
+    if (didChange || nextFrameHeight != null) {
       const boundsChanged = typeof setChatWindowBoundsForVisualAnchorHeight === 'function'
-        ? setChatWindowBoundsForVisualAnchorHeight(nextHeight)
+        ? setChatWindowBoundsForVisualAnchorHeight(nextHeight, frameOptions)
         : false;
       const resized = !boundsChanged && typeof resizeChatWindowForVisualAnchorHeight === 'function'
-        ? resizeChatWindowForVisualAnchorHeight(nextHeight)
+        ? resizeChatWindowForVisualAnchorHeight(nextHeight, frameOptions)
         : false;
       if (!boundsChanged || resized) {
         positionResponseWindow?.();
@@ -42,6 +53,7 @@ function handleSetChatboxVisualAnchorHeight(
     return {
       success: true,
       height: nextHeight,
+      frameHeight: nextFrameHeight,
       changed: Boolean(didChange),
     };
   } catch (error) {
