@@ -11,7 +11,7 @@ Plan: [Conversation Metadata Invalidation SDK Event Boundary Plan](2026-06-05-co
 
 ## Status
 
-Complete, pending commit.
+Complete.
 
 ## User Intent
 
@@ -78,7 +78,7 @@ see raw sidecar events as an implementation detail; renderer must not.
 - [x] `CHANGELOG.md` updated.
 - [x] Validation commands and results recorded in report.
 - [x] Fresh final inspection finds no remaining in-scope violations.
-- [ ] Commit created and recorded in report.
+- [x] Commit created and recorded in report.
 
 ## Success Criteria Status
 
@@ -137,4 +137,4 @@ see raw sidecar events as an implementation detail; renderer must not.
 
 ## Commits
 
-Pending.
+- `02912bcc2` - `refactor(frontend): hide sidecar title events behind windie invalidation`
