@@ -66,6 +66,7 @@ export function useChatboxVisualAnchorBindings({
   shellRef,
   hasImagePreview,
   frameHeight = null,
+  anchorHeightOverride = null,
 }) {
   useEffect(() => {
     let cancelled = false;
@@ -76,10 +77,13 @@ export function useChatboxVisualAnchorBindings({
 
     const commitAnchorHeight = () => {
       scheduledFrame = null;
-      const nextAnchorHeight = resolveChatboxVisualAnchorHeight({
-        hasImagePreview,
-        shellHeight: shellElement?.offsetHeight ?? null,
-      });
+      const overrideAnchorHeight = Math.round(Number(anchorHeightOverride));
+      const nextAnchorHeight = Number.isFinite(overrideAnchorHeight) && overrideAnchorHeight > 0
+        ? overrideAnchorHeight
+        : resolveChatboxVisualAnchorHeight({
+          hasImagePreview,
+          shellHeight: shellElement?.offsetHeight ?? null,
+        });
       const nextFrameHeight = Math.round(Number(frameHeight));
       const normalizedFrameHeight = Number.isFinite(nextFrameHeight) && nextFrameHeight > 0
         ? nextFrameHeight
@@ -169,7 +173,7 @@ export function useChatboxVisualAnchorBindings({
       }
       resizeObserver.disconnect();
     };
-  }, [frameHeight, hasImagePreview, shellRef]);
+  }, [anchorHeightOverride, frameHeight, hasImagePreview, shellRef]);
 
   useEffect(() => {
     return () => {
