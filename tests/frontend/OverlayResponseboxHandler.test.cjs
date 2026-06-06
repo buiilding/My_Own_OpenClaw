@@ -41,7 +41,7 @@ describe('overlay_responsebox_handler', () => {
       getActiveDisplayAffinity: jest.fn(() => null),
       getResponseWindowBounds: jest.fn((width, height) => ({ x: 1, y: 2, width, height })),
       setResponseOverlayVisibilityState: jest.fn(),
-      showResponseWindowWhenChatVisible: jest.fn(),
+      showResponseWindowForLiveTurnIntent: jest.fn(),
       getActiveResponseOverlayGuardRef: jest.fn(() => null),
       setActiveResponseOverlayGuardRef: jest.fn(),
       ...overrides,
@@ -93,7 +93,7 @@ describe('overlay_responsebox_handler', () => {
       false,
     );
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
-    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+    expect(deps.showResponseWindowForLiveTurnIntent).toHaveBeenCalledTimes(1);
   });
 
   test('fullscreen falls back to primary display when no active surface affinity is available', async () => {
@@ -203,7 +203,30 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.getResponseWindowBounds).toHaveBeenCalledWith(1, 750);
     expect(deps.responseWindow.setBounds).toHaveBeenCalledWith({ x: 1, y: 2, width: 1, height: 750 }, false);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
-    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+    expect(deps.showResponseWindowForLiveTurnIntent).toHaveBeenCalledTimes(1);
+  });
+
+  test('shows SDK live-turn response even when the chat pill window is hidden', async () => {
+    const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(false),
+        getBounds: jest.fn(),
+      },
+    });
+
+    const result = await handleSetResponseboxSize({
+      visible: true,
+      width: 320,
+      height: 180,
+      turn_ref: 'turn-live',
+      stale_guard_ref: 'turn-live',
+    }, deps);
+
+    expect(result).toEqual({ success: true, visible: true, width: 320, height: 180 });
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
+    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith('turn-live');
+    expect(deps.showResponseWindowForLiveTurnIntent).toHaveBeenCalledTimes(1);
   });
 
   test('passes compact hover flag through to response bounds helper', async () => {
@@ -234,7 +257,7 @@ describe('overlay_responsebox_handler', () => {
 
     expect(result).toEqual({ success: true, visible: true, width: 320, height: 180 });
     expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith('turn-b');
-    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+    expect(deps.showResponseWindowForLiveTurnIntent).toHaveBeenCalledTimes(1);
   });
 
   test('ignores stale hide from a previous turn guard', async () => {

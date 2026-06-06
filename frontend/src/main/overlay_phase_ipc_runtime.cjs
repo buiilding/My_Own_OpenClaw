@@ -33,7 +33,6 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     broadcastResponseOverlayVisibility = () => {},
-    showResponseWindowWhenChatVisible,
     showResponseWindowInactive,
     getActiveResponseOverlayGuardRef = () => null,
     setActiveResponseOverlayGuardRef = () => {},
@@ -96,7 +95,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       getActiveDisplayAffinity,
       getResponseWindowBounds,
       setResponseOverlayVisibilityState,
-      showResponseWindowWhenChatVisible,
+      showResponseWindowForLiveTurnIntent: showResponseWindowInactive,
       getActiveResponseOverlayGuardRef,
       setActiveResponseOverlayGuardRef,
       getResponseOverlayVisible: () => {

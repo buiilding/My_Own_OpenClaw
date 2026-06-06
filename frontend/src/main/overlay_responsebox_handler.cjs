@@ -78,7 +78,7 @@ async function handleSetResponseboxSize(
     getActiveDisplayAffinity = () => null,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
-    showResponseWindowWhenChatVisible,
+    showResponseWindowForLiveTurnIntent = () => {},
     getResponseOverlayVisible = () => false,
     getResponseOverlayPhase = () => null,
     getActiveResponseOverlayGuardRef = () => null,
@@ -168,7 +168,7 @@ async function handleSetResponseboxSize(
         setActiveResponseOverlayGuardRef(normalizedStaleGuardRef);
       }
       setResponseOverlayVisibilityState(true);
-      showResponseWindowWhenChatVisible();
+      showResponseWindowForLiveTurnIntent();
       console.log('[ResponseOverlayWindow][main]', {
         action: 'show-fullscreen-from-size',
         phase: getResponseOverlayPhase(),
@@ -212,7 +212,7 @@ async function handleSetResponseboxSize(
       setActiveResponseOverlayGuardRef(normalizedStaleGuardRef);
     }
     setResponseOverlayVisibilityState(true);
-    showResponseWindowWhenChatVisible();
+    showResponseWindowForLiveTurnIntent();
     console.log('[ResponseOverlayWindow][main]', {
       action: 'show-or-resize-from-size',
       phase: getResponseOverlayPhase(),

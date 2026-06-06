@@ -52,6 +52,11 @@ visibility/content after SDK `turn_started`.
 - Responsebox native hide currently ignores stale hides only when both incoming
   and active guards exist, so an unguarded hide can still hide an active guarded
   response.
+- Follow-up inspection after live dashboard testing found one remaining old
+  native show gate: SDK-backed responsebox show/resize requests still called
+  `showResponseWindowWhenChatVisible()`, so the native response window could
+  stay hidden while the dashboard was visible and the minimal chat pill window
+  was hidden.
 - `useConversationRuntimeProjectionStream` can store SDK current-turn
   projections before stale-turn side-effect guards without changing dashboard
   transcript row ownership.
@@ -72,6 +77,9 @@ visibility/content after SDK `turn_started`.
 - Treat an active responsebox guard as proof of SDK-backed live overlay
   ownership for native hide protection. Unguarded hides and phase-idle hides are
   ignored while that guard is active.
+- SDK-backed responsebox show/resize uses the live-turn response-window intent
+  directly via `showResponseWindowInactive`; the old chat-visible gate remains
+  only in phase/preflight or chat-window restore paths.
 
 ## Validation Log
 
@@ -81,6 +89,8 @@ visibility/content after SDK `turn_started`.
 - `bin/windie docs list` - passed.
 - `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/WindieSdkConversationRuntime.test.ts ../tests/frontend/ChatSurfaceController.test.jsx ../tests/frontend/ChatSelectors.test.js ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatBoxResponse.state.test.jsx ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs --runInBand` - passed, 7 suites / 210 tests.
 - `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
+- `node -c frontend/src/main/overlay_responsebox_handler.cjs && node -c frontend/src/main/overlay_phase_ipc_runtime.cjs && node -c frontend/src/main/index.cjs` - passed after removing the chat-visible gate from SDK-backed responsebox show.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/OverlayPhaseIpcRuntime.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs --runInBand` - passed, 3 suites / 39 tests.
 
 ## Commits
 
@@ -105,6 +115,10 @@ visibility/content after SDK `turn_started`.
 - Implementation inspection confirmed phase idle hide is ignored while a
   guarded SDK overlay is active; phase active-loop show remains only as
   renderer-send-preflight fallback before SDK intent arrives.
+- Follow-up inspection confirmed `handleSetResponseboxSize` no longer accepts
+  or calls `showResponseWindowWhenChatVisible`; `overlay_phase_ipc_runtime`
+  wires SDK-backed responsebox show/resize to `showResponseWindowInactive`
+  instead.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,

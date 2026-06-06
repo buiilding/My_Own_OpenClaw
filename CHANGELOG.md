@@ -10,7 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   latest SDK current-turn presentation instead of active dashboard workspace
   state, store SDK projections before renderer stale side-effect guards, remove
   SDK-backed local send-latch/synthetic-message overlay fallbacks, and ignore
-  unguarded or phase-idle hides while a guarded SDK response overlay is active.
+  unguarded or phase-idle hides while a guarded SDK response overlay is active;
+  SDK-backed responsebox show/resize now uses the live-turn response window
+  intent directly instead of requiring the minimal chat pill window to be
+  visible.
 - sdk/frontend/main: add SDK turn input resources and host resolvers so
   `conversation.send()` emits the base user row before file, clipboard-image,
   workspace, or query-screenshot resolution, while renderer send preparation now

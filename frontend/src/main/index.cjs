@@ -171,7 +171,6 @@ const {
   positionContextLabelWindow,
   positionResponseWindow,
   setManualChatWindowPosition,
-  showResponseWindowWhenChatVisible,
   syncContextLabelWindowVisibility,
 } = surfaceRuntime.overlayHelpers;
 
@@ -325,7 +324,6 @@ function initializeMainProcessIpc() {
       broadcastResponseOverlayVisibility: surfaceRuntime.broadcastResponseOverlayVisibility,
       syncChatboxHitTestState: surfaceRuntime.syncChatboxHitTestState,
       ensureResponseOverlayFallbackBounds: surfaceRuntime.overlayHelpers.ensureResponseOverlayFallbackBounds,
-      showResponseWindowWhenChatVisible,
       showResponseWindowInactive: surfaceRuntime.overlayHelpers.showResponseWindowInactive,
       setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
       showMainWindow: surfaceRuntime.showMainWindow,

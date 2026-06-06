@@ -34,6 +34,7 @@ describe('overlay_phase_ipc_runtime', () => {
       getResponseWindowBounds: jest.fn(),
       setResponseOverlayVisibilityState: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
+      showResponseWindowInactive: jest.fn(),
       setChatboxHitTestActive: jest.fn(() => false),
       showChatWindow: jest.fn(),
       showMainWindow: jest.fn(),
@@ -71,6 +72,42 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(typeof eventHandlers['move-chatbox-to']).toBe('function');
     expect(invokeHandlers['show-main-window']).toBeUndefined();
     expect(invokeHandlers['list-permissions']).toBeUndefined();
+  });
+
+  test('set-responsebox-size shows SDK live-turn response through inactive response helper', async () => {
+    const responseWindow = {
+      isDestroyed: jest.fn().mockReturnValue(false),
+      isVisible: jest.fn().mockReturnValue(false),
+      setBounds: jest.fn(),
+    };
+    const showResponseWindowWhenChatVisible = jest.fn();
+    const showResponseWindowInactive = jest.fn();
+    const { invokeHandlers } = createRuntime({
+      getWindows: () => ({
+        responseWindow,
+        chatWindow: {
+          isDestroyed: jest.fn().mockReturnValue(false),
+          isVisible: jest.fn().mockReturnValue(false),
+        },
+        mainWindow: null,
+      }),
+      getResponseWindowBounds: jest.fn((width, height) => ({ x: 1, y: 2, width, height })),
+      setResponseOverlayVisibilityState: jest.fn(),
+      showResponseWindowWhenChatVisible,
+      showResponseWindowInactive,
+    });
+
+    const result = await invokeHandlers['set-responsebox-size']({}, {
+      visible: true,
+      width: 320,
+      height: 180,
+      turn_ref: 'turn-live',
+      stale_guard_ref: 'turn-live',
+    });
+
+    expect(result).toEqual({ success: true, visible: true, width: 320, height: 180 });
+    expect(showResponseWindowInactive).toHaveBeenCalledTimes(1);
+    expect(showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
   });
 
   test('handoff-surface-for-computer-use routes to chatbox restore contract', async () => {
