@@ -660,6 +660,8 @@ function createDirectWakeUpAgentAdapter({
     appendConversationEvent: options => agent.appendConversationEvent(options),
     rewriteConversation: options => agent.rewriteConversation(options),
     replaceCompactedReplay: options => agent.replaceCompactedReplay(options),
+    prepareEditAndResend: options => agent.prepareEditAndResend(options),
+    prepareRetryTurn: options => agent.prepareRetryTurn(options),
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),
     isConnected: () => agent.isConnected(),

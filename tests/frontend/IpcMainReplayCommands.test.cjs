@@ -1,0 +1,212 @@
+/** @jest-environment node */
+
+const {
+  initIpc,
+  registerBridgeSuiteLifecycleHooks,
+} = require('./__mocks__/ipcMainBridgeHarness.cjs');
+
+describe('ipc.cjs replay command handling', () => {
+  registerBridgeSuiteLifecycleHooks();
+
+  function installMockWindieClient() {
+    const runtime = {
+      subscribeEvents: jest.fn(() => jest.fn()),
+      close: jest.fn(),
+    };
+    const agent = {
+      id: 'agent-replay',
+      conversation: jest.fn(() => runtime),
+      subscribeRawBackendEvents: jest.fn(() => jest.fn()),
+      prepareEditAndResend: jest.fn(async input => ({
+        text: input.text,
+        turnRef: input.turnRef || null,
+        payload: {
+          prepared: true,
+          ...(input.payload || {}),
+        },
+      })),
+      prepareRetryTurn: jest.fn(async input => ({
+        text: 'retry text',
+        turnRef: input.turnRef || null,
+        payload: {
+          retry: true,
+          ...(input.payload || {}),
+        },
+      })),
+      ensureConnected: jest.fn(async () => undefined),
+      isConnected: jest.fn(() => true),
+      noteBackendTraffic: jest.fn(),
+      syncBackendIdleTimer: jest.fn(),
+      status: jest.fn(() => ({ phase: 'ready' })),
+      sleep: jest.fn(),
+    };
+    const wakeUp = jest.fn(async () => agent);
+    const WindieClient = jest.fn().mockImplementation(() => ({ wakeUp }));
+
+    jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
+      WindieClient,
+    }));
+
+    return {
+      agent,
+      runtime,
+      wakeUp,
+      WindieClient,
+    };
+  }
+
+  function invokeWindieCommand(handlers, command, payload = {}) {
+    return handlers['windie:invoke']({ sender: null }, {
+      command,
+      payload,
+    });
+  }
+
+  afterEach(() => {
+    jest.dontMock('../../packages/windie-sdk-js/cjs/index.js');
+  });
+
+  test('routes edit/resend preparation through the real windie:invoke command bridge', async () => {
+    const sdk = installMockWindieClient();
+    const bridge = initIpc();
+
+    const response = await invokeWindieCommand(
+      bridge.handlers,
+      'conversation.prepareEditAndResend',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-replay',
+        workspace_path: '/tmp/windie-workspace',
+        messageId: 'renderer-user-2',
+        userMessageOrdinal: 1,
+        text: 'edited second question',
+        turnRef: 'turn-edited',
+        payload: {
+          screenshot_ref: 'artifact-old',
+        },
+        model: {
+          provider: 'anthropic',
+          id: 'claude-sonnet-4-5',
+        },
+      },
+    );
+
+    expect(response).toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        conversationRef: 'conv-ipc-replay',
+        workspacePath: '/tmp/windie-workspace',
+        text: 'edited second question',
+        turnRef: 'turn-edited',
+        payload: expect.objectContaining({
+          prepared: true,
+          screenshot_ref: 'artifact-old',
+        }),
+      }),
+    });
+    expect(sdk.WindieClient).toHaveBeenCalledWith(expect.objectContaining({
+      autoStartLocalRuntime: false,
+    }));
+    expect(sdk.wakeUp).toHaveBeenCalledWith(expect.objectContaining({
+      builtins: [],
+      memory: false,
+      persistence: false,
+      workspacePath: '/tmp/windie-workspace',
+    }));
+    expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-agent-replay',
+    }));
+    expect(sdk.agent.prepareEditAndResend).toHaveBeenCalledWith({
+      conversationRef: 'conv-ipc-replay',
+      messageId: 'renderer-user-2',
+      userMessageOrdinal: 1,
+      text: 'edited second question',
+      turnRef: 'turn-edited',
+      payload: {
+        screenshot_ref: 'artifact-old',
+      },
+      model: {
+        provider: 'anthropic',
+        id: 'claude-sonnet-4-5',
+      },
+    });
+  });
+
+  test('rejects stale transcript-session users before preparing edit/resend replay', async () => {
+    const sdk = installMockWindieClient();
+    const bridge = initIpc();
+
+    await expect(invokeWindieCommand(
+      bridge.handlers,
+      'conversation.prepareEditAndResend',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-replay',
+        messageId: 'renderer-user-1',
+        text: 'edited first question',
+      },
+    )).resolves.toEqual(expect.objectContaining({ ok: true }));
+
+    const staleResponse = await invokeWindieCommand(
+      bridge.handlers,
+      'conversation.prepareEditAndResend',
+      {
+        userId: 'user-stale',
+        conversationRef: 'conv-ipc-replay',
+        messageId: 'renderer-user-2',
+        text: 'edited stale question',
+      },
+    );
+
+    expect(staleResponse).toEqual({
+      ok: false,
+      error: 'Windie SDK command user id does not match the active user.',
+    });
+    expect(sdk.agent.prepareEditAndResend).toHaveBeenCalledTimes(1);
+  });
+
+  test('routes retry preparation through the same SDK agent adapter', async () => {
+    const sdk = installMockWindieClient();
+    const bridge = initIpc();
+
+    const response = await invokeWindieCommand(
+      bridge.handlers,
+      'conversation.prepareRetryTurn',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-retry',
+        workspacePath: '/tmp/windie-retry-workspace',
+        messageId: 'assistant-retry',
+        user_message_ordinal: 0,
+        turn_ref: 'turn-retry',
+        payload: {
+          retry_reason: 'user-requested',
+        },
+      },
+    );
+
+    expect(response).toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        conversationRef: 'conv-ipc-retry',
+        workspacePath: '/tmp/windie-retry-workspace',
+        text: 'retry text',
+        turnRef: 'turn-retry',
+        payload: expect.objectContaining({
+          retry: true,
+          retry_reason: 'user-requested',
+        }),
+      }),
+    });
+    expect(sdk.agent.prepareRetryTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-ipc-retry',
+      messageId: 'assistant-retry',
+      userMessageOrdinal: 0,
+      turnRef: 'turn-retry',
+      payload: {
+        retry_reason: 'user-requested',
+      },
+      model: undefined,
+    });
+  });
+});
