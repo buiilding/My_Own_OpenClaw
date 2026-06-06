@@ -44,7 +44,6 @@ import AttachmentPreviewRow from './AttachmentPreviewRow';
 import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
 
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
-const CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON = 1;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 
 function MinimalChatPill() {
@@ -64,7 +63,6 @@ function MinimalChatPill() {
   });
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [reservedChatboxFrameHeight, setReservedChatboxFrameHeight] = useState(null);
-  const [collapseFreezeSnapshot, setCollapseFreezeSnapshot] = useState(null);
   const inputRef = useRef(null);
   const pillRef = useRef(null);
   const shellRef = useRef(null);
@@ -73,7 +71,6 @@ function MinimalChatPill() {
   const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
   const composerResizeSequenceRef = useRef(0);
   const reservedChatboxFrameHeightRef = useRef(null);
-  const collapseFreezeSnapshotRef = useRef(null);
   const nativeFrameCollapseTimeoutRef = useRef(null);
   const lastLoggedPillStateRef = useRef('');
   const lifecycleTraceSnapshotRef = useRef({
@@ -143,10 +140,6 @@ function MinimalChatPill() {
     reservedChatboxFrameHeightRef.current = reservedChatboxFrameHeight;
   }, [reservedChatboxFrameHeight]);
 
-  useEffect(() => {
-    collapseFreezeSnapshotRef.current = collapseFreezeSnapshot;
-  }, [collapseFreezeSnapshot]);
-
   const clearNativeFrameCollapse = useCallback(() => {
     if (nativeFrameCollapseTimeoutRef.current === null) {
       return;
@@ -170,45 +163,6 @@ function MinimalChatPill() {
     }
     reservedChatboxFrameHeightRef.current = normalizedFrameHeight;
     setReservedChatboxFrameHeight(normalizedFrameHeight);
-  }, []);
-
-  const createCollapseFreezeSnapshot = useCallback(() => {
-    const shellHeight = Math.max(
-      1,
-      Math.round(shellRef.current?.offsetHeight || 0),
-    );
-    const pillHeight = Math.max(
-      1,
-      Math.round(pillRef.current?.offsetHeight || shellHeight),
-    );
-    const anchorHeight = resolveChatboxVisualAnchorHeight({
-      hasImagePreview: hasAttachmentPreview,
-      shellHeight,
-    });
-    const frameHeight = Math.max(
-      resolveNativeFrameHeightForShellHeight(shellHeight),
-      reservedChatboxFrameHeightRef.current || 0,
-    );
-    return {
-      anchorHeight,
-      frameHeight,
-      pillHeight,
-      shellHeight,
-    };
-  }, [hasAttachmentPreview, resolveNativeFrameHeightForShellHeight]);
-
-  const startCollapseFreeze = useCallback((snapshot) => {
-    collapseFreezeSnapshotRef.current = snapshot;
-    setCollapseFreezeSnapshot(snapshot);
-    setReservedNativeFrameHeight(snapshot.frameHeight);
-  }, [setReservedNativeFrameHeight]);
-
-  const releaseCollapseFreeze = useCallback(() => {
-    if (collapseFreezeSnapshotRef.current === null) {
-      return;
-    }
-    collapseFreezeSnapshotRef.current = null;
-    setCollapseFreezeSnapshot(null);
   }, []);
 
   const scheduleNativeFrameCollapse = useCallback(() => {
@@ -323,29 +277,6 @@ function MinimalChatPill() {
     inputRef.current.style.height = `${height}px`;
   }, []);
 
-  const scheduleComposerHeightAfterPaint = useCallback(({
-    height,
-    sequence,
-    onApplied,
-  }) => {
-    const applyIfCurrent = () => {
-      if (composerResizeSequenceRef.current !== sequence) {
-        return;
-      }
-      applyComposerHeight(height);
-      onApplied?.();
-    };
-
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      applyIfCurrent();
-      return;
-    }
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(applyIfCurrent);
-    });
-  }, [applyComposerHeight]);
-
   const resizeComposer = useCallback(() => {
     const inputElement = inputRef.current;
     if (!inputElement) {
@@ -368,38 +299,14 @@ function MinimalChatPill() {
     composerResizeSequenceRef.current = sequence;
 
     if (nextHeight <= currentHeight) {
-      const isEmptyComposer = !inputValue.trim() && !hasAttachmentPreview;
-      const isCollapsingFromClampedHeight = (
-        isEmptyComposer
-        && currentHeight >= CHATBOX_COMPOSER_MAX_HEIGHT - CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON
-        && nextHeight < currentHeight
-      );
-      if (isCollapsingFromClampedHeight) {
-        clearNativeFrameCollapse();
-        const freezeSnapshot = createCollapseFreezeSnapshot();
-        startCollapseFreeze(freezeSnapshot);
-        applyComposerHeight(CHATBOX_COMPOSER_MAX_HEIGHT);
-        scheduleComposerHeightAfterPaint({
-          height: nextHeight,
-          sequence,
-          onApplied: () => {
-            releaseCollapseFreeze();
-            scheduleNativeFrameCollapse();
-          },
-        });
-        return;
-      }
-
-      releaseCollapseFreeze();
       applyComposerHeight(nextHeight);
-      if (isEmptyComposer) {
+      if (!inputValue.trim() && !hasAttachmentPreview) {
         scheduleNativeFrameCollapse();
       }
       return;
     }
 
     clearNativeFrameCollapse();
-    releaseCollapseFreeze();
     const shellElement = shellRef.current;
     const currentShellHeight = Math.max(
       1,
@@ -447,14 +354,10 @@ function MinimalChatPill() {
   }, [
     applyComposerHeight,
     clearNativeFrameCollapse,
-    createCollapseFreezeSnapshot,
     hasAttachmentPreview,
     inputValue,
-    releaseCollapseFreeze,
     resolveNativeFrameHeightForShellHeight,
-    scheduleComposerHeightAfterPaint,
     scheduleNativeFrameCollapse,
-    startCollapseFreeze,
     setReservedNativeFrameHeight,
   ]);
 
@@ -672,21 +575,12 @@ function MinimalChatPill() {
     shellRef,
     hasImagePreview: hasAttachmentPreview,
     frameHeight: reservedChatboxFrameHeight,
-    anchorHeightOverride: collapseFreezeSnapshot?.anchorHeight || null,
   });
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}${collapseFreezeSnapshot ? ' collapse-freeze' : ''}`}
-      style={{
-        '--chatbox-bump-height': `${closeBumpHeight}px`,
-        '--chatbox-collapse-freeze-pill-height': collapseFreezeSnapshot
-          ? `${collapseFreezeSnapshot.pillHeight}px`
-          : undefined,
-        '--chatbox-collapse-freeze-shell-height': collapseFreezeSnapshot
-          ? `${collapseFreezeSnapshot.shellHeight}px`
-          : undefined,
-      }}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
+      style={{ '--chatbox-bump-height': `${closeBumpHeight}px` }}
     >
       <div className="chatbox-shell" ref={shellRef}>
         <form
