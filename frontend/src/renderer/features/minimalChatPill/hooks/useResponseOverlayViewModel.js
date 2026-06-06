@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCurrentTurnPresentationState } from '../../chat/hooks/useCurrentTurnPresentationState';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
@@ -17,6 +17,7 @@ import {
   shouldRenderResponseMarkdown,
 } from '../../chat/utils/state/chatBoxResponseState';
 import { resolveChatPillViewIntent } from '../../chat/utils/chatPill/chatPillSessionFlow';
+import { logRendererLiveSurfaceTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 
 function hasSdkLiveTurnPresentation(currentTurnProjection) {
   const presentation = currentTurnProjection?.presentation;
@@ -197,6 +198,9 @@ export function useResponseOverlayViewModel({
   currentTurnProjection = null,
 }) {
   const [closedResponseId, setClosedResponseId] = useState(null);
+  const lastResolvedTraceSignatureRef = useRef(null);
+  const lastTypingVisibleRef = useRef(null);
+  const lastResponseVisibleRef = useRef(null);
   const useSdkLiveTurnPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
 
   const projectedPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
@@ -359,6 +363,74 @@ export function useResponseOverlayViewModel({
       setClosedResponseId(null);
     }
   }, [currentTurnPhase, currentTurnProjection?.turnRef]);
+
+  useEffect(() => {
+    const overlayIntent = resolvedCurrentTurnPresentationState.overlayIntent ?? null;
+    const awaitingVisible = viewIntent.showAwaitingReply === true;
+    const responseVisible = viewIntent.showResponse === true;
+    const tracePayload = {
+      source: 'renderer-overlay-view-model',
+      turnRef: currentTurnProjection?.turnRef || null,
+      conversationRef: currentTurnProjection?.conversationRef || overlayIntent?.conversationRef || null,
+      phase: currentTurnProjection?.phase || currentTurnPhase,
+      overlayMode: overlayIntent?.mode || null,
+      guardRef: overlayIntent?.staleGuardRef || overlayIntent?.turnRef || currentTurnProjection?.turnRef || null,
+      awaitingVisible,
+      responseVisible,
+      showAwaitingDot: resolvedCurrentTurnPresentationState.showAssistantAwaitingDot === true,
+      hasVisibleReply: resolvedCurrentTurnPresentationState.hasVisibleReply === true,
+      isBusy: resolvedCurrentTurnPresentationState.isBusy === true,
+      overlayTurnLifecycle: resolvedCurrentTurnPresentationState.overlayTurnLifecycle || null,
+      entryCount: responseOverlayEntries.length,
+      visibleResponseId: viewIntent.visibleResponse?.id || null,
+      latestEntryId: viewIntent.latestResponseOverlayEntryId || null,
+      useSdkLiveTurnPresentation,
+      useLocalSendLatch,
+    };
+    const signature = JSON.stringify(tracePayload);
+    if (lastResolvedTraceSignatureRef.current !== signature) {
+      lastResolvedTraceSignatureRef.current = signature;
+      logRendererLiveSurfaceTrace(
+        'renderer.overlay_view_model.resolved',
+        tracePayload,
+        tracePayload.conversationRef,
+      );
+    }
+    if (lastTypingVisibleRef.current !== awaitingVisible) {
+      lastTypingVisibleRef.current = awaitingVisible;
+      logRendererLiveSurfaceTrace(
+        awaitingVisible ? 'typing.show' : 'typing.hide',
+        {
+          ...tracePayload,
+          reason: awaitingVisible
+            ? (useSdkLiveTurnPresentation ? 'sdk-awaiting' : 'preflight-awaiting')
+            : (responseVisible ? 'response-visible' : 'not-awaiting'),
+        },
+        tracePayload.conversationRef,
+      );
+    }
+    if (lastResponseVisibleRef.current !== responseVisible) {
+      lastResponseVisibleRef.current = responseVisible;
+      logRendererLiveSurfaceTrace(
+        responseVisible ? 'response_overlay.intent.show_response' : 'response_overlay.intent.hide',
+        {
+          ...tracePayload,
+          reason: responseVisible ? 'renderer-view-model-response' : 'renderer-view-model-hidden',
+        },
+        tracePayload.conversationRef,
+      );
+    }
+  }, [
+    currentTurnPhase,
+    currentTurnProjection?.conversationRef,
+    currentTurnProjection?.phase,
+    currentTurnProjection?.turnRef,
+    responseOverlayEntries.length,
+    resolvedCurrentTurnPresentationState,
+    useLocalSendLatch,
+    useSdkLiveTurnPresentation,
+    viewIntent,
+  ]);
 
   const handleCloseResponse = useCallback(() => {
     if (!viewIntent.latestResponseOverlayEntryId || !responseIsCloseable) {

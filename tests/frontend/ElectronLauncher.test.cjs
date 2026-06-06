@@ -2,6 +2,7 @@ const path = require('path');
 
 const {
   buildLaunchCommand,
+  buildLaunchEnv,
   parseOptions,
   pipeForwardedStdout,
   pipeFilteredStderr,
@@ -22,6 +23,18 @@ describe('electron-launcher', () => {
       noSummarizer: true,
       debugGhostOverlay: true,
     });
+  });
+
+  test('buildLaunchEnv enables live surface trace in developer mode', () => {
+    const env = buildLaunchEnv({
+      dev: true,
+      noSummarizer: false,
+      debugGhostOverlay: false,
+    }, {});
+
+    expect(env.WINDIE_DEV_UI).toBe('1');
+    expect(env.WINDIE_DEBUG_LIVE_SURFACE).toBe('1');
+    expect(env.ELECTRON_DISABLE_SANDBOX).toBe('1');
   });
 
   test('resolveCondaPythonPath returns null when WINDIE_PYTHON_PATH already set', () => {

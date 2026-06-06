@@ -16,6 +16,11 @@ All notable changes to WindieOS will be documented in this file.
   macOS overlay windows now use the capturable floating level instead of the
   screen-saver level, and creation-time overlay content protection is removed
   so screenshot exclusion belongs only to the SDK screenshot lease.
+- frontend/main/renderer: add dev-mode `[LiveSurfaceTrace]` logging for SDK
+  current-turn ingress, renderer current-turn application, typing/response
+  visibility, response overlay size IPC, phase resolution, chat-pill
+  show/hide, pointer/screenshot leases, content protection, and topmost window
+  policy; `npm run electron:dev` enables the trace automatically.
 - frontend/main: make minimal pill and response overlay live state read the
   latest SDK current-turn presentation instead of active dashboard workspace
   state, store SDK projections before renderer stale side-effect guards, remove

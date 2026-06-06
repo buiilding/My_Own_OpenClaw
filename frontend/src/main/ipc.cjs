@@ -129,6 +129,10 @@ const {
   buildConversationEventFromBackendEvent,
 } = require('./ipc_conversation_event_broadcast.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
+const {
+  logLiveSurfaceTrace,
+  summarizeCurrentTurn,
+} = require('./live_surface_trace_runtime.cjs');
 
 const backendEndpointState = createBackendEndpointState({
   resolveBackendEndpointCandidates,
@@ -571,6 +575,11 @@ function createDirectWakeUpAgentAdapter({
       }
       broadcastToRenderers('windie:rows', snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
+      logLiveSurfaceTrace('sdk.current_turn.received', {
+        ...summarizeCurrentTurn(snapshot.currentTurn),
+        source: 'conversation-runtime',
+        displayRowCount: Array.isArray(snapshot.displayRows) ? snapshot.displayRows.length : 0,
+      });
       currentTurnTraceLogger.trace(snapshot.currentTurn);
       if (syncSdkLiveTurnSurfaceIntent) {
         try {

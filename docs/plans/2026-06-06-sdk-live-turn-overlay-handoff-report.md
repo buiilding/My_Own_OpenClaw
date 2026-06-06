@@ -36,6 +36,9 @@ visibility/content after SDK `turn_started`.
   awaiting-to-response transitions.
 - [x] Keep normal macOS overlay windows capturable by using the floating
   topmost level and deleting creation-time overlay content protection.
+- [x] Add dev-mode live-surface trace logs for SDK/current-turn ingress,
+  renderer projection application, typing/response visibility, window policy,
+  tool leases, and screenshot protection.
 - [x] Add/update focused tests.
 - [x] Run focused validation.
 - [x] Perform final design inspection and classify any remaining paths.
@@ -90,6 +93,11 @@ visibility/content after SDK `turn_started`.
   compositor-visible but system-screenshot-invisible. Creation-time overlay
   content-protection parameters also kept the old protection path available,
   even though bootstrap passed `false`.
+- Follow-up debugging needs one grep-friendly event stream because the relevant
+  state crosses SDK current-turn projection, Electron main window policy,
+  renderer view-model state, responsebox size IPC, and SDK local-tool leases.
+  Existing logs were split across `[AssistantTrace]`, `[ResponseOverlayWindow]`,
+  `[ChatPillVisibility]`, and debug-stream renderer logs.
 - `useConversationRuntimeProjectionStream` can store SDK current-turn
   projections before stale-turn side-effect guards without changing dashboard
   transcript row ownership.
@@ -128,6 +136,10 @@ visibility/content after SDK `turn_started`.
 - Normal macOS chat/response overlays use the capturable `floating` topmost
   level. Screenshot invisibility is owned only by the SDK screenshot-capture
   lease; overlay creation no longer accepts or applies content protection.
+- `[LiveSurfaceTrace]` is dev-mode telemetry, enabled automatically by
+  `npm run electron:dev` and manually by `WINDIE_DEBUG_LIVE_SURFACE=1`. It logs
+  ids, lengths, booleans, modes, counts, and window policy state, not raw text,
+  file contents, screenshot pixels, or credentials.
 
 ## Validation Log
 
@@ -151,6 +163,13 @@ visibility/content after SDK `turn_started`.
 - `node -c frontend/src/main/overlay_topmost_runtime.cjs && node -c frontend/src/main/main_window_runtime.cjs && node -c frontend/src/main/main_process_bootstrap_runtime.cjs` - passed.
 - `cd frontend && npm run typecheck` - passed.
 - `bin/windie docs list` - passed.
+- `node -c frontend/src/main/live_surface_trace_runtime.cjs && node -c frontend/src/main/ipc.cjs && node -c frontend/src/main/sdk_live_turn_surface_controller.cjs && node -c frontend/src/main/overlay_responsebox_handler.cjs && node -c frontend/src/main/response_overlay_phase_handler.cjs && node -c frontend/src/main/surface_runtime.cjs && node -c frontend/src/main/window_platform_policy.cjs && node -c frontend/src/main/overlay_topmost_runtime.cjs && node -c frontend/scripts/electron-launcher.cjs` - passed.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/LiveSurfaceTraceRuntime.test.cjs ../tests/frontend/ElectronLauncher.test.cjs ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs ../tests/frontend/ChatBoxResponse.state.test.jsx ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx --runInBand` - passed, 8 suites / 143 tests.
+- `node -c frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js && node -c frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js && node -c frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx` - failed because Node cannot syntax-check `.jsx` files in this package's ESM setup (`ERR_UNKNOWN_FILE_EXTENSION`); renderer coverage comes from Jest and TypeScript checks.
+- `cd frontend && npm run lint` - failed on pre-existing unrelated unused-variable errors: `frontend/src/main/ipc.cjs:1401`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:5`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:6`, `frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js:132`, and `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts:338`. Hook warnings introduced during trace wiring were fixed before final validation.
+- `cd frontend && npm run typecheck` - passed after hook dependency cleanup.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/LiveSurfaceTraceRuntime.test.cjs ../tests/frontend/ElectronLauncher.test.cjs ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs ../tests/frontend/ChatBoxResponse.state.test.jsx ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx --runInBand` - passed, 8 suites / 143 tests after hook dependency cleanup.
+- `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
 
 ## Commits
 
@@ -197,6 +216,11 @@ visibility/content after SDK `turn_started`.
 - Follow-up inspection confirmed normal macOS overlay promotion uses the
   capturable `floating` level; `screen-saver` remains only in non-mac fallback
   tests and policy.
+- Follow-up inspection confirmed `[LiveSurfaceTrace]` is emitted from SDK
+  current-turn ingress, SDK overlay-intent handling, responsebox size IPC,
+  phase resolution, renderer projection application, renderer view-model
+  resolution, chat-pill mount/hit-test/send reset, pointer leases, screenshot
+  leases, content protection, and topmost policy.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,

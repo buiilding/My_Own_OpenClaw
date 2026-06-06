@@ -6,7 +6,10 @@ import {
   RESPONSE_OVERLAY_LAYOUT_MODE,
 } from '../../chat/utils/overlay/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
-import { logRendererResponseSurfaceTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
+import {
+  logRendererLiveSurfaceTrace,
+  logRendererResponseSurfaceTrace,
+} from '../../chat/utils/chatStream/chatStreamDebugTrace';
 
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
 
@@ -35,18 +38,20 @@ export function useResponseOverlayWindowSync({
     turnRef: null,
     staleGuardRef: null,
   });
+  const overlayConversationRefRef = useRef(null);
   const reportOverlaySizeRef = useRef(null);
 
   useEffect(() => {
     const turnRef = overlayIntent?.turnRef ?? null;
     const staleGuardRef = overlayIntent?.staleGuardRef ?? turnRef;
+    overlayConversationRefRef.current = overlayIntent?.conversationRef || null;
     if (turnRef || staleGuardRef) {
       lastOverlayGuardRef.current = {
         turnRef,
         staleGuardRef,
       };
     }
-  }, [overlayIntent?.staleGuardRef, overlayIntent?.turnRef]);
+  }, [overlayIntent?.conversationRef, overlayIntent?.staleGuardRef, overlayIntent?.turnRef]);
 
   const reportOverlaySize = useCallback(async ({
     visible,
@@ -74,6 +79,16 @@ export function useResponseOverlayWindowSync({
           width: 0,
           height: 0,
         });
+        logRendererLiveSurfaceTrace('response_overlay.renderer.size_report', {
+          source: 'renderer-response-window-sync',
+          reason: 'hide-requested',
+          visible: false,
+          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+          turnRef,
+          guardRef: staleGuardRef,
+          width: 0,
+          height: 0,
+        }, overlayIntent?.conversationRef || null);
         await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
           visible: false,
           width: 0,
@@ -133,6 +148,22 @@ export function useResponseOverlayWindowSync({
         width,
         height,
       });
+      logRendererLiveSurfaceTrace('response_overlay.renderer.size_report', {
+        source: 'renderer-response-window-sync',
+        reason: 'show-or-resize-requested',
+        visible: true,
+        layoutMode,
+        overlayMode: layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING
+          ? 'awaiting'
+          : 'response',
+        showResponse,
+        thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
+        compactHover: Boolean(compactHover),
+        turnRef,
+        guardRef: staleGuardRef,
+        width,
+        height,
+      }, overlayIntent?.conversationRef || null);
       await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
         visible: true,
         width,
@@ -144,7 +175,14 @@ export function useResponseOverlayWindowSync({
     } catch (error) {
       console.warn('[MinimalResponseOverlay] Failed to resize response overlay:', error);
     }
-  }, [overlayIntent?.staleGuardRef, overlayIntent?.turnRef, shellRef, showResponse, thinkingText]);
+  }, [
+    overlayIntent?.conversationRef,
+    overlayIntent?.staleGuardRef,
+    overlayIntent?.turnRef,
+    shellRef,
+    showResponse,
+    thinkingText,
+  ]);
 
   useEffect(() => {
     reportOverlaySizeRef.current = reportOverlaySize;
@@ -230,12 +268,23 @@ export function useResponseOverlayWindowSync({
     overlayLayoutMode,
     reportOverlaySize,
     responseEntrySignature,
+    shellRef,
     showResponse,
     thinkingText,
   ]);
 
   useEffect(() => {
+    logRendererLiveSurfaceTrace('renderer.response_overlay.mount', {
+      source: 'renderer-response-window-sync',
+      turnRef: lastOverlayGuardRef.current.turnRef,
+      guardRef: lastOverlayGuardRef.current.staleGuardRef,
+    }, overlayConversationRefRef.current);
     return () => {
+      logRendererLiveSurfaceTrace('renderer.response_overlay.unmount', {
+        source: 'renderer-response-window-sync',
+        turnRef: lastOverlayGuardRef.current.turnRef,
+        guardRef: lastOverlayGuardRef.current.staleGuardRef,
+      }, overlayConversationRefRef.current);
       const report = reportOverlaySizeRef.current;
       if (typeof report !== 'function') {
         return;

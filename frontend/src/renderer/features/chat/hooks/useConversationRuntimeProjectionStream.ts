@@ -15,6 +15,7 @@ import {
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
+import { logRendererLiveSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
 function isCurrentTurnProjection(value: unknown): value is SdkCurrentTurnProjection {
   if (!value || typeof value !== 'object') {
@@ -173,6 +174,31 @@ export function useConversationRuntimeProjectionStream(): void {
           getWorkspaceState: useChatStore.getState().getWorkspaceState,
         })
       );
+      logRendererLiveSurfaceTrace('renderer.current_turn.applied', {
+        source: 'windie:current-turn',
+        turnRef: currentTurn.turnRef ?? null,
+        conversationRef,
+        phase: currentTurn.phase,
+        overlayMode: currentTurn.presentation?.overlayIntent?.mode ?? null,
+        guardRef: currentTurn.presentation?.overlayIntent?.staleGuardRef
+          ?? currentTurn.presentation?.overlayIntent?.turnRef
+          ?? currentTurn.turnRef
+          ?? null,
+        typingVisible: currentTurn.presentation?.typingVisible === true,
+        overlayVisible: currentTurn.presentation?.overlayVisible === true,
+        hasVisibleContent: currentTurn.presentation?.hasVisibleContent === true,
+        entryCount: Array.isArray(currentTurn.presentation?.entries)
+          ? currentTurn.presentation.entries.length
+          : 0,
+        assistantLength: typeof currentTurn.assistantText === 'string'
+          ? currentTurn.assistantText.length
+          : 0,
+        reasoningLength: typeof currentTurn.reasoningText === 'string'
+          ? currentTurn.reasoningText.length
+          : 0,
+        toolEventCount: Array.isArray(currentTurn.toolEvents) ? currentTurn.toolEvents.length : 0,
+        staleSideEffectsSkipped: shouldSkipDerivedSideEffects,
+      }, conversationRef);
       if (shouldSkipDerivedSideEffects) {
         return;
       }

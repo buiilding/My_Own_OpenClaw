@@ -1,6 +1,7 @@
 const {
   createContentProtectionRuntime,
 } = require('./platform/content_protection/index.cjs');
+const { logLiveSurfaceTrace } = require('./live_surface_trace_runtime.cjs');
 const {
   setOverlayAlwaysOnTop,
   setOverlayVisibleOnAllWorkspaces,
@@ -47,6 +48,12 @@ function createWindowPlatformPolicy({
       windowLabel,
       enabled,
       warn,
+    });
+    logLiveSurfaceTrace('window.content_protection.set', {
+      source: 'window-platform-policy',
+      windowLabel,
+      enabled: enabled !== false,
+      platform,
     });
   }
 

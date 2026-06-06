@@ -12,6 +12,16 @@ export function isRendererStreamTraceEnabled(): boolean {
   return search.includes('debug_stream=1') || search.includes('debug_chat_pill=1');
 }
 
+export function isRendererLiveSurfaceTraceEnabled(): boolean {
+  const search = getRendererSearch();
+  return (
+    search.includes('debug_live_surface=1')
+    || search.includes('debug_stream=1')
+    || search.includes('debug_chat_pill=1')
+    || search.includes('dev_ui=1')
+  );
+}
+
 export function getRendererTraceView(): string {
   if (typeof window === 'undefined') {
     return 'unknown';
@@ -94,6 +104,25 @@ export function logRendererChatPillTrace(
     return;
   }
   console.log('[ChatPillTrace][renderer]', {
+    view: getRendererTraceView(),
+    platform: getRendererPlatform(),
+    ...summarizeWorkspaceForTrace(conversationRef),
+    ...data,
+  });
+}
+
+export function logRendererLiveSurfaceTrace(
+  event: string,
+  data: Record<string, unknown> = {},
+  conversationRef: string | null = null,
+): void {
+  if (!isRendererLiveSurfaceTraceEnabled()) {
+    return;
+  }
+  console.log('[LiveSurfaceTrace]', {
+    ts: new Date().toISOString(),
+    process: 'renderer',
+    event,
     view: getRendererTraceView(),
     platform: getRendererPlatform(),
     ...summarizeWorkspaceForTrace(conversationRef),

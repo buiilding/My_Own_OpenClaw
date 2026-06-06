@@ -24,6 +24,10 @@ const {
   normalizeMainWindowOpenTarget: normalizeMainWindowOpenTargetRuntime,
   prepareOverlayQueryCaptureFocus: prepareOverlayQueryCaptureFocusRuntime,
 } = require('./main_window_runtime.cjs');
+const {
+  logLiveSurfaceTrace,
+  summarizeWindow,
+} = require('./live_surface_trace_runtime.cjs');
 
 const CHAT_PILL_SHOW_REASON = Object.freeze({
   APP_ACTIVATE: 'app-activate',
@@ -233,6 +237,13 @@ function createSurfaceRuntime({
       } else {
         chatWindow.setIgnoreMouseEvents(false);
       }
+      logLiveSurfaceTrace('chat_pill.hit_test.set', {
+        source: 'surface-runtime',
+        reason: 'sync-chatbox-hit-test',
+        ignoreMouseEvents: shouldIgnoreMouse,
+        focusable: null,
+        chatWindow: summarizeWindow(chatWindow, 'chat box'),
+      });
       return true;
     } catch (error) {
       warn('[Main] Failed to sync chatbox hit-test state:', error?.message || error);
@@ -244,6 +255,9 @@ function createSurfaceRuntime({
     ignoreMouseEvents,
     focusable,
     forward = true,
+    windowLabel = 'window',
+    source = 'surface-runtime',
+    reason = 'tool-pointer-policy',
   } = {}) {
     if (!win || win.isDestroyed()) {
       return false;
@@ -257,6 +271,20 @@ function createSurfaceRuntime({
       if (typeof win.setFocusable === 'function' && typeof focusable === 'boolean') {
         win.setFocusable(focusable);
       }
+      logLiveSurfaceTrace(
+        windowLabel === 'chat box'
+          ? 'chat_pill.hit_test.set'
+          : 'response_overlay.hit_test.set',
+        {
+          source,
+          reason,
+          windowLabel,
+          ignoreMouseEvents: typeof ignoreMouseEvents === 'boolean' ? ignoreMouseEvents : null,
+          focusable: typeof focusable === 'boolean' ? focusable : null,
+          forward,
+          window: summarizeWindow(win, windowLabel),
+        },
+      );
       return true;
     } catch (error) {
       warn('[Main] Failed to apply tool surface pointer policy:', error?.message || error);
@@ -272,27 +300,51 @@ function createSurfaceRuntime({
     return new Promise(resolve => setTimeout(resolve, delayMs));
   }
 
-  async function beginPointerControlLease() {
+  async function beginPointerControlLease(call = {}) {
+    logLiveSurfaceTrace('tool_lease.pointer.begin', {
+      source: 'surface-runtime',
+      reason: 'local-tool-before-execute',
+      toolName: typeof call?.toolName === 'string' ? call.toolName : null,
+      chatWindow: summarizeWindow(state.chatWindow, 'chat box'),
+      responseWindow: summarizeWindow(state.responseWindow, 'response overlay'),
+    });
     showChatWindow({
       focus: false,
       restoreResponseOverlay: true,
       reason: 'tool-pointer-control',
     });
     overlayHelpers.ensureChatWindowOnTop();
-    for (const win of [state.chatWindow, state.responseWindow, state.contextLabelWindow]) {
+    for (const [win, windowLabel] of [
+      [state.chatWindow, 'chat box'],
+      [state.responseWindow, 'response overlay'],
+      [state.contextLabelWindow, 'context label'],
+    ]) {
       safeSetWindowPointerPolicy(win, {
         ignoreMouseEvents: true,
         focusable: false,
+        windowLabel,
+        reason: 'pointer-lease-begin',
       });
     }
     return async () => {
       syncChatboxHitTestState();
-      for (const win of [state.responseWindow, state.contextLabelWindow]) {
+      for (const [win, windowLabel] of [
+        [state.responseWindow, 'response overlay'],
+        [state.contextLabelWindow, 'context label'],
+      ]) {
         safeSetWindowPointerPolicy(win, {
           ignoreMouseEvents: true,
           focusable: false,
+          windowLabel,
+          reason: 'pointer-lease-release-restore-overlay-pass-through',
         });
       }
+      logLiveSurfaceTrace('tool_lease.pointer.release', {
+        source: 'surface-runtime',
+        reason: 'local-tool-finally',
+        chatWindow: summarizeWindow(state.chatWindow, 'chat box'),
+        responseWindow: summarizeWindow(state.responseWindow, 'response overlay'),
+      });
     };
   }
 
@@ -301,18 +353,38 @@ function createSurfaceRuntime({
       .filter(win => win && !win.isDestroyed() && win.isVisible());
   }
 
-  async function beginScreenshotCaptureLease() {
+  async function beginScreenshotCaptureLease(call = {}) {
     const captureWindows = visibleCaptureWindows();
+    logLiveSurfaceTrace('tool_lease.screenshot.begin', {
+      source: 'surface-runtime',
+      reason: 'local-tool-before-execute',
+      platform,
+      toolName: typeof call?.toolName === 'string' ? call.toolName : null,
+      captureWindowCount: captureWindows.length,
+      chatWindow: summarizeWindow(state.chatWindow, 'chat box'),
+      responseWindow: summarizeWindow(state.responseWindow, 'response overlay'),
+    });
     if (platform === 'linux') {
       for (const win of captureWindows) {
         try {
           win.hide();
+          logLiveSurfaceTrace('tool_lease.screenshot.hide', {
+            source: 'surface-runtime',
+            platform,
+            window: summarizeWindow(win, 'overlay'),
+          });
         } catch (error) {
           warn('[Main] Failed to hide overlay for screenshot:', error?.message || error);
         }
       }
       await delayToolSurfaceSettle();
       return async () => {
+        logLiveSurfaceTrace('tool_lease.screenshot.release', {
+          source: 'surface-runtime',
+          reason: 'local-tool-finally',
+          platform,
+          captureWindowCount: captureWindows.length,
+        });
         for (const win of captureWindows) {
           if (!win || win.isDestroyed()) {
             continue;
@@ -323,6 +395,11 @@ function createSurfaceRuntime({
             } else {
               win.show();
             }
+            logLiveSurfaceTrace('tool_lease.screenshot.restore', {
+              source: 'surface-runtime',
+              platform,
+              window: summarizeWindow(win, 'overlay'),
+            });
           } catch (error) {
             warn('[Main] Failed to restore overlay after screenshot:', error?.message || error);
           }
@@ -342,9 +419,21 @@ function createSurfaceRuntime({
         windowLabel,
         enabled: true,
       });
+      logLiveSurfaceTrace('tool_lease.screenshot.protect', {
+        source: 'surface-runtime',
+        platform,
+        windowLabel,
+        enabled: true,
+        window: summarizeWindow(targetWindow, windowLabel),
+      });
     }
     await delayToolSurfaceSettle();
     return async () => {
+      logLiveSurfaceTrace('tool_lease.screenshot.release', {
+        source: 'surface-runtime',
+        reason: 'local-tool-finally',
+        platform,
+      });
       for (const [targetWindow, windowLabel] of [
         [state.chatWindow, 'chat box'],
         [state.responseWindow, 'response overlay'],
@@ -356,6 +445,13 @@ function createSurfaceRuntime({
           targetWindow,
           windowLabel,
           enabled: false,
+        });
+        logLiveSurfaceTrace('tool_lease.screenshot.unprotect', {
+          source: 'surface-runtime',
+          platform,
+          windowLabel,
+          enabled: false,
+          window: summarizeWindow(targetWindow, windowLabel),
         });
       }
     };
@@ -707,6 +803,25 @@ function logChatPillVisibilityDecision(event = {}, deps = {}) {
       : null,
   };
   log('[ChatPillVisibility][main]', payload);
+  if (payload.action === 'show-applied') {
+    logLiveSurfaceTrace('chat_pill.window.show', {
+      source: 'surface-runtime',
+      reason: payload.reason,
+      focus: payload.focus,
+      restoreResponseOverlay: payload.restore_response_overlay,
+      chatWindowVisible: payload.chat_window_visible,
+      responseWindowVisible: payload.response_window_visible,
+      userHidden: payload.user_hidden,
+    });
+  } else if (payload.action === 'hide-applied') {
+    logLiveSurfaceTrace('chat_pill.window.hide', {
+      source: 'surface-runtime',
+      reason: payload.reason,
+      chatWindowVisible: payload.chat_window_visible,
+      responseWindowVisible: payload.response_window_visible,
+      userHidden: payload.user_hidden,
+    });
+  }
 }
 
 module.exports = {

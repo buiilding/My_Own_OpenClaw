@@ -62,12 +62,55 @@ Expected markers:
 - `[ChatPillVisibility][main]`
 - `[ChatPillTrace][main]`
 - `[ChatPillTrace][renderer]`
+- `[LiveSurfaceTrace]`
 
 `[ChatPillVisibility][main]` is always emitted for chat-pill show/hide
 decisions and includes the show/hide `reason`, whether persisted
 `user_hidden` intent was active, and whether a generic restore was suppressed.
 `[ChatPillTrace][main]` and `[ChatPillTrace][renderer]` require the debug flag
 above and include deeper phase/window snapshots.
+
+`npm run electron:dev` enables `[LiveSurfaceTrace]` automatically. In packaged
+or customer-mode launches, set `WINDIE_DEBUG_LIVE_SURFACE=1` to enable the same
+trace. The trace intentionally logs ids, lengths, booleans, modes, counts, and
+window policy state; it does not log full message text, file contents,
+screenshot pixels, or credentials.
+
+High-value `[LiveSurfaceTrace]` events:
+
+- `sdk.current_turn.received`
+- `renderer.current_turn.applied`
+- `typing.show` / `typing.hide`
+- `response_overlay.intent.show_awaiting`
+- `response_overlay.intent.show_response`
+- `response_overlay.intent.hide`
+- `response_overlay.intent.ignored`
+- `response_overlay.renderer.size_report`
+- `response_overlay.window.show`
+- `response_overlay.window.hide`
+- `response_overlay.window.resize`
+- `response_overlay.window.hide_ignored`
+- `phase.received`
+- `phase.window_mode.resolved`
+- `chat_pill.window.show`
+- `chat_pill.window.hide`
+- `chat_pill.hit_test.set`
+- `response_overlay.hit_test.set`
+- `tool_lease.pointer.begin`
+- `tool_lease.pointer.release`
+- `tool_lease.screenshot.begin`
+- `tool_lease.screenshot.protect`
+- `tool_lease.screenshot.hide`
+- `tool_lease.screenshot.release`
+- `tool_lease.screenshot.unprotect`
+- `tool_lease.screenshot.restore`
+- `window.content_protection.set`
+- `window.topmost.set`
+- `renderer.response_overlay.mount` / `renderer.response_overlay.unmount`
+- `renderer.chat_pill.mount` / `renderer.chat_pill.unmount`
+- `renderer.overlay_view_model.resolved`
+- `stale_guard.changed`
+- `turn_surface.reset`
 
 Phase invariants to check:
 

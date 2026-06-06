@@ -5,6 +5,10 @@ const {
   shouldRestoreTerminalResponseWindow,
 } = require('./response_overlay_visibility_policy.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
+const {
+  logLiveSurfaceTrace,
+  summarizeWindow,
+} = require('./live_surface_trace_runtime.cjs');
 
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
@@ -46,11 +50,26 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         responseWindow,
         activeGuardRef,
       }, deps);
+      logLiveSurfaceTrace('response_overlay.window.hide_ignored', {
+        source: 'phase-handler',
+        reason: 'guarded-sdk-overlay',
+        phase,
+        overlayMode: mode,
+        activeGuardRef,
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
       return;
     }
     setResponseOverlayVisibilityState(false);
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
       responseWindow.hide();
+      logLiveSurfaceTrace('response_overlay.window.hide', {
+        source: 'phase-handler',
+        reason: 'phase-hidden',
+        phase,
+        overlayMode: mode,
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
     }
     console.log('[ResponseOverlayWindow][main]', {
       action: 'hide-from-phase',
@@ -82,6 +101,13 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         phase,
         responseWindow,
       }, deps);
+      logLiveSurfaceTrace('phase.window_mode.resolved', {
+        source: 'phase-handler',
+        reason: 'defer-to-sdk-overlay-intent',
+        phase,
+        overlayMode: mode,
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
       return;
     }
     setResponseOverlayVisibilityState(true);
@@ -90,6 +116,13 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     }
     ensureResponseOverlayFallbackBounds();
     showResponseWindowWhenChatVisible();
+    logLiveSurfaceTrace('response_overlay.window.show', {
+      source: 'phase-handler',
+      reason: 'phase-fallback',
+      phase,
+      overlayMode: mode,
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+    });
     console.log('[ResponseOverlayWindow][main]', {
       action: 'show-from-phase',
       mode,
@@ -109,6 +142,13 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL) {
     if (shouldRestoreTerminalResponseWindow(deps)) {
       showResponseWindowInactive();
+      logLiveSurfaceTrace('response_overlay.window.show', {
+        source: 'phase-handler',
+        reason: 'terminal-restore',
+        phase,
+        overlayMode: mode,
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
       console.log('[ResponseOverlayWindow][main]', {
         action: 'restore-terminal-from-phase',
         mode,
@@ -183,6 +223,11 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
   if (!Object.values(RESPONSE_OVERLAY_PHASE).includes(nextPhase)) {
     return;
   }
+  logLiveSurfaceTrace('phase.received', {
+    source: event?.source || 'unknown',
+    phase: nextPhase,
+    correlationId: normalizeResponseOverlayCorrelationId(event?.correlation_id),
+  });
 
   const eventCorrelationId = normalizeResponseOverlayCorrelationId(event?.correlation_id);
   const activeCorrelationId = normalizeResponseOverlayCorrelationId(
@@ -203,6 +248,13 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     }, {
       ...deps,
       getResponseOverlayPhase,
+    });
+    logLiveSurfaceTrace('phase.window_mode.resolved', {
+      source: 'phase-handler',
+      reason: 'stale-phase-ignored',
+      phase: nextPhase,
+      correlationId: eventCorrelationId,
+      activeCorrelationId,
     });
     return;
   }
@@ -237,6 +289,14 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
   }, {
     ...deps,
     getResponseOverlayPhase,
+  });
+  logLiveSurfaceTrace('phase.window_mode.resolved', {
+    source: 'phase-handler',
+    phase: nextPhase,
+    correlationId: eventCorrelationId,
+    overlayMode: windowMode,
+    eventSource: event?.source || null,
+    visibilityFallback: usePhaseVisibilityFallback,
   });
   applyResponseOverlayWindowMode(windowMode, {
     getResponseOverlayVisible,

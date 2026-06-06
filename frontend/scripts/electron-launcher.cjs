@@ -85,6 +85,22 @@ function printModeBanner(options) {
   console.log('[WindieOS] Customer mode launch. Developers should run: npm run electron:dev');
 }
 
+function buildLaunchEnv(options, baseEnv = process.env) {
+  const env = { ...baseEnv };
+  env.ELECTRON_DISABLE_SANDBOX = '1';
+  if (options.dev) {
+    env.WINDIE_DEV_UI = '1';
+    env.WINDIE_DEBUG_LIVE_SURFACE = env.WINDIE_DEBUG_LIVE_SURFACE || '1';
+  }
+  if (options.noSummarizer) {
+    env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = '0';
+  }
+  if (options.debugGhostOverlay) {
+    env.WINDIE_DEBUG_GHOST_OVERLAY = '1';
+  }
+  return env;
+}
+
 function shouldForwardElectronStderrLine(line, platform = process.platform) {
   if (typeof line !== 'string' || !line.trim()) {
     return true;
@@ -151,17 +167,7 @@ function main() {
   const options = parseOptions(process.argv.slice(2));
   printModeBanner(options);
 
-  const env = { ...process.env };
-  env.ELECTRON_DISABLE_SANDBOX = '1';
-  if (options.dev) {
-    env.WINDIE_DEV_UI = '1';
-  }
-  if (options.noSummarizer) {
-    env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = '0';
-  }
-  if (options.debugGhostOverlay) {
-    env.WINDIE_DEBUG_GHOST_OVERLAY = '1';
-  }
+  const env = buildLaunchEnv(options, process.env);
 
   const condaPython = resolveCondaPythonPath(env, process.platform);
   if (condaPython) {
@@ -206,6 +212,7 @@ if (require.main === module) {
 
 module.exports = {
   buildLaunchCommand,
+  buildLaunchEnv,
   hasXvfbRun,
   parseOptions,
   pipeForwardedStdout,

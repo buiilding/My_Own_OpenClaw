@@ -14,7 +14,10 @@ import {
 import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
-import { logRendererChatPillTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
+import {
+  logRendererChatPillTrace,
+  logRendererLiveSurfaceTrace,
+} from '../../chat/utils/chatStream/chatStreamDebugTrace';
 import {
   createChatboxDragState,
   getChatboxCloseBumpHeight,
@@ -59,6 +62,11 @@ function MinimalChatPill() {
   const closeButtonAnchorFrameRef = useRef(null);
   const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
   const lastLoggedPillStateRef = useRef('');
+  const lifecycleTraceSnapshotRef = useRef({
+    conversationRef: null,
+    turnRef: null,
+    phase: null,
+  });
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
   const chatSurface = useChatSurfaceController({
@@ -79,6 +87,11 @@ function MinimalChatPill() {
     wakewordSttEnabled,
   } = chatSurface;
   const devUiEnabled = isDevUiEnabled();
+  lifecycleTraceSnapshotRef.current = {
+    conversationRef: sessionInfo?.conversationRef || null,
+    turnRef: currentTurnProjection?.turnRef || null,
+    phase: currentTurnProjection?.phase || null,
+  };
   const {
     attachmentInputRef,
     clipboardImages,
@@ -98,6 +111,15 @@ function MinimalChatPill() {
     isSubmitBlocked: loopInteractionLocked,
     onSendMessage: sendMessage,
     onBeforeSend: () => {
+      logRendererLiveSurfaceTrace('turn_surface.reset', {
+        source: 'minimal-chat-pill',
+        reason: 'user-send',
+        conversationRef: sessionInfo?.conversationRef || null,
+        previousTurnRef: currentTurnProjection?.turnRef || null,
+        previousPhase: currentTurnProjection?.phase || null,
+        attachmentCount: clipboardImages.length + selectedReadableFiles.length,
+        includeQueryScreenshot,
+      }, sessionInfo?.conversationRef || null);
       setWakewordSttSessionActive(false);
     },
   });
@@ -122,6 +144,25 @@ function MinimalChatPill() {
       setWakewordSttSessionActive(false);
     }
   }, [wakewordSttEnabled, wakewordSttSessionActive]);
+
+  useEffect(() => {
+    const initialSnapshot = lifecycleTraceSnapshotRef.current;
+    logRendererLiveSurfaceTrace('renderer.chat_pill.mount', {
+      source: 'minimal-chat-pill',
+      conversationRef: initialSnapshot.conversationRef,
+      turnRef: initialSnapshot.turnRef,
+      phase: initialSnapshot.phase,
+    }, initialSnapshot.conversationRef);
+    return () => {
+      const latestSnapshot = lifecycleTraceSnapshotRef.current;
+      logRendererLiveSurfaceTrace('renderer.chat_pill.unmount', {
+        source: 'minimal-chat-pill',
+        conversationRef: latestSnapshot.conversationRef,
+        turnRef: latestSnapshot.turnRef,
+        phase: latestSnapshot.phase,
+      }, latestSnapshot.conversationRef);
+    };
+  }, []);
 
   useEffect(() => {
     const nextPillStateSignature = JSON.stringify({
@@ -246,7 +287,13 @@ function MinimalChatPill() {
     IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_HIT_TEST_ACTIVE, {
       active: nextActive,
     }).catch(() => {});
-  }, []);
+    logRendererLiveSurfaceTrace('chat_pill.hit_test.set', {
+      source: 'minimal-chat-pill-renderer',
+      reason: 'renderer-normal-hit-test-request',
+      active: nextActive,
+      ignoreMouseEvents: !nextActive,
+    }, sessionInfo?.conversationRef || null);
+  }, [sessionInfo?.conversationRef]);
 
   useEffect(() => {
     setChatboxHitTestActive(true);

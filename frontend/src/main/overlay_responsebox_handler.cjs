@@ -2,6 +2,10 @@ const {
   resolveActiveSurfaceDisplayAffinity,
 } = require('./display_affinity_runtime.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
+const {
+  logLiveSurfaceTrace,
+  summarizeWindow,
+} = require('./live_surface_trace_runtime.cjs');
 
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
@@ -93,6 +97,18 @@ async function handleSetResponseboxSize(
   const normalizedTurnRef = normalizeResponseOverlayGuardRef(turnRef);
   const normalizedStaleGuardRef = normalizeResponseOverlayGuardRef(staleGuardRef)
     || normalizedTurnRef;
+  logLiveSurfaceTrace('response_overlay.renderer.size_report', {
+    source: 'responsebox-size',
+    turnRef: normalizedTurnRef,
+    guardRef: normalizedStaleGuardRef,
+    phase: getResponseOverlayPhase(),
+    visible: shouldShow,
+    fullScreen,
+    compactHover,
+    width: typeof width === 'number' ? width : Number(width) || null,
+    height: typeof height === 'number' ? height : Number(height) || null,
+    responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+  });
   if (!shouldShow) {
     const activeGuardRef = normalizeResponseOverlayGuardRef(getActiveResponseOverlayGuardRef());
     if (shouldIgnoreStaleHide({
@@ -118,6 +134,16 @@ async function handleSetResponseboxSize(
         staleGuardRef: normalizedStaleGuardRef,
         activeGuardRef,
       }, deps);
+      logLiveSurfaceTrace('response_overlay.window.hide_ignored', {
+        source: 'responsebox-size',
+        reason: 'stale-hide',
+        turnRef: normalizedTurnRef,
+        guardRef: normalizedStaleGuardRef,
+        activeGuardRef,
+        phase: getResponseOverlayPhase(),
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+        responseOverlayVisible: getResponseOverlayVisible(),
+      });
       return {
         success: true,
         visible: true,
@@ -128,9 +154,24 @@ async function handleSetResponseboxSize(
     setResponseOverlayVisibilityState(false);
     if (!normalizedStaleGuardRef || normalizedStaleGuardRef === activeGuardRef) {
       setActiveResponseOverlayGuardRef(null);
+      logLiveSurfaceTrace('stale_guard.changed', {
+        source: 'responsebox-size',
+        reason: 'hide',
+        previousGuardRef: activeGuardRef,
+        nextGuardRef: null,
+        turnRef: normalizedTurnRef,
+      });
     }
     if (responseWindow.isVisible()) {
       responseWindow.hide();
+      logLiveSurfaceTrace('response_overlay.window.hide', {
+        source: 'responsebox-size',
+        reason: 'renderer-size-hide',
+        turnRef: normalizedTurnRef,
+        guardRef: normalizedStaleGuardRef,
+        phase: getResponseOverlayPhase(),
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
     }
     console.log('[ResponseOverlayWindow][main]', {
       action: 'hide-from-size',
@@ -166,9 +207,32 @@ async function handleSetResponseboxSize(
       responseWindow.setBounds(nextBounds, false);
       if (normalizedStaleGuardRef) {
         setActiveResponseOverlayGuardRef(normalizedStaleGuardRef);
+        logLiveSurfaceTrace('stale_guard.changed', {
+          source: 'responsebox-size',
+          reason: 'fullscreen-size-report',
+          nextGuardRef: normalizedStaleGuardRef,
+          turnRef: normalizedTurnRef,
+        });
       }
       setResponseOverlayVisibilityState(true);
       showResponseWindowForLiveTurnIntent();
+      logLiveSurfaceTrace('response_overlay.window.show', {
+        source: 'responsebox-size',
+        reason: 'fullscreen-size-report',
+        turnRef: normalizedTurnRef,
+        guardRef: normalizedStaleGuardRef,
+        phase: getResponseOverlayPhase(),
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
+      logLiveSurfaceTrace('response_overlay.window.resize', {
+        source: 'responsebox-size',
+        reason: 'fullscreen-size-report',
+        turnRef: normalizedTurnRef,
+        guardRef: normalizedStaleGuardRef,
+        phase: getResponseOverlayPhase(),
+        width: nextBounds.width,
+        height: nextBounds.height,
+      });
       console.log('[ResponseOverlayWindow][main]', {
         action: 'show-fullscreen-from-size',
         phase: getResponseOverlayPhase(),
@@ -210,9 +274,33 @@ async function handleSetResponseboxSize(
     responseWindow.setBounds(bounds, false);
     if (normalizedStaleGuardRef) {
       setActiveResponseOverlayGuardRef(normalizedStaleGuardRef);
+      logLiveSurfaceTrace('stale_guard.changed', {
+        source: 'responsebox-size',
+        reason: 'size-report',
+        nextGuardRef: normalizedStaleGuardRef,
+        turnRef: normalizedTurnRef,
+      });
     }
     setResponseOverlayVisibilityState(true);
     showResponseWindowForLiveTurnIntent();
+    logLiveSurfaceTrace('response_overlay.window.show', {
+      source: 'responsebox-size',
+      reason: 'size-report',
+      turnRef: normalizedTurnRef,
+      guardRef: normalizedStaleGuardRef,
+      phase: getResponseOverlayPhase(),
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+    });
+    logLiveSurfaceTrace('response_overlay.window.resize', {
+      source: 'responsebox-size',
+      reason: compactHover ? 'awaiting-size-report' : 'response-size-report',
+      turnRef: normalizedTurnRef,
+      guardRef: normalizedStaleGuardRef,
+      phase: getResponseOverlayPhase(),
+      overlayMode: compactHover ? 'awaiting' : 'response',
+      width: nextWidth,
+      height: nextHeight,
+    });
     console.log('[ResponseOverlayWindow][main]', {
       action: 'show-or-resize-from-size',
       phase: getResponseOverlayPhase(),
