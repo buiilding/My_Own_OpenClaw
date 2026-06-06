@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: preserve completed SDK current-turn tool call/output cards
+  in chat display state so repeated screenshot turns keep their earlier tool
+  rows instead of showing only the latest live projection.
 - cli: add `bin/windie start customer` to run the Vite renderer dev server and
   Electron customer app under one foreground command, so Ctrl-C stops both.
 - cli: add `bin/windie start dev` to run the Vite renderer dev server and

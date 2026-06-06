@@ -1,6 +1,9 @@
 import type { ChatMessage, SdkCurrentTurnProjection } from '../../stores/chatStore';
 import type { TranscriptModelContext } from './chatStreamTypes';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
+import {
+  buildCurrentTurnMessagesFromProjection,
+} from '../state/chatBoxResponseState';
 
 type BuildMaterializedCurrentTurnMessageOptions = {
   conversationRef?: string | null;
@@ -16,6 +19,14 @@ type UpsertMaterializedCurrentTurnMessageOptions = {
   messages: ChatMessage[];
   message: ChatMessage;
   replaceMessageId?: string | null;
+};
+
+type UpsertMaterializedCurrentTurnProjectionMessagesOptions = {
+  messages: ChatMessage[];
+  currentTurnProjection?: SdkCurrentTurnProjection | null;
+  assistantMessage?: ChatMessage | null;
+  replaceMessageId?: string | null;
+  turnRef?: string | null;
 };
 
 function normalizeRef(value: unknown): string {
@@ -123,4 +134,87 @@ export function upsertMaterializedCurrentTurnMessage({
   }
 
   return [...messages, message];
+}
+
+function isRenderableProjectedMessage(message: ChatMessage | null | undefined): message is ChatMessage {
+  return Boolean(
+    message
+    && message.sender !== 'user'
+    && message.sourceChannel === 'windie:current-turn'
+    && message.sourceEventType !== 'sdk-current-turn',
+  );
+}
+
+function resolveInsertionIndex(messages: ChatMessage[], turnRef?: string | null): number {
+  const normalizedTurnRef = normalizeRef(turnRef);
+  if (normalizedTurnRef) {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index];
+      if (message?.sender === 'user' && normalizeRef(message.turnRef) === normalizedTurnRef) {
+        return index + 1;
+      }
+    }
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index]?.sender === 'user') {
+      return index + 1;
+    }
+  }
+  return messages.length;
+}
+
+function mergeAssistantMessage(
+  projectedMessages: ChatMessage[],
+  assistantMessage?: ChatMessage | null,
+): ChatMessage[] {
+  if (!assistantMessage) {
+    return projectedMessages;
+  }
+  let replaced = false;
+  const nextMessages = projectedMessages.map((message) => {
+    if (!replaced && (message.type === 'llm-text' || message.type === 'error')) {
+      replaced = true;
+      return assistantMessage;
+    }
+    return message;
+  });
+  if (!replaced) {
+    nextMessages.push(assistantMessage);
+  }
+  return nextMessages;
+}
+
+export function upsertMaterializedCurrentTurnProjectionMessages({
+  messages,
+  currentTurnProjection,
+  assistantMessage,
+  replaceMessageId,
+  turnRef,
+}: UpsertMaterializedCurrentTurnProjectionMessagesOptions): ChatMessage[] {
+  const projectedMessages = mergeAssistantMessage(
+    (buildCurrentTurnMessagesFromProjection(currentTurnProjection) as ChatMessage[])
+      .filter(isRenderableProjectedMessage),
+    assistantMessage,
+  );
+  if (projectedMessages.length === 0) {
+    return messages;
+  }
+
+  const projectedIds = new Set(projectedMessages.map((message) => message.id).filter(Boolean));
+  const baseMessages = messages.filter((message) => {
+    if (message.id && projectedIds.has(message.id)) {
+      return false;
+    }
+    return !(replaceMessageId && message.id === replaceMessageId);
+  });
+  const insertionIndex = resolveInsertionIndex(
+    baseMessages,
+    turnRef ?? currentTurnProjection?.turnRef ?? assistantMessage?.turnRef ?? null,
+  );
+
+  return [
+    ...baseMessages.slice(0, insertionIndex),
+    ...projectedMessages,
+    ...baseMessages.slice(insertionIndex),
+  ];
 }

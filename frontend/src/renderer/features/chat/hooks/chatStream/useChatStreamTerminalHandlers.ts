@@ -13,7 +13,7 @@ import type { ConversationEvent } from '../../../../infrastructure/api/windieSdk
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 import {
   buildMaterializedCurrentTurnMessage,
-  upsertMaterializedCurrentTurnMessage,
+  upsertMaterializedCurrentTurnProjectionMessages,
 } from '../../utils/chatStream/currentTurnMessageMaterialization';
 
 type UseChatStreamTerminalHandlersDeps = {
@@ -83,9 +83,11 @@ export function useChatStreamTerminalHandlers({
     });
 
     if (materializedMessage) {
-      const nextMessages = upsertMaterializedCurrentTurnMessage({
+      const nextMessages = upsertMaterializedCurrentTurnProjectionMessages({
         messages: currentMessages,
-        message: materializedMessage,
+        currentTurnProjection,
+        assistantMessage: materializedMessage,
+        turnRef: event.turnRef,
       });
       if (nextMessages !== currentMessages) {
         useChatStore.getState().setMessages(nextMessages, event.conversationRef);

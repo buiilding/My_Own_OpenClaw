@@ -92,6 +92,120 @@ describe('useChatStream live SDK event ownership', () => {
     );
   });
 
+  test('streaming-complete materializes current-turn screenshot tool rows before the next turn replaces projection', () => {
+    setMockActiveConversationRef('conv-1');
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.getState().setMessages([
+        {
+          id: 'user-1',
+          text: 'take a screenshot',
+          sender: 'user',
+          turnRef: 'turn-1',
+        },
+        {
+          id: 'assistant-1',
+          text: 'Done.',
+          sender: 'assistant',
+          type: 'llm-text',
+          isComplete: true,
+          turnRef: 'turn-1',
+        },
+      ], 'conv-1');
+      useChatStore.getState().setCurrentTurnProjection({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'complete',
+        assistantText: 'Done.',
+        reasoningText: null,
+        toolEvents: [
+          {
+            id: 'tool-call-screenshot-1',
+            kind: 'tool_call',
+            toolName: 'screenshot',
+            payload: {
+              toolName: 'screenshot',
+              requestId: 'request-screenshot-1',
+              args: {
+                explanation: 'Capture the screen.',
+              },
+            },
+          },
+          {
+            id: 'tool-output-screenshot-1',
+            kind: 'tool_output',
+            toolName: 'screenshot',
+            text: 'Screenshot captured successfully.',
+            status: 'success',
+            payload: {
+              toolName: 'screenshot',
+              requestId: 'request-screenshot-1',
+              output: 'Screenshot captured successfully.',
+              success: true,
+            },
+          },
+        ],
+        lastError: null,
+      }, 'conv-1');
+      emitBackendEvent({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-1',
+        user_id: 'user-1',
+        turn_ref: 'turn-1',
+      });
+    });
+
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
+      expect.objectContaining({
+        id: 'user-1',
+        sender: 'user',
+      }),
+      expect.objectContaining({
+        id: 'conv-1:turn-1:tool:tool-call-screenshot-1',
+        sender: 'assistant',
+        type: 'tool-call',
+        sourceChannel: 'windie:current-turn',
+        turnRef: 'turn-1',
+      }),
+      expect.objectContaining({
+        id: 'conv-1:turn-1:tool:tool-output-screenshot-1',
+        sender: 'assistant',
+        type: 'tool-output',
+        sourceChannel: 'windie:current-turn',
+        turnRef: 'turn-1',
+        text: 'Screenshot captured successfully.',
+      }),
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'Done.',
+        isComplete: true,
+      }),
+    ]);
+
+    act(() => {
+      useChatStore.getState().setCurrentTurnProjection({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        phase: 'awaiting',
+        assistantText: '',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      }, 'conv-1');
+    });
+
+    const messageIds = useChatStore.getState().getWorkspaceState('conv-1').messages.map((message) => message.id);
+    expect(messageIds).toEqual([
+      'user-1',
+      'conv-1:turn-1:tool:tool-call-screenshot-1',
+      'conv-1:turn-1:tool:tool-output-screenshot-1',
+      'conv-1:turn-1:assistant',
+    ]);
+  });
+
   test('streaming-complete materializes empty assistant placeholder from final response payload', () => {
     setMockActiveConversationRef('conv-1');
     const { emitBackendEvent } = registerBackendListener();

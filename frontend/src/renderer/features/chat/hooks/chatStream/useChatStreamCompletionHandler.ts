@@ -6,7 +6,7 @@ import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTy
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import {
   buildMaterializedCurrentTurnMessage,
-  upsertMaterializedCurrentTurnMessage,
+  upsertMaterializedCurrentTurnProjectionMessages,
 } from '../../utils/chatStream/currentTurnMessageMaterialization';
 
 type UseChatStreamCompletionHandlerOptions = {
@@ -77,12 +77,19 @@ export const useChatStreamCompletionHandler = ({
       previousMessage: lastMessage,
       modelContext,
     });
+    const hasCurrentTurnToolMessages = (
+      currentTurnProjection?.turnRef === event.turnRef
+      && Array.isArray(currentTurnProjection.toolEvents)
+      && currentTurnProjection.toolEvents.length > 0
+    );
 
-    if (materializedMessage && !alreadyCompleted) {
-      const nextMessages = upsertMaterializedCurrentTurnMessage({
+    if (materializedMessage && (!alreadyCompleted || hasCurrentTurnToolMessages)) {
+      const nextMessages = upsertMaterializedCurrentTurnProjectionMessages({
         messages: currentMessages,
-        message: materializedMessage,
+        currentTurnProjection,
+        assistantMessage: materializedMessage,
         replaceMessageId: lastMessage?.id,
+        turnRef: event.turnRef,
       });
       if (nextMessages !== currentMessages) {
         useChatStore.getState().setMessages(nextMessages, resolvedConversationRef);
