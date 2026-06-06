@@ -99,7 +99,7 @@ function createSurfaceRuntime({
     activeResponseOverlayCorrelationId: null,
     activeResponseOverlayGuardRef: null,
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
-    chatboxHitTestActive: false,
+    chatboxHitTestActive: true,
     chatPillUserHidden: initialChatPillUserHidden === true,
     startupChatPillShowHandled: false,
     primarySurface: 'dashboard',
@@ -119,6 +119,7 @@ function createSurfaceRuntime({
     return {
       windows: getWindows(),
       vmWorkerRuntime: state.vmWorkerRuntime,
+      responseOverlayVisible: state.responseOverlayVisible,
       responseOverlayPhase: state.responseOverlayPhase,
       activeResponseOverlayGuardRef: state.activeResponseOverlayGuardRef,
       chatPillUserHidden: state.chatPillUserHidden,
@@ -593,9 +594,6 @@ function createSurfaceRuntime({
       getActiveResponseOverlayGuardRef: () => state.activeResponseOverlayGuardRef,
       getChatboxHitTestActive: () => state.chatboxHitTestActive,
       setResponseOverlayVisibilityState,
-      applyOverlayContentProtection: (options = {}) => {
-        windowPlatformPolicy.applyContentProtection(options);
-      },
       responseWindow: state.responseWindow,
       chatWindow: state.chatWindow,
       contextLabelWindow: state.contextLabelWindow,

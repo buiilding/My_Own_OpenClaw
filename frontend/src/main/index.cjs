@@ -79,6 +79,9 @@ const {
 const { createWindowPlatformPolicy } = require('./window_platform_policy.cjs');
 const { createSurfaceRuntime } = require('./surface_runtime.cjs');
 const {
+  handleSdkLiveTurnSurfaceIntent,
+} = require('./sdk_live_turn_surface_controller.cjs');
+const {
   createElectronToolSurfaceLifecycle,
 } = require('./tool_surface_lifecycle.cjs');
 const {
@@ -174,6 +177,22 @@ const {
   syncContextLabelWindowVisibility,
 } = surfaceRuntime.overlayHelpers;
 
+function syncSdkLiveTurnSurfaceIntent(currentTurn) {
+  return handleSdkLiveTurnSurfaceIntent(currentTurn, {
+    responseWindow: surfaceRuntime.getResponseWindow(),
+    getResponseWindowBounds,
+    getResponseOverlayVisible: () => surfaceRuntime.getState().responseOverlayVisible,
+    getResponseOverlayPhase: () => surfaceRuntime.getState().responseOverlayPhase,
+    getActiveResponseOverlayGuardRef: surfaceRuntime.getActiveResponseOverlayGuardRef,
+    setActiveResponseOverlayGuardRef: surfaceRuntime.setActiveResponseOverlayGuardRef,
+    setResponseOverlayVisibilityState: surfaceRuntime.setResponseOverlayVisibilityState,
+    showResponseWindowInactive: surfaceRuntime.overlayHelpers.showResponseWindowInactive,
+    syncContextLabelWindowVisibility,
+    log: (...args) => console.log(...args),
+    warn: (...args) => console.warn(...args),
+  });
+}
+
 const {
   createWindow,
   createChatWindow,
@@ -214,6 +233,7 @@ const {
   showMainWindow: surfaceRuntime.showMainWindow,
   setGlobalAgentStopShortcutAccelerator: agentStopShortcutRuntime.setAccelerator,
   localToolLifecycle: electronToolSurfaceLifecycle,
+  syncSdkLiveTurnSurfaceIntent,
   emitWakewordSttTrigger: surfaceRuntime.emitWakewordSttTrigger,
   getLatestFrontendConfig,
   positionChatWindow,

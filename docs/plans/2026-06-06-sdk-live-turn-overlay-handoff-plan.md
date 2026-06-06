@@ -123,12 +123,14 @@ to this path:
 
 ```text
 SDK currentTurn.presentation.overlayIntent
+  -> Electron main mirrors native response BrowserWindow visibility immediately
+     with SDK turn guard and fallback bounds
   -> renderer records latest live-turn projection by SDK conversation/turn
   -> minimal pill/response overlay select latest live-turn projection directly
   -> awaiting mode renders typing only
   -> response mode renders SDK entries only
-  -> renderer sends guarded native show/resize/hide request
-  -> Electron main mirrors the guarded request and ignores stale/unguarded hides
+  -> renderer sends guarded native resize/hide refinement
+  -> Electron main ignores stale/unguarded hides
 ```
 
 Dashboard transcript state may remain active-workspace-scoped. Minimal live-turn
@@ -150,13 +152,16 @@ fully disconnect these old paths from the normal SDK-backed live overlay flow:
 - unguarded response overlay cleanup hides that can affect an active SDK turn;
 - Electron phase-owned normal response window visibility for SDK-backed live
   turns.
+- active-loop window creation content protection for the chat pill or response
+  overlay;
+- renderer hover-owned normal pill click-through toggling.
 
 After SDK `turn_started`, there should be one normal path:
 
 ```text
 SDK presentation.overlayIntent
-  -> minimal renderer presentation state
-  -> guarded native window mirror request
+  -> Electron main native window mirror
+  -> minimal renderer presentation state/size refinement
 ```
 
 Any remaining fallback must be explicitly limited to the pre-SDK gap before
@@ -237,6 +242,12 @@ projection.
   SDK-owned response overlay.
 - Preserve tool surface leases for click-through, focusability, and screenshot
   protection. Those are separate native policy concerns.
+- Keep the pill clickable/draggable by default. Only SDK local tool lifecycle
+  pointer leases may make the pill or response overlay click-through.
+- Keep content protection disabled at rest and during ordinary active-loop
+  phases. Only SDK local tool lifecycle screenshot leases may enable
+  screenshot invisibility/content protection, and the release callback must
+  disable it immediately after capture.
 
 ### 6. Traceability
 

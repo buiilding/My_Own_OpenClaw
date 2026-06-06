@@ -249,9 +249,9 @@ function MinimalChatPill() {
   }, []);
 
   useEffect(() => {
-    setChatboxHitTestActive(false);
+    setChatboxHitTestActive(true);
     return () => {
-      setChatboxHitTestActive(false);
+      setChatboxHitTestActive(true);
     };
   }, [setChatboxHitTestActive]);
 
@@ -275,7 +275,6 @@ function MinimalChatPill() {
 
   const handleOpenConfig = useCallback(async () => {
     try {
-      setChatboxHitTestActive(false);
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
         maximize: true,
         open: 'chat',
@@ -284,7 +283,7 @@ function MinimalChatPill() {
     } catch (error) {
       console.warn('[MinimalChatPill] Failed to show main window:', error);
     }
-  }, [setChatboxHitTestActive]);
+  }, []);
 
   const handleHideChatbox = useCallback(async () => {
     try {
@@ -392,15 +391,6 @@ function MinimalChatPill() {
           onSubmit={handleSubmit}
           onMouseDown={handlePillMouseDown}
           onClickCapture={handlePillClickCapture}
-          onMouseEnter={() => {
-            setChatboxHitTestActive(true);
-          }}
-          onMouseMove={() => {
-            setChatboxHitTestActive(true);
-          }}
-          onMouseLeave={() => {
-            setChatboxHitTestActive(false);
-          }}
         >
           <button
             type="button"

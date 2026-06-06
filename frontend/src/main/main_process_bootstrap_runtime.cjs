@@ -37,6 +37,8 @@ function createWindowBootstrapRuntime(deps) {
       getMainWindowMode: deps.getMainWindowMode,
       setMainWindow: deps.setMainWindow,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      localToolLifecycle: deps.localToolLifecycle,
+      syncSdkLiveTurnSurfaceIntent: deps.syncSdkLiveTurnSurfaceIntent,
     });
     deps.setMainWindow(mainWindow);
 
@@ -56,7 +58,6 @@ function createWindowBootstrapRuntime(deps) {
   }
 
   function createChatWindow() {
-    const state = deps.getState();
     const chatWindow = deps.createChatWindowRuntime({
       BrowserWindow: deps.BrowserWindow,
       path: deps.path,
@@ -71,9 +72,7 @@ function createWindowBootstrapRuntime(deps) {
       setChatWindow: deps.setChatWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       applyContentProtection: deps.enableContentProtectionSafely,
-      overlayContentProtectionEnabled: state?.responseOverlayPhase !== 'idle'
-        && state?.responseOverlayPhase !== 'complete'
-        && state?.responseOverlayPhase !== 'error',
+      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setChatWindow(chatWindow);
@@ -82,7 +81,6 @@ function createWindowBootstrapRuntime(deps) {
   }
 
   function createResponseWindow() {
-    const state = deps.getState();
     const responseWindow = deps.createResponseWindowRuntime({
       BrowserWindow: deps.BrowserWindow,
       path: deps.path,
@@ -103,9 +101,7 @@ function createWindowBootstrapRuntime(deps) {
       setResponseWindow: deps.setResponseWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       applyContentProtection: deps.enableContentProtectionSafely,
-      overlayContentProtectionEnabled: state?.responseOverlayPhase !== 'idle'
-        && state?.responseOverlayPhase !== 'complete'
-        && state?.responseOverlayPhase !== 'error',
+      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setResponseWindow(responseWindow);

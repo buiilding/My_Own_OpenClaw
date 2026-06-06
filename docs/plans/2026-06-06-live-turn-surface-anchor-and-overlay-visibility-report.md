@@ -54,7 +54,8 @@ Complete.
 - Treat the local send latch as stronger than a stale completed SDK projection
   until the SDK acknowledges the new turn.
 - Keep phase-driven native window show only for the renderer send-preflight
-  awaiting fallback. Normal active phases now log/defer to renderer size intent.
+  awaiting fallback. Normal active phases now defer to SDK overlay intent and
+  renderer size IPC only refines bounds after the native window is primed.
 - Use `turnRef` as the response overlay stale guard. Main records it after a
   successful show/resize and ignores hide requests from older guards.
 

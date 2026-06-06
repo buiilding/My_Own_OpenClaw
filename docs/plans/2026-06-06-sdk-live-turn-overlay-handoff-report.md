@@ -28,6 +28,10 @@ visibility/content after SDK `turn_started`.
   SDK-backed response overlay path.
 - [x] Guard native response overlay show/hide with SDK turn guards.
 - [x] Remove Electron phase-owned normal visibility for SDK-backed live turns.
+- [x] Mirror SDK `overlayIntent` directly in Electron main so native response
+  window visibility no longer waits for renderer size measurement.
+- [x] Remove active-loop content protection from overlay window creation.
+- [x] Remove renderer hover-owned normal chat-pill click-through toggling.
 - [x] Add/update focused tests.
 - [x] Run focused validation.
 - [x] Perform final design inspection and classify any remaining paths.
@@ -57,6 +61,18 @@ visibility/content after SDK `turn_started`.
   `showResponseWindowWhenChatVisible()`, so the native response window could
   stay hidden while the dashboard was visible and the minimal chat pill window
   was hidden.
+- Follow-up runtime inspection found a remaining bootstrap deadlock: active SDK
+  streaming could be healthy while the hidden response renderer failed to
+  measure and send `set-responsebox-size`, so Electron main never showed the
+  native response BrowserWindow.
+- Follow-up runtime inspection found an old active-loop content-protection
+  mapping in overlay window creation. Recreated chat/response overlay windows
+  inherited screenshot invisibility from phase state instead of only from the
+  screenshot-tool lease.
+- The chat pill normal hit-test path was still renderer hover-driven: the
+  renderer set the pill pass-through on mount/leave and clickable on hover.
+  That made interactivity a renderer-local visual state instead of a narrow
+  pointer-tool lease.
 - `useConversationRuntimeProjectionStream` can store SDK current-turn
   projections before stale-turn side-effect guards without changing dashboard
   transcript row ownership.
@@ -80,6 +96,15 @@ visibility/content after SDK `turn_started`.
 - SDK-backed responsebox show/resize uses the live-turn response-window intent
   directly via `showResponseWindowInactive`; the old chat-visible gate remains
   only in phase/preflight or chat-window restore paths.
+- Electron main now mirrors SDK `currentTurn.presentation.overlayIntent`
+  directly on each SDK snapshot. Renderer size IPC remains as guarded bounds
+  refinement, not the prerequisite for showing the response BrowserWindow.
+- Active-loop phase state no longer enables content protection when chat or
+  response overlay windows are created. Content protection is lease-scoped to
+  SDK-local `screenshot` execution.
+- The chat pill is clickable/draggable by default. SDK-local
+  `mouse_control`/`scroll_control` pointer leases are the only normal path that
+  makes pill/overlay windows click-through.
 
 ## Validation Log
 
@@ -91,6 +116,8 @@ visibility/content after SDK `turn_started`.
 - `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
 - `node -c frontend/src/main/overlay_responsebox_handler.cjs && node -c frontend/src/main/overlay_phase_ipc_runtime.cjs && node -c frontend/src/main/index.cjs` - passed after removing the chat-visible gate from SDK-backed responsebox show.
 - `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/OverlayPhaseIpcRuntime.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs --runInBand` - passed, 3 suites / 39 tests.
+- `node -c frontend/src/main/sdk_live_turn_surface_controller.cjs && node -c frontend/src/main/ipc.cjs && node -c frontend/src/main/index.cjs && node -c frontend/src/main/main_process_bootstrap_runtime.cjs && node -c frontend/src/main/main_window_runtime.cjs && node -c frontend/src/main/surface_runtime.cjs` - passed.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx --runInBand` - passed, 7 suites / 133 tests.
 
 ## Commits
 
@@ -119,6 +146,17 @@ visibility/content after SDK `turn_started`.
   or calls `showResponseWindowWhenChatVisible`; `overlay_phase_ipc_runtime`
   wires SDK-backed responsebox show/resize to `showResponseWindowInactive`
   instead.
+- Follow-up inspection confirmed `sdk_live_turn_surface_controller.cjs` is the
+  main-process mirror from SDK `overlayIntent` to native response window
+  visibility, bounds, turn guard, and stale-hide protection.
+- Follow-up inspection confirmed `createWindowBootstrapRuntime` always creates
+  chat/response overlay windows with content protection disabled; screenshot
+  invisibility now comes from `beginScreenshotCaptureLease` only.
+- Follow-up inspection confirmed `MinimalChatPill` reports normal hit-test
+  active state on mount and no longer toggles click-through on hover or when
+  opening settings.
+- Follow-up inspection confirmed phase active-loop logs now defer native show
+  to SDK overlay intent, not renderer ownership.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,

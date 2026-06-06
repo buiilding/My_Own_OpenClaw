@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: mirror SDK live-turn `overlayIntent` directly into Electron
+  response-window visibility with guarded fallback bounds so streaming content
+  no longer depends on hidden renderer size measurement before the overlay can
+  appear; keep chat pill/content-protection behavior lease-scoped by removing
+  active-loop overlay creation protection and renderer hover-owned normal
+  click-through toggles.
 - frontend/main: make minimal pill and response overlay live state read the
   latest SDK current-turn presentation instead of active dashboard workspace
   state, store SDK projections before renderer stale side-effect guards, remove

@@ -1,0 +1,183 @@
+const responseOverlayLayoutContract = require('../shared/response_overlay_layout_contract.json');
+const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
+
+const RESPONSE_OVERLAY_WIDTH = 520;
+const RESPONSE_OVERLAY_AWAITING_HEIGHT = (
+  Number(responseOverlayLayoutContract?.awaiting_frame_height) || 24
+);
+const RESPONSE_OVERLAY_RESPONSE_HEIGHT = (
+  Number(responseOverlayLayoutContract?.response_fixed_height) || 236
+);
+
+function safeWindowVisible(win) {
+  if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
+    return null;
+  }
+  return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
+}
+
+function normalizeString(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized || null;
+}
+
+function resolveOverlayIntent(currentTurn) {
+  const presentation = currentTurn?.presentation;
+  const intent = presentation?.overlayIntent;
+  if (!intent || typeof intent !== 'object') {
+    return null;
+  }
+  const mode = normalizeString(intent.mode);
+  if (mode !== 'awaiting' && mode !== 'response' && mode !== 'hidden') {
+    return null;
+  }
+  const turnRef = normalizeString(intent.turnRef) || normalizeString(currentTurn?.turnRef);
+  return {
+    visible: intent.visible === true,
+    mode,
+    turnRef,
+    staleGuardRef: normalizeString(intent.staleGuardRef) || turnRef,
+    conversationRef: normalizeString(intent.conversationRef)
+      || normalizeString(presentation?.conversationRef)
+      || normalizeString(currentTurn?.conversationRef),
+  };
+}
+
+function responseBoundsForIntent(intent, getResponseWindowBounds) {
+  const compactHover = intent.mode === 'awaiting';
+  const height = compactHover
+    ? RESPONSE_OVERLAY_AWAITING_HEIGHT
+    : RESPONSE_OVERLAY_RESPONSE_HEIGHT;
+  return getResponseWindowBounds(RESPONSE_OVERLAY_WIDTH, height, { compactHover });
+}
+
+function shouldIgnoreSdkHide({ activeGuardRef, staleGuardRef }) {
+  if (!activeGuardRef) {
+    return false;
+  }
+  if (!staleGuardRef) {
+    return true;
+  }
+  return staleGuardRef !== activeGuardRef;
+}
+
+function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
+  const {
+    responseWindow,
+    getResponseWindowBounds,
+    getResponseOverlayVisible = () => false,
+    getResponseOverlayPhase = () => null,
+    getActiveResponseOverlayGuardRef = () => null,
+    setActiveResponseOverlayGuardRef = () => {},
+    setResponseOverlayVisibilityState = () => {},
+    showResponseWindowInactive = () => {},
+    syncContextLabelWindowVisibility = () => {},
+    log = console.log,
+  } = deps;
+
+  if (!responseWindow || responseWindow.isDestroyed?.()) {
+    return { success: false, reason: 'response-window-unavailable' };
+  }
+  if (typeof getResponseWindowBounds !== 'function') {
+    return { success: false, reason: 'response-bounds-unavailable' };
+  }
+
+  const intent = resolveOverlayIntent(currentTurn);
+  if (!intent) {
+    return { success: true, applied: false, reason: 'missing-sdk-overlay-intent' };
+  }
+
+  const activeGuardRef = normalizeString(getActiveResponseOverlayGuardRef());
+  if (!intent.visible || intent.mode === 'hidden') {
+    if (shouldIgnoreSdkHide({
+      activeGuardRef,
+      staleGuardRef: intent.staleGuardRef,
+    })) {
+      log('[ResponseOverlayWindow][main]', {
+        action: 'ignore-hide-from-sdk-overlay-intent',
+        phase: getResponseOverlayPhase(),
+        mode: intent.mode,
+        turn_ref: intent.turnRef,
+        stale_guard_ref: intent.staleGuardRef,
+        active_guard_ref: activeGuardRef,
+        response_window_visible: safeWindowVisible(responseWindow),
+        response_overlay_visible_flag: getResponseOverlayVisible(),
+      });
+      logChatPillMainTrace({
+        source: 'sdk-live-turn-surface',
+        action: 'ignore-stale-hide',
+        phase: getResponseOverlayPhase(),
+        responseWindow,
+        responseOverlayVisibleFlag: getResponseOverlayVisible(),
+        turnRef: intent.turnRef,
+        staleGuardRef: intent.staleGuardRef,
+        activeGuardRef,
+      }, deps);
+      return { success: true, applied: false, ignored: true, reason: 'stale-hide' };
+    }
+    setResponseOverlayVisibilityState(false);
+    if (!intent.staleGuardRef || intent.staleGuardRef === activeGuardRef) {
+      setActiveResponseOverlayGuardRef(null);
+    }
+    if (responseWindow.isVisible?.()) {
+      responseWindow.hide();
+    }
+    syncContextLabelWindowVisibility();
+    log('[ResponseOverlayWindow][main]', {
+      action: 'hide-from-sdk-overlay-intent',
+      phase: getResponseOverlayPhase(),
+      mode: intent.mode,
+      turn_ref: intent.turnRef,
+      stale_guard_ref: intent.staleGuardRef,
+      response_window_visible: safeWindowVisible(responseWindow),
+      response_overlay_visible_flag: getResponseOverlayVisible(),
+    });
+    return { success: true, applied: true, visible: false };
+  }
+
+  const bounds = responseBoundsForIntent(intent, getResponseWindowBounds);
+  responseWindow.setBounds(bounds, false);
+  if (intent.staleGuardRef) {
+    setActiveResponseOverlayGuardRef(intent.staleGuardRef);
+  }
+  setResponseOverlayVisibilityState(true);
+  showResponseWindowInactive();
+  syncContextLabelWindowVisibility();
+  log('[ResponseOverlayWindow][main]', {
+    action: 'show-from-sdk-overlay-intent',
+    phase: getResponseOverlayPhase(),
+    mode: intent.mode,
+    turn_ref: intent.turnRef,
+    stale_guard_ref: intent.staleGuardRef,
+    response_window_visible: safeWindowVisible(responseWindow),
+    response_overlay_visible_flag: getResponseOverlayVisible(),
+    width: bounds.width,
+    height: bounds.height,
+  });
+  logChatPillMainTrace({
+    source: 'sdk-live-turn-surface',
+    action: 'show',
+    phase: getResponseOverlayPhase(),
+    responseWindow,
+    responseOverlayVisibleFlag: getResponseOverlayVisible(),
+    responseLayoutMode: intent.mode === 'awaiting' ? 'awaiting-typing' : 'response',
+    turnRef: intent.turnRef,
+    staleGuardRef: intent.staleGuardRef,
+  }, deps);
+  return {
+    success: true,
+    applied: true,
+    visible: true,
+    mode: intent.mode,
+    turnRef: intent.turnRef,
+    staleGuardRef: intent.staleGuardRef,
+  };
+}
+
+module.exports = {
+  handleSdkLiveTurnSurfaceIntent,
+  resolveOverlayIntent,
+};

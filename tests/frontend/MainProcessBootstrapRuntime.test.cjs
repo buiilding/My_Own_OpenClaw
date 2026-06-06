@@ -37,6 +37,8 @@ describe('main_process_bootstrap_runtime', () => {
         responseWindowDebugView: 'tool-ghost-debug',
         initializeIpc: jest.fn(),
         setAgentLoopStopShortcutEnabled: jest.fn(),
+        localToolLifecycle: { beforeExecute: jest.fn() },
+        syncSdkLiveTurnSurfaceIntent: jest.fn(),
         initializeWakewordBridge: jest.fn(),
         initializeLocalBackendBridge: jest.fn(),
         initializeMainProcessIpc: jest.fn(),
@@ -92,6 +94,8 @@ describe('main_process_bootstrap_runtime', () => {
     expect(deps.createMainWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
       setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
+      localToolLifecycle: deps.localToolLifecycle,
+      syncSdkLiveTurnSurfaceIntent: deps.syncSdkLiveTurnSurfaceIntent,
     }));
     expect(state.windows.mainWindow).toEqual({ id: 'main-window' });
   });
@@ -138,7 +142,7 @@ describe('main_process_bootstrap_runtime', () => {
     expect(state.applyResponseOverlayPhase).toHaveBeenCalledWith({ phase: 'idle' });
   });
 
-  test('recreated overlays inherit active-loop content protection state', () => {
+  test('recreated overlays do not inherit active-loop content protection state', () => {
     const { deps, state } = createDeps();
     state.responseOverlayPhase = 'tool-call';
     const runtime = createWindowBootstrapRuntime(deps);
@@ -147,10 +151,10 @@ describe('main_process_bootstrap_runtime', () => {
     runtime.createResponseWindow();
 
     expect(deps.createChatWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
-      overlayContentProtectionEnabled: true,
+      overlayContentProtectionEnabled: false,
     }));
     expect(deps.createResponseWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
-      overlayContentProtectionEnabled: true,
+      overlayContentProtectionEnabled: false,
     }));
     expect(state.applyResponseOverlayPhase).toHaveBeenCalledWith({ phase: 'tool-call' });
   });

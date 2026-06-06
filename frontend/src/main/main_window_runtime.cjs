@@ -178,6 +178,7 @@ function createMainWindow({
   setGlobalAgentStopShortcutAccelerator,
   prepareOverlayQueryCaptureFocus,
   localToolLifecycle = null,
+  syncSdkLiveTurnSurfaceIntent = null,
   initializeWakewordBridge,
   showChatWindow,
   emitWakewordSttTrigger,
@@ -232,6 +233,7 @@ function createMainWindow({
     setAgentLoopStopShortcutEnabled,
     setGlobalAgentStopShortcutAccelerator,
     localToolLifecycle,
+    syncSdkLiveTurnSurfaceIntent,
     isPackaged: app.isPackaged,
     getWindows,
   });

@@ -21,7 +21,6 @@ describe('response_overlay_phase_handler', () => {
       ENABLE_OS_TOOL_GHOST_DEBUG: false,
       RESPONSE_OVERLAY_PHASE: PHASE,
       setResponseOverlayPhase: jest.fn(),
-      applyOverlayContentProtection: jest.fn(),
       getResponseOverlayVisible: jest.fn().mockReturnValue(false),
       setResponseOverlayVisibilityState: jest.fn(),
       responseWindow: {
@@ -79,7 +78,6 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
-    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
     expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
   });
@@ -106,7 +104,7 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
   });
 
-  test('active streaming phase records phase but defers native window show to renderer size intent', () => {
+  test('active streaming phase records phase but defers native window show to SDK overlay intent', () => {
     const deps = createDeps();
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
@@ -115,7 +113,6 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(true);
     expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
-    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
     expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
   });
@@ -180,7 +177,6 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.ERROR }, deps);
 
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
@@ -201,16 +197,6 @@ describe('response_overlay_phase_handler', () => {
 
     expect(hiddenChatDeps.showResponseWindowInactive).not.toHaveBeenCalled();
     expect(hiddenChatDeps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
-  });
-
-  test('phase changes do not toggle overlay content protection', () => {
-    const deps = createDeps();
-
-    handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
-    handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
-    handleResponseOverlayPhaseEvent({ phase: PHASE.IDLE }, deps);
-
-    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
   });
 
   test('ignores stale terminal phases from a previous response correlation', () => {
@@ -240,7 +226,6 @@ describe('response_overlay_phase_handler', () => {
       PHASE.STREAMING,
     ]);
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(false);
-    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(activeCorrelationId).toBe('response-b');
   });
 

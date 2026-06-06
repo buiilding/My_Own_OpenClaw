@@ -70,7 +70,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP) {
     if (usePhaseVisibilityFallback !== true) {
       console.log('[ResponseOverlayWindow][main]', {
-        action: 'defer-show-to-renderer',
+        action: 'defer-show-to-sdk-overlay-intent',
         mode,
         phase,
         source,
@@ -78,7 +78,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       });
       logChatPillMainTrace({
         source: 'phase-handler',
-        action: 'defer-response-window-to-renderer',
+        action: 'defer-response-window-to-sdk-overlay-intent',
         phase,
         responseWindow,
       }, deps);

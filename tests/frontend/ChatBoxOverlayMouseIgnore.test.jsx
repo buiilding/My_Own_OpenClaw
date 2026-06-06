@@ -312,7 +312,7 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(screen.getByRole('button', { name: 'Open config' })).toBeEnabled();
   });
 
-  test('reports pill hover state to main-owned hit-testing runtime', async () => {
+  test('reports normal pill interactivity to main-owned hit-testing runtime', async () => {
     const { container } = render(<MinimalChatPill />);
     const pill = container.querySelector('.chatbox-pill');
 
@@ -325,9 +325,9 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockInvoke.mock.calls.some(
       ([channel, payload]) => channel === 'set-chatbox-hit-test-active' && payload?.active === true,
     )).toBe(true);
-    expect(mockInvoke.mock.calls.some(
+    expect(mockInvoke.mock.calls.filter(
       ([channel, payload]) => channel === 'set-chatbox-hit-test-active' && payload?.active === false,
-    )).toBe(true);
+    )).toHaveLength(0);
   });
 
   test('camera toggle starts enabled by default and does not create a preview row when clicked', async () => {

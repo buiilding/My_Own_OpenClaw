@@ -156,6 +156,7 @@ let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
 let localToolLifecycle = null;
+let syncSdkLiveTurnSurfaceIntent = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
 let windieAgent = null;
@@ -412,6 +413,7 @@ function resetIpcProcessStateForTests() {
   currentGlobalAgentStopShortcutStatus = null;
   pendingInstallAuthStatePromise = null;
   latestCurrentTurnProjection = null;
+  syncSdkLiveTurnSurfaceIntent = null;
   currentTurnTraceLogger.reset();
 }
 
@@ -570,6 +572,13 @@ function createDirectWakeUpAgentAdapter({
       broadcastToRenderers('windie:rows', snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
       currentTurnTraceLogger.trace(snapshot.currentTurn);
+      if (syncSdkLiveTurnSurfaceIntent) {
+        try {
+          syncSdkLiveTurnSurfaceIntent(snapshot.currentTurn || null);
+        } catch (error) {
+          log('Failed to sync SDK live-turn surface intent:', error?.message || error);
+        }
+      }
       broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
       const terminalStatus = statusFromConversationEvent(event, workspacePath);
       if (terminalStatus) {
@@ -939,6 +948,7 @@ function shutdownIpcForTests() {
   setAgentLoopStopShortcutEnabled = null;
   setGlobalAgentStopShortcutAccelerator = null;
   localToolLifecycle = null;
+  syncSdkLiveTurnSurfaceIntent = null;
   pendingInstallAuthStatePromise = null;
   isConnected = false;
   pendingWindieAgentStartPromise = null;
@@ -966,6 +976,9 @@ function initializeIpc(win, options = {}) {
       : null;
   localToolLifecycle = options.localToolLifecycle && typeof options.localToolLifecycle === 'object'
     ? options.localToolLifecycle
+    : null;
+  syncSdkLiveTurnSurfaceIntent = typeof options.syncSdkLiveTurnSurfaceIntent === 'function'
+    ? options.syncSdkLiveTurnSurfaceIntent
     : null;
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows

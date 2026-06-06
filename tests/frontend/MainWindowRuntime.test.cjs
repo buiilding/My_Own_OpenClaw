@@ -548,6 +548,7 @@ describe('main_window_runtime createMainWindow', () => {
       applyResponseOverlayPhase: jest.fn(),
       setAgentLoopStopShortcutEnabled: jest.fn(),
       prepareOverlayQueryCaptureFocus: jest.fn(),
+      syncSdkLiveTurnSurfaceIntent: jest.fn(),
       initializeWakewordBridge: jest.fn(),
       showChatWindow: jest.fn().mockReturnValue({ success: true }),
       emitWakewordSttTrigger: jest.fn(),
@@ -595,6 +596,7 @@ describe('main_window_runtime createMainWindow', () => {
     expect(deps.initializeMainProcessIpc).toHaveBeenCalledTimes(1);
     expect(deps.initializeIpc).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
+      syncSdkLiveTurnSurfaceIntent: deps.syncSdkLiveTurnSurfaceIntent,
     }));
   });
 
