@@ -46,6 +46,80 @@ import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 
+function measureComposerContentHeight(inputElement) {
+  if (!inputElement) {
+    return 0;
+  }
+
+  const computedStyle = (
+    typeof window !== 'undefined'
+    && typeof window.getComputedStyle === 'function'
+  )
+    ? window.getComputedStyle(inputElement)
+    : null;
+  const minHeight = Math.max(1, Math.round(Number.parseFloat(computedStyle?.minHeight) || 0));
+  const maxHeight = Math.max(
+    minHeight,
+    Math.round(Number.parseFloat(computedStyle?.maxHeight) || CHATBOX_COMPOSER_MAX_HEIGHT),
+  );
+
+  if (typeof document === 'undefined' || typeof document.createElement !== 'function') {
+    return Math.max(minHeight, Math.min(inputElement.scrollHeight, maxHeight));
+  }
+
+  const rect = inputElement.getBoundingClientRect?.();
+  const measuredWidth = Math.max(
+    1,
+    Math.round(Number(rect?.width) || Number(inputElement.offsetWidth) || 0),
+  );
+  const measurementElement = document.createElement('textarea');
+  measurementElement.className = inputElement.className;
+  measurementElement.value = inputElement.value || '';
+  measurementElement.rows = inputElement.rows || 1;
+  measurementElement.setAttribute('aria-hidden', 'true');
+  measurementElement.tabIndex = -1;
+  measurementElement.style.position = 'fixed';
+  measurementElement.style.left = '-10000px';
+  measurementElement.style.top = '0';
+  measurementElement.style.width = `${measuredWidth}px`;
+  measurementElement.style.height = 'auto';
+  measurementElement.style.minHeight = '0';
+  measurementElement.style.maxHeight = 'none';
+  measurementElement.style.overflow = 'hidden';
+  measurementElement.style.visibility = 'hidden';
+  measurementElement.style.pointerEvents = 'none';
+  measurementElement.style.contain = 'layout style';
+
+  if (computedStyle) {
+    [
+      'borderBottomWidth',
+      'borderLeftWidth',
+      'borderRightWidth',
+      'borderTopWidth',
+      'boxSizing',
+      'fontFamily',
+      'fontSize',
+      'fontStyle',
+      'fontWeight',
+      'letterSpacing',
+      'lineHeight',
+      'paddingBottom',
+      'paddingLeft',
+      'paddingRight',
+      'paddingTop',
+      'textTransform',
+      'wordSpacing',
+    ].forEach((propertyName) => {
+      measurementElement.style[propertyName] = computedStyle[propertyName];
+    });
+  }
+
+  document.body.appendChild(measurementElement);
+  const measuredHeight = measurementElement.scrollHeight;
+  measurementElement.remove();
+  return Math.max(minHeight, Math.min(measuredHeight, maxHeight));
+}
+
 function MinimalChatPill() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
@@ -287,10 +361,7 @@ function MinimalChatPill() {
       1,
       Math.round(inputElement.getBoundingClientRect?.().height || inputElement.offsetHeight || 0),
     );
-    const previousHeightStyle = inputElement.style.height;
-    inputElement.style.height = 'auto';
-    const nextHeight = Math.min(inputElement.scrollHeight, CHATBOX_COMPOSER_MAX_HEIGHT);
-    inputElement.style.height = previousHeightStyle;
+    const nextHeight = measureComposerContentHeight(inputElement);
     if (!Number.isFinite(nextHeight) || nextHeight <= 0) {
       return;
     }
