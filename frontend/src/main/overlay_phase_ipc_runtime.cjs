@@ -85,11 +85,12 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
   });
 
   ipcMain.handle('set-responsebox-size', async (_event, args = {}) => {
-    const { responseWindow, chatWindow, mainWindow } = getWindows();
+    const { responseWindow, chatWindow, mainWindow, contextLabelWindow } = getWindows();
     return handleSetResponseboxSize(args, {
       responseWindow,
       chatWindow,
       mainWindow,
+      contextLabelWindow,
       BrowserWindow,
       screen,
       getActiveDisplayAffinity,

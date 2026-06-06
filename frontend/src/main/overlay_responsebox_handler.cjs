@@ -14,6 +14,89 @@ function safeWindowVisible(win) {
   return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
 }
 
+function safeWindowDestroyed(win) {
+  if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function') {
+    return null;
+  }
+  try {
+    return Boolean(win.isDestroyed());
+  } catch (_error) {
+    return null;
+  }
+}
+
+function safeWindowBounds(win) {
+  if (!win || typeof win !== 'object' || safeWindowDestroyed(win) === true) {
+    return null;
+  }
+  if (typeof win.getBounds !== 'function') {
+    return null;
+  }
+  try {
+    const bounds = win.getBounds();
+    if (!bounds || typeof bounds !== 'object') {
+      return null;
+    }
+    return {
+      x: Number.isFinite(bounds.x) ? bounds.x : null,
+      y: Number.isFinite(bounds.y) ? bounds.y : null,
+      width: Number.isFinite(bounds.width) ? bounds.width : null,
+      height: Number.isFinite(bounds.height) ? bounds.height : null,
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function safeWindowFocusable(win) {
+  if (!win || typeof win !== 'object' || safeWindowDestroyed(win) === true) {
+    return null;
+  }
+  if (typeof win.isFocusable !== 'function') {
+    return null;
+  }
+  try {
+    return Boolean(win.isFocusable());
+  } catch (_error) {
+    return null;
+  }
+}
+
+function summarizeNativeWindowForDismiss(win, label) {
+  return {
+    label,
+    visible: safeWindowVisible(win),
+    destroyed: safeWindowDestroyed(win),
+    focusable: safeWindowFocusable(win),
+    bounds: safeWindowBounds(win),
+  };
+}
+
+function logResponseOverlayDismissSnapshot({
+  reason,
+  turnRef,
+  guardRef,
+  phase,
+  activeGuardRef,
+  responseOverlayVisible,
+  responseWindow,
+  chatWindow,
+  contextLabelWindow,
+}) {
+  logLiveSurfaceTrace('response_overlay.dismiss.native_snapshot', {
+    source: 'responsebox-size',
+    reason,
+    turnRef,
+    guardRef,
+    activeGuardRef,
+    phase,
+    responseOverlayVisible,
+    responseWindow: summarizeNativeWindowForDismiss(responseWindow, 'response overlay'),
+    chatWindow: summarizeNativeWindowForDismiss(chatWindow, 'chat box'),
+    contextLabelWindow: summarizeNativeWindowForDismiss(contextLabelWindow, 'context label'),
+  });
+}
+
 function resolveFullscreenBounds({
   BrowserWindow,
   screen,
@@ -76,6 +159,7 @@ async function handleSetResponseboxSize(
     responseWindow,
     chatWindow,
     mainWindow,
+    contextLabelWindow = null,
     screen,
     BrowserWindow,
     webContents = null,
@@ -144,6 +228,17 @@ async function handleSetResponseboxSize(
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
         responseOverlayVisible: getResponseOverlayVisible(),
       });
+      logResponseOverlayDismissSnapshot({
+        reason: 'stale-hide',
+        turnRef: normalizedTurnRef,
+        guardRef: normalizedStaleGuardRef,
+        activeGuardRef,
+        phase: getResponseOverlayPhase(),
+        responseOverlayVisible: getResponseOverlayVisible(),
+        responseWindow,
+        chatWindow,
+        contextLabelWindow,
+      });
       return {
         success: true,
         visible: true,
@@ -162,6 +257,17 @@ async function handleSetResponseboxSize(
         turnRef: normalizedTurnRef,
       });
     }
+    logResponseOverlayDismissSnapshot({
+      reason: 'renderer-size-hide-before-native-hide',
+      turnRef: normalizedTurnRef,
+      guardRef: normalizedStaleGuardRef,
+      activeGuardRef,
+      phase: getResponseOverlayPhase(),
+      responseOverlayVisible: getResponseOverlayVisible(),
+      responseWindow,
+      chatWindow,
+      contextLabelWindow,
+    });
     if (responseWindow.isVisible()) {
       responseWindow.hide();
       logLiveSurfaceTrace('response_overlay.window.hide', {
@@ -173,6 +279,17 @@ async function handleSetResponseboxSize(
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
     }
+    logResponseOverlayDismissSnapshot({
+      reason: 'renderer-size-hide-after-native-hide',
+      turnRef: normalizedTurnRef,
+      guardRef: normalizedStaleGuardRef,
+      activeGuardRef,
+      phase: getResponseOverlayPhase(),
+      responseOverlayVisible: getResponseOverlayVisible(),
+      responseWindow,
+      chatWindow,
+      contextLabelWindow,
+    });
     console.log('[ResponseOverlayWindow][main]', {
       action: 'hide-from-size',
       phase: getResponseOverlayPhase(),

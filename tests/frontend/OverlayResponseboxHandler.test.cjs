@@ -12,16 +12,25 @@ describe('overlay_responsebox_handler', () => {
         isVisible: jest.fn().mockReturnValue(true),
         hide: jest.fn(),
         setBounds: jest.fn(),
+        getBounds: jest.fn().mockReturnValue({ x: 10, y: 20, width: 520, height: 236 }),
+        isFocusable: jest.fn().mockReturnValue(false),
       },
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
         isVisible: jest.fn().mockReturnValue(true),
         getBounds: jest.fn().mockReturnValue({ x: 100, y: 200, width: 300, height: 400 }),
+        isFocusable: jest.fn().mockReturnValue(true),
       },
       mainWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
         isVisible: jest.fn().mockReturnValue(false),
         getBounds: jest.fn().mockReturnValue({ x: 0, y: 0, width: 1000, height: 700 }),
+      },
+      contextLabelWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(true),
+        getBounds: jest.fn().mockReturnValue({ x: 120, y: 180, width: 220, height: 28 }),
+        isFocusable: jest.fn().mockReturnValue(false),
       },
       BrowserWindow: {
         fromWebContents: jest.fn(() => ({
@@ -73,6 +82,64 @@ describe('overlay_responsebox_handler', () => {
 
     expect(result).toEqual({ success: true, visible: false });
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
+  });
+
+  test('logs native overlay window snapshots around renderer hide requests', async () => {
+    const originalEnv = process.env;
+    process.env = { ...originalEnv, WINDIE_DEBUG_LIVE_SURFACE: '1' };
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const deps = createDeps();
+
+    try {
+      await handleSetResponseboxSize({
+        visible: false,
+        turn_ref: 'turn-close',
+        stale_guard_ref: 'turn-close',
+      }, deps);
+
+      const snapshots = logSpy.mock.calls
+        .filter(([marker, payload]) => (
+          marker === '[LiveSurfaceTrace]'
+          && payload?.event === 'response_overlay.dismiss.native_snapshot'
+        ))
+        .map(([, payload]) => payload);
+
+      expect(snapshots).toHaveLength(2);
+      expect(snapshots[0]).toMatchObject({
+        reason: 'renderer-size-hide-before-native-hide',
+        turnRef: 'turn-close',
+        guardRef: 'turn-close',
+        responseWindow: {
+          label: 'response overlay',
+          visible: true,
+          destroyed: false,
+          focusable: false,
+          bounds: { x: 10, y: 20, width: 520, height: 236 },
+        },
+        chatWindow: {
+          label: 'chat box',
+          visible: true,
+          destroyed: false,
+          focusable: true,
+          bounds: { x: 100, y: 200, width: 300, height: 400 },
+        },
+        contextLabelWindow: {
+          label: 'context label',
+          visible: true,
+          destroyed: false,
+          focusable: false,
+          bounds: { x: 120, y: 180, width: 220, height: 28 },
+        },
+      });
+      expect(snapshots[1]).toMatchObject({
+        reason: 'renderer-size-hide-after-native-hide',
+        turnRef: 'turn-close',
+        guardRef: 'turn-close',
+      });
+    } finally {
+      logSpy.mockRestore();
+      process.env = originalEnv;
+    }
   });
 
   test('resizes in fullscreen mode using active surface display affinity from the visible chat window', async () => {

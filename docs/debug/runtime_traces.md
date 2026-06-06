@@ -96,6 +96,7 @@ High-value `[LiveSurfaceTrace]` events:
 - `response_overlay.window.hide`
 - `response_overlay.window.resize`
 - `response_overlay.window.hide_ignored`
+- `response_overlay.dismiss.native_snapshot`
 - `phase.received`
 - `phase.window_mode.resolved`
 - `chat_pill.window.show`

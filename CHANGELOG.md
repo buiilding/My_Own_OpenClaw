@@ -28,6 +28,10 @@ All notable changes to WindieOS will be documented in this file.
   visibility traces from the actual awaiting indicator, and make repeated SDK
   response-overlay intents idempotent so unchanged token snapshots no longer
   re-run native response-window show/resize work.
+- frontend/main: add response-overlay dismissal native snapshots to live-surface
+  tracing so close-button diagnostics include response overlay, chat pill, and
+  context-label window visibility, focusability, and bounds before and after the
+  native hide call.
 - frontend/main: make minimal pill and response overlay live state read the
   latest SDK current-turn presentation instead of active dashboard workspace
   state, store SDK projections before renderer stale side-effect guards, remove

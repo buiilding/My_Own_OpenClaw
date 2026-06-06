@@ -198,6 +198,13 @@ visibility/content after SDK `turn_started`.
 - `bin/windie docs list` - passed.
 - `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
 - `cd frontend && npm run lint` - failed only on pre-existing unrelated unused-variable errors: `frontend/src/main/ipc.cjs:1408`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:5`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:6`, `frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js:132`, and `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts:338`.
+- `node -c frontend/src/main/overlay_responsebox_handler.cjs && node -c frontend/src/main/overlay_phase_ipc_runtime.cjs` - passed after adding response-overlay dismissal native snapshots.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/OverlayResponseboxHandler.test.cjs --runInBand` - passed after adding response-overlay dismissal native snapshots.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/OverlayPhaseIpcRuntime.test.cjs ../tests/frontend/OverlayResponseboxHandler.test.cjs --runInBand` - passed, 2 suites / 24 tests.
+- `cd frontend && npm run typecheck` - passed after response-overlay dismissal native snapshots.
+- `bin/windie docs list` - passed after adding the new trace event to runtime trace docs.
+- `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
+- `cd frontend && npm run lint` - failed only on pre-existing unrelated unused-variable errors: `frontend/src/main/ipc.cjs:1408`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:5`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:6`, `frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js:132`, and `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts:338`.
 
 ## Commits
 
@@ -256,6 +263,11 @@ visibility/content after SDK `turn_started`.
 - Follow-up inspection confirmed repeated identical SDK overlay intents return
   `idempotent-visible-intent` before native `setBounds` / `showInactive`, while
   mode, guard, turn, visibility, or bounds changes still apply normally.
+- Follow-up inspection after the close-button log showed renderer dismissal and
+  main native hide both succeed for the response overlay. Added diagnostic-only
+  `response_overlay.dismiss.native_snapshot` traces around the responsebox-size
+  hide path so the next copied log identifies whether the response overlay,
+  chat pill, or context-label native window still occupies the blocked region.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,
