@@ -46,6 +46,7 @@ describe('preload IPC channel registry', () => {
       ON_CHANNELS: {
         SETTINGS_UPDATED: 'settings-updated',
         WINDIE_MEMORY_STORE_CHANGED: 'windie:memory-store-changed',
+        WINDIE_CONVERSATION_METADATA_INVALIDATED: 'windie:conversation-metadata-invalidated',
       },
     };
     process.argv = [
@@ -177,6 +178,25 @@ describe('preload IPC channel registry', () => {
     const [, subscription] = ipcRendererMock.on.mock.calls.at(-1);
     expect(ipcRendererMock.removeListener).toHaveBeenCalledWith(
       'windie:memory-store-changed',
+      subscription,
+    );
+  });
+
+  test('allows conversation metadata invalidation as a shared on-channel', () => {
+    const handler = jest.fn();
+
+    const cleanup = exposedIpc.on('windie:conversation-metadata-invalidated', handler);
+
+    expect(ipcRendererMock.on).toHaveBeenCalledWith(
+      'windie:conversation-metadata-invalidated',
+      expect.any(Function),
+    );
+
+    cleanup();
+
+    const [, subscription] = ipcRendererMock.on.mock.calls.at(-1);
+    expect(ipcRendererMock.removeListener).toHaveBeenCalledWith(
+      'windie:conversation-metadata-invalidated',
       subscription,
     );
   });

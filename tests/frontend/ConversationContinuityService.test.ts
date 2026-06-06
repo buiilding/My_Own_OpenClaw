@@ -1,4 +1,7 @@
-import { ConversationContinuityService } from '../../packages/windie-sdk-js/src/runtime/ConversationContinuityService';
+import {
+  ConversationContinuityService,
+  conversationMetadataInvalidationFromLocalRuntimeEvent,
+} from '../../packages/windie-sdk-js/src/runtime/ConversationContinuityService';
 import type {
   ConversationStore,
   JsonRecord,
@@ -24,6 +27,27 @@ function createStore(overrides: Partial<ConversationStore> = {}) {
 }
 
 describe('ConversationContinuityService', () => {
+  test('normalizes local runtime title updates into public metadata invalidations', () => {
+    expect(conversationMetadataInvalidationFromLocalRuntimeEvent({
+      type: 'conversation-title-updated',
+      payload: {
+        conversation_id: 'conv-title',
+        title: 'Generated title',
+        source: 'model',
+      },
+    })).toEqual(expect.objectContaining({
+      type: 'conversation-metadata-invalidated',
+      reason: 'conversation-title-updated',
+      conversationRef: 'conv-title',
+      title: 'Generated title',
+      source: 'model',
+    }));
+
+    expect(conversationMetadataInvalidationFromLocalRuntimeEvent({
+      type: 'tool-output',
+    })).toBeNull();
+  });
+
   test('searchMetadata delegates to store adapter search when available', async () => {
     const store = {
       ...createStore(),

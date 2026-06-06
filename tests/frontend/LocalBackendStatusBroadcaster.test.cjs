@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
 const {
-  broadcastSidecarEvent,
+  broadcastConversationMetadataInvalidation,
   buildLocalBackendStatusPayload,
   sendLocalBackendStatus,
 } = require('../../frontend/src/main/local_backend_status_broadcaster.cjs');
@@ -41,7 +41,7 @@ describe('local_backend_status_broadcaster', () => {
     });
   });
 
-  test('broadcasts sidecar events only to live windows', () => {
+  test('broadcasts conversation metadata invalidations only to live windows', () => {
     const liveWindow = {
       isDestroyed: () => false,
       webContents: {
@@ -55,13 +55,40 @@ describe('local_backend_status_broadcaster', () => {
       },
     };
 
-    broadcastSidecarEvent(() => [liveWindow, destroyedWindow, null], {
+    broadcastConversationMetadataInvalidation(() => [liveWindow, destroyedWindow, null], {
+      type: 'conversation-title-updated',
+      payload: {
+        conversation_id: 'conv-title',
+        title: 'Generated title',
+        source: 'model',
+      },
+    });
+
+    expect(liveWindow.webContents.send).toHaveBeenCalledWith(
+      'windie:conversation-metadata-invalidated',
+      expect.objectContaining({
+        type: 'conversation-metadata-invalidated',
+        reason: 'conversation-title-updated',
+        conversationRef: 'conv-title',
+        title: 'Generated title',
+        source: 'model',
+      }),
+    );
+    expect(destroyedWindow.webContents.send).not.toHaveBeenCalled();
+  });
+
+  test('ignores unrelated sidecar events', () => {
+    const liveWindow = {
+      isDestroyed: () => false,
+      webContents: {
+        send: jest.fn(),
+      },
+    };
+
+    broadcastConversationMetadataInvalidation(() => [liveWindow], {
       type: 'daemon-ready',
     });
 
-    expect(liveWindow.webContents.send).toHaveBeenCalledWith('sidecar-event', {
-      type: 'daemon-ready',
-    });
-    expect(destroyedWindow.webContents.send).not.toHaveBeenCalled();
+    expect(liveWindow.webContents.send).not.toHaveBeenCalled();
   });
 });

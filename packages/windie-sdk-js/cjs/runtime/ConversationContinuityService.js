@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationContinuityService = void 0;
+exports.conversationMetadataInvalidationFromLocalRuntimeEvent = conversationMetadataInvalidationFromLocalRuntimeEvent;
 const metadata_js_1 = require("../conversation/metadata.js");
 function optionalString(value) {
     return typeof value === 'string' && value.trim().length > 0 ? value : null;
@@ -36,7 +37,7 @@ function stringByKeys(record, keys) {
     }
     return null;
 }
-function metadataInvalidationFromLocalRuntimeEvent(event) {
+function conversationMetadataInvalidationFromLocalRuntimeEvent(event) {
     if (event.type !== 'conversation-title-updated') {
         return null;
     }
@@ -127,7 +128,7 @@ class ConversationContinuityService {
             return () => { };
         }
         return source.subscribeEvents((event) => {
-            const invalidation = metadataInvalidationFromLocalRuntimeEvent(event);
+            const invalidation = conversationMetadataInvalidationFromLocalRuntimeEvent(event);
             if (invalidation) {
                 listener(invalidation);
             }

@@ -111,7 +111,7 @@ function stringByKeys(record: JsonRecord | undefined, keys: string[]): string | 
   return null;
 }
 
-function metadataInvalidationFromLocalRuntimeEvent(
+export function conversationMetadataInvalidationFromLocalRuntimeEvent(
   event: JsonRecord & { type?: unknown },
 ): ConversationMetadataInvalidationEvent | null {
   if (event.type !== 'conversation-title-updated') {
@@ -223,7 +223,7 @@ export class ConversationContinuityService {
       return () => {};
     }
     return source.subscribeEvents((event) => {
-      const invalidation = metadataInvalidationFromLocalRuntimeEvent(event);
+      const invalidation = conversationMetadataInvalidationFromLocalRuntimeEvent(event);
       if (invalidation) {
         listener(invalidation);
       }

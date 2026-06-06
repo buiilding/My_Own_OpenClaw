@@ -312,14 +312,13 @@ Responsibility split:
 - Electron owns local IPC, sidecar-backed persistence, and renderer wiring.
 - Sidecar owns durable rows, ordering, list/search/title/delete queries, and
   SQLite/FAISS mechanics.
-- SDK SDK local-runtime clients own the sidecar event subscription surface. Hosts
-  should consume metadata invalidations such as `conversation-title-updated`
-  through SDK/local-runtime events instead of opening sidecar `/events`
-  connections from UI feature code. The
-  `ConversationContinuityService.subscribeMetadataInvalidations(...)` API is
-  the shared library boundary for this: local-runtime events are normalized into
-  conversation metadata invalidations, and UI adapters reload metadata from the
-  store instead of handling raw sidecar event payloads.
+- SDK local-runtime clients own the raw sidecar event subscription surface.
+  Electron hosts classify local events such as `conversation-title-updated` at
+  the main-process boundary and broadcast public invalidations such as
+  `windie:conversation-metadata-invalidated` to renderer UI. The SDK
+  `conversationMetadataInvalidationFromLocalRuntimeEvent(...)` helper owns that
+  normalizer so host adapters do not invent sidecar payload parsing. UI adapters
+  reload metadata from the store instead of handling raw sidecar event payloads.
 
 ## Compaction Rule
 

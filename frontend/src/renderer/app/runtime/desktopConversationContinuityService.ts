@@ -14,9 +14,9 @@ import {
   createDesktopConversationStore,
 } from '../../infrastructure/transcript/desktopConversationStore';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
-import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
+import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 export type { RehydrateConversationEntry };
 
@@ -105,7 +105,6 @@ function optionalString(value: unknown): string | null {
 export const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
-  localRuntimeEventSource: DesktopLocalRuntimeEventSource,
 });
 
 function metadataToDashboardConversation(metadata: ConversationMetadata) {
@@ -343,6 +342,11 @@ export const DesktopConversationContinuityService = {
   },
 
   subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener) {
-    return desktopConversationContinuityService.subscribeMetadataInvalidations(listener);
+    return IpcBridge.on(ON_CHANNELS.WINDIE_CONVERSATION_METADATA_INVALIDATED, (event) => {
+      if (!event || typeof event !== 'object' || Array.isArray(event)) {
+        return;
+      }
+      listener(event as Parameters<ConversationMetadataInvalidationListener>[0]);
+    });
   },
 };

@@ -428,6 +428,10 @@ Primary modules:
   - Shortcut choices come from a shared platform catalog so the dashboard, onboarding, and main-process global registration stay aligned.
 - `features/dashboard/hooks/useDashboardConversations.js`:
   - Extracted conversation runtime state: list/search fetch, open/rehydrate, rename/pin/delete handlers, transcript-entry polling.
+  - Refreshes recent-chat metadata from public
+    `windie:conversation-metadata-invalidated` events and reloads through
+    SDK-shaped `conversations.list`; renderer code does not subscribe to raw
+    `sidecar-event` title updates.
 - `features/dashboard/components/sections/MemorySection.jsx`:
   - Unified episodic/semantic/procedural view.
   - Fetch/delete memory through SDK-shaped `memories.*` commands.

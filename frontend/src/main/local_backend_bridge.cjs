@@ -44,7 +44,7 @@ const {
   createLocalBackendStopController,
 } = require('./local_backend_stop_controller.cjs');
 const {
-  broadcastSidecarEvent,
+  broadcastConversationMetadataInvalidation,
   buildLocalBackendStatusPayload,
   sendLocalBackendStatus,
 } = require('./local_backend_status_broadcaster.cjs');
@@ -298,7 +298,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   );
   if (typeof sidecarDaemonManager?.subscribeEvents === 'function') {
     sidecarDaemonManager.subscribeEvents((payload) => {
-      broadcastSidecarEvent(resolveWindows, payload);
+      broadcastConversationMetadataInvalidation(resolveWindows, payload);
     });
   }
   const sidecarDaemonClient = options.sidecarDaemonClient || (

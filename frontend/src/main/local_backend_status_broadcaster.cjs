@@ -1,3 +1,7 @@
+const {
+  conversationMetadataInvalidationFromLocalRuntimeEvent,
+} = require('../../../packages/windie-sdk-js/cjs/index.js');
+
 function sendLocalBackendStatus(mainWindow, payload) {
   mainWindow?.webContents.send('local-backend-status', payload);
 }
@@ -15,18 +19,22 @@ function buildLocalBackendStatusPayload({
   };
 }
 
-function broadcastSidecarEvent(resolveWindows, payload) {
+function broadcastConversationMetadataInvalidation(resolveWindows, payload) {
+  const invalidation = conversationMetadataInvalidationFromLocalRuntimeEvent(payload);
+  if (!invalidation) {
+    return;
+  }
   const windows = typeof resolveWindows === 'function' ? resolveWindows() : [];
   for (const win of windows) {
     if (!win || win.isDestroyed?.()) {
       continue;
     }
-    win.webContents?.send?.('sidecar-event', payload);
+    win.webContents?.send?.('windie:conversation-metadata-invalidated', invalidation);
   }
 }
 
 module.exports = {
-  broadcastSidecarEvent,
+  broadcastConversationMetadataInvalidation,
   buildLocalBackendStatusPayload,
   sendLocalBackendStatus,
 };
