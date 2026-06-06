@@ -187,7 +187,10 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       return;
     }
 
-    showChatWindow({ focus: true, reason: 'app-activate' });
+    const chatShowResult = showChatWindow({ focus: true, reason: 'app-activate' });
+    if (chatShowResult?.suppressed === true && chatShowResult?.reason === 'chat-pill-user-hidden') {
+      showMainWindow({ focus: true, reason: 'app-activate-chat-pill-hidden' });
+    }
   }
 
   const singleInstanceLockAcquired = requestSingleInstanceLock();

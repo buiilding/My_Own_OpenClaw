@@ -377,6 +377,34 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.showMainWindow).not.toHaveBeenCalled();
   });
 
+  test('activate opens the dashboard when the chat pill is user-hidden', async () => {
+    const visibleWindows = [{ id: 'hidden-main' }];
+    const hiddenMainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+    };
+    const { deps, appEvents } = createRuntimeDeps({
+      BrowserWindow: { getAllWindows: jest.fn(() => visibleWindows) },
+      getMainWindow: jest.fn(() => hiddenMainWindow),
+      showChatWindow: jest.fn(() => ({
+        success: true,
+        suppressed: true,
+        reason: 'chat-pill-user-hidden',
+      })),
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    appEvents.activate();
+
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'app-activate' });
+    expect(deps.showMainWindow).toHaveBeenCalledWith({
+      focus: true,
+      reason: 'app-activate-chat-pill-hidden',
+    });
+  });
+
   test('activate restores onboarding in the main window when onboarding was hidden', async () => {
     const visibleWindows = [{ id: 'hidden-main' }];
     const hiddenMainWindow = {

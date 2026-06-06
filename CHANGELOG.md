@@ -17,6 +17,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: replace renderer-facing `sidecar-event` title invalidation with
   a public `windie:conversation-metadata-invalidated` event while keeping recent
   chat refresh sourced from SDK-shaped `conversations.list`.
+- frontend/main: reopen the dashboard from macOS app activation when the chat
+  pill is user-hidden instead of leaving the app with no visible surface.
 - cli: add a first-class `bin/windie` command surface for status, doctor,
   lifecycle, logs, tests, docs, build/package, backend, endpoint, self-host,
   extension, tools, and mock-backend workflows.
