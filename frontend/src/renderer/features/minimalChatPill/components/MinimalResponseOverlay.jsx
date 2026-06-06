@@ -5,7 +5,7 @@ import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewMode
 import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowSync';
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
 import { sanitizeMarkdownHtml } from '../../../infrastructure/markdown';
-import { selectChatBoxState } from '../../chat/utils/chatSelectors';
+import { selectLiveTurnSurfaceState } from '../../chat/utils/chatSelectors';
 import {
   logRendererChatPillTrace,
   logRendererResponseSurfaceTrace,
@@ -49,7 +49,7 @@ function MinimalResponseOverlay() {
     isSending,
     thinkingStatus,
     currentTurnProjection,
-  } = useChatStore(useShallow(selectChatBoxState));
+  } = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const shellRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
   const {

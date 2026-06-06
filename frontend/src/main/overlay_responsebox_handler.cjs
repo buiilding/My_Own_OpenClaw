@@ -47,7 +47,13 @@ function shouldIgnoreStaleHide({
   staleGuardRef,
   activeGuardRef,
 }) {
-  return Boolean(staleGuardRef && activeGuardRef && staleGuardRef !== activeGuardRef);
+  if (!activeGuardRef) {
+    return false;
+  }
+  if (!staleGuardRef) {
+    return true;
+  }
+  return staleGuardRef !== activeGuardRef;
 }
 
 async function handleSetResponseboxSize(

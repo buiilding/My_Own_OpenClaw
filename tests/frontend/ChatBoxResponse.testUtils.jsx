@@ -43,11 +43,25 @@ useChatStore.setState = (partial, replace) => {
     && !Object.prototype.hasOwnProperty.call(partial, 'currentTurnProjection')
   ) {
     const currentPhase = useChatStore.getState()?.currentTurnProjection?.phase || null;
+    const currentTurnProjection = partial.messages.length > 0
+      ? buildCurrentTurnProjection(partial.messages, currentPhase)
+      : null;
     return originalSetChatStoreState({
       ...partial,
-      currentTurnProjection: partial.messages.length > 0
-        ? buildCurrentTurnProjection(partial.messages, currentPhase)
-        : null,
+      currentTurnProjection,
+      latestCurrentTurnProjection: currentTurnProjection,
+    }, replace);
+  }
+  if (
+    partial
+    && typeof partial === 'object'
+    && !Array.isArray(partial)
+    && Object.prototype.hasOwnProperty.call(partial, 'currentTurnProjection')
+    && !Object.prototype.hasOwnProperty.call(partial, 'latestCurrentTurnProjection')
+  ) {
+    return originalSetChatStoreState({
+      ...partial,
+      latestCurrentTurnProjection: partial.currentTurnProjection,
     }, replace);
   }
   return originalSetChatStoreState(partial, replace);
@@ -154,19 +168,23 @@ function buildCurrentTurnProjection(messages, phase = null) {
 }
 
 export function setChatState(messages) {
+  const currentTurnProjection = messages.length > 0 ? buildCurrentTurnProjection(messages) : null;
   useChatStore.setState({
     messages,
     isSending: false,
     thinkingStatus: null,
-    currentTurnProjection: messages.length > 0 ? buildCurrentTurnProjection(messages) : null,
+    currentTurnProjection,
+    latestCurrentTurnProjection: currentTurnProjection,
   });
 }
 
 export function emitOverlayPhase(phase) {
   act(() => {
     const state = useChatStore.getState();
+    const currentTurnProjection = buildCurrentTurnProjection(state.messages || [], phase);
     useChatStore.setState({
-      currentTurnProjection: buildCurrentTurnProjection(state.messages || [], phase),
+      currentTurnProjection,
+      latestCurrentTurnProjection: currentTurnProjection,
     });
   });
 }

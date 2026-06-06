@@ -24,3 +24,14 @@ export function selectChatBoxState(state) {
     currentTurnProjection: activeWorkspace.currentTurnProjection,
   };
 }
+
+export function selectLiveTurnSurfaceState(state) {
+  const activeWorkspace = selectActiveWorkspaceState(state);
+  return {
+    messages: activeWorkspace.messages,
+    isSending: activeWorkspace.isSending,
+    thinkingStatus: activeWorkspace.thinkingStatus,
+    thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
+    currentTurnProjection: state.latestCurrentTurnProjection || activeWorkspace.currentTurnProjection,
+  };
+}

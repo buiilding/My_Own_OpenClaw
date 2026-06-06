@@ -644,6 +644,68 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('SDK presentation response bypasses local send latch and synthetic message fallback', async () => {
+    setChatState([
+      {
+        id: 'assistant-fallback',
+        text: 'synthetic fallback response',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: false,
+        turnRef: 'turn-sdk',
+      },
+    ]);
+    useChatStore.setState({
+      isSending: true,
+      currentTurnProjection: {
+        conversationRef: 'conv-test',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        assistantText: '',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+        presentation: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          entries: [
+            {
+              id: 'conv-test:turn-sdk:assistant',
+              type: 'llm-text',
+              text: 'sdk presentation response',
+              sourceEventType: 'assistant_delta',
+              sourceChannel: 'windie:current-turn',
+              turnRef: 'turn-sdk',
+            },
+          ],
+          hasVisibleContent: true,
+          typingVisible: false,
+          overlayVisible: true,
+          isBusy: true,
+          isTerminal: false,
+          lastError: null,
+          awaitingAnchor: null,
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: 'turn-sdk',
+            conversationRef: 'conv-test',
+            staleGuardRef: 'turn-sdk',
+          },
+        },
+      },
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('sdk presentation response')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('synthetic fallback response')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
   test('sends hide size update when visible response overlay unmounts', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },

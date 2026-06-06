@@ -31,11 +31,34 @@ export function useResponseOverlayWindowSync({
   thinkingText,
 }) {
   const lastFrameRef = useRef(createHiddenFrameState());
+  const lastOverlayGuardRef = useRef({
+    turnRef: null,
+    staleGuardRef: null,
+  });
+
+  useEffect(() => {
+    const turnRef = overlayIntent?.turnRef ?? null;
+    const staleGuardRef = overlayIntent?.staleGuardRef ?? turnRef;
+    if (turnRef || staleGuardRef) {
+      lastOverlayGuardRef.current = {
+        turnRef,
+        staleGuardRef,
+      };
+    }
+  }, [overlayIntent?.staleGuardRef, overlayIntent?.turnRef]);
 
   const reportOverlaySize = useCallback(async ({
     visible,
     layoutMode = RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
   }) => {
+    const turnRef = overlayIntent?.turnRef ?? lastOverlayGuardRef.current.turnRef ?? null;
+    const staleGuardRef = (
+      overlayIntent?.staleGuardRef
+      ?? overlayIntent?.turnRef
+      ?? lastOverlayGuardRef.current.staleGuardRef
+      ?? lastOverlayGuardRef.current.turnRef
+      ?? null
+    );
     if (!visible) {
       if (lastFrameRef.current.visible === false) {
         return;
@@ -54,8 +77,8 @@ export function useResponseOverlayWindowSync({
           visible: false,
           width: 0,
           height: 0,
-          turn_ref: overlayIntent?.turnRef ?? null,
-          stale_guard_ref: overlayIntent?.staleGuardRef ?? overlayIntent?.turnRef ?? null,
+          turn_ref: turnRef,
+          stale_guard_ref: staleGuardRef,
         });
       } catch (error) {
         console.warn('[MinimalResponseOverlay] Failed to hide response overlay:', error);
@@ -104,8 +127,8 @@ export function useResponseOverlayWindowSync({
         show_response: showResponse,
         thinking_text_length: typeof thinkingText === 'string' ? thinkingText.length : 0,
         compact_hover: Boolean(compactHover),
-        turn_ref: overlayIntent?.turnRef ?? null,
-        stale_guard_ref: overlayIntent?.staleGuardRef ?? overlayIntent?.turnRef ?? null,
+        turn_ref: turnRef,
+        stale_guard_ref: staleGuardRef,
         width,
         height,
       });
@@ -114,8 +137,8 @@ export function useResponseOverlayWindowSync({
         width,
         height,
         compact_hover: Boolean(compactHover),
-        turn_ref: overlayIntent?.turnRef ?? null,
-        stale_guard_ref: overlayIntent?.staleGuardRef ?? overlayIntent?.turnRef ?? null,
+        turn_ref: turnRef,
+        stale_guard_ref: staleGuardRef,
       });
     } catch (error) {
       console.warn('[MinimalResponseOverlay] Failed to resize response overlay:', error);
@@ -151,6 +174,8 @@ export function useResponseOverlayWindowSync({
   useEffect(() => {
     let cancelled = false;
     let rafId = null;
+    let retryTimerId = null;
+    let resizeObserver = null;
 
     if (!isVisible) {
       void reportOverlaySize({
@@ -179,12 +204,21 @@ export function useResponseOverlayWindowSync({
     };
 
     scheduleSizeUpdate();
+    retryTimerId = window.setTimeout(scheduleSizeUpdate, 40);
+    if (typeof ResizeObserver === 'function' && shellRef.current) {
+      resizeObserver = new ResizeObserver(scheduleSizeUpdate);
+      resizeObserver.observe(shellRef.current);
+    }
 
     return () => {
       cancelled = true;
       if (rafId !== null) {
         window.cancelAnimationFrame(rafId);
       }
+      if (retryTimerId !== null) {
+        window.clearTimeout(retryTimerId);
+      }
+      resizeObserver?.disconnect();
     };
   }, [
     isVisible,

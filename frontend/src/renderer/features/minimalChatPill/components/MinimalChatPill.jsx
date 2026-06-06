@@ -40,7 +40,9 @@ function MinimalChatPill() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
-  const currentTurnProjection = useChatStore((state) => state.currentTurnProjection);
+  const currentTurnProjection = useChatStore((state) => (
+    state.latestCurrentTurnProjection || state.currentTurnProjection
+  ));
   const sessionInfo = useRendererConversationSessionInfo();
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);

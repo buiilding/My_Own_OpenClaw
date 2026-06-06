@@ -138,6 +138,7 @@ export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
   const setMessages = useChatStore((state) => state.setMessages);
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
+  const setLatestCurrentTurnProjection = useChatStore((state) => state.setLatestCurrentTurnProjection);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
@@ -161,18 +162,20 @@ export function useConversationRuntimeProjectionStream(): void {
         ? payloadRecord.conversationRef
         : currentTurn.conversationRef;
 
-      if (
+      setLatestCurrentTurnProjection(currentTurn);
+      setCurrentTurnProjection(currentTurn, conversationRef);
+
+      const shouldSkipDerivedSideEffects = (
         !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
         && shouldIgnoreConversationEventForStaleTurn({
           turnRef: currentTurn.turnRef,
         }, conversationRef, {
           getWorkspaceState: useChatStore.getState().getWorkspaceState,
         })
-      ) {
+      );
+      if (shouldSkipDerivedSideEffects) {
         return;
       }
-
-      setCurrentTurnProjection(currentTurn, conversationRef);
 
       const cursorKey = buildProjectionCursorKey(conversationRef, currentTurn.turnRef ?? null);
       const previousCursor = projectionCursorsRef.current.get(cursorKey) ?? {
@@ -340,6 +343,7 @@ export function useConversationRuntimeProjectionStream(): void {
     };
   }, [
     setCurrentTurnProjection,
+    setLatestCurrentTurnProjection,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,

@@ -202,7 +202,8 @@ export function useResponseOverlayViewModel({
   const projectedPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
     || RESPONSE_OVERLAY_PHASE.IDLE;
   const useLocalSendLatch = (
-    isSending === true
+    !useSdkLiveTurnPresentation
+    && isSending === true
     && (
       !currentTurnProjection
       || currentTurnProjection.phase === 'complete'
@@ -212,11 +213,13 @@ export function useResponseOverlayViewModel({
   );
   const currentTurnMessages = useMemo(
     () => (
-      useLocalSendLatch
+      useSdkLiveTurnPresentation
+        ? []
+        : useLocalSendLatch
         ? messages
         : buildCurrentTurnMessagesFromProjection(currentTurnProjection)
     ),
-    [currentTurnProjection, messages, useLocalSendLatch],
+    [currentTurnProjection, messages, useLocalSendLatch, useSdkLiveTurnPresentation],
   );
   const currentTurnPhase = useLocalSendLatch
     ? RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
@@ -238,10 +241,7 @@ export function useResponseOverlayViewModel({
         return [];
       }
       if (useSdkLiveTurnPresentation) {
-        const sdkEntries = normalizeSdkPresentationEntries(currentTurnProjection);
-        return sdkEntries.length > 0
-          ? sdkEntries
-          : normalizeProjectedCurrentTurnEntries(currentTurnProjection);
+        return normalizeSdkPresentationEntries(currentTurnProjection);
       }
       return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
     },

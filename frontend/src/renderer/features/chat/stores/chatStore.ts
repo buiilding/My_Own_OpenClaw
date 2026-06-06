@@ -144,6 +144,7 @@ interface ChatState {
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
   currentTurnProjection: SdkCurrentTurnProjection | null;
+  latestCurrentTurnProjection: SdkCurrentTurnProjection | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
   registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
@@ -171,6 +172,9 @@ interface ChatState {
   setCurrentTurnProjection: (
     currentTurnProjection: SdkCurrentTurnProjection | null,
     conversationRef?: string | null,
+  ) => void;
+  setLatestCurrentTurnProjection: (
+    currentTurnProjection: SdkCurrentTurnProjection | null,
   ) => void;
   updateStreamTracking: (
     updater: (current: StreamTracking) => StreamTracking,
@@ -294,6 +298,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   tokenCounts: null,
   streamTracking: createInitialStreamTracking(),
   currentTurnProjection: null,
+  latestCurrentTurnProjection: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();
     const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
@@ -497,11 +502,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => {
       const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const latestUpdate = state.latestCurrentTurnProjection === currentTurnProjection
+        ? {}
+        : { latestCurrentTurnProjection: currentTurnProjection };
       if (currentWorkspace.currentTurnProjection === currentTurnProjection) {
-        return state;
+        return Object.keys(latestUpdate).length > 0 ? latestUpdate : state;
       }
       const nextWorkspace = { ...currentWorkspace, currentTurnProjection };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace, latestUpdate);
+    }),
+
+  setLatestCurrentTurnProjection: (currentTurnProjection) =>
+    set((state) => {
+      if (state.latestCurrentTurnProjection === currentTurnProjection) {
+        return state;
+      }
+      return {
+        latestCurrentTurnProjection: currentTurnProjection,
+      };
     }),
 
   updateStreamTracking: (updater, conversationRef) =>

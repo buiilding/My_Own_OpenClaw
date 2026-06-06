@@ -103,7 +103,7 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('ignores stale SDK current-turn projection when a newer active turn is in progress', () => {
+  test('stores stale SDK current-turn projection while guarding derived side effects', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
@@ -150,9 +150,9 @@ describe('useChatStream state + stream handling', () => {
     });
 
     const state = useChatStore.getState();
-    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
-      turnRef: 'turn-new',
-      assistantText: 'current answer',
+    expect(state.latestCurrentTurnProjection).toEqual(expect.objectContaining({
+      turnRef: 'turn-old',
+      assistantText: 'stale answer',
     }));
     expect(state.thinkingStatus).toBe('current step');
     expect(state.streamTracking).toEqual(expect.objectContaining({

@@ -24,9 +24,30 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     phase = null,
     source = null,
     usePhaseVisibilityFallback = false,
+    getActiveResponseOverlayGuardRef = () => null,
   } = deps;
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN) {
+    const activeGuardRef = typeof getActiveResponseOverlayGuardRef === 'function'
+      ? getActiveResponseOverlayGuardRef()
+      : null;
+    if (activeGuardRef) {
+      console.log('[ResponseOverlayWindow][main]', {
+        action: 'ignore-hide-from-phase-for-guarded-sdk-overlay',
+        mode,
+        phase,
+        active_guard_ref: activeGuardRef,
+        response_window_visible: safeWindowVisible(responseWindow),
+      });
+      logChatPillMainTrace({
+        source: 'phase-handler',
+        action: 'ignore-hide-for-guarded-sdk-overlay',
+        phase,
+        responseWindow,
+        activeGuardRef,
+      }, deps);
+      return;
+    }
     setResponseOverlayVisibilityState(false);
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
       responseWindow.hide();
@@ -151,6 +172,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     getResponseOverlayPhase = () => null,
     getActiveResponseOverlayCorrelationId = () => null,
     setActiveResponseOverlayCorrelationId = () => {},
+    getActiveResponseOverlayGuardRef = () => null,
   } = deps;
 
   if (ENABLE_OS_TOOL_GHOST_DEBUG) {
@@ -229,6 +251,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     source: event?.source || null,
     usePhaseVisibilityFallback,
     getResponseOverlayPhase,
+    getActiveResponseOverlayGuardRef,
   });
 }
 

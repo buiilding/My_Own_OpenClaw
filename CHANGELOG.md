@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: make minimal pill and response overlay live state read the
+  latest SDK current-turn presentation instead of active dashboard workspace
+  state, store SDK projections before renderer stale side-effect guards, remove
+  SDK-backed local send-latch/synthetic-message overlay fallbacks, and ignore
+  unguarded or phase-idle hides while a guarded SDK response overlay is active.
 - sdk/frontend/main: add SDK turn input resources and host resolvers so
   `conversation.send()` emits the base user row before file, clipboard-image,
   workspace, or query-screenshot resolution, while renderer send preparation now

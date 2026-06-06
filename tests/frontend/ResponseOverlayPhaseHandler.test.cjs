@@ -84,6 +84,18 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
   });
 
+  test('idle phase does not hide an active guarded SDK overlay', () => {
+    const deps = createDeps({
+      getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-active'),
+    });
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.IDLE }, deps);
+
+    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(false);
+    expect(deps.responseWindow.hide).not.toHaveBeenCalled();
+  });
+
   test('idle phase does not own chat pill hit-testing', () => {
     const deps = createDeps({
       getChatboxHitTestActive: jest.fn(() => true),

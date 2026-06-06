@@ -1,6 +1,7 @@
 import {
   selectChatBoxState,
   selectChatInterfaceState,
+  selectLiveTurnSurfaceState,
 } from '../../frontend/src/renderer/features/chat/utils/chatSelectors';
 
 describe('chatSelectors', () => {
@@ -150,6 +151,38 @@ describe('chatSelectors', () => {
     });
 
     expect(selected.messages).toBe(messages);
+  });
+
+  test('selects latest SDK live turn for minimal surfaces over active workspace projection', () => {
+    const workspaceProjection = {
+      conversationRef: 'conv-dashboard',
+      turnRef: 'turn-dashboard',
+      phase: 'awaiting',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const liveProjection = {
+      conversationRef: 'conv-live',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      assistantText: 'live answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const selected = selectLiveTurnSurfaceState({
+      messages: [],
+      isSending: true,
+      thinkingStatus: null,
+      currentTurnProjection: workspaceProjection,
+      latestCurrentTurnProjection: liveProjection,
+      tokenCounts: null,
+      streamTracking: { phase: 'awaiting-first-chunk' },
+    });
+
+    expect(selected.currentTurnProjection).toBe(liveProjection);
   });
 
   test('defaults optional active-workspace fields when not present', () => {

@@ -261,6 +261,28 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
   });
 
+  test('ignores unguarded hide while a guarded SDK response is active', async () => {
+    const deps = createDeps({
+      getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-b'),
+    });
+
+    const result = await handleSetResponseboxSize({
+      visible: false,
+      width: 0,
+      height: 0,
+    }, deps);
+
+    expect(result).toEqual({
+      success: true,
+      visible: true,
+      ignored: true,
+      reason: 'stale-hide',
+    });
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
+    expect(deps.responseWindow.hide).not.toHaveBeenCalled();
+    expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
+  });
+
   test('clears matching active turn guard on hide', async () => {
     const deps = createDeps({
       getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-b'),
