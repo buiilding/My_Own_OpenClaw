@@ -12,6 +12,7 @@ import {
   emitOverlayPhase,
   emitOverlayVisibility,
   mockInvoke,
+  mockSend,
   resetChatBoxResponseTestState,
   setChatState,
   useChatStore,
@@ -19,6 +20,7 @@ import {
 
 describe('ChatBoxResponse state behavior', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/');
     resetChatBoxResponseTestState();
   });
 
@@ -79,6 +81,73 @@ describe('ChatBoxResponse state behavior', () => {
 
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+  });
+
+  test('logs when the awaiting typing indicator is actually rendered and removed', async () => {
+    window.history.pushState({}, '', '/?dev_ui=1&view=minimal-response-overlay');
+    useChatStore.setState({
+      messages: [{ id: 'user-sdk-transition', text: 'run command', sender: 'user' }],
+      isSending: true,
+      thinkingStatus: null,
+      currentTurnProjection: sdkPresentationProjection({ mode: 'awaiting' }),
+      latestCurrentTurnProjection: sdkPresentationProjection({ mode: 'awaiting' }),
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(mockSend).toHaveBeenCalledWith('live-surface-trace', expect.objectContaining({
+        event: 'typing.rendered.show',
+        view: 'minimal-response-overlay',
+        source: 'minimal-response-overlay',
+        reason: 'awaiting-indicator-rendered',
+        turnRef: 'turn-sdk-transition',
+      }));
+    });
+
+    const responseProjection = sdkPresentationProjection({
+      mode: 'response',
+      entries: [{
+        id: 'assistant-sdk-transition',
+        type: 'llm-text',
+        text: 'first response',
+        turnRef: 'turn-sdk-transition',
+      }],
+      phase: 'streaming',
+    });
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-sdk-transition', text: 'run command', sender: 'user' },
+          {
+            id: 'assistant-sdk-transition',
+            text: 'first response',
+            sender: 'assistant',
+            type: 'llm-text',
+            turnRef: 'turn-sdk-transition',
+          },
+        ],
+        isSending: false,
+        currentTurnProjection: responseProjection,
+        latestCurrentTurnProjection: responseProjection,
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(mockSend).toHaveBeenCalledWith('live-surface-trace', expect.objectContaining({
+        event: 'typing.rendered.hide',
+        view: 'minimal-response-overlay',
+        source: 'minimal-response-overlay',
+        reason: 'awaiting-indicator-not-rendered',
+        turnRef: 'turn-sdk-transition',
+      }));
     });
   });
 

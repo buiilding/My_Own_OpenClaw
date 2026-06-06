@@ -1,15 +1,20 @@
 import { act } from '@testing-library/react';
 
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });
+const mockSend = jest.fn();
 const mockListeners = new Map();
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
+    send: (...args) => mockSend(...args),
     on: (channel, handler) => {
       mockListeners.set(channel, handler);
       return () => mockListeners.delete(channel);
     },
+  },
+  SEND_CHANNELS: {
+    LIVE_SURFACE_TRACE: 'live-surface-trace',
   },
   INVOKE_CHANNELS: {
     SET_RESPONSEBOX_SIZE: 'set-responsebox-size',
@@ -199,6 +204,7 @@ export function emitOverlayVisibility(visible) {
 
 export function resetChatBoxResponseTestState() {
   mockInvoke.mockReset();
+  mockSend.mockReset();
   mockInvoke.mockImplementation((channel) => {
     if (channel === 'get-system-state') {
       return Promise.resolve({
@@ -215,5 +221,6 @@ export function resetChatBoxResponseTestState() {
 export {
   MinimalResponseOverlay as ChatBoxResponse,
   mockInvoke,
+  mockSend,
   useChatStore,
 };

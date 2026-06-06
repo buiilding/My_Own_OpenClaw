@@ -147,6 +147,13 @@ visibility/content after SDK `turn_started`.
 - Renderer `[LiveSurfaceTrace]` now crosses the existing preload IPC allowlist
   through `live-surface-trace`, and Electron main prints the sanitized payload.
   The channel is diagnostics-only and must not become a UI state source.
+- SDK live-turn surface handling now logs `typing.show` / `typing.hide` from
+  SDK current-turn presentation transitions, while the minimal response overlay
+  logs `typing.rendered.show` / `typing.rendered.hide` from the actual typing
+  indicator render path.
+- SDK response-overlay intent application is idempotent for unchanged visible
+  window signatures, so repeated token snapshots do not repeatedly call native
+  response-window resize/show.
 
 ## Validation Log
 
@@ -184,6 +191,13 @@ visibility/content after SDK `turn_started`.
 - `bin/windie docs list` - passed.
 - `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
 - `cd frontend && npm run lint` - failed on pre-existing unrelated unused-variable errors: `frontend/src/main/ipc.cjs:1408`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:5`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:6`, `frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js:132`, and `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts:338`.
+- `node -c frontend/src/main/sdk_live_turn_surface_controller.cjs && node -c frontend/src/main/index.cjs` - passed after adding SDK typing transition logs and overlay-intent idempotency.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/ChatBoxResponse.state.test.jsx --runInBand` - passed, 2 suites / 33 tests.
+- `cd frontend && npm run typecheck` - passed after adding SDK typing transition logs and rendered typing traces.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/ChatBoxResponse.state.test.jsx ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/LiveSurfaceTraceRuntime.test.cjs --runInBand` - passed, 7 suites / 132 tests.
+- `bin/windie docs list` - passed.
+- `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
+- `cd frontend && npm run lint` - failed only on pre-existing unrelated unused-variable errors: `frontend/src/main/ipc.cjs:1408`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:5`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:6`, `frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js:132`, and `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts:338`.
 
 ## Commits
 
@@ -239,6 +253,9 @@ visibility/content after SDK `turn_started`.
   allowlisted send channel, and main redacts raw strings, arrays, URLs, paths,
   image/screenshot/file fields, tokens, and content before printing terminal
   entries as `process: 'renderer'`.
+- Follow-up inspection confirmed repeated identical SDK overlay intents return
+  `idempotent-visible-intent` before native `setBounds` / `showInactive`, while
+  mode, guard, turn, visibility, or bounds changes still apply normally.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,

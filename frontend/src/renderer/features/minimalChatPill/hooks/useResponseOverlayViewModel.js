@@ -200,7 +200,7 @@ export function useResponseOverlayViewModel({
   const [closedResponseId, setClosedResponseId] = useState(null);
   const lastResolvedTraceSignatureRef = useRef(null);
   const lastTypingVisibleRef = useRef(null);
-  const lastResponseVisibleRef = useRef(null);
+  const lastOverlayIntentModeRef = useRef(null);
   const useSdkLiveTurnPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
 
   const projectedPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
@@ -409,13 +409,25 @@ export function useResponseOverlayViewModel({
         tracePayload.conversationRef,
       );
     }
-    if (lastResponseVisibleRef.current !== responseVisible) {
-      lastResponseVisibleRef.current = responseVisible;
+    const nextOverlayIntentMode = awaitingVisible
+      ? 'awaiting'
+      : (responseVisible ? 'response' : 'hidden');
+    if (lastOverlayIntentModeRef.current !== nextOverlayIntentMode) {
+      lastOverlayIntentModeRef.current = nextOverlayIntentMode;
+      const nextOverlayIntentEvent = nextOverlayIntentMode === 'awaiting'
+        ? 'response_overlay.intent.show_awaiting'
+        : (nextOverlayIntentMode === 'response'
+          ? 'response_overlay.intent.show_response'
+          : 'response_overlay.intent.hide');
       logRendererLiveSurfaceTrace(
-        responseVisible ? 'response_overlay.intent.show_response' : 'response_overlay.intent.hide',
+        nextOverlayIntentEvent,
         {
           ...tracePayload,
-          reason: responseVisible ? 'renderer-view-model-response' : 'renderer-view-model-hidden',
+          reason: nextOverlayIntentMode === 'awaiting'
+            ? 'renderer-view-model-awaiting'
+            : (nextOverlayIntentMode === 'response'
+              ? 'renderer-view-model-response'
+              : 'renderer-view-model-hidden'),
         },
         tracePayload.conversationRef,
       );

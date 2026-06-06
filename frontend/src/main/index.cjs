@@ -79,6 +79,7 @@ const {
 const { createWindowPlatformPolicy } = require('./window_platform_policy.cjs');
 const { createSurfaceRuntime } = require('./surface_runtime.cjs');
 const {
+  createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
 } = require('./sdk_live_turn_surface_controller.cjs');
 const {
@@ -176,6 +177,7 @@ const {
   setManualChatWindowPosition,
   syncContextLabelWindowVisibility,
 } = surfaceRuntime.overlayHelpers;
+const sdkLiveTurnSurfaceState = createSdkLiveTurnSurfaceState();
 
 function syncSdkLiveTurnSurfaceIntent(currentTurn) {
   return handleSdkLiveTurnSurfaceIntent(currentTurn, {
@@ -188,6 +190,7 @@ function syncSdkLiveTurnSurfaceIntent(currentTurn) {
     setResponseOverlayVisibilityState: surfaceRuntime.setResponseOverlayVisibilityState,
     showResponseWindowInactive: surfaceRuntime.overlayHelpers.showResponseWindowInactive,
     syncContextLabelWindowVisibility,
+    surfaceState: sdkLiveTurnSurfaceState,
     log: (...args) => console.log(...args),
     warn: (...args) => console.warn(...args),
   });

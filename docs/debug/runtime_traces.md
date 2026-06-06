@@ -85,10 +85,12 @@ High-value `[LiveSurfaceTrace]` events:
 - `sdk.current_turn.received`
 - `renderer.current_turn.applied`
 - `typing.show` / `typing.hide`
+- `typing.rendered.show` / `typing.rendered.hide`
 - `response_overlay.intent.show_awaiting`
 - `response_overlay.intent.show_response`
 - `response_overlay.intent.hide`
 - `response_overlay.intent.ignored`
+- `response_overlay.intent.noop`
 - `response_overlay.renderer.size_report`
 - `response_overlay.window.show`
 - `response_overlay.window.hide`

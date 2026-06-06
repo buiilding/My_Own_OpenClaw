@@ -59,6 +59,35 @@ function responseBoundsForIntent(intent, getResponseWindowBounds) {
   return getResponseWindowBounds(RESPONSE_OVERLAY_WIDTH, height, { compactHover });
 }
 
+function createSdkLiveTurnSurfaceState() {
+  return {
+    lastAppliedOverlayIntentSignature: null,
+    lastTypingTrace: null,
+  };
+}
+
+function buildVisibleIntentSignature(intent, bounds) {
+  return JSON.stringify({
+    visible: true,
+    mode: intent.mode,
+    turnRef: intent.turnRef,
+    staleGuardRef: intent.staleGuardRef,
+    x: Number(bounds?.x) || 0,
+    y: Number(bounds?.y) || 0,
+    width: Number(bounds?.width) || 0,
+    height: Number(bounds?.height) || 0,
+  });
+}
+
+function buildHiddenIntentSignature(intent) {
+  return JSON.stringify({
+    visible: false,
+    mode: intent.mode,
+    turnRef: intent.turnRef,
+    staleGuardRef: intent.staleGuardRef,
+  });
+}
+
 function shouldIgnoreSdkHide({ activeGuardRef, staleGuardRef }) {
   if (!activeGuardRef) {
     return false;
@@ -67,6 +96,51 @@ function shouldIgnoreSdkHide({ activeGuardRef, staleGuardRef }) {
     return true;
   }
   return staleGuardRef !== activeGuardRef;
+}
+
+function logSdkTypingTransition(currentTurn, intent, state = null) {
+  const presentation = currentTurn?.presentation;
+  if (!presentation || typeof presentation.typingVisible !== 'boolean') {
+    return;
+  }
+  const surfaceState = state || createSdkLiveTurnSurfaceState();
+  const turnSummary = summarizeCurrentTurn(currentTurn);
+  const nextTrace = {
+    visible: presentation.typingVisible === true,
+    turnRef: turnSummary.turnRef,
+    conversationRef: turnSummary.conversationRef,
+  };
+  const previousTrace = surfaceState.lastTypingTrace || null;
+  if (
+    previousTrace
+    && previousTrace.visible === nextTrace.visible
+    && previousTrace.turnRef === nextTrace.turnRef
+    && previousTrace.conversationRef === nextTrace.conversationRef
+  ) {
+    return;
+  }
+  surfaceState.lastTypingTrace = nextTrace;
+
+  if (!nextTrace.visible && previousTrace?.visible !== true) {
+    return;
+  }
+
+  logLiveSurfaceTrace(nextTrace.visible ? 'typing.show' : 'typing.hide', {
+    source: 'sdk-live-turn-surface',
+    reason: nextTrace.visible ? 'sdk-current-turn-typing-visible' : 'sdk-current-turn-typing-hidden',
+    turnRef: turnSummary.turnRef,
+    conversationRef: turnSummary.conversationRef,
+    phase: turnSummary.phase,
+    overlayMode: turnSummary.overlayMode || intent?.mode || null,
+    guardRef: turnSummary.guardRef || intent?.staleGuardRef || null,
+    typingVisible: turnSummary.typingVisible,
+    overlayVisible: turnSummary.overlayVisible,
+    hasVisibleContent: turnSummary.hasVisibleContent,
+    entryCount: turnSummary.entryCount,
+    assistantLength: turnSummary.assistantLength,
+    reasoningLength: turnSummary.reasoningLength,
+    toolEventCount: turnSummary.toolEventCount,
+  });
 }
 
 function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
@@ -80,8 +154,11 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     setResponseOverlayVisibilityState = () => {},
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
+    surfaceState = null,
     log = console.log,
   } = deps;
+
+  const sdkSurfaceState = surfaceState || createSdkLiveTurnSurfaceState();
 
   if (!responseWindow || responseWindow.isDestroyed?.()) {
     return { success: false, reason: 'response-window-unavailable' };
@@ -101,8 +178,24 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     return { success: true, applied: false, reason: 'missing-sdk-overlay-intent' };
   }
 
+  logSdkTypingTransition(currentTurn, intent, sdkSurfaceState);
+
   const activeGuardRef = normalizeString(getActiveResponseOverlayGuardRef());
   if (!intent.visible || intent.mode === 'hidden') {
+    const hiddenSignature = buildHiddenIntentSignature(intent);
+    if (
+      sdkSurfaceState.lastAppliedOverlayIntentSignature === hiddenSignature
+      && safeWindowVisible(responseWindow) === false
+      && getResponseOverlayVisible() === false
+    ) {
+      return {
+        success: true,
+        applied: false,
+        ignored: true,
+        reason: 'idempotent-hidden-intent',
+        visible: false,
+      };
+    }
     if (shouldIgnoreSdkHide({
       activeGuardRef,
       staleGuardRef: intent.staleGuardRef,
@@ -185,10 +278,41 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       responseOverlayVisible: getResponseOverlayVisible(),
     });
+    sdkSurfaceState.lastAppliedOverlayIntentSignature = hiddenSignature;
     return { success: true, applied: true, visible: false };
   }
 
   const bounds = responseBoundsForIntent(intent, getResponseWindowBounds);
+  const visibleSignature = buildVisibleIntentSignature(intent, bounds);
+  if (
+    sdkSurfaceState.lastAppliedOverlayIntentSignature === visibleSignature
+    && safeWindowVisible(responseWindow) === true
+    && getResponseOverlayVisible() === true
+    && (!intent.staleGuardRef || activeGuardRef === intent.staleGuardRef)
+  ) {
+    logLiveSurfaceTrace('response_overlay.intent.noop', {
+      source: 'sdk-live-turn-surface',
+      reason: 'idempotent-sdk-overlay-intent',
+      turnRef: intent.turnRef,
+      conversationRef: intent.conversationRef,
+      phase: getResponseOverlayPhase(),
+      overlayMode: intent.mode,
+      guardRef: intent.staleGuardRef,
+      width: bounds.width,
+      height: bounds.height,
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+    });
+    return {
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'idempotent-visible-intent',
+      visible: true,
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+    };
+  }
   responseWindow.setBounds(bounds, false);
   logLiveSurfaceTrace('response_overlay.window.resize', {
     source: 'sdk-live-turn-surface',
@@ -266,6 +390,7 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       height: bounds.height,
     },
   );
+  sdkSurfaceState.lastAppliedOverlayIntentSignature = visibleSignature;
   return {
     success: true,
     applied: true,
@@ -277,6 +402,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
 }
 
 module.exports = {
+  createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
+  logSdkTypingTransition,
   resolveOverlayIntent,
 };

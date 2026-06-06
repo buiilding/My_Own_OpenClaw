@@ -8,6 +8,7 @@ import { sanitizeMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectLiveTurnSurfaceState } from '../../chat/utils/chatSelectors';
 import {
   logRendererChatPillTrace,
+  logRendererLiveSurfaceTrace,
   logRendererResponseSurfaceTrace,
 } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
@@ -52,6 +53,7 @@ function MinimalResponseOverlay() {
   } = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const shellRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
+  const lastRenderedTypingVisibleRef = useRef(null);
   const {
     responseOverlayEntries,
     latestSourceTaggedResponseEntry,
@@ -92,6 +94,50 @@ function MinimalResponseOverlay() {
     showResponse,
     thinkingText,
   });
+
+  useEffect(() => {
+    const typingRendered = isVisible && showAwaitingReply;
+    if (lastRenderedTypingVisibleRef.current === typingRendered) {
+      return;
+    }
+    lastRenderedTypingVisibleRef.current = typingRendered;
+    logRendererLiveSurfaceTrace(
+      typingRendered ? 'typing.rendered.show' : 'typing.rendered.hide',
+      {
+        source: 'minimal-response-overlay',
+        reason: typingRendered ? 'awaiting-indicator-rendered' : 'awaiting-indicator-not-rendered',
+        turnRef: currentTurnProjection?.turnRef || currentTurnId || null,
+        conversationRef: currentTurnProjection?.conversationRef || null,
+        phase: currentTurnProjection?.phase || 'idle',
+        overlayMode: overlayIntent?.mode || overlayLayoutMode || null,
+        guardRef: overlayIntent?.staleGuardRef
+          || overlayIntent?.turnRef
+          || currentTurnProjection?.turnRef
+          || currentTurnId
+          || null,
+        isVisible,
+        showAwaitingReply,
+        showResponse,
+        layoutMode: overlayLayoutMode,
+        entryCount: responseOverlayEntries.length,
+        hasVisibleContent: responseOverlayEntries.length > 0,
+      },
+      currentTurnProjection?.conversationRef || null,
+    );
+  }, [
+    currentTurnId,
+    currentTurnProjection?.conversationRef,
+    currentTurnProjection?.phase,
+    currentTurnProjection?.turnRef,
+    isVisible,
+    overlayIntent?.mode,
+    overlayIntent?.staleGuardRef,
+    overlayIntent?.turnRef,
+    overlayLayoutMode,
+    responseOverlayEntries.length,
+    showAwaitingReply,
+    showResponse,
+  ]);
 
   useEffect(() => {
     const activeResponseTextLength = typeof latestSourceTaggedResponseEntry?.text === 'string'

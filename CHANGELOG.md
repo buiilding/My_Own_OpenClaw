@@ -23,6 +23,11 @@ All notable changes to WindieOS will be documented in this file.
   policy; `npm run electron:dev` enables the trace automatically, and renderer
   live-surface decisions now forward through a sanitized main-process trace
   channel so the terminal shows one ordered UI/window timeline.
+- frontend/main/renderer: add SDK-owned `typing.show` / `typing.hide` trace
+  transitions, renderer `typing.rendered.show` / `typing.rendered.hide`
+  visibility traces from the actual awaiting indicator, and make repeated SDK
+  response-overlay intents idempotent so unchanged token snapshots no longer
+  re-run native response-window show/resize work.
 - frontend/main: make minimal pill and response overlay live state read the
   latest SDK current-turn presentation instead of active dashboard workspace
   state, store SDK projections before renderer stale side-effect guards, remove
