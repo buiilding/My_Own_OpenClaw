@@ -201,4 +201,4 @@ Initial search findings:
 
 ## Commits
 
-- Pending.
+- `92e9417f1 refactor(frontend): render chat history from sdk display rows`
