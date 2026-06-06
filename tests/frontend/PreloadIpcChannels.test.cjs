@@ -36,6 +36,7 @@ describe('preload IPC channel registry', () => {
     const preloadChannels = {
       SEND_CHANNELS: {
         RENDERER_LOG: 'renderer-log',
+        LIVE_SURFACE_TRACE: 'live-surface-trace',
       },
       INVOKE_CHANNELS: {
         WINDIE_INVOKE: 'windie:invoke',
@@ -100,10 +101,18 @@ describe('preload IPC channel registry', () => {
       source: 'frontend-interaction',
       entry: { action: 'button_clicked' },
     });
+    exposedIpc.send('live-surface-trace', {
+      event: 'typing.show',
+      view: 'minimal-chat-pill',
+    });
 
     expect(ipcRendererMock.send).toHaveBeenCalledWith('renderer-log', {
       source: 'frontend-interaction',
       entry: { action: 'button_clicked' },
+    });
+    expect(ipcRendererMock.send).toHaveBeenCalledWith('live-surface-trace', {
+      event: 'typing.show',
+      view: 'minimal-chat-pill',
     });
   });
 

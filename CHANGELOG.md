@@ -20,7 +20,9 @@ All notable changes to WindieOS will be documented in this file.
   current-turn ingress, renderer current-turn application, typing/response
   visibility, response overlay size IPC, phase resolution, chat-pill
   show/hide, pointer/screenshot leases, content protection, and topmost window
-  policy; `npm run electron:dev` enables the trace automatically.
+  policy; `npm run electron:dev` enables the trace automatically, and renderer
+  live-surface decisions now forward through a sanitized main-process trace
+  channel so the terminal shows one ordered UI/window timeline.
 - frontend/main: make minimal pill and response overlay live state read the
   latest SDK current-turn presentation instead of active dashboard workspace
   state, store SDK projections before renderer stale side-effect guards, remove

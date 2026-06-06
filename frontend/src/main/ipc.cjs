@@ -39,6 +39,9 @@ const {
   handleRendererLog,
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
+  handleRendererLiveSurfaceTrace,
+} = require('./live_surface_trace_runtime.cjs');
+const {
   fetchArtifactImage,
 } = require('./ipc/ipc_artifact_fetch.cjs');
 const {
@@ -1099,6 +1102,10 @@ function initializeIpc(win, options = {}) {
 
   ipcMain.on('renderer-log', (_event, payload = {}) => {
     handleRendererLog(payload);
+  });
+
+  ipcMain.on('live-surface-trace', (_event, payload = {}) => {
+    handleRendererLiveSurfaceTrace(payload);
   });
 
   const {

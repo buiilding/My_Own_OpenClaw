@@ -1,8 +1,10 @@
 /** @jest-environment node */
 
 const {
+  handleRendererLiveSurfaceTrace,
   isLiveSurfaceTraceEnabled,
   logLiveSurfaceTrace,
+  normalizeRendererLiveSurfaceTracePayload,
   summarizeCurrentTurn,
 } = require('../../frontend/src/main/live_surface_trace_runtime.cjs');
 
@@ -80,5 +82,72 @@ describe('live_surface_trace_runtime', () => {
       turnRef: 'turn-1',
     }));
     expect(log.mock.calls[0][1]).not.toHaveProperty('ignored');
+  });
+
+  test('normalizes renderer trace payload without raw content', () => {
+    const normalized = normalizeRendererLiveSurfaceTracePayload({
+      event: 'renderer.overlay_view_model.resolved',
+      process: 'main',
+      ts: '2026-06-06T00:00:00.000Z',
+      view: 'minimal-response-overlay',
+      activeConversationRef: 'conv-1',
+      messageText: 'private message',
+      assistantText: 'private assistant',
+      content: 'private content',
+      textLength: 15,
+      hasVisibleContent: true,
+      entries: [{ text: 'private row' }],
+      lastMessage: {
+        sender: 'assistant',
+        textLength: 9,
+        text: 'private nested row',
+      },
+    });
+
+    expect(normalized).toEqual({
+      event: 'renderer.overlay_view_model.resolved',
+      payload: expect.objectContaining({
+        view: 'minimal-response-overlay',
+        activeConversationRef: 'conv-1',
+        textLength: 15,
+        hasVisibleContent: true,
+        entries: { count: 1 },
+        messageText: '[redacted:string:15]',
+        assistantText: '[redacted:string:17]',
+        content: '[redacted:string:15]',
+        lastMessage: expect.objectContaining({
+          sender: 'assistant',
+          textLength: 9,
+          text: '[redacted:string:18]',
+        }),
+      }),
+    });
+    expect(JSON.stringify(normalized)).not.toContain('private');
+    expect(normalized.payload).not.toHaveProperty('process');
+    expect(normalized.payload).not.toHaveProperty('ts');
+  });
+
+  test('forwards renderer trace to the live surface logger', () => {
+    process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
+    const log = jest.fn();
+
+    expect(handleRendererLiveSurfaceTrace({
+      event: 'typing.show',
+      view: 'minimal-chat-pill',
+      process: 'renderer',
+      messageText: 'private message',
+    }, { log })).toBe(true);
+
+    expect(log).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
+      process: 'renderer',
+      event: 'typing.show',
+      view: 'minimal-chat-pill',
+      messageText: '[redacted:string:15]',
+    }));
+  });
+
+  test('ignores invalid renderer trace payloads', () => {
+    expect(handleRendererLiveSurfaceTrace(null)).toBe(false);
+    expect(handleRendererLiveSurfaceTrace([])).toBe(false);
   });
 });

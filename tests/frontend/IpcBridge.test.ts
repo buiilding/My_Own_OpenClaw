@@ -11,8 +11,8 @@ describe('IpcBridge', () => {
   });
 
   test('send forwards to window.ipc', () => {
-    IpcBridge.send(SEND_CHANNELS.RENDERER_LOG, { hello: 'world' });
-    expect((window as any).ipc.send).toHaveBeenCalledWith('renderer-log', { hello: 'world' });
+    IpcBridge.send(SEND_CHANNELS.LIVE_SURFACE_TRACE, { event: 'typing.show' });
+    expect((window as any).ipc.send).toHaveBeenCalledWith('live-surface-trace', { event: 'typing.show' });
   });
 
   test('invoke forwards to window.ipc and returns result', async () => {

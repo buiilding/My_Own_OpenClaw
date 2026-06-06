@@ -8,6 +8,7 @@ import sharedIpcChannels from '../../../shared/ipcChannels.json';
 export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
   SEND_CHANNELS: {
     RENDERER_LOG: 'renderer-log',
+    LIVE_SURFACE_TRACE: 'live-surface-trace',
     TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
     MOVE_CHATBOX_TO: 'move-chatbox-to',
     WAKEWORD_AUDIO_CHUNK: 'wakeword-audio-chunk',

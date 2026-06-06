@@ -72,9 +72,13 @@ above and include deeper phase/window snapshots.
 
 `npm run electron:dev` enables `[LiveSurfaceTrace]` automatically. In packaged
 or customer-mode launches, set `WINDIE_DEBUG_LIVE_SURFACE=1` to enable the same
-trace. The trace intentionally logs ids, lengths, booleans, modes, counts, and
-window policy state; it does not log full message text, file contents,
-screenshot pixels, or credentials.
+trace. Renderer live-surface decisions are forwarded through the allowlisted
+`live-surface-trace` preload channel and printed by Electron main, so the
+terminal contains both `process: 'main'` and `process: 'renderer'` timeline
+entries. This channel is diagnostics-only; it does not drive window behavior.
+The trace intentionally logs ids, lengths, booleans, modes, counts, and window
+policy state; it does not log full message text, file contents, screenshot
+pixels, or credentials.
 
 High-value `[LiveSurfaceTrace]` events:
 

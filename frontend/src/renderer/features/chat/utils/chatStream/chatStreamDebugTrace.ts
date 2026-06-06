@@ -1,4 +1,5 @@
 import { useChatStore } from '../../stores/chatStore';
+import { IpcBridge, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 
 export function getRendererSearch(): string {
   if (typeof window === 'undefined') {
@@ -119,7 +120,7 @@ export function logRendererLiveSurfaceTrace(
   if (!isRendererLiveSurfaceTraceEnabled()) {
     return;
   }
-  console.log('[LiveSurfaceTrace]', {
+  const payload = {
     ts: new Date().toISOString(),
     process: 'renderer',
     event,
@@ -127,5 +128,11 @@ export function logRendererLiveSurfaceTrace(
     platform: getRendererPlatform(),
     ...summarizeWorkspaceForTrace(conversationRef),
     ...data,
-  });
+  };
+  console.log('[LiveSurfaceTrace]', payload);
+  try {
+    IpcBridge.send(SEND_CHANNELS.LIVE_SURFACE_TRACE, payload);
+  } catch (_error) {
+    // Dev-only trace forwarding should never break renderer presentation.
+  }
 }
