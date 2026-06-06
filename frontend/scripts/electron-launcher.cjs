@@ -4,6 +4,19 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 
+const REPO_ROOT = path.resolve(
+  __dirname,
+  '..',
+  '..',
+);
+
+const DEFAULT_FRONTEND_LOG_FILE = path.resolve(
+  REPO_ROOT,
+  '.windie',
+  'logs',
+  'frontend.log',
+);
+
 function parseOptions(argv) {
   return {
     dev: argv.includes('--dev'),
@@ -77,12 +90,54 @@ function resolveElectronBinaryForPlatform(
   );
 }
 
-function printModeBanner(options) {
-  if (options.dev) {
-    console.log('[WindieOS] Developer mode launch (dev UI/source tags enabled).');
+function resolveFrontendLogFile(env = process.env) {
+  const configured = env.WINDIE_FRONTEND_LOG_FILE;
+  if (configured === '0' || configured === 'false') {
+    return null;
+  }
+  if (typeof configured === 'string' && configured.trim()) {
+    const value = configured.trim();
+    return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
+  }
+  return DEFAULT_FRONTEND_LOG_FILE;
+}
+
+function createFrontendLogStream(logFile = resolveFrontendLogFile()) {
+  if (!logFile) {
+    return null;
+  }
+  fs.mkdirSync(path.dirname(logFile), { recursive: true });
+  const stream = fs.createWriteStream(logFile, { flags: 'a' });
+  stream.write(`\n[WindieOS] frontend log session ${new Date().toISOString()}\n`);
+  stream.on('error', (error) => {
+    console.warn(`[WindieOS] Failed to write frontend log: ${error.message}`);
+  });
+  return stream;
+}
+
+function writeToDestinations(destinations, text) {
+  for (const destination of destinations) {
+    if (destination && typeof destination.write === 'function') {
+      destination.write(text);
+    }
+  }
+}
+
+function printModeBanner(options, logDestination = null) {
+  const line = options.dev
+    ? '[WindieOS] Developer mode launch (dev UI/source tags enabled).'
+    : '[WindieOS] Customer mode launch. Developers should run: npm run electron:dev';
+  console.log(line);
+  logDestination?.write(`${line}\n`);
+}
+
+function printLogCaptureBanner(logFile, logDestination = null) {
+  if (!logFile) {
     return;
   }
-  console.log('[WindieOS] Customer mode launch. Developers should run: npm run electron:dev');
+  const line = `[WindieOS] Frontend logs -> ${logFile}`;
+  console.log(line);
+  logDestination?.write(`${line}\n`);
 }
 
 function buildLaunchEnv(options, baseEnv = process.env) {
@@ -124,6 +179,7 @@ function shouldForwardElectronStderrLine(line, platform = process.platform) {
 
 function pipeFilteredStderr(stream, {
   destination = process.stderr,
+  logDestination = null,
   platform = process.platform,
 } = {}) {
   if (!stream || typeof stream.on !== 'function') {
@@ -139,19 +195,20 @@ function pipeFilteredStderr(stream, {
     buffered = lines.pop() ?? '';
     lines.forEach((line) => {
       if (shouldForwardElectronStderrLine(line, platform)) {
-        destination.write(`${line}\n`);
+        writeToDestinations([destination, logDestination], `${line}\n`);
       }
     });
   });
   stream.on('end', () => {
     if (buffered && shouldForwardElectronStderrLine(buffered, platform)) {
-      destination.write(buffered);
+      writeToDestinations([destination, logDestination], buffered);
     }
   });
 }
 
 function pipeForwardedStdout(stream, {
   destination = process.stdout,
+  logDestination = null,
 } = {}) {
   if (!stream || typeof stream.on !== 'function') {
     return;
@@ -159,13 +216,16 @@ function pipeForwardedStdout(stream, {
 
   stream.setEncoding?.('utf8');
   stream.on('data', (chunk) => {
-    destination.write(String(chunk ?? ''));
+    writeToDestinations([destination, logDestination], String(chunk ?? ''));
   });
 }
 
 function main() {
   const options = parseOptions(process.argv.slice(2));
-  printModeBanner(options);
+  const logFile = resolveFrontendLogFile(process.env);
+  const logStream = createFrontendLogStream(logFile);
+  printModeBanner(options, logStream);
+  printLogCaptureBanner(logFile, logStream);
 
   const env = buildLaunchEnv(options, process.env);
 
@@ -189,19 +249,25 @@ function main() {
     env,
   });
 
-  pipeForwardedStdout(child.stdout);
-  pipeFilteredStderr(child.stderr, { platform: process.platform });
+  pipeForwardedStdout(child.stdout, { logDestination: logStream });
+  pipeFilteredStderr(child.stderr, {
+    logDestination: logStream,
+    platform: process.platform,
+  });
 
   child.on('error', (error) => {
     console.error(`[WindieOS] Failed to launch Electron: ${error.message}`);
+    logStream?.end();
     process.exit(1);
   });
 
   child.on('exit', (code, signal) => {
     if (signal) {
+      logStream?.end();
       process.kill(process.pid, signal);
       return;
     }
+    logStream?.end();
     process.exit(code ?? 0);
   });
 }
@@ -217,6 +283,8 @@ module.exports = {
   parseOptions,
   pipeForwardedStdout,
   pipeFilteredStderr,
+  printLogCaptureBanner,
+  resolveFrontendLogFile,
   resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
   shouldForwardElectronStderrLine,

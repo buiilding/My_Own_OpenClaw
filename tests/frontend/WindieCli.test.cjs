@@ -1,14 +1,20 @@
+const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
 const repoRoot = path.resolve(__dirname, '../..');
 const cliPath = path.join(repoRoot, 'scripts/windie-cli.cjs');
-const { getSpawnPlan } = require('../../scripts/windie/commands.cjs');
+const {
+  buildFrontendLogTailArgs,
+  getSpawnPlan,
+  resolveFrontendLogFile,
+} = require('../../scripts/windie/commands.cjs');
 const frontendDevUrl = process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
 
-function runCli(args) {
+function runCli(args, env = {}) {
   return spawnSync(process.execPath, [cliPath, ...args], {
     cwd: repoRoot,
+    env: { ...process.env, ...env },
     encoding: 'utf8',
   });
 }
@@ -23,6 +29,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('windie start dev');
     expect(result.stdout).toContain('windie start customer');
     expect(result.stdout).toContain('windie start all');
+    expect(result.stdout).toContain('windie logs frontend');
     expect(result.stdout).toContain('windie docs list');
   });
 
@@ -95,6 +102,40 @@ describe('windie CLI', () => {
       args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'test:ci', '--', 'WindieCli'],
       cwd: repoRoot,
     });
+  });
+
+  test('resolves frontend log tail arguments', () => {
+    const defaultLog = path.join(repoRoot, '.windie', 'logs', 'frontend.log');
+    expect(resolveFrontendLogFile({})).toBe(defaultLog);
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '/tmp/frontend.log' }))
+      .toBe('/tmp/frontend.log');
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: 'logs/frontend.log' }))
+      .toBe(path.join(repoRoot, 'logs', 'frontend.log'));
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '0' })).toBeNull();
+
+    expect(buildFrontendLogTailArgs(['--tail', '50'], {})).toEqual({
+      logFile: defaultLog,
+      tailArgs: ['-n', '50', '-F', defaultLog],
+    });
+    expect(buildFrontendLogTailArgs(['--tail', '10', '--no-follow'], {})).toEqual({
+      logFile: defaultLog,
+      tailArgs: ['-n', '10', defaultLog],
+    });
+    expect(() => buildFrontendLogTailArgs(['--tail', 'nope'], {}))
+      .toThrow('--tail must be a positive integer.');
+  });
+
+  test('prints current frontend logs without following', () => {
+    const testLogFile = path.join(repoRoot, '.windie', 'logs', `windie-cli-test-${process.pid}.log`);
+    fs.rmSync(testLogFile, { force: true });
+
+    const result = runCli(
+      ['logs', 'frontend', '--no-follow', '--tail', '3'],
+      { WINDIE_FRONTEND_LOG_FILE: testLogFile },
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('[WindieOS] frontend log');
   });
 
   test('finds docs outside the canonical navigation map', () => {

@@ -34,17 +34,20 @@ LOG_LEVEL=DEBUG bin/windie test backend tests/backend/test_websocket_route.py -q
 
 ## Electron Main Logs
 
-Electron main uses `console.log`, `console.warn`, and `console.error`. The launcher in `frontend/scripts/electron-launcher.cjs` forwards Electron stdout and filters a small set of known Chromium stderr warnings.
+Electron main uses `console.log`, `console.warn`, and `console.error`. The launcher in `frontend/scripts/electron-launcher.cjs` forwards Electron stdout, filters a small set of known Chromium stderr warnings, and appends the forwarded stream to `.windie/logs/frontend.log`.
 
 Useful commands:
 
 ```bash
-cd frontend
 bin/windie start desktop
+bin/windie start dev
+bin/windie logs frontend
+bin/windie logs frontend --tail 500 --no-follow
 WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
 WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
 WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
-npm run test:ghost-cursor
+WINDIE_FRONTEND_LOG_FILE=/tmp/windie-frontend.log bin/windie start desktop
+npm --prefix frontend run test:ghost-cursor
 ```
 
 Important main-process flags:
@@ -55,7 +58,7 @@ Important main-process flags:
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation into renderer URLs and main IPC trace logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables main chat pill trace logs in `frontend/src/main/chat_pill_trace_runtime.cjs`. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
-| `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enabled by `npm run test:ghost-cursor` for OS tool ghost overlay debugging. |
+| `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enabled by `npm --prefix frontend run test:ghost-cursor` for OS tool ghost overlay debugging. |
 
 Chat pill visibility decisions are always logged from Electron main with:
 

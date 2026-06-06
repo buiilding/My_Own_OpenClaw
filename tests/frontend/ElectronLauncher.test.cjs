@@ -6,6 +6,7 @@ const {
   parseOptions,
   pipeForwardedStdout,
   pipeFilteredStderr,
+  resolveFrontendLogFile,
   resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
   shouldForwardElectronStderrLine,
@@ -35,6 +36,21 @@ describe('electron-launcher', () => {
     expect(env.WINDIE_DEV_UI).toBe('1');
     expect(env.WINDIE_DEBUG_LIVE_SURFACE).toBe('1');
     expect(env.ELECTRON_DISABLE_SANDBOX).toBe('1');
+  });
+
+  test('resolveFrontendLogFile defaults to the repo-local frontend log', () => {
+    expect(resolveFrontendLogFile({})).toBe(
+      path.resolve(__dirname, '../../.windie/logs/frontend.log'),
+    );
+  });
+
+  test('resolveFrontendLogFile supports override and disabled values', () => {
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '/tmp/windie-frontend.log' }))
+      .toBe('/tmp/windie-frontend.log');
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: 'logs/frontend.log' }))
+      .toBe(path.resolve(__dirname, '../../logs/frontend.log'));
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '0' })).toBeNull();
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: 'false' })).toBeNull();
   });
 
   test('resolveCondaPythonPath returns null when WINDIE_PYTHON_PATH already set', () => {
@@ -214,6 +230,34 @@ describe('electron-launcher', () => {
     );
   });
 
+  test('pipeFilteredStderr mirrors forwarded stderr to the log destination', () => {
+    const handlers = {};
+    const stream = {
+      setEncoding: jest.fn(),
+      on: jest.fn((event, handler) => {
+        handlers[event] = handler;
+      }),
+    };
+    const destination = {
+      write: jest.fn(),
+    };
+    const logDestination = {
+      write: jest.fn(),
+    };
+
+    pipeFilteredStderr(stream, { destination, logDestination, platform: 'darwin' });
+
+    handlers.data(
+      '[53797:0310/170251.792364:ERROR:sandbox/mac/system_services.cc:35] SetApplicationIsDaemon: ' +
+        'Error Domain=NSOSStatusErrorDomain Code=-50 "paramErr: error in user parameter list" (-50)\n' +
+        '[Main] normal stderr line\n',
+    );
+
+    expect(destination.write).toHaveBeenCalledTimes(1);
+    expect(logDestination.write).toHaveBeenCalledTimes(1);
+    expect(logDestination.write).toHaveBeenCalledWith('[Main] normal stderr line\n');
+  });
+
   test('pipeFilteredStderr drops the known macOS daemon warning and forwards adjacent lines', () => {
     const handlers = {};
     const stream = {
@@ -257,5 +301,28 @@ describe('electron-launcher', () => {
 
     expect(destination.write).toHaveBeenNthCalledWith(1, '[Main] hello from electron\n');
     expect(destination.write).toHaveBeenNthCalledWith(2, '[IPC] more logs\n');
+  });
+
+  test('pipeForwardedStdout mirrors stdout chunks to the log destination', () => {
+    const handlers = {};
+    const stream = {
+      setEncoding: jest.fn(),
+      on: jest.fn((event, handler) => {
+        handlers[event] = handler;
+      }),
+    };
+    const destination = {
+      write: jest.fn(),
+    };
+    const logDestination = {
+      write: jest.fn(),
+    };
+
+    pipeForwardedStdout(stream, { destination, logDestination });
+
+    handlers.data('[Main] hello from electron\n');
+
+    expect(destination.write).toHaveBeenCalledWith('[Main] hello from electron\n');
+    expect(logDestination.write).toHaveBeenCalledWith('[Main] hello from electron\n');
   });
 });

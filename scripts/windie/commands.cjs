@@ -1,5 +1,6 @@
 const fs = require('fs');
 const net = require('net');
+const path = require('path');
 const { findDocs } = require('./docs.cjs');
 const { printCheckList, printJson, printSection } = require('./output.cjs');
 const { FRONTEND_DIR, REPO_ROOT, repoPath } = require('./paths.cjs');
@@ -30,6 +31,7 @@ Lifecycle and logs:
   windie stop
   windie restart desktop
   windie logs backend [--remote --host <host>] [--service backend|tunnel|both]
+  windie logs frontend [--tail <lines>] [--no-follow]
   windie logs desktop
   windie logs sidecar
 
@@ -163,6 +165,54 @@ function frontendReadyPlan() {
 function printNoTrackedProcesses() {
   console.log('No tracked WindieOS background processes found.');
   console.log('Current `windie start ...` commands run in the foreground; use Ctrl-C in that terminal.');
+}
+
+function resolveFrontendLogFile(env = process.env) {
+  const configured = env.WINDIE_FRONTEND_LOG_FILE;
+  if (configured === '0' || configured === 'false') {
+    return null;
+  }
+  if (typeof configured === 'string' && configured.trim()) {
+    const value = configured.trim();
+    return path.isAbsolute(value) ? value : repoPath(value);
+  }
+  return repoPath('.windie', 'logs', 'frontend.log');
+}
+
+function normalizeTailLines(value, fallback = '200') {
+  const raw = value || fallback;
+  if (!/^\d+$/.test(String(raw)) || Number(raw) < 1) {
+    throw new Error('--tail must be a positive integer.');
+  }
+  return String(raw);
+}
+
+function ensureFrontendLogFile(logFile) {
+  if (!logFile) {
+    throw new Error('Frontend log capture is disabled by WINDIE_FRONTEND_LOG_FILE.');
+  }
+  fs.mkdirSync(path.dirname(logFile), { recursive: true });
+  if (!fs.existsSync(logFile)) {
+    fs.writeFileSync(
+      logFile,
+      [
+        '[WindieOS] frontend log file initialized.',
+        'Start a desktop run with: bin/windie start dev',
+        '',
+      ].join('\n'),
+    );
+  }
+}
+
+function buildFrontendLogTailArgs(args, env = process.env) {
+  const logFile = resolveFrontendLogFile(env);
+  const tailLines = normalizeTailLines(optionValue(args, '--tail', '200'));
+  const tailArgs = ['-n', tailLines];
+  if (!hasFlag(args, '--no-follow')) {
+    tailArgs.push('-F');
+  }
+  tailArgs.push(logFile);
+  return { logFile, tailArgs };
 }
 
 function runStatus(args) {
@@ -327,17 +377,17 @@ function runLogs(args) {
     }
     return runForeground(script('scripts/dev/backend-logs'), forwarded, { cwd: REPO_ROOT });
   }
-  if (target === 'desktop') {
-    console.log('Desktop logs are currently emitted by the foreground desktop launcher.');
-    console.log('Run: windie start desktop');
-    return;
+  if (target === 'frontend' || target === 'desktop') {
+    const { logFile, tailArgs } = buildFrontendLogTailArgs(args.slice(1));
+    ensureFrontendLogFile(logFile);
+    return runForeground('tail', tailArgs, { cwd: REPO_ROOT });
   }
   if (target === 'sidecar') {
     console.log('Sidecar logs are forwarded through Electron main stderr in desktop runs.');
     console.log('Run: WINDIE_SIDECAR_LOG_LEVEL=DEBUG windie start desktop');
     return;
   }
-  throw new Error('Usage: windie logs backend|desktop|sidecar');
+  throw new Error('Usage: windie logs backend|frontend|desktop|sidecar');
 }
 
 function runTest(args) {
@@ -749,6 +799,8 @@ module.exports = {
   HELP,
   dispatch,
   getSpawnPlan,
+  buildFrontendLogTailArgs,
   optionValue,
+  resolveFrontendLogFile,
   stripSeparator,
 };

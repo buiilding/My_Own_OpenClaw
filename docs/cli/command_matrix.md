@@ -38,7 +38,9 @@ adapters; document them only when changing the adapter itself.
 | `bin/windie restart desktop` | Restart the Electron development app. |
 | `bin/windie logs backend` | Tail local or configured backend logs. |
 | `bin/windie logs backend --remote --host windie-prod` | Tail remote backend logs through SSH. |
-| `bin/windie logs desktop` | Print current desktop-log collection guidance. |
+| `bin/windie logs frontend` | Tail `.windie/logs/frontend.log`, the captured Electron main/frontend desktop stream. |
+| `bin/windie logs frontend --tail 500 --no-follow` | Print the last 500 captured frontend log lines and exit. |
+| `bin/windie logs desktop` | Alias for `bin/windie logs frontend`. |
 | `bin/windie logs sidecar` | Print current sidecar-log collection guidance. |
 
 ## Tests and Docs

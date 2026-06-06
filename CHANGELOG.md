@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/frontend: capture Electron main/frontend desktop stdout and filtered stderr
+  to `.windie/logs/frontend.log`, add `bin/windie logs frontend` for live
+  tailing that stream, and keep `bin/windie logs desktop` as an alias.
 - frontend/main: mirror SDK live-turn `overlayIntent` directly into Electron
   response-window visibility with guarded fallback bounds so streaming content
   no longer depends on hidden renderer size measurement before the overlay can

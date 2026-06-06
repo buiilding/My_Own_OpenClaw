@@ -28,6 +28,7 @@ surface.
 | `bin/windie start customer` | Start Vite dev server and Electron customer app together. |
 | `bin/windie start all` | Start backend, frontend, and desktop dev processes together. |
 | `bin/windie stop` | Stop tracked Windie dev processes when process tracking exists. |
+| `bin/windie logs frontend` | Tail the captured Electron main/frontend desktop log stream. |
 | `bin/windie logs backend --remote --host windie-prod` | Tail remote backend logs through the guarded backend log command. |
 | `bin/windie test backend` | Run backend tests. |
 | `bin/windie test sidecar` | Run sidecar tests. |

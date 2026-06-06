@@ -33,7 +33,7 @@ LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation and main IPC stream logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables chat pill and response overlay trace logs. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
-| `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enables OS tool ghost overlay debugging; used by `npm run test:ghost-cursor`. |
+| `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enables OS tool ghost overlay debugging; used by `npm --prefix frontend run test:ghost-cursor`. |
 
 Examples:
 
