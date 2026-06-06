@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: make SDK memory public APIs unwrap sidecar RPC envelopes before
+  Electron main returns SDK-shaped command data, and keep stored
+  `assistant_delta` chunks out of historical display rows while preserving live
+  streaming through `currentTurn`.
 - cli: add a first-class `bin/windie` command surface for status, doctor,
   lifecycle, logs, tests, docs, build/package, backend, endpoint, self-host,
   extension, tools, and mock-backend workflows.

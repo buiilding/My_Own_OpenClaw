@@ -2221,10 +2221,31 @@ describe('WindieSdkClient', () => {
 
   test('WindieAgent exposes SDK-owned clear memory and conversation commands', async () => {
     const localRuntimeRpc = jest.fn(async ({ method }) => {
+      if (method === 'list_episodic_memories') {
+        return {
+          success: true,
+          data: {
+            memories: [{ id: 'ep-1', content: 'User: hi\nAssistant: hello' }],
+            count: 1,
+          },
+        };
+      }
+      if (method === 'delete_episodic_memory') {
+        return {
+          success: true,
+          data: {
+            deleted: true,
+            memory_id: 'ep-1',
+          },
+        };
+      }
       if (method === 'clear_local_memory') {
         return {
-          episodic_deleted_count: 2,
-          semantic_deleted_count: 3,
+          success: true,
+          data: {
+            episodic_deleted_count: 2,
+            semantic_deleted_count: 3,
+          },
         };
       }
       return {};
@@ -2261,9 +2282,31 @@ describe('WindieSdkClient', () => {
       payload: { text: 'hello' },
     }));
 
-    await expect(agent.clearMemories({ userId: 'user-1' })).resolves.toEqual({
+    await expect(agent.listMemories({ type: 'episodic' })).resolves.toEqual({
+      memories: [{ id: 'ep-1', content: 'User: hi\nAssistant: hello' }],
+      count: 1,
+    });
+    await expect(agent.deleteMemory({ type: 'episodic', memoryId: 'ep-1' })).resolves.toEqual({
+      deleted: true,
+      memory_id: 'ep-1',
+    });
+    await expect(agent.clearMemories()).resolves.toEqual({
       episodic_deleted_count: 2,
       semantic_deleted_count: 3,
+    });
+    expect(localRuntimeRpc).toHaveBeenCalledWith({
+      method: 'list_episodic_memories',
+      params: {
+        user_id: 'user-1',
+        limit: undefined,
+      },
+    });
+    expect(localRuntimeRpc).toHaveBeenCalledWith({
+      method: 'delete_episodic_memory',
+      params: {
+        user_id: 'user-1',
+        memory_id: 'ep-1',
+      },
     });
     expect(localRuntimeRpc).toHaveBeenCalledWith({
       method: 'clear_local_memory',

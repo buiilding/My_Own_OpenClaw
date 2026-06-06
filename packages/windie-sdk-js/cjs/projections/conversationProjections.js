@@ -249,28 +249,14 @@ function displayRowFromEvent(event, index) {
             content: textFromPayload(event.payload),
         };
     }
-    if (event.type === 'assistant_delta') {
-        return {
-            ...displayRowBase(event, index),
-            role: 'assistant',
-            type: 'assistant_message',
-            content: textFromPayload(event.payload),
-            isStreaming: true,
-        };
+    if (event.type === 'assistant_delta' || event.type === 'reasoning_delta') {
+        return null;
     }
     if (event.type === 'assistant_message') {
         return {
             ...displayRowBase(event, index),
             role: 'assistant',
             type: 'assistant_message',
-            content: textFromPayload(event.payload),
-        };
-    }
-    if (event.type === 'reasoning_delta') {
-        return {
-            ...displayRowBase(event, index),
-            role: 'assistant',
-            type: 'reasoning',
             content: textFromPayload(event.payload),
         };
     }

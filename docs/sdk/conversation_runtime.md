@@ -134,6 +134,14 @@ Renderer surfaces must not fall back from `currentTurn` to renderer
 `streamTracking` remains telemetry/transcript bookkeeping, and
 `response-overlay-phase` remains an Electron window/layout signal only.
 
+The display projection is historical, not live-streaming state. It must render
+complete user, assistant, tool, and terminal error rows from canonical
+conversation events, but it must not render `assistant_delta` or
+`reasoning_delta` as message rows. Those live-only chunks are consumed by
+`snapshot.currentTurn` so dashboard, response overlay, and minimal chat pill can
+show progressive assistant text without duplicating rows when the stored
+conversation is reopened.
+
 ## Store Rule
 
 Stores expose first-class projection loaders, but they should stay dumb:

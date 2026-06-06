@@ -1350,25 +1350,24 @@ function buildWindieSdkCommandHandlers({
     },
     'memories.list': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.list' });
+      requireAuthenticatedCommandUserId();
       return agent.listMemories({
-        userId: requireAuthenticatedCommandUserId(),
         type: normalizeMemoryType(payload.type),
         limit: normalizePositiveInteger(payload.limit),
       });
     },
     'memories.delete': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.delete' });
+      requireAuthenticatedCommandUserId();
       return agent.deleteMemory({
-        userId: requireAuthenticatedCommandUserId(),
         type: normalizeMemoryType(payload.type),
         memoryId: requireCommandString(payload, 'memoryId', 'memory id'),
       });
     },
     'memories.clearAll': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.clearAll' });
-      return agent.clearMemories({
-        userId: requireAuthenticatedCommandUserId(),
-      });
+      requireAuthenticatedCommandUserId();
+      return agent.clearMemories();
     },
     'conversations.list': async (payload = {}) => {
       requireCommandUserId(payload);

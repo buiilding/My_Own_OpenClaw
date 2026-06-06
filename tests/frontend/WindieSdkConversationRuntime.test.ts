@@ -232,17 +232,42 @@ describe('Windie SDK conversation runtime core', () => {
         toolCallId: 'call-readme',
       },
     });
-	    expect(rows[2]).toMatchObject({
-	      role: 'tool',
-	      type: 'tool_output',
-	      content: 'README contents',
-      metadata: {
-        toolName: 'read_file',
-        requestId: 'req-readme',
-        toolCallId: 'call-readme',
-      },
-		    });
-		  });
+		    expect(rows[2]).toMatchObject({
+		      role: 'tool',
+		      type: 'tool_output',
+		      content: 'README contents',
+	      metadata: {
+	        toolName: 'read_file',
+	        requestId: 'req-readme',
+	        toolCallId: 'call-readme',
+	      },
+			    });
+			  });
+
+  test('SDK display rows exclude live-only assistant and reasoning deltas', () => {
+    const events = [
+      event('user_message', { text: 'hey' }),
+      event('reasoning_delta', { text: 'Thinking privately.' }),
+      event('assistant_delta', { text: 'Hey' }),
+      event('assistant_delta', { text: ' there' }),
+      event('assistant_message', { text: 'Hey there' }),
+    ];
+
+    const rows = buildDisplayRows(events);
+
+    expect(rows.map(row => row.type)).toEqual([
+      'user_message',
+      'assistant_message',
+    ]);
+    expect(rows.map(row => row.content)).toEqual([
+      'hey',
+      'Hey there',
+    ]);
+    expect(buildCurrentTurnProjection(events)).toMatchObject({
+      assistantText: 'Hey there',
+      reasoningText: 'Thinking privately.',
+    });
+  });
 
   test('SDK display rows keep distinct tool-call rows when transport event ids collide', () => {
     const firstToolCall = createConversationEvent({

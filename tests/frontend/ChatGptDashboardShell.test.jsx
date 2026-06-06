@@ -28,8 +28,8 @@ function metadataFromConversationRow(row) {
   };
 }
 
-function sdkDataFromLegacyResult(command, legacyResult, commandPayload = {}) {
-  const data = legacyResult?.data ?? {};
+function sdkDataFromCommandResult(command, commandResult, commandPayload = {}) {
+  const data = commandResult?.data ?? {};
   if (command === 'conversations.list' || command === 'conversations.search') {
     return (Array.isArray(data.conversations) ? data.conversations : []).map(metadataFromConversationRow);
   }
@@ -53,35 +53,6 @@ function sdkDataFromLegacyResult(command, legacyResult, commandPayload = {}) {
   return data;
 }
 
-function legacyInvokeForSdkCommand(command, payload = {}) {
-  if (command === 'conversations.list') {
-    return ['list-chat-conversations', {
-      userId: payload.userId,
-      limit: payload.limit,
-    }];
-  }
-  if (command === 'conversations.search') {
-    return ['search-chat-conversations', {
-      userId: payload.userId,
-      query: payload.query,
-      limit: payload.limit,
-    }];
-  }
-  if (command === 'conversation.load') {
-    return ['get-chat-events', {
-      userId: payload.userId,
-      conversationId: payload.conversationRef,
-    }];
-  }
-  if (command === 'conversations.delete') {
-    return ['delete-chat-conversation', {
-      userId: payload.userId,
-      conversationId: payload.conversationRef,
-    }];
-  }
-  return null;
-}
-
 function hasSdkCommandCall(command, payload = {}) {
   return mockInvoke.mock.calls.some(([, envelope]) => (
     envelope?.command === command
@@ -96,14 +67,11 @@ async function handleSdkCommandFromMockInvoke(args, implementation) {
     return null;
   }
   const payload = sdkEnvelope.payload || {};
-  const legacy = legacyInvokeForSdkCommand(command, payload);
-  const legacyResult = legacy
-    ? await implementation(...legacy)
-    : { success: true, data: {} };
+  const commandResult = await implementation(command, payload);
   return {
-    ok: legacyResult?.success !== false,
-    data: sdkDataFromLegacyResult(command, legacyResult, payload),
-    error: legacyResult?.error,
+    ok: commandResult?.ok ?? commandResult?.success !== false,
+    data: sdkDataFromCommandResult(command, commandResult, payload),
+    error: commandResult?.error,
   };
 }
 
@@ -112,25 +80,15 @@ const mockInvoke = jest.fn(async (...args) => {
   if (channel === 'get-client-user-id') {
     return mockClientSnapshot;
   }
-  if (channel === 'list-chat-conversations') {
-    return {
-      success: true,
-      data: { conversations: [] },
-    };
-  }
-  if (channel === 'get-chat-events') {
-    return {
-      success: true,
-      data: { memories: [] },
-    };
-  }
-  if (channel === 'search-chat-conversations') {
-    return {
-      success: true,
-      data: { conversations: [] },
-    };
-  }
-  const sdkResult = await handleSdkCommandFromMockInvoke(args, async () => ({ success: true, data: {} }));
+  const sdkResult = await handleSdkCommandFromMockInvoke(args, async (command) => {
+    if (command === 'conversations.list' || command === 'conversations.search') {
+      return { success: true, data: { conversations: [] } };
+    }
+    if (command === 'conversation.load') {
+      return { success: true, data: { events: [] } };
+    }
+    return { success: true, data: {} };
+  });
   if (sdkResult) {
     return sdkResult;
   }
@@ -188,14 +146,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     },
   },
   INVOKE_CHANNELS: {
-    LIST_CONVERSATIONS: 'list-chat-conversations',
-    GET_CONVERSATION: 'get-chat-events',
-    SEARCH_CONVERSATIONS: 'search-chat-conversations',
-    DELETE_CONVERSATION: 'delete-chat-conversation',
-    LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
-    GET_CHAT_EVENTS: 'get-chat-events',
-    SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
-    DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
+    WINDIE_INVOKE: 'windie:invoke',
     SET_ACTIVE_WORKSPACE: 'set-active-workspace',
     GET_CLIENT_USER_ID: 'get-client-user-id',
   },
@@ -307,7 +258,7 @@ describe('ChatGptDashboardShell', () => {
     mockSessionInfo = { conversationRef: null, userId: LOCAL_SNAPSHOT_USER_ID };
     useChatStore.setState({ activeConversationRef: 'conv-store-active' });
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         return {
           success: true,
           data: {
@@ -321,13 +272,13 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'get-chat-events') {
+      if (channel === 'conversation.load') {
         return {
           success: true,
           data: { memories: [] },
         };
       }
-      if (channel === 'search-chat-conversations') {
+      if (channel === 'conversations.search') {
         return {
           success: true,
           data: { conversations: [] },
@@ -451,7 +402,7 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         listCallCount += 1;
         return {
           success: true,
@@ -509,7 +460,7 @@ describe('ChatGptDashboardShell', () => {
   test('opens recent conversation from sidebar history list', async () => {
     const nowIso = new Date().toISOString();
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         return {
           success: true,
           data: {
@@ -524,7 +475,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'get-chat-events') {
+      if (channel === 'conversation.load') {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
@@ -553,7 +504,7 @@ describe('ChatGptDashboardShell', () => {
       if (channel === 'get-client-user-id') {
         return mockClientSnapshot;
       }
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         return {
           success: true,
           data: {
@@ -589,7 +540,7 @@ describe('ChatGptDashboardShell', () => {
       },
     }));
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         return {
           success: true,
           data: {
@@ -604,7 +555,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'get-chat-events') {
+      if (channel === 'conversation.load') {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
@@ -630,7 +581,7 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     mockSessionInfo = { conversationRef: 'conv-history-1', userId: 'default_user' };
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         return {
           success: true,
           data: {
@@ -645,7 +596,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'get-chat-events') {
+      if (channel === 'conversation.load') {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
@@ -660,7 +611,7 @@ describe('ChatGptDashboardShell', () => {
   test('conversation kebab menu shows only rename, pin, and delete actions', async () => {
     const nowIso = new Date().toISOString();
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         return {
           success: true,
           data: {
@@ -693,7 +644,7 @@ describe('ChatGptDashboardShell', () => {
   test('delete action from conversation kebab menu calls the SDK delete command', async () => {
     const nowIso = new Date().toISOString();
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         return {
           success: true,
           data: {
@@ -708,7 +659,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'delete-chat-conversation') {
+      if (channel === 'conversations.delete') {
         return { success: true, data: {} };
       }
       return { success: true, data: {} };
@@ -759,7 +710,7 @@ describe('ChatGptDashboardShell', () => {
       if (channel === 'get-client-user-id') {
         return mockClientSnapshot;
       }
-      if (channel !== 'list-chat-conversations') {
+      if (channel !== 'conversations.list') {
         return { success: true, data: {} };
       }
       if (payload?.userId === LOCAL_SNAPSHOT_USER_ID) {
@@ -823,7 +774,7 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         listCallCount += 1;
         if (listCallCount === 1) {
           return {
@@ -865,7 +816,7 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         listCallCount += 1;
         if (listCallCount === 1) {
           return {
@@ -933,7 +884,7 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         listCallCount += 1;
         if (listCallCount === 1) {
           return {
@@ -1011,7 +962,7 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-      if (channel === 'list-chat-conversations') {
+      if (channel === 'conversations.list') {
         listCallCount += 1;
         if (listCallCount === 1) {
           return {
@@ -1118,7 +1069,7 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     try {
       mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
-        if (channel === 'list-chat-conversations') {
+        if (channel === 'conversations.list') {
           return {
             success: true,
             data: {
@@ -1139,7 +1090,7 @@ describe('ChatGptDashboardShell', () => {
             },
           };
         }
-        if (channel === 'search-chat-conversations') {
+        if (channel === 'conversations.search') {
           return {
             success: true,
             data: {
@@ -1156,7 +1107,7 @@ describe('ChatGptDashboardShell', () => {
             },
           };
         }
-        if (channel === 'get-chat-events') {
+        if (channel === 'conversation.load') {
           return { success: true, data: { memories: [] } };
         }
         return { success: true, data: {} };

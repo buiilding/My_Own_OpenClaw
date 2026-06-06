@@ -20,6 +20,27 @@ function logMemoryRetrievalDiagnostic(diagnostic) {
     ].filter(Boolean).join(' ');
     console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
 }
+function normalizeJsonRecord(value) {
+    return value && typeof value === 'object' && !Array.isArray(value)
+        ? value
+        : null;
+}
+function unwrapLocalRuntimeRpcData(response, fallbackMessage) {
+    const record = normalizeJsonRecord(response);
+    if (!record) {
+        throw new Error(fallbackMessage);
+    }
+    if (record.success === false) {
+        const message = typeof record.error === 'string' && record.error.trim()
+            ? record.error.trim()
+            : fallbackMessage;
+        throw new Error(message);
+    }
+    if (record.success === true || Object.prototype.hasOwnProperty.call(record, 'data')) {
+        return normalizeJsonRecord(record.data) ?? {};
+    }
+    return record;
+}
 class WindieAgent {
     constructor(id, session, agentDefinition, sdkClient, owner, localRuntime, userId = 'local-sdk-user', defaultConversationStore = new InMemoryConversationStore_js_1.InMemoryConversationStore(), memoryEnabled = true, localToolLifecycle) {
         this.id = id;
@@ -220,10 +241,10 @@ class WindieAgent {
         const payload = typeof query === 'string' ? { query } : query;
         const text = payload.query ?? '';
         const embedding = await this.sdkClient.embeddings.create({ text });
-        return this.callLocalRuntimeRpc('search_memory_by_embedding', {
+        return this.callLocalRuntimeRpcData('search_memory_by_embedding', {
             embedding: embedding.embedding,
             embedding_space_version: embedding.embedding_space_version,
-            user_id: payload.userId,
+            user_id: payload.userId ?? this.userId,
             limit: payload.limit,
             memory_type: payload.memoryType,
             exclude_conversation_id: payload.excludeConversationId,
@@ -233,10 +254,19 @@ class WindieAgent {
         });
     }
     async listMemories(options) {
-        return this.callLocalRuntimeRpc(options.type === 'semantic' ? 'list_semantic_memories' : 'list_episodic_memories', {
-            user_id: options.userId,
+        const data = await this.callLocalRuntimeRpcData(options.type === 'semantic' ? 'list_semantic_memories' : 'list_episodic_memories', {
+            user_id: options.userId ?? this.userId,
             limit: options.limit,
         });
+        const memories = Array.isArray(data.memories) ? data.memories : [];
+        const count = typeof data.count === 'number' && Number.isFinite(data.count)
+            ? data.count
+            : memories.length;
+        return {
+            ...data,
+            memories,
+            count,
+        };
     }
     async storeMemory(input) {
         const content = (0, ContextEnrichmentPipeline_js_1.formatCompletedTurnMemory)({
@@ -244,8 +274,8 @@ class WindieAgent {
             assistantResponse: input.assistantResponse,
         });
         const embedding = await this.sdkClient.embeddings.create({ text: content });
-        return this.callLocalRuntimeRpc('store_memory_by_embedding', {
-            user_id: input.userId,
+        return this.callLocalRuntimeRpcData('store_memory_by_embedding', {
+            user_id: input.userId ?? this.userId,
             content,
             embedding: embedding.embedding,
             embedding_space_version: embedding.embedding_space_version,
@@ -254,14 +284,14 @@ class WindieAgent {
         });
     }
     async deleteMemory(options) {
-        return this.callLocalRuntimeRpc(options.type === 'semantic' ? 'delete_semantic_memory' : 'delete_episodic_memory', {
-            user_id: options.userId,
+        return this.callLocalRuntimeRpcData(options.type === 'semantic' ? 'delete_semantic_memory' : 'delete_episodic_memory', {
+            user_id: options.userId ?? this.userId,
             memory_id: options.memoryId,
         });
     }
     async clearMemories(options = {}) {
-        return this.callLocalRuntimeRpc('clear_local_memory', {
-            user_id: options.userId,
+        return await this.callLocalRuntimeRpcData('clear_local_memory', {
+            user_id: options.userId ?? this.userId,
         });
     }
     async listTools() {
@@ -373,6 +403,10 @@ class WindieAgent {
             throw new Error(`Local runtime RPC is required for ${method}`);
         }
         return this.localRuntime.rpc({ method, params });
+    }
+    async callLocalRuntimeRpcData(method, params) {
+        const result = await this.callLocalRuntimeRpc(method, params);
+        return unwrapLocalRuntimeRpcData(result, `Local runtime RPC failed for ${method}`);
     }
     buildQueryInput(text, options) {
         const { model: _model, ...queryOptions } = options;

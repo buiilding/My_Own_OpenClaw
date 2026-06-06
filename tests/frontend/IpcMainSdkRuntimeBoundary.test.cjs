@@ -82,7 +82,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('handleWindieSdkInvoke(event, payload, { method');
 
     const memoryHandlers = source.match(/'memories\.list'[\s\S]*?'conversations\.list'/)?.[0] || '';
-    expect(memoryHandlers).toContain('userId: requireAuthenticatedCommandUserId()');
+    expect(memoryHandlers).toContain('requireAuthenticatedCommandUserId();');
+    expect(memoryHandlers).not.toContain('userId: requireAuthenticatedCommandUserId()');
     expect(memoryHandlers).not.toContain('requireCommandUserId(payload)');
   });
 });

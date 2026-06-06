@@ -189,10 +189,22 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 
 ## Dashboard Read APIs
 
-The Electron renderer reads local data through sidecar JSON-RPC handlers exposed over IPC:
-- `list_chat_conversations` + `get_chat_events` for chat history and replay.
-- `list_episodic_memories` for completed interaction memories.
-- `list_semantic_memories` for semantic-memory browsing in the Semantic Memory tab.
+The Electron renderer reads local data through SDK-shaped `windie.invoke(...)`
+commands. Electron main allowlists those commands and calls public SDK APIs on
+the live agent/runtime. The SDK owns sidecar RPC unwrapping and returns
+renderer-facing payload shapes.
+
+- `memories.list` lists completed interaction memories or semantic memories
+  through SDK memory APIs. Renderer receives `{ memories, count }`, not the
+  sidecar JSON-RPC envelope.
+- `conversation.load` loads chat history display and backend rehydrate
+  snapshots through SDK projections over canonical `chat_events`.
+- `conversations.list` and `conversations.search` list/search chat metadata
+  through SDK conversation store APIs.
+
+Renderer feature code must not call sidecar-style channels such as
+`list_episodic_memories`, `list_semantic_memories`, `list_chat_conversations`,
+or `get_chat_events` for user-facing memory or chat concepts.
 
 Current title behavior for chats:
 - A new chat can appear in `Your chats` after the first chat event is stored.
@@ -211,6 +223,10 @@ WindieOS now persists one first-class SDK conversation representation for chat h
 SDK event behavior:
 
 - New desktop transcript projections are stored as canonical SDK events.
+- SDK historical display projections exclude live-only `assistant_delta` and
+  `reasoning_delta` chunks. Those deltas remain canonical events for live
+  `currentTurn` projection and backend/replay bookkeeping, but they are not
+  rendered as historical assistant rows.
 - History compaction stores a complete `compaction_applied` event with replacement history entries.
 - Chat delete and replay/edit rewind flows clear canonical chat-event rows before any event rebuild.
 - Reopening a chat loads display and rehydrate snapshots from SDK projections over event rows.
