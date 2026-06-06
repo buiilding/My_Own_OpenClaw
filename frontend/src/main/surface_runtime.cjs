@@ -103,7 +103,7 @@ function createSurfaceRuntime({
     activeResponseOverlayCorrelationId: null,
     activeResponseOverlayGuardRef: null,
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
-    chatboxHitTestActive: true,
+    chatboxHitTestActive: false,
     chatPillUserHidden: initialChatPillUserHidden === true,
     startupChatPillShowHandled: false,
     primarySurface: 'dashboard',

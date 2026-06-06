@@ -45,107 +45,6 @@ import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
 
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
-const CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON = 1;
-const COMPOSER_SIZE_STATE = Object.freeze({
-  COMPACT: 'compact',
-  EXPANDED: 'expanded',
-  EXPANDED_CLAMPED: 'expanded-clamped',
-  COLLAPSE_FREEZE: 'collapse-freeze',
-  COLLAPSE_RELEASE: 'collapse-release',
-});
-
-function measureComposerContentMetrics(inputElement) {
-  if (!inputElement) {
-    return {
-      height: 0,
-      isClamped: false,
-      maxHeight: CHATBOX_COMPOSER_MAX_HEIGHT,
-      minHeight: 1,
-      rawHeight: 0,
-    };
-  }
-
-  const computedStyle = (
-    typeof window !== 'undefined'
-    && typeof window.getComputedStyle === 'function'
-  )
-    ? window.getComputedStyle(inputElement)
-    : null;
-  const minHeight = Math.max(1, Math.round(Number.parseFloat(computedStyle?.minHeight) || 0));
-  const maxHeight = Math.max(
-    minHeight,
-    Math.round(Number.parseFloat(computedStyle?.maxHeight) || CHATBOX_COMPOSER_MAX_HEIGHT),
-  );
-
-  if (typeof document === 'undefined' || typeof document.createElement !== 'function') {
-    const rawHeight = Math.max(minHeight, Math.round(Number(inputElement.scrollHeight) || 0));
-    return {
-      height: Math.max(minHeight, Math.min(rawHeight, maxHeight)),
-      isClamped: rawHeight > maxHeight + CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON,
-      maxHeight,
-      minHeight,
-      rawHeight,
-    };
-  }
-
-  const rect = inputElement.getBoundingClientRect?.();
-  const measuredWidth = Math.max(
-    1,
-    Math.round(Number(rect?.width) || Number(inputElement.offsetWidth) || 0),
-  );
-  const measurementElement = document.createElement('textarea');
-  measurementElement.className = inputElement.className;
-  measurementElement.value = inputElement.value || '';
-  measurementElement.rows = inputElement.rows || 1;
-  measurementElement.setAttribute('aria-hidden', 'true');
-  measurementElement.tabIndex = -1;
-  measurementElement.style.position = 'fixed';
-  measurementElement.style.left = '-10000px';
-  measurementElement.style.top = '0';
-  measurementElement.style.width = `${measuredWidth}px`;
-  measurementElement.style.height = 'auto';
-  measurementElement.style.minHeight = '0';
-  measurementElement.style.maxHeight = 'none';
-  measurementElement.style.overflow = 'hidden';
-  measurementElement.style.visibility = 'hidden';
-  measurementElement.style.pointerEvents = 'none';
-  measurementElement.style.contain = 'layout style';
-
-  if (computedStyle) {
-    [
-      'borderBottomWidth',
-      'borderLeftWidth',
-      'borderRightWidth',
-      'borderTopWidth',
-      'boxSizing',
-      'fontFamily',
-      'fontSize',
-      'fontStyle',
-      'fontWeight',
-      'letterSpacing',
-      'lineHeight',
-      'paddingBottom',
-      'paddingLeft',
-      'paddingRight',
-      'paddingTop',
-      'textTransform',
-      'wordSpacing',
-    ].forEach((propertyName) => {
-      measurementElement.style[propertyName] = computedStyle[propertyName];
-    });
-  }
-
-  document.body.appendChild(measurementElement);
-  const measuredHeight = Math.max(minHeight, Math.round(Number(measurementElement.scrollHeight) || 0));
-  measurementElement.remove();
-  return {
-    height: Math.max(minHeight, Math.min(measuredHeight, maxHeight)),
-    isClamped: measuredHeight > maxHeight + CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON,
-    maxHeight,
-    minHeight,
-    rawHeight: measuredHeight,
-  };
-}
 
 function MinimalChatPill() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
@@ -164,8 +63,6 @@ function MinimalChatPill() {
   });
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [reservedChatboxFrameHeight, setReservedChatboxFrameHeight] = useState(null);
-  const [composerSizeState, setComposerSizeState] = useState(COMPOSER_SIZE_STATE.COMPACT);
-  const [composerCollapseSnapshot, setComposerCollapseSnapshot] = useState(null);
   const inputRef = useRef(null);
   const pillRef = useRef(null);
   const shellRef = useRef(null);
@@ -173,9 +70,6 @@ function MinimalChatPill() {
   const closeButtonAnchorFrameRef = useRef(null);
   const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
   const composerResizeSequenceRef = useRef(0);
-  const composerSizeStateRef = useRef(COMPOSER_SIZE_STATE.COMPACT);
-  const composerCollapseSnapshotRef = useRef(null);
-  const composerCollapseFrameRef = useRef(null);
   const reservedChatboxFrameHeightRef = useRef(null);
   const nativeFrameCollapseTimeoutRef = useRef(null);
   const lastLoggedPillStateRef = useRef('');
@@ -246,36 +140,12 @@ function MinimalChatPill() {
     reservedChatboxFrameHeightRef.current = reservedChatboxFrameHeight;
   }, [reservedChatboxFrameHeight]);
 
-  useEffect(() => {
-    composerSizeStateRef.current = composerSizeState;
-  }, [composerSizeState]);
-
-  useEffect(() => {
-    composerCollapseSnapshotRef.current = composerCollapseSnapshot;
-  }, [composerCollapseSnapshot]);
-
-  const setComposerSizeStateValue = useCallback((nextState) => {
-    if (composerSizeStateRef.current === nextState) {
-      return;
-    }
-    composerSizeStateRef.current = nextState;
-    setComposerSizeState(nextState);
-  }, []);
-
   const clearNativeFrameCollapse = useCallback(() => {
     if (nativeFrameCollapseTimeoutRef.current === null) {
       return;
     }
     window.clearTimeout?.(nativeFrameCollapseTimeoutRef.current);
     nativeFrameCollapseTimeoutRef.current = null;
-  }, []);
-
-  const clearComposerCollapseFrame = useCallback(() => {
-    if (composerCollapseFrameRef.current === null) {
-      return;
-    }
-    window.cancelAnimationFrame?.(composerCollapseFrameRef.current);
-    composerCollapseFrameRef.current = null;
   }, []);
 
   const resolveNativeFrameHeightForShellHeight = useCallback((shellHeight) => {
@@ -295,53 +165,7 @@ function MinimalChatPill() {
     setReservedChatboxFrameHeight(normalizedFrameHeight);
   }, []);
 
-  const applyComposerHeight = useCallback((height) => {
-    if (!inputRef.current) {
-      return;
-    }
-    inputRef.current.style.height = `${height}px`;
-  }, []);
-
-  const createComposerCollapseSnapshot = useCallback(() => {
-    const shellHeight = Math.max(
-      1,
-      Math.round(shellRef.current?.offsetHeight || 0),
-    );
-    const pillHeight = Math.max(
-      1,
-      Math.round(pillRef.current?.offsetHeight || shellHeight),
-    );
-    const anchorHeight = resolveChatboxVisualAnchorHeight({
-      hasImagePreview: hasAttachmentPreview,
-      shellHeight,
-    });
-    const frameHeight = Math.max(
-      resolveNativeFrameHeightForShellHeight(shellHeight),
-      reservedChatboxFrameHeightRef.current || 0,
-    );
-    return {
-      anchorHeight,
-      frameHeight,
-      pillHeight,
-      shellHeight,
-    };
-  }, [hasAttachmentPreview, resolveNativeFrameHeightForShellHeight]);
-
-  const setComposerCollapseSnapshotValue = useCallback((snapshot) => {
-    composerCollapseSnapshotRef.current = snapshot;
-    setComposerCollapseSnapshot(snapshot);
-  }, []);
-
-  const resolveComposerSizeStateForMetrics = useCallback((metrics, isEmptyComposer) => {
-    if (isEmptyComposer || metrics.height <= metrics.minHeight + CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON) {
-      return COMPOSER_SIZE_STATE.COMPACT;
-    }
-    return metrics.isClamped
-      ? COMPOSER_SIZE_STATE.EXPANDED_CLAMPED
-      : COMPOSER_SIZE_STATE.EXPANDED;
-  }, []);
-
-  const scheduleNativeFrameCollapse = useCallback((onCollapse = null) => {
+  const scheduleNativeFrameCollapse = useCallback(() => {
     clearNativeFrameCollapse();
     nativeFrameCollapseTimeoutRef.current = window.setTimeout(() => {
       nativeFrameCollapseTimeoutRef.current = null;
@@ -355,7 +179,6 @@ function MinimalChatPill() {
       });
       reservedChatboxFrameHeightRef.current = null;
       setReservedChatboxFrameHeight(null);
-      onCollapse?.();
       IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
         height: nextAnchorHeight,
       }).catch((error) => {
@@ -364,77 +187,11 @@ function MinimalChatPill() {
     }, CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS);
   }, [clearNativeFrameCollapse, hasAttachmentPreview]);
 
-  const finishComposerCollapse = useCallback(() => {
-    setComposerCollapseSnapshotValue(null);
-    setComposerSizeStateValue(COMPOSER_SIZE_STATE.COMPACT);
-  }, [setComposerCollapseSnapshotValue, setComposerSizeStateValue]);
-
-  const runClampedComposerCollapse = useCallback(({
-    nextHeight,
-    sequence,
-    snapshot,
-  }) => {
-    const inputElement = inputRef.current;
-    if (!inputElement) {
-      return;
-    }
-
-    clearNativeFrameCollapse();
-    clearComposerCollapseFrame();
-    setComposerCollapseSnapshotValue(snapshot);
-    setComposerSizeStateValue(COMPOSER_SIZE_STATE.COLLAPSE_FREEZE);
-    setReservedNativeFrameHeight(snapshot.frameHeight);
-    inputElement.scrollTop = 0;
-    applyComposerHeight(CHATBOX_COMPOSER_MAX_HEIGHT);
-
-    const scheduleNextFrame = (callback) => {
-      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-        callback();
-        return;
-      }
-      composerCollapseFrameRef.current = window.requestAnimationFrame(() => {
-        composerCollapseFrameRef.current = null;
-        callback();
-      });
-    };
-
-    scheduleNextFrame(() => {
-      if (composerResizeSequenceRef.current !== sequence) {
-        return;
-      }
-      setComposerSizeStateValue(COMPOSER_SIZE_STATE.COLLAPSE_RELEASE);
-      scheduleNextFrame(() => {
-        if (composerResizeSequenceRef.current !== sequence) {
-          return;
-        }
-        inputRef.current?.style.setProperty('height', `${nextHeight}px`);
-        if (inputRef.current) {
-          inputRef.current.scrollTop = 0;
-        }
-        scheduleNativeFrameCollapse(() => {
-          if (composerResizeSequenceRef.current === sequence) {
-            finishComposerCollapse();
-          }
-        });
-      });
-    });
-  }, [
-    applyComposerHeight,
-    clearComposerCollapseFrame,
-    clearNativeFrameCollapse,
-    finishComposerCollapse,
-    scheduleNativeFrameCollapse,
-    setComposerCollapseSnapshotValue,
-    setComposerSizeStateValue,
-    setReservedNativeFrameHeight,
-  ]);
-
   useEffect(() => {
     return () => {
       clearNativeFrameCollapse();
-      clearComposerCollapseFrame();
     };
-  }, [clearComposerCollapseFrame, clearNativeFrameCollapse]);
+  }, [clearNativeFrameCollapse]);
 
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
@@ -513,6 +270,13 @@ function MinimalChatPill() {
     sessionInfo?.conversationRef,
   ]);
 
+  const applyComposerHeight = useCallback((height) => {
+    if (!inputRef.current) {
+      return;
+    }
+    inputRef.current.style.height = `${height}px`;
+  }, []);
+
   const resizeComposer = useCallback(() => {
     const inputElement = inputRef.current;
     if (!inputElement) {
@@ -523,46 +287,26 @@ function MinimalChatPill() {
       1,
       Math.round(inputElement.getBoundingClientRect?.().height || inputElement.offsetHeight || 0),
     );
-    const composerMetrics = measureComposerContentMetrics(inputElement);
-    const nextHeight = composerMetrics.height;
+    const previousHeightStyle = inputElement.style.height;
+    inputElement.style.height = 'auto';
+    const nextHeight = Math.min(inputElement.scrollHeight, CHATBOX_COMPOSER_MAX_HEIGHT);
+    inputElement.style.height = previousHeightStyle;
     if (!Number.isFinite(nextHeight) || nextHeight <= 0) {
       return;
     }
 
     const sequence = composerResizeSequenceRef.current + 1;
     composerResizeSequenceRef.current = sequence;
-    const isEmptyComposer = !inputValue.trim() && !hasAttachmentPreview;
-    const currentComposerSizeState = composerSizeStateRef.current;
 
     if (nextHeight <= currentHeight) {
-      const isDeletingFromClampedComposer = (
-        isEmptyComposer
-        && currentComposerSizeState === COMPOSER_SIZE_STATE.EXPANDED_CLAMPED
-        && currentHeight >= composerMetrics.maxHeight - CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON
-        && nextHeight < currentHeight
-      );
-      if (isDeletingFromClampedComposer) {
-        runClampedComposerCollapse({
-          nextHeight,
-          sequence,
-          snapshot: createComposerCollapseSnapshot(),
-        });
-        return;
-      }
-
-      clearComposerCollapseFrame();
-      setComposerCollapseSnapshotValue(null);
-      setComposerSizeStateValue(resolveComposerSizeStateForMetrics(composerMetrics, isEmptyComposer));
       applyComposerHeight(nextHeight);
-      if (isEmptyComposer) {
+      if (!inputValue.trim() && !hasAttachmentPreview) {
         scheduleNativeFrameCollapse();
       }
       return;
     }
 
     clearNativeFrameCollapse();
-    clearComposerCollapseFrame();
-    setComposerCollapseSnapshotValue(null);
     const shellElement = shellRef.current;
     const currentShellHeight = Math.max(
       1,
@@ -578,7 +322,6 @@ function MinimalChatPill() {
     );
     const expandedFrameHeight = resolveNativeFrameHeightForShellHeight(expandedShellHeight);
     const currentReservedFrameHeight = reservedChatboxFrameHeightRef.current;
-    setComposerSizeStateValue(resolveComposerSizeStateForMetrics(composerMetrics, false));
     setReservedNativeFrameHeight(expandedFrameHeight);
 
     if (
@@ -610,17 +353,11 @@ function MinimalChatPill() {
     });
   }, [
     applyComposerHeight,
-    clearComposerCollapseFrame,
     clearNativeFrameCollapse,
-    createComposerCollapseSnapshot,
     hasAttachmentPreview,
     inputValue,
     resolveNativeFrameHeightForShellHeight,
-    resolveComposerSizeStateForMetrics,
-    runClampedComposerCollapse,
     scheduleNativeFrameCollapse,
-    setComposerCollapseSnapshotValue,
-    setComposerSizeStateValue,
     setReservedNativeFrameHeight,
   ]);
 
@@ -711,11 +448,45 @@ function MinimalChatPill() {
   }, [sessionInfo?.conversationRef]);
 
   useEffect(() => {
-    setChatboxHitTestActive(true);
+    setChatboxHitTestActive(false);
     return () => {
-      setChatboxHitTestActive(true);
+      setChatboxHitTestActive(false);
     };
   }, [setChatboxHitTestActive]);
+
+  const syncChatboxHitTestForPointer = useCallback((event) => {
+    const pillBounds = pillRef.current?.getBoundingClientRect?.();
+    if (!pillBounds) {
+      setChatboxHitTestActive(false);
+      return;
+    }
+    const pointerX = Number(event.clientX);
+    const pointerY = Number(event.clientY);
+    const isInsidePill = (
+      Number.isFinite(pointerX)
+      && Number.isFinite(pointerY)
+      && pointerX >= pillBounds.left
+      && pointerX <= pillBounds.right
+      && pointerY >= pillBounds.top
+      && pointerY <= pillBounds.bottom
+    );
+    setChatboxHitTestActive(isInsidePill);
+  }, [setChatboxHitTestActive]);
+
+  const disableChatboxHitTest = useCallback(() => {
+    setChatboxHitTestActive(false);
+  }, [setChatboxHitTestActive]);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', syncChatboxHitTestForPointer);
+    window.addEventListener('mouseleave', disableChatboxHitTest);
+    window.addEventListener('blur', disableChatboxHitTest);
+    return () => {
+      window.removeEventListener('mousemove', syncChatboxHitTestForPointer);
+      window.removeEventListener('mouseleave', disableChatboxHitTest);
+      window.removeEventListener('blur', disableChatboxHitTest);
+    };
+  }, [disableChatboxHitTest, syncChatboxHitTestForPointer]);
 
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
@@ -838,26 +609,12 @@ function MinimalChatPill() {
     shellRef,
     hasImagePreview: hasAttachmentPreview,
     frameHeight: reservedChatboxFrameHeight,
-    anchorHeightOverride: (
-      composerSizeState === COMPOSER_SIZE_STATE.COLLAPSE_FREEZE
-      || composerSizeState === COMPOSER_SIZE_STATE.COLLAPSE_RELEASE
-    )
-      ? composerCollapseSnapshot?.anchorHeight || null
-      : null,
   });
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}${composerSizeState === COMPOSER_SIZE_STATE.COLLAPSE_FREEZE ? ' composer-collapse-freeze' : ''}${composerSizeState === COMPOSER_SIZE_STATE.COLLAPSE_RELEASE ? ' composer-collapse-release' : ''}`}
-      style={{
-        '--chatbox-bump-height': `${closeBumpHeight}px`,
-        '--chatbox-composer-freeze-pill-height': composerCollapseSnapshot
-          ? `${composerCollapseSnapshot.pillHeight}px`
-          : undefined,
-        '--chatbox-composer-freeze-shell-height': composerCollapseSnapshot
-          ? `${composerCollapseSnapshot.shellHeight}px`
-          : undefined,
-      }}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
+      style={{ '--chatbox-bump-height': `${closeBumpHeight}px` }}
     >
       <div className="chatbox-shell" ref={shellRef}>
         <form
@@ -903,38 +660,40 @@ function MinimalChatPill() {
             }}
           />
           <div className="chatbox-main-row">
-            <button
-              type="button"
-              className="chatbox-icon chatbox-config"
-              onClick={handleOpenConfig}
-              aria-label="Open config"
-              title="Open config"
-            >
-              <SettingsIcon />
-            </button>
-            {devUiEnabled ? (
+            <div className="chatbox-controls-group">
               <button
                 type="button"
-                className="chatbox-icon chatbox-dev-compact"
-                onClick={handleDevAutoCompaction}
-                aria-label="Run auto compaction"
-                title="Run auto compaction"
-                disabled={loopInteractionLocked}
+                className="chatbox-icon chatbox-config"
+                onClick={handleOpenConfig}
+                aria-label="Open config"
+                title="Open config"
               >
-                <CompactIcon />
+                <SettingsIcon />
               </button>
-            ) : null}
-            <button
-              type="button"
-              className="chatbox-icon chatbox-attach"
-              onClick={() => {
-                attachmentInputRef.current?.click();
-              }}
-              aria-label="Add attachment"
-              title="Add attachment"
-            >
-              <AttachmentIcon />
-            </button>
+              {devUiEnabled ? (
+                <button
+                  type="button"
+                  className="chatbox-icon chatbox-dev-compact"
+                  onClick={handleDevAutoCompaction}
+                  aria-label="Run auto compaction"
+                  title="Run auto compaction"
+                  disabled={loopInteractionLocked}
+                >
+                  <CompactIcon />
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="chatbox-icon chatbox-attach"
+                onClick={() => {
+                  attachmentInputRef.current?.click();
+                }}
+                aria-label="Add attachment"
+                title="Add attachment"
+              >
+                <AttachmentIcon />
+              </button>
+            </div>
             <div className="chatbox-input-wrap">
               <textarea
                 ref={inputRef}
@@ -951,35 +710,37 @@ function MinimalChatPill() {
                 rows={1}
               />
             </div>
-            <button
-              type="button"
-              className={`chatbox-icon chatbox-screenshot${includeQueryScreenshot ? ' is-enabled' : ''}`}
-              aria-label="Toggle auto screenshot"
-              title={includeQueryScreenshot ? 'Disable auto screenshot' : 'Enable auto screenshot'}
-              onClick={handleToggleQueryScreenshot}
-            >
-              <ScreenshotIcon />
-            </button>
-            <button
-              type="button"
-              className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
-              aria-label="Toggle text-to-speech"
-              title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
-              onClick={handleToggleSpeechMode}
-            >
-              <SoundIcon />
-            </button>
-            <button
-              ref={sendButtonRef}
-              type={loopInteractionLocked ? 'button' : 'submit'}
-              className={`chatbox-icon ${loopInteractionLocked ? 'chatbox-stop' : 'chatbox-send'}`}
-              aria-label={loopInteractionLocked ? 'Stop response' : 'Send message'}
-              title={loopInteractionLocked ? 'Stop response' : 'Send message'}
-              disabled={!loopInteractionLocked && !inputValue.trim() && !hasAttachments}
-              onClick={loopInteractionLocked ? handleStopQuery : undefined}
-            >
-              {loopInteractionLocked ? <StopIcon /> : <SendIcon />}
-            </button>
+            <div className="chatbox-controls-group chatbox-controls-group-end">
+              <button
+                type="button"
+                className={`chatbox-icon chatbox-screenshot${includeQueryScreenshot ? ' is-enabled' : ''}`}
+                aria-label="Toggle auto screenshot"
+                title={includeQueryScreenshot ? 'Disable auto screenshot' : 'Enable auto screenshot'}
+                onClick={handleToggleQueryScreenshot}
+              >
+                <ScreenshotIcon />
+              </button>
+              <button
+                type="button"
+                className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
+                aria-label="Toggle text-to-speech"
+                title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+                onClick={handleToggleSpeechMode}
+              >
+                <SoundIcon />
+              </button>
+              <button
+                ref={sendButtonRef}
+                type={loopInteractionLocked ? 'button' : 'submit'}
+                className={`chatbox-icon ${loopInteractionLocked ? 'chatbox-stop' : 'chatbox-send'}`}
+                aria-label={loopInteractionLocked ? 'Stop response' : 'Send message'}
+                title={loopInteractionLocked ? 'Stop response' : 'Send message'}
+                disabled={!loopInteractionLocked && !inputValue.trim() && !hasAttachments}
+                onClick={loopInteractionLocked ? handleStopQuery : undefined}
+              >
+                {loopInteractionLocked ? <StopIcon /> : <SendIcon />}
+              </button>
+            </div>
           </div>
         </form>
       </div>

@@ -43,11 +43,6 @@ body {
   align-items: flex-end;
 }
 
-.chatbox-input-shell-wrap.composer-collapse-freeze .chatbox-shell {
-  min-height: var(--chatbox-composer-freeze-shell-height);
-  height: var(--chatbox-composer-freeze-shell-height);
-}
-
 .chatbox-input-shell-wrap .chatbox-pill {
   height: auto;
   min-height: calc(var(--chatbox-fixed-pill-height) + var(--chatbox-bump-height));
@@ -56,16 +51,6 @@ body {
   justify-content: flex-end;
   transition: min-height 150ms ease, padding 150ms ease;
   margin-top: calc(-1 * var(--chatbox-bump-height));
-}
-
-.chatbox-input-shell-wrap.composer-collapse-freeze .chatbox-pill {
-  min-height: var(--chatbox-composer-freeze-pill-height);
-  height: var(--chatbox-composer-freeze-pill-height);
-  transition: none;
-}
-
-.chatbox-input-shell-wrap.composer-collapse-release .chatbox-pill {
-  transition: none;
 }
 
 .chatbox-input-shell-wrap.with-preview {
@@ -226,6 +211,17 @@ body {
   z-index: 1;
 }
 
+.chatbox-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chatbox-controls-group-end {
+  flex: 0 0 auto;
+}
+
 .chatbox-input-wrap {
   flex: 1;
   min-width: 0;
@@ -246,12 +242,8 @@ body {
   max-height: 128px;
   padding: 7px 10px 5px;
   resize: none;
+  overflow-y: auto;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.chatbox-input-shell-wrap.composer-collapse-freeze .chatbox-input,
-.chatbox-input-shell-wrap.composer-collapse-release .chatbox-input {
-  overflow-y: hidden;
 }
 
 .chatbox-input::placeholder {

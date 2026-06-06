@@ -9,10 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/openai: request original-detail image processing for OpenAI
   multimodal image blocks so screenshot coordinate grounding uses the captured
   pixel grid instead of provider default image detail.
-- frontend/renderer: route max-height minimal chat pill composer deletes
-  through explicit `expanded-clamped`, `collapse-freeze`, and
-  `collapse-release` states, measuring shrink off-DOM and holding the visual
-  anchor/native frame until the compact release is complete.
+- frontend/runtime: restore the minimal chat pill to its fixed 164px native
+  frame while making the chat overlay click-through by default and clickable
+  only when the pointer is inside the visible pill.
 - cli/frontend: capture Electron main/frontend desktop stdout and filtered stderr
   to `.windie/logs/frontend.log`, add `bin/windie logs frontend` for live
   tailing that stream, and keep `bin/windie logs desktop` as an alias.

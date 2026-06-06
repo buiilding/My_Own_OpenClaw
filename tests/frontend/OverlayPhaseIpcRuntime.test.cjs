@@ -155,11 +155,12 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(result).toEqual({
       success: true,
       height: 116,
+      frameHeight: null,
       changed: true,
     });
     expect(setChatVisualAnchorHeight).toHaveBeenCalledWith(116);
-    expect(setChatWindowBoundsForVisualAnchorHeight).toHaveBeenCalledWith(116);
-    expect(resizeChatWindowForVisualAnchorHeight).toHaveBeenCalledWith(116);
+    expect(setChatWindowBoundsForVisualAnchorHeight).toHaveBeenCalledWith(116, {});
+    expect(resizeChatWindowForVisualAnchorHeight).toHaveBeenCalledWith(116, {});
     expect(positionChatWindow).not.toHaveBeenCalled();
     expect(positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(positionContextLabelWindow).toHaveBeenCalledTimes(1);

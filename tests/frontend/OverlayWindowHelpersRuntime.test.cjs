@@ -144,7 +144,7 @@ describe('overlay_window_helpers_runtime', () => {
   });
 
   test('keeps chat window frame preallocated above compact and preview anchor heights', () => {
-    let currentHeight = 220;
+    let currentHeight = 164;
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, currentHeight]),
@@ -252,7 +252,7 @@ describe('overlay_window_helpers_runtime', () => {
   test('keeps the dragged bottom edge fixed when the pill height grows', () => {
     let currentX = 2100;
     let currentY = 120;
-    let currentHeight = 220;
+    let currentHeight = 164;
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, currentHeight]),
@@ -291,9 +291,7 @@ describe('overlay_window_helpers_runtime', () => {
     expect(chatWindow.setPosition.mock.calls).toEqual([
       [2100, 120, false],
     ]);
-    if (chatWindow.setBounds.mock.calls.length !== 0) {
-      throw new Error(`Expected no setBounds calls, received ${chatWindow.setBounds.mock.calls.length}`);
-    }
+    expect(chatWindow.setBounds).not.toHaveBeenCalled();
   });
 
   test('ignores manually dragged chat window position when monitor affinity changes', () => {

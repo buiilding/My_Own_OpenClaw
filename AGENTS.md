@@ -262,18 +262,9 @@ Before finishing, verify:
   in [Compaction-Safe Plan Execution](#compaction-safe-plan-execution) before
   returning.
 
-In the final summary, briefly note any meaningful refactor performed and any
-important debt intentionally left behind.
-
-For every completed fix or behavior change, explain:
-
-- How you implemented it.
-- What the previous behavior was.
-- What the current behavior is after the fix.
-- Which validation commands were run, including focused tests,
-  lint/typecheck/build checks, docs listing, and diff checks when relevant.
-- Any validation command that was intentionally skipped or could not run, with
-  the reason.
+After writing code, in the final summary, explain what changed, what layer is
+affected, explain the new path. When explaining questions, explain the related
+path, the architecture, no need to state file names unless explicitly told so.
 
 ## Git and PR Workflow
 
@@ -291,9 +282,7 @@ Forbidden without explicit approval:
 
 Commit policy:
 
-- Commits are pre-authorized for completed work.
-- If you change files, commit that work before handing the turn back unless the
-  user explicitly says not to commit.
+- Do not commit changes unless the user explicitly asks for a commit.
 - Prefer small, frequent commits.
 - No amend unless asked.
 - Update `CHANGELOG.md` before committing repo-visible changes.

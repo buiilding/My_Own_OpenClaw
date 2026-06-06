@@ -24,10 +24,15 @@ describe('overlay_chatbox_visual_anchor_handler', () => {
       },
     );
 
-    expect(result).toEqual({ success: true, height: 116, changed: true });
+    expect(result).toEqual({
+      success: true,
+      height: 116,
+      frameHeight: null,
+      changed: true,
+    });
     expect(setChatVisualAnchorHeight).toHaveBeenCalledWith(116);
-    expect(setChatWindowBoundsForVisualAnchorHeight).toHaveBeenCalledWith(116);
-    expect(resizeChatWindowForVisualAnchorHeight).toHaveBeenCalledWith(116);
+    expect(setChatWindowBoundsForVisualAnchorHeight).toHaveBeenCalledWith(116, {});
+    expect(resizeChatWindowForVisualAnchorHeight).toHaveBeenCalledWith(116, {});
     expect(
       setChatWindowBoundsForVisualAnchorHeight.mock.invocationCallOrder[0],
     ).toBeLessThan(positionResponseWindow.mock.invocationCallOrder[0]);
@@ -50,7 +55,12 @@ describe('overlay_chatbox_visual_anchor_handler', () => {
       },
     );
 
-    expect(result).toEqual({ success: true, height: 116, changed: false });
+    expect(result).toEqual({
+      success: true,
+      height: 116,
+      frameHeight: null,
+      changed: false,
+    });
     expect(setChatWindowBoundsForVisualAnchorHeight).not.toHaveBeenCalled();
     expect(positionResponseWindow).not.toHaveBeenCalled();
   });

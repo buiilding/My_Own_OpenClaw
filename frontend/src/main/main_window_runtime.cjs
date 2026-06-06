@@ -19,7 +19,7 @@ const {
 } = require('./ipc/ipc_install_auth_state.cjs');
 
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
-const CHATBOX_OVERLAY_FIXED_HEIGHT = 70;
+const CHATBOX_OVERLAY_FIXED_HEIGHT = 164;
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
@@ -334,7 +334,7 @@ function createChatWindow({
     targetWindow: chatWindow,
     windowLabel: 'chat box',
   });
-  chatWindow.setIgnoreMouseEvents(false);
+  chatWindow.setIgnoreMouseEvents(true, { forward: true });
   positionChatWindow();
 
   const ensureChatRendererLoaded = createLazyRendererViewLoader({

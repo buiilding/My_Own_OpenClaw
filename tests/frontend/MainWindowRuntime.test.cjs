@@ -260,15 +260,16 @@ describe('main_window_runtime createChatWindow', () => {
     expect(options.webPreferences.devTools).toBe(true);
   });
 
-  test('uses a preallocated chat overlay height so multiline growth does not resize the native window', () => {
-    const { deps } = createDeps();
+  test('starts the chat overlay compact and click-through until pill hover', () => {
+    const { deps, chatWindow } = createDeps();
 
     createChatWindow(deps);
 
     const options = deps.BrowserWindow.mock.calls[0][0];
     expect(options.width).toBe(520);
-    expect(options.height).toBe(220);
+    expect(options.height).toBe(164);
     expect(options.resizable).toBe(false);
+    expect(chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
   });
 
   test('creates chat overlay without creation-time content protection', () => {
