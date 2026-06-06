@@ -22,6 +22,51 @@ describe('ChatBoxResponse state behavior', () => {
     resetChatBoxResponseTestState();
   });
 
+  function sdkPresentationProjection({
+    mode,
+    entries = [],
+    turnRef = 'turn-sdk-transition',
+    phase = mode === 'response' ? 'streaming' : 'awaiting',
+  }) {
+    return {
+      conversationRef: 'conv-test',
+      turnRef,
+      phase,
+      userMessageRowId: 'user-sdk-transition',
+      assistantText: entries.map((entry) => entry.text || '').join(''),
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        conversationRef: 'conv-test',
+        turnRef,
+        phase,
+        entries,
+        hasVisibleContent: entries.length > 0,
+        typingVisible: mode === 'awaiting',
+        overlayVisible: mode !== 'hidden',
+        isBusy: mode !== 'hidden',
+        isTerminal: false,
+        lastError: null,
+        awaitingAnchor: mode === 'awaiting'
+          ? {
+            kind: 'user-message',
+            rowId: 'user-sdk-transition',
+            turnRef,
+            conversationRef: 'conv-test',
+          }
+          : null,
+        overlayIntent: {
+          visible: mode !== 'hidden',
+          mode,
+          turnRef,
+          conversationRef: 'conv-test',
+          staleGuardRef: turnRef,
+        },
+      },
+    };
+  }
+
   test('shows awaiting indicator when no assistant response exists yet', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
@@ -559,6 +604,77 @@ describe('ChatBoxResponse state behavior', () => {
         compact_hover: true,
       }));
     });
+  });
+
+  test('does not send a hide size update during SDK awaiting-to-response transition', async () => {
+    const awaitingProjection = sdkPresentationProjection({
+      mode: 'awaiting',
+    });
+    useChatStore.setState({
+      messages: [
+        { id: 'user-sdk-transition', text: 'yo', sender: 'user' },
+      ],
+      isSending: false,
+      currentTurnProjection: awaitingProjection,
+      latestCurrentTurnProjection: awaitingProjection,
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'set-responsebox-size',
+        expect.objectContaining({
+          visible: true,
+          compact_hover: true,
+          stale_guard_ref: 'turn-sdk-transition',
+        }),
+      );
+    });
+
+    mockInvoke.mockClear();
+
+    const responseProjection = sdkPresentationProjection({
+      mode: 'response',
+      phase: 'streaming',
+      entries: [{
+        id: 'entry-sdk-transition',
+        type: 'llm-text',
+        text: 'response token',
+        sourceEventType: 'assistant_delta',
+        turnRef: 'turn-sdk-transition',
+      }],
+    });
+    act(() => {
+      useChatStore.setState({
+        currentTurnProjection: responseProjection,
+        latestCurrentTurnProjection: responseProjection,
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('response token')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'set-responsebox-size',
+        expect.objectContaining({
+          visible: true,
+          compact_hover: false,
+          stale_guard_ref: 'turn-sdk-transition',
+        }),
+      );
+    });
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => (
+        channel === 'set-responsebox-size'
+        && payload?.visible === false
+        && payload?.stale_guard_ref === 'turn-sdk-transition'
+      ),
+    )).toBe(false);
   });
 
   test('new local send hides the previous response and shows awaiting until SDK streaming starts', async () => {

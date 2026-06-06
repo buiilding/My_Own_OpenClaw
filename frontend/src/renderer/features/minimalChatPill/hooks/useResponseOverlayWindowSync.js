@@ -35,6 +35,7 @@ export function useResponseOverlayWindowSync({
     turnRef: null,
     staleGuardRef: null,
   });
+  const reportOverlaySizeRef = useRef(null);
 
   useEffect(() => {
     const turnRef = overlayIntent?.turnRef ?? null;
@@ -146,6 +147,10 @@ export function useResponseOverlayWindowSync({
   }, [overlayIntent?.staleGuardRef, overlayIntent?.turnRef, shellRef, showResponse, thinkingText]);
 
   useEffect(() => {
+    reportOverlaySizeRef.current = reportOverlaySize;
+  }, [reportOverlaySize]);
+
+  useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {
       const overlayVisible = payload?.visible === true;
       if (!overlayVisible) {
@@ -231,10 +236,14 @@ export function useResponseOverlayWindowSync({
 
   useEffect(() => {
     return () => {
-      void reportOverlaySize({
+      const report = reportOverlaySizeRef.current;
+      if (typeof report !== 'function') {
+        return;
+      }
+      void report({
         visible: false,
         layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
       });
     };
-  }, [reportOverlaySize]);
+  }, []);
 }

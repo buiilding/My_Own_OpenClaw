@@ -11,7 +11,8 @@ All notable changes to WindieOS will be documented in this file.
   no longer depends on hidden renderer size measurement before the overlay can
   appear; keep chat pill/content-protection behavior lease-scoped by removing
   active-loop overlay creation protection and renderer hover-owned normal
-  click-through toggles.
+  click-through toggles, and prevent response-overlay renderer cleanup from
+  hiding the same SDK turn during awaiting-to-response transitions.
 - frontend/main: make minimal pill and response overlay live state read the
   latest SDK current-turn presentation instead of active dashboard workspace
   state, store SDK projections before renderer stale side-effect guards, remove

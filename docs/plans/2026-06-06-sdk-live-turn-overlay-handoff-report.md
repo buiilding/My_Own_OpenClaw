@@ -32,6 +32,8 @@ visibility/content after SDK `turn_started`.
   window visibility no longer waits for renderer size measurement.
 - [x] Remove active-loop content protection from overlay window creation.
 - [x] Remove renderer hover-owned normal chat-pill click-through toggling.
+- [x] Stop renderer cleanup from sending same-turn hide requests during SDK
+  awaiting-to-response transitions.
 - [x] Add/update focused tests.
 - [x] Run focused validation.
 - [x] Perform final design inspection and classify any remaining paths.
@@ -73,6 +75,13 @@ visibility/content after SDK `turn_started`.
   renderer set the pill pass-through on mount/leave and clickable on hover.
   That made interactivity a renderer-local visual state instead of a narrow
   pointer-tool lease.
+- Live log inspection after the main-process SDK mirror showed a same-turn
+  race: SDK emitted `overlayIntent.mode=response` and main showed the response
+  window, then the response renderer sent `set-responsebox-size` with
+  `visible:false` and the same `stale_guard_ref`. The hide came from a React
+  cleanup effect that depended on the `reportOverlaySize` callback, so callback
+  identity changes during awaiting-to-response transitions looked like an
+  unmount.
 - `useConversationRuntimeProjectionStream` can store SDK current-turn
   projections before stale-turn side-effect guards without changing dashboard
   transcript row ownership.
@@ -105,6 +114,9 @@ visibility/content after SDK `turn_started`.
 - The chat pill is clickable/draggable by default. SDK-local
   `mouse_control`/`scroll_control` pointer leases are the only normal path that
   makes pill/overlay windows click-through.
+- Response overlay renderer cleanup now sends a hide only on actual unmount or
+  explicit invisible state. SDK awaiting-to-response transitions keep the same
+  turn guard visible and only send guarded resize/show refinement.
 
 ## Validation Log
 
@@ -118,6 +130,12 @@ visibility/content after SDK `turn_started`.
 - `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/OverlayPhaseIpcRuntime.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs --runInBand` - passed, 3 suites / 39 tests.
 - `node -c frontend/src/main/sdk_live_turn_surface_controller.cjs && node -c frontend/src/main/ipc.cjs && node -c frontend/src/main/index.cjs && node -c frontend/src/main/main_process_bootstrap_runtime.cjs && node -c frontend/src/main/main_window_runtime.cjs && node -c frontend/src/main/surface_runtime.cjs` - passed.
 - `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx --runInBand` - passed, 7 suites / 133 tests.
+- `node -c frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js` - passed.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/ChatBoxResponse.state.test.jsx ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs --runInBand` - passed, 3 suites / 45 tests.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/ChatBoxResponse.state.test.jsx ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx --runInBand` - passed, 8 suites / 157 tests.
+- `cd frontend && npm run typecheck` - passed.
+- `bin/windie docs list` - passed.
+- `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
 
 ## Commits
 
@@ -157,6 +175,9 @@ visibility/content after SDK `turn_started`.
   opening settings.
 - Follow-up inspection confirmed phase active-loop logs now defer native show
   to SDK overlay intent, not renderer ownership.
+- Follow-up inspection confirmed `useResponseOverlayWindowSync` keeps the
+  latest size reporter in a ref for unmount cleanup, so callback dependency
+  changes no longer send hide requests during same-turn SDK transitions.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,
