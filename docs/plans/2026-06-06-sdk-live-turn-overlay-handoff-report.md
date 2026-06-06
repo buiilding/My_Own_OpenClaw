@@ -198,6 +198,12 @@ visibility/content after SDK `turn_started`.
 - `bin/windie docs list` - passed.
 - `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
 - `cd frontend && npm run lint` - failed only on pre-existing unrelated unused-variable errors: `frontend/src/main/ipc.cjs:1408`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:5`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:6`, `frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js:132`, and `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts:338`.
+- `node -c frontend/src/main/response_overlay_hit_test_runtime.cjs && node -c frontend/src/main/overlay_responsebox_handler.cjs && node -c frontend/src/main/sdk_live_turn_surface_controller.cjs && node -c frontend/src/main/response_overlay_phase_handler.cjs && node -c frontend/src/main/overlay_visibility_handler.cjs && node -c frontend/src/main/main_window_runtime.cjs` - passed after response-overlay hidden hit-test policy wiring.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/OverlayResponseboxHandler.test.cjs ../tests/frontend/SdkLiveTurnSurfaceController.test.cjs ../tests/frontend/ResponseOverlayPhaseHandler.test.cjs ../tests/frontend/OverlayVisibilityHandler.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs --runInBand` - passed, 6 suites / 119 tests.
+- `cd frontend && npm run typecheck` - passed after response-overlay hidden hit-test policy wiring.
+- `bin/windie docs list` - passed after documenting response-overlay close/hide native policy.
+- `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
+- `cd frontend && npm run lint` - failed only on pre-existing unrelated unused-variable errors: `frontend/src/main/ipc.cjs:1408`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:5`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs:6`, `frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js:132`, and `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts:338`.
 
 ## Commits
 
@@ -256,6 +262,15 @@ visibility/content after SDK `turn_started`.
 - Follow-up inspection confirmed repeated identical SDK overlay intents return
   `idempotent-visible-intent` before native `setBounds` / `showInactive`, while
   mode, guard, turn, visibility, or bounds changes still apply normally.
+- Follow-up inspection confirmed response overlay hide routes from renderer
+  size dismissal, SDK hidden overlay intent, unguarded phase hidden mode,
+  prevented native response-window close, and standalone screenshot-prep hiding
+  now apply `setIgnoreMouseEvents(true, { forward: true })` before hiding the
+  native response window.
+- Follow-up inspection confirmed screenshot-only response overlay restore resets
+  response-window hit testing with `setIgnoreMouseEvents(false)` before showing
+  the restored overlay, while pointer-control lease behavior remains owned by
+  `surface_runtime`.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,

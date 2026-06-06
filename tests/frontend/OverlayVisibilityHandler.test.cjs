@@ -185,13 +185,15 @@ describe('overlay_visibility_handler', () => {
     const ensureResponseOverlayFallbackBounds = jest.fn();
     const setResponseOverlayVisibilityState = jest.fn();
     const syncContextLabelWindowVisibility = jest.fn();
+    const responseWindow = {
+      isDestroyed: () => false,
+      setIgnoreMouseEvents: jest.fn(),
+    };
 
     const result = handleRestoreSurfaceAfterScreenshot(
       { hiddenSurface: 'response' },
       {
-        responseWindow: {
-          isDestroyed: () => false,
-        },
+        responseWindow,
         showResponseWindowInactive,
         ensureResponseOverlayFallbackBounds,
         setResponseOverlayVisibilityState,
@@ -202,6 +204,7 @@ describe('overlay_visibility_handler', () => {
     expect(result).toEqual({ success: true, restored: true });
     expect(setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
     expect(ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(false);
     expect(showResponseWindowInactive).toHaveBeenCalledTimes(1);
     expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
@@ -310,6 +313,7 @@ describe('overlay_visibility_handler', () => {
       isDestroyed: () => false,
       isVisible: () => true,
       hide: jest.fn(),
+      setIgnoreMouseEvents: jest.fn(),
       webContents: { id: 'response-webcontents' },
     };
     const contextLabelWindow = {
@@ -347,6 +351,9 @@ describe('overlay_visibility_handler', () => {
     );
 
     expect(result.hiddenSurface).toBe('response');
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, {
+      forward: true,
+    });
     expect(responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(contextLabelWindow.hide).toHaveBeenCalledTimes(1);
     expect(broadcastResponseOverlayVisibility).toHaveBeenCalledWith(false);

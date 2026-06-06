@@ -35,6 +35,11 @@ state, click-through/focusability, or screenshot content protection.
 Click-through/focusability and screenshot content protection are scoped to SDK
 local tool lifecycle leases in Electron main.
 
+When the response overlay is closed or otherwise hidden, Electron main must make
+the native response window click-through before hiding it. The renderer close
+button only reports dismissal; main owns the `BrowserWindow` hit-test policy so
+an invisible response overlay cannot intercept clicks behind it.
+
 ## Tool Ghost
 
 Tool ghost previews visualize target/action intent during local computer-use flows. Keep preview parsing and target mapping in renderer overlay utilities, and keep actual execution in sidecar tools.

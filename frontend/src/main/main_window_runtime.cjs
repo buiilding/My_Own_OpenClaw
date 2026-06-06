@@ -17,6 +17,9 @@ const {
 const {
   getInstallAuthStatePath,
 } = require('./ipc/ipc_install_auth_state.cjs');
+const {
+  safeSetResponseOverlayHitTest,
+} = require('./response_overlay_hit_test_runtime.cjs');
 
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 220;
@@ -446,6 +449,11 @@ function createResponseWindow({
     if (!app.isQuitting) {
       event.preventDefault();
       setResponseOverlayVisibilityState(false);
+      safeSetResponseOverlayHitTest(responseWindow, {
+        ignoreMouseEvents: true,
+        source: 'main-window-runtime',
+        reason: 'response-window-close-prevented',
+      });
       responseWindow.hide();
     }
     return false;
