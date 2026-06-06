@@ -98,6 +98,68 @@ function script(relativePath) {
   return repoPath(relativePath);
 }
 
+function getFrontendDevUrl() {
+  return process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function waitForHttp(url, options = {}) {
+  const timeoutMs = options.timeoutMs || 30000;
+  const intervalMs = options.intervalMs || 250;
+  const probeTimeoutMs = options.probeTimeoutMs || 1000;
+  const isShuttingDown = options.isShuttingDown || (() => false);
+  const startedAt = Date.now();
+  let lastError = null;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    if (isShuttingDown()) {
+      throw new Error(`Stopped while waiting for ${url}`);
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, probeTimeoutMs);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      await response.body?.cancel().catch(() => {});
+      if (response.status < 500) {
+        return;
+      }
+      lastError = new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      lastError = error;
+    } finally {
+      clearTimeout(timeout);
+    }
+    await sleep(intervalMs);
+  }
+
+  const detail = lastError ? `: ${lastError.message}` : '';
+  throw new Error(`Timed out waiting for ${url}${detail}`);
+}
+
+function afterFrontendReady(item) {
+  const url = getFrontendDevUrl();
+  return {
+    ...item,
+    waitFor: ({ isShuttingDown } = {}) => waitForHttp(url, { isShuttingDown }),
+    waitMessage: `waiting for ${url}`,
+  };
+}
+
+function frontendReadyPlan() {
+  return {
+    type: 'http',
+    url: getFrontendDevUrl(),
+    timeoutMs: 30000,
+  };
+}
+
 function printNoTrackedProcesses() {
   console.log('No tracked WindieOS background processes found.');
   console.log('Current `windie start ...` commands run in the foreground; use Ctrl-C in that terminal.');
@@ -200,18 +262,22 @@ function runStart(target) {
   if (target === 'dev') {
     return runConcurrent([
       { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
-      { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
+      afterFrontendReady({
+        label: 'desktop',
+        command: script('scripts/run-frontend-electron'),
+        cwd: REPO_ROOT,
+      }),
     ]).then((code) => process.exit(code));
   }
   if (target === 'customer') {
     return runConcurrent([
       { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
-      {
+      afterFrontendReady({
         label: 'customer',
         command: 'npm',
         args: ['--prefix', FRONTEND_DIR, 'run', 'electron'],
         cwd: REPO_ROOT,
-      },
+      }),
     ]).then((code) => process.exit(code));
   }
   if (target === 'all') {
@@ -637,7 +703,12 @@ function getSpawnPlan(argv) {
     return {
       concurrent: [
         { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
-        { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
+        {
+          label: 'desktop',
+          command: script('scripts/run-frontend-electron'),
+          cwd: REPO_ROOT,
+          waitFor: frontendReadyPlan(),
+        },
       ],
     };
   }
@@ -650,6 +721,7 @@ function getSpawnPlan(argv) {
           command: 'npm',
           args: ['--prefix', FRONTEND_DIR, 'run', 'electron'],
           cwd: REPO_ROOT,
+          waitFor: frontendReadyPlan(),
         },
       ],
     };

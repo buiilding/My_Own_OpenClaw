@@ -74,7 +74,25 @@ function prefixStream(stream, prefix, destination) {
 
 function runConcurrent(processes) {
   const children = [];
+  let finalCode = 0;
+  let remaining = 0;
+  let resolved = false;
   let shuttingDown = false;
+  let startupComplete = false;
+  let resolveDone;
+
+  const done = new Promise((resolve) => {
+    resolveDone = resolve;
+  });
+
+  const finishIfDone = () => {
+    if (!resolved && startupComplete && remaining === 0) {
+      resolved = true;
+      process.off('SIGINT', onSigint);
+      process.off('SIGTERM', onSigterm);
+      resolveDone(finalCode);
+    }
+  };
 
   const stopChildren = () => {
     if (shuttingDown) {
@@ -88,49 +106,80 @@ function runConcurrent(processes) {
     }
   };
 
-  process.on('SIGINT', () => {
+  const onSigint = () => {
     stopChildren();
-  });
-  process.on('SIGTERM', () => {
+  };
+  const onSigterm = () => {
     stopChildren();
-  });
+  };
 
-  for (const item of processes) {
+  const spawnProcess = (item) => {
     const child = spawn(commandForPlatform(item.command), item.args || [], {
       cwd: item.cwd,
       env: item.env || process.env,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
     children.push(child);
+    remaining += 1;
     prefixStream(child.stdout, `[${item.label}] `, process.stdout);
     prefixStream(child.stderr, `[${item.label}] `, process.stderr);
     child.on('error', (error) => {
+      if (finalCode === 0) {
+        finalCode = 1;
+      }
       console.error(`[${item.label}] failed to start: ${error.message}`);
       stopChildren();
     });
     child.on('exit', (code, signal) => {
       if (!shuttingDown && code !== 0) {
         console.error(`[${item.label}] exited with ${signal || code}`);
-        stopChildren();
-      }
-    });
-  }
-
-  return new Promise((resolve) => {
-    let remaining = children.length;
-    let finalCode = 0;
-    for (const child of children) {
-      child.on('exit', (code) => {
         if (typeof code === 'number' && code !== 0 && finalCode === 0) {
           finalCode = code;
+        } else if (finalCode === 0) {
+          finalCode = 1;
         }
-        remaining -= 1;
-        if (remaining === 0) {
-          resolve(finalCode);
+        stopChildren();
+      }
+      if (typeof code === 'number' && code !== 0 && finalCode === 0) {
+        finalCode = code;
+      }
+      remaining -= 1;
+      finishIfDone();
+    });
+  };
+
+  process.on('SIGINT', onSigint);
+  process.on('SIGTERM', onSigterm);
+
+  (async () => {
+    try {
+      for (const item of processes) {
+        if (item.waitFor) {
+          if (item.waitMessage) {
+            console.log(`[${item.label}] ${item.waitMessage}`);
+          }
+          await item.waitFor({ isShuttingDown: () => shuttingDown });
         }
-      });
+        if (shuttingDown) {
+          break;
+        }
+        spawnProcess(item);
+      }
+    } catch (error) {
+      if (!shuttingDown) {
+        if (finalCode === 0) {
+          finalCode = 1;
+        }
+        console.error(`[windie] ${error.message}`);
+        stopChildren();
+      }
+    } finally {
+      startupComplete = true;
+      finishIfDone();
     }
-  });
+  })();
+
+  return done;
 }
 
 module.exports = {

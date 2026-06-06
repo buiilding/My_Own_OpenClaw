@@ -4,6 +4,7 @@ const { spawnSync } = require('child_process');
 const repoRoot = path.resolve(__dirname, '../..');
 const cliPath = path.join(repoRoot, 'scripts/windie-cli.cjs');
 const { getSpawnPlan } = require('../../scripts/windie/commands.cjs');
+const frontendDevUrl = process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
 
 function runCli(args) {
   return spawnSync(process.execPath, [cliPath, ...args], {
@@ -54,7 +55,12 @@ describe('windie CLI', () => {
     expect(getSpawnPlan(['start', 'dev'])).toMatchObject({
       concurrent: [
         { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot },
-        { label: 'desktop', command: path.join(repoRoot, 'scripts/run-frontend-electron'), cwd: repoRoot },
+        {
+          label: 'desktop',
+          command: path.join(repoRoot, 'scripts/run-frontend-electron'),
+          cwd: repoRoot,
+          waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 30000 },
+        },
       ],
     });
     expect(getSpawnPlan(['start', 'customer'])).toMatchObject({
@@ -65,6 +71,7 @@ describe('windie CLI', () => {
           command: 'npm',
           args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'electron'],
           cwd: repoRoot,
+          waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 30000 },
         },
       ],
     });
