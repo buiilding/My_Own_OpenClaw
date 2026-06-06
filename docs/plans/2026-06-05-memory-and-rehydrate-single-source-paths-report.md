@@ -195,4 +195,4 @@ projections over `chat_events`. Live streamed assistant text should use
 
 ## Commits
 
-Pending.
+- `061aabff6` - `fix(frontend): route memory and replay through sdk projections`
