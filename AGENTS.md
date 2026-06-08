@@ -282,7 +282,8 @@ Forbidden without explicit approval:
 
 Commit policy:
 
-- Do not commit changes unless the user explicitly asks for a commit.
+- Commit completed changes by default after implementation and validation,
+  unless the user explicitly asks not to commit or asks to inspect/test first.
 - Prefer small, frequent commits.
 - No amend unless asked.
 - Update `CHANGELOG.md` before committing repo-visible changes.
