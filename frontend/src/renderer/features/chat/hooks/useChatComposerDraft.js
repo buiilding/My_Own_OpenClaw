@@ -32,6 +32,13 @@ export function useChatComposerDraft({
     }
   }, [resetTranscription, setInputValue]);
 
+  const restoreDraft = useCallback((snapshot) => {
+    setInputValue(snapshot.inputValue);
+    resetTranscription();
+    setClipboardImages(snapshot.clipboardImages);
+    setSelectedReadableFiles(snapshot.selectedReadableFiles);
+  }, [resetTranscription, setInputValue]);
+
   const submitMessageValue = useCallback(async (nextInputValue) => {
     const outgoingMessage = buildOutgoingMessage(
       nextInputValue,
@@ -43,12 +50,23 @@ export function useChatComposerDraft({
       return false;
     }
 
+    const draftSnapshot = {
+      inputValue: nextInputValue,
+      clipboardImages: [...clipboardImages],
+      selectedReadableFiles: [...selectedReadableFiles],
+    };
+
     onBeforeSend?.();
-    const sendResult = onSendMessage(outgoingMessage);
-    if (sendResult && typeof sendResult.then === 'function') {
-      await sendResult;
-    }
     clearDraft();
+    try {
+      const sendResult = onSendMessage(outgoingMessage);
+      if (sendResult && typeof sendResult.then === 'function') {
+        await sendResult;
+      }
+    } catch (error) {
+      restoreDraft(draftSnapshot);
+      throw error;
+    }
     return true;
   }, [
     clearDraft,
@@ -56,6 +74,7 @@ export function useChatComposerDraft({
     isSubmitBlocked,
     onBeforeSend,
     onSendMessage,
+    restoreDraft,
     selectedReadableFiles,
   ]);
 

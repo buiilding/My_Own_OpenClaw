@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: clear shared chat composer drafts immediately after local
+  send acceptance and restore the captured draft only when the async send path
+  rejects, so dashboard and chat-pill inputs no longer linger during resource
+  preparation.
 - backend/llm: emit a websocket error when an OpenAI Responses stream ends
   without a final response payload instead of synthesizing an empty assistant
   completion.
