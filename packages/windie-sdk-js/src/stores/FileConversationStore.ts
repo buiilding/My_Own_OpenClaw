@@ -20,6 +20,7 @@ import {
   buildDisplayRows,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
+import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 
 type NodeFsPromisesLike = {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
@@ -301,7 +302,8 @@ export class FileConversationStore implements ConversationStore {
   }
 
   async loadCompactedReplay(conversationRef: string): Promise<CompactedReplaySnapshot | null> {
-    return (await this.readConversation(conversationRef)).replay ?? null;
+    const stored = await this.readConversation(conversationRef);
+    return stored.replay ?? latestCompactedReplayFromEvents(stored.events);
   }
 
   private async modules(): Promise<FileConversationStoreModules> {

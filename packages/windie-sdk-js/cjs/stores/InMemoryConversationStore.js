@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
+const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
 function lastTextEvent(events) {
     return [...events].reverse().find(event => {
         if (event.type === 'user_message' || event.type === 'assistant_message') {
@@ -135,7 +136,8 @@ class InMemoryConversationStore {
         };
     }
     async loadCompactedReplay(conversationRef) {
-        return this.replayByConversation.get(conversationRef) ?? null;
+        return this.replayByConversation.get(conversationRef)
+            ?? (0, compactedReplayEvents_js_1.latestCompactedReplayFromEvents)(await this.loadEvents(conversationRef));
     }
 }
 exports.InMemoryConversationStore = InMemoryConversationStore;

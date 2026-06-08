@@ -351,6 +351,8 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             source: 'backend',
             payload: {
                 ...payload,
+                operationRef: base.turnRef,
+                compactionRef: stringField(payload, 'generation_id', 'generationId') ?? base.turnRef,
                 reason: typeof payload.reason === 'string' ? payload.reason : null,
                 ...backendMetadata,
             },
@@ -372,6 +374,10 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             source: 'backend',
             payload: {
                 ...payload,
+                operationRef: base.turnRef,
+                compactionRef: typeof payload.generation_id === 'string'
+                    ? payload.generation_id
+                    : base.turnRef,
                 skippedReason: skippedReason || (hasReplacementHistory ? null : 'missing-replacement-history'),
                 generationId: typeof payload.generation_id === 'string' ? payload.generation_id : null,
                 reason: typeof payload.reason === 'string' ? payload.reason : null,
@@ -384,6 +390,13 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 replacementHistoryPreview: Array.isArray(payload.replacement_history_preview)
                     ? payload.replacement_history_preview
                     : [],
+                entries: replacementHistoryEntries,
+                entryCount: replacementHistoryEntries.length,
+                complete: hasReplacementHistory,
+                active: hasReplacementHistory,
+                sourceRevisionId: base.revisionId,
+                sourceTurnRef: base.turnRef,
+                createdAt: base.timestamp,
                 replacementHistoryEntries,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
                 ...backendMetadata,
@@ -398,6 +411,8 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             source: 'backend',
             payload: {
                 ...payload,
+                operationRef: base.turnRef,
+                compactionRef: stringField(payload, 'generation_id', 'generationId') ?? base.turnRef,
                 error: typeof payload.error === 'string' ? payload.error : null,
                 ...backendMetadata,
             },

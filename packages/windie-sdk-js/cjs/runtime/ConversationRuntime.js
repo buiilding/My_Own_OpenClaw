@@ -10,6 +10,7 @@ const ToolExecutionCoordinator_js_1 = require("../tools/ToolExecutionCoordinator
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const conversationReducer_js_1 = require("./conversationReducer.js");
+const conversationEventScope_js_1 = require("./conversationEventScope.js");
 const TurnInputPipeline_js_1 = require("./TurnInputPipeline.js");
 function eventText(event) {
     if (typeof event.payload.text === 'string') {
@@ -653,14 +654,36 @@ class SdkConversationRuntime {
             return true;
         }
         if (event.conversationRef !== this.options.conversationRef) {
+            this.logRejectedBackendEvent(event, 'conversation_ref_mismatch');
             return false;
         }
-        if (event.turnRef
+        if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)
+            && event.turnRef
             && this.state.activeTurnRef
             && event.turnRef !== this.state.activeTurnRef) {
+            this.logRejectedBackendEvent(event, 'active_turn_ref_mismatch');
             return false;
         }
         return true;
+    }
+    logRejectedBackendEvent(event, reason) {
+        if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)) {
+            return;
+        }
+        console.log('[Windie SDK][Compaction] backend event rejected', {
+            reason,
+            eventType: event.type,
+            eventScope: (0, conversationEventScope_js_1.getConversationEventScope)(event),
+            conversationRef: event.conversationRef,
+            expectedConversationRef: this.options.conversationRef,
+            turnRef: event.turnRef ?? null,
+            activeTurnRef: this.state.activeTurnRef ?? null,
+            phase: this.state.phase,
+            eventId: event.eventId,
+            backendSequence: typeof event.payload.backendSequence === 'number'
+                ? event.payload.backendSequence
+                : null,
+        });
     }
     notify(snapshot, event) {
         this.listeners.forEach(listener => listener(snapshot));

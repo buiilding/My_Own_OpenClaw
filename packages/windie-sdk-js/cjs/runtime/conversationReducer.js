@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createInitialConversationRuntimeState = createInitialConversationRuntimeState;
 exports.reduceConversationRuntimeState = reduceConversationRuntimeState;
 const toolCorrelationIds_js_1 = require("../tools/toolCorrelationIds.js");
+const conversationEventScope_js_1 = require("./conversationEventScope.js");
 function createInitialConversationRuntimeState(conversationRef, revisionId = 'rev-empty') {
     return {
         conversationRef,
@@ -40,7 +41,9 @@ function reduceConversationRuntimeState(state, event) {
     const base = {
         ...state,
         revisionId: event.revisionId,
-        activeTurnRef: event.turnRef ?? state.activeTurnRef,
+        activeTurnRef: (0, conversationEventScope_js_1.shouldEventUpdateActiveTurnRef)(event)
+            ? event.turnRef
+            : state.activeTurnRef,
         stream: {
             ...state.stream,
             lastEventId: event.eventId,

@@ -39,7 +39,6 @@ describe('useChatStreamCompactionHandlers', () => {
   });
 
   test('updates thinking state for compaction lifecycle events', async () => {
-    const shouldIgnoreForStaleTurn = jest.fn(() => false);
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
     const getThinkingSourceEventType = jest.fn(() => 'context-compaction-started');
@@ -48,7 +47,6 @@ describe('useChatStreamCompactionHandlers', () => {
     const persistCompactedReplay = jest.fn(() => Promise.resolve());
 
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
-      shouldIgnoreForStaleTurn,
       setThinkingStatus,
       setThinkingSourceEventType,
       getThinkingSourceEventType,
@@ -138,7 +136,6 @@ describe('useChatStreamCompactionHandlers', () => {
   });
 
   test('does not clear non-compaction thinking state for skipped compaction', async () => {
-    const shouldIgnoreForStaleTurn = jest.fn(() => false);
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
     const getThinkingSourceEventType = jest.fn(() => 'tool-call');
@@ -147,7 +144,6 @@ describe('useChatStreamCompactionHandlers', () => {
     const persistCompactedReplay = jest.fn(() => Promise.resolve());
 
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
-      shouldIgnoreForStaleTurn,
       setThinkingStatus,
       setThinkingSourceEventType,
       getThinkingSourceEventType,
@@ -177,7 +173,6 @@ describe('useChatStreamCompactionHandlers', () => {
 
   test('uses desktop conversation continuity service for default compaction persistence', async () => {
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
-      shouldIgnoreForStaleTurn: jest.fn(() => false),
       setThinkingStatus: jest.fn(),
       setThinkingSourceEventType: jest.fn(),
       getThinkingSourceEventType: jest.fn(() => 'context-compaction-started'),
@@ -215,15 +210,13 @@ describe('useChatStreamCompactionHandlers', () => {
     );
   });
 
-  test('ignores stale-turn events', () => {
-    const shouldIgnoreForStaleTurn = jest.fn(() => true);
+  test('observes compaction operation ids without stale-turn gating', () => {
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
     const setCompactionDebugInfo = jest.fn();
     const recordTrackingEvent = jest.fn();
 
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
-      shouldIgnoreForStaleTurn,
       setThinkingStatus,
       setThinkingSourceEventType,
       setCompactionDebugInfo,
@@ -236,9 +229,14 @@ describe('useChatStreamCompactionHandlers', () => {
       result.current.handleContextCompactionFailed(sdkEvent('compaction_failed') as any);
     });
 
-    expect(setThinkingStatus).not.toHaveBeenCalled();
-    expect(setThinkingSourceEventType).not.toHaveBeenCalled();
-    expect(setCompactionDebugInfo).not.toHaveBeenCalled();
-    expect(recordTrackingEvent).not.toHaveBeenCalled();
+    expect(setThinkingStatus).toHaveBeenCalledWith(COMPACTION_THINKING_STATUS, 'conversation-1');
+    expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started', 'conversation-1');
+    expect(setCompactionDebugInfo).toHaveBeenCalledWith(null, 'conversation-1');
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'context-compaction-started',
+      'turn-1',
+      {},
+      'conversation-1',
+    );
   });
 });

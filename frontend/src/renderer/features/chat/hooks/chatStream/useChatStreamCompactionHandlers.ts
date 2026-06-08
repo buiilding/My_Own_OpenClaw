@@ -16,11 +16,6 @@ import type {
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { useLatestRef } from '../../../../infrastructure/hooks/useLatestRef';
 
-type ShouldIgnoreForStaleTurn = (
-  event: { turnRef?: string | null },
-  conversationRef?: string | null,
-) => boolean;
-
 type SetThinkingStatus = (
   status: string | null,
   conversationRef?: string | null,
@@ -109,7 +104,7 @@ function recordOrNull(value: unknown): JsonRecord | null {
 
 function replacementHistoryEntriesFromEvent(event: CompactionConversationEvent): JsonRecord[] {
   return arrayOrEmpty(
-    event.payload.replacementHistoryEntries ?? event.payload.replacement_history_entries,
+    event.payload.entries ?? event.payload.replacementHistoryEntries ?? event.payload.replacement_history_entries,
   ).map(recordOrNull).filter((entry): entry is JsonRecord => Boolean(entry));
 }
 
@@ -155,7 +150,6 @@ function skippedReasonFromEvent(event: CompactionConversationEvent): string {
 }
 
 export function useChatStreamCompactionHandlers({
-  shouldIgnoreForStaleTurn,
   setThinkingStatus,
   setThinkingSourceEventType,
   getThinkingSourceEventType,
@@ -163,7 +157,6 @@ export function useChatStreamCompactionHandlers({
   recordTrackingEvent,
   persistCompactedReplay = persistCompactedReplaySnapshot,
 }: {
-  shouldIgnoreForStaleTurn: ShouldIgnoreForStaleTurn;
   setThinkingStatus: SetThinkingStatus;
   setThinkingSourceEventType: SetThinkingSourceEventType;
   getThinkingSourceEventType?: GetThinkingSourceEventType;
@@ -171,7 +164,6 @@ export function useChatStreamCompactionHandlers({
   recordTrackingEvent: RecordTrackingEvent;
   persistCompactedReplay?: PersistCompactedReplaySnapshot;
 }) {
-  const shouldIgnoreForStaleTurnRef = useLatestRef(shouldIgnoreForStaleTurn);
   const setThinkingStatusRef = useLatestRef(setThinkingStatus);
   const setThinkingSourceEventTypeRef = useLatestRef(setThinkingSourceEventType);
   const getThinkingSourceEventTypeRef = useLatestRef(getThinkingSourceEventType);
@@ -184,9 +176,6 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurnRef.current({ turnRef: event.turnRef }, conversationRef)) {
-      return;
-    }
     setThinkingStatusRef.current(COMPACTION_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-started', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);
@@ -196,7 +185,6 @@ export function useChatStreamCompactionHandlers({
     setCompactionDebugInfoRef,
     setThinkingSourceEventTypeRef,
     setThinkingStatusRef,
-    shouldIgnoreForStaleTurnRef,
   ]);
 
   const handleContextCompactionCompleted = useCallback((event: ConversationEvent) => {
@@ -204,9 +192,6 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurnRef.current({ turnRef: event.turnRef }, conversationRef)) {
-      return;
-    }
     const skippedReason = skippedReasonFromEvent(event);
     if (event.type === 'compaction_skipped' || skippedReason) {
       const currentSourceEventType = getThinkingSourceEventTypeRef.current?.(conversationRef) ?? null;
@@ -265,7 +250,6 @@ export function useChatStreamCompactionHandlers({
     setCompactionDebugInfoRef,
     setThinkingSourceEventTypeRef,
     setThinkingStatusRef,
-    shouldIgnoreForStaleTurnRef,
   ]);
 
   const handleContextCompactionFailed = useCallback((event: ConversationEvent) => {
@@ -273,9 +257,6 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurnRef.current({ turnRef: event.turnRef }, conversationRef)) {
-      return;
-    }
     const errorText = optionalString(event.payload.error) ?? '';
     setThinkingStatusRef.current(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-failed', conversationRef);
@@ -286,7 +267,6 @@ export function useChatStreamCompactionHandlers({
     setCompactionDebugInfoRef,
     setThinkingSourceEventTypeRef,
     setThinkingStatusRef,
-    shouldIgnoreForStaleTurnRef,
   ]);
 
   return {

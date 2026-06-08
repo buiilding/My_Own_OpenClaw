@@ -594,6 +594,27 @@ describe('Windie SDK conversation runtime core', () => {
     expect(afterSkippedCompaction.compaction.status).toBe('skipped');
   });
 
+  test('runtime reducer does not let compaction operation ids replace active turn identity', () => {
+    const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
+    const afterTurn = reduceConversationRuntimeState(
+      initial,
+      eventForTurn('turn-live', 'turn_started', {}),
+    );
+    const afterCompaction = reduceConversationRuntimeState(
+      afterTurn,
+      eventForTurn('compact-op', 'compaction_applied', {
+        generationId: 'gen-compact',
+        entries: [{ role: 'assistant', content: 'summary' }],
+        entryCount: 1,
+        complete: true,
+      }),
+    );
+
+    expect(afterTurn.activeTurnRef).toBe('turn-live');
+    expect(afterCompaction.activeTurnRef).toBe('turn-live');
+    expect(afterCompaction.compaction.status).toBe('applied');
+  });
+
   test('runtime reducer can resolve pending tool waits by provider-safe tool call id', () => {
     const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
     const afterTool = reduceConversationRuntimeState(
@@ -1937,6 +1958,136 @@ describe('Windie SDK conversation runtime core', () => {
       }),
     });
     expect(buildDisplayConversation([missingReplacement as ConversationEvent]).messages).toEqual([]);
+  });
+
+  test('manual compaction operation events are accepted outside the active turn and persist replay', async () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({
+      text: 'keep working while compaction runs',
+      turnRef: 'turn-live',
+    });
+    transport.emit(backendEvent('context-compaction-started', {
+      reason: 'manual',
+      before_tokens: 29551,
+    }, {
+      eventId: 'compact-op-evt-000001-context-compaction-started',
+      turnRef: 'compact-op',
+      sequence: 1,
+    }));
+    transport.emit(backendEvent('context-compaction-completed', {
+      generation_id: 'gen-manual',
+      reason: 'manual',
+      before_tokens: 29551,
+      after_tokens: 8209,
+      removed_messages: 44,
+      summary_preview: 'Manual compaction summary.',
+      replacement_history_entries: [
+        {
+          role: 'assistant',
+          content: 'Manual compaction summary.',
+          message_type: 'context_compaction',
+        },
+      ],
+      skipped_reason: null,
+    }, {
+      eventId: 'compact-op-evt-000002-context-compaction-completed',
+      turnRef: 'compact-op',
+      sequence: 2,
+    }));
+    transport.emit(backendEvent('context-compaction-completed', {
+      generation_id: 'gen-manual',
+      replacement_history_entries: [
+        {
+          role: 'assistant',
+          content: 'Manual compaction summary.',
+          message_type: 'context_compaction',
+        },
+      ],
+      skipped_reason: null,
+    }, {
+      eventId: 'compact-op-evt-000002-context-compaction-completed',
+      turnRef: 'compact-op',
+      sequence: 2,
+    }));
+
+    await waitForExpect(async () => {
+      const events = await store.loadEvents('conv-sdk-runtime');
+      expect(events.filter(storedEvent => storedEvent.type === 'compaction_applied')).toHaveLength(1);
+    });
+
+    const snapshot = await runtime.load();
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const applied = events.find(storedEvent => storedEvent.type === 'compaction_applied');
+    expect(snapshot.state.activeTurnRef).toBe('turn-live');
+    expect(snapshot.state.compaction).toMatchObject({
+      status: 'applied',
+      generationId: 'gen-manual',
+    });
+    expect(applied).toMatchObject({
+      eventId: 'compact-op-evt-000002-context-compaction-completed',
+      turnRef: 'compact-op',
+      payload: expect.objectContaining({
+        operationRef: 'compact-op',
+        compactionRef: 'gen-manual',
+        entries: [
+          expect.objectContaining({
+            content: 'Manual compaction summary.',
+          }),
+        ],
+        entryCount: 1,
+        complete: true,
+        active: true,
+      }),
+    });
+    await expect(store.loadForRehydrate('conv-sdk-runtime')).resolves.toMatchObject({
+      replayGenerationId: 'gen-manual',
+      messages: [
+        expect.objectContaining({
+          content: 'Manual compaction summary.',
+        }),
+      ],
+    });
+    logSpy.mockRestore();
+  });
+
+  test('stale turn-stream backend events still fail the active turn gate', async () => {
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({
+      text: 'active turn',
+      turnRef: 'turn-live',
+    });
+    transport.emit(backendEvent('assistant-message-full', {
+      content: 'stale assistant text',
+    }, {
+      eventId: 'stale-turn-evt-000001-assistant-message-full',
+      turnRef: 'stale-turn',
+      sequence: 1,
+    }));
+
+    await tick();
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain(
+      'stale-turn-evt-000001-assistant-message-full',
+    );
+    expect((await runtime.load()).state.activeTurnRef).toBe('turn-live');
   });
 
   test('tool coordinator returns explicit failed result for claimed tool execution failure', async () => {

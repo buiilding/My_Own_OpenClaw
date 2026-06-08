@@ -22,6 +22,7 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import type { WindieLocalRuntimeClient } from '../runtime/LocalSidecarRuntime.js';
+import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 
@@ -157,25 +158,6 @@ function roleFromEvent(event: ConversationEvent): string {
     return 'tool';
   }
   return 'assistant';
-}
-
-function compactedReplayFromEvent(event: ConversationEvent): CompactedReplaySnapshot | null {
-  if (event.type !== 'compaction_applied') {
-    return null;
-  }
-  const entries = Array.isArray(event.payload.entries) ? event.payload.entries : [];
-  const generationId = normalizeString(event.payload.generationId) ?? event.eventId;
-  return {
-    generationId,
-    conversationRef: event.conversationRef,
-    sourceRevisionId: normalizeString(event.payload.sourceRevisionId) ?? event.revisionId,
-    sourceTurnRef: normalizeString(event.payload.sourceTurnRef) ?? event.turnRef ?? null,
-    createdAt: normalizeString(event.payload.createdAt) ?? event.timestamp,
-    entries: entries.filter((entry): entry is Record<string, unknown> => Boolean(normalizeRecord(entry))),
-    entryCount: Number(event.payload.entryCount ?? entries.length),
-    complete: event.payload.complete !== false,
-    active: event.payload.active !== false,
-  };
 }
 
 function isCompactionEvent(event: ConversationEvent): boolean {
@@ -348,7 +330,7 @@ export class SidecarConversationStore implements ConversationStore {
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
     const events = await this.loadEvents(conversationRef);
-    const replay = [...events].reverse().map(compactedReplayFromEvent).find(Boolean);
+    const replay = latestCompactedReplayFromEvents(events);
     if (replay?.complete && replay.active !== false && replay.entryCount === replay.entries.length) {
       return {
         conversationRef,
@@ -431,7 +413,7 @@ export class SidecarConversationStore implements ConversationStore {
 
   async loadCompactedReplay(conversationRef: string): Promise<CompactedReplaySnapshot | null> {
     const events = await this.loadEvents(conversationRef);
-    return [...events].reverse().map(compactedReplayFromEvent).find(Boolean) ?? null;
+    return latestCompactedReplayFromEvents(events);
   }
 
   private async call(method: string, params: Record<string, unknown>): Promise<Record<string, unknown>> {

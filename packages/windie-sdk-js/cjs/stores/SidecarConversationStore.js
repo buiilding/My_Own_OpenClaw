@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SidecarConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
+const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 function normalizeRecord(value) {
     return value && typeof value === 'object' && !Array.isArray(value)
@@ -107,24 +108,6 @@ function roleFromEvent(event) {
         return 'tool';
     }
     return 'assistant';
-}
-function compactedReplayFromEvent(event) {
-    if (event.type !== 'compaction_applied') {
-        return null;
-    }
-    const entries = Array.isArray(event.payload.entries) ? event.payload.entries : [];
-    const generationId = normalizeString(event.payload.generationId) ?? event.eventId;
-    return {
-        generationId,
-        conversationRef: event.conversationRef,
-        sourceRevisionId: normalizeString(event.payload.sourceRevisionId) ?? event.revisionId,
-        sourceTurnRef: normalizeString(event.payload.sourceTurnRef) ?? event.turnRef ?? null,
-        createdAt: normalizeString(event.payload.createdAt) ?? event.timestamp,
-        entries: entries.filter((entry) => Boolean(normalizeRecord(entry))),
-        entryCount: Number(event.payload.entryCount ?? entries.length),
-        complete: event.payload.complete !== false,
-        active: event.payload.active !== false,
-    };
 }
 function isCompactionEvent(event) {
     return event.type.startsWith('compaction_');
@@ -274,7 +257,7 @@ class SidecarConversationStore {
     }
     async loadForRehydrate(conversationRef) {
         const events = await this.loadEvents(conversationRef);
-        const replay = [...events].reverse().map(compactedReplayFromEvent).find(Boolean);
+        const replay = (0, compactedReplayEvents_js_1.latestCompactedReplayFromEvents)(events);
         if (replay?.complete && replay.active !== false && replay.entryCount === replay.entries.length) {
             return {
                 conversationRef,
@@ -351,7 +334,7 @@ class SidecarConversationStore {
     }
     async loadCompactedReplay(conversationRef) {
         const events = await this.loadEvents(conversationRef);
-        return [...events].reverse().map(compactedReplayFromEvent).find(Boolean) ?? null;
+        return (0, compactedReplayEvents_js_1.latestCompactedReplayFromEvents)(events);
     }
     async call(method, params) {
         if (!this.options.runtime.rpc) {

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/conversation: treat normalized compaction lifecycle events as
+  conversation-control events accepted by `conversationRef` and backend
+  sequence, preserve their operation id without replacing `activeTurnRef`, and
+  derive compacted rehydrate replay from persisted `compaction_applied` events.
 - docs/agents: move the inline runtime ownership and change-routing tables into
   a dedicated development doc, and move the compaction-safe plan execution
   workflow into the root `pending/` folder.

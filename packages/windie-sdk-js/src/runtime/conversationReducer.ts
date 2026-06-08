@@ -4,6 +4,7 @@ import type {
   ToolEventPayload,
 } from '../conversation/types.js';
 import { resolveToolWaitId } from '../tools/toolCorrelationIds.js';
+import { shouldEventUpdateActiveTurnRef } from './conversationEventScope.js';
 
 export function createInitialConversationRuntimeState(
   conversationRef: string,
@@ -53,7 +54,9 @@ export function reduceConversationRuntimeState(
   const base = {
     ...state,
     revisionId: event.revisionId,
-    activeTurnRef: event.turnRef ?? state.activeTurnRef,
+    activeTurnRef: shouldEventUpdateActiveTurnRef(event)
+      ? event.turnRef
+      : state.activeTurnRef,
     stream: {
       ...state.stream,
       lastEventId: event.eventId,

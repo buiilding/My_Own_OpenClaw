@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
+const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
 async function importNodeModule(specifier) {
     return Promise.resolve(`${specifier}`).then(s => __importStar(require(s)));
 }
@@ -261,7 +262,8 @@ class FileConversationStore {
         return stored.revision ?? buildRevision(conversationRef, stored.events);
     }
     async loadCompactedReplay(conversationRef) {
-        return (await this.readConversation(conversationRef)).replay ?? null;
+        const stored = await this.readConversation(conversationRef);
+        return stored.replay ?? (0, compactedReplayEvents_js_1.latestCompactedReplayFromEvents)(stored.events);
     }
     async modules() {
         this.modulesPromise ?? (this.modulesPromise = loadNodeFileModules());

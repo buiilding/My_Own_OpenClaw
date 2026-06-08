@@ -8,6 +8,7 @@ export * from './stores/FileConversationStore.js';
 export * from './stores/SidecarConversationStore.js';
 export * from './projections/conversationProjections.js';
 export * from './runtime/conversationReducer.js';
+export * from './runtime/conversationEventScope.js';
 export * from './runtime/ConversationRuntime.js';
 export * from './runtime/TurnInputPipeline.js';
 export * from './runtime/DefaultTurnResourceResolvers.js';

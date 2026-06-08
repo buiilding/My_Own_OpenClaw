@@ -39,6 +39,7 @@ import {
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
+import { getConversationEventScope, isConversationControlEvent } from './conversationEventScope.js';
 import { resolveTurnInputResources } from './TurnInputPipeline.js';
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
@@ -855,16 +856,39 @@ export class SdkConversationRuntime {
       return true;
     }
     if (event.conversationRef !== this.options.conversationRef) {
+      this.logRejectedBackendEvent(event, 'conversation_ref_mismatch');
       return false;
     }
     if (
-      event.turnRef
+      !isConversationControlEvent(event)
+      && event.turnRef
       && this.state.activeTurnRef
       && event.turnRef !== this.state.activeTurnRef
     ) {
+      this.logRejectedBackendEvent(event, 'active_turn_ref_mismatch');
       return false;
     }
     return true;
+  }
+
+  private logRejectedBackendEvent(event: ConversationEvent, reason: string): void {
+    if (!isConversationControlEvent(event)) {
+      return;
+    }
+    console.log('[Windie SDK][Compaction] backend event rejected', {
+      reason,
+      eventType: event.type,
+      eventScope: getConversationEventScope(event),
+      conversationRef: event.conversationRef,
+      expectedConversationRef: this.options.conversationRef,
+      turnRef: event.turnRef ?? null,
+      activeTurnRef: this.state.activeTurnRef ?? null,
+      phase: this.state.phase,
+      eventId: event.eventId,
+      backendSequence: typeof event.payload.backendSequence === 'number'
+        ? event.payload.backendSequence
+        : null,
+    });
   }
 
   private notify(snapshot: ConversationSnapshot, event?: ConversationEvent): void {

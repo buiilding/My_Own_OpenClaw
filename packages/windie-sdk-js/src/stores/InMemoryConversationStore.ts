@@ -20,6 +20,7 @@ import {
   buildDisplayRows,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
+import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 
 function lastTextEvent(events: ConversationEvent[]): ConversationEvent | undefined {
   return [...events].reverse().find(event => {
@@ -172,6 +173,7 @@ export class InMemoryConversationStore implements ConversationStore {
   }
 
   async loadCompactedReplay(conversationRef: string): Promise<CompactedReplaySnapshot | null> {
-    return this.replayByConversation.get(conversationRef) ?? null;
+    return this.replayByConversation.get(conversationRef)
+      ?? latestCompactedReplayFromEvents(await this.loadEvents(conversationRef));
   }
 }

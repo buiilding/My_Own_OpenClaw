@@ -23,6 +23,7 @@ __exportStar(require("./stores/FileConversationStore.js"), exports);
 __exportStar(require("./stores/SidecarConversationStore.js"), exports);
 __exportStar(require("./projections/conversationProjections.js"), exports);
 __exportStar(require("./runtime/conversationReducer.js"), exports);
+__exportStar(require("./runtime/conversationEventScope.js"), exports);
 __exportStar(require("./runtime/ConversationRuntime.js"), exports);
 __exportStar(require("./runtime/TurnInputPipeline.js"), exports);
 __exportStar(require("./runtime/DefaultTurnResourceResolvers.js"), exports);

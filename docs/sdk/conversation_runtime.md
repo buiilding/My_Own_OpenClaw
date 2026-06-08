@@ -72,6 +72,21 @@ correlation, not event identity. The SDK rejects backend stream events missing
 values, and records `runtime_error` when a turn's backend `sequence` regresses
 or jumps forward.
 
+Backend-origin events are scoped before the runtime applies active-turn
+filtering:
+
+- Turn-stream events such as assistant deltas, reasoning deltas, assistant
+  messages, tool events, usage, and terminal turn events must match the
+  runtime's active `turnRef` when an active turn exists.
+- Conversation-control events such as `compaction_started`,
+  `compaction_applied`, `compaction_skipped`, and `compaction_failed` are
+  accepted by `conversationRef` plus backend sequence/deduping. Their backend
+  `turnRef` is a compaction operation id, not the active chat/model turn.
+
+The reducer updates `state.activeTurnRef` only from turn-stream events.
+Conversation-control compaction events update `state.compaction` and replay
+checkpoint state without replacing the active turn identity.
+
 `settings_updated` is the conversation-runtime record for SDK-owned settings
 changes such as model/provider selection. `conversation.setModel(...)` and
 per-turn `model` options write this event only after the backend settings update
@@ -355,7 +370,16 @@ Completed compaction without replacement history also normalizes to
 SDK only uses `compaction_applied` when replay-safe replacement entries are
 present. SDK compaction payloads expose renderer-facing camelCase fields such as
 `summaryText`, `replacementHistoryPreview`, and `replacementHistoryEntries`, so
-renderer handlers do not need to unwrap `payload.rawEvent`.
+renderer handlers do not need to unwrap `payload.rawEvent`. Applied compaction
+payloads also expose replay fields (`entries`, `entryCount`, `complete`,
+`active`, `sourceRevisionId`, `sourceTurnRef`, and `createdAt`) so store
+adapters can use the persisted `compaction_applied` event itself as the compacted
+rehydrate base.
+
+Manual compaction may use a backend operation id that differs from the current
+active chat turn. The SDK preserves that id as `operationRef`/`compactionRef`
+metadata and the event's `turnRef`, but compaction events are
+conversation-control events and must not mutate `state.activeTurnRef`.
 
 Only `compaction_applied` with actual replacement history should affect compacted
 replay snapshots. A store adapter must activate a compacted replay generation
@@ -435,7 +459,9 @@ Backend events must carry `conversation_ref` or `turn_ref` to enter a
 conversation runtime. The runtime drops ambiguous packets and ignores packets
 whose `conversationRef` or active `turnRef` does not match the runtime. This is
 what keeps two conversations on the same websocket from sharing streamed chunks
-or stale tool events.
+or stale tool events. The active-turn match applies to turn-stream events only;
+conversation-control compaction events are accepted by matching
+`conversationRef` because their `turnRef` identifies the compaction operation.
 
 Explicit `rehydrateMessages(...)` payloads must carry their own
 `conversation_ref`. The runtime forwards that identity as supplied instead of
