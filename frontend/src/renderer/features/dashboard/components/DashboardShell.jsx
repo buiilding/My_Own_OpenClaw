@@ -89,12 +89,14 @@ function DashboardShell({
   const sessionInfo = useRendererConversationSessionInfo();
   const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
 
+  const activeChatConversationRef = useChatStore((state) => state.activeConversationRef);
   const setChatMessages = useChatStore((state) => state.setMessages);
   const clearChatMessages = useChatStore((state) => state.clearMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setChatTokenCounts = useChatStore((state) => state.setTokenCounts);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
+  const getChatWorkspaceState = useChatStore((state) => state.getWorkspaceState);
   const {
     searchQuery,
     isSearchingConversations,
@@ -114,6 +116,8 @@ function DashboardShell({
   } = useDashboardConversations({
     resolvedUserId,
     sessionConversationRef: sessionInfo.conversationRef,
+    activeConversationRef: activeChatConversationRef,
+    getChatWorkspaceState,
     clearChatMessages,
     setChatMessages,
     setChatIsSending,
@@ -313,7 +317,7 @@ function DashboardShell({
           onRenameConversation={handleRenameConversation}
           onTogglePinConversation={handleTogglePinConversation}
           onDeleteConversation={handleDeleteConversation}
-          activeConversationRef={sessionInfo.conversationRef || null}
+          activeConversationRef={activeChatConversationRef || sessionInfo.conversationRef || null}
         />
       ) : null}
 
@@ -348,7 +352,7 @@ function DashboardShell({
             searchError={searchConversationsError}
             recentConversationGroups={recentConversationGroups}
             searchConversationGroups={searchedConversationGroups}
-            activeConversationRef={sessionInfo.conversationRef || null}
+            activeConversationRef={activeChatConversationRef || sessionInfo.conversationRef || null}
           />
 
           <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)}>

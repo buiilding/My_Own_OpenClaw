@@ -29,6 +29,8 @@ import {
 function useDashboardConversations({
   resolvedUserId,
   sessionConversationRef,
+  activeConversationRef,
+  getChatWorkspaceState,
   clearChatMessages,
   setChatMessages,
   setChatIsSending,
@@ -168,11 +170,20 @@ function useDashboardConversations({
       return;
     }
 
+    if (conversationRef === activeConversationRef) {
+      return;
+    }
+
     setRecentConversationsError('');
     const requestId = openConversationRequestIdRef.current + 1;
     openConversationRequestIdRef.current = requestId;
 
     try {
+      const cachedWorkspace = typeof getChatWorkspaceState === 'function'
+        ? getChatWorkspaceState(conversationRef)
+        : null;
+      const hasCachedMessages = Array.isArray(cachedWorkspace?.messages)
+        && cachedWorkspace.messages.length > 0;
       const workspaceBinding = resolveConversationWorkspaceBinding({
         conversation,
         memories: [],
@@ -184,10 +195,12 @@ function useDashboardConversations({
         updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         setChatConversationRef: setChatActiveConversationRef,
       });
-      clearChatMessages(conversationRef);
-      setChatIsSending(false, conversationRef);
-      setChatThinkingStatus(null, conversationRef);
-      setChatTokenCounts(null, conversationRef);
+      if (!hasCachedMessages) {
+        clearChatMessages(conversationRef);
+        setChatIsSending(false, conversationRef);
+        setChatThinkingStatus(null, conversationRef);
+        setChatTokenCounts(null, conversationRef);
+      }
 
       const displayRows = await DesktopConversationLibraryClient.loadDisplayRows(
         resolvedUserId,
@@ -214,6 +227,8 @@ function useDashboardConversations({
     }
   }, [
     clearChatMessages,
+    activeConversationRef,
+    getChatWorkspaceState,
     resolvedUserId,
     setChatActiveConversationRef,
     setChatIsSending,

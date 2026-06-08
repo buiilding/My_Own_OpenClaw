@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: make conversation selection idempotent so clicking the
+  already active chat closes panels without clearing messages, resetting turn
+  state, or reloading SDK display rows; switching to a cached chat now preserves
+  its visible rows while the selected conversation refreshes.
 - sdk/conversation: give repeated assistant message segments inside one turn
   distinct display row ids while preserving the canonical live streaming row id,
   avoiding duplicate React keys when reopening tool-heavy chat history.

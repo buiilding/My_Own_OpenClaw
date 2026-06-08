@@ -227,6 +227,7 @@ describe('ChatGptDashboardShell', () => {
     mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
     mockSessionInfo = { conversationRef: null, userId: null };
     useChatStore.setState({
+      activeConversationRef: null,
       isSending: false,
       streamTracking: {
         activeTurnRef: null,

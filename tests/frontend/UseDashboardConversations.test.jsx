@@ -63,6 +63,8 @@ function renderDashboardConversations(options = {}) {
   return renderHook(() => useDashboardConversations({
     resolvedUserId: 'user-test',
     sessionConversationRef: '',
+    activeConversationRef: '',
+    getChatWorkspaceState: jest.fn(() => ({ messages: [] })),
     clearChatMessages: jest.fn(),
     setChatMessages: jest.fn(),
     setChatIsSending: jest.fn(),
@@ -78,6 +80,8 @@ function renderDashboardConversationsWithProps(initialProps = {}) {
   return renderHook((props) => useDashboardConversations({
     resolvedUserId: props.resolvedUserId,
     sessionConversationRef: '',
+    activeConversationRef: '',
+    getChatWorkspaceState: jest.fn(() => ({ messages: [] })),
     clearChatMessages: jest.fn(),
     setChatMessages: jest.fn(),
     setChatIsSending: jest.fn(),
@@ -367,6 +371,119 @@ describe('useDashboardConversations', () => {
           text: 'yo',
         }),
       ], 'conv-open');
+    });
+  });
+
+  test('treats selecting the active conversation as an idempotent no-op', async () => {
+    const clearChatMessages = jest.fn();
+    const setChatMessages = jest.fn();
+    const setChatIsSending = jest.fn();
+    const setChatThinkingStatus = jest.fn();
+    const setChatTokenCounts = jest.fn();
+    const setChatActiveConversationRef = jest.fn();
+    const getChatWorkspaceState = jest.fn(() => ({
+      messages: [{ id: 'cached-row', sender: 'user', text: 'still visible' }],
+    }));
+
+    const { result } = renderDashboardConversations({
+      sessionConversationRef: 'conv-active',
+      activeConversationRef: 'conv-active',
+      getChatWorkspaceState,
+      clearChatMessages,
+      setChatMessages,
+      setChatIsSending,
+      setChatThinkingStatus,
+      setChatTokenCounts,
+      setChatActiveConversationRef,
+    });
+
+    await act(async () => {
+      await result.current.handleOpenConversation({
+        conversation_id: 'conv-active',
+        workspace_path: '/work/WindieOS',
+        workspace_name: 'WindieOS',
+      });
+    });
+
+    expect(getChatWorkspaceState).not.toHaveBeenCalled();
+    expect(DesktopConversationLibraryClient.loadDisplayRows).not.toHaveBeenCalled();
+    expect(setChatActiveConversationRef).not.toHaveBeenCalled();
+    expect(clearChatMessages).not.toHaveBeenCalled();
+    expect(setChatMessages).not.toHaveBeenCalled();
+    expect(setChatIsSending).not.toHaveBeenCalled();
+    expect(setChatThinkingStatus).not.toHaveBeenCalled();
+    expect(setChatTokenCounts).not.toHaveBeenCalled();
+  });
+
+  test('preserves cached conversation rows while refreshing a different selected conversation', async () => {
+    const callOrder = [];
+    let resolveRows;
+    DesktopConversationLibraryClient.loadDisplayRows.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveRows = resolve;
+    }));
+    const clearChatMessages = jest.fn((conversationRef) => {
+      callOrder.push(`clear:${conversationRef}`);
+    });
+    const setChatMessages = jest.fn((messages, conversationRef) => {
+      callOrder.push(`messages:${conversationRef}:${messages.length}`);
+    });
+    const setChatIsSending = jest.fn();
+    const setChatThinkingStatus = jest.fn();
+    const setChatTokenCounts = jest.fn();
+    const setChatActiveConversationRef = jest.fn((conversationRef) => {
+      callOrder.push(`select:${conversationRef}`);
+    });
+    const getChatWorkspaceState = jest.fn(() => ({
+      messages: [{ id: 'cached-row', sender: 'user', text: 'cached' }],
+    }));
+
+    const { result } = renderDashboardConversations({
+      sessionConversationRef: 'conv-current',
+      getChatWorkspaceState,
+      clearChatMessages,
+      setChatMessages,
+      setChatIsSending,
+      setChatThinkingStatus,
+      setChatTokenCounts,
+      setChatActiveConversationRef,
+    });
+
+    await act(async () => {
+      void result.current.handleOpenConversation({
+        conversation_id: 'conv-cached',
+        workspace_path: '/work/WindieOS',
+        workspace_name: 'WindieOS',
+      });
+      await Promise.resolve();
+    });
+
+    expect(callOrder).toEqual(['select:conv-cached']);
+    expect(clearChatMessages).not.toHaveBeenCalled();
+    expect(setChatIsSending).not.toHaveBeenCalled();
+    expect(setChatThinkingStatus).not.toHaveBeenCalled();
+    expect(setChatTokenCounts).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveRows([
+        {
+          id: 'row-refreshed',
+          conversationRef: 'conv-cached',
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'refreshed',
+          metadata: { timestamp: '2026-06-08T00:00:01.000Z' },
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(setChatMessages).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: 'row-refreshed',
+          sender: 'assistant',
+          text: 'refreshed',
+        }),
+      ], 'conv-cached');
     });
   });
 });
