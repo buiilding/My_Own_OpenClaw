@@ -311,6 +311,71 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('SDK display rows replace same-turn assistant fallback with terminal error', () => {
+    const events = [
+      event('user_message', { text: 'hello' }),
+      event('assistant_message', {
+        text: 'I completed the requested action(s), but the model returned an empty final response.',
+      }),
+      event('assistant_delta', {
+        text: 'I completed the requested action(s), but the model returned an empty final response.',
+      }),
+      event('turn_error', {
+        message: 'OpenAI Responses stream ended without final response payload',
+        content: 'OpenAI Responses stream ended without final response payload',
+      }),
+    ];
+    const rows = buildDisplayRows(events);
+    const display = buildDisplayConversation(events);
+
+    expect(rows.map(row => row.type)).toEqual([
+      'user_message',
+      'error',
+    ]);
+    expect(rows[1]).toMatchObject({
+      role: 'system',
+      type: 'error',
+      content: 'OpenAI Responses stream ended without final response payload',
+    });
+    expect(rows.some(row => (
+      row.type === 'assistant_message'
+      && String(row.content).includes('empty final response')
+    ))).toBe(false);
+    expect(display.messages.map(message => message.messageType)).toEqual([
+      'user_message',
+      'turn_error',
+    ]);
+    expect(display.messages.map(message => message.text)).toEqual([
+      'hello',
+      'OpenAI Responses stream ended without final response payload',
+    ]);
+  });
+
+  test('current turn projection clears assistant text on terminal error', () => {
+    const projection = buildCurrentTurnProjection([
+      event('turn_started'),
+      event('assistant_delta', {
+        text: 'I completed the requested action(s), but the model returned an empty final response.',
+      }),
+      event('turn_error', {
+        message: 'OpenAI Responses stream ended without final response payload',
+        content: 'OpenAI Responses stream ended without final response payload',
+      }),
+    ]);
+
+    expect(projection).toMatchObject({
+      phase: 'error',
+      assistantText: '',
+      lastError: 'OpenAI Responses stream ended without final response payload',
+    });
+    expect(projection.presentation.entries).toEqual([
+      expect.objectContaining({
+        type: 'error',
+        text: 'OpenAI Responses stream ended without final response payload',
+      }),
+    ]);
+  });
+
   test('SDK display rows keep distinct tool-call rows when transport event ids collide', () => {
     const firstToolCall = createConversationEvent({
       type: 'tool_call',

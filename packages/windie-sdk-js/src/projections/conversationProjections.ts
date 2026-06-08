@@ -461,6 +461,39 @@ function buildFinalAssistantRow(
   };
 }
 
+function replaceAssistantRowsForTurnWithError(
+  rows: SdkDisplayRow[],
+  event: ConversationEvent,
+  errorRow: SdkDisplayRow,
+): boolean {
+  if (!event.turnRef) {
+    return false;
+  }
+  const matchingIndexes: number[] = [];
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index];
+    if (
+      row.type === 'assistant_message'
+      && row.conversationRef === event.conversationRef
+      && row.turnRef === event.turnRef
+    ) {
+      matchingIndexes.push(index);
+    }
+  }
+  if (matchingIndexes.length === 0) {
+    return false;
+  }
+  const [firstIndex, ...extraIndexes] = matchingIndexes;
+  for (let index = extraIndexes.length - 1; index >= 0; index -= 1) {
+    rows.splice(extraIndexes[index], 1);
+  }
+  rows[firstIndex] = {
+    ...errorRow,
+    index: firstIndex,
+  };
+  return true;
+}
+
 export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
   const rows: SdkDisplayRow[] = [];
   const streamingAssistants = new Map<string, StreamingAssistantState>();
@@ -521,6 +554,25 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
         streamingAssistants.delete(key);
         continue;
       }
+    }
+    if (event.type === 'turn_error' || event.type === 'runtime_error') {
+      if (event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload)) {
+        continue;
+      }
+      const key = streamingAssistantKey(event);
+      if (key) {
+        streamingAssistants.delete(key);
+      }
+      const errorRow = displayRowFromEvent(
+        event,
+        rows.length,
+      );
+      if (errorRow) {
+        if (!replaceAssistantRowsForTurnWithError(rows, event, errorRow)) {
+          rows.push(errorRow);
+        }
+      }
+      continue;
     }
     const row = displayRowFromEvent(event, rows.length);
     if (row) {
@@ -842,6 +894,7 @@ export function buildCurrentTurnProjection(events: ConversationEvent[]): Current
       projection = {
         ...projection,
         phase: 'error',
+        assistantText: '',
         lastError: textFromPayload(event.payload) || 'Unknown runtime error',
       };
     }
@@ -1062,6 +1115,25 @@ function withoutOrphanEmptyChatGreeting(events: ConversationEvent[]): Conversati
   ));
 }
 
+function withoutAssistantMessagesForErroredTurns(events: ConversationEvent[]): ConversationEvent[] {
+  const erroredTurnKeys = new Set<string>();
+  for (const event of events) {
+    if (
+      (event.type === 'turn_error' || event.type === 'runtime_error')
+      && !(event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload))
+    ) {
+      erroredTurnKeys.add(streamingAssistantKey(event));
+    }
+  }
+  if (erroredTurnKeys.size === 0) {
+    return events;
+  }
+  return events.filter(event => (
+    event.type !== 'assistant_message'
+    || !erroredTurnKeys.has(streamingAssistantKey(event))
+  ));
+}
+
 function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'assistant_delta') {
     return null;
@@ -1162,7 +1234,9 @@ export function buildCompactionState(events: ConversationEvent[]): CompactionSta
 export function buildDisplayConversation(events: ConversationEvent[]): DisplayConversation {
   const first = events[0];
   const last = events[events.length - 1];
-  const displayEvents = withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events));
+  const displayEvents = withoutAssistantMessagesForErroredTurns(
+    withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events)),
+  );
   return {
     conversationRef: first?.conversationRef ?? '',
     revisionId: last?.revisionId ?? first?.revisionId ?? '',

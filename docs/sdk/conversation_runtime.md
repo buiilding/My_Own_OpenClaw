@@ -161,6 +161,13 @@ render `snapshot.displayRows`; they must not reconstruct transcript rows from
 phase/status/overlay projection for busy state, stop eligibility, active turn
 identity, and overlay-specific progressive state.
 
+Terminal `turn_error` and `runtime_error` events are authoritative for their
+turn. If assistant text or deltas were already projected for the same
+`conversationRef` and `turnRef`, the display projection replaces that same-turn
+assistant row with the error row, and the current-turn projection clears
+`assistantText`. Renderer surfaces must show the terminal error, not a prior
+empty-response fallback or partial assistant text from the failed turn.
+
 ## Store Rule
 
 Stores expose first-class projection loaders, but they should stay dumb:

@@ -294,6 +294,7 @@ function updateCurrentTurnProjectionFromConversationEvent(currentProjection, eve
         return {
             ...projection,
             phase: 'error',
+            assistantText: '',
             lastError: textFromPayload(payload) || 'Unknown runtime error',
         };
     }
@@ -368,6 +369,7 @@ function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, o
         return {
             ...projection,
             phase: 'error',
+            assistantText: '',
             lastError: textFromPayload(payload) || 'Unknown runtime error',
         };
     }

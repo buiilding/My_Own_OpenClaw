@@ -391,6 +391,32 @@ function buildFinalAssistantRow(event, index, streamingState) {
         },
     };
 }
+function replaceAssistantRowsForTurnWithError(rows, event, errorRow) {
+    if (!event.turnRef) {
+        return false;
+    }
+    const matchingIndexes = [];
+    for (let index = 0; index < rows.length; index += 1) {
+        const row = rows[index];
+        if (row.type === 'assistant_message'
+            && row.conversationRef === event.conversationRef
+            && row.turnRef === event.turnRef) {
+            matchingIndexes.push(index);
+        }
+    }
+    if (matchingIndexes.length === 0) {
+        return false;
+    }
+    const [firstIndex, ...extraIndexes] = matchingIndexes;
+    for (let index = extraIndexes.length - 1; index >= 0; index -= 1) {
+        rows.splice(extraIndexes[index], 1);
+    }
+    rows[firstIndex] = {
+        ...errorRow,
+        index: firstIndex,
+    };
+    return true;
+}
 function buildDisplayRows(events) {
     const rows = [];
     const streamingAssistants = new Map();
@@ -442,6 +468,22 @@ function buildDisplayRows(events) {
                 streamingAssistants.delete(key);
                 continue;
             }
+        }
+        if (event.type === 'turn_error' || event.type === 'runtime_error') {
+            if (event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload)) {
+                continue;
+            }
+            const key = streamingAssistantKey(event);
+            if (key) {
+                streamingAssistants.delete(key);
+            }
+            const errorRow = displayRowFromEvent(event, rows.length);
+            if (errorRow) {
+                if (!replaceAssistantRowsForTurnWithError(rows, event, errorRow)) {
+                    rows.push(errorRow);
+                }
+            }
+            continue;
         }
         const row = displayRowFromEvent(event, rows.length);
         if (row) {
@@ -735,6 +777,7 @@ function buildCurrentTurnProjection(events) {
             projection = {
                 ...projection,
                 phase: 'error',
+                assistantText: '',
                 lastError: textFromPayload(event.payload) || 'Unknown runtime error',
             };
         }
@@ -939,6 +982,20 @@ function withoutOrphanEmptyChatGreeting(events) {
     return events.filter(event => (event.type !== 'assistant_message'
         || textFromPayload(event.payload).trim() !== EMPTY_CHAT_GREETING_TEXT));
 }
+function withoutAssistantMessagesForErroredTurns(events) {
+    const erroredTurnKeys = new Set();
+    for (const event of events) {
+        if ((event.type === 'turn_error' || event.type === 'runtime_error')
+            && !(event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload))) {
+            erroredTurnKeys.add(streamingAssistantKey(event));
+        }
+    }
+    if (erroredTurnKeys.size === 0) {
+        return events;
+    }
+    return events.filter(event => (event.type !== 'assistant_message'
+        || !erroredTurnKeys.has(streamingAssistantKey(event))));
+}
 function toDisplayMessage(event) {
     if (event.type === 'assistant_delta') {
         return null;
@@ -1033,7 +1090,7 @@ function buildCompactionState(events) {
 function buildDisplayConversation(events) {
     const first = events[0];
     const last = events[events.length - 1];
-    const displayEvents = withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events));
+    const displayEvents = withoutAssistantMessagesForErroredTurns(withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events)));
     return {
         conversationRef: first?.conversationRef ?? '',
         revisionId: last?.revisionId ?? first?.revisionId ?? '',

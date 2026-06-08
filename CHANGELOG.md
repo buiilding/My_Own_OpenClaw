@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/llm: emit a websocket error when an OpenAI Responses stream ends
   without a final response payload instead of synthesizing an empty assistant
   completion.
+- sdk/conversation: treat terminal turn/runtime errors as authoritative display
+  state so stale same-turn assistant fallback text is removed from transcript
+  and current-turn projections.
 - backend/openai: request original-detail image processing for OpenAI
   multimodal image blocks so screenshot coordinate grounding uses the captured
   pixel grid instead of provider default image detail.
