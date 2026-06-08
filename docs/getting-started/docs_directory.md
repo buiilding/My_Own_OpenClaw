@@ -17,10 +17,12 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) - source environment setup.
 - [Product Overview](product_overview.md) - non-technical product shape.
 - [Code Change Surface Index](../reference/code_change_surface_index.md) - feature request to source roots, tests, docs, and validation.
+- [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - AGENTS.md runtime owner matrix and change-routing table.
 
 ## Architecture
 
 - [Runtime Model](../concepts/runtime_model.md) - backend, Electron main, renderer, preload, and sidecar boundaries.
+- [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - owner responsibilities and first docs for common change types.
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) - owner selection by runtime and trust boundary.
 - [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) - query, stream, tool result, settings, transcript, memory, artifact, permission, provider, and VM-run state.
 - [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) - what the model sees, what transports carry, what sidecar executes, and what transcript/history preserve.

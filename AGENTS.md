@@ -16,25 +16,16 @@ Keep this file focused on rules, coding behavior, and ownership boundaries.
 Detailed project structure, dependency chains, backend agent runtime, SDK and
 frontend architecture notes, runtime flows, and source-map entry points live in
 `docs/development/agent_architecture_reference.md`.
-
-## Runtime Ownership
-
-Start every change by identifying the owning runtime before editing code.
-
-| Runtime | Owns | Must not own |
-| --- | --- | --- |
-| Backend | Prompt construction, provider routing, hosted APIs, OCR/vision services, artifacts, compaction decisions, backend remote tools, final model-facing tool-schema projection | Local mouse, keyboard, browser, filesystem, shell, OS permissions, or desktop window behavior |
-| SDK runtime | Hosted backend websocket lifecycle, install-token identity resolution, local sidecar startup/reuse, local-tool result return, normalized conversation events, conversation stores, replay/rehydrate helpers, projections reusable by Electron, CLI, plugins, and tests | Electron-only shell policy or sidecar tool implementation details |
-| Electron main | BrowserWindow lifecycle, IPC transport, menus, app lifecycle, native permissions, platform window policy, sidecar and wakeword supervision, endpoint diagnostics, direct `WindieAgent.startDesktop(...)` customer wiring | Agent loop, prompt compiler, durable conversation store, websocket lifecycle, local-tool routing authority, or duplicate SDK runtime behavior |
-| Renderer | User-facing state and display, dashboard/chat/settings/voice surfaces, transcript projection display, display-only tool state | Backend websocket loops, durable transcript storage, tool execution, model sync, or local authority |
-| Preload | Narrow allowlisted bridge between renderer and main | Business logic or policy decisions |
-| Python sidecar | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution | Backend orchestration, prompt policy, provider routing, or backend package imports |
-| Docs and tests | Durable contracts, routing maps, parity checks, and regression evidence | Runtime behavior |
+The detailed runtime ownership matrix and change-routing table live in
+`docs/development/agent_runtime_ownership_and_change_routing.md`.
 
 ## Required Orientation
 
 Before coding or answering implementation questions:
 
+- Identify the owning runtime before editing code. Use
+  `docs/development/agent_runtime_ownership_and_change_routing.md` for the
+  owner matrix and common change routes.
 - Check canonical docs navigation in `docs/docs.json` and the compact route map
   in `docs/getting-started/docs_directory.md` when choosing docs.
 - Run docs listing when available: use `bin/windie docs list`; ignore only if
@@ -54,21 +45,6 @@ Before coding or answering implementation questions:
 
 Detailed source-map entry points are in
 `docs/development/agent_architecture_reference.md`.
-
-## Change Routing
-
-| Change type | Start with | Required follow-through |
-| --- | --- | --- |
-| Backend API route | `docs/backend/api/api_route_change_workflow.md` | Route schema, service code, tests, docs, changelog |
-| SDK route or client method | `docs/sdk/sdk_route_change_workflow.md` | Backend route models, TS/Python clients, examples or tests, docs, changelog |
-| Model-visible tool | `docs/tools/tool_schema_policy_change_workflow.md` | Backend catalog/policy, sidecar executable contract if local, SDK/main dispatch, tests, docs, changelog |
-| Filesystem or shell behavior | `docs/tools/filesystem_shell_change_workflow.md` | Backend schema/policy, SDK/main dispatch, Electron argument shaping, sidecar execution, result formatting, tests |
-| Browser automation | `docs/browser/browser_change_workflow.md` | Backend schema, shared browser contract, sidecar runtime, Electron bridge, renderer controls, tests |
-| Renderer/main/sidecar ownership bug | `docs/architecture/frontend_architecture.md` and `docs/architecture/runtime_boundary_matrix.md` | Identify the producer before editing the consumer |
-| Storage or transcript behavior | `docs/architecture/storage_persistence_change_workflow.md` | State migration or no-migration reason explicitly |
-| Permission or local authority | `docs/security/permissions_and_local_authority_workflow.md` | Verify trust boundary and platform behavior |
-| Overlay/chat pill/runtime surface bug | `docs/frontend/runtime/overlay_phase_and_surface_change_workflow.md` and `docs/desktop/minimal_chat_pill.md` | Define the state machine and event timeline before editing |
-| Release or packaging | `docs/operations/release_packaging_change_workflow.md`, `RELEASING.md`, or `release.md` if present | Run relevant tests first; do not change versions or publish without approval |
 
 ## Architecture Rules
 
@@ -258,9 +234,8 @@ Before finishing, verify:
   include an explicit migration or compatibility note, even when the note is
   that no migration is required.
 - For work running under an approved `docs/plans/` plan, this completion check
-  is not a substitute for the required design-inspection loop. Complete the loop
-  in [Compaction-Safe Plan Execution](#compaction-safe-plan-execution) before
-  returning.
+  is not a substitute for the required design-inspection loop. Complete the
+  workflow in `pending/compaction_safe_plan_execution.md` before returning.
 
 After writing code, in the final summary, explain what changed, what layer is
 affected, explain the new path. When explaining questions, explain the related
@@ -358,64 +333,8 @@ Release flow:
   patterns before adding code. New code should fit the current ownership model,
   naming, tests, and architecture direction unless there is a clear reason to
   change that direction explicitly.
-- For moderate or major implementation changes, follow the
-  [Compaction-Safe Plan Execution](#compaction-safe-plan-execution) contract.
-
-## Compaction-Safe Plan Execution
-
-Moderate and major implementation changes must be resilient to context-window
-compaction. Treat the approved `docs/plans/` plan and its matching report as the
-durable source of truth for the task, not the conversational history.
-
-- The required loop is: recover state from the plan/report, inspect the current
-  codebase against the plan's target architecture, design and implement the next
-  coherent slice, run focused validation for that slice, perform a fresh
-  design-inspection pass, and repeat until inspection finds no remaining
-  in-scope work.
-- Before editing code, create a dated, scope-named plan file under
-  `docs/plans/`. The plan is a pre-flight execution contract. It must restate
-  the user intent, describe the architectural change conceptually, name
-  out-of-scope work, provide an ordered workflow, checklist, success criteria,
-  validation commands, assumptions, and the reread anchors needed after context
-  compaction.
-- After writing the plan, stop and ask the user to read and approve it before
-  proceeding. Explain the proposed change in architectural, conceptual bullet
-  points: what source of truth changes, which runtime boundaries move, what old
-  path is deleted or preserved, and what behavior must not regress.
-- If the user changes direction, update the plan file first, then ask for
-  approval of the updated plan before editing code.
-- The plan should not be only a fixed list of edits. For architecture cleanup,
-  it must define an inspection workflow: read the relevant code, identify code
-  that violates the target architecture, change it, reread the affected paths,
-  and repeat until inspection finds no remaining violations or unclassified
-  paths in scope.
-- When a resumed turn contains a compacted summary or otherwise indicates lost
-  history, do not jump directly to validation, commit, or handoff. Read the
-  approved plan and matching report, use the report's latest checklist,
-  findings, decisions, validation log, blockers, and commits to reconstruct the
-  active task, then inspect the live code before choosing the next slice.
-- While executing an approved plan, create or update a matching report file
-  under `docs/plans/`. Keep the report current as a realtime ledger. It must
-  link the plan, track checklist and success-criteria status, document every
-  commit created for the plan, record validation commands and results, and note
-  decisions, tradeoffs, blockers, deviations from the approved plan, inspection
-  passes, findings, changes made, newly satisfied criteria, and remaining
-  findings.
-- Do not end the turn just because one planned edit is complete. At the end of
-  each coherent implementation slice, perform a fresh design-inspection pass:
-  reread the affected code paths, search adjacent in-scope surfaces, and
-  classify each finding as fixed, intentionally out of scope, or still requiring
-  work. If any in-scope finding remains, design the next slice and continue.
-- Treat validation as supporting evidence, not the final inspection. Grep
-  inventories, tests, typechecks, builds, docs listing, and `git diff --check` can
-  support the report, but they do not prove the target architecture is complete
-  unless the live code has also been inspected and the remaining paths have been
-  classified.
-- End the implementation turn only when a fresh inspection finds no remaining
-  in-scope changes to make, all success criteria are satisfied, validation has
-  been recorded, and the report says the plan is complete. If that cannot be
-  achieved, mark the plan/report blocked with the exact blocker and the evidence
-  proving that further progress needs user input or an external change.
+- For moderate or major implementation changes, follow the workflow in
+  `pending/compaction_safe_plan_execution.md`.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and

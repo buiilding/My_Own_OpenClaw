@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: move the inline runtime ownership and change-routing tables into
+  a dedicated development doc, and move the compaction-safe plan execution
+  workflow into the root `pending/` folder.
 - frontend/dashboard: make conversation selection idempotent so clicking the
   already active chat closes panels without clearing messages, resetting turn
   state, or reloading SDK display rows; switching to a cached chat now preserves

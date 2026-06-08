@@ -29,6 +29,7 @@
               "getting-started/docs_hub",
               "reference/code_change_surface_index",
               "architecture/change_ownership_decision_tree",
+              "development/agent_runtime_ownership_and_change_routing",
               "development/agent_development_workflow"
             ]
           }
