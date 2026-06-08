@@ -35,39 +35,16 @@ WindieOS frontend is a multi-runtime desktop stack:
 frontend/src/
 ├── main/
 │   ├── index.cjs                          # Electron main composition root (wires runtime modules)
-│   ├── app_menu_runtime.cjs               # Native application menu wiring (File -> Set active workspace and standard roles)
-│   ├── ipc.cjs                            # Renderer <-> direct WindieAgent bridge and event fan-out
-│   ├── ipc_runtime_helpers.cjs            # IPC runtime helper set (user-id, payload normalization, upload, backend message processing)
-│   ├── ipc_renderer_windows.cjs           # Renderer-window tracking + broadcast helpers for IPC bridge
-│   ├── ipc_query_broadcast.cjs            # Local user-message/query-failure bridge helpers
-│   ├── main_window_runtime.cjs            # Main/chat/response/tray window constructors + renderer view loading
-│   ├── surface_runtime.cjs                # Shared owner for main/chat/response window refs, overlay phase, and visibility orchestration
-│   ├── window_visibility_runtime.cjs      # Main/chat overlay visibility operations (show/hide/maximize)
-│   ├── response_overlay_visibility_policy.cjs # Pure response-overlay/chat-pill visibility policy helpers used by main lifecycle handlers
-│   ├── chat_pill_trace_runtime.cjs        # Gated main-process chat-pill/response-overlay trace logging
-│   ├── window_platform_policy.cjs         # Centralized per-OS window policy (activation, content protection, overlay topmost/workspace rules)
-│   ├── window_suppression_runtime.cjs     # Screenshot suppression helpers for dashboard offscreen/hide/restore
-│   ├── overlay_window_helpers_runtime.cjs # Overlay bounds/position/on-top/context-label runtime helpers
-│   ├── overlay_signal_runtime.cjs         # Wakeword + overlay visibility signal fan-out helpers
-│   ├── overlay_phase_ipc_runtime.cjs      # Phase-owned overlay surface IPC registration (chat/response shell sizing + visibility)
-│   ├── window_controls_ipc_runtime.cjs    # Main-window/display control IPC registration
-│   ├── permission_ipc_runtime.cjs         # Permission + sudo IPC registration
-│   ├── main_process_lifecycle_runtime.cjs # app.whenReady/activate/quit lifecycle wiring + shortcut registration
-│   ├── local_backend_supervisor.cjs       # Explicit sidecar subprocess state supervisor (starting/ready/stopping/error)
-│   ├── local_backend_bridge.cjs           # Main <-> sidecar bridge composition root (wires lifecycle, transports, IPC registration)
-│   ├── local_backend_bridge_request_transport.cjs # Sidecar JSON-RPC request ids, pending map, timeout ownership, and response correlation
-│   ├── local_backend_bridge_execute_tool_runtime.cjs # Execute-tool routing, timeout tier selection, screenshot wrapping, and attachment materialization
-│   ├── local_backend_bridge_timeout_policy.cjs # Shared sidecar request/local-tool timeout constants and tool timeout selection
-│   ├── local_backend_launch_plan.cjs      # Sidecar command/args/cwd/env planning and packaged runtime preflight errors
-│   ├── local_backend_process_events.cjs   # Sidecar process exit/error reset and unavailable-status policy
-│   ├── local_backend_stderr_transport.cjs # Severity-filtered sidecar stderr forwarding
-│   ├── local_backend_stop_controller.cjs  # Daemon shutdown and standalone process stop/force-kill policy
-│   ├── wakeword_supervisor.cjs            # Explicit wakeword subprocess state supervisor (starting/ready/stopping/error)
-│   ├── wakeword_bridge.cjs                # Main <-> wakeword subprocess bridge
-│   ├── query_payload_builder.cjs          # System-state/memory XML augmentation for query payload
-│   ├── permission_service.cjs             # Permission runtime orchestrator (public probe/request/list API)
-│   ├── permission_service_runtime.cjs     # Shared permission manifest/runtime helpers, persistence, and command wrappers
-│   ├── permission_service_*.cjs           # Focused permission domains (screen, accessibility, microphone, automation, workspace, browser)
+│   ├── ipc.cjs                            # Renderer <-> SDK/Electron IPC composition root and event fan-out
+│   ├── app/                               # app lifecycle, menus, runtime mode, GPU, VM worker, endpoint/runtime helpers
+│   ├── debug/                             # gated main-process trace helpers
+│   ├── extensions/                        # extension manifest, MCP runtime, tool manifest helpers
+│   ├── ipc/                               # focused IPC helper runtimes and channel contracts
+│   ├── permissions/                       # permission service, permission IPC, sudo handler, capability domains, state store
+│   ├── sdk/                               # SDK desktop integration helpers and local tool/surface lifecycle hooks
+│   ├── sidecar/                           # local backend/sidecar bridge, daemon manager, RPC transports, readiness, stop policy
+│   ├── surfaces/                          # BrowserWindow creation, overlays, surface state, window policy, display affinity
+│   ├── wakeword/                          # wakeword subprocess bridge and supervisor
 │   └── python/                            # Sidecar runtime (tools, memory, system, browser)
 ├── preload.js                             # Context-isolated channel allowlist bridge
 ├── renderer/
@@ -85,17 +62,17 @@ frontend/src/
 
 Current runtime behavior also relies on these explicit seams:
 
-- **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surface_runtime.cjs` (window ownership + overlay phase state).
-- **Local sidecar bridge is split by ownership**: `local_backend_bridge.cjs`
+- **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `app/main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `app/main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surfaces/surface_runtime.cjs` (window ownership + overlay phase state).
+- **Local sidecar bridge is split by ownership**: `sidecar/local_backend_bridge.cjs`
   is the composition root for local-backend wiring and scoped host IPC
   registration. Launch planning/env construction lives in
-  `local_backend_launch_plan.cjs`, process exit/error policy lives in
-  `local_backend_process_events.cjs`, shutdown policy lives in
-  `local_backend_stop_controller.cjs`, stderr filtering lives in
-  `local_backend_stderr_transport.cjs`, JSON-RPC request
-  correlation/timeouts live in `local_backend_bridge_request_transport.cjs`,
+  `sidecar/local_backend_launch_plan.cjs`, process exit/error policy lives in
+  `sidecar/local_backend_process_events.cjs`, shutdown policy lives in
+  `sidecar/local_backend_stop_controller.cjs`, stderr filtering lives in
+  `sidecar/local_backend_stderr_transport.cjs`, JSON-RPC request
+  correlation/timeouts live in `sidecar/local_backend_bridge_request_transport.cjs`,
   and execute-tool routing plus screenshot-specific attachment handling lives
-  in `local_backend_bridge_execute_tool_runtime.cjs`.
+  in `sidecar/local_backend_bridge_execute_tool_runtime.cjs`.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local-backend readiness from the shared IPC status surface and consume shared browser-session/local-backend runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localBackendStatusStore` owns the initial `get-local-backend-status` bootstrap plus `local-backend-status` event subscription, while `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
 - **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for settings and model listing commands that have not moved to SDK transport calls, while `renderer/infrastructure/api/windieSdkClient.ts` exposes the SDK runtime surface used by CLI/custom UI clients and first-party Electron facades. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, and `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`; `renderer/infrastructure/api/index.ts` is the stable barrel export for low-level client modules. Desktop-specific adapters are allowed behind SDK interfaces such as `ConversationStore` and `BackendTransport`; the app facades may use lower-level SDK modules, but renderer feature code should not reimplement SDK conversation, tool-routing, rehydrate, compaction, or projection semantics.
 - **Tool identity normalization is SDK-owned**: renderer chat display helpers may
@@ -107,9 +84,9 @@ Current runtime behavior also relies on these explicit seams:
   `correlation_id`, or `bundle_id`.
 - **Settings/model sync is facade-owned**: provider/config helpers build plain frontend config and model-selection data. Backend settings payload shaping and model command dispatch stay behind `app/runtime/desktopSettingsRuntimeClient.ts` and focused conversation runtime facades.
 - **Sidecar now has a matching hosted SDK transport client**: `frontend/src/main/python/core/windie_sdk_client.py` mirrors the same public backend boundary for Python-side developer tools and local runtime integrations that need `/api/sdk/*`, `/api/artifacts/*`, or `/ws` access without importing backend code.
-- **Permission runtime is split by capability domain**: `permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.
-- **Global stop shortcut is a dedicated runtime**: `frontend/src/main/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
-- **VM worker mode is runtime-flagged and run-API backed**: `runtime_mode.cjs` controls `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` behavior, while `vm_worker_runtime.cjs` polls and relays `/api/runs/*` assignments/events over backend HTTP + existing websocket event observer hooks.
+- **Permission runtime is split by capability domain**: `permissions/permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.
+- **Global stop shortcut is a dedicated runtime**: `frontend/src/main/sdk/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
+- **VM worker mode is runtime-flagged and run-API backed**: `app/runtime_mode.cjs` controls `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` behavior, while `app/vm_worker_runtime.cjs` polls and relays `/api/runs/*` assignments/events over backend HTTP + existing websocket event observer hooks.
 - **Sidecar browser runtime is feature-pack aware**: `frontend/src/main/python/local_backend.py` and `core/feature_pack_installer.py` support on-demand sidecar runtime dependency install into user-writable site-packages with packaged-app specific failure messaging.
 - **Sidecar tool contract is direct-name based**: `frontend/src/main/python/tools/registry.py` exposes concrete tool names from its local `TOOL_CATALOG` plus `switch_window` and `get_open_windows`; parity with backend remote schemas is tracked through `frontend/src/main/python/tools/manifest.py`.
 - **Wrapper artifacts are not live sidecar tool names**: repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` schemas, but the current sidecar runtime does not register or dispatch those names.

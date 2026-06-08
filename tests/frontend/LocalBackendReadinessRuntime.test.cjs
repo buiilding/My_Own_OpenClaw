@@ -3,7 +3,7 @@
 const {
   createLocalBackendReadinessRuntime,
   getReadinessRetryDelay,
-} = require('../../frontend/src/main/local_backend_readiness_runtime.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_readiness_runtime.cjs');
 
 describe('local_backend_readiness_runtime', () => {
   function createRuntimeHarness() {

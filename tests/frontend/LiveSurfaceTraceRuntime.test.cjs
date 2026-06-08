@@ -6,7 +6,7 @@ const {
   logLiveSurfaceTrace,
   normalizeRendererLiveSurfaceTracePayload,
   summarizeCurrentTurn,
-} = require('../../frontend/src/main/live_surface_trace_runtime.cjs');
+} = require('../../frontend/src/main/debug/live_surface_trace_runtime.cjs');
 
 describe('live_surface_trace_runtime', () => {
   const originalEnv = process.env;

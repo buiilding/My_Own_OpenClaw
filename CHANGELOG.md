@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: move Electron main-process helper modules into app, debug,
+  extensions, permissions, sdk, sidecar, surfaces, and wakeword domain folders
+  while keeping `index.cjs` and `ipc.cjs` as top-level composition roots.
 - backend/models: add GPT-5.5 as a selectable OpenAI reasoning family with
   `none`, `low`, `medium`, `high`, and `xhigh` presets while keeping GPT-5.4 as
   the default catalog selection.

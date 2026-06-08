@@ -4,7 +4,7 @@ const path = require('path');
 
 const {
   createPermissionStateStore,
-} = require('../../frontend/src/main/permission_state_store.cjs');
+} = require('../../frontend/src/main/permissions/permission_state_store.cjs');
 
 function createMemoryFs() {
   const files = new Map();

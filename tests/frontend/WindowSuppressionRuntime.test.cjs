@@ -7,7 +7,7 @@ const {
   setWindowBounds,
   setWindowOpacityIfSupported,
   waitForMainWindowSuppressedForScreenshot,
-} = require('../../frontend/src/main/window_suppression_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/window_suppression_runtime.cjs');
 
 function createWindow({
   visible = true,

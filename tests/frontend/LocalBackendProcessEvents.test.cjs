@@ -3,7 +3,7 @@
 const {
   createLocalBackendProcessEvents,
   formatLocalBackendProcessError,
-} = require('../../frontend/src/main/local_backend_process_events.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_process_events.cjs');
 
 function createProcessRef() {
   const handlers = {};

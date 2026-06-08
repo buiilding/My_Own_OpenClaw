@@ -2,7 +2,7 @@
 
 const {
   createLocalBackendSupervisor,
-} = require('../../frontend/src/main/local_backend_supervisor.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_supervisor.cjs');
 
 describe('local_backend_supervisor', () => {
   test('tracks starting ready stopping and error states with generation bumps', () => {

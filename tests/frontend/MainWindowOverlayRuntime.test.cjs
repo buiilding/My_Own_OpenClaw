@@ -4,7 +4,7 @@ const {
   createLazyRendererViewLoader,
   createOverlayBrowserWindow,
   loadRendererView,
-} = require('../../frontend/src/main/main_window_overlay_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/main_window_overlay_runtime.cjs');
 
 describe('main_window_overlay_runtime', () => {
   test('loadRendererView loads dev url with expected query params', () => {

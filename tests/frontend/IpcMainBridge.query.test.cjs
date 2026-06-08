@@ -346,7 +346,7 @@ describe('ipc.cjs bridge query handling', () => {
     const {
       getActiveDisplayAffinity,
       setActiveDisplayAffinity,
-    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    } = require('../../frontend/src/main/surfaces/display_affinity_runtime.cjs');
     setActiveDisplayAffinity(null);
     primeQueryContext(backendBridge);
 

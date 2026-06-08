@@ -31,7 +31,7 @@ function flattenPagesFromDocsJson(value, pages = []) {
 
 function readDocMeta(page) {
   const candidates = page === 'README'
-    ? [repoPath('README.md'), repoPath('docs/README.md')]
+    ? [repoPath('docs/README.md'), repoPath('README.md')]
     : [repoPath('docs', `${page}.md`), repoPath('docs', `${page}.mdx`)];
   const filePath = candidates.find((candidate) => fs.existsSync(candidate));
   if (!filePath) {

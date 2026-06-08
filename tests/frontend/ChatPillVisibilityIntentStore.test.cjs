@@ -6,7 +6,7 @@ const {
   readChatPillVisibilityIntent,
   resolveChatPillVisibilityIntentPath,
   writeChatPillVisibilityIntent,
-} = require('../../frontend/src/main/chat_pill_visibility_intent_store.cjs');
+} = require('../../frontend/src/main/surfaces/chat_pill_visibility_intent_store.cjs');
 
 function createFsMock({ exists = false, contents = '' } = {}) {
   return {

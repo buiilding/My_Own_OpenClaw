@@ -1,6 +1,6 @@
 const {
   buildConversationEventFromBackendEvent,
-} = require('../ipc_conversation_event_broadcast.cjs');
+} = require('./ipc_conversation_event_broadcast.cjs');
 
 function broadcastQuerySendFailure({
   queryMessageId,

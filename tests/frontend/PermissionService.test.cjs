@@ -4,7 +4,7 @@ const {
   listPermissionsWithStatus,
   requestPermission,
   runPermissionProbe,
-} = require('../../frontend/src/main/permission_service.cjs');
+} = require('../../frontend/src/main/permissions/permission_service.cjs');
 
 function createMockPermissionStateStore() {
   const state = new Map();

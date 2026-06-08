@@ -8,7 +8,7 @@ const {
 } = require('../../scripts/create-windie-extension.cjs');
 const {
   loadAgentExtensionRegistry,
-} = require('../../frontend/src/main/extension_manifest.cjs');
+} = require('../../frontend/src/main/extensions/extension_manifest.cjs');
 
 describe('create-windie-extension scaffold', () => {
   test('creates loadable divided plugin and skill contributions', () => {

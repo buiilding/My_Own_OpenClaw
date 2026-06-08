@@ -2,7 +2,7 @@
 
 const {
   createWindowBootstrapRuntime,
-} = require('../../frontend/src/main/main_process_bootstrap_runtime.cjs');
+} = require('../../frontend/src/main/app/main_process_bootstrap_runtime.cjs');
 
 describe('main_process_bootstrap_runtime', () => {
   function createDeps(overrides = {}) {

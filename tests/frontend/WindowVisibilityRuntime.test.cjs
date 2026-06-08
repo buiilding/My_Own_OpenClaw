@@ -5,7 +5,7 @@ const {
   hideMainWindow,
   showMainWindow,
   showChatWindow,
-} = require('../../frontend/src/main/window_visibility_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/window_visibility_runtime.cjs');
 
 function createWindow({
   visible = false,

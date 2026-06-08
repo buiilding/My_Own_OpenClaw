@@ -2,7 +2,7 @@
 
 const {
   handleMoveChatboxTo,
-} = require('../../frontend/src/main/overlay_chatbox_handler.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_chatbox_handler.cjs');
 
 describe('overlay_chatbox_handler move runtime', () => {
   function createDeps(overrides = {}) {

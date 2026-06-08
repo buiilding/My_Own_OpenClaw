@@ -5,7 +5,7 @@ const {
   handleSdkLiveTurnSurfaceIntent,
   logSdkTypingTransition,
   resolveOverlayIntent,
-} = require('../../frontend/src/main/sdk_live_turn_surface_controller.cjs');
+} = require('../../frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs');
 
 function createWindow({ visible = false } = {}) {
   let isVisible = visible;

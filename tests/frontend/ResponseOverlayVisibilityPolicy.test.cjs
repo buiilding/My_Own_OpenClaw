@@ -7,7 +7,7 @@ const {
   resolveResponseOverlayWindowMode,
   resolveChatWindowResponseOverlayRestore,
   shouldRestoreTerminalResponseWindow,
-} = require('../../frontend/src/main/response_overlay_visibility_policy.cjs');
+} = require('../../frontend/src/main/surfaces/response_overlay_visibility_policy.cjs');
 
 const PHASE = Object.freeze({
   IDLE: 'idle',

@@ -9,7 +9,7 @@ const {
   loadExtensionSettingsPanels,
   loadExtensionSkillPromptLayers,
   loadPublicExtensionRegistry,
-} = require('../../frontend/src/main/extension_manifest.cjs');
+} = require('../../frontend/src/main/extensions/extension_manifest.cjs');
 
 function writeExtensionRegistry() {
   const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));

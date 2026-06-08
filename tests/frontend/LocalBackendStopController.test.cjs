@@ -3,7 +3,7 @@
 const {
   createLocalBackendStopController,
   createStoppedToolExecutor,
-} = require('../../frontend/src/main/local_backend_stop_controller.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_stop_controller.cjs');
 
 function createProcessRef() {
   return {

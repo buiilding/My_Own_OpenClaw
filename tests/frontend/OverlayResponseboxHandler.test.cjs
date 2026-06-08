@@ -2,7 +2,7 @@
 
 const {
   handleSetResponseboxSize,
-} = require('../../frontend/src/main/overlay_responsebox_handler.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_responsebox_handler.cjs');
 
 describe('overlay_responsebox_handler', () => {
   function createDeps(overrides = {}) {

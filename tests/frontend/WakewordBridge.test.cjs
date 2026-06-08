@@ -95,7 +95,7 @@ describe('wakeword_bridge', () => {
 
     const bridge = require(path.join(
       __dirname,
-      '../../frontend/src/main/wakeword_bridge.cjs',
+      '../../frontend/src/main/wakeword/wakeword_bridge.cjs',
     ));
 
     const mainWindow = {

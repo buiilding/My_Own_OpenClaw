@@ -2,7 +2,7 @@
 
 const {
   handleSetChatboxVisualAnchorHeight,
-} = require('../../frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_chatbox_visual_anchor_handler.cjs');
 
 describe('overlay_chatbox_visual_anchor_handler', () => {
   test('updates chat window bounds before repositioning dependent windows', () => {

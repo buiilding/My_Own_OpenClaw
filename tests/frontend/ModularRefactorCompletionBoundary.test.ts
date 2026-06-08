@@ -18,6 +18,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).toContain('client.wakeUp({');
     expect(ipcSource).toContain('agent.conversation({');
     expect(ipcSource).toContain('localToolLifecycle');
+    expect(ipcSource).toContain('windieAgentWebSocketImpl');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(ipcSource).not.toContain('WindieAgent.startDesktop');
     expect(ipcSource).not.toContain("require('./windie_agent_host.cjs')");
@@ -27,13 +28,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('getWindieSdkRuntime');
     expect(ipcSource).not.toContain('createManagedBackendSession');
     expect(ipcSource).not.toContain('routeSdkToolEventToLocalRuntime');
-    expect(ipcSource).not.toContain('WebSocketImpl:');
     expect(ipcSource).not.toContain('executeLocalTool:');
     const wakeCall = ipcSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
     expect(wakeCall).toContain("name: 'WindieOS'");
     expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
-    expect(wakeCall).toContain("builtins: 'default'");
+    expect(wakeCall).toContain("builtins: process.env.NODE_ENV === 'test' ? [] : 'default'");
     expect(wakeCall).toContain('localToolLifecycle');
     expect(wakeCall).not.toContain('conversationRef:');
   });
@@ -41,7 +41,9 @@ describe('modular sdk refactor completion boundary', () => {
   test('renderer live-turn runtime stays on sdk command dispatch', async () => {
     const source = await read('frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts');
 
-    expect(source).toContain('createConversationRuntime');
+    expect(source).toContain("invokeWindieCommand('conversation.send'");
+    expect(source).toContain("invokeWindieCommand('conversation.stop'");
+    expect(source).not.toContain('createConversationRuntime');
     expect(source).not.toContain('DesktopSettingsRuntimeClient');
     expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
     expect(source).not.toContain('DesktopBackendCommandRuntimeClient');

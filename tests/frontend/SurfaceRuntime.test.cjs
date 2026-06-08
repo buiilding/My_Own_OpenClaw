@@ -1,6 +1,6 @@
 /** @jest-environment node */
 
-const { createSurfaceRuntime } = require('../../frontend/src/main/surface_runtime.cjs');
+const { createSurfaceRuntime } = require('../../frontend/src/main/surfaces/surface_runtime.cjs');
 
 function createWindow({ visible = false, destroyed = false } = {}) {
   return {

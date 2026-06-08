@@ -12,7 +12,7 @@ const {
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
-} = require('./backend_endpoints.cjs');
+} = require('./app/backend_endpoints.cjs');
 const {
   createBackendEndpointState,
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
@@ -40,7 +40,7 @@ const {
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
   handleRendererLiveSurfaceTrace,
-} = require('./live_surface_trace_runtime.cjs');
+} = require('./debug/live_surface_trace_runtime.cjs');
 const {
   fetchArtifactImage,
 } = require('./ipc/ipc_artifact_fetch.cjs');
@@ -75,11 +75,11 @@ const {
 } = require('./ipc/ipc_startup_state.cjs');
 const {
   resolveWorkspaceRepoInstructionPromptLayers,
-} = require('./repo_instruction_runtime.cjs');
+} = require('./app/repo_instruction_runtime.cjs');
 const {
   loadExtensionSkillPromptLayers,
   loadPublicExtensionRegistry,
-} = require('./extension_manifest.cjs');
+} = require('./extensions/extension_manifest.cjs');
 const {
   createChatQueryHandlers,
 } = require('./ipc/ipc_chat_query_handlers.cjs');
@@ -102,7 +102,7 @@ const {
 const {
   loginOpenAICodexOAuth,
   logoutOpenAICodexOAuth,
-} = require('./openai_codex_oauth.cjs');
+} = require('./app/openai_codex_oauth.cjs');
 const {
   registerOpenAICodexOAuthHandlers,
 } = require('./ipc/ipc_openai_codex_oauth_handlers.cjs');
@@ -115,27 +115,27 @@ const {
 const {
   resolveActiveSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
-} = require('./display_affinity_runtime.cjs');
+} = require('./surfaces/display_affinity_runtime.cjs');
 const {
   applyTranscriptSessionSync,
 } = require('./ipc/ipc_transcript_session_sync.cjs');
 const {
   isAgentLoopStopShortcutPhase,
-} = require('./agent_stop_shortcut_runtime.cjs');
+} = require('./sdk/agent_stop_shortcut_runtime.cjs');
 const {
   buildAgentDefinition,
-} = require('./agent_definition.cjs');
+} = require('./sdk/agent_definition.cjs');
 const {
   WindieClient,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
 const {
   buildConversationEventFromBackendEvent,
-} = require('./ipc_conversation_event_broadcast.cjs');
-const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
+} = require('./ipc/ipc_conversation_event_broadcast.cjs');
+const { logChatPillMainTrace } = require('./debug/chat_pill_trace_runtime.cjs');
 const {
   logLiveSurfaceTrace,
   summarizeCurrentTurn,
-} = require('./live_surface_trace_runtime.cjs');
+} = require('./debug/live_surface_trace_runtime.cjs');
 
 const backendEndpointState = createBackendEndpointState({
   resolveBackendEndpointCandidates,
@@ -164,6 +164,7 @@ let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
 let localToolLifecycle = null;
 let syncSdkLiveTurnSurfaceIntent = null;
+let windieAgentWebSocketImpl = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
 let windieAgent = null;
@@ -896,6 +897,7 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
     reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
     idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
     ...(process.env.NODE_ENV === 'test' ? { autoStartLocalRuntime: false } : {}),
     onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
     onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
@@ -1137,6 +1139,7 @@ function shutdownIpcForTests() {
   setGlobalAgentStopShortcutAccelerator = null;
   localToolLifecycle = null;
   syncSdkLiveTurnSurfaceIntent = null;
+  windieAgentWebSocketImpl = null;
   pendingInstallAuthStatePromise = null;
   isConnected = false;
   pendingWindieAgentStartPromise = null;
@@ -1167,6 +1170,9 @@ function initializeIpc(win, options = {}) {
     : null;
   syncSdkLiveTurnSurfaceIntent = typeof options.syncSdkLiveTurnSurfaceIntent === 'function'
     ? options.syncSdkLiveTurnSurfaceIntent
+    : null;
+  windieAgentWebSocketImpl = typeof options.WebSocketImpl === 'function'
+    ? options.WebSocketImpl
     : null;
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows

@@ -3,7 +3,7 @@
 const {
   createLocalBackendStdoutTransport,
   shouldOffloadJsonParse,
-} = require('../../frontend/src/main/local_backend_stdout_transport.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_stdout_transport.cjs');
 
 describe('local_backend_stdout_transport', () => {
   test('buffers stdout fragments and emits parsed JSON-RPC responses', () => {

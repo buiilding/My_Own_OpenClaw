@@ -7,7 +7,7 @@ const {
   handleRestoreSurfaceAfterScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
-} = require('../../frontend/src/main/overlay_visibility_handler.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_visibility_handler.cjs');
 
 describe('overlay_visibility_handler', () => {
   test('show-main-window uses focus true by default and returns result', () => {

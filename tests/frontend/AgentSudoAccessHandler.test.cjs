@@ -4,7 +4,7 @@ const { EventEmitter } = require('events');
 
 const {
   handleSetAgentSudoAccess,
-} = require('../../frontend/src/main/agent_sudo_access_handler.cjs');
+} = require('../../frontend/src/main/permissions/agent_sudo_access_handler.cjs');
 
 function createSpawnStub({ closeCode = 0, stderr = '', stdout = '', error = null } = {}) {
   return () => {

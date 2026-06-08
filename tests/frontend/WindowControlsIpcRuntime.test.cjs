@@ -2,7 +2,7 @@
 
 const {
   initializeWindowControlHandlersRuntime,
-} = require('../../frontend/src/main/window_controls_ipc_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/window_controls_ipc_runtime.cjs');
 
 describe('window_controls_ipc_runtime', () => {
   function createRuntime(overrides = {}) {

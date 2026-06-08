@@ -91,7 +91,7 @@ jest.mock('fs', () => ({
   },
 }));
 
-jest.mock('../../../frontend/src/main/local_backend_bridge.cjs', () => ({
+jest.mock('../../../frontend/src/main/sidecar/local_backend_bridge.cjs', () => ({
   executeToolForBackend: jest.fn(),
   getSystemState: jest.fn(),
   searchMemory: jest.fn(),
@@ -149,7 +149,7 @@ function initIpc(options = {}) {
 
   const { ipcMain } = require('electron');
   const WebSocketMock = require('ws');
-  const backendBridge = require('../../../frontend/src/main/local_backend_bridge.cjs');
+  const backendBridge = require('../../../frontend/src/main/sidecar/local_backend_bridge.cjs');
   const fs = require('fs');
 
   backendBridge.executeToolForBackend.mockResolvedValue({
@@ -219,6 +219,7 @@ function initIpc(options = {}) {
   const chatWindow = options.chatWindow || null;
   ipc.initializeIpc(mainWindow, {
     ...options,
+    WebSocketImpl: WebSocketMock,
     getWindows: options.getWindows || (() => ({
       mainWindow,
       chatWindow,

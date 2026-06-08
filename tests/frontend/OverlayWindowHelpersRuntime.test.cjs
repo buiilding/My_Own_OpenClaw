@@ -1,6 +1,6 @@
 /** @jest-environment node */
 
-const { createOverlayWindowHelpersRuntime } = require('../../frontend/src/main/overlay_window_helpers_runtime.cjs');
+const { createOverlayWindowHelpersRuntime } = require('../../frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs');
 
 describe('overlay_window_helpers_runtime', () => {
   test('applies compact visual anchor offset when computing response bounds', () => {
@@ -359,7 +359,7 @@ describe('overlay_window_helpers_runtime', () => {
         workArea: { x: 1920, y: 40, width: 2560, height: 1400 },
       }),
       getChatWindow: () => chatWindow,
-      getOverlayChatWindowBounds: jest.requireActual('../../frontend/src/main/overlay_bounds.cjs').getChatWindowBounds,
+      getOverlayChatWindowBounds: jest.requireActual('../../frontend/src/main/surfaces/overlay_bounds.cjs').getChatWindowBounds,
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
       getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
       contextLabelWidth: 280,

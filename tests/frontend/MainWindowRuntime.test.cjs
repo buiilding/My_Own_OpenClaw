@@ -16,7 +16,7 @@ const {
   enableContentProtectionSafely,
   hideMainWindowWithoutChatPill,
   prepareOverlayQueryCaptureFocus,
-} = require('../../frontend/src/main/main_window_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/main_window_runtime.cjs');
 
 describe('main_window_runtime enableContentProtectionSafely', () => {
   test('enables content protection on Windows', () => {

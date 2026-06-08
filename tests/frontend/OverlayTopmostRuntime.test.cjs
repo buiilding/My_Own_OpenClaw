@@ -3,7 +3,7 @@
 const {
   setOverlayAlwaysOnTop,
   setOverlayVisibleOnAllWorkspaces,
-} = require('../../frontend/src/main/overlay_topmost_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_topmost_runtime.cjs');
 
 describe('overlay_topmost_runtime', () => {
   test('uses capturable floating level for normal macOS overlays', () => {

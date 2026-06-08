@@ -8,7 +8,7 @@ const path = require('path');
 
 function loadManager() {
   jest.resetModules();
-  jest.doMock('../../frontend/src/main/runtime_paths.cjs', () => ({
+  jest.doMock('../../frontend/src/main/app/runtime_paths.cjs', () => ({
     resolveSidecarLaunchTarget: jest.fn(() => ({
       kind: 'python',
       command: 'python3',
@@ -18,7 +18,7 @@ function loadManager() {
       runtimeRoot: null,
     })),
   }));
-  return require('../../frontend/src/main/sidecar_daemon_manager.cjs');
+  return require('../../frontend/src/main/sidecar/sidecar_daemon_manager.cjs');
 }
 
 function jsonResponse(body, status = 200) {

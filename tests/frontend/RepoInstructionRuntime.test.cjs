@@ -10,7 +10,7 @@ const {
   normalizeWorkspaceDirectory,
   resolveWorkspaceRepoInstructionMessages,
   resolveWorkspaceRepoInstructionPromptLayers,
-} = require('../../frontend/src/main/repo_instruction_runtime.cjs');
+} = require('../../frontend/src/main/app/repo_instruction_runtime.cjs');
 
 describe('repo_instruction_runtime', () => {
   test('buildAgentsMdMessage returns null for blank contents', () => {

@@ -2,7 +2,7 @@
 
 const {
   createLocalBackendRpcTransport,
-} = require('../../frontend/src/main/local_backend_bridge_rpc_transport.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_bridge_rpc_transport.cjs');
 
 describe('local_backend_bridge_rpc_transport', () => {
   test('routes requests through daemon rpc transport when daemon is available', async () => {

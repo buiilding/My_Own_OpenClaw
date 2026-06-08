@@ -11,7 +11,7 @@ const {
   resolveAppIconNativeImage,
   resolveAppIconPathRuntime,
   resolveTrayIconNativeImage,
-} = require('../../frontend/src/main/main_window_icon_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/main_window_icon_runtime.cjs');
 
 describe('main_window_icon_runtime', () => {
   test('resolveAppIconPathRuntime returns the first existing candidate', () => {

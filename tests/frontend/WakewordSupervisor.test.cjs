@@ -2,7 +2,7 @@
 
 const {
   createWakewordSupervisor,
-} = require('../../frontend/src/main/wakeword_supervisor.cjs');
+} = require('../../frontend/src/main/wakeword/wakeword_supervisor.cjs');
 
 describe('wakeword_supervisor', () => {
   test('tracks process, ready state, enabled state, and errors explicitly', () => {

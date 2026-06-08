@@ -5,7 +5,7 @@ const path = require('path');
 
 const {
   COMPILED_RPC_HANDLER_DEFINITIONS,
-} = require('../../frontend/src/main/local_backend_bridge_rpc_mappers.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs');
 
 describe('local_backend_bridge_rpc_mappers', () => {
   test('local backend bridge does not expose direct memory storage', () => {
@@ -17,7 +17,7 @@ describe('local_backend_bridge_rpc_mappers', () => {
   test('local backend bridge does not define memory field aliases inline', () => {
     const bridgePath = path.join(
       __dirname,
-      '../../frontend/src/main/local_backend_bridge.cjs',
+      '../../frontend/src/main/sidecar/local_backend_bridge.cjs',
     );
     const bridgeSource = fs.readFileSync(bridgePath, 'utf8');
     const forbiddenInlineAliases = [

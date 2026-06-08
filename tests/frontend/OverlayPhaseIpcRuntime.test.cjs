@@ -2,7 +2,7 @@
 
 const {
   initializeOverlayPhaseHandlersRuntime,
-} = require('../../frontend/src/main/overlay_phase_ipc_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs');
 
 describe('overlay_phase_ipc_runtime', () => {
   function createRuntime(overrides = {}) {

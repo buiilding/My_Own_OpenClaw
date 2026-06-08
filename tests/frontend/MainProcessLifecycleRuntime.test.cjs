@@ -2,7 +2,7 @@
 
 const {
   initializeMainProcessLifecycleRuntime,
-} = require('../../frontend/src/main/main_process_lifecycle_runtime.cjs');
+} = require('../../frontend/src/main/app/main_process_lifecycle_runtime.cjs');
 
 function flushPromises() {
   return new Promise((resolve) => setImmediate(resolve));

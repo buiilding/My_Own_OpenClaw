@@ -3,7 +3,7 @@
 const http = require('http');
 const {
   loginOpenAICodexOAuth,
-} = require('../../frontend/src/main/openai_codex_oauth.cjs');
+} = require('../../frontend/src/main/app/openai_codex_oauth.cjs');
 
 function createJwt(payload) {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');

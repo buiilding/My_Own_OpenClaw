@@ -43,6 +43,8 @@ Tests and docs:
   windie test pick <area>
   windie docs list
   windie docs check
+  windie docs search <query>
+  windie docs <query>
   windie docs open <topic>
 
 Build and package:
@@ -430,6 +432,24 @@ function runTest(args) {
   throw new Error('Usage: windie test backend|sidecar|frontend|all|pick <area>');
 }
 
+function printDocsSearch(topic, usage) {
+  const query = String(topic || '').trim();
+  if (!query) {
+    throw new Error(usage);
+  }
+  const matches = findDocs(query);
+  if (!matches.length) {
+    console.log(`No docs match found for: ${query}`);
+    return;
+  }
+  for (const match of matches) {
+    console.log(`${match.path} - ${match.title}`);
+    if (match.summary) {
+      console.log(`  ${match.summary}`);
+    }
+  }
+}
+
 function runDocs(args) {
   const action = args[0];
   if (action === 'list') {
@@ -440,21 +460,15 @@ function runDocs(args) {
     return runForeground('git', ['diff', '--check'], { cwd: REPO_ROOT });
   }
   if (action === 'open') {
-    const topic = args.slice(1).join(' ');
-    const matches = findDocs(topic);
-    if (!matches.length) {
-      console.log(`No docs match found for: ${topic}`);
-      return;
-    }
-    for (const match of matches) {
-      console.log(`${match.path} - ${match.title}`);
-      if (match.summary) {
-        console.log(`  ${match.summary}`);
-      }
-    }
-    return;
+    return printDocsSearch(args.slice(1).join(' '), 'Usage: windie docs open <topic>');
   }
-  throw new Error('Usage: windie docs list|check|open <topic>');
+  if (action === 'search') {
+    return printDocsSearch(args.slice(1).join(' '), 'Usage: windie docs search <query>');
+  }
+  if (action) {
+    return printDocsSearch(args.join(' '), 'Usage: windie docs <query>');
+  }
+  throw new Error('Usage: windie docs list|check|search <query>|open <topic>|<query>');
 }
 
 function runBuild(args) {

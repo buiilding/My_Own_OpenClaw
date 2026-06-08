@@ -9,7 +9,7 @@ const {
   discoverMcpTools,
   executeMcpTool,
   hasDiscoveredMcpTool,
-} = require('../../frontend/src/main/mcp_runtime.cjs');
+} = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
 
 describe('MCP runtime', () => {
   afterEach(() => {

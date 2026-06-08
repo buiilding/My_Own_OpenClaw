@@ -6,7 +6,7 @@ const path = require('path');
 
 const {
   initializePermissionHandlersRuntime,
-} = require('../../frontend/src/main/permission_ipc_runtime.cjs');
+} = require('../../frontend/src/main/permissions/permission_ipc_runtime.cjs');
 
 describe('permission_ipc_runtime', () => {
   function createRuntime(overrides = {}) {

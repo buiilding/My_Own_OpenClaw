@@ -4,7 +4,7 @@ const {
   buildApplicationMenuTemplate,
   extractWorkspaceSelection,
   installApplicationMenu,
-} = require('../../frontend/src/main/app_menu_runtime.cjs');
+} = require('../../frontend/src/main/app/app_menu_runtime.cjs');
 
 describe('app_menu_runtime', () => {
   test('builds a File menu with Set active workspace first', () => {

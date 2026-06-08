@@ -9,7 +9,7 @@ const {
   syncVisibleSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
   toScreenshotDisplayBounds,
-} = require('../../frontend/src/main/display_affinity_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/display_affinity_runtime.cjs');
 
 describe('display_affinity_runtime', () => {
   afterEach(() => {

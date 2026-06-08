@@ -2,7 +2,7 @@
 
 const {
   createVmWorkerRuntime,
-} = require('../../frontend/src/main/vm_worker_runtime.cjs');
+} = require('../../frontend/src/main/app/vm_worker_runtime.cjs');
 
 function flushPromises() {
   return new Promise((resolve) => setImmediate(resolve));

@@ -2,7 +2,7 @@
 
 const {
   configureGpuRuntime,
-} = require('../../frontend/src/main/gpu_runtime.cjs');
+} = require('../../frontend/src/main/app/gpu_runtime.cjs');
 
 describe('gpu_runtime configureGpuRuntime', () => {
   test('keeps hardware acceleration enabled by default', () => {

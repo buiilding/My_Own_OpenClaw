@@ -2,7 +2,7 @@
 
 const {
   registerOverlayRendererWindows,
-} = require('../../frontend/src/main/overlay_renderer_registration.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_renderer_registration.cjs');
 
 describe('overlay_renderer_registration', () => {
   test('registers each provided window in order', () => {

@@ -30,6 +30,8 @@ Before coding or answering implementation questions:
   in `docs/getting-started/docs_directory.md` when choosing docs.
 - Run docs listing when available: use `bin/windie docs list`; ignore only if
   the Windie CLI is unavailable.
+- Search local docs by feature or symptom when orientation is incomplete:
+  `bin/windie docs search <query>` or the shorthand `bin/windie docs <query>`.
 - Read the nearest `read_when` docs until the domain and behavior are clear.
 - Before fixing a bug or adding behavior, inspect recent related commits for
   the files, symbols, or subsystem you are touching. Use `git log`, `git show`,
@@ -45,6 +47,47 @@ Before coding or answering implementation questions:
 
 Detailed source-map entry points are in
 `docs/development/agent_architecture_reference.md`.
+
+## First-Context Feature Map
+
+`AGENTS.md` is the first durable context most coding agents receive. Keep this
+map current enough that an agent can discover implemented features quickly, then
+route to docs/code for details instead of relying on memory.
+
+Core WindieOS feature areas:
+
+- Desktop shell: minimal chat pill, response overlay, dashboard, onboarding,
+  permissions, window/overlay lifecycle, and desktop logs.
+- Agent runtime: SDK `WindieClient`/`WindieAgent`, conversation runtime, live
+  turn projection, replay, compaction, title generation, and local/hosted query
+  routing.
+- Local authority: Python sidecar, executable tool catalog, computer-use,
+  browser-use, filesystem, shell, screenshots, OCR/vision, wakeword, voice, and
+  local memory.
+- Hosted/backend authority: FastAPI routes, websocket query stream, provider
+  policy, prompt compilation, remote tools such as `web_search`, artifacts,
+  runs API, install auth, and deploy/runtime operations.
+- Extensibility: SDK tools, built-in tool manifests, extension packages, plugin
+  tools, MCP server config, skills as prompt layers, provider integrations, and
+  future marketplace/plugin boundaries.
+- Persistence and memory: renderer transcripts, session/conversation identity,
+  backend active history, sidecar episodic/semantic memory, artifacts, caches,
+  and migration/compatibility notes.
+
+Fast routing queries:
+
+- `bin/windie docs minimal chat pill`
+- `bin/windie docs overlay phase`
+- `bin/windie docs tool schema policy`
+- `bin/windie docs sidecar tool`
+- `bin/windie docs conversation runtime`
+- `bin/windie docs memory replay`
+- `bin/windie docs provider change`
+- `bin/windie docs websocket event`
+- `bin/windie docs runs api`
+- `bin/windie docs extension`
+- `bin/windie docs screenshot overlay`
+- `bin/windie docs test selection`
 
 ## Architecture Rules
 

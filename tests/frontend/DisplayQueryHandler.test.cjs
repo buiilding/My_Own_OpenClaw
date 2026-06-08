@@ -2,7 +2,7 @@
 
 const {
   handleGetDisplays,
-} = require('../../frontend/src/main/display_query_handler.cjs');
+} = require('../../frontend/src/main/surfaces/display_query_handler.cjs');
 
 describe('display_query_handler', () => {
   test('maps display payloads with stable labels and primary marker', () => {

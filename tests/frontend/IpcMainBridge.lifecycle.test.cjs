@@ -10,7 +10,7 @@ const {
 const {
   getActiveDisplayAffinity,
   setActiveDisplayAffinity,
-} = require('../../frontend/src/main/display_affinity_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/display_affinity_runtime.cjs');
 const {
   BACKEND_RECONNECT_INTERVAL_MS,
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,

@@ -13,7 +13,7 @@ const {
 } = require('./__mocks__/localBackendBridgeHarness.cjs');
 const {
   resolveOwnedScreenshotTempDir,
-} = require('../../frontend/src/main/local_backend_bridge_screenshot_attachment.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs');
 
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
@@ -340,7 +340,7 @@ describe('local_backend_bridge RPC handlers', () => {
     mainWindow.isVisible.mockReturnValue(false);
     const {
       setActiveDisplayAffinity,
-    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    } = require('../../frontend/src/main/surfaces/display_affinity_runtime.cjs');
     setActiveDisplayAffinity({
       monitor_id: '2',
       bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -387,7 +387,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const {
       setActiveDisplayAffinity,
-    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    } = require('../../frontend/src/main/surfaces/display_affinity_runtime.cjs');
     const electron = require('electron');
     electron.screen.getAllDisplays.mockReturnValue([
       {
@@ -466,7 +466,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const {
       setActiveDisplayAffinity,
-    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    } = require('../../frontend/src/main/surfaces/display_affinity_runtime.cjs');
     const electron = require('electron');
     electron.screen.getAllDisplays.mockReturnValue([
       {
@@ -547,7 +547,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const {
       setActiveDisplayAffinity,
-    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    } = require('../../frontend/src/main/surfaces/display_affinity_runtime.cjs');
     setActiveDisplayAffinity({
       monitor_id: '1',
       bounds: { x: 0, y: 0, width: 1920, height: 1080 },

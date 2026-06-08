@@ -3,7 +3,7 @@
 const {
   createWindowPlatformPolicy,
   activateWindowForInteraction,
-} = require('../../frontend/src/main/window_platform_policy.cjs');
+} = require('../../frontend/src/main/surfaces/window_platform_policy.cjs');
 
 describe('window_platform_policy', () => {
   test('applies mac overlay topmost/workspace policy without forcing content protection', () => {

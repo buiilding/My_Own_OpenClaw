@@ -1,12 +1,12 @@
 const {
   buildAgentCapabilityHandshakePayload,
-} = require('../../frontend/src/main/agent_capability_handshake.cjs');
+} = require('../../frontend/src/main/sdk/agent_capability_handshake.cjs');
 const {
   buildClientToolManifest,
-} = require('../../frontend/src/main/tool_manifest.cjs');
+} = require('../../frontend/src/main/extensions/tool_manifest.cjs');
 const {
   buildAgentDefinition,
-} = require('../../frontend/src/main/agent_definition.cjs');
+} = require('../../frontend/src/main/sdk/agent_definition.cjs');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');

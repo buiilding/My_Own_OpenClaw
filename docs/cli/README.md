@@ -36,6 +36,8 @@ surface.
 | `bin/windie test all` | Run backend, sidecar, and frontend validation. |
 | `bin/windie docs list` | List docs with front matter and read hints. |
 | `bin/windie docs check` | Run docs listing plus whitespace checks. |
+| `bin/windie docs search <query>` | Search local docs by path, title, summary, and `read_when` hints. |
+| `bin/windie docs <query>` | Shorthand local docs search. |
 | `bin/windie build frontend` | Build the frontend bundle. |
 | `bin/windie build sidecar-runtime` | Build the bundled Python sidecar runtime. |
 | `bin/windie package mac` | Package macOS artifacts. |

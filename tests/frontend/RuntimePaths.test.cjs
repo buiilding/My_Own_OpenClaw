@@ -12,7 +12,7 @@ function withIsolatedRuntimePaths(testFn) {
   jest.isolateModules(() => {
     const fs = require('fs');
     const { app } = require('electron');
-    const runtimePaths = require('../../frontend/src/main/runtime_paths.cjs');
+    const runtimePaths = require('../../frontend/src/main/app/runtime_paths.cjs');
     testFn({ fs, app, runtimePaths });
   });
 }

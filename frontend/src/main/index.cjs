@@ -15,11 +15,11 @@ const path = require('path');
 const {
   extractWorkspaceSelection,
   installApplicationMenu,
-} = require('./app_menu_runtime.cjs');
+} = require('./app/app_menu_runtime.cjs');
 const {
   createPermissionStateStore,
   resolveStatePath: resolvePermissionStatePath,
-} = require('./permission_state_store.cjs');
+} = require('./permissions/permission_state_store.cjs');
 const {
   getBackendConnectionState,
   getLatestFrontendConfig,
@@ -31,7 +31,7 @@ const {
   triggerStopQueryFromMain,
   updateGlobalAgentStopShortcutStatus,
 } = require('./ipc.cjs');
-const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
+const { initializeWakewordBridge } = require('./wakeword/wakeword_bridge.cjs');
 const {
   initializeLocalBackendBridge,
   stopLocalBackend,
@@ -39,57 +39,57 @@ const {
   installBrowserChromium,
   determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
-} = require('./local_backend_bridge.cjs');
-const { createVmWorkerRuntime } = require('./vm_worker_runtime.cjs');
+} = require('./sidecar/local_backend_bridge.cjs');
+const { createVmWorkerRuntime } = require('./app/vm_worker_runtime.cjs');
 const {
   createChatWindow: createChatWindowRuntime,
   createMainWindow: createMainWindowRuntime,
   createResponseWindow: createResponseWindowRuntime,
   createTray: createTrayRuntime,
-} = require('./main_window_runtime.cjs');
+} = require('./surfaces/main_window_runtime.cjs');
 const {
   initializeMainProcessLifecycleRuntime,
-} = require('./main_process_lifecycle_runtime.cjs');
+} = require('./app/main_process_lifecycle_runtime.cjs');
 const {
   createWindowBootstrapRuntime,
-} = require('./main_process_bootstrap_runtime.cjs');
+} = require('./app/main_process_bootstrap_runtime.cjs');
 const {
   focusWindowForPermissionPrompt,
-} = require('./main_window_controls_handler.cjs');
-const { initializeOverlayPhaseHandlersRuntime } = require('./overlay_phase_ipc_runtime.cjs');
-const { initializeWindowControlHandlersRuntime } = require('./window_controls_ipc_runtime.cjs');
-const { initializePermissionHandlersRuntime } = require('./permission_ipc_runtime.cjs');
+} = require('./surfaces/main_window_controls_handler.cjs');
+const { initializeOverlayPhaseHandlersRuntime } = require('./surfaces/overlay_phase_ipc_runtime.cjs');
+const { initializeWindowControlHandlersRuntime } = require('./surfaces/window_controls_ipc_runtime.cjs');
+const { initializePermissionHandlersRuntime } = require('./permissions/permission_ipc_runtime.cjs');
 const {
   getChatWindowBounds: getOverlayChatWindowBounds,
   getResponseWindowBounds: getOverlayResponseWindowBounds,
   getContextLabelWindowBounds: getOverlayContextLabelWindowBounds,
-} = require('./overlay_bounds.cjs');
+} = require('./surfaces/overlay_bounds.cjs');
 const {
   getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
   setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
   syncActiveDisplayAffinityForWindow: syncActiveDisplayAffinityForWindowRuntime,
-} = require('./display_affinity_runtime.cjs');
+} = require('./surfaces/display_affinity_runtime.cjs');
 const { createResponseOverlayPhaseEnum } = require('./ipc/ipc_overlay_phase_contract.cjs');
-const { configureGpuRuntime } = require('./gpu_runtime.cjs');
-const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./runtime_mode.cjs');
+const { configureGpuRuntime } = require('./app/gpu_runtime.cjs');
+const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./app/runtime_mode.cjs');
 const {
   initializeAgentStopShortcutRuntime,
   resolveGlobalAgentStopAccelerator,
-} = require('./agent_stop_shortcut_runtime.cjs');
-const { createWindowPlatformPolicy } = require('./window_platform_policy.cjs');
-const { createSurfaceRuntime } = require('./surface_runtime.cjs');
+} = require('./sdk/agent_stop_shortcut_runtime.cjs');
+const { createWindowPlatformPolicy } = require('./surfaces/window_platform_policy.cjs');
+const { createSurfaceRuntime } = require('./surfaces/surface_runtime.cjs');
 const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
   resolveOverlayIntent,
-} = require('./sdk_live_turn_surface_controller.cjs');
+} = require('./sdk/sdk_live_turn_surface_controller.cjs');
 const {
   createElectronToolSurfaceLifecycle,
-} = require('./tool_surface_lifecycle.cjs');
+} = require('./sdk/tool_surface_lifecycle.cjs');
 const {
   readChatPillVisibilityIntent,
   writeChatPillVisibilityIntent,
-} = require('./chat_pill_visibility_intent_store.cjs');
+} = require('./surfaces/chat_pill_visibility_intent_store.cjs');
 
 configureGpuRuntime({ app, env: process.env });
 

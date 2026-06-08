@@ -4,7 +4,7 @@ const {
   getChatWindowBounds,
   getResponseWindowBounds,
   getContextLabelWindowBounds,
-} = require('../../frontend/src/main/overlay_bounds.cjs');
+} = require('../../frontend/src/main/surfaces/overlay_bounds.cjs');
 
 describe('overlay_bounds', () => {
   const screen = {

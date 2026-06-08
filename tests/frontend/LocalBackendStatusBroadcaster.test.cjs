@@ -4,7 +4,7 @@ const {
   broadcastConversationMetadataInvalidation,
   buildLocalBackendStatusPayload,
   sendLocalBackendStatus,
-} = require('../../frontend/src/main/local_backend_status_broadcaster.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_status_broadcaster.cjs');
 
 describe('local_backend_status_broadcaster', () => {
   test('builds local backend status from supervisor and daemon snapshots', () => {

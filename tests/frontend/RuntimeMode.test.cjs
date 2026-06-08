@@ -3,7 +3,7 @@
 const {
   isVmModeEnabled,
   isVmWorkerModeEnabled,
-} = require('../../frontend/src/main/runtime_mode.cjs');
+} = require('../../frontend/src/main/app/runtime_mode.cjs');
 
 describe('runtime_mode', () => {
   test('detects VM mode only when WINDIE_VM_MODE is set to 1', () => {

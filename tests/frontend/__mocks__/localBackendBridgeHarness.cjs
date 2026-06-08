@@ -110,7 +110,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     handlers[channel] = handler;
   });
 
-  bridge = require(path.join(__dirname, '../../../frontend/src/main/local_backend_bridge.cjs'));
+  bridge = require(path.join(__dirname, '../../../frontend/src/main/sidecar/local_backend_bridge.cjs'));
 
   const mainWindow = options.mainWindow || createMainWindow();
   const chatWindow = options.chatWindow || null;

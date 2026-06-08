@@ -4,7 +4,7 @@ const {
   buildLocalBackendEnv,
   createLocalBackendLaunchPlan,
   createMissingCommandError,
-} = require('../../frontend/src/main/local_backend_launch_plan.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_launch_plan.cjs');
 
 describe('local backend launch plan', () => {
   const pythonLaunchTarget = {

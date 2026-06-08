@@ -2,7 +2,7 @@ const {
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
-} = require('../../frontend/src/main/backend_endpoints.cjs');
+} = require('../../frontend/src/main/app/backend_endpoints.cjs');
 
 describe('backend_endpoints artifact url selection', () => {
   test('prefers loopback artifact base when hosted backend is primary', () => {

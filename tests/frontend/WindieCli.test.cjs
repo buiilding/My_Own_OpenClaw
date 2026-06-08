@@ -31,6 +31,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('windie start all');
     expect(result.stdout).toContain('windie logs frontend');
     expect(result.stdout).toContain('windie docs list');
+    expect(result.stdout).toContain('windie docs search <query>');
   });
 
   test('returns machine-readable status', () => {
@@ -143,5 +144,15 @@ describe('windie CLI', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('docs/debug/test_selection.md');
+  });
+
+  test('searches docs with explicit and shorthand docs query forms', () => {
+    const explicit = runCli(['docs', 'search', 'Desktop Assistant Documentation']);
+    const shorthand = runCli(['docs', 'Desktop Assistant Documentation']);
+
+    expect(explicit.status).toBe(0);
+    expect(explicit.stdout).toContain('docs/README.md');
+    expect(shorthand.status).toBe(0);
+    expect(shorthand.stdout).toContain('docs/README.md');
   });
 });

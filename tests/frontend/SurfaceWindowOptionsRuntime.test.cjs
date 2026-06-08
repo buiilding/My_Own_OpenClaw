@@ -3,7 +3,7 @@
 const {
   normalizeChatSurfaceWindowOptions,
   normalizeMainSurfaceWindowOptions,
-} = require('../../frontend/src/main/surface_window_options_runtime.cjs');
+} = require('../../frontend/src/main/surfaces/surface_window_options_runtime.cjs');
 
 describe('surface_window_options_runtime', () => {
   test('normalizes chat surface options with explicit restore-overlay contract', () => {

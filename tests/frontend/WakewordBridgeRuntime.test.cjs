@@ -5,7 +5,7 @@ const {
   normalizeAudioChunk,
   resolveWakewordProcessErrorMessage,
   resolveWakewordStartErrorMessage,
-} = require('../../frontend/src/main/wakeword_bridge_runtime.cjs');
+} = require('../../frontend/src/main/wakeword/wakeword_bridge_runtime.cjs');
 
 describe('wakeword_bridge_runtime', () => {
   test('maps missing launch command to packaged and dev-facing startup errors', () => {

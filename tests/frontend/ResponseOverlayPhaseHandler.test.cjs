@@ -3,7 +3,7 @@
 const {
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
-} = require('../../frontend/src/main/response_overlay_phase_handler.cjs');
+} = require('../../frontend/src/main/surfaces/response_overlay_phase_handler.cjs');
 
 const PHASE = Object.freeze({
   IDLE: 'idle',

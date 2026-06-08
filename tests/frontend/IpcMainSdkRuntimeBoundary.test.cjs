@@ -28,6 +28,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('client.wakeUp({');
     expect(source).toContain('agent.conversation({');
     expect(source).toContain('localToolLifecycle');
+    expect(source).toContain('windieAgentWebSocketImpl');
     expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(source).not.toContain('WindieAgent.startDesktop');
     expect(source).not.toContain('createWindieAgentHost');
@@ -35,7 +36,6 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('createWindieSdkMainRuntime');
     expect(source).not.toContain('createManagedBackendSession');
     expect(source).not.toContain('sendSdkRuntimeCommand');
-    expect(source).not.toContain('WebSocketImpl:');
     expect(source).not.toContain('executeLocalTool:');
     const wakeCall = source.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');

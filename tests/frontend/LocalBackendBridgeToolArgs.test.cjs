@@ -2,7 +2,7 @@
 
 const {
   resolveToolArgs,
-} = require('../../frontend/src/main/local_backend_bridge_tool_args.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs');
 
 describe('local_backend_bridge_tool_args', () => {
   test('sets native sudo auth mode for run_shell_command when full sudo is enabled', () => {

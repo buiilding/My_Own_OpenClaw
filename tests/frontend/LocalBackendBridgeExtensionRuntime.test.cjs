@@ -21,7 +21,7 @@ const path = require('path');
 
 const {
   createLocalBackendExecuteToolRuntime,
-} = require('../../frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs');
 
 describe('local backend bridge extension runtime', () => {
   test('executes plugin tools through the sidecar path', async () => {

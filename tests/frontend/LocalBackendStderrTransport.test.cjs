@@ -2,7 +2,7 @@
 
 const {
   createLocalBackendStderrTransport,
-} = require('../../frontend/src/main/local_backend_stderr_transport.cjs');
+} = require('../../frontend/src/main/sidecar/local_backend_stderr_transport.cjs');
 
 describe('local backend stderr transport', () => {
   function createProcessRef() {
