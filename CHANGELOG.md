@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/conversation: give repeated assistant message segments inside one turn
   distinct display row ids while preserving the canonical live streaming row id,
   avoiding duplicate React keys when reopening tool-heavy chat history.
+- sdk/conversation: log focused compaction breadcrumbs when backend compaction
+  stream events are normalized and after normalized `compaction_*` events are
+  successfully written through local `store_chat_event`.
 - backend/api: attach sequenced backend event identity to manual compaction
   lifecycle messages so the SDK accepts `context-compaction-*` events and can
   persist compacted replay checkpoints instead of recording runtime errors.

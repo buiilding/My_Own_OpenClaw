@@ -174,4 +174,46 @@ describe('SidecarConversationStore event payload write params', () => {
       }),
     });
   });
+
+  test('logs successful compaction event storage after sidecar RPC succeeds', async () => {
+    const rpc = jest.fn(async () => ({ success: true, data: { message_index: 7 } }));
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    const store = new SidecarConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+    const event: ConversationEvent = createConversationEvent({
+      eventId: 'evt-compaction',
+      type: 'compaction_applied',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        generationId: 'gen-1',
+        skippedReason: null,
+        summaryText: 'full summary should remain out of the log',
+      },
+    });
+
+    await store.appendEvent(event);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      '[Windie SDK][Compaction] store_chat_event succeeded',
+      expect.objectContaining({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        revisionId: 'rev-1',
+        eventId: 'evt-compaction',
+        eventType: 'compaction_applied',
+        source: 'backend',
+        userId: 'user-1',
+        messageIndex: 7,
+        generationId: 'gen-1',
+        hasCompactionCheckpoint: true,
+      }),
+    );
+    expect(logSpy.mock.calls[0][1]).not.toHaveProperty('summaryText');
+    logSpy.mockRestore();
+  });
 });

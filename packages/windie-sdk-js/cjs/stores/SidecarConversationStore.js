@@ -126,6 +126,33 @@ function compactedReplayFromEvent(event) {
         active: event.payload.active !== false,
     };
 }
+function isCompactionEvent(event) {
+    return event.type.startsWith('compaction_');
+}
+function responseMessageIndex(response) {
+    const data = normalizeRecord(response.data);
+    const value = data?.message_index ?? data?.messageIndex;
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+function logStoredCompactionEvent(event, params, response) {
+    const payload = normalizeRecord(event.payload) ?? {};
+    console.log('[Windie SDK][Compaction] store_chat_event succeeded', {
+        conversationRef: event.conversationRef,
+        turnRef: event.turnRef,
+        revisionId: event.revisionId,
+        eventId: event.eventId,
+        eventType: event.type,
+        source: event.source,
+        userId: normalizeString(params.user_id),
+        producer: normalizeString(params.producer),
+        producerEventId: normalizeString(params.producer_event_id),
+        producerSequence: typeof params.producer_sequence === 'number' ? params.producer_sequence : null,
+        messageIndex: responseMessageIndex(response),
+        generationId: normalizeString(payload.generationId) ?? normalizeString(payload.generation_id),
+        skippedReason: normalizeString(payload.skippedReason) ?? normalizeString(payload.skipped_reason),
+        hasCompactionCheckpoint: Boolean(params.compaction_checkpoint),
+    });
+}
 function metadataFromRow(row) {
     const conversationRef = normalizeString(row.conversation_id)
         ?? normalizeString(row.conversationId)
@@ -161,7 +188,11 @@ class SidecarConversationStore {
     }
     async appendEvents(events) {
         for (const event of events) {
-            await this.call('store_chat_event', this.buildEventWriteParams(event));
+            const params = this.buildEventWriteParams(event);
+            const response = await this.call('store_chat_event', params);
+            if (isCompactionEvent(event)) {
+                logStoredCompactionEvent(event, params, response);
+            }
         }
     }
     async rewriteConversation(plan) {

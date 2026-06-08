@@ -91,6 +91,38 @@ function backendEventMetadata(event: BackendEvent): JsonRecord {
   };
 }
 
+function numberField(record: JsonRecord, key: string): number | null {
+  const value = record[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function logCompactionNormalization(
+  event: BackendEvent,
+  base: { conversationRef: string; revisionId: string; turnRef: string | null; eventId: string; timestamp: string },
+  normalizedType: ConversationEvent['type'],
+  payload: JsonRecord,
+): void {
+  const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
+    ? payload.replacement_history_entries
+    : null;
+  console.log('[Windie SDK][Compaction] backend event normalized', {
+    backendEventType: event.type,
+    normalizedEventType: normalizedType,
+    conversationRef: base.conversationRef,
+    turnRef: base.turnRef,
+    revisionId: base.revisionId,
+    eventId: base.eventId,
+    backendEventId: typeof event.event_id === 'string' ? event.event_id : null,
+    backendSequence: backendSequenceOf(event),
+    generationId: stringField(payload, 'generation_id', 'generationId'),
+    skippedReason: stringField(payload, 'skipped_reason', 'skippedReason'),
+    replacementHistoryEntryCount: replacementHistoryEntries?.length ?? null,
+    beforeTokens: numberField(payload, 'before_tokens'),
+    afterTokens: numberField(payload, 'after_tokens'),
+    removedMessages: numberField(payload, 'removed_messages'),
+  });
+}
+
 function missingBackendIdentityEvent(
   event: BackendEvent,
   base: { conversationRef: string; revisionId: string; turnRef: string | null; eventId: string; timestamp: string },
@@ -350,6 +382,7 @@ export function normalizeBackendEventToConversationEvent(
     });
   }
   if (event.type === 'context-compaction-started') {
+    logCompactionNormalization(event, base, 'compaction_started', payload);
     return createConversationEvent({
       ...base,
       type: 'compaction_started',
@@ -369,9 +402,11 @@ export function normalizeBackendEventToConversationEvent(
       ? payload.replacement_history_entries
       : [];
     const hasReplacementHistory = replacementHistoryEntries.length > 0;
+    const normalizedType = skippedReason || !hasReplacementHistory ? 'compaction_skipped' : 'compaction_applied';
+    logCompactionNormalization(event, base, normalizedType, payload);
     return createConversationEvent({
       ...base,
-      type: skippedReason || !hasReplacementHistory ? 'compaction_skipped' : 'compaction_applied',
+      type: normalizedType,
       source: 'backend',
       payload: {
         ...payload,
@@ -394,6 +429,7 @@ export function normalizeBackendEventToConversationEvent(
     });
   }
   if (event.type === 'context-compaction-failed') {
+    logCompactionNormalization(event, base, 'compaction_failed', payload);
     return createConversationEvent({
       ...base,
       type: 'compaction_failed',

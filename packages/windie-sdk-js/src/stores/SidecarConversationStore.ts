@@ -178,6 +178,40 @@ function compactedReplayFromEvent(event: ConversationEvent): CompactedReplaySnap
   };
 }
 
+function isCompactionEvent(event: ConversationEvent): boolean {
+  return event.type.startsWith('compaction_');
+}
+
+function responseMessageIndex(response: Record<string, unknown>): number | null {
+  const data = normalizeRecord(response.data);
+  const value = data?.message_index ?? data?.messageIndex;
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function logStoredCompactionEvent(
+  event: ConversationEvent,
+  params: JsonRecord,
+  response: Record<string, unknown>,
+): void {
+  const payload = normalizeRecord(event.payload) ?? {};
+  console.log('[Windie SDK][Compaction] store_chat_event succeeded', {
+    conversationRef: event.conversationRef,
+    turnRef: event.turnRef,
+    revisionId: event.revisionId,
+    eventId: event.eventId,
+    eventType: event.type,
+    source: event.source,
+    userId: normalizeString(params.user_id),
+    producer: normalizeString(params.producer),
+    producerEventId: normalizeString(params.producer_event_id),
+    producerSequence: typeof params.producer_sequence === 'number' ? params.producer_sequence : null,
+    messageIndex: responseMessageIndex(response),
+    generationId: normalizeString(payload.generationId) ?? normalizeString(payload.generation_id),
+    skippedReason: normalizeString(payload.skippedReason) ?? normalizeString(payload.skipped_reason),
+    hasCompactionCheckpoint: Boolean(params.compaction_checkpoint),
+  });
+}
+
 function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | null {
   const conversationRef = normalizeString(row.conversation_id)
     ?? normalizeString(row.conversationId)
@@ -218,7 +252,11 @@ export class SidecarConversationStore implements ConversationStore {
 
   async appendEvents(events: ConversationEvent[]): Promise<void> {
     for (const event of events) {
-      await this.call('store_chat_event', this.buildEventWriteParams(event));
+      const params = this.buildEventWriteParams(event);
+      const response = await this.call('store_chat_event', params);
+      if (isCompactionEvent(event)) {
+        logStoredCompactionEvent(event, params, response);
+      }
     }
   }
 

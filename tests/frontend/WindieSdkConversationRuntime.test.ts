@@ -1416,6 +1416,7 @@ describe('Windie SDK conversation runtime core', () => {
   });
 
   test('backend compaction-completed with skipped_reason normalizes to compaction_skipped', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
       conversation_ref: 'conv-sdk-runtime',
@@ -1433,6 +1434,7 @@ describe('Windie SDK conversation runtime core', () => {
         skippedReason: 'insufficient-history',
       }),
     });
+    logSpy.mockRestore();
   });
 
   test('backend events without conversation_ref are not normalized into conversation events', () => {
@@ -1868,6 +1870,7 @@ describe('Windie SDK conversation runtime core', () => {
   });
 
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
       conversation_ref: 'conv-sdk-runtime',
@@ -1891,6 +1894,30 @@ describe('Windie SDK conversation runtime core', () => {
         skipped_reason: null,
       },
     });
+
+    expect(logSpy).toHaveBeenCalledWith(
+      '[Windie SDK][Compaction] backend event normalized',
+      expect.objectContaining({
+        backendEventType: 'context-compaction-completed',
+        normalizedEventType: 'compaction_applied',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-1',
+        generationId: 'gen-applied',
+        replacementHistoryEntryCount: 1,
+      }),
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      '[Windie SDK][Compaction] backend event normalized',
+      expect.objectContaining({
+        backendEventType: 'context-compaction-completed',
+        normalizedEventType: 'compaction_skipped',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-1',
+        replacementHistoryEntryCount: 0,
+      }),
+    );
+    expect(logSpy.mock.calls[0][1]).not.toHaveProperty('summaryText');
+    logSpy.mockRestore();
 
     expect(applied).toMatchObject({
       type: 'compaction_applied',
@@ -3455,6 +3482,7 @@ describe('Windie SDK conversation runtime core', () => {
       tool_call_id: 'call-original',
       output: 'backend accepted README contents',
     }, { eventId: 'backend-tool-output-original', turnRef: 'turn-original' }));
+    const compactionLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     transport.emit(backendEvent('context-compaction-started', {
       reason: 'auto-pre-query',
       before_tokens: 360000,
@@ -3475,6 +3503,7 @@ describe('Windie SDK conversation runtime core', () => {
       ],
       skipped_reason: null,
     }, { eventId: 'compaction-complete-original', turnRef: 'turn-original' }));
+    compactionLogSpy.mockRestore();
     transport.emit(backendEvent('assistant-message-full', {
       content: 'README summary done.',
     }, { eventId: 'assistant-original', turnRef: 'turn-original' }));
