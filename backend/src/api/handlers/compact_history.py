@@ -10,12 +10,29 @@ from backend.src.api.handlers.context import build_user_session_context
 from backend.src.api.infrastructure.errors import send_success_response
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.schemas import CompactHistoryMessage
+from backend.src.api.transport.envelope import StreamEventSequencer
 from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
 
 logger = logging.getLogger(__name__)
+
+
+def _build_manual_compaction_context(
+    *,
+    user_id: str,
+    session: object | None,
+    conversation_ref: str | None,
+    message_id: str | None,
+) -> dict:
+    context = build_user_session_context(user_id=user_id, session=session)
+    if conversation_ref:
+        context["conversation_ref"] = conversation_ref
+    if message_id:
+        context["turn_ref"] = message_id
+        context["stream_event_sequencer"] = StreamEventSequencer(turn_ref=message_id)
+    return context
 
 
 class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
@@ -45,6 +62,12 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
             user_id,
             conversation_ref=conversation_ref,
         ):
+            context = _build_manual_compaction_context(
+                user_id=user_id,
+                session=None,
+                conversation_ref=conversation_ref,
+                message_id=message.id,
+            )
             error_text = (
                 "Cannot compact history while a query is active. "
                 "Stop the current query and retry."
@@ -66,6 +89,7 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
                     "error": error_text,
                     "before_tokens": None,
                 },
+                context=context,
             )
             return
 
@@ -73,7 +97,12 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
             user_id,
             conversation_ref=conversation_ref,
         )
-        context = build_user_session_context(user_id=user_id, session=session)
+        context = _build_manual_compaction_context(
+            user_id=user_id,
+            session=session,
+            conversation_ref=conversation_ref,
+            message_id=message.id,
+        )
 
         decision, result = await session.run_history_compaction(
             reason="manual",

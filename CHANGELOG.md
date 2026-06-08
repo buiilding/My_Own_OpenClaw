@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/api: attach sequenced backend event identity to manual compaction
+  lifecycle messages so the SDK accepts `context-compaction-*` events and can
+  persist compacted replay checkpoints instead of recording runtime errors.
 - frontend/renderer: coalesce streaming chat follow-scroll requests into one
   scheduled smooth bottom-scroll so assistant text growth no longer starts
   competing message-update and resize-driven scroll animations.

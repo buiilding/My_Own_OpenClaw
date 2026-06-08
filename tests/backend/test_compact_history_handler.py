@@ -99,9 +99,17 @@ async def test_compact_history_handler_rejects_when_query_is_active():
     assert session_manager.has_active_query_calls == [("user_1", None)]
     assert websocket.sent
     assert websocket.sent[0]["type"] == "context-compaction-failed"
+    assert websocket.sent[0]["turn_ref"] == "msg_compact_1"
+    assert websocket.sent[0]["event_id"] == (
+        "msg_compact_1-evt-000001-context-compaction-failed"
+    )
+    assert websocket.sent[0]["sequence"] == 1
     assert websocket.sent[0]["payload"]["reason"] == "manual"
     assert websocket.sent[0]["payload"]["strategy"] == "manual"
-    assert "Cannot compact history while a query is active" in websocket.sent[0]["payload"]["error"]
+    assert (
+        "Cannot compact history while a query is active"
+        in websocket.sent[0]["payload"]["error"]
+    )
 
 
 @pytest.mark.asyncio
@@ -158,12 +166,27 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
         "context-compaction-started",
         "context-compaction-completed",
     ]
+    assert [item["turn_ref"] for item in websocket.sent] == [
+        "msg_compact_2",
+        "msg_compact_2",
+    ]
+    assert [item["event_id"] for item in websocket.sent] == [
+        "msg_compact_2-evt-000001-context-compaction-started",
+        "msg_compact_2-evt-000002-context-compaction-completed",
+    ]
+    assert [item["sequence"] for item in websocket.sent] == [1, 2]
     assert websocket.sent[0]["payload"]["before_tokens"] == 2200
     assert websocket.sent[1]["payload"]["after_tokens"] == 900
     assert websocket.sent[1]["payload"]["removed_messages"] == 7
     assert websocket.sent[1]["payload"]["summary_preview"] == "summary content"
-    assert websocket.sent[1]["payload"]["replacement_history_preview"][0]["message_type"] == "context_compaction"
-    assert websocket.sent[1]["payload"]["replacement_history_entries"][0]["message_type"] == "context_compaction"
+    assert (
+        websocket.sent[1]["payload"]["replacement_history_preview"][0]["message_type"]
+        == "context_compaction"
+    )
+    assert (
+        websocket.sent[1]["payload"]["replacement_history_entries"][0]["message_type"]
+        == "context_compaction"
+    )
 
 
 @pytest.mark.asyncio
@@ -247,6 +270,11 @@ async def test_compact_history_handler_emits_completed_with_skip_reason():
 
     assert len(websocket.sent) == 1
     assert websocket.sent[0]["type"] == "context-compaction-completed"
+    assert websocket.sent[0]["turn_ref"] == "msg_compact_3"
+    assert websocket.sent[0]["event_id"] == (
+        "msg_compact_3-evt-000001-context-compaction-completed"
+    )
+    assert websocket.sent[0]["sequence"] == 1
     assert websocket.sent[0]["payload"]["skipped_reason"] == "below-threshold"
 
 
