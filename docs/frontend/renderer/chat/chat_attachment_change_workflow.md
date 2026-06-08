@@ -69,7 +69,10 @@ Clipboard image IPC trust boundary:
    - `buildOutgoingMessage(...)` may return a string for text-only sends.
    - It must return an object payload when images or readable files are attached.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
-   - Clear the composer draft only after the send callback succeeds; rejected async sends must leave text, pasted images, and selected readable files available for retry.
+   - Clear the composer draft immediately after local send acceptance so renderer
+     inputs do not wait on SDK resource preparation; rejected async sends must
+     restore the captured text, pasted images, and selected readable files for
+     retry.
 
 3. Preserve image handles.
    - Keep `base64`, `contentType`, `filename`, and `previewUrl` through composer preview.
