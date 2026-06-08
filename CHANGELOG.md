@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: coalesce streaming chat follow-scroll requests into one
+  scheduled smooth bottom-scroll so assistant text growth no longer starts
+  competing message-update and resize-driven scroll animations.
 - frontend/renderer: make new-chat session selection update the chat store
   synchronously with the transcript session so old conversation rows cannot
   remain visible beside a fresh SDK turn.

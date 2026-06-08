@@ -45,6 +45,8 @@ export function useMessageListAutoScroll({
   const lastScrollHeightRef = useRef(0);
   const previousMessagesRef = useRef(messages);
   const previousAwaitingDotTargetMessageIdRef = useRef(awaitingDotTargetMessageId);
+  const scheduledScrollFrameRef = useRef(null);
+  const scheduledScrollBehaviorRef = useRef(null);
 
   const syncScrollMetrics = useCallback(() => {
     const element = messageListRef.current;
@@ -68,6 +70,48 @@ export function useMessageListAutoScroll({
       return;
     }
     element.scrollTop = targetTop;
+  }, []);
+
+  const scheduleScrollToBottom = useCallback((behavior = 'smooth') => {
+    scheduledScrollBehaviorRef.current = (
+      scheduledScrollBehaviorRef.current === 'auto' || behavior === 'auto'
+    )
+      ? 'auto'
+      : 'smooth';
+
+    if (scheduledScrollFrameRef.current !== null) {
+      return;
+    }
+
+    const runScheduledScroll = () => {
+      scheduledScrollFrameRef.current = null;
+      const scheduledBehavior = scheduledScrollBehaviorRef.current || 'smooth';
+      scheduledScrollBehaviorRef.current = null;
+      scrollToBottom(scheduledBehavior);
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      scheduledScrollFrameRef.current = window.requestAnimationFrame(runScheduledScroll);
+      return;
+    }
+
+    scheduledScrollFrameRef.current = -1;
+    runScheduledScroll();
+  }, [scrollToBottom]);
+
+  useEffect(() => {
+    return () => {
+      if (
+        scheduledScrollFrameRef.current !== null
+        && scheduledScrollFrameRef.current !== -1
+        && typeof window !== 'undefined'
+        && typeof window.cancelAnimationFrame === 'function'
+      ) {
+        window.cancelAnimationFrame(scheduledScrollFrameRef.current);
+      }
+      scheduledScrollFrameRef.current = null;
+      scheduledScrollBehaviorRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -131,7 +175,7 @@ export function useMessageListAutoScroll({
       const nextScrollHeight = Number(currentElement.scrollHeight) || 0;
       const scrollHeightChanged = nextScrollHeight !== lastScrollHeightRef.current;
       if (scrollHeightChanged && enableAgentLoopAutoScroll && shouldAutoScrollRef.current) {
-        scrollToBottom(forceInstantAutoScrollRef.current ? 'auto' : 'smooth');
+        scheduleScrollToBottom(forceInstantAutoScrollRef.current ? 'auto' : 'smooth');
         forceInstantAutoScrollRef.current = false;
       }
 
@@ -143,7 +187,7 @@ export function useMessageListAutoScroll({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [enableAgentLoopAutoScroll, scrollToBottom]);
+  }, [enableAgentLoopAutoScroll, scheduleScrollToBottom]);
 
   useEffect(() => {
     const previousMessages = previousMessagesRef.current;
@@ -182,8 +226,8 @@ export function useMessageListAutoScroll({
 
     const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';
     forceInstantAutoScrollRef.current = false;
-    scrollToBottom(behavior);
-  }, [enableAgentLoopAutoScroll, messages, scrollToBottom]);
+    scheduleScrollToBottom(behavior);
+  }, [enableAgentLoopAutoScroll, messages, scheduleScrollToBottom, scrollToBottom]);
 
   useEffect(() => {
     const previousAwaitingDotTargetMessageId = previousAwaitingDotTargetMessageIdRef.current;
@@ -203,8 +247,8 @@ export function useMessageListAutoScroll({
       return;
     }
 
-    scrollToBottom('auto');
-  }, [awaitingDotTargetMessageId, enableAgentLoopAutoScroll, scrollToBottom]);
+    scheduleScrollToBottom('smooth');
+  }, [awaitingDotTargetMessageId, enableAgentLoopAutoScroll, scheduleScrollToBottom]);
 
   return {
     messageListRef,

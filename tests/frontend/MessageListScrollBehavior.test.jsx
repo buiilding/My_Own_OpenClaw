@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  act,
   fireEvent,
   render,
 } from '@testing-library/react';
@@ -32,11 +33,25 @@ describe('MessageList auto-scroll behavior', () => {
   const scrollIntoView = jest.fn();
   const scrollTo = jest.fn();
   const resizeObserverInstances = [];
+  const originalRequestAnimationFrame = window.requestAnimationFrame;
+  const originalCancelAnimationFrame = window.cancelAnimationFrame;
+  const animationFrameCallbacks = new Map();
+  let nextAnimationFrameId = 1;
+
+  function flushAnimationFrames() {
+    const callbacks = Array.from(animationFrameCallbacks.values());
+    animationFrameCallbacks.clear();
+    act(() => {
+      callbacks.forEach((callback) => callback(Date.now()));
+    });
+  }
 
   beforeEach(() => {
     scrollIntoView.mockReset();
     scrollTo.mockReset();
     resizeObserverInstances.length = 0;
+    animationFrameCallbacks.clear();
+    nextAnimationFrameId = 1;
     Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: scrollIntoView,
@@ -57,6 +72,21 @@ describe('MessageList auto-scroll behavior', () => {
 
       disconnect() {}
     };
+    window.requestAnimationFrame = (callback) => {
+      const id = nextAnimationFrameId;
+      nextAnimationFrameId += 1;
+      animationFrameCallbacks.set(id, callback);
+      return id;
+    };
+    window.cancelAnimationFrame = (id) => {
+      animationFrameCallbacks.delete(id);
+    };
+  });
+
+  afterEach(() => {
+    animationFrameCallbacks.clear();
+    window.requestAnimationFrame = originalRequestAnimationFrame;
+    window.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
   test('does not auto-scroll when user has scrolled away from bottom', () => {
@@ -126,6 +156,7 @@ describe('MessageList auto-scroll behavior', () => {
         ]}
       />,
     );
+    flushAnimationFrames();
 
     const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
     expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
@@ -238,11 +269,12 @@ describe('MessageList auto-scroll behavior', () => {
         awaitingDotTargetMessageId="user-2"
       />,
     );
+    flushAnimationFrames();
 
     const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
     expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
     expect(scrollToCallsAfterUpdate.every(([options]) => Number.isFinite(options?.top))).toBe(true);
-    expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'auto')).toBe(true);
+    expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'smooth')).toBe(true);
   });
 
   test('keeps auto-follow enabled when content grows without an upward scroll', () => {
@@ -283,6 +315,7 @@ describe('MessageList auto-scroll behavior', () => {
         ]}
       />,
     );
+    flushAnimationFrames();
 
     const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
     expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
@@ -319,10 +352,65 @@ describe('MessageList auto-scroll behavior', () => {
       scrollTop: 800,
     });
     resizeObserver.callback();
+    flushAnimationFrames();
 
     const scrollToCallsAfterResize = scrollTo.mock.calls.slice(scrollToCallsBeforeResize);
     expect(scrollToCallsAfterResize.length).toBeGreaterThan(0);
     expect(scrollToCallsAfterResize.every(([options]) => Number.isFinite(options?.top))).toBe(true);
+  });
+
+  test('coalesces streaming message and resize follow-scroll into one smooth command', () => {
+    const { container, rerender } = render(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+          { id: 'assistant-1', text: 'working...', sender: 'assistant', type: 'llm-text' },
+        ]}
+      />,
+    );
+
+    const list = container.querySelector('.message-list');
+    expect(list).toBeTruthy();
+    applyScrollMetrics(list, {
+      scrollHeight: 1200,
+      clientHeight: 400,
+      scrollTop: 776,
+    });
+    fireEvent.scroll(list);
+
+    const resizeObserver = resizeObserverInstances[0];
+    expect(resizeObserver).toBeTruthy();
+
+    const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
+    rerender(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+          {
+            id: 'assistant-1',
+            text: 'working... more streamed output',
+            sender: 'assistant',
+            type: 'llm-text',
+          },
+        ]}
+      />,
+    );
+
+    applyScrollMetrics(list, {
+      scrollHeight: 1280,
+      clientHeight: 400,
+      scrollTop: 776,
+    });
+    resizeObserver.callback();
+    flushAnimationFrames();
+
+    const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
+    expect(scrollToCallsAfterUpdate).toHaveLength(1);
+    expect(scrollToCallsAfterUpdate[0][0]).toEqual(expect.objectContaining({
+      behavior: 'smooth',
+    }));
   });
 });
 
