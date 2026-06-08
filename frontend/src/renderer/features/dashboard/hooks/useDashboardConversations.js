@@ -10,12 +10,9 @@ import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
+  resolveConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
-import {
-  clearConversationInferenceSessionState,
-  markConversationInferenceSessionUnknown,
-} from '../../chat/session/conversationInferenceSessionRuntime';
 import { applyRendererConversationSelection } from '../../chat/session/conversationSessionRuntime';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import {
@@ -173,19 +170,18 @@ function useDashboardConversations({
     setRecentConversationsError('');
 
     try {
-      const snapshot = await DesktopConversationLibraryClient.loadLocalConversationSnapshot({
-        userId: resolvedUserId,
-        conversationRef,
+      const workspaceBinding = resolveConversationWorkspaceBinding({
         conversation,
+        memories: [],
       });
       const displayRows = await DesktopConversationLibraryClient.loadDisplayRows(
         resolvedUserId,
         conversationRef,
       );
       const projectedMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-      setConversationWorkspaceBinding(conversationRef, snapshot.workspaceBinding);
+      setConversationWorkspaceBinding(conversationRef, workspaceBinding);
       try {
-        await setActiveWorkspaceSelection(snapshot.workspaceBinding.workspacePath || null);
+        await setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
       } catch (workspaceError) {
         console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
       }
@@ -196,9 +192,6 @@ function useDashboardConversations({
         updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         setChatConversationRef: setChatActiveConversationRef,
       });
-      if (sessionConversationRef !== conversationRef) {
-        markConversationInferenceSessionUnknown(conversationRef);
-      }
       setChatMessages(projectedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);
@@ -207,7 +200,6 @@ function useDashboardConversations({
     }
   }, [
     resolvedUserId,
-    sessionConversationRef,
     setChatActiveConversationRef,
     setChatIsSending,
     setChatMessages,
@@ -272,7 +264,6 @@ function useDashboardConversations({
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
       clearConversationWorkspaceBinding(conversationRef);
-      clearConversationInferenceSessionState(conversationRef);
       if (sessionConversationRef === conversationRef) {
         resetActiveChatSession({
           conversationRef,

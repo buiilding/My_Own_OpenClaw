@@ -38,6 +38,10 @@ rather than the React component that happens to render the symptom.
 - Minimal chat pill awaiting state comes from SDK
   `currentTurnProjection.presentation`;
   overlay phase must not decide typing, busy, stop, or response content state.
+- Native response overlay show paths must pass the Electron main
+  surface-ownership gate. The floating response overlay and typing shell may
+  show only while the chat pill owns the visible live-turn surface; dashboard
+  and onboarding ownership suppress floating response presentation.
 - Avoid focus-recovery hacks in renderer chat-pill code. If focus changes are
   needed, route them through Electron main/window policy.
 
@@ -141,6 +145,9 @@ Main-process rules:
 - The response overlay should be shown during active loop phases, hidden on
   idle, and restored after terminal phases only when the overlay was visible and
   the chat window is still visible.
+- SDK overlay intent, renderer responsebox size reports, phase fallback, and
+  terminal restore must not show the native response overlay unless the
+  chat-pill surface currently owns presentation.
 - Terminal/idle phases with a mismatched active response `correlation_id` must
   be ignored so late events from a previous response cannot mutate current
   overlay visibility.

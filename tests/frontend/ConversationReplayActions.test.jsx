@@ -6,9 +6,6 @@ import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastr
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import {
-  markConversationInferenceSessionLocalOnly,
-} from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
 let mockFrontendConfig = {
   model_provider: 'anthropic',
@@ -19,10 +16,6 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: jest.fn(() => ({
     config: mockFrontendConfig,
   })),
-}));
-
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
-  markConversationInferenceSessionLocalOnly: jest.fn(),
 }));
 
 let mockConversationRef = 'conv-existing';
@@ -70,7 +63,6 @@ const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
-const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly;
 
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
@@ -86,7 +78,6 @@ describe('useConversationReplayActions', () => {
       }
       return null;
     });
-    mockMarkConversationInferenceSessionLocalOnly.mockReset();
     mockPrepareEditAndResend.mockImplementation(async (input) => ({
       conversationRef: input.conversationRef,
       text: input.text,
@@ -339,7 +330,6 @@ describe('useConversationReplayActions', () => {
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', undefined);
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
-    expect(mockMarkConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_replay-ref');
     expect(mockPrepareRetryTurn.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
     expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
   });
@@ -376,7 +366,6 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
-    expect(mockMarkConversationInferenceSessionLocalOnly).not.toHaveBeenCalled();
     expect(mockPrepareRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
     expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv-store-active');
   });

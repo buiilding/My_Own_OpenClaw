@@ -81,6 +81,7 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
     ensureResponseOverlayFallbackBounds = () => {},
     setResponseOverlayVisibilityState = () => {},
     syncContextLabelWindowVisibility = () => {},
+    canShowFloatingResponseOverlay = () => true,
     responseWindow,
   } = deps;
   const hiddenSurface = typeof options?.hiddenSurface === 'string'
@@ -102,6 +103,19 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
   if (hiddenSurface === 'response') {
     if (!responseWindow || responseWindow.isDestroyed()) {
       return { success: false, reason: 'Response window not available' };
+    }
+    if (!canShowFloatingResponseOverlay()) {
+      setResponseOverlayVisibilityState(false);
+      if (typeof responseWindow.isVisible === 'function' && responseWindow.isVisible()) {
+        responseWindow.hide();
+      }
+      syncContextLabelWindowVisibility();
+      return {
+        success: true,
+        restored: false,
+        ignored: true,
+        reason: 'surface-not-owner',
+      };
     }
     setResponseOverlayVisibilityState(true);
     ensureResponseOverlayFallbackBounds();

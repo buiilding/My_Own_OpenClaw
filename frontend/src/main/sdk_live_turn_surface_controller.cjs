@@ -154,6 +154,7 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     setResponseOverlayVisibilityState = () => {},
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
+    canShowFloatingResponseOverlay = () => true,
     surfaceState = null,
     log = console.log,
   } = deps;
@@ -280,6 +281,76 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     });
     sdkSurfaceState.lastAppliedOverlayIntentSignature = hiddenSignature;
     return { success: true, applied: true, visible: false };
+  }
+
+  if (!canShowFloatingResponseOverlay()) {
+    setResponseOverlayVisibilityState(false);
+    if (activeGuardRef) {
+      setActiveResponseOverlayGuardRef(null);
+      logLiveSurfaceTrace('stale_guard.changed', {
+        source: 'sdk-live-turn-surface',
+        reason: 'surface-not-owner',
+        previousGuardRef: activeGuardRef,
+        nextGuardRef: null,
+        turnRef: intent.turnRef,
+        conversationRef: intent.conversationRef,
+      });
+    }
+    if (responseWindow.isVisible?.()) {
+      responseWindow.hide();
+      logLiveSurfaceTrace('response_overlay.window.hide', {
+        source: 'sdk-live-turn-surface',
+        reason: 'surface-not-owner',
+        turnRef: intent.turnRef,
+        conversationRef: intent.conversationRef,
+        phase: getResponseOverlayPhase(),
+        overlayMode: intent.mode,
+        guardRef: intent.staleGuardRef,
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
+    }
+    syncContextLabelWindowVisibility();
+    log('[ResponseOverlayWindow][main]', {
+      action: 'suppress-sdk-overlay-intent-for-surface-owner',
+      phase: getResponseOverlayPhase(),
+      mode: intent.mode,
+      turn_ref: intent.turnRef,
+      stale_guard_ref: intent.staleGuardRef,
+      active_guard_ref: activeGuardRef,
+      response_window_visible: safeWindowVisible(responseWindow),
+      response_overlay_visible_flag: getResponseOverlayVisible(),
+    });
+    logChatPillMainTrace({
+      source: 'sdk-live-turn-surface',
+      action: 'suppress-show-surface-not-owner',
+      phase: getResponseOverlayPhase(),
+      responseWindow,
+      responseOverlayVisibleFlag: false,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+      activeGuardRef,
+    }, deps);
+    logLiveSurfaceTrace('response_overlay.intent.ignored', {
+      source: 'sdk-live-turn-surface',
+      reason: 'surface-not-owner',
+      turnRef: intent.turnRef,
+      conversationRef: intent.conversationRef,
+      phase: getResponseOverlayPhase(),
+      overlayMode: intent.mode,
+      guardRef: intent.staleGuardRef,
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      responseOverlayVisible: getResponseOverlayVisible(),
+    });
+    return {
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'surface-not-owner',
+      visible: false,
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+    };
   }
 
   const bounds = responseBoundsForIntent(intent, getResponseWindowBounds);

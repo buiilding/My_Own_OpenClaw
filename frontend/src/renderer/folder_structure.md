@@ -91,7 +91,6 @@ frontend/src/renderer/
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
 │   │   │
 │   │   ├── session/                     # Conversation session helpers
-│   │   │   └── conversationInferenceSessionRuntime.ts # Backend inference rehydrate state for local conversations
 │   │   │
 │   │   ├── stores/                      # State management
 │   │   │   └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts

@@ -4,6 +4,7 @@ import {
   buildDisplayConversation,
   buildDisplayRows,
   buildRehydrateSnapshot,
+  createDefaultTurnResourceResolvers,
   createConversationEvent,
   createInitialConversationRuntimeState,
   InMemoryConversationStore,
@@ -17,6 +18,9 @@ import {
   type BackendTransport,
   type ConversationEvent,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+import { mkdtemp, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 function event(
   type: ConversationEvent['type'],
@@ -2668,6 +2672,106 @@ describe('Windie SDK conversation runtime core', () => {
         { messageId: 'turn-slow-resource' },
       );
     });
+  });
+
+  test('default turn resource resolver uploads sidecar screenshot paths before backend send', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'windie-sdk-query-shot-'));
+    const screenshotPath = join(tempDir, 'query-shot.jpg');
+    await writeFile(screenshotPath, new Uint8Array([1, 2, 3, 4]));
+    const artifactUploader = createMockArtifactUploader({
+      upload: jest.fn(async () => ({
+        artifact_id: 'artifact-query-shot.jpg',
+        content_type: 'image/jpeg',
+        size_bytes: 4,
+        sha256: 'sha-query-shot',
+        url: '/api/artifacts/artifact-query-shot.jpg',
+      })),
+    });
+    const executeTool = jest.fn(async () => ({
+      success: true,
+      data: {
+        output: 'Screenshot captured successfully.',
+        screenshot_path: screenshotPath,
+        screenshot_content_type: 'image/jpeg',
+        capture_meta: {
+          source_w: 1920,
+          source_h: 1080,
+          crop_x: 0,
+          crop_y: 0,
+          crop_w: 1920,
+          crop_h: 1080,
+          timestamp: 123,
+        },
+      },
+    }));
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-after-screenshot-resource'),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+      sdkClient: {
+        artifacts: artifactUploader,
+      } as any,
+      localRuntime: {
+        executeTool,
+      },
+      resourceResolvers: createDefaultTurnResourceResolvers({
+        sdkClient: {
+          artifacts: artifactUploader,
+        } as any,
+        localRuntime: {
+          executeTool,
+        },
+      }),
+      enrichQuery: async ({ payload }) => payload ?? {},
+    });
+    const events: ConversationEvent[] = [];
+    runtime.subscribeEvents((event) => {
+      events.push(event);
+    });
+
+    await runtime.send({
+      text: 'what is on screen?',
+      turnRef: 'turn-query-shot',
+      resources: [{
+        kind: 'query_screenshot_request',
+        reason: 'query_send_with_capture',
+        required: false,
+      }],
+    });
+
+    expect(executeTool).toHaveBeenCalledWith(expect.objectContaining({
+      toolName: 'screenshot',
+      args: expect.objectContaining({
+        explanation: 'query_send_with_capture',
+        expectation: 'Current screen state',
+      }),
+    }));
+    expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
+    expect(artifactUploader.upload.mock.calls[0][1]).toBe('query-shot.jpg');
+    await expect(stat(screenshotPath)).rejects.toThrow();
+    expect(transport.sendQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'what is on screen?',
+        conversation_ref: 'conv-sdk-runtime',
+        screenshot_ref: 'artifact-query-shot.jpg',
+        screenshot_url: '/api/artifacts/artifact-query-shot.jpg',
+        screenshot_refs: ['artifact-query-shot.jpg'],
+        capture_meta: expect.objectContaining({
+          source_w: 1920,
+          source_h: 1080,
+        }),
+      }),
+      { messageId: 'turn-query-shot' },
+    );
+    expect(events.find(event => event.type === 'user_message_metadata')?.payload).toEqual(
+      expect.objectContaining({
+        screenshotRef: 'artifact-query-shot.jpg',
+        screenshot_ref: 'artifact-query-shot.jpg',
+      }),
+    );
   });
 
   test('conversation runtime records base user row before required resource failure', async () => {

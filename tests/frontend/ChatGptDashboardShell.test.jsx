@@ -3,7 +3,6 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import DashboardShell from '../../frontend/src/renderer/features/dashboard/components/DashboardShell';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { invalidateConversationInferenceSessionState } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 import {
   clearAllConversationWorkspaceBindings,
   clearConversationWorkspaceBinding,
@@ -33,7 +32,7 @@ function sdkDataFromCommandResult(command, commandResult, commandPayload = {}) {
   if (command === 'conversations.list' || command === 'conversations.search') {
     return (Array.isArray(data.conversations) ? data.conversations : []).map(metadataFromConversationRow);
   }
-  if (command === 'conversation.load') {
+  if (command === 'conversation.loadDisplay') {
     return {
       state: { events: Array.isArray(data.events) ? data.events : [] },
       displayRows: [],
@@ -43,6 +42,15 @@ function sdkDataFromCommandResult(command, commandResult, commandPayload = {}) {
         messages: [],
         compaction: { status: 'idle' },
       },
+      rehydrate: {
+        conversationRef: commandPayload.conversationRef,
+        revisionId: '',
+        messages: [],
+      },
+    };
+  }
+  if (command === 'conversation.loadRehydrate') {
+    return {
       rehydrate: {
         conversationRef: commandPayload.conversationRef,
         revisionId: '',
@@ -84,7 +92,7 @@ const mockInvoke = jest.fn(async (...args) => {
     if (command === 'conversations.list' || command === 'conversations.search') {
       return { success: true, data: { conversations: [] } };
     }
-    if (command === 'conversation.load') {
+    if (command === 'conversation.loadDisplay') {
       return { success: true, data: { events: [] } };
     }
     return { success: true, data: {} };
@@ -158,14 +166,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => {
-  return {
-    clearConversationInferenceSessionState: jest.fn(),
-    invalidateConversationInferenceSessionState: jest.fn(),
-    markConversationInferenceSessionUnknown: jest.fn(),
-  };
-});
-
 jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => {
   const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding');
   return {
@@ -175,7 +175,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
   };
 });
 
-const mockInvalidateConversationInferenceSessionState = invalidateConversationInferenceSessionState;
 const mockClearAllConversationWorkspaceBindings = clearAllConversationWorkspaceBindings;
 const mockClearConversationWorkspaceBinding = clearConversationWorkspaceBinding;
 
@@ -223,7 +222,6 @@ describe('ChatGptDashboardShell', () => {
     mockListeners.clear();
     mockInvoke.mockClear();
     mockUpdateTranscriptSession.mockClear();
-    mockInvalidateConversationInferenceSessionState.mockClear();
     mockClearAllConversationWorkspaceBindings.mockClear();
     mockClearConversationWorkspaceBinding.mockClear();
     mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
@@ -272,7 +270,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'conversation.load') {
+      if (channel === 'conversation.loadDisplay') {
         return {
           success: true,
           data: { memories: [] },
@@ -475,7 +473,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'conversation.load') {
+      if (channel === 'conversation.loadDisplay') {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
@@ -485,7 +483,7 @@ describe('ChatGptDashboardShell', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Fix Ubuntu mic settings' }));
     await flushMicrotasks();
-    expect(hasSdkCommandCall('conversation.load', {
+    expect(hasSdkCommandCall('conversation.loadDisplay', {
       conversationRef: 'conv-history-1',
     })).toBe(true);
 
@@ -555,7 +553,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'conversation.load') {
+      if (channel === 'conversation.loadDisplay') {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
@@ -566,7 +564,7 @@ describe('ChatGptDashboardShell', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Do not switch while looping' }));
     await flushMicrotasks();
 
-    expect(hasSdkCommandCall('conversation.load', {
+    expect(hasSdkCommandCall('conversation.loadDisplay', {
       conversationRef: 'conv-history-1',
     })).toBe(true);
     if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
@@ -596,7 +594,7 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
-      if (channel === 'conversation.load') {
+      if (channel === 'conversation.loadDisplay') {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
@@ -951,7 +949,6 @@ describe('ChatGptDashboardShell', () => {
     expect(mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
       conversationRef === null && userId === 'user-live'
     ))).toBe(true);
-    expect(mockInvalidateConversationInferenceSessionState.mock.calls.length).toBe(1);
     expect(mockClearAllConversationWorkspaceBindings.mock.calls.length).toBe(1);
     expect(hasSdkCommandCall('conversations.list', { userId: 'user-live' })).toBe(true);
   });
@@ -1106,7 +1103,7 @@ describe('ChatGptDashboardShell', () => {
             },
           };
         }
-        if (channel === 'conversation.load') {
+        if (channel === 'conversation.loadDisplay') {
           return { success: true, data: { memories: [] } };
         }
         return { success: true, data: {} };
@@ -1135,7 +1132,7 @@ describe('ChatGptDashboardShell', () => {
 
       fireEvent.click(within(dialog).getByText('Vietnamese-speaking lawyer leads').closest('button'));
       await flushMicrotasks();
-      expect(hasSdkCommandCall('conversation.load', {
+      expect(hasSdkCommandCall('conversation.loadDisplay', {
         conversationRef: 'conv-history-2',
       })).toBe(true);
     } finally {

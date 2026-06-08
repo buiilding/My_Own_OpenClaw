@@ -1,5 +1,4 @@
 import type { TokenCounts } from '../../stores/chatStore';
-import { markConversationInferenceSessionLocalOnly } from '../../session/conversationInferenceSessionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   applyRendererConversationSelection,
@@ -48,6 +47,5 @@ export const startNewChatSession = ({
     onConversationCreated: (conversationRef) => {
       setConversationWorkspaceBinding(conversationRef, workspaceSelectionToBinding(workspace));
     },
-    markConversationInferenceSessionLocalOnly,
   });
 };

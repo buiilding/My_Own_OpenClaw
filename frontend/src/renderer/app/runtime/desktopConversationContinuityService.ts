@@ -3,7 +3,6 @@ import {
   type JsonRecord,
   type WindieModelSelection,
   type ListConversationOptions,
-  type RehydrateSnapshot,
   type DisplayConversation,
   type SdkDisplayRow,
   type ConversationMetadata,
@@ -17,41 +16,6 @@ import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
-
-export type { RehydrateConversationEntry };
-
-type RehydrateConversationEntry = JsonRecord & {
-  role: 'user' | 'assistant' | 'tool';
-  content: string;
-  message_type?: string;
-  tool_name?: string | null;
-  correlation_id?: string | null;
-  tool_call_id?: string | null;
-  tool_calls?: Array<Record<string, unknown>> | null;
-  timestamp?: string | null;
-  screenshot_ref?: string | null;
-  screenshot?: string | null;
-  image_data?: string | string[] | null;
-  transparency?: Record<string, unknown> | null;
-  structured_content?: Array<Record<string, unknown>> | null;
-  compaction_facts?: Record<string, unknown> | null;
-  structured_payload?: Record<string, unknown> | null;
-};
-
-type LoadRehydrateSnapshotInput = {
-  conversationRef: string;
-  userId: string;
-};
-
-type RehydrateFromStoreInput = LoadRehydrateSnapshotInput & {
-  workspacePath?: string | null;
-};
-
-type RehydrateMessagesInput = {
-  conversationRef: string;
-  messages: RehydrateConversationEntry[];
-  workspacePath?: string | null;
-};
 
 type RewriteAndResendInput = {
   conversationRef: string;
@@ -79,25 +43,6 @@ type SearchConversationsInput = {
   limit?: number;
 };
 
-type LocalConversationSnapshotInput = {
-  userId: string;
-  conversationRef: string;
-  conversation?: Record<string, unknown> | null;
-  includeParsedMessages?: boolean;
-  includeReplayState?: boolean;
-};
-
-type LocalConversationSnapshot = {
-  transcriptEntries: JsonRecord[];
-  replayEntries: JsonRecord[];
-  workspaceBinding: {
-    workspacePath: string;
-    workspaceName: string;
-  };
-  parsedMessages: Array<Record<string, unknown>>;
-  rehydrateMessages: Array<Record<string, unknown>>;
-};
-
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
@@ -122,39 +67,6 @@ function metadataToDashboardConversation(metadata: ConversationMetadata) {
   };
 }
 
-function displayRowsToParsedMessages(rows: SdkDisplayRow[] = []) {
-  return rows.map((row) => ({
-    id: row.id,
-    text: typeof row.content === 'string' ? row.content : JSON.stringify(row.content),
-    sender: row.role,
-    role: row.role,
-    message_type: row.type,
-    timestamp: row.metadata?.timestamp ?? null,
-  }));
-}
-
-function resolveWorkspaceBindingFromEvents(events: JsonRecord[] = []) {
-  for (const event of events) {
-    const payload = event?.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
-      ? event.payload as JsonRecord
-      : {};
-    const workspacePath = optionalString(payload.workspacePath)
-      ?? optionalString(payload.workspace_path);
-    if (workspacePath) {
-      return {
-        workspacePath,
-        workspaceName: optionalString(payload.workspaceName)
-          ?? optionalString(payload.workspace_name)
-          ?? '',
-      };
-    }
-  }
-  return {
-    workspacePath: '',
-    workspaceName: '',
-  };
-}
-
 export const DesktopConversationContinuityService = {
   listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
     return invokeWindieCommand('conversations.list', {
@@ -164,7 +76,7 @@ export const DesktopConversationContinuityService = {
   },
 
   async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    const snapshot = await invokeWindieCommand<{ display?: DisplayConversation }>('conversation.load', {
+    const snapshot = await invokeWindieCommand<{ display?: DisplayConversation }>('conversation.loadDisplay', {
       userId,
       conversationRef,
     });
@@ -177,66 +89,11 @@ export const DesktopConversationContinuityService = {
   },
 
   async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    const snapshot = await invokeWindieCommand<{ displayRows?: SdkDisplayRow[] }>('conversation.load', {
+    const snapshot = await invokeWindieCommand<{ displayRows?: SdkDisplayRow[] }>('conversation.loadDisplay', {
       userId,
       conversationRef,
     });
     return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
-  },
-
-  async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
-    const snapshot = await invokeWindieCommand<{ rehydrate?: RehydrateSnapshot }>('conversation.load', {
-      userId: input.userId,
-      conversationRef: input.conversationRef,
-    });
-    return snapshot?.rehydrate ?? {
-      conversationRef: input.conversationRef,
-      revisionId: '',
-      messages: [],
-    };
-  },
-
-  async rehydrateFromStore(input: RehydrateFromStoreInput) {
-    const snapshot = await this.loadRehydrateSnapshot(input);
-    const messages = Array.isArray(snapshot.messages)
-      ? snapshot.messages.filter((message): message is RehydrateConversationEntry => (
-        Boolean(message)
-        && typeof message === 'object'
-        && !Array.isArray(message)
-        && ['user', 'assistant', 'tool'].includes(String(message.role))
-        && typeof message.content === 'string'
-      ))
-      : [];
-    if (messages.length === 0) {
-      return {
-        conversationRef: input.conversationRef,
-        revisionId: snapshot.revisionId,
-        messageCount: 0,
-        hydrated: false,
-        replayGenerationId: snapshot.replayGenerationId ?? null,
-      };
-    }
-    await this.rehydrateMessages({
-      conversationRef: input.conversationRef,
-      messages,
-      workspacePath: input.workspacePath,
-    });
-    return {
-      conversationRef: input.conversationRef,
-      revisionId: snapshot.revisionId,
-      messageCount: messages.length,
-      hydrated: true,
-      replayGenerationId: snapshot.replayGenerationId ?? null,
-    };
-  },
-
-  async rehydrateMessages(input: RehydrateMessagesInput): Promise<void> {
-    await invokeWindieCommand('conversation.rehydrate', {
-      conversation_ref: input.conversationRef,
-      messages: input.messages,
-      rehydrate_mode: 'replace',
-      workspace_path: optionalString(input.workspacePath),
-    });
   },
 
   async prepareEditAndResend(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
@@ -304,32 +161,6 @@ export const DesktopConversationContinuityService = {
       userId,
       conversationRef,
     });
-  },
-
-  async loadLocalConversationSnapshot(
-    input: LocalConversationSnapshotInput,
-  ): Promise<LocalConversationSnapshot> {
-    const snapshot = await invokeWindieCommand<{
-      state?: { events?: JsonRecord[] };
-      displayRows?: SdkDisplayRow[];
-      rehydrate?: RehydrateSnapshot;
-    }>('conversation.load', {
-      userId: input.userId,
-      conversationRef: input.conversationRef,
-    });
-    const events = Array.isArray(snapshot?.state?.events) ? snapshot.state.events : [];
-    const displayRows = input.includeParsedMessages && Array.isArray(snapshot?.displayRows)
-      ? snapshot.displayRows
-      : [];
-    return {
-      transcriptEntries: events as LocalConversationSnapshot['transcriptEntries'],
-      replayEntries: [],
-      workspaceBinding: resolveWorkspaceBindingFromEvents(events),
-      parsedMessages: displayRowsToParsedMessages(displayRows),
-      rehydrateMessages: Array.isArray(snapshot?.rehydrate?.messages)
-        ? snapshot.rehydrate.messages
-        : [],
-    };
   },
 
   async searchConversations(input: SearchConversationsInput) {

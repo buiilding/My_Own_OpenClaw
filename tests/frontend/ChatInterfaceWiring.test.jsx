@@ -41,8 +41,6 @@ const mockUpdateSettings = jest.fn();
 const mockRewriteTranscriptProjection = jest.fn(async () => ({ entries: [], messages: [] }));
 const mockPrepareEditAndResend = jest.fn();
 const mockPrepareRetryTurn = jest.fn();
-const mockEnsureConversationInferenceSessionHydrated = jest.fn();
-const mockRehydrateConversationInferenceSession = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
@@ -122,14 +120,6 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
 
 jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () => ({
   PlayerService: jest.fn(() => mockPlayerService),
-}));
-
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
-  ensureConversationInferenceSessionHydrated: (...args) => mockEnsureConversationInferenceSessionHydrated(...args),
-  rehydrateConversationInferenceSession: (...args) => mockRehydrateConversationInferenceSession(...args),
-  markConversationInferenceSessionLocalOnly: jest.fn(),
-  markConversationInferenceSessionUnknown: jest.fn(),
-  clearConversationInferenceSessionState: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
@@ -258,10 +248,6 @@ describe('ChatInterface wiring', () => {
       workspacePath: input.workspacePath,
       turnRef: null,
     }));
-    mockEnsureConversationInferenceSessionHydrated.mockReset();
-    mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
-    mockRehydrateConversationInferenceSession.mockReset();
-    mockRehydrateConversationInferenceSession.mockResolvedValue(undefined);
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
     mockUpdateMessage.mockClear();
@@ -774,14 +760,10 @@ describe('ChatInterface wiring', () => {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       });
-      expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
-        conversationRef: 'conv_existing',
-        userId: 'default_user',
-      });
       expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv_existing');
     });
     expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
-      mockEnsureConversationInferenceSessionHydrated.mock.invocationCallOrder[0],
+      mockCompactHistory.mock.invocationCallOrder[0],
     );
   });
 

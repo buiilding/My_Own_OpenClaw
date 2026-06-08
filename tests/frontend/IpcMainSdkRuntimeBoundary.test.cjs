@@ -74,8 +74,10 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agent.deleteMemory(');
     expect(source).toContain('agent.clearMemories(');
     expect(source).toContain('agent.clearConversations(');
-    expect(source).toContain('agent.prepareEditAndResend(');
-    expect(source).toContain('agent.prepareRetryTurn(');
+    expect(source).toContain('handle.runtime.prepareEditAndResend(');
+    expect(source).toContain('handle.runtime.prepareRetryTurn(');
+    expect(source).not.toContain('agent.prepareEditAndResend(');
+    expect(source).not.toContain('agent.prepareRetryTurn(');
     expect(source).toContain('requireCommandUserId');
     expect(source).toContain('requireAuthenticatedCommandUserId');
     expect(source).toContain("userId === 'default_user'");

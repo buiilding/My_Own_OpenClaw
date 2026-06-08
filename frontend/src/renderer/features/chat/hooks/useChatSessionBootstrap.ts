@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { markConversationInferenceSessionUnknown } from '../session/conversationInferenceSessionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { useChatStore } from '../stores/chatStore';
 import {
@@ -16,7 +15,6 @@ export function useChatSessionBootstrap() {
       setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
       setChatConversationRef: setChatActiveConversationRef,
       updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
-      markConversationInferenceSessionUnknown,
       onError: (error) => {
         console.warn('[chatSessionBootstrap] Failed to hydrate session snapshot:', error);
       },

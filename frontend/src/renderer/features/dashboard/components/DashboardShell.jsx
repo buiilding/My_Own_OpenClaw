@@ -11,7 +11,6 @@ import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
-import { invalidateConversationInferenceSessionState } from '../../chat/session/conversationInferenceSessionRuntime';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { clearAllConversationWorkspaceBindings } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 
@@ -202,7 +201,6 @@ function DashboardShell({
       setTokenCounts: setChatTokenCounts,
       setChatActiveConversationRef,
     });
-    invalidateConversationInferenceSessionState();
     clearAllConversationWorkspaceBindings();
     await loadRecentConversations();
   }, [

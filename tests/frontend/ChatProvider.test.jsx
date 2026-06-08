@@ -9,7 +9,6 @@ import { ChatProvider } from '../../frontend/src/renderer/app/providers/ChatProv
 const mockUseChatStream = jest.fn();
 const mockUseTranscriptSessionInfo = jest.fn();
 const mockBootstrapSession = jest.fn().mockResolvedValue({ conversationRef: null, userId: null });
-const mockInvalidateConversationInferenceSessionState = jest.fn();
 const mockIpcOn = jest.fn(() => jest.fn());
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
@@ -41,10 +40,6 @@ jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSes
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap', () => ({
   useChatSessionBootstrap: () => mockBootstrapSession,
-}));
-
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
-  invalidateConversationInferenceSessionState: () => mockInvalidateConversationInferenceSessionState(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -84,7 +79,6 @@ describe('ChatProvider', () => {
     mockUseChatStream.mockReset();
     mockUseTranscriptSessionInfo.mockReset();
     mockBootstrapSession.mockClear();
-    mockInvalidateConversationInferenceSessionState.mockReset();
     mockIpcOn.mockReset();
     mockIpcOn.mockReturnValue(jest.fn());
     resetChatStore();
@@ -169,22 +163,4 @@ describe('ChatProvider', () => {
     });
   });
 
-  test('invalidates lazy backend sync state when transport disconnects', async () => {
-    mockUseTranscriptSessionInfo.mockReturnValue({
-      conversationRef: null,
-      userId: 'peter',
-    });
-
-    render(
-      <ChatProvider enableTranscript={false}>
-        <div>overlay</div>
-      </ChatProvider>,
-    );
-
-    expect(mockIpcOn).toHaveBeenCalledWith('ipc-status', expect.any(Function));
-    const disconnectListener = mockIpcOn.mock.calls.find(([channel]) => channel === 'ipc-status')?.[1];
-    disconnectListener?.({ isConnected: false });
-
-    expect(mockInvalidateConversationInferenceSessionState).toHaveBeenCalledTimes(1);
-  });
 });

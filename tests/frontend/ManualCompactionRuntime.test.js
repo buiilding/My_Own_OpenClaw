@@ -23,13 +23,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
   },
 }));
 
-jest.mock(
-  '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime',
-  () => ({
-    ensureConversationInferenceSessionHydrated: jest.fn(),
-  }),
-);
-
 describe('runManualCompaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();

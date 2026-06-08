@@ -88,7 +88,6 @@ type RendererConversationSelectionOptions = {
 
 type HydrateMainSessionSnapshotOptions = SessionProjectionCallbacks & {
   loadMainSessionSnapshot: () => Promise<unknown>;
-  markConversationInferenceSessionUnknown?: (conversationRef: string | null) => void;
   onError?: (error: unknown) => void;
 };
 
@@ -99,7 +98,6 @@ type EnsureConversationRefForSendOptions = {
   setChatConversationRef: (conversationRef: string) => void;
   hydrateMainSessionSnapshot: () => Promise<MainSessionSnapshot>;
   createConversationRef: () => string;
-  markConversationInferenceSessionLocalOnly: (conversationRef: string | null) => void;
 };
 
 type RendererConversationSessionSnapshotOptions = {
@@ -111,7 +109,6 @@ type RendererConversationSessionSnapshotOptions = {
 type InitializeLocalConversationSessionOptions = {
   createConversationRef: () => string;
   selectConversationRef: (conversationRef: string) => void;
-  markConversationInferenceSessionLocalOnly: (conversationRef: string | null) => void;
   onConversationCreated?: ((conversationRef: string) => void) | null;
 };
 
@@ -179,13 +176,11 @@ export function resolveRendererConversationSessionSnapshot({
 export function initializeLocalConversationSession({
   createConversationRef,
   selectConversationRef,
-  markConversationInferenceSessionLocalOnly,
   onConversationCreated,
 }: InitializeLocalConversationSessionOptions): string {
   const conversationRef = createConversationRef();
   selectConversationRef(conversationRef);
   onConversationCreated?.(conversationRef);
-  markConversationInferenceSessionLocalOnly(conversationRef);
   return conversationRef;
 }
 
@@ -252,7 +247,6 @@ export function applyTranscriptSessionUserBinding({
 
 export async function hydrateConversationSessionFromMainSnapshot({
   loadMainSessionSnapshot,
-  markConversationInferenceSessionUnknown,
   onError,
   ...callbacks
 }: HydrateMainSessionSnapshotOptions): Promise<MainSessionSnapshot> {
@@ -262,7 +256,6 @@ export async function hydrateConversationSessionFromMainSnapshot({
       return snapshot;
     }
     const appliedSnapshot = applyMainSessionSnapshot(snapshot, callbacks);
-    markConversationInferenceSessionUnknown?.(appliedSnapshot.conversationRef);
     return appliedSnapshot;
   } catch (error) {
     onError?.(error);
@@ -277,7 +270,6 @@ export async function ensureConversationRefForSend({
   setChatConversationRef,
   hydrateMainSessionSnapshot,
   createConversationRef,
-  markConversationInferenceSessionLocalOnly,
 }: EnsureConversationRefForSendOptions): Promise<string> {
   const resolvedConversationRef = resolveConversationRefForSend(
     transcriptConversationRef,
@@ -302,6 +294,5 @@ export async function ensureConversationRefForSend({
       setTranscriptConversationRef(conversationRef);
       setChatConversationRef(conversationRef);
     },
-    markConversationInferenceSessionLocalOnly,
   });
 }

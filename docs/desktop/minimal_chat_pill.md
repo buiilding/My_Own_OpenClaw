@@ -41,6 +41,10 @@ The chat pill is the small always-available desktop command surface. It is rende
 - SDK current-turn presentation owns whether the pill shows typing or response
   content. The response overlay phase stays synchronized as BrowserWindow shell
   policy, not as a second source of content state.
+- The floating response overlay is gated by Electron main surface ownership. It
+  may show only while the chat pill is the primary visible surface; dashboard
+  and onboarding ownership suppress the overlay and typing shell while preserving
+  SDK current-turn state for inline dashboard rendering.
 - Active agent turns do not make the pill click-through by themselves. Electron
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill

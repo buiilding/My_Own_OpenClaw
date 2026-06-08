@@ -1,6 +1,5 @@
 import { resetActiveChatSession } from '../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { clearConversationInferenceSessionState } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
@@ -8,17 +7,11 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
-  clearConversationInferenceSessionState: jest.fn(),
-}));
-
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
-const mockClearConversationInferenceSessionState = clearConversationInferenceSessionState as jest.MockedFunction<typeof clearConversationInferenceSessionState>;
 
 describe('resetActiveChatSession', () => {
   beforeEach(() => {
     mockUpdateTranscriptSession.mockReset();
-    mockClearConversationInferenceSessionState.mockReset();
   });
 
   test('clears transcript and chat workspace state for the provided conversation', () => {
@@ -39,7 +32,6 @@ describe('resetActiveChatSession', () => {
     });
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(null, 'user-1');
-    expect(mockClearConversationInferenceSessionState).toHaveBeenCalledWith('conv-1');
     expect(clearMessages).toHaveBeenCalledWith('conv-1');
     expect(setIsSending).toHaveBeenCalledWith(false, 'conv-1');
     expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conv-1');
@@ -61,7 +53,6 @@ describe('resetActiveChatSession', () => {
     });
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(null, undefined);
-    expect(mockClearConversationInferenceSessionState).toHaveBeenCalledWith(null);
     expect(clearMessages).toHaveBeenCalledWith(null);
     expect(setIsSending).toHaveBeenCalledWith(false, null);
     expect(setThinkingStatus).toHaveBeenCalledWith(null, null);

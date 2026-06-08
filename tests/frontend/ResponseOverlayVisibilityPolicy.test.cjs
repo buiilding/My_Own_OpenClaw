@@ -2,6 +2,7 @@
 
 const {
   RESPONSE_OVERLAY_WINDOW_MODE,
+  canShowFloatingResponseOverlay,
   isStreamingResponseOverlayPhase,
   resolveResponseOverlayWindowMode,
   resolveChatWindowResponseOverlayRestore,
@@ -85,6 +86,43 @@ describe('response_overlay_visibility_policy', () => {
       getResponseOverlayVisible: () => true,
       responseWindow,
       chatWindow,
+    })).toBe(false);
+  });
+
+  test('floating response overlay can show only when chat owns the visible surface', () => {
+    const visibleWindow = {
+      isDestroyed: jest.fn().mockReturnValue(false),
+      isVisible: jest.fn().mockReturnValue(true),
+    };
+    const hiddenWindow = {
+      isDestroyed: jest.fn().mockReturnValue(false),
+      isVisible: jest.fn().mockReturnValue(false),
+    };
+
+    expect(canShowFloatingResponseOverlay({
+      primarySurface: 'chat',
+      mainWindow: hiddenWindow,
+      chatWindow: visibleWindow,
+    })).toBe(true);
+    expect(canShowFloatingResponseOverlay({
+      primarySurface: 'dashboard',
+      mainWindow: visibleWindow,
+      chatWindow: visibleWindow,
+    })).toBe(false);
+    expect(canShowFloatingResponseOverlay({
+      primarySurface: 'onboarding',
+      mainWindow: visibleWindow,
+      chatWindow: visibleWindow,
+    })).toBe(false);
+    expect(canShowFloatingResponseOverlay({
+      primarySurface: 'chat',
+      mainWindow: hiddenWindow,
+      chatWindow: hiddenWindow,
+    })).toBe(false);
+    expect(canShowFloatingResponseOverlay({
+      primarySurface: 'chat',
+      mainWindow: visibleWindow,
+      chatWindow: visibleWindow,
     })).toBe(false);
   });
 });

@@ -133,6 +133,37 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
   });
 
+  test('suppresses visible SDK overlay intent when floating surface does not own presentation', () => {
+    const responseWindow = createWindow({ visible: true });
+    const deps = createDeps({
+      responseWindow,
+      canShowFloatingResponseOverlay: jest.fn(() => false),
+      getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-1'),
+    });
+
+    const result = handleSdkLiveTurnSurfaceIntent(
+      createCurrentTurn({ mode: 'response' }),
+      deps,
+    );
+
+    expect(result).toMatchObject({
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'surface-not-owner',
+      visible: false,
+      mode: 'response',
+      staleGuardRef: 'turn-1',
+    });
+    expect(deps.getResponseWindowBounds).not.toHaveBeenCalled();
+    expect(responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
+    expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+  });
+
   test('skips repeated identical awaiting intent after the native window is already visible', () => {
     const surfaceState = createSdkLiveTurnSurfaceState();
     const deps = createDeps({ surfaceState });

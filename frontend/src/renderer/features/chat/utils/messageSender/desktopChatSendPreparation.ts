@@ -16,11 +16,6 @@ import {
   ensureConversationRefForSend,
   hydrateConversationSessionFromMainSnapshot,
 } from '../../session/conversationSessionRuntime';
-import {
-  ensureConversationInferenceSessionHydrated,
-  markConversationInferenceSessionLocalOnly,
-  markConversationInferenceSessionUnknown,
-} from '../../session/conversationInferenceSessionRuntime';
 import { useChatStore } from '../../stores/chatStore';
 import { logRendererChatPillTrace } from '../chatStream/chatStreamDebugTrace';
 import {
@@ -80,7 +75,6 @@ async function hydrateSessionFromMainSnapshot(
     setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
     setChatConversationRef: setChatActiveConversationRef,
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
-    markConversationInferenceSessionUnknown,
     onError: (error) => {
       console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
     },
@@ -157,7 +151,6 @@ async function ensureConversationRef(
       };
     },
     createConversationRef,
-    markConversationInferenceSessionLocalOnly,
   });
 }
 
@@ -231,10 +224,6 @@ export async function prepareDesktopChatSend({
   const conversationRef = await ensureConversationRef(dependencies.setChatActiveConversationRef);
   const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
   const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-  await ensureConversationInferenceSessionHydrated({
-    conversationRef,
-    userId: sessionInfo.userId,
-  });
 
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();

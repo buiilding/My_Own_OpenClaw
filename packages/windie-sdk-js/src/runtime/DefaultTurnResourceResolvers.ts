@@ -104,6 +104,18 @@ function blobFromBase64(input: string, contentType: string): Blob {
   return new blobCtor([arrayBuffer], { type: contentType });
 }
 
+function blobFromBytes(input: Uint8Array, contentType: string): Blob {
+  const blobCtor = (globalThis as unknown as { Blob?: typeof Blob }).Blob;
+  if (!blobCtor) {
+    throw new Error('Blob constructor is unavailable');
+  }
+  const arrayBuffer = input.buffer.slice(
+    input.byteOffset,
+    input.byteOffset + input.byteLength,
+  ) as ArrayBuffer;
+  return new blobCtor([arrayBuffer], { type: contentType });
+}
+
 function errorResult(kind: TurnInputResource['kind'], error: string, fatal = false): TurnResourceResolution {
   return {
     kind,
@@ -170,13 +182,61 @@ async function uploadScreenshotBase64(
   };
 }
 
+function filenameFromPath(filePath: string): string | null {
+  const parts = filePath.split(/[\\/]+/);
+  return optionalString(parts[parts.length - 1]);
+}
+
+async function uploadScreenshotFile(
+  sdkClient: WindieSdkClient | null | undefined,
+  screenshotPath: string,
+  contentTypeInput: unknown,
+): Promise<{
+  artifactId: string;
+  url?: string | null;
+  contentType: string;
+}> {
+  if (!sdkClient?.artifacts?.upload) {
+    throw new Error('artifact uploader is unavailable');
+  }
+  const normalizedPath = optionalString(screenshotPath);
+  if (!normalizedPath) {
+    throw new Error('empty screenshot path');
+  }
+  const fsModule = 'node:fs/promises';
+  const fs = await import(/* @vite-ignore */ fsModule) as {
+    readFile(path: string): Promise<Uint8Array>;
+    unlink(path: string): Promise<void>;
+  };
+  const contentType = normalizeContentType(contentTypeInput);
+  const bytes = await fs.readFile(normalizedPath);
+  const uploaded = await sdkClient.artifacts.upload(
+    blobFromBytes(bytes, contentType),
+    screenshotFilename(contentType, filenameFromPath(normalizedPath)),
+  );
+  try {
+    await fs.unlink(normalizedPath);
+  } catch {
+    // Best effort cleanup for sidecar-owned temporary screenshot files.
+  }
+  const artifactId = optionalString(uploaded.artifact_id);
+  if (!artifactId) {
+    throw new Error('artifact upload did not return artifact_id');
+  }
+  return {
+    artifactId,
+    url: optionalString(uploaded.url) ?? sdkClient.artifacts.url?.(artifactId) ?? null,
+    contentType: optionalString(uploaded.content_type) ?? contentType,
+  };
+}
+
 function screenshotResolutionFromData(
   data: JsonRecord,
 ): TurnResourceResolution | null {
   const screenshotRef = stringFromRecord(data, 'screenshot_ref', 'screenshotRef');
   const screenshotUrl = stringFromRecord(data, 'screenshot_url', 'screenshotUrl');
   const captureMeta = isJsonRecord(data.capture_meta) ? data.capture_meta : null;
-  if (!screenshotRef && !screenshotUrl && !captureMeta) {
+  if (!screenshotRef && !screenshotUrl) {
     return null;
   }
   return {
@@ -275,6 +335,25 @@ export function createDefaultTurnResourceResolvers(
       const existing = screenshotResolutionFromData(data);
       if (existing) {
         return existing;
+      }
+      const screenshotPath = stringFromRecord(data, 'screenshot_path', 'screenshotPath');
+      if (screenshotPath) {
+        const uploaded = await uploadScreenshotFile(
+          options.sdkClient,
+          screenshotPath,
+          data.screenshot_content_type,
+        );
+        return {
+          kind: resource.kind,
+          screenshotRef: uploaded.artifactId,
+          screenshotUrl: uploaded.url ?? null,
+          screenshotRefs: [uploaded.artifactId],
+          captureMeta: isJsonRecord(data.capture_meta) ? data.capture_meta : null,
+          metadata: {
+            screenshotRef: uploaded.artifactId,
+            ...(uploaded.url ? { screenshotUrl: uploaded.url } : {}),
+          },
+        };
       }
       const screenshot = stringFromRecord(data, 'screenshot');
       if (!screenshot) {

@@ -512,20 +512,19 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('conversation inference rehydrate snapshots use the continuity runtime facade', async () => {
-    const source = await fs.readFile(
+  test('renderer does not own backend inference rehydrate state', async () => {
+    await expect(fs.access(
       path.join(chatRoot, 'session/conversationInferenceSessionRuntime.ts'),
+    )).rejects.toThrow();
+
+    const senderSource = await fs.readFile(
+      path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
       'utf8',
     );
 
-    expect(source).not.toContain('DesktopConversationStoreAdapter');
-    expect(source).toContain('DesktopConversationContinuityService.loadLocalConversationSnapshot');
-    expect(source).toContain('DesktopConversationContinuityService.rehydrateFromStore');
-    expect(source).toContain('DesktopConversationContinuityService.rehydrateMessages');
-    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.loadRehydrateSnapshot');
-    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.loadLocalConversationSnapshot');
-    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.rehydrateFromStore');
-    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.rehydrate');
+    expect(senderSource).not.toContain('rehydrateFromStore');
+    expect(senderSource).not.toContain('loadRehydrateSnapshot');
+    expect(senderSource).not.toContain('ConversationInferenceSession');
   });
 
   test('app live-turn runtime facade delegates transcript storage to projection runtime', async () => {

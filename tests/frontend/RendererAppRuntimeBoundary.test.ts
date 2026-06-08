@@ -42,7 +42,9 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain("'conversations.list'");
     expect(source).toContain("'conversations.search'");
     expect(source).toContain("'conversations.delete'");
-    expect(source).toContain("'conversation.load'");
+    expect(source).toContain("'conversation.loadDisplay'");
+    expect(source).not.toContain("'conversation.load'");
+    expect(source).not.toContain("'conversation.loadRehydrate'");
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).not.toContain('INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS');
     expect(source).not.toContain('INVOKE_CHANNELS.GET_CHAT_EVENTS');

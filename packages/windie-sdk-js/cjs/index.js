@@ -24,6 +24,8 @@ __exportStar(require("./stores/SidecarConversationStore.js"), exports);
 __exportStar(require("./projections/conversationProjections.js"), exports);
 __exportStar(require("./runtime/conversationReducer.js"), exports);
 __exportStar(require("./runtime/ConversationRuntime.js"), exports);
+__exportStar(require("./runtime/TurnInputPipeline.js"), exports);
+__exportStar(require("./runtime/DefaultTurnResourceResolvers.js"), exports);
 __exportStar(require("./runtime/ConversationContinuityService.js"), exports);
 __exportStar(require("./runtime/AgentStreamEvents.js"), exports);
 __exportStar(require("./runtime/WindieChatSession.js"), exports);

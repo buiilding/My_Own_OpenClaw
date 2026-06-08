@@ -1,10 +1,6 @@
 import { startNewChatSession } from '../../frontend/src/renderer/features/chat/utils/session/newChatSession';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
-  clearConversationInferenceSessionState,
-  markConversationInferenceSessionLocalOnly,
-} from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
-import {
   setConversationWorkspaceBinding,
 } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 
@@ -12,11 +8,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   DesktopTranscriptSessionRuntimeClient: {
     updateTranscriptSession: jest.fn(),
   },
-}));
-
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
-  clearConversationInferenceSessionState: jest.fn(),
-  markConversationInferenceSessionLocalOnly: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
@@ -31,8 +22,6 @@ describe('startNewChatSession', () => {
   beforeEach(() => {
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('new-chat-ref');
     (DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock).mockReset();
-    (clearConversationInferenceSessionState as jest.MockedFunction<typeof clearConversationInferenceSessionState>).mockReset();
-    (markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>).mockReset();
     (setConversationWorkspaceBinding as jest.MockedFunction<typeof setConversationWorkspaceBinding>).mockReset();
   });
 
@@ -40,7 +29,7 @@ describe('startNewChatSession', () => {
     jest.restoreAllMocks();
   });
 
-  test('creates a fresh local conversation ref and marks it unsynced for backend lazy hydrate', () => {
+  test('creates a fresh local conversation ref and stores workspace binding', () => {
     const clearMessages = jest.fn();
     const setIsSending = jest.fn();
     const setThinkingStatus = jest.fn();
@@ -63,6 +52,5 @@ describe('startNewChatSession', () => {
       workspacePath: '/work/WindieOS',
       workspaceName: 'WindieOS',
     });
-    expect(markConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_new-chat-ref');
   });
 });

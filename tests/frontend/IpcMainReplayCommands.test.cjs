@@ -11,12 +11,14 @@ describe('ipc.cjs replay command handling', () => {
   function installMockWindieClient() {
     const runtime = {
       subscribeEvents: jest.fn(() => jest.fn()),
-      close: jest.fn(),
-    };
-    const agent = {
-      id: 'agent-replay',
-      conversation: jest.fn(() => runtime),
-      subscribeRawBackendEvents: jest.fn(() => jest.fn()),
+      load: jest.fn(async () => ({
+        display: null,
+        displayRows: [],
+        rehydrate: {
+          messages: [],
+        },
+        currentTurn: null,
+      })),
       prepareEditAndResend: jest.fn(async input => ({
         text: input.text,
         turnRef: input.turnRef || null,
@@ -33,6 +35,12 @@ describe('ipc.cjs replay command handling', () => {
           ...(input.payload || {}),
         },
       })),
+      close: jest.fn(),
+    };
+    const agent = {
+      id: 'agent-replay',
+      conversation: jest.fn(() => runtime),
+      subscribeRawBackendEvents: jest.fn(() => jest.fn()),
       ensureConnected: jest.fn(async () => undefined),
       isConnected: jest.fn(() => true),
       noteBackendTraffic: jest.fn(),
@@ -116,8 +124,10 @@ describe('ipc.cjs replay command handling', () => {
     expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-agent-replay',
     }));
-    expect(sdk.agent.prepareEditAndResend).toHaveBeenCalledWith({
+    expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-ipc-replay',
+    }));
+    expect(sdk.runtime.prepareEditAndResend).toHaveBeenCalledWith({
       messageId: 'renderer-user-2',
       userMessageOrdinal: 1,
       text: 'edited second question',
@@ -130,6 +140,7 @@ describe('ipc.cjs replay command handling', () => {
         id: 'claude-sonnet-4-5',
       },
     });
+    expect(sdk.runtime.load).toHaveBeenCalledTimes(1);
   });
 
   test('rejects stale transcript-session users before preparing edit/resend replay', async () => {
@@ -162,7 +173,7 @@ describe('ipc.cjs replay command handling', () => {
       ok: false,
       error: 'Windie SDK command user id does not match the active user.',
     });
-    expect(sdk.agent.prepareEditAndResend).toHaveBeenCalledTimes(1);
+    expect(sdk.runtime.prepareEditAndResend).toHaveBeenCalledTimes(1);
   });
 
   test('routes retry preparation through the same SDK agent adapter', async () => {
@@ -198,8 +209,10 @@ describe('ipc.cjs replay command handling', () => {
         }),
       }),
     });
-    expect(sdk.agent.prepareRetryTurn).toHaveBeenCalledWith({
+    expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-ipc-retry',
+    }));
+    expect(sdk.runtime.prepareRetryTurn).toHaveBeenCalledWith({
       messageId: 'assistant-retry',
       userMessageOrdinal: 0,
       turnRef: 'turn-retry',

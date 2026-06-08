@@ -29,6 +29,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     source = null,
     usePhaseVisibilityFallback = false,
     getActiveResponseOverlayGuardRef = () => null,
+    canShowFloatingResponseOverlay = () => true,
   } = deps;
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN) {
@@ -104,6 +105,41 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       logLiveSurfaceTrace('phase.window_mode.resolved', {
         source: 'phase-handler',
         reason: 'defer-to-sdk-overlay-intent',
+        phase,
+        overlayMode: mode,
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
+      return;
+    }
+    if (!canShowFloatingResponseOverlay()) {
+      setResponseOverlayVisibilityState(false);
+      if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
+        responseWindow.hide();
+        logLiveSurfaceTrace('response_overlay.window.hide', {
+          source: 'phase-handler',
+          reason: 'surface-not-owner',
+          phase,
+          overlayMode: mode,
+          responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+        });
+      }
+      syncContextLabelWindowVisibility();
+      console.log('[ResponseOverlayWindow][main]', {
+        action: 'suppress-phase-show-for-surface-owner',
+        mode,
+        phase,
+        source,
+        response_window_visible: safeWindowVisible(responseWindow),
+      });
+      logChatPillMainTrace({
+        source: 'phase-handler',
+        action: 'suppress-show-surface-not-owner',
+        phase,
+        responseWindow,
+      }, deps);
+      logLiveSurfaceTrace('response_overlay.window.show_ignored', {
+        source: 'phase-handler',
+        reason: 'surface-not-owner',
         phase,
         overlayMode: mode,
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
@@ -213,6 +249,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     getActiveResponseOverlayCorrelationId = () => null,
     setActiveResponseOverlayCorrelationId = () => {},
     getActiveResponseOverlayGuardRef = () => null,
+    canShowFloatingResponseOverlay = () => true,
   } = deps;
 
   if (ENABLE_OS_TOOL_GHOST_DEBUG) {
@@ -312,6 +349,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     usePhaseVisibilityFallback,
     getResponseOverlayPhase,
     getActiveResponseOverlayGuardRef,
+    canShowFloatingResponseOverlay,
   });
 }
 

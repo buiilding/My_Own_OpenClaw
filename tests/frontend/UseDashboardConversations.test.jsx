@@ -43,11 +43,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
   setConversationWorkspaceBinding: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
-  clearConversationInferenceSessionState: jest.fn(),
-  markConversationInferenceSessionUnknown: jest.fn(),
-}));
-
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationSessionRuntime', () => ({
   applyRendererConversationSelection: jest.fn(),
 }));

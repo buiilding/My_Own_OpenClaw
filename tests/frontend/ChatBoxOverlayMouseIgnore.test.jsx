@@ -22,7 +22,6 @@ const mockUpdateConfig = jest.fn();
 const mockCompactHistory = jest.fn();
 const mockUpdateSettings = jest.fn();
 const mockStopQuery = jest.fn();
-const mockEnsureConversationInferenceSessionHydrated = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
@@ -165,10 +164,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
-  ensureConversationInferenceSessionHydrated: (...args) => mockEnsureConversationInferenceSessionHydrated(...args),
-}));
-
 jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
@@ -200,8 +195,6 @@ describe('ChatBox overlay mouse ignore', () => {
     mockCompactHistory.mockClear();
     mockUpdateSettings.mockClear();
     mockStopQuery.mockClear();
-    mockEnsureConversationInferenceSessionHydrated.mockReset();
-    mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
     mockSetThinkingStatus.mockClear();
     mockSetThinkingSourceEventType.mockClear();
     mockSetIsSending.mockClear();
@@ -469,7 +462,7 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
   });
 
-  test('renders dev compaction control and dispatches compact-history after rehydrate', async () => {
+  test('renders dev compaction control and dispatches compact-history', async () => {
     mockIsDevUiEnabled.mockReturnValue(true);
     render(<MinimalChatPill />);
 
@@ -478,10 +471,6 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
     await flushAnimationFrames();
     await waitFor(() => {
-      expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
-        conversationRef: 'conv-overlay',
-        userId: null,
-      });
       expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv-overlay');
     });
   });

@@ -1,7 +1,6 @@
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
-import { ensureConversationInferenceSessionHydrated } from '../../session/conversationInferenceSessionRuntime';
 import {
   COMPACTION_FAILED_THINKING_STATUS,
   COMPACTION_THINKING_STATUS,
@@ -36,17 +35,6 @@ export async function runManualCompaction({
     }
 
     const normalizedConversationRef = conversationRef || null;
-    if (normalizedConversationRef) {
-      try {
-        await ensureConversationInferenceSessionHydrated({
-          conversationRef: normalizedConversationRef,
-          userId: userId || null,
-        });
-      } catch (error) {
-        console.warn(`[${warningContext}] Failed to rehydrate conversation before compaction:`, error);
-      }
-    }
-
     await DesktopConversationContinuityService.compactHistory(true, normalizedConversationRef);
   } catch (error) {
     console.warn(`[${warningContext}] Failed to start manual compaction:`, error);

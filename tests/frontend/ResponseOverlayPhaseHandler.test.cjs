@@ -131,6 +131,24 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
   });
 
+  test('renderer send preflight suppresses awaiting fallback when floating surface is not owner', () => {
+    const deps = createDeps({
+      canShowFloatingResponseOverlay: jest.fn(() => false),
+    });
+
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.AWAITING_FIRST_CHUNK,
+      source: 'renderer-send-preflight',
+    }, deps);
+
+    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
+    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+  });
+
   test('streaming phase does not force overlay click-through when hit-test is active', () => {
     const deps = createDeps({
       getChatboxHitTestActive: jest.fn(() => true),
@@ -166,6 +184,18 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
 
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
+    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+  });
+
+  test('terminal phase does not restore overlay when floating surface is not owner', () => {
+    const deps = createDeps({
+      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
+      canShowFloatingResponseOverlay: jest.fn(() => false),
+    });
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
+
+    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 

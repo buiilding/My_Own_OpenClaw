@@ -67,7 +67,7 @@ describe('DesktopConversationLibraryClient', () => {
       userId: 'user-1',
       conversationRef: 'conv-1',
     });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(4, 'conversation.load', {
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(4, 'conversation.loadDisplay', {
       userId: 'user-1',
       conversationRef: 'conv-1',
     });

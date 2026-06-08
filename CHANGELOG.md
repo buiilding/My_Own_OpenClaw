@@ -20,6 +20,15 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/runtime: restore the minimal chat pill to its fixed 164px native
   frame while making the chat overlay click-through by default and clickable
   only when the pointer is inside the visible pill.
+- frontend/main: keep one SDK conversation runtime per conversation in Electron
+  main, move old-chat inference preparation behind the SDK send path, and
+  remove renderer-owned backend hydration state from normal chat sends.
+- sdk/runtime: sync the CommonJS SDK build with the source turn-input resource
+  pipeline so Electron resolves query screenshot requests before backend send.
+- sdk/runtime: materialize sidecar `screenshot_path` outputs inside the SDK
+  query screenshot resource resolver so auto-screenshot sends attach
+  `screenshot_ref` metadata and model payload instead of becoming text-only
+  user turns.
 - cli/frontend: capture Electron main/frontend desktop stdout and filtered stderr
   to `.windie/logs/frontend.log`, add `bin/windie logs frontend` for live
   tailing that stream, and keep `bin/windie logs desktop` as an alias.

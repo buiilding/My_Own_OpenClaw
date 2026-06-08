@@ -206,6 +206,42 @@ describe('overlay_visibility_handler', () => {
     expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
+  test('restore-surface-after-screenshot suppresses response-only restore when floating surface is not owner', () => {
+    const showResponseWindowInactive = jest.fn();
+    const ensureResponseOverlayFallbackBounds = jest.fn();
+    const setResponseOverlayVisibilityState = jest.fn();
+    const syncContextLabelWindowVisibility = jest.fn();
+    const responseWindow = {
+      isDestroyed: () => false,
+      isVisible: jest.fn(() => true),
+      hide: jest.fn(),
+    };
+
+    const result = handleRestoreSurfaceAfterScreenshot(
+      { hiddenSurface: 'response' },
+      {
+        responseWindow,
+        showResponseWindowInactive,
+        ensureResponseOverlayFallbackBounds,
+        setResponseOverlayVisibilityState,
+        syncContextLabelWindowVisibility,
+        canShowFloatingResponseOverlay: jest.fn(() => false),
+      },
+    );
+
+    expect(result).toEqual({
+      success: true,
+      restored: false,
+      ignored: true,
+      reason: 'surface-not-owner',
+    });
+    expect(setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
+    expect(showResponseWindowInactive).not.toHaveBeenCalled();
+    expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+  });
+
   test('restore-surface-after-screenshot restores dashboard when needed', () => {
     const showMainWindow = jest.fn().mockReturnValue({ success: true });
 

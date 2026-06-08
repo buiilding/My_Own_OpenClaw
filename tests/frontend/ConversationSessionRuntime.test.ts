@@ -171,21 +171,18 @@ describe('conversationSessionRuntime', () => {
     });
   });
 
-  test('initializeLocalConversationSession creates, selects, annotates, and marks a new local conversation', () => {
+  test('initializeLocalConversationSession creates, selects, and annotates a new local conversation', () => {
     const selectConversationRef = jest.fn();
     const onConversationCreated = jest.fn();
-    const markConversationInferenceSessionLocalOnly = jest.fn();
 
     expect(initializeLocalConversationSession({
       createConversationRef: () => 'conv-local',
       selectConversationRef,
       onConversationCreated,
-      markConversationInferenceSessionLocalOnly,
     })).toBe('conv-local');
 
     expect(selectConversationRef).toHaveBeenCalledWith('conv-local');
     expect(onConversationCreated).toHaveBeenCalledWith('conv-local');
-    expect(markConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv-local');
   });
 
   test('applyChatConversationProjection promotes normalized transcript conversation refs into chat state', () => {
@@ -302,11 +299,10 @@ describe('conversationSessionRuntime', () => {
     expect(updateTranscriptSession).not.toHaveBeenCalled();
   });
 
-  test('hydrateConversationSessionFromMainSnapshot normalizes, projects, and marks unknown inference state', async () => {
+  test('hydrateConversationSessionFromMainSnapshot normalizes and projects the main session snapshot', async () => {
     const setTranscriptConversationRef = jest.fn();
     const setChatConversationRef = jest.fn();
     const updateTranscriptSession = jest.fn();
-    const markConversationInferenceSessionUnknown = jest.fn();
 
     await expect(hydrateConversationSessionFromMainSnapshot({
       loadMainSessionSnapshot: async () => ({
@@ -316,7 +312,6 @@ describe('conversationSessionRuntime', () => {
       setTranscriptConversationRef,
       setChatConversationRef,
       updateTranscriptSession,
-      markConversationInferenceSessionUnknown,
     })).resolves.toEqual({
       conversationRef: 'conv-main',
       userId: 'user-main',
@@ -325,7 +320,6 @@ describe('conversationSessionRuntime', () => {
     expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-main');
     expect(setChatConversationRef).toHaveBeenCalledWith('conv-main');
     expect(updateTranscriptSession).toHaveBeenCalledWith('conv-main', 'user-main');
-    expect(markConversationInferenceSessionUnknown).toHaveBeenCalledWith('conv-main');
   });
 
   test('hydrateConversationSessionFromMainSnapshot returns empty snapshot and reports errors', async () => {
@@ -355,7 +349,6 @@ describe('conversationSessionRuntime', () => {
       setChatConversationRef,
       hydrateMainSessionSnapshot: jest.fn(),
       createConversationRef: jest.fn(() => 'conv-generated'),
-      markConversationInferenceSessionLocalOnly: jest.fn(),
     })).resolves.toBe('conv-store');
 
     expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-store');
@@ -375,7 +368,6 @@ describe('conversationSessionRuntime', () => {
       setChatConversationRef: jest.fn(),
       hydrateMainSessionSnapshot,
       createConversationRef: jest.fn(() => 'conv-generated'),
-      markConversationInferenceSessionLocalOnly: jest.fn(),
     })).resolves.toBe('conv-main');
 
     expect(hydrateMainSessionSnapshot).toHaveBeenCalledTimes(1);
@@ -384,7 +376,6 @@ describe('conversationSessionRuntime', () => {
   test('ensureConversationRefForSend generates a fresh local conversation only when no other source exists', async () => {
     const setTranscriptConversationRef = jest.fn();
     const setChatConversationRef = jest.fn();
-    const markConversationInferenceSessionLocalOnly = jest.fn();
 
     await expect(ensureConversationRefForSend({
       transcriptConversationRef: null,
@@ -393,11 +384,9 @@ describe('conversationSessionRuntime', () => {
       setChatConversationRef,
       hydrateMainSessionSnapshot: async () => EMPTY_MAIN_SESSION_SNAPSHOT,
       createConversationRef: () => 'conv-generated',
-      markConversationInferenceSessionLocalOnly,
     })).resolves.toBe('conv-generated');
 
     expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-generated');
     expect(setChatConversationRef).toHaveBeenCalledWith('conv-generated');
-    expect(markConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv-generated');
   });
 });

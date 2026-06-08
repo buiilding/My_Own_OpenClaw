@@ -9,9 +9,6 @@ import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
-import {
-  markConversationInferenceSessionLocalOnly,
-} from '../session/conversationInferenceSessionRuntime';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
@@ -43,7 +40,6 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
       onConversationCreated: (nextConversationRef) => {
         setConversationWorkspaceBinding(nextConversationRef, null);
       },
-      markConversationInferenceSessionLocalOnly,
     });
   }
   return conversationRef;

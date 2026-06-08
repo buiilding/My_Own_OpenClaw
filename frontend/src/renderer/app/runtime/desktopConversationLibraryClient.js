@@ -2,7 +2,6 @@ import {
   DesktopConversationContinuityService,
 } from './desktopConversationContinuityService';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
-import { resolveConversationWorkspaceBinding } from '../../infrastructure/workspace/conversationWorkspaceBinding';
 
 function metadataToDashboardConversation(metadata) {
   return {
@@ -28,7 +27,7 @@ export const DesktopConversationLibraryClient = {
   },
 
   async loadForDisplay(userId, conversationRef) {
-    const snapshot = await invokeWindieCommand('conversation.load', {
+    const snapshot = await invokeWindieCommand('conversation.loadDisplay', {
       userId,
       conversationRef,
     });
@@ -36,7 +35,7 @@ export const DesktopConversationLibraryClient = {
   },
 
   async loadDisplayRows(userId, conversationRef) {
-    const snapshot = await invokeWindieCommand('conversation.load', {
+    const snapshot = await invokeWindieCommand('conversation.loadDisplay', {
       userId,
       conversationRef,
     });
@@ -48,25 +47,6 @@ export const DesktopConversationLibraryClient = {
       userId,
       conversationRef,
     });
-  },
-
-  async loadLocalConversationSnapshot(input) {
-    const snapshot = await invokeWindieCommand('conversation.load', {
-      userId: input.userId,
-      conversationRef: input.conversationRef,
-    });
-    return {
-      transcriptEntries: Array.isArray(snapshot?.state?.events) ? snapshot.state.events : [],
-      replayEntries: [],
-      workspaceBinding: resolveConversationWorkspaceBinding({
-        conversation: input.conversation,
-        memories: Array.isArray(snapshot?.state?.events) ? snapshot.state.events : [],
-      }),
-      parsedMessages: [],
-      rehydrateMessages: Array.isArray(snapshot?.rehydrate?.messages)
-        ? snapshot.rehydrate.messages
-        : [],
-    };
   },
 
   async searchConversations(input) {

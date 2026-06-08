@@ -20,11 +20,6 @@ type RewriteTranscriptProjectionInput = {
   rehydrateEntries: TranscriptProjectionRewriteEntry[];
 };
 
-type LoadRehydrateSnapshotInput = {
-  conversationRef: string;
-  userId: string;
-};
-
 type SeededConversationStoreInput = {
   conversationRef: string;
   userId: string;
@@ -54,23 +49,6 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     });
   },
 
-  async loadRehydrateSnapshot({
-    conversationRef,
-    userId,
-  }: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
-    const snapshot = await invokeWindieCommand<{
-      rehydrate?: RehydrateSnapshot;
-    }>('conversation.load', {
-      userId,
-      conversationRef,
-    });
-    return snapshot?.rehydrate ?? {
-      conversationRef,
-      revisionId: '',
-      messages: [],
-    };
-  },
-
   async listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
     const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.list', {
       userId,
@@ -82,7 +60,7 @@ export const DesktopTranscriptProjectionRuntimeClient = {
   async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
     const snapshot = await invokeWindieCommand<{
       display?: DisplayConversation;
-    }>('conversation.load', {
+    }>('conversation.loadDisplay', {
       userId,
       conversationRef,
     });
@@ -118,7 +96,6 @@ export const DesktopTranscriptProjectionRuntimeClient = {
 };
 
 export type {
-  LoadRehydrateSnapshotInput,
   RewriteTranscriptProjectionInput,
   TranscriptProjectionRewriteEntry,
 };

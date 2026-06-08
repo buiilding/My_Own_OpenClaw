@@ -47,21 +47,14 @@ describe('DesktopTranscriptProjectionRuntimeClient', () => {
     });
   });
 
-  test('loads display and rehydrate snapshots through conversation.load', async () => {
+  test('loads display snapshots through the display SDK projection', async () => {
     const projectionClient = loadDesktopTranscriptProjectionRuntime();
-    mockInvokeWindieCommand.mockResolvedValueOnce({
+    mockInvokeWindieCommand.mockResolvedValue({
       display: {
         conversationRef: 'conv-display',
         revisionId: 'rev-display',
         messages: [],
         compaction: { status: 'idle' },
-      },
-    });
-    mockInvokeWindieCommand.mockResolvedValueOnce({
-      rehydrate: {
-        conversationRef: 'conv-rehydrate',
-        revisionId: 'rev-rehydrate',
-        messages: [{ role: 'user', content: 'hello' }],
       },
     });
 
@@ -71,23 +64,10 @@ describe('DesktopTranscriptProjectionRuntimeClient', () => {
         revisionId: 'rev-display',
       }),
     );
-    await expect(projectionClient.loadRehydrateSnapshot({
-      userId: 'user-1',
-      conversationRef: 'conv-rehydrate',
-    })).resolves.toEqual(
-      expect.objectContaining({
-        conversationRef: 'conv-rehydrate',
-        revisionId: 'rev-rehydrate',
-      }),
-    );
 
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversation.load', {
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.loadDisplay', {
       userId: 'user-1',
       conversationRef: 'conv-display',
-    });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'conversation.load', {
-      userId: 'user-1',
-      conversationRef: 'conv-rehydrate',
     });
   });
 

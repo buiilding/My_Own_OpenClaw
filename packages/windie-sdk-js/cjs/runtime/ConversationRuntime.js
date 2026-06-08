@@ -10,6 +10,7 @@ const ToolExecutionCoordinator_js_1 = require("../tools/ToolExecutionCoordinator
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const conversationReducer_js_1 = require("./conversationReducer.js");
+const TurnInputPipeline_js_1 = require("./TurnInputPipeline.js");
 function eventText(event) {
     if (typeof event.payload.text === 'string') {
         return event.payload.text;
@@ -47,6 +48,12 @@ function isTerminalConversationEvent(event) {
         || event.type === 'turn_error'
         || event.type === 'runtime_error'
         || event.type === 'compaction_failed';
+}
+function isJsonRecord(value) {
+    return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+function hasOwnEnumerableKeys(value) {
+    return Object.keys(value).length > 0;
 }
 class SdkConversationRuntime {
     constructor(options) {
@@ -125,6 +132,9 @@ class SdkConversationRuntime {
                 source: 'sdk',
                 payload: {},
             }));
+            const baseUserPayload = isJsonRecord(input.metadata)
+                ? input.metadata
+                : (isJsonRecord(input.payload) ? input.payload : {});
             await this.applyEvent((0, events_js_1.createConversationEvent)({
                 eventId: this.nextLocalEventId(turnRef, 'user_message'),
                 type: 'user_message',
@@ -133,18 +143,33 @@ class SdkConversationRuntime {
                 turnRef,
                 source: 'ui',
                 payload: {
-                    ...(input.payload ?? {}),
+                    ...baseUserPayload,
                     text: input.text,
                 },
             }));
+            const sourcePayload = isJsonRecord(input.payload) ? input.payload : {};
+            const resourceResolution = await (0, TurnInputPipeline_js_1.resolveTurnInputResources)({
+                resources: input.resources ?? null,
+                resolvers: this.options.resourceResolvers ?? null,
+                context: {
+                    text: input.text,
+                    conversationRef: this.options.conversationRef,
+                    turnRef,
+                    payload: sourcePayload,
+                },
+            });
+            const payloadForEnrichment = {
+                ...sourcePayload,
+                ...resourceResolution.payload,
+            };
             const enrichedPayload = this.options.enrichQuery
                 ? await this.options.enrichQuery({
                     text: input.text,
                     conversationRef: this.options.conversationRef,
-                    payload: input.payload ?? {},
+                    payload: payloadForEnrichment,
                     emitDiagnostic: emitMemoryDiagnostic,
                 })
-                : (input.payload ?? {});
+                : payloadForEnrichment;
             for (const diagnostic of memoryDiagnostics) {
                 await this.applyEvent((0, events_js_1.createConversationEvent)({
                     eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
@@ -158,7 +183,11 @@ class SdkConversationRuntime {
                     },
                 }));
             }
-            if (this.options.enrichQuery) {
+            const metadataPayload = {
+                ...resourceResolution.metadata,
+                ...enrichedPayload,
+            };
+            if (this.options.enrichQuery || hasOwnEnumerableKeys(resourceResolution.metadata)) {
                 await this.applyEvent((0, events_js_1.createConversationEvent)({
                     eventId: this.nextLocalEventId(turnRef, 'user_message_metadata'),
                     type: 'user_message_metadata',
@@ -167,7 +196,7 @@ class SdkConversationRuntime {
                     turnRef,
                     source: 'sdk',
                     payload: {
-                        ...enrichedPayload,
+                        ...metadataPayload,
                         text: input.text,
                     },
                 }));

@@ -44,47 +44,6 @@ describe('DesktopConversationContinuityService', () => {
     mockGetActiveConversationRef.mockReturnValue(null);
   });
 
-  test('rehydrateMessages routes replace-mode history through the SDK transport', async () => {
-    const send = jest.fn();
-    const invoke = jest.fn(async () => ({ ok: true, data: null }));
-    const originalIpc = window.ipc;
-    window.ipc = {
-      send,
-      invoke,
-      on: jest.fn(),
-      once: jest.fn(),
-    };
-    const { DesktopConversationContinuityService } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
-    );
-
-    try {
-      await DesktopConversationContinuityService.rehydrateMessages({
-        conversationRef: 'conv-rehydrate',
-        messages: [
-          { role: 'user', content: 'hello' },
-          { role: 'assistant', content: 'hi', message_type: 'assistant' },
-        ],
-        workspacePath: ' /workspace/WindieOS ',
-      });
-
-      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
-        command: 'conversation.rehydrate',
-        payload: {
-          conversation_ref: 'conv-rehydrate',
-          messages: [
-            { role: 'user', content: 'hello' },
-            { role: 'assistant', content: 'hi', message_type: 'assistant' },
-          ],
-          rehydrate_mode: 'replace',
-          workspace_path: '/workspace/WindieOS',
-        },
-      });
-    } finally {
-      window.ipc = originalIpc;
-    }
-  });
-
   test('prepareEditAndResend routes replay preparation through the SDK command bridge', async () => {
     const send = jest.fn();
     const invoke = jest.fn(async (channel, payload) => {

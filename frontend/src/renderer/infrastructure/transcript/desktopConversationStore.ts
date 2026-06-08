@@ -375,7 +375,7 @@ export function createDesktopConversationStore(
     async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
       const snapshot = await invokeWindieCommand<{
         display?: DisplayConversation;
-      }>('conversation.load', {
+      }>('conversation.loadDisplay', {
         userId,
         conversationRef,
       });
@@ -389,7 +389,7 @@ export function createDesktopConversationStore(
     async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
       const snapshot = await invokeWindieCommand<{
         displayRows?: SdkDisplayRow[];
-      }>('conversation.load', {
+      }>('conversation.loadDisplay', {
         userId,
         conversationRef,
       });
@@ -398,7 +398,7 @@ export function createDesktopConversationStore(
     async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
       const snapshot = await invokeWindieCommand<{
         rehydrate?: RehydrateSnapshot;
-      }>('conversation.load', {
+      }>('conversation.loadRehydrate', {
         userId,
         conversationRef,
       });

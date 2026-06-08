@@ -559,9 +559,8 @@ function createDirectWakeUpAgentAdapter({
   workspacePath = null,
   store = null,
 } = {}) {
-  let runtime = null;
-  let conversationRef = `conv-${agent.id}`;
-  let detachRuntimeEvents = () => {};
+  const defaultConversationRef = `conv-${agent.id}`;
+  const runtimeHandles = new Map();
   let detachRawBackendEvents = () => {};
   let closed = false;
 
@@ -569,9 +568,35 @@ function createDirectWakeUpAgentAdapter({
     broadcastToRenderers('windie:status', status);
   }
 
-  function attachRuntime(nextRuntime) {
-    detachRuntimeEvents();
-    detachRuntimeEvents = nextRuntime.subscribeEvents((event, snapshot) => {
+  function createRuntimeHandle(nextConversationRef) {
+    const runtimeConversationRef = normalizeOptionalString(nextConversationRef) || defaultConversationRef;
+    const runtime = agent.conversation({
+      conversationRef: runtimeConversationRef,
+      ...(store ? { store } : {}),
+    });
+    const handle = {
+      conversationRef: runtimeConversationRef,
+      runtime,
+      detachRuntimeEvents: () => {},
+      latestSnapshot: null,
+      activeTurnRef: null,
+      sendInFlight: false,
+      terminal: false,
+      inferenceContextReady: false,
+      inferenceContextPromise: null,
+    };
+    handle.detachRuntimeEvents = runtime.subscribeEvents((event, snapshot) => {
+      handle.latestSnapshot = snapshot;
+      if (snapshot?.currentTurn?.turnRef) {
+        handle.activeTurnRef = snapshot.currentTurn.turnRef;
+      }
+      const phase = snapshot?.currentTurn?.phase;
+      if (phase === 'complete' || phase === 'error' || phase === 'idle') {
+        handle.sendInFlight = false;
+        handle.terminal = true;
+      } else if (phase) {
+        handle.terminal = false;
+      }
       broadcastToRenderers('windie:conversation-event', event);
       if (event && event.type === 'memory_store_changed') {
         broadcastToRenderers('windie:memory-store-changed', event);
@@ -597,36 +622,90 @@ function createDirectWakeUpAgentAdapter({
         broadcastStatus(terminalStatus);
       }
     });
-  }
-
-  function selectConversationRuntime(nextConversationRef = null) {
-    const resolvedConversationRef = normalizeOptionalString(nextConversationRef) || conversationRef;
-    if (runtime && resolvedConversationRef === conversationRef) {
-      return runtime;
-    }
-    if (runtime) {
-      detachRuntimeEvents();
-      runtime.close();
-    }
-    conversationRef = resolvedConversationRef;
-    runtime = agent.conversation({
-      conversationRef,
-      ...(store ? { store } : {}),
-    });
-    attachRuntime(runtime);
+    runtimeHandles.set(runtimeConversationRef, handle);
     broadcastStatus({
       phase: 'ready',
-      conversationRef,
+      conversationRef: runtimeConversationRef,
       workspacePath,
     });
-    return runtime;
+    return handle;
   }
 
-  runtime = agent.conversation({
-    conversationRef,
-    ...(store ? { store } : {}),
-  });
-  attachRuntime(runtime);
+  function getConversationRuntimeHandle(nextConversationRef = null) {
+    const resolvedConversationRef = normalizeOptionalString(nextConversationRef) || defaultConversationRef;
+    return runtimeHandles.get(resolvedConversationRef) || createRuntimeHandle(resolvedConversationRef);
+  }
+
+  function closeRuntimeHandle(nextConversationRef = null) {
+    const resolvedConversationRef = normalizeOptionalString(nextConversationRef);
+    if (!resolvedConversationRef) {
+      return;
+    }
+    const handle = runtimeHandles.get(resolvedConversationRef);
+    if (!handle) {
+      return;
+    }
+    handle.detachRuntimeEvents();
+    handle.runtime.close();
+    runtimeHandles.delete(resolvedConversationRef);
+  }
+
+  function closeAllRuntimeHandles() {
+    for (const handle of runtimeHandles.values()) {
+      handle.detachRuntimeEvents();
+      handle.runtime.close();
+    }
+    runtimeHandles.clear();
+  }
+
+  function markInferenceContextStale(nextConversationRef = null) {
+    const resolvedConversationRef = normalizeOptionalString(nextConversationRef);
+    const handles = resolvedConversationRef
+      ? [runtimeHandles.get(resolvedConversationRef)].filter(Boolean)
+      : Array.from(runtimeHandles.values());
+    for (const handle of handles) {
+      handle.inferenceContextReady = false;
+      handle.inferenceContextPromise = null;
+    }
+  }
+
+  async function reloadRuntimeSnapshot(handle) {
+    const snapshot = await handle.runtime.load();
+    handle.latestSnapshot = snapshot;
+    return snapshot;
+  }
+
+  async function ensureInferenceContextForSend(handle, sendInput = {}) {
+    if (handle.inferenceContextReady) {
+      return;
+    }
+    if (handle.inferenceContextPromise) {
+      await handle.inferenceContextPromise;
+      return;
+    }
+    handle.inferenceContextPromise = (async () => {
+      const snapshot = handle.latestSnapshot || await handle.runtime.load();
+      handle.latestSnapshot = snapshot;
+      const rehydrate = snapshot?.rehydrate;
+      const messages = Array.isArray(rehydrate?.messages) ? rehydrate.messages : [];
+      if (messages.length > 0) {
+        await handle.runtime.rehydrateMessages({
+          conversation_ref: handle.conversationRef,
+          messages,
+          rehydrate_mode: 'replace',
+          workspace_path: resolveWorkspacePathForAgent(sendInput?.payload || sendInput) || workspacePath || null,
+        });
+      }
+      handle.inferenceContextReady = true;
+    })();
+    try {
+      await handle.inferenceContextPromise;
+    } finally {
+      handle.inferenceContextPromise = null;
+    }
+  }
+
+  getConversationRuntimeHandle(defaultConversationRef);
   detachRawBackendEvents = agent.subscribeRawBackendEvents((event) => {
     handleAgentBackendEvent(event);
   });
@@ -634,38 +713,58 @@ function createDirectWakeUpAgentAdapter({
   return {
     run: async (input = {}) => {
       const sendInput = typeof input === 'string' ? { text: input } : input;
-      const activeRuntime = selectConversationRuntime(resolveRuntimeConversationRef(sendInput));
+      const resolvedConversationRef = resolveRuntimeConversationRef(sendInput) || defaultConversationRef;
+      const handle = getConversationRuntimeHandle(resolvedConversationRef);
+      if (handle.sendInFlight && !handle.terminal) {
+        throw new Error(`Conversation already has an active turn: ${resolvedConversationRef}`);
+      }
+      handle.sendInFlight = true;
+      handle.terminal = false;
       broadcastStatus({
         phase: 'running',
-        conversationRef,
+        conversationRef: resolvedConversationRef,
         turnRef: sendInput.turnRef ?? null,
         workspacePath,
       });
-      const result = await activeRuntime.send(sendInput);
-      broadcastStatus({
-        phase: 'running',
-        conversationRef,
-        turnRef: result.turnRef,
-        workspacePath,
-      });
-      return result;
+      try {
+        await ensureInferenceContextForSend(handle, sendInput);
+        const result = await handle.runtime.send(sendInput);
+        handle.activeTurnRef = result.turnRef;
+        broadcastStatus({
+          phase: 'running',
+          conversationRef: resolvedConversationRef,
+          turnRef: result.turnRef,
+          workspacePath,
+        });
+        return result;
+      } catch (error) {
+        handle.sendInFlight = false;
+        handle.terminal = true;
+        throw error;
+      }
     },
     stop: async (input = {}) => {
-      const stopConversationRef = typeof input === 'object' && input?.conversation_ref
-        ? input.conversation_ref
-        : conversationRef;
-      selectConversationRuntime(stopConversationRef);
-      return agent.stop(stopConversationRef || conversationRef);
+      const stopConversationRef = resolveRuntimeConversationRef(input) || defaultConversationRef;
+      const stopTurnRef = input && typeof input === 'object' && typeof input.turn_ref === 'string'
+        ? input.turn_ref
+        : (input && typeof input === 'object' && typeof input.turnRef === 'string' ? input.turnRef : null);
+      const handle = getConversationRuntimeHandle(stopConversationRef);
+      handle.sendInFlight = false;
+      handle.terminal = true;
+      return handle.runtime.stop(stopTurnRef || handle.activeTurnRef || null);
     },
     updateSettings: payload => agent.updateSettings(payload),
     requestModelList: () => agent.requestModelList(),
     rehydrateMessages: async (payload = {}) => {
-      const activeRuntime = selectConversationRuntime(resolveRuntimeConversationRef(payload));
-      return activeRuntime.rehydrateMessages(payload);
+      const handle = getConversationRuntimeHandle(resolveRuntimeConversationRef(payload));
+      const result = await handle.runtime.rehydrateMessages(payload);
+      handle.inferenceContextReady = true;
+      return result;
     },
     compactHistory: async (payload = {}) => {
-      const activeRuntime = selectConversationRuntime(resolveRuntimeConversationRef(payload));
-      return activeRuntime.compactHistory({
+      const handle = getConversationRuntimeHandle(resolveRuntimeConversationRef(payload));
+      await ensureInferenceContextForSend(handle, payload);
+      return handle.runtime.compactHistory({
         force: payload.force,
         payload,
       });
@@ -675,18 +774,95 @@ function createDirectWakeUpAgentAdapter({
     clearMemories: options => agent.clearMemories(options),
     listConversations: options => agent.listConversations(options),
     searchConversations: options => agent.searchConversations(options),
-    deleteConversation: options => agent.deleteConversation(options),
-    clearConversations: options => agent.clearConversations(options),
-    loadConversation: options => agent.loadConversation(options),
+    deleteConversation: async (options = {}) => {
+      const deletedConversationRef = typeof options === 'string'
+        ? options
+        : (options?.conversationRef || options?.conversation_ref || null);
+      await agent.deleteConversation(options);
+      closeRuntimeHandle(deletedConversationRef);
+    },
+    clearConversations: async (options = {}) => {
+      await agent.clearConversations(options);
+      closeAllRuntimeHandles();
+    },
+    loadConversation: async (options = {}) => {
+      const loadConversationRef = typeof options === 'string'
+        ? options
+        : (options?.conversationRef || options?.conversation_ref || null);
+      const handle = getConversationRuntimeHandle(loadConversationRef);
+      return reloadRuntimeSnapshot(handle);
+    },
     getConversationRevision: options => agent.getConversationRevision(options),
-    appendConversationEvent: options => agent.appendConversationEvent(options),
-    rewriteConversation: options => agent.rewriteConversation(options),
-    replaceCompactedReplay: options => agent.replaceCompactedReplay(options),
-    prepareEditAndResend: options => agent.prepareEditAndResend(options),
-    prepareRetryTurn: options => agent.prepareRetryTurn(options),
+    appendConversationEvent: async (options = {}) => {
+      const event = options && typeof options === 'object' && 'event' in options
+        ? options.event
+        : options;
+      const appendConversationRef = resolveRuntimeConversationRef(event) || resolveRuntimeConversationRef(options);
+      await agent.appendConversationEvent(options);
+      if (appendConversationRef) {
+        const handle = getConversationRuntimeHandle(appendConversationRef);
+        markInferenceContextStale(appendConversationRef);
+        await reloadRuntimeSnapshot(handle);
+      }
+    },
+    rewriteConversation: async (options = {}) => {
+      const plan = options && typeof options === 'object' && 'plan' in options
+        ? options.plan
+        : options;
+      const rewriteConversationRef = resolveRuntimeConversationRef(plan) || resolveRuntimeConversationRef(options);
+      await agent.rewriteConversation(options);
+      if (rewriteConversationRef) {
+        const handle = getConversationRuntimeHandle(rewriteConversationRef);
+        markInferenceContextStale(rewriteConversationRef);
+        await reloadRuntimeSnapshot(handle);
+      }
+    },
+    replaceCompactedReplay: async (options = {}) => {
+      const snapshot = options && typeof options === 'object' && 'snapshot' in options
+        ? options.snapshot
+        : options;
+      const replayConversationRef = resolveRuntimeConversationRef(snapshot) || resolveRuntimeConversationRef(options);
+      await agent.replaceCompactedReplay(options);
+      if (replayConversationRef) {
+        const handle = getConversationRuntimeHandle(replayConversationRef);
+        markInferenceContextStale(replayConversationRef);
+        await reloadRuntimeSnapshot(handle);
+      }
+    },
+    prepareEditAndResend: async (options = {}) => {
+      const editConversationRef = resolveRuntimeConversationRef(options);
+      const handle = getConversationRuntimeHandle(editConversationRef);
+      const input = { ...options };
+      delete input.conversationRef;
+      delete input.conversation_ref;
+      delete input.revisionId;
+      delete input.revision_id;
+      delete input.store;
+      markInferenceContextStale(handle.conversationRef);
+      const prepared = await handle.runtime.prepareEditAndResend(input);
+      handle.inferenceContextReady = true;
+      await reloadRuntimeSnapshot(handle);
+      return prepared;
+    },
+    prepareRetryTurn: async (options = {}) => {
+      const retryConversationRef = resolveRuntimeConversationRef(options);
+      const handle = getConversationRuntimeHandle(retryConversationRef);
+      const input = { ...options };
+      delete input.conversationRef;
+      delete input.conversation_ref;
+      delete input.revisionId;
+      delete input.revision_id;
+      delete input.store;
+      markInferenceContextStale(handle.conversationRef);
+      const prepared = await handle.runtime.prepareRetryTurn(input);
+      handle.inferenceContextReady = true;
+      await reloadRuntimeSnapshot(handle);
+      return prepared;
+    },
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),
     isConnected: () => agent.isConnected(),
+    markInferenceContextsStale: () => markInferenceContextStale(),
     noteBackendTraffic: reason => agent.noteBackendTraffic(reason),
     syncBackendIdleTimer: reason => agent.syncBackendIdleTimer(reason),
     localStatus: () => agent.status(),
@@ -695,13 +871,12 @@ function createDirectWakeUpAgentAdapter({
         return;
       }
       closed = true;
-      detachRuntimeEvents();
       detachRawBackendEvents();
-      runtime?.close();
+      closeAllRuntimeHandles();
       agent.sleep();
       broadcastStatus({
         phase: 'closed',
-        conversationRef,
+        conversationRef: defaultConversationRef,
         workspacePath,
       });
     },
@@ -909,6 +1084,7 @@ function handleAgentBackendEvent(rendererData) {
 
 function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
   isConnected = false;
+  windieAgent?.markInferenceContextsStale?.();
   resetSettingsSyncState();
   const activePhase = responseOverlayPhaseState.getPhase();
   const hadInterruptedQuery = Boolean(
@@ -1449,6 +1625,34 @@ function buildWindieSdkCommandHandlers({
         conversationRef: requireCommandConversationRef(payload),
       });
     },
+    'conversation.loadDisplay': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.loadDisplay',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      const snapshot = await agent.loadConversation({
+        conversationRef: requireCommandConversationRef(payload),
+      });
+      return {
+        display: snapshot.display,
+        displayRows: snapshot.displayRows,
+        currentTurn: snapshot.currentTurn,
+      };
+    },
+    'conversation.loadRehydrate': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.loadRehydrate',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      const snapshot = await agent.loadConversation({
+        conversationRef: requireCommandConversationRef(payload),
+      });
+      return {
+        rehydrate: snapshot.rehydrate,
+      };
+    },
     'conversation.getRevision': async (payload = {}) => {
       requireCommandUserId(payload);
       const agent = await ensureWindieAgent({
@@ -1465,11 +1669,11 @@ function buildWindieSdkCommandHandlers({
       if (!event) {
         throw new Error('conversation.appendEvent requires an event payload');
       }
-      const agent = await ensureWindieAgent({
+      const runtimeRegistry = await ensureWindieAgent({
         reason: 'sdk-command:conversation.appendEvent',
         conversationRef: optionalCommandConversationRef(event) || optionalCommandConversationRef(payload),
       });
-      await agent.appendConversationEvent(event);
+      await runtimeRegistry.appendConversationEvent(event);
       return { stored: true };
     },
     'conversation.rewrite': async (payload = {}) => {
@@ -1478,11 +1682,11 @@ function buildWindieSdkCommandHandlers({
       if (!plan) {
         throw new Error('conversation.rewrite requires a plan payload');
       }
-      const agent = await ensureWindieAgent({
+      const runtimeRegistry = await ensureWindieAgent({
         reason: 'sdk-command:conversation.rewrite',
         conversationRef: optionalCommandConversationRef(plan) || optionalCommandConversationRef(payload),
       });
-      await agent.rewriteConversation(plan);
+      await runtimeRegistry.rewriteConversation(plan);
       return { rewritten: true };
     },
     'conversation.replaceCompactedReplay': async (payload = {}) => {
@@ -1491,23 +1695,23 @@ function buildWindieSdkCommandHandlers({
       if (!snapshot) {
         throw new Error('conversation.replaceCompactedReplay requires a snapshot payload');
       }
-      const agent = await ensureWindieAgent({
+      const runtimeRegistry = await ensureWindieAgent({
         reason: 'sdk-command:conversation.replaceCompactedReplay',
         conversationRef: optionalCommandConversationRef(snapshot) || optionalCommandConversationRef(payload),
       });
-      await agent.replaceCompactedReplay(snapshot);
+      await runtimeRegistry.replaceCompactedReplay(snapshot);
       return { stored: true };
     },
     'conversation.prepareEditAndResend': async (payload = {}) => {
       requireCommandUserId(payload);
       const conversationRef = requireCommandConversationRef(payload);
       const workspacePath = resolveWorkspacePathForAgent(payload) || null;
-      const agent = await ensureWindieAgent({
+      const runtimeRegistry = await ensureWindieAgent({
         reason: 'sdk-command:conversation.prepareEditAndResend',
         conversationRef,
         workspacePath,
       });
-      const prepared = await agent.prepareEditAndResend({
+      const prepared = await runtimeRegistry.prepareEditAndResend({
         conversationRef,
         messageId: requireCommandString(payload, 'messageId', 'message id'),
         userMessageOrdinal: optionalCommandNonNegativeInteger(payload, ['userMessageOrdinal', 'user_message_ordinal']),
@@ -1526,13 +1730,13 @@ function buildWindieSdkCommandHandlers({
       requireCommandUserId(payload);
       const conversationRef = requireCommandConversationRef(payload);
       const workspacePath = resolveWorkspacePathForAgent(payload) || null;
-      const agent = await ensureWindieAgent({
+      const runtimeRegistry = await ensureWindieAgent({
         reason: 'sdk-command:conversation.prepareRetryTurn',
         conversationRef,
         workspacePath,
       });
       const messageId = normalizeOptionalString(payload.messageId || payload.message_id);
-      const prepared = await agent.prepareRetryTurn({
+      const prepared = await runtimeRegistry.prepareRetryTurn({
         conversationRef,
         ...(messageId ? { messageId } : {}),
         userMessageOrdinal: optionalCommandNonNegativeInteger(payload, ['userMessageOrdinal', 'user_message_ordinal']),

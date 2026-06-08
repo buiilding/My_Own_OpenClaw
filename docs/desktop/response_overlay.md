@@ -32,6 +32,12 @@ Main process phase updates control native response-window visibility. They do
 not decide renderer typing state, response content, closeability, stop/busy
 state, click-through/focusability, or screenshot content protection.
 
+Electron main applies a surface-ownership gate before showing the native
+response overlay. The floating response overlay may show only when the chat pill
+is the primary visible surface. When the dashboard or onboarding window owns
+presentation, SDK current-turn content remains available to the dashboard, but
+the floating response overlay and its typing shell stay hidden.
+
 Click-through/focusability and screenshot content protection are scoped to SDK
 local tool lifecycle leases in Electron main.
 
