@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/screenshot: correct the macOS cursor overlay comment to match the
+  built-in cursor overlay path.
 - frontend/main: move Electron main-process helper modules into app, debug,
   extensions, permissions, sdk, sidecar, surfaces, and wakeword domain folders
   while keeping `index.cjs` and `ipc.cjs` as top-level composition roots.

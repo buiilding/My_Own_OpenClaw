@@ -469,7 +469,7 @@ def _capture_with_system_cursor(region: Optional[tuple[int, int, int, int]]) -> 
     system_name = platform.system().lower()
     if system_name == "darwin":
         # On macOS, avoid screencapture CLI side-effects (flash + shutter sound).
-        # Use silent capture path and overlay real cursor with AppKit below.
+        # Use silent capture path and overlay the repo-owned built-in cursor below.
         return None
     if system_name == "linux":
         # On Linux X11, avoid gnome-screenshot/scrot side-effects (flash + shutter sound).
