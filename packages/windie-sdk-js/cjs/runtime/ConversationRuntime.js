@@ -12,6 +12,7 @@ const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js")
 const conversationReducer_js_1 = require("./conversationReducer.js");
 const conversationEventScope_js_1 = require("./conversationEventScope.js");
 const TurnInputPipeline_js_1 = require("./TurnInputPipeline.js");
+const completedTurnTitleGenerationInFlight = new Set();
 function eventText(event) {
     if (typeof event.payload.text === 'string') {
         return event.payload.text;
@@ -55,6 +56,47 @@ function isJsonRecord(value) {
 }
 function hasOwnEnumerableKeys(value) {
     return Object.keys(value).length > 0;
+}
+function stringPayloadField(payload, ...keys) {
+    for (const key of keys) {
+        const value = payload[key];
+        if (typeof value === 'string' && value.trim()) {
+            return value.trim();
+        }
+    }
+    return undefined;
+}
+function completedAssistantResponse(event) {
+    return stringPayloadField(event.payload, 'finalResponse', 'final_response', 'text', 'content') ?? '';
+}
+function rpcResponseData(response, fallbackError) {
+    const record = isJsonRecord(response) ? response : {};
+    if (record.success === false) {
+        const error = typeof record.error === 'string' && record.error.trim()
+            ? record.error
+            : fallbackError;
+        throw new Error(error);
+    }
+    return isJsonRecord(record.data) ? record.data : record;
+}
+function titleStateAllowsGeneratedTitle(response) {
+    const state = rpcResponseData(response, 'Conversation title state RPC failed');
+    if (state.is_locked === true || state.isLocked === true) {
+        return false;
+    }
+    const title = typeof state.title === 'string' ? state.title.trim() : '';
+    if (!title) {
+        return true;
+    }
+    const source = typeof state.source === 'string' ? state.source.trim().toLowerCase() : '';
+    return source === 'heuristic';
+}
+function titleGenerationKey(input) {
+    return `${input.userId}:${input.conversationRef}`;
+}
+function rawBackendPayload(event) {
+    const rawEvent = isJsonRecord(event.payload.rawEvent) ? event.payload.rawEvent : {};
+    return isJsonRecord(rawEvent.payload) ? rawEvent.payload : {};
 }
 class SdkConversationRuntime {
     constructor(options) {
@@ -512,22 +554,27 @@ class SdkConversationRuntime {
         await this.maybeExecuteTool(event);
     }
     async applyBackendTurnCompleted(event) {
+        const assistantResponse = completedAssistantResponse(event);
+        const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
         this.events = [...this.events, event];
         this.state = (0, conversationReducer_js_1.reduceConversationRuntimeState)(this.state, event);
         await this.options.store.appendEvent(event);
-        await this.persistCompletedTurnMemory(event);
+        try {
+            await this.persistCompletedTurnMemory(event, pendingTurn, assistantResponse);
+        }
+        finally {
+            if (pendingTurn) {
+                this.pendingTurns.delete(pendingTurn.turnRef);
+            }
+        }
         const snapshot = this.snapshot(this.events);
         this.notify(snapshot, event);
+        this.scheduleCompletedTurnTitleGeneration(event, pendingTurn, assistantResponse);
     }
-    async persistCompletedTurnMemory(event) {
-        const assistantResponse = typeof event.payload.finalResponse === 'string'
-            ? event.payload.finalResponse
-            : '';
-        const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
+    async persistCompletedTurnMemory(event, pendingTurn, assistantResponse) {
         if (!pendingTurn) {
             return;
         }
-        this.pendingTurns.delete(pendingTurn.turnRef);
         if (!this.options.sdkClient) {
             return;
         }
@@ -563,6 +610,108 @@ class SdkConversationRuntime {
         catch (error) {
             console.warn('[Windie SDK] Memory persistence failed:', error instanceof Error ? error.message : String(error));
         }
+    }
+    scheduleCompletedTurnTitleGeneration(event, pendingTurn, assistantResponse) {
+        if (!pendingTurn
+            || !this.options.sdkClient
+            || typeof this.options.sdkClient.generateConversationTitle !== 'function'
+            || !this.options.localRuntime?.rpc) {
+            return;
+        }
+        const userMessage = pendingTurn.userText.trim();
+        const assistantMessage = assistantResponse.trim();
+        if (!userMessage || !assistantMessage) {
+            return;
+        }
+        if (this.hasPreviousAssistantText(event.turnRef)) {
+            return;
+        }
+        const input = {
+            userId: this.options.userId ?? 'local-sdk-user',
+            conversationRef: event.conversationRef,
+            userMessage,
+            assistantMessage,
+            modelId: this.completedTurnModelId(event),
+            modelProvider: this.completedTurnModelProvider(event),
+        };
+        const key = titleGenerationKey(input);
+        if (completedTurnTitleGenerationInFlight.has(key)) {
+            return;
+        }
+        completedTurnTitleGenerationInFlight.add(key);
+        void this.generateCompletedTurnTitle(input)
+            .catch(error => {
+            console.warn('[Windie SDK] Conversation title generation failed:', error instanceof Error ? error.message : String(error));
+        })
+            .finally(() => {
+            completedTurnTitleGenerationInFlight.delete(key);
+        });
+    }
+    hasPreviousAssistantText(currentTurnRef) {
+        return this.events.some(event => {
+            if (currentTurnRef && event.turnRef === currentTurnRef) {
+                return false;
+            }
+            if (event.type === 'assistant_message') {
+                return eventText(event).trim().length > 0;
+            }
+            if (event.type === 'turn_completed') {
+                return completedAssistantResponse(event).trim().length > 0;
+            }
+            return false;
+        });
+    }
+    async generateCompletedTurnTitle(input) {
+        const localRuntime = this.options.localRuntime;
+        const sdkClient = this.options.sdkClient;
+        if (!localRuntime?.rpc || !sdkClient || typeof sdkClient.generateConversationTitle !== 'function') {
+            return;
+        }
+        const titleState = await localRuntime.rpc({
+            method: 'get_conversation_title_state',
+            params: {
+                user_id: input.userId,
+                conversation_id: input.conversationRef,
+            },
+        });
+        if (!titleStateAllowsGeneratedTitle(titleState)) {
+            return;
+        }
+        const response = await sdkClient.generateConversationTitle({
+            user_id: input.userId,
+            user_message: input.userMessage,
+            assistant_message: input.assistantMessage,
+            ...(input.modelId ? { model_id: input.modelId } : {}),
+            ...(input.modelProvider ? { model_provider: input.modelProvider } : {}),
+        });
+        if (response.success === false) {
+            return;
+        }
+        const title = typeof response.title === 'string' ? response.title.trim() : '';
+        if (!title || title.toLowerCase() === 'new chat') {
+            return;
+        }
+        const updateResult = await localRuntime.rpc({
+            method: 'update_conversation_title',
+            params: {
+                user_id: input.userId,
+                conversation_id: input.conversationRef,
+                title,
+            },
+        });
+        rpcResponseData(updateResult, 'Conversation title update RPC failed');
+    }
+    completedTurnModelId(event) {
+        const rawPayload = rawBackendPayload(event);
+        return stringPayloadField(this.state.settings, 'selected_model_id', 'modelId', 'model_id')
+            ?? stringPayloadField(event.payload, 'modelId', 'model_id', 'selected_model_id')
+            ?? stringPayloadField(rawPayload, 'model_id', 'modelId', 'selected_model_id');
+    }
+    completedTurnModelProvider(event) {
+        const rawPayload = rawBackendPayload(event);
+        return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider', 'provider')
+            ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider', 'provider')
+            ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider', 'provider');
     }
     nextLocalEventId(turnRef, type) {
         const scope = turnRef && turnRef.trim() ? turnRef.trim() : this.options.conversationRef;

@@ -50,7 +50,17 @@ Do not use semanticization as the primary transcript persistence path. It is der
 
 ## Titles
 
-Conversation title storage and listing belong in sidecar memory title runtime. Hosted title generation belongs to the SDK/backend route path. Title failures should not block transcript persistence or conversation listing.
+Conversation title storage, title-state reads, and conversation-list fallback
+belong in sidecar memory title runtime. Hosted title generation belongs to the
+SDK/backend route path: after the first completed user plus assistant text
+exchange, the SDK may call the hosted title route and persist the generated
+title back through `update_conversation_title`.
+
+The sidecar must not call hosted title routes directly. It only persists durable
+titles, reports title state through `get_conversation_title_state`, emits
+`conversation-title-updated`, and lists conversations with the fallback order
+`stored title -> first user message -> conversation id`. Title failures should
+not block transcript persistence or conversation listing.
 
 ## Tests
 

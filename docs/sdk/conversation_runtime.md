@@ -159,6 +159,18 @@ reload memory display data through SDK memory APIs. Skipped or failed
 completed-turn memory persistence does not emit `memory_store_changed`, so open
 memory surfaces do not refresh against unchanged storage.
 
+Generated conversation titles are also terminal-turn enrichment owned by
+`ConversationRuntime`, but they are best-effort and asynchronous after the
+completed-turn snapshot is emitted. After the first successful assistant text
+completion for a conversation, the SDK checks sidecar title state; if there is
+no locked, manual, model, or unknown durable title, it calls the hosted title
+route with the first completed user/assistant pair and active model/provider
+metadata, then persists the result through the local
+`update_conversation_title` RPC. Title generation failures, empty titles, and
+the backend fallback title `New chat` do not affect transcript persistence,
+turn completion, sidebar visibility, or replay. The first user message remains
+the deterministic title fallback until a generated title is persisted.
+
 Renderer surfaces must not fall back from `currentTurn` to renderer
 `streamTracking` or `response-overlay-phase` for active turn state.
 `streamTracking` remains telemetry/transcript bookkeeping, and

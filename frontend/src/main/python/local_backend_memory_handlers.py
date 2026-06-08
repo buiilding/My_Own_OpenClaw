@@ -21,7 +21,10 @@ from memory.operations import (
     normalize_search_memory_payload,
     normalize_search_memory_selection,
 )
-from memory.conversation_title_store import upsert_generated_conversation_title
+from memory.conversation_title_store import (
+    get_conversation_title_state,
+    upsert_generated_conversation_title,
+)
 from windie._unicode_sanitizer import (
     find_surrogate_paths,
     sanitize_surrogates,
@@ -502,6 +505,36 @@ class LocalBackendMemoryHandlersMixin:
             }
         except Exception as e:
             logger.error(f"Conversation title update failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_get_conversation_title_state(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Return durable title state so SDK enrichment can avoid overwrites."""
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        try:
+            state = await get_conversation_title_state(
+                db_path=self.memory_store.db_path,
+                user_id=user_id,
+                conversation_id=conversation_id,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "conversation_id": conversation_id,
+                    "title": state.get("title", ""),
+                    "source": state.get("source", ""),
+                    "is_locked": bool(state.get("is_locked", False)),
+                    "has_title": bool((state.get("title") or "").strip()),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Conversation title state read failed: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
     @requires_memory_store

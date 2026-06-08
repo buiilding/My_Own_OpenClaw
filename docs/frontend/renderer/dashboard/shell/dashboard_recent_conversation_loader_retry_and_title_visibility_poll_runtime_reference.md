@@ -78,7 +78,7 @@ Behavior:
 
 - no `conversationRef` in event detail -> immediate `loadRecentConversations()`
 - with `conversationRef` -> schedule visibility poll for that conversation id
-- `sidecar-event` with `type = conversation-title-updated` -> immediate `loadRecentConversations()`
+- `windie:conversation-metadata-invalidated` with `reason = conversation-title-updated` -> immediate `loadRecentConversations()`
 
 Poll contract:
 
@@ -88,7 +88,9 @@ Poll contract:
 - per-conversation timer is replaced when a new poll starts
 - cleanup clears all pending timers on unmount
 
-This path handles title generation lag between transcript persistence and indexed conversation-list visibility.
+This path handles title generation lag between transcript persistence, the
+SDK-owned generated-title enrichment write, and indexed conversation-list
+visibility.
 
 ## Open Conversation Flow
 

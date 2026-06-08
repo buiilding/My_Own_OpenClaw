@@ -215,6 +215,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method(
             "update_conversation_title", self._handle_update_conversation_title
         )
+        self.protocol.register_method(
+            "get_conversation_title_state",
+            self._handle_get_conversation_title_state,
+        )
 
         # Health check and diagnostics
         self.protocol.register_method("ping", self._handle_ping)

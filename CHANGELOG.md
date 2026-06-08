@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/sidecar: generate best-effort model conversation titles after the first
+  completed user plus assistant exchange, guard against overwriting durable
+  title state through a sidecar title-state RPC, and keep first-user-message
+  sidebar fallback independent from title generation success.
 - sdk/conversation: treat normalized compaction lifecycle events as
   conversation-control events accepted by `conversationRef` and backend
   sequence, preserve their operation id without replacing `activeTurnRef`, keep

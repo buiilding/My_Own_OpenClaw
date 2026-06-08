@@ -845,6 +845,7 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "delete_chat_conversation",
         "replace_chat_conversation",
         "update_conversation_title",
+        "get_conversation_title_state",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
 
@@ -1547,6 +1548,50 @@ async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
                 "conversation_id": "conv-title",
                 "title": "New Title",
             },
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_handle_get_conversation_title_state_returns_store_state(monkeypatch):
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend.memory_store.db_path = "/tmp/test-title.sqlite3"
+    calls = []
+
+    async def fake_get_conversation_title_state(**kwargs):
+        calls.append(kwargs)
+        return {
+            "title": "Existing Title",
+            "source": "model",
+            "is_locked": True,
+        }
+
+    monkeypatch.setattr(
+        "local_backend_memory_handlers.get_conversation_title_state",
+        fake_get_conversation_title_state,
+    )
+
+    result = await backend._handle_get_conversation_title_state(
+        user_id="user-1",
+        conversation_id="conv-title",
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "conversation_id": "conv-title",
+            "title": "Existing Title",
+            "source": "model",
+            "is_locked": True,
+            "has_title": True,
+        },
+    }
+    assert calls == [
+        {
+            "db_path": "/tmp/test-title.sqlite3",
+            "user_id": "user-1",
+            "conversation_id": "conv-title",
         }
     ]
 

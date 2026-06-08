@@ -140,6 +140,17 @@ type PendingTurn = {
   userText: string;
 };
 
+type CompletedTurnTitleInput = {
+  userId: string;
+  conversationRef: string;
+  userMessage: string;
+  assistantMessage: string;
+  modelId?: string;
+  modelProvider?: string;
+};
+
+const completedTurnTitleGenerationInFlight = new Set<string>();
+
 function eventText(event: ConversationEvent): string {
   if (typeof event.payload.text === 'string') {
     return event.payload.text;
@@ -191,6 +202,53 @@ function isJsonRecord(value: unknown): value is JsonRecord {
 
 function hasOwnEnumerableKeys(value: JsonRecord): boolean {
   return Object.keys(value).length > 0;
+}
+
+function stringPayloadField(payload: JsonRecord, ...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
+function completedAssistantResponse(event: ConversationEvent): string {
+  return stringPayloadField(event.payload, 'finalResponse', 'final_response', 'text', 'content') ?? '';
+}
+
+function rpcResponseData(response: unknown, fallbackError: string): JsonRecord {
+  const record = isJsonRecord(response) ? response : {};
+  if (record.success === false) {
+    const error = typeof record.error === 'string' && record.error.trim()
+      ? record.error
+      : fallbackError;
+    throw new Error(error);
+  }
+  return isJsonRecord(record.data) ? record.data : record;
+}
+
+function titleStateAllowsGeneratedTitle(response: unknown): boolean {
+  const state = rpcResponseData(response, 'Conversation title state RPC failed');
+  if (state.is_locked === true || state.isLocked === true) {
+    return false;
+  }
+  const title = typeof state.title === 'string' ? state.title.trim() : '';
+  if (!title) {
+    return true;
+  }
+  const source = typeof state.source === 'string' ? state.source.trim().toLowerCase() : '';
+  return source === 'heuristic';
+}
+
+function titleGenerationKey(input: CompletedTurnTitleInput): string {
+  return `${input.userId}:${input.conversationRef}`;
+}
+
+function rawBackendPayload(event: ConversationEvent): JsonRecord {
+  const rawEvent = isJsonRecord(event.payload.rawEvent) ? event.payload.rawEvent : {};
+  return isJsonRecord(rawEvent.payload) ? rawEvent.payload : {};
 }
 
 export class SdkConversationRuntime {
@@ -698,23 +756,31 @@ export class SdkConversationRuntime {
   }
 
   private async applyBackendTurnCompleted(event: ConversationEvent): Promise<void> {
+    const assistantResponse = completedAssistantResponse(event);
+    const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
     this.events = [...this.events, event];
     this.state = reduceConversationRuntimeState(this.state, event);
     await this.options.store.appendEvent(event);
-    await this.persistCompletedTurnMemory(event);
+    try {
+      await this.persistCompletedTurnMemory(event, pendingTurn, assistantResponse);
+    } finally {
+      if (pendingTurn) {
+        this.pendingTurns.delete(pendingTurn.turnRef);
+      }
+    }
     const snapshot = this.snapshot(this.events);
     this.notify(snapshot, event);
+    this.scheduleCompletedTurnTitleGeneration(event, pendingTurn, assistantResponse);
   }
 
-  private async persistCompletedTurnMemory(event: ConversationEvent): Promise<void> {
-    const assistantResponse = typeof event.payload.finalResponse === 'string'
-      ? event.payload.finalResponse
-      : '';
-    const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
+  private async persistCompletedTurnMemory(
+    event: ConversationEvent,
+    pendingTurn: PendingTurn | undefined,
+    assistantResponse: string,
+  ): Promise<void> {
     if (!pendingTurn) {
       return;
     }
-    this.pendingTurns.delete(pendingTurn.turnRef);
     if (!this.options.sdkClient) {
       return;
     }
@@ -752,6 +818,122 @@ export class SdkConversationRuntime {
         error instanceof Error ? error.message : String(error),
       );
     }
+  }
+
+  private scheduleCompletedTurnTitleGeneration(
+    event: ConversationEvent,
+    pendingTurn: PendingTurn | undefined,
+    assistantResponse: string,
+  ): void {
+    if (
+      !pendingTurn
+      || !this.options.sdkClient
+      || typeof this.options.sdkClient.generateConversationTitle !== 'function'
+      || !this.options.localRuntime?.rpc
+    ) {
+      return;
+    }
+    const userMessage = pendingTurn.userText.trim();
+    const assistantMessage = assistantResponse.trim();
+    if (!userMessage || !assistantMessage) {
+      return;
+    }
+    if (this.hasPreviousAssistantText(event.turnRef)) {
+      return;
+    }
+    const input: CompletedTurnTitleInput = {
+      userId: this.options.userId ?? 'local-sdk-user',
+      conversationRef: event.conversationRef,
+      userMessage,
+      assistantMessage,
+      modelId: this.completedTurnModelId(event),
+      modelProvider: this.completedTurnModelProvider(event),
+    };
+    const key = titleGenerationKey(input);
+    if (completedTurnTitleGenerationInFlight.has(key)) {
+      return;
+    }
+    completedTurnTitleGenerationInFlight.add(key);
+    void this.generateCompletedTurnTitle(input)
+      .catch(error => {
+        console.warn(
+          '[Windie SDK] Conversation title generation failed:',
+          error instanceof Error ? error.message : String(error),
+        );
+      })
+      .finally(() => {
+        completedTurnTitleGenerationInFlight.delete(key);
+      });
+  }
+
+  private hasPreviousAssistantText(currentTurnRef: string | null | undefined): boolean {
+    return this.events.some(event => {
+      if (currentTurnRef && event.turnRef === currentTurnRef) {
+        return false;
+      }
+      if (event.type === 'assistant_message') {
+        return eventText(event).trim().length > 0;
+      }
+      if (event.type === 'turn_completed') {
+        return completedAssistantResponse(event).trim().length > 0;
+      }
+      return false;
+    });
+  }
+
+  private async generateCompletedTurnTitle(input: CompletedTurnTitleInput): Promise<void> {
+    const localRuntime = this.options.localRuntime;
+    const sdkClient = this.options.sdkClient;
+    if (!localRuntime?.rpc || !sdkClient || typeof sdkClient.generateConversationTitle !== 'function') {
+      return;
+    }
+    const titleState = await localRuntime.rpc({
+      method: 'get_conversation_title_state',
+      params: {
+        user_id: input.userId,
+        conversation_id: input.conversationRef,
+      },
+    });
+    if (!titleStateAllowsGeneratedTitle(titleState)) {
+      return;
+    }
+    const response = await sdkClient.generateConversationTitle({
+      user_id: input.userId,
+      user_message: input.userMessage,
+      assistant_message: input.assistantMessage,
+      ...(input.modelId ? { model_id: input.modelId } : {}),
+      ...(input.modelProvider ? { model_provider: input.modelProvider } : {}),
+    });
+    if (response.success === false) {
+      return;
+    }
+    const title = typeof response.title === 'string' ? response.title.trim() : '';
+    if (!title || title.toLowerCase() === 'new chat') {
+      return;
+    }
+    const updateResult = await localRuntime.rpc({
+      method: 'update_conversation_title',
+      params: {
+        user_id: input.userId,
+        conversation_id: input.conversationRef,
+        title,
+      },
+    });
+    rpcResponseData(updateResult, 'Conversation title update RPC failed');
+  }
+
+  private completedTurnModelId(event: ConversationEvent): string | undefined {
+    const rawPayload = rawBackendPayload(event);
+    return stringPayloadField(this.state.settings, 'selected_model_id', 'modelId', 'model_id')
+      ?? stringPayloadField(event.payload, 'modelId', 'model_id', 'selected_model_id')
+      ?? stringPayloadField(rawPayload, 'model_id', 'modelId', 'selected_model_id');
+  }
+
+  private completedTurnModelProvider(event: ConversationEvent): string | undefined {
+    const rawPayload = rawBackendPayload(event);
+    return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider', 'provider')
+      ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider', 'provider')
+      ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider', 'provider');
   }
 
   private nextLocalEventId(turnRef: string | null | undefined, type: string): string {

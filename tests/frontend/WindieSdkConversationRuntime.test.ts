@@ -3369,6 +3369,209 @@ describe('Windie SDK conversation runtime core', () => {
     }));
   });
 
+  test('conversation runtime generates a title after the first completed assistant reply', async () => {
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const generateConversationTitle = jest.fn(async () => ({
+      success: true,
+      title: 'Project Setup',
+    }));
+    const rpc = jest.fn(async request => {
+      if (request.method === 'get_conversation_title_state') {
+        return {
+          success: true,
+          data: {
+            conversation_id: 'conv-sdk-runtime',
+            title: '',
+            source: '',
+            is_locked: false,
+            has_title: false,
+          },
+        };
+      }
+      if (request.method === 'update_conversation_title') {
+        return {
+          success: true,
+          data: {
+            conversation_id: 'conv-sdk-runtime',
+            title: request.params.title,
+          },
+        };
+      }
+      return { success: false, error: `unexpected RPC ${request.method}` };
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        generateConversationTitle,
+      } as any,
+      localRuntime: { rpc },
+      userId: 'user-sdk-runtime',
+      memoryEnabled: false,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'build title generation', turnRef: 'turn-title' });
+    transport.emit(backendEvent(
+      'streaming-complete',
+      {
+        final_response: 'The title generation path is now implemented.',
+        model_id: 'gpt-title',
+        model_provider: 'openai',
+      },
+      {
+        eventId: 'turn-title-evt-000001-streaming-complete',
+        turnRef: 'turn-title',
+        sequence: 1,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(generateConversationTitle).toHaveBeenCalledTimes(1);
+    });
+    expect(generateConversationTitle).toHaveBeenCalledWith({
+      user_id: 'user-sdk-runtime',
+      user_message: 'build title generation',
+      assistant_message: 'The title generation path is now implemented.',
+      model_id: 'gpt-title',
+      model_provider: 'openai',
+    });
+    expect(rpc).toHaveBeenCalledWith({
+      method: 'get_conversation_title_state',
+      params: {
+        user_id: 'user-sdk-runtime',
+        conversation_id: 'conv-sdk-runtime',
+      },
+    });
+    expect(rpc).toHaveBeenCalledWith({
+      method: 'update_conversation_title',
+      params: {
+        user_id: 'user-sdk-runtime',
+        conversation_id: 'conv-sdk-runtime',
+        title: 'Project Setup',
+      },
+    });
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toContain('turn_completed');
+  });
+
+  test('conversation runtime skips generated title when durable title already exists', async () => {
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const generateConversationTitle = jest.fn(async () => ({
+      success: true,
+      title: 'Should Not Write',
+    }));
+    const rpc = jest.fn(async () => ({
+      success: true,
+      data: {
+        conversation_id: 'conv-sdk-runtime',
+        title: 'Existing Title',
+        source: 'model',
+        is_locked: false,
+        has_title: true,
+      },
+    }));
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        generateConversationTitle,
+      } as any,
+      localRuntime: { rpc },
+      userId: 'user-sdk-runtime',
+      memoryEnabled: false,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'do not retitle', turnRef: 'turn-title-existing' });
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'Existing title should be preserved.' },
+      {
+        eventId: 'turn-title-existing-evt-000001-streaming-complete',
+        turnRef: 'turn-title-existing',
+        sequence: 1,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(rpc).toHaveBeenCalledWith({
+        method: 'get_conversation_title_state',
+        params: {
+          user_id: 'user-sdk-runtime',
+          conversation_id: 'conv-sdk-runtime',
+        },
+      });
+    });
+    await tick();
+    expect(generateConversationTitle).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalledWith(expect.objectContaining({
+      method: 'update_conversation_title',
+    }));
+  });
+
+  test('conversation runtime title generation failure does not block completed turn storage', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const generateConversationTitle = jest.fn(async () => {
+      throw new Error('title backend unavailable');
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        generateConversationTitle,
+      } as any,
+      localRuntime: {
+        rpc: jest.fn(async () => ({
+          success: true,
+          data: {
+            conversation_id: 'conv-sdk-runtime',
+            title: '',
+            source: '',
+            is_locked: false,
+            has_title: false,
+          },
+        })),
+      },
+      userId: 'user-sdk-runtime',
+      memoryEnabled: false,
+    });
+    runtime.attachTransport();
+
+    try {
+      await runtime.send({ text: 'still complete', turnRef: 'turn-title-fails' });
+      transport.emit(backendEvent(
+        'streaming-complete',
+        { final_response: 'The chat turn still completes.' },
+        {
+          eventId: 'turn-title-fails-evt-000001-streaming-complete',
+          turnRef: 'turn-title-fails',
+          sequence: 1,
+        },
+      ));
+
+      await waitForExpect(async () => {
+        const events = await store.loadEvents('conv-sdk-runtime');
+        expect(events.map(storedEvent => storedEvent.type)).toContain('turn_completed');
+      });
+      await waitForExpect(() => {
+        expect(warnSpy).toHaveBeenCalledWith(
+          '[Windie SDK] Conversation title generation failed:',
+          'title backend unavailable',
+        );
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
   test('conversation runtime does not emit memory invalidation when completed turn state is missing', async () => {
     const transport = createControllableBackendTransport();
     const store = new InMemoryConversationStore();
