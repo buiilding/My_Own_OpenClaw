@@ -36,6 +36,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     showResponseWindowInactive,
     getActiveResponseOverlayGuardRef = () => null,
     setActiveResponseOverlayGuardRef = () => {},
+    dismissResponseOverlayGuardRef = () => false,
+    canShowFloatingResponseOverlay = () => true,
     setActiveDisplayAffinity = () => {},
     showChatWindow,
     hideChatWindow,
@@ -99,6 +101,9 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       showResponseWindowForLiveTurnIntent: showResponseWindowInactive,
       getActiveResponseOverlayGuardRef,
       setActiveResponseOverlayGuardRef,
+      dismissResponseOverlayGuardRef,
+      syncContextLabelWindowVisibility,
+      canShowFloatingResponseOverlay,
       getResponseOverlayVisible: () => {
         const currentResponseWindow = getWindows().responseWindow;
         return Boolean(
@@ -159,6 +164,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       ensureResponseOverlayFallbackBounds: deps.ensureResponseOverlayFallbackBounds,
       setResponseOverlayVisibilityState,
       syncContextLabelWindowVisibility,
+      canShowFloatingResponseOverlay,
       responseWindow: getWindows().responseWindow,
     });
   });

@@ -148,6 +148,7 @@ async function handleSetResponseboxSize(
     width,
     height,
     visible,
+    dismissed = false,
     full_screen: fullScreen = false,
     compact_hover: compactHover = false,
     turn_ref: turnRef = null,
@@ -171,6 +172,9 @@ async function handleSetResponseboxSize(
     getResponseOverlayPhase = () => null,
     getActiveResponseOverlayGuardRef = () => null,
     setActiveResponseOverlayGuardRef = () => {},
+    dismissResponseOverlayGuardRef = () => false,
+    syncContextLabelWindowVisibility = () => {},
+    canShowFloatingResponseOverlay = () => true,
   } = deps;
 
   if (!responseWindow || responseWindow.isDestroyed()) {
@@ -187,6 +191,7 @@ async function handleSetResponseboxSize(
     guardRef: normalizedStaleGuardRef,
     phase: getResponseOverlayPhase(),
     visible: shouldShow,
+    dismissed: dismissed === true,
     fullScreen,
     compactHover,
     width: typeof width === 'number' ? width : Number(width) || null,
@@ -195,6 +200,9 @@ async function handleSetResponseboxSize(
   });
   if (!shouldShow) {
     const activeGuardRef = normalizeResponseOverlayGuardRef(getActiveResponseOverlayGuardRef());
+    if (dismissed === true && normalizedStaleGuardRef) {
+      dismissResponseOverlayGuardRef(normalizedStaleGuardRef);
+    }
     if (shouldIgnoreStaleHide({
       staleGuardRef: normalizedStaleGuardRef,
       activeGuardRef,
@@ -309,6 +317,68 @@ async function handleSetResponseboxSize(
       staleGuardRef: normalizedStaleGuardRef,
     }, deps);
     return { success: true, visible: false };
+  }
+
+  if (!canShowFloatingResponseOverlay()) {
+    const activeGuardRef = normalizeResponseOverlayGuardRef(getActiveResponseOverlayGuardRef());
+    setResponseOverlayVisibilityState(false);
+    if (activeGuardRef) {
+      setActiveResponseOverlayGuardRef(null);
+      logLiveSurfaceTrace('stale_guard.changed', {
+        source: 'responsebox-size',
+        reason: 'surface-not-owner',
+        previousGuardRef: activeGuardRef,
+        nextGuardRef: null,
+        turnRef: normalizedTurnRef,
+      });
+    }
+    if (responseWindow.isVisible()) {
+      responseWindow.hide();
+      logLiveSurfaceTrace('response_overlay.window.hide', {
+        source: 'responsebox-size',
+        reason: 'surface-not-owner',
+        turnRef: normalizedTurnRef,
+        guardRef: normalizedStaleGuardRef,
+        phase: getResponseOverlayPhase(),
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
+    }
+    syncContextLabelWindowVisibility();
+    console.log('[ResponseOverlayWindow][main]', {
+      action: 'suppress-size-show-for-surface-owner',
+      phase: getResponseOverlayPhase(),
+      requested_visible: true,
+      turn_ref: normalizedTurnRef,
+      stale_guard_ref: normalizedStaleGuardRef,
+      active_guard_ref: activeGuardRef,
+      response_window_visible: safeWindowVisible(responseWindow),
+      response_overlay_visible_flag: getResponseOverlayVisible(),
+    });
+    logChatPillMainTrace({
+      source: 'responsebox-size',
+      action: 'suppress-show-surface-not-owner',
+      phase: getResponseOverlayPhase(),
+      responseWindow,
+      responseOverlayVisibleFlag: false,
+      turnRef: normalizedTurnRef,
+      staleGuardRef: normalizedStaleGuardRef,
+      activeGuardRef,
+    }, deps);
+    logLiveSurfaceTrace('response_overlay.window.show_ignored', {
+      source: 'responsebox-size',
+      reason: 'surface-not-owner',
+      turnRef: normalizedTurnRef,
+      guardRef: normalizedStaleGuardRef,
+      phase: getResponseOverlayPhase(),
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      responseOverlayVisible: getResponseOverlayVisible(),
+    });
+    return {
+      success: true,
+      visible: false,
+      ignored: true,
+      reason: 'surface-not-owner',
+    };
   }
 
   if (fullScreen === true) {

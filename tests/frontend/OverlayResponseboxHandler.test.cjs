@@ -53,6 +53,7 @@ describe('overlay_responsebox_handler', () => {
       showResponseWindowForLiveTurnIntent: jest.fn(),
       getActiveResponseOverlayGuardRef: jest.fn(() => null),
       setActiveResponseOverlayGuardRef: jest.fn(),
+      dismissResponseOverlayGuardRef: jest.fn(),
       ...overrides,
     };
   }
@@ -66,6 +67,24 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+  });
+
+  test('records dismissed guard when renderer close sends dismissed hide', async () => {
+    const deps = createDeps({
+      getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-close'),
+    });
+
+    const result = await handleSetResponseboxSize({
+      visible: false,
+      dismissed: true,
+      turn_ref: 'turn-close',
+      stale_guard_ref: 'turn-close',
+    }, deps);
+
+    expect(result).toEqual({ success: true, visible: false });
+    expect(deps.dismissResponseOverlayGuardRef).toHaveBeenCalledWith('turn-close');
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
   });
 
   test('does not call hide when window is already hidden', async () => {
@@ -273,13 +292,24 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.showResponseWindowForLiveTurnIntent).toHaveBeenCalledTimes(1);
   });
 
-  test('shows SDK live-turn response even when the chat pill window is hidden', async () => {
+  test('suppresses visible resize when floating surface does not own presentation', async () => {
     const deps = createDeps({
+      responseWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(true),
+        hide: jest.fn(),
+        setBounds: jest.fn(),
+        getBounds: jest.fn().mockReturnValue({ x: 10, y: 20, width: 520, height: 236 }),
+        isFocusable: jest.fn().mockReturnValue(false),
+      },
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
         isVisible: jest.fn().mockReturnValue(false),
         getBounds: jest.fn(),
       },
+      getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-live'),
+      canShowFloatingResponseOverlay: jest.fn(() => false),
+      syncContextLabelWindowVisibility: jest.fn(),
     });
 
     const result = await handleSetResponseboxSize({
@@ -290,10 +320,18 @@ describe('overlay_responsebox_handler', () => {
       stale_guard_ref: 'turn-live',
     }, deps);
 
-    expect(result).toEqual({ success: true, visible: true, width: 320, height: 180 });
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
-    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith('turn-live');
-    expect(deps.showResponseWindowForLiveTurnIntent).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      success: true,
+      visible: false,
+      ignored: true,
+      reason: 'surface-not-owner',
+    });
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
+    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowForLiveTurnIntent).not.toHaveBeenCalled();
+    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('passes compact hover flag through to response bounds helper', async () => {

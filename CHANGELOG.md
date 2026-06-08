@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/conversation: treat terminal turn/runtime errors as authoritative display
   state so stale same-turn assistant fallback text is removed from transcript
   and current-turn projections.
+- frontend/main: reapply SDK response-overlay intent when the minimal chat pill
+  regains surface ownership while preserving user-dismissed overlay responses.
 - backend/openai: request original-detail image processing for OpenAI
   multimodal image blocks so screenshot coordinate grounding uses the captured
   pixel grid instead of provider default image detail.

@@ -127,6 +127,29 @@ export interface StreamTracking {
 
 export type SdkCurrentTurnProjection = CurrentTurnProjection;
 
+export interface ResponseOverlayDismissalInput {
+  conversationRef?: string | null;
+  turnRef?: string | null;
+  responseEntryId?: string | null;
+}
+
+export function buildResponseOverlayDismissalKey({
+  conversationRef,
+  turnRef,
+  responseEntryId,
+}: ResponseOverlayDismissalInput): string | null {
+  if (typeof responseEntryId !== 'string' || !responseEntryId.trim()) {
+    return null;
+  }
+  const normalizedConversationRef = normalizeConversationRef(conversationRef) || '';
+  const normalizedTurnRef = normalizeTurnRef(turnRef) || '';
+  return [
+    normalizedConversationRef,
+    normalizedTurnRef,
+    responseEntryId.trim(),
+  ].join('\u0001');
+}
+
 /**
  * Chat store state
  */
@@ -134,6 +157,7 @@ interface ChatState {
   activeConversationRef: string | null;
   workspaces: Record<string, ChatWorkspaceState>;
   turnConversationRefs: Record<string, string>;
+  dismissedResponseOverlayEntries: Record<string, true>;
 
   // State
   messages: ChatMessage[];
@@ -149,6 +173,8 @@ interface ChatState {
   setActiveConversationRef: (conversationRef: string | null) => void;
   registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
   resolveConversationRefForTurn: (turnRef: string | null | undefined) => string | null;
+  dismissResponseOverlayEntry: (input: ResponseOverlayDismissalInput) => void;
+  isResponseOverlayEntryDismissed: (input: ResponseOverlayDismissalInput) => boolean;
 
   // Actions
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
@@ -290,6 +316,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     [DEFAULT_CHAT_WORKSPACE_REF]: createInitialWorkspaceState(),
   },
   turnConversationRefs: {},
+  dismissedResponseOverlayEntries: {},
   messages: [],
   isSending: false,
   thinkingStatus: null,
@@ -362,6 +389,25 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return null;
     }
     return get().turnConversationRefs[normalizedTurnRef] || null;
+  },
+
+  dismissResponseOverlayEntry: (input) =>
+    set((state) => {
+      const dismissalKey = buildResponseOverlayDismissalKey(input);
+      if (!dismissalKey || state.dismissedResponseOverlayEntries[dismissalKey]) {
+        return state;
+      }
+      return {
+        dismissedResponseOverlayEntries: {
+          ...state.dismissedResponseOverlayEntries,
+          [dismissalKey]: true,
+        },
+      };
+    }),
+
+  isResponseOverlayEntryDismissed: (input) => {
+    const dismissalKey = buildResponseOverlayDismissalKey(input);
+    return Boolean(dismissalKey && get().dismissedResponseOverlayEntries[dismissalKey]);
   },
 
   // Actions

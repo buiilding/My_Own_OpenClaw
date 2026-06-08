@@ -20,6 +20,9 @@ const {
   normalizeMainSurfaceWindowOptions,
 } = require('./surface_window_options_runtime.cjs');
 const {
+  canShowFloatingResponseOverlay: canShowFloatingResponseOverlayRuntime,
+} = require('./response_overlay_visibility_policy.cjs');
+const {
   emitMainWindowOpenTarget: emitMainWindowOpenTargetRuntime,
   normalizeMainWindowOpenTarget: normalizeMainWindowOpenTargetRuntime,
   prepareOverlayQueryCaptureFocus: prepareOverlayQueryCaptureFocusRuntime,
@@ -87,6 +90,7 @@ function createSurfaceRuntime({
   windowPlatformPolicy,
   initialChatPillUserHidden = false,
   persistChatPillUserHidden = () => {},
+  reapplyLatestSdkLiveTurnSurfaceIntent = () => {},
   toolSurfaceSettleMs = 80,
   log = console.log,
   warn = console.warn,
@@ -108,6 +112,7 @@ function createSurfaceRuntime({
     startupChatPillShowHandled: false,
     primarySurface: 'dashboard',
     mainWindowMode: 'dashboard',
+    dismissedResponseOverlayGuardRefs: new Set(),
   };
 
   function getWindows() {
@@ -127,6 +132,8 @@ function createSurfaceRuntime({
       responseOverlayPhase: state.responseOverlayPhase,
       activeResponseOverlayGuardRef: state.activeResponseOverlayGuardRef,
       chatPillUserHidden: state.chatPillUserHidden,
+      primarySurface: state.primarySurface,
+      mainWindowMode: state.mainWindowMode,
       applyResponseOverlayPhase,
       setResponseOverlayVisible: (nextVisible) => {
         state.responseOverlayVisible = Boolean(nextVisible);
@@ -500,6 +507,47 @@ function createSurfaceRuntime({
     );
   }
 
+  function canShowFloatingResponseOverlay() {
+    return canShowFloatingResponseOverlayRuntime({
+      primarySurface: state.primarySurface,
+      mainWindow: state.mainWindow,
+      chatWindow: state.chatWindow,
+    });
+  }
+
+  function normalizeResponseOverlayGuardRef(value) {
+    if (typeof value !== 'string') {
+      return null;
+    }
+    const normalized = value.trim();
+    return normalized || null;
+  }
+
+  function dismissResponseOverlayGuardRef(guardRef) {
+    const normalizedGuardRef = normalizeResponseOverlayGuardRef(guardRef);
+    if (!normalizedGuardRef) {
+      return false;
+    }
+    if (state.dismissedResponseOverlayGuardRefs.has(normalizedGuardRef)) {
+      return false;
+    }
+    state.dismissedResponseOverlayGuardRefs.add(normalizedGuardRef);
+    logLiveSurfaceTrace('response_overlay.dismiss.recorded', {
+      source: 'surface-runtime',
+      reason: 'renderer-close',
+      guardRef: normalizedGuardRef,
+    });
+    return true;
+  }
+
+  function isResponseOverlayGuardDismissed(guardRef) {
+    const normalizedGuardRef = normalizeResponseOverlayGuardRef(guardRef);
+    return Boolean(
+      normalizedGuardRef
+      && state.dismissedResponseOverlayGuardRefs.has(normalizedGuardRef)
+    );
+  }
+
   function setChatPillUserHidden(userHidden) {
     const nextUserHidden = userHidden === true;
     if (state.chatPillUserHidden === nextUserHidden) {
@@ -579,6 +627,14 @@ function createSurfaceRuntime({
         setChatPillUserHidden(false);
       }
       state.primarySurface = 'chat';
+      try {
+        reapplyLatestSdkLiveTurnSurfaceIntent({
+          reason,
+          primarySurface: state.primarySurface,
+        });
+      } catch (error) {
+        warn('[Main] Failed to reapply SDK live-turn surface intent:', error?.message || error);
+      }
     }
     logChatPillVisibilityDecision({
       action: result?.success ? 'show-applied' : 'show-failed',
@@ -688,6 +744,7 @@ function createSurfaceRuntime({
         state.activeResponseOverlayCorrelationId = nextCorrelationId;
       },
       getActiveResponseOverlayGuardRef: () => state.activeResponseOverlayGuardRef,
+      canShowFloatingResponseOverlay,
       getChatboxHitTestActive: () => state.chatboxHitTestActive,
       setResponseOverlayVisibilityState,
       responseWindow: state.responseWindow,
@@ -734,6 +791,8 @@ function createSurfaceRuntime({
     getMainWindowMode,
     getPrimarySurface,
     getResponseWindow: () => state.responseWindow,
+    canShowFloatingResponseOverlay,
+    dismissResponseOverlayGuardRef,
     getActiveResponseOverlayGuardRef: () => state.activeResponseOverlayGuardRef,
     getState,
     getWindows,
@@ -756,6 +815,7 @@ function createSurfaceRuntime({
       state.mainWindow = nextWindow;
     },
     setResponseOverlayVisibilityState,
+    isResponseOverlayGuardDismissed,
     setActiveResponseOverlayGuardRef: (nextGuardRef) => {
       state.activeResponseOverlayGuardRef = nextGuardRef;
     },

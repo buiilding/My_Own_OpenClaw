@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useCurrentTurnPresentationState } from '../../chat/hooks/useCurrentTurnPresentationState';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import {
+  buildResponseOverlayDismissalKey,
+  useChatStore,
+} from '../../chat/stores/chatStore';
 import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
 import { RESPONSE_OVERLAY_PHASE } from '../../chat/utils/overlay/responseOverlayPhaseContract';
 import { OVERLAY_TURN_LIFECYCLE } from '../../chat/utils/overlay/overlayTurnLifecycleContract';
@@ -158,14 +163,14 @@ function resolveSdkOverlayLifecycle(presentation, overlayIntent) {
 function buildSdkCurrentTurnPresentationState({
   currentTurnProjection,
   responseOverlayEntries,
-  closedResponseId,
+  dismissedResponseId,
 }) {
   const presentation = currentTurnProjection?.presentation;
   const latestEntry = responseOverlayEntries.length > 0
     ? responseOverlayEntries[responseOverlayEntries.length - 1]
     : null;
   const visibleResponse = (
-    latestEntry && latestEntry.id !== closedResponseId
+    latestEntry && latestEntry.id !== dismissedResponseId
       ? latestEntry
       : null
   );
@@ -197,7 +202,12 @@ export function useResponseOverlayViewModel({
   thinkingStatus,
   currentTurnProjection = null,
 }) {
-  const [closedResponseId, setClosedResponseId] = useState(null);
+  const dismissedResponseOverlayEntries = useChatStore(
+    (state) => state.dismissedResponseOverlayEntries,
+  );
+  const dismissResponseOverlayEntry = useChatStore(
+    (state) => state.dismissResponseOverlayEntry,
+  );
   const lastResolvedTraceSignatureRef = useRef(null);
   const lastTypingVisibleRef = useRef(null);
   const lastOverlayIntentModeRef = useRef(null);
@@ -232,13 +242,6 @@ export function useResponseOverlayViewModel({
     ? true
     : isCurrentTurnProjectionBusy(currentTurnProjection?.phase);
 
-  const currentTurnPresentationState = useCurrentTurnPresentationState({
-    phase: currentTurnPhase,
-    isSending: currentTurnIsSending,
-    messages: currentTurnMessages,
-    dismissedResponseId: closedResponseId,
-  });
-
   const responseOverlayEntries = useMemo(
     () => {
       if (useLocalSendLatch) {
@@ -252,20 +255,78 @@ export function useResponseOverlayViewModel({
     [currentTurnProjection, useLocalSendLatch, useSdkLiveTurnPresentation],
   );
 
+  const responseOverlayDismissalTarget = useMemo(() => {
+    if (responseOverlayEntries.length === 0) {
+      return null;
+    }
+    const latestEntry = responseOverlayEntries[responseOverlayEntries.length - 1];
+    if (!latestEntry?.id) {
+      return null;
+    }
+    const sdkOverlayIntent = useSdkLiveTurnPresentation
+      ? resolveSdkOverlayIntent(currentTurnProjection?.presentation, currentTurnProjection)
+      : null;
+    const turnRef = (
+      sdkOverlayIntent?.turnRef
+      || latestEntry.turnRef
+      || currentTurnProjection?.turnRef
+      || null
+    );
+    const conversationRef = (
+      sdkOverlayIntent?.conversationRef
+      || currentTurnProjection?.conversationRef
+      || null
+    );
+    const guardRef = (
+      sdkOverlayIntent?.staleGuardRef
+      || sdkOverlayIntent?.turnRef
+      || turnRef
+      || null
+    );
+    return {
+      conversationRef,
+      turnRef,
+      guardRef,
+      responseEntryId: latestEntry.id,
+    };
+  }, [
+    currentTurnProjection,
+    responseOverlayEntries,
+    useSdkLiveTurnPresentation,
+  ]);
+
+  const dismissedResponseId = useMemo(() => {
+    const dismissalKey = buildResponseOverlayDismissalKey(responseOverlayDismissalTarget || {});
+    if (!dismissalKey || !dismissedResponseOverlayEntries[dismissalKey]) {
+      return null;
+    }
+    return responseOverlayDismissalTarget.responseEntryId;
+  }, [
+    dismissedResponseOverlayEntries,
+    responseOverlayDismissalTarget,
+  ]);
+
+  const currentTurnPresentationState = useCurrentTurnPresentationState({
+    phase: currentTurnPhase,
+    isSending: currentTurnIsSending,
+    messages: currentTurnMessages,
+    dismissedResponseId,
+  });
+
   const resolvedCurrentTurnPresentationState = useMemo(
     () => (
       useSdkLiveTurnPresentation
         ? buildSdkCurrentTurnPresentationState({
           currentTurnProjection,
           responseOverlayEntries,
-          closedResponseId,
+          dismissedResponseId,
         })
         : currentTurnPresentationState
     ),
     [
-      closedResponseId,
       currentTurnPresentationState,
       currentTurnProjection,
+      dismissedResponseId,
       responseOverlayEntries,
       useSdkLiveTurnPresentation,
     ],
@@ -275,10 +336,10 @@ export function useResponseOverlayViewModel({
     messages: currentTurnMessages,
     currentTurnPresentationState: resolvedCurrentTurnPresentationState,
     responseOverlayEntries,
-    dismissedResponseId: closedResponseId,
+    dismissedResponseId,
   }), [
-    closedResponseId,
     currentTurnMessages,
+    dismissedResponseId,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
   ]);
@@ -357,12 +418,6 @@ export function useResponseOverlayViewModel({
       devUiEnabled: isDevUiEnabled(),
     });
   }, [latestSourceTaggedResponseEntry, viewIntent.showResponse]);
-
-  useEffect(() => {
-    if (currentTurnPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK) {
-      setClosedResponseId(null);
-    }
-  }, [currentTurnPhase, currentTurnProjection?.turnRef]);
 
   useEffect(() => {
     const overlayIntent = resolvedCurrentTurnPresentationState.overlayIntent ?? null;
@@ -445,11 +500,34 @@ export function useResponseOverlayViewModel({
   ]);
 
   const handleCloseResponse = useCallback(() => {
-    if (!viewIntent.latestResponseOverlayEntryId || !responseIsCloseable) {
+    if (
+      !viewIntent.latestResponseOverlayEntryId
+      || !responseIsCloseable
+      || !responseOverlayDismissalTarget
+    ) {
       return;
     }
-    setClosedResponseId(viewIntent.latestResponseOverlayEntryId);
-  }, [responseIsCloseable, viewIntent.latestResponseOverlayEntryId]);
+    const dismissalTarget = {
+      ...responseOverlayDismissalTarget,
+      responseEntryId: viewIntent.latestResponseOverlayEntryId,
+    };
+    dismissResponseOverlayEntry(dismissalTarget);
+    IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
+      visible: false,
+      width: 0,
+      height: 0,
+      turn_ref: dismissalTarget.turnRef,
+      stale_guard_ref: dismissalTarget.guardRef || dismissalTarget.turnRef,
+      dismissed: true,
+    }).catch((error) => {
+      console.warn('[MinimalResponseOverlay] Failed to dismiss response overlay:', error);
+    });
+  }, [
+    dismissResponseOverlayEntry,
+    responseIsCloseable,
+    responseOverlayDismissalTarget,
+    viewIntent.latestResponseOverlayEntryId,
+  ]);
 
   return {
     currentTurnPresentationState: resolvedCurrentTurnPresentationState,

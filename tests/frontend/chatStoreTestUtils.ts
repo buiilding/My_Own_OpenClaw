@@ -40,6 +40,7 @@ export function resetChatStoreForTests(
   useChatStore.setState({
     activeConversationRef: null,
     turnConversationRefs: {},
+    dismissedResponseOverlayEntries: {},
     workspaces: {
       [DEFAULT_CHAT_WORKSPACE_REF]: {
         messages,
@@ -58,5 +59,6 @@ export function resetChatStoreForTests(
     tokenCounts: null,
     streamTracking,
     currentTurnProjection: null,
+    latestCurrentTurnProjection: null,
   });
 }

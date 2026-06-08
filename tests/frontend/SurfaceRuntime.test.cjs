@@ -360,6 +360,59 @@ describe('surface_runtime', () => {
     expect(chatWindow.show).toHaveBeenCalledTimes(1);
   });
 
+  test('allows floating response overlay only while chat is the visible primary surface', () => {
+    const runtime = createSurfaceRuntime(createSurfaceDeps());
+    const mainWindow = createWindow({ visible: false });
+    const chatWindow = createWindow({ visible: true });
+    runtime.setMainWindow(mainWindow);
+    runtime.setChatWindow(chatWindow);
+
+    expect(runtime.canShowFloatingResponseOverlay()).toBe(false);
+
+    expect(runtime.showChatWindow({ focus: false, reason: 'wakeword' })).toEqual({ success: true });
+    expect(runtime.getPrimarySurface()).toBe('chat');
+    expect(runtime.canShowFloatingResponseOverlay()).toBe(true);
+
+    const visibleMainWindow = createWindow({ visible: true });
+    runtime.setMainWindow(visibleMainWindow);
+    expect(runtime.showMainWindow({ open: 'chat', reason: 'renderer' })).toEqual({ success: true });
+    expect(runtime.getPrimarySurface()).toBe('dashboard');
+    expect(runtime.canShowFloatingResponseOverlay()).toBe(false);
+  });
+
+  test('reapplies latest SDK live-turn surface intent after chat becomes primary surface', () => {
+    const observedPrimarySurfaces = [];
+    let runtime = null;
+    const reapplyLatestSdkLiveTurnSurfaceIntent = jest.fn(() => {
+      observedPrimarySurfaces.push(runtime.getPrimarySurface());
+      return { success: true };
+    });
+    runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      reapplyLatestSdkLiveTurnSurfaceIntent,
+    });
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+
+    expect(runtime.showChatWindow({ focus: false, reason: 'wakeword' })).toEqual({ success: true });
+
+    expect(reapplyLatestSdkLiveTurnSurfaceIntent).toHaveBeenCalledWith({
+      reason: 'wakeword',
+      primarySurface: 'chat',
+    });
+    expect(observedPrimarySurfaces).toEqual(['chat']);
+  });
+
+  test('records dismissed response overlay guards', () => {
+    const runtime = createSurfaceRuntime(createSurfaceDeps());
+
+    expect(runtime.isResponseOverlayGuardDismissed(' turn-a ')).toBe(false);
+    expect(runtime.dismissResponseOverlayGuardRef(' turn-a ')).toBe(true);
+    expect(runtime.dismissResponseOverlayGuardRef('turn-a')).toBe(false);
+    expect(runtime.isResponseOverlayGuardDismissed('turn-a')).toBe(true);
+    expect(runtime.isResponseOverlayGuardDismissed('turn-b')).toBe(false);
+  });
+
   test('does not advance main surface state when main-window show fails', () => {
     const runtime = createSurfaceRuntime(createSurfaceDeps());
 

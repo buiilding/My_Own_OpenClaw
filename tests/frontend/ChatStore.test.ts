@@ -1,4 +1,7 @@
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  buildResponseOverlayDismissalKey,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   createAssistantSeedMessage,
   resetChatStoreForTests,
@@ -121,6 +124,25 @@ describe('chatStore', () => {
         id: 'init-message',
       }),
     ]);
+  });
+
+  test('persists response overlay dismissal by conversation, turn, and entry', () => {
+    const dismissalTarget = {
+      conversationRef: ' conv-overlay ',
+      turnRef: ' turn-overlay ',
+      responseEntryId: ' assistant-entry ',
+    };
+    const dismissalKey = buildResponseOverlayDismissalKey(dismissalTarget);
+
+    expect(dismissalKey).toBe('conv-overlay\u0001turn-overlay\u0001assistant-entry');
+    expect(useChatStore.getState().isResponseOverlayEntryDismissed(dismissalTarget)).toBe(false);
+
+    useChatStore.getState().dismissResponseOverlayEntry(dismissalTarget);
+
+    expect(useChatStore.getState().isResponseOverlayEntryDismissed(dismissalTarget)).toBe(true);
+    expect(useChatStore.getState().dismissedResponseOverlayEntries).toEqual({
+      [dismissalKey as string]: true,
+    });
   });
 
   test('setIsSending is a no-op when value is unchanged', () => {
