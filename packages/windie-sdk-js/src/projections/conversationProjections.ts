@@ -281,8 +281,42 @@ function assistantDisplayRowId(event: ConversationEvent): string {
     : event.eventId;
 }
 
+function assistantSegmentDisplayRowId(event: ConversationEvent): string {
+  const baseId = assistantDisplayRowId(event);
+  return event.turnRef ? `${baseId}:${event.eventId}` : event.eventId;
+}
+
 function streamingAssistantKey(event: ConversationEvent): string {
   return `${event.conversationRef}:${event.turnRef ?? event.eventId}`;
+}
+
+function conversationTurnKey(event: ConversationEvent): string | null {
+  if (event.turnRef) {
+    return `${event.conversationRef}:${event.turnRef}`;
+  }
+  return null;
+}
+
+function assistantDisplayRowIdForSegment(
+  event: ConversationEvent,
+  assistantRowsByTurn: Map<string, number>,
+): string {
+  const turnKey = conversationTurnKey(event);
+  if (!turnKey || (assistantRowsByTurn.get(turnKey) ?? 0) === 0) {
+    return assistantDisplayRowId(event);
+  }
+  return assistantSegmentDisplayRowId(event);
+}
+
+function recordAssistantDisplayRow(
+  event: ConversationEvent,
+  assistantRowsByTurn: Map<string, number>,
+): void {
+  const turnKey = conversationTurnKey(event);
+  if (!turnKey) {
+    return;
+  }
+  assistantRowsByTurn.set(turnKey, (assistantRowsByTurn.get(turnKey) ?? 0) + 1);
 }
 
 function displayRowBase(event: ConversationEvent, index: number) {
@@ -399,6 +433,7 @@ type StreamingAssistantDisplayRow = Extract<SdkDisplayRow, { type: 'assistant_me
 
 type StreamingAssistantState = {
   rowIndex: number;
+  rowId: string;
   assistantText: string;
   reasoningText: string | null;
   eventIds: string[];
@@ -407,6 +442,7 @@ type StreamingAssistantState = {
 function buildStreamingAssistantRow(
   event: ConversationEvent,
   index: number,
+  rowId: string,
   assistantText: string,
   reasoningText: string | null,
   eventIds: string[],
@@ -418,7 +454,7 @@ function buildStreamingAssistantRow(
     sourceEventIds: eventIds,
   };
   return {
-    id: assistantDisplayRowId(event),
+    id: rowId,
     conversationRef: event.conversationRef,
     turnRef: event.turnRef,
     index,
@@ -436,6 +472,7 @@ function buildStreamingAssistantRow(
 function buildFinalAssistantRow(
   event: ConversationEvent,
   index: number,
+  rowId: string,
   streamingState?: StreamingAssistantState,
 ): StreamingAssistantDisplayRow {
   const reasoningText = streamingState?.reasoningText ?? null;
@@ -447,7 +484,7 @@ function buildFinalAssistantRow(
     }
     : event.payload;
   return {
-    id: assistantDisplayRowId(event),
+    id: rowId,
     conversationRef: event.conversationRef,
     turnRef: event.turnRef,
     index,
@@ -498,6 +535,7 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
   const rows: SdkDisplayRow[] = [];
   const streamingAssistants = new Map<string, StreamingAssistantState>();
   const userRowsByTurn = new Map<string, number>();
+  const assistantRowsByTurn = new Map<string, number>();
   for (const event of events) {
     if (event.type === 'user_message_metadata') {
       const key = userMetadataKey(event);
@@ -512,6 +550,7 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
       const key = streamingAssistantKey(event);
       const current = streamingAssistants.get(key) ?? {
         rowIndex: rows.length,
+        rowId: assistantDisplayRowIdForSegment(event, assistantRowsByTurn),
         assistantText: '',
         reasoningText: null,
         eventIds: [],
@@ -519,6 +558,7 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
       const text = textFromPayload(event.payload);
       const nextState: StreamingAssistantState = {
         rowIndex: current.rowIndex,
+        rowId: current.rowId,
         assistantText: event.type === 'assistant_delta'
           ? `${current.assistantText}${text}`
           : current.assistantText,
@@ -531,6 +571,7 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
       const row = buildStreamingAssistantRow(
         event,
         nextState.rowIndex,
+        nextState.rowId,
         nextState.assistantText,
         nextState.reasoningText,
         nextState.eventIds,
@@ -549,11 +590,22 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
         rows[streamingState.rowIndex] = buildFinalAssistantRow(
           event,
           streamingState.rowIndex,
+          streamingState.rowId,
           streamingState,
         );
         streamingAssistants.delete(key);
+        recordAssistantDisplayRow(event, assistantRowsByTurn);
         continue;
       }
+      const row = displayRowFromEvent(event, rows.length);
+      if (row) {
+        rows.push({
+          ...row,
+          id: assistantDisplayRowIdForSegment(event, assistantRowsByTurn),
+        });
+        recordAssistantDisplayRow(event, assistantRowsByTurn);
+      }
+      continue;
     }
     if (event.type === 'turn_error' || event.type === 'runtime_error') {
       if (event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload)) {

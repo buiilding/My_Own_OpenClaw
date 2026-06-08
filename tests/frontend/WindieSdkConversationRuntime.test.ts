@@ -315,6 +315,76 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('SDK display rows give same-turn assistant segments distinct row ids', () => {
+    const events = [
+      event('user_message', { text: 'find the appointment email' }),
+      event('assistant_message', { text: 'I will search Gmail first.' }),
+      event('tool_call', {
+        toolName: 'browser_type',
+        requestId: 'req-search',
+        toolCallId: 'call-search',
+        args: { text: 'appointment' },
+      }),
+      event('tool_output', {
+        toolName: 'browser_type',
+        requestId: 'req-search',
+        toolCallId: 'call-search',
+        result: { output: 'typed' },
+        success: true,
+      }),
+      event('assistant_message', { text: 'I found the confirmation email.' }),
+    ];
+
+    const rows = buildDisplayRows(events);
+    const assistantRows = rows.filter(row => row.type === 'assistant_message');
+
+    expect(assistantRows.map(row => row.content)).toEqual([
+      'I will search Gmail first.',
+      'I found the confirmation email.',
+    ]);
+    expect(assistantRows.map(row => row.id)).toEqual([
+      'conv-sdk-runtime:turn-1:assistant',
+      `conv-sdk-runtime:turn-1:assistant:${events[4].eventId}`,
+    ]);
+    expect(new Set(rows.map(row => row.id)).size).toBe(rows.length);
+  });
+
+  test('SDK display rows keep later same-turn streaming segments distinct from settled rows', () => {
+    const events = [
+      event('user_message', { text: 'work through the browser task' }),
+      event('assistant_delta', { text: 'Connecting' }),
+      event('assistant_message', { text: 'Connecting' }),
+      event('tool_call', {
+        toolName: 'browser_connect',
+        requestId: 'req-connect',
+        toolCallId: 'call-connect',
+        args: {},
+      }),
+      event('tool_output', {
+        toolName: 'browser_connect',
+        requestId: 'req-connect',
+        toolCallId: 'call-connect',
+        result: { output: 'connected' },
+        success: true,
+      }),
+      event('assistant_delta', { text: 'Connected.' }),
+      event('assistant_message', { text: 'Connected.' }),
+    ];
+
+    const rows = buildDisplayRows(events);
+    const assistantRows = rows.filter(row => row.type === 'assistant_message');
+
+    expect(assistantRows.map(row => row.content)).toEqual([
+      'Connecting',
+      'Connected.',
+    ]);
+    expect(assistantRows.map(row => row.id)).toEqual([
+      'conv-sdk-runtime:turn-1:assistant',
+      `conv-sdk-runtime:turn-1:assistant:${events[5].eventId}`,
+    ]);
+    expect(new Set(rows.map(row => row.id)).size).toBe(rows.length);
+  });
+
   test('SDK display rows replace same-turn assistant fallback with terminal error', () => {
     const events = [
       event('user_message', { text: 'hello' }),

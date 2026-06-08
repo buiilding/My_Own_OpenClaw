@@ -239,8 +239,32 @@ function assistantDisplayRowId(event) {
         ? `${event.conversationRef}:${event.turnRef}:assistant`
         : event.eventId;
 }
+function assistantSegmentDisplayRowId(event) {
+    const baseId = assistantDisplayRowId(event);
+    return event.turnRef ? `${baseId}:${event.eventId}` : event.eventId;
+}
 function streamingAssistantKey(event) {
     return `${event.conversationRef}:${event.turnRef ?? event.eventId}`;
+}
+function conversationTurnKey(event) {
+    if (event.turnRef) {
+        return `${event.conversationRef}:${event.turnRef}`;
+    }
+    return null;
+}
+function assistantDisplayRowIdForSegment(event, assistantRowsByTurn) {
+    const turnKey = conversationTurnKey(event);
+    if (!turnKey || (assistantRowsByTurn.get(turnKey) ?? 0) === 0) {
+        return assistantDisplayRowId(event);
+    }
+    return assistantSegmentDisplayRowId(event);
+}
+function recordAssistantDisplayRow(event, assistantRowsByTurn) {
+    const turnKey = conversationTurnKey(event);
+    if (!turnKey) {
+        return;
+    }
+    assistantRowsByTurn.set(turnKey, (assistantRowsByTurn.get(turnKey) ?? 0) + 1);
 }
 function displayRowBase(event, index) {
     return {
@@ -346,7 +370,7 @@ function mergeUserMessageMetadata(row, event) {
         },
     };
 }
-function buildStreamingAssistantRow(event, index, assistantText, reasoningText, eventIds) {
+function buildStreamingAssistantRow(event, index, rowId, assistantText, reasoningText, eventIds) {
     const raw = {
         ...event.payload,
         assistantText,
@@ -354,7 +378,7 @@ function buildStreamingAssistantRow(event, index, assistantText, reasoningText, 
         sourceEventIds: eventIds,
     };
     return {
-        id: assistantDisplayRowId(event),
+        id: rowId,
         conversationRef: event.conversationRef,
         turnRef: event.turnRef,
         index,
@@ -368,7 +392,7 @@ function buildStreamingAssistantRow(event, index, assistantText, reasoningText, 
         },
     };
 }
-function buildFinalAssistantRow(event, index, streamingState) {
+function buildFinalAssistantRow(event, index, rowId, streamingState) {
     const reasoningText = streamingState?.reasoningText ?? null;
     const raw = reasoningText
         ? {
@@ -378,7 +402,7 @@ function buildFinalAssistantRow(event, index, streamingState) {
         }
         : event.payload;
     return {
-        id: assistantDisplayRowId(event),
+        id: rowId,
         conversationRef: event.conversationRef,
         turnRef: event.turnRef,
         index,
@@ -421,6 +445,7 @@ function buildDisplayRows(events) {
     const rows = [];
     const streamingAssistants = new Map();
     const userRowsByTurn = new Map();
+    const assistantRowsByTurn = new Map();
     for (const event of events) {
         if (event.type === 'user_message_metadata') {
             const key = userMetadataKey(event);
@@ -435,6 +460,7 @@ function buildDisplayRows(events) {
             const key = streamingAssistantKey(event);
             const current = streamingAssistants.get(key) ?? {
                 rowIndex: rows.length,
+                rowId: assistantDisplayRowIdForSegment(event, assistantRowsByTurn),
                 assistantText: '',
                 reasoningText: null,
                 eventIds: [],
@@ -442,6 +468,7 @@ function buildDisplayRows(events) {
             const text = textFromPayload(event.payload);
             const nextState = {
                 rowIndex: current.rowIndex,
+                rowId: current.rowId,
                 assistantText: event.type === 'assistant_delta'
                     ? `${current.assistantText}${text}`
                     : current.assistantText,
@@ -451,7 +478,7 @@ function buildDisplayRows(events) {
                 eventIds: [...current.eventIds, event.eventId],
             };
             streamingAssistants.set(key, nextState);
-            const row = buildStreamingAssistantRow(event, nextState.rowIndex, nextState.assistantText, nextState.reasoningText, nextState.eventIds);
+            const row = buildStreamingAssistantRow(event, nextState.rowIndex, nextState.rowId, nextState.assistantText, nextState.reasoningText, nextState.eventIds);
             if (nextState.rowIndex === rows.length) {
                 rows.push(row);
             }
@@ -464,10 +491,20 @@ function buildDisplayRows(events) {
             const key = streamingAssistantKey(event);
             const streamingState = streamingAssistants.get(key);
             if (streamingState) {
-                rows[streamingState.rowIndex] = buildFinalAssistantRow(event, streamingState.rowIndex, streamingState);
+                rows[streamingState.rowIndex] = buildFinalAssistantRow(event, streamingState.rowIndex, streamingState.rowId, streamingState);
                 streamingAssistants.delete(key);
+                recordAssistantDisplayRow(event, assistantRowsByTurn);
                 continue;
             }
+            const row = displayRowFromEvent(event, rows.length);
+            if (row) {
+                rows.push({
+                    ...row,
+                    id: assistantDisplayRowIdForSegment(event, assistantRowsByTurn),
+                });
+                recordAssistantDisplayRow(event, assistantRowsByTurn);
+            }
+            continue;
         }
         if (event.type === 'turn_error' || event.type === 'runtime_error') {
             if (event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload)) {
