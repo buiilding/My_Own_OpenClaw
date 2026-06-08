@@ -888,8 +888,8 @@ async def test_exhausted_pre_output_transient_stream_error_emits_one_error(
     assert error_events[0].metadata is not None
     assert error_events[0].metadata["status_code"] == 503
     assert error_events[0].metadata["partial_response_emitted"] is False
-    assert any(isinstance(event, FullResponseEvent) for event in events)
-    assert any(isinstance(event, TokenCountEvent) for event in events)
+    assert not any(isinstance(event, FullResponseEvent) for event in events)
+    assert not any(isinstance(event, TokenCountEvent) for event in events)
 
 
 @pytest.mark.asyncio
@@ -908,6 +908,8 @@ async def test_does_not_retry_transient_error_after_chunk(monkeypatch):
     assert len(error_events) == 1
     assert error_events[0].metadata is not None
     assert error_events[0].metadata["partial_response_emitted"] is True
+    assert not any(isinstance(event, FullResponseEvent) for event in events)
+    assert not any(isinstance(event, TokenCountEvent) for event in events)
 
 
 @pytest.mark.asyncio
@@ -921,6 +923,8 @@ async def test_does_not_retry_transient_error_after_thinking(monkeypatch):
     assert llm_client.calls == 1
     assert any(isinstance(event, ThinkingEvent) for event in events)
     assert any(isinstance(event, ErrorEvent) for event in events)
+    assert not any(isinstance(event, FullResponseEvent) for event in events)
+    assert not any(isinstance(event, TokenCountEvent) for event in events)
 
 
 @pytest.mark.asyncio
@@ -934,6 +938,8 @@ async def test_does_not_retry_transient_error_after_progress_event(monkeypatch):
     assert llm_client.calls == 1
     assert any(isinstance(event, WebSearchProgressEvent) for event in events)
     assert any(isinstance(event, ErrorEvent) for event in events)
+    assert not any(isinstance(event, FullResponseEvent) for event in events)
+    assert not any(isinstance(event, TokenCountEvent) for event in events)
 
 
 @pytest.mark.asyncio
@@ -954,6 +960,8 @@ async def test_does_not_retry_non_transient_stream_errors(
 
     assert llm_client.calls == 1
     assert sum(isinstance(event, ErrorEvent) for event in events) == 1
+    assert not any(isinstance(event, FullResponseEvent) for event in events)
+    assert not any(isinstance(event, TokenCountEvent) for event in events)
 
 
 @pytest.mark.asyncio

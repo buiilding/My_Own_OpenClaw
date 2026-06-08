@@ -7,6 +7,9 @@ from typing import Any
 INTERNAL_SERVER_ERROR_MESSAGE = (
     "Internal server error. Start a new chat and try again."
 )
+OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE = (
+    "OpenAI Responses stream ended without final response payload"
+)
 
 
 def format_internal_server_error_message(context: str | None = None) -> str:
@@ -21,5 +24,7 @@ def sanitize_stream_error_message(message: Any) -> str:
     if isinstance(message, str):
         normalized = message.strip()
         if normalized.startswith("Rate limit exceeded"):
+            return normalized
+        if normalized == OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE:
             return normalized
     return INTERNAL_SERVER_ERROR_MESSAGE

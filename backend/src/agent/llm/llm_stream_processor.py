@@ -202,7 +202,7 @@ class LLMStreamProcessor:
                                 retrying_attempt = True
                                 break
                             yield error_event
-                            continue
+                            return
 
                         if first_token_time is None:
                             first_token_time = time.perf_counter()

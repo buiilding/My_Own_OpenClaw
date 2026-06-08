@@ -10,6 +10,7 @@ import pytest
 
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
+    ErrorEvent,
     ThinkingEvent,
     WebSearchProgressEvent,
 )
@@ -696,7 +697,7 @@ async def test_openai_responses_runtime_recovers_missing_final_payload_when_only
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_runtime_recovers_empty_stream_without_internal_error(
+async def test_openai_responses_runtime_emits_error_for_empty_stream(
     monkeypatch,
     caplog,
 ):
@@ -726,11 +727,18 @@ async def test_openai_responses_runtime_recovers_empty_stream_without_internal_e
         )
     )
 
-    assert events == []
-    assert provider.get_last_stream_response_payload() == {
-        "content": "",
-        "finish_reason": "incomplete",
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert events[0].content == "OpenAI Responses stream ended without final response payload"
+    assert events[0].metadata == {
+        "provider": "openai",
+        "model": "gpt-5.4@@gpt-5-4-none-thinking",
+        "response_id": None,
+        "error_kind": "empty_responses_stream",
+        "retryable": False,
+        "transient": False,
     }
+    assert provider.get_last_stream_response_payload() is None
     assert "fallback=empty_stream" in caplog.text
     assert "events=0" in caplog.text
     assert "event_types=<none>" in caplog.text
@@ -771,12 +779,18 @@ async def test_openai_responses_runtime_logs_terminal_event_without_response(
         )
     )
 
-    assert events == []
-    assert provider.get_last_stream_response_payload() == {
-        "content": "",
-        "finish_reason": "incomplete",
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert events[0].content == "OpenAI Responses stream ended without final response payload"
+    assert events[0].metadata == {
+        "provider": "openai",
+        "model": "gpt-5.4@@gpt-5-4-none-thinking",
         "response_id": "resp_missing",
+        "error_kind": "empty_responses_stream",
+        "retryable": False,
+        "transient": False,
     }
+    assert provider.get_last_stream_response_payload() is None
     assert "fallback=empty_stream" in caplog.text
     assert "event_types=response.completed:1" in caplog.text
     assert "terminal_events=1" in caplog.text

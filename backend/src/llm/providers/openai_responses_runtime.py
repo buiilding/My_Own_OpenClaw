@@ -10,9 +10,13 @@ import litellm
 
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
+    ErrorEvent,
     StreamingEvent,
     ThinkingEvent,
     WebSearchProgressEvent,
+)
+from backend.src.core.infrastructure.user_facing_errors import (
+    OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE,
 )
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.openai_responses_input import (
@@ -864,11 +868,17 @@ async def stream_openai_responses_events(
             saw_stream_content=saw_stream_content,
             output_accumulator=output_accumulator,
         )
-        fallback_payload = _build_fallback_stream_response_payload(
-            content="",
-            response_id=last_response_id,
+        yield ErrorEvent(
+            content=OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE,
+            metadata={
+                "provider": "openai",
+                "model": model,
+                "response_id": last_response_id,
+                "error_kind": "empty_responses_stream",
+                "retryable": False,
+                "transient": False,
+            },
         )
-        provider._set_last_stream_response_payload(fallback_payload)
 
 
 __all__ = [

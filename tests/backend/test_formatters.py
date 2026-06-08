@@ -10,6 +10,7 @@ from backend.src.api.processing.formatters.error import ErrorEventFormatter
 from backend.src.api.processing.formatters.web_search_progress import WebSearchProgressEventFormatter
 from backend.src.core.infrastructure.user_facing_errors import (
     INTERNAL_SERVER_ERROR_MESSAGE,
+    OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE,
 )
 from backend.src.api.processing.formatters.thinking import ThinkingEventFormatter
 from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
@@ -209,6 +210,13 @@ class TestErrorEventFormatter:
         result = formatter.format(event, "msg-456")
 
         assert result["payload"]["message"] == "Rate limit exceeded. Please wait."
+
+    def test_format_preserves_openai_responses_empty_stream_message(self, formatter):
+        event = {"type": "error", "content": OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE}
+
+        result = formatter.format(event, "msg-openai-empty")
+
+        assert result["payload"]["message"] == OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE
 
     def test_format_preserves_structured_metadata(self, formatter):
         event = {

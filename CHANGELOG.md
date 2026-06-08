@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: emit a websocket error when an OpenAI Responses stream ends
+  without a final response payload instead of synthesizing an empty assistant
+  completion.
 - backend/openai: request original-detail image processing for OpenAI
   multimodal image blocks so screenshot coordinate grounding uses the captured
   pixel grid instead of provider default image detail.

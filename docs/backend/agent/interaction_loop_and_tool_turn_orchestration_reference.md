@@ -194,9 +194,19 @@ If no tool calls and final text is empty:
 - includes concise latest tool output summary when available
 - strips `<system_context>` suffix from summary
 
+If the OpenAI Responses stream ends without any final response payload and
+without recoverable streamed output, the backend treats that as a provider
+stream failure instead of a valid empty assistant answer. The websocket emits an
+`error` message with `OpenAI Responses stream ended without final response
+payload`; it must not backfill a synthetic assistant delta or persist an empty
+assistant completion for that turn.
+
 Validated by:
 
 - `tests/backend/test_interaction_loop.py::test_interaction_loop_emits_fallback_when_final_response_empty_after_tool_output`
+- `tests/backend/test_openai_provider.py::test_openai_responses_runtime_emits_error_for_empty_stream`
+- `tests/backend/test_openai_provider.py::test_openai_responses_runtime_logs_terminal_event_without_response`
+- `tests/backend/test_formatters.py::TestErrorEventFormatter::test_format_preserves_openai_responses_empty_stream_message`
 
 ## Drift Hotspots
 
