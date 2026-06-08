@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: make new-chat session selection update the chat store
   synchronously with the transcript session so old conversation rows cannot
   remain visible beside a fresh SDK turn.
+- frontend/dashboard: clear the selected chat workspace before asynchronous
+  sidebar display loads resolve and reject display rows from other
+  conversations so persisted chat reopen cannot show stale assistant rows.
 - frontend/renderer: clear shared chat composer drafts immediately after local
   send acceptance and restore the captured draft only when the async send path
   rejects, so dashboard and chat-pill inputs no longer linger during resource

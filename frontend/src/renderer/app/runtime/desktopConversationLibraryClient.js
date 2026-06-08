@@ -39,7 +39,9 @@ export const DesktopConversationLibraryClient = {
       userId,
       conversationRef,
     });
-    return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+    return Array.isArray(snapshot?.displayRows)
+      ? snapshot.displayRows.filter((row) => row?.conversationRef === conversationRef)
+      : [];
   },
 
   async deleteConversation(userId, conversationRef) {

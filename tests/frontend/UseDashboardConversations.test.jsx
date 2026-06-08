@@ -9,6 +9,7 @@ import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructu
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
+    loadDisplayRows: jest.fn(),
     listMetadata: jest.fn(),
     subscribeMetadataInvalidations: jest.fn(),
   },
@@ -16,6 +17,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryCli
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
+    updateTranscriptSession: jest.fn(),
     startNewSession: jest.fn(),
   },
 }));
@@ -40,11 +42,17 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/workspaceAccess'
 
 jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
   clearConversationWorkspaceBinding: jest.fn(),
+  resolveConversationWorkspaceBinding: jest.fn(({ conversation }) => ({
+    workspacePath: conversation?.workspace_path || '',
+    workspaceName: conversation?.workspace_name || '',
+  })),
   setConversationWorkspaceBinding: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationSessionRuntime', () => ({
-  applyRendererConversationSelection: jest.fn(),
+  applyRendererConversationSelection: jest.fn(({ conversationRef, setChatConversationRef }) => {
+    setChatConversationRef?.(conversationRef);
+  }),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession', () => ({
@@ -90,6 +98,7 @@ describe('useDashboardConversations', () => {
     jest.clearAllMocks();
     getLocalBackendStatusSnapshot.mockReturnValue({ ready: false });
     subscribeLocalBackendStatusStore.mockImplementation(() => jest.fn());
+    DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValue([]);
     DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
     IpcBridge.on.mockImplementation(() => jest.fn());
   });
@@ -290,5 +299,74 @@ describe('useDashboardConversations', () => {
 
     expect(result.current.recentConversations).toEqual([]);
     expect(result.current.pinnedConversationRefs).toEqual([]);
+  });
+
+  test('opens a conversation by selecting and clearing it before display rows resolve', async () => {
+    const callOrder = [];
+    let resolveRows;
+    DesktopConversationLibraryClient.loadDisplayRows.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveRows = resolve;
+    }));
+    const clearChatMessages = jest.fn((conversationRef) => {
+      callOrder.push(`clear:${conversationRef}`);
+    });
+    const setChatMessages = jest.fn((messages, conversationRef) => {
+      callOrder.push(`messages:${conversationRef}:${messages.length}`);
+    });
+    const setChatIsSending = jest.fn();
+    const setChatThinkingStatus = jest.fn();
+    const setChatTokenCounts = jest.fn();
+    const setChatActiveConversationRef = jest.fn((conversationRef) => {
+      callOrder.push(`select:${conversationRef}`);
+    });
+
+    const { result } = renderDashboardConversations({
+      clearChatMessages,
+      setChatMessages,
+      setChatIsSending,
+      setChatThinkingStatus,
+      setChatTokenCounts,
+      setChatActiveConversationRef,
+    });
+
+    await act(async () => {
+      void result.current.handleOpenConversation({
+        conversation_id: 'conv-open',
+        workspace_path: '/work/WindieOS',
+        workspace_name: 'WindieOS',
+      });
+      await Promise.resolve();
+    });
+
+    expect(callOrder).toEqual([
+      'select:conv-open',
+      'clear:conv-open',
+    ]);
+    expect(setChatIsSending).toHaveBeenCalledWith(false, 'conv-open');
+    expect(setChatThinkingStatus).toHaveBeenCalledWith(null, 'conv-open');
+    expect(setChatTokenCounts).toHaveBeenCalledWith(null, 'conv-open');
+
+    await act(async () => {
+      resolveRows([
+        {
+          id: 'row-1',
+          conversationRef: 'conv-open',
+          role: 'user',
+          type: 'user_message',
+          content: 'yo',
+          metadata: { timestamp: '2026-06-08T00:00:00.000Z' },
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(setChatMessages).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: 'row-1',
+          sender: 'user',
+          text: 'yo',
+        }),
+      ], 'conv-open');
+    });
   });
 });

@@ -49,6 +49,7 @@ function useDashboardConversations({
   const recentConversationsRetryAttemptRef = useRef(0);
   const recentConversationLoadRequestIdRef = useRef(0);
   const recentConversationLoadInFlightRef = useRef(null);
+  const openConversationRequestIdRef = useRef(0);
 
   const loadRecentConversations = useCallback(async () => {
     if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
@@ -168,42 +169,57 @@ function useDashboardConversations({
     }
 
     setRecentConversationsError('');
+    const requestId = openConversationRequestIdRef.current + 1;
+    openConversationRequestIdRef.current = requestId;
 
     try {
       const workspaceBinding = resolveConversationWorkspaceBinding({
         conversation,
         memories: [],
       });
-      const displayRows = await DesktopConversationLibraryClient.loadDisplayRows(
-        resolvedUserId,
-        conversationRef,
-      );
-      const projectedMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
       setConversationWorkspaceBinding(conversationRef, workspaceBinding);
-      try {
-        await setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
-      } catch (workspaceError) {
-        console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
-      }
-
       applyRendererConversationSelection({
         conversationRef,
         userId: resolvedUserId,
         updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         setChatConversationRef: setChatActiveConversationRef,
       });
+      clearChatMessages(conversationRef);
+      setChatIsSending(false, conversationRef);
+      setChatThinkingStatus(null, conversationRef);
+      setChatTokenCounts(null, conversationRef);
+
+      const displayRows = await DesktopConversationLibraryClient.loadDisplayRows(
+        resolvedUserId,
+        conversationRef,
+      );
+      if (openConversationRequestIdRef.current !== requestId) {
+        return;
+      }
+      const projectedMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
+      try {
+        await setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
+      } catch (workspaceError) {
+        console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
+      }
+
       setChatMessages(projectedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);
+      setChatTokenCounts(null, conversationRef);
     } catch (error) {
-      setRecentConversationsError(error?.message || 'Failed to open conversation');
+      if (openConversationRequestIdRef.current === requestId) {
+        setRecentConversationsError(error?.message || 'Failed to open conversation');
+      }
     }
   }, [
+    clearChatMessages,
     resolvedUserId,
     setChatActiveConversationRef,
     setChatIsSending,
     setChatMessages,
     setChatThinkingStatus,
+    setChatTokenCounts,
   ]);
 
   const handleRenameConversation = useCallback((conversation) => {

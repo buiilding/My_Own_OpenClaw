@@ -33,7 +33,7 @@ describe('DesktopConversationLibraryClient', () => {
       ])
       .mockResolvedValueOnce({ deleted: true })
       .mockResolvedValueOnce({
-        displayRows: [{ id: 'row-1', role: 'assistant', type: 'assistant', content: 'hello' }],
+        displayRows: [{ id: 'row-1', conversationRef: 'conv-1', role: 'assistant', type: 'assistant', content: 'hello' }],
       });
 
     await expect(DesktopConversationLibraryClient.listMetadata('user-1', { limit: 10 })).resolves.toEqual([
@@ -51,7 +51,7 @@ describe('DesktopConversationLibraryClient', () => {
     ]);
     await expect(DesktopConversationLibraryClient.deleteConversation('user-1', 'conv-1')).resolves.toBeUndefined();
     await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([
-      { id: 'row-1', role: 'assistant', type: 'assistant', content: 'hello' },
+      { id: 'row-1', conversationRef: 'conv-1', role: 'assistant', type: 'assistant', content: 'hello' },
     ]);
 
     expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversations.list', {
@@ -71,5 +71,19 @@ describe('DesktopConversationLibraryClient', () => {
       userId: 'user-1',
       conversationRef: 'conv-1',
     });
+  });
+
+  test('filters loaded display rows to the requested conversation', async () => {
+    mockInvokeWindieCommand.mockResolvedValueOnce({
+      displayRows: [
+        { id: 'row-1', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo' },
+        { id: 'row-old', conversationRef: 'conv-old', role: 'assistant', type: 'assistant_message', content: 'old' },
+        { id: 'row-missing', role: 'assistant', type: 'assistant_message', content: 'missing scope' },
+      ],
+    });
+
+    await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([
+      { id: 'row-1', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo' },
+    ]);
   });
 });
