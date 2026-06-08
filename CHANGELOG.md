@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: make new-chat session selection update the chat store
+  synchronously with the transcript session so old conversation rows cannot
+  remain visible beside a fresh SDK turn.
 - frontend/renderer: clear shared chat composer drafts immediately after local
   send acceptance and restore the captured draft only when the async send path
   rejects, so dashboard and chat-pill inputs no longer linger during resource

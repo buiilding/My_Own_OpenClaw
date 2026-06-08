@@ -77,6 +77,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   );
   const clearMessages = useChatStore((state) => state.clearMessages);
   const setMessages = useChatStore((state) => state.setMessages);
+  const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -100,10 +101,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
       setIsSending,
       setThinkingStatus,
       setTokenCounts,
+      setChatActiveConversationRef,
       workspace,
     });
   }, [
     clearMessages,
+    setChatActiveConversationRef,
     setIsSending,
     setThinkingStatus,
     setTokenCounts,

@@ -34,12 +34,14 @@ describe('startNewChatSession', () => {
     const setIsSending = jest.fn();
     const setThinkingStatus = jest.fn();
     const setTokenCounts = jest.fn();
+    const setChatActiveConversationRef = jest.fn();
 
     const conversationRef = startNewChatSession({
       clearMessages,
       setIsSending,
       setThinkingStatus,
       setTokenCounts,
+      setChatActiveConversationRef,
       workspace: {
         activeWorkspaceName: 'WindieOS',
         activeWorkspacePath: '/work/WindieOS',
@@ -48,9 +50,38 @@ describe('startNewChatSession', () => {
 
     expect(conversationRef).toBe('conv_new-chat-ref');
     expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith('conv_new-chat-ref', undefined);
+    expect(setChatActiveConversationRef).toHaveBeenNthCalledWith(1, null);
+    expect(setChatActiveConversationRef).toHaveBeenNthCalledWith(2, 'conv_new-chat-ref');
     expect(setConversationWorkspaceBinding).toHaveBeenCalledWith('conv_new-chat-ref', {
       workspacePath: '/work/WindieOS',
       workspaceName: 'WindieOS',
     });
+  });
+
+  test('clears the previous active workspace before selecting the fresh conversation', () => {
+    const callOrder: string[] = [];
+    const clearMessages = jest.fn(() => {
+      callOrder.push('clear-active-workspace');
+    });
+    const setIsSending = jest.fn();
+    const setThinkingStatus = jest.fn();
+    const setTokenCounts = jest.fn();
+    const setChatActiveConversationRef = jest.fn((conversationRef) => {
+      callOrder.push(`select:${conversationRef ?? 'null'}`);
+    });
+
+    startNewChatSession({
+      clearMessages,
+      setIsSending,
+      setThinkingStatus,
+      setTokenCounts,
+      setChatActiveConversationRef,
+    });
+
+    expect(callOrder).toEqual([
+      'clear-active-workspace',
+      'select:null',
+      'select:conv_new-chat-ref',
+    ]);
   });
 });

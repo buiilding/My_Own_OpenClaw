@@ -16,6 +16,7 @@ type NewChatSessionOptions = {
   setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
+  setChatActiveConversationRef: (conversationRef: string | null) => void;
   workspace?: {
     activeWorkspaceName?: string | null;
     activeWorkspacePath?: string | null;
@@ -27,6 +28,7 @@ export const startNewChatSession = ({
   setIsSending,
   setThinkingStatus,
   setTokenCounts,
+  setChatActiveConversationRef,
   workspace,
 }: NewChatSessionOptions): string => {
   resetActiveChatSession({
@@ -35,6 +37,7 @@ export const startNewChatSession = ({
     setThinkingStatus,
     setTokenCounts,
   });
+  setChatActiveConversationRef(null);
 
   return initializeLocalConversationSession({
     createConversationRef,
@@ -42,6 +45,7 @@ export const startNewChatSession = ({
       applyRendererConversationSelection({
         conversationRef,
         updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
+        setChatConversationRef: setChatActiveConversationRef,
       });
     },
     onConversationCreated: (conversationRef) => {
