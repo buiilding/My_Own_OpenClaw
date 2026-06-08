@@ -20,7 +20,7 @@ System prompt note:
 
 ### Cloud Providers
 
-- **OpenAI**: GPT-5.4 with configurable reasoning effort (`none`, `low`, `medium`, `high`, `xhigh`)
+- **OpenAI**: GPT-5.4 and GPT-5.5 with configurable reasoning effort (`none`, `low`, `medium`, `high`, `xhigh`)
 - **Anthropic**: Claude 4/3.5 families (Opus, Sonnet, Haiku)
 - **Gemini**: Gemini 2.5 and Gemini 3 preview models
 - **Kimi Code**: Kimi for Coding (OpenAI-compatible)
@@ -227,7 +227,7 @@ This enables follow-up turns that continue after tool execution without text-JSO
 
 ### OpenAI
 
-**Models**: `gpt-5.4` exposed as reasoning presets for `none`, `low`, `medium`, `high`, and `xhigh`
+**Models**: `gpt-5.4` and `gpt-5.5` exposed as reasoning presets for `none`, `low`, `medium`, `high`, and `xhigh`
 
 Native web-search runtime note:
 - For OpenAI models that advertise native web-search support, WindieOS now attaches OpenAI Responses `web_search` directly to the main agent request instead of exposing backend logical `web_search` as a model-facing function tool.
@@ -249,7 +249,7 @@ APP_CONFIG = AppConfig(
 **Features**:
 - Streaming responses
 - Token usage tracking
-- All curated OpenAI GPT-5.4 presets use the OpenAI Responses API
+- All curated OpenAI GPT-5.4/GPT-5.5 presets use the OpenAI Responses API
 - Reasoning effort is preset-scoped and maps to `none`, `low`, `medium`, `high`, or `xhigh`
 - OpenAI chat-completions and Responses transports now share one schema-compatibility preparation layer for model-facing function tools
 - OpenAI Responses reasoning config is fail-closed: curated thinking presets must carry explicit `reasoning_mode` metadata instead of relying on display-name inference

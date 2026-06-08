@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/models: add GPT-5.5 as a selectable OpenAI reasoning family with
+  `none`, `low`, `medium`, `high`, and `xhigh` presets while keeping GPT-5.4 as
+  the default catalog selection.
 - sdk/sidecar: generate best-effort model conversation titles after the first
   completed user plus assistant exchange, guard against overwriting durable
   title state through a sidecar title-state RPC, and keep first-user-message

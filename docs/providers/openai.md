@@ -27,6 +27,10 @@ WindieOS treats OpenAI as an online LLM provider with extra routing for native r
 
 `OpenAIProvider` extends `OnlineLLMProvider`.
 
+The backend model catalog exposes GPT-5.4 and GPT-5.5 as separate OpenAI
+families. Each family has `none`, `low`, `medium`, `high`, and `xhigh`
+reasoning presets, and every preset is routed through the Responses runtime.
+
 The provider uses the OpenAI Responses runtime when:
 
 - `resolve_provider_thinking_preference(model_id, "openai")` returns `True`.

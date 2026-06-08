@@ -404,6 +404,46 @@ def test_get_all_online_models_marks_openai_gpt_5_4_as_thinking_text_stream_capa
     }
 
 
+def test_get_all_online_models_includes_openai_gpt_5_5_reasoning_family():
+    service = ModelService(AppConfig())
+    models = service.get_all_online_models()
+
+    gpt_5_5_variants = [
+        model
+        for model in models
+        if model.get("provider") == "openai"
+        and model.get("runtime_model_id") == "gpt-5.5"
+    ]
+
+    assert {model.get("reasoning_mode") for model in gpt_5_5_variants} == {
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+    }
+    first_variant = gpt_5_5_variants[0]
+    assert first_variant.get("supports_thinking") is True
+    assert first_variant.get("supports_thinking_text_stream") is True
+    assert first_variant.get("family_id") == "openai::gpt-5.5"
+    assert first_variant.get("family_label") == "GPT-5.5"
+    assert first_variant.get("default_model_id") == "gpt-5.5@@gpt-5-5-none-thinking"
+    assert first_variant.get("default_reasoning_mode") == "none"
+    assert first_variant.get("reasoning_modes") == [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+    ]
+    assert first_variant.get("supports_native_web_search") is True
+    assert first_variant.get("supports_codex_oauth") is False
+    assert first_variant.get("capabilities") == {
+        "supports_codex_oauth": False,
+        "supports_native_web_search": True,
+    }
+
+
 def test_get_all_online_models_marks_gemini_3_1_pro_preview_as_non_thinking():
     service = ModelService(AppConfig())
     models = service.get_all_online_models()

@@ -55,6 +55,50 @@ HIGH_THINKING_BUDGET_TOKENS = 32768
 REASONING_MODE_ORDER: Tuple[str, ...] = ("none", "low", "medium", "high", "xhigh")
 
 
+def _openai_reasoning_presets(
+    *,
+    runtime_model_id: str,
+    family_label: str,
+) -> List[Dict[str, Any]]:
+    return [
+        _variant(
+            runtime_model_id=runtime_model_id,
+            display_name=f"{family_label} None",
+            supports_thinking=True,
+            supports_thinking_text_stream=True,
+            reasoning_mode="none",
+        ),
+        _variant(
+            runtime_model_id=runtime_model_id,
+            display_name=f"{family_label} Low",
+            supports_thinking=True,
+            supports_thinking_text_stream=True,
+            reasoning_mode="low",
+        ),
+        _variant(
+            runtime_model_id=runtime_model_id,
+            display_name=f"{family_label} Medium",
+            supports_thinking=True,
+            supports_thinking_text_stream=True,
+            reasoning_mode="medium",
+        ),
+        _variant(
+            runtime_model_id=runtime_model_id,
+            display_name=f"{family_label} High",
+            supports_thinking=True,
+            supports_thinking_text_stream=True,
+            reasoning_mode="high",
+        ),
+        _variant(
+            runtime_model_id=runtime_model_id,
+            display_name=f"{family_label} Extra High",
+            supports_thinking=True,
+            supports_thinking_text_stream=True,
+            reasoning_mode="xhigh",
+        ),
+    ]
+
+
 def _card_metadata(
     *,
     context_window: int,
@@ -85,6 +129,13 @@ MODEL_CARD_METADATA_BY_RUNTIME_ID: Dict[str, Dict[str, Any]] = {
         strengths=["Reasoning", "Code", "Agents", "Tools"],
         latency="~1.4s",
         family_label="GPT-5.4",
+    ),
+    "gpt-5.5": _card_metadata(
+        context_window=400000,
+        description="OpenAI's GPT-5.5 reasoning model with configurable effort from none through xhigh.",
+        strengths=["Reasoning", "Code", "Agents", "Tools"],
+        latency="~1.4s",
+        family_label="GPT-5.5",
     ),
     "claude-sonnet-4-5-20250929": _card_metadata(
         context_window=200000,
@@ -200,6 +251,9 @@ MODEL_CAPABILITIES_BY_PROVIDER_RUNTIME_ID: Dict[Tuple[str, str], Dict[str, bool]
     ("openai", "gpt-5.4"): {
         "supports_native_web_search": True,
     },
+    ("openai", "gpt-5.5"): {
+        "supports_native_web_search": True,
+    },
     ("gemini", "gemini-2.5-flash"): {
         "supports_native_web_search": True,
     },
@@ -307,40 +361,13 @@ def get_model_card_metadata(
 
 
 OPENAI_PRESETS: List[Dict[str, Any]] = [
-    _variant(
+    *_openai_reasoning_presets(
         runtime_model_id="gpt-5.4",
-        display_name="GPT-5.4 None",
-        supports_thinking=True,
-        supports_thinking_text_stream=True,
-        reasoning_mode="none",
+        family_label="GPT-5.4",
     ),
-    _variant(
-        runtime_model_id="gpt-5.4",
-        display_name="GPT-5.4 Low",
-        supports_thinking=True,
-        supports_thinking_text_stream=True,
-        reasoning_mode="low",
-    ),
-    _variant(
-        runtime_model_id="gpt-5.4",
-        display_name="GPT-5.4 Medium",
-        supports_thinking=True,
-        supports_thinking_text_stream=True,
-        reasoning_mode="medium",
-    ),
-    _variant(
-        runtime_model_id="gpt-5.4",
-        display_name="GPT-5.4 High",
-        supports_thinking=True,
-        supports_thinking_text_stream=True,
-        reasoning_mode="high",
-    ),
-    _variant(
-        runtime_model_id="gpt-5.4",
-        display_name="GPT-5.4 Extra High",
-        supports_thinking=True,
-        supports_thinking_text_stream=True,
-        reasoning_mode="xhigh",
+    *_openai_reasoning_presets(
+        runtime_model_id="gpt-5.5",
+        family_label="GPT-5.5",
     ),
 ]
 

@@ -1046,6 +1046,15 @@ def test_openai_reasoning_config_requires_explicit_reasoning_metadata():
         build_openai_reasoning_config("legacy-openai-model")
 
 
+def test_openai_reasoning_config_accepts_gpt_5_5_presets():
+    assert build_openai_reasoning_config(
+        "gpt-5.5@@gpt-5-5-none-thinking"
+    ) == {"effort": "none", "summary": "detailed"}
+    assert build_openai_reasoning_config(
+        "gpt-5.5@@gpt-5-5-extra-high-thinking"
+    ) == {"effort": "xhigh", "summary": "detailed"}
+
+
 @pytest.mark.asyncio
 async def test_openai_responses_stream_emits_provider_native_reasoning_and_captures_final_payload(
     monkeypatch,

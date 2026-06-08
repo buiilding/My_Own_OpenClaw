@@ -39,6 +39,11 @@ Provider instances are created in `backend/src/llm/providers/__init__.py`. Cloud
 
 The frontend model selector consumes model-list output from the backend. Do not hard-code new model behavior only in the renderer.
 
+OpenAI GPT-5.4 and GPT-5.5 are represented as separate backend catalog
+families. Each family exposes `none`, `low`, `medium`, `high`, and `xhigh`
+reasoning presets; the provider request path reads the explicit
+`reasoning_mode` metadata instead of inferring effort from display names.
+
 ## Change Path
 
 1. Add or update provider implementation in `backend/src/llm/providers/*` only if runtime behavior changes.
