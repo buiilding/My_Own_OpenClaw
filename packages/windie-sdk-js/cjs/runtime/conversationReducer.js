@@ -120,9 +120,7 @@ function reduceConversationRuntimeState(state, event) {
     if (event.type === 'compaction_started') {
         return {
             ...base,
-            phase: state.phase === 'tool_call_pending' || state.phase === 'tool_executing'
-                ? state.phase
-                : 'compacting',
+            phase: state.phase,
             compaction: { status: 'started', debug: event.payload },
         };
     }
@@ -142,7 +140,7 @@ function reduceConversationRuntimeState(state, event) {
     if (event.type === 'compaction_applied') {
         return {
             ...base,
-            phase: state.phase === 'compacting' ? 'streaming' : state.phase,
+            phase: state.phase,
             compaction: {
                 status: 'applied',
                 generationId: typeof event.payload.generationId === 'string'
@@ -158,7 +156,7 @@ function reduceConversationRuntimeState(state, event) {
     if (event.type === 'compaction_failed') {
         return {
             ...base,
-            phase: state.phase === 'compacting' ? 'error' : state.phase,
+            phase: state.phase,
             compaction: { status: 'failed', debug: event.payload },
         };
     }

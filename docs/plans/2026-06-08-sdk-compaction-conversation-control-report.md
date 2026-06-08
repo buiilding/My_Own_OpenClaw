@@ -11,7 +11,8 @@ Plan: [SDK Compaction Conversation Control Plan](2026-06-08-sdk-compaction-conve
 
 ## Status
 
-Complete. Implementation, validation, and final design inspection are done.
+Complete. Implementation, follow-up manual-compaction busy-state validation,
+and final design inspection are done.
 
 ## User Intent
 
@@ -78,6 +79,22 @@ not active-turn stream events filtered by the current chat turn id.
   while stale turn-stream backend events are still rejected.
 - Updated `docs/sdk/conversation_runtime.md`,
   `docs/reference/session_and_transcript_reference.md`, and `CHANGELOG.md`.
+- Follow-up inspection after manual compaction reproduced a UI busy-state
+  symptom: `compaction_started` could move a completed turn into `compacting`,
+  `compaction_applied` could then move it to `streaming`, and current-turn
+  projections could treat the compaction operation `turnRef` as a new live turn
+  anchor.
+- Updated the reducer so `compaction_started`, `compaction_applied`, and
+  `compaction_failed` preserve the existing turn phase. Manual compaction after
+  a completed turn now stays completed/non-busy; in-loop compaction preserves
+  the already-active turn-stream phase without extending it.
+- Updated current-turn projections so `compaction_*` and raw
+  `context-compaction-*` lifecycle events do not reset the current turn to the
+  compaction operation id and do not turn compaction failure into a live turn
+  error.
+- Added a regression proving completed-turn manual compaction keeps
+  `presentation.isBusy: false` and leaves the current turn anchored to the
+  assistant turn, not the compaction operation.
 - Final design inspection found:
   - SDK backend acceptance now gates turn-stream events by active turn while
     accepting compaction conversation-control events by conversation and
@@ -92,6 +109,9 @@ not active-turn stream events filtered by the current chat turn id.
     guards remain separate and out of the durable checkpoint path.
   - Remaining active-turn equality checks are for turn-stream/display/tracking
     paths, not SDK compaction checkpoint persistence.
+  - Remaining current-turn phase/projection paths ignore compaction lifecycle
+    events as live-loop drivers while still allowing compaction status/checkpoint
+    projection.
 
 ## Checklist
 
@@ -102,6 +122,9 @@ not active-turn stream events filtered by the current chat turn id.
 - [x] Event-scope classification implemented.
 - [x] Backend event accept gate updated.
 - [x] Runtime reducer updated so compaction does not mutate active turn.
+- [x] Runtime reducer updated so compaction does not mutate active turn phase.
+- [x] Current-turn projections updated so compaction operation ids do not become
+      live-turn anchors.
 - [x] Compaction checkpoint persistence verified through SDK store.
 - [x] Replay/rehydrate checkpoint behavior verified.
 - [x] Focused tests added/updated.
@@ -117,6 +140,7 @@ not active-turn stream events filtered by the current chat turn id.
       accepted when `conversationRef` matches.
 - [x] Stale turn-stream events with mismatched `turnRef` are still rejected.
 - [x] Compaction events do not mutate `state.activeTurnRef`.
+- [x] Compaction events do not mutate `state.phase` or current-turn busy state.
 - [x] `compaction_applied` reaches the configured `ConversationStore`.
 - [x] Sidecar-backed storage persists `compaction_checkpoint`.
 - [x] Replay/rehydrate uses a complete active compacted checkpoint when present.
@@ -146,6 +170,18 @@ not active-turn stream events filtered by the current chat turn id.
 - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/WindieSdkConversationRuntime.test.ts ../tests/frontend/WindieAgentConversationStoreApi.test.ts --watch=false`:
   passed, 2 suites / 107 tests.
 - `cd packages/windie-sdk-js && npm run build`: passed.
+- `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/WindieSdkConversationRuntime.test.ts --watch=false`:
+  passed after manual-compaction busy-state regression, 1 suite / 104 tests.
+- `cd packages/windie-sdk-js && npm run build`: passed after
+  manual-compaction busy-state reducer/projection updates.
+- `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/ChatStreamCompactionHandlers.test.ts ../tests/frontend/WindieSdkConversationRuntime.test.ts --watch=false`:
+  passed after manual-compaction busy-state update, 2 suites / 108 tests.
+- `cd frontend && npm run typecheck`: passed after manual-compaction
+  busy-state update.
+- `bin/windie docs list`: passed after manual-compaction busy-state docs/report
+  updates.
+- `git diff --check`: passed after manual-compaction busy-state docs/report
+  updates.
 - `bin/windie docs list`: passed after docs updates.
 - `git diff --check`: passed.
 - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/ChatStreamCompactionHandlers.test.ts ../tests/frontend/WindieSdkConversationRuntime.test.ts ../tests/frontend/WindieAgentConversationStoreApi.test.ts --watch=false`:

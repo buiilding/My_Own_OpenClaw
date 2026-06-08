@@ -48,6 +48,13 @@ function textFromPayload(payload: JsonRecord): string {
   return '';
 }
 
+function isConversationControlProjectionEvent(event: ConversationEvent): boolean {
+  return event.type === 'compaction_started'
+    || event.type === 'compaction_skipped'
+    || event.type === 'compaction_applied'
+    || event.type === 'compaction_failed';
+}
+
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const EMPTY_CHAT_GREETING_TEXT = 'Hi! What can I help you with?';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
@@ -707,6 +714,9 @@ function resetCurrentTurnIfNeeded(
   current: CurrentTurnProjection,
   event: ConversationEvent,
 ): CurrentTurnProjection {
+  if (isConversationControlProjectionEvent(event)) {
+    return current;
+  }
   if (!event.turnRef || current.turnRef === event.turnRef) {
     return current;
   }
@@ -882,6 +892,9 @@ export function buildCurrentTurnProjection(events: ConversationEvent[]): Current
     if (!projection.conversationRef) {
       projection = { ...projection, conversationRef: event.conversationRef };
     }
+    if (isConversationControlProjectionEvent(event)) {
+      continue;
+    }
     if (!projection.turnRef && event.turnRef) {
       projection = { ...projection, turnRef: event.turnRef };
     }
@@ -939,8 +952,8 @@ export function buildCurrentTurnProjection(events: ConversationEvent[]): Current
       };
       continue;
     }
-    if (event.type === 'turn_error' || event.type === 'runtime_error' || event.type === 'compaction_failed') {
-      if (event.type !== 'compaction_failed' && shouldIgnoreCurrentTurnError(event.payload)) {
+    if (event.type === 'turn_error' || event.type === 'runtime_error') {
+      if (shouldIgnoreCurrentTurnError(event.payload)) {
         continue;
       }
       projection = {

@@ -76,6 +76,17 @@ function textFromPayload(payload) {
         return payload.error;
     return '';
 }
+function isConversationControlProjectionEventType(type) {
+    return type === 'compaction_started'
+        || type === 'compaction_skipped'
+        || type === 'compaction_applied'
+        || type === 'compaction_failed';
+}
+function isConversationControlBackendEventType(type) {
+    return type === 'context-compaction-started'
+        || type === 'context-compaction-completed'
+        || type === 'context-compaction-failed';
+}
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
     'failed to parse streamed tool-call arguments',
@@ -228,6 +239,11 @@ function updateCurrentTurnProjectionFromConversationEvent(currentProjection, eve
     if (!conversationRef) {
         return null;
     }
+    if (isConversationControlProjectionEventType(eventRecord.type)) {
+        return currentProjection && currentProjection.conversationRef === conversationRef
+            ? currentProjection
+            : null;
+    }
     const turnRef = typeof eventRecord.turnRef === 'string' && eventRecord.turnRef.trim()
         ? eventRecord.turnRef.trim()
         : null;
@@ -286,8 +302,7 @@ function updateCurrentTurnProjectionFromConversationEvent(currentProjection, eve
         };
     }
     if (eventRecord.type === 'turn_error'
-        || eventRecord.type === 'runtime_error'
-        || eventRecord.type === 'compaction_failed') {
+        || eventRecord.type === 'runtime_error') {
         if (eventRecord.type === 'turn_error' && shouldIgnoreCurrentTurnError(payload)) {
             return null;
         }
@@ -306,6 +321,11 @@ function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, o
     const conversationRef = conversationRefFrom(eventRecord, options.fallbackConversationRef);
     if (!conversationRef) {
         return null;
+    }
+    if (isConversationControlBackendEventType(eventRecord.type)) {
+        return currentProjection && currentProjection.conversationRef === conversationRef
+            ? currentProjection
+            : null;
     }
     const turnRef = turnRefFrom(eventRecord);
     let projection = currentProjection && currentProjection.conversationRef === conversationRef
@@ -362,7 +382,7 @@ function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, o
             lastError: null,
         };
     }
-    if (eventRecord.type === 'error' || eventRecord.type === 'context-compaction-failed') {
+    if (eventRecord.type === 'error') {
         if (eventRecord.type === 'error' && shouldIgnoreCurrentTurnError(payload)) {
             return null;
         }

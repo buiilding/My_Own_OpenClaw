@@ -85,7 +85,10 @@ filtering:
 
 The reducer updates `state.activeTurnRef` only from turn-stream events.
 Conversation-control compaction events update `state.compaction` and replay
-checkpoint state without replacing the active turn identity.
+checkpoint state without replacing the active turn identity or changing the
+active turn phase. Manual compaction after a completed turn preserves the
+completed, non-busy current-turn state. Compaction during an active loop
+preserves that loop's existing turn-stream phase without extending it.
 
 `settings_updated` is the conversation-runtime record for SDK-owned settings
 changes such as model/provider selection. `conversation.setModel(...)` and
@@ -114,6 +117,11 @@ re-reading the whole current-turn object. Electron main emits the projection to
 renderer surfaces as `conversation-runtime-updated`. Renderer overlays should
 render `currentTurn.presentation.entries` instead of independently interpreting
 raw backend stream/tool events or synthesizing current-turn chat messages.
+Conversation-control compaction events are not current-turn events: they must
+not reset the current-turn anchor to a compaction operation id, set
+`presentation.isBusy`, or turn a manual compaction failure into an assistant
+turn error. Compaction status remains available through `state.compaction` and
+display/debug projections.
 Electron main emits SDK-normalized conversation side-effect events separately
 as `conversation-event`; chat transcript/session handlers consume that channel
 instead of subscribing to raw `from-backend` stream semantics.
@@ -379,7 +387,10 @@ rehydrate base.
 Manual compaction may use a backend operation id that differs from the current
 active chat turn. The SDK preserves that id as `operationRef`/`compactionRef`
 metadata and the event's `turnRef`, but compaction events are
-conversation-control events and must not mutate `state.activeTurnRef`.
+conversation-control events and must not mutate `state.activeTurnRef`,
+`state.phase`, or the current-turn projection. The renderer may show a
+compaction lifecycle row, but stop eligibility and live-loop state continue to
+come only from turn-stream events.
 
 Only `compaction_applied` with actual replacement history should affect compacted
 replay snapshots. A store adapter must activate a compacted replay generation

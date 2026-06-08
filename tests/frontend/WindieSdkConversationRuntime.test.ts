@@ -615,6 +615,71 @@ describe('Windie SDK conversation runtime core', () => {
     expect(afterCompaction.compaction.status).toBe('applied');
   });
 
+  test('manual compaction preserves a completed turn as non-busy', () => {
+    const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
+    const completedTurn = [
+      eventForTurn('turn-live', 'turn_started', {}),
+      eventForTurn('turn-live', 'user_message', { text: 'what should I study?' }),
+      eventForTurn('turn-live', 'assistant_delta', { text: 'Study the handbook.' }),
+      eventForTurn('turn-live', 'turn_completed', {}),
+    ];
+    const afterCompleted = completedTurn.reduce(
+      reduceConversationRuntimeState,
+      initial,
+    );
+    const afterStartedCompaction = reduceConversationRuntimeState(
+      afterCompleted,
+      eventForTurn('compact-op', 'compaction_started', { reason: 'manual' }),
+    );
+    const afterAppliedCompaction = reduceConversationRuntimeState(
+      afterStartedCompaction,
+      eventForTurn('compact-op', 'compaction_applied', {
+        generationId: 'gen-compact',
+        entries: [{ role: 'assistant', content: 'summary' }],
+        entryCount: 1,
+        complete: true,
+      }),
+    );
+
+    expect(afterCompleted).toMatchObject({
+      activeTurnRef: 'turn-live',
+      phase: 'completed',
+    });
+    expect(afterStartedCompaction).toMatchObject({
+      activeTurnRef: 'turn-live',
+      phase: 'completed',
+      compaction: expect.objectContaining({ status: 'started' }),
+    });
+    expect(afterAppliedCompaction).toMatchObject({
+      activeTurnRef: 'turn-live',
+      phase: 'completed',
+      compaction: expect.objectContaining({ status: 'applied' }),
+    });
+
+    const projection = buildCurrentTurnProjection([
+      ...completedTurn,
+      eventForTurn('compact-op', 'compaction_started', { reason: 'manual' }),
+      eventForTurn('compact-op', 'compaction_applied', {
+        generationId: 'gen-compact',
+        entries: [{ role: 'assistant', content: 'summary' }],
+        entryCount: 1,
+        complete: true,
+      }),
+      eventForTurn('compact-op', 'compaction_failed', { error: 'late diagnostic' }),
+    ]);
+
+    expect(projection).toMatchObject({
+      turnRef: 'turn-live',
+      phase: 'complete',
+      assistantText: 'Study the handbook.',
+      lastError: null,
+      presentation: expect.objectContaining({
+        isBusy: false,
+        isTerminal: true,
+      }),
+    });
+  });
+
   test('runtime reducer can resolve pending tool waits by provider-safe tool call id', () => {
     const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
     const afterTool = reduceConversationRuntimeState(
