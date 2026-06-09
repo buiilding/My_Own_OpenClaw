@@ -41,7 +41,8 @@ export function resolveTranscriptMessageType(message) {
 }
 
 export function toRehydratePayload(message) {
-  // Search trace rows are display transparency, not provider-facing history.
+  // Visual search trace rows are not replayed directly; SDK rehydrate
+  // synthesizes paired web_search history from native tool_progress events.
   if (message?.type === 'search-source') {
     return null;
   }

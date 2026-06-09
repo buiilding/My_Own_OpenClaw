@@ -159,7 +159,8 @@ SDK current-turn tool events:
 - dashboard renders SDK display rows for normal tool-call/tool-output rows and
   retained OpenAI-native `tool_progress` search trace rows. Response overlay
   renders current-turn tool-call/tool-output/tool-progress rows from the SDK
-  projection.
+  projection. Rehydrate history groups OpenAI-native progress-only search into a
+  synthetic paired Windie `web_search` tool call/output.
 - record active tool phase tracking from `currentTurn.toolEvents`
 
 SDK current-turn terminal phase:

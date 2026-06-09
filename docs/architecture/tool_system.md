@@ -120,7 +120,9 @@ Some logical tools are fulfilled entirely in the backend and never go through th
   trace), but those progress events come from the main LLM turn rather than a
   backend logical tool execution. They are retained as display transparency but
   are not followed by backend `tool-call`/`tool-output` rows for the same
-  search.
+  search. During SDK rehydrate, progress-only native search is normalized into a
+  synthetic Windie `web_search` `tool_call`/`tool_output` pair; these rows are
+  Windie-normalized history, not OpenAI-emitted function tool outputs.
 
 ### Backend Responsibilities
 

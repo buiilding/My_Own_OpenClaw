@@ -1652,15 +1652,32 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
-  test('tool progress stays in display rows but out of rehydrate projections', () => {
-    const progress = event('tool_progress', {
+  test('native web search progress is rehydrated as one synthetic web_search tool pair', () => {
+    const firstProgress = event('tool_progress', {
+      text: 'Searching web',
+      toolName: 'web_search',
+      requestId: 'req-search-1',
+      correlationId: 'corr-search-1',
+      query: 'windieos docs',
+    });
+    const secondProgress = event('tool_progress', {
       text: 'Searched example.com',
       toolName: 'web_search',
       requestId: 'req-search-1',
       correlationId: 'corr-search-1',
+      query: 'windieos docs',
+      url: 'https://example.com/docs',
     });
 
-    expect(buildDisplayConversation([progress]).messages).toEqual([
+    expect(buildDisplayConversation([firstProgress, secondProgress]).messages).toEqual([
+      expect.objectContaining({
+        sender: 'assistant',
+        text: 'Searching web',
+        messageType: 'tool_progress',
+        toolName: 'web_search',
+        requestId: 'req-search-1',
+        correlationId: 'corr-search-1',
+      }),
       expect.objectContaining({
         sender: 'assistant',
         text: 'Searched example.com',
@@ -1670,7 +1687,17 @@ describe('Windie SDK conversation runtime core', () => {
         correlationId: 'corr-search-1',
       }),
     ]);
-    expect(buildDisplayRows([progress])).toEqual([
+    expect(buildDisplayRows([firstProgress, secondProgress])).toEqual([
+      expect.objectContaining({
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Searching web',
+        metadata: expect.objectContaining({
+          toolName: 'web_search',
+          requestId: 'req-search-1',
+          correlationId: 'corr-search-1',
+        }),
+      }),
       expect.objectContaining({
         role: 'assistant',
         type: 'tool_progress',
@@ -1682,7 +1709,83 @@ describe('Windie SDK conversation runtime core', () => {
         }),
       }),
     ]);
-    expect(buildRehydrateSnapshot([progress]).messages).toEqual([]);
+    expect(buildRehydrateSnapshot([firstProgress, secondProgress]).messages).toEqual([
+      expect.objectContaining({
+        role: 'assistant',
+        content: '',
+        tool_call_id: 'native-web-search:turn-1:req-search-1',
+        tool_calls: [
+          {
+            id: 'native-web-search:turn-1:req-search-1',
+            name: 'web_search',
+            arguments: {
+              query: 'windieos docs',
+              count: 2,
+            },
+          },
+        ],
+      }),
+      expect.objectContaining({
+        role: 'tool',
+        tool_name: 'web_search',
+        tool_call_id: 'native-web-search:turn-1:req-search-1',
+        content: [
+          'OpenAI native web_search activity:',
+          '- Searching web',
+          '- Searched example.com',
+        ].join('\n'),
+        structured_payload: expect.objectContaining({
+          synthetic_native_web_search: true,
+          progress_events: [
+            expect.objectContaining({ text: 'Searching web' }),
+            expect.objectContaining({ text: 'Searched example.com' }),
+          ],
+        }),
+      }),
+    ]);
+  });
+
+  test('native web search progress does not synthesize duplicate history when a real web_search pair exists', () => {
+    const events = [
+      event('tool_call', {
+        toolName: 'web_search',
+        requestId: 'req-search-real',
+        toolCallId: 'call-search-real',
+        tool_calls: [{
+          id: 'call-search-real',
+          name: 'web_search',
+          arguments: { query: 'windieos docs' },
+        }],
+      }),
+      event('tool_progress', {
+        text: 'Searched example.com',
+        toolName: 'web_search',
+        requestId: 'req-search-real',
+        correlationId: 'req-search-real',
+      }),
+      event('tool_output', {
+        toolName: 'web_search',
+        requestId: 'req-search-real',
+        toolCallId: 'call-search-real',
+        output: 'real web search output',
+      }),
+    ];
+
+    const rehydrateMessages = buildRehydrateSnapshot(events).messages;
+
+    expect(rehydrateMessages.filter(message => message.role === 'assistant')).toHaveLength(1);
+    expect(rehydrateMessages.filter(message => message.role === 'tool')).toHaveLength(1);
+    expect(rehydrateMessages).toEqual([
+      expect.objectContaining({
+        role: 'assistant',
+        tool_call_id: 'call-search-real',
+      }),
+      expect.objectContaining({
+        role: 'tool',
+        tool_call_id: 'call-search-real',
+        content: 'real web search output',
+      }),
+    ]);
   });
 
   test('backend query-accepted normalizes to turn_started', () => {

@@ -344,8 +344,10 @@ Identity notes:
 - Notes:
   - Current producer is OpenAI native `web_search` only.
   - The SDK records these as `tool_progress` events and retains them in display
-    rows for dashboard transparency, but rehydrate/model history still excludes
-    them because they are not provider tool-call/tool-output pairs.
+    rows for dashboard transparency. For rehydrate/model history, the SDK
+    groups progress-only native search into one synthetic Windie `web_search`
+    `tool_call`/`tool_output` pair so follow-up turns can see that native search
+    happened without replaying orphan progress rows.
 
 **`tool-output`**
 - Purpose: Tool execution result

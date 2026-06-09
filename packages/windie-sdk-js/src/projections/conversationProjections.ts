@@ -1212,6 +1212,261 @@ function withoutAssistantMessagesForErroredTurns(events: ConversationEvent[]): C
   ));
 }
 
+type NativeWebSearchProgressEntry = {
+  eventId: string;
+  text: string;
+  query: string | null;
+  url: string | null;
+  pattern: string | null;
+  actionType: string | null;
+};
+
+type NativeWebSearchProgressGroup = {
+  firstIndex: number;
+  conversationRef: string;
+  turnRef: string | null;
+  revisionId: string;
+  timestamp: string;
+  requestId: string | null;
+  correlationId: string | null;
+  entries: NativeWebSearchProgressEntry[];
+};
+
+function isWebSearchToolName(toolName: string | null): boolean {
+  return (toolName ?? '').trim() === 'web_search';
+}
+
+function modelFacingToolNameFromPayload(payload: JsonRecord): string | null {
+  const firstToolCall = recordFromUnknown(toolCallsFromPayload(payload)?.[0]);
+  return stringField(firstToolCall, 'name', 'toolName', 'tool_name');
+}
+
+function isWebSearchToolPayload(payload: JsonRecord): boolean {
+  return isWebSearchToolName(toolNameFromPayload(payload) ?? modelFacingToolNameFromPayload(payload));
+}
+
+function isNativeWebSearchProgressPayload(payload: JsonRecord): boolean {
+  if (isWebSearchToolPayload(payload)) {
+    return true;
+  }
+  if (stringField(payload, 'sourceEventType', 'source_event_type') === 'web-search-progress') {
+    return true;
+  }
+  const rawEvent = recordFromUnknown(payload.rawEvent);
+  return stringField(rawEvent, 'type') === 'web-search-progress';
+}
+
+function progressGroupIdentity(event: ConversationEvent): string | null {
+  return stringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
+}
+
+function nativeWebSearchProgressGroupKey(event: ConversationEvent): string {
+  const identity = progressGroupIdentity(event);
+  if (identity) {
+    return `${event.conversationRef}:${event.turnRef ?? 'no-turn'}:${identity}`;
+  }
+  if (event.turnRef) {
+    return `${event.conversationRef}:${event.turnRef}:native-web-search`;
+  }
+  return `${event.conversationRef}:${event.eventId}:native-web-search`;
+}
+
+function realWebSearchPairGroupKeys(events: ConversationEvent[]): Set<string> {
+  const callGroups = new Set<string>();
+  const outputGroups = new Set<string>();
+  for (const event of events) {
+    if (
+      (event.type !== 'tool_call' && event.type !== 'tool_output')
+      || !isWebSearchToolPayload(event.payload)
+    ) {
+      continue;
+    }
+    const groupKey = nativeWebSearchProgressGroupKey(event);
+    if (event.type === 'tool_call') {
+      callGroups.add(groupKey);
+    } else {
+      outputGroups.add(groupKey);
+    }
+  }
+  const pairGroups = new Set<string>();
+  for (const groupKey of callGroups) {
+    if (outputGroups.has(groupKey)) {
+      pairGroups.add(groupKey);
+    }
+  }
+  return pairGroups;
+}
+
+function nativeWebSearchProgressEntry(event: ConversationEvent): NativeWebSearchProgressEntry | null {
+  if (event.type !== 'tool_progress') {
+    return null;
+  }
+  if (!isNativeWebSearchProgressPayload(event.payload)) {
+    return null;
+  }
+  const text = textFromPayload(event.payload).trim();
+  if (!text) {
+    return null;
+  }
+  return {
+    eventId: event.eventId,
+    text,
+    query: stringField(event.payload, 'query'),
+    url: stringField(event.payload, 'url'),
+    pattern: stringField(event.payload, 'pattern'),
+    actionType: stringField(event.payload, 'actionType', 'action_type'),
+  };
+}
+
+function nativeWebSearchToolCallId(group: NativeWebSearchProgressGroup): string {
+  return [
+    'native-web-search',
+    group.turnRef ?? group.requestId ?? group.entries[0]?.eventId ?? 'progress',
+    group.requestId ?? group.correlationId ?? 'trace',
+  ].join(':');
+}
+
+function nativeWebSearchQuery(group: NativeWebSearchProgressGroup): string {
+  const explicitQuery = group.entries.find(entry => entry.query)?.query;
+  if (explicitQuery) {
+    return explicitQuery;
+  }
+  const sourceHosts = Array.from(new Set(group.entries.flatMap(entry => {
+    if (!entry.url) {
+      return [];
+    }
+    try {
+      return [new URL(entry.url).hostname.replace(/^www\./, '')];
+    } catch {
+      return [];
+    }
+  })));
+  if (sourceHosts.length > 0) {
+    return `OpenAI native web search over ${sourceHosts.slice(0, 5).join(', ')}`;
+  }
+  return 'OpenAI native web search';
+}
+
+function nativeWebSearchToolOutput(group: NativeWebSearchProgressGroup): string {
+  const uniqueLines: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of group.entries) {
+    if (seen.has(entry.text)) {
+      continue;
+    }
+    seen.add(entry.text);
+    uniqueLines.push(entry.text);
+  }
+  return [
+    'OpenAI native web_search activity:',
+    ...uniqueLines.map(line => `- ${line}`),
+  ].join('\n');
+}
+
+function buildNativeWebSearchSyntheticEvents(
+  group: NativeWebSearchProgressGroup,
+): ConversationEvent[] {
+  const toolCallId = nativeWebSearchToolCallId(group);
+  const argumentsPayload = {
+    query: nativeWebSearchQuery(group),
+    count: Math.max(1, Math.min(group.entries.length, 10)),
+  };
+  const commonPayload = {
+    toolName: 'web_search',
+    requestId: group.requestId,
+    correlationId: group.correlationId ?? group.requestId,
+    toolCallId,
+    syntheticNativeWebSearch: true,
+    synthetic_native_web_search: true,
+    sourceEventIds: group.entries.map(entry => entry.eventId),
+    nativeProgress: group.entries,
+  };
+  return [
+    {
+      eventId: `${toolCallId}:call`,
+      type: 'tool_call',
+      conversationRef: group.conversationRef,
+      turnRef: group.turnRef,
+      revisionId: group.revisionId,
+      timestamp: group.timestamp,
+      source: 'sdk',
+      payload: {
+        ...commonPayload,
+        args: argumentsPayload,
+        tool_calls: [{
+          id: toolCallId,
+          name: 'web_search',
+          arguments: argumentsPayload,
+        }],
+        structuredPayload: {
+          synthetic_native_web_search: true,
+          progress_events: group.entries,
+        },
+      },
+    },
+    {
+      eventId: `${toolCallId}:output`,
+      type: 'tool_output',
+      conversationRef: group.conversationRef,
+      turnRef: group.turnRef,
+      revisionId: group.revisionId,
+      timestamp: group.timestamp,
+      source: 'sdk',
+      payload: {
+        ...commonPayload,
+        success: true,
+        output: nativeWebSearchToolOutput(group),
+        structuredPayload: {
+          synthetic_native_web_search: true,
+          progress_events: group.entries,
+        },
+      },
+    },
+  ];
+}
+
+function withSyntheticNativeWebSearchToolPairs(events: ConversationEvent[]): ConversationEvent[] {
+  const existingPairGroups = realWebSearchPairGroupKeys(events);
+  const groups = new Map<string, NativeWebSearchProgressGroup>();
+  for (let index = 0; index < events.length; index += 1) {
+    const event = events[index];
+    const entry = nativeWebSearchProgressEntry(event);
+    if (!entry) {
+      continue;
+    }
+    const key = nativeWebSearchProgressGroupKey(event);
+    if (existingPairGroups.has(key)) {
+      continue;
+    }
+    const current = groups.get(key);
+    if (current) {
+      current.entries.push(entry);
+      continue;
+    }
+    groups.set(key, {
+      firstIndex: index,
+      conversationRef: event.conversationRef,
+      turnRef: event.turnRef ?? null,
+      revisionId: event.revisionId,
+      timestamp: event.timestamp,
+      requestId: stringField(event.payload, 'requestId', 'request_id'),
+      correlationId: stringField(event.payload, 'correlationId', 'correlation_id'),
+      entries: [entry],
+    });
+  }
+  if (groups.size === 0) {
+    return events;
+  }
+  const insertions = new Map<number, ConversationEvent[]>();
+  for (const group of groups.values()) {
+    insertions.set(group.firstIndex, buildNativeWebSearchSyntheticEvents(group));
+  }
+  return events.flatMap((event, index) => [
+    ...(insertions.get(index) ?? []),
+    event,
+  ]);
+}
+
 function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'assistant_delta') {
     return null;
@@ -1401,7 +1656,9 @@ function toRehydrateMessages(event: ConversationEvent): JsonRecord[] {
 export function buildRehydrateSnapshot(events: ConversationEvent[]): RehydrateSnapshot {
   const display = buildDisplayConversation(events);
   const rehydrateEvents = withoutOrphanEmptyChatGreeting(
-    withoutDanglingToolPairs(withoutDuplicateToolOutputs(events)),
+    withoutDanglingToolPairs(withoutDuplicateToolOutputs(
+      withSyntheticNativeWebSearchToolPairs(events),
+    )),
   );
   return {
     conversationRef: display.conversationRef,

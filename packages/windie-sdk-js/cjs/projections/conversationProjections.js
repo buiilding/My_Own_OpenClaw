@@ -1058,6 +1058,226 @@ function withoutAssistantMessagesForErroredTurns(events) {
     return events.filter(event => (event.type !== 'assistant_message'
         || !erroredTurnKeys.has(streamingAssistantKey(event))));
 }
+function isWebSearchToolName(toolName) {
+    return (toolName ?? '').trim() === 'web_search';
+}
+function modelFacingToolNameFromPayload(payload) {
+    const firstToolCall = (0, toolOutputContent_js_1.recordFromUnknown)(toolCallsFromPayload(payload)?.[0]);
+    return (0, toolOutputContent_js_1.stringField)(firstToolCall, 'name', 'toolName', 'tool_name');
+}
+function isWebSearchToolPayload(payload) {
+    return isWebSearchToolName(toolNameFromPayload(payload) ?? modelFacingToolNameFromPayload(payload));
+}
+function isNativeWebSearchProgressPayload(payload) {
+    if (isWebSearchToolPayload(payload)) {
+        return true;
+    }
+    if ((0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type') === 'web-search-progress') {
+        return true;
+    }
+    const rawEvent = (0, toolOutputContent_js_1.recordFromUnknown)(payload.rawEvent);
+    return (0, toolOutputContent_js_1.stringField)(rawEvent, 'type') === 'web-search-progress';
+}
+function progressGroupIdentity(event) {
+    return (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
+}
+function nativeWebSearchProgressGroupKey(event) {
+    const identity = progressGroupIdentity(event);
+    if (identity) {
+        return `${event.conversationRef}:${event.turnRef ?? 'no-turn'}:${identity}`;
+    }
+    if (event.turnRef) {
+        return `${event.conversationRef}:${event.turnRef}:native-web-search`;
+    }
+    return `${event.conversationRef}:${event.eventId}:native-web-search`;
+}
+function realWebSearchPairGroupKeys(events) {
+    const callGroups = new Set();
+    const outputGroups = new Set();
+    for (const event of events) {
+        if ((event.type !== 'tool_call' && event.type !== 'tool_output')
+            || !isWebSearchToolPayload(event.payload)) {
+            continue;
+        }
+        const groupKey = nativeWebSearchProgressGroupKey(event);
+        if (event.type === 'tool_call') {
+            callGroups.add(groupKey);
+        }
+        else {
+            outputGroups.add(groupKey);
+        }
+    }
+    const pairGroups = new Set();
+    for (const groupKey of callGroups) {
+        if (outputGroups.has(groupKey)) {
+            pairGroups.add(groupKey);
+        }
+    }
+    return pairGroups;
+}
+function nativeWebSearchProgressEntry(event) {
+    if (event.type !== 'tool_progress') {
+        return null;
+    }
+    if (!isNativeWebSearchProgressPayload(event.payload)) {
+        return null;
+    }
+    const text = textFromPayload(event.payload).trim();
+    if (!text) {
+        return null;
+    }
+    return {
+        eventId: event.eventId,
+        text,
+        query: (0, toolOutputContent_js_1.stringField)(event.payload, 'query'),
+        url: (0, toolOutputContent_js_1.stringField)(event.payload, 'url'),
+        pattern: (0, toolOutputContent_js_1.stringField)(event.payload, 'pattern'),
+        actionType: (0, toolOutputContent_js_1.stringField)(event.payload, 'actionType', 'action_type'),
+    };
+}
+function nativeWebSearchToolCallId(group) {
+    return [
+        'native-web-search',
+        group.turnRef ?? group.requestId ?? group.entries[0]?.eventId ?? 'progress',
+        group.requestId ?? group.correlationId ?? 'trace',
+    ].join(':');
+}
+function nativeWebSearchQuery(group) {
+    const explicitQuery = group.entries.find(entry => entry.query)?.query;
+    if (explicitQuery) {
+        return explicitQuery;
+    }
+    const sourceHosts = Array.from(new Set(group.entries.flatMap(entry => {
+        if (!entry.url) {
+            return [];
+        }
+        try {
+            return [new URL(entry.url).hostname.replace(/^www\./, '')];
+        }
+        catch {
+            return [];
+        }
+    })));
+    if (sourceHosts.length > 0) {
+        return `OpenAI native web search over ${sourceHosts.slice(0, 5).join(', ')}`;
+    }
+    return 'OpenAI native web search';
+}
+function nativeWebSearchToolOutput(group) {
+    const uniqueLines = [];
+    const seen = new Set();
+    for (const entry of group.entries) {
+        if (seen.has(entry.text)) {
+            continue;
+        }
+        seen.add(entry.text);
+        uniqueLines.push(entry.text);
+    }
+    return [
+        'OpenAI native web_search activity:',
+        ...uniqueLines.map(line => `- ${line}`),
+    ].join('\n');
+}
+function buildNativeWebSearchSyntheticEvents(group) {
+    const toolCallId = nativeWebSearchToolCallId(group);
+    const argumentsPayload = {
+        query: nativeWebSearchQuery(group),
+        count: Math.max(1, Math.min(group.entries.length, 10)),
+    };
+    const commonPayload = {
+        toolName: 'web_search',
+        requestId: group.requestId,
+        correlationId: group.correlationId ?? group.requestId,
+        toolCallId,
+        syntheticNativeWebSearch: true,
+        synthetic_native_web_search: true,
+        sourceEventIds: group.entries.map(entry => entry.eventId),
+        nativeProgress: group.entries,
+    };
+    return [
+        {
+            eventId: `${toolCallId}:call`,
+            type: 'tool_call',
+            conversationRef: group.conversationRef,
+            turnRef: group.turnRef,
+            revisionId: group.revisionId,
+            timestamp: group.timestamp,
+            source: 'sdk',
+            payload: {
+                ...commonPayload,
+                args: argumentsPayload,
+                tool_calls: [{
+                        id: toolCallId,
+                        name: 'web_search',
+                        arguments: argumentsPayload,
+                    }],
+                structuredPayload: {
+                    synthetic_native_web_search: true,
+                    progress_events: group.entries,
+                },
+            },
+        },
+        {
+            eventId: `${toolCallId}:output`,
+            type: 'tool_output',
+            conversationRef: group.conversationRef,
+            turnRef: group.turnRef,
+            revisionId: group.revisionId,
+            timestamp: group.timestamp,
+            source: 'sdk',
+            payload: {
+                ...commonPayload,
+                success: true,
+                output: nativeWebSearchToolOutput(group),
+                structuredPayload: {
+                    synthetic_native_web_search: true,
+                    progress_events: group.entries,
+                },
+            },
+        },
+    ];
+}
+function withSyntheticNativeWebSearchToolPairs(events) {
+    const existingPairGroups = realWebSearchPairGroupKeys(events);
+    const groups = new Map();
+    for (let index = 0; index < events.length; index += 1) {
+        const event = events[index];
+        const entry = nativeWebSearchProgressEntry(event);
+        if (!entry) {
+            continue;
+        }
+        const key = nativeWebSearchProgressGroupKey(event);
+        if (existingPairGroups.has(key)) {
+            continue;
+        }
+        const current = groups.get(key);
+        if (current) {
+            current.entries.push(entry);
+            continue;
+        }
+        groups.set(key, {
+            firstIndex: index,
+            conversationRef: event.conversationRef,
+            turnRef: event.turnRef ?? null,
+            revisionId: event.revisionId,
+            timestamp: event.timestamp,
+            requestId: (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id'),
+            correlationId: (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId', 'correlation_id'),
+            entries: [entry],
+        });
+    }
+    if (groups.size === 0) {
+        return events;
+    }
+    const insertions = new Map();
+    for (const group of groups.values()) {
+        insertions.set(group.firstIndex, buildNativeWebSearchSyntheticEvents(group));
+    }
+    return events.flatMap((event, index) => [
+        ...(insertions.get(index) ?? []),
+        event,
+    ]);
+}
 function toDisplayMessage(event) {
     if (event.type === 'assistant_delta') {
         return null;
@@ -1231,7 +1451,7 @@ function toRehydrateMessages(event) {
 }
 function buildRehydrateSnapshot(events) {
     const display = buildDisplayConversation(events);
-    const rehydrateEvents = withoutOrphanEmptyChatGreeting(withoutDanglingToolPairs(withoutDuplicateToolOutputs(events)));
+    const rehydrateEvents = withoutOrphanEmptyChatGreeting(withoutDanglingToolPairs(withoutDuplicateToolOutputs(withSyntheticNativeWebSearchToolPairs(events))));
     return {
         conversationRef: display.conversationRef,
         revisionId: display.revisionId,

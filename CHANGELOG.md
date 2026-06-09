@@ -17,8 +17,9 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - sdk/frontend: retain OpenAI-native `tool_progress` web-search rows in SDK
-  display rows and map them to dashboard `search-source` messages, while keeping
-  those search traces out of provider-facing rehydrate history.
+  display rows, map them to dashboard `search-source` messages, and synthesize a
+  paired Windie `web_search` call/output during SDK rehydrate so later turns can
+  see native search activity without orphan progress rows.
 - docs/web-search: clarify that OpenAI-native `web-search-progress` rows come
   from the main LLM turn and are not followed by backend `tool-call` /
   `tool-output` rows, while Gemini/Brave logical `web_search` still uses normal
