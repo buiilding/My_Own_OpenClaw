@@ -40,7 +40,9 @@ def _install_fake_modules(monkeypatch, *, screenshot_fn, stub_system_capture=Tru
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
     monkeypatch.setitem(sys.modules, "PIL", pil_module)
     if stub_system_capture:
-        monkeypatch.setattr(screenshot_tool, "_capture_with_system_cursor", lambda region=None: None)
+        monkeypatch.setattr(
+            screenshot_tool, "_capture_with_system_cursor", lambda region=None: None
+        )
 
 
 @pytest.mark.asyncio
@@ -67,27 +69,29 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
     assert "screenshot_path" not in payload
     assert payload["size"] == len(b"fake-jpeg-bytes")
     assert payload["capture_meta"] == {
-      "source_w": 300,
-      "source_h": 200,
-      "crop_x": 10,
-      "crop_y": 20,
-      "crop_w": 300,
-      "crop_h": 200,
-      "desktop_virtual_bounds": {
-        "x": 10,
-        "y": 20,
-        "width": 300,
-        "height": 200,
-      },
-      "monitor_id": None,
-      "timestamp": payload["capture_meta"]["timestamp"],
-      "capture_engine": "pyautogui_fallback",
+        "source_w": 300,
+        "source_h": 200,
+        "crop_x": 10,
+        "crop_y": 20,
+        "crop_w": 300,
+        "crop_h": 200,
+        "desktop_virtual_bounds": {
+            "x": 10,
+            "y": 20,
+            "width": 300,
+            "height": 200,
+        },
+        "monitor_id": None,
+        "timestamp": payload["capture_meta"]["timestamp"],
+        "capture_engine": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
 
 
 @pytest.mark.asyncio
-async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(monkeypatch):
+async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(
+    monkeypatch,
+):
     calls = []
 
     def _screenshot(region=None):
@@ -139,7 +143,9 @@ async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(m
 
 
 @pytest.mark.asyncio
-async def test_capture_screenshot_on_macos_uses_direct_region_for_monitor_bounds(monkeypatch):
+async def test_capture_screenshot_on_macos_uses_direct_region_for_monitor_bounds(
+    monkeypatch,
+):
     calls = []
 
     def _screenshot(region=None):
@@ -224,14 +230,18 @@ async def test_capture_screenshot_windows_uses_native_cursor_capture_path(monkey
     def _screenshot(region=None):  # noqa: ARG001
         raise AssertionError("pyautogui.screenshot should not be used on Windows path")
 
-    _install_fake_modules(monkeypatch, screenshot_fn=_screenshot, stub_system_capture=False)
+    _install_fake_modules(
+        monkeypatch, screenshot_fn=_screenshot, stub_system_capture=False
+    )
     monkeypatch.setattr(screenshot_tool, "_is_windows_platform", lambda: True)
 
     def _fake_windows_capture(region=None):
         called["windows_capture"] = True
         return image
 
-    monkeypatch.setattr(screenshot_tool, "_capture_with_windows_cursor", _fake_windows_capture)
+    monkeypatch.setattr(
+        screenshot_tool, "_capture_with_windows_cursor", _fake_windows_capture
+    )
 
     result = await screenshot_tool.capture_screenshot({})
 
@@ -253,7 +263,9 @@ def test_capture_with_system_cursor_routes_to_linux(monkeypatch):
     monkeypatch.setattr(screenshot_tool, "_is_windows_platform", lambda: False)
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Linux")
     monkeypatch.setattr(screenshot_tool, "_is_linux_x11_session", lambda: False)
-    monkeypatch.setattr(screenshot_tool, "_capture_with_linux_cursor", lambda region=None: sentinel)
+    monkeypatch.setattr(
+        screenshot_tool, "_capture_with_linux_cursor", lambda region=None: sentinel
+    )
 
     result = screenshot_tool._capture_with_system_cursor(None)
 
@@ -267,7 +279,9 @@ def test_capture_with_system_cursor_uses_silent_fallback_on_linux_x11(monkeypatc
     monkeypatch.setattr(
         screenshot_tool,
         "_capture_with_linux_cursor",
-        lambda region=None: (_ for _ in ()).throw(AssertionError("linux native capture should be skipped on x11")),
+        lambda region=None: (_ for _ in ()).throw(
+            AssertionError("linux native capture should be skipped on x11")
+        ),
     )
 
     result = screenshot_tool._capture_with_system_cursor(None)
@@ -282,16 +296,24 @@ def test_overlay_macos_builtin_cursor_uses_repo_owned_cursor(monkeypatch):
 
     pyautogui_module = ModuleType("pyautogui")
     pyautogui_module.position = lambda: SimpleNamespace(x=100, y=150)
+    pyautogui_module.size = lambda: SimpleNamespace(width=300, height=200)
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
 
     cursor_image = object()
-    monkeypatch.setattr(screenshot_tool, "_get_macos_builtin_cursor", lambda: (cursor_image, (4, 6)))
+    monkeypatch.setattr(
+        screenshot_tool, "_get_macos_builtin_cursor", lambda: (cursor_image, (4, 6))
+    )
 
     monkeypatch.setattr(
         screenshot_tool,
         "_paste_cursor_overlay",
         lambda screenshot, *, cursor_image, draw_x, draw_y: overlay_calls.append(
-            {"screenshot": screenshot, "cursor_image": cursor_image, "draw_x": draw_x, "draw_y": draw_y}
+            {
+                "screenshot": screenshot,
+                "cursor_image": cursor_image,
+                "draw_x": draw_x,
+                "draw_y": draw_y,
+            }
         ),
     )
 
@@ -312,11 +334,103 @@ def test_overlay_macos_builtin_cursor_uses_repo_owned_cursor(monkeypatch):
     ]
 
 
-def test_overlay_macos_builtin_cursor_returns_false_when_cursor_generation_fails(monkeypatch):
+def test_overlay_macos_builtin_cursor_scales_desktop_position_to_screenshot_pixels(
+    monkeypatch,
+):
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
+
+    overlay_calls = []
+
+    pyautogui_module = ModuleType("pyautogui")
+    pyautogui_module.position = lambda: SimpleNamespace(x=100, y=150)
+    pyautogui_module.size = lambda: SimpleNamespace(width=300, height=200)
+    monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
+
+    cursor_image = object()
+    monkeypatch.setattr(
+        screenshot_tool, "_get_macos_builtin_cursor", lambda: (cursor_image, (0, 0))
+    )
+
+    monkeypatch.setattr(
+        screenshot_tool,
+        "_paste_cursor_overlay",
+        lambda screenshot, *, cursor_image, draw_x, draw_y: overlay_calls.append(
+            {
+                "screenshot": screenshot,
+                "cursor_image": cursor_image,
+                "draw_x": draw_x,
+                "draw_y": draw_y,
+            }
+        ),
+    )
+
+    screenshot = _FakeImage(mode="RGBA", size=(600, 400))
+    result = screenshot_tool._overlay_macos_builtin_cursor(
+        screenshot,
+        region=(10, 20, 300, 200),
+    )
+
+    assert result is True
+    assert overlay_calls == [
+        {
+            "screenshot": screenshot,
+            "cursor_image": cursor_image,
+            "draw_x": 180,
+            "draw_y": 260,
+        }
+    ]
+
+
+def test_overlay_macos_builtin_cursor_scales_full_desktop_position(monkeypatch):
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
+
+    overlay_calls = []
+
+    pyautogui_module = ModuleType("pyautogui")
+    pyautogui_module.position = lambda: SimpleNamespace(x=1047, y=940)
+    pyautogui_module.size = lambda: SimpleNamespace(width=1710, height=1112)
+    monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
+
+    cursor_image = object()
+    monkeypatch.setattr(
+        screenshot_tool, "_get_macos_builtin_cursor", lambda: (cursor_image, (0, 0))
+    )
+
+    monkeypatch.setattr(
+        screenshot_tool,
+        "_paste_cursor_overlay",
+        lambda screenshot, *, cursor_image, draw_x, draw_y: overlay_calls.append(
+            {
+                "screenshot": screenshot,
+                "cursor_image": cursor_image,
+                "draw_x": draw_x,
+                "draw_y": draw_y,
+            }
+        ),
+    )
+
+    screenshot = _FakeImage(mode="RGBA", size=(3420, 2224))
+    result = screenshot_tool._overlay_macos_builtin_cursor(screenshot, region=None)
+
+    assert result is True
+    assert overlay_calls == [
+        {
+            "screenshot": screenshot,
+            "cursor_image": cursor_image,
+            "draw_x": 2094,
+            "draw_y": 1880,
+        }
+    ]
+
+
+def test_overlay_macos_builtin_cursor_returns_false_when_cursor_generation_fails(
+    monkeypatch,
+):
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
 
     pyautogui_module = ModuleType("pyautogui")
     pyautogui_module.position = lambda: SimpleNamespace(x=100, y=150)
+    pyautogui_module.size = lambda: SimpleNamespace(width=300, height=200)
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
 
     monkeypatch.setattr(
@@ -335,4 +449,9 @@ def test_overlay_macos_builtin_cursor_returns_false_when_cursor_generation_fails
 
     screenshot = _FakeImage(mode="RGBA", size=(300, 200))
 
-    assert screenshot_tool._overlay_macos_builtin_cursor(screenshot, region=(10, 20, 300, 200)) is False
+    assert (
+        screenshot_tool._overlay_macos_builtin_cursor(
+            screenshot, region=(10, 20, 300, 200)
+        )
+        is False
+    )

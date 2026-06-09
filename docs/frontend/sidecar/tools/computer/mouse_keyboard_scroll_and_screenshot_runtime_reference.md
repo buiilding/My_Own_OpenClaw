@@ -156,6 +156,10 @@ Capture engine strategy:
     - non-X11 path may use `scrot`/`gnome-screenshot` include-pointer capture
   - macOS: avoids `screencapture` side-effects and overlays a repo-owned built-in cursor image with a fixed hotspot instead of depending on live AppKit cursor objects, preventing transient oversized cursor states and making cursor rendering deterministic across sidecar runs
 - fallback path uses `pyautogui.screenshot(...)`
+- macOS cursor overlay maps `pyautogui.position()` desktop coordinates into the
+  captured image coordinate space before drawing, so Retina screenshots place
+  the built-in cursor at the matching screenshot pixel rather than at the
+  unscaled desktop point.
 - if region + `desktop_virtual_bounds` are provided, sidecar captures the full virtual desktop first and crops to target monitor region safely (bounds-checked)
 - macOS exception: when monitor bounds are provided, sidecar uses direct bounded capture instead of full-desktop crop because Pillow's macOS region path already returns correctly scaled logical-space images and avoids Retina upper-left clipping
 

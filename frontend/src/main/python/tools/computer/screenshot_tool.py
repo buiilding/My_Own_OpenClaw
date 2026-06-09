@@ -119,7 +119,9 @@ def _crop_full_desktop_capture_to_region(
             "Display bounds fall outside the reported virtual desktop bounds"
         )
 
-    return screenshot.crop((relative_left, relative_top, relative_right, relative_bottom))
+    return screenshot.crop(
+        (relative_left, relative_top, relative_right, relative_bottom)
+    )
 
 
 def _paste_cursor_overlay(
@@ -136,6 +138,52 @@ def _paste_cursor_overlay(
     screenshot_rgba.paste(cursor_image, (draw_x, draw_y), cursor_image)
     if screenshot.mode != "RGBA":
         screenshot.paste(screenshot_rgba.convert(screenshot.mode))
+
+
+def _image_size(value: object) -> Optional[tuple[int, int]]:
+    size = getattr(value, "size", None)
+    if not isinstance(size, tuple) or len(size) != 2:
+        return None
+    width, height = size
+    if not isinstance(width, int) or not isinstance(height, int):
+        return None
+    if width <= 0 or height <= 0:
+        return None
+    return width, height
+
+
+def _map_desktop_cursor_to_image_position(
+    screenshot: object,
+    *,
+    cursor_x: int,
+    cursor_y: int,
+    hot_spot_x: int,
+    hot_spot_y: int,
+    region: Optional[tuple[int, int, int, int]],
+    desktop_size: Optional[tuple[int, int]],
+) -> tuple[int, int]:
+    image_size = _image_size(screenshot)
+    if region:
+        left, top, desktop_w, desktop_h = region
+    else:
+        left, top = 0, 0
+        desktop_w, desktop_h = desktop_size if desktop_size else (None, None)
+
+    if (
+        image_size is None
+        or not isinstance(desktop_w, int)
+        or not isinstance(desktop_h, int)
+        or desktop_w <= 0
+        or desktop_h <= 0
+    ):
+        return cursor_x - hot_spot_x - int(left), cursor_y - hot_spot_y - int(top)
+
+    image_w, image_h = image_size
+    relative_x = cursor_x - int(left)
+    relative_y = cursor_y - int(top)
+    image_x = int(round((relative_x * image_w) / desktop_w))
+    image_y = int(round((relative_y * image_h) / desktop_h))
+    return image_x - hot_spot_x, image_y - hot_spot_y
 
 
 def _capture_with_windows_cursor(region: Optional[tuple[int, int, int, int]]):
@@ -156,7 +204,7 @@ def _capture_with_windows_cursor(region: Optional[tuple[int, int, int, int]]):
         left, top, width, height = region
     else:
         left = int(user32.GetSystemMetrics(76))  # SM_XVIRTUALSCREEN
-        top = int(user32.GetSystemMetrics(77))   # SM_YVIRTUALSCREEN
+        top = int(user32.GetSystemMetrics(77))  # SM_YVIRTUALSCREEN
         width = int(user32.GetSystemMetrics(78))  # SM_CXVIRTUALSCREEN
         height = int(user32.GetSystemMetrics(79))  # SM_CYVIRTUALSCREEN
 
@@ -218,7 +266,9 @@ def _capture_with_windows_cursor(region: Optional[tuple[int, int, int, int]]):
         win32gui.DeleteObject(bitmap.GetHandle())
 
 
-def _crop_if_region(image: object, region: Optional[tuple[int, int, int, int]]) -> object:
+def _crop_if_region(
+    image: object, region: Optional[tuple[int, int, int, int]]
+) -> object:
     if not region:
         return image
     left, top, width, height = region
@@ -231,11 +281,15 @@ def _screenshot_temp_dir() -> str:
     try:
         os.chmod(temp_dir, 0o700)
     except OSError:
-        logger.debug("Unable to tighten screenshot temp directory permissions", exc_info=True)
+        logger.debug(
+            "Unable to tighten screenshot temp directory permissions", exc_info=True
+        )
     return temp_dir
 
 
-def _capture_with_linux_cursor(region: Optional[tuple[int, int, int, int]]) -> Optional[tuple[object, str]]:
+def _capture_with_linux_cursor(
+    region: Optional[tuple[int, int, int, int]],
+) -> Optional[tuple[object, str]]:
     """
     Capture screenshot on Linux including cursor using gnome-screenshot/scrot.
     """
@@ -244,7 +298,9 @@ def _capture_with_linux_cursor(region: Optional[tuple[int, int, int, int]]) -> O
         commands.append((["scrot", "--pointer"], "linux_scrot_pointer"))
         commands.append((["scrot", "-p"], "linux_scrot_p"))
     if shutil.which("gnome-screenshot"):
-        commands.append((["gnome-screenshot", "-p", "-f"], "linux_gnome_screenshot_include_pointer"))
+        commands.append(
+            (["gnome-screenshot", "-p", "-f"], "linux_gnome_screenshot_include_pointer")
+        )
     if not commands:
         return None
 
@@ -267,7 +323,11 @@ def _capture_with_linux_cursor(region: Optional[tuple[int, int, int, int]]) -> O
                     stderr=subprocess.DEVNULL,
                     check=False,
                 )
-                if result.returncode != 0 or not os.path.exists(tmp_path) or os.path.getsize(tmp_path) == 0:
+                if (
+                    result.returncode != 0
+                    or not os.path.exists(tmp_path)
+                    or os.path.getsize(tmp_path) == 0
+                ):
                     continue
                 image = Image.open(tmp_path)
                 image.load()
@@ -435,16 +495,19 @@ def _overlay_macos_builtin_cursor(
 
     try:
         import pyautogui
+
         cursor_image, (hot_spot_x, hot_spot_y) = _get_macos_builtin_cursor()
         cursor_pos = pyautogui.position()
-
-        if region:
-            left, top, _, _ = region
-        else:
-            left, top = 0, 0
-
-        draw_x = int(cursor_pos.x) - int(hot_spot_x) - int(left)
-        draw_y = int(cursor_pos.y) - int(hot_spot_y) - int(top)
+        desktop_size = _coerce_virtual_size(pyautogui.size())
+        draw_x, draw_y = _map_desktop_cursor_to_image_position(
+            screenshot,
+            cursor_x=int(cursor_pos.x),
+            cursor_y=int(cursor_pos.y),
+            hot_spot_x=int(hot_spot_x),
+            hot_spot_y=int(hot_spot_y),
+            region=region,
+            desktop_size=desktop_size,
+        )
 
         _paste_cursor_overlay(
             screenshot,
@@ -458,7 +521,9 @@ def _overlay_macos_builtin_cursor(
         return False
 
 
-def _capture_with_system_cursor(region: Optional[tuple[int, int, int, int]]) -> Optional[tuple[object, str]]:
+def _capture_with_system_cursor(
+    region: Optional[tuple[int, int, int, int]],
+) -> Optional[tuple[object, str]]:
     if _is_windows_platform():
         try:
             return _capture_with_windows_cursor(region=region), "windows_win32_drawicon"
@@ -495,11 +560,15 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
         from PIL import Image  # noqa: F401
 
         def _capture() -> Dict[str, Any]:
-            region = _coerce_region(args.get("display_bounds") if isinstance(args, dict) else None)
+            region = _coerce_region(
+                args.get("display_bounds") if isinstance(args, dict) else None
+            )
             desktop_virtual_bounds = None
             monitor_id = None
             if isinstance(args, dict) and isinstance(args.get("display_bounds"), dict):
-                monitor_id = _normalize_monitor_id(args["display_bounds"].get("monitor_id"))
+                monitor_id = _normalize_monitor_id(
+                    args["display_bounds"].get("monitor_id")
+                )
                 desktop_virtual_bounds = _coerce_virtual_bounds(
                     args["display_bounds"].get("desktop_virtual_bounds")
                 )
@@ -514,7 +583,11 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             if system_capture is not None:
                 screenshot, capture_engine = system_capture
             else:
-                screenshot = pyautogui.screenshot(region=capture_region) if capture_region else pyautogui.screenshot()
+                screenshot = (
+                    pyautogui.screenshot(region=capture_region)
+                    if capture_region
+                    else pyautogui.screenshot()
+                )
 
             if capture_full_virtual_desktop:
                 screenshot = _crop_full_desktop_capture_to_region(
@@ -542,8 +615,8 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
                 else (crop_x, crop_y, crop_w, crop_h)
             )
 
-            if screenshot.mode != 'RGB':
-                screenshot = screenshot.convert('RGB')
+            if screenshot.mode != "RGB":
+                screenshot = screenshot.convert("RGB")
 
             img_buffer = io.BytesIO()
             screenshot.save(
@@ -581,7 +654,9 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             }
 
         loop = asyncio.get_event_loop()
-        capture_payload = await loop.run_in_executor(get_interactive_executor(), _capture)
+        capture_payload = await loop.run_in_executor(
+            get_interactive_executor(), _capture
+        )
 
         return {
             "success": True,

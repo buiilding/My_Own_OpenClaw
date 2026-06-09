@@ -1392,6 +1392,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sidecar/macos: map the deterministic screenshot cursor overlay from
+  pyautogui desktop coordinates into captured-image pixels so Retina screenshots
+  no longer draw the fake cursor at the unscaled logical point.
 - fix(sidecar-episodic-memory-contract): restrict the episodic memory surface and delete/clear flows to completed-turn `interaction` rows only, while preserving transcript and replay chat-history rows and updating sidecar docs/tests to match the contract.
 - fix(hosted-agents-md-context): resolve applicable local `AGENTS.md` files in the Electron main-process query bridge and forward them to the hosted backend as explicit prompt-context messages so repo instructions still apply when the backend cannot read the user's local workspace path; preserve that injected context across session rehydrate/config updates and add focused backend/frontend coverage plus doc updates for the hosted prompt contract.
 - fix(frontend-browser-onboarding): remove the fake macOS App Management onboarding step, stop blocking browser setup on a permission WindieOS cannot actually register or probe, and let browser onboarding open directly from its own runtime capability check.
