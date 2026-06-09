@@ -4,6 +4,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- sidecar/titles: use the episodic memory database path for generated
+  conversation title state and write RPCs so SDK title enrichment can persist
+  model titles instead of falling back to first-user-message labels.
+
 ### Changed
 
 - sdk/frontend: retain OpenAI-native `tool_progress` web-search rows in SDK

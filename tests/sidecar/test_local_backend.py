@@ -1503,7 +1503,7 @@ async def test_handle_get_chat_conversation_revision_returns_store_revision():
 async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
-    backend.memory_store.db_path = "/tmp/test-title.sqlite3"
+    backend.memory_store.episodic_db_path = "/tmp/test-title.sqlite3"
     emitted = []
     calls = []
 
@@ -1556,7 +1556,7 @@ async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
 async def test_handle_get_conversation_title_state_returns_store_state(monkeypatch):
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
-    backend.memory_store.db_path = "/tmp/test-title.sqlite3"
+    backend.memory_store.episodic_db_path = "/tmp/test-title.sqlite3"
     calls = []
 
     async def fake_get_conversation_title_state(**kwargs):
