@@ -200,7 +200,14 @@ SDK dispatch behavior:
   - when SDK payload includes replacement history, builds a compacted replay snapshot from the SDK event and persists it through the desktop runtime facade instead of unwrapping the raw backend event
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
-- SDK `currentTurn.toolEvents` from the conversation runtime projection: dashboard and response overlay render live tool-call/tool-output/tool-progress rows from the projection, while the projection listener records `tool-call`, `tool-output`, and `web-search-progress` phase tracking and clears transient send/thinking state for active tool rows
+- SDK `currentTurn.toolEvents` from the conversation runtime projection:
+  response overlay renders live tool-call/tool-output/tool-progress entries from
+  the projection, while the projection listener records `tool-call`,
+  `tool-output`, and `web-search-progress` phase tracking and clears transient
+  send/thinking state for active tool rows. The dashboard transcript renders SDK
+  display rows; OpenAI-native `tool_progress`/`web-search-progress` is
+  transient current-turn state unless the SDK display-row contract explicitly
+  adds a progress row type.
   - raw backend `tool-call`, `tool-output`, `tool-bundle`, and `web-search-progress` events are not live-row or active-phase fallbacks in renderer chat code.
 - SDK `tool_call` from backend `tool-call`: persists a transcript tool-call row only. Live display comes from `currentTurn.toolEvents`.
   - the renderer consumes SDK `tool_call` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as metadata and parameters. It does not unwrap `payload.rawEvent` back into a backend `tool-call` event.
@@ -292,8 +299,11 @@ Streaming-complete transcript write nuance:
 ## SDK-Owned Tool Execution
 
 The renderer does not execute backend tool events. The SDK conversation runtime
-projects live tool-call/tool-output/tool-progress rows into
-`currentTurn.toolEvents`, while the SDK main runtime routes execution through
+projects live tool-call/tool-output/tool-progress state into
+`currentTurn.toolEvents`; response overlay consumes that current-turn state, and
+the dashboard consumes SDK display rows. OpenAI-native web-search progress is
+therefore visible as transient overlay state, not as persisted dashboard
+transcript history. The SDK main runtime routes executable local tools through
 Electron main and the sidecar daemon.
 
 Renderer display contract:

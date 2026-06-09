@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/web-search: clarify that OpenAI-native `web-search-progress` rows come
+  from the main LLM turn and are not followed by backend `tool-call` /
+  `tool-output` rows, while Gemini/Brave logical `web_search` still uses normal
+  backend tool rows.
 - sidecar/screenshots: normalize returned computer-use screenshots to the
   desktop-coordinate image frame when bounds are known, while keeping
   `capture_meta` as the model-image-to-desktop mapping source of truth.

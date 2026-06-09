@@ -336,7 +336,11 @@ Identity notes:
 **`web-search-progress`**
 - Purpose: Mid-search progress row for OpenAI native `web_search`
 - Payload: `{ text, request_id?, action_type?, query?, url?, pattern? }`
-- Usage: Render transient search trace rows before the final backend `tool-call` / `tool-output`
+- Usage: Render transient OpenAI-native search trace rows during the main LLM
+  turn. OpenAI native search does not emit a later backend `tool-call` /
+  `tool-output` pair for the same search; the final assistant message is the
+  terminal model output. Gemini and Brave-backed logical `web_search` still use
+  normal backend tool-call/tool-output rows.
 - Notes:
   - Current producer is OpenAI native `web_search` only.
   - Renderer treats these rows as transient UI trace, not transcript history.
