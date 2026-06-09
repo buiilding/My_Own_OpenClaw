@@ -15,7 +15,7 @@ Implementation complete; validation passed.
 - [x] Update sidecar screenshot tests.
 - [x] Update docs and changelog.
 - [x] Run validation commands.
-- [ ] Commit completed work.
+- [x] Commit completed work.
 
 ## Decisions
 
@@ -56,4 +56,4 @@ Implementation complete; validation passed.
 
 ## Commits
 
-Pending.
+- `911440aea` - `fix(sidecar): normalize screenshots to desktop coordinates`
