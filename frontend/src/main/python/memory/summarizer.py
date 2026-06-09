@@ -87,6 +87,25 @@ class MemorySummarizer:
                 pass
         await self.semantic_client.close()
 
+    def get_status(self) -> Dict[str, Any]:
+        task = self._task
+        task_done = bool(task and task.done())
+        status: Dict[str, Any] = {
+            "started": task is not None,
+            "running": bool(task and not task_done),
+            "task_done": task_done,
+            "backoff_seconds": self._backoff_seconds,
+            "known_user_count": len(self._known_user_ids),
+        }
+        if task_done:
+            try:
+                exception = task.exception() if task else None
+            except asyncio.CancelledError:
+                exception = "cancelled"
+            if exception:
+                status["task_error"] = str(exception)
+        return status
+
     async def _run_loop(self) -> None:
         try:
             while not self._shutdown_event.is_set():

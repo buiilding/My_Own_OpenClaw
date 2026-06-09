@@ -20,6 +20,13 @@ const DEFAULT_DAEMON_DISCOVERY_PATH = path.join(
 );
 const DEFAULT_DAEMON_START_TIMEOUT_MS = 10000;
 const DEFAULT_DAEMON_POLL_INTERVAL_MS = 100;
+const DAEMON_LAUNCH_CONTEXT_ENV_KEYS = [
+  'WINDIE_BACKEND_HTTP_URL',
+  'WINDIE_BACKEND_AUTH_STATE_PATH',
+  'WINDIE_ENABLE_SEMANTIC_SUMMARIZER',
+  'WINDIE_PACKAGED_APP',
+  'WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
+];
 
 function isLoopbackHostname(hostname) {
   const host = String(hostname || '').toLowerCase();
@@ -78,7 +85,34 @@ function normalizeDiscovery(raw) {
     host: typeof raw.host === 'string' ? raw.host : null,
     port: Number.isFinite(Number(raw.port)) ? Number(raw.port) : null,
     createdAt: Number.isFinite(Number(raw.created_at)) ? Number(raw.created_at) : null,
+    launch: normalizeDaemonLaunchContext(raw.launch),
   };
+}
+
+function normalizeDaemonLaunchContext(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const normalized = {};
+  for (const key of DAEMON_LAUNCH_CONTEXT_ENV_KEYS) {
+    normalized[key] = typeof value[key] === 'string' ? value[key].trim() : '';
+  }
+  return normalized;
+}
+
+function buildDaemonLaunchContextFromEnv(env = {}) {
+  const normalized = {};
+  for (const key of DAEMON_LAUNCH_CONTEXT_ENV_KEYS) {
+    normalized[key] = typeof env[key] === 'string' ? env[key].trim() : '';
+  }
+  return normalized;
+}
+
+function daemonLaunchContextsEqual(left, right) {
+  if (!left || !right) {
+    return false;
+  }
+  return DAEMON_LAUNCH_CONTEXT_ENV_KEYS.every((key) => left[key] === right[key]);
 }
 
 function readDiscoveryFile(discoveryPath = DEFAULT_DAEMON_DISCOVERY_PATH) {
@@ -257,6 +291,14 @@ function buildDaemonEnv({ isPackaged = false, backendEndpoints, permissionStateP
   return backendEnv;
 }
 
+function buildExpectedDaemonLaunchContext(launchOptions = {}) {
+  const launchTarget = resolveSidecarLaunchTarget('sidecar_daemon.py');
+  return buildDaemonLaunchContextFromEnv(buildDaemonEnv({
+    ...launchOptions,
+    launchTarget,
+  }));
+}
+
 function createSidecarDaemonManager(options = {}) {
   const discoveryPath = options.discoveryPath || DEFAULT_DAEMON_DISCOVERY_PATH;
   const startTimeoutMs = options.startTimeoutMs || DEFAULT_DAEMON_START_TIMEOUT_MS;
@@ -268,6 +310,7 @@ function createSidecarDaemonManager(options = {}) {
   let eventSocket = null;
   let eventSocketKey = null;
   let activeDiscovery = null;
+  let activeLaunchContext = null;
   const eventListeners = new Set();
 
   function closeEventSocket() {
@@ -330,8 +373,22 @@ function createSidecarDaemonManager(options = {}) {
     }
   }
 
-  async function probe(discovery) {
+  async function shutdownDiscoveredDaemon(discovery) {
     if (!discovery) {
+      return;
+    }
+    try {
+      await createDaemonClient(discovery, options).shutdown();
+    } catch (_error) {
+      // Best-effort cleanup for stale daemon processes.
+    }
+  }
+
+  async function probe(discovery, expectedLaunchContext) {
+    if (!discovery) {
+      return null;
+    }
+    if (!daemonLaunchContextsEqual(discovery.launch, expectedLaunchContext)) {
       return null;
     }
     const candidate = createDaemonClient(discovery, options);
@@ -343,15 +400,21 @@ function createSidecarDaemonManager(options = {}) {
     }
   }
 
-  async function reuseExistingDaemon() {
+  async function reuseExistingDaemon(expectedLaunchContext) {
     const discovery = readDiscoveryFile(discoveryPath);
     if (!discovery && fs.existsSync(discoveryPath)) {
       deleteDiscoveryFile(discoveryPath);
     }
-    const existing = await probe(discovery);
+    if (discovery && !daemonLaunchContextsEqual(discovery.launch, expectedLaunchContext)) {
+      await shutdownDiscoveredDaemon(discovery);
+      deleteDiscoveryFile(discoveryPath);
+      return null;
+    }
+    const existing = await probe(discovery, expectedLaunchContext);
     if (existing) {
       client = existing;
       activeDiscovery = discovery;
+      activeLaunchContext = expectedLaunchContext;
       connectEventStream(discovery);
       return client;
     }
@@ -398,13 +461,20 @@ function createSidecarDaemonManager(options = {}) {
     });
   }
 
-  async function waitForDiscovery() {
+  async function waitForDiscovery(expectedLaunchContext) {
     const deadline = Date.now() + startTimeoutMs;
     while (Date.now() < deadline) {
-      const discovered = await probe(readDiscoveryFile(discoveryPath));
+      const discovery = readDiscoveryFile(discoveryPath);
+      if (discovery && !daemonLaunchContextsEqual(discovery.launch, expectedLaunchContext)) {
+        deleteDiscoveryFile(discoveryPath);
+        await sleep(pollIntervalMs);
+        continue;
+      }
+      const discovered = await probe(discovery, expectedLaunchContext);
       if (discovered) {
         client = discovered;
-        activeDiscovery = readDiscoveryFile(discoveryPath);
+        activeDiscovery = discovery;
+        activeLaunchContext = expectedLaunchContext;
         connectEventStream(activeDiscovery);
         return client;
       }
@@ -414,26 +484,35 @@ function createSidecarDaemonManager(options = {}) {
   }
 
   async function ensureDaemon(launchOptions = {}) {
+    const expectedLaunchContext = buildExpectedDaemonLaunchContext(launchOptions);
     if (client) {
-      try {
-        await client.health();
-        connectEventStream(activeDiscovery);
-        return client;
-      } catch (_error) {
+      if (!daemonLaunchContextsEqual(activeLaunchContext, expectedLaunchContext)) {
+        await shutdownDiscoveredDaemon(activeDiscovery);
         client = null;
         activeDiscovery = null;
+        activeLaunchContext = null;
+      } else {
+        try {
+          await client.health();
+          connectEventStream(activeDiscovery);
+          return client;
+        } catch (_error) {
+          client = null;
+          activeDiscovery = null;
+          activeLaunchContext = null;
+        }
       }
     }
     if (ensurePromise) {
       return ensurePromise;
     }
     ensurePromise = (async () => {
-      const reused = await reuseExistingDaemon();
+      const reused = await reuseExistingDaemon(expectedLaunchContext);
       if (reused) {
         return reused;
       }
       spawnDaemon(launchOptions);
-      return waitForDiscovery();
+      return waitForDiscovery(expectedLaunchContext);
     })().finally(() => {
       ensurePromise = null;
     });
@@ -462,6 +541,7 @@ function createSidecarDaemonManager(options = {}) {
     const activeClient = client;
     client = null;
     activeDiscovery = null;
+    activeLaunchContext = null;
     try {
       await activeClient?.shutdown?.();
     } catch (_error) {

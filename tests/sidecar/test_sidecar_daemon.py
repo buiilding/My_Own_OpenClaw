@@ -7,7 +7,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from sidecar_daemon import SidecarDaemon  # noqa: E402
+from sidecar_daemon import SidecarDaemon, write_discovery_file  # noqa: E402
 
 
 class FakeRequest:
@@ -93,6 +93,33 @@ async def test_sidecar_daemon_status_endpoint_reports_runtime_boundary():
     assert any(
         tool["name"] == "read_file" for tool in payload["tool_manifest"]["tools"]
     )
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_discovery_file_records_launch_context(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://backend.example")
+    monkeypatch.setenv("WINDIE_BACKEND_AUTH_STATE_PATH", "/tmp/auth.json")
+    monkeypatch.setenv("WINDIE_ENABLE_SEMANTIC_SUMMARIZER", "0")
+
+    discovery_path = tmp_path / "sidecar-daemon.json"
+    await write_discovery_file(
+        discovery_path,
+        host="127.0.0.1",
+        port=4567,
+        token="test-token",
+    )
+    payload = json.loads(discovery_path.read_text(encoding="utf-8"))
+
+    assert payload["launch"] == {
+        "WINDIE_BACKEND_HTTP_URL": "https://backend.example",
+        "WINDIE_BACKEND_AUTH_STATE_PATH": "/tmp/auth.json",
+        "WINDIE_ENABLE_SEMANTIC_SUMMARIZER": "0",
+        "WINDIE_PACKAGED_APP": "",
+        "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL": "",
+    }
 
 
 @pytest.mark.asyncio

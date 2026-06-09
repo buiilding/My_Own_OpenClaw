@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sidecar: refuse to reuse stale sidecar daemon discovery records when
+  their backend/auth/summarizer launch context does not match the current app,
+  so semantic memory generation uses a daemon started with the active auth and
+  backend configuration.
 - sidecar/titles: use the episodic memory database path for generated
   conversation title state and write RPCs so SDK title enrichment can persist
   model titles instead of falling back to first-user-message labels.

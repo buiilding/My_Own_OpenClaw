@@ -44,6 +44,22 @@ class FakeWebSocket extends EventEmitter {
 
 FakeWebSocket.instances = [];
 
+const TEST_DAEMON_LAUNCH = {
+  WINDIE_BACKEND_HTTP_URL: 'https://backend.example',
+  WINDIE_BACKEND_AUTH_STATE_PATH: '/tmp/windie-install-auth.json',
+  WINDIE_ENABLE_SEMANTIC_SUMMARIZER: '',
+  WINDIE_PACKAGED_APP: '0',
+  WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: '1',
+};
+
+const TEST_DAEMON_LAUNCH_OPTIONS = {
+  isPackaged: false,
+  backendEndpoints: {
+    httpUrl: TEST_DAEMON_LAUNCH.WINDIE_BACKEND_HTTP_URL,
+  },
+  authStatePath: TEST_DAEMON_LAUNCH.WINDIE_BACKEND_AUTH_STATE_PATH,
+};
+
 describe('sidecar daemon manager', () => {
   beforeEach(() => {
     FakeWebSocket.instances = [];
@@ -58,6 +74,7 @@ describe('sidecar daemon manager', () => {
         pid: 123,
         base_url: 'http://127.0.0.1:4567',
         token: 'token-123',
+        launch: TEST_DAEMON_LAUNCH,
       }),
       'utf8',
     );
@@ -74,7 +91,7 @@ describe('sidecar daemon manager', () => {
       spawnImpl,
       startTimeoutMs: 50,
     });
-    const client = await manager.ensureDaemon();
+    const client = await manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS);
 
     expect(client).toBeDefined();
     expect(spawnImpl).not.toHaveBeenCalled();
@@ -90,6 +107,74 @@ describe('sidecar daemon manager', () => {
       baseUrl: 'http://127.0.0.1:4567',
       token: 'token-123',
     });
+  });
+
+  test('replaces healthy daemon discovery with stale launch metadata', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryPath,
+      JSON.stringify({
+        pid: 123,
+        base_url: 'http://127.0.0.1:4567',
+        token: 'token-old',
+        launch: {
+          ...TEST_DAEMON_LAUNCH,
+          WINDIE_BACKEND_AUTH_STATE_PATH: '',
+        },
+      }),
+      'utf8',
+    );
+    const fetchImpl = jest.fn(async (url) => {
+      if (url === 'http://127.0.0.1:4567/shutdown') {
+        return jsonResponse({ success: true });
+      }
+      if (url === 'http://127.0.0.1:7654/health') {
+        return jsonResponse({ status: 'ok' });
+      }
+      throw new Error(`unexpected request: ${url}`);
+    });
+    const proc = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    proc.pid = 456;
+    const spawnImpl = jest.fn(() => {
+      setTimeout(() => {
+        fs.writeFileSync(
+          discoveryPath,
+          JSON.stringify({
+            pid: 456,
+            base_url: 'http://127.0.0.1:7654',
+            token: 'token-new',
+            launch: TEST_DAEMON_LAUNCH,
+          }),
+          'utf8',
+        );
+      }, 0);
+      return proc;
+    });
+    const {
+      createSidecarDaemonManager,
+    } = loadManager();
+
+    const manager = createSidecarDaemonManager({
+      discoveryPath,
+      fetchImpl,
+      spawnImpl,
+      startTimeoutMs: 1000,
+      pollIntervalMs: 5,
+    });
+
+    await expect(manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS)).resolves.toBeDefined();
+    expect(spawnImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'http://127.0.0.1:4567/shutdown',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(fetchImpl).not.toHaveBeenCalledWith(
+      'http://127.0.0.1:4567/health',
+      expect.anything(),
+    );
   });
 
   test('rejects discovery metadata that points outside loopback origins', async () => {
@@ -151,6 +236,7 @@ describe('sidecar daemon manager', () => {
             pid: 456,
             base_url: 'http://127.0.0.1:7654',
             token: 'token-new',
+            launch: TEST_DAEMON_LAUNCH,
           }),
           'utf8',
         );
@@ -169,7 +255,7 @@ describe('sidecar daemon manager', () => {
       pollIntervalMs: 5,
     });
 
-    await expect(manager.ensureDaemon()).resolves.toBeDefined();
+    await expect(manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS)).resolves.toBeDefined();
     expect(spawnImpl).toHaveBeenCalledTimes(1);
     expect(fetchImpl).not.toHaveBeenCalledWith(
       'http://example.com:4567/health',
@@ -230,6 +316,7 @@ describe('sidecar daemon manager', () => {
             pid: 456,
             base_url: 'http://127.0.0.1:7654',
             token: 'token-456',
+            launch: TEST_DAEMON_LAUNCH,
           }),
           'utf8',
         );
@@ -247,7 +334,7 @@ describe('sidecar daemon manager', () => {
       startTimeoutMs: 1000,
       pollIntervalMs: 5,
     });
-    const client = await manager.ensureDaemon({ isPackaged: false });
+    const client = await manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS);
 
     expect(client).toBeDefined();
     expect(spawnImpl).toHaveBeenCalledTimes(1);
@@ -270,6 +357,7 @@ describe('sidecar daemon manager', () => {
         pid: 123,
         base_url: 'http://127.0.0.1:4567',
         token: 'token-old',
+        launch: TEST_DAEMON_LAUNCH,
       }),
       'utf8',
     );
@@ -292,6 +380,7 @@ describe('sidecar daemon manager', () => {
             pid: 456,
             base_url: 'http://127.0.0.1:7654',
             token: 'token-new',
+            launch: TEST_DAEMON_LAUNCH,
           }),
           'utf8',
         );
@@ -310,7 +399,7 @@ describe('sidecar daemon manager', () => {
       pollIntervalMs: 5,
     });
 
-    await expect(manager.ensureDaemon()).resolves.toBeDefined();
+    await expect(manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS)).resolves.toBeDefined();
     expect(spawnImpl).toHaveBeenCalledTimes(1);
     expect(fetchImpl).toHaveBeenCalledWith(
       'http://127.0.0.1:4567/health',
@@ -335,6 +424,7 @@ describe('sidecar daemon manager', () => {
         pid: 123,
         base_url: 'http://127.0.0.1:4567',
         token: 'token-123',
+        launch: TEST_DAEMON_LAUNCH,
       }),
       'utf8',
     );
@@ -358,7 +448,7 @@ describe('sidecar daemon manager', () => {
       id: 'rpc-1',
       method: 'ping',
       params: {},
-    })).resolves.toEqual({
+    }, TEST_DAEMON_LAUNCH_OPTIONS)).resolves.toEqual({
       jsonrpc: '2.0',
       id: 'rpc-1',
       result: { status: 'ok' },
@@ -391,6 +481,7 @@ describe('sidecar daemon manager', () => {
         pid: 123,
         base_url: 'http://127.0.0.1:4567',
         token: 'token-123',
+        launch: TEST_DAEMON_LAUNCH,
       }),
       'utf8',
     );
@@ -408,7 +499,7 @@ describe('sidecar daemon manager', () => {
       WebSocketImpl: FakeWebSocket,
     });
     const unsubscribe = manager.subscribeEvents(onEvent);
-    await manager.ensureDaemon();
+    await manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS);
 
     expect(FakeWebSocket.instances).toHaveLength(1);
     expect(FakeWebSocket.instances[0].url).toBe('ws://127.0.0.1:4567/events');
@@ -439,6 +530,7 @@ describe('sidecar daemon manager', () => {
         pid: 123,
         base_url: 'http://127.0.0.1:4567',
         token: 'token-old',
+        launch: TEST_DAEMON_LAUNCH,
       }),
       'utf8',
     );
@@ -466,18 +558,19 @@ describe('sidecar daemon manager', () => {
       spawnImpl: jest.fn(),
       startTimeoutMs: 50,
     });
-    await manager.ensureDaemon();
+    await manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS);
     await fsPromises.writeFile(
       discoveryPath,
       JSON.stringify({
         pid: 456,
         base_url: 'http://127.0.0.1:7654',
         token: 'token-new',
+        launch: TEST_DAEMON_LAUNCH,
       }),
       'utf8',
     );
 
-    await expect(manager.ensureDaemon()).resolves.toBeDefined();
+    await expect(manager.ensureDaemon(TEST_DAEMON_LAUNCH_OPTIONS)).resolves.toBeDefined();
 
     const healthCalls = fetchImpl.mock.calls
       .filter(([url]) => String(url).endsWith('/health'))

@@ -482,6 +482,16 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "tool_registry_initialized": hasattr(self, "tool_registry")
                 and self.tool_registry is not None,
                 "semantic_summarizer_enabled": self._semantic_summarizer_enabled,
+                "semantic_summarizer_status": (
+                    self._summarizer.get_status()
+                    if self._summarizer is not None
+                    and hasattr(self._summarizer, "get_status")
+                    else {
+                        "started": self._summarizer is not None,
+                        "running": False,
+                        "task_done": False,
+                    }
+                ),
                 "browser_feature_pack_available": is_feature_pack_available("browser"),
                 "browser_feature_pack_autoinstall_enabled": (
                     self._browser_feature_pack_autoinstall_enabled

@@ -26,6 +26,13 @@ DEFAULT_DISCOVERY_FILE = (
     Path(tempfile.gettempdir()) / "windieos" / "sidecar-daemon.json"
 )
 MCP_PROTOCOL_VERSION = "2024-11-05"
+LAUNCH_CONTEXT_ENV_KEYS = (
+    "WINDIE_BACKEND_HTTP_URL",
+    "WINDIE_BACKEND_AUTH_STATE_PATH",
+    "WINDIE_ENABLE_SEMANTIC_SUMMARIZER",
+    "WINDIE_PACKAGED_APP",
+    "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL",
+)
 
 
 def normalize_object(value: Any) -> dict[str, Any]:
@@ -34,6 +41,13 @@ def normalize_object(value: Any) -> dict[str, Any]:
 
 def normalize_string(value: Any) -> str:
     return value.strip() if isinstance(value, str) and value.strip() else ""
+
+
+def build_launch_context() -> dict[str, str]:
+    return {
+        key: os.getenv(key, "").strip()
+        for key in LAUNCH_CONTEXT_ENV_KEYS
+    }
 
 
 def create_mcp_tool_name(
@@ -587,6 +601,7 @@ async def write_discovery_file(path: Path, *, host: str, port: int, token: str) 
                 "base_url": f"http://{host}:{port}",
                 "token": token,
                 "created_at": time.time(),
+                "launch": build_launch_context(),
             },
             indent=2,
         ),
