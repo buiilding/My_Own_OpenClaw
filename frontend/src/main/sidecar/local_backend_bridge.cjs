@@ -52,7 +52,12 @@ const {
   loadInstallAuthStateFromDisk,
 } = require('../ipc/ipc_install_auth_state.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
-const { createSidecarDaemonManager } = require('./sidecar_daemon_manager.cjs');
+const {
+  createDesktopAutoSidecarLaunchPlan,
+} = require('./sdk_sidecar_launch_options.cjs');
+const {
+  createWindieLocalRuntimeProvider,
+} = require('../../../../packages/windie-sdk-js/cjs/index.js');
 
 let pythonProcess = null;
 
@@ -70,9 +75,13 @@ let runtimeExecuteTool = async () => ({
   error: 'Local backend bridge is not initialized.',
 });
 const localBackendSupervisor = createLocalBackendSupervisor();
-let sidecarDaemonManager = null;
-let sidecarDaemonRpcLaunchOptions = null;
+let sdkLocalRuntimeProvider = null;
+let sdkLocalRuntime = null;
+let sdkLocalRuntimeEventUnsubscribe = null;
+let sdkLocalRuntimeEventHandler = null;
+let sdkSidecarSnapshot = null;
 let daemonBackendProcessRef = null;
+let sdkStatusMainWindow = null;
 
 function isBackendReady() {
   return localBackendSupervisor.getSnapshot().ready;
@@ -109,7 +118,13 @@ const localBackendProcessEvents = createLocalBackendProcessEvents({
 
 const localBackendStopController = createLocalBackendStopController({
   clearDaemonRuntime,
-  getDaemonManager: () => sidecarDaemonManager,
+  getDaemonManager: () => (
+    sdkLocalRuntime
+      ? {
+          shutdown: () => sdkLocalRuntime?.shutdown?.(),
+        }
+      : null
+  ),
   getProcess: () => pythonProcess,
   resetBackendProcessState,
   setRuntimeExecuteTool: (executeTool) => {
@@ -119,8 +134,8 @@ const localBackendStopController = createLocalBackendStopController({
 });
 
 const localBackendRpcTransport = createLocalBackendRpcTransport({
-  getDaemonManager: () => sidecarDaemonManager,
-  getDaemonLaunchOptions: () => sidecarDaemonRpcLaunchOptions,
+  getDaemonManager: () => null,
+  getDaemonLaunchOptions: () => ({}),
   standaloneTransport: localBackendRequestTransport,
 });
 
@@ -154,9 +169,54 @@ function notifyBackendUnavailable(mainWindow, error) {
 }
 
 function clearDaemonRuntime() {
-  sidecarDaemonManager = null;
-  sidecarDaemonRpcLaunchOptions = null;
+  sdkLocalRuntimeEventUnsubscribe?.();
+  sdkLocalRuntimeEventUnsubscribe = null;
+  sdkLocalRuntime = null;
+  sdkLocalRuntimeProvider = null;
+  sdkSidecarSnapshot = null;
   daemonBackendProcessRef = null;
+  sdkStatusMainWindow = null;
+}
+
+function attachSdkLocalRuntimeEvents(runtime) {
+  if (sdkLocalRuntimeEventUnsubscribe || typeof runtime?.subscribeEvents !== 'function') {
+    return;
+  }
+  sdkLocalRuntimeEventUnsubscribe = runtime.subscribeEvents((payload) => {
+    sdkLocalRuntimeEventHandler?.(payload);
+  });
+}
+
+async function ensureSdkLocalRuntime() {
+  if (!sdkLocalRuntimeProvider) {
+    throw new Error('Windie SDK local runtime provider is not initialized.');
+  }
+  if (sdkLocalRuntime) {
+    return sdkLocalRuntime;
+  }
+  const runtime = await sdkLocalRuntimeProvider({
+    wakeUp: {},
+    needsLocalRuntime: true,
+  });
+  if (!runtime) {
+    throw new Error('Windie SDK local runtime provider did not return a runtime.');
+  }
+  sdkLocalRuntime = runtime;
+  sdkSidecarSnapshot = {
+    provider: 'sdk',
+    hasClient: true,
+    ...(sdkSidecarSnapshot?.discoveryPath ? { discoveryPath: sdkSidecarSnapshot.discoveryPath } : {}),
+  };
+  attachSdkLocalRuntimeEvents(runtime);
+  if (!daemonBackendProcessRef) {
+    daemonBackendProcessRef = { kind: 'sdk-sidecar-daemon' };
+    const generation = localBackendSupervisor.attachProcess(daemonBackendProcessRef);
+    localBackendReadinessRuntime.resetToGeneration(generation);
+  }
+  if (sdkStatusMainWindow && daemonBackendProcessRef) {
+    markBackendReady(sdkStatusMainWindow);
+  }
+  return runtime;
 }
 
 function startLocalBackend(mainWindow, options = {}) {
@@ -201,12 +261,33 @@ function startLocalBackend(mainWindow, options = {}) {
   });
 }
 
+function createSdkRpcRequestId() {
+  return `electron-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function sendRequest(method, params = {}, options = {}) {
+  if (sdkLocalRuntimeProvider) {
+    return ensureSdkLocalRuntime().then(runtime => runtime.rpc({
+      id: createSdkRpcRequestId(),
+      method,
+      params,
+    }));
+  }
   return localBackendRpcTransport.sendRequest(method, params, options);
 }
 
 async function sendRequestOrError(method, params = {}, options = {}) {
-  return localBackendRpcTransport.sendRequestOrError(method, params, options);
+  if (!sdkLocalRuntimeProvider) {
+    return localBackendRpcTransport.sendRequestOrError(method, params, options);
+  }
+  try {
+    return await sendRequest(method, params, options);
+  } catch (error) {
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
+  }
 }
 
 async function getSystemStateFromBackend(fields) {
@@ -232,54 +313,6 @@ async function sendMemorySearchRequest(payload = {}) {
 
 function stopLocalBackend() {
   localBackendStopController.stop();
-}
-
-function startDaemonBackedLocalBackend(mainWindow, launchOptions = {}) {
-  if (!sidecarDaemonManager || typeof sidecarDaemonManager.ensureDaemon !== 'function') {
-    return;
-  }
-  sidecarDaemonRpcLaunchOptions = launchOptions;
-  daemonBackendProcessRef = { kind: 'sidecar-daemon' };
-  const generation = localBackendSupervisor.attachProcess(daemonBackendProcessRef);
-  localBackendReadinessRuntime.resetToGeneration(generation);
-  void sidecarDaemonManager.ensureDaemon(launchOptions)
-    .then(() => {
-      if (daemonBackendProcessRef) {
-        markBackendReady(mainWindow);
-      }
-    })
-    .catch((error) => {
-      const message = getErrorMessage(error);
-      console.warn(`[LocalBackend] Sidecar daemon startup failed: ${message}`);
-      daemonBackendProcessRef = null;
-      resetBackendProcessState({
-        reason: message,
-        status: 'error',
-      });
-      notifyBackendUnavailable(mainWindow, message);
-    });
-}
-
-async function ensureDaemonBackedLocalRuntime() {
-  if (!sidecarDaemonManager || typeof sidecarDaemonManager.ensureDaemon !== 'function') {
-    throw new Error('Windie sidecar daemon manager is not initialized.');
-  }
-  const launchOptions = sidecarDaemonRpcLaunchOptions || {};
-  const daemonClient = await sidecarDaemonManager.ensureDaemon(launchOptions);
-  return {
-    status: () => daemonClient.status(),
-    listTools: () => daemonClient.listTools(),
-    registerModuleTool: (tool, context) => daemonClient.registerModuleTool(tool, context),
-    registerPlugin: plugin => daemonClient.registerPlugin(plugin),
-    registerMcp: mcp => daemonClient.registerMcp(mcp),
-    executeTool: payload => daemonClient.executeTool(payload),
-    rpc: payload => daemonClient.rpc(payload),
-    subscribeEvents: listener => (
-      typeof sidecarDaemonManager.subscribeEvents === 'function'
-        ? sidecarDaemonManager.subscribeEvents(listener)
-        : (() => {})
-    ),
-  };
 }
 
 async function loadArtifactUploadHeaders() {
@@ -313,25 +346,53 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   const getArtifactUploadHeaders = typeof options.getArtifactUploadHeaders === 'function'
     ? options.getArtifactUploadHeaders
     : loadArtifactUploadHeaders;
-  sidecarDaemonManager = options.sidecarDaemonManager || (
+  sdkLocalRuntimeEventHandler = (payload) => {
+    broadcastConversationMetadataInvalidation(resolveWindows, payload);
+  };
+  const sidecarLaunchPlan = options.autoSidecarLaunchPlan || (
     isTestEnv
       ? null
-      : createSidecarDaemonManager()
+      : createDesktopAutoSidecarLaunchPlan({
+          isPackaged,
+          backendEndpoints,
+          permissionStatePath: options.permissionStatePath,
+          authStatePath: options.authStatePath,
+          WebSocketImpl: options.WebSocketImpl,
+        })
   );
-  if (typeof sidecarDaemonManager?.subscribeEvents === 'function') {
-    sidecarDaemonManager.subscribeEvents((payload) => {
-      broadcastConversationMetadataInvalidation(resolveWindows, payload);
-    });
+  if (options.localRuntimeProvider) {
+    sdkLocalRuntimeProvider = options.localRuntimeProvider;
+    sdkSidecarSnapshot = {
+      provider: 'sdk',
+      hasClient: false,
+    };
+  } else if (sidecarLaunchPlan?.ok === true) {
+    sdkLocalRuntimeProvider = createWindieLocalRuntimeProvider(sidecarLaunchPlan.options);
+    sdkSidecarSnapshot = {
+      provider: 'sdk',
+      hasClient: false,
+      discoveryPath: sidecarLaunchPlan.options.discoveryFile || null,
+    };
+  } else {
+    sdkLocalRuntimeProvider = null;
+    sdkSidecarSnapshot = sidecarLaunchPlan && sidecarLaunchPlan.ok === false
+      ? {
+          provider: 'sdk',
+          hasClient: false,
+          error: sidecarLaunchPlan.error || 'Sidecar daemon launch is unavailable.',
+        }
+      : null;
   }
   const sidecarDaemonClient = options.sidecarDaemonClient || (
-    sidecarDaemonManager
+    sdkLocalRuntimeProvider
       ? {
-          executeTool: (payload) => sidecarDaemonManager.executeTool(payload, {
-            isPackaged,
-            backendEndpoints,
-            permissionStatePath: options.permissionStatePath,
-            authStatePath: options.authStatePath,
-          }),
+          executeTool: async (payload) => {
+            const runtime = await ensureSdkLocalRuntime();
+            if (typeof runtime.executeTool !== 'function') {
+              throw new Error('Windie SDK local runtime does not support tool execution.');
+            }
+            return runtime.executeTool(payload);
+          },
         }
       : null
   );
@@ -348,14 +409,23 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   });
 
   const [mainWindow] = resolveWindows();
+  sdkStatusMainWindow = mainWindow;
   const localRuntimeLaunchOptions = {
     isPackaged,
     backendEndpoints,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
   };
-  if (sidecarDaemonManager) {
-    startDaemonBackedLocalBackend(mainWindow, localRuntimeLaunchOptions);
+  if (sdkLocalRuntimeProvider) {
+    localBackendSupervisor.clear({
+      status: 'stopped',
+      error: '',
+    });
+  } else if (sidecarLaunchPlan?.ok === false) {
+    sendLocalBackendStatus(mainWindow, {
+      ready: false,
+      error: sidecarLaunchPlan.error || 'Sidecar daemon launch is unavailable.',
+    });
   } else {
     startLocalBackend(mainWindow, localRuntimeLaunchOptions);
   }
@@ -394,7 +464,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   });
   ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload({
     supervisor: localBackendSupervisor,
-    sidecarDaemonManager,
+    sidecarDaemonSnapshot: sdkSidecarSnapshot,
   }));
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();
@@ -522,7 +592,6 @@ async function searchMemory(
 module.exports = {
   initializeLocalBackendBridge,
   stopLocalBackend,
-  ensureDaemonBackedLocalRuntime,
   getSystemState,
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
   executeToolForBackend: async (payload) => runtimeExecuteTool(payload),

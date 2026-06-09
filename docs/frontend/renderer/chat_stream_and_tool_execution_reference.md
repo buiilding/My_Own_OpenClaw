@@ -320,7 +320,10 @@ Renderer display contract:
 Execution contract:
 
 - SDK main runtime receives backend tool events and owns local execution state
-- Electron main bridges SDK local-runtime calls into the sidecar daemon
+- SDK local runtime starts/reuses the sidecar daemon and unwraps daemon JSON-RPC
+  responses before callers see them
+- Electron main supplies desktop launch options and host-only window, screenshot,
+  display-bounds, and artifact behavior
 - sidecar executes filesystem, shell, browser, computer-use, MCP, plugin, and extension tools
 - SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend for each claimed call or bundle
 

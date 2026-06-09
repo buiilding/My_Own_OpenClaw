@@ -495,7 +495,8 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 4. SDK runtime normalizes the tool event and routes executable work to the local runtime adapter
    ↓
-5. Electron main SDK local-runtime client calls the sidecar daemon/tool bridge
+5. SDK local runtime calls the sidecar daemon; Electron main supplies desktop
+   host context for window/screenshot/artifact behavior
    ↓
 6. Python sidecar executes the tool
    ↓

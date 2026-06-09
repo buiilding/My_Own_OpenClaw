@@ -235,6 +235,8 @@ function createMainWindow({
     localToolLifecycle,
     syncSdkLiveTurnSurfaceIntent,
     isPackaged: app.isPackaged,
+    permissionStatePath,
+    authStatePath: getInstallAuthStatePath(),
     getWindows,
   });
   initializeWakewordBridge(mainWindow, () => {

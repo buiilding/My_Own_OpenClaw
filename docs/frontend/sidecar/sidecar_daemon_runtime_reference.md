@@ -19,7 +19,8 @@ The daemon:
 - writes a discovery file containing `pid`, `host`, `port`, `base_url`,
   `token`, `created_at`, and non-secret launch context for backend URL,
   auth-state path, packaging mode, and sidecar feature flags
-- is started/reused by Electron main through `frontend/src/main/sidecar_daemon_manager.cjs`
+- is started/reused by the SDK auto-sidecar provider from desktop launch options
+  supplied by Electron main
 - owns the app-session `LocalBackend` instance and its `LocalMemoryStore`
 - exposes built-in sidecar tools through the existing `ToolRegistry`
 - dynamically registers module-path tools, extension/plugin tools, and MCP tools without restart
@@ -37,15 +38,18 @@ Every endpoint requires the token in either:
 - `x-windie-sidecar-token: <token>`
 - `Authorization: Bearer <token>`
 
-Electron's daemon manager probes the discovery file first. If `/health` succeeds
-with the stored token and the discovery launch context matches the current
-backend/auth/summarizer launch options, the manager reuses that daemon. If
+The SDK auto-sidecar provider probes the discovery file first. If `/status`
+succeeds with the stored token and the discovery launch context matches the
+current backend/auth/summarizer launch options, the SDK reuses that daemon. If
 discovery is missing, stale, or from a daemon launched with different startup
 context, it shuts down the stale daemon best-effort, launches
-`sidecar_daemon.py`, and waits for a fresh discovery file before routing local
-execution.
+`sidecar_daemon.py` or the packaged daemon binary from explicit launch options,
+and waits for a fresh discovery file before routing local execution.
 
-Discovery reuse is restricted to loopback HTTP(S) origins. Electron rejects discovery entries with non-loopback hosts, unsupported schemes, userinfo, paths, queries, or fragments before sending the sidecar token, and deletes invalid reusable discovery files before launching a replacement daemon.
+Discovery reuse is restricted to loopback HTTP(S) origins. Hosts should reject
+discovery entries with non-loopback hosts, unsupported schemes, userinfo, paths,
+queries, or fragments before sending the sidecar token, and delete invalid
+reusable discovery files before launching a replacement daemon.
 
 ## Endpoints
 

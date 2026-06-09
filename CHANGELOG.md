@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend: make desktop pass `autoSidecar` launch options to
+  `WindieClient` so the SDK owns sidecar startup/reuse and JSON-RPC unwrapping,
+  preventing chat and memory stores from seeing raw daemon envelopes.
 - cli/dev: make `scripts/python-in-env frontend|sidecar` export
   `WINDIE_PYTHON_PATH` from the selected conda environment so desktop sidecar
   daemon startup cannot inherit a stale base-Python override.

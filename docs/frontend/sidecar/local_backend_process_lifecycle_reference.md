@@ -10,20 +10,28 @@ title: "Local Backend Process Lifecycle Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/local_backend_bridge_utils.cjs`
-- `frontend/src/main/runtime_paths.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
+- `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`
 
 ## Process Startup Path
 
 Current preferred runtime:
 
-- Electron main starts/reuses `sidecar_daemon.py` through `sidecar_daemon_manager.cjs`.
-- The daemon owns the single `LocalBackend` / `LocalMemoryStore` instance for the app session.
-- Electron local RPC calls are sent to daemon `POST /rpc`, which dispatches through the same `LocalBackend` JSON-RPC protocol.
-- `local_backend.py` remains the legacy stdin/stdout fallback path when daemon mode is unavailable or disabled in tests.
+- Electron main computes desktop launch options and passes them to
+  `WindieClient` as SDK `autoSidecar` options.
+- The SDK starts/reuses `sidecar_daemon.py`, owns `SidecarDaemonHttpClient`, and
+  unwraps daemon JSON-RPC `/rpc` responses before callers see them.
+- The daemon owns the single `LocalBackend` / `LocalMemoryStore` instance for the
+  app session.
+- Electron bridge code keeps host-only behavior: BrowserWindow handling,
+  screenshot hiding, display bounds, artifact upload headers, and direct helper
+  IPC channels.
+- `local_backend.py` remains the legacy stdin/stdout fallback path only when the
+  SDK daemon provider is unavailable or disabled in tests.
 
 Do not start `local_backend.py` and `sidecar_daemon.py` as independent memory owners in the same app session. Both initialize `LocalMemoryStore` against the same SQLite/FAISS files, which can produce duplicate embedding backfill, SQLite write locks, and FAISS mapping drift.
 
@@ -31,16 +39,18 @@ Entrypoint:
 
 - `initializeLocalBackendBridge(getWindows)`
 
-Daemon startup sequence:
+SDK daemon startup sequence:
 
 1. resolve main/chat/response window resolvers
-2. create/reuse `sidecarDaemonManager`
-3. call `startDaemonBackedLocalBackend(mainWindow, launchOptions)`
-4. register IPC handlers that proxy to daemon-backed local JSON-RPC methods
+2. create SDK `autoSidecar` launch options from desktop paths/env/auth state
+3. register IPC handlers that lazily call the SDK local runtime provider for
+   daemon-backed local JSON-RPC methods
+4. normal agent startup calls `WindieClient.wakeUp()`, which starts or reuses the
+   daemon through the SDK provider
 
 Legacy `startLocalBackend(...)` behavior:
 
-`startLocalBackend(...)` is used only when no daemon manager is active.
+`startLocalBackend(...)` is used only when no SDK daemon provider is active.
 
 1. resolve launch target (`resolveSidecarLaunchTarget('local_backend.py')`)
 2. fail-close when launch target is python and command is missing:
@@ -59,9 +69,20 @@ If executable missing (`ENOENT`):
 - binary launch path emits bundled sidecar executable reinstall guidance
 - python launch path emits Python missing guidance
 
-## Readiness Probe Loop
+## Readiness
 
-After spawn, bridge runs `checkReadiness(...)`.
+SDK daemon readiness:
+
+- `WindieClient.wakeUp()` or a direct Electron helper call resolves the SDK local
+  runtime provider.
+- A resolved provider means the daemon discovery file matched the expected launch
+  context and `/status` succeeded.
+- Electron emits `local-backend-status { ready: true }` only after the SDK
+  runtime provider has returned a usable runtime for bridge-owned helper calls.
+
+Legacy stdin/stdout readiness:
+
+After legacy `local_backend.py` spawn, bridge runs `checkReadiness(...)`.
 
 Probe contract:
 
@@ -93,12 +114,15 @@ Stderr handling:
 
 ## Request Correlation and Timeout Model
 
-Daemon request send path (`sendRequest`):
+SDK daemon request send path (`sendRequest`):
 
 1. create UUID request ID
-2. call `sidecarDaemonManager.rpc(...)`
-3. daemon posts the JSON-RPC envelope to `LocalBackend.protocol.handle_request(...)`
-4. response `error` becomes a bridge error; response `result` is returned to IPC callers
+2. call the SDK local runtime provider
+3. call SDK runtime `rpc(...)`
+4. SDK posts to daemon `POST /rpc`, where the daemon dispatches through
+   `LocalBackend.protocol.handle_request(...)`
+5. SDK converts JSON-RPC `error` to an exception and returns JSON-RPC `result` to
+   IPC callers
 
 Legacy process request send path (`sendRequest`):
 

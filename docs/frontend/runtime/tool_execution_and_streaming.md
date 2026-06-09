@@ -75,7 +75,10 @@ Renderer bundle code should only render and replay bundle projections.
 
 Surface/capture orchestration is split:
 
-- Electron main owns sidecar execution, artifact upload plumbing, window authority, and sidecar daemon lifecycle.
+- SDK owns sidecar daemon startup/reuse, local runtime client semantics, and
+  tool-result return to backend.
+- Electron main owns artifact upload plumbing, window authority, screenshot
+  hiding, and display bounds for desktop-local tool execution.
 - Electron main owns computer-use surface prep for SDK/main tool execution,
   including dashboard-to-minimal-pill handoff before sidecar execution.
 - Renderer capture services are retained for user-initiated screenshot attachment and display/artifact helpers.

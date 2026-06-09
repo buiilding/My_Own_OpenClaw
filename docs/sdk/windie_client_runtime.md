@@ -570,21 +570,31 @@ one.
 
 ## Local Runtime Options
 
-Electron uses `sidecar_daemon_manager.cjs` to start or reuse the daemon and then
-passes the daemon client into the SDK runtime. Node/CLI SDK hosts use the default
-auto sidecar provider: when `wakeUp` sees module tools, plugins, or MCP servers,
-it reads the daemon discovery file, shuts down a healthy discovered daemon by
-default, starts `sidecar_daemon.py`, and waits for fresh discovery metadata. Set
-`autoSidecar.reuseExisting = true` only for hosts that intentionally want to
-attach to a separately managed daemon.
+`WindieClient.wakeUp()` resolves the local runtime through the SDK. Electron main
+does not create a daemon HTTP client or pass `ensureLocalRuntime` for the desktop
+daemon path. Instead, Electron computes desktop launch options (Python or packaged
+daemon command, args, cwd, environment, auth/permission paths, discovery path, and
+launch context) and passes them as `autoSidecar`.
+
+The SDK auto sidecar provider reads the daemon discovery file, validates launch
+context when one is provided, starts or reuses `sidecar_daemon.py`, owns
+`SidecarDaemonHttpClient`, unwraps JSON-RPC `/rpc` responses before callers see
+them, and exposes the runtime to memory, persistence, tool registration, and
+local tool execution. Electron remains responsible for host-only behavior around
+native windows, screenshots, display bounds, and artifact upload plumbing.
+
+By default, the provider shuts down a healthy discovered daemon and starts a fresh
+one. Set `autoSidecar.reuseExisting = true` only for hosts that intentionally want
+to attach to a daemon whose launch context matches the supplied options.
 
 Non-Electron SDK hosts can override that behavior with:
 
-- `autoSidecar`: daemon script, discovery file, host/port, timeout, Python
-  command, and optional `pythonArgs` launcher prefix for the default Node
-  provider. Repo-local examples use this to run
-  `scripts/python-in-env sidecar python` while leaving daemon discovery,
-  registration, and shutdown with `WindieClient`.
+- `autoSidecar`: daemon script or explicit command/args, discovery file,
+  host/port, timeout, cwd, env/env mode, optional launch context, Python command,
+  and optional `pythonArgs` launcher prefix for the default Node provider.
+  Repo-local examples use this to run `scripts/python-in-env sidecar python`
+  while leaving daemon discovery, registration, JSON-RPC unwrapping, and
+  shutdown with `WindieClient`.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
   a `WindieLocalRuntimeClient` when `wakeUp` needs local execution.
 - `sidecar`: a custom `WindieLocalRuntimeClient` implementation.

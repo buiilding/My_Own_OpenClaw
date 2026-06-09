@@ -126,8 +126,8 @@ const {
   buildAgentDefinition,
 } = require('./sdk/agent_definition.cjs');
 const {
-  ensureDaemonBackedLocalRuntime,
-} = require('./sidecar/local_backend_bridge.cjs');
+  createDesktopAutoSidecarLaunchPlan,
+} = require('./sidecar/sdk_sidecar_launch_options.cjs');
 const {
   WindieClient,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
@@ -173,6 +173,7 @@ let pendingInstallAuthStatePromise = null;
 let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
 let latestCurrentTurnProjection = null;
+let desktopAutoSidecarLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
@@ -558,6 +559,20 @@ function buildManagedBackendEndpoints() {
   }));
 }
 
+function buildDesktopAutoSidecarOptionsForAgent() {
+  const plan = createDesktopAutoSidecarLaunchPlan({
+    ...(desktopAutoSidecarLaunchConfig || {}),
+    backendEndpoints: {
+      httpUrl: backendEndpointState.getHttpUrl(),
+    },
+    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
+  });
+  if (plan.ok !== true) {
+    throw new Error(plan.error || 'Windie sidecar daemon launch is unavailable.');
+  }
+  return plan.options;
+}
+
 function createDirectWakeUpAgentAdapter({
   agent,
   workspacePath = null,
@@ -890,6 +905,9 @@ function createDirectWakeUpAgentAdapter({
 async function startWindieAgent({ reason = 'request', workspacePath = null } = {}) {
   await ensureInstallAuthState();
   const resolvedWorkspacePath = workspacePath || resolveWorkspacePathForAgent() || undefined;
+  const localRuntimeOptions = process.env.NODE_ENV === 'test'
+    ? { autoStartLocalRuntime: false }
+    : { autoSidecar: buildDesktopAutoSidecarOptionsForAgent() };
   const client = new WindieClient({
     backendUrl: backendEndpointState.getHttpUrl(),
     httpBaseUrl: backendEndpointState.getHttpUrl(),
@@ -901,9 +919,7 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
     idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
     ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
-    ...(process.env.NODE_ENV === 'test'
-      ? { autoStartLocalRuntime: false }
-      : { ensureLocalRuntime: ensureDaemonBackedLocalRuntime }),
+    ...localRuntimeOptions,
     onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
     onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
     onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
@@ -1150,6 +1166,7 @@ function shutdownIpcForTests() {
   pendingWindieAgentStartPromise = null;
   windieAgent?.close();
   windieAgent = null;
+  desktopAutoSidecarLaunchConfig = null;
 }
 
 function initializeIpc(win, options = {}) {
@@ -1179,6 +1196,11 @@ function initializeIpc(win, options = {}) {
   windieAgentWebSocketImpl = typeof options.WebSocketImpl === 'function'
     ? options.WebSocketImpl
     : null;
+  desktopAutoSidecarLaunchConfig = {
+    isPackaged: options.isPackaged === true,
+    permissionStatePath: options.permissionStatePath,
+    authStatePath: options.authStatePath,
+  };
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
     : () => ({ mainWindow: win, chatWindow: null });

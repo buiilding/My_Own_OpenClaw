@@ -79,86 +79,31 @@ describe('local_backend_bridge process lifecycle', () => {
     }
   });
 
-  test('daemon mode does not spawn standalone local backend process', async () => {
-    const sidecarDaemonManager = {
-      ensureDaemon: jest.fn(async () => ({ status: 'ok' })),
-      executeTool: jest.fn(),
-      getSnapshot: jest.fn(() => ({ hasClient: true, pid: 123 })),
-      rpc: jest.fn(async ({ id }) => ({
-        jsonrpc: '2.0',
-        id,
-        result: { status: 'ok' },
-      })),
+  test('SDK local runtime provider mode does not spawn standalone local backend process', async () => {
+    const localRuntime = {
+      executeTool: jest.fn(async () => ({ success: true, data: {} })),
+      rpc: jest.fn(async () => ({ success: true })),
+      subscribeEvents: jest.fn(() => jest.fn()),
     };
+    const localRuntimeProvider = jest.fn(async () => localRuntime);
 
-    const { mainWindow, spawn } = initBridge({ sidecarDaemonManager });
+    const { handlers, mainWindow, spawn } = initBridge({ localRuntimeProvider });
 
     expect(spawn).not.toHaveBeenCalled();
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(sidecarDaemonManager.ensureDaemon).toHaveBeenCalledTimes(1);
+    expect(localRuntimeProvider).not.toHaveBeenCalled();
+    const result = await handlers['search-memory'](null, {
+      query: 'hello',
+    });
+    expect(result).toEqual({ success: true });
+    expect(localRuntimeProvider).toHaveBeenCalledTimes(1);
+    expect(localRuntimeProvider).toHaveBeenCalledWith({
+      wakeUp: {},
+      needsLocalRuntime: true,
+    });
+    expect(localRuntime.subscribeEvents).toHaveBeenCalledTimes(1);
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
       ready: true,
     });
-  });
-
-  test('exposes daemon-backed runtime for SDK startup without owning shutdown', async () => {
-    const unsubscribe = jest.fn();
-    const daemonClient = {
-      status: jest.fn(async () => ({ status: 'ok' })),
-      listTools: jest.fn(async () => ({ tools: [] })),
-      registerModuleTool: jest.fn(async () => ({ success: true })),
-      registerPlugin: jest.fn(async () => ({ success: true })),
-      registerMcp: jest.fn(async () => ({ success: true })),
-      executeTool: jest.fn(async () => ({ success: true, data: {} })),
-      rpc: jest.fn(async () => ({ jsonrpc: '2.0', id: 'rpc-1', result: {} })),
-    };
-    const sidecarDaemonManager = {
-      ensureDaemon: jest.fn(async () => daemonClient),
-      executeTool: jest.fn(),
-      getSnapshot: jest.fn(() => ({ hasClient: true, pid: 123 })),
-      rpc: jest.fn(async ({ id }) => ({
-        jsonrpc: '2.0',
-        id,
-        result: { status: 'ok' },
-      })),
-      subscribeEvents: jest.fn(() => unsubscribe),
-    };
-
-    const { bridge } = initBridge({ sidecarDaemonManager });
-    await Promise.resolve();
-    await Promise.resolve();
-    sidecarDaemonManager.ensureDaemon.mockClear();
-    sidecarDaemonManager.subscribeEvents.mockClear();
-
-    const runtime = await bridge.ensureDaemonBackedLocalRuntime();
-
-    expect(sidecarDaemonManager.ensureDaemon).toHaveBeenCalledWith(expect.objectContaining({
-      isPackaged: false,
-    }));
-    await expect(runtime.status()).resolves.toEqual({ status: 'ok' });
-    await expect(runtime.listTools()).resolves.toEqual({ tools: [] });
-    await runtime.registerModuleTool({ name: 'tool' }, { workspacePath: '/tmp/workspace' });
-    await runtime.registerPlugin({ path: '/tmp/plugin' });
-    await runtime.registerMcp({ id: 'mcp' });
-    await runtime.executeTool({ toolName: 'read_file', args: {} });
-    await runtime.rpc({ method: 'get_status' });
-    expect(runtime.subscribeEvents(jest.fn())).toBe(unsubscribe);
-    expect(runtime.shutdown).toBeUndefined();
-    expect(daemonClient.registerModuleTool).toHaveBeenCalledWith(
-      { name: 'tool' },
-      { workspacePath: '/tmp/workspace' },
-    );
-    expect(daemonClient.executeTool).toHaveBeenCalledWith({ toolName: 'read_file', args: {} });
-    expect(daemonClient.rpc).toHaveBeenCalledWith({ method: 'get_status' });
-  });
-
-  test('rejects SDK local-runtime provider before daemon manager initialization', async () => {
-    const { bridge } = initBridge();
-
-    await expect(bridge.ensureDaemonBackedLocalRuntime()).rejects.toThrow(
-      'Windie sidecar daemon manager is not initialized.',
-    );
   });
 
   test('internal tool execution rejects in-flight request when sidecar exits', async () => {

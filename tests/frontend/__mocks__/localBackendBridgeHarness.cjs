@@ -126,8 +126,11 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     getFrontendConfig: () => options.frontendConfig || null,
     getArtifactUploadHeaders: options.getArtifactUploadHeaders,
     isPackaged: options.isPackaged === true,
+    autoSidecarLaunchPlan: options.autoSidecarLaunchPlan,
+    localRuntimeProvider: options.localRuntimeProvider,
+    permissionStatePath: options.permissionStatePath,
+    authStatePath: options.authStatePath,
     sidecarDaemonClient: options.sidecarDaemonClient,
-    sidecarDaemonManager: options.sidecarDaemonManager,
   });
   return { mainWindow, chatWindow, responseWindow, bridge, handlers, spawn };
 }

@@ -74,16 +74,29 @@ export type SidecarDaemonClientOptions = {
   WebSocketImpl?: EventWebSocketConstructor;
 };
 
+type SidecarLaunchEnvironment = Record<string, string | undefined>;
+
+type SidecarDaemonDiscovery = SidecarDaemonClientOptions & {
+  launch?: Record<string, string> | null;
+};
+
 export type WindieAutoSidecarOptions = {
   discoveryFile?: string;
+  command?: string;
+  args?: string[];
   daemonScript?: string;
   pythonCommand?: string;
   pythonArgs?: string[];
+  cwd?: string;
+  env?: SidecarLaunchEnvironment;
+  envMode?: 'merge' | 'replace';
+  launchContext?: Record<string, string | undefined> | null;
   host?: string;
   port?: number;
   reuseExisting?: boolean;
   startTimeoutMs?: number;
   pollIntervalMs?: number;
+  onStderrLine?: (line: string) => void;
   fetchImpl?: FetchLike;
   WebSocketImpl?: EventWebSocketConstructor;
 };
@@ -322,6 +335,7 @@ type NodeFsLike = {
   existsSync(path: string): boolean;
   mkdirSync(path: string, options?: { recursive?: boolean }): void;
   readFileSync(path: string, encoding: string): string;
+  unlinkSync(path: string): void;
 };
 
 type NodeOsLike = {
@@ -335,11 +349,16 @@ type NodePathLike = {
 };
 
 type NodeChildProcessLike = {
-  spawn(command: string, args: string[], options?: JsonRecord): {
+  spawn(command: string, args: string[], options?: Record<string, unknown>): {
     kill?: (signal?: string) => void;
     unref?: () => void;
+    stderr?: {
+      on?: (event: string, listener: (payload: unknown) => void) => void;
+    };
   };
 };
+
+type NodeSpawnedProcessLike = ReturnType<NodeChildProcessLike['spawn']>;
 
 async function importNodeModule<TModule>(specifier: string): Promise<TModule> {
   return import(/* @vite-ignore */ specifier) as Promise<TModule>;
@@ -360,22 +379,93 @@ async function loadNodeSidecarModules(): Promise<{
   return { fs, os, path, childProcess };
 }
 
-function normalizeDiscovery(raw: unknown): SidecarDaemonClientOptions | null {
+function isLoopbackHostname(hostname: string): boolean {
+  const host = String(hostname || '').toLowerCase();
+  if (host === 'localhost' || host === '::1' || host === '[::1]' || host === '0:0:0:0:0:0:0:1') {
+    return true;
+  }
+  const ipv4Match = host.match(/^(\d{1,3})(?:\.(\d{1,3})){3}$/);
+  if (!ipv4Match) {
+    return false;
+  }
+  const octets = host.split('.').map(part => Number(part));
+  return octets.length === 4
+    && octets.every(octet => Number.isInteger(octet) && octet >= 0 && octet <= 255)
+    && octets[0] === 127;
+}
+
+function normalizeDaemonBaseUrl(value: unknown): string | null {
+  const rawBaseUrl = typeof value === 'string' ? value.trim() : '';
+  if (!rawBaseUrl) {
+    return null;
+  }
+  try {
+    const parsed = new URL(rawBaseUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+    if (!isLoopbackHostname(parsed.hostname)) {
+      return null;
+    }
+    if (parsed.username || parsed.password) {
+      return null;
+    }
+    if (parsed.pathname !== '/' || parsed.search || parsed.hash) {
+      return null;
+    }
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeLaunchContext(value: unknown): Record<string, string> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const normalized: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!key) {
+      continue;
+    }
+    normalized[key] = typeof raw === 'string' ? raw.trim() : '';
+  }
+  return normalized;
+}
+
+function launchContextsEqual(
+  left: Record<string, string> | null,
+  right: Record<string, string> | null,
+): boolean {
+  if (!left || !right) {
+    return false;
+  }
+  const leftKeys = Object.keys(left).sort();
+  const rightKeys = Object.keys(right).sort();
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+  return leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
+}
+
+function normalizeDiscovery(raw: unknown): SidecarDaemonDiscovery | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     return null;
   }
   const payload = raw as JsonRecord;
-  const baseUrl = typeof payload.base_url === 'string'
-    ? payload.base_url.trim()
-    : (typeof payload.baseUrl === 'string' ? payload.baseUrl.trim() : '');
+  const baseUrl = normalizeDaemonBaseUrl(payload.base_url ?? payload.baseUrl);
   const token = typeof payload.token === 'string' ? payload.token.trim() : '';
   if (!baseUrl || !token) {
     return null;
   }
-  return { baseUrl, token };
+  return {
+    baseUrl,
+    token,
+    launch: normalizeLaunchContext(payload.launch),
+  };
 }
 
-function readDaemonDiscovery(fs: NodeFsLike, discoveryFile: string): SidecarDaemonClientOptions | null {
+function readDaemonDiscovery(fs: NodeFsLike, discoveryFile: string): SidecarDaemonDiscovery | null {
   try {
     if (!fs.existsSync(discoveryFile)) {
       return null;
@@ -386,12 +476,20 @@ function readDaemonDiscovery(fs: NodeFsLike, discoveryFile: string): SidecarDaem
   }
 }
 
+function deleteDaemonDiscovery(fs: NodeFsLike, discoveryFile: string): void {
+  try {
+    fs.unlinkSync(discoveryFile);
+  } catch {
+    // Missing or locked discovery files are handled by the following spawn/probe loop.
+  }
+}
+
 async function sleep(ms: number): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function probeDaemon(
-  discovery: SidecarDaemonClientOptions | null,
+  discovery: SidecarDaemonDiscovery | SidecarDaemonClientOptions | null,
   fetchImpl?: FetchLike,
   WebSocketImpl?: EventWebSocketConstructor,
 ): Promise<SidecarDaemonHttpClient | null> {
@@ -412,7 +510,7 @@ async function probeDaemon(
 }
 
 async function waitForDaemonStop(
-  discovery: SidecarDaemonClientOptions | null,
+  discovery: SidecarDaemonDiscovery | SidecarDaemonClientOptions | null,
   fetchImpl?: FetchLike,
   WebSocketImpl?: EventWebSocketConstructor,
   timeoutMs = 2000,
@@ -427,6 +525,22 @@ async function waitForDaemonStop(
     await sleep(pollIntervalMs);
   }
   throw new Error('Timed out waiting for existing Windie sidecar daemon to stop');
+}
+
+async function shutdownDiscoveredDaemon(
+  discovery: SidecarDaemonDiscovery | null,
+  fetchImpl?: FetchLike,
+  WebSocketImpl?: EventWebSocketConstructor,
+  timeoutMs = 2000,
+  pollIntervalMs = 100,
+): Promise<boolean> {
+  const existing = await probeDaemon(discovery, fetchImpl, WebSocketImpl);
+  if (!existing) {
+    return false;
+  }
+  await existing.shutdown();
+  await waitForDaemonStop(discovery, fetchImpl, WebSocketImpl, timeoutMs, pollIntervalMs);
+  return true;
 }
 
 function resolveDaemonScript(options: WindieAutoSidecarOptions, fs: NodeFsLike, path: NodePathLike): string {
@@ -454,12 +568,63 @@ function resolveDaemonScript(options: WindieAutoSidecarOptions, fs: NodeFsLike, 
   );
 }
 
+function resolveProcessEnv(): SidecarLaunchEnvironment {
+  const processLike = (globalThis as unknown as {
+    process?: { env?: SidecarLaunchEnvironment };
+  }).process;
+  return processLike?.env ?? {};
+}
+
+function buildSpawnEnv(options: WindieAutoSidecarOptions): SidecarLaunchEnvironment {
+  if (options.envMode === 'replace') {
+    return { ...(options.env ?? {}) };
+  }
+  return {
+    ...resolveProcessEnv(),
+    ...(options.env ?? {}),
+  };
+}
+
+function resolveDaemonLaunchCommand(
+  options: WindieAutoSidecarOptions,
+  fs: NodeFsLike,
+  path: NodePathLike,
+  discoveryFile: string,
+): { command: string; args: string[] } {
+  if (typeof options.command === 'string' && options.command.trim()) {
+    return {
+      command: options.command,
+      args: [
+        ...(options.args ?? []),
+        '--discovery-file',
+        discoveryFile,
+      ],
+    };
+  }
+  const processEnv = resolveProcessEnv();
+  const daemonScript = resolveDaemonScript(options, fs, path);
+  const pythonCommand = options.pythonCommand
+    ?? processEnv.WINDIE_PYTHON
+    ?? 'python3';
+  return {
+    command: pythonCommand,
+    args: [
+      ...(options.pythonArgs ?? []),
+      daemonScript,
+      '--discovery-file',
+      discoveryFile,
+    ],
+  };
+}
+
 export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
   options: WindieAutoSidecarOptions = {},
 ): WindieLocalRuntimeProvider<TWakeUpOptions> {
   let cachedRuntime: WindieLocalRuntimeClient | undefined;
-  let ownedProcess: { kill?: (signal?: string) => void; unref?: () => void } | null = null;
-  return async () => {
+  let pendingRuntimePromise: Promise<WindieLocalRuntimeClient | undefined> | null = null;
+  let ownedProcess: NodeSpawnedProcessLike | null = null;
+
+  async function resolveRuntime(): Promise<WindieLocalRuntimeClient | undefined> {
     if (cachedRuntime) {
       return cachedRuntime;
     }
@@ -472,21 +637,29 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
       );
     }
     const { fs, os, path, childProcess } = modules;
-    const processLike = (globalThis as unknown as {
-      process?: { env?: Record<string, string | undefined> };
-    }).process;
+    const processEnv = resolveProcessEnv();
     const discoveryFile = path.resolve(
       options.discoveryFile
-        ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE
+        ?? processEnv.WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE
         ?? path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json'),
     );
     const fetchImpl = options.fetchImpl;
+    const expectedLaunchContext = normalizeLaunchContext(options.launchContext);
     const initialDiscovery = readDaemonDiscovery(fs, discoveryFile);
-    const existing = await probeDaemon(
-      initialDiscovery,
-      fetchImpl,
-      options.WebSocketImpl,
-    );
+    if (expectedLaunchContext && initialDiscovery && !launchContextsEqual(initialDiscovery.launch ?? null, expectedLaunchContext)) {
+      await shutdownDiscoveredDaemon(
+        initialDiscovery,
+        fetchImpl,
+        options.WebSocketImpl,
+        options.startTimeoutMs ?? 10000,
+        options.pollIntervalMs ?? 100,
+      );
+      deleteDaemonDiscovery(fs, discoveryFile);
+    }
+    const reusableDiscovery = expectedLaunchContext && initialDiscovery
+      ? (launchContextsEqual(initialDiscovery.launch ?? null, expectedLaunchContext) ? initialDiscovery : null)
+      : initialDiscovery;
+    const existing = await probeDaemon(reusableDiscovery, fetchImpl, options.WebSocketImpl);
     if (existing) {
       if (options.reuseExisting === true) {
         cachedRuntime = existing;
@@ -502,37 +675,48 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
       );
     }
 
-    const daemonScript = resolveDaemonScript(options, fs, path);
     fs.mkdirSync(path.dirname(discoveryFile), { recursive: true });
-    const pythonCommand = options.pythonCommand
-      ?? processLike?.env?.WINDIE_PYTHON
-      ?? 'python3';
-    const args = [
-      ...(options.pythonArgs ?? []),
-      daemonScript,
-      '--discovery-file',
-      discoveryFile,
-    ];
+    const launchCommand = resolveDaemonLaunchCommand(options, fs, path, discoveryFile);
+    const args = [...launchCommand.args];
     if (options.host) {
       args.push('--host', options.host);
     }
     if (typeof options.port === 'number') {
       args.push('--port', String(options.port));
     }
-    ownedProcess = childProcess.spawn(pythonCommand, args, {
-      stdio: 'ignore',
+    ownedProcess = childProcess.spawn(launchCommand.command, args, {
+      cwd: options.cwd,
+      env: buildSpawnEnv(options),
+      stdio: options.onStderrLine ? ['ignore', 'ignore', 'pipe'] : 'ignore',
       detached: true,
     });
+    if (options.onStderrLine) {
+      let stderrRemainder = '';
+      ownedProcess.stderr?.on?.('data', (payload: unknown) => {
+        const text = payload instanceof Uint8Array
+          ? new TextDecoder().decode(payload)
+          : String(payload ?? '');
+        const lines = `${stderrRemainder}${text}`.split(/\r?\n/);
+        stderrRemainder = lines.pop() ?? '';
+        for (const line of lines) {
+          if (line.trim()) {
+            options.onStderrLine?.(line);
+          }
+        }
+      });
+    }
     ownedProcess.unref?.();
 
     const deadline = Date.now() + (options.startTimeoutMs ?? 10000);
     const pollIntervalMs = options.pollIntervalMs ?? 100;
     while (Date.now() < deadline) {
-      const started = await probeDaemon(
-        readDaemonDiscovery(fs, discoveryFile),
-        fetchImpl,
-        options.WebSocketImpl,
-      );
+      const discovered = readDaemonDiscovery(fs, discoveryFile);
+      if (expectedLaunchContext && discovered && !launchContextsEqual(discovered.launch ?? null, expectedLaunchContext)) {
+        deleteDaemonDiscovery(fs, discoveryFile);
+        await sleep(pollIntervalMs);
+        continue;
+      }
+      const started = await probeDaemon(discovered, fetchImpl, options.WebSocketImpl);
       if (started) {
         cachedRuntime = {
           status: () => started.status(),
@@ -560,5 +744,20 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
     ownedProcess?.kill?.('SIGTERM');
     ownedProcess = null;
     throw new Error(`Timed out waiting for Windie sidecar daemon discovery at ${discoveryFile}`);
+  }
+
+  return async () => {
+    if (cachedRuntime) {
+      return cachedRuntime;
+    }
+    if (pendingRuntimePromise) {
+      return pendingRuntimePromise;
+    }
+    pendingRuntimePromise = resolveRuntime();
+    try {
+      return await pendingRuntimePromise;
+    } finally {
+      pendingRuntimePromise = null;
+    }
   };
 }

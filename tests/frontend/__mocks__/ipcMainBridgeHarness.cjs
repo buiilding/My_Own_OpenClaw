@@ -93,7 +93,6 @@ jest.mock('fs', () => ({
 
 jest.mock('../../../frontend/src/main/sidecar/local_backend_bridge.cjs', () => ({
   executeToolForBackend: jest.fn(),
-  ensureDaemonBackedLocalRuntime: jest.fn(),
   getSystemState: jest.fn(),
   searchMemory: jest.fn(),
 }));

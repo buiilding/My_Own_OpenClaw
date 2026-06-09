@@ -8,14 +8,14 @@ function sendLocalBackendStatus(mainWindow, payload) {
 
 function buildLocalBackendStatusPayload({
   supervisor,
-  sidecarDaemonManager,
+  sidecarDaemonSnapshot,
 } = {}) {
   const snapshot = supervisor?.getSnapshot?.() || {};
   return {
     ready: snapshot.ready === true,
     status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
     error: typeof snapshot.lastError === 'string' ? snapshot.lastError : '',
-    sidecarDaemon: sidecarDaemonManager?.getSnapshot?.() || null,
+    sidecarDaemon: sidecarDaemonSnapshot || null,
   };
 }
 

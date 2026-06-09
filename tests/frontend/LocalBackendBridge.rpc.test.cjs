@@ -18,22 +18,18 @@ const {
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  test('search-memory routes through sidecar daemon rpc when daemon mode is active', async () => {
-    const sidecarDaemonManager = {
-      ensureDaemon: jest.fn(async () => ({ status: 'ok' })),
-      executeTool: jest.fn(),
-      getSnapshot: jest.fn(() => ({ hasClient: true, pid: 123 })),
-      rpc: jest.fn(async ({ id, method, params }) => ({
-        jsonrpc: '2.0',
-        id,
-        result: {
-          success: true,
-          method,
-          params,
-        },
+  test('search-memory routes through SDK local runtime rpc when daemon mode is active', async () => {
+    const localRuntime = {
+      executeTool: jest.fn(async () => ({ success: true, data: {} })),
+      rpc: jest.fn(async ({ method, params }) => ({
+        success: true,
+        method,
+        params,
       })),
+      subscribeEvents: jest.fn(() => jest.fn()),
     };
-    const { handlers, spawn } = initBridge({ sidecarDaemonManager });
+    const localRuntimeProvider = jest.fn(async () => localRuntime);
+    const { handlers, spawn } = initBridge({ localRuntimeProvider });
 
     const result = await handlers['search-memory'](null, {
       query: 'hello',
@@ -56,7 +52,7 @@ describe('local_backend_bridge RPC handlers', () => {
         semantic_min_score: undefined,
       },
     });
-    expect(sidecarDaemonManager.rpc).toHaveBeenCalledWith(
+    expect(localRuntime.rpc).toHaveBeenCalledWith(
       expect.objectContaining({
         method: 'search_memory',
         params: expect.objectContaining({
@@ -64,9 +60,6 @@ describe('local_backend_bridge RPC handlers', () => {
           user_id: 'user-1',
           limit: 3,
         }),
-      }),
-      expect.objectContaining({
-        isPackaged: false,
       }),
     );
   });
