@@ -10,6 +10,9 @@ from tools.computer import screenshot_tool  # noqa: E402
 
 
 class _FakeImage:
+    crop_calls = []
+    resize_calls = []
+
     def __init__(self, mode="RGBA", size=(300, 200)):
         self.mode = mode
         self.size = size
@@ -20,8 +23,15 @@ class _FakeImage:
         return converted
 
     def crop(self, box):
+        self.__class__.crop_calls.append({"from": self.size, "box": box})
         left, top, right, bottom = box
         return _FakeImage(mode=self.mode, size=(right - left, bottom - top))
+
+    def resize(self, size, resample=None):
+        self.__class__.resize_calls.append(
+            {"from": self.size, "to": size, "resample": resample}
+        )
+        return _FakeImage(mode=self.mode, size=size)
 
     def save(self, buffer, format, quality, optimize, progressive):  # noqa: A002
         assert format == "JPEG"
@@ -31,10 +41,21 @@ class _FakeImage:
         buffer.write(b"fake-jpeg-bytes")
 
 
-def _install_fake_modules(monkeypatch, *, screenshot_fn, stub_system_capture=True):
+def _install_fake_modules(
+    monkeypatch,
+    *,
+    screenshot_fn,
+    stub_system_capture=True,
+    desktop_size=(1920, 1080),
+):
+    _FakeImage.resize_calls = []
+    _FakeImage.crop_calls = []
     pyautogui_module = ModuleType("pyautogui")
     pyautogui_module.screenshot = screenshot_fn
-    pyautogui_module.size = lambda: SimpleNamespace(width=1920, height=1080)
+    pyautogui_module.size = lambda: SimpleNamespace(
+        width=desktop_size[0],
+        height=desktop_size[1],
+    )
     pil_module = ModuleType("PIL")
     pil_module.Image = object()
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
@@ -143,6 +164,65 @@ async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(
 
 
 @pytest.mark.asyncio
+async def test_capture_screenshot_scales_full_virtual_desktop_crop_to_image_pixels(
+    monkeypatch,
+):
+    calls = []
+
+    def _screenshot(region=None):
+        calls.append(region)
+        return _FakeImage(mode="RGBA", size=(8960, 2880))
+
+    _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Linux")
+
+    result = await screenshot_tool.capture_screenshot(
+        {
+            "display_bounds": {
+                "x": 1920,
+                "y": 0,
+                "width": 2560,
+                "height": 1440,
+                "monitor_id": "2",
+                "desktop_virtual_bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 4480,
+                    "height": 1440,
+                },
+            }
+        }
+    )
+
+    assert result["success"] is True
+    assert calls == [None]
+    assert _FakeImage.crop_calls == [
+        {"from": (8960, 2880), "box": (3840, 0, 8960, 2880)}
+    ]
+    assert _FakeImage.resize_calls == [
+        {"from": (5120, 2880), "to": (2560, 1440), "resample": 1}
+    ]
+    payload = result["data"]
+    assert payload["capture_meta"] == {
+        "source_w": 2560,
+        "source_h": 1440,
+        "crop_x": 1920,
+        "crop_y": 0,
+        "crop_w": 2560,
+        "crop_h": 1440,
+        "desktop_virtual_bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 4480,
+            "height": 1440,
+        },
+        "monitor_id": "2",
+        "timestamp": payload["capture_meta"]["timestamp"],
+        "capture_engine": "pyautogui_fallback",
+    }
+
+
+@pytest.mark.asyncio
 async def test_capture_screenshot_on_macos_uses_direct_region_for_monitor_bounds(
     monkeypatch,
 ):
@@ -196,6 +276,129 @@ async def test_capture_screenshot_on_macos_uses_direct_region_for_monitor_bounds
         "capture_engine": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
+
+
+@pytest.mark.asyncio
+async def test_capture_screenshot_resizes_full_desktop_to_logical_coordinates(
+    monkeypatch,
+):
+    calls = []
+
+    def _screenshot(region=None):
+        calls.append(region)
+        return _FakeImage(mode="RGBA", size=(3420, 2224))
+
+    _install_fake_modules(
+        monkeypatch,
+        screenshot_fn=_screenshot,
+        desktop_size=(1710, 1112),
+    )
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
+
+    result = await screenshot_tool.capture_screenshot({})
+
+    assert result["success"] is True
+    assert calls == [None]
+    assert _FakeImage.resize_calls == [
+        {"from": (3420, 2224), "to": (1710, 1112), "resample": 1}
+    ]
+    payload = result["data"]
+    assert payload["capture_meta"] == {
+        "source_w": 1710,
+        "source_h": 1112,
+        "crop_x": 0,
+        "crop_y": 0,
+        "crop_w": 1710,
+        "crop_h": 1112,
+        "desktop_virtual_bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1710,
+            "height": 1112,
+        },
+        "monitor_id": None,
+        "timestamp": payload["capture_meta"]["timestamp"],
+        "capture_engine": "pyautogui_fallback",
+    }
+
+
+@pytest.mark.asyncio
+async def test_capture_screenshot_resizes_region_to_display_bounds(monkeypatch):
+    calls = []
+
+    def _screenshot(region=None):
+        calls.append(region)
+        return _FakeImage(mode="RGBA", size=(2940, 1912))
+
+    _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
+
+    result = await screenshot_tool.capture_screenshot(
+        {
+            "display_bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1470,
+                "height": 956,
+                "desktop_virtual_bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 1470,
+                    "height": 956,
+                },
+            }
+        }
+    )
+
+    assert result["success"] is True
+    assert calls == [(0, 0, 1470, 956)]
+    assert _FakeImage.resize_calls == [
+        {"from": (2940, 1912), "to": (1470, 956), "resample": 1}
+    ]
+    payload = result["data"]
+    assert payload["capture_meta"] == {
+        "source_w": 1470,
+        "source_h": 956,
+        "crop_x": 0,
+        "crop_y": 0,
+        "crop_w": 1470,
+        "crop_h": 956,
+        "desktop_virtual_bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1470,
+            "height": 956,
+        },
+        "monitor_id": None,
+        "timestamp": payload["capture_meta"]["timestamp"],
+        "capture_engine": "pyautogui_fallback",
+    }
+
+
+@pytest.mark.asyncio
+async def test_capture_screenshot_keeps_identity_sized_capture(monkeypatch):
+    calls = []
+
+    def _screenshot(region=None):
+        calls.append(region)
+        return _FakeImage(mode="RGBA", size=(1710, 1112))
+
+    _install_fake_modules(
+        monkeypatch,
+        screenshot_fn=_screenshot,
+        desktop_size=(1710, 1112),
+    )
+
+    result = await screenshot_tool.capture_screenshot({})
+
+    assert result["success"] is True
+    assert calls == [None]
+    assert _FakeImage.resize_calls == []
+    payload = result["data"]
+    assert payload["capture_meta"]["source_w"] == 1710
+    assert payload["capture_meta"]["source_h"] == 1112
+    assert payload["capture_meta"]["crop_w"] == 1710
+    assert payload["capture_meta"]["crop_h"] == 1112
 
 
 @pytest.mark.asyncio

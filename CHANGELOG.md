@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/screenshots: normalize returned computer-use screenshots to the
+  desktop-coordinate image frame when bounds are known, while keeping
+  `capture_meta` as the model-image-to-desktop mapping source of truth.
 - sidecar/screenshot: correct the macOS cursor overlay comment to match the
   built-in cursor overlay path.
 - frontend/main: move Electron main-process helper modules into app, debug,

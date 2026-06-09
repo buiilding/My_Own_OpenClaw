@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Dict, Any, Optional
 
@@ -22,6 +23,17 @@ logger = logging.getLogger(__name__)
 
 SCREENSHOT_TEMP_DIR_NAME = "windieos-screenshots"
 SCREENSHOT_TEMP_FILE_PREFIX = "windie-shot-"
+
+
+@dataclass(frozen=True)
+class ScreenshotGeometry:
+    raw_size: tuple[int, int]
+    desktop_rect: tuple[int, int, int, int]
+    model_image_size: tuple[int, int]
+
+    @property
+    def resize_required(self) -> bool:
+        return self.raw_size != self.model_image_size
 
 
 def _normalize_monitor_id(raw_monitor_id: object) -> Optional[str]:
@@ -93,6 +105,18 @@ def _should_capture_full_virtual_desktop(
     return True
 
 
+def _image_size(value: object) -> Optional[tuple[int, int]]:
+    size = getattr(value, "size", None)
+    if not isinstance(size, tuple) or len(size) != 2:
+        return None
+    width, height = size
+    if not isinstance(width, int) or not isinstance(height, int):
+        return None
+    if width <= 0 or height <= 0:
+        return None
+    return width, height
+
+
 def _crop_full_desktop_capture_to_region(
     screenshot: object,
     *,
@@ -104,10 +128,10 @@ def _crop_full_desktop_capture_to_region(
 
     desktop_x, desktop_y, desktop_w, desktop_h = desktop_virtual_bounds
     crop_x, crop_y, crop_w, crop_h = region
-    relative_left = crop_x - desktop_x
-    relative_top = crop_y - desktop_y
-    relative_right = relative_left + crop_w
-    relative_bottom = relative_top + crop_h
+    relative_left = int(crop_x - desktop_x)
+    relative_top = int(crop_y - desktop_y)
+    relative_right = int(relative_left + crop_w)
+    relative_bottom = int(relative_top + crop_h)
 
     if (
         relative_left < 0
@@ -118,6 +142,15 @@ def _crop_full_desktop_capture_to_region(
         raise ValueError(
             "Display bounds fall outside the reported virtual desktop bounds"
         )
+
+    image_size = _image_size(screenshot)
+    if image_size and desktop_w > 0 and desktop_h > 0:
+        image_w, image_h = image_size
+        left = int(round((relative_left * image_w) / desktop_w))
+        top = int(round((relative_top * image_h) / desktop_h))
+        right = int(round((relative_right * image_w) / desktop_w))
+        bottom = int(round((relative_bottom * image_h) / desktop_h))
+        return screenshot.crop((left, top, right, bottom))
 
     return screenshot.crop(
         (relative_left, relative_top, relative_right, relative_bottom)
@@ -138,18 +171,6 @@ def _paste_cursor_overlay(
     screenshot_rgba.paste(cursor_image, (draw_x, draw_y), cursor_image)
     if screenshot.mode != "RGBA":
         screenshot.paste(screenshot_rgba.convert(screenshot.mode))
-
-
-def _image_size(value: object) -> Optional[tuple[int, int]]:
-    size = getattr(value, "size", None)
-    if not isinstance(size, tuple) or len(size) != 2:
-        return None
-    width, height = size
-    if not isinstance(width, int) or not isinstance(height, int):
-        return None
-    if width <= 0 or height <= 0:
-        return None
-    return width, height
 
 
 def _map_desktop_cursor_to_image_position(
@@ -184,6 +205,68 @@ def _map_desktop_cursor_to_image_position(
     image_x = int(round((relative_x * image_w) / desktop_w))
     image_y = int(round((relative_y * image_h) / desktop_h))
     return image_x - hot_spot_x, image_y - hot_spot_y
+
+
+def _resolve_screenshot_geometry(
+    screenshot: object,
+    *,
+    region: Optional[tuple[int, int, int, int]],
+    desktop_size: Optional[tuple[int, int]],
+) -> ScreenshotGeometry:
+    raw_size = _image_size(screenshot)
+    if region:
+        desktop_rect = region
+    elif desktop_size:
+        desktop_rect = (0, 0, desktop_size[0], desktop_size[1])
+    elif raw_size:
+        desktop_rect = (0, 0, raw_size[0], raw_size[1])
+    else:
+        desktop_rect = (0, 0, 0, 0)
+
+    _, _, desktop_w, desktop_h = desktop_rect
+    if desktop_w > 0 and desktop_h > 0:
+        model_image_size = (int(desktop_w), int(desktop_h))
+    elif raw_size:
+        model_image_size = raw_size
+    else:
+        model_image_size = (0, 0)
+
+    return ScreenshotGeometry(
+        raw_size=raw_size or model_image_size,
+        desktop_rect=desktop_rect,
+        model_image_size=model_image_size,
+    )
+
+
+def _resize_to_model_image_frame(
+    screenshot: object,
+    geometry: ScreenshotGeometry,
+) -> object:
+    if not geometry.resize_required:
+        return screenshot
+    target_w, target_h = geometry.model_image_size
+    if target_w <= 0 or target_h <= 0:
+        return screenshot
+    resize = getattr(screenshot, "resize", None)
+    if not callable(resize):
+        return screenshot
+
+    try:
+        from PIL import Image
+
+        resampling = getattr(Image, "Resampling", None)
+        resample = (
+            getattr(resampling, "LANCZOS", None) if resampling is not None else None
+        )
+        if resample is None:
+            resample = getattr(Image, "LANCZOS", 1)
+    except Exception:
+        resample = 1
+
+    try:
+        return resize((target_w, target_h), resample=resample)
+    except TypeError:
+        return resize((target_w, target_h))
 
 
 def _capture_with_windows_cursor(region: Optional[tuple[int, int, int, int]]):
@@ -596,19 +679,22 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
                     desktop_virtual_bounds=desktop_virtual_bounds,
                 )
 
-            # Linux X11 fallback: overlay real cursor bitmap from XFixes.
+            virtual_size = _coerce_virtual_size(pyautogui.size())
+            geometry = _resolve_screenshot_geometry(
+                screenshot,
+                region=region,
+                desktop_size=virtual_size,
+            )
+            screenshot = _resize_to_model_image_frame(screenshot, geometry)
+
+            # Cursor overlays draw into the final model-facing image frame.
             if _overlay_linux_xfixes_cursor(screenshot, region=region):
                 capture_engine = f"{capture_engine}+linux_xfixes_cursor"
             if _overlay_macos_builtin_cursor(screenshot, region=region):
                 capture_engine = f"{capture_engine}+macos_builtin_cursor"
 
-            source_w, source_h = screenshot.size
-            virtual_size = _coerce_virtual_size(pyautogui.size())
-            if region:
-                crop_x, crop_y, crop_w, crop_h = region
-            else:
-                crop_x, crop_y = 0, 0
-                crop_w, crop_h = virtual_size if virtual_size else (source_w, source_h)
+            source_w, source_h = _image_size(screenshot) or geometry.raw_size
+            crop_x, crop_y, crop_w, crop_h = geometry.desktop_rect
             effective_virtual_bounds = desktop_virtual_bounds or (
                 (crop_x, crop_y, crop_w, crop_h)
                 if region
