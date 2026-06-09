@@ -29,6 +29,7 @@ describe('overlay_phase_ipc_runtime', () => {
       positionContextLabelWindow: jest.fn(),
       syncContextLabelWindowVisibility: jest.fn(),
       syncChatboxHitTestState: jest.fn(),
+      syncResponseboxHitTestState: jest.fn(),
       setChatWindowBoundsForVisualAnchorHeight: jest.fn(() => false),
       resizeChatWindowForVisualAnchorHeight: jest.fn(() => false),
       getResponseWindowBounds: jest.fn(),
@@ -36,6 +37,7 @@ describe('overlay_phase_ipc_runtime', () => {
       showResponseWindowWhenChatVisible: jest.fn(),
       showResponseWindowInactive: jest.fn(),
       setChatboxHitTestActive: jest.fn(() => false),
+      setResponseboxHitTestActive: jest.fn(() => false),
       showChatWindow: jest.fn(),
       showMainWindow: jest.fn(),
       hideChatWindow: jest.fn(),
@@ -64,6 +66,7 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(typeof invokeHandlers['set-responsebox-size']).toBe('function');
     expect(typeof invokeHandlers['set-chatbox-visual-anchor-height']).toBe('function');
     expect(typeof invokeHandlers['set-chatbox-hit-test-active']).toBe('function');
+    expect(typeof invokeHandlers['set-responsebox-hit-test-active']).toBe('function');
     expect(typeof invokeHandlers['show-chatbox']).toBe('function');
     expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
     expect(typeof invokeHandlers['handoff-surface-for-computer-use']).toBe('function');
@@ -130,6 +133,25 @@ describe('overlay_phase_ipc_runtime', () => {
       restoreResponseOverlay: true,
       targetDisplayAffinity: null,
     });
+  });
+
+  test('routes responsebox hit-test updates to main-owned idle passthrough state', async () => {
+    const setResponseboxHitTestActive = jest.fn(() => true);
+    const syncResponseboxHitTestState = jest.fn();
+    const { invokeHandlers } = createRuntime({
+      setResponseboxHitTestActive,
+      syncResponseboxHitTestState,
+    });
+
+    const result = await invokeHandlers['set-responsebox-hit-test-active'](null, { active: true });
+
+    expect(result).toEqual({
+      success: true,
+      active: true,
+      changed: true,
+    });
+    expect(setResponseboxHitTestActive).toHaveBeenCalledWith(true);
+    expect(syncResponseboxHitTestState).toHaveBeenCalledTimes(1);
   });
 
   test('routes chatbox visual anchor updates to positioning runtime', async () => {

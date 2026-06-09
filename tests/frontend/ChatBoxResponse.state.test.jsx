@@ -171,6 +171,55 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('reports pointer-scoped response overlay interactivity to main-owned hit-testing runtime', async () => {
+    setChatState([
+      {
+        id: 'assistant-1',
+        text: 'visible response',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: false,
+      },
+    ]);
+
+    const { container } = render(<ChatBoxResponse />);
+    emitOverlayPhase('streaming');
+
+    await waitFor(() => {
+      expect(screen.getByText('visible response')).toBeInTheDocument();
+    });
+
+    const shell = container.querySelector('.chatbox-shell');
+    Object.defineProperty(shell, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        bottom: 170,
+        height: 160,
+        left: 20,
+        right: 520,
+        top: 10,
+        width: 500,
+        x: 20,
+        y: 10,
+      }),
+    });
+
+    mockInvoke.mockClear();
+
+    await act(async () => {
+      fireEvent.mouseMove(window, { clientX: 260, clientY: 60 });
+      fireEvent.mouseMove(window, { clientX: 260, clientY: 4 });
+      await Promise.resolve();
+    });
+
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-responsebox-hit-test-active' && payload?.active === true,
+    )).toBe(true);
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-responsebox-hit-test-active' && payload?.active === false,
+    )).toBe(true);
+  });
+
   test('keeps response overlay visible during tool phases after the first assistant chunk arrives', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },

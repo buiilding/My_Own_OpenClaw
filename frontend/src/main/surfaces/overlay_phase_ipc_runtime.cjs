@@ -28,6 +28,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     setManualChatWindowPosition,
     setChatVisualAnchorHeight,
     setChatboxHitTestActive = () => false,
+    setResponseboxHitTestActive = () => false,
     setChatWindowBoundsForVisualAnchorHeight,
     resizeChatWindowForVisualAnchorHeight,
     getResponseWindowBounds,
@@ -62,6 +63,17 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     const nextActive = args?.active === true;
     const changed = setChatboxHitTestActive(nextActive);
     deps.syncChatboxHitTestState?.();
+    return {
+      success: true,
+      active: nextActive,
+      changed: Boolean(changed),
+    };
+  });
+
+  ipcMain.handle('set-responsebox-hit-test-active', async (_event, args = {}) => {
+    const nextActive = args?.active === true;
+    const changed = setResponseboxHitTestActive(nextActive);
+    deps.syncResponseboxHitTestState?.();
     return {
       success: true,
       active: nextActive,

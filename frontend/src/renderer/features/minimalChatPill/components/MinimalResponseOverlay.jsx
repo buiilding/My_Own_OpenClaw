@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../../chat/stores/chatStore';
 import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewModel';
@@ -12,6 +12,7 @@ import {
   logRendererResponseSurfaceTrace,
 } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const RESPONSE_FIXED_HEIGHT = RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
@@ -52,6 +53,7 @@ function MinimalResponseOverlay() {
     currentTurnProjection,
   } = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const shellRef = useRef(null);
+  const responseboxHitTestActiveRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
   const lastRenderedTypingVisibleRef = useRef(null);
   const {
@@ -94,6 +96,64 @@ function MinimalResponseOverlay() {
     showResponse,
     thinkingText,
   });
+
+  const setResponseboxHitTestActive = useCallback((active) => {
+    const nextActive = active === true;
+    if (responseboxHitTestActiveRef.current === nextActive) {
+      return;
+    }
+    responseboxHitTestActiveRef.current = nextActive;
+    IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_HIT_TEST_ACTIVE, {
+      active: nextActive,
+    }).catch(() => {});
+    logRendererLiveSurfaceTrace('response_overlay.hit_test.set', {
+      source: 'minimal-response-overlay-renderer',
+      reason: 'renderer-normal-hit-test-request',
+      active: nextActive,
+      ignoreMouseEvents: !nextActive,
+    }, currentTurnProjection?.conversationRef || null);
+  }, [currentTurnProjection?.conversationRef]);
+
+  useEffect(() => {
+    setResponseboxHitTestActive(false);
+    return () => {
+      setResponseboxHitTestActive(false);
+    };
+  }, [setResponseboxHitTestActive]);
+
+  const syncResponseboxHitTestForPointer = useCallback((event) => {
+    const shellBounds = shellRef.current?.getBoundingClientRect?.();
+    if (!shellBounds) {
+      setResponseboxHitTestActive(false);
+      return;
+    }
+    const pointerX = Number(event.clientX);
+    const pointerY = Number(event.clientY);
+    const isInsideResponse = (
+      Number.isFinite(pointerX)
+      && Number.isFinite(pointerY)
+      && pointerX >= shellBounds.left
+      && pointerX <= shellBounds.right
+      && pointerY >= shellBounds.top
+      && pointerY <= shellBounds.bottom
+    );
+    setResponseboxHitTestActive(isInsideResponse);
+  }, [setResponseboxHitTestActive]);
+
+  const disableResponseboxHitTest = useCallback(() => {
+    setResponseboxHitTestActive(false);
+  }, [setResponseboxHitTestActive]);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', syncResponseboxHitTestForPointer);
+    window.addEventListener('mouseleave', disableResponseboxHitTest);
+    window.addEventListener('blur', disableResponseboxHitTest);
+    return () => {
+      window.removeEventListener('mousemove', syncResponseboxHitTestForPointer);
+      window.removeEventListener('mouseleave', disableResponseboxHitTest);
+      window.removeEventListener('blur', disableResponseboxHitTest);
+    };
+  }, [disableResponseboxHitTest, syncResponseboxHitTestForPointer]);
 
   useEffect(() => {
     const typingRendered = isVisible && showAwaitingReply;

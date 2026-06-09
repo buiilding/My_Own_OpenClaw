@@ -18,6 +18,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_RESPONSEBOX_SIZE: 'set-responsebox-size',
+    SET_RESPONSEBOX_HIT_TEST_ACTIVE: 'set-responsebox-hit-test-active',
     GET_SYSTEM_STATE: 'get-system-state',
   },
   ON_CHANNELS: {

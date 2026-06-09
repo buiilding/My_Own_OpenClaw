@@ -28,6 +28,7 @@ export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu',
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
     SET_CHATBOX_HIT_TEST_ACTIVE: 'set-chatbox-hit-test-active',
+    SET_RESPONSEBOX_HIT_TEST_ACTIVE: 'set-responsebox-hit-test-active',
     SET_RESPONSEBOX_SIZE: 'set-responsebox-size',
     PRIME_RESPONSE_OVERLAY_AWAITING: 'prime-response-overlay-awaiting',
     SHOW_MAIN_WINDOW: 'show-main-window',

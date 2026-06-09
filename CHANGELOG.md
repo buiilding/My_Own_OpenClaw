@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/runtime: restore the minimal chat pill to its fixed 164px native
   frame while making the chat overlay click-through by default and clickable
   only when the pointer is inside the visible pill.
+- frontend/runtime: apply the same pointer-scoped hit-test policy to the
+  floating response overlay so its transparent native window passes clicks
+  through until the pointer is inside the rendered response surface.
 - frontend/main: keep one SDK conversation runtime per conversation in Electron
   main, move old-chat inference preparation behind the SDK send path, and
   remove renderer-owned backend hydration state from normal chat sends.

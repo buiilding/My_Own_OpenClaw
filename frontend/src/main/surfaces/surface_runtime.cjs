@@ -108,6 +108,7 @@ function createSurfaceRuntime({
     activeResponseOverlayGuardRef: null,
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
+    responseboxHitTestActive: false,
     chatPillUserHidden: initialChatPillUserHidden === true,
     startupChatPillShowHandled: false,
     primarySurface: 'dashboard',
@@ -230,6 +231,15 @@ function createSurfaceRuntime({
     return true;
   }
 
+  function setResponseboxHitTestActive(active) {
+    const nextActive = active === true;
+    if (nextActive === state.responseboxHitTestActive) {
+      return false;
+    }
+    state.responseboxHitTestActive = nextActive;
+    return true;
+  }
+
   function syncChatboxHitTestState() {
     const chatWindow = state.chatWindow;
     if (!chatWindow || chatWindow.isDestroyed()) {
@@ -254,6 +264,34 @@ function createSurfaceRuntime({
       return true;
     } catch (error) {
       warn('[Main] Failed to sync chatbox hit-test state:', error?.message || error);
+      return false;
+    }
+  }
+
+  function syncResponseboxHitTestState() {
+    const responseWindow = state.responseWindow;
+    if (!responseWindow || responseWindow.isDestroyed()) {
+      return false;
+    }
+
+    const shouldIgnoreMouse = !state.responseboxHitTestActive;
+
+    try {
+      if (shouldIgnoreMouse) {
+        responseWindow.setIgnoreMouseEvents(true, { forward: true });
+      } else {
+        responseWindow.setIgnoreMouseEvents(false);
+      }
+      logLiveSurfaceTrace('response_overlay.hit_test.set', {
+        source: 'surface-runtime',
+        reason: 'sync-responsebox-hit-test',
+        ignoreMouseEvents: shouldIgnoreMouse,
+        focusable: null,
+        responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+      });
+      return true;
+    } catch (error) {
+      warn('[Main] Failed to sync responsebox hit-test state:', error?.message || error);
       return false;
     }
   }
@@ -335,8 +373,8 @@ function createSurfaceRuntime({
     }
     return async () => {
       syncChatboxHitTestState();
+      syncResponseboxHitTestState();
       for (const [win, windowLabel] of [
-        [state.responseWindow, 'response overlay'],
         [state.contextLabelWindow, 'context label'],
       ]) {
         safeSetWindowPointerPolicy(win, {
@@ -815,6 +853,7 @@ function createSurfaceRuntime({
       state.mainWindow = nextWindow;
     },
     setResponseOverlayVisibilityState,
+    setResponseboxHitTestActive,
     isResponseOverlayGuardDismissed,
     setActiveResponseOverlayGuardRef: (nextGuardRef) => {
       state.activeResponseOverlayGuardRef = nextGuardRef;
@@ -829,6 +868,7 @@ function createSurfaceRuntime({
     showMainWindow,
     stopVmWorker,
     syncChatboxHitTestState,
+    syncResponseboxHitTestState,
     syncWakewordToggleForChatVisibility,
     syncWindowDisplayAffinity,
   };

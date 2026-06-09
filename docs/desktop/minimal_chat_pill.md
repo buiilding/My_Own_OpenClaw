@@ -49,6 +49,10 @@ The chat pill is the small always-available desktop command surface. It is rende
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill
   hit-test policy in `finally`.
+- The floating response overlay uses the same normal hit-test model as the
+  pill: the native response window starts click-through, the renderer reports
+  pointer-in-response-shell intent, and Electron main flips the BrowserWindow
+  interactive only while the pointer is inside the rendered response surface.
 - Screenshot invisibility is also lease-scoped. Electron main applies the
   capture policy immediately around SDK-local `screenshot` execution and
   restores the window policy in `finally`.
@@ -81,14 +85,16 @@ Electron main owns the BrowserWindow policy that hook applies:
 
 - `mouse_control` / `scroll_control`: show the pill on top, make the pill and
   response overlay click-through and non-focusable, run the sidecar tool, then
-  restore the pill's normal hit-test policy without stealing focus.
+  restore normal pill and response-overlay hit-test policy without stealing
+  focus.
 - `screenshot`: apply screenshot protection before capture, run the sidecar
   screenshot, then restore the prior policy. Linux hides visible WindieOS
   surfaces; macOS and Windows use content protection.
 
-The renderer does not decide click-through timing or screenshot invisibility. It
-renders the pill, sends user text, displays the current-turn projection, handles
-dragging, and reports normal hit-test intent.
+The renderer does not apply native click-through timing or screenshot
+invisibility. It renders the pill and response overlay, sends user text,
+displays the current-turn projection, handles dragging, and reports normal
+hit-test intent.
 
 ## Deep Docs
 

@@ -419,6 +419,7 @@ function createResponseWindow({
     targetWindow: responseWindow,
     windowLabel: 'response overlay',
   });
+  responseWindow.setIgnoreMouseEvents(true, { forward: true });
 
   const ensureResponseRendererLoaded = createLazyRendererViewLoader({
     targetWindow: responseWindow,

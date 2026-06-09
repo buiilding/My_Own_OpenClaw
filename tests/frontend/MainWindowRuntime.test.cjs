@@ -364,6 +364,7 @@ describe('main_window_runtime createResponseWindow', () => {
       loadURL: jest.fn(),
       loadFile: jest.fn(),
       hide: jest.fn(),
+      setIgnoreMouseEvents: jest.fn(),
       on: jest.fn((eventName, handler) => {
         handlers[eventName] = handler;
       }),
@@ -427,6 +428,14 @@ describe('main_window_runtime createResponseWindow', () => {
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
     expect(deps.setResponseOverlayVisible).toHaveBeenCalledWith(true);
+  });
+
+  test('starts the response overlay click-through until renderer hover', () => {
+    const { deps, responseWindow } = createDeps();
+
+    createResponseWindow(deps);
+
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
   });
 
   test('adds debug_stream query flag to response overlay when stream tracing is enabled', () => {

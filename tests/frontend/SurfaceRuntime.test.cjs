@@ -117,6 +117,7 @@ describe('surface_runtime', () => {
     runtime.setResponseWindow(responseWindow);
     runtime.setContextLabelWindow(contextLabelWindow);
     runtime.setChatboxHitTestActive(true);
+    runtime.setResponseboxHitTestActive(true);
 
     const release = await runtime.beginPointerControlLease({ toolName: 'mouse_control' });
 
@@ -128,8 +129,24 @@ describe('surface_runtime', () => {
     await release();
 
     expect(chatWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
-    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
     expect(contextLabelWindow.setFocusable).toHaveBeenLastCalledWith(false);
+  });
+
+  test('response overlay hit-test is active only while renderer reports pointer inside response shell', () => {
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+    });
+    const responseWindow = createWindow({ visible: true });
+    runtime.setResponseWindow(responseWindow);
+
+    runtime.setResponseboxHitTestActive(false);
+    runtime.syncResponseboxHitTestState();
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+
+    runtime.setResponseboxHitTestActive(true);
+    runtime.syncResponseboxHitTestState();
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
   });
 
   test('streaming phase does not make active pill hit-test click-through', () => {
