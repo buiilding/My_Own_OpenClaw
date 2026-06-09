@@ -85,8 +85,8 @@ Electron main owns the BrowserWindow policy that hook applies:
 
 - `mouse_control` / `scroll_control`: show the pill on top, make the pill and
   response overlay click-through and non-focusable, run the sidecar tool, then
-  restore normal pill and response-overlay hit-test policy without stealing
-  focus.
+  restore normal pill and response-overlay hit-test and focusability policy
+  without stealing focus.
 - `screenshot`: apply screenshot protection before capture, run the sidecar
   screenshot, then restore the prior policy. Linux hides visible WindieOS
   surfaces; macOS and Windows use content protection.

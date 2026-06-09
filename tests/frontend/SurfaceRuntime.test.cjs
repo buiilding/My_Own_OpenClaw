@@ -129,8 +129,40 @@ describe('surface_runtime', () => {
     await release();
 
     expect(chatWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+    expect(chatWindow.setFocusable).toHaveBeenLastCalledWith(true);
     expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+    expect(responseWindow.setFocusable).toHaveBeenLastCalledWith(true);
     expect(contextLabelWindow.setFocusable).toHaveBeenLastCalledWith(false);
+  });
+
+  test('pointer-control lease keeps hover sync from restoring focusability before release', async () => {
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      toolSurfaceSettleMs: 0,
+    });
+    const chatWindow = createWindow({ visible: true });
+    const responseWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+    runtime.setResponseWindow(responseWindow);
+
+    const release = await runtime.beginPointerControlLease({ toolName: 'mouse_control' });
+
+    runtime.setChatboxHitTestActive(true);
+    runtime.setResponseboxHitTestActive(true);
+    runtime.syncChatboxHitTestState();
+    runtime.syncResponseboxHitTestState();
+
+    expect(chatWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+    expect(chatWindow.setFocusable).toHaveBeenLastCalledWith(false);
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+    expect(responseWindow.setFocusable).toHaveBeenLastCalledWith(false);
+
+    await release();
+
+    expect(chatWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+    expect(chatWindow.setFocusable).toHaveBeenLastCalledWith(true);
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+    expect(responseWindow.setFocusable).toHaveBeenLastCalledWith(true);
   });
 
   test('response overlay hit-test is active only while renderer reports pointer inside response shell', () => {

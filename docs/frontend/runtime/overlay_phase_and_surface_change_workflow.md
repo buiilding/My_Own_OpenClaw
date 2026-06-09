@@ -29,7 +29,7 @@ rather than the React component that happens to render the symptom.
   `screenshot` uses a screenshot-capture lease.
 - During pointer-control leases, Electron main keeps the chat pill, response
   overlay, and context label non-focusable and click-through, then restores
-  normal pill and response-overlay hit-testing in `finally`.
+  normal pill and response-overlay hit-testing and focusability in `finally`.
 - During screenshot-capture leases, Linux hides visible WindieOS overlay
   surfaces and restores them afterward; macOS and Windows use content
   protection for the capture window only and disable it immediately afterward.

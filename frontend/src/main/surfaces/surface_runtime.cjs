@@ -106,6 +106,7 @@ function createSurfaceRuntime({
     responseOverlayPhase: 'idle',
     activeResponseOverlayCorrelationId: null,
     activeResponseOverlayGuardRef: null,
+    pointerControlLeaseCount: 0,
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
     responseboxHitTestActive: false,
@@ -246,7 +247,9 @@ function createSurfaceRuntime({
       return false;
     }
 
-    const shouldIgnoreMouse = !state.chatboxHitTestActive;
+    const pointerLeaseActive = state.pointerControlLeaseCount > 0;
+    const shouldIgnoreMouse = pointerLeaseActive || !state.chatboxHitTestActive;
+    const shouldBeFocusable = !pointerLeaseActive;
 
     try {
       if (shouldIgnoreMouse) {
@@ -254,11 +257,14 @@ function createSurfaceRuntime({
       } else {
         chatWindow.setIgnoreMouseEvents(false);
       }
+      if (typeof chatWindow.setFocusable === 'function') {
+        chatWindow.setFocusable(shouldBeFocusable);
+      }
       logLiveSurfaceTrace('chat_pill.hit_test.set', {
         source: 'surface-runtime',
         reason: 'sync-chatbox-hit-test',
         ignoreMouseEvents: shouldIgnoreMouse,
-        focusable: null,
+        focusable: shouldBeFocusable,
         chatWindow: summarizeWindow(chatWindow, 'chat box'),
       });
       return true;
@@ -274,7 +280,9 @@ function createSurfaceRuntime({
       return false;
     }
 
-    const shouldIgnoreMouse = !state.responseboxHitTestActive;
+    const pointerLeaseActive = state.pointerControlLeaseCount > 0;
+    const shouldIgnoreMouse = pointerLeaseActive || !state.responseboxHitTestActive;
+    const shouldBeFocusable = !pointerLeaseActive;
 
     try {
       if (shouldIgnoreMouse) {
@@ -282,11 +290,14 @@ function createSurfaceRuntime({
       } else {
         responseWindow.setIgnoreMouseEvents(false);
       }
+      if (typeof responseWindow.setFocusable === 'function') {
+        responseWindow.setFocusable(shouldBeFocusable);
+      }
       logLiveSurfaceTrace('response_overlay.hit_test.set', {
         source: 'surface-runtime',
         reason: 'sync-responsebox-hit-test',
         ignoreMouseEvents: shouldIgnoreMouse,
-        focusable: null,
+        focusable: shouldBeFocusable,
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
       return true;
@@ -346,6 +357,7 @@ function createSurfaceRuntime({
   }
 
   async function beginPointerControlLease(call = {}) {
+    state.pointerControlLeaseCount += 1;
     logLiveSurfaceTrace('tool_lease.pointer.begin', {
       source: 'surface-runtime',
       reason: 'local-tool-before-execute',
@@ -372,6 +384,7 @@ function createSurfaceRuntime({
       });
     }
     return async () => {
+      state.pointerControlLeaseCount = Math.max(0, state.pointerControlLeaseCount - 1);
       syncChatboxHitTestState();
       syncResponseboxHitTestState();
       for (const [win, windowLabel] of [

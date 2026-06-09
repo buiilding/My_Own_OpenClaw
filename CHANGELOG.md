@@ -74,6 +74,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/runtime: apply the same pointer-scoped hit-test policy to the
   floating response overlay so its transparent native window passes clicks
   through until the pointer is inside the rendered response surface.
+- frontend/runtime: restore chat pill and response overlay focusability after
+  `mouse_control` and `scroll_control` pointer leases so the pill can receive
+  keyboard focus after tool execution.
 - frontend/main: keep one SDK conversation runtime per conversation in Electron
   main, move old-chat inference preparation behind the SDK send path, and
   remove renderer-owned backend hydration state from normal chat sends.
