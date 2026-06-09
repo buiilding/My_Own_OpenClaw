@@ -12,7 +12,8 @@ Plan: [SDK-Owned Sidecar Runtime Plan](2026-06-09-sdk-owned-sidecar-runtime-plan
 
 ## Status
 
-In progress.
+Implemented. Live desktop sidebar verification remains unrun in this slice; the
+SDK store/client contract and bridge path are covered by focused tests.
 
 ## Checklist
 
@@ -79,4 +80,4 @@ In progress.
 
 ## Commits
 
-- Pending.
+- `29e44979d fix(sdk): own desktop sidecar runtime`
