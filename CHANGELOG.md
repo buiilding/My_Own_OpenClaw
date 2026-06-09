@@ -22,6 +22,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/titles: use the episodic memory database path for generated
   conversation title state and write RPCs so SDK title enrichment can persist
   model titles instead of falling back to first-user-message labels.
+- sidecar/shell: terminate the full POSIX shell process group for foreground
+  timeouts and background `process kill` so child commands blocked behind OS
+  prompts cannot hang tool execution past `terminate_after_seconds`.
 
 ### Changed
 

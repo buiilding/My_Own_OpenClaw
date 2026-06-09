@@ -20,6 +20,10 @@ from tools.system.shell_process_registry import (
     list_running_sessions,
     mark_exited,
 )
+from tools.system.shell_process_control import (
+    cancel_session_tasks,
+    terminate_session_process_tree,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -339,14 +343,12 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                     "message": f"Session {session_id} already exited.",
                 },
             }
-        session.process.kill()
-        await session.process.wait()
+        await terminate_session_process_tree(session)
         if session.wait_task and not session.wait_task.done():
             try:
                 await asyncio.wait_for(session.wait_task, timeout=2.0)
             except asyncio.TimeoutError:
-                session.wait_task.cancel()
-                await asyncio.gather(session.wait_task, return_exceptions=True)
+                await cancel_session_tasks(session)
         if not session.exited:
             exit_code = session.process.returncode
             status = "completed" if exit_code == 0 else "failed"
@@ -363,13 +365,8 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
 
     if action == "remove":
         if session and not session.exited:
-            if session.wait_task and not session.wait_task.done():
-                session.wait_task.cancel()
-            for task in session.read_tasks:
-                if not task.done():
-                    task.cancel()
-            session.process.kill()
-            await session.process.wait()
+            await terminate_session_process_tree(session)
+            await cancel_session_tasks(session)
         if session and session.uses_pty and session.pty_master is not None:
             try:
                 os.close(session.pty_master)

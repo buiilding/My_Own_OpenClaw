@@ -24,6 +24,11 @@ from tools.system.shell_process_registry import (
     mark_backgrounded,
     mark_exited,
 )
+from tools.system.shell_process_control import (
+    cancel_session_tasks,
+    subprocess_group_launch_kwargs,
+    terminate_session_process_tree,
+)
 from tools.system.shell_response_payloads import (
     build_background_response,
     build_foreground_response,
@@ -238,6 +243,7 @@ async def _start_shell_session(
         stdin=stdin,
         stdout=stdout,
         stderr=stderr,
+        **subprocess_group_launch_kwargs(),
     )
 
     if use_pty and master_fd is not None and slave_fd is not None:
@@ -437,8 +443,12 @@ async def _wait_for_exit(
 async def _terminate_session(session: ProcessSession) -> None:
     if session.exited:
         return
-    session.process.kill()
-    await session.process.wait()
+    await terminate_session_process_tree(session)
+    if session.wait_task and not session.wait_task.done():
+        try:
+            await asyncio.wait_for(session.wait_task, timeout=1.0)
+        except asyncio.TimeoutError:
+            await cancel_session_tasks(session)
 
 
 def _resolve_shell_command(command: str) -> Tuple[str, list]:

@@ -32,6 +32,9 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
   Ambiguous combinations are rejected at the backend schema boundary before
   reaching local execution.
 - Keep shell output formatting predictable for both user display and model-facing `output`.
+- Foreground shell timeouts and manual `process kill` must terminate the shell
+  process group on POSIX so child commands cannot keep running behind OS
+  prompts or inherited pipes after the wrapper shell exits.
 - Use background sessions only when command output needs polling or the process must outlive the immediate request.
 - Use `process` for high-volume or long-running command output.
 

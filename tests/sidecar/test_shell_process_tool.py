@@ -1,5 +1,6 @@
 import asyncio
 import os
+import shlex
 import sys
 from pathlib import Path
 
@@ -62,6 +63,33 @@ async def test_run_shell_command_timeout_cleans_foreground_session_registry_entr
     assert result["success"] is True
     assert result["data"]["timed_out"] is True
     assert registry._running_sessions == {}
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_timeout_kills_child_process_group(tmp_path):
+    if sys.platform == "win32":
+        pytest.skip("POSIX process groups are not used on Windows")
+    marker = tmp_path / "child-survived.txt"
+    child_code = (
+        "import pathlib,time;"
+        "time.sleep(0.25);"
+        f"pathlib.Path({str(marker)!r}).write_text('alive', encoding='utf-8')"
+    )
+    parent_code = (
+        "import subprocess,sys,time;"
+        f"subprocess.Popen([sys.executable, '-c', {child_code!r}]);"
+        "time.sleep(0.6)"
+    )
+    cmd = f"{sys.executable} -c {shlex.quote(parent_code)}"
+
+    result = await run_shell_command(
+        {"command": cmd, "run_in_background": False, "terminate_after_seconds": 0.05}
+    )
+    await asyncio.sleep(0.35)
+
+    assert result["success"] is True
+    assert result["data"]["timed_out"] is True
+    assert not marker.exists()
 
 
 @pytest.mark.asyncio
@@ -571,3 +599,31 @@ async def test_process_kill_immediately_removes_session_from_running_registry():
     poll = await process_shell_command({"action": "poll", "session_id": session_id})
     assert poll["success"] is True
     assert poll["data"]["status"] in {"completed", "failed"}
+
+
+@pytest.mark.asyncio
+async def test_process_kill_stops_child_process_group(tmp_path):
+    if sys.platform == "win32":
+        pytest.skip("POSIX process groups are not used on Windows")
+    marker = tmp_path / "background-child-survived.txt"
+    child_code = (
+        "import pathlib,time;"
+        "time.sleep(0.3);"
+        f"pathlib.Path({str(marker)!r}).write_text('alive', encoding='utf-8')"
+    )
+    parent_code = (
+        "import subprocess,sys,time;"
+        f"subprocess.Popen([sys.executable, '-c', {child_code!r}]);"
+        "time.sleep(0.8)"
+    )
+    cmd = f"{sys.executable} -c {shlex.quote(parent_code)}"
+    result = await run_shell_command({"command": cmd, "run_in_background": True})
+    assert result["success"] is True
+    session_id = result["data"]["session_id"]
+
+    killed = await process_shell_command({"action": "kill", "session_id": session_id})
+    await asyncio.sleep(0.4)
+
+    assert killed["success"] is True
+    assert killed["data"]["status"] == "killed"
+    assert not marker.exists()
