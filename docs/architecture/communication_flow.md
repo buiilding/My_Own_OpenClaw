@@ -343,7 +343,9 @@ Identity notes:
   normal backend tool-call/tool-output rows.
 - Notes:
   - Current producer is OpenAI native `web_search` only.
-  - Renderer treats these rows as transient UI trace, not transcript history.
+  - The SDK records these as `tool_progress` events and retains them in display
+    rows for dashboard transparency, but rehydrate/model history still excludes
+    them because they are not provider tool-call/tool-output pairs.
 
 **`tool-output`**
 - Purpose: Tool execution result

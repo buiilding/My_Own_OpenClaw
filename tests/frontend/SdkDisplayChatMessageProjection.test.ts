@@ -165,4 +165,44 @@ describe('sdkDisplayChatMessageProjection', () => {
       }),
     ]);
   });
+
+  test('projects SDK tool progress rows into retained search-source messages', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'progress-1',
+        conversationRef: 'conv-search',
+        turnRef: 'turn-search',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Searched example.com',
+        metadata: {
+          revisionId: 'rev-search',
+          timestamp: '2026-06-09T04:20:00.000Z',
+          toolName: 'web_search',
+          requestId: 'req-search-1',
+          correlationId: 'corr-search-1',
+          raw: {
+            text: 'Searched example.com',
+            rawEvent: {
+              type: 'web-search-progress',
+            },
+          },
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'progress-1',
+        sender: 'assistant',
+        type: 'search-source',
+        text: 'Searched example.com',
+        sourceEventType: 'web-search-progress',
+        sourceChannel: 'windie:rows',
+        turnRef: 'turn-search',
+        toolName: 'web_search',
+        correlationId: 'req-search-1',
+        timestamp: '2026-06-09T04:20:00.000Z',
+      }),
+    ]);
+  });
 });

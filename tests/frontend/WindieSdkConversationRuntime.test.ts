@@ -1652,10 +1652,36 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
-  test('tool progress stays out of display and rehydrate projections', () => {
-    const progress = event('tool_progress', { text: 'Searched example.com', toolName: 'web_search' });
+  test('tool progress stays in display rows but out of rehydrate projections', () => {
+    const progress = event('tool_progress', {
+      text: 'Searched example.com',
+      toolName: 'web_search',
+      requestId: 'req-search-1',
+      correlationId: 'corr-search-1',
+    });
 
-    expect(buildDisplayConversation([progress]).messages).toEqual([]);
+    expect(buildDisplayConversation([progress]).messages).toEqual([
+      expect.objectContaining({
+        sender: 'assistant',
+        text: 'Searched example.com',
+        messageType: 'tool_progress',
+        toolName: 'web_search',
+        requestId: 'req-search-1',
+        correlationId: 'corr-search-1',
+      }),
+    ]);
+    expect(buildDisplayRows([progress])).toEqual([
+      expect.objectContaining({
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Searched example.com',
+        metadata: expect.objectContaining({
+          toolName: 'web_search',
+          requestId: 'req-search-1',
+          correlationId: 'corr-search-1',
+        }),
+      }),
+    ]);
     expect(buildRehydrateSnapshot([progress]).messages).toEqual([]);
   });
 

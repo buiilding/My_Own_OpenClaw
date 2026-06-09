@@ -171,6 +171,29 @@ function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
   };
 }
 
+function buildToolProgressMessage(message: DisplayMessage): ChatMessage {
+  const payload = recordPayload(message);
+  const rawEvent = recordField(payload, 'rawEvent');
+  const rawEventType = rawEvent && typeof rawEvent === 'object' && !Array.isArray(rawEvent)
+    ? recordField(rawEvent as Record<string, unknown>, 'type')
+    : null;
+  return {
+    id: message.id,
+    text: message.text,
+    sender: 'assistant',
+    type: 'search-source',
+    sourceEventType: typeof rawEventType === 'string' && rawEventType.trim()
+      ? rawEventType
+      : 'web-search-progress',
+    sourceChannel: 'windie:rows',
+    turnRef: message.turnRef ?? undefined,
+    timestamp: message.timestamp,
+    toolName: message.toolName ?? undefined,
+    toolMetadata: payload,
+    correlationId: message.requestId ?? message.correlationId ?? undefined,
+  };
+}
+
 export function buildChatMessagesFromDisplayConversation(
   display: DisplayConversation,
 ): ChatMessage[] {
@@ -183,6 +206,9 @@ export function buildChatMessagesFromDisplayConversation(
     }
     if (message.messageType === 'tool_output' || message.messageType === 'tool_bundle_output') {
       return [buildToolOutputMessage(message)];
+    }
+    if (message.messageType === 'tool_progress') {
+      return [buildToolProgressMessage(message)];
     }
     if (message.sender === 'assistant') {
       return [buildAssistantChatMessage(message)];
@@ -232,6 +258,24 @@ function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | n
         model_facing_tool_call: content,
         tool_calls: [content],
       },
+    };
+  }
+  if (row.type === 'tool_progress') {
+    return {
+      id: row.id,
+      conversationRef: row.conversationRef,
+      turnRef: row.turnRef,
+      revisionId,
+      timestamp,
+      sender: 'assistant',
+      text: row.content,
+      messageType: 'tool_progress',
+      toolName: row.metadata?.toolName ?? 'web_search',
+      requestId: row.metadata?.requestId ?? null,
+      bundleId: row.metadata?.bundleId ?? null,
+      toolCallId: row.metadata?.toolCallId ?? null,
+      correlationId: row.metadata?.correlationId ?? null,
+      metadata: payload,
     };
   }
   if (row.type === 'tool_bundle_call') {

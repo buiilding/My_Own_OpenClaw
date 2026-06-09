@@ -185,6 +185,16 @@ export type SdkDisplayRow =
       turnRef?: string | null;
       index: number;
       role: 'assistant';
+      type: 'tool_progress';
+      content: string;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'assistant';
       type: 'tool_call';
       content: JsonRecord;
       metadata?: SdkDisplayRowMetadata;

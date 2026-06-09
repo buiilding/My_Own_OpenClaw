@@ -273,6 +273,7 @@ function displayRowId(event: ConversationEvent, index: number): string {
   }
   if (
     event.type === 'tool_call'
+    || event.type === 'tool_progress'
     || event.type === 'tool_output'
     || event.type === 'tool_bundle_call'
     || event.type === 'tool_bundle_output'
@@ -365,6 +366,18 @@ function displayRowFromEvent(event: ConversationEvent, index: number): SdkDispla
       metadata: {
         ...displayRowMetadata(event),
         toolName: toolNameFromPayload(event.payload),
+      },
+    };
+  }
+  if (event.type === 'tool_progress') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'assistant',
+      type: 'tool_progress',
+      content: textFromPayload(event.payload),
+      metadata: {
+        ...displayRowMetadata(event),
+        toolName: toolNameFromPayload(event.payload) ?? 'web_search',
       },
     };
   }
@@ -1206,9 +1219,6 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'reasoning_delta') {
     return null;
   }
-  if (event.type === 'tool_progress') {
-    return null;
-  }
   if (event.type === 'memory_retrieval_diagnostic' || event.type === 'memory_store_changed') {
     return null;
   }
@@ -1232,6 +1242,8 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'user_message') {
     sender = 'user';
   } else if (event.type === 'assistant_message') {
+    sender = 'assistant';
+  } else if (event.type === 'tool_progress') {
     sender = 'assistant';
   } else if (
     event.type === 'tool_call'

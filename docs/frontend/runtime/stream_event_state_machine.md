@@ -156,10 +156,10 @@ Compaction events:
 SDK current-turn tool events:
 
 - clear transient thinking state
-- dashboard renders SDK display rows for normal tool-call/tool-output rows, and
-  response overlay renders current-turn tool-call/tool-output/tool-progress rows
-  from the SDK projection. OpenAI-native `web-search-progress` currently remains
-  transient current-turn UI state rather than dashboard transcript history.
+- dashboard renders SDK display rows for normal tool-call/tool-output rows and
+  retained OpenAI-native `tool_progress` search trace rows. Response overlay
+  renders current-turn tool-call/tool-output/tool-progress rows from the SDK
+  projection.
 - record active tool phase tracking from `currentTurn.toolEvents`
 
 SDK current-turn terminal phase:

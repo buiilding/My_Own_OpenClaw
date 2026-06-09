@@ -41,7 +41,7 @@ export function resolveTranscriptMessageType(message) {
 }
 
 export function toRehydratePayload(message) {
-  // Live `search-source` rows are transient UI trace messages, not transcript history.
+  // Search trace rows are display transparency, not provider-facing history.
   if (message?.type === 'search-source') {
     return null;
   }

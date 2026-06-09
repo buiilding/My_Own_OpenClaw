@@ -116,10 +116,11 @@ Some logical tools are fulfilled entirely in the backend and never go through th
 - Gemini and Brave-backed sessions still expose logical backend `web_search`: the model emits a tool call, the backend fulfills it, and the UI renders the final tool-output result.
 - Brave remains the backend fallback when `BRAVE_SEARCH_API_KEY` is configured for providers without native search.
 - OpenAI native `web_search` still streams lightweight progress rows
-  (`web-search-progress` -> SDK `tool_progress` -> transient overlay/search
+  (`web-search-progress` -> SDK `tool_progress` -> overlay/dashboard search
   trace), but those progress events come from the main LLM turn rather than a
-  backend logical tool execution. They are not followed by backend
-  `tool-call`/`tool-output` rows for the same search.
+  backend logical tool execution. They are retained as display transparency but
+  are not followed by backend `tool-call`/`tool-output` rows for the same
+  search.
 
 ### Backend Responsibilities
 
