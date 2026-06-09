@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- cli/dev: make `scripts/python-in-env frontend|sidecar` export
+  `WINDIE_PYTHON_PATH` from the selected conda environment so desktop sidecar
+  daemon startup cannot inherit a stale base-Python override.
 - frontend/sidecar: route Electron `WindieClient` startup through the existing
   daemon-backed local runtime instead of allowing SDK auto-sidecar startup to
   create a second daemon with mismatched launch context.

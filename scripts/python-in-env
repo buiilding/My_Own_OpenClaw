@@ -24,6 +24,14 @@ esac
 
 if command -v conda >/dev/null 2>&1; then
   if conda run -n "$ENV_NAME" python -c "import sys" >/dev/null 2>&1; then
+    case "$TARGET" in
+      sidecar|frontend)
+        ENV_PYTHON="$(conda run -n "$ENV_NAME" python -c "import sys; print(sys.executable)" 2>/dev/null | tail -n 1 || true)"
+        if [ -n "$ENV_PYTHON" ]; then
+          export WINDIE_PYTHON_PATH="$ENV_PYTHON"
+        fi
+        ;;
+    esac
     exec conda run --no-capture-output -n "$ENV_NAME" "$@"
   fi
 fi
