@@ -260,6 +260,28 @@ function startDaemonBackedLocalBackend(mainWindow, launchOptions = {}) {
     });
 }
 
+async function ensureDaemonBackedLocalRuntime() {
+  if (!sidecarDaemonManager || typeof sidecarDaemonManager.ensureDaemon !== 'function') {
+    throw new Error('Windie sidecar daemon manager is not initialized.');
+  }
+  const launchOptions = sidecarDaemonRpcLaunchOptions || {};
+  const daemonClient = await sidecarDaemonManager.ensureDaemon(launchOptions);
+  return {
+    status: () => daemonClient.status(),
+    listTools: () => daemonClient.listTools(),
+    registerModuleTool: (tool, context) => daemonClient.registerModuleTool(tool, context),
+    registerPlugin: plugin => daemonClient.registerPlugin(plugin),
+    registerMcp: mcp => daemonClient.registerMcp(mcp),
+    executeTool: payload => daemonClient.executeTool(payload),
+    rpc: payload => daemonClient.rpc(payload),
+    subscribeEvents: listener => (
+      typeof sidecarDaemonManager.subscribeEvents === 'function'
+        ? sidecarDaemonManager.subscribeEvents(listener)
+        : (() => {})
+    ),
+  };
+}
+
 async function loadArtifactUploadHeaders() {
   const authState = await loadInstallAuthStateFromDisk((message) => {
     console.warn(`[LocalBackend] ${message}`);
@@ -500,6 +522,7 @@ async function searchMemory(
 module.exports = {
   initializeLocalBackendBridge,
   stopLocalBackend,
+  ensureDaemonBackedLocalRuntime,
   getSystemState,
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
   executeToolForBackend: async (payload) => runtimeExecuteTool(payload),

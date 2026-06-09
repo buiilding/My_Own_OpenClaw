@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sidecar: route Electron `WindieClient` startup through the existing
+  daemon-backed local runtime instead of allowing SDK auto-sidecar startup to
+  create a second daemon with mismatched launch context.
 - frontend/sidecar: refuse to reuse stale sidecar daemon discovery records when
   their backend/auth/summarizer launch context does not match the current app,
   so semantic memory generation uses a daemon started with the active auth and

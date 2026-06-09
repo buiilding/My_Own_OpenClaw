@@ -126,6 +126,9 @@ const {
   buildAgentDefinition,
 } = require('./sdk/agent_definition.cjs');
 const {
+  ensureDaemonBackedLocalRuntime,
+} = require('./sidecar/local_backend_bridge.cjs');
+const {
   WindieClient,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
 const {
@@ -898,7 +901,9 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
     idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
     ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
-    ...(process.env.NODE_ENV === 'test' ? { autoStartLocalRuntime: false } : {}),
+    ...(process.env.NODE_ENV === 'test'
+      ? { autoStartLocalRuntime: false }
+      : { ensureLocalRuntime: ensureDaemonBackedLocalRuntime }),
     onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
     onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
     onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
