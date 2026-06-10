@@ -1555,6 +1555,44 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('active backend error envelope can use message id as turn scope', () => {
+    const normalized = normalizeBackendEventToConversationEventRaw({
+      id: 'turn-active-error',
+      type: 'error',
+      payload: { message: 'Internal server error. Start a new chat and try again.' },
+    } as BackendEvent, {
+      fallbackConversationRef: 'conv-sdk-runtime',
+      fallbackRevisionId: 'rev-1',
+      fallbackTurnRef: 'turn-active-error',
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'turn_error',
+      source: 'backend',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-active-error',
+      payload: expect.objectContaining({
+        message: 'Internal server error. Start a new chat and try again.',
+        content: 'Internal server error. Start a new chat and try again.',
+        rawEvent: expect.objectContaining({ type: 'error' }),
+      }),
+    });
+  });
+
+  test('unscoped backend error with unrelated id does not attach to active turn', () => {
+    const normalized = normalizeBackendEventToConversationEventRaw({
+      id: 'settings-update-request',
+      type: 'error',
+      payload: { message: 'settings failed' },
+    } as BackendEvent, {
+      fallbackConversationRef: 'conv-sdk-runtime',
+      fallbackRevisionId: 'rev-1',
+      fallbackTurnRef: 'turn-active-error',
+    });
+
+    expect(normalized).toBeNull();
+  });
+
   test('backend token count normalizes to usage_updated', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'token-count',
@@ -3330,6 +3368,63 @@ describe('Windie SDK conversation runtime core', () => {
         expect.objectContaining({ role: 'user', content: 'hello' }),
       ],
     });
+  });
+
+  test('conversation runtime terminalizes active turn for unsequenced backend error envelope', async () => {
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport({
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+        sendQuery: jest.fn(async () => 'turn-active-error'),
+      }),
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'review attached files', turnRef: 'turn-active-error' });
+    backendListener?.({
+      id: 'turn-active-error',
+      type: 'error',
+      payload: {
+        message: 'Internal server error. Start a new chat and try again.',
+      },
+    } as BackendEvent);
+
+    await waitForExpect(async () => {
+      const snapshot = await runtime.load();
+      expect(snapshot.currentTurn).toMatchObject({
+        phase: 'error',
+        lastError: 'Internal server error. Start a new chat and try again.',
+      });
+      expect(snapshot.currentTurn.presentation).toMatchObject({
+        isBusy: false,
+        typingVisible: false,
+        isTerminal: true,
+      });
+      expect(snapshot.displayRows).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'error',
+            content: 'Internal server error. Start a new chat and try again.',
+            turnRef: 'turn-active-error',
+          }),
+        ]),
+      );
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'turn_started',
+      'user_message',
+      'turn_error',
+    ]);
   });
 
   test('conversation runtime does not repair explicit rehydrate payload identity', async () => {

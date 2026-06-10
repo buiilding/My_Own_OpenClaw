@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend: scope active-turn backend error envelopes that lack stream
+  sequence metadata so the dashboard exits awaiting/tool-loop UI state and
+  renders the terminal error row.
 - sdk/frontend: preserve multi-image `screenshot_refs` through SDK display
   metadata and renderer chat-message projection so user messages render every
   provided image instead of collapsing to the first attachment.

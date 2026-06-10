@@ -309,6 +309,8 @@ export class SdkConversationRuntime {
       }
       const event = normalizeBackendEventToConversationEvent(rawEvent, {
         fallbackRevisionId: this.state.revisionId,
+        fallbackConversationRef: this.options.conversationRef,
+        fallbackTurnRef: this.state.activeTurnRef ?? undefined,
       });
       if (event) {
         this.enqueueBackendEvent(event);
@@ -969,6 +971,10 @@ export class SdkConversationRuntime {
     const sequence = typeof event.payload.backendSequence === 'number'
       ? event.payload.backendSequence
       : null;
+    if (event.type === 'turn_error' && sequence === null) {
+      await this.applyEvent(event);
+      return;
+    }
     if (!Number.isInteger(sequence) || (sequence ?? 0) <= 0) {
       await this.applyBackendSequenceError(event, {
         reason: 'missing_backend_sequence',

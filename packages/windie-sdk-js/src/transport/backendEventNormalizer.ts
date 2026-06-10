@@ -16,6 +16,33 @@ function conversationRefOf(event: BackendEvent): string | null {
   return null;
 }
 
+function scopedErrorTurnRef(event: BackendEvent, fallbackTurnRef?: string): string | null {
+  const payload = payloadOf(event);
+  const payloadTurnRef = stringField(payload, 'turn_ref', 'turnRef');
+  if (payloadTurnRef?.trim()) {
+    return payloadTurnRef.trim();
+  }
+  if (typeof event.turn_ref === 'string' && event.turn_ref.trim()) {
+    return event.turn_ref.trim();
+  }
+  if (event.type !== 'error') {
+    return null;
+  }
+  const eventId = typeof event.id === 'string' && event.id.trim()
+    ? event.id.trim()
+    : null;
+  const fallback = typeof fallbackTurnRef === 'string' && fallbackTurnRef.trim()
+    ? fallbackTurnRef.trim()
+    : null;
+  if (eventId && fallback && eventId === fallback) {
+    return eventId;
+  }
+  if (!eventId && fallback) {
+    return fallback;
+  }
+  return null;
+}
+
 function stringFromEventPayloadOrTopLevel(event: BackendEvent, key: string): string | null {
   const payload = payloadOf(event);
   const payloadValue = payload[key];
@@ -55,8 +82,12 @@ function eventBase(
   event: BackendEvent,
   fallbackRevisionId?: string,
   fallbackConversationRef?: string,
+  fallbackTurnRef?: string,
 ): { conversationRef: string; revisionId: string; turnRef: string | null; eventId: string; timestamp: string } | null {
-  const conversationRef = conversationRefOf(event) ?? fallbackConversationRef ?? null;
+  const turnRef = scopedErrorTurnRef(event, fallbackTurnRef);
+  const conversationRef = conversationRefOf(event) ?? (
+    event.type === 'error' && turnRef ? fallbackConversationRef : null
+  ) ?? null;
   if (!conversationRef) {
     return null;
   }
@@ -64,7 +95,7 @@ function eventBase(
     return {
       conversationRef,
       revisionId: revisionIdFor(event, fallbackRevisionId),
-      turnRef: typeof event.turn_ref === 'string' ? event.turn_ref : null,
+      turnRef,
       eventId: createRuntimeId('evt'),
       timestamp: new Date().toISOString(),
     };
@@ -72,7 +103,7 @@ function eventBase(
   return {
     conversationRef,
     revisionId: revisionIdFor(event, fallbackRevisionId),
-    turnRef: typeof event.turn_ref === 'string' ? event.turn_ref : null,
+    turnRef,
     eventId: event.event_id.trim(),
     timestamp: new Date().toISOString(),
   };
@@ -145,21 +176,43 @@ function missingBackendIdentityEvent(
 export type NormalizeBackendEventOptions = {
   fallbackRevisionId?: string;
   fallbackConversationRef?: string;
+  fallbackTurnRef?: string;
 };
 
 export function normalizeBackendEventToConversationEvent(
   event: BackendEvent,
   options: NormalizeBackendEventOptions = {},
 ): ConversationEvent | null {
-  const base = eventBase(event, options.fallbackRevisionId, options.fallbackConversationRef);
+  const base = eventBase(
+    event,
+    options.fallbackRevisionId,
+    options.fallbackConversationRef,
+    options.fallbackTurnRef,
+  );
   if (!base) {
     return null;
+  }
+  const payload = payloadOf(event);
+  const backendMetadata = backendEventMetadata(event);
+  if (event.type === 'error') {
+    const message = typeof payload.message === 'string'
+      ? payload.message
+      : (typeof payload.content === 'string' ? payload.content : 'Backend error');
+    return createConversationEvent({
+      ...base,
+      type: 'turn_error',
+      source: 'backend',
+      payload: {
+        message,
+        content: typeof payload.content === 'string' ? payload.content : message,
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
+        ...backendMetadata,
+      },
+    });
   }
   if (typeof event.event_id !== 'string' || !event.event_id.trim() || backendSequenceOf(event) === null) {
     return missingBackendIdentityEvent(event, base);
   }
-  const payload = payloadOf(event);
-  const backendMetadata = backendEventMetadata(event);
   if (event.type === 'query-accepted') {
     return createConversationEvent({
       ...base,
@@ -452,22 +505,6 @@ export function normalizeBackendEventToConversationEvent(
         operationRef: base.turnRef,
         compactionRef: stringField(payload, 'generation_id', 'generationId') ?? base.turnRef,
         error: typeof payload.error === 'string' ? payload.error : null,
-        ...backendMetadata,
-      },
-    });
-  }
-  if (event.type === 'error') {
-    const message = typeof payload.message === 'string'
-      ? payload.message
-      : (typeof payload.content === 'string' ? payload.content : 'Backend error');
-    return createConversationEvent({
-      ...base,
-      type: 'turn_error',
-      source: 'backend',
-      payload: {
-        message,
-        content: typeof payload.content === 'string' ? payload.content : message,
-        userId: typeof event.user_id === 'string' ? event.user_id : null,
         ...backendMetadata,
       },
     });
