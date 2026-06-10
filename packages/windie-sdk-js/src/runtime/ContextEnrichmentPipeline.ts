@@ -155,8 +155,9 @@ function normalizeMemorySearchTrace(response: unknown): JsonRecord | undefined {
   const data = record.data && typeof record.data === 'object' && !Array.isArray(record.data)
     ? record.data as JsonRecord
     : {};
-  const trace = data.trace && typeof data.trace === 'object' && !Array.isArray(data.trace)
-    ? data.trace as JsonRecord
+  const traceSource = data.trace ?? record.trace;
+  const trace = traceSource && typeof traceSource === 'object' && !Array.isArray(traceSource)
+    ? traceSource as JsonRecord
     : null;
   return trace ?? undefined;
 }

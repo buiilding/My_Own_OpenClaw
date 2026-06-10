@@ -75,8 +75,9 @@ function normalizeMemorySearchTrace(response) {
     const data = record.data && typeof record.data === 'object' && !Array.isArray(record.data)
         ? record.data
         : {};
-    const trace = data.trace && typeof data.trace === 'object' && !Array.isArray(data.trace)
-        ? data.trace
+    const traceSource = data.trace ?? record.trace;
+    const trace = traceSource && typeof traceSource === 'object' && !Array.isArray(traceSource)
+        ? traceSource
         : null;
     return trace ?? undefined;
 }

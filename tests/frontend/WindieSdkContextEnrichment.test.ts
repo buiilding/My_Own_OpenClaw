@@ -127,6 +127,55 @@ describe('SDK context enrichment pipeline', () => {
     ]));
   });
 
+  test('merges unwrapped sidecar search trace metadata into durable trace events', async () => {
+    const traceEvents: unknown[] = [];
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => ({
+          embedding: [0.1, 0.2, 0.3],
+          embedding_space_version: 'embed-v1',
+        })),
+      },
+    };
+    const localRuntime = {
+      rpc: jest.fn(async () => ({
+        memories: {
+          episodic: ['old event'],
+          semantic: [],
+        },
+        trace: {
+          runtime: 'sidecar',
+          method: 'search_memory_by_embedding',
+          searchedMemoryTypes: ['episodic', 'semantic'],
+          durationMs: 4,
+        },
+      })),
+    };
+
+    await enrichQueryPayload({
+      text: 'what now?',
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+      payload: { memory_retrieval_enabled: true },
+      sdkClient: sdkClient as never,
+      localRuntime: localRuntime as never,
+      emitTrace: traceEvent => {
+        traceEvents.push(traceEvent);
+      },
+    });
+
+    expect(traceEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        path: 'memory.sidecar_search',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          method: 'search_memory_by_embedding',
+          searchedMemoryTypes: ['episodic', 'semantic'],
+        }),
+      }),
+    ]));
+  });
+
   test('skips embedding search when retrieval is disabled', async () => {
     const sdkClient = {
       embeddings: {
