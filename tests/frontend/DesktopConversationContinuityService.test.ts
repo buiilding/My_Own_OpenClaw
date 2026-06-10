@@ -214,6 +214,89 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('loadTraceTimeline reads persisted trace rows through the SDK command bridge', async () => {
+    const send = jest.fn();
+    const invoke = jest.fn(async (channel, payload) => {
+      if (channel === 'windie:invoke' && payload.command === 'conversation.load') {
+        return {
+          ok: true,
+          data: {
+            state: {
+              events: [
+                {
+                  eventId: 'evt-user',
+                  type: 'user_message',
+                  conversationRef: 'conv-trace',
+                  revisionId: 'rev-1',
+                  timestamp: '2026-05-15T12:00:00.000Z',
+                  turnRef: 'turn-1',
+                  source: 'sdk',
+                  payload: { text: 'hello' },
+                },
+                {
+                  eventId: 'evt-trace',
+                  type: 'trace_event',
+                  conversationRef: 'conv-trace',
+                  revisionId: 'rev-1',
+                  timestamp: '2026-05-15T12:00:01.000Z',
+                  turnRef: 'turn-1',
+                  source: 'sdk',
+                  payload: {
+                    schemaVersion: 1,
+                    traceId: 'trace-1',
+                    spanId: 'span-1',
+                    parentSpanId: null,
+                    path: 'memory.retrieval',
+                    stage: 'retrieval',
+                    status: 'succeeded',
+                    runtime: 'sdk',
+                  },
+                },
+              ],
+            },
+          },
+        };
+      }
+      return { ok: true, data: null };
+    });
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke,
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      const timeline = await DesktopConversationContinuityService.loadTraceTimeline(
+        'user-1',
+        'conv-trace',
+        { turnRef: 'turn-1', path: 'memory.retrieval' },
+      );
+
+      expect(timeline).toEqual([
+        expect.objectContaining({
+          eventId: 'evt-trace',
+          traceId: 'trace-1',
+          path: 'memory.retrieval',
+          status: 'succeeded',
+        }),
+      ]);
+      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.load',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-trace',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('compactHistory falls back to the active conversation ref', async () => {
     const send = jest.fn();
     const originalIpc = window.ipc;

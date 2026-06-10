@@ -55,6 +55,7 @@ The runtime records normalized events:
 - `tool_bundle_output`
 - `usage_updated`
 - `memory_store_changed`
+- `trace_event`
 - `compaction_started`
 - `compaction_skipped`
 - `compaction_applied`
@@ -150,6 +151,15 @@ Completed-turn memory must not rediscover the user query by scanning historical
 conversation events or store rows. If a terminal backend event has no pending
 ledger entry, the SDK skips memory storage without emitting a memory-store
 invalidation.
+
+`trace_event` is the SDK-owned durable path trace row. It is stored in the same
+conversation event ledger as normal conversation events, but display and
+rehydrate projections must ignore it. A trace row records sanitized runtime
+timeline metadata such as `traceId`, `spanId`, `path`, `stage`, `status`,
+`runtime`, timestamps, duration, ids, counts, limits, and sanitized error
+summaries. It must not store user message text, retrieved memory text,
+embedding vectors, screenshots, file contents, raw provider payloads, secrets,
+or raw SQL rows.
 
 After completed-turn memory is successfully stored, the SDK emits
 `memory_store_changed` with the authenticated `userId`, `conversationRef`,

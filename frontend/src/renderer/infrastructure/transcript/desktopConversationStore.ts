@@ -6,6 +6,7 @@ import {
 } from '../workspace/conversationWorkspaceBinding';
 import {
   buildRehydrateSnapshot,
+  buildTraceTimeline,
   createConversationEvent,
   type CompactedReplaySnapshot,
   type ConversationMetadata,
@@ -18,6 +19,7 @@ import {
   type ConversationStore,
   type DisplayConversation,
   type SdkDisplayRow,
+  type TraceTimelineEntry,
   resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
 import { invokeWindieCommand } from '../../app/runtime/windieCommandInvokeClient';
@@ -47,6 +49,12 @@ export type TranscriptProjectionAppendEntry = TranscriptProjectionRewriteEntry &
   transparency?: Record<string, unknown> | null;
   structuredPayload?: Record<string, unknown> | null;
   rehydrateEntry: Record<string, unknown>;
+};
+
+export type DesktopTraceTimelineOptions = {
+  turnRef?: string | null;
+  traceId?: string | null;
+  path?: string | null;
 };
 
 export function buildRehydrateSnapshotFromTranscriptProjectionEntries({
@@ -441,6 +449,21 @@ export function createDesktopConversationStore(
       });
     },
   };
+}
+
+export async function loadDesktopTraceTimeline(
+  userId: string,
+  conversationRef: string,
+  options: DesktopTraceTimelineOptions = {},
+): Promise<TraceTimelineEntry[]> {
+  const store = createDesktopConversationStore(userId);
+  const events = await store.loadEvents(conversationRef);
+  return buildTraceTimeline(events, {
+    conversationRef,
+    turnRef: options.turnRef,
+    traceId: options.traceId,
+    path: options.path,
+  });
 }
 
 export async function appendTranscriptProjectionEntry(

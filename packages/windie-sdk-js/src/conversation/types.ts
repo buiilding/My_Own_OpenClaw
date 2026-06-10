@@ -25,6 +25,7 @@ export type ConversationEventType =
   | 'tool_bundle_output'
   | 'memory_retrieval_diagnostic'
   | 'memory_store_changed'
+  | 'trace_event'
   | 'compaction_started'
   | 'compaction_skipped'
   | 'compaction_applied'
@@ -38,6 +39,48 @@ export type MemoryStoreChangedPayload = JsonRecord & {
   memoryTypes: Array<'episodic' | 'semantic'>;
   reason: 'completed_turn' | 'delete' | 'clear' | 'semanticization';
   memoryId?: string | null;
+};
+
+export type TraceRuntime = 'sdk' | 'electron-main' | 'renderer' | 'sidecar' | 'backend';
+
+export type TraceStatus = 'started' | 'succeeded' | 'failed' | 'skipped';
+
+export type TraceError = JsonRecord & {
+  code: string;
+  message: string;
+};
+
+export type TraceEventPayload = JsonRecord & {
+  schemaVersion: 1;
+  traceId: string;
+  spanId: string;
+  parentSpanId: string | null;
+  path: string;
+  stage: string;
+  status: TraceStatus;
+  runtime: TraceRuntime;
+  conversationRef?: string | null;
+  turnRef?: string | null;
+  requestId?: string | null;
+  userId?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  durationMs?: number | null;
+  data?: JsonRecord;
+  error?: TraceError | null;
+};
+
+export type TraceTimelineEntry = TraceEventPayload & {
+  eventId: string;
+  timestamp: string;
+};
+
+export type TraceContext = JsonRecord & {
+  traceId: string;
+  parentSpanId?: string | null;
+  conversationRef?: string | null;
+  turnRef?: string | null;
+  userId?: string | null;
 };
 
 export type ConversationEvent<TPayload extends JsonRecord = JsonRecord> = {

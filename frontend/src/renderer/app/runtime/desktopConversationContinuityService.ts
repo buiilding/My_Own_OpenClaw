@@ -8,9 +8,12 @@ import {
   type ConversationMetadata,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
+  type TraceTimelineEntry,
 } from '../../infrastructure/api/windieSdkClient';
 import {
   createDesktopConversationStore,
+  loadDesktopTraceTimeline,
+  type DesktopTraceTimelineOptions,
 } from '../../infrastructure/transcript/desktopConversationStore';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
@@ -94,6 +97,14 @@ export const DesktopConversationContinuityService = {
       conversationRef,
     });
     return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+  },
+
+  loadTraceTimeline(
+    userId: string,
+    conversationRef: string,
+    options: DesktopTraceTimelineOptions = {},
+  ): Promise<TraceTimelineEntry[]> {
+    return loadDesktopTraceTimeline(userId, conversationRef, options);
   },
 
   async prepareEditAndResend(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {

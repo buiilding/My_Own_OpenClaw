@@ -4,6 +4,7 @@ exports.buildDisplayRows = buildDisplayRows;
 exports.buildCurrentTurnProjection = buildCurrentTurnProjection;
 exports.buildCompactionState = buildCompactionState;
 exports.buildDisplayConversation = buildDisplayConversation;
+exports.buildTraceTimeline = buildTraceTimeline;
 exports.buildToolTrace = buildToolTrace;
 exports.buildConversationMetadata = buildConversationMetadata;
 exports.buildRehydrateSnapshot = buildRehydrateSnapshot;
@@ -35,6 +36,15 @@ function isConversationControlProjectionEvent(event) {
         || event.type === 'compaction_skipped'
         || event.type === 'compaction_applied'
         || event.type === 'compaction_failed';
+}
+function isTracePayload(payload) {
+    return payload.schemaVersion === 1
+        && typeof payload.traceId === 'string'
+        && typeof payload.spanId === 'string'
+        && typeof payload.path === 'string'
+        && typeof payload.stage === 'string'
+        && typeof payload.status === 'string'
+        && typeof payload.runtime === 'string';
 }
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const EMPTY_CHAT_GREETING_TEXT = 'Hi! What can I help you with?';
@@ -1304,7 +1314,9 @@ function toDisplayMessage(event) {
     if (event.type === 'reasoning_delta') {
         return null;
     }
-    if (event.type === 'memory_retrieval_diagnostic' || event.type === 'memory_store_changed') {
+    if (event.type === 'memory_retrieval_diagnostic'
+        || event.type === 'memory_store_changed'
+        || event.type === 'trace_event') {
         return null;
     }
     if (event.type === 'turn_completed') {
@@ -1398,6 +1410,29 @@ function buildDisplayConversation(events) {
         messages: displayEvents.map(toDisplayMessage).filter((message) => Boolean(message)),
         compaction: buildCompactionState(events),
     };
+}
+function buildTraceTimeline(events, options = {}) {
+    return events
+        .filter(event => event.type === 'trace_event')
+        .filter(event => !options.conversationRef || event.conversationRef === options.conversationRef)
+        .filter(event => !options.turnRef || event.turnRef === options.turnRef)
+        .filter(event => {
+        if (!isTracePayload(event.payload)) {
+            return false;
+        }
+        if (options.traceId && event.payload.traceId !== options.traceId) {
+            return false;
+        }
+        if (options.path && event.payload.path !== options.path) {
+            return false;
+        }
+        return true;
+    })
+        .map(event => ({
+        ...event.payload,
+        eventId: event.eventId,
+        timestamp: event.timestamp,
+    }));
 }
 function buildToolTrace(events) {
     const display = buildDisplayConversation(events);

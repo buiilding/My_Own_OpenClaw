@@ -1,6 +1,7 @@
-import type { JsonRecord } from '../conversation/types.js';
+import type { JsonRecord, TraceContext } from '../conversation/types.js';
 import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
 import type { WindieLocalRuntimeClient } from './LocalSidecarRuntime.js';
+import type { TraceEventInput } from './TraceRecorder.js';
 
 const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
   combinedLimit: 6,
@@ -18,6 +19,8 @@ export type ContextEnrichmentInput = {
   localRuntime?: WindieLocalRuntimeClient | null;
   memoryEnabled?: boolean;
   emitDiagnostic?: (diagnostic: MemoryRetrievalDiagnostic) => void | Promise<void>;
+  traceContext?: TraceContext | null;
+  emitTrace?: (event: TraceEventInput) => void | Promise<void>;
 };
 
 export type MemoryRetrievalDiagnosticStage =
@@ -145,6 +148,19 @@ function normalizeMemories(response: unknown): { episodic: string[]; semantic: s
   };
 }
 
+function normalizeMemorySearchTrace(response: unknown): JsonRecord | undefined {
+  const record = response && typeof response === 'object' && !Array.isArray(response)
+    ? response as JsonRecord
+    : {};
+  const data = record.data && typeof record.data === 'object' && !Array.isArray(record.data)
+    ? record.data as JsonRecord
+    : {};
+  const trace = data.trace && typeof data.trace === 'object' && !Array.isArray(data.trace)
+    ? data.trace as JsonRecord
+    : null;
+  return trace ?? undefined;
+}
+
 function shouldRetrieveMemories(payload: JsonRecord): boolean {
   return payload.memory_retrieval_enabled !== false;
 }
@@ -186,6 +202,18 @@ async function emitMemoryDiagnostic(
   });
 }
 
+async function emitTrace(input: ContextEnrichmentInput, event: TraceEventInput): Promise<void> {
+  await input.emitTrace?.(event);
+}
+
+function nowMs(): number {
+  return Date.now();
+}
+
+function durationSince(startedAtMs: number): number {
+  return Math.max(0, Date.now() - startedAtMs);
+}
+
 async function emitMemoryPersistenceDiagnostic(
   input: StoreCompletedTurnMemoryInput,
   diagnostic: Omit<
@@ -206,6 +234,16 @@ async function emitMemoryPersistenceDiagnostic(
 }
 
 export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise<ContextEnrichmentResult> {
+  const retrievalStartedAtMs = nowMs();
+  await emitTrace(input, {
+    path: 'memory.retrieval',
+    stage: 'retrieval',
+    status: 'started',
+    data: {
+      memoryRetrievalEnabled: input.memoryEnabled !== false && shouldRetrieveMemories(input.payload ?? {}),
+      queryLength: input.text.length,
+    },
+  });
   const sourcePayload = input.payload && typeof input.payload === 'object' && !Array.isArray(input.payload)
     ? { ...input.payload }
     : {};
@@ -220,6 +258,23 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
 
   let memories = { episodic: [] as string[], semantic: [] as string[] };
   if (input.memoryEnabled === false) {
+    await emitTrace(input, {
+      path: 'memory.injection',
+      stage: 'apply',
+      status: 'skipped',
+      data: {
+        reason: 'memory_disabled',
+      },
+    });
+    await emitTrace(input, {
+      path: 'memory.retrieval',
+      stage: 'retrieval',
+      status: 'skipped',
+      durationMs: durationSince(retrievalStartedAtMs),
+      data: {
+        reason: 'memory_disabled',
+      },
+    });
     return {
       payload: {
         ...sourcePayload,
@@ -238,25 +293,74 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
         stage: 'local_runtime_missing',
         message: 'Memory retrieval skipped because no local runtime RPC is available.',
       });
+      await emitTrace(input, {
+        path: 'memory.sidecar_search',
+        stage: 'search',
+        status: 'skipped',
+        data: {
+          reason: 'local_runtime_missing',
+        },
+      });
     } else {
       let embedding: Awaited<ReturnType<WindieSdkClient['embeddings']['create']>> | null = null;
+      const embeddingStartedAtMs = nowMs();
       try {
+        await emitTrace(input, {
+          path: 'memory.embedding',
+          stage: 'request',
+          status: 'started',
+          data: {
+            queryLength: input.text.length,
+          },
+        });
         embedding = await input.sdkClient.embeddings.create({ text: input.text });
+        await emitTrace(input, {
+          path: 'memory.embedding',
+          stage: 'request',
+          status: 'succeeded',
+          durationMs: durationSince(embeddingStartedAtMs),
+          data: {
+            embeddingSpaceVersion: embedding.embedding_space_version,
+            dimensions: Array.isArray(embedding.embedding) ? embedding.embedding.length : null,
+          },
+        });
       } catch (error) {
         await emitMemoryDiagnostic(input, {
           stage: 'embedding_request_failed',
           message: 'Memory retrieval skipped because the backend embedding request failed.',
           error: errorMessage(error),
         });
+        await emitTrace(input, {
+          path: 'memory.embedding',
+          stage: 'request',
+          status: 'failed',
+          durationMs: durationSince(embeddingStartedAtMs),
+          error,
+        });
       }
 
       if (embedding) {
+        const searchStartedAtMs = nowMs();
         try {
+          await emitTrace(input, {
+            path: 'memory.sidecar_search',
+            stage: 'search',
+            status: 'started',
+            data: {
+              embeddingSpaceVersion: embedding.embedding_space_version,
+              combinedLimit: PROMPT_MEMORY_RETRIEVAL.combinedLimit,
+              episodicLimit: PROMPT_MEMORY_RETRIEVAL.episodicLimit,
+              semanticLimit: PROMPT_MEMORY_RETRIEVAL.semanticLimit,
+              semanticMinScore: PROMPT_MEMORY_RETRIEVAL.semanticMinScore,
+              excludeConversationId: input.conversationRef,
+            },
+          });
           const searchResult = await input.localRuntime.rpc({
             method: 'search_memory_by_embedding',
             params: {
               embedding: embedding.embedding,
               embedding_space_version: embedding.embedding_space_version,
+              trace_context: input.traceContext ?? undefined,
               user_id: input.userId,
               limit: PROMPT_MEMORY_RETRIEVAL.combinedLimit,
               exclude_conversation_id: input.conversationRef,
@@ -272,8 +376,27 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
               message: 'Memory retrieval skipped because sidecar memory search failed.',
               error: rpcError,
             });
+            await emitTrace(input, {
+              path: 'memory.sidecar_search',
+              stage: 'search',
+              status: 'failed',
+              durationMs: durationSince(searchStartedAtMs),
+              error: { code: 'sidecar_search_failed', message: rpcError },
+            });
           } else {
             memories = normalizeMemories(searchResult);
+            const searchTrace = normalizeMemorySearchTrace(searchResult);
+            await emitTrace(input, {
+              path: 'memory.sidecar_search',
+              stage: 'search',
+              status: 'succeeded',
+              durationMs: durationSince(searchStartedAtMs),
+              data: {
+                ...searchTrace,
+                episodicResultCount: memories.episodic.length,
+                semanticResultCount: memories.semantic.length,
+              },
+            });
             if (memories.episodic.length === 0 && memories.semantic.length === 0) {
               await emitMemoryDiagnostic(input, {
                 stage: 'search_empty',
@@ -289,11 +412,37 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
             message: 'Memory retrieval skipped because sidecar memory search failed.',
             error: errorMessage(error),
           });
+          await emitTrace(input, {
+            path: 'memory.sidecar_search',
+            stage: 'search',
+            status: 'failed',
+            durationMs: durationSince(searchStartedAtMs),
+            error,
+          });
         }
       }
     }
   }
 
+  await emitTrace(input, {
+    path: 'memory.injection',
+    stage: 'apply',
+    status: 'succeeded',
+    data: {
+      episodicResultCount: memories.episodic.length,
+      semanticResultCount: memories.semantic.length,
+    },
+  });
+  await emitTrace(input, {
+    path: 'memory.retrieval',
+    stage: 'retrieval',
+    status: 'succeeded',
+    durationMs: durationSince(retrievalStartedAtMs),
+    data: {
+      episodicResultCount: memories.episodic.length,
+      semanticResultCount: memories.semantic.length,
+    },
+  });
   return {
     payload: {
       ...sourcePayload,

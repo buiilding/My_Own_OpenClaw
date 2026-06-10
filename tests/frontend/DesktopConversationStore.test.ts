@@ -2,6 +2,7 @@ import {
   buildRehydrateSnapshotFromTranscriptProjectionEntries,
   appendTranscriptProjectionEntry,
   createDesktopConversationStore,
+  loadDesktopTraceTimeline,
   rewriteTranscriptProjection,
 } from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
 import {
@@ -92,6 +93,56 @@ describe('desktop conversation store factory', () => {
     const events = await store.loadEvents('conv-1');
 
     expect(events).toEqual([event]);
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.load', {
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+    });
+  });
+
+  test('loads durable trace timelines through the SDK conversation load command', async () => {
+    const traceEvent = createConversationEvent({
+      eventId: 'evt-trace',
+      type: 'trace_event',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      payload: {
+        schemaVersion: 1,
+        traceId: 'trace-1',
+        spanId: 'span-1',
+        parentSpanId: null,
+        path: 'memory.retrieval',
+        stage: 'retrieval',
+        status: 'succeeded',
+        runtime: 'sdk',
+      },
+    });
+    const visibleEvent = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      payload: { text: 'hello' },
+    });
+    mockInvokeWindieCommand.mockResolvedValueOnce({
+      state: { events: [visibleEvent, traceEvent] },
+    } as never);
+
+    const timeline = await loadDesktopTraceTimeline('user-1', 'conv-1', {
+      turnRef: 'turn-1',
+      path: 'memory.retrieval',
+    });
+
+    expect(timeline).toEqual([
+      expect.objectContaining({
+        eventId: 'evt-trace',
+        traceId: 'trace-1',
+        path: 'memory.retrieval',
+        status: 'succeeded',
+      }),
+    ]);
     expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.load', {
       userId: 'user-1',
       conversationRef: 'conv-1',

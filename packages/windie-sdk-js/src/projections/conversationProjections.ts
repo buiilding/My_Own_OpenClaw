@@ -13,6 +13,8 @@ import type {
   RehydrateSnapshot,
   SdkDisplayRow,
   SdkDisplayRowMetadata,
+  TraceEventPayload,
+  TraceTimelineEntry,
   ToolTrace,
 } from '../conversation/types.js';
 import {
@@ -53,6 +55,16 @@ function isConversationControlProjectionEvent(event: ConversationEvent): boolean
     || event.type === 'compaction_skipped'
     || event.type === 'compaction_applied'
     || event.type === 'compaction_failed';
+}
+
+function isTracePayload(payload: JsonRecord): payload is TraceEventPayload {
+  return payload.schemaVersion === 1
+    && typeof payload.traceId === 'string'
+    && typeof payload.spanId === 'string'
+    && typeof payload.path === 'string'
+    && typeof payload.stage === 'string'
+    && typeof payload.status === 'string'
+    && typeof payload.runtime === 'string';
 }
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
@@ -1494,7 +1506,11 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'reasoning_delta') {
     return null;
   }
-  if (event.type === 'memory_retrieval_diagnostic' || event.type === 'memory_store_changed') {
+  if (
+    event.type === 'memory_retrieval_diagnostic'
+    || event.type === 'memory_store_changed'
+    || event.type === 'trace_event'
+  ) {
     return null;
   }
   if (event.type === 'turn_completed') {
@@ -1595,6 +1611,35 @@ export function buildDisplayConversation(events: ConversationEvent[]): DisplayCo
     messages: displayEvents.map(toDisplayMessage).filter((message): message is DisplayMessage => Boolean(message)),
     compaction: buildCompactionState(events),
   };
+}
+
+export function buildTraceTimeline(events: ConversationEvent[], options: {
+  conversationRef?: string | null;
+  turnRef?: string | null;
+  traceId?: string | null;
+  path?: string | null;
+} = {}): TraceTimelineEntry[] {
+  return events
+    .filter(event => event.type === 'trace_event')
+    .filter(event => !options.conversationRef || event.conversationRef === options.conversationRef)
+    .filter(event => !options.turnRef || event.turnRef === options.turnRef)
+    .filter(event => {
+      if (!isTracePayload(event.payload)) {
+        return false;
+      }
+      if (options.traceId && event.payload.traceId !== options.traceId) {
+        return false;
+      }
+      if (options.path && event.payload.path !== options.path) {
+        return false;
+      }
+      return true;
+    })
+    .map(event => ({
+      ...(event.payload as TraceEventPayload),
+      eventId: event.eventId,
+      timestamp: event.timestamp,
+    }));
 }
 
 export function buildToolTrace(events: ConversationEvent[]): ToolTrace {

@@ -12,6 +12,40 @@ Runtime traces are useful when a bug depends on event order, process boundaries,
 
 Use [Observability Change Workflow](observability_change_workflow.md) before adding or renaming trace flags.
 
+## Durable Path Trace Events
+
+Durable path traces are hidden SDK conversation events, not console logs. Use
+them when the question is "what happened for this turn after restart?" rather
+than "what is happening live in this terminal?"
+
+The canonical event type is `trace_event`. It persists in the conversation
+event ledger with:
+
+- `traceId`, `spanId`, and `parentSpanId`
+- `conversationRef` and `turnRef`
+- `path`, `stage`, `status`, and `runtime`
+- timestamps and `durationMs`
+- sanitized counts, limits, ids, booleans, and error summaries
+
+Trace rows must stay hidden from normal transcript display and backend
+rehydrate history. Do not persist user message text, retrieved memory text,
+embedding vectors, screenshots, file contents, shell output, provider payloads,
+tokens, credentials, raw SQL rows, or full stack traces in durable trace rows.
+
+Current durable traced path:
+
+- `memory.retrieval`: SDK query enrichment records retrieval, embedding,
+  sidecar search, injection, and completion spans. The sidecar returns
+  sanitized search metadata such as searched memory types, limits, result
+  counts, embedding-space version, and duration.
+
+Renderer diagnostics should read the same rows through
+`DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads
+persisted conversation events and applies the SDK trace projection. Use
+`bin/windie trace <conversation-ref> <turn-ref>` to inspect persisted trace
+events without renderer health. Add `--path <path>` to filter a runtime path and
+`--json` to export the raw sanitized timeline.
+
 ## Stream Event Trace
 
 Use this when the backend sends events but the UI displays stale, missing, or duplicated content.

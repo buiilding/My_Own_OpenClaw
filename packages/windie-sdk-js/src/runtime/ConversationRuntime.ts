@@ -17,6 +17,7 @@ import type {
   RehydrateSnapshot,
   SdkDisplayRow,
   SettingsPayload,
+  TraceEventPayload,
   TurnInputResource,
   TurnResourceResolverRegistry,
   WakewordPayload,
@@ -38,6 +39,7 @@ import {
   storeCompletedTurnMemory,
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
+import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 import { getConversationEventScope, isConversationControlEvent } from './conversationEventScope.js';
 import { resolveTurnInputResources } from './TurnInputPipeline.js';
@@ -130,6 +132,8 @@ export type ConversationRuntimeOptions = {
     conversationRef: string;
     payload?: JsonRecord | null;
     emitDiagnostic?: (diagnostic: MemoryRetrievalDiagnostic) => void | Promise<void>;
+    traceContext?: ReturnType<TraceRecorder['context']>;
+    emitTrace?: (event: TraceEventInput) => void | Promise<void>;
   }) => Promise<JsonRecord>;
 };
 
@@ -374,6 +378,22 @@ export class SdkConversationRuntime {
     const emitMemoryDiagnostic = (diagnostic: MemoryRetrievalDiagnostic): void => {
       memoryDiagnostics.push(diagnostic);
     };
+    const traceRecorder = new TraceRecorder({
+      conversationRef: this.options.conversationRef,
+      turnRef,
+      userId: this.options.userId ?? null,
+      emit: async payload => {
+        await this.applyEvent(createConversationEvent<TraceEventPayload>({
+          eventId: this.nextLocalEventId(turnRef, 'trace_event'),
+          type: 'trace_event',
+          conversationRef: this.options.conversationRef,
+          revisionId,
+          turnRef,
+          source: 'sdk',
+          payload,
+        }));
+      },
+    });
     const pendingTurn: PendingTurn = {
       turnRef,
       conversationRef: this.options.conversationRef,
@@ -428,6 +448,10 @@ export class SdkConversationRuntime {
           conversationRef: this.options.conversationRef,
           payload: payloadForEnrichment,
           emitDiagnostic: emitMemoryDiagnostic,
+          traceContext: traceRecorder.context(),
+          emitTrace: async traceEvent => {
+            await traceRecorder.record(traceEvent);
+          },
         })
         : payloadForEnrichment;
       for (const diagnostic of memoryDiagnostics) {

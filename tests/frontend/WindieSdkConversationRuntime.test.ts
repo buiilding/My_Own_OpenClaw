@@ -4,6 +4,7 @@ import {
   buildDisplayConversation,
   buildDisplayRows,
   buildRehydrateSnapshot,
+  buildTraceTimeline,
   createDefaultTurnResourceResolvers,
   createConversationEvent,
   createInitialConversationRuntimeState,
@@ -1353,6 +1354,26 @@ describe('Windie SDK conversation runtime core', () => {
 
     expect(streamEvents).toEqual([]);
     expect(streamEvents).not.toContainEqual(expect.objectContaining({ type: 'state', state: 'error' }));
+  });
+
+  test('agent stream projection ignores durable trace events', () => {
+    const streamEvents = toAgentStreamEvents({
+      type: 'conversation_event',
+      event: event('trace_event', {
+        schemaVersion: 1,
+        traceId: 'trace-1',
+        spanId: 'span-1',
+        parentSpanId: null,
+        path: 'memory.retrieval',
+        stage: 'retrieval',
+        status: 'succeeded',
+        runtime: 'sdk',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-1',
+      }),
+    } as any);
+
+    expect(streamEvents).toEqual([]);
   });
 
   test('in-memory store is idempotent and only activates complete compaction snapshots', async () => {
@@ -3448,7 +3469,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
-	  test('conversation runtime records memory diagnostics emitted during query enrichment', async () => {
+  test('conversation runtime records memory diagnostics emitted during query enrichment', async () => {
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -3485,6 +3506,84 @@ describe('Windie SDK conversation runtime core', () => {
         error: '503 Service Unavailable',
       }),
     });
+  });
+
+  test('conversation runtime persists memory trace events without display rows', async () => {
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport(),
+      enrichQuery: async input => {
+        await input.emitTrace?.({
+          path: 'memory.retrieval',
+          stage: 'retrieval',
+          status: 'started',
+          data: {
+            apiKey: 'secret-api-key',
+            authToken: 'secret-token',
+            embeddingDimension: 3,
+            queryLength: input.text.length,
+            text: input.text,
+          },
+        });
+        await input.emitTrace?.({
+          path: 'memory.retrieval',
+          stage: 'retrieval',
+          status: 'succeeded',
+          data: {
+            episodicResultCount: 0,
+            semanticResultCount: 0,
+          },
+        });
+        return { content: '<user_query>hello</user_query>' };
+      },
+    });
+
+    await runtime.send({ text: 'hello secret text', turnRef: 'turn-memory-trace' });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const traceEvents = events.filter(storedEvent => storedEvent.type === 'trace_event');
+    expect(traceEvents).toHaveLength(2);
+    expect(traceEvents[0]).toMatchObject({
+      type: 'trace_event',
+      source: 'sdk',
+      turnRef: 'turn-memory-trace',
+      payload: expect.objectContaining({
+        schemaVersion: 1,
+        path: 'memory.retrieval',
+        stage: 'retrieval',
+        status: 'started',
+        runtime: 'sdk',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-memory-trace',
+        data: expect.objectContaining({
+          apiKey: '[redacted]',
+          authToken: '[redacted]',
+          embeddingDimension: 3,
+          queryLength: 'hello secret text'.length,
+          text: '[redacted]',
+        }),
+      }),
+    });
+    const displayRows = await store.loadDisplayRows('conv-sdk-runtime');
+    expect(displayRows.map(row => row.type)).toEqual(['user_message']);
+    expect(buildTraceTimeline(events, {
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-memory-trace',
+      path: 'memory.retrieval',
+    })).toEqual([
+      expect.objectContaining({
+        eventId: traceEvents[0].eventId,
+        path: 'memory.retrieval',
+        status: 'started',
+      }),
+      expect.objectContaining({
+        eventId: traceEvents[1].eventId,
+        path: 'memory.retrieval',
+        status: 'succeeded',
+      }),
+    ]);
   });
 
   test('conversation runtime emits memory store invalidation after completed-turn memory success', async () => {

@@ -10,6 +10,7 @@ import logging
 from functools import wraps
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
+from path_trace import build_sidecar_memory_search_trace, monotonic_trace_start
 from memory.operations import (
     build_memory_filters,
     build_store_memory_response_data,
@@ -179,6 +180,7 @@ class LocalBackendMemoryHandlersMixin:
         **kwargs,
     ) -> Dict[str, Any]:
         """Search memory using an SDK-provided query embedding."""
+        started_at = monotonic_trace_start()
         normalized, error = normalize_search_memory_embedding_payload(
             embedding=embedding,
             memory_type=memory_type,
@@ -211,7 +213,22 @@ class LocalBackendMemoryHandlersMixin:
                 exclude_conversation_id=exclude_conversation_id,
                 selection=selection,
             )
-            return {"success": True, "data": {"memories": memories}}
+            return {
+                "success": True,
+                "data": {
+                    "memories": memories,
+                    "trace": build_sidecar_memory_search_trace(
+                        method="search_memory_by_embedding",
+                        memory_type=normalized["memory_type"],
+                        embedding_dimension=len(normalized["embedding"]),
+                        embedding_space_version=normalized["embedding_space_version"],
+                        selection=selection,
+                        exclude_conversation_id=exclude_conversation_id,
+                        memories=memories,
+                        started_at=started_at,
+                    ),
+                },
+            }
         except Exception as e:
             logger.error(f"Embedding memory search failed: {e}", exc_info=True)
             return {"success": False, "error": str(e)}

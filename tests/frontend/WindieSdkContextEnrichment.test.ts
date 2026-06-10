@@ -23,6 +23,7 @@ describe('SDK context enrichment pipeline', () => {
   });
 
   test('uses backend embeddings and sidecar embedding search before backend query', async () => {
+    const traceEvents: unknown[] = [];
     const sdkClient = {
       embeddings: {
         create: jest.fn(async () => ({
@@ -41,6 +42,13 @@ describe('SDK context enrichment pipeline', () => {
             episodic: ['old event'],
             semantic: ['stable fact'],
           },
+          trace: {
+            runtime: 'sidecar',
+            method: 'search_memory_by_embedding',
+            episodicResultCount: 1,
+            semanticResultCount: 1,
+            durationMs: 7,
+          },
         },
       })),
     };
@@ -56,6 +64,16 @@ describe('SDK context enrichment pipeline', () => {
       },
       sdkClient: sdkClient as never,
       localRuntime: localRuntime as never,
+      traceContext: {
+        traceId: 'trace-1',
+        parentSpanId: null,
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userId: 'user-1',
+      },
+      emitTrace: traceEvent => {
+        traceEvents.push(traceEvent);
+      },
     });
 
     expect(sdkClient.embeddings.create).toHaveBeenCalledWith({ text: 'what now?' });
@@ -64,6 +82,7 @@ describe('SDK context enrichment pipeline', () => {
       params: expect.objectContaining({
         embedding: [0.1, 0.2, 0.3],
         embedding_space_version: 'embed-v1',
+        trace_context: expect.objectContaining({ traceId: 'trace-1' }),
         user_id: 'user-1',
         exclude_conversation_id: 'conv-1',
       }),
@@ -75,6 +94,37 @@ describe('SDK context enrichment pipeline', () => {
     expect(enriched.payload.content).toContain('- stable fact');
     expect(enriched.payload.content).toContain('<attached_file_context>\nfile body\n</attached_file_context>');
     expect(enriched.payload.content).toContain('<user_query>\nwhat now?\n</user_query>');
+    expect(traceEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        path: 'memory.retrieval',
+        stage: 'retrieval',
+        status: 'started',
+      }),
+      expect.objectContaining({
+        path: 'memory.embedding',
+        stage: 'request',
+        status: 'succeeded',
+      }),
+      expect.objectContaining({
+        path: 'memory.sidecar_search',
+        stage: 'search',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          episodicResultCount: 1,
+          semanticResultCount: 1,
+        }),
+      }),
+      expect.objectContaining({
+        path: 'memory.injection',
+        stage: 'apply',
+        status: 'succeeded',
+      }),
+      expect.objectContaining({
+        path: 'memory.retrieval',
+        stage: 'retrieval',
+        status: 'succeeded',
+      }),
+    ]));
   });
 
   test('skips embedding search when retrieval is disabled', async () => {

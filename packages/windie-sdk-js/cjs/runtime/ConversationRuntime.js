@@ -9,6 +9,7 @@ const backendEventNormalizer_js_1 = require("../transport/backendEventNormalizer
 const ToolExecutionCoordinator_js_1 = require("../tools/ToolExecutionCoordinator.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
+const TraceRecorder_js_1 = require("./TraceRecorder.js");
 const conversationReducer_js_1 = require("./conversationReducer.js");
 const conversationEventScope_js_1 = require("./conversationEventScope.js");
 const TurnInputPipeline_js_1 = require("./TurnInputPipeline.js");
@@ -199,6 +200,22 @@ class SdkConversationRuntime {
         const emitMemoryDiagnostic = (diagnostic) => {
             memoryDiagnostics.push(diagnostic);
         };
+        const traceRecorder = new TraceRecorder_js_1.TraceRecorder({
+            conversationRef: this.options.conversationRef,
+            turnRef,
+            userId: this.options.userId ?? null,
+            emit: async (payload) => {
+                await this.applyEvent((0, events_js_1.createConversationEvent)({
+                    eventId: this.nextLocalEventId(turnRef, 'trace_event'),
+                    type: 'trace_event',
+                    conversationRef: this.options.conversationRef,
+                    revisionId,
+                    turnRef,
+                    source: 'sdk',
+                    payload,
+                }));
+            },
+        });
         const pendingTurn = {
             turnRef,
             conversationRef: this.options.conversationRef,
@@ -253,6 +270,10 @@ class SdkConversationRuntime {
                     conversationRef: this.options.conversationRef,
                     payload: payloadForEnrichment,
                     emitDiagnostic: emitMemoryDiagnostic,
+                    traceContext: traceRecorder.context(),
+                    emitTrace: async (traceEvent) => {
+                        await traceRecorder.record(traceEvent);
+                    },
                 })
                 : payloadForEnrichment;
             for (const diagnostic of memoryDiagnostics) {

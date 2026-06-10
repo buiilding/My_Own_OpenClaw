@@ -27,6 +27,8 @@ Use this workflow before adding logs or diagnostic flags. Observability should p
 ## Rules
 
 - Add the smallest diagnostic signal that proves the boundary.
+- Use durable `trace_event` rows for turn-scoped path timelines that must
+  survive restart; use console/debug logs only as live mirrors.
 - Keep verbose traces opt-in behind env flags, URL params, or test-only gates.
 - Do not log secrets, bearer tokens, API keys, install tokens, file contents, or full screenshots.
 - Do not write debug text to sidecar stdout. Sidecar stdout is protocol traffic.

@@ -131,6 +131,13 @@ Result payload fields:
 
 - `id`, `text`, `metadata`, `score`, `timestamp`, `type`, optional `conversation_id`
 
+The local backend `search_memory_by_embedding` RPC also returns sanitized trace
+metadata under `data.trace` for SDK durable path traces. This metadata is
+structural only: method name, searched memory types, embedding dimension,
+embedding-space version, retrieval limits, exclusion id, result counts, and
+duration. It must not include memory text, embedding vectors, raw SQL rows, or
+full user query text.
+
 `search(query, ...)` is retained as a local-only compatibility surface but does
 not generate embeddings. SDK callers should use `search_memory_by_embedding`.
 

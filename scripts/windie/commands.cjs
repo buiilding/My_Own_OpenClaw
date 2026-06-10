@@ -20,6 +20,7 @@ Status and diagnostics:
   windie doctor --fix
   windie doctor --deep
   windie doctor --json
+  windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]
 
 Lifecycle and logs:
   windie start backend
@@ -231,6 +232,100 @@ function runStatus(args) {
       `http: ${status.detail.endpoint.httpUrl}`,
       `ws:   ${status.detail.endpoint.wsUrl}`,
     ]);
+  }
+}
+
+function runTrace(args) {
+  const json = hasFlag(args, '--json');
+  const pathFilter = optionValue(args, '--path', '');
+  const positional = args.filter((arg, index) => {
+    if (arg === '--json') return false;
+    if (arg === '--path') return false;
+    if (index > 0 && args[index - 1] === '--path') return false;
+    return !arg.startsWith('--');
+  });
+  const [conversationRef, turnRef] = positional;
+  if (!conversationRef || !turnRef) {
+    throw new Error('Usage: windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]');
+  }
+
+  const python = String.raw`
+import json
+import sqlite3
+import sys
+from pathlib import Path
+
+conversation_ref = sys.argv[1]
+turn_ref = sys.argv[2]
+path_filter = sys.argv[3] or None
+db_path = Path.home() / "Library" / "Application Support" / "desktop-assistant" / "memory" / "episodic.db"
+
+if not db_path.exists():
+    print(json.dumps({"ok": False, "error": f"trace database not found: {db_path}", "events": []}))
+    raise SystemExit(0)
+
+events = []
+conn = sqlite3.connect(str(db_path))
+conn.row_factory = sqlite3.Row
+try:
+    rows = conn.execute(
+        """
+        SELECT event_payload, timestamp, message_index
+        FROM chat_events
+        WHERE conversation_id = ?
+          AND turn_ref = ?
+          AND event_type = 'trace_event'
+        ORDER BY message_index ASC, timestamp ASC
+        """,
+        (conversation_ref, turn_ref),
+    ).fetchall()
+    for row in rows:
+        try:
+            event = json.loads(row["event_payload"] or "{}")
+        except Exception:
+            continue
+        payload = event.get("payload") if isinstance(event, dict) else None
+        if not isinstance(payload, dict):
+            continue
+        if path_filter and payload.get("path") != path_filter:
+            continue
+        events.append({
+            **payload,
+            "eventId": event.get("eventId"),
+            "timestamp": event.get("timestamp") or row["timestamp"],
+            "messageIndex": row["message_index"],
+        })
+finally:
+    conn.close()
+
+print(json.dumps({"ok": True, "database": str(db_path), "events": events}))
+`;
+
+  const result = capture(
+    script('scripts/python-in-env'),
+    ['sidecar', 'python', '-c', python, conversationRef, turnRef, pathFilter],
+    { cwd: REPO_ROOT },
+  );
+  if (!result.ok) {
+    throw new Error(result.stderr || result.error || 'Failed to read trace events');
+  }
+  const payload = JSON.parse(result.stdout || '{}');
+  if (json) {
+    printJson(payload);
+    return;
+  }
+  if (!payload.ok) {
+    throw new Error(payload.error || 'Trace lookup failed');
+  }
+  const events = Array.isArray(payload.events) ? payload.events : [];
+  if (events.length === 0) {
+    console.log(`No trace events found for ${conversationRef} ${turnRef}.`);
+    return;
+  }
+  for (const event of events) {
+    const duration = typeof event.durationMs === 'number' ? ` ${event.durationMs}ms` : '';
+    const error = event.error?.message ? ` error="${event.error.message}"` : '';
+    console.log(`${event.path} ${event.status}${duration} runtime=${event.runtime} stage=${event.stage}${error}`);
   }
 }
 
@@ -716,6 +811,8 @@ async function dispatch(argv) {
       return runStatus(args);
     case 'doctor':
       return runDoctor(args);
+    case 'trace':
+      return runTrace(args);
     case 'start':
       return runStart(args[0]);
     case 'stop':

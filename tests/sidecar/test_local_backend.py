@@ -907,6 +907,22 @@ async def test_handle_search_memory_by_embedding_applies_filters():
 
     assert result["success"] is True
     assert result["data"]["memories"]["semantic"] == ["fact"]
+    trace = result["data"]["trace"]
+    assert trace.pop("durationMs") >= 0
+    assert trace == {
+        "runtime": "sidecar",
+        "method": "search_memory_by_embedding",
+        "searchedMemoryTypes": ["semantic"],
+        "embeddingDimension": 3,
+        "embeddingSpaceVersion": "v1",
+        "combinedLimit": 3,
+        "episodicLimit": None,
+        "semanticLimit": None,
+        "semanticMinScore": None,
+        "excludeConversationId": None,
+        "episodicResultCount": 0,
+        "semanticResultCount": 1,
+    }
     assert backend.memory_store.search_calls == []
     assert backend.memory_store.search_by_embedding_calls == [
         ([0.1, 0.2, 0.3], "user-1", {"type": "semantic"}, 3, "v1")

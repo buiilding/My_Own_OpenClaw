@@ -4,6 +4,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- sdk/frontend/sidecar: add durable hidden `trace_event` rows for turn-scoped
+  path diagnostics, with memory retrieval as the first traced path plus
+  renderer and CLI timeline readers.
+
 ### Fixed
 
 - sdk/frontend: preserve same-turn resolved resource metadata during
