@@ -1,5 +1,5 @@
 ---
-summary: "Local backend JSON-RPC reference for Electron main <-> Python sidecar: request envelope, registered methods, bridge mapping, and timeout/error semantics."
+summary: "Local backend JSON-RPC reference for SDK daemon-backed sidecar calls: request envelope, registered methods, bridge mapping, and timeout/error semantics."
 read_when:
   - When adding/changing sidecar JSON-RPC methods or bridge payload mappers.
   - When debugging execute_tool/search-memory/chat-event persistence failures between Electron and Python sidecar.
@@ -8,22 +8,25 @@ title: "Local Backend JSON-RPC Reference"
 
 # Local Backend JSON-RPC Reference
 
-> New SDK-facing local execution should use the sidecar daemon contract in [Sidecar Daemon Runtime Reference](sidecar_daemon_runtime_reference.md). This JSON-RPC reference remains for Electron bridge methods and memory/service IPC.
+Electron bridge helpers use the SDK local runtime provider. The SDK sends
+JSON-RPC envelopes to the sidecar daemon `/rpc` endpoint, and the daemon
+dispatches them through `LocalBackend.protocol.handle_request(...)`.
 
 ## Core Modules
 
-- Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
-- Request transport: `frontend/src/main/local_backend_bridge_request_transport.cjs`
-- IPC->method mappers: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
-- Sidecar service: `frontend/src/main/python/local_backend.py`
+- Electron bridge: `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- IPC->method mappers: `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- Sidecar daemon: `frontend/src/main/python/sidecar_daemon.py`
+- LocalBackend implementation: `frontend/src/main/python/local_backend.py`
 - Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
 - JSON-RPC protocol implementation: `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Transport Model
 
-Electron main starts or reuses `sidecar_daemon.py`. The daemon owns one `LocalBackend` instance, including local memory, chat-event storage, embeddings, FAISS indices, and tool execution. Electron sends JSON-RPC envelopes to the daemon `POST /rpc` endpoint.
-
-The older stdin/stdout transport still exists as a fallback, but the daemon path is the preferred runtime.
+Electron main computes desktop launch options, but the SDK starts or reuses
+`sidecar_daemon.py`. The daemon owns one `LocalBackend` instance, including local
+memory, chat-event storage, embeddings, FAISS indices, and tool execution. SDK
+runtime calls send JSON-RPC envelopes to the daemon `POST /rpc` endpoint.
 
 Request envelope:
 

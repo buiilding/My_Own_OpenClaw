@@ -1,236 +1,82 @@
 ---
-summary: "Deep reference for Electron main local-backend process startup/teardown, readiness retry token guards, pending-request timeout semantics, and subprocess env/path resolution."
+summary: "Reference for SDK-owned desktop sidecar daemon readiness, helper RPC routing, local-backend status snapshots, and Electron host-only sidecar helpers."
 read_when:
-  - When changing `startLocalBackend`, `checkReadiness`, `sendRequest`, or `stopLocalBackend` behavior in `frontend/src/main/local_backend_bridge.cjs`.
-  - When debugging sidecar startup failures, stale retry timers after restart, or in-flight request rejection after process exit/error.
-title: "Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference"
+  - When changing SDK local runtime provider usage in `frontend/src/main/sidecar/local_backend_bridge.cjs`.
+  - When debugging desktop sidecar daemon startup, `local-backend-status`, helper RPC failures, or screenshot helper routing.
+title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 ---
 
-# Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference
+# SDK-Owned Sidecar Readiness and Helper RPC Reference
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_request_transport.cjs`
-- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
-- `frontend/src/main/local_backend_bridge_timeout_policy.cjs`
-- `frontend/src/main/local_backend_launch_plan.cjs`
-- `frontend/src/main/local_backend_process_events.cjs`
-- `frontend/src/main/local_backend_stderr_transport.cjs`
-- `frontend/src/main/local_backend_stop_controller.cjs`
-- `frontend/src/main/local_backend_bridge_display_bounds.cjs`
-- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
-- `frontend/src/main/runtime_paths.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
-- `frontend/src/main/local_backend_bridge_utils.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_backend_supervisor.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
+- `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
-- `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
 
-## Spawn Preconditions and Runtime Env Contract
+## Runtime Contract
 
-`startLocalBackend(mainWindow)`:
+Electron main does not spawn `local_backend.py` as a standalone process. Desktop
+startup builds SDK `autoSidecar` launch options, then `WindieClient.wakeUp()`
+or a bridge helper call resolves the SDK local runtime provider. The SDK starts
+or reuses `sidecar_daemon.py`, owns `SidecarDaemonHttpClient`, and unwraps
+daemon `/rpc` JSON-RPC results.
 
-1. no-op when a process already exists (`pythonProcess` truthy)
-2. resolves launch target via `resolveSidecarLaunchTarget('local_backend.py')`
-3. fail-fast when launch target is python and command is missing (`command=null`) and emits:
-   - packaged: bundled-runtime reinstall guidance
-   - dev: install Python / set `WINDIE_PYTHON_PATH` guidance
-4. fail-fast when launch target is python and script path is missing and emits:
-   - `local-backend-status { ready:false, error:"Local backend script not found: ..." }`
-5. resolves backend URLs once via `resolveBackendEndpoints()`
-6. spawns child process with:
-   - `cwd = path.dirname(scriptPath)`
-   - `stdio = ['pipe', 'pipe', 'pipe']`
-   - env merge with `PYTHONUNBUFFERED=1`
-   - env merge with `WINDIE_BACKEND_HTTP_URL=<resolved httpUrl>`
-   - env merge with `WINDIE_PACKAGED_APP` and `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`
-   - `NODE_OPTIONS` amended by `withLocalBackendNodeOptions(...)` (adds `--no-deprecation` exactly once)
+Electron main owns only host-side behavior:
 
-`runtime_paths.cjs` launch preference order:
+- desktop launch facts: command, args, cwd, env, auth path, permission path,
+  discovery file, and launch context
+- renderer-visible local-backend status snapshots
+- BrowserWindow visibility, screenshot display bounds, artifact upload headers,
+  and screenshot attachment materialization
+- narrow IPC handlers that map renderer/helper calls to SDK runtime `rpc` or
+  `executeTool`
 
-1. packaged sidecar binary under `resources/sidecar-bin` (when present)
-2. python launch target with:
-  - command from `resolvePythonExecutablePath()`
-  - script from bundled `.pyc` (packaged) or source `.py` (dev)
+## Readiness
 
-`resolvePythonExecutablePath()` preference order:
+`ensureSdkLocalRuntime()` is the readiness boundary:
 
-1. `WINDIE_PYTHON_PATH` (must exist)
-2. packaged bundled runtime candidates (`python-runtime`/`python`)
-3. dev-only `CONDA_PREFIX` python
-4. dev-only fallback launcher (`py` on Windows, `python3` elsewhere)
+1. call the SDK local runtime provider with `{ wakeUp: {}, needsLocalRuntime: true }`
+2. cache the returned runtime
+3. subscribe to daemon events for conversation metadata invalidation
+4. attach a synthetic SDK daemon process ref to `local_backend_supervisor`
+5. emit `local-backend-status { ready:true }`
 
-## Readiness Probe and Stale-Timer Isolation
+If launch option construction or provider resolution fails, the bridge keeps
+status not-ready and helper calls return stable error envelopes where possible.
 
-`checkReadiness(mainWindow, attempt = 1, maxAttempts = 10)` sends JSON-RPC:
+## Helper RPC Routing
 
-- method: `ping`
-- id: `__readiness_check_<attempt>__`
+`sendRequest(method, params, options)` calls SDK runtime `rpc(...)` only. There
+is no stdin/stdout fallback transport.
 
-Retry/backoff contract:
+Tool helpers call SDK runtime `executeTool(...)` when available. The bridge still
+normalizes host-only arguments before execution:
 
-- delay: `min(50 * 2^(attempt - 1), 1000)` ms
-- per-attempt wait timeout: `500ms`
-- max attempts: `10`
+- screenshot helpers inject active display bounds
+- shell helpers inject sudo auth mode from frontend config
+- browser header controls add their fixed explanation
+- screenshot results are materialized into backend artifacts when possible
 
-Race guard contract:
+## Shutdown
 
-- `readinessCheckToken` increments for every new check and on process reset
-- scheduled retries/timeouts carry captured token and abort when token is stale
+`stopLocalBackend()` switches backend tool execution to a stopped executor,
+calls `sdkLocalRuntime.shutdown()` when a runtime has been resolved, clears the
+SDK runtime handle, and resets the local status snapshot to stopped.
 
-Fail-closed startup contract:
+## Validation
 
-- after max retry or max timeout, bridge marks the active supervisor process
-  `error` and emits `local-backend-status { ready:false, status:"error", error }`
-- normal JSON-RPC requests stay blocked by `sendRequest(...)` until a real
-  readiness ping reports `status:"ok"`
+Run these focused checks after changing this path:
 
-Test-backed guarantees:
-
-- stale readiness timeout from old process cannot clear new process callback
-- stale retry timer from old process cannot issue retry pings against new generation
-- exhausted readiness retries do not mark the sidecar ready without a valid ping
-
-## Stdout/Stderr Protocol Handling
-
-Launch planning in `local_backend_launch_plan.cjs`:
-
-- resolves the sidecar launch target
-- validates missing Python/runtime/script preconditions before spawning
-- builds packaged/source sidecar environment variables
-- keeps Windows packaged Python behavior separate from Unix `PYTHONHOME` /
-  `PYTHONNOUSERSITE` runtime isolation
-- returns command, args, cwd, stdio, and env for the bridge spawn call
-
-Stdout handling in `local_backend_stdout_transport.cjs`:
-
-- accumulates chunks in `stdoutBuffer`
-- splits by newline and preserves trailing partial line
-- parse strategy per complete line:
-  - default: inline `JSON.parse`
-  - large payloads (`>= 128KB`) may offload parse to worker thread (`parseJsonInWorker`)
-- queue/drain runtime:
-  - `pendingStdoutLines` stores deferred lines
-  - `drainStdoutLines(...)` serially drains queued lines and forwards parsed responses
-  - guarded by `isDrainingStdoutLines` and `isActiveProcessReference(...)` so stale process generations cannot drain new-process lines
-- malformed JSON lines are logged and skipped (process stays alive)
-
-Stderr handling in `local_backend_stderr_transport.cjs`:
-
-- splits by newline and evaluates each non-empty line with `shouldForwardStderrLine(...)`
-- suppressed path:
-  - known Node deprecation noise patterns are dropped
-- forwarded path:
-  - always forward when `WINDIE_VERBOSE_SIDECAR_STDERR` is truthy
-  - otherwise forward Python WARNING/ERROR/CRITICAL log-level lines
-  - fallback keyword forwarding for warning/error/exception/traceback/fatal text
-- forwarded lines log as `[LocalBackend Python] ...`
-
-## Request Correlation and Timeout Semantics
-
-`local_backend_bridge_request_transport.cjs` owns `sendRequest(method, params, options)` and pending request correlation:
-
-1. hard-requires both `pythonProcess` and `isPythonReady`
-2. creates UUID request id
-3. stores `pendingRequests[requestId] = { resolve, reject, timeout }`
-4. writes one JSON line to stdin
-5. timeout defaults to `60000ms` unless `options.timeoutMs` provided
-
-Timeout behavior:
-
-- if pending entry still exists at timeout, entry is removed and promise rejects `"Request timed out"`
-
-Response behavior in `handlePythonResponse(response)`:
-
-- readiness IDs route through `readinessCheckCallback`
-- known request IDs:
-  - clear timeout
-  - remove from pending map
-  - reject on `response.error`
-  - resolve `response.result` otherwise
-- unknown IDs log warning only
-
-`sendRequestOrError(...)` normalization:
-
-- wraps `sendRequest` and converts thrown failures to `{ success:false, error:string }`
-
-## Process Reset, Exit, and Shutdown Contract
-
-`resetBackendProcessState(reason)`:
-
-- nulls process handle and readiness callback
-- increments token (invalidates stale readiness async work)
-- rejects all pending requests with shared reason
-- clears stdout buffer
-- sets `isPythonReady = false`
-
-Exit handling in `local_backend_process_events.cjs`:
-
-- always resets process state
-- emits `local-backend-status { ready:false, error }` only for non-zero exit code
-- ignores stale events from previous process references
-
-Error handling in `local_backend_process_events.cjs`:
-
-- resets process state
-- maps `ENOENT` to explicit user-facing Python installation guidance
-  - binary launch path: bundled sidecar executable reinstall guidance
-  - python launch path: Python executable guidance
-- emits `local-backend-status { ready:false, error }`
-- ignores stale events from previous process references
-
-Shutdown handling in `local_backend_stop_controller.cjs`:
-
-- switches backend tool execution to a stopped executor that reports
-  `Local backend bridge is stopped.`
-- shuts down and clears daemon-backed runtime state when daemon mode is active
-- resets backend process state after daemon shutdown
-- sends `SIGTERM`
-- schedules `SIGKILL` at 5s only if same process handle is still active
-
-Test-backed guarantee:
-
-- delayed force-kill timer from an old process generation does not kill a restarted process
-- stopped bridge tool execution returns an explicit stopped error
-- stale exit/error events from an old process generation do not reset the active process
-
-## Tool Timeout Tier and Screenshot Wrapper Hook
-
-`local_backend_bridge_timeout_policy.cjs` owns local tool execution timeout tiers:
-
-- `browser` tool: `120000ms`
-- all others: `60000ms`
-
-Screenshot path:
-
-- only `toolName === 'screenshot'` is wrapped in `withHiddenWindowForScreenshot(...)`
-- platform runtime decides whether hide/show behavior is active or pass-through
-- see overlay deep pages for screenshot visibility runtime ownership details
-
-## Debug Sequence
-
-If startup fails:
-
-1. verify script path candidates in `runtime_paths.cjs`
-2. verify emitted `local-backend-status` error payload
-3. verify spawned env contains `WINDIE_BACKEND_HTTP_URL`
-
-If requests reject after sidecar reset:
-
-1. inspect exit/error logs for reset reason
-2. confirm response ID was pending before reset
-3. inspect pending rejection payload surfaced to renderer
-
-If readiness appears stuck:
-
-1. inspect ping ID progression (`__readiness_check_n__`)
-2. inspect token invalidation conditions during restart
-3. inspect the fail-closed status emitted after max attempts or timeout
-
-## Related Pages
-
-- [Frontend Main Local-Backend Docs Hub](README.md)
-- [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
-- [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
-- [Local Backend Bridge Handler and Window Guard Reference](../local_backend_bridge_handler_and_window_guard_reference.md)
+- `cd frontend && npm run test -- ../tests/frontend/LocalBackendBridge.lifecycle.test.cjs ../tests/frontend/LocalBackendBridge.rpc.test.cjs --runInBand`
+- `cd frontend && npm run test -- ../tests/frontend/LocalBackendStatusBroadcaster.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs --runInBand`
+- `bin/windie docs list`

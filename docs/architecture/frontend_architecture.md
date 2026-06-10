@@ -63,16 +63,13 @@ frontend/src/
 Current runtime behavior also relies on these explicit seams:
 
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `app/main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `app/main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surfaces/surface_runtime.cjs` (window ownership + overlay phase state).
-- **Local sidecar bridge is split by ownership**: `sidecar/local_backend_bridge.cjs`
-  is the composition root for local-backend wiring and scoped host IPC
-  registration. Launch planning/env construction lives in
-  `sidecar/local_backend_launch_plan.cjs`, process exit/error policy lives in
-  `sidecar/local_backend_process_events.cjs`, shutdown policy lives in
-  `sidecar/local_backend_stop_controller.cjs`, stderr filtering lives in
-  `sidecar/local_backend_stderr_transport.cjs`, JSON-RPC request
-  correlation/timeouts live in `sidecar/local_backend_bridge_request_transport.cjs`,
-  and execute-tool routing plus screenshot-specific attachment handling lives
-  in `sidecar/local_backend_bridge_execute_tool_runtime.cjs`.
+- **Local sidecar bridge is SDK-owned for lifecycle**:
+  `sidecar/local_backend_bridge.cjs` is the composition root for scoped host IPC
+  registration and Electron-only helper behavior. Desktop launch facts are built
+  in `sidecar/sdk_sidecar_launch_options.cjs` and passed to the SDK local
+  runtime provider, which owns daemon startup/reuse, RPC unwrapping, and tool
+  execution transport. Electron keeps host-only screenshot/display/artifact
+  shaping in `sidecar/local_backend_bridge_execute_tool_runtime.cjs`.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local-backend readiness from the shared IPC status surface and consume shared browser-session/local-backend runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localBackendStatusStore` owns the initial `get-local-backend-status` bootstrap plus `local-backend-status` event subscription, while `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
 - **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for settings and model listing commands that have not moved to SDK transport calls, while `renderer/infrastructure/api/windieSdkClient.ts` exposes the SDK runtime surface used by CLI/custom UI clients and first-party Electron facades. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, and `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`; `renderer/infrastructure/api/index.ts` is the stable barrel export for low-level client modules. Desktop-specific adapters are allowed behind SDK interfaces such as `ConversationStore` and `BackendTransport`; the app facades may use lower-level SDK modules, but renderer feature code should not reimplement SDK conversation, tool-routing, rehydrate, compaction, or projection semantics.
 - **Tool identity normalization is SDK-owned**: renderer chat display helpers may
@@ -325,15 +322,11 @@ Primary modules:
 - `renderer/features/chat/session/useRendererConversationSessionInfo.js`:
   - Renderer-facing current-conversation reader that prefers transcript session state and falls back to projected chat-store selection.
   - Keeps dashboard/chat controls from independently choosing between transcript session and `chatStore.activeConversationRef`.
-- `main/local_backend_bridge.cjs`:
-  - Composes the local sidecar runtime modules and registers scoped host IPC handlers.
-  - Uses `local_backend_supervisor.cjs` to track process identity plus explicit `starting|ready|stopping|error` lifecycle state.
-  - Delegates sidecar launch/env planning to `local_backend_launch_plan.cjs`.
-  - Delegates JSON-RPC request correlation and timeout handling to `local_backend_bridge_request_transport.cjs`.
-  - Delegates process exit/error policy to `local_backend_process_events.cjs`.
-  - Delegates daemon shutdown and standalone process termination to `local_backend_stop_controller.cjs`.
-  - Delegates stderr forwarding to `local_backend_stderr_transport.cjs`.
-  - Registers scoped tool execution, system-state, and SDK/local-runtime sidecar handlers.
+- `main/sidecar/local_backend_bridge.cjs`:
+  - Registers scoped host IPC handlers for screenshot attachment, browser controls, system state, memory, and mapped local sidecar RPCs.
+  - Uses the SDK local runtime provider as the only sidecar daemon lifecycle and RPC transport path.
+  - Uses `local_backend_supervisor.cjs` only for renderer-visible local-backend readiness/status snapshots.
+  - Keeps Electron-only screenshot display bounds, artifact upload, and window visibility behavior out of the SDK.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
   - Screenshot args include virtual desktop bounds so sidecar screenshot capture can keep monitor targeting deterministic; Windows/Linux crop from all-displays captures when needed, while macOS uses direct bounded capture to avoid Retina scaling drift.
   - Screenshot execution wrapper delegates to `main/local_backend_bridge_window_visibility.cjs`, which selects `main/platform/screenshot_window_visibility/*` per OS.

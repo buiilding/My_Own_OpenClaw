@@ -1,9 +1,9 @@
 ---
-summary: "Electron main local-backend process lifecycle reference: sidecar launch-target resolution (binary-first packaged paths), readiness probe loop, request correlation/timeouts, and failure recovery behavior."
+summary: "SDK-owned sidecar daemon lifecycle reference for desktop launch options, readiness status, helper RPC routing, and failure behavior."
 read_when:
-  - When changing local backend process startup, readiness checks, or request timeout behavior.
-  - When debugging sidecar startup failures, unknown-response warnings, or stuck pending JSON-RPC requests.
-title: "Local Backend Process Lifecycle Reference"
+  - When changing desktop sidecar daemon startup, readiness status, or helper RPC routing.
+  - When debugging sidecar startup failures, local-backend-status drift, or Electron helper calls that cannot reach the sidecar daemon.
+title: "SDK-Owned Sidecar Lifecycle Reference"
 ---
 
 # Local Backend Process Lifecycle Reference
@@ -19,8 +19,6 @@ title: "Local Backend Process Lifecycle Reference"
 
 ## Process Startup Path
 
-Current preferred runtime:
-
 - Electron main computes desktop launch options and passes them to
   `WindieClient` as SDK `autoSidecar` options.
 - The SDK starts/reuses `sidecar_daemon.py`, owns `SidecarDaemonHttpClient`, and
@@ -30,10 +28,9 @@ Current preferred runtime:
 - Electron bridge code keeps host-only behavior: BrowserWindow handling,
   screenshot hiding, display bounds, artifact upload headers, and direct helper
   IPC channels.
-- `local_backend.py` remains the legacy stdin/stdout fallback path only when the
-  SDK daemon provider is unavailable or disabled in tests.
-
-Do not start `local_backend.py` and `sidecar_daemon.py` as independent memory owners in the same app session. Both initialize `LocalMemoryStore` against the same SQLite/FAISS files, which can produce duplicate embedding backfill, SQLite write locks, and FAISS mapping drift.
+- Electron no longer starts `local_backend.py` as a standalone stdin/stdout
+  fallback. `local_backend.py` remains the internal `LocalBackend` implementation
+  used by `sidecar_daemon.py`.
 
 Entrypoint:
 
@@ -48,30 +45,7 @@ SDK daemon startup sequence:
 4. normal agent startup calls `WindieClient.wakeUp()`, which starts or reuses the
    daemon through the SDK provider
 
-Legacy `startLocalBackend(...)` behavior:
-
-`startLocalBackend(...)` is used only when no SDK daemon provider is active.
-
-1. resolve launch target (`resolveSidecarLaunchTarget('local_backend.py')`)
-2. fail-close when launch target is python and command is missing:
-- packaged: bundled runtime reinstall guidance
-- dev: install Python / set `WINDIE_PYTHON_PATH` guidance
-3. fail-close when launch target is python and script path is missing
-4. spawn child process with:
-- `cwd` = script directory
-- `PYTHONUNBUFFERED=1`
-- `WINDIE_BACKEND_HTTP_URL` from `resolveBackendEndpoints().httpUrl`
-- `WINDIE_PACKAGED_APP` and `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`
-- `NODE_OPTIONS` amended with `--no-deprecation`
-
-If executable missing (`ENOENT`):
-
-- binary launch path emits bundled sidecar executable reinstall guidance
-- python launch path emits Python missing guidance
-
 ## Readiness
-
-SDK daemon readiness:
 
 - `WindieClient.wakeUp()` or a direct Electron helper call resolves the SDK local
   runtime provider.
@@ -79,38 +53,8 @@ SDK daemon readiness:
   context and `/status` succeeded.
 - Electron emits `local-backend-status { ready: true }` only after the SDK
   runtime provider has returned a usable runtime for bridge-owned helper calls.
-
-Legacy stdin/stdout readiness:
-
-After legacy `local_backend.py` spawn, bridge runs `checkReadiness(...)`.
-
-Probe contract:
-
-- sends JSON-RPC `ping` requests with special IDs (`__readiness_check_<n>__`)
-- retries with exponential backoff (`50ms` base, capped at `1000ms`)
-- each attempt has 500ms response wait timeout
-
-Concurrency/race guard:
-
-- `readinessCheckToken` invalidates stale callbacks/retry timers when process state resets
-
-Ready-state behavior:
-
-- successful ping -> `isPythonReady=true`, emits `local-backend-status { ready: true }`
-- max-retry failure/timeout path still marks ready with warning to avoid deadlock
-
-## Stdout/Stderr Processing
-
-Stdout handling:
-
-- line-buffered JSON parsing (`stdoutBuffer`)
-- each line parsed as one JSON-RPC response object
-- parse failures logged with raw line context
-
-Stderr handling:
-
-- line-based logging
-- suppresses known noisy deprecation patterns via `shouldSuppressStderrLine(...)`
+- If Electron cannot construct a valid SDK sidecar launch plan, it emits
+  `local-backend-status { ready:false, error }` and helper RPC calls fail closed.
 
 ## Request Correlation and Timeout Model
 
@@ -124,41 +68,25 @@ SDK daemon request send path (`sendRequest`):
 5. SDK converts JSON-RPC `error` to an exception and returns JSON-RPC `result` to
    IPC callers
 
-Legacy process request send path (`sendRequest`):
-
-1. require process exists and `isPythonReady=true`
-2. create UUID request ID
-3. store resolver/rejector + timeout handle in `pendingRequests`
-4. write JSON line to sidecar stdin
-
-Default timeout:
-
-- 30s unless overridden
-
 Per-request timeout overrides:
 
 - browser tool execution uses 120s in the local tool execution runtime
 
-Response dispatch (`handlePythonResponse`):
-
-- readiness probe responses routed to readiness callback
-- normal responses matched by `id` in `pendingRequests`
-- unknown IDs log warning (possible late/stale response)
-
 ## Failure and Reset Behavior
 
-On process `exit` or `error`:
+On SDK provider failure:
 
-1. `resetBackendProcessState(reason)`
-2. clear ready flag and callback state
-3. reject all pending requests with shared reason
-4. clear stdout buffer
-5. emit `local-backend-status { ready:false, error? }` when applicable
+1. helper calls return `{ success:false, error }` when they use `sendRequestOrError`
+2. direct helper callers receive the SDK provider exception through their normal
+   error envelopes
+3. status remains not ready until a future bridge initialization or SDK wake-up
+   resolves the provider successfully
 
 `stopLocalBackend()` shutdown path:
 
-- send `SIGTERM`
-- escalate to `SIGKILL` after 5s if process remains alive
+- switches backend tool execution to a stopped executor
+- calls `sdkLocalRuntime.shutdown()` when a runtime has been resolved
+- clears the SDK runtime handle and local status snapshot
 
 ## Window Handling for Linux Screenshot Tool
 
@@ -186,15 +114,15 @@ Additional mapped handlers are registered through compiled mapper definitions (`
 
 If sidecar shows ready=false indefinitely:
 
-1. verify `local_backend.py` resolved path exists
-2. inspect ping probe logs for repeated timeout/retry
-3. inspect stderr output for Python startup/import failures
+1. verify `sdk_sidecar_launch_options.cjs` can build a valid daemon launch plan
+2. inspect SDK auto-sidecar discovery context and daemon `/status` failures
+3. inspect daemon stderr lines forwarded through `autoSidecar.onStderrLine`
 
-If requests time out unexpectedly:
+If helper calls fail unexpectedly:
 
-1. verify `isPythonReady` true before request send
-2. check `pendingRequests` cleanup and timeout override paths
-3. inspect unknown response ID warnings for out-of-order/late replies
+1. verify `ensureSdkLocalRuntime()` resolved a runtime before the helper call
+2. verify SDK `SidecarDaemonHttpClient.rpc()` unwraps `/rpc` results
+3. inspect the daemon `LocalBackend.protocol.handle_request(...)` method result
 
 If Linux screenshots include overlays:
 

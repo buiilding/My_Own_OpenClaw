@@ -9,6 +9,8 @@ const {
   getLastWrittenRequest,
   initBridge,
   markReady,
+  rejectNextSdkRuntimeRequest,
+  resolveNextSdkRuntimeRequest,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/localBackendBridgeHarness.cjs');
 const {
@@ -64,20 +66,12 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   });
 
-  function emitRpcMessage(stdoutHandler, payload) {
-    stdoutHandler()(Buffer.from(`${JSON.stringify({
-      jsonrpc: '2.0',
-      id: 'req-1',
-      ...payload,
-    })}\n`));
+  function emitRpcResult(_stdoutHandler, result) {
+    resolveNextSdkRuntimeRequest(result);
   }
 
-  function emitRpcResult(stdoutHandler, result) {
-    emitRpcMessage(stdoutHandler, { result });
-  }
-
-  function emitRpcError(stdoutHandler, message) {
-    emitRpcMessage(stdoutHandler, { error: { message } });
+  function emitRpcError(_stdoutHandler, message) {
+    rejectNextSdkRuntimeRequest(new Error(message));
   }
 
   async function expectResolvedSuccess(stdoutHandler, promise, data) {
@@ -85,7 +79,9 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data });
   }
 
-  function expectLastRequestWith(method, params) {
+  async function expectLastRequestWith(method, params) {
+    await Promise.resolve();
+    await Promise.resolve();
     const request = getLastWrittenRequest();
     expect(request).toEqual(
       expect.objectContaining({
@@ -123,7 +119,7 @@ describe('local_backend_bridge RPC handlers', () => {
     const readPromise = handlers['read-attachment-file'](null, {
       filePath: '/tmp/a',
     });
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'read_file',
       args: { file_path: '/tmp/a' },
     });
@@ -134,7 +130,7 @@ describe('local_backend_bridge RPC handlers', () => {
       tab_index: 2,
       activate: false,
     });
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'browser',
       args: {
         action: 'switch',
@@ -148,7 +144,7 @@ describe('local_backend_bridge RPC handlers', () => {
     const screenshotPromise = handlers['capture-screenshot-attachment'](null, {
       args: { explanation: 'Attach current screen' },
     });
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'screenshot',
       args: expect.objectContaining({
         explanation: 'Attach current screen',
@@ -161,9 +157,8 @@ describe('local_backend_bridge RPC handlers', () => {
     const sidecarDaemonClient = {
       executeTool: jest.fn(async () => ({ success: true, data: { value: 2 } })),
     };
-    const { bridge, pythonProcess } = initBridge({ sidecarDaemonClient });
+    const { bridge, spawn } = initBridge({ sidecarDaemonClient });
     markReady();
-    pythonProcess.stdin.write.mockClear();
 
     const result = await bridge.executeToolForBackend({
       toolName: 'read_file',
@@ -176,7 +171,7 @@ describe('local_backend_bridge RPC handlers', () => {
       args: { file_path: '/tmp/a' },
       timeoutMs: 60000,
     });
-    expect(pythonProcess.stdin.write).not.toHaveBeenCalled();
+    expect(spawn).not.toHaveBeenCalled();
   });
 
   test('browser warmup sends a valid connect payload with explanation', async () => {
@@ -185,7 +180,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const promise = bridge.warmBrowserAutomation();
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'browser',
       args: {
         action: 'connect',
@@ -345,7 +340,7 @@ describe('local_backend_bridge RPC handlers', () => {
       args: { explanation: 'Current monitor' },
     });
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'screenshot',
       args: {
         explanation: 'Current monitor',
@@ -424,7 +419,7 @@ describe('local_backend_bridge RPC handlers', () => {
       args: { explanation: 'Current monitor' },
     });
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'screenshot',
       args: {
         explanation: 'Current monitor',
@@ -505,7 +500,7 @@ describe('local_backend_bridge RPC handlers', () => {
       },
     });
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'screenshot',
       args: {
         explanation: 'Current monitor',
@@ -552,7 +547,7 @@ describe('local_backend_bridge RPC handlers', () => {
       args: { explanation: 'Current monitor' },
     });
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'screenshot',
       args: {
         explanation: 'Current monitor',
@@ -647,7 +642,7 @@ describe('local_backend_bridge RPC handlers', () => {
       args: { command: 'sudo apt update', run_in_background: false },
     });
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'run_shell_command',
       args: {
         command: 'sudo apt update',
@@ -671,7 +666,7 @@ describe('local_backend_bridge RPC handlers', () => {
       args: { command: 'sudo apt update', run_in_background: false },
     });
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'run_shell_command',
       args: {
         command: 'sudo apt update',
@@ -700,7 +695,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     expect(payload.args).toEqual({ command: 'sudo apt update', run_in_background: false });
     expect(callerArgs).toEqual({ command: 'sudo apt update', run_in_background: false });
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'run_shell_command',
       args: {
         command: 'sudo apt update',
@@ -728,123 +723,13 @@ describe('local_backend_bridge RPC handlers', () => {
       args,
     });
 
-    expectLastRequestWith('execute_tool', {
+    await expectLastRequestWith('execute_tool', {
       tool_name: 'mouse_control',
       args,
     });
 
     emitRpcResult(stdoutHandler, { success: true, data: { ok: true } });
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
-  });
-
-  test('passes resolved backend http URL to Python sidecar env', () => {
-    process.env.BACKEND_HOST = '192.168.1.55';
-    process.env.BACKEND_PORT = '8811';
-    const { spawn } = initBridge();
-    markReady();
-
-    expect(spawn).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(Array),
-      expect.objectContaining({
-        env: expect.objectContaining({
-          WINDIE_BACKEND_HTTP_URL: 'http://192.168.1.55:8811',
-        }),
-      }),
-    );
-  });
-
-  test('passes hosted-first backend URLs to Python sidecar env for customer-mode desktop runs', () => {
-    const { spawn } = initBridge();
-    markReady();
-
-    expect(spawn).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(Array),
-      expect.objectContaining({
-        env: expect.objectContaining({
-          WINDIE_BACKEND_HTTP_URL: 'https://api.windieos.com',
-        }),
-      }),
-    );
-  });
-
-  test('passes packaged hosted backend default URL to Python sidecar env', () => {
-    const { spawn } = initBridge({ isPackaged: true });
-    markReady();
-
-    expect(spawn).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(Array),
-      expect.objectContaining({
-        env: expect.objectContaining({
-          WINDIE_BACKEND_HTTP_URL: 'https://api.windieos.com',
-        }),
-      }),
-    );
-  });
-
-  test('adds --no-deprecation to Node options for local backend subprocesses', () => {
-    process.env.NODE_OPTIONS = '--max-old-space-size=4096';
-    const { spawn } = initBridge();
-    markReady();
-
-    expect(spawn).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(Array),
-      expect.objectContaining({
-        env: expect.objectContaining({
-          NODE_OPTIONS: '--max-old-space-size=4096 --no-deprecation',
-        }),
-      }),
-    );
-  });
-
-  test('suppresses known deprecation and INFO stderr lines by default', () => {
-    const { stderrHandler } = initBridge();
-    markReady();
-
-    stderrHandler()(
-      Buffer.from(
-        [
-          '(node:71611) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized',
-          '(Use `node --trace-deprecation ...` to show where the warning was created)',
-          '2026-02-16 16:24:39,551 - tools.browser.browser_use_engine - INFO - Connected to Chrome: chrome://new-tab-page/',
-          '2026-02-16 16:24:39,552 - local_backend - WARNING - Slow request',
-        ].join('\n'),
-      ),
-    );
-
-    const loggedLines = console.log.mock.calls.map((call) => call[0]);
-    expect(
-      loggedLines.some((line) => line.includes('[DEP0169] DeprecationWarning')),
-    ).toBe(false);
-    expect(
-      loggedLines.some((line) => line.includes('trace-deprecation')),
-    ).toBe(false);
-    expect(
-      loggedLines.some((line) => line.includes('Connected to Chrome')),
-    ).toBe(false);
-    expect(
-      loggedLines.some((line) => line.includes('Slow request')),
-    ).toBe(true);
-  });
-
-  test('forwards INFO stderr lines when verbose sidecar stderr flag is enabled', () => {
-    process.env.WINDIE_VERBOSE_SIDECAR_STDERR = '1';
-    const { stderrHandler } = initBridge();
-    markReady();
-
-    stderrHandler()(
-      Buffer.from(
-        '2026-02-16 16:24:39,551 - tools.browser.browser_use_engine - INFO - Connected to Chrome: chrome://new-tab-page/\n',
-      ),
-    );
-
-    const loggedLines = console.log.mock.calls.map((call) => call[0]);
-    expect(
-      loggedLines.some((line) => line.includes('Connected to Chrome')),
-    ).toBe(true);
   });
 
   test('internal tool execution returns error on json-rpc error', async () => {
@@ -887,6 +772,8 @@ describe('local_backend_bridge RPC handlers', () => {
       semanticLimit: 2,
       semanticMinScore: 0.2,
     });
+    await Promise.resolve();
+    await Promise.resolve();
     const request = getLastWrittenRequest();
     expect(request).toEqual(
       expect.objectContaining({
@@ -924,6 +811,8 @@ describe('local_backend_bridge RPC handlers', () => {
       semantic_limit: 1,
       semantic_min_score: 0.15,
     });
+    await Promise.resolve();
+    await Promise.resolve();
     const request = getLastWrittenRequest();
     expect(request).toEqual(
       expect.objectContaining({
@@ -971,7 +860,7 @@ describe('local_backend_bridge RPC handlers', () => {
       },
     });
 
-    expectLastRequestWith('store_chat_event', expect.objectContaining({
+    await expectLastRequestWith('store_chat_event', expect.objectContaining({
       user_id: 'u-1',
       conversation_id: 'conv-1',
       event_type: 'compaction_applied',
@@ -1019,7 +908,7 @@ describe('local_backend_bridge RPC handlers', () => {
       ],
     });
 
-    expectLastRequestWith('replace_chat_conversation', {
+    await expectLastRequestWith('replace_chat_conversation', {
       user_id: 'u-1',
       conversation_id: 'conv-1',
       revision_id: 'rev-next',
@@ -1066,7 +955,7 @@ describe('local_backend_bridge RPC handlers', () => {
       },
     });
 
-    expectLastRequestWith('rewrite_chat_conversation_after_event', {
+    await expectLastRequestWith('rewrite_chat_conversation_after_event', {
       user_id: 'u-1',
       conversation_id: 'conv-1',
       cut_after_event_id: 'evt-user',
@@ -1097,7 +986,7 @@ describe('local_backend_bridge RPC handlers', () => {
       conversationId: 'conv-1',
     });
 
-    expectLastRequestWith('get_chat_conversation_revision', {
+    await expectLastRequestWith('get_chat_conversation_revision', {
       user_id: 'u-1',
       conversation_id: 'conv-1',
     });
@@ -1116,7 +1005,7 @@ describe('local_backend_bridge RPC handlers', () => {
       limit: 12,
     });
 
-    expectLastRequestWith('list_semantic_memories', {
+    await expectLastRequestWith('list_semantic_memories', {
       user_id: 'u-1',
       limit: 12,
     });
@@ -1133,7 +1022,7 @@ describe('local_backend_bridge RPC handlers', () => {
       limit: 25,
     });
 
-    expectLastRequestWith('list_episodic_memories', {
+    await expectLastRequestWith('list_episodic_memories', {
       user_id: 'u-episodic',
       limit: 25,
     });
@@ -1150,7 +1039,7 @@ describe('local_backend_bridge RPC handlers', () => {
       memoryId: 'm-1',
     });
 
-    expectLastRequestWith('delete_semantic_memory', {
+    await expectLastRequestWith('delete_semantic_memory', {
       user_id: 'u-1',
       memory_id: 'm-1',
     });
@@ -1167,7 +1056,7 @@ describe('local_backend_bridge RPC handlers', () => {
       memoryId: 'ep-1',
     });
 
-    expectLastRequestWith('delete_episodic_memory', {
+    await expectLastRequestWith('delete_episodic_memory', {
       user_id: 'u-1',
       memory_id: 'ep-1',
     });
@@ -1183,7 +1072,7 @@ describe('local_backend_bridge RPC handlers', () => {
       userId: 'u-memory',
     });
 
-    expectLastRequestWith('clear_local_memory', {
+    await expectLastRequestWith('clear_local_memory', {
       user_id: 'u-memory',
     });
 
@@ -1201,7 +1090,7 @@ describe('local_backend_bridge RPC handlers', () => {
       userId: 'u-chats',
     });
 
-    expectLastRequestWith('clear_chat_history', {
+    await expectLastRequestWith('clear_chat_history', {
       user_id: 'u-chats',
     });
 

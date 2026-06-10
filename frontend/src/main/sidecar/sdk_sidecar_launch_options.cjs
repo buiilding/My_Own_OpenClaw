@@ -9,9 +9,6 @@ const {
   resolveSidecarLaunchTarget,
 } = require('../app/runtime_paths.cjs');
 const {
-  createMissingCommandError,
-} = require('./local_backend_launch_plan.cjs');
-const {
   shouldForwardStderrLine,
   withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
@@ -30,6 +27,13 @@ const DAEMON_LAUNCH_CONTEXT_ENV_KEYS = [
   'WINDIE_PACKAGED_APP',
   'WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
 ];
+
+function createMissingCommandError({ isPackaged } = {}) {
+  if (isPackaged) {
+    return 'Bundled Python runtime not found in app resources. Please reinstall WindieOS.';
+  }
+  return 'Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the frontend_jarvis Python executable.';
+}
 
 function buildSidecarDaemonEnv({
   isPackaged = false,

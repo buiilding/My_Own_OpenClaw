@@ -15,7 +15,7 @@ WindieOS configuration is intentionally split by runtime boundary. Do not add a 
 | Owner | Stores | Applies when | Primary files |
 | --- | --- | --- | --- |
 | Backend `AppConfig` | Runtime policy, provider defaults, API keys by env-var name, timeouts, inference provider settings, artifact limits, install-auth settings | Backend startup; selected updates can be applied in memory through config manager/session settings | `backend/src/core/config/app_config.py`, `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/core/config/runtime.py` |
-| Electron main | Backend endpoint selection, sidecar process env, local config file, windows/overlays/runtime mode | App startup and selected IPC handlers | `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/ipc.cjs`, `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/index.cjs` |
+| Electron main | Backend endpoint selection, sidecar daemon launch options, local config file, windows/overlays/runtime mode | App startup and selected IPC handlers | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/index.cjs` |
 | Renderer | User-facing settings subset and local UI state | Renderer load and settings changes | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/utils/configFilter.js`, `frontend/src/renderer/features/settings/**` |
 | Sidecar | Local tool runtime flags, backend URL used by sidecar memory/API clients, worker counts, browser runtime knobs | Sidecar process startup; tool calls read some env values lazily | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/windie/_backend_config.py`, `frontend/src/main/python/core/executors.py`, `frontend/src/main/python/tools/**` |
 | Release/CI | Signing, notarization, package target behavior | GitHub Actions or local packaging command | `.github/workflows/desktop-release.yml`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime` |
@@ -77,9 +77,9 @@ Do not add backend-owned provider internals such as `speech_provider`, `stt_prov
 
 | Variable | Owner | Effect | Primary files |
 | --- | --- | --- | --- |
-| `WINDIE_PYTHON_PATH` | Electron main env | Forces Python executable for sidecar processes | `frontend/src/main/runtime_paths.cjs`, sidecar bridges |
+| `WINDIE_PYTHON_PATH` | Electron main env | Forces Python executable used in SDK sidecar daemon launch options | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs` |
 | `WINDIE_SIDECAR_LOG_LEVEL` | Electron main or reinstall helper env | Sets sidecar Python logging level | `frontend/src/main/python/local_backend.py` |
-| `WINDIE_VERBOSE_SIDECAR_STDERR` | Electron main env | Forwards all sidecar stderr when `1`; default is severity-filtered | `frontend/src/main/local_backend_stderr_transport.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs` |
+| `WINDIE_VERBOSE_SIDECAR_STDERR` | Electron main env | Forwards all sidecar daemon stderr when `1`; default is severity-filtered | `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs` |
 | `WINDIE_INTERACTIVE_WORKERS` | Sidecar env | Interactive executor max workers | `frontend/src/main/python/core/executors.py` |
 | `WINDIE_BACKGROUND_WORKERS` | Sidecar env | Background executor max workers | `frontend/src/main/python/core/executors.py` |
 | `WINDIE_SHELL_JOB_TTL_SECONDS` | Sidecar env | Finished shell/process session retention TTL | `frontend/src/main/python/tools/system/shell_process_registry.py` |

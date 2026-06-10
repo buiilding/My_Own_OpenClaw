@@ -1,4 +1,3 @@
-const { spawn } = require('child_process');
 const { ipcMain } = require('electron');
 const {
   resolveBackendEndpointCandidates,
@@ -14,35 +13,10 @@ const {
 } = require('./local_backend_bridge_window_visibility.cjs');
 const {
   getErrorMessage,
-  shouldForwardStderrLine,
 } = require('./local_backend_bridge_utils.cjs');
-const {
-  createLocalBackendRequestTransport,
-} = require('./local_backend_bridge_request_transport.cjs');
-const {
-  createLocalBackendRpcTransport,
-} = require('./local_backend_bridge_rpc_transport.cjs');
 const {
   createLocalBackendExecuteToolRuntime,
 } = require('./local_backend_bridge_execute_tool_runtime.cjs');
-const {
-  createLocalBackendReadinessRuntime,
-} = require('./local_backend_readiness_runtime.cjs');
-const {
-  createLocalBackendStdoutTransport,
-} = require('./local_backend_stdout_transport.cjs');
-const {
-  createLocalBackendStderrTransport,
-} = require('./local_backend_stderr_transport.cjs');
-const {
-  createLocalBackendLaunchPlan,
-} = require('./local_backend_launch_plan.cjs');
-const {
-  createLocalBackendProcessEvents,
-} = require('./local_backend_process_events.cjs');
-const {
-  createLocalBackendStopController,
-} = require('./local_backend_stop_controller.cjs');
 const {
   broadcastConversationMetadataInvalidation,
   buildLocalBackendStatusPayload,
@@ -58,8 +32,6 @@ const {
 const {
   createWindieLocalRuntimeProvider,
 } = require('../../../../packages/windie-sdk-js/cjs/index.js');
-
-let pythonProcess = null;
 
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -83,88 +55,10 @@ let sdkSidecarSnapshot = null;
 let daemonBackendProcessRef = null;
 let sdkStatusMainWindow = null;
 
-function isBackendReady() {
-  return localBackendSupervisor.getSnapshot().ready;
-}
-
-const localBackendReadinessRuntime = createLocalBackendReadinessRuntime({
-  getProcess: () => pythonProcess,
-  supervisor: localBackendSupervisor,
-  sendStatus: sendLocalBackendStatus,
-  isTestEnv,
-});
-
-const localBackendRequestTransport = createLocalBackendRequestTransport({
-  getProcess: () => pythonProcess,
-  isBackendReady,
-  getReadinessCallback: () => localBackendReadinessRuntime.getCallback(),
-});
-
-const localBackendStdoutTransport = createLocalBackendStdoutTransport({
-  handleResponse: (response) => localBackendRequestTransport.handlePythonResponse(response),
-  isActiveProcessReference,
-});
-
-const localBackendStderrTransport = createLocalBackendStderrTransport({
-  isActiveProcessReference,
-  shouldForwardStderrLine,
-});
-
-const localBackendProcessEvents = createLocalBackendProcessEvents({
-  isActiveProcessReference,
-  resetBackendProcessState,
-  notifyBackendUnavailable,
-});
-
-const localBackendStopController = createLocalBackendStopController({
-  clearDaemonRuntime,
-  getDaemonManager: () => (
-    sdkLocalRuntime
-      ? {
-          shutdown: () => sdkLocalRuntime?.shutdown?.(),
-        }
-      : null
-  ),
-  getProcess: () => pythonProcess,
-  resetBackendProcessState,
-  setRuntimeExecuteTool: (executeTool) => {
-    runtimeExecuteTool = executeTool;
-  },
-  supervisor: localBackendSupervisor,
-});
-
-const localBackendRpcTransport = createLocalBackendRpcTransport({
-  getDaemonManager: () => null,
-  getDaemonLaunchOptions: () => ({}),
-  standaloneTransport: localBackendRequestTransport,
-});
-
-function isActiveProcessReference(processRef) {
-  return localBackendSupervisor.isActiveProcess(processRef);
-}
-
 function markBackendReady(mainWindow) {
-  localBackendReadinessRuntime.markReady(mainWindow);
-}
-
-function resetBackendProcessState({ reason, status = 'stopped' } = {}) {
-  pythonProcess = null;
-  localBackendSupervisor.clear({
-    status,
-    error: status === 'error' ? reason || '' : '',
-  });
-  localBackendReadinessRuntime.resetToGeneration();
-  localBackendRequestTransport.rejectPendingRequests(reason);
-  localBackendStdoutTransport.reset();
-}
-
-function notifyBackendUnavailable(mainWindow, error) {
-  if (!error) {
-    return;
-  }
+  localBackendSupervisor.markReady();
   sendLocalBackendStatus(mainWindow, {
-    ready: false,
-    error,
+    ready: true,
   });
 }
 
@@ -176,6 +70,13 @@ function clearDaemonRuntime() {
   sdkSidecarSnapshot = null;
   daemonBackendProcessRef = null;
   sdkStatusMainWindow = null;
+}
+
+function createStoppedToolExecutor() {
+  return async () => ({
+    success: false,
+    error: 'Local backend bridge is stopped.',
+  });
 }
 
 function attachSdkLocalRuntimeEvents(runtime) {
@@ -210,8 +111,7 @@ async function ensureSdkLocalRuntime() {
   attachSdkLocalRuntimeEvents(runtime);
   if (!daemonBackendProcessRef) {
     daemonBackendProcessRef = { kind: 'sdk-sidecar-daemon' };
-    const generation = localBackendSupervisor.attachProcess(daemonBackendProcessRef);
-    localBackendReadinessRuntime.resetToGeneration(generation);
+    localBackendSupervisor.attachProcess(daemonBackendProcessRef);
   }
   if (sdkStatusMainWindow && daemonBackendProcessRef) {
     markBackendReady(sdkStatusMainWindow);
@@ -219,67 +119,22 @@ async function ensureSdkLocalRuntime() {
   return runtime;
 }
 
-function startLocalBackend(mainWindow, options = {}) {
-  if (pythonProcess) {
-    console.log('[LocalBackend] Service already running');
-    return;
-  }
-
-  const launchPlan = createLocalBackendLaunchPlan({ options });
-  const { launchTarget } = launchPlan;
-  if (launchPlan.ok !== true) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(`[LocalBackend] ${launchPlan.error}`);
-    }
-    sendLocalBackendStatus(mainWindow, {
-      ready: false,
-      error: launchPlan.error,
-    });
-    return;
-  }
-
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(
-      `[LocalBackend] Starting local backend (${launchTarget.kind}): ` +
-      `${launchTarget.command} ${launchTarget.args.join(' ')}`.trim(),
-    );
-  }
-
-  pythonProcess = spawn(launchPlan.command, launchPlan.args, launchPlan.spawnOptions);
-  const processRef = pythonProcess;
-  const generation = localBackendSupervisor.attachProcess(processRef);
-  localBackendReadinessRuntime.resetToGeneration(generation);
-
-  localBackendReadinessRuntime.check(mainWindow);
-  localBackendStdoutTransport.reset();
-  localBackendStdoutTransport.attach(processRef);
-  localBackendStderrTransport.attach(processRef);
-  localBackendProcessEvents.attach({
-    processRef,
-    mainWindow,
-    launchTarget,
-  });
-}
-
 function createSdkRpcRequestId() {
   return `electron-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function sendRequest(method, params = {}, options = {}) {
-  if (sdkLocalRuntimeProvider) {
-    return ensureSdkLocalRuntime().then(runtime => runtime.rpc({
-      id: createSdkRpcRequestId(),
-      method,
-      params,
-    }));
+function sendRequest(method, params = {}) {
+  if (!sdkLocalRuntimeProvider) {
+    return Promise.reject(new Error('Windie SDK local runtime provider is not initialized.'));
   }
-  return localBackendRpcTransport.sendRequest(method, params, options);
+  return ensureSdkLocalRuntime().then(runtime => runtime.rpc({
+    id: createSdkRpcRequestId(),
+    method,
+    params,
+  }));
 }
 
 async function sendRequestOrError(method, params = {}, options = {}) {
-  if (!sdkLocalRuntimeProvider) {
-    return localBackendRpcTransport.sendRequestOrError(method, params, options);
-  }
   try {
     return await sendRequest(method, params, options);
   } catch (error) {
@@ -312,7 +167,15 @@ async function sendMemorySearchRequest(payload = {}) {
 }
 
 function stopLocalBackend() {
-  localBackendStopController.stop();
+  runtimeExecuteTool = createStoppedToolExecutor();
+  if (sdkLocalRuntime && typeof sdkLocalRuntime.shutdown === 'function') {
+    void sdkLocalRuntime.shutdown();
+  }
+  clearDaemonRuntime();
+  localBackendSupervisor.clear({
+    status: 'stopped',
+    error: '',
+  });
 }
 
 async function loadArtifactUploadHeaders() {
@@ -410,24 +273,16 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
 
   const [mainWindow] = resolveWindows();
   sdkStatusMainWindow = mainWindow;
-  const localRuntimeLaunchOptions = {
-    isPackaged,
-    backendEndpoints,
-    permissionStatePath: options.permissionStatePath,
-    authStatePath: options.authStatePath,
-  };
   if (sdkLocalRuntimeProvider) {
     localBackendSupervisor.clear({
       status: 'stopped',
       error: '',
     });
-  } else if (sidecarLaunchPlan?.ok === false) {
+  } else {
     sendLocalBackendStatus(mainWindow, {
       ready: false,
-      error: sidecarLaunchPlan.error || 'Sidecar daemon launch is unavailable.',
+      error: sidecarLaunchPlan?.error || 'Windie SDK local runtime provider is unavailable.',
     });
-  } else {
-    startLocalBackend(mainWindow, localRuntimeLaunchOptions);
   }
 
   const registerRpcHandler = (channel, method, mapParams) => {

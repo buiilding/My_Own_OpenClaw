@@ -8,7 +8,10 @@ read_when:
 
 ## Overview
 
-The Electron app spawns a **local Python sidecar** that executes tools, captures system state, and manages local memory. It communicates with the Electron main process over **JSON-RPC 2.0 via stdin/stdout**.
+The SDK-owned local runtime starts or reuses a **local Python sidecar daemon**
+that executes tools, captures system state, and manages local memory. Electron
+main supplies desktop launch facts and host-only helpers, but does not own a
+standalone sidecar process or stdin/stdout transport.
 
 The sidecar is the local execution runtime, not a replacement backend. Its role in the product boundary is:
 
@@ -27,8 +30,9 @@ Release contract:
 - `frontend/src/main/python/core/__init__.py` now re-exports `WindieSdkClient` so sidecar consumers can import it from `core` instead of reaching into the module file path.
 
 **Key files:**
-- Sidecar entrypoint: `frontend/src/main/python/local_backend.py`
-- Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
+- Sidecar daemon entrypoint: `frontend/src/main/python/sidecar_daemon.py`
+- LocalBackend implementation: `frontend/src/main/python/local_backend.py`
+- Electron bridge: `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - Shared stdout writer: `frontend/src/main/python/core/stdout_json.py`
 - Hosted SDK transport client: `frontend/src/main/python/core/windie_sdk_client.py`
 - Tool implementations: `frontend/src/main/python/tools/`
@@ -37,10 +41,9 @@ Release contract:
 ## Process Model
 
 ```
-Electron Main (Node)  ── JSON-RPC (stdin/stdout) ──>  local_backend.py
-      │
-      ├─ Spawns wakeword_service.py (separate process)
-      └─ Uses IPC to forward results to renderer
+Electron Main (Node) ── launch facts/host helpers ──> SDK local runtime
+SDK local runtime ── HTTP /rpc JSON-RPC ──> sidecar_daemon.py
+sidecar_daemon.py ── in-process dispatch ──> LocalBackend
 ```
 
 The bridge:
@@ -57,8 +60,8 @@ The bridge:
   filters the Chromium `SetApplicationIsDaemon ... paramErr` LaunchServices warning
   emitted by child processes during startup so real app/runtime errors remain visible
   in dev logs.
-- Sends `ping` until ready, then marks the sidecar as ready.
-- Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
+- Marks the local backend ready only after the SDK local runtime provider
+  resolves a usable daemon client.
 - Workspace-aware path resolution now lives in one shared sidecar helper so shell and filesystem tools resolve relative paths from the same selected workspace base instead of each tool re-implementing permission-state parsing.
 
 ## JSON-RPC Methods
@@ -73,8 +76,11 @@ Registered in `LocalBackend._initialize_methods()`:
 - `store_memory_by_embedding`: store episodic/semantic memory using SDK-provided vectors
 
 Protocol output notes:
-- JSON-RPC responses are emitted as one JSON line per message.
-- `core/stdout_json.py::write_json_line()` is the shared writer used by JSON-RPC (`local_backend.py`/`core/ipc_protocol.py`) to keep UTF-8 encoding and flush behavior consistent.
+- The active desktop path sends JSON-RPC envelopes over the daemon `/rpc` HTTP
+  endpoint.
+- `core/stdout_json.py::write_json_line()` remains shared support for sidecar
+  service scripts that emit JSON lines, but Electron bridge helpers no longer
+  consume `local_backend.py` over stdin/stdout.
 
 ## Sidecar Daemon HTTP Runtime
 

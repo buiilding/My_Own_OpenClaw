@@ -55,21 +55,24 @@ let spawn;
 let ipcMain;
 let uuid;
 let handlers;
-let stdoutHandler;
-let stderrHandler;
-let processHandlers;
-let pythonProcess;
 let bridge;
 let currentMainWindow;
 let currentWindowState;
+let sdkRuntime;
+let sdkRuntimeProvider;
+let sdkRuntimeRequests;
+let sdkRuntimeRequestHistory;
+let queuedSdkRuntimeResponses;
 
 function resetHarnessState() {
   jest.resetModules();
   handlers = {};
-  stdoutHandler = null;
-  stderrHandler = null;
-  processHandlers = {};
   currentWindowState = null;
+  sdkRuntime = null;
+  sdkRuntimeProvider = null;
+  sdkRuntimeRequests = [];
+  sdkRuntimeRequestHistory = [];
+  queuedSdkRuntimeResponses = [];
 }
 
 function createMainWindow() {
@@ -111,6 +114,10 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
   });
 
   bridge = require(path.join(__dirname, '../../../frontend/src/main/sidecar/local_backend_bridge.cjs'));
+  sdkRuntime = options.localRuntime || createMockSdkRuntime();
+  sdkRuntimeProvider = options.localRuntimeProvider === undefined
+    ? jest.fn(async () => sdkRuntime)
+    : options.localRuntimeProvider;
 
   const mainWindow = options.mainWindow || createMainWindow();
   const chatWindow = options.chatWindow || null;
@@ -127,61 +134,61 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     getArtifactUploadHeaders: options.getArtifactUploadHeaders,
     isPackaged: options.isPackaged === true,
     autoSidecarLaunchPlan: options.autoSidecarLaunchPlan,
-    localRuntimeProvider: options.localRuntimeProvider,
+    localRuntimeProvider: sdkRuntimeProvider,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
     sidecarDaemonClient: options.sidecarDaemonClient,
   });
-  return { mainWindow, chatWindow, responseWindow, bridge, handlers, spawn };
+  return {
+    mainWindow,
+    chatWindow,
+    responseWindow,
+    bridge,
+    handlers,
+    spawn,
+    sdkRuntime,
+    sdkRuntimeProvider,
+  };
 }
 
-function createMockPythonProcess() {
-  const procHandlers = {};
-  const process = {
-    stdin: { write: jest.fn() },
-    stdout: {
-      on: jest.fn((event, handler) => {
-        if (event === 'data') {
-          process._stdoutHandler = handler;
-        }
-      }),
-    },
-    stderr: { on: jest.fn() },
-    on: jest.fn((event, handler) => {
-      procHandlers[event] = handler;
-    }),
-    kill: jest.fn(),
-    _handlers: procHandlers,
-    _stdoutHandler: null,
+function createMockSdkRuntime() {
+  function trackRuntimeRequest(request) {
+    sdkRuntimeRequestHistory.push(request);
+    const queued = queuedSdkRuntimeResponses.shift();
+    if (queued) {
+      if (queued.error) {
+        return Promise.reject(queued.error);
+      }
+      return Promise.resolve(queued.result);
+    }
+    return new Promise((resolve, reject) => {
+      sdkRuntimeRequests.push({
+        ...request,
+        resolve,
+        reject,
+      });
+    });
+  }
+
+  return {
+    executeTool: jest.fn((payload) => trackRuntimeRequest({
+        kind: 'executeTool',
+        payload,
+    })),
+    rpc: jest.fn((request) => trackRuntimeRequest({
+        kind: 'rpc',
+        request,
+    })),
+    shutdown: jest.fn(async () => undefined),
+    subscribeEvents: jest.fn(() => jest.fn()),
   };
-  return process;
 }
 
 function initBridge(options = {}) {
-  pythonProcess = {
-    stdin: { write: jest.fn() },
-    stdout: {
-      on: jest.fn((event, handler) => {
-        if (event === 'data') {
-          stdoutHandler = handler;
-        }
-      }),
-    },
-    stderr: {
-      on: jest.fn((event, handler) => {
-        if (event === 'data') {
-          stderrHandler = handler;
-        }
-      }),
-    },
-    on: jest.fn((event, handler) => {
-      processHandlers[event] = handler;
-    }),
-    kill: jest.fn(),
-  };
-
   const { mainWindow, chatWindow, responseWindow } = initializeBridgeHarness((spawnMock) => {
-    spawnMock.mockReturnValue(pythonProcess);
+    spawnMock.mockImplementation(() => {
+      throw new Error('Electron local backend bridge must not spawn a standalone sidecar process.');
+    });
   }, options);
   uuid = require('uuid');
 
@@ -191,66 +198,63 @@ function initBridge(options = {}) {
     responseWindow,
     bridge,
     handlers,
-    pythonProcess,
-    processHandlers,
     spawn,
+    sdkRuntime,
+    sdkRuntimeProvider,
     uuid,
-    stdoutHandler: () => stdoutHandler,
-    stderrHandler: () => stderrHandler,
-  };
-}
-
-function initBridgeWithProcesses(processes, options = {}) {
-  const { mainWindow, chatWindow, responseWindow } = initializeBridgeHarness((spawnMock) => {
-    spawnMock.mockReset();
-    processes.forEach((proc) => {
-      spawnMock.mockImplementationOnce(() => proc);
-    });
-  }, options);
-
-  return {
-    mainWindow,
-    chatWindow,
-    responseWindow,
-    bridge,
-    handlers,
-    spawn,
+    stdoutHandler: () => null,
+    stderrHandler: () => null,
   };
 }
 
 function markReady() {
-  emitReadiness(stdoutHandler);
-}
-
-function markProcessReady(process) {
-  emitReadiness(process._stdoutHandler);
-}
-
-function emitReadiness(handler) {
-  handler?.(
-    Buffer.from(
-      `${JSON.stringify({
-        jsonrpc: '2.0',
-        id: '__readiness_check_1__',
-        result: { status: 'ok' },
-      })}\n`,
-    ),
-  );
+  return null;
 }
 
 function getLastWrittenRequest() {
-  const calls = pythonProcess.stdin.write.mock.calls;
-  const lastCall = calls[calls.length - 1];
-  return JSON.parse(lastCall[0].trim());
+  const lastRequest = sdkRuntimeRequestHistory[sdkRuntimeRequestHistory.length - 1];
+  if (!lastRequest) {
+    return null;
+  }
+  if (lastRequest.kind === 'executeTool') {
+    return {
+      method: 'execute_tool',
+      params: {
+        tool_name: lastRequest.payload.toolName,
+        args: lastRequest.payload.args,
+      },
+    };
+  }
+  return {
+    method: lastRequest.request.method,
+    params: lastRequest.request.params,
+  };
+}
+
+function resolveNextSdkRuntimeRequest(result) {
+  const nextRequest = sdkRuntimeRequests.shift();
+  if (!nextRequest) {
+    queuedSdkRuntimeResponses.push({ result });
+    return;
+  }
+  nextRequest.resolve(result);
+}
+
+function rejectNextSdkRuntimeRequest(error) {
+  const nextRequest = sdkRuntimeRequests.shift();
+  if (!nextRequest) {
+    queuedSdkRuntimeResponses.push({ error });
+    return;
+  }
+  nextRequest.reject(error);
 }
 
 module.exports = {
   createWindow,
-  createMockPythonProcess,
   getLastWrittenRequest,
   initBridge,
-  initBridgeWithProcesses,
-  markProcessReady,
   markReady,
+  rejectNextSdkRuntimeRequest,
   registerBridgeSuiteLifecycleHooks,
+  resolveNextSdkRuntimeRequest,
 };
