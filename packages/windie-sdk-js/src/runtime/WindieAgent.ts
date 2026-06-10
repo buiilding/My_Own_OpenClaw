@@ -335,6 +335,8 @@ export class WindieAgent {
             logMemoryRetrievalDiagnostic(diagnostic);
             await input.emitDiagnostic?.(diagnostic);
           },
+          traceContext: input.traceContext,
+          emitTrace: input.emitTrace,
         });
         return enriched.payload;
       },

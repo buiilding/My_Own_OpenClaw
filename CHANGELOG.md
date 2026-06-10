@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend: forward conversation trace context through `WindieAgent` memory
+  enrichment so desktop turns persist durable memory retrieval trace rows.
 - sdk/frontend: preserve same-turn resolved resource metadata during
   edit/resend and retry so multi-image user turns resend with all image refs
   instead of being collapsed by renderer screenshot fallbacks.

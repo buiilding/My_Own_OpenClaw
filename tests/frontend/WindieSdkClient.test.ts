@@ -3673,6 +3673,98 @@ describe('WindieSdkClient', () => {
     await expect(agent.listConversations()).resolves.toEqual([]);
   });
 
+  test('agent.conversation persists memory trace events from the SDK enrichment path', async () => {
+    const store = new InMemoryConversationStore();
+    const localRuntimeRpc = jest.fn(async ({ method }) => {
+      if (method === 'search_memory_by_embedding') {
+        return {
+          success: true,
+          data: {
+            memories: {
+              episodic: ['previous event'],
+              semantic: [],
+            },
+            trace: {
+              runtime: 'sidecar',
+              method: 'search_memory_by_embedding',
+              episodicResultCount: 1,
+              semanticResultCount: 0,
+              durationMs: 5,
+            },
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => ({
+          embedding: [0.1, 0.2, 0.3],
+          embedding_space_version: 'embed-v1',
+        })),
+      },
+    };
+    const session = {
+      waitForOpen: jest.fn(async () => undefined),
+      query: jest.fn(async () => 'turn-agent-trace'),
+      on: jest.fn(() => () => undefined),
+      close: jest.fn(),
+    };
+    const agent = new WindieAgent(
+      'agent-trace',
+      session as any,
+      {},
+      sdkClient as any,
+      { listAgents: jest.fn(() => []) },
+      { rpc: localRuntimeRpc } as any,
+      'user-1',
+      store,
+    );
+
+    const conversation = agent.conversation({ conversationRef: 'conv-agent-trace' });
+    await conversation.send({ text: 'remember this', turnRef: 'turn-agent-trace' });
+
+    const events = await store.loadEvents('conv-agent-trace');
+    const traceEvents = events.filter(event => event.type === 'trace_event');
+    expect(traceEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        turnRef: 'turn-agent-trace',
+        payload: expect.objectContaining({
+          path: 'memory.retrieval',
+          status: 'started',
+        }),
+      }),
+      expect.objectContaining({
+        turnRef: 'turn-agent-trace',
+        payload: expect.objectContaining({
+          path: 'memory.sidecar_search',
+          status: 'succeeded',
+          data: expect.objectContaining({
+            method: 'search_memory_by_embedding',
+            episodicResultCount: 1,
+          }),
+        }),
+      }),
+      expect.objectContaining({
+        turnRef: 'turn-agent-trace',
+        payload: expect.objectContaining({
+          path: 'memory.retrieval',
+          status: 'succeeded',
+        }),
+      }),
+    ]));
+    expect(localRuntimeRpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'search_memory_by_embedding',
+      params: expect.objectContaining({
+        trace_context: expect.objectContaining({
+          traceId: expect.stringMatching(/^trace_/),
+          conversationRef: 'conv-agent-trace',
+          turnRef: 'turn-agent-trace',
+        }),
+      }),
+    }));
+  });
+
   test('agent.chat exposes a UI-facing session facade', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',
