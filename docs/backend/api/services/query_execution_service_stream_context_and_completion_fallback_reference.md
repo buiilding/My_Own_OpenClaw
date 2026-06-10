@@ -55,21 +55,19 @@ Service responsibilities:
 
 ## Screenshot Resolution Semantics
 
-`query_execution_inputs.resolve_query_execution_inputs(...)` uses screenshot resolution precedence:
+`query_execution_inputs.resolve_query_execution_inputs(...)` uses screenshot input precedence:
 
-1. if inline `screenshot` exists, return `[screenshot]` and skip artifact refs.
-2. else build refs list from `screenshot_refs[]`; fallback single `screenshot_ref`.
-3. try `ArtifactStore.from_config(...).load_base64(...)` for each ref.
-4. per-ref failures log warnings; successful refs continue.
-5. return `None` when no refs resolve.
+1. if inline `screenshot` exists, return it as `image_data` and skip artifact refs.
+2. else normalize refs from `screenshot_refs[]`; fallback single `screenshot_ref`.
+3. return refs as `image_refs` without loading artifact bytes.
 
-`execute(...)` converts resolved screenshots into `image_data` contract:
+`execute(...)` forwards the split contract:
 
-- one screenshot -> `image_data` string
-- multiple screenshots -> `image_data` string list
-- none resolved -> `image_data=None`
+- inline screenshot -> `image_data` string
+- artifact-backed screenshots -> `image_refs` list
+- none -> both fields `None`
 
-This path is non-fatal by design; query execution continues without image context when artifact lookup fails.
+Prompt construction owns later artifact hydration, image preprocessing, and image-specific size validation.
 
 ## Runtime System-State Seeding
 

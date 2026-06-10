@@ -158,6 +158,7 @@ class AgentExecutor:
         self,
         query: str,
         screenshot: Optional[Union[str, List[str]]] = None,
+        screenshot_refs: Optional[List[str]] = None,
         capture_meta: Optional[dict] = None,
         message_content: Optional[str] = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
@@ -166,7 +167,8 @@ class AgentExecutor:
 
         Args:
             query: The user's query text (for reference)
-            screenshot: Optional base64 screenshot payload(s) for multimodal queries
+            screenshot: Optional inline base64 screenshot payload(s) for multimodal queries
+            screenshot_refs: Optional artifact refs for prompt-time image projection
             capture_meta: Optional capture metadata for the primary screenshot
             message_content: Backend-rendered model-visible user message content
         """
@@ -240,7 +242,9 @@ class AgentExecutor:
         self.session.history.add_user_message(
             content=final_content,
             user_query_raw=raw_user_query,
-            image_data=screenshot,  # History still uses image_data internally
+            image_data=screenshot,
+            image_refs=screenshot_refs,
+            image_owner_user_id=getattr(self.session, "user_id", None),
         )
 
         # 4. Process user message screenshot if present (store as current, trigger OCR)

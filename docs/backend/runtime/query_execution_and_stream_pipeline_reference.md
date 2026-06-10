@@ -60,9 +60,9 @@ Core sequence inside `execute(...)`:
 5. open `TTSSession` context
 6. build `StreamPipeline(tts_processor, response_formatter, transport_sender)`
 7. resolve screenshot source:
-- inline `payload.screenshot`, or
-- artifact fetch via `screenshot_ref` / `screenshot_refs`
-- if multiple refs resolve, pass list payload into `agent_instance.process_query(image_data=...)`
+- inline `payload.screenshot` -> `image_data`
+- artifact refs via `screenshot_ref` / `screenshot_refs` -> `image_refs`
+- prompt construction later resolves refs into bounded model image payloads
 8. iterate `agent_instance.process_query(...)`
 9. process each event through pipeline with unified stream context
 

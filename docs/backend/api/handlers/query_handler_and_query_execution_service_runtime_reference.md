@@ -50,7 +50,7 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 
 `query_execution_inputs.py` owns query payload shaping for agent ingress:
 
-- screenshot -> `image_data` shape normalization (`str | list[str] | None`)
+- screenshot input normalization (`image_data` for inline screenshots, `image_refs` for artifact-backed screenshots)
 - screenshot/capture metadata and payload field resolution for `process_query(...)`
 - stable extraction of `message_content` and `conversation_ref` from query payload
 
@@ -119,18 +119,15 @@ When the session exposes `set_active_stream_context(...)`, query execution recor
 
 ## Screenshot Resolution Precedence
 
-`_resolve_screenshots(...)` + `image_data` policy:
+Screenshot input policy:
 
 1. if inline `screenshot` exists -> use it and skip artifact refs.
-2. else resolve artifact refs from `screenshot_refs[]` or fallback single `screenshot_ref`.
-3. load each ref via `ArtifactStore.from_config(...).load_base64(...)`.
-4. artifact load failures are per-ref warnings; unresolved refs are skipped.
-5. if at least one artifact loads:
-  - one image -> `image_data` is string
-  - multiple images -> `image_data` is string list
-6. if nothing resolves -> continue query with `image_data=None`.
+2. else normalize artifact refs from `screenshot_refs[]` or fallback single `screenshot_ref`.
+3. inline screenshots flow as `image_data`.
+4. artifact-backed screenshots flow as `image_refs`.
+5. prompt construction resolves refs into bounded model image payloads.
 
-This preserves query execution even when artifact storage is unavailable.
+This keeps query transport and history ref-based while preserving multimodal model access at the backend prompt boundary.
 
 ## Query Screenshot Metadata Forwarding
 

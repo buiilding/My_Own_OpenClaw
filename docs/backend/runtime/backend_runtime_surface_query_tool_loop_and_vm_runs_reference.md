@@ -46,7 +46,7 @@ This means VM run-control APIs are part of the same canonical backend app regist
 
 `QueryExecutionService.execute(...)` is now intentionally thin and delegates runtime details to helper modules under `api/services/query_execution_support/`:
 
-- `query_execution_inputs.py`: normalizes `process_query(...)` inputs (`image_data`, `capture_meta`, `message_content`, `conversation_ref`)
+- `query_execution_inputs.py`: normalizes `process_query(...)` inputs (`image_data`, `image_refs`, `capture_meta`, `message_content`, `conversation_ref`)
 - `query_execution_runtime.py`: extracts and applies backend-only runtime system state and builds immutable stream context
 - `query_execution_pipeline_events.py`: centralizes event->pipeline emission behavior
 - `query_execution_stream_state.py`: stores terminal/chunk/full-text stream state

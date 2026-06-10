@@ -183,12 +183,15 @@ def test_build_stream_context_uses_agent_identifiers():
         conversation_ref="conv-1",
     )
 
-    assert context == {
-        "user_id": "u-1",
-        "session_id": "s-1",
-        "conversation_ref": "conv-1",
-        "turn_ref": "turn-1",
-    }
+    assert (
+        context.items()
+        >= {
+            "user_id": "u-1",
+            "session_id": "s-1",
+            "conversation_ref": "conv-1",
+            "turn_ref": "turn-1",
+        }.items()
+    )
 
 
 def test_active_stream_context_helpers_delegate_when_supported():

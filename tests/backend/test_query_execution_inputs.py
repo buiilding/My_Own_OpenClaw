@@ -43,15 +43,16 @@ def test_build_query_image_data_for_none_single_and_multi():
     assert build_query_image_data(["a", "b"]) == ["a", "b"]
 
 
-def test_resolve_query_execution_inputs_resolves_artifacts_and_payload_fields():
+def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fields():
     class _ArtifactStore:
         @classmethod
         def from_config(cls, _config):
             return cls()
 
         def load_base64(self, screenshot_ref, *, owner_user_id=None):
-            assert owner_user_id == "user-1"
-            return f"resolved:{screenshot_ref}"
+            raise AssertionError(
+                f"artifact ref {screenshot_ref} should not be hydrated"
+            )
 
     message = _build_message(
         screenshot_refs=["shot-a", "shot-b"],
@@ -69,7 +70,8 @@ def test_resolve_query_execution_inputs_resolves_artifacts_and_payload_fields():
         user_id="user-1",
     )
 
-    assert inputs.image_data == ["resolved:shot-a", "resolved:shot-b"]
+    assert inputs.image_data is None
+    assert inputs.image_refs == ["shot-a", "shot-b"]
     assert inputs.capture_meta == {"display": {"width": 1920}}
     assert inputs.message_content == "hello"
     assert inputs.conversation_ref == "conv-2"
@@ -84,7 +86,9 @@ def test_resolve_query_execution_inputs_prefers_inline_screenshot():
     class _ArtifactStore:
         @classmethod
         def from_config(cls, _config):
-            raise AssertionError("artifact store should not be initialized for inline screenshot")
+            raise AssertionError(
+                "artifact store should not be initialized for inline screenshot"
+            )
 
     message = _build_message(screenshot="inline-b64", screenshot_ref="legacy-ref")
     inputs = resolve_query_execution_inputs(
@@ -94,6 +98,7 @@ def test_resolve_query_execution_inputs_prefers_inline_screenshot():
     )
 
     assert inputs.image_data == "inline-b64"
+    assert inputs.image_refs is None
     assert inputs.repo_instruction_messages is None
     assert inputs.runtime_system_state is None
 
@@ -102,7 +107,9 @@ def test_resolve_query_execution_inputs_preserves_sdk_prepared_content():
     class _ArtifactStore:
         @classmethod
         def from_config(cls, _config):
-            raise AssertionError("artifact store should not be initialized without screenshots")
+            raise AssertionError(
+                "artifact store should not be initialized without screenshots"
+            )
 
     message = _build_message(
         content=(

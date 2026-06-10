@@ -285,6 +285,8 @@ class CompactionEngine:
                 "tool_call_id": message.tool_call_id,
                 "tool_calls": message.tool_calls,
                 "image_data": message.image_data,
+                "image_refs": message.image_refs,
+                "image_owner_user_id": message.image_owner_user_id,
                 "compaction_facts": message.compaction_facts,
             }
             if message.structured_content is not None:

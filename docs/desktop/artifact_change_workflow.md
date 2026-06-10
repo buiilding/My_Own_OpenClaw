@@ -45,7 +45,7 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 - Electron main owns local IPC bridges for artifact upload/fetch and backend endpoint propagation.
 - Backend artifact routes own upload/fetch HTTP contracts, auth, content type, size limits, and error mapping.
 - Backend artifact store owns id validation, streaming writes, base64 lookup, and filesystem layout.
-- Backend query execution owns resolving `screenshot_ref`/`screenshot_refs` into model input.
+- Backend query execution owns normalizing `screenshot_ref`/`screenshot_refs`; prompt construction owns resolving refs into bounded model image input.
 - Tool-result payload builders own stripping raw image data and forwarding refs.
 - Transcript/replay owns durable refs and should avoid persisting large binary payloads.
 

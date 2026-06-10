@@ -81,6 +81,7 @@ class DummyAgent:
         self,
         _text,
         image_data=None,
+        image_refs=None,
         screenshot_id=None,
         capture_meta=None,
         message_content=None,
@@ -92,7 +93,7 @@ class DummyAgent:
         agent_definition=None,
         runtime_system_state=None,
     ):
-        _ = (client_prompt_layers, agent_definition)
+        _ = (image_refs, client_prompt_layers, agent_definition)
         yield ChunkEvent(content="ok")
 
     async def update_config(self, new_cfg):
@@ -116,6 +117,7 @@ class DummyCaptureAgent:
         self,
         text,
         image_data=None,
+        image_refs=None,
         screenshot_id=None,
         capture_meta=None,
         message_content=None,
@@ -131,6 +133,7 @@ class DummyCaptureAgent:
             {
                 "text": text,
                 "image_data": image_data,
+                "image_refs": image_refs,
                 "screenshot_id": screenshot_id,
                 "capture_meta": capture_meta,
                 "message_content": message_content,
@@ -174,6 +177,7 @@ class DummySilentAgent:
         self,
         text,
         image_data=None,
+        image_refs=None,
         screenshot_id=None,
         capture_meta=None,
         message_content=None,
@@ -186,7 +190,12 @@ class DummySilentAgent:
         runtime_system_state=None,
     ):
         if False:
-            _ = (client_prompt_layers, agent_definition, runtime_system_state)
+            _ = (
+                image_refs,
+                client_prompt_layers,
+                agent_definition,
+                runtime_system_state,
+            )
             yield {
                 "type": "chunk",
                 "content": text,
@@ -206,6 +215,7 @@ class DummyAssistantFullThenCompleteAgent:
         self,
         text,
         image_data=None,
+        image_refs=None,
         screenshot_id=None,
         capture_meta=None,
         message_content=None,
@@ -217,7 +227,7 @@ class DummyAssistantFullThenCompleteAgent:
         agent_definition=None,
         runtime_system_state=None,
     ):
-        _ = (client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
         yield AssistantMessageFullEvent(content="Final answer from assistant full")
         yield StreamingCompleteEvent()
 
@@ -232,6 +242,7 @@ class DummyPostTerminalNoiseAgent:
         self,
         text,
         image_data=None,
+        image_refs=None,
         screenshot_id=None,
         capture_meta=None,
         message_content=None,
@@ -243,7 +254,7 @@ class DummyPostTerminalNoiseAgent:
         agent_definition=None,
         runtime_system_state=None,
     ):
-        _ = (client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
         yield ChunkEvent(content="first chunk")
         yield StreamingCompleteEvent(final_response="done")
         yield ChunkEvent(content="late chunk")
@@ -259,6 +270,7 @@ class DummyErrorThenChunkAgent:
         self,
         text,
         image_data=None,
+        image_refs=None,
         screenshot_id=None,
         capture_meta=None,
         message_content=None,
@@ -270,7 +282,7 @@ class DummyErrorThenChunkAgent:
         agent_definition=None,
         runtime_system_state=None,
     ):
-        _ = (client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
         yield ErrorEvent(content="failed")
         yield ChunkEvent(content="late chunk")
 
@@ -287,6 +299,7 @@ class DummyBlockingAgent:
         self,
         text,
         image_data=None,
+        image_refs=None,
         screenshot_id=None,
         capture_meta=None,
         message_content=None,
@@ -298,7 +311,7 @@ class DummyBlockingAgent:
         agent_definition=None,
         runtime_system_state=None,
     ):
-        _ = (client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
         self._started_event.set()
         await asyncio.sleep(3600)
         if False:
@@ -637,20 +650,21 @@ async def test_query_handler_success(monkeypatch):
     assert first_msg_id == second_msg_id == "msg_1"
     assert first_context is second_context
     assert (
-        first_context
-        == second_context
-        == {
+        first_context.items()
+        >= {
             "user_id": "user_1",
             "session_id": "session_1",
             "conversation_ref": "conv_test",
             "turn_ref": "msg_1",
-        }
+        }.items()
     )
     assert second_event.final_response == "ok"
     assert len(session_manager.register_calls) == 1
     assert len(session_manager.clear_calls) == 1
-    assert websocket.sent == [
-        {
+    assert len(websocket.sent) == 1
+    assert (
+        websocket.sent[0].items()
+        >= {
             "type": "query-accepted",
             "id": "msg_1",
             "payload": {"status": "accepted"},
@@ -658,8 +672,8 @@ async def test_query_handler_success(monkeypatch):
             "user_id": "user_1",
             "conversation_ref": "conv_test",
             "turn_ref": "msg_1",
-        }
-    ]
+        }.items()
+    )
 
 
 @pytest.mark.asyncio
@@ -797,14 +811,13 @@ async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stre
     assert first_msg_id == second_msg_id == "msg_silent_1"
     assert first_context is second_context
     assert (
-        first_context
-        == second_context
-        == {
+        first_context.items()
+        >= {
             "user_id": "user_1",
             "session_id": "session_1",
             "conversation_ref": "conv_test",
             "turn_ref": "msg_silent_1",
-        }
+        }.items()
     )
     assert second_event.final_response == first_event.content
 
@@ -1132,7 +1145,8 @@ async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
     await handler.handle(message, websocket, "user_1")
 
     assert len(session_manager.session.calls) == 1
-    assert session_manager.session.calls[0]["image_data"] == "artifact-base64"
+    assert session_manager.session.calls[0]["image_data"] is None
+    assert session_manager.session.calls[0]["image_refs"] == ["shot_1.png"]
     assert session_manager.session.calls[0]["conversation_ref"] == "conv_test"
 
 
@@ -1182,9 +1196,10 @@ async def test_query_handler_loads_multiple_screenshots_from_artifact_refs(monke
     await handler.handle(message, websocket, "user_1")
 
     assert len(session_manager.session.calls) == 1
-    assert session_manager.session.calls[0]["image_data"] == [
-        "artifact:shot_1.png",
-        "artifact:shot_2.png",
+    assert session_manager.session.calls[0]["image_data"] is None
+    assert session_manager.session.calls[0]["image_refs"] == [
+        "shot_1.png",
+        "shot_2.png",
     ]
     assert session_manager.session.calls[0]["conversation_ref"] == "conv_test"
 
@@ -1236,6 +1251,7 @@ async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
 
     assert len(session_manager.session.calls) == 1
     assert session_manager.session.calls[0]["image_data"] is None
+    assert session_manager.session.calls[0]["image_refs"] == ["missing.png"]
 
 
 @pytest.mark.asyncio

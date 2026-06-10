@@ -68,9 +68,7 @@ def build_compaction_prompt_messages(
     """Build model-ready prompt messages used by inline compaction strategy."""
     instruction = (custom_prompt or DEFAULT_COMPACTION_INSTRUCTION).strip()
     user_prompt = (
-        f"{instruction}\n\n"
-        "Conversation to summarize:\n"
-        f"{rendered_history}"
+        f"{instruction}\n\n" "Conversation to summarize:\n" f"{rendered_history}"
     )
     return [
         {"role": "system", "content": DEFAULT_COMPACTION_SYSTEM_PROMPT},
@@ -112,7 +110,9 @@ def _render_segmented_history(
     middle_candidates = [
         block
         for block in middle_source
-        if block["signal"] or block["message_type"] in {MessageType.USER_QUERY.value, MessageType.CONTEXT_COMPACTION.value}
+        if block["signal"]
+        or block["message_type"]
+        in {MessageType.USER_QUERY.value, MessageType.CONTEXT_COMPACTION.value}
     ]
     middle = _take_from_start(
         middle_candidates or middle_source,
@@ -136,7 +136,9 @@ def _render_segmented_history(
     return rendered[: max(0, max_chars - 4)] + "...\n"
 
 
-def _take_from_start(blocks: List[Dict[str, Any]], *, budget: int) -> List[Dict[str, Any]]:
+def _take_from_start(
+    blocks: List[Dict[str, Any]], *, budget: int
+) -> List[Dict[str, Any]]:
     if budget <= 0:
         return []
     selected: List[Dict[str, Any]] = []
@@ -153,7 +155,9 @@ def _take_from_start(blocks: List[Dict[str, Any]], *, budget: int) -> List[Dict[
     return [block for block in selected if block["text"]]
 
 
-def _take_from_end(blocks: List[Dict[str, Any]], *, budget: int) -> List[Dict[str, Any]]:
+def _take_from_end(
+    blocks: List[Dict[str, Any]], *, budget: int
+) -> List[Dict[str, Any]]:
     if budget <= 0:
         return []
     reversed_selected: List[Dict[str, Any]] = []
@@ -227,13 +231,18 @@ def _message_body(message: StoredMessage) -> str:
     if message.message_type == MessageType.USER_QUERY:
         return _render_user_query(message)
     if message.message_type == MessageType.CONTEXT_COMPACTION:
-        summary = _clean_text_for_compaction(message.content).replace(
-            CONTEXT_COMPACTION_PREFIX, ""
-        ).strip()
+        summary = (
+            _clean_text_for_compaction(message.content)
+            .replace(CONTEXT_COMPACTION_PREFIX, "")
+            .strip()
+        )
         return f"summary: {summary}" if summary else ""
     if message.role == MessageRole.ASSISTANT and message.tool_calls:
         return _render_assistant_tool_calls(message)
-    if message.role == MessageRole.TOOL or message.message_type == MessageType.TOOL_OUTPUT:
+    if (
+        message.role == MessageRole.TOOL
+        or message.message_type == MessageType.TOOL_OUTPUT
+    ):
         return _render_tool_output(message)
     return _render_plain_response(message)
 
@@ -388,7 +397,10 @@ def _per_message_limit(message: StoredMessage) -> int:
         return 560
     if message.message_type == MessageType.CONTEXT_COMPACTION:
         return 720
-    if message.role == MessageRole.TOOL or message.message_type == MessageType.TOOL_OUTPUT:
+    if (
+        message.role == MessageRole.TOOL
+        or message.message_type == MessageType.TOOL_OUTPUT
+    ):
         return 680
     if message.role == MessageRole.ASSISTANT and message.tool_calls:
         return 620
@@ -401,14 +413,26 @@ def _is_high_signal_message(message: StoredMessage, body: str) -> bool:
     if message.role == MessageRole.TOOL or message.tool_calls:
         return True
     lowered = body.lower()
-    return any(marker in lowered for marker in ("error", "failed", "warning", "blocked", "ticket", "ref="))
+    return any(
+        marker in lowered
+        for marker in ("error", "failed", "warning", "blocked", "ticket", "ref=")
+    )
 
 
 def _image_count(message: StoredMessage) -> int:
     if isinstance(message.image_data, str):
-        return 1 if message.image_data else 0
+        image_data_count = 1 if message.image_data else 0
+        if image_data_count:
+            return image_data_count
     if isinstance(message.image_data, list):
-        return len([item for item in message.image_data if isinstance(item, str) and item])
+        image_data_count = len(
+            [item for item in message.image_data if isinstance(item, str) and item]
+        )
+        if image_data_count:
+            return image_data_count
+    image_refs = StoredMessage._normalized_image_refs(message.image_refs)
+    if image_refs:
+        return len(image_refs)
     return 0
 
 

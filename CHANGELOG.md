@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/prompts: keep artifact-backed user image attachments as refs until
+  provider prompt construction, then resolve, resize/compress, and validate
+  images separately from text so multi-image turns are not rejected by the
+  per-message text limit.
 - sdk/frontend: scope active-turn backend error envelopes that lack stream
   sequence metadata so the dashboard exits awaiting/tool-loop UI state and
   renders the terminal error row.

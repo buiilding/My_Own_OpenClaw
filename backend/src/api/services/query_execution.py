@@ -134,6 +134,7 @@ class QueryExecutionService:
                 async for event in agent_instance.process_query(
                     query_text,
                     image_data=query_inputs.image_data,
+                    image_refs=query_inputs.image_refs,
                     capture_meta=query_inputs.capture_meta,
                     message_content=query_inputs.message_content,
                     conversation_ref=query_inputs.conversation_ref,

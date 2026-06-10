@@ -11,12 +11,14 @@ title: "Backend LLM Prompt Docs Hub"
 ## Deep Pages
 
 - [Prompt Context Change Workflow](prompt_context_change_workflow.md)
+- [Prompt Image Projection Reference](prompt_image_projection_reference.md)
 - [Prompt Constructor and Transparency Metadata Reference](prompt_constructor_and_transparency_metadata_reference.md)
 - [Prompt Manager and System Prompt Lifecycle Reference](prompt_manager_and_system_prompt_lifecycle_reference.md)
 
 ## Code Scope
 
 - `backend/src/llm/prompts/prompt_constructor.py`
+- `backend/src/llm/prompts/prompt_images.py`
 - `backend/src/llm/prompts/prompt_metadata.py`
 - `backend/src/llm/prompts/prompts.py`
 - `backend/src/llm/prompts/system_prompt.txt`

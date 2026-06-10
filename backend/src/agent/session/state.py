@@ -56,6 +56,8 @@ class ConversationHistory:
         self,
         content: str,
         image_data: Optional[Union[str, List[str]]] = None,
+        image_refs: Optional[List[str]] = None,
+        image_owner_user_id: Optional[str] = None,
         episodic_memory: Optional[List[str]] = None,
         semantic_memory: Optional[List[str]] = None,
         user_query_raw: Optional[str] = None,
@@ -67,6 +69,8 @@ class ConversationHistory:
         Args:
             content: Message content (context + memory + query)
             image_data: Optional base64 image payload(s)
+            image_refs: Optional artifact-backed prompt image refs
+            image_owner_user_id: Owner id used to authorize image ref hydration
             episodic_memory: Optional list of episodic memory strings (structured data)
             semantic_memory: Optional list of semantic memory strings (structured data)
             user_query_raw: Optional raw user query text (structured data)
@@ -74,6 +78,8 @@ class ConversationHistory:
         stored_msg = build_user_message(
             content=content,
             image_data=image_data,
+            image_refs=image_refs,
+            image_owner_user_id=image_owner_user_id,
             episodic_memory=episodic_memory,
             semantic_memory=semantic_memory,
             user_query_raw=user_query_raw,
@@ -403,6 +409,8 @@ class ConversationHistory:
                 message_type=message_type,
                 structured_content=structured_content,
                 image_data=entry.get("image_data"),
+                image_refs=entry.get("image_refs"),
+                image_owner_user_id=entry.get("image_owner_user_id"),
                 user_query_raw=(
                     self._extract_user_query(normalized_content)
                     if message_type == MessageType.USER_QUERY

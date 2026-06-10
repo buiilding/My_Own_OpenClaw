@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
     resolve_query_runtime_system_state,
     resolve_query_screenshot_metadata,
-    resolve_screenshots,
+    resolve_inline_screenshot,
+    resolve_screenshot_refs,
 )
 from backend.src.services.artifacts import ArtifactStore
 
@@ -21,6 +22,7 @@ class QueryExecutionInputs:
     """Normalized query inputs forwarded to agent_instance.process_query."""
 
     image_data: Optional[Union[str, List[str]]]
+    image_refs: Optional[List[str]]
     capture_meta: Optional[dict[str, Any]]
     message_content: Optional[Any]
     conversation_ref: Optional[str]
@@ -57,12 +59,8 @@ def resolve_query_execution_inputs(
     user_id: Optional[str] = None,
 ) -> QueryExecutionInputs:
     """Resolve screenshot/capture metadata and stable payload fields for one query."""
-    resolved_screenshots = resolve_screenshots(
-        message,
-        artifact_store_cls=artifact_store_cls,
-        session_manager_config=session_manager_config,
-        user_id=user_id,
-    )
+    _ = (artifact_store_cls, session_manager_config, user_id)
+    inline_screenshot = resolve_inline_screenshot(message)
     raw_repo_instruction_messages = getattr(
         message.payload,
         "repo_instruction_messages",
@@ -91,13 +89,16 @@ def resolve_query_execution_inputs(
         ]
 
     return QueryExecutionInputs(
-        image_data=build_query_image_data(resolved_screenshots),
+        image_data=inline_screenshot,
+        image_refs=resolve_screenshot_refs(message),
         capture_meta=resolve_query_screenshot_metadata(message),
-        message_content=format_plain_user_query_content(
-            getattr(message.payload, "text", ""),
-        )
-        if getattr(message.payload, "content", None) is None
-        else getattr(message.payload, "content", None),
+        message_content=(
+            format_plain_user_query_content(
+                getattr(message.payload, "text", ""),
+            )
+            if getattr(message.payload, "content", None) is None
+            else getattr(message.payload, "content", None)
+        ),
         conversation_ref=getattr(message.payload, "conversation_ref", None),
         workspace_path=getattr(message.payload, "workspace_path", None),
         repo_instruction_messages=repo_instruction_messages,

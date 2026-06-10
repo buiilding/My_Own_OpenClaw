@@ -32,6 +32,8 @@ class StoredMessage:
     structured_content: Optional[MultimodalContent] = None
     timestamp: float = field(default_factory=time.time)
     image_data: Optional[Union[str, List[str]]] = None
+    image_refs: Optional[List[str]] = None
+    image_owner_user_id: Optional[str] = None
     # Structured components for user query messages (None for other message types)
     user_query_raw: Optional[str] = None
     episodic_memory: Optional[List[str]] = None
@@ -88,6 +90,17 @@ class StoredMessage:
         if self.structured_content is not None:
             return self.structured_content
         return self.content
+
+    @staticmethod
+    def _normalized_image_refs(image_refs: Optional[List[str]]) -> List[str]:
+        """Return non-empty artifact refs from a stored prompt image ref list."""
+        if not isinstance(image_refs, list):
+            return []
+        return [
+            image_ref.strip()
+            for image_ref in image_refs
+            if isinstance(image_ref, str) and image_ref.strip()
+        ]
 
     @staticmethod
     def _normalized_image_data(
@@ -205,9 +218,7 @@ class ImageContent(MessageContent):
     def __init__(self, text: str, image_url: Union[str, List[str]]):
         self.text = text
         if isinstance(image_url, list):
-            self.image_urls = [
-                url for url in image_url if isinstance(url, str) and url
-            ]
+            self.image_urls = [url for url in image_url if isinstance(url, str) and url]
         elif isinstance(image_url, str) and image_url:
             self.image_urls = [image_url]
         else:

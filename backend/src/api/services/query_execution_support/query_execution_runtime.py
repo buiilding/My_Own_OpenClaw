@@ -71,6 +71,43 @@ def resolve_screenshots(
     return resolved_screenshots or None
 
 
+def resolve_screenshot_refs(message: QueryMessage) -> Optional[List[str]]:
+    """Return normalized artifact refs without hydrating image bytes."""
+    screenshot = message.payload.screenshot
+    if isinstance(screenshot, str) and screenshot.strip():
+        return None
+
+    screenshot_ref = message.payload.screenshot_ref
+    normalized_single_ref = (
+        screenshot_ref.strip() if isinstance(screenshot_ref, str) else None
+    )
+    screenshot_refs = (
+        message.payload.screenshot_refs
+        if isinstance(message.payload.screenshot_refs, list)
+        else None
+    )
+    normalized_ref_list = [
+        ref.strip()
+        for ref in (screenshot_refs or [])
+        if isinstance(ref, str) and ref.strip()
+    ]
+    ref_candidates = (
+        normalized_ref_list
+        if normalized_ref_list
+        else ([normalized_single_ref] if normalized_single_ref else [])
+    )
+    return ref_candidates or None
+
+
+def resolve_inline_screenshot(message: QueryMessage) -> Optional[str]:
+    """Return only direct inline screenshot data from the query payload."""
+    screenshot = message.payload.screenshot
+    normalized_inline_screenshot = (
+        screenshot.strip() if isinstance(screenshot, str) else None
+    )
+    return normalized_inline_screenshot or None
+
+
 def resolve_query_screenshot_metadata(
     message: QueryMessage,
 ) -> Optional[dict[str, Any]]:

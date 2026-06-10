@@ -23,10 +23,11 @@ import json
 import logging
 import re
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.error_types import InputSizeLimitError
+from backend.src.core.messages.content_blocks import extract_text_from_content_part
 from backend.src.core.messages.converters import content_to_message_content
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
@@ -37,6 +38,11 @@ from backend.src.llm.prompts.prompt_metadata import (
     ProviderPrompt,
     UserMessageMetadata,
 )
+from backend.src.llm.prompts.prompt_images import (
+    PromptImageProjectionError,
+    PromptImageProjector,
+    policy_from_config,
+)
 from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.llm.prompts.repo_instructions import (
     resolve_workspace_repo_instruction_messages,
@@ -45,6 +51,7 @@ from backend.src.tools.provider_projection import project_tool_schemas_for_provi
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.tool_specs import get_tool_spec_name
+from backend.src.services.artifacts import ArtifactStore
 
 # system_monitor removed - frontend handles system state
 
@@ -79,6 +86,7 @@ class PromptConstructor:
         config: AppConfig,
         metrics_service: MetricsService,
         system_prompt: Optional[str] = None,
+        artifact_store_cls: Type[ArtifactStore] = ArtifactStore,
     ):
         """
         Initialize the prompt constructor.
@@ -101,6 +109,7 @@ class PromptConstructor:
 
         self.tool_registry = tool_registry
         self.config = config
+        self.artifact_store_cls = artifact_store_cls
         self.tool_policy = ToolPolicy.from_config(config)
         # Load system prompt at runtime (not import time) to avoid crashes.
         self.system_prompt = system_prompt or PromptManager().render_system_prompt(
@@ -108,6 +117,7 @@ class PromptConstructor:
         )
         self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
+        self.prompt_image_projector = PromptImageProjector(policy_from_config(config))
         self.workspace_path: Optional[str] = None
         self.repo_instruction_messages: List[LLMMessage] = []
         self.client_prompt_layers: List[Dict[str, Any]] = []
@@ -250,9 +260,114 @@ class PromptConstructor:
         stored_messages: Optional[Union[List[StoredMessage], Any]],
     ) -> List[LLMMessage]:
         """Get rendered prompt history from stored messages object when available."""
+        if isinstance(stored_messages, list) and all(
+            isinstance(message, StoredMessage) for message in stored_messages
+        ):
+            return [
+                self._stored_message_to_prompt_message(message, index)
+                for index, message in enumerate(stored_messages)
+            ]
+        if stored_messages and hasattr(stored_messages, "get_stored_messages"):
+            stored_entries = stored_messages.get_stored_messages()
+            if isinstance(stored_entries, list) and all(
+                isinstance(message, StoredMessage) for message in stored_entries
+            ):
+                return [
+                    self._stored_message_to_prompt_message(message, index)
+                    for index, message in enumerate(stored_entries)
+                ]
         if stored_messages and hasattr(stored_messages, "get_history"):
             return stored_messages.get_history()
         return []
+
+    def _stored_message_to_prompt_message(
+        self,
+        message: StoredMessage,
+        message_index: int,
+    ) -> LLMMessage:
+        """Render stored history with prompt-time image-ref hydration."""
+        prompt_message = message.to_llm_message()
+        image_parts = self._prompt_image_parts_for_message(message, message_index)
+        if not image_parts:
+            return prompt_message
+
+        content = prompt_message.get("content")
+        if isinstance(content, list):
+            prompt_message["content"] = [*content, *image_parts]
+        else:
+            prompt_message["content"] = [
+                {"type": "text", "text": str(content or "")},
+                *image_parts,
+            ]
+        return prompt_message
+
+    def _prompt_image_parts_for_message(
+        self,
+        message: StoredMessage,
+        message_index: int,
+    ) -> List[Dict[str, Any]]:
+        refs = StoredMessage._normalized_image_refs(message.image_refs)
+        if not refs:
+            return []
+        policy = self.prompt_image_projector.policy
+        if len(refs) > policy.max_images_per_message:
+            self._raise_size_limit(
+                check="prompt_image_count",
+                actual_size=len(refs),
+                max_size=policy.max_images_per_message,
+                metadata={
+                    "message_index": message_index,
+                    "role": message.role.value,
+                },
+            )
+
+        try:
+            store = self.artifact_store_cls.from_config(self.config)
+        except Exception as exc:
+            logger.warning(
+                "Failed to initialize artifact store for prompt images: %s", exc
+            )
+            return []
+
+        image_parts: List[Dict[str, Any]] = []
+        for image_index, image_ref in enumerate(refs):
+            try:
+                image_data = store.load_base64(
+                    image_ref,
+                    owner_user_id=message.image_owner_user_id,
+                )
+                prompt_image = self.prompt_image_projector.project_base64_image(
+                    image_data,
+                    image_index=image_index,
+                    image_ref=image_ref,
+                )
+            except PromptImageProjectionError as exc:
+                self._raise_size_limit(
+                    check=exc.check,
+                    actual_size=exc.actual_size,
+                    max_size=exc.max_size,
+                    metadata={
+                        "message_index": message_index,
+                        "role": message.role.value,
+                        "image_index": exc.image_index,
+                        "image_ref": exc.image_ref,
+                    },
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Failed to resolve prompt image artifact %s at message index %s: %s",
+                    image_ref,
+                    message_index,
+                    exc,
+                )
+                continue
+            image_parts.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": prompt_image.data_url},
+                }
+            )
+        return image_parts
 
     def build_prompt_messages(
         self,
@@ -541,13 +656,31 @@ class PromptConstructor:
         return size
 
     def _calculate_message_content_size(self, msg: Dict[str, Any]) -> int:
-        """Calculate the serialized size of a message content payload."""
+        """Calculate the model-visible text size of a message content payload."""
         if not isinstance(msg, dict):
             return len(str(msg))
         content = msg.get("content", "")
         if isinstance(content, str):
             return len(content)
-        if isinstance(content, (dict, list)):
+        if isinstance(content, list):
+            size = 0
+            for part in content:
+                if isinstance(part, dict):
+                    part_type = part.get("type")
+                    if part_type in {"image_url", "input_image"} or "image_url" in part:
+                        continue
+                    text = extract_text_from_content_part(
+                        part,
+                        include_refusal=True,
+                    )
+                    if text:
+                        size += len(text)
+                    else:
+                        size += len(json.dumps(part, ensure_ascii=False))
+                else:
+                    size += len(str(part))
+            return size
+        if isinstance(content, dict):
             try:
                 return len(json.dumps(content, ensure_ascii=False))
             except (TypeError, ValueError):

@@ -220,6 +220,15 @@ class SecurityLimits(BaseModel):
     max_prompt_size: int = Field(
         default=50 * 1024 * 1024, description="Max total prompt size (50MB)"
     )
+    max_prompt_images_per_message: int = Field(
+        default=8, description="Max prompt images attached to one message"
+    )
+    max_prompt_image_bytes: int = Field(
+        default=768 * 1024, description="Max processed bytes per prompt image"
+    )
+    max_prompt_image_dimension: int = Field(
+        default=2048, description="Max width or height for prompt images"
+    )
 
 
 _DEFAULT_TOOL_ALLOWLIST_BY_INTERACTION_MODE: dict[str, set[str]] = {

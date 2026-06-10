@@ -57,18 +57,15 @@ behavior:
 - if no inline screenshot, resolves refs from:
   - `payload.screenshot_refs[]` (preferred)
   - fallback `payload.screenshot_ref`
-- builds store via `ArtifactStore.from_config(...)` once and loads each ref with `store.load_base64(...)`
-- artifact load failure logs warning and continues resolving remaining refs
-- returns `None` only when no screenshot data resolves
+- returns normalized refs without loading artifact bytes
 
-`query_execution_inputs.resolve_query_execution_inputs(...)` then maps resolved screenshots to
-`image_data`:
+`query_execution_inputs.resolve_query_execution_inputs(...)` then maps screenshot inputs to:
 
-- single screenshot -> string payload
-- multiple screenshots -> list payload
-- no resolved screenshot -> `None`
+- inline screenshot -> `image_data`
+- artifact-backed screenshot refs -> `image_refs`
+- no screenshot input -> both fields `None`
 
-Failure is non-fatal; query continues without screenshot payload.
+Prompt construction later resolves refs into bounded model image payloads. Artifact lookup failure remains non-fatal and skips the unresolved image at prompt projection time.
 
 ## Agent Runtime Inputs
 

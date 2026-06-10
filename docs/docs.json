@@ -84,6 +84,7 @@
               "backend/llm/README",
               "backend/llm/prompts/README",
               "backend/llm/prompts/prompt_context_change_workflow",
+              "backend/llm/prompts/prompt_image_projection_reference",
               "backend/llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference"
             ]
           }

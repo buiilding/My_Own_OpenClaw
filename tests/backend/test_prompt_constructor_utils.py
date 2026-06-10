@@ -1,9 +1,14 @@
+import base64
+import io
+
 import pytest
+from PIL import Image
 
 from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.infrastructure.error_types import InputSizeLimitError
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
+from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
@@ -45,13 +50,33 @@ class DummyHistory:
         return self._stored_entries
 
 
-def _make_constructor(tool_schemas=None, config=None, metrics_service=None):
+def _make_constructor(
+    tool_schemas=None,
+    config=None,
+    metrics_service=None,
+    artifact_store_cls=None,
+):
+    kwargs = {}
+    if artifact_store_cls is not None:
+        kwargs["artifact_store_cls"] = artifact_store_cls
     return PromptConstructor(
         tool_registry=DummyRegistry(tool_schemas),
         config=config or AppConfig(),
         metrics_service=metrics_service or MetricsService(),
         system_prompt="system",
+        **kwargs,
     )
+
+
+def _png_base64(width=8, height=8, color=(20, 120, 220)):
+    image = Image.new("RGB", (width, height), color)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode("ascii")
+
+
+def _decoded_image_bytes(data_url: str) -> bytes:
+    return base64.b64decode(data_url.split(",", 1)[1])
 
 
 def test_extract_xml_tag_handles_attributes_with_gt_character():
@@ -473,6 +498,127 @@ def test_build_prompt_rejects_oversized_stored_message_content():
     assert exc_info.value.actual_size == 13
     stats = metrics_service.get_all_metrics()["prompt_constructor"]
     assert stats["size_limit_violations"] == 1
+
+
+def test_build_prompt_projects_artifact_image_refs_without_text_content_overflow():
+    calls = []
+
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, image_ref, *, owner_user_id=None):
+            calls.append((image_ref, owner_user_id))
+            return _png_base64()
+
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=10,
+                max_message_content_size=40,
+                max_prompt_size=4096,
+                max_prompt_image_bytes=16 * 1024,
+            )
+        ),
+        artifact_store_cls=_ArtifactStore,
+    )
+    message = StoredMessage(
+        role=MessageRole.USER,
+        content="<user_query>look</user_query>",
+        message_type=MessageType.USER_QUERY,
+        image_refs=["artifact-1", "artifact-2"],
+        image_owner_user_id="user-1",
+    )
+
+    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+        [message],
+        include_tools=False,
+    )
+
+    content = prompt_messages[-1]["content"]
+    assert calls == [("artifact-1", "user-1"), ("artifact-2", "user-1")]
+    assert content[0] == {"type": "text", "text": "<user_query>look</user_query>"}
+    assert [part["type"] for part in content[1:]] == ["image_url", "image_url"]
+    assert all(
+        part["image_url"]["url"].startswith("data:image/png;base64,")
+        for part in content[1:]
+    )
+
+
+def test_build_prompt_resizes_artifact_images_to_prompt_image_budget():
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, _image_ref, *, owner_user_id=None):
+            return _png_base64(width=3000, height=2400)
+
+    max_image_bytes = 120 * 1024
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=10,
+                max_message_content_size=100,
+                max_prompt_size=2 * 1024 * 1024,
+                max_prompt_image_bytes=max_image_bytes,
+                max_prompt_image_dimension=1024,
+            )
+        ),
+        artifact_store_cls=_ArtifactStore,
+    )
+    message = StoredMessage(
+        role=MessageRole.USER,
+        content="<user_query>look</user_query>",
+        message_type=MessageType.USER_QUERY,
+        image_refs=["large-artifact"],
+    )
+
+    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+        [message],
+        include_tools=False,
+    )
+
+    data_url = prompt_messages[-1]["content"][1]["image_url"]["url"]
+    image_bytes = _decoded_image_bytes(data_url)
+    image = Image.open(io.BytesIO(image_bytes))
+    assert len(image_bytes) <= max_image_bytes
+    assert max(image.size) <= 1024
+
+
+def test_build_prompt_rejects_artifact_image_that_cannot_fit_budget():
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, _image_ref, *, owner_user_id=None):
+            return _png_base64(width=256, height=256)
+
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=10,
+                max_message_content_size=100,
+                max_prompt_size=4096,
+                max_prompt_image_bytes=10,
+            )
+        ),
+        artifact_store_cls=_ArtifactStore,
+    )
+    message = StoredMessage(
+        role=MessageRole.USER,
+        content="<user_query>look</user_query>",
+        message_type=MessageType.USER_QUERY,
+        image_refs=["too-small-budget"],
+    )
+
+    with pytest.raises(InputSizeLimitError) as exc_info:
+        constructor.build_prompt([message], include_tools=False)
+
+    assert exc_info.value.metadata["check"] == "prompt_image_size"
+    assert exc_info.value.metadata["image_ref"] == "too-small-budget"
 
 
 def test_build_prompt_rejects_oversized_aggregate_prompt():
