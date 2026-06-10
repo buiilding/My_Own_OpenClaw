@@ -1962,6 +1962,12 @@ describe('Windie SDK conversation runtime core', () => {
         sourceEventType: 'local-user-message',
       }),
     });
+
+    expect(buildDisplayRows([normalized]).at(0)?.metadata).toEqual(expect.objectContaining({
+      screenshotRef: 'artifact-local',
+      screenshotUrl: '/api/artifacts/artifact-local',
+      screenshotRefs: ['artifact-local', 'artifact-local-2'],
+    }));
   });
 
   test('backend tool-call normalization preserves model-facing tool call ids', () => {

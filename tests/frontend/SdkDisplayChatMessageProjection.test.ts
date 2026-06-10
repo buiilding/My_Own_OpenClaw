@@ -135,6 +135,83 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(buildChatMessagesFromDisplayConversation(display)[0]).not.toHaveProperty('screenshot');
   });
 
+  test('projects multi-image user screenshot refs into renderer screenshot attachments', () => {
+    const display: DisplayConversation = {
+      conversationRef: 'conv-multi-shot',
+      revisionId: 'rev-1',
+      compaction: { status: 'idle' },
+      messages: [
+        {
+          id: 'msg-user-multi-shot',
+          conversationRef: 'conv-multi-shot',
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:00.000Z',
+          sender: 'user',
+          text: 'look at both',
+          messageType: 'user_message',
+          metadata: {
+            screenshot_refs: ['artifact-user-1', 'artifact-user-2'],
+          },
+        },
+      ],
+    };
+
+    expect(buildChatMessagesFromDisplayConversation(display)).toEqual([
+      expect.objectContaining({
+        id: 'msg-user-multi-shot',
+        sender: 'user',
+        screenshots: [
+          {
+            screenshotRef: 'artifact-user-1',
+            screenshotUrl: expect.stringContaining('/api/artifacts/artifact-user-1'),
+          },
+          {
+            screenshotRef: 'artifact-user-2',
+            screenshotUrl: expect.stringContaining('/api/artifacts/artifact-user-2'),
+          },
+        ],
+      }),
+    ]);
+  });
+
+  test('projects live SDK row raw screenshot refs into renderer screenshot attachments', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'row-user-multi-shot',
+        conversationRef: 'conv-multi-shot',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'look at both',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:00.000Z',
+          raw: {
+            text: 'look at both',
+            screenshot_refs: ['artifact-user-1', 'artifact-user-2'],
+          },
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'row-user-multi-shot',
+        sender: 'user',
+        text: 'look at both',
+        screenshots: [
+          {
+            screenshotRef: 'artifact-user-1',
+            screenshotUrl: expect.stringContaining('/api/artifacts/artifact-user-1'),
+          },
+          {
+            screenshotRef: 'artifact-user-2',
+            screenshotUrl: expect.stringContaining('/api/artifacts/artifact-user-2'),
+          },
+        ],
+      }),
+    ]);
+  });
+
   test('projects SDK streaming assistant rows with reasoning text', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

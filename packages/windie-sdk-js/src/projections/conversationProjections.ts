@@ -230,7 +230,26 @@ function bundleToolCallContentFromPayload(payload: JsonRecord): JsonRecord {
   };
 }
 
+function stringArrayField(record: JsonRecord, ...keys: string[]): string[] | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    const normalized = value
+      .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+      .map(entry => entry.trim());
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
+  const screenshotRef = stringField(event.payload, 'screenshotRef', 'screenshot_ref');
+  const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
+    ?? (screenshotRef ? [screenshotRef] : null);
   return {
     eventId: event.eventId,
     source: event.source,
@@ -241,8 +260,9 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     correlationId: stringField(event.payload, 'correlationId', 'correlation_id'),
     bundleId: stringField(event.payload, 'bundleId', 'bundle_id'),
     toolCallId: stringField(event.payload, 'toolCallId', 'tool_call_id'),
-    screenshotRef: stringField(event.payload, 'screenshotRef', 'screenshot_ref'),
+    screenshotRef,
     screenshotUrl: stringField(event.payload, 'screenshotUrl', 'screenshot_url'),
+    screenshotRefs,
     modelId: stringField(event.payload, 'modelId', 'model_id'),
     modelProvider: stringField(event.payload, 'modelProvider', 'model_provider'),
     raw: event.payload,

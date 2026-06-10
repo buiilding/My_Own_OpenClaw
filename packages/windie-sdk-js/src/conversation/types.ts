@@ -152,6 +152,7 @@ export type SdkDisplayRowMetadata = {
   toolCallId?: string | null;
   screenshotRef?: string | null;
   screenshotUrl?: string | null;
+  screenshotRefs?: string[] | null;
   modelId?: string | null;
   modelProvider?: string | null;
   raw?: JsonRecord | null;

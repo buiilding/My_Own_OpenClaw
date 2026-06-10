@@ -7,7 +7,10 @@ import {
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
 import { buildToolOutputChatMessageState } from './toolOutputChatMessageState';
-import { resolveScreenshotAttachmentState } from '../services/screenshotMessageState';
+import {
+  buildRemoteScreenshotAttachments,
+  resolveScreenshotAttachmentState,
+} from '../services/screenshotMessageState';
 
 function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
   return record && typeof record === 'object' ? record[key] : undefined;
@@ -18,6 +21,22 @@ function stringField(record: Record<string, unknown> | null | undefined, ...keys
     const value = recordField(record, key);
     if (typeof value === 'string' && value.trim()) {
       return value;
+    }
+  }
+  return null;
+}
+
+function stringArrayField(record: Record<string, unknown> | null | undefined, ...keys: string[]): string[] | null {
+  for (const key of keys) {
+    const value = recordField(record, key);
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    const normalized = value
+      .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+      .map((entry) => entry.trim());
+    if (normalized.length > 0) {
+      return normalized;
     }
   }
   return null;
@@ -48,19 +67,27 @@ function structuredPayload(message: DisplayMessage): Record<string, unknown> {
 }
 
 function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<ChatMessage> {
+  const screenshotRef = stringField(payload, 'screenshotRef', 'screenshot_ref');
+  const screenshotUrl = stringField(payload, 'screenshotUrl', 'screenshot_url');
+  const screenshotRefs = stringArrayField(payload, 'screenshotRefs', 'screenshot_refs');
   const screenshotState = resolveScreenshotAttachmentState({
     screenshot: stringField(payload, 'screenshot', 'image'),
-    screenshotRef: stringField(payload, 'screenshotRef', 'screenshot_ref'),
-    screenshotUrl: stringField(payload, 'screenshotUrl', 'screenshot_url'),
+    screenshotRef,
+    screenshotUrl,
     screenshotContentType: stringField(payload, 'screenshotContentType', 'screenshot_content_type'),
     inferArtifactRefFromScreenshot: true,
     preserveInlineScreenshotWithRemote: false,
   });
+  const screenshotAttachments = buildRemoteScreenshotAttachments(
+    screenshotRefs ?? (screenshotState.screenshotRef ? [screenshotState.screenshotRef] : null),
+    screenshotState.screenshotUrl,
+  );
   return {
     ...(screenshotState.screenshot ? { screenshot: screenshotState.screenshot } : {}),
     ...(screenshotState.screenshotRef ? { screenshotRef: screenshotState.screenshotRef } : {}),
     ...(screenshotState.screenshotUrl ? { screenshotUrl: screenshotState.screenshotUrl } : {}),
     ...(screenshotState.screenshotContentType ? { screenshotContentType: screenshotState.screenshotContentType } : {}),
+    ...(screenshotAttachments.length > 0 ? { screenshots: screenshotAttachments } : {}),
   };
 }
 

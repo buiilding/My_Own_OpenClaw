@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend: preserve multi-image `screenshot_refs` through SDK display
+  metadata and renderer chat-message projection so user messages render every
+  provided image instead of collapsing to the first attachment.
 - backend/tools: bound atomic bundle model-history output per step instead of
   truncating the combined bundle narrative once, preserving later step context
   while keeping a single bundle history row.

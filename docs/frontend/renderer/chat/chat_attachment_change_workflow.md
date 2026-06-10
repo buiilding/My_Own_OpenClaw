@@ -90,6 +90,9 @@ Clipboard image IPC trust boundary:
 5. Preserve backend-bound compatibility fields at SDK payload assembly.
    - `screenshot_ref`: primary image ref for compatibility.
    - `screenshot_refs`: deduped list of uploaded refs for multi-image queries.
+   - SDK display metadata must preserve `screenshot_refs`, and renderer chat-message
+     projection must map them into the canonical `screenshots[]` UI attachment
+     shape so the sent user row renders every provided image.
    - `attachment_context`: hidden readable-file context.
    - `attachment_filenames`: visible filename list for user row/query metadata.
 
