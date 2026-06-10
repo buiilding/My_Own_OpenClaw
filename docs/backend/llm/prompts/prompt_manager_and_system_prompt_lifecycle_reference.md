@@ -12,6 +12,7 @@ title: "Prompt Manager and System Prompt Lifecycle Reference"
 
 - `backend/src/llm/prompts/prompts.py`
 - `backend/src/llm/prompts/system_prompt.txt`
+- `backend/src/llm/prompts/system_prompt_deprecated_2026_06_10.txt`
 - `backend/src/agent/session/initializer.py`
 - `backend/src/sdk/agents/session_builder.py`
 - `backend/src/core/services/agent_factory.py`
@@ -102,14 +103,18 @@ This enables persona-specific agents while keeping shared parent resources.
 
 Current prompt template defines:
 
-- runtime assistant identity string: `You are WindieOS, an assistant that has access to the desktop operating system.`
-- documentation section that points model behavior toward local docs first: `docs/docs.json`, `docs/getting-started/docs_directory.md`, `docs/getting-started/docs_hub.md`, and `bin/windie docs list`
-- OS-aware command/keybind requirement (`{os}` substitution)
-- autonomous loop policy (continue until task complete)
-- context-awareness policy around `<system_context>`
-- explicit `keyboard_control` limitation guidance: synthetic automation input, not trusted native hardware keyboard control, with informational fallback guidance for key recorders and similar capture prompts
-- coding standards and frontend aesthetics constraints
-- tool chaining, verification, and desktop-control strategy guidance
+- runtime assistant identity string: `You are Windie, a computer-native AI companion.`
+- computer-environment framing around desktop, screen, apps, files, browser, terminal, workspace, conversation history, and memory
+- capability guidance for screen observation, GUI control, dedicated chrome browser profile, file edits, shell processes, local memory, hosted services, plugins, skills, MCP servers, and custom local tools
+- safety and authority rules that avoid unlimited-power claims and require confirmation for high-impact actions
+- work-mode sections for everyday, computer-use, browser, file/shell, coding, and WindieOS repository tasks
+- WindieOS repository orientation that points model behavior toward local docs first: `docs/docs.json`, `docs/getting-started/docs_directory.md`, and `bin/windie docs list`
+- concise communication guidance that makes coding one task mode rather than the default identity
+
+Deprecated prompt snapshots:
+
+- `backend/src/llm/prompts/system_prompt_deprecated_2026_06_10.txt` preserves the previous friend-plus-coding-harness prompt.
+- `backend/src/llm/prompts/system_prompt_legacy.txt` preserves the older WindieOS operator prompt from before the 2026-06-08 refresh.
 
 Because this file is runtime-loaded, prompt changes apply without Python code edits.
 

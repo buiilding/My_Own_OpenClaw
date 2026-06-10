@@ -286,49 +286,43 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert (
-        "You are WindieOS, an assistant that has access to the desktop operating system."
-        in content
-    )
-    assert "## Personality" in content
-    assert "## Documentation" in content
+    assert "You are Windie, a computer-native AI companion." in content
+    assert "You are not just a chatbot and not just a coding agent." in content
+    assert "## Core Identity" in content
+    assert "## Computer Environment" in content
+    assert "## Work Modes" in content
+    assert "## Safety And Authority" in content
+    assert "Treat coding as one task mode, not the default personality." in content
+    assert "Respect applicable `AGENTS.md` instructions" in content
     assert "docs/docs.json" in content
     assert "docs/getting-started/docs_directory.md" in content
-    assert "docs/getting-started/docs_hub.md" in content
-    assert "./bin/docs-list" in content
-    assert "# AGENTS.md spec" in content
+    assert "bin/windie docs list" in content
     assert "Provided operating system:" not in content
     assert "Provided workspace:" not in content
-    assert "## Responsiveness" in content
-    assert "### Preamble messages" in content
-    assert "## Task execution" in content
-    assert "## Validating your work" in content
-    assert "## Ambition vs. precision" in content
-    assert "## Sharing progress updates" in content
-    assert "## Presenting your work and final message" in content
-    assert "### Final answer structure and style guidelines" in content
     assert (
-        "The scope of an AGENTS.md file is the entire directory tree rooted at the folder that contains it."
+        "Prefer keyboard shortcuts when they are reliable and the intended window is active."
         in content
     )
-    assert "Before making tool calls, send a brief preamble" in content
-    assert "Please keep going until the query is completely resolved" in content
-    assert "Use the `replace` tool to edit files." in content
     assert (
-        "Do not `git commit` your changes or create new git branches unless explicitly requested."
+        "Use the latest available screenshot when judging screen state."
         in content
     )
-    assert "Prefer keyboard shortcuts when they are reliable." in content
-    assert (
-        "Use the latest available screenshot included in the latest tool output."
-        in content
+    assert "## Browser-use tools" not in content
+    assert "You can basically do anything." not in content
+    assert "Please keep going until the query is completely resolved" not in content
+
+
+def test_previous_default_system_prompt_is_preserved_as_deprecated_snapshot():
+    prompt_file = (
+        Path(__file__).resolve().parents[2]
+        / "backend/src/llm/prompts/system_prompt_deprecated_2026_06_10.txt"
     )
-    assert "## Browser-use tools" in content
-    assert (
-        "Prefer `browser` when the target is a website and browser-native actions can solve it."
-        in content
-    )
-    assert "dedicated browser profile" in content
+    content = prompt_file.read_text(encoding="utf-8")
+
+    assert "Deprecated 2026-06-10" in content
+    assert "You are Windie, you are my friend." in content
+    assert "You can basically do anything." in content
+    assert "# AGENTS.md spec" in content
 
 
 def test_model_facing_system_prompt_includes_browser_scope_rules():
@@ -339,8 +333,6 @@ def test_model_facing_system_prompt_includes_browser_scope_rules():
     content = prompt_file.read_text(encoding="utf-8")
 
     assert "dedicated chrome browser profile" in content
-    assert "## Browser-use tools" in content
-    assert (
-        "Prefer `browser` when the target is a website and browser-native actions can solve it."
-        in content
-    )
+    assert "For browser tasks:" in content
+    assert "Prefer the `browser` tool when the target is a website" in content
+    assert "actions can solve it." in content

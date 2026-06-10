@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/prompts: replace the default model-facing prompt with a
+  computer-native Windie companion identity and preserve the previous active
+  prompt as a dated deprecated snapshot.
 - sdk/frontend: retain OpenAI-native `tool_progress` web-search rows in SDK
   display rows, map them to dashboard `search-source` messages, and synthesize a
   paired Windie `web_search` call/output during SDK rehydrate so later turns can
