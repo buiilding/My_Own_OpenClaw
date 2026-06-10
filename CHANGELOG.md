@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/startup: open the dashboard when durable hidden chat-pill intent
+  suppresses the normal startup pill request, so customer mode never starts with
+  no visible surface.
 - sdk/frontend: make desktop pass `autoSidecar` launch options to
   `WindieClient` so the SDK owns sidecar startup/reuse and JSON-RPC unwrapping,
   preventing chat and memory stores from seeing raw daemon envelopes.

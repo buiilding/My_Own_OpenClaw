@@ -18,6 +18,9 @@ import '../styles/CloneMemoryModels.css';
 import '../styles/FrontendOnboarding.css';
 import '../styles/accessibility.css';
 
+const CHAT_PILL_USER_HIDDEN_REASON = 'chat-pill-user-hidden';
+const STARTUP_DASHBOARD_FALLBACK_REASON = 'startup-chat-pill-hidden';
+
 function DashboardStartupSurface({
   config,
   availableModels,
@@ -80,12 +83,22 @@ function AppContent() {
           return;
         }
 
-        await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, {
+        const showChatboxResult = await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, {
           focus: true,
           reason: previousStartupSurface === 'onboarding'
             ? 'onboarding-complete'
             : 'startup',
         });
+        if (
+          previousStartupSurface !== 'onboarding'
+          && showChatboxResult?.suppressed === true
+          && showChatboxResult?.reason === CHAT_PILL_USER_HIDDEN_REASON
+        ) {
+          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+            focus: true,
+            reason: STARTUP_DASHBOARD_FALLBACK_REASON,
+          });
+        }
       } catch (error) {
         console.warn('[App] Failed to apply startup surface:', error);
       }

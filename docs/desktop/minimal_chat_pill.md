@@ -33,6 +33,9 @@ The chat pill is the small always-available desktop command surface. It is rende
 - Closing the pill is durable user intent. Generic lifecycle paths such as
   startup-surface reapply or app activation must not reopen it while that intent
   is set.
+- Normal desktop startup must still present a visible surface. If durable hidden
+  intent suppresses the startup pill request, startup opens the dashboard
+  instead of leaving the app with no visible surface.
 - Intentional summons such as wakeword detection, the global hotkey, and
   dashboard-close handoff may reopen the pill and clear the user-hidden intent.
 - Screenshot capture behavior differs by platform; Linux hides WindieOS overlays, Windows/macOS do not.

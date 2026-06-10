@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
 const mockWakewordController = jest.fn(() => null);
@@ -62,7 +62,8 @@ import App from '../../frontend/src/renderer/app/App';
 
 describe('App permission gate', () => {
   beforeEach(() => {
-    mockIpcInvoke.mockClear();
+    mockIpcInvoke.mockReset();
+    mockIpcInvoke.mockResolvedValue({ success: true });
     mockWakewordController.mockClear();
   });
 
@@ -96,6 +97,35 @@ describe('App permission gate', () => {
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', {
       focus: true,
       reason: 'startup',
+    });
+  });
+
+  test('shows the dashboard on startup when durable user intent suppresses the chat pill', async () => {
+    mockPermissionState.bootstrapped = true;
+    mockPermissionState.needsOnboarding = false;
+    mockPermissionState.onboardingState = { completed: true };
+    mockIpcInvoke.mockResolvedValueOnce({
+      success: true,
+      suppressed: true,
+      reason: 'chat-pill-user-hidden',
+    });
+
+    render(<App />);
+
+    expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:false');
+    await waitFor(() => {
+      expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
+        focus: true,
+        reason: 'startup-chat-pill-hidden',
+      });
+    });
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(1, 'show-chatbox', {
+      focus: true,
+      reason: 'startup',
+    });
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(2, 'show-main-window', {
+      focus: true,
+      reason: 'startup-chat-pill-hidden',
     });
   });
 
