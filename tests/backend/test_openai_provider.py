@@ -729,7 +729,10 @@ async def test_openai_responses_runtime_emits_error_for_empty_stream(
 
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
-    assert events[0].content == "OpenAI Responses stream ended without final response payload"
+    assert (
+        events[0].content
+        == "OpenAI Responses stream ended without final response payload"
+    )
     assert events[0].metadata == {
         "provider": "openai",
         "model": "gpt-5.4@@gpt-5-4-none-thinking",
@@ -781,7 +784,10 @@ async def test_openai_responses_runtime_logs_terminal_event_without_response(
 
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
-    assert events[0].content == "OpenAI Responses stream ended without final response payload"
+    assert (
+        events[0].content
+        == "OpenAI Responses stream ended without final response payload"
+    )
     assert events[0].metadata == {
         "provider": "openai",
         "model": "gpt-5.4@@gpt-5-4-none-thinking",
@@ -797,6 +803,69 @@ async def test_openai_responses_runtime_logs_terminal_event_without_response(
     assert "terminal_with_response=0" in caplog.text
     assert "terminal_without_response=1" in caplog.text
     assert "last_event_keys=response_id,sequence_number,type" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_logs_sanitized_failure_event_details(
+    monkeypatch,
+    caplog,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "error",
+            "code": "rate_limit_exceeded",
+            "message": "request failed with sk-sensitive-token",
+        }
+        yield {
+            "type": "response.failed",
+            "response": {
+                "id": "resp_failed",
+                "status": "failed",
+                "error": {
+                    "type": "server_error",
+                    "code": "upstream_failed",
+                    "param": "stream",
+                    "message": "upstream response stream closed early",
+                },
+            },
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+    caplog.set_level(
+        logging.WARNING,
+        logger="backend.src.llm.providers.openai_responses_runtime",
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert "event_types=error:1,response.failed:1" in caplog.text
+    assert "failure_events=type=error" in caplog.text
+    assert "event_code=rate_limit_exceeded" in caplog.text
+    assert "event_message=request failed with sk-<redacted>" in caplog.text
+    assert "type=response.failed" in caplog.text
+    assert "response_id=resp_failed" in caplog.text
+    assert "response_status=failed" in caplog.text
+    assert "response_error_type=server_error" in caplog.text
+    assert "response_error_code=upstream_failed" in caplog.text
+    assert "response_error_param=stream" in caplog.text
+    assert "response_error_message=upstream response stream closed early" in caplog.text
+    assert "sk-sensitive-token" not in caplog.text
 
 
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():
@@ -1047,12 +1116,14 @@ def test_openai_reasoning_config_requires_explicit_reasoning_metadata():
 
 
 def test_openai_reasoning_config_accepts_gpt_5_5_presets():
-    assert build_openai_reasoning_config(
-        "gpt-5.5@@gpt-5-5-none-thinking"
-    ) == {"effort": "none", "summary": "detailed"}
-    assert build_openai_reasoning_config(
-        "gpt-5.5@@gpt-5-5-extra-high-thinking"
-    ) == {"effort": "xhigh", "summary": "detailed"}
+    assert build_openai_reasoning_config("gpt-5.5@@gpt-5-5-none-thinking") == {
+        "effort": "none",
+        "summary": "detailed",
+    }
+    assert build_openai_reasoning_config("gpt-5.5@@gpt-5-5-extra-high-thinking") == {
+        "effort": "xhigh",
+        "summary": "detailed",
+    }
 
 
 @pytest.mark.asyncio

@@ -25,6 +25,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/shell: terminate the full POSIX shell process group for foreground
   timeouts and background `process kill` so child commands blocked behind OS
   prompts cannot hang tool execution past `terminate_after_seconds`.
+- backend/openai: include sanitized `error` and `response.failed` event details
+  in OpenAI Responses missing-final-payload logs so live provider aborts expose
+  status/code/message context without logging raw response payloads.
 
 ### Changed
 

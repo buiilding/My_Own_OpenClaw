@@ -140,7 +140,7 @@ Normalized payload nuance:
 - OpenAI Responses payloads can now persist `response_id` in addition to `content`, `tool_calls`, and `finish_reason`
 - this is the token-safe continuation anchor used for later `previous_response_id` tool-output turns
 - OpenAI Responses streaming may synthesize this payload from completed output items and function-call argument deltas when OpenAI omits the final `response.completed` or `response.incomplete` event
-- OpenAI Responses missing-final-payload fallback logs include sanitized stream counters and event-type summaries so production logs can distinguish empty streams, terminal events without a response object, reasoning-only streams, text-delta recovery, and output-item recovery without logging raw response content
+- OpenAI Responses missing-final-payload fallback logs include sanitized stream counters, event-type summaries, and bounded failure summaries for upstream `error` or `response.failed` events so production logs can distinguish empty streams, terminal events without a response object, reasoning-only streams, text-delta recovery, output-item recovery, and provider failure reasons without logging raw response content
 
 Implementation note:
 

@@ -49,6 +49,10 @@ _WEB_SEARCH_PROGRESS_EVENT_TYPES = {
 }
 _COMPLETED_EVENT_TYPE = "response.completed"
 _INCOMPLETE_EVENT_TYPE = "response.incomplete"
+_FAILED_EVENT_TYPE = "response.failed"
+_ERROR_EVENT_TYPE = "error"
+_MAX_FAILURE_EVENT_SUMMARIES = 3
+_MAX_FAILURE_FIELD_CHARS = 180
 logger = logging.getLogger(__name__)
 
 
@@ -387,6 +391,7 @@ class _ResponsesStreamDiagnostics:
         self.function_arguments_delta_events = 0
         self.function_arguments_done_events = 0
         self.web_search_events = 0
+        self.failure_event_summaries: List[str] = []
 
     def record_event(self, event: Any) -> None:
         event_type = normalize_openai_stream_event_type(event) or "<missing>"
@@ -418,6 +423,9 @@ class _ResponsesStreamDiagnostics:
         elif event_type in _WEB_SEARCH_PROGRESS_EVENT_TYPES:
             self.web_search_events += 1
 
+        if self._should_capture_failure_event(event, event_type):
+            self._append_failure_event_summary(event, event_type)
+
     def event_type_summary(self) -> str:
         if not self.event_type_counts:
             return "<none>"
@@ -425,6 +433,29 @@ class _ResponsesStreamDiagnostics:
             f"{event_type}:{count}"
             for event_type, count in sorted(self.event_type_counts.items())
         )
+
+    def failure_event_summary(self) -> str:
+        if not self.failure_event_summaries:
+            return "<none>"
+        return " | ".join(self.failure_event_summaries)
+
+    def _append_failure_event_summary(self, event: Any, event_type: str) -> None:
+        if len(self.failure_event_summaries) >= _MAX_FAILURE_EVENT_SUMMARIES:
+            return
+        summary = _build_failure_event_summary(event, event_type)
+        if summary:
+            self.failure_event_summaries.append(summary)
+
+    @staticmethod
+    def _should_capture_failure_event(event: Any, event_type: str) -> bool:
+        if event_type in {_ERROR_EVENT_TYPE, _FAILED_EVENT_TYPE}:
+            return True
+        if get_value(event, "error") is not None:
+            return True
+        response = get_value(event, "response")
+        if response is None:
+            return False
+        return get_value(response, "error") is not None
 
     @staticmethod
     def _extract_event_keys(event: Any) -> List[str]:
@@ -434,6 +465,78 @@ class _ResponsesStreamDiagnostics:
         if isinstance(raw, dict):
             return sorted(str(key) for key in raw.keys())[:12]
         return []
+
+
+def _safe_log_field(
+    value: Any, *, max_chars: int = _MAX_FAILURE_FIELD_CHARS
+) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        text = str(value).lower()
+    elif isinstance(value, (int, float)):
+        text = str(value)
+    elif isinstance(value, str):
+        text = " ".join(value.split()).strip()
+    else:
+        return f"<{type(value).__name__}>"
+    if not text:
+        return None
+    for marker in ("sk-", "Bearer "):
+        marker_index = text.find(marker)
+        if marker_index >= 0:
+            text = f"{text[:marker_index]}{marker}<redacted>"
+            break
+    if len(text) > max_chars:
+        return f"{text[: max_chars - 3].rstrip()}..."
+    return text
+
+
+def _append_failure_field(parts: List[str], name: str, value: Any) -> None:
+    normalized = _safe_log_field(value)
+    if normalized is not None:
+        parts.append(f"{name}={normalized}")
+
+
+def _build_failure_event_summary(event: Any, event_type: str) -> str:
+    response = get_value(event, "response")
+    event_error = get_value(event, "error")
+    response_error = get_value(response, "error") if response is not None else None
+    incomplete_details = (
+        get_value(response, "incomplete_details") if response is not None else None
+    )
+    error_payload = response_error if response_error is not None else event_error
+
+    parts: List[str] = [f"type={event_type}"]
+    _append_failure_field(parts, "event_code", get_value(event, "code"))
+    _append_failure_field(parts, "event_status", get_value(event, "status"))
+    _append_failure_field(parts, "event_message", get_value(event, "message"))
+    _append_failure_field(parts, "response_id", _maybe_extract_response_id(event))
+    _append_failure_field(parts, "response_status", get_value(response, "status"))
+    _append_failure_field(
+        parts, "response_error_type", get_value(response_error, "type")
+    )
+    _append_failure_field(
+        parts, "response_error_code", get_value(response_error, "code")
+    )
+    _append_failure_field(
+        parts, "response_error_param", get_value(response_error, "param")
+    )
+    _append_failure_field(
+        parts,
+        "response_error_message",
+        get_value(response_error, "message"),
+    )
+    _append_failure_field(parts, "error_type", get_value(event_error, "type"))
+    _append_failure_field(parts, "error_code", get_value(event_error, "code"))
+    _append_failure_field(parts, "error_param", get_value(event_error, "param"))
+    _append_failure_field(parts, "error_message", get_value(error_payload, "message"))
+    _append_failure_field(
+        parts,
+        "incomplete_reason",
+        get_value(incomplete_details, "reason"),
+    )
+    return ";".join(parts)
 
 
 def _log_missing_final_payload_fallback(
@@ -454,7 +557,8 @@ def _log_missing_final_payload_fallback(
         "output_item_added_events=%s output_item_done_events=%s "
         "function_arguments_delta_events=%s function_arguments_done_events=%s "
         "web_search_events=%s accumulated_text_chars=%s saw_stream_content=%s "
-        "completed_output_items=%s pending_output_items=%s last_event_keys=%s",
+        "completed_output_items=%s pending_output_items=%s last_event_keys=%s "
+        "failure_events=%s",
         fallback,
         model,
         response_id,
@@ -480,6 +584,7 @@ def _log_missing_final_payload_fallback(
             if diagnostics.last_event_keys
             else "<none>"
         ),
+        diagnostics.failure_event_summary(),
     )
 
 
