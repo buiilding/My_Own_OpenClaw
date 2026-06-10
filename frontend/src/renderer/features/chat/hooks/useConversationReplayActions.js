@@ -45,6 +45,43 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   return conversationRef;
 }
 
+function stringArrayPayloadField(payload, ...keys) {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+  for (const key of keys) {
+    const value = payload[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    const normalized = value
+      .filter((entry) => typeof entry === 'string' && entry.trim().length > 0)
+      .map((entry) => entry.trim());
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
+function buildReplayPayload({
+  screenshotRef,
+  screenshotUrl,
+  screenshot,
+}) {
+  const payload = {};
+  if (screenshotRef) {
+    payload.screenshot_ref = screenshotRef;
+  }
+  if (screenshotUrl) {
+    payload.screenshot_url = screenshotUrl;
+  }
+  if (screenshot) {
+    payload.screenshot = screenshot;
+  }
+  return payload;
+}
+
 function buildPreparedReplayDesktopChatTurn({
   preparedReplayTurn,
   conversationRef,
@@ -57,7 +94,11 @@ function buildPreparedReplayDesktopChatTurn({
 }) {
   const replayTurnRef = preparedReplayTurn.turnRef || crypto.randomUUID();
   return {
-    attachmentFilenames: null,
+    attachmentFilenames: stringArrayPayloadField(
+      preparedReplayTurn.payload,
+      'attachment_filenames',
+      'attachmentFilenames',
+    ),
     conversationRef: preparedReplayTurn.conversationRef || conversationRef,
     deferredQueryModelSelection: null,
     metadata: null,
@@ -139,12 +180,7 @@ async function executeReplayAction({
       messageId,
       userMessageOrdinal,
       text: queryText,
-      payload: {
-        screenshot_ref: screenshotRef || null,
-        screenshot_url: screenshotUrl || null,
-        screenshot_refs: null,
-        screenshot: screenshot || null,
-      },
+      payload: buildReplayPayload({ screenshotRef, screenshotUrl, screenshot }),
       model: deferredQueryModelSelection || null,
       workspacePath: workspaceBinding.workspacePath || null,
     };

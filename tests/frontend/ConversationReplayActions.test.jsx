@@ -194,12 +194,9 @@ describe('useConversationReplayActions', () => {
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       userMessageOrdinal: 0,
-      payload: expect.objectContaining({
-        screenshot_ref: null,
-        screenshot_url: null,
-        screenshot_refs: null,
+      payload: {
         screenshot: inlineScreenshot,
-      }),
+      },
     }));
     expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
@@ -283,17 +280,60 @@ describe('useConversationReplayActions', () => {
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       userMessageOrdinal: 0,
-      payload: expect.objectContaining({
+      payload: {
         screenshot_ref: 'artifact-99',
         screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
-        screenshot_refs: null,
-        screenshot: null,
-      }),
+      },
     }));
     expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRef: 'artifact-99',
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
+    }));
+  });
+
+  test('retry replay dispatches prepared multi-image refs and attachment filenames', async () => {
+    mockPrepareRetryTurn.mockImplementation(async (input) => ({
+      conversationRef: input.conversationRef,
+      text: input.text,
+      payload: {
+        ...input.payload,
+        screenshot_refs: ['artifact-1', 'artifact-2'],
+        attachment_filenames: ['one.png', 'two.png'],
+      },
+      model: input.model,
+      workspacePath: input.workspacePath,
+      turnRef: null,
+    }));
+    const messages = [
+      {
+        id: 'user-multi-image',
+        sender: 'user',
+        text: 'question with two images',
+      },
+      {
+        id: 'assistant-multi-image',
+        sender: 'assistant',
+        text: 'answer',
+      },
+    ];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-multi-image');
+    });
+
+    expect(mockPrepareRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      screenshotRefs: ['artifact-1', 'artifact-2'],
+      attachmentFilenames: ['one.png', 'two.png'],
     }));
   });
 

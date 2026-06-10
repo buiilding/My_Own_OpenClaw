@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend: preserve same-turn resolved resource metadata during
+  edit/resend and retry so multi-image user turns resend with all image refs
+  instead of being collapsed by renderer screenshot fallbacks.
 - backend/prompts: keep artifact-backed user image attachments as refs until
   provider prompt construction, then resolve, resize/compress, and validate
   images separately from text so multi-image turns are not rejected by the

@@ -193,7 +193,25 @@ function bundleToolCallContentFromPayload(payload) {
         tool_calls: toolCallsFromPayload(payload) ?? [],
     };
 }
+function stringArrayField(record, ...keys) {
+    for (const key of keys) {
+        const value = record[key];
+        if (!Array.isArray(value)) {
+            continue;
+        }
+        const normalized = value
+            .filter((entry) => typeof entry === 'string' && entry.trim().length > 0)
+            .map(entry => entry.trim());
+        if (normalized.length > 0) {
+            return normalized;
+        }
+    }
+    return null;
+}
 function displayRowMetadata(event) {
+    const screenshotRef = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref');
+    const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
+        ?? (screenshotRef ? [screenshotRef] : null);
     return {
         eventId: event.eventId,
         source: event.source,
@@ -204,8 +222,9 @@ function displayRowMetadata(event) {
         correlationId: (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId', 'correlation_id'),
         bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id'),
         toolCallId: (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id'),
-        screenshotRef: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref'),
+        screenshotRef,
         screenshotUrl: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url'),
+        screenshotRefs,
         modelId: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelId', 'model_id'),
         modelProvider: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelProvider', 'model_provider'),
         raw: event.payload,

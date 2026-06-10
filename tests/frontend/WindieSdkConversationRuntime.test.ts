@@ -5081,6 +5081,65 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('prepareEditAndResend preserves same-turn resolved image metadata', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-edit',
+        turnRef: 'turn-original',
+        payload: { text: 'old text' },
+      }),
+      createConversationEvent({
+        type: 'user_message_metadata',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-edit-metadata',
+        turnRef: 'turn-original',
+        payload: {
+          text: 'old text',
+          screenshot_ref: 'artifact-one',
+          screenshot_refs: ['artifact-one', 'artifact-two'],
+          attachment_filenames: ['one.png', 'two.png'],
+        },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-stale',
+        turnRef: 'turn-original',
+        payload: { text: 'stale answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport(),
+    });
+
+    await runtime.load();
+    const prepared = await runtime.prepareEditAndResend({
+      messageId: 'user-edit',
+      text: 'new text',
+      payload: {
+        screenshot_ref: null,
+        screenshot_refs: null,
+      },
+    });
+
+    expect(prepared.payload).toEqual(expect.objectContaining({
+      screenshot_ref: 'artifact-one',
+      screenshot_refs: ['artifact-one', 'artifact-two'],
+      attachment_filenames: ['one.png', 'two.png'],
+    }));
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('user-edit-metadata');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
+  });
+
   test('prepareEditAndResend can locate legacy renderer messages by user ordinal', async () => {
     const store = new InMemoryConversationStore();
     await store.appendEvents([
@@ -5171,6 +5230,64 @@ describe('Windie SDK conversation runtime core', () => {
       turnRef: 'turn-retry',
     }));
     const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
+  });
+
+  test('prepareRetryTurn preserves same-turn resolved image metadata', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-retry',
+        turnRef: 'turn-original',
+        payload: { text: 'try this again' },
+      }),
+      createConversationEvent({
+        type: 'user_message_metadata',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-retry-metadata',
+        turnRef: 'turn-original',
+        payload: {
+          text: 'try this again',
+          screenshot_refs: ['artifact-one', 'artifact-two'],
+          attachment_filenames: ['one.png', 'two.png'],
+        },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-retry',
+        turnRef: 'turn-original',
+        payload: { text: 'bad answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport(),
+    });
+
+    await runtime.load();
+    const prepared = await runtime.prepareRetryTurn({
+      messageId: 'assistant-retry',
+      payload: {
+        screenshot_refs: null,
+      },
+    });
+
+    expect(prepared).toEqual(expect.objectContaining({
+      text: 'try this again',
+      payload: expect.objectContaining({
+        screenshot_refs: ['artifact-one', 'artifact-two'],
+        attachment_filenames: ['one.png', 'two.png'],
+      }),
+    }));
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('user-retry-metadata');
     expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
   });
 

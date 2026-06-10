@@ -431,6 +431,15 @@ The old revision remains valid until the rewrite commits. The SDK does not
 delete display rows and then reconstruct backend history through a separate
 lossy path.
 
+Replay preparation reconstructs the target user turn from the normalized event
+ledger before cutting the revision. It merges the base `user_message` with
+same-turn `user_message_metadata`, so resolved resources such as
+`screenshot_refs` and `attachment_filenames` survive edit/resend and retry even
+when the visible row was produced by display projection metadata merging.
+Renderer replay payloads are preserve-by-default: absent or null attachment
+fields must not erase prior resolved resources without an explicit removal
+operation.
+
 Desktop edit/resend and try-again seed the current visible projection into the
 desktop conversation store adapter, then call `SdkConversationRuntime.editAndResend`
 or `SdkConversationRuntime.retryTurn`. The renderer hook may identify which

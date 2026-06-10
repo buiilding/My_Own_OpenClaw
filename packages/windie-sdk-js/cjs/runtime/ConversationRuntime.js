@@ -44,6 +44,46 @@ function findUserEventIndexByOrdinal(events, userMessageOrdinal) {
     }
     return -1;
 }
+function resolvedUserTurnPayload(events, userIndex) {
+    const userEvent = events[userIndex];
+    if (!userEvent || userEvent.type !== 'user_message') {
+        return {};
+    }
+    const payload = { ...userEvent.payload };
+    const turnRef = userEvent.turnRef;
+    for (let index = userIndex + 1; index < events.length; index += 1) {
+        const event = events[index];
+        if (!event || event.type === 'user_message') {
+            break;
+        }
+        if (event.type !== 'user_message_metadata') {
+            continue;
+        }
+        if (turnRef) {
+            if (event.turnRef !== turnRef) {
+                continue;
+            }
+        }
+        else if (event.turnRef) {
+            continue;
+        }
+        Object.assign(payload, event.payload);
+    }
+    return payload;
+}
+function mergeReplayPayload(resolvedPayload, overridePayload) {
+    const payload = { ...resolvedPayload };
+    if (!overridePayload) {
+        return payload;
+    }
+    for (const [key, value] of Object.entries(overridePayload)) {
+        if (value === null || value === undefined) {
+            continue;
+        }
+        payload[key] = value;
+    }
+    return payload;
+}
 function isTerminalConversationEvent(event) {
     return event.type === 'turn_completed'
         || event.type === 'turn_stopped'
@@ -368,6 +408,8 @@ class SdkConversationRuntime {
         if (userIndex < 0) {
             throw new Error(`Cannot edit missing user message: ${input.messageId}`);
         }
+        const replayPayload = mergeReplayPayload(resolvedUserTurnPayload(events, userIndex), input.payload);
+        replayPayload.text = normalizedText;
         await this.rewriteToRevision({
             events,
             preservedEvents: events.slice(0, userIndex),
@@ -380,10 +422,7 @@ class SdkConversationRuntime {
             text: normalizedText,
             turnRef: input.turnRef,
             model: input.model,
-            payload: {
-                ...events[userIndex].payload,
-                ...(input.payload ?? {}),
-            },
+            payload: replayPayload,
         };
     }
     async retryTurn(input = {}) {
@@ -413,6 +452,8 @@ class SdkConversationRuntime {
         if (!retryText.trim()) {
             throw new Error('Cannot retry a user message with empty text');
         }
+        const replayPayload = mergeReplayPayload(resolvedUserTurnPayload(events, userIndex), input.payload);
+        replayPayload.text = retryText;
         await this.rewriteToRevision({
             events,
             preservedEvents: events.slice(0, userIndex),
@@ -425,10 +466,7 @@ class SdkConversationRuntime {
             text: retryText,
             turnRef: input.turnRef,
             model: input.model,
-            payload: {
-                ...events[userIndex].payload,
-                ...(input.payload ?? {}),
-            },
+            payload: replayPayload,
         };
     }
     async stop(turnRef = this.state.activeTurnRef ?? null) {
