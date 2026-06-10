@@ -8,8 +8,7 @@ title: "Path Trace Runtime Report"
 
 # Path Trace Runtime Report
 
-Status: implemented and validated; commit pending because the worktree contains
-unrelated pre-existing dirty changes.
+Status: implemented, validated, and committed.
 
 Plan: [Path Trace Runtime Plan](2026-06-10-path-trace-runtime-plan.md)
 
@@ -114,8 +113,8 @@ Implement the first coherent slice:
 
 None for the implemented trace slice. The worktree contains unrelated
 pre-existing dirty docs/frontend/generated changes; they were not reverted.
-Because several touched docs already had unrelated edits in the same files, a
-default commit is unsafe without hunk-level staging review.
+Mixed docs files were committed with hunk-level staging so unrelated path
+cleanup edits remained outside this trace commit.
 
 ## Deviations
 
@@ -128,4 +127,4 @@ default commit is unsafe without hunk-level staging review.
 
 ## Commits
 
-Pending.
+- `ec46a4eec feat(sdk): add durable path trace events`
