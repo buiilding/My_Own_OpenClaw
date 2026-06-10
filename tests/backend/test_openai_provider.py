@@ -867,6 +867,155 @@ async def test_openai_responses_runtime_logs_sanitized_failure_event_details(
     assert "response_error_message=upstream response stream closed early" in caplog.text
     assert "sk-sensitive-token" not in caplog.text
 
+    event = events[0]
+    assert event.content == "upstream response stream closed early"
+    assert event.metadata is not None
+    assert event.metadata["error_kind"] == "server_error"
+    assert event.metadata["retryable"] is True
+    assert event.metadata["transient"] is True
+    assert event.metadata["provider_error_code"] == "upstream_failed"
+    assert event.metadata["response_event_type"] == "response.failed"
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_classifies_rate_limit_failure(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.failed",
+            "response": {
+                "id": "resp_rate_limited",
+                "status": "failed",
+                "error": {
+                    "code": "rate_limit_exceeded",
+                    "message": "Rate limit reached. Please try again in 11.054s.",
+                },
+            },
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert events[0].metadata is not None
+    assert events[0].metadata["error_kind"] == "rate_limit"
+    assert events[0].metadata["retryable"] is True
+    assert events[0].metadata["transient"] is True
+    assert events[0].metadata["retry_after_seconds"] == pytest.approx(11.054)
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_classifies_context_length_failure(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.failed",
+            "response": {
+                "id": "resp_context",
+                "status": "failed",
+                "error": {
+                    "code": "context_length_exceeded",
+                    "message": "Your input exceeds the context window.",
+                },
+            },
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert events[0].content.startswith("context_length_exceeded:")
+    assert events[0].metadata is not None
+    assert events[0].metadata["error_kind"] == "context_overflow"
+    assert events[0].metadata["retryable"] is False
+    assert events[0].metadata["transient"] is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("code", "message", "error_kind"),
+    [
+        ("insufficient_quota", "You exceeded your current quota.", "quota"),
+        ("invalid_api_key", "Invalid API key.", "auth"),
+        ("invalid_prompt", "Invalid prompt.", "invalid_request"),
+    ],
+)
+async def test_openai_responses_runtime_classifies_fatal_failures(
+    code,
+    message,
+    error_kind,
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.failed",
+            "response": {
+                "id": "resp_fatal",
+                "status": "failed",
+                "error": {"code": code, "message": message},
+            },
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert events[0].content == message
+    assert events[0].metadata is not None
+    assert events[0].metadata["error_kind"] == error_kind
+    assert events[0].metadata["retryable"] is False
+    assert events[0].metadata["transient"] is False
+
 
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():
     provider = OpenAIProvider(api_key="test-key")

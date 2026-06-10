@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import re
+from dataclasses import dataclass
 from typing import Any, AsyncGenerator, Dict, List, Optional
 from urllib.parse import urlsplit
 
@@ -53,7 +55,27 @@ _FAILED_EVENT_TYPE = "response.failed"
 _ERROR_EVENT_TYPE = "error"
 _MAX_FAILURE_EVENT_SUMMARIES = 3
 _MAX_FAILURE_FIELD_CHARS = 180
+_HTTP_STATUS_RE = re.compile(r"\b(?:HTTP\s*)?([45]\d{2})\b", re.IGNORECASE)
+_RATE_LIMIT_RETRY_RE = re.compile(
+    r"(?:try again|retry)\s+in\s+([0-9]+(?:\.[0-9]+)?)\s*(ms|milliseconds?|s|sec|secs|seconds?|m|mins?|minutes?)",
+    re.IGNORECASE,
+)
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class _ResponsesFailureDetails:
+    """Structured upstream failure captured from Responses stream events."""
+
+    event_type: str
+    response_id: Optional[str]
+    response_status: Optional[str]
+    error_type: Optional[str]
+    error_code: Optional[str]
+    error_param: Optional[str]
+    error_message: Optional[str]
+    status_code: Optional[int]
+    retry_after_seconds: Optional[float]
 
 
 def _build_reasoning_responses_params(
@@ -392,6 +414,7 @@ class _ResponsesStreamDiagnostics:
         self.function_arguments_done_events = 0
         self.web_search_events = 0
         self.failure_event_summaries: List[str] = []
+        self.failure_details: Optional[_ResponsesFailureDetails] = None
 
     def record_event(self, event: Any) -> None:
         event_type = normalize_openai_stream_event_type(event) or "<missing>"
@@ -425,6 +448,7 @@ class _ResponsesStreamDiagnostics:
 
         if self._should_capture_failure_event(event, event_type):
             self._append_failure_event_summary(event, event_type)
+            self._record_failure_details(event, event_type)
 
     def event_type_summary(self) -> str:
         if not self.event_type_counts:
@@ -445,6 +469,15 @@ class _ResponsesStreamDiagnostics:
         summary = _build_failure_event_summary(event, event_type)
         if summary:
             self.failure_event_summaries.append(summary)
+
+    def _record_failure_details(self, event: Any, event_type: str) -> None:
+        details = _extract_failure_details(event, event_type)
+        if details is None:
+            return
+        if self.failure_details is None or _failure_details_priority(
+            details
+        ) >= _failure_details_priority(self.failure_details):
+            self.failure_details = details
 
     @staticmethod
     def _should_capture_failure_event(event: Any, event_type: str) -> bool:
@@ -537,6 +570,231 @@ def _build_failure_event_summary(event: Any, event_type: str) -> str:
         get_value(incomplete_details, "reason"),
     )
     return ";".join(parts)
+
+
+def _extract_failure_details(
+    event: Any,
+    event_type: str,
+) -> Optional[_ResponsesFailureDetails]:
+    response = get_value(event, "response")
+    response_error = get_value(response, "error") if response is not None else None
+    event_error = get_value(event, "error")
+    error_payload = response_error if response_error is not None else event_error
+    if error_payload is None and event_type == _ERROR_EVENT_TYPE:
+        error_payload = event
+
+    if error_payload is None:
+        return None
+
+    error_message = _safe_log_field(get_value(error_payload, "message"))
+    if error_message is None:
+        error_message = _safe_log_field(get_value(event, "message"))
+
+    error_code = _safe_log_field(get_value(error_payload, "code"))
+    if error_code is None:
+        error_code = _safe_log_field(get_value(event, "code"))
+
+    error_type = _safe_log_field(get_value(error_payload, "type"))
+    if error_type is None:
+        error_type = _safe_log_field(get_value(event, "type"))
+
+    status_code = _extract_failure_status_code(
+        get_value(error_payload, "status_code"),
+        get_value(response, "status"),
+        get_value(event, "status"),
+        error_code,
+        error_message,
+    )
+
+    return _ResponsesFailureDetails(
+        event_type=event_type,
+        response_id=_maybe_extract_response_id(event),
+        response_status=_safe_log_field(get_value(response, "status")),
+        error_type=error_type,
+        error_code=error_code,
+        error_param=_safe_log_field(get_value(error_payload, "param")),
+        error_message=error_message,
+        status_code=status_code,
+        retry_after_seconds=_extract_retry_after_seconds(error_payload, event),
+    )
+
+
+def _failure_details_priority(details: _ResponsesFailureDetails) -> int:
+    if details.event_type == _FAILED_EVENT_TYPE and details.error_code:
+        return 4
+    if details.event_type == _FAILED_EVENT_TYPE:
+        return 3
+    if details.error_code or details.error_message:
+        return 2
+    return 1
+
+
+def _extract_failure_status_code(*values: Any) -> Optional[int]:
+    for value in values:
+        if isinstance(value, int) and 400 <= value <= 599:
+            return value
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.isdigit():
+                parsed = int(stripped)
+                if 400 <= parsed <= 599:
+                    return parsed
+            match = _HTTP_STATUS_RE.search(stripped)
+            if match:
+                return int(match.group(1))
+    return None
+
+
+def _coerce_retry_after_seconds(value: Any) -> Optional[float]:
+    if isinstance(value, (int, float)) and value >= 0:
+        return float(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return None
+        try:
+            parsed = float(stripped)
+            if parsed >= 0:
+                return parsed
+        except ValueError:
+            pass
+    return None
+
+
+def _extract_retry_after_seconds(*payloads: Any) -> Optional[float]:
+    for payload in payloads:
+        for key in ("retry_after_seconds", "retry_after", "retry-after"):
+            delay = _coerce_retry_after_seconds(get_value(payload, key))
+            if delay is not None:
+                return delay
+
+        message = get_value(payload, "message")
+        if not isinstance(message, str):
+            continue
+        match = _RATE_LIMIT_RETRY_RE.search(message)
+        if match is None:
+            continue
+        value = float(match.group(1))
+        unit = match.group(2).lower()
+        if unit.startswith("ms") or unit.startswith("millisecond"):
+            return value / 1000
+        if unit.startswith("m") and not unit.startswith("ms"):
+            return value * 60
+        return value
+    return None
+
+
+def _failure_code(details: _ResponsesFailureDetails) -> str:
+    return str(details.error_code or "").strip().lower()
+
+
+def _failure_type(details: _ResponsesFailureDetails) -> str:
+    return str(details.error_type or "").strip().lower()
+
+
+def _failure_message(details: _ResponsesFailureDetails) -> str:
+    return str(details.error_message or "").strip()
+
+
+def _looks_like_server_or_transport_failure(details: _ResponsesFailureDetails) -> bool:
+    code = _failure_code(details)
+    error_type = _failure_type(details)
+    message = _failure_message(details).lower()
+    return (
+        details.status_code in {502, 503, 504}
+        or (details.status_code is not None and 500 <= details.status_code <= 599)
+        or error_type in {"server_error", "api_error"}
+        or code
+        in {
+            "server_error",
+            "upstream_failed",
+            "temporarily_unavailable",
+            "service_unavailable",
+            "server_is_overloaded",
+            "slow_down",
+            "timeout",
+            "gateway_timeout",
+        }
+        or any(
+            marker in message
+            for marker in (
+                "upstream",
+                "server error",
+                "temporarily unavailable",
+                "timed out",
+                "timeout",
+                "connection reset",
+                "stream closed early",
+            )
+        )
+    )
+
+
+def _build_failure_error_event(
+    *,
+    model: str,
+    fallback_response_id: Optional[str],
+    details: _ResponsesFailureDetails,
+) -> ErrorEvent:
+    code = _failure_code(details)
+    error_type = _failure_type(details)
+    message = _failure_message(details)
+    response_id = details.response_id or fallback_response_id
+
+    error_kind = "provider_error"
+    retryable = False
+    transient = False
+    content = message or OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE
+
+    if code == "context_length_exceeded":
+        error_kind = "context_overflow"
+        content = (
+            f"context_length_exceeded: {message or 'maximum context length exceeded'}"
+        )
+    elif code in {"insufficient_quota", "quota_exceeded"}:
+        error_kind = "quota"
+        content = (
+            message or "OpenAI quota exceeded. Check your plan and billing details."
+        )
+    elif code in {"invalid_prompt", "invalid_request_error", "invalid_request"}:
+        error_kind = "invalid_request"
+        content = message or "OpenAI rejected the request as invalid."
+    elif code in {"cyber_policy", "content_policy", "policy_violation"}:
+        error_kind = "policy"
+        content = message or "OpenAI rejected the request for policy reasons."
+    elif code in {"authentication_error", "invalid_api_key", "unauthorized"}:
+        error_kind = "auth"
+        content = message or "OpenAI authentication failed."
+    elif code == "rate_limit_exceeded":
+        error_kind = "rate_limit"
+        retryable = True
+        transient = True
+        content = message or "OpenAI rate limit exceeded. Retrying shortly."
+    elif _looks_like_server_or_transport_failure(details):
+        error_kind = "server_error"
+        retryable = True
+        transient = True
+        content = message or "OpenAI upstream service failed before completion."
+
+    metadata: Dict[str, Any] = {
+        "provider": "openai",
+        "model": model,
+        "response_id": response_id,
+        "response_status": details.response_status,
+        "response_event_type": details.event_type,
+        "provider_error_type": details.error_type,
+        "provider_error_code": details.error_code,
+        "provider_error_param": details.error_param,
+        "provider_error_message": details.error_message,
+        "status_code": details.status_code,
+        "error_kind": error_kind,
+        "retryable": retryable,
+        "transient": transient,
+    }
+    if details.retry_after_seconds is not None:
+        metadata["retry_after_seconds"] = details.retry_after_seconds
+
+    return ErrorEvent(content=content, metadata=metadata)
 
 
 def _log_missing_final_payload_fallback(
@@ -973,6 +1231,13 @@ async def stream_openai_responses_events(
             saw_stream_content=saw_stream_content,
             output_accumulator=output_accumulator,
         )
+        if diagnostics.failure_details is not None:
+            yield _build_failure_error_event(
+                model=model,
+                fallback_response_id=last_response_id,
+                details=diagnostics.failure_details,
+            )
+            return
         yield ErrorEvent(
             content=OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE,
             metadata={

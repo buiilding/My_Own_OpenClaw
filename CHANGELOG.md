@@ -28,6 +28,10 @@ All notable changes to WindieOS will be documented in this file.
 - backend/openai: include sanitized `error` and `response.failed` event details
   in OpenAI Responses missing-final-payload logs so live provider aborts expose
   status/code/message context without logging raw response payloads.
+- backend/openai: classify OpenAI Responses `response.failed` stream errors so
+  rate-limit and upstream server failures can retry before visible output while
+  true context-window failures route to compaction recovery instead of a generic
+  empty-stream abort.
 
 ### Changed
 

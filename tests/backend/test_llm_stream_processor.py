@@ -298,6 +298,38 @@ class _Transient503AlwaysLLMClient:
         return None
 
 
+class _RateLimitRetryAfterThenSuccessLLMClient:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        if self.calls == 1:
+            yield ErrorEvent(
+                content="Rate limit reached. Please try again in 1.25s.",
+                metadata={
+                    "provider": "openai",
+                    "error_kind": "rate_limit",
+                    "retryable": True,
+                    "transient": True,
+                    "retry_after_seconds": 1.25,
+                },
+            )
+            return
+        yield ChunkEvent(content="rate-limit-retry-success")
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
 class _ChunkThenTransient503LLMClient:
     def __init__(self):
         self.calls = 0
@@ -865,7 +897,35 @@ async def test_retries_pre_output_transient_stream_error_once(monkeypatch, caplo
         isinstance(event, ChunkEvent) and event.content == "retry-success"
         for event in events
     )
-    assert "[LLM Retry] retrying transient provider error" in caplog.text
+    assert "[LLM Retry] Reconnecting... 1/2" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_retries_pre_output_rate_limit_with_provider_delay(monkeypatch, caplog):
+    _patch_fake_token_service(monkeypatch)
+    slept = []
+
+    async def fake_sleep(delay):
+        slept.append(delay)
+
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.asyncio.sleep",
+        fake_sleep,
+    )
+    llm_client = _RateLimitRetryAfterThenSuccessLLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+    caplog.set_level(logging.WARNING)
+
+    events = await _collect_response_events(processor)
+
+    assert llm_client.calls == 2
+    assert slept == [1.25]
+    assert not any(isinstance(event, ErrorEvent) for event in events)
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "rate-limit-retry-success"
+        for event in events
+    )
+    assert "[LLM Retry] Reconnecting... 1/2" in caplog.text
 
 
 @pytest.mark.asyncio

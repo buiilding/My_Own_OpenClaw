@@ -337,13 +337,13 @@ class LLMStreamProcessor:
             error_event.metadata if isinstance(error_event.metadata, dict) else {}
         )
         logger.warning(
-            "[LLM Retry] retrying transient provider error provider=%s status=%s kind=%s reason=%s attempt=%s/%s delay=%.2fs",
+            "[LLM Retry] Reconnecting... %s/%s after transient provider error provider=%s status=%s kind=%s reason=%s delay=%.2fs",
+            attempt,
+            MAX_PROVIDER_SAMPLING_ATTEMPTS,
             metadata.get("provider"),
             metadata.get("status_code"),
             metadata.get("error_kind"),
             retry_reason,
-            attempt,
-            MAX_PROVIDER_SAMPLING_ATTEMPTS,
             delay_seconds,
         )
         await asyncio.sleep(delay_seconds)

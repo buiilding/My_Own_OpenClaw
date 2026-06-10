@@ -75,11 +75,14 @@ Provider wrappers attach normalized fields to `ErrorEvent.metadata`:
 - `transient`
 - `retry_after_seconds`
 
-`429` stays on the rate-limit path, context overflow stays on the compaction
-recovery path, and recoverable tool-call format failures stay on the synthetic
-tool-output correction path. If a retry succeeds, downstream consumers see the
-normal successful stream. If retries are exhausted, `InteractionLoop` sees one
-terminal error event and preserves its existing failure semantics.
+OpenAI Responses `rate_limit_exceeded` stream failures may retry when provider
+metadata marks them retryable and no downstream-visible output has been emitted;
+provider retry-delay hints are honored when present. Context overflow stays on
+the compaction recovery path, and recoverable tool-call format failures stay on
+the synthetic tool-output correction path. If a retry succeeds, downstream
+consumers see the normal successful stream. If retries are exhausted,
+`InteractionLoop` sees one terminal error event and preserves its existing
+failure semantics.
 
 ## Stream vs Native Completion Branching
 
@@ -141,6 +144,7 @@ Normalized payload nuance:
 - this is the token-safe continuation anchor used for later `previous_response_id` tool-output turns
 - OpenAI Responses streaming may synthesize this payload from completed output items and function-call argument deltas when OpenAI omits the final `response.completed` or `response.incomplete` event
 - OpenAI Responses missing-final-payload fallback logs include sanitized stream counters, event-type summaries, and bounded failure summaries for upstream `error` or `response.failed` events so production logs can distinguish empty streams, terminal events without a response object, reasoning-only streams, text-delta recovery, output-item recovery, and provider failure reasons without logging raw response content
+- OpenAI Responses `response.failed` events with structured error details are also converted into provider metadata, so retryable rate-limit/server failures can use the pre-output retry path and `context_length_exceeded` can reach compaction recovery
 
 Implementation note:
 

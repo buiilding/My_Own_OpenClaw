@@ -17,7 +17,7 @@ from backend.src.core.events.streaming_events import (
 MAX_PROVIDER_SAMPLING_ATTEMPTS = 2
 PROVIDER_RETRY_BACKOFF_SECONDS = 0.75
 RETRYABLE_TRANSIENT_STATUS_CODES = {502, 503, 504}
-RETRYABLE_ERROR_KINDS = {"server_error", "transient_network"}
+RETRYABLE_ERROR_KINDS = {"server_error", "transient_network", "rate_limit"}
 HTTP_STATUS_PATTERN = re.compile(r"\bHTTP\s+(\d{3})\b", re.IGNORECASE)
 TRANSIENT_TEXT_MARKERS = (
     "connection timeout",
@@ -74,19 +74,19 @@ def should_retry_provider_error(
     if status_code in RETRYABLE_TRANSIENT_STATUS_CODES:
         return RetryDecision(
             True,
-            delay_seconds=PROVIDER_RETRY_BACKOFF_SECONDS,
+            delay_seconds=_metadata_retry_delay(metadata),
             reason=f"http-{status_code}",
         )
     if error_kind == "transient_network" and retryable:
         return RetryDecision(
             True,
-            delay_seconds=PROVIDER_RETRY_BACKOFF_SECONDS,
+            delay_seconds=_metadata_retry_delay(metadata),
             reason=error_kind,
         )
     if retryable and transient and error_kind in RETRYABLE_ERROR_KINDS:
         return RetryDecision(
             True,
-            delay_seconds=PROVIDER_RETRY_BACKOFF_SECONDS,
+            delay_seconds=_metadata_retry_delay(metadata),
             reason=error_kind or "metadata-retryable",
         )
     if any(marker in content for marker in TRANSIENT_TEXT_MARKERS):
@@ -104,6 +104,21 @@ def _coerce_status_code(value: Any) -> Optional[int]:
     if isinstance(value, str) and value.isdigit():
         return int(value)
     return None
+
+
+def _metadata_retry_delay(metadata: dict[str, Any]) -> float:
+    for key in ("retry_after_seconds", "retry_after"):
+        value = metadata.get(key)
+        if isinstance(value, (int, float)) and value >= 0:
+            return float(value)
+        if isinstance(value, str):
+            try:
+                parsed = float(value)
+            except ValueError:
+                continue
+            if parsed >= 0:
+                return parsed
+    return PROVIDER_RETRY_BACKOFF_SECONDS
 
 
 def _extract_status_code_from_content(content: str) -> Optional[int]:
