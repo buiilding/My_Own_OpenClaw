@@ -68,11 +68,15 @@ def _make_constructor(
     )
 
 
-def _png_base64(width=8, height=8, color=(20, 120, 220)):
+def _image_base64(width=8, height=8, color=(20, 120, 220), image_format="PNG"):
     image = Image.new("RGB", (width, height), color)
     buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
+    image.save(buffer, format=image_format)
     return base64.b64encode(buffer.getvalue()).decode("ascii")
+
+
+def _png_base64(width=8, height=8, color=(20, 120, 220)):
+    return _image_base64(width=width, height=height, color=color, image_format="PNG")
 
 
 def _decoded_image_bytes(data_url: str) -> bytes:
@@ -543,6 +547,60 @@ def test_build_prompt_projects_artifact_image_refs_without_text_content_overflow
     assert all(
         part["image_url"]["url"].startswith("data:image/png;base64,")
         for part in content[1:]
+    )
+
+
+def test_build_prompt_accepts_two_large_original_artifact_refs_after_projection():
+    original_images = {
+        "artifact-1": _image_base64(width=900, height=900, image_format="BMP"),
+        "artifact-2": _image_base64(width=900, height=900, image_format="BMP"),
+    }
+    assert sum(len(base64.b64decode(image)) for image in original_images.values()) > (
+        1024 * 1024
+    )
+
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, image_ref, *, owner_user_id=None):
+            return original_images[image_ref]
+
+    max_image_bytes = 256 * 1024
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=10,
+                max_message_content_size=64,
+                max_prompt_size=2 * 1024 * 1024,
+                max_prompt_image_bytes=max_image_bytes,
+                max_prompt_image_dimension=1024,
+            )
+        ),
+        artifact_store_cls=_ArtifactStore,
+    )
+    message = StoredMessage(
+        role=MessageRole.USER,
+        content="<user_query>review these</user_query>",
+        message_type=MessageType.USER_QUERY,
+        image_refs=["artifact-1", "artifact-2"],
+    )
+
+    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+        [message],
+        include_tools=False,
+    )
+
+    image_parts = prompt_messages[-1]["content"][1:]
+    assert len(image_parts) == 2
+    assert all(
+        part["image_url"]["url"].startswith("data:image/jpeg;base64,")
+        for part in image_parts
+    )
+    assert all(
+        len(_decoded_image_bytes(part["image_url"]["url"])) <= max_image_bytes
+        for part in image_parts
     )
 
 
