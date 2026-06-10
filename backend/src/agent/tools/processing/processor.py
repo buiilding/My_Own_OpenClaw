@@ -5,6 +5,7 @@ Processes tool execution results: transforms and commits to history.
 """
 
 import logging
+from copy import deepcopy
 from typing import TYPE_CHECKING
 
 from backend.src.agent.history.history_committer import HistoryCommitter
@@ -13,6 +14,10 @@ from backend.src.agent.tools.shared.bundle_detection import (
     is_atomic_bundle_from_results,
 )
 from backend.src.agent.tools.processing.transformer import ResultTransformer
+from backend.src.agent.tools.processing.tool_output_projection import (
+    truncate_tool_output_for_model,
+)
+from backend.src.core.interfaces.tool import ToolResult
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -28,6 +33,39 @@ def _selected_model_id(session: "AgentSession") -> str | None:
         return model_id
     llm_model = getattr(cfg, "llm_model", None)
     return llm_model if isinstance(llm_model, str) and llm_model.strip() else None
+
+
+def _bound_bundle_step_outputs(
+    step_results: object,
+    *,
+    model_id: str | None,
+) -> list[object]:
+    if not isinstance(step_results, list):
+        return []
+
+    bounded_steps: list[object] = []
+    for step in step_results:
+        if not isinstance(step, dict):
+            bounded_steps.append(step)
+            continue
+
+        bounded_step = deepcopy(step)
+        if "output" in bounded_step:
+            bounded_step["output"] = truncate_tool_output_for_model(
+                ToolResult(
+                    success=bounded_step.get("status") == "ok",
+                    data={"output": bounded_step.get("output")},
+                    error=(
+                        None
+                        if bounded_step.get("status") == "ok"
+                        else str(bounded_step.get("output", ""))
+                    ),
+                ),
+                model_id=model_id,
+            )
+        bounded_steps.append(bounded_step)
+
+    return bounded_steps
 
 
 class ToolResultProcessor:
@@ -95,13 +133,17 @@ class ToolResultProcessor:
                             if isinstance(bundled_result.data, dict)
                             else {}
                         )
+                        bounded_step_results = _bound_bundle_step_outputs(
+                            bundle_data.get("step_results", []),
+                            model_id=model_id,
+                        )
                         formatted_message = formatter.format(
                             {
                                 "bundle_id": bundle_id,
                                 "status": (
                                     "success" if bundled_result.success else "failure"
                                 ),
-                                "step_results": bundle_data.get("step_results", []),
+                                "step_results": bounded_step_results,
                                 "screenshot": bundle_data.get("screenshot"),
                                 "screenshot_ref": bundle_data.get("screenshot_ref"),
                                 "system_state": bundle_data.get("system_state"),
@@ -110,13 +152,10 @@ class ToolResultProcessor:
                             bundle_data.get("system_state"),
                         )
 
-                        # Create ToolResult with formatted message
-                        from backend.src.core.interfaces.tool import ToolResult
-
                         formatted_bundle_result = ToolResult(
                             success=bundled_result.success,
                             output=formatted_message,
-                            data=bundled_result.data,
+                            data={**bundle_data, "output": formatted_message},
                             error=bundled_result.error,
                             artifacts=bundled_result.artifacts,
                         )
@@ -126,6 +165,7 @@ class ToolResultProcessor:
                             "bundled_tools",
                             formatted_bundle_result,
                             model_id=model_id,
+                            truncate_model_output=False,
                         )
                         self.history_committer.commit(processed)
                         logger.info(

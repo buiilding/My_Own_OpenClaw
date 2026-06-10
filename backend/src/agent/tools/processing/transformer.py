@@ -23,6 +23,7 @@ from typing import Any, Dict, Optional
 
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.agent.tools.processing.tool_output_projection import (
+    raw_tool_output_text,
     truncate_tool_output_for_model,
 )
 
@@ -92,6 +93,7 @@ class ResultTransformer:
         tool_result: ToolResult,
         *,
         model_id: Optional[str] = None,
+        truncate_model_output: bool = True,
     ) -> ProcessedToolResult:
         """
         Transform raw tool result into processed result.
@@ -121,10 +123,15 @@ class ResultTransformer:
         # Extract screenshot data (helper method to avoid nested checks)
         screenshot_data = self._extract_screenshot_data(raw_result, artifacts)
 
-        # 2. Get bounded raw tool output for model history.
-        formatted_message = truncate_tool_output_for_model(
-            raw_result,
-            model_id=model_id,
+        # 2. Get bounded raw tool output for model history. Atomic bundle callers
+        # can pre-bound each step and skip aggregate truncation here.
+        formatted_message = (
+            truncate_tool_output_for_model(
+                raw_result,
+                model_id=model_id,
+            )
+            if truncate_model_output
+            else raw_tool_output_text(raw_result)
         )
 
         transform_time = time.perf_counter() - transform_start

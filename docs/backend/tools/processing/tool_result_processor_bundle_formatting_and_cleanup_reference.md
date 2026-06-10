@@ -36,15 +36,21 @@ Processing sequence:
 
 1. extract `bundle_id` from first result tool-call metadata via `ExecutionRef`
 2. fetch stored bundle result from session
-3. build narrative with `BundleResultFormatter.format(...)`
-4. wrap formatted narrative into a new `ToolResult`
-5. transform once with tool name `bundled_tools`
-6. commit once via `HistoryCommitter`
-7. remove stored bundle result in `finally` and return early
+3. copy `step_results` and bound each step `output` independently with the
+   normal model-facing tool-output limit
+4. build narrative with `BundleResultFormatter.format(...)`
+5. wrap formatted narrative into a new `ToolResult`
+6. transform once with tool name `bundled_tools` without applying an aggregate
+   bundle-message truncation pass
+7. commit once via `HistoryCommitter`
+8. remove stored bundle result in `finally` and return early
 
 Outcome:
 
 - one consolidated history tool-output message for the whole bundle
+- per-step outputs receive the normal tool-output truncation limit
+- the final bundle narrative has no additional aggregate cap after per-step
+  truncation, so a large bundle can exceed one step's limit by design
 - stored bundle payload is removed even if formatting, transform, or commit raises
 
 ## Bundle Narrative Formatting Semantics

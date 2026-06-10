@@ -51,9 +51,15 @@ Important behavior:
 
 1. copy artifacts
 2. extract screenshot payload via `_extract_screenshot_data(...)`
-3. compute history text via `tool_result.format_for_history(tool_name=...)`
+3. compute history text from canonical raw tool output, applying the
+   model-facing tool-output token limit by default
 4. derive bounded structured `compaction_facts`
 5. return normalized `ProcessedToolResult`
+
+Atomic bundle processing may call `transform(..., truncate_model_output=False)`
+after it has already bounded each bundle step independently. That path preserves
+one bundle history row without applying a second aggregate truncation pass to
+the combined narrative.
 
 No branch in this method mutates session/history state.
 

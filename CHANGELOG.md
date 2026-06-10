@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/tools: bound atomic bundle model-history output per step instead of
+  truncating the combined bundle narrative once, preserving later step context
+  while keeping a single bundle history row.
 - frontend/startup: open the dashboard when durable hidden chat-pill intent
   suppresses the normal startup pill request, so customer mode never starts with
   no visible surface.
