@@ -117,6 +117,59 @@ describe('WindieAgent public conversation store APIs', () => {
     expect(overrideStore.appendEvent).toHaveBeenCalledWith(event);
     expect(overrideStore.getRevision).toHaveBeenCalledWith('conv-override');
   });
+
+  test('emits app diagnostics around public conversation listing', async () => {
+    const diagnostics: unknown[] = [];
+    const store = {
+      listMetadata: jest.fn(async () => [
+        {
+          conversationRef: 'conv-1',
+          revisionId: 'rev-1',
+          title: 'Stored title',
+          updatedAt: '2026-06-05T12:00:00.000Z',
+          eventCount: 2,
+        },
+      ]),
+    };
+    const agent = createAgentWithStore(store);
+
+    await expect(agent.listConversations({
+      limit: 5,
+      diagnostics: {
+        emit: async event => {
+          diagnostics.push(event);
+        },
+      },
+    })).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-1',
+      }),
+    ]);
+
+    expect(store.listMetadata).toHaveBeenCalledWith(expect.objectContaining({
+      limit: 5,
+      diagnostics: expect.objectContaining({
+        emit: expect.any(Function),
+      }),
+    }));
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'sdk_list',
+        status: 'started',
+        runtime: 'sdk',
+        data: { limit: 5 },
+      }),
+      expect.objectContaining({
+        stage: 'sdk_list',
+        status: 'succeeded',
+        runtime: 'sdk',
+        data: {
+          limit: 5,
+          resultCount: 1,
+        },
+      }),
+    ]);
+  });
 });
 
 describe('SidecarConversationStore event payload write params', () => {
@@ -182,6 +235,99 @@ describe('SidecarConversationStore event payload write params', () => {
       expect.objectContaining({
         conversationRef: 'conv-fractional',
         eventCount: 0,
+      }),
+    ]);
+  });
+
+  test('passes diagnostics context to sidecar list and emits sidecar events', async () => {
+    const diagnostics: unknown[] = [];
+    const rpc = jest.fn(async () => ({
+      success: true,
+      data: {
+        diagnostics: {
+          events: [
+            {
+              stage: 'history_db_checked',
+              status: 'succeeded',
+              data: {
+                canonicalHistoryDbExists: true,
+                legacyEpisodicDbExists: true,
+                storeKind: 'history',
+              },
+            },
+          ],
+        },
+        conversations: [
+          {
+            conversation_id: 'conv-1',
+            revision_id: 'rev-1',
+            title: 'Valid count',
+            last_timestamp: '2026-06-05T12:00:00.000Z',
+            entry_count: 1,
+          },
+        ],
+      },
+    }));
+    const store = new SidecarConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await expect(store.listMetadata({
+      limit: 7,
+      diagnostics: {
+        path: 'conversation.metadata.list',
+        traceId: 'diag-1',
+        requestId: 'req-1',
+        emit: async event => {
+          diagnostics.push(event);
+        },
+      },
+    })).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-1',
+      }),
+    ]);
+
+    expect(rpc).toHaveBeenCalledWith({
+      method: 'conversation.list',
+      params: expect.objectContaining({
+        user_id: 'user-1',
+        limit: 7,
+        diagnostics: {
+          path: 'conversation.metadata.list',
+          trace_id: 'diag-1',
+          parent_span_id: undefined,
+          request_id: 'req-1',
+          session_id: undefined,
+          conversation_ref: undefined,
+        },
+      }),
+    });
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'sidecar_rpc',
+        status: 'started',
+        runtime: 'sdk',
+      }),
+      expect.objectContaining({
+        stage: 'history_db_checked',
+        status: 'succeeded',
+        runtime: 'sidecar',
+        data: {
+          canonicalHistoryDbExists: true,
+          legacyEpisodicDbExists: true,
+          storeKind: 'history',
+        },
+      }),
+      expect.objectContaining({
+        stage: 'sidecar_rpc',
+        status: 'succeeded',
+        runtime: 'sdk',
+        data: expect.objectContaining({
+          limit: 7,
+          resultCount: 1,
+        }),
       }),
     ]);
   });

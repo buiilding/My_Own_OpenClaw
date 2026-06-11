@@ -64,6 +64,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain("'conversations.search'");
     expect(source).toContain("'conversations.delete'");
     expect(source).toContain("'conversations.clearAll'");
+    expect(source).toContain("'diagnostics.append'");
     expect(source).toContain("'conversation.send'");
     expect(source).toContain("'conversation.stop'");
     expect(source).toContain("'conversation.rehydrate'");

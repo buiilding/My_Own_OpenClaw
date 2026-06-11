@@ -3,6 +3,7 @@ import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.j
 import type { BackendEvent } from '../events/backendEvents.js';
 import type {
   CompactedReplaySnapshot,
+  AppDiagnosticEventDraft,
   ConversationEvent,
   ConversationMetadata,
   ConversationRevision,
@@ -89,6 +90,14 @@ function normalizeJsonRecord(value: unknown): JsonRecord | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as JsonRecord
     : null;
+}
+
+async function emitAppDiagnostic(options: ListConversationOptions, event: AppDiagnosticEventDraft): Promise<void> {
+  try {
+    await options.diagnostics?.emit?.(event);
+  } catch {
+    // App diagnostics must never make SDK conversation reads fail.
+  }
 }
 
 function unwrapLocalRuntimeRpcData(response: unknown, fallbackMessage: string): JsonRecord {
@@ -802,7 +811,41 @@ export class WindieAgent {
     store?: ConversationStore;
   } = {}): Promise<ConversationMetadata[]> {
     const { store, ...listOptions } = options;
-    return (store ?? this.defaultConversationStore).listMetadata(listOptions);
+    const startedAt = Date.now();
+    await emitAppDiagnostic(listOptions, {
+      stage: 'sdk_list',
+      status: 'started',
+      runtime: 'sdk',
+      data: {
+        limit: listOptions.limit,
+      },
+    });
+    try {
+      const metadata = await (store ?? this.defaultConversationStore).listMetadata(listOptions);
+      await emitAppDiagnostic(listOptions, {
+        stage: 'sdk_list',
+        status: 'succeeded',
+        runtime: 'sdk',
+        durationMs: Date.now() - startedAt,
+        data: {
+          limit: listOptions.limit,
+          resultCount: metadata.length,
+        },
+      });
+      return metadata;
+    } catch (error) {
+      await emitAppDiagnostic(listOptions, {
+        stage: 'sdk_list',
+        status: 'failed',
+        runtime: 'sdk',
+        durationMs: Date.now() - startedAt,
+        data: {
+          limit: listOptions.limit,
+        },
+        error,
+      });
+      throw error;
+    }
   }
 
   async searchConversations(options: SearchConversationOptions & {

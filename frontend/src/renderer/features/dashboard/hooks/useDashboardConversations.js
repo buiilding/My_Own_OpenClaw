@@ -77,8 +77,14 @@ function useDashboardConversations({
 
     const loadMarker = {};
     const requestPromise = (async () => {
+      let diagnosticsContext = null;
       try {
-        const metadataList = await DesktopConversationLibraryClient.listMetadata(resolvedUserId);
+        const metadataList = await DesktopConversationLibraryClient.listMetadata(resolvedUserId, {
+          userIdSource: 'session',
+          onDiagnosticsContext: (context) => {
+            diagnosticsContext = context;
+          },
+        });
         const list = normalizeRecentConversations(
           metadataList.map((metadata) => ({
             conversation_id: metadata.conversationRef,
@@ -100,6 +106,10 @@ function useDashboardConversations({
         recentConversationsRetryAttemptRef.current = 0;
         setRecentConversations(list);
         setPinnedConversationRefs((current) => prunePinnedConversationRefs(current, list));
+        DesktopConversationLibraryClient.emitConversationMetadataListRendered?.(diagnosticsContext, {
+          status: 'succeeded',
+          resultCount: list.length,
+        });
 
         return list;
       } catch (error) {
@@ -108,6 +118,10 @@ function useDashboardConversations({
         }
         const errorMessage = error?.message || 'Failed to load recent chats';
         setRecentConversationsError(errorMessage);
+        DesktopConversationLibraryClient.emitConversationMetadataListRendered?.(diagnosticsContext, {
+          status: 'failed',
+          error,
+        });
         return [];
       } finally {
         if (recentConversationLoadRequestIdRef.current === requestId) {

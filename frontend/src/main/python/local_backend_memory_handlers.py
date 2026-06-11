@@ -7,7 +7,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from functools import wraps
+from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from path_trace import build_sidecar_memory_search_trace, monotonic_trace_start
@@ -65,6 +67,38 @@ class LocalBackendMemoryHandlersMixin:
         if history_db_path:
             return history_db_path
         return getattr(self.memory_store, "episodic_db_path")
+
+    def _conversation_list_diagnostics_status(self) -> Dict[str, Any]:
+        history_db_path = getattr(self.memory_store, "history_db_path", None)
+        episodic_db_path = getattr(self.memory_store, "episodic_db_path", None)
+        canonical_exists = bool(history_db_path and Path(history_db_path).exists())
+        legacy_exists = bool(episodic_db_path and Path(episodic_db_path).exists())
+        return {
+            "canonicalHistoryDbExists": canonical_exists,
+            "legacyEpisodicDbExists": legacy_exists,
+            "storeKind": "history" if history_db_path else "legacy",
+        }
+
+    @staticmethod
+    def _conversation_list_diagnostic_event(
+        *,
+        stage: str,
+        status: str,
+        started_at: Optional[float] = None,
+        data: Optional[Dict[str, Any]] = None,
+        error: Optional[Any] = None,
+    ) -> Dict[str, Any]:
+        event: Dict[str, Any] = {
+            "stage": stage,
+            "status": status,
+            "runtime": "sidecar",
+            "data": data or {},
+        }
+        if started_at is not None:
+            event["durationMs"] = max(0, int((time.monotonic() - started_at) * 1000))
+        if error is not None:
+            event["error"] = str(error)
+        return event
 
     @staticmethod
     def _normalize_transcript_structured_payload(
@@ -884,23 +918,71 @@ class LocalBackendMemoryHandlersMixin:
         self,
         user_id: str = "default_user",
         limit: Optional[int] = None,
+        diagnostics: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
+        diagnostic_events: List[Dict[str, Any]] = []
+        checked_at = time.monotonic()
+        status_data = self._conversation_list_diagnostics_status()
+        diagnostic_events.append(
+            self._conversation_list_diagnostic_event(
+                stage="history_db_checked",
+                status="succeeded" if status_data["canonicalHistoryDbExists"] else "failed",
+                started_at=checked_at,
+                data=status_data,
+            )
+        )
+        started_at = time.monotonic()
         try:
             conversations = await self.memory_store.list_chat_conversations(
                 user_id=user_id,
                 limit=limit,
+            )
+            diagnostic_events.append(
+                self._conversation_list_diagnostic_event(
+                    stage="store_list",
+                    status="succeeded",
+                    started_at=started_at,
+                    data={
+                        **status_data,
+                        "limit": limit,
+                        "resultCount": len(conversations),
+                    },
+                )
             )
             return {
                 "success": True,
                 "data": {
                     "conversations": conversations,
                     "count": len(conversations),
+                    "diagnostics": {
+                        "events": diagnostic_events,
+                    },
                 },
             }
         except Exception as e:
+            diagnostic_events.append(
+                self._conversation_list_diagnostic_event(
+                    stage="store_list",
+                    status="failed",
+                    started_at=started_at,
+                    data={
+                        **status_data,
+                        "limit": limit,
+                    },
+                    error=e,
+                )
+            )
             logger.error(f"Chat conversation listing failed: {e}", exc_info=True)
-            return {"success": False, "error": str(e)}
+            return {
+                "success": False,
+                "error": str(e),
+                "data": {
+                    "diagnostics": {
+                        "events": diagnostic_events,
+                    },
+                },
+            }
 
     @requires_memory_store
     async def _handle_search_chat_conversations(

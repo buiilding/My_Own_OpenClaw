@@ -859,6 +859,50 @@ def test_initialize_methods_keeps_memory_handlers_registered():
 
 
 @pytest.mark.asyncio
+async def test_handle_list_chat_conversations_returns_sanitized_diagnostics(tmp_path):
+    backend = LocalBackend()
+    memory_store = DummyMemoryStore()
+    canonical_db = tmp_path / "history" / "history.db"
+    legacy_db = tmp_path / "memory" / "episodic.db"
+    canonical_db.parent.mkdir(parents=True)
+    legacy_db.parent.mkdir(parents=True)
+    canonical_db.write_text("")
+    legacy_db.write_text("")
+    memory_store.history_db_path = str(canonical_db)
+    memory_store.episodic_db_path = str(legacy_db)
+    backend.memory_store = memory_store
+
+    result = await backend._handle_list_chat_conversations(
+        user_id="user-1",
+        limit=5,
+        diagnostics={"trace_id": "diag-1", "request_id": "req-1"},
+    )
+
+    assert result["success"] is True
+    assert result["data"]["count"] == 1
+    assert memory_store.list_chat_conversation_calls == [("user-1", 5)]
+    events = result["data"]["diagnostics"]["events"]
+    assert [event["stage"] for event in events] == [
+        "history_db_checked",
+        "store_list",
+    ]
+    assert events[0]["data"] == {
+        "canonicalHistoryDbExists": True,
+        "legacyEpisodicDbExists": True,
+        "storeKind": "history",
+    }
+    assert events[1]["data"] == {
+        "canonicalHistoryDbExists": True,
+        "legacyEpisodicDbExists": True,
+        "storeKind": "history",
+        "limit": 5,
+        "resultCount": 1,
+    }
+    assert "history.db" not in str(events)
+    assert "episodic.db" not in str(events)
+
+
+@pytest.mark.asyncio
 async def test_handle_search_memory_groups_results():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()

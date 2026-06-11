@@ -7,6 +7,12 @@ const { printCheckList, printJson, printSection } = require('./output.cjs');
 const { FRONTEND_DIR, REPO_ROOT, repoPath } = require('./paths.cjs');
 const { collectStatus, getEndpointSnapshot } = require('./status.cjs');
 const { capture, runConcurrent, runForeground, runSync } = require('./run.cjs');
+const {
+  APP_DIAGNOSTICS_PATH,
+  diagnosticsDatabasePath,
+  inspectDiagnosticTrace,
+  queryDiagnosticEvents,
+} = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 
 const HELP = `WindieOS command line
 
@@ -21,6 +27,8 @@ Status and diagnostics:
   windie doctor --fix
   windie doctor --deep
   windie doctor --json
+  windie diagnostics list [--path <path>] [--limit <n>] [--json]
+  windie diagnostics inspect <trace-id> [--json]
   windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]
   windie conversation list [--limit <n>] [--json]
   windie conversation inspect <conversation-ref> [--json]
@@ -630,6 +638,63 @@ function printConversationInspect(payload) {
   }
 }
 
+function printDiagnosticEvents(events, emptyMessage) {
+  if (events.length === 0) {
+    console.log(emptyMessage);
+    return;
+  }
+  for (const event of events) {
+    const request = event.requestId ? ` request=${event.requestId}` : '';
+    const duration = Number.isFinite(event.durationMs) ? ` duration=${event.durationMs}ms` : '';
+    const error = event.error?.code ? ` error=${event.error.code}` : '';
+    console.log(
+      `${event.timestamp} ${event.traceId} ${event.runtime} ${event.path} ${event.stage} ${event.status}${request}${duration}${error}`,
+    );
+  }
+}
+
+function runDiagnostics(args) {
+  const subcommand = args[0];
+  const rest = args.slice(1);
+  const json = hasFlag(rest, '--json');
+  if (subcommand === 'list') {
+    const pathFilter = optionValue(rest, '--path', APP_DIAGNOSTICS_PATH);
+    const limit = sqlLimit(optionValue(rest, '--limit', '50'), 50);
+    const events = queryDiagnosticEvents({ pathFilter, limit });
+    if (json) {
+      printJson({
+        ok: true,
+        database: diagnosticsDatabasePath(),
+        events,
+      });
+      return;
+    }
+    console.log(`database: ${diagnosticsDatabasePath()}`);
+    printDiagnosticEvents(events, `No diagnostics found for ${pathFilter || 'all paths'}.`);
+    return;
+  }
+  if (subcommand === 'inspect') {
+    const [traceId] = positionalArgs(rest);
+    if (!traceId) {
+      throw new Error('Usage: windie diagnostics inspect <trace-id> [--json]');
+    }
+    const events = inspectDiagnosticTrace(traceId);
+    if (json) {
+      printJson({
+        ok: true,
+        database: diagnosticsDatabasePath(),
+        traceId,
+        events,
+      });
+      return;
+    }
+    console.log(`database: ${diagnosticsDatabasePath()}`);
+    printDiagnosticEvents(events, `No diagnostics found for trace ${traceId}.`);
+    return;
+  }
+  throw new Error('Usage: windie diagnostics list [--path <path>] [--limit <n>] [--json] | inspect <trace-id> [--json]');
+}
+
 function runConversation(args) {
   const subcommand = args[0];
   const rest = args.slice(1);
@@ -1177,6 +1242,8 @@ async function dispatch(argv) {
       return runStatus(args);
     case 'doctor':
       return runDoctor(args);
+    case 'diagnostics':
+      return runDiagnostics(args);
     case 'trace':
       return runTrace(args);
     case 'conversation':

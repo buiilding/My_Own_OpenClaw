@@ -152,6 +152,50 @@ timeline because that runtime has no conversation writer. `voice.transcription`
 is emitted on `/ws/transcription`; `run.control` is appended to the VM run
 event timeline, which has the same lifetime as the run-control service.
 
+## Persistent App Diagnostics
+
+Use app diagnostics when the path is not naturally tied to a conversation turn
+or can fail before a conversation exists. These rows are separate from hidden
+conversation `trace_event` rows and live in:
+
+```text
+~/Library/Application Support/desktop-assistant/diagnostics/diagnostics.db
+```
+
+The first app diagnostic path is `conversation.metadata.list`, covering the
+dashboard/sidebar chat-list load:
+
+```text
+renderer dashboard load
+-> Electron main `conversations.list`
+-> SDK `WindieAgent.listConversations()`
+-> SDK `SidecarConversationStore.listMetadata()`
+-> sidecar `conversation.list`
+-> sidecar history SQLite read
+```
+
+Rows are sanitized app/runtime events with `traceId`, `spanId`, `path`,
+`stage`, `status`, `runtime`, `requestId`, timestamps, duration, and allowlisted
+metadata. They may include booleans and counts such as `hasUserId`, `limit`,
+`resultCount`, `backendConnected`, `sidecarReady`,
+`canonicalHistoryDbExists`, `legacyEpisodicDbExists`, and `storeKind`.
+
+Do not store raw user ids, chat titles, last-message text, workspace paths,
+SQL rows, stack traces, tokens, prompt text, user text, assistant text, or raw
+payloads in app diagnostics.
+
+Inspect the latest rows with:
+
+```bash
+bin/windie diagnostics list --path conversation.metadata.list --limit 50
+```
+
+Inspect a single trace timeline with:
+
+```bash
+bin/windie diagnostics inspect <trace-id>
+```
+
 ## Stream Event Trace
 
 Use this when the backend sends events but the UI displays stale, missing, or duplicated content.

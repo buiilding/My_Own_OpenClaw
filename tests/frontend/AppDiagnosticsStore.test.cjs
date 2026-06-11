@@ -1,0 +1,100 @@
+/** @jest-environment node */
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const {
+  APP_DIAGNOSTICS_PATH,
+  appendDiagnosticEvent,
+  diagnosticsDatabasePath,
+  inspectDiagnosticTrace,
+  queryDiagnosticEvents,
+  sanitizeData,
+} = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
+
+describe('app diagnostics store', () => {
+  let previousDbPath;
+  let tempDir;
+
+  beforeEach(() => {
+    previousDbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-diagnostics-'));
+    process.env.WINDIE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
+  });
+
+  afterEach(() => {
+    if (previousDbPath === undefined) {
+      delete process.env.WINDIE_APP_DIAGNOSTICS_DB;
+    } else {
+      process.env.WINDIE_APP_DIAGNOSTICS_DB = previousDbPath;
+    }
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test('persists and queries sanitized app diagnostics', () => {
+    const stored = appendDiagnosticEvent({
+      traceId: 'diag-test',
+      spanId: 'span-test',
+      path: APP_DIAGNOSTICS_PATH,
+      stage: 'store_list',
+      status: 'failed',
+      runtime: 'sidecar',
+      requestId: 'req-test',
+      durationMs: 12,
+      data: {
+        canonicalHistoryDbExists: false,
+        legacyEpisodicDbExists: true,
+        resultCount: 0,
+        workspacePath: '/do/not/store',
+        title: 'do not store',
+      },
+      error: new Error('sqlite failed at /private/path'),
+    });
+
+    expect(stored).toEqual(expect.objectContaining({
+      stored: true,
+      database: diagnosticsDatabasePath(),
+      traceId: 'diag-test',
+      spanId: 'span-test',
+    }));
+
+    const events = queryDiagnosticEvents({ pathFilter: APP_DIAGNOSTICS_PATH, limit: 10 });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'diag-test',
+      stage: 'store_list',
+      status: 'failed',
+      runtime: 'sidecar',
+      requestId: 'req-test',
+      durationMs: 12,
+      data: expect.objectContaining({
+        canonicalHistoryDbExists: false,
+        legacyEpisodicDbExists: true,
+        resultCount: 0,
+        durationMs: 12,
+      }),
+      error: expect.objectContaining({
+        code: 'sqlite_error',
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('/do/not/store');
+    expect(JSON.stringify(events[0])).not.toContain('/private/path');
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+
+    expect(inspectDiagnosticTrace('diag-test')).toHaveLength(1);
+  });
+
+  test('sanitizes data with an allowlist', () => {
+    expect(sanitizeData({
+      hasUserId: true,
+      resultCount: 2,
+      lastMessage: 'secret',
+      workspacePath: '/repo',
+      title: 'chat title',
+    })).toEqual({
+      hasUserId: true,
+      resultCount: 2,
+    });
+  });
+});

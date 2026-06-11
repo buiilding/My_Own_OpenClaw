@@ -39,6 +39,10 @@ const {
   handleRendererLog,
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
+  APP_DIAGNOSTICS_PATH,
+  appendDiagnosticEvent,
+} = require('./diagnostics/app_diagnostics_store.cjs');
+const {
   handleRendererLiveSurfaceTrace,
 } = require('./debug/live_surface_trace_runtime.cjs');
 const {
@@ -1604,6 +1608,62 @@ function optionalCommandNonNegativeInteger(payload = {}, keys = []) {
   return undefined;
 }
 
+function normalizeAppDiagnosticContext(payload = {}) {
+  const diagnostics = isPlainObject(payload._diagnostics) ? payload._diagnostics : {};
+  return {
+    path: normalizeOptionalString(diagnostics.path) || APP_DIAGNOSTICS_PATH,
+    traceId: normalizeOptionalString(diagnostics.traceId) || undefined,
+    parentSpanId: normalizeOptionalString(diagnostics.parentSpanId) || null,
+    requestId: normalizeOptionalString(diagnostics.requestId) || undefined,
+    sessionId: normalizeOptionalString(diagnostics.sessionId) || currentSessionId || undefined,
+    conversationRef: normalizeOptionalString(diagnostics.conversationRef) || currentConversationRef || undefined,
+  };
+}
+
+function appendAppDiagnostic(input = {}) {
+  try {
+    return appendDiagnosticEvent(input);
+  } catch (error) {
+    log(`[AppDiagnostics] failed to persist ${input.path || APP_DIAGNOSTICS_PATH}: ${error?.message || error}`);
+    return { stored: false, reason: error?.message || String(error) };
+  }
+}
+
+function recordConversationMetadataListDiagnostic(context = {}, input = {}) {
+  const event = {
+    path: context.path || APP_DIAGNOSTICS_PATH,
+    traceId: context.traceId,
+    parentSpanId: input.parentSpanId || context.parentSpanId || null,
+    requestId: input.requestId || context.requestId,
+    sessionId: input.sessionId || context.sessionId,
+    conversationRef: input.conversationRef || context.conversationRef,
+    ...input,
+    data: {
+      ...(input.data || {}),
+      ...(input.requestId || context.requestId ? { requestId: input.requestId || context.requestId } : {}),
+      ...(input.durationMs !== undefined ? { durationMs: input.durationMs } : {}),
+    },
+  };
+  const result = appendAppDiagnostic(event);
+  if (result?.traceId && !context.traceId) {
+    context.traceId = result.traceId;
+  }
+  return result;
+}
+
+function appendRendererAppDiagnostic(payload = {}) {
+  const context = normalizeAppDiagnosticContext(payload);
+  return appendAppDiagnostic({
+    ...context,
+    stage: normalizeOptionalString(payload.stage) || 'renderer',
+    status: normalizeOptionalString(payload.status) || 'succeeded',
+    runtime: normalizeOptionalString(payload.runtime) || 'renderer',
+    durationMs: normalizePositiveInteger(payload.durationMs),
+    data: isPlainObject(payload.data) ? payload.data : {},
+    error: payload.error,
+  });
+}
+
 function buildWindieSdkCommandHandlers({
   event,
   handleRendererChatQuery,
@@ -1656,17 +1716,73 @@ function buildWindieSdkCommandHandlers({
         memoryId: requireCommandString(payload, 'memoryId', 'memory id'),
       });
     },
-    'memories.clearAll': async (payload = {}) => {
+    'memories.clearAll': async () => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.clearAll' });
       requireAuthenticatedCommandUserId();
       return agent.clearMemories();
     },
     'conversations.list': async (payload = {}) => {
-      requireCommandUserId(payload);
-      const agent = await ensureWindieAgent({ reason: 'sdk-command:conversations.list' });
-      return agent.listConversations({
-        limit: normalizePositiveInteger(payload.limit),
+      const diagnostics = normalizeAppDiagnosticContext(payload);
+      const startedAt = Date.now();
+      const limit = normalizePositiveInteger(payload.limit);
+      let failureStage = 'user_validated';
+      recordConversationMetadataListDiagnostic(diagnostics, {
+        stage: 'ipc_received',
+        status: 'succeeded',
+        runtime: 'electron-main',
+        data: {
+          hasUserId: Boolean(normalizeOptionalString(payload.userId || payload.user_id)),
+          limit,
+          backendConnected: Boolean(isConnected),
+        },
       });
+      try {
+        const userId = requireCommandUserId(payload);
+        failureStage = 'agent_ready';
+        recordConversationMetadataListDiagnostic(diagnostics, {
+          stage: 'user_validated',
+          status: 'succeeded',
+          runtime: 'electron-main',
+          data: {
+            hasUserId: true,
+            userIdMatchesActive: !currentUserId || userId === currentUserId,
+          },
+        });
+        const agent = await ensureWindieAgent({ reason: 'sdk-command:conversations.list' });
+        failureStage = 'sdk_list';
+        recordConversationMetadataListDiagnostic(diagnostics, {
+          stage: 'agent_ready',
+          status: 'succeeded',
+          runtime: 'electron-main',
+          data: {
+            backendConnected: Boolean(isConnected),
+            sidecarReady: true,
+          },
+        });
+        return agent.listConversations({
+          limit,
+          diagnostics: {
+            ...diagnostics,
+            emit: async eventInput => {
+              recordConversationMetadataListDiagnostic(diagnostics, eventInput);
+            },
+          },
+        });
+      } catch (error) {
+        recordConversationMetadataListDiagnostic(diagnostics, {
+          stage: failureStage,
+          status: 'failed',
+          runtime: 'electron-main',
+          durationMs: Date.now() - startedAt,
+          data: {
+            hasUserId: Boolean(normalizeOptionalString(payload.userId || payload.user_id)),
+            backendConnected: Boolean(isConnected),
+            sidecarReady: Boolean(windieAgent),
+          },
+          error,
+        });
+        throw error;
+      }
     },
     'conversations.search': async (payload = {}) => {
       requireCommandUserId(payload);
@@ -1777,6 +1893,7 @@ function buildWindieSdkCommandHandlers({
       await runtimeRegistry.replaceCompactedReplay(snapshot);
       return { stored: true };
     },
+    'diagnostics.append': async (payload = {}) => appendRendererAppDiagnostic(payload),
     'conversation.prepareEditAndResend': async (payload = {}) => {
       requireCommandUserId(payload);
       const conversationRef = requireCommandConversationRef(payload);

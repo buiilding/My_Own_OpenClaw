@@ -1,4 +1,5 @@
 import type {
+  AppDiagnosticEventDraft,
   CompactedReplaySnapshot,
   ConversationEvent,
   ConversationMetadata,
@@ -66,6 +67,29 @@ function parseJsonRecord(value: unknown): Record<string, unknown> | null {
 
 function normalizeString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+async function emitAppDiagnostic(options: ListConversationOptions, event: AppDiagnosticEventDraft): Promise<void> {
+  try {
+    await options.diagnostics?.emit?.(event);
+  } catch {
+    // App diagnostics must never make sidecar-backed conversation reads fail.
+  }
+}
+
+function serializeDiagnosticsContext(options: ListConversationOptions): JsonRecord | undefined {
+  const diagnostics = normalizeRecord(options.diagnostics);
+  if (!diagnostics) {
+    return undefined;
+  }
+  return {
+    path: normalizeString(diagnostics.path) ?? undefined,
+    trace_id: normalizeString(diagnostics.traceId) ?? undefined,
+    parent_span_id: normalizeString(diagnostics.parentSpanId) ?? undefined,
+    request_id: normalizeString(diagnostics.requestId) ?? undefined,
+    session_id: normalizeString(diagnostics.sessionId) ?? undefined,
+    conversation_ref: normalizeString(diagnostics.conversationRef) ?? undefined,
+  };
 }
 
 function normalizeEventCount(value: unknown): number {
@@ -348,17 +372,67 @@ export class SidecarConversationStore implements ConversationStore {
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
-    const result = await this.call('conversation.list', {
-      user_id: this.options.userId,
-      record_kind: CHAT_EVENT_RECORD_KIND,
-      limit: options.cursor ? undefined : options.limit,
+    const startedAt = Date.now();
+    await emitAppDiagnostic(options, {
+      stage: 'sidecar_rpc',
+      status: 'started',
+      runtime: 'sdk',
+      data: {
+        limit: options.limit,
+      },
     });
-    const data = normalizeRecord(result.data) ?? {};
-    const metadata = (Array.isArray(data.conversations) ? data.conversations : [])
-      .map(row => metadataFromRow(normalizeRecord(row) ?? {}))
-      .filter((entry): entry is ConversationMetadata => Boolean(entry))
-      .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-    return applyConversationMetadataPagination(metadata, options);
+    try {
+      const result = await this.call('conversation.list', {
+        user_id: this.options.userId,
+        record_kind: CHAT_EVENT_RECORD_KIND,
+        limit: options.cursor ? undefined : options.limit,
+        diagnostics: serializeDiagnosticsContext(options),
+      });
+      const data = normalizeRecord(result.data) ?? {};
+      const diagnostics = normalizeRecord(data.diagnostics);
+      const sidecarEvents = Array.isArray(diagnostics?.events) ? diagnostics.events : [];
+      for (const event of sidecarEvents) {
+        const draft = normalizeRecord(event);
+        if (!draft) {
+          continue;
+        }
+        await emitAppDiagnostic(options, {
+          stage: normalizeString(draft.stage) ?? 'sidecar',
+          status: (normalizeString(draft.status) ?? 'succeeded') as AppDiagnosticEventDraft['status'],
+          runtime: 'sidecar',
+          durationMs: typeof draft.durationMs === 'number' ? draft.durationMs : null,
+          data: normalizeRecord(draft.data) ?? {},
+          error: draft.error,
+        });
+      }
+      const metadata = (Array.isArray(data.conversations) ? data.conversations : [])
+        .map(row => metadataFromRow(normalizeRecord(row) ?? {}))
+        .filter((entry): entry is ConversationMetadata => Boolean(entry))
+        .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+      await emitAppDiagnostic(options, {
+        stage: 'sidecar_rpc',
+        status: 'succeeded',
+        runtime: 'sdk',
+        durationMs: Date.now() - startedAt,
+        data: {
+          limit: options.limit,
+          resultCount: metadata.length,
+        },
+      });
+      return applyConversationMetadataPagination(metadata, options);
+    } catch (error) {
+      await emitAppDiagnostic(options, {
+        stage: 'sidecar_rpc',
+        status: 'failed',
+        runtime: 'sdk',
+        durationMs: Date.now() - startedAt,
+        data: {
+          limit: options.limit,
+        },
+        error,
+      });
+      throw error;
+    }
   }
 
   async searchMetadata(options: SearchConversationOptions): Promise<ConversationMetadata[]> {

@@ -28,6 +28,32 @@ function parseJsonRecord(value) {
 function normalizeString(value) {
     return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
+async function emitAppDiagnostic(options, event) {
+    try {
+        await options.diagnostics?.emit?.(event);
+    }
+    catch {
+        // App diagnostics must never make sidecar-backed conversation reads fail.
+    }
+}
+function serializeDiagnosticsContext(options) {
+    const diagnostics = normalizeRecord(options.diagnostics);
+    if (!diagnostics) {
+        return undefined;
+    }
+    return {
+        path: normalizeString(diagnostics.path) ?? undefined,
+        trace_id: normalizeString(diagnostics.traceId) ?? undefined,
+        parent_span_id: normalizeString(diagnostics.parentSpanId) ?? undefined,
+        request_id: normalizeString(diagnostics.requestId) ?? undefined,
+        session_id: normalizeString(diagnostics.sessionId) ?? undefined,
+        conversation_ref: normalizeString(diagnostics.conversationRef) ?? undefined,
+    };
+}
+function normalizeEventCount(value) {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
+}
 function normalizeConversationEvent(candidate) {
     const event = normalizeRecord(candidate);
     if (!event) {
@@ -153,7 +179,7 @@ function metadataFromRow(row) {
             ?? normalizeString(row.updatedAt)
             ?? normalizeString(row.timestamp)
             ?? new Date(0).toISOString(),
-        eventCount: Number(row.entry_count ?? row.eventCount ?? 0) || 0,
+        eventCount: normalizeEventCount(row.entry_count ?? row.eventCount),
         workspacePath: normalizeString(row.workspace_path) ?? normalizeString(row.workspacePath),
         workspaceName: normalizeString(row.workspace_name) ?? normalizeString(row.workspaceName),
         snippet: normalizeString(row.snippet),
@@ -269,17 +295,68 @@ class SidecarConversationStore {
         return (0, conversationProjections_js_1.buildRehydrateSnapshot)(events);
     }
     async listMetadata(options = {}) {
-        const result = await this.call('conversation.list', {
-            user_id: this.options.userId,
-            record_kind: CHAT_EVENT_RECORD_KIND,
-            limit: options.cursor ? undefined : options.limit,
+        const startedAt = Date.now();
+        await emitAppDiagnostic(options, {
+            stage: 'sidecar_rpc',
+            status: 'started',
+            runtime: 'sdk',
+            data: {
+                limit: options.limit,
+            },
         });
-        const data = normalizeRecord(result.data) ?? {};
-        const metadata = (Array.isArray(data.conversations) ? data.conversations : [])
-            .map(row => metadataFromRow(normalizeRecord(row) ?? {}))
-            .filter((entry) => Boolean(entry))
-            .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-        return (0, metadata_js_1.applyConversationMetadataPagination)(metadata, options);
+        try {
+            const result = await this.call('conversation.list', {
+                user_id: this.options.userId,
+                record_kind: CHAT_EVENT_RECORD_KIND,
+                limit: options.cursor ? undefined : options.limit,
+                diagnostics: serializeDiagnosticsContext(options),
+            });
+            const data = normalizeRecord(result.data) ?? {};
+            const diagnostics = normalizeRecord(data.diagnostics);
+            const sidecarEvents = Array.isArray(diagnostics?.events) ? diagnostics.events : [];
+            for (const event of sidecarEvents) {
+                const draft = normalizeRecord(event);
+                if (!draft) {
+                    continue;
+                }
+                await emitAppDiagnostic(options, {
+                    stage: normalizeString(draft.stage) ?? 'sidecar',
+                    status: (normalizeString(draft.status) ?? 'succeeded'),
+                    runtime: 'sidecar',
+                    durationMs: typeof draft.durationMs === 'number' ? draft.durationMs : null,
+                    data: normalizeRecord(draft.data) ?? {},
+                    error: draft.error,
+                });
+            }
+            const metadata = (Array.isArray(data.conversations) ? data.conversations : [])
+                .map(row => metadataFromRow(normalizeRecord(row) ?? {}))
+                .filter((entry) => Boolean(entry))
+                .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+            await emitAppDiagnostic(options, {
+                stage: 'sidecar_rpc',
+                status: 'succeeded',
+                runtime: 'sdk',
+                durationMs: Date.now() - startedAt,
+                data: {
+                    limit: options.limit,
+                    resultCount: metadata.length,
+                },
+            });
+            return (0, metadata_js_1.applyConversationMetadataPagination)(metadata, options);
+        }
+        catch (error) {
+            await emitAppDiagnostic(options, {
+                stage: 'sidecar_rpc',
+                status: 'failed',
+                runtime: 'sdk',
+                durationMs: Date.now() - startedAt,
+                data: {
+                    limit: options.limit,
+                },
+                error,
+            });
+            throw error;
+        }
     }
     async searchMetadata(options) {
         const result = await this.call('conversation.search', {

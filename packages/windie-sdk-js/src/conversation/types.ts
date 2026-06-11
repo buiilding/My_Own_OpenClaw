@@ -164,9 +164,29 @@ export type ConversationMetadata = {
   matchedRole?: string | null;
 };
 
+export type AppDiagnosticEventDraft = JsonRecord & {
+  stage: string;
+  status: 'started' | 'succeeded' | 'failed' | 'skipped';
+  runtime: 'renderer' | 'electron-main' | 'sdk' | 'sidecar' | 'backend' | 'provider';
+  durationMs?: number | null;
+  data?: JsonRecord | null;
+  error?: unknown;
+};
+
+export type AppDiagnosticContext = JsonRecord & {
+  path?: string;
+  traceId?: string;
+  parentSpanId?: string | null;
+  requestId?: string;
+  sessionId?: string;
+  conversationRef?: string;
+  emit?: (event: AppDiagnosticEventDraft) => void | Promise<void>;
+};
+
 export type ListConversationOptions = {
   limit?: number;
   cursor?: string;
+  diagnostics?: AppDiagnosticContext;
 };
 
 export type SearchConversationOptions = ListConversationOptions & {
