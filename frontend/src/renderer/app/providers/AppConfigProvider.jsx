@@ -70,6 +70,7 @@ export function AppConfigProvider({ children }) {
   const configRef = useLatestRef(config);
   const globalAgentStopShortcutStatusRef = useLatestRef(globalAgentStopShortcutStatus);
   const saveStatusCallbackRef = useRef(null);
+  const backendConnectedRef = useRef(false);
 
   const syncCurrentConfigToBackend = useCallback(() => {
     const currentConfig = configRef.current;
@@ -144,6 +145,8 @@ export function AppConfigProvider({ children }) {
   }, [handlersRef]);
 
   const applyBackendConnectionSnapshot = useCallback((data) => {
+    backendConnectedRef.current = data?.isConnected === true;
+
     const shortcutStatus = (
       data?.globalAgentStopShortcutStatus
       && typeof data.globalAgentStopShortcutStatus === 'object'
@@ -178,7 +181,7 @@ export function AppConfigProvider({ children }) {
       updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
     });
     setBackendHttpUrl(data?.backendHttpUrl);
-    if (data?.isConnected === true) {
+    if (backendConnectedRef.current) {
       syncCurrentConfigToBackend();
     }
   }, [
@@ -225,7 +228,10 @@ export function AppConfigProvider({ children }) {
         return;
       }
       const filteredConfig = buildMergedFrontendConfig(diskConfig);
-      applyResolvedConfig(filteredConfig, { persistToDisk: false });
+      applyResolvedConfig(filteredConfig, {
+        persistToDisk: false,
+        syncBackend: backendConnectedRef.current,
+      });
     }).catch((error) => {
       console.warn('[Config] Failed to load config from disk:', error?.message || error);
     });

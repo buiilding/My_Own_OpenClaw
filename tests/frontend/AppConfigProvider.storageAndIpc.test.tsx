@@ -30,7 +30,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
 
-  test('applies disk config when it differs from stored config', async () => {
+  test('applies disk config when it differs from stored config without syncing before connection', async () => {
     setLoadFrontendConfigResponse({
       speech_mode_enabled: true,
       selected_model_id: 'model-x',
@@ -48,6 +48,20 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       }),
       expect.any(Number),
     );
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
+  });
+
+  test('syncs loaded disk config when backend is already connected', async () => {
+    setClientUserIdResponse({ isConnected: true });
+    setLoadFrontendConfigResponse({
+      speech_mode_enabled: true,
+      selected_model_id: 'model-x',
+      model_provider: 'openai',
+    });
+
+    renderAppConfigContext();
+    await flushAsyncEffects();
+
     expect(DesktopSettingsRuntimeClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         speech_mode_enabled: true,

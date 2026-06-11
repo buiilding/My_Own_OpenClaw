@@ -43,6 +43,9 @@ All notable changes to WindieOS will be documented in this file.
 - storage: unify default local data roots under the `windieos` user-data folder
   for sidecar memory/history, diagnostics, browser state, backend artifacts,
   install-auth SQLite, and TTS model paths.
+- frontend/settings: avoid startup backend settings-sync attempts while the
+  backend connection state is still unknown; disk-loaded config now syncs after
+  the first connected IPC status snapshot instead of racing backend startup.
 - frontend/mcp: persist MCP discovery diagnostics in the app diagnostics DB and
   include sanitized command, args, timeout phase, elapsed time, stderr tail, and
   spawn/request errors in the MCP dashboard failure reason.
