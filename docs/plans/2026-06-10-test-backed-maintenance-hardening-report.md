@@ -51,7 +51,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement sixth slice.
 - [x] Run focused validation and `git diff --check` for the sixth slice.
 - [x] Update changelog and report with the sixth slice result.
-- [ ] Commit the sixth slice.
+- [x] Commit the sixth slice.
 
 ## Validation Log
 
@@ -230,6 +230,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `e3da2c394` - `docs(endpoints): remove stale packaged backend overrides`
 - `6e26bc45e` - `fix(frontend-oauth): escape codex callback responses`
 - `a63c5c919` - `fix(frontend-main): harden second-instance cooldown parsing`
+- `c014ab059` - `fix(sdk-conversation): normalize sidecar metadata counts`
 
 ## Remaining Candidates
 
