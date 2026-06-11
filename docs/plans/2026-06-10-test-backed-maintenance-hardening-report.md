@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: sixteenth hardening slice committed.
+- Current slice: seventeenth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -102,6 +102,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the sixteenth slice.
 - [x] Update changelog and report with the sixteenth slice result.
 - [x] Commit the sixteenth slice.
+- [x] Select seventeenth code slice with a concrete owner and regression test.
+- [x] Implement seventeenth slice.
+- [x] Run focused validation and `git diff --check` for the seventeenth slice.
+- [x] Update changelog and report with the seventeenth slice result.
+- [ ] Commit the seventeenth slice.
 
 ## Validation Log
 
@@ -220,6 +225,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after sixteenth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs tests/frontend/OverlayWindowHelpersRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- WindowSuppressionRuntime --runInBand` -
+  passed after seventeenth slice; 1 suite and 10 tests passed, including the
+  new malformed screenshot suppression bounds regressions.
+- `bin/windie docs list` - passed after seventeenth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/window_suppression_runtime.cjs tests/frontend/WindowSuppressionRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -450,6 +462,20 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   projection, display-affinity producer, response overlay visibility policy, or
   persisted manual position shape changed. The fix only tightens Electron
   main's native chat-window geometry boundary.
+- Slice 17 owner: Electron main window suppression runtime owns temporarily
+  moving the main window offscreen for screenshot capture and restoring its
+  remembered native bounds afterward.
+- Slice 17 failure mode: malformed main-window native bounds with non-finite
+  coordinates or dimensions could be reused when creating offscreen screenshot
+  bounds or remembered for later restore, allowing invalid geometry to reach
+  Electron `setBounds(...)`.
+- Slice 17 change: screenshot suppression now normalizes native bounds to
+  finite rounded coordinates and positive dimensions before offscreen
+  placement, offscreen checks, restore storage, or restore mutation. Invalid
+  bounds objects still fail quietly without native mutation.
+- Slice 17 inspection: no screenshot lease policy, IPC payload, sidecar
+  screenshot request shape, renderer state, or persisted data changed. The fix
+  only tightens Electron main's temporary native-window geometry boundary.
 
 ## Decisions
 
@@ -515,6 +541,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   geometry boundary hardening. No persisted data, IPC payload, renderer layout
   contract, SDK projection, display-affinity producer, visibility policy, or
   manual position shape changed, so no migration is required.
+- Treat malformed screenshot suppression bounds as Electron main geometry
+  boundary hardening. No persisted data, IPC payload, sidecar screenshot
+  request shape, renderer state, screenshot lease policy, or restore state
+  schema changed, so no migration is required.
 
 ## Commits
 

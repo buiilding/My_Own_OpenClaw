@@ -28,33 +28,63 @@ function getWindowBounds(targetWindow) {
   return targetWindow.getBounds();
 }
 
+function normalizeRoundedNumber(value, fallback = 0) {
+  const parsed = Number(value);
+  if (Number.isFinite(parsed)) {
+    return Math.round(parsed);
+  }
+  const fallbackParsed = Number(fallback);
+  return Number.isFinite(fallbackParsed) ? Math.round(fallbackParsed) : 0;
+}
+
+function normalizePositiveDimension(value, fallback = 0) {
+  return Math.max(1, normalizeRoundedNumber(value, fallback || 1));
+}
+
+function normalizeWindowBounds(bounds) {
+  if (!bounds || typeof bounds !== 'object') {
+    return null;
+  }
+  return {
+    x: normalizeRoundedNumber(bounds.x),
+    y: normalizeRoundedNumber(bounds.y),
+    width: normalizePositiveDimension(bounds.width),
+    height: normalizePositiveDimension(bounds.height),
+  };
+}
+
 function setWindowBounds(targetWindow, bounds) {
   if (!targetWindow || typeof targetWindow.setBounds !== 'function') {
     return false;
   }
-  targetWindow.setBounds(bounds, false);
+  const normalizedBounds = normalizeWindowBounds(bounds);
+  if (!normalizedBounds) {
+    return false;
+  }
+  targetWindow.setBounds(normalizedBounds, false);
   return true;
 }
 
 function createOffscreenBounds(bounds) {
-  if (!bounds) {
+  const normalizedBounds = normalizeWindowBounds(bounds);
+  if (!normalizedBounds) {
     return null;
   }
   return {
-    ...bounds,
-    x: -50000 - Math.max(0, bounds.width || 0),
-    y: -50000 - Math.max(0, bounds.height || 0),
+    ...normalizedBounds,
+    x: -50000 - normalizedBounds.width,
+    y: -50000 - normalizedBounds.height,
   };
 }
 
 function isWindowOffscreenForScreenshot(targetWindow) {
-  const bounds = getWindowBounds(targetWindow);
+  const bounds = normalizeWindowBounds(getWindowBounds(targetWindow));
   if (!bounds) {
     return false;
   }
   return (
-    bounds.x + Math.max(0, bounds.width || 0) < -1000
-    || bounds.y + Math.max(0, bounds.height || 0) < -1000
+    bounds.x + bounds.width < -1000
+    || bounds.y + bounds.height < -1000
   );
 }
 
@@ -89,8 +119,9 @@ function rememberWindowBoundsForScreenshotSuppression(targetWindow) {
     return;
   }
   const bounds = getWindowBounds(targetWindow);
-  if (bounds) {
-    targetWindow.__windieScreenshotRestoreBounds = bounds;
+  const normalizedBounds = normalizeWindowBounds(bounds);
+  if (normalizedBounds) {
+    targetWindow.__windieScreenshotRestoreBounds = normalizedBounds;
   }
 }
 

@@ -33,6 +33,20 @@ describe('window_suppression_runtime', () => {
     });
   });
 
+  test('normalizes malformed bounds before creating offscreen screenshot bounds', () => {
+    expect(createOffscreenBounds({
+      x: Infinity,
+      y: Number.NaN,
+      width: Infinity,
+      height: Number.NaN,
+    })).toEqual({
+      x: -50001,
+      y: -50001,
+      width: 1,
+      height: 1,
+    });
+  });
+
   test('treats offscreen bounds as suppressed during wait polling', async () => {
     const offscreenWindow = createWindow({
       bounds: { x: -50600, y: -50400, width: 600, height: 400 },
@@ -85,6 +99,33 @@ describe('window_suppression_runtime', () => {
     expect(window.__windieScreenshotRestoreBounds).toBeUndefined();
   });
 
+  test('normalizes remembered screenshot suppression bounds before restore', () => {
+    const window = createWindow({
+      bounds: {
+        x: Infinity,
+        y: Number.NaN,
+        width: Infinity,
+        height: -10,
+      },
+    });
+
+    rememberWindowBoundsForScreenshotSuppression(window);
+    expect(window.__windieScreenshotRestoreBounds).toEqual({
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    });
+
+    expect(restoreWindowBoundsFromScreenshotSuppression(window)).toBe(true);
+    expect(window.setBounds).toHaveBeenCalledWith({
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    }, false);
+  });
+
   test('applies window opacity only when supported', () => {
     const window = createWindow();
     setWindowOpacityIfSupported(window, 0.25);
@@ -95,5 +136,12 @@ describe('window_suppression_runtime', () => {
 
   test('returns false when setBounds is unsupported', () => {
     expect(setWindowBounds({}, { x: 0, y: 0, width: 100, height: 100 })).toBe(false);
+  });
+
+  test('returns false when setBounds receives an invalid bounds object', () => {
+    const window = createWindow();
+
+    expect(setWindowBounds(window, null)).toBe(false);
+    expect(window.setBounds).not.toHaveBeenCalled();
   });
 });

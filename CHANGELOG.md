@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/surfaces: normalize screenshot suppression window bounds before
+  offscreen placement or restore so malformed native geometry cannot propagate
+  into Electron `setBounds`.
 - frontend/overlays: normalize malformed chat-window visual-anchor resize
   dimensions before mutating native bounds so invalid sizes or anchor heights
   cannot propagate into Electron window geometry.
