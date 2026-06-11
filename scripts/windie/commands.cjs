@@ -32,6 +32,7 @@ Status and diagnostics:
   windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]
   windie conversation list [--limit <n>] [--json]
   windie conversation inspect <conversation-ref> [--json]
+  windie conversation messages <conversation-ref> [--limit <n>] [--json]
   windie conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]
   windie conversation turns <conversation-ref> [--json]
   windie conversation traces <conversation-ref> [--turn <turn-ref>] [--path <path>] [--limit <n>] [--json]
@@ -188,6 +189,21 @@ function queryHistoryDatabase(sql) {
     throw new Error(result.stderr || result.error || 'Failed to query history database');
   }
   return JSON.parse(result.stdout || '[]');
+}
+
+function historyObjectExists(name) {
+  const rows = queryHistoryDatabase(`
+    SELECT name
+    FROM sqlite_master
+    WHERE name = ${sqlString(name)}
+      AND type IN ('table', 'view')
+    LIMIT 1
+  `);
+  return rows.length > 0;
+}
+
+function historyObjectColumns(name) {
+  return new Set(queryHistoryDatabase(`PRAGMA table_info(${name})`).map((row) => row.name));
 }
 
 function parseTraceRow(row, pathFilter = '') {
@@ -491,6 +507,63 @@ function loadConversationEvents(args, conversationRef) {
   `);
 }
 
+function loadConversationMessages(args, conversationRef) {
+  const tables = historyTableNames();
+  const limit = sqlLimit(optionValue(args, '--limit', '200'), 200);
+  if (historyObjectExists('conversation_display_messages')) {
+    return queryHistoryDatabase(`
+      SELECT event_id AS eventId,
+             user_id AS userId,
+             conversation_id AS conversationId,
+             message_index AS messageIndex,
+             timestamp,
+             turn_ref AS turnRef,
+             revision_id AS revisionId,
+             display_role AS role,
+             source_role AS sourceRole,
+             event_type AS eventType,
+             content,
+             metadata,
+             attachments
+      FROM conversation_display_messages
+      WHERE conversation_id = ${sqlString(conversationRef)}
+      ORDER BY message_index ASC, timestamp ASC
+      LIMIT ${limit}
+    `);
+  }
+  const columns = historyObjectColumns(tables.events);
+  const metadataSelect = columns.has('metadata') ? 'metadata' : "'{}' AS metadata";
+  const attachmentsSelect = columns.has('attachments') ? 'attachments' : "'[]' AS attachments";
+  return queryHistoryDatabase(`
+    SELECT id AS eventId,
+           user_id AS userId,
+           conversation_id AS conversationId,
+           message_index AS messageIndex,
+           timestamp,
+           turn_ref AS turnRef,
+           revision_id AS revisionId,
+           CASE
+             WHEN event_type = 'turn_error' THEN 'error'
+             WHEN role IS NOT NULL AND role != '' THEN role
+             WHEN event_type = 'user_message' THEN 'user'
+             WHEN event_type = 'assistant_message' THEN 'assistant'
+             ELSE event_type
+           END AS role,
+           role AS sourceRole,
+           event_type AS eventType,
+           content,
+           ${metadataSelect},
+           ${attachmentsSelect}
+    FROM ${tables.events}
+    WHERE conversation_id = ${sqlString(conversationRef)}
+      AND event_type IN ('user_message', 'assistant_message', 'turn_error')
+      AND content IS NOT NULL
+      AND content != ''
+    ORDER BY message_index ASC, timestamp ASC
+    LIMIT ${limit}
+  `);
+}
+
 function loadConversationInspect(conversationRef) {
   const tables = historyTableNames();
   const overviewRows = queryHistoryDatabase(`
@@ -594,6 +667,16 @@ function printEventRows(rows) {
     const turn = row.turnRef ? ` turn=${row.turnRef}` : '';
     const role = row.role ? ` role=${row.role}` : '';
     console.log(`#${row.messageIndex} ${row.eventType}${role}${turn} ${row.timestamp} ${summarizeEvent(row)}`);
+  }
+}
+
+function printMessageRows(rows) {
+  if (rows.length === 0) {
+    console.log('No conversation messages found.');
+    return;
+  }
+  for (const row of rows) {
+    console.log(`#${row.messageIndex} ${row.role} ${row.timestamp} ${summarizeEvent(row)}`);
   }
 }
 
@@ -711,7 +794,7 @@ function runConversation(args) {
 
   const [conversationRef] = positionalArgs(rest, ['--turn', '--type', '--path', '--limit']);
   if (!conversationRef) {
-    throw new Error('Usage: windie conversation list|inspect|events|turns|traces <conversation-ref>');
+    throw new Error('Usage: windie conversation list|inspect|messages|events|turns|traces <conversation-ref>');
   }
 
   if (subcommand === 'inspect') {
@@ -731,6 +814,16 @@ function runConversation(args) {
       return;
     }
     printEventRows(events);
+    return;
+  }
+
+  if (subcommand === 'messages') {
+    const messages = loadConversationMessages(rest, conversationRef);
+    if (json) {
+      printJson({ ok: true, database: historyDatabasePath(), messages });
+      return;
+    }
+    printMessageRows(messages);
     return;
   }
 
@@ -757,7 +850,7 @@ function runConversation(args) {
     return;
   }
 
-  throw new Error('Usage: windie conversation list|inspect|events|turns|traces <conversation-ref>');
+  throw new Error('Usage: windie conversation list|inspect|messages|events|turns|traces <conversation-ref>');
 }
 
 function portOpen(host, port, timeoutMs = 750) {

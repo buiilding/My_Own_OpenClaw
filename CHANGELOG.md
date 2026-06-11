@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk/sidecar/cli: add persistent app diagnostics for the dashboard
   `conversation.metadata.list` path, storing sanitized rows in
   `diagnostics/diagnostics.db` with CLI list/inspect commands.
+- sidecar/cli/docs: add the `conversation_display_messages` history.db read
+  model and `windie conversation messages` export path for deterministic visible
+  chat inspection without reading raw event rows.
 - docs/plans: add the app diagnostics conversation metadata list plan for a
   persistent `diagnostics/diagnostics.db` trace path covering dashboard chat
   list failures.

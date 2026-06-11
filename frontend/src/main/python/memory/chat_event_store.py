@@ -30,6 +30,7 @@ CONVERSATION_REVISIONS_TABLE = "conversation_revisions"
 CONVERSATIONS_TABLE = "conversations"
 CONVERSATION_TURNS_TABLE = "conversation_turns"
 CONVERSATION_TITLES_TABLE = "conversation_titles"
+CONVERSATION_DISPLAY_MESSAGES_VIEW = "conversation_display_messages"
 LEGACY_EVENTS_TABLE = "chat_events"
 LEGACY_REVISIONS_TABLE = "chat_conversation_revisions"
 EVENT_COPY_COLUMNS = (
@@ -294,6 +295,7 @@ async def init_chat_event_schema(db_path: str, legacy_db_path: Optional[str] = N
             ON conversation_titles(updated_at)
             """)
         await _migrate_legacy_tables(cursor)
+        await _create_read_model_views(cursor)
         await _create_compatibility_views(cursor)
         await conn.commit()
     if legacy_db_path and legacy_db_path != db_path:
@@ -395,6 +397,40 @@ async def _create_compatibility_views(cursor: Any) -> None:
             SELECT *
             FROM {CONVERSATION_REVISIONS_TABLE}
             """)
+
+
+async def _create_read_model_views(cursor: Any) -> None:
+    await cursor.execute(f"""
+        CREATE VIEW IF NOT EXISTS {CONVERSATION_DISPLAY_MESSAGES_VIEW} AS
+        SELECT
+            id AS event_id,
+            user_id,
+            conversation_id,
+            message_index,
+            timestamp,
+            turn_ref,
+            revision_id,
+            CASE
+                WHEN event_type = 'turn_error' THEN 'error'
+                WHEN role IS NOT NULL AND role != '' THEN role
+                WHEN event_type = 'user_message' THEN 'user'
+                WHEN event_type = 'assistant_message' THEN 'assistant'
+                ELSE event_type
+            END AS display_role,
+            role AS source_role,
+            event_type,
+            content,
+            metadata,
+            attachments,
+            producer,
+            producer_event_id,
+            producer_sequence
+        FROM {CONVERSATION_EVENTS_TABLE}
+        WHERE event_type IN ('user_message', 'assistant_message', 'turn_error')
+          AND conversation_id IS NOT NULL
+          AND content IS NOT NULL
+          AND content != ''
+        """)
 
 
 async def _legacy_attached_table_exists(cursor: Any, table_name: str) -> bool:

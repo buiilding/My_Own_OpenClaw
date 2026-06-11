@@ -13,6 +13,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](local_memory_store_embedding_search_and_memory_type_routing_reference.md)
 - [Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contract Reference](conversation_search_helper_term_snippet_grouping_and_timestamp_contract_reference.md)
 - [Conversation Heuristic Title Derivation, Sanitization, and Truncation Contract Reference](conversation_heuristic_title_derivation_sanitization_and_truncation_contract_reference.md)
+- [History DB UI Read Model Reference](history_db_ui_read_model_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 
 ## Related Pages
@@ -32,6 +33,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
 - `frontend/src/main/python/memory/conversation_title_runtime.py`
 - `frontend/src/main/python/memory/conversation_window_runtime.py`
+- `frontend/src/main/python/memory/chat_event_store.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/watermark_state.py`
@@ -47,4 +49,5 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `tests/sidecar/test_conversation_title_runtime.py`
 - `tests/sidecar/test_conversation_window_runtime.py`
 - `tests/sidecar/test_memory_summarizer.py`
+- `tests/sidecar/test_chat_event_store.py`
 - `tests/sidecar/test_local_backend.py`

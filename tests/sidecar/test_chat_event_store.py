@@ -203,6 +203,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
                     'conversations',
                     'conversation_turns',
                     'conversation_titles',
+                    'conversation_display_messages',
                     'chat_events',
                     'chat_conversation_revisions'
                 )
@@ -215,8 +216,137 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
     assert objects["conversations"] == "table"
     assert objects["conversation_turns"] == "table"
     assert objects["conversation_titles"] == "table"
+    assert objects["conversation_display_messages"] == "view"
     assert objects["chat_events"] == "view"
     assert objects["chat_conversation_revisions"] == "view"
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_display_messages_view_filters_visible_rows(tmp_path: Path):
+    db_path = tmp_path / "history.db"
+    await init_chat_event_schema(str(db_path))
+
+    with sqlite3.connect(db_path) as conn:
+        conn.executemany(
+            """
+            INSERT INTO conversation_events (
+                id, user_id, conversation_id, event_type, role, content, timestamp,
+                message_index, revision_id, turn_ref, tool_name, correlation_id,
+                workspace_path, workspace_name, producer, producer_event_id,
+                producer_sequence, metadata, attachments, event_payload,
+                compaction_checkpoint
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    "evt-user",
+                    "user-1",
+                    "conv-1",
+                    "user_message",
+                    "user",
+                    "hello",
+                    "2026-06-11T12:00:00+00:00",
+                    1,
+                    "rev-1",
+                    "turn-1",
+                    None,
+                    None,
+                    None,
+                    None,
+                    "sdk",
+                    None,
+                    None,
+                    "{}",
+                    "[]",
+                    "{}",
+                    None,
+                ),
+                (
+                    "evt-trace",
+                    "user-1",
+                    "conv-1",
+                    "trace_event",
+                    None,
+                    "[sdk event: trace_event]",
+                    "2026-06-11T12:00:01+00:00",
+                    2,
+                    "rev-1",
+                    "turn-1",
+                    None,
+                    None,
+                    None,
+                    None,
+                    "sdk",
+                    None,
+                    None,
+                    "{}",
+                    "[]",
+                    "{}",
+                    None,
+                ),
+                (
+                    "evt-assistant",
+                    "user-1",
+                    "conv-1",
+                    "assistant_message",
+                    "assistant",
+                    "hi there",
+                    "2026-06-11T12:00:02+00:00",
+                    3,
+                    "rev-1",
+                    "turn-1",
+                    None,
+                    None,
+                    None,
+                    None,
+                    "backend",
+                    "backend-evt-3",
+                    3,
+                    "{}",
+                    "[]",
+                    "{}",
+                    None,
+                ),
+                (
+                    "evt-error",
+                    "user-1",
+                    "conv-1",
+                    "turn_error",
+                    None,
+                    "model failed",
+                    "2026-06-11T12:00:03+00:00",
+                    4,
+                    "rev-1",
+                    "turn-2",
+                    None,
+                    None,
+                    None,
+                    None,
+                    "backend",
+                    "backend-evt-4",
+                    4,
+                    "{}",
+                    "[]",
+                    "{}",
+                    None,
+                ),
+            ],
+        )
+        rows = conn.execute(
+            """
+            SELECT event_id, display_role, event_type, content, message_index
+            FROM conversation_display_messages
+            WHERE conversation_id = 'conv-1'
+            ORDER BY message_index ASC
+            """
+        ).fetchall()
+
+    assert rows == [
+        ("evt-user", "user", "user_message", "hello", 1),
+        ("evt-assistant", "assistant", "assistant_message", "hi there", 3),
+        ("evt-error", "error", "turn_error", "model failed", 4),
+    ]
 
 
 @pytest.mark.asyncio

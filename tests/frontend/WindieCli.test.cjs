@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
@@ -25,6 +26,7 @@ describe('windie CLI', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('windie status --all --json');
+    expect(result.stdout).toContain('windie conversation messages <conversation-ref> [--limit <n>] [--json]');
     expect(result.stdout).toContain('windie start frontend');
     expect(result.stdout).toContain('windie start dev');
     expect(result.stdout).toContain('windie start customer');
@@ -154,5 +156,106 @@ describe('windie CLI', () => {
     expect(explicit.stdout).toContain('docs/README.md');
     expect(shorthand.status).toBe(0);
     expect(shorthand.stdout).toContain('docs/README.md');
+  });
+
+  test('exports display conversation messages from the canonical history database', () => {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-history-'));
+    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'desktop-assistant', 'history');
+    const dbPath = path.join(historyDir, 'history.db');
+    fs.mkdirSync(historyDir, { recursive: true });
+    const sql = `
+      CREATE TABLE conversation_events (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        conversation_id TEXT,
+        event_type TEXT NOT NULL,
+        role TEXT,
+        content TEXT,
+        timestamp TEXT NOT NULL,
+        message_index INTEGER NOT NULL,
+        revision_id TEXT,
+        turn_ref TEXT,
+        metadata TEXT,
+        attachments TEXT,
+        event_payload TEXT NOT NULL
+      );
+      CREATE VIEW conversation_display_messages AS
+      SELECT id AS event_id,
+             user_id,
+             conversation_id,
+             message_index,
+             timestamp,
+             turn_ref,
+             revision_id,
+             role AS display_role,
+             role AS source_role,
+             event_type,
+             content,
+             metadata,
+             attachments
+      FROM conversation_events
+      WHERE event_type IN ('user_message', 'assistant_message', 'turn_error')
+        AND content IS NOT NULL
+        AND content != '';
+      INSERT INTO conversation_events
+      (id, user_id, conversation_id, event_type, role, content, timestamp, message_index, revision_id, turn_ref, metadata, attachments, event_payload)
+      VALUES
+      ('evt-user', 'user-1', 'conv-1', 'user_message', 'user', 'hello', '2026-06-11T12:00:00+00:00', 1, 'rev-1', 'turn-1', '{}', '[]', '{}'),
+      ('evt-trace', 'user-1', 'conv-1', 'trace_event', NULL, '[sdk event: trace_event]', '2026-06-11T12:00:01+00:00', 2, 'rev-1', 'turn-1', '{}', '[]', '{}'),
+      ('evt-assistant', 'user-1', 'conv-1', 'assistant_message', 'assistant', 'hi', '2026-06-11T12:00:02+00:00', 3, 'rev-1', 'turn-1', '{}', '[]', '{}');
+    `;
+    const sqlite = spawnSync('sqlite3', [dbPath, sql], { encoding: 'utf8' });
+    expect(sqlite.status).toBe(0);
+
+    const result = runCli(['conversation', 'messages', 'conv-1', '--json'], {
+      HOME: homeDir,
+    });
+
+    expect(result.status).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.database).toBe(dbPath);
+    expect(parsed.messages.map((message) => message.eventId)).toEqual(['evt-user', 'evt-assistant']);
+    expect(parsed.messages.map((message) => message.role)).toEqual(['user', 'assistant']);
+  });
+
+  test('exports display conversation messages from older history schemas without the view', () => {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-history-legacy-'));
+    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'desktop-assistant', 'history');
+    const dbPath = path.join(historyDir, 'history.db');
+    fs.mkdirSync(historyDir, { recursive: true });
+    const sql = `
+      CREATE TABLE conversation_events (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        conversation_id TEXT,
+        event_type TEXT NOT NULL,
+        role TEXT,
+        content TEXT,
+        timestamp TEXT NOT NULL,
+        message_index INTEGER NOT NULL,
+        revision_id TEXT,
+        turn_ref TEXT,
+        metadata TEXT,
+        event_payload TEXT NOT NULL
+      );
+      INSERT INTO conversation_events
+      (id, user_id, conversation_id, event_type, role, content, timestamp, message_index, revision_id, turn_ref, metadata, event_payload)
+      VALUES
+      ('evt-user', 'user-1', 'conv-1', 'user_message', 'user', 'hello', '2026-06-11T12:00:00+00:00', 1, 'rev-1', 'turn-1', '{}', '{}'),
+      ('evt-tool', 'user-1', 'conv-1', 'tool_output', 'tool', 'ignored', '2026-06-11T12:00:01+00:00', 2, 'rev-1', 'turn-1', '{}', '{}'),
+      ('evt-error', 'user-1', 'conv-1', 'turn_error', NULL, 'failed', '2026-06-11T12:00:02+00:00', 3, 'rev-1', 'turn-1', '{}', '{}');
+    `;
+    const sqlite = spawnSync('sqlite3', [dbPath, sql], { encoding: 'utf8' });
+    expect(sqlite.status).toBe(0);
+
+    const result = runCli(['conversation', 'messages', 'conv-1', '--json'], {
+      HOME: homeDir,
+    });
+
+    expect(result.status).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.messages.map((message) => message.eventId)).toEqual(['evt-user', 'evt-error']);
+    expect(parsed.messages.map((message) => message.role)).toEqual(['user', 'error']);
+    expect(parsed.messages.map((message) => message.attachments)).toEqual(['[]', '[]']);
   });
 });

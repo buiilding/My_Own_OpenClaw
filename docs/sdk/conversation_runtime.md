@@ -283,6 +283,26 @@ build complete active replay snapshots from the SDK-normalized compaction
 payload before delegating persistence through the desktop conversation
 continuity service.
 
+## History DB Read Model Boundary
+
+Electron sidecar-backed stores persist normalized conversation events in
+`history/history.db`. That database exposes `conversation_display_messages` as a
+diagnostic and prototyping read model for visible chat rows, but first-party UI
+code should still call SDK/store display APIs instead of reading SQLite directly.
+The SDK owns display projection semantics; the SQLite view owns only a durable,
+ordered subset of user messages, assistant messages, and terminal turn errors.
+
+Use the read model for CLI inspection and future UI experiments that need a
+deterministic local transcript export:
+
+```bash
+bin/windie conversation messages <conversation-ref> --json
+```
+
+Do not rebuild provider history, compaction replay state, tool semantics, or
+memory enrichment from `conversation_display_messages`. Those remain SDK,
+backend, and memory-pipeline responsibilities.
+
 Desktop metadata and transparency projection also consumes SDK-normalized
 payloads directly. Renderer handlers should read SDK `system_prompt`,
 `user_message_metadata`, `assistant_message`, and `tool_schemas_metadata` fields
