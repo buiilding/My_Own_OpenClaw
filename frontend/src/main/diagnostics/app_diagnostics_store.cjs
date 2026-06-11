@@ -6,7 +6,9 @@ const path = require('path');
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH = 'conversation.metadata.list';
 const BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH = 'browser.session_control';
+const MCP_DISCOVERY_DIAGNOSTICS_PATH = 'mcp.discovery';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
+const APP_DATA_DIR_NAME = 'windieos';
 
 const ALLOWED_DATA_KEYS = new Set([
   'hasUserId',
@@ -40,19 +42,46 @@ const ALLOWED_DATA_KEYS = new Set([
   'requestId',
   'shortError',
   'errorCode',
+  'serverId',
+  'command',
+  'args',
+  'phase',
+  'timeoutMs',
+  'elapsedMs',
+  'stderrTail',
+  'toolCount',
+  'exitCode',
+  'signal',
 ]);
 
 function diagnosticsDatabasePath() {
   if (process.env.WINDIE_APP_DIAGNOSTICS_DB) {
     return process.env.WINDIE_APP_DIAGNOSTICS_DB;
   }
+  return path.join(windieUserDataRoot(), 'diagnostics', 'diagnostics.db');
+}
+
+function windieUserDataRoot() {
+  if (process.env.WINDIE_USER_DATA_DIR) {
+    return process.env.WINDIE_USER_DATA_DIR;
+  }
+  if (process.platform === 'win32') {
+    return path.join(
+      process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
+      APP_DATA_DIR_NAME,
+    );
+  }
+  if (process.platform === 'darwin') {
+    return path.join(
+      os.homedir(),
+      'Library',
+      'Application Support',
+      APP_DATA_DIR_NAME,
+    );
+  }
   return path.join(
-    os.homedir(),
-    'Library',
-    'Application Support',
-    'desktop-assistant',
-    'diagnostics',
-    'diagnostics.db',
+    process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'),
+    APP_DATA_DIR_NAME,
   );
 }
 
@@ -347,6 +376,7 @@ module.exports = {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH,
+  MCP_DISCOVERY_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   ensureDiagnosticsSchema,
@@ -354,4 +384,5 @@ module.exports = {
   queryDiagnosticEvents,
   sanitizeData,
   sanitizeError,
+  windieUserDataRoot,
 };

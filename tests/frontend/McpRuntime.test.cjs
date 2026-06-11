@@ -274,6 +274,122 @@ describe('MCP runtime', () => {
     ]);
   });
 
+  test('records MCP request timeout diagnostics with command args and stderr tail', async () => {
+    const diagnosticEvents = [];
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.stdin = {
+      write: jest.fn(() => {
+        proc.stderr.emit('data', 'startup warning from server\n');
+      }),
+    };
+    proc.kill = jest.fn();
+    const spawnImpl = jest.fn(() => proc);
+
+    const manifest = await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [{
+        id: 'slow',
+        command: '/Users/peter/bin/slow-mcp',
+        args: ['mcp'],
+        timeout_ms: 5,
+      }],
+      spawnImpl,
+      diagnostics: {
+        emit: async (event) => {
+          diagnosticEvents.push(event);
+        },
+      },
+    });
+
+    expect(manifest.tools).toEqual([]);
+    expect(manifest.mcp_errors).toHaveLength(1);
+    expect(manifest.mcp_errors[0].reason).toContain('MCP initialize timed out for slow');
+    expect(manifest.mcp_errors[0].reason).toContain('command=slow-mcp');
+    expect(manifest.mcp_errors[0].reason).toContain('args=["mcp"]');
+    expect(manifest.mcp_errors[0].reason).toContain('startup warning from server');
+    expect(diagnosticEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        stage: 'request_timeout',
+        status: 'failed',
+        data: expect.objectContaining({
+          serverId: 'slow',
+          command: 'slow-mcp',
+          args: '["mcp"]',
+          phase: 'initialize',
+          stderrTail: 'startup warning from server',
+        }),
+      }),
+      expect.objectContaining({
+        stage: 'server_discovery_failed',
+        status: 'failed',
+        data: expect.objectContaining({
+          serverId: 'slow',
+          phase: 'discovery',
+        }),
+      }),
+    ]));
+  });
+
+  test('fails immediately when MCP spawn error arrives before request registration', async () => {
+    const diagnosticEvents = [];
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.stdin = { write: jest.fn() };
+    proc.kill = jest.fn();
+    const spawnImpl = jest.fn(() => {
+      process.nextTick(() => {
+        const error = new Error('spawn missing-mcp ENOENT');
+        error.code = 'ENOENT';
+        proc.emit('error', error);
+      });
+      return proc;
+    });
+
+    const manifest = await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [{
+        id: 'missing',
+        command: 'missing-mcp',
+        args: ['mcp'],
+        timeout_ms: 1000,
+      }],
+      spawnImpl,
+      diagnostics: {
+        emit: async (event) => {
+          diagnosticEvents.push(event);
+        },
+      },
+    });
+
+    expect(manifest.tools).toEqual([]);
+    expect(manifest.mcp_errors).toEqual([
+      expect.objectContaining({
+        server_id: 'missing',
+        reason: expect.stringContaining('spawn missing-mcp ENOENT'),
+      }),
+    ]);
+    expect(manifest.mcp_errors[0].reason).not.toContain('timed out');
+    expect(diagnosticEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        stage: 'process_error',
+        status: 'failed',
+        data: expect.objectContaining({
+          serverId: 'missing',
+          command: 'missing-mcp',
+          args: '["mcp"]',
+          phase: 'spawn',
+        }),
+      }),
+      expect.objectContaining({
+        stage: 'server_discovery_failed',
+        status: 'failed',
+      }),
+    ]));
+  });
+
   test('starts a fresh cached MCP client when server env values change', async () => {
     const spawnCalls = [];
     const spawnImpl = jest.fn((command, args, options) => {

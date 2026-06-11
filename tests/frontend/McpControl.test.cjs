@@ -36,9 +36,24 @@ function writeCuaMcpRegistry() {
 }
 
 describe('MCP control runtime', () => {
+  let previousDbPath;
+  let tempDir;
+
+  beforeEach(() => {
+    previousDbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-mcp-diagnostics-'));
+    process.env.WINDIE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
+  });
+
   afterEach(() => {
     clearExtensionRuntimeCache();
     clearMcpRuntimeCache();
+    if (previousDbPath === undefined) {
+      delete process.env.WINDIE_APP_DIAGNOSTICS_DB;
+    } else {
+      process.env.WINDIE_APP_DIAGNOSTICS_DB = previousDbPath;
+    }
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
   test('lists CUA Driver as visible but off by default', () => {

@@ -6,10 +6,18 @@ const {
   clearMcpRuntimeCache,
   createMcpToolName,
 } = require('./mcp_runtime.cjs');
+const {
+  appendDiagnosticEvent,
+  MCP_DISCOVERY_DIAGNOSTICS_PATH,
+} = require('../diagnostics/app_diagnostics_store.cjs');
 
 const MCP_ENABLED_CONFIG_KEY = 'agent_enabled_mcp_servers';
 
 let lastDiscoveryStatusByServerId = new Map();
+
+function createDiagnosticId(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
@@ -144,11 +152,34 @@ function listMcpServersForConfig({
   };
 }
 
+function createMcpDiscoveryDiagnostics() {
+  const context = {
+    path: MCP_DISCOVERY_DIAGNOSTICS_PATH,
+    traceId: createDiagnosticId('mcp-discovery'),
+  };
+  return {
+    ...context,
+    emit: async (input = {}) => {
+      try {
+        return appendDiagnosticEvent({
+          path: context.path,
+          traceId: context.traceId,
+          runtime: 'electron-main',
+          ...input,
+        });
+      } catch {
+        return { stored: false };
+      }
+    },
+  };
+}
+
 async function refreshMcpServersForConfig({
   config = null,
   contributionsDir = undefined,
   createClient = undefined,
   spawnImpl = undefined,
+  diagnostics = undefined,
 } = {}) {
   const registry = loadPublicExtensionRegistry({ contributionsDir });
   const enabledServers = getEnabledMcpServersFromConfig(config);
@@ -158,6 +189,7 @@ async function refreshMcpServersForConfig({
     enabledMcpServers: enabledServers,
     createClient,
     spawnImpl,
+    diagnostics: diagnostics || createMcpDiscoveryDiagnostics(),
   });
   const nextStatusByServerId = new Map();
   const errors = Array.isArray(manifest.mcp_errors) ? manifest.mcp_errors : [];
@@ -202,6 +234,7 @@ async function updateMcpServerEnablementForConfig({
   contributionsDir = undefined,
   createClient = undefined,
   spawnImpl = undefined,
+  diagnostics = undefined,
 } = {}) {
   const normalizedServerId = normalizeString(serverId);
   if (!normalizedServerId) {
@@ -237,6 +270,7 @@ async function updateMcpServerEnablementForConfig({
       contributionsDir,
       createClient,
       spawnImpl,
+      diagnostics,
     })
     : listMcpServersForConfig({ config: nextConfig, contributionsDir });
 

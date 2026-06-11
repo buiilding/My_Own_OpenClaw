@@ -14,6 +14,7 @@ const DEFAULT_MCP_CLIENT_INFO = Object.freeze({
 
 const clientCache = new Map();
 const toolRegistry = new Map();
+const MAX_DIAGNOSTIC_TEXT_LENGTH = 240;
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
@@ -35,6 +36,63 @@ function normalizeMcpEnablementIds(values) {
 
 function normalizeObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+function sanitizeDiagnosticText(value) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  const text = String(value)
+    .replace(/[A-Za-z]:\\[^\s'"]+/g, '[path]')
+    .replace(/\/(?:Users|private|var|tmp|Volumes|Applications)\/[^\s'"]+/g, '[path]')
+    .replace(/(?:bearer|token|api[_-]?key|secret|password)=?[^\s'",)]+/gi, '$1=[redacted]')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > MAX_DIAGNOSTIC_TEXT_LENGTH
+    ? `${text.slice(0, MAX_DIAGNOSTIC_TEXT_LENGTH - 3)}...`
+    : text;
+}
+
+function serializeDiagnosticArgs(args = []) {
+  const sanitizedArgs = (Array.isArray(args) ? args : [])
+    .map((arg) => sanitizeDiagnosticText(arg))
+    .filter(Boolean);
+  return sanitizeDiagnosticText(JSON.stringify(sanitizedArgs));
+}
+
+function commandForDiagnostics(command) {
+  const normalized = normalizeString(command);
+  if (!normalized) {
+    return '';
+  }
+  return sanitizeDiagnosticText(path.basename(normalized));
+}
+
+function methodPhase(method) {
+  if (method === 'initialize') {
+    return 'initialize';
+  }
+  if (method === 'tools/list') {
+    return 'tools_list';
+  }
+  if (method === 'tools/call') {
+    return 'tools_call';
+  }
+  return normalizeString(method).replace(/[^a-zA-Z0-9_-]+/g, '_') || 'request';
+}
+
+function emitMcpDiagnostic(diagnostics, event = {}) {
+  const emit = diagnostics && typeof diagnostics.emit === 'function'
+    ? diagnostics.emit
+    : null;
+  if (!emit) {
+    return;
+  }
+  try {
+    void Promise.resolve(emit(event)).catch(() => undefined);
+  } catch {
+    // Diagnostics must never affect MCP discovery or execution.
+  }
 }
 
 function normalizeManifestVersion(value) {
@@ -169,18 +227,73 @@ class McpStdioClient {
     this.spawnImpl = options.spawnImpl || spawn;
     this.protocolVersion = options.protocolVersion || DEFAULT_MCP_PROTOCOL_VERSION;
     this.clientInfo = options.clientInfo || DEFAULT_MCP_CLIENT_INFO;
+    this.diagnostics = options.diagnostics || null;
     this.proc = null;
     this.buffer = '';
     this.nextRequestId = 1;
     this.pending = new Map();
     this.initialized = false;
     this.stderrTail = [];
+    this.lastProcessError = null;
+  }
+
+  diagnosticData(extra = {}) {
+    return {
+      serverId: this.server.id,
+      command: commandForDiagnostics(this.server.command),
+      args: serializeDiagnosticArgs(this.server.args),
+      stderrTail: sanitizeDiagnosticText(this.stderrTail.join('\n')),
+      ...extra,
+    };
+  }
+
+  emitDiagnostic(event = {}) {
+    emitMcpDiagnostic(this.diagnostics, {
+      runtime: 'electron-main',
+      ...event,
+      data: this.diagnosticData(event.data || {}),
+    });
+  }
+
+  buildFailureMessage(message, data = {}) {
+    const details = [];
+    const command = commandForDiagnostics(this.server.command);
+    const args = serializeDiagnosticArgs(this.server.args);
+    const stderrTail = sanitizeDiagnosticText(this.stderrTail.join('\n'));
+    const processError = sanitizeDiagnosticText(this.lastProcessError?.message);
+    if (command) {
+      details.push(`command=${command}`);
+    }
+    if (args) {
+      details.push(`args=${args}`);
+    }
+    if (data.elapsedMs !== undefined) {
+      details.push(`elapsed_ms=${data.elapsedMs}`);
+    }
+    if (data.timeoutMs !== undefined) {
+      details.push(`timeout_ms=${data.timeoutMs}`);
+    }
+    if (stderrTail) {
+      details.push(`stderr=${JSON.stringify(stderrTail)}`);
+    }
+    if (processError) {
+      details.push(`process_error=${JSON.stringify(processError)}`);
+    }
+    return details.length > 0 ? `${message} (${details.join('; ')})` : message;
   }
 
   async ensureStarted() {
     if (this.proc) {
       return;
     }
+    this.lastProcessError = null;
+    this.emitDiagnostic({
+      stage: 'process_spawn',
+      status: 'started',
+      data: {
+        phase: 'spawn',
+      },
+    });
     this.proc = this.spawnImpl(this.server.command, this.server.args, {
       cwd: path.resolve(this.server.cwd || process.cwd()),
       env: {
@@ -193,12 +306,35 @@ class McpStdioClient {
     this.proc.stderr?.on?.('data', (chunk) => this.handleStderr(chunk));
     this.proc.on?.('exit', (code, signal) => {
       const reason = signal ? `signal ${signal}` : `code ${code}`;
-      this.rejectAll(new Error(`MCP server ${this.server.id} exited with ${reason}`));
+      this.emitDiagnostic({
+        stage: 'process_exit',
+        status: code === 0 && !signal ? 'succeeded' : 'failed',
+        data: {
+          phase: 'spawn',
+          exitCode: Number.isFinite(code) ? code : null,
+          signal: normalizeString(signal),
+        },
+        error: code === 0 && !signal ? null : new Error(`MCP server ${this.server.id} exited with ${reason}`),
+      });
+      this.rejectAll(new Error(this.buildFailureMessage(
+        `MCP server ${this.server.id} exited with ${reason}`,
+      )));
       this.proc = null;
       this.initialized = false;
     });
     this.proc.on?.('error', (error) => {
-      this.rejectAll(error);
+      this.lastProcessError = error;
+      this.emitDiagnostic({
+        stage: 'process_error',
+        status: 'failed',
+        data: {
+          phase: 'spawn',
+        },
+        error,
+      });
+      this.rejectAll(new Error(this.buildFailureMessage(
+        `MCP process error for ${this.server.id}: ${error?.message || error}`,
+      )));
       this.proc = null;
       this.initialized = false;
     });
@@ -264,20 +400,67 @@ class McpStdioClient {
 
   async request(method, params = {}, timeoutMs = this.server.timeout_ms) {
     await this.ensureStarted();
+    if (this.lastProcessError) {
+      throw new Error(this.buildFailureMessage(
+        `MCP process error for ${this.server.id}: ${this.lastProcessError.message || this.lastProcessError}`,
+      ));
+    }
     const id = this.nextRequestId;
     this.nextRequestId += 1;
+    const phase = methodPhase(method);
+    const startedAt = Date.now();
     const message = {
       jsonrpc: '2.0',
       id,
       method,
       params,
     };
+    this.emitDiagnostic({
+      stage: 'request_start',
+      status: 'started',
+      data: {
+        phase,
+        timeoutMs,
+      },
+    });
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Error(`MCP ${method} timed out for ${this.server.id}`));
+        const elapsedMs = Date.now() - startedAt;
+        const error = new Error(this.buildFailureMessage(
+          `MCP ${method} timed out for ${this.server.id}`,
+          { elapsedMs, timeoutMs },
+        ));
+        this.emitDiagnostic({
+          stage: 'request_timeout',
+          status: 'failed',
+          durationMs: elapsedMs,
+          data: {
+            phase,
+            timeoutMs,
+            elapsedMs,
+          },
+          error,
+        });
+        reject(error);
       }, timeoutMs);
-      this.pending.set(id, { resolve, reject, timer });
+      this.pending.set(id, {
+        resolve: (result) => {
+          const elapsedMs = Date.now() - startedAt;
+          this.emitDiagnostic({
+            stage: 'request_succeeded',
+            status: 'succeeded',
+            durationMs: elapsedMs,
+            data: {
+              phase,
+              elapsedMs,
+            },
+          });
+          resolve(result);
+        },
+        reject,
+        timer,
+      });
       this.send(message);
     });
   }
@@ -385,18 +568,61 @@ async function discoverMcpTools(options = {}) {
   const errors = [];
   const nextToolRegistry = new Map();
   for (const server of servers) {
+    const startedAt = Date.now();
+    emitMcpDiagnostic(options.diagnostics, {
+      stage: 'server_discovery_start',
+      status: 'started',
+      runtime: 'electron-main',
+      data: {
+        serverId: server.id,
+        command: commandForDiagnostics(server.command),
+        args: serializeDiagnosticArgs(server.args),
+        phase: 'discovery',
+        timeoutMs: server.timeout_ms,
+      },
+    });
     try {
       const client = getMcpClient(server, options);
       const discoveredTools = options.discover === false
         ? server.tools
         : await client.listTools();
+      const durationMs = Date.now() - startedAt;
       for (const tool of discoveredTools) {
         const manifestTool = normalizeDiscoveredTool(server, tool, nextToolRegistry);
         if (manifestTool) {
           tools.push(manifestTool);
         }
       }
+      emitMcpDiagnostic(options.diagnostics, {
+        stage: 'server_discovery_succeeded',
+        status: 'succeeded',
+        runtime: 'electron-main',
+        durationMs,
+        data: {
+          serverId: server.id,
+          command: commandForDiagnostics(server.command),
+          args: serializeDiagnosticArgs(server.args),
+          phase: 'discovery',
+          elapsedMs: durationMs,
+          toolCount: discoveredTools.length,
+        },
+      });
     } catch (error) {
+      const durationMs = Date.now() - startedAt;
+      emitMcpDiagnostic(options.diagnostics, {
+        stage: 'server_discovery_failed',
+        status: 'failed',
+        runtime: 'electron-main',
+        durationMs,
+        data: {
+          serverId: server.id,
+          command: commandForDiagnostics(server.command),
+          args: serializeDiagnosticArgs(server.args),
+          phase: 'discovery',
+          elapsedMs: durationMs,
+        },
+        error,
+      });
       errors.push({
         server_id: server.id,
         reason: error?.message || String(error),

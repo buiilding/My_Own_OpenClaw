@@ -7,6 +7,7 @@ const path = require('path');
 const {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+  MCP_DISCOVERY_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
@@ -143,5 +144,51 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('do not store');
     expect(JSON.stringify(events[0])).not.toContain('example.com/private');
     expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+  });
+
+  test('persists sanitized MCP discovery diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'mcp-diag-test',
+      spanId: 'mcp-span-test',
+      path: MCP_DISCOVERY_DIAGNOSTICS_PATH,
+      stage: 'request_timeout',
+      status: 'failed',
+      runtime: 'electron-main',
+      durationMs: 15000,
+      data: {
+        serverId: 'cua-driver',
+        command: 'cua-driver',
+        args: '["mcp"]',
+        phase: 'initialize',
+        timeoutMs: 15000,
+        elapsedMs: 15000,
+        stderrTail: 'startup warning',
+        workspacePath: '/Users/peter/private',
+      },
+      error: new Error('MCP initialize timed out for cua-driver at /private/path'),
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: MCP_DISCOVERY_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'mcp-diag-test',
+      stage: 'request_timeout',
+      status: 'failed',
+      durationMs: 15000,
+      data: expect.objectContaining({
+        serverId: 'cua-driver',
+        command: 'cua-driver',
+        args: '["mcp"]',
+        phase: 'initialize',
+        timeoutMs: 15000,
+        elapsedMs: 15000,
+        stderrTail: 'startup warning',
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+    expect(JSON.stringify(events[0])).not.toContain('/private/path');
   });
 });

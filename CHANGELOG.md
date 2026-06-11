@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/mcp: persist MCP discovery diagnostics in the app diagnostics DB and
+  include sanitized command, args, timeout phase, elapsed time, stderr tail, and
+  spawn/request errors in the MCP dashboard failure reason.
 - frontend/mcp: refresh live MCP discovery immediately after a user enables a
   gated MCP server, while keeping manual refresh as the retry path for install
   or permission fixes.

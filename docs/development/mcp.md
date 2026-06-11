@@ -146,6 +146,17 @@ binary is not on `PATH`, the MCPs dashboard reports `Not installed`; if CUA
 starts but macOS automation grants are missing, the status reports
 `Needs permission`.
 
+MCP discovery emits persistent app diagnostics under `mcp.discovery`. Inspect
+recent discovery failures with:
+
+```bash
+bin/windie diagnostics list --path mcp.discovery --limit 10 --json
+```
+
+Use the returned `traceId` with `bin/windie diagnostics inspect <trace-id>
+--json` to see spawn, initialize, `tools/list`, timeout, elapsed-time, and
+stderr-tail events.
+
 ## What Devs Should Not Edit
 
 For normal MCP integrations, do not edit:
