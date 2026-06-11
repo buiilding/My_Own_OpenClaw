@@ -1432,6 +1432,14 @@
 
 .tool-output-container,
 .tool-call-container {
+  --tool-card-border: rgba(255, 255, 255, 0.12);
+  --tool-card-border-strong: rgba(255, 255, 255, 0.24);
+  --tool-card-header-bg: rgba(255, 255, 255, 0.04);
+  --tool-card-panel-bg: rgba(255, 255, 255, 0.02);
+  --tool-card-control-bg: rgba(255, 255, 255, 0.07);
+  --tool-card-control-bg-hover: rgba(255, 255, 255, 0.13);
+  --tool-card-text: rgba(248, 250, 252, 0.94);
+  --tool-card-text-muted: rgba(226, 232, 240, 0.66);
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -1439,9 +1447,10 @@
   overflow: hidden;
   font-family: var(--font-mono);
   margin: 8px 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--tool-card-border);
   background: rgba(11, 14, 20, 0.76);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  color: var(--tool-card-text);
 }
 
 .tool-explanation-message,
@@ -1507,7 +1516,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--tool-card-header-bg);
   padding: 8px 12px;
 }
 
@@ -1529,9 +1538,9 @@
 }
 
 .tool-details-btn {
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--text-primary);
+  border: 1px solid var(--tool-card-border-strong);
+  background: var(--tool-card-control-bg);
+  color: var(--tool-card-text);
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
@@ -1543,9 +1552,9 @@
 }
 
 .tool-details-btn:hover {
-  background: var(--ui-hover-strong-bg);
+  background: var(--tool-card-control-bg-hover);
   border-color: rgba(0, 122, 255, 0.44);
-  color: #f7f9fc;
+  color: var(--tool-card-text);
 }
 
 .tool-output-content,
@@ -1558,7 +1567,7 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: var(--tool-card-text);
   max-height: 360px;
   overflow-x: auto;
   overflow-y: auto;
@@ -1576,12 +1585,12 @@
 }
 
 .tool-details-panel {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tool-card-border);
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--tool-card-panel-bg);
 }
 
 .tool-details-block {
@@ -1595,7 +1604,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--text-muted);
+  color: var(--tool-card-text-muted);
 }
 
 .tool-details-content {
@@ -1607,9 +1616,9 @@
   padding: 10px;
   font-size: 11px;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: var(--tool-card-text);
   background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--tool-card-border);
   border-radius: 8px;
   white-space: pre;
   word-wrap: normal;
@@ -1619,7 +1628,7 @@
 }
 
 .tool-screenshot-container {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tool-card-border);
   margin-top: 12px;
   padding-top: 12px;
 }
@@ -1637,6 +1646,11 @@
   text-transform: uppercase;
 }
 
+.tool-screenshot-header {
+  background: var(--tool-card-header-bg);
+  color: var(--tool-card-text-muted);
+}
+
 .tool-screenshot-image,
 .user-screenshot-image {
   width: 100%;
@@ -1647,6 +1661,10 @@
   border: 1px solid var(--border);
   margin-top: 8px;
   box-shadow: var(--shadow-soft);
+}
+
+.tool-screenshot-image {
+  border-color: var(--tool-card-border);
 }
 
 .user-message-container {

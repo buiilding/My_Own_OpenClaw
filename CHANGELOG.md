@@ -40,6 +40,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat: keep tool call and tool output card foreground colors readable
+  on their dark diagnostic surfaces when the app is using the light theme.
 - frontend/lint: remove stale unused bindings in query send, manual
   compaction, message presentation, and desktop conversation store code so the
   frontend lint gate passes.
