@@ -10,7 +10,7 @@ title: "Screenshot Capture Path Trace Report"
 
 Plan: `docs/plans/2026-06-11-screenshot-capture-path-trace-plan.md`
 
-Status: complete pending commit.
+Status: complete.
 
 ## Checklist
 
@@ -24,7 +24,7 @@ Status: complete pending commit.
 - [x] Add focused tests.
 - [x] Run validation.
 - [x] Reinspect final code paths against the plan.
-- [ ] Commit completed changes.
+- [x] Commit completed changes.
 
 ## Design Notes
 
@@ -76,7 +76,7 @@ Status: complete pending commit.
 
 ## Commits
 
-- Pending.
+- `bf0cf285a feat(sdk): trace query screenshot capture`
 
 ## Deviations
 
