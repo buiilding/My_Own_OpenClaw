@@ -57,6 +57,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the seventh slice.
 - [x] Update changelog and report with the seventh slice result.
 - [x] Commit the seventh slice.
+- [x] Select eighth code slice with a concrete owner and regression test.
+- [x] Implement eighth slice.
+- [x] Run focused validation and `git diff --check` for the eighth slice.
+- [x] Update changelog and report with the eighth slice result.
+- [ ] Commit the eighth slice.
 
 ## Validation Log
 
@@ -112,6 +117,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after seventh-slice changelog/report updates;
   canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/surface_runtime.cjs tests/frontend/SurfaceRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- WindieSdkConversationRuntime --runInBand` -
+  passed after eighth slice; 1 suite and 125 tests passed, including the new
+  metadata pagination limit normalization regression test.
+- `bin/windie docs list` - passed after eighth-slice changelog/report updates;
+  canonical navigation reported 83 page references validated.
+- `git diff --check -- packages/windie-sdk-js/src/conversation/metadata.ts tests/frontend/WindieSdkConversationRuntime.test.ts CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -218,6 +230,20 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Slice 7 inspection: no sidecar screenshot RPC payload, IPC channel, renderer
   state shape, platform policy, or persisted data changed. The existing Linux
   hide/restore and macOS/Windows content-protection paths remain unchanged.
+- Slice 8 owner: SDK conversation metadata helpers own list/search pagination
+  normalization shared by in-memory, file-backed, and sidecar-backed
+  conversation stores.
+- Slice 8 failure mode: numeric `limit` values were passed directly to
+  `Array.slice(...)`, so negative limits returned "all but the tail" and
+  fractional or non-finite values depended on JavaScript slice coercion instead
+  of an explicit SDK page-size contract.
+- Slice 8 change: metadata pagination now normalizes numeric limits to finite
+  non-negative integers, preserving omitted limits as unbounded, converting
+  invalid/non-finite/negative limits to an empty page, and flooring fractional
+  positive limits.
+- Slice 8 inspection: no store persistence format, sidecar RPC payload,
+  renderer event shape, display projection, or rehydrate projection changed.
+  The fix only tightens SDK list/search pagination output.
 
 ## Decisions
 
@@ -249,6 +275,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat invalid screenshot settle-delay normalization as Electron main surface
   hardening. No persisted data, IPC payload, sidecar RPC payload, or renderer
   event shape changed, so no migration is required.
+- Treat metadata pagination limit normalization as SDK helper hardening. No
+  persisted data, sidecar RPC payload, backend API, or renderer event shape
+  changed, so no migration is required.
 
 ## Commits
 

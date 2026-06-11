@@ -4,6 +4,16 @@ import type {
   SearchConversationOptions,
 } from './types.js';
 
+function normalizePaginationLimit(limit: unknown): number | null {
+  if (typeof limit !== 'number') {
+    return null;
+  }
+  if (!Number.isFinite(limit) || limit <= 0) {
+    return 0;
+  }
+  return Math.floor(limit);
+}
+
 export function applyConversationMetadataPagination<T extends { conversationRef: string }>(
   metadata: T[],
   options: ListConversationOptions = {},
@@ -12,7 +22,8 @@ export function applyConversationMetadataPagination<T extends { conversationRef:
     ? metadata.findIndex(entry => entry.conversationRef === options.cursor)
     : -1;
   const afterCursor = cursorIndex >= 0 ? metadata.slice(cursorIndex + 1) : metadata;
-  return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
+  const limit = normalizePaginationLimit(options.limit);
+  return limit === null ? afterCursor : afterCursor.slice(0, limit);
 }
 
 export function searchConversationMetadata(

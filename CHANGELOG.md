@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/conversation: normalize conversation metadata pagination limits to
+  finite non-negative integers so negative or non-finite limits cannot return
+  surprising list/search pages.
 - frontend/surface: fall back to the default Linux screenshot overlay settle
   delay for invalid injected values so malformed config cannot skip the
   hide-before-capture wait.

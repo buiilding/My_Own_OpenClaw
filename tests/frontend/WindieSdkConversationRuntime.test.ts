@@ -1523,6 +1523,39 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('in-memory store normalizes invalid metadata pagination limits', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-oldest',
+        revisionId: 'rev-1',
+        timestamp: '2026-05-15T10:00:00.000Z',
+        payload: { text: 'oldest' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-middle',
+        revisionId: 'rev-1',
+        timestamp: '2026-05-15T11:00:00.000Z',
+        payload: { text: 'middle' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-newest',
+        revisionId: 'rev-1',
+        timestamp: '2026-05-15T12:00:00.000Z',
+        payload: { text: 'newest' },
+      }),
+    ]);
+
+    await expect(store.listMetadata({ limit: -1 })).resolves.toEqual([]);
+    expect((await store.listMetadata({ limit: 1.8 })).map(item => item.conversationRef)).toEqual([
+      'conv-newest',
+    ]);
+    await expect(store.searchMetadata({ query: 'conv', limit: Number.NaN })).resolves.toEqual([]);
+  });
+
   test('backend compaction-completed with skipped_reason normalizes to compaction_skipped', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const normalized = normalizeBackendEventToConversationEvent({
