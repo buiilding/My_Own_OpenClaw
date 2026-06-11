@@ -142,6 +142,28 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     );
   });
 
+  test('falls back to the default second-instance throttle for invalid cooldown overrides', async () => {
+    const now = jest
+      .fn()
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_100);
+    const { deps, appEvents } = createRuntimeDeps({
+      now,
+      secondInstanceFocusCooldownMs: '1000ms',
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    appEvents['second-instance']();
+    appEvents['second-instance']();
+
+    expect(deps.showChatWindow).toHaveBeenCalledTimes(1);
+    expect(deps.log).toHaveBeenCalledWith(
+      '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
+    );
+  });
+
   test('starts windows and tray once app becomes ready', async () => {
     const { deps } = createRuntimeDeps();
 

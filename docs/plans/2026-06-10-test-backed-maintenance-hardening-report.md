@@ -42,6 +42,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the fourth slice.
 - [x] Update changelog and report with the fourth slice result.
 - [x] Commit the fourth slice.
+- [x] Select fifth code slice with a concrete owner and regression test.
+- [x] Implement fifth slice.
+- [x] Run focused validation and `git diff --check` for the fifth slice.
+- [x] Update changelog and report with the fifth slice result.
+- [ ] Commit the fifth slice.
 
 ## Validation Log
 
@@ -76,6 +81,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after fourth-slice changelog update;
   canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/app/openai_codex_oauth.cjs tests/frontend/OpenAICodexOAuth.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- MainProcessLifecycleRuntime --runInBand` -
+  passed after fifth slice; 1 suite and 18 tests passed, including the new
+  invalid second-instance cooldown regression test.
+- `bin/windie docs list` - passed after fifth-slice changelog/report updates;
+  canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/app/main_process_lifecycle_runtime.cjs tests/frontend/MainProcessLifecycleRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -147,6 +159,17 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   derivation, and IPC storage behavior are unchanged. The fix only affects local
   callback response rendering and promise lifecycle around the existing callback
   server.
+- Slice 5 owner: Electron main owns single-instance process behavior and native
+  focus throttling for duplicate app launches.
+- Slice 5 failure mode: malformed `secondInstanceFocusCooldownMs` injection
+  values such as `1000ms` normalized to zero because the runtime used
+  `Number(...) || 0`, silently disabling the second-instance focus storm guard.
+- Slice 5 change: single-instance focus cooldown normalization now preserves
+  explicit `0` as the opt-out while falling back to the production default for
+  invalid or negative values.
+- Slice 5 inspection: no renderer, preload, sidecar, backend, IPC payload, or
+  persisted data contract changed. The existing second-instance focus path and
+  hidden-pill/dashboard routing remain unchanged.
 
 ## Decisions
 
@@ -169,6 +192,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat OAuth callback escaping as a security hardening fix. No credential
   storage, provider token payload, IPC payload, backend API, or persisted data
   shape changed, so no migration is required.
+- Treat invalid second-instance cooldown normalization as Electron main startup
+  hardening. No persisted data, IPC payload, backend API, or user setting shape
+  changed, so no migration is required.
 
 ## Commits
 

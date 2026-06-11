@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/main: fall back to the default single-instance focus cooldown for
+  invalid injected override values so malformed config cannot silently disable
+  second-instance focus throttling.
 - frontend/oauth: HTML-escape OpenAI Codex OAuth callback response text and
   observe early callback rejections so provider-supplied error descriptions
   cannot render as markup or produce transient unhandled promise rejections.

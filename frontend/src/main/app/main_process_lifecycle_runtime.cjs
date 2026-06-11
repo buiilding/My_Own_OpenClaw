@@ -1,6 +1,8 @@
 const { registerOverlayRendererWindows } = require('../surfaces/overlay_renderer_registration.cjs');
 const { syncVisibleSurfaceDisplayAffinity } = require('../surfaces/display_affinity_runtime.cjs');
 
+const DEFAULT_SECOND_INSTANCE_FOCUS_COOLDOWN_MS = 1000;
+
 function toMb(value) {
   if (!Number.isFinite(value)) {
     return null;
@@ -105,6 +107,14 @@ function buildWakewordHotkeyCandidates(wakewordHotkey, platform = process.platfo
   return candidates;
 }
 
+function normalizeSecondInstanceFocusCooldownMs(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_SECOND_INSTANCE_FOCUS_COOLDOWN_MS;
+  }
+  return parsed;
+}
+
 function initializeMainProcessLifecycleRuntime(deps = {}) {
   const {
     app,
@@ -146,7 +156,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       return [];
     },
     now = () => Date.now(),
-    secondInstanceFocusCooldownMs = 1000,
+    secondInstanceFocusCooldownMs = DEFAULT_SECOND_INSTANCE_FOCUS_COOLDOWN_MS,
     requestSingleInstanceLock = () => {
       if (typeof app?.requestSingleInstanceLock === 'function') {
         return app.requestSingleInstanceLock();
@@ -201,7 +211,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
   }
 
   let lastSecondInstanceFocusAt = null;
-  const focusCooldownMs = Math.max(0, Number(secondInstanceFocusCooldownMs) || 0);
+  const focusCooldownMs = normalizeSecondInstanceFocusCooldownMs(secondInstanceFocusCooldownMs);
   app.on('second-instance', () => {
     const currentTime = Number(now?.());
     const focusTimestamp = Number.isFinite(currentTime) ? currentTime : Date.now();
