@@ -1,7 +1,7 @@
 # Compaction-Safe Plan Execution
 
 Moderate and major implementation changes must be resilient to context-window
-compaction. Treat the approved `docs/plans/` plan and its matching report as the
+compaction. Treat the active `docs/plans/` plan and its matching report as the
 durable source of truth for the task, not the conversational history.
 
 - The required loop is: recover state from the plan/report, inspect the current
@@ -15,12 +15,14 @@ durable source of truth for the task, not the conversational history.
   out-of-scope work, provide an ordered workflow, checklist, success criteria,
   validation commands, assumptions, and the reread anchors needed after context
   compaction.
-- After writing the plan, stop and ask the user to read and approve it before
-  proceeding. Explain the proposed change in architectural, conceptual bullet
-  points: what source of truth changes, which runtime boundaries move, what old
-  path is deleted or preserved, and what behavior must not regress.
-- If the user changes direction, update the plan file first, then ask for
-  approval of the updated plan before editing code.
+- After writing the plan, proceed with implementation when the user has asked
+  for the planned work to be completed or the active goal explicitly says to
+  continue. Do not pause solely for a separate approval message. In the plan,
+  explain the proposed change in architectural, conceptual bullet points: what
+  source of truth changes, which runtime boundaries move, what old path is
+  deleted or preserved, and what behavior must not regress.
+- If the user changes direction, update the plan file first, then continue from
+  the updated plan unless the user explicitly asks to pause for review.
 - The plan should not be only a fixed list of edits. For architecture cleanup,
   it must define an inspection workflow: read the relevant code, identify code
   that violates the target architecture, change it, reread the affected paths,
@@ -31,7 +33,7 @@ durable source of truth for the task, not the conversational history.
   approved plan and matching report, use the report's latest checklist,
   findings, decisions, validation log, blockers, and commits to reconstruct the
   active task, then inspect the live code before choosing the next slice.
-- While executing an approved plan, create or update a matching report file
+- While executing an active plan, create or update a matching report file
   under `docs/plans/`. Keep the report current as a realtime ledger. It must
   link the plan, track checklist and success-criteria status, document every
   commit created for the plan, record validation commands and results, and note

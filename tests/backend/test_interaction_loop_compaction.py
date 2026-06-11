@@ -17,6 +17,7 @@ from backend.src.core.events.streaming_events import (
     ErrorEvent,
     FullResponseEvent,
     StreamingCompleteEvent,
+    TraceEvent,
 )
 
 
@@ -255,6 +256,31 @@ async def test_interaction_loop_runs_mid_turn_compaction_before_second_sampling(
             "message_type": "context_compaction",
         }
     ]
+    trace_events = [
+        event
+        for event in events
+        if isinstance(event, TraceEvent) and event.path == "backend.compaction"
+    ]
+    assert [event.status for event in trace_events] == ["started", "succeeded"]
+    assert trace_events[0].data == {
+        "reason": "auto-mid",
+        "strategy": "inline",
+        "beforeTokens": 2200,
+        "projectedTokens": 2200,
+        "force": False,
+    }
+    assert trace_events[1].data == {
+        "reason": "auto-mid",
+        "strategy": "inline",
+        "beforeTokens": 2200,
+        "afterTokens": 900,
+        "removedMessages": 7,
+        "applied": True,
+        "hasSummary": True,
+        "replacementHistoryEntryCount": 1,
+        "skippedReason": None,
+    }
+    assert "summary text" not in str(trace_events[1].data)
 
 
 @pytest.mark.asyncio

@@ -3,6 +3,7 @@ Events package.
 
 Event system for agent streaming and event bus communication.
 """
+
 from backend.src.core.events.base import Event
 from backend.src.core.events.bus_events import ConfigChanged, InteractionCompleted
 from backend.src.core.events.streaming_events import (
@@ -23,6 +24,7 @@ from backend.src.core.events.streaming_events import (
     ToolCallEvent,
     ToolOutputEvent,
     ToolSchemasEvent,
+    TraceEvent,
     UserMessageFullEvent,
     WebSearchProgressEvent,
 )
@@ -51,6 +53,7 @@ __all__ = [
     "ToolCallEvent",
     "ToolOutputEvent",
     "ToolSchemasEvent",
+    "TraceEvent",
     "UserMessageFullEvent",
     "WebSearchProgressEvent",
 ]

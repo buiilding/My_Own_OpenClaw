@@ -7,6 +7,7 @@ All content, I/O, and presentation is delegated to specialized components.
 """
 
 import logging
+import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 from uuid import uuid4
 
@@ -35,6 +36,7 @@ from backend.src.core.events.streaming_events import (
     ContextCompactionStartedEvent,
     ErrorEvent,
     FullResponseEvent,
+    TraceEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
@@ -130,8 +132,52 @@ class InteractionLoop:
                         yield event
 
             # Step 1: Get prompt (delegated to PromptCoordinator)
-            prompt, tool_schemas, prompt_metadata = self.prompt_coordinator.get_prompt(
-                iteration
+            prompt_started_at = time.perf_counter()
+            prompt_mode = "initial" if iteration == 1 else "rebuild"
+            yield TraceEvent(
+                path="backend.prompt",
+                stage="build",
+                status="started",
+                runtime="backend",
+                data={
+                    "iteration": iteration,
+                    "promptMode": prompt_mode,
+                },
+            )
+            try:
+                prompt, tool_schemas, prompt_metadata = (
+                    self.prompt_coordinator.get_prompt(iteration)
+                )
+            except Exception as exc:
+                yield TraceEvent(
+                    path="backend.prompt",
+                    stage="build",
+                    status="failed",
+                    runtime="backend",
+                    duration_ms=round((time.perf_counter() - prompt_started_at) * 1000),
+                    data={
+                        "iteration": iteration,
+                        "promptMode": prompt_mode,
+                    },
+                    error={
+                        "code": type(exc).__name__,
+                        "message": "Backend prompt build failed.",
+                    },
+                )
+                raise
+            yield TraceEvent(
+                path="backend.prompt",
+                stage="build",
+                status="succeeded",
+                runtime="backend",
+                duration_ms=round((time.perf_counter() - prompt_started_at) * 1000),
+                data={
+                    "iteration": iteration,
+                    "promptMode": prompt_mode,
+                    "promptMessageCount": len(prompt),
+                    "toolSchemaCount": len(tool_schemas or []),
+                    "hasPromptMetadata": prompt_metadata is not None,
+                },
             )
 
             # Present prompt metadata events (only on first iteration)
@@ -145,6 +191,25 @@ class InteractionLoop:
             llm_response_text = ""
             llm_error_event_content = None
             llm_error_event_metadata = None
+            provider_started_at = time.perf_counter()
+            provider_trace_data = {
+                "iteration": iteration,
+                "modelId": getattr(
+                    self.session.cfg,
+                    "selected_model_id",
+                    getattr(self.session.cfg, "llm_model", None),
+                ),
+                "modelProvider": getattr(self.session.cfg, "model_provider", None),
+                "promptMessageCount": len(prompt),
+                "toolSchemaCount": len(tool_schemas or []),
+            }
+            yield TraceEvent(
+                path="provider.call",
+                stage="request",
+                status="started",
+                runtime="provider",
+                data=provider_trace_data,
+            )
             try:
                 async for event in self.llm_handler.get_response(
                     prompt,
@@ -163,11 +228,39 @@ class InteractionLoop:
                         llm_response_text = event.content
 
             except LLMRateLimitError:
+                yield TraceEvent(
+                    path="provider.call",
+                    stage="request",
+                    status="failed",
+                    runtime="provider",
+                    duration_ms=round(
+                        (time.perf_counter() - provider_started_at) * 1000
+                    ),
+                    data={**provider_trace_data, "failureKind": "rate_limit"},
+                    error={
+                        "code": "LLMRateLimitError",
+                        "message": "Provider rate limit exceeded.",
+                    },
+                )
                 error_msg = "Rate limit exceeded. Please wait."
                 async for event in self._emit_error_and_record(error_msg):
                     yield event
                 return
             except Exception as e:
+                yield TraceEvent(
+                    path="provider.call",
+                    stage="request",
+                    status="failed",
+                    runtime="provider",
+                    duration_ms=round(
+                        (time.perf_counter() - provider_started_at) * 1000
+                    ),
+                    data={**provider_trace_data, "failureKind": type(e).__name__},
+                    error={
+                        "code": type(e).__name__,
+                        "message": "Provider call failed.",
+                    },
+                )
                 if self._is_context_overflow_error(str(e)):
                     recovered, recovery_events = (
                         await self._attempt_compaction_recovery(
@@ -193,6 +286,24 @@ class InteractionLoop:
                 return
 
             if llm_error_event_content:
+                yield TraceEvent(
+                    path="provider.call",
+                    stage="request",
+                    status="failed",
+                    runtime="provider",
+                    duration_ms=round(
+                        (time.perf_counter() - provider_started_at) * 1000
+                    ),
+                    data={
+                        **provider_trace_data,
+                        "failureKind": "stream_error_event",
+                        "hasErrorMetadata": llm_error_event_metadata is not None,
+                    },
+                    error={
+                        "code": "ProviderStreamError",
+                        "message": "Provider stream failed.",
+                    },
+                )
                 if self._is_recoverable_llm_tool_call_error(llm_error_event_content):
                     logger.info(
                         "Recoverable LLM tool-call format error detected; "
@@ -232,6 +343,18 @@ class InteractionLoop:
                 async for event in self._emit_error_and_record(sanitized_error_message):
                     yield event
                 return
+
+            yield TraceEvent(
+                path="provider.call",
+                stage="request",
+                status="succeeded",
+                runtime="provider",
+                duration_ms=round((time.perf_counter() - provider_started_at) * 1000),
+                data={
+                    **provider_trace_data,
+                    "responseLength": len(llm_response_text),
+                },
+            )
 
             normalized_response = self.llm_handler.get_last_response_payload() or {
                 "content": llm_response_text
@@ -386,13 +509,27 @@ class InteractionLoop:
         if compaction_engine is None:
             return False, []
 
+        started_at = time.monotonic()
         events: List[AgentStreamingEvent] = [
+            TraceEvent(
+                path="backend.compaction",
+                stage="compact",
+                status="started",
+                runtime="backend",
+                data={
+                    "reason": reason,
+                    "strategy": decision.strategy_name,
+                    "beforeTokens": decision.before_tokens,
+                    "projectedTokens": decision.projected_tokens,
+                    "force": reason == COMPACTION_RECOVERY_REASON,
+                },
+            ),
             ContextCompactionStartedEvent(
                 reason=reason,
                 strategy=decision.strategy_name,
                 before_tokens=decision.before_tokens,
                 projected_tokens=decision.projected_tokens,
-            )
+            ),
         ]
         try:
             result = await compaction_engine.compact(
@@ -422,6 +559,28 @@ class InteractionLoop:
                     skipped_reason=result.skip_reason,
                 )
             )
+            events.append(
+                TraceEvent(
+                    path="backend.compaction",
+                    stage="compact",
+                    status="succeeded" if result.applied else "skipped",
+                    runtime="backend",
+                    duration_ms=round((time.monotonic() - started_at) * 1000),
+                    data={
+                        "reason": reason,
+                        "strategy": result.strategy_name,
+                        "beforeTokens": result.before_tokens,
+                        "afterTokens": result.after_tokens,
+                        "removedMessages": result.removed_messages,
+                        "applied": bool(result.applied),
+                        "hasSummary": bool(result.summary_text),
+                        "replacementHistoryEntryCount": len(
+                            result.replacement_history_entries
+                        ),
+                        "skippedReason": result.skip_reason,
+                    },
+                )
+            )
             return bool(result.applied), events
         except Exception as exc:
             logger.error(
@@ -436,6 +595,24 @@ class InteractionLoop:
                     strategy=decision.strategy_name,
                     error=str(exc),
                     before_tokens=decision.before_tokens,
+                )
+            )
+            events.append(
+                TraceEvent(
+                    path="backend.compaction",
+                    stage="compact",
+                    status="failed",
+                    runtime="backend",
+                    duration_ms=round((time.monotonic() - started_at) * 1000),
+                    data={
+                        "reason": reason,
+                        "strategy": decision.strategy_name,
+                        "beforeTokens": decision.before_tokens,
+                    },
+                    error={
+                        "code": "backend_compaction_failed",
+                        "message": "Backend compaction failed.",
+                    },
                 )
             )
             return False, events

@@ -43,6 +43,52 @@ Current durable traced paths:
   artifact upload, and backend query payload application spans. The sidecar
   returns sanitized capture metadata such as capture engine, dimensions, crop
   bounds, monitor id, byte count, content type, and duration.
+- `query.dispatch`: SDK conversation runtime records backend send start/end or
+  skip spans with transport availability, backend acceptance, request ids, and
+  duration.
+- `query.resources`: SDK turn-input resolution records resource counts/kinds,
+  resolver count, payload key count, metadata key count, duration, and failure
+  summaries without file paths, file contents, or screenshot paths.
+- `backend.stream`: backend query execution records stream start/end spans with
+  sanitized event counts, chunk/tool counts, terminal state, fallback-completion
+  usage, request ids, and duration.
+- `backend.prompt`: backend interaction loop records prompt-build spans with
+  prompt mode, iteration, prompt message count, tool-schema count, metadata
+  presence, and duration. It does not persist prompt text.
+- `provider.call`: backend provider runtime records LLM request spans with
+  provider/model ids, prompt/tool counts, response length, generic failure kind,
+  and duration. It does not persist raw provider payloads or tokens.
+- `conversation.rehydrate`: SDK runtime records backend rehydrate send spans
+  with message count, rehydrate mode, transport availability, and duration.
+- `compaction.lifecycle`: SDK runtime records manual compaction request spans
+  with force flag, payload key count, backend request id, transport
+  availability, and duration.
+- `backend.compaction`: backend interaction loop records compaction application
+  spans with reason, strategy, token counts, removed message count,
+  applied/skipped state, summary presence, skipped reason, and duration. It
+  does not persist compaction summaries or replacement history.
+- `tool.execution`: SDK tool coordinator records local tool execution and
+  bundle spans with tool/bundle ids, tool names, argument key counts, step
+  counts, screenshot-ref presence, delivery failure state, and duration. It
+  does not persist tool arguments, outputs, screenshots, or file contents.
+- `sidecar.rpc`: SDK local-runtime RPC wrappers record method names,
+  params/response key counts, success flags, request ids, and duration without
+  persisting params, returned title text, or user content.
+- `artifact.upload`: SDK resource/tool upload paths record upload mode,
+  content type, artifact id, URL presence, and duration without screenshot
+  bytes, screenshot paths, or file contents.
+- `memory.persistence`: SDK completed-turn memory storage records enabled and
+  runtime/client booleans, user/assistant text lengths, memory types, memory-id
+  presence, and duration without memory text, embeddings, user text, or
+  assistant text.
+- `title.generation`: SDK completed-turn title workflow records model/provider
+  presence, input text lengths, generated title length, success state, and
+  duration without generated title text, user text, or assistant text.
+- `settings.sync`: SDK runtime records settings update spans with updated key
+  names, backend request id, transport availability, and duration. It does not
+  persist credentials or provider payloads.
+- `model.catalog`: SDK runtime records model-list request spans with backend
+  request id, transport availability, and duration.
 
 Renderer diagnostics should read the same rows through
 `DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads
@@ -173,8 +219,8 @@ Use this when screenshots are missing, stale, include overlays, or do not attach
 | --- | --- | --- |
 | Renderer query resource handle | `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts` | Whether the outgoing query requested a screenshot resource handle. |
 | SDK turn resource resolver | `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts` | Whether the SDK resolved the screenshot resource into artifact refs. |
-| SDK/main tool screenshot | `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs` | Tool screenshot stage and payload. |
-| Main screenshot bridge | `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs` | Upload/fetch path for screenshot artifacts. |
+| SDK/main tool screenshot | `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs` | Tool screenshot stage and payload. |
+| Main screenshot bridge | `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs` | Upload/fetch path for screenshot artifacts. |
 | Sidecar screenshot tool | `frontend/src/main/python/tools/computer/screenshot_tool.py` | Platform capture path and cursor/overlay behavior. |
 | Backend artifact load | `backend/src/services/artifacts/store.py`, `backend/src/api/routes/artifacts` | Artifact lookup and binary response. |
 
@@ -195,8 +241,8 @@ Sidecar stdout is JSON-RPC only. Debug by combining Electron bridge logs with si
 
 | Path | Code root |
 | --- | --- |
-| Main bridge process lifecycle | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_supervisor.cjs` |
-| Main bridge request mapping | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/local_backend_bridge_tool_args.cjs` |
+| Main bridge process lifecycle | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_supervisor.cjs` |
+| Main bridge request mapping | `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs` |
 | Sidecar protocol | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/local_backend.py` |
 | Tool registry | `frontend/src/main/python/tools/registry.py` |
 

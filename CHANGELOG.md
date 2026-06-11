@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- sdk/backend/docs: expand durable hidden `trace_event` diagnostics across 15
+  additional runtime paths, including query dispatch/resources, backend
+  stream/prompt/provider/compaction, tool execution, sidecar RPC, artifact
+  upload, completed-turn memory persistence, title generation, settings sync,
+  model catalog, conversation rehydrate, and compaction lifecycle.
 - sdk/frontend/sidecar: add durable `screenshot.capture` trace rows for query
   screenshot resource resolution across SDK, Electron main surface prep,
   sidecar capture, and SDK-observed artifact upload outcomes.

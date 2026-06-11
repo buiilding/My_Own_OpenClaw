@@ -34,6 +34,7 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         ToolCallEvent,
         ToolOutputEvent,
         ToolSchemasEvent,
+        TraceEvent,
         UserMessageFullEvent,
         WebSearchProgressEvent,
     )
@@ -118,5 +119,10 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             ToolBundleEvent,
             StreamingEventType.TOOL_BUNDLE.value,
             formatter_module.ToolBundleEventFormatter,
+        ),
+        (
+            TraceEvent,
+            StreamingEventType.TRACE_EVENT.value,
+            formatter_module.TraceEventFormatter,
         ),
     )

@@ -2149,6 +2149,138 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend trace-event normalization creates sanitized hidden trace rows', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'trace-event',
+      conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
+      turn_ref: 'turn-provider-trace',
+      payload: {
+        trace_id: 'trace-provider-1',
+        span_id: 'span-provider-1',
+        path: 'provider.call',
+        stage: 'completion',
+        status: 'succeeded',
+        runtime: 'provider',
+        request_id: 'req-provider-1',
+        duration_ms: 42,
+        data: {
+          provider: 'openai',
+          modelId: 'gpt-test',
+          promptTokens: 123,
+          providerPayload: { raw: 'must not persist' },
+          apiKey: 'sk-secret',
+          text: 'raw prompt text',
+        },
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'trace_event',
+      source: 'backend',
+      turnRef: 'turn-provider-trace',
+      payload: expect.objectContaining({
+        schemaVersion: 1,
+        traceId: 'trace-provider-1',
+        spanId: 'span-provider-1',
+        path: 'provider.call',
+        stage: 'completion',
+        status: 'succeeded',
+        runtime: 'provider',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-provider-trace',
+        userId: 'user-sdk-runtime',
+        requestId: 'req-provider-1',
+        durationMs: 42,
+        data: expect.objectContaining({
+          provider: 'openai',
+          modelId: 'gpt-test',
+          promptTokens: 123,
+          providerPayload: '[redacted]',
+          apiKey: '[redacted]',
+          text: '[redacted]',
+        }),
+      }),
+    });
+    expect(buildDisplayConversation([normalized as ConversationEvent]).messages).toEqual([]);
+    expect(buildRehydrateSnapshot([normalized as ConversationEvent]).messages).toEqual([]);
+    expect(buildTraceTimeline([normalized as ConversationEvent], {
+      path: 'provider.call',
+      turnRef: 'turn-provider-trace',
+    })).toEqual([
+      expect.objectContaining({
+        eventId: normalized?.eventId,
+        path: 'provider.call',
+        runtime: 'provider',
+      }),
+    ]);
+  });
+
+  test('conversation runtime persists backend-origin trace-event rows from transport', async () => {
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+    });
+    const emitted: ConversationEvent[] = [];
+    runtime.subscribeEvents(event => emitted.push(event));
+    runtime.attachTransport();
+
+    transport.emit({
+      type: 'trace-event',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-backend-stream-trace',
+      user_id: 'user-sdk-runtime',
+      payload: {
+        traceId: 'trace-stream-1',
+        spanId: 'span-stream-1',
+        path: 'backend.stream',
+        stage: 'terminal_event',
+        status: 'succeeded',
+        runtime: 'backend',
+        durationMs: 18,
+        data: {
+          terminalEventType: 'streaming-complete',
+          eventCount: 7,
+          token: 'secret-token',
+          content: 'final answer text',
+        },
+      },
+    });
+
+    await waitForExpect(async () => {
+      const events = await store.loadEvents('conv-sdk-runtime');
+      expect(events.some(event => event.type === 'trace_event')).toBe(true);
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const timeline = buildTraceTimeline(events, {
+      path: 'backend.stream',
+      turnRef: 'turn-backend-stream-trace',
+    });
+    expect(timeline).toEqual([
+      expect.objectContaining({
+        traceId: 'trace-stream-1',
+        spanId: 'span-stream-1',
+        path: 'backend.stream',
+        stage: 'terminal_event',
+        status: 'succeeded',
+        runtime: 'backend',
+        data: expect.objectContaining({
+          terminalEventType: 'streaming-complete',
+          eventCount: 7,
+          token: '[redacted]',
+          content: '[redacted]',
+        }),
+      }),
+    ]);
+    expect(emitted.some(event => event.type === 'trace_event')).toBe(true);
+    expect(buildDisplayConversation(events).messages).toEqual([]);
+    expect(buildRehydrateSnapshot(events).messages).toEqual([]);
+  });
+
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const applied = normalizeBackendEventToConversationEvent({
@@ -3041,7 +3173,7 @@ describe('Windie SDK conversation runtime core', () => {
     const sendPromise = runtime.send({ text: 'hello', turnRef: 'turn-slow-enrich' });
 
     await waitForExpect(() => {
-      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
         'turn_started',
         'user_message',
       ]);
@@ -3068,7 +3200,7 @@ describe('Windie SDK conversation runtime core', () => {
     await sendPromise;
 
     await waitForExpect(() => {
-      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
         'turn_started',
         'user_message',
         'user_message_metadata',
@@ -3130,7 +3262,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
 
     await waitForExpect(() => {
-      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
         'turn_started',
         'user_message',
       ]);
@@ -3164,7 +3296,7 @@ describe('Windie SDK conversation runtime core', () => {
     await sendPromise;
 
     await waitForExpect(() => {
-      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
         'turn_started',
         'user_message',
         'user_message_metadata',
@@ -3337,8 +3469,47 @@ describe('Windie SDK conversation runtime core', () => {
         contentType: 'image/jpeg',
       }),
     );
+    const artifactTimeline = buildTraceTimeline(events, {
+      turnRef: 'turn-query-shot',
+      path: 'artifact.upload',
+    });
+    expect(artifactTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'upload:started',
+      'upload:succeeded',
+    ]);
+    expect(artifactTimeline[0].data).toEqual(expect.objectContaining({
+      uploadMode: 'file',
+      contentType: 'image/jpeg',
+    }));
+    expect(artifactTimeline[1].data).toEqual(expect.objectContaining({
+      uploadMode: 'file',
+      artifactId: 'artifact-query-shot.jpg',
+      contentType: 'image/jpeg',
+      hasUrl: true,
+    }));
+    const resourceTimeline = buildTraceTimeline(events, {
+      turnRef: 'turn-query-shot',
+      path: 'query.resources',
+    });
+    expect(resourceTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'resolve:started',
+      'resolve:succeeded',
+    ]);
+    expect(resourceTimeline[0].data).toEqual(expect.objectContaining({
+      resourceCount: 1,
+      resourceKinds: ['query_screenshot_request'],
+    }));
+    expect(resourceTimeline[1].data).toEqual(expect.objectContaining({
+      resourceCount: 1,
+      resourceKinds: ['query_screenshot_request'],
+      payloadKeyCount: expect.any(Number),
+      metadataKeyCount: expect.any(Number),
+    }));
     expect(JSON.stringify(timeline)).not.toContain(screenshotPath);
+    expect(JSON.stringify(artifactTimeline)).not.toContain(screenshotPath);
+    expect(JSON.stringify(resourceTimeline)).not.toContain(screenshotPath);
     expect(JSON.stringify(timeline)).not.toContain('screenshot_path');
+    expect(JSON.stringify(artifactTimeline)).not.toContain('screenshot_path');
     expect(buildDisplayConversation(events).messages.some(message => message.messageType === 'trace_event')).toBe(false);
   });
 
@@ -3452,7 +3623,7 @@ describe('Windie SDK conversation runtime core', () => {
       }],
     })).rejects.toThrow('File is not readable');
 
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'turn_started',
       'user_message',
       'turn_error',
@@ -3527,6 +3698,82 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('conversation runtime records query dispatch trace around backend send', async () => {
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-dispatch-accepted'),
+    });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+    });
+
+    await runtime.send({
+      text: 'hello dispatch',
+      turnRef: 'turn-dispatch-trace',
+      payload: {
+        existingFlag: true,
+      },
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-dispatch-trace',
+      path: 'query.dispatch',
+    });
+
+    expect(timeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'transport_send:started',
+      'transport_send:succeeded',
+    ]);
+    expect(timeline[0].data).toEqual(expect.objectContaining({
+      resourceCount: 0,
+      payloadKeyCount: 1,
+      hasModelOverride: false,
+      hasConversationRef: true,
+    }));
+    expect(timeline[1].requestId).toBe('query-dispatch-accepted');
+    expect(timeline[1].data).toEqual(expect.objectContaining({
+      backendMessageId: 'query-dispatch-accepted',
+      backendAccepted: true,
+    }));
+    expect(JSON.stringify(timeline)).not.toContain('hello dispatch');
+    expect(buildDisplayConversation(events).messages.some(message => message.messageType === 'trace_event')).toBe(false);
+    expect(buildRehydrateSnapshot(events).messages.some(message => message.message_type === 'trace_event')).toBe(false);
+  });
+
+  test('conversation runtime records skipped query dispatch when no backend transport is attached', async () => {
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+    });
+
+    const result = await runtime.send({
+      text: 'offline dispatch',
+      turnRef: 'turn-dispatch-skipped',
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-dispatch-skipped',
+      path: 'query.dispatch',
+    });
+
+    expect(result.queryMessageId).toBe('turn-dispatch-skipped');
+    expect(timeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'transport_send:skipped',
+    ]);
+    expect(timeline[0].data).toEqual(expect.objectContaining({
+      reason: 'transport_unavailable',
+      resourceCount: 0,
+      payloadKeyCount: 0,
+      hasModelOverride: false,
+    }));
+    expect(JSON.stringify(timeline)).not.toContain('offline dispatch');
+  });
+
   test('conversation runtime terminalizes active turn for unsequenced backend error envelope', async () => {
     let backendListener: ((event: unknown) => void) | null = null;
     const store = new InMemoryConversationStore();
@@ -3577,7 +3824,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
 
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'turn_started',
       'user_message',
       'turn_error',
@@ -3626,17 +3873,17 @@ describe('Windie SDK conversation runtime core', () => {
 
     await runtime.send({ text: 'hello', turnRef: 'turn-memory-diag' });
 
-	    const events = await store.loadEvents('conv-sdk-runtime');
-	    expect(events.map(storedEvent => storedEvent.type)).toEqual([
-	      'turn_started',
-	      'user_message',
-	      'memory_retrieval_diagnostic',
-	      'user_message_metadata',
-	    ]);
-	    expect(events[2]).toMatchObject({
-	      type: 'memory_retrieval_diagnostic',
-	      source: 'sdk',
-	      turnRef: 'turn-memory-diag',
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
+      'turn_started',
+      'user_message',
+      'memory_retrieval_diagnostic',
+      'user_message_metadata',
+    ]);
+    expect(events.find(storedEvent => storedEvent.type === 'memory_retrieval_diagnostic')).toMatchObject({
+      type: 'memory_retrieval_diagnostic',
+      source: 'sdk',
+      turnRef: 'turn-memory-diag',
       payload: expect.objectContaining({
         stage: 'embedding_request_failed',
         error: '503 Service Unavailable',
@@ -3679,7 +3926,10 @@ describe('Windie SDK conversation runtime core', () => {
     await runtime.send({ text: 'hello secret text', turnRef: 'turn-memory-trace' });
 
     const events = await store.loadEvents('conv-sdk-runtime');
-    const traceEvents = events.filter(storedEvent => storedEvent.type === 'trace_event');
+    const traceEvents = events.filter(storedEvent => (
+      storedEvent.type === 'trace_event'
+      && storedEvent.payload.path === 'memory.retrieval'
+    ));
     expect(traceEvents).toHaveLength(2);
     expect(traceEvents[0]).toMatchObject({
       type: 'trace_event',
@@ -3771,6 +4021,27 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events.map(storedEvent => storedEvent.type)).not.toContain('memory_persistence_diagnostic' as any);
+    const memoryTimeline = buildTraceTimeline(events, {
+      turnRef: 'turn-store-memory',
+      path: 'memory.persistence',
+    });
+    expect(memoryTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'completed_turn:started',
+      'completed_turn:succeeded',
+    ]);
+    expect(memoryTimeline[0].data).toEqual(expect.objectContaining({
+      memoryEnabled: true,
+      hasLocalRuntime: true,
+      hasSdkClient: true,
+      userQueryLength: 5,
+      assistantResponseLength: 5,
+    }));
+    expect(memoryTimeline[1].data).toEqual(expect.objectContaining({
+      memoryTypes: ['episodic'],
+      hasMemoryId: true,
+    }));
+    expect(JSON.stringify(memoryTimeline)).not.toContain('hello');
+    expect(JSON.stringify(memoryTimeline)).not.toContain('world');
     expect(events.find(storedEvent => storedEvent.type === 'memory_store_changed')).toMatchObject({
       payload: expect.objectContaining({
         userId: 'user-sdk-runtime',
@@ -3920,6 +4191,49 @@ describe('Windie SDK conversation runtime core', () => {
     });
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events.map(storedEvent => storedEvent.type)).toContain('turn_completed');
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-title',
+      path: 'sidecar.rpc',
+    });
+    expect(timeline.map(entry => `${entry.data?.method}:${entry.status}`)).toEqual([
+      'get_conversation_title_state:started',
+      'get_conversation_title_state:succeeded',
+      'update_conversation_title:started',
+      'update_conversation_title:succeeded',
+    ]);
+    expect(timeline[0].data).toEqual(expect.objectContaining({
+      method: 'get_conversation_title_state',
+      paramsKeyCount: 2,
+      hasParams: true,
+    }));
+    expect(timeline[3].data).toEqual(expect.objectContaining({
+      method: 'update_conversation_title',
+      successFlag: true,
+    }));
+    const titleTimeline = buildTraceTimeline(events, {
+      turnRef: 'turn-title',
+      path: 'title.generation',
+    });
+    expect(titleTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'generate:started',
+      'generate:succeeded',
+    ]);
+    expect(titleTimeline[0].data).toEqual(expect.objectContaining({
+      hasModelId: true,
+      modelProvider: 'openai',
+      userMessageLength: 'build title generation'.length,
+      assistantMessageLength: 'The title generation path is now implemented.'.length,
+    }));
+    expect(titleTimeline[1].data).toEqual(expect.objectContaining({
+      success: true,
+      titleLength: 'Project Setup'.length,
+    }));
+    expect(JSON.stringify(timeline)).not.toContain('build title generation');
+    expect(JSON.stringify(timeline)).not.toContain('The title generation path is now implemented.');
+    expect(JSON.stringify(timeline)).not.toContain('Project Setup');
+    expect(JSON.stringify(titleTimeline)).not.toContain('build title generation');
+    expect(JSON.stringify(titleTimeline)).not.toContain('The title generation path is now implemented.');
+    expect(JSON.stringify(titleTimeline)).not.toContain('Project Setup');
   });
 
   test('conversation runtime skips generated title when durable title already exists', async () => {
@@ -4227,6 +4541,69 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('conversation runtime records SDK control transport traces', async () => {
+    const transport = createMockBackendTransport({
+      rehydrateConversation: jest.fn(async () => undefined),
+      compactHistory: jest.fn(async () => 'compact-control'),
+      updateSettings: jest.fn(async () => 'settings-control'),
+      listModels: jest.fn(async () => 'models-control'),
+    });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+    });
+
+    await runtime.rehydrateMessages({
+      messages: [{ role: 'user', content: 'do not persist this in trace' }],
+      rehydrate_mode: 'replace',
+    } as any);
+    await runtime.compactHistory({ force: false });
+    await runtime.updateSettings({
+      selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
+      provider_api_keys: {
+        openai: {
+          api_key: 'sk-secret',
+        },
+      },
+    } as any);
+    await runtime.requestModelList();
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(buildTraceTimeline(events, { path: 'conversation.rehydrate' }).map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'transport_send:started',
+      'transport_send:succeeded',
+    ]);
+    expect(buildTraceTimeline(events, { path: 'conversation.rehydrate' })[0].data).toEqual(expect.objectContaining({
+      messageCount: 1,
+      rehydrateMode: 'replace',
+    }));
+    expect(buildTraceTimeline(events, { path: 'compaction.lifecycle' }).map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'request:started',
+      'request:succeeded',
+    ]);
+    expect(buildTraceTimeline(events, { path: 'compaction.lifecycle' })[1]).toEqual(expect.objectContaining({
+      requestId: 'compact-control',
+    }));
+    expect(buildTraceTimeline(events, { path: 'settings.sync' }).map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'update:started',
+      'update:succeeded',
+    ]);
+    expect(buildTraceTimeline(events, { path: 'settings.sync' })[0].data).toEqual(expect.objectContaining({
+      updatedKeys: ['provider_api_keys', 'selected_model_id'],
+    }));
+    expect(buildTraceTimeline(events, { path: 'model.catalog' }).map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'list:started',
+      'list:succeeded',
+    ]);
+    expect(buildTraceTimeline(events, { path: 'model.catalog' })[1]).toEqual(expect.objectContaining({
+      requestId: 'models-control',
+    }));
+    expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('do not persist this in trace');
+    expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('sk-secret');
+  });
+
   test('conversation runtime updates model selection before sending a turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const settingsUpdates: Record<string, unknown>[] = [];
@@ -4279,12 +4656,13 @@ describe('Windie SDK conversation runtime core', () => {
       { messageId: 'turn-model' },
     );
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(event => event.type)).toEqual([
+    expect(events.filter(event => event.type !== 'trace_event').map(event => event.type)).toEqual([
       'settings_updated',
       'turn_started',
       'user_message',
     ]);
-    expect(events[0].payload).toMatchObject({
+    const settingsEvent = events.find(event => event.type === 'settings_updated');
+    expect(settingsEvent?.payload).toMatchObject({
       selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
       model_provider: 'openai',
       model_mode: 'high',
@@ -4610,11 +4988,34 @@ describe('Windie SDK conversation runtime core', () => {
       turnRef: 'turn-send-failure',
     })).rejects.toThrow('Failed to send query to backend');
     expect(sendQuery).toHaveBeenCalledTimes(1);
-    expect((await store.loadEvents('conv-sdk-runtime')).map(storedEvent => storedEvent.type)).toEqual([
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'turn_started',
       'user_message',
       'turn_error',
     ]);
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-send-failure',
+      path: 'query.resources',
+    }).map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'resolve:started',
+      'resolve:succeeded',
+    ]);
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-send-failure',
+      path: 'query.dispatch',
+    });
+    expect(timeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'transport_send:started',
+      'transport_send:failed',
+    ]);
+    expect(timeline[1].data).toEqual(expect.objectContaining({
+      backendAccepted: false,
+    }));
+    expect(timeline[1].error).toEqual(expect.objectContaining({
+      message: 'Failed to send query to backend',
+    }));
+    expect(JSON.stringify(timeline)).not.toContain('send failure');
     expect((await runtime.load()).currentTurn).toMatchObject({
       turnRef: 'turn-send-failure',
       phase: 'error',
@@ -4898,10 +5299,32 @@ describe('Windie SDK conversation runtime core', () => {
         output: 'read README.md',
       },
     });
-    expect((await store.loadEvents('conv-sdk-runtime')).map(storedEvent => storedEvent.type)).toEqual([
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'tool_call',
       'tool_output',
     ]);
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-tool',
+      path: 'tool.execution',
+    });
+    expect(timeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'single_tool:started',
+      'single_tool:succeeded',
+    ]);
+    expect(timeline[0].data).toEqual(expect.objectContaining({
+      toolName: 'read_file',
+      argsKeyCount: 1,
+    }));
+    expect(timeline[1]).toEqual(expect.objectContaining({
+      requestId: 'req-read',
+    }));
+    expect(timeline[1].data).toEqual(expect.objectContaining({
+      toolName: 'read_file',
+      success: true,
+      deliveryFailed: false,
+    }));
+    expect(JSON.stringify(timeline)).not.toContain('README.md');
     expect((await runtime.load()).state.phase).toBe('tool_result_sent');
   });
 
@@ -5017,21 +5440,38 @@ describe('Windie SDK conversation runtime core', () => {
     await tick();
 
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'tool_call',
       'tool_output',
       'turn_error',
     ]);
-    expect(events[1].payload).toMatchObject({
+    const toolOutputEvent = events.find(storedEvent => storedEvent.type === 'tool_output');
+    const turnErrorEvent = events.find(storedEvent => storedEvent.type === 'turn_error');
+    expect(toolOutputEvent?.payload).toMatchObject({
       requestId: 'req-read',
       success: false,
       deliveryFailed: true,
       error: 'Tool result delivery failed: websocket closed',
     });
-    expect(events[2].payload).toMatchObject({
+    expect(turnErrorEvent?.payload).toMatchObject({
       reason: 'tool_result_delivery_failed',
       error: 'websocket closed',
     });
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-tool',
+      path: 'tool.execution',
+    });
+    expect(timeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'single_tool:started',
+      'single_tool:failed',
+    ]);
+    expect(timeline[1].error).toEqual(expect.objectContaining({
+      message: 'websocket closed',
+    }));
+    expect(timeline[1].data).toEqual(expect.objectContaining({
+      deliveryFailed: true,
+      success: false,
+    }));
     expect((await runtime.load()).state.phase).toBe('error');
   });
 
@@ -5191,7 +5631,7 @@ describe('Windie SDK conversation runtime core', () => {
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
     expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('user-edit');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'user_message',
       'conversation_rewritten',
       'turn_started',
@@ -5311,7 +5751,7 @@ describe('Windie SDK conversation runtime core', () => {
     }));
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'conversation_rewritten',
     ]);
   });

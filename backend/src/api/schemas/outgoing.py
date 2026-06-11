@@ -319,3 +319,36 @@ class ContextCompactionFailedPayload(BaseModel):
 class ContextCompactionFailedMessage(BaseMessage):
     type: Literal["context-compaction-failed"]
     payload: ContextCompactionFailedPayload
+
+
+class TraceErrorPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str
+    message: str
+
+
+class TraceEventPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schemaVersion: Literal[1]
+    path: str
+    stage: str
+    status: Literal["started", "succeeded", "failed", "skipped"]
+    runtime: Literal[
+        "sdk", "electron-main", "renderer", "sidecar", "backend", "provider"
+    ]
+    traceId: Optional[str] = None
+    spanId: Optional[str] = None
+    parentSpanId: Optional[str] = None
+    requestId: Optional[str] = None
+    startedAt: Optional[str] = None
+    endedAt: Optional[str] = None
+    durationMs: Optional[int] = None
+    data: Optional[Dict[str, Any]] = None
+    error: Optional[TraceErrorPayload] = None
+
+
+class TraceEventMessage(BaseMessage):
+    type: Literal["trace-event"]
+    payload: TraceEventPayload

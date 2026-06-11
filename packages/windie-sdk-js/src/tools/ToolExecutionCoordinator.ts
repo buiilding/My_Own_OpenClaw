@@ -11,6 +11,8 @@ import type {
   ToolBundleResultPayload,
   ToolBundleStepResult,
   ToolResultPayload,
+  TraceRuntime,
+  TraceStatus,
 } from '../conversation/types.js';
 import { resolveModelFacingToolCallId } from './toolCorrelationIds.js';
 import { normalizeLocalToolResultData } from './toolOutputContent.js';
@@ -20,8 +22,20 @@ export type ToolExecutionCoordinatorOptions = {
   localToolLifecycle?: LocalToolExecutionLifecycle | null;
   store?: Pick<ConversationStore, 'appendEvent'> | null;
   artifactUploader?: ToolResultArtifactUploader | null;
+  emitTrace?: (input: ToolExecutionTraceInput) => Promise<void> | void;
   sendToolResult: (payload: ToolResultPayload) => Promise<void>;
   sendToolBundleResult: (payload: ToolBundleResultPayload) => Promise<void>;
+};
+
+export type ToolExecutionTraceInput = {
+  path: string;
+  stage: string;
+  status: TraceStatus;
+  runtime?: TraceRuntime;
+  requestId?: string | null;
+  durationMs?: number | null;
+  data?: JsonRecord | null;
+  error?: unknown;
 };
 
 export type ToolResultArtifactUploader = {
@@ -72,6 +86,10 @@ function failureResult(error: unknown): LocalToolResult {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function durationSince(startedAtMs: number): number {
+  return Math.max(0, Date.now() - startedAtMs);
 }
 
 function artifactUploadError(error: unknown): Error {
@@ -583,6 +601,19 @@ export class ToolExecutionCoordinator {
       return;
     }
     const startedAt = Date.now();
+    await this.options.emitTrace?.({
+      path: 'tool.execution',
+      stage: 'single_tool',
+      status: 'started',
+      runtime: 'sdk',
+      requestId: call.requestId,
+      data: {
+        toolName: call.toolName,
+        hasToolCallId: Boolean(call.toolCallId),
+        hasCorrelationId: Boolean(call.correlationId),
+        argsKeyCount: Object.keys(call.args).length,
+      },
+    });
     let result: LocalToolResult;
     try {
       result = await this.executeLocalTool(call);
@@ -632,6 +663,21 @@ export class ToolExecutionCoordinator {
           elapsedMs: Date.now() - startedAt,
         },
       }));
+      await this.options.emitTrace?.({
+        path: 'tool.execution',
+        stage: 'single_tool',
+        status: deliveryError || !success ? 'failed' : 'succeeded',
+        runtime: 'sdk',
+        requestId: call.requestId,
+        durationMs: durationSince(startedAt),
+        data: {
+          toolName: call.toolName,
+          success: deliveryError ? false : success,
+          deliveryFailed: Boolean(deliveryError),
+          hasScreenshotRef: Boolean(screenshotData?.screenshot_ref ?? screenshotData?.screenshotRef),
+        },
+        error: deliveryError ?? (success ? null : result.error ?? 'Tool execution failed'),
+      });
     }
     if (deliveryError) {
       throw deliveryError;
@@ -643,6 +689,7 @@ export class ToolExecutionCoordinator {
       return;
     }
     const payload = event.payload;
+    const startedAt = Date.now();
     const bundleId = typeof payload.bundleId === 'string'
       ? payload.bundleId
       : (typeof payload.bundle_id === 'string' ? payload.bundle_id : '');
@@ -656,6 +703,17 @@ export class ToolExecutionCoordinator {
       step_results: stepResults,
     };
     let deliveryError: unknown = null;
+    await this.options.emitTrace?.({
+      path: 'tool.execution',
+      stage: 'bundle',
+      status: 'started',
+      runtime: 'sdk',
+      requestId: bundleId,
+      data: {
+        bundleId,
+        toolCount: tools.length,
+      },
+    });
     try {
       for (const [sourceToolIndex, step] of tools.entries()) {
         if (!step || typeof step !== 'object' || Array.isArray(step)) {
@@ -740,6 +798,23 @@ export class ToolExecutionCoordinator {
           deliveryFailed: Boolean(deliveryError),
         },
       }));
+      await this.options.emitTrace?.({
+        path: 'tool.execution',
+        stage: 'bundle',
+        status: deliveryError || status !== 'success' ? 'failed' : 'succeeded',
+        runtime: 'sdk',
+        requestId: bundleId,
+        durationMs: durationSince(startedAt),
+        data: {
+          bundleId,
+          toolCount: tools.length,
+          executedStepCount: stepResults.length,
+          bundleStatus: deliveryError ? 'failure' : status,
+          deliveryFailed: Boolean(deliveryError),
+          hasScreenshotRef: Boolean(resultPayload.screenshot_ref),
+        },
+        error: deliveryError ?? (status === 'success' ? null : resultPayload.error ?? 'Bundled tool execution failed'),
+      });
     }
     if (deliveryError) {
       throw deliveryError;

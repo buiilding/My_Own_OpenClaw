@@ -23,6 +23,7 @@ export type BackendEventType =
   | 'assistant-message-full'
   | 'token-count'
   | 'tool-schemas'
+  | 'trace-event'
   | 'error';
 
 export type BackendEventBase<TType extends BackendEventType, TPayload = undefined> = {
@@ -95,6 +96,7 @@ export type BackendEvent =
   | BackendEventBase<'assistant-message-full', Record<string, unknown>>
   | BackendEventBase<'token-count', Record<string, unknown>>
   | BackendEventBase<'tool-schemas', { tool_schemas?: ToolSchema[] }>
+  | BackendEventBase<'trace-event', Record<string, unknown>>
   | BackendEventBase<'error', { message?: string; content?: string | null }>;
 
 const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
@@ -122,6 +124,7 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'assistant-message-full',
   'token-count',
   'tool-schemas',
+  'trace-event',
   'error',
 ]);
 

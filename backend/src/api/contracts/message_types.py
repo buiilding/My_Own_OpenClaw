@@ -69,6 +69,7 @@ class OutgoingMessageType:
     CONTEXT_COMPACTION_FAILED: Final[str] = (
         StreamingEventType.CONTEXT_COMPACTION_FAILED.value
     )
+    TRACE_EVENT: Final[str] = StreamingEventType.TRACE_EVENT.value
     SETTINGS_LOADED: Final[str] = "settings-loaded"
     SETTINGS_UPDATED: Final[str] = "settings-updated"
     MODELS_LISTED: Final[str] = "models-listed"
@@ -98,4 +99,5 @@ OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.CONTEXT_COMPACTION_STARTED,
     OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED,
     OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
+    OutgoingMessageType.TRACE_EVENT,
 )

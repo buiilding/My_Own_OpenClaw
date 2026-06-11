@@ -41,7 +41,7 @@ export type MemoryStoreChangedPayload = JsonRecord & {
   memoryId?: string | null;
 };
 
-export type TraceRuntime = 'sdk' | 'electron-main' | 'renderer' | 'sidecar' | 'backend';
+export type TraceRuntime = 'sdk' | 'electron-main' | 'renderer' | 'sidecar' | 'backend' | 'provider';
 
 export type TraceStatus = 'started' | 'succeeded' | 'failed' | 'skipped';
 

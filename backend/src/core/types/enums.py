@@ -3,12 +3,14 @@ Enumeration types for the application.
 
 This module provides Enum definitions for type safety throughout the codebase.
 """
+
 from enum import Enum
 from typing import Final
 
 
 class MessageRole(str, Enum):
     """Message roles in LLM conversations."""
+
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
@@ -17,6 +19,7 @@ class MessageRole(str, Enum):
 
 class MessageType(str, Enum):
     """Types of messages in conversation history."""
+
     USER_QUERY = "user_query"
     TOOL_OUTPUT = "tool_output"
     ASSISTANT_RESPONSE = "assistant_response"
@@ -25,6 +28,7 @@ class MessageType(str, Enum):
 
 class StreamingEventType(str, Enum):
     """Types of streaming events emitted by the agent."""
+
     LLM_THOUGHT = "llm-thought"
     THINKING = LLM_THOUGHT
     STREAMING_RESPONSE = "streaming-response"
@@ -45,6 +49,7 @@ class StreamingEventType(str, Enum):
     CONTENT = "content"  # Used internally by LLM client
     TOOL_BUNDLE = "tool-bundle"
     WEB_SEARCH_PROGRESS = "web-search-progress"
+    TRACE_EVENT = "trace-event"
 
 
 LEGACY_STREAMING_EVENT_TYPE_ALIASES: Final[dict[str, str]] = {
@@ -61,6 +66,7 @@ LEGACY_STREAMING_EVENT_TYPE_ALIASES: Final[dict[str, str]] = {
     "context_compaction_completed": StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
     "context_compaction_failed": StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
     "web_search_progress": StreamingEventType.WEB_SEARCH_PROGRESS.value,
+    "trace_event": StreamingEventType.TRACE_EVENT.value,
 }
 
 
@@ -76,12 +82,14 @@ def normalize_streaming_event_type(event_type: str | None) -> str | None:
 
 class ContentType(str, Enum):
     """Types of content in multimodal messages."""
+
     TEXT = "text"
     IMAGE_URL = "image_url"
 
 
 class MouseAction(str, Enum):
     """Mouse actions for computer control."""
+
     CLICK = "click"
     DOUBLE_CLICK = "double_click"
     RIGHT_CLICK = "right_click"
@@ -91,6 +99,7 @@ class MouseAction(str, Enum):
 
 class KeyboardAction(str, Enum):
     """Keyboard actions for computer control."""
+
     TYPE = "type"
     PASTE = "paste"
     PRESS = "press"
@@ -99,6 +108,7 @@ class KeyboardAction(str, Enum):
 
 class CoordinateFindingMethod(str, Enum):
     """Methods for finding coordinates in mouse control."""
+
     MANUAL = "manual"
     OCR = "ocr"
     PREDICTION = "prediction"
@@ -106,5 +116,6 @@ class CoordinateFindingMethod(str, Enum):
 
 class MemoryType(str, Enum):
     """Types of memory storage."""
+
     EPISODIC = "episodic"
     SEMANTIC = "semantic"

@@ -53,6 +53,7 @@ from backend.src.api.schemas.outgoing import (
     ToolCallMessage,
     ToolOutputMessage,
     ToolSchemasMessage,
+    TraceEventMessage,
     UserMessageFullMessage,
     WakewordActivatedMessage,
     WakewordGreetingMessage,
@@ -119,6 +120,7 @@ OUTGOING_SCHEMA_CONTRACTS: tuple[MessageContract, ...] = (
         OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
         ContextCompactionFailedMessage,
     ),
+    MessageContract(OutgoingMessageType.TRACE_EVENT, TraceEventMessage),
 )
 
 

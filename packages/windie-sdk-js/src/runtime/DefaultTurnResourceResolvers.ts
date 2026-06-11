@@ -234,6 +234,16 @@ function emitScreenshotTrace(
   });
 }
 
+function emitArtifactUploadTrace(
+  context: TurnResourceResolverContext,
+  event: Omit<ScreenshotTraceEvent, 'path'>,
+): Promise<void> | void {
+  return context.emitTrace?.({
+    path: 'artifact.upload',
+    ...event,
+  });
+}
+
 function traceDataFromCaptureMeta(captureMeta: unknown): JsonRecord {
   if (!isJsonRecord(captureMeta)) {
     return {};
@@ -546,6 +556,15 @@ export function createDefaultTurnResourceResolvers(
 
       const existing = screenshotResolutionFromData(data);
       if (existing) {
+        await emitArtifactUploadTrace(context, {
+          stage: 'upload',
+          status: 'skipped',
+          data: {
+            reason: 'existing_ref',
+            hasScreenshotRef: Boolean(existing.screenshotRef),
+            screenshotRefCount: Array.isArray(existing.screenshotRefs) ? existing.screenshotRefs.length : 0,
+          },
+        });
         await emitScreenshotTrace(context, {
           stage: 'artifact_upload',
           status: 'skipped',
@@ -579,6 +598,16 @@ export function createDefaultTurnResourceResolvers(
               uploadMode: 'file',
               contentType: typeof data.screenshot_content_type === 'string'
                 ? data.screenshot_content_type
+              : null,
+            },
+          });
+          await emitArtifactUploadTrace(context, {
+            stage: 'upload',
+            status: 'started',
+            data: {
+              uploadMode: 'file',
+              contentType: typeof data.screenshot_content_type === 'string'
+                ? data.screenshot_content_type
                 : null,
             },
           });
@@ -587,6 +616,17 @@ export function createDefaultTurnResourceResolvers(
             screenshotPath,
             data.screenshot_content_type,
           );
+          await emitArtifactUploadTrace(context, {
+            stage: 'upload',
+            status: 'succeeded',
+            durationMs: durationSince(uploadStartedAtMs),
+            data: {
+              uploadMode: 'file',
+              artifactId: uploaded.artifactId,
+              contentType: uploaded.contentType,
+              hasUrl: Boolean(uploaded.url),
+            },
+          });
           await emitScreenshotTrace(context, {
             stage: 'artifact_upload',
             status: 'succeeded',
@@ -645,6 +685,16 @@ export function createDefaultTurnResourceResolvers(
             uploadMode: 'inline',
             contentType: typeof data.screenshot_content_type === 'string'
               ? data.screenshot_content_type
+            : null,
+          },
+        });
+        await emitArtifactUploadTrace(context, {
+          stage: 'upload',
+          status: 'started',
+          data: {
+            uploadMode: 'inline',
+            contentType: typeof data.screenshot_content_type === 'string'
+              ? data.screenshot_content_type
               : null,
           },
         });
@@ -653,6 +703,17 @@ export function createDefaultTurnResourceResolvers(
           screenshot,
           data.screenshot_content_type,
         );
+        await emitArtifactUploadTrace(context, {
+          stage: 'upload',
+          status: 'succeeded',
+          durationMs: durationSince(uploadStartedAtMs),
+          data: {
+            uploadMode: 'inline',
+            artifactId: uploaded.artifactId,
+            contentType: uploaded.contentType,
+            hasUrl: Boolean(uploaded.url),
+          },
+        });
         await emitScreenshotTrace(context, {
           stage: 'artifact_upload',
           status: 'succeeded',
@@ -687,6 +748,14 @@ export function createDefaultTurnResourceResolvers(
           },
         };
       } catch (error) {
+        await emitArtifactUploadTrace(context, {
+          stage: 'upload',
+          status: 'failed',
+          error: {
+            code: 'artifact_upload_failed',
+            message: 'Screenshot artifact upload failed.',
+          },
+        });
         await emitScreenshotTrace(context, {
           stage: 'artifact_upload',
           status: 'failed',

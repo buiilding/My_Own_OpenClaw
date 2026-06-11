@@ -280,6 +280,28 @@ class ToolBundleEvent(StreamingEvent):
         self.type = StreamingEventType.TOOL_BUNDLE
 
 
+@dataclass
+class TraceEvent(StreamingEvent):
+    """Sanitized runtime trace event emitted for durable diagnostics."""
+
+    path: str
+    stage: str
+    status: str
+    runtime: str
+    trace_id: Optional[str] = None
+    span_id: Optional[str] = None
+    parent_span_id: Optional[str] = None
+    request_id: Optional[str] = None
+    started_at: Optional[str] = None
+    ended_at: Optional[str] = None
+    duration_ms: Optional[int] = None
+    data: Optional[Dict[str, Any]] = None
+    error: Optional[Dict[str, Any]] = None
+
+    def __post_init__(self):
+        self.type = StreamingEventType.TRACE_EVENT
+
+
 # Union type for all event types
 AgentStreamingEvent = Union[
     ThinkingEvent,
@@ -299,4 +321,5 @@ AgentStreamingEvent = Union[
     ContextCompactionCompletedEvent,
     ContextCompactionFailedEvent,
     ToolBundleEvent,
+    TraceEvent,
 ]

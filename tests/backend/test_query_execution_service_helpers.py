@@ -27,7 +27,11 @@ from backend.src.api.services.query_execution_support.query_execution_runtime im
 from backend.src.api.services.query_execution_support.query_execution_stream_state import (
     QueryExecutionStreamState,
 )
-from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    StreamingCompleteEvent,
+    TraceEvent,
+)
 
 
 def _build_message(
@@ -65,6 +69,20 @@ class _FakeWebSocket:
 
     async def send_json(self, payload):
         self.sent.append(payload)
+
+
+def _non_trace_events(observed_events):
+    return [
+        event
+        for event, _context in observed_events
+        if not isinstance(event, TraceEvent)
+    ]
+
+
+def _trace_events(observed_events):
+    return [
+        event for event, _context in observed_events if isinstance(event, TraceEvent)
+    ]
 
 
 def _first_screenshot(
@@ -690,11 +708,25 @@ async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_
         pipeline_cls=_Pipeline,
     )
 
-    assert len(observed_events) == 3
-    assert observed_events[0][0]["type"] == "streaming-response"
-    assert observed_events[1][0]["type"] == "assistant-message-full"
-    assert isinstance(observed_events[2][0], StreamingCompleteEvent)
-    assert observed_events[2][0].final_response == "hello"
+    non_trace_events = _non_trace_events(observed_events)
+    trace_events = _trace_events(observed_events)
+
+    assert len(non_trace_events) == 3
+    assert non_trace_events[0]["type"] == "streaming-response"
+    assert non_trace_events[1]["type"] == "assistant-message-full"
+    assert isinstance(non_trace_events[2], StreamingCompleteEvent)
+    assert non_trace_events[2].final_response == "hello"
+    assert [event.status for event in trace_events] == ["started", "succeeded"]
+    assert trace_events[1].path == "backend.stream"
+    assert trace_events[1].data == {
+        "eventCount": 2,
+        "chunkCount": 1,
+        "toolCallCount": 0,
+        "toolOutputCount": 0,
+        "sawTerminalEvent": True,
+        "terminalEventType": None,
+        "fallbackCompletionUsed": True,
+    }
 
 
 @pytest.mark.asyncio
@@ -758,13 +790,18 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
         pipeline_cls=_Pipeline,
     )
 
-    assert [event["type"] for event, _ in observed_events] == [
+    assert [event["type"] for event in _non_trace_events(observed_events)] == [
         "streaming-response",
         "error",
     ]
     assert not any(
-        isinstance(event, StreamingCompleteEvent) for event, _ in observed_events
+        isinstance(event, StreamingCompleteEvent)
+        for event in _non_trace_events(observed_events)
     )
+    assert [event.status for event in _trace_events(observed_events)] == [
+        "started",
+        "succeeded",
+    ]
 
 
 @pytest.mark.asyncio
@@ -826,10 +863,11 @@ async def test_execute_drops_events_after_terminal_completion():
         pipeline_cls=_Pipeline,
     )
 
-    assert observed_events[0][0]["type"] == "streaming-response"
-    assert isinstance(observed_events[1][0], StreamingCompleteEvent)
-    assert observed_events[1][0].final_response == "hello"
-    assert len(observed_events) == 2
+    non_trace_events = _non_trace_events(observed_events)
+    assert non_trace_events[0]["type"] == "streaming-response"
+    assert isinstance(non_trace_events[1], StreamingCompleteEvent)
+    assert non_trace_events[1].final_response == "hello"
+    assert len(non_trace_events) == 2
 
 
 @pytest.mark.asyncio
@@ -898,7 +936,11 @@ async def test_execute_re_raises_cancellation_and_reconciles_pending_tool_calls(
         )
 
     assert session_manager.agent.history.cancel_finalize_calls == 1
-    assert [event["type"] for event, _ in observed_events] == ["streaming-response"]
+    assert [event["type"] for event in _non_trace_events(observed_events)] == [
+        "streaming-response"
+    ]
     assert not any(
-        isinstance(event, StreamingCompleteEvent) for event, _ in observed_events
+        isinstance(event, StreamingCompleteEvent)
+        for event in _non_trace_events(observed_events)
     )
+    assert [event.status for event in _trace_events(observed_events)] == ["started"]

@@ -46,6 +46,7 @@ from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.envelope import build_transport_message
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.core.validation.validators import validate_query_text
+from backend.src.core.events.streaming_events import TraceEvent
 from backend.src.services.artifacts import ArtifactStore
 
 if TYPE_CHECKING:
@@ -121,6 +122,32 @@ class QueryExecutionService:
                 pipeline = pipeline_cls(
                     tts_processor, self._response_formatter, transport
                 )
+                await self._process_pipeline_event(
+                    pipeline=pipeline,
+                    event=TraceEvent(
+                        path="backend.stream",
+                        stage="stream",
+                        status="started",
+                        runtime="backend",
+                        request_id=msg_id,
+                        data={
+                            "hasConversationRef": bool(
+                                message.payload.conversation_ref
+                            ),
+                            "hasScreenshotRef": bool(message.payload.screenshot_ref),
+                            "screenshotRefCount": len(
+                                message.payload.screenshot_refs or []
+                            )
+                            + (1 if message.payload.screenshot_ref else 0),
+                            "hasRuntimeSystemState": bool(
+                                message.payload.system_state_internal
+                            ),
+                        },
+                    ),
+                    tts_service=None,
+                    msg_id=msg_id,
+                    stream_context=stream_context,
+                )
 
                 query_inputs = resolve_query_execution_inputs(
                     message,
@@ -146,6 +173,7 @@ class QueryExecutionService:
                     runtime_system_state=query_inputs.runtime_system_state,
                 ):
                     event_type = extract_event_type(event)
+                    stream_state.observe_event_type(event_type)
 
                     if stream_state.saw_terminal_event:
                         if is_post_terminal_event_allowed(event_type):
@@ -220,10 +248,37 @@ class QueryExecutionService:
                         event_type=None,
                         empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
                     )
+                    stream_state.mark_fallback_completion_used()
 
                 if tts_session.service:
                     await pipeline.wait_for_pending_tts()
                     await tts_session.service.flush()
+
+                await self._process_pipeline_event(
+                    pipeline=pipeline,
+                    event=TraceEvent(
+                        path="backend.stream",
+                        stage="stream",
+                        status="succeeded",
+                        runtime="backend",
+                        request_id=msg_id,
+                        duration_ms=round(
+                            (time.perf_counter() - query_start_time) * 1000
+                        ),
+                        data={
+                            "eventCount": stream_state.event_count,
+                            "chunkCount": stream_state.chunk_count,
+                            "toolCallCount": stream_state.tool_call_count,
+                            "toolOutputCount": stream_state.tool_output_count,
+                            "sawTerminalEvent": stream_state.saw_terminal_event,
+                            "terminalEventType": stream_state.terminal_event_type,
+                            "fallbackCompletionUsed": stream_state.fallback_completion_used,
+                        },
+                    ),
+                    tts_service=None,
+                    msg_id=msg_id,
+                    stream_context=stream_context,
+                )
 
             query_total_time = time.perf_counter() - query_start_time
             logger.info(

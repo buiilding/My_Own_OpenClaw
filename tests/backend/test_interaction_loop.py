@@ -10,6 +10,7 @@ from backend.src.core.events.streaming_events import (
     ErrorEvent,
     FullResponseEvent,
     StreamingCompleteEvent,
+    TraceEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
@@ -35,7 +36,9 @@ class _FakeHistory:
         self.assistant_messages.append((message, tool_calls))
 
     def stage_tool_call_ids(self, tool_call_ids, consume_all_on_next_output=False):
-        self.staged_tool_call_ids.append((list(tool_call_ids), consume_all_on_next_output))
+        self.staged_tool_call_ids.append(
+            (list(tool_call_ids), consume_all_on_next_output)
+        )
 
     def add_tool_output(self, message, image_data=None, **kwargs):
         self.tool_outputs.append((message, image_data, kwargs))
@@ -93,8 +96,12 @@ class _CapturingToolExecutor:
     async def execute(self, parsed_response, session):
         _ = session
         self.execute_called = True
-        self.executed_tool_names = [call.tool_name for call in parsed_response.tool_calls]
-        self.executed_parameters = [dict(call.parameters) for call in parsed_response.tool_calls]
+        self.executed_tool_names = [
+            call.tool_name for call in parsed_response.tool_calls
+        ]
+        self.executed_parameters = [
+            dict(call.parameters) for call in parsed_response.tool_calls
+        ]
         if False:
             yield None
 
@@ -117,6 +124,62 @@ class _FakeEventPresenter:
 
     async def present_error(self, error_message):
         yield ErrorEvent(content=error_message)
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events():
+    session = _FakeSession([])
+
+    class _PromptCoordinator:
+        def get_prompt(self, iteration):
+            return (
+                [{"role": "user", "content": "secret prompt text"}],
+                [{"type": "function", "name": "read_file", "parameters": {}}],
+                None,
+            )
+
+    class _LLMHandler:
+        async def get_response(self, prompt, tools=None, **_kwargs):
+            yield FullResponseEvent(content="secret provider response")
+
+        def get_last_response_payload(self):
+            return {"content": "secret provider response"}
+
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_PromptCoordinator(),
+        llm_handler=_LLMHandler(),
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+    trace_events = [event for event in events if isinstance(event, TraceEvent)]
+
+    assert [(event.path, event.stage, event.status) for event in trace_events[:4]] == [
+        ("backend.prompt", "build", "started"),
+        ("backend.prompt", "build", "succeeded"),
+        ("provider.call", "request", "started"),
+        ("provider.call", "request", "succeeded"),
+    ]
+    assert trace_events[1].data == {
+        "iteration": 1,
+        "promptMode": "initial",
+        "promptMessageCount": 1,
+        "toolSchemaCount": 1,
+        "hasPromptMetadata": False,
+    }
+    assert trace_events[3].data == {
+        "iteration": 1,
+        "modelId": None,
+        "modelProvider": None,
+        "promptMessageCount": 1,
+        "toolSchemaCount": 1,
+        "responseLength": len("secret provider response"),
+    }
+    serialized = repr([event.to_dict() for event in trace_events])
+    assert "secret prompt text" not in serialized
+    assert "secret provider response" not in serialized
 
 
 @pytest.mark.asyncio
@@ -225,14 +288,22 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
 
     assert not any(isinstance(event, ErrorEvent) for event in events)
     tool_call_events = [event for event in events if isinstance(event, ToolCallEvent)]
-    tool_output_events = [event for event in events if isinstance(event, ToolOutputEvent)]
+    tool_output_events = [
+        event for event in events if isinstance(event, ToolOutputEvent)
+    ]
     assert tool_call_events
     assert tool_output_events
     assert any(isinstance(event, StreamingCompleteEvent) for event in events)
     assert tool_executor.execute_called is False
-    assert session.history.assistant_messages[-1][0] == "Recovered and sending corrected tool call."
+    assert (
+        session.history.assistant_messages[-1][0]
+        == "Recovered and sending corrected tool call."
+    )
     assert session.history.tool_outputs
-    assert "malformed tool-call arguments from model" in session.history.tool_outputs[-1][0]
+    assert (
+        "malformed tool-call arguments from model"
+        in session.history.tool_outputs[-1][0]
+    )
     fallback_call = tool_call_events[0]
     assert fallback_call.metadata is not None
     assert fallback_call.metadata["llm_tool_call_validation_failed"] is True
@@ -241,13 +312,21 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
         '{"id":"tool_bad","name":"replace","arguments":"'
     )
     assert "index.html" in fallback_call.metadata["llm_tool_call_raw_arguments_preview"]
-    assert fallback_call.metadata["llm_tool_call_raw_arguments_preview_truncated"] is True
-    assert "failed to parse streamed tool-call arguments" in fallback_call.metadata["llm_tool_call_parse_error"]
+    assert (
+        fallback_call.metadata["llm_tool_call_raw_arguments_preview_truncated"] is True
+    )
+    assert (
+        "failed to parse streamed tool-call arguments"
+        in fallback_call.metadata["llm_tool_call_parse_error"]
+    )
     assert fallback_call.parameters == {}
     fallback_output = tool_output_events[0]
     assert fallback_output.metadata is not None
     assert fallback_output.metadata["llm_tool_call_validation_failed"] is True
-    assert "retry_guidance: retry the same tool with smaller argument payload chunks." in fallback_output.output
+    assert (
+        "retry_guidance: retry the same tool with smaller argument payload chunks."
+        in fallback_output.output
+    )
     assert "target_file: index.html" in fallback_output.output
 
 
@@ -260,7 +339,9 @@ class _FatalErrorOnlyLLMHandler:
         parallel_tool_calls=None,
     ):
         _ = (prompt, tools, tool_choice, parallel_tool_calls)
-        yield ErrorEvent(content="Unexpected system error: dependency initialization failed")
+        yield ErrorEvent(
+            content="Unexpected system error: dependency initialization failed"
+        )
         yield FullResponseEvent(content="")
 
     def get_last_response_payload(self):
@@ -316,7 +397,9 @@ class _NativeBrowserMissingActionLLMHandler:
         if self.calls == 1:
             yield FullResponseEvent(content="")
             return
-        yield FullResponseEvent(content="Final answer after metadata allowlist rejection.")
+        yield FullResponseEvent(
+            content="Final answer after metadata allowlist rejection."
+        )
 
     def get_last_response_payload(self):
         if self.calls == 1:
@@ -420,7 +503,10 @@ async def test_interaction_loop_replays_invalid_direct_mouse_tool_call():
         }
     ]
     assert session.history.staged_tool_call_ids[0] == (["call_mouse_1"], False)
-    assert session.history.assistant_messages[-1][0] == "Final answer after failed tool call."
+    assert (
+        session.history.assistant_messages[-1][0]
+        == "Final answer after failed tool call."
+    )
 
 
 @pytest.mark.asyncio
@@ -448,7 +534,10 @@ async def test_interaction_loop_replays_invalid_direct_browser_tool_call():
             "arguments": {},
         }
     ]
-    assert session.history.staged_tool_call_ids[0] == (["call_browser_invalid_1"], False)
+    assert session.history.staged_tool_call_ids[0] == (
+        ["call_browser_invalid_1"],
+        False,
+    )
     assert session.history.assistant_messages[-1][0] == (
         "Final answer after metadata allowlist rejection."
     )

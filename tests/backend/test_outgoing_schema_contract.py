@@ -16,6 +16,7 @@ from backend.src.api.processing.formatters.system_prompt import (
     SystemPromptEventFormatter,
 )
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
+from backend.src.api.processing.formatters.trace_event import TraceEventFormatter
 from backend.src.api.schemas import (
     ContextCompactionCompletedMessage,
     ContextCompactionFailedMessage,
@@ -27,6 +28,8 @@ from backend.src.api.schemas import (
     SettingsUpdatedMessage,
     SystemPromptMessage,
     TokenCountMessage,
+    TraceEventMessage,
+    TraceEventPayload,
     ToolSchemasMessage,
     WebSearchProgressMessage,
     WebSearchProgressPayload,
@@ -39,6 +42,8 @@ def test_outgoing_public_package_exports_include_progress_schemas() -> None:
     assert QueryAcceptedPayload.__name__ in schemas.__all__
     assert WebSearchProgressMessage.__name__ in schemas.__all__
     assert WebSearchProgressPayload.__name__ in schemas.__all__
+    assert TraceEventMessage.__name__ in schemas.__all__
+    assert TraceEventPayload.__name__ in schemas.__all__
 
     accepted = QueryAcceptedMessage.model_validate(
         {
@@ -59,6 +64,53 @@ def test_outgoing_public_package_exports_include_progress_schemas() -> None:
 
     assert accepted.payload.status == "accepted"
     assert progress.payload.request_id == "req_1"
+
+
+def test_trace_event_formatter_output_matches_schema_and_sanitizes_data() -> None:
+    formatter = TraceEventFormatter()
+    payload = formatter.format(
+        {
+            "path": "backend.stream",
+            "stage": "stream",
+            "status": "succeeded",
+            "runtime": "backend",
+            "trace_id": "trace_1",
+            "span_id": "span_1",
+            "request_id": "turn_1",
+            "duration_ms": 123.4,
+            "data": {
+                "eventCount": 3,
+                "content": "do not persist",
+                "nested": {"apiKey": "secret", "safeFlag": True},
+            },
+            "error": {
+                "code": "RuntimeError",
+                "message": "short failure",
+                "stack": "do not persist",
+            },
+        },
+        "msg_trace",
+    )
+
+    assert payload is not None
+    parsed = TraceEventMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user_1",
+            "conversation_ref": "conv_1",
+            "turn_ref": "turn_1",
+        }
+    )
+    assert parsed.type == "trace-event"
+    assert parsed.payload.durationMs == 123
+    assert parsed.payload.data == {
+        "eventCount": 3,
+        "content": "[redacted]",
+        "nested": {"apiKey": "[redacted]", "safeFlag": True},
+    }
+    assert parsed.payload.error is not None
+    assert parsed.payload.error.code == "RuntimeError"
+    assert parsed.payload.error.message == "short failure"
 
 
 def test_settings_and_model_events_match_outgoing_schema_contracts() -> None:
