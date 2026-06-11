@@ -9,6 +9,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/frontend/sidecar: add durable hidden `trace_event` rows for turn-scoped
   path diagnostics, with memory retrieval as the first traced path plus
   renderer and CLI timeline readers.
+- cli/docs: add conversation-centered local history inspection commands over
+  the existing durable SQLite history rows.
 
 ### Fixed
 

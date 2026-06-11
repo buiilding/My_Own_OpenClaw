@@ -1,5 +1,6 @@
 const fs = require('fs');
 const net = require('net');
+const os = require('os');
 const path = require('path');
 const { findDocs } = require('./docs.cjs');
 const { printCheckList, printJson, printSection } = require('./output.cjs');
@@ -21,6 +22,11 @@ Status and diagnostics:
   windie doctor --deep
   windie doctor --json
   windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]
+  windie conversation list [--limit <n>] [--json]
+  windie conversation inspect <conversation-ref> [--json]
+  windie conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]
+  windie conversation turns <conversation-ref> [--json]
+  windie conversation traces <conversation-ref> [--turn <turn-ref>] [--path <path>] [--limit <n>] [--json]
 
 Lifecycle and logs:
   windie start backend
@@ -101,6 +107,115 @@ function stripSeparator(args) {
 
 function script(relativePath) {
   return repoPath(relativePath);
+}
+
+function historyDatabasePath() {
+  return path.join(
+    os.homedir(),
+    'Library',
+    'Application Support',
+    'desktop-assistant',
+    'memory',
+    'episodic.db',
+  );
+}
+
+function sqlString(value) {
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function sqlLimit(value, fallback = 100) {
+  const raw = value === null || value === undefined ? fallback : value;
+  if (!/^\d+$/.test(String(raw)) || Number(raw) < 1) {
+    throw new Error('--limit must be a positive integer.');
+  }
+  return Math.min(Number(raw), 1000);
+}
+
+function positionalArgs(args, valueFlags = []) {
+  const valueFlagSet = new Set(valueFlags);
+  const positional = [];
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (valueFlagSet.has(arg)) {
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith('--')) {
+      continue;
+    }
+    positional.push(arg);
+  }
+  return positional;
+}
+
+function queryHistoryDatabase(sql) {
+  const dbPath = historyDatabasePath();
+  if (!fs.existsSync(dbPath)) {
+    throw new Error(`history database not found: ${dbPath}`);
+  }
+  const result = capture('sqlite3', ['-json', dbPath, sql], { cwd: REPO_ROOT });
+  if (!result.ok) {
+    throw new Error(result.stderr || result.error || 'Failed to query history database');
+  }
+  return JSON.parse(result.stdout || '[]');
+}
+
+function parseTraceRow(row, pathFilter = '') {
+  let event = {};
+  try {
+    event = JSON.parse(row.eventPayload || '{}');
+  } catch {
+    return null;
+  }
+  const payload = event && typeof event === 'object' ? event.payload : null;
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+  if (pathFilter && payload.path !== pathFilter) {
+    return null;
+  }
+  return {
+    ...payload,
+    eventId: event.eventId,
+    timestamp: event.timestamp || row.timestamp,
+    messageIndex: row.messageIndex,
+    turnRef: row.turnRef || payload.turnRef || null,
+  };
+}
+
+function loadTraceEvents({ conversationRef, turnRef = '', pathFilter = '', limit = 1000 }) {
+  const where = [
+    `conversation_id = ${sqlString(conversationRef)}`,
+    "event_type = 'trace_event'",
+  ];
+  if (turnRef) {
+    where.push(`turn_ref = ${sqlString(turnRef)}`);
+  }
+  const rows = queryHistoryDatabase(`
+    SELECT event_payload AS eventPayload,
+           timestamp AS timestamp,
+           message_index AS messageIndex,
+           turn_ref AS turnRef
+    FROM chat_events
+    WHERE ${where.join(' AND ')}
+    ORDER BY message_index ASC, timestamp ASC
+    LIMIT ${sqlLimit(limit, 1000)}
+  `);
+  return rows.map((row) => parseTraceRow(row, pathFilter)).filter(Boolean);
+}
+
+function printTraceEvents(events, emptyMessage) {
+  if (events.length === 0) {
+    console.log(emptyMessage);
+    return;
+  }
+  for (const event of events) {
+    const duration = typeof event.durationMs === 'number' ? ` ${event.durationMs}ms` : '';
+    const turn = event.turnRef ? ` turn=${event.turnRef}` : '';
+    const error = event.error?.message ? ` error="${event.error.message}"` : '';
+    console.log(`${event.path} ${event.status}${duration} runtime=${event.runtime} stage=${event.stage}${turn}${error}`);
+  }
 }
 
 function getFrontendDevUrl() {
@@ -238,95 +353,320 @@ function runStatus(args) {
 function runTrace(args) {
   const json = hasFlag(args, '--json');
   const pathFilter = optionValue(args, '--path', '');
-  const positional = args.filter((arg, index) => {
-    if (arg === '--json') return false;
-    if (arg === '--path') return false;
-    if (index > 0 && args[index - 1] === '--path') return false;
-    return !arg.startsWith('--');
-  });
+  const positional = positionalArgs(args, ['--path']);
   const [conversationRef, turnRef] = positional;
   if (!conversationRef || !turnRef) {
     throw new Error('Usage: windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]');
   }
 
-  const python = String.raw`
-import json
-import sqlite3
-import sys
-from pathlib import Path
-
-conversation_ref = sys.argv[1]
-turn_ref = sys.argv[2]
-path_filter = sys.argv[3] or None
-db_path = Path.home() / "Library" / "Application Support" / "desktop-assistant" / "memory" / "episodic.db"
-
-if not db_path.exists():
-    print(json.dumps({"ok": False, "error": f"trace database not found: {db_path}", "events": []}))
-    raise SystemExit(0)
-
-events = []
-conn = sqlite3.connect(str(db_path))
-conn.row_factory = sqlite3.Row
-try:
-    rows = conn.execute(
-        """
-        SELECT event_payload, timestamp, message_index
-        FROM chat_events
-        WHERE conversation_id = ?
-          AND turn_ref = ?
-          AND event_type = 'trace_event'
-        ORDER BY message_index ASC, timestamp ASC
-        """,
-        (conversation_ref, turn_ref),
-    ).fetchall()
-    for row in rows:
-        try:
-            event = json.loads(row["event_payload"] or "{}")
-        except Exception:
-            continue
-        payload = event.get("payload") if isinstance(event, dict) else None
-        if not isinstance(payload, dict):
-            continue
-        if path_filter and payload.get("path") != path_filter:
-            continue
-        events.append({
-            **payload,
-            "eventId": event.get("eventId"),
-            "timestamp": event.get("timestamp") or row["timestamp"],
-            "messageIndex": row["message_index"],
-        })
-finally:
-    conn.close()
-
-print(json.dumps({"ok": True, "database": str(db_path), "events": events}))
-`;
-
-  const result = capture(
-    script('scripts/python-in-env'),
-    ['sidecar', 'python', '-c', python, conversationRef, turnRef, pathFilter],
-    { cwd: REPO_ROOT },
-  );
-  if (!result.ok) {
-    throw new Error(result.stderr || result.error || 'Failed to read trace events');
-  }
-  const payload = JSON.parse(result.stdout || '{}');
+  const payload = {
+    ok: true,
+    database: historyDatabasePath(),
+    events: loadTraceEvents({ conversationRef, turnRef, pathFilter }),
+  };
   if (json) {
     printJson(payload);
     return;
   }
-  if (!payload.ok) {
-    throw new Error(payload.error || 'Trace lookup failed');
+  printTraceEvents(payload.events, `No trace events found for ${conversationRef} ${turnRef}.`);
+}
+
+function loadConversationList(args) {
+  const limit = sqlLimit(optionValue(args, '--limit', '25'), 25);
+  return queryHistoryDatabase(`
+    SELECT conversation_id AS conversationId,
+           MIN(timestamp) AS createdAt,
+           MAX(timestamp) AS updatedAt,
+           COUNT(*) AS eventCount,
+           COUNT(DISTINCT turn_ref) AS turnCount,
+           SUM(CASE WHEN event_type = 'trace_event' THEN 1 ELSE 0 END) AS traceCount,
+           MAX(workspace_name) AS workspaceName,
+           MAX(workspace_path) AS workspacePath,
+           (
+             SELECT title
+             FROM conversation_titles
+             WHERE conversation_titles.conversation_id = chat_events.conversation_id
+             ORDER BY updated_at DESC
+             LIMIT 1
+           ) AS title
+    FROM chat_events
+    WHERE conversation_id IS NOT NULL
+    GROUP BY conversation_id
+    ORDER BY updatedAt DESC
+    LIMIT ${limit}
+  `);
+}
+
+function loadConversationTurns(conversationRef) {
+  return queryHistoryDatabase(`
+    SELECT turn_ref AS turnRef,
+           MIN(timestamp) AS startedAt,
+           MAX(timestamp) AS updatedAt,
+           COUNT(*) AS eventCount,
+           SUM(CASE WHEN event_type = 'trace_event' THEN 1 ELSE 0 END) AS traceCount,
+           SUM(CASE WHEN event_type = 'tool_call' THEN 1 ELSE 0 END) AS toolCallCount,
+           CASE
+             WHEN SUM(CASE WHEN event_type = 'turn_error' THEN 1 ELSE 0 END) > 0 THEN 'failed'
+             WHEN SUM(CASE WHEN event_type = 'turn_completed' THEN 1 ELSE 0 END) > 0 THEN 'completed'
+             ELSE 'open'
+           END AS status
+    FROM chat_events
+    WHERE conversation_id = ${sqlString(conversationRef)}
+      AND turn_ref IS NOT NULL
+    GROUP BY turn_ref
+    ORDER BY MIN(message_index) ASC, MIN(timestamp) ASC
+  `);
+}
+
+function loadConversationEvents(args, conversationRef) {
+  const turnRef = optionValue(args, '--turn', '');
+  const eventType = optionValue(args, '--type', '');
+  const limit = sqlLimit(optionValue(args, '--limit', '200'), 200);
+  const where = [`conversation_id = ${sqlString(conversationRef)}`];
+  if (turnRef) {
+    where.push(`turn_ref = ${sqlString(turnRef)}`);
   }
-  const events = Array.isArray(payload.events) ? payload.events : [];
-  if (events.length === 0) {
-    console.log(`No trace events found for ${conversationRef} ${turnRef}.`);
+  if (eventType) {
+    where.push(`event_type = ${sqlString(eventType)}`);
+  }
+  return queryHistoryDatabase(`
+    SELECT id,
+           user_id AS userId,
+           conversation_id AS conversationId,
+           event_type AS eventType,
+           role,
+           content,
+           timestamp,
+           message_index AS messageIndex,
+           revision_id AS revisionId,
+           turn_ref AS turnRef,
+           tool_name AS toolName,
+           correlation_id AS correlationId,
+           workspace_path AS workspacePath,
+           workspace_name AS workspaceName,
+           producer,
+           producer_event_id AS producerEventId,
+           producer_sequence AS producerSequence,
+           metadata,
+           attachments,
+           event_payload AS eventPayload,
+           compaction_checkpoint AS compactionCheckpoint
+    FROM chat_events
+    WHERE ${where.join(' AND ')}
+    ORDER BY message_index ASC, timestamp ASC
+    LIMIT ${limit}
+  `);
+}
+
+function loadConversationInspect(conversationRef) {
+  const overviewRows = queryHistoryDatabase(`
+    SELECT conversation_id AS conversationId,
+           MIN(timestamp) AS createdAt,
+           MAX(timestamp) AS updatedAt,
+           COUNT(*) AS eventCount,
+           COUNT(DISTINCT turn_ref) AS turnCount,
+           SUM(CASE WHEN event_type = 'trace_event' THEN 1 ELSE 0 END) AS traceCount,
+           MAX(workspace_name) AS workspaceName,
+           MAX(workspace_path) AS workspacePath
+    FROM chat_events
+    WHERE conversation_id = ${sqlString(conversationRef)}
+    GROUP BY conversation_id
+  `);
+  const eventTypeCounts = queryHistoryDatabase(`
+    SELECT event_type AS eventType,
+           COUNT(*) AS count
+    FROM chat_events
+    WHERE conversation_id = ${sqlString(conversationRef)}
+    GROUP BY event_type
+    ORDER BY count DESC, event_type ASC
+  `);
+  const tracePathCounts = queryHistoryDatabase(`
+    SELECT json_extract(event_payload, '$.payload.path') AS path,
+           json_extract(event_payload, '$.payload.status') AS status,
+           COUNT(*) AS count
+    FROM chat_events
+    WHERE conversation_id = ${sqlString(conversationRef)}
+      AND event_type = 'trace_event'
+      AND json_valid(event_payload)
+    GROUP BY path, status
+    ORDER BY path ASC, status ASC
+  `);
+  const titles = queryHistoryDatabase(`
+    SELECT title,
+           source,
+           is_locked AS isLocked,
+           created_at AS createdAt,
+           updated_at AS updatedAt
+    FROM conversation_titles
+    WHERE conversation_id = ${sqlString(conversationRef)}
+    ORDER BY updated_at DESC
+  `);
+  const revisions = queryHistoryDatabase(`
+    SELECT revision_id AS revisionId,
+           updated_at AS updatedAt
+    FROM chat_conversation_revisions
+    WHERE conversation_id = ${sqlString(conversationRef)}
+    ORDER BY updated_at DESC
+  `);
+  return {
+    ok: true,
+    database: historyDatabasePath(),
+    conversation: overviewRows[0] || null,
+    titles,
+    latestRevision: revisions[0] || null,
+    turns: loadConversationTurns(conversationRef),
+    eventTypeCounts,
+    tracePathCounts,
+  };
+}
+
+function printConversationRows(rows) {
+  if (rows.length === 0) {
+    console.log('No conversations found.');
     return;
   }
-  for (const event of events) {
-    const duration = typeof event.durationMs === 'number' ? ` ${event.durationMs}ms` : '';
-    const error = event.error?.message ? ` error="${event.error.message}"` : '';
-    console.log(`${event.path} ${event.status}${duration} runtime=${event.runtime} stage=${event.stage}${error}`);
+  for (const row of rows) {
+    const title = row.title ? ` title="${row.title}"` : '';
+    console.log(
+      `${row.conversationId} events=${row.eventCount} turns=${row.turnCount} traces=${row.traceCount} updated=${row.updatedAt}${title}`,
+    );
   }
+}
+
+function printTurnRows(rows) {
+  if (rows.length === 0) {
+    console.log('No turns found.');
+    return;
+  }
+  for (const row of rows) {
+    console.log(
+      `${row.turnRef} ${row.status} events=${row.eventCount} traces=${row.traceCount} tools=${row.toolCallCount} started=${row.startedAt} updated=${row.updatedAt}`,
+    );
+  }
+}
+
+function summarizeEvent(row) {
+  const summary = row.content || row.eventPayload || '';
+  const normalized = String(summary).replace(/\s+/g, ' ').trim();
+  return normalized.length > 120 ? `${normalized.slice(0, 117)}...` : normalized;
+}
+
+function printEventRows(rows) {
+  if (rows.length === 0) {
+    console.log('No conversation events found.');
+    return;
+  }
+  for (const row of rows) {
+    const turn = row.turnRef ? ` turn=${row.turnRef}` : '';
+    const role = row.role ? ` role=${row.role}` : '';
+    console.log(`#${row.messageIndex} ${row.eventType}${role}${turn} ${row.timestamp} ${summarizeEvent(row)}`);
+  }
+}
+
+function printConversationInspect(payload) {
+  if (!payload.conversation) {
+    console.log('Conversation not found.');
+    return;
+  }
+  const conversation = payload.conversation;
+  printSection('Conversation', [
+    `id: ${conversation.conversationId}`,
+    `created: ${conversation.createdAt}`,
+    `updated: ${conversation.updatedAt}`,
+    `events: ${conversation.eventCount}`,
+    `turns: ${conversation.turnCount}`,
+    `traces: ${conversation.traceCount}`,
+  ]);
+  if (payload.titles.length > 0) {
+    const title = payload.titles[0];
+    printSection('Title', [
+      `title: ${title.title}`,
+      `source: ${title.source}`,
+      `locked: ${Boolean(title.isLocked)}`,
+      `updated: ${title.updatedAt}`,
+    ]);
+  }
+  if (payload.latestRevision) {
+    printSection('Revision', [
+      `revision: ${payload.latestRevision.revisionId}`,
+      `updated: ${payload.latestRevision.updatedAt}`,
+    ]);
+  }
+  printSection(
+    'Event Types',
+    payload.eventTypeCounts.map((row) => `${row.eventType}: ${row.count}`),
+  );
+  if (payload.tracePathCounts.length > 0) {
+    printSection(
+      'Trace Paths',
+      payload.tracePathCounts.map((row) => `${row.path} ${row.status}: ${row.count}`),
+    );
+  }
+}
+
+function runConversation(args) {
+  const subcommand = args[0];
+  const rest = args.slice(1);
+  const json = hasFlag(rest, '--json');
+  if (subcommand === 'list') {
+    const conversations = loadConversationList(rest);
+    if (json) {
+      printJson({ ok: true, database: historyDatabasePath(), conversations });
+      return;
+    }
+    printConversationRows(conversations);
+    return;
+  }
+
+  const [conversationRef] = positionalArgs(rest, ['--turn', '--type', '--path', '--limit']);
+  if (!conversationRef) {
+    throw new Error('Usage: windie conversation list|inspect|events|turns|traces <conversation-ref>');
+  }
+
+  if (subcommand === 'inspect') {
+    const payload = loadConversationInspect(conversationRef);
+    if (json) {
+      printJson(payload);
+      return;
+    }
+    printConversationInspect(payload);
+    return;
+  }
+
+  if (subcommand === 'events') {
+    const events = loadConversationEvents(rest, conversationRef);
+    if (json) {
+      printJson({ ok: true, database: historyDatabasePath(), events });
+      return;
+    }
+    printEventRows(events);
+    return;
+  }
+
+  if (subcommand === 'turns') {
+    const turns = loadConversationTurns(conversationRef);
+    if (json) {
+      printJson({ ok: true, database: historyDatabasePath(), turns });
+      return;
+    }
+    printTurnRows(turns);
+    return;
+  }
+
+  if (subcommand === 'traces') {
+    const turnRef = optionValue(rest, '--turn', '');
+    const pathFilter = optionValue(rest, '--path', '');
+    const limit = sqlLimit(optionValue(rest, '--limit', '1000'), 1000);
+    const events = loadTraceEvents({ conversationRef, turnRef, pathFilter, limit });
+    if (json) {
+      printJson({ ok: true, database: historyDatabasePath(), events });
+      return;
+    }
+    printTraceEvents(events, `No trace events found for ${conversationRef}.`);
+    return;
+  }
+
+  throw new Error('Usage: windie conversation list|inspect|events|turns|traces <conversation-ref>');
 }
 
 function portOpen(host, port, timeoutMs = 750) {
@@ -813,6 +1153,8 @@ async function dispatch(argv) {
       return runDoctor(args);
     case 'trace':
       return runTrace(args);
+    case 'conversation':
+      return runConversation(args);
     case 'start':
       return runStart(args[0]);
     case 'stop':
