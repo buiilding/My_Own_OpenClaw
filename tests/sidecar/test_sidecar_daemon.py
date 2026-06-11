@@ -1,5 +1,6 @@
 import asyncio
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -28,6 +29,9 @@ class FakeEventSocket:
 
 
 class FakeMcpClient:
+    def __init__(self):
+        self.stderr_tail = []
+
     async def list_tools(self):
         return [
             {
@@ -391,6 +395,84 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
             "mcp_result": {"content": [{"type": "text", "text": "remember:hello"}]},
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_records_mcp_execution_diagnostics(
+    tmp_path: Path, monkeypatch
+):
+    diagnostics_db = tmp_path / "diagnostics.db"
+    monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    registration = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "id": "notes",
+                "command": "fake-mcp-server",
+                "tools": [
+                    {
+                        "name": "remember",
+                        "description": "Remember a value.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {"value": {"type": "string"}},
+                            "required": ["value"],
+                            "additionalProperties": False,
+                        },
+                    }
+                ],
+            }
+        )
+    )
+    execution = await daemon.handle_execute_tool(
+        FakeRequest(
+            {
+                "tool_name": "mcp_notes__remember",
+                "args": {"value": "hello"},
+                "request_id": "req-1",
+                "tool_call_id": "call-1",
+                "correlation_id": "corr-1",
+                "bundle_id": "bundle-1",
+                "conversation_ref": "conv-1",
+                "turn_ref": "turn-1",
+            }
+        )
+    )
+
+    assert registration.status == 200
+    assert json.loads(execution.text)["success"] is True
+    with sqlite3.connect(diagnostics_db) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT path, stage, status, request_id, conversation_ref, data, error
+            FROM diagnostic_events
+            WHERE path = 'mcp.execution'
+            ORDER BY rowid ASC
+            """).fetchall()
+
+    assert [row["stage"] for row in rows] == [
+        "tool_call_start",
+        "tool_call_succeeded",
+    ]
+    assert {row["request_id"] for row in rows} == {"req-1"}
+    assert {row["conversation_ref"] for row in rows} == {"conv-1"}
+    assert rows[-1]["status"] == "succeeded"
+    assert rows[-1]["error"] is None
+    data = json.loads(rows[-1]["data"])
+    assert data["serverId"] == "notes"
+    assert data["phase"] == "tools_call"
+    assert data["exposedToolName"] == "mcp_notes__remember"
+    assert data["mcpToolName"] == "remember"
+    assert data["toolCallId"] == "call-1"
+    assert data["correlationId"] == "corr-1"
+    assert data["bundleId"] == "bundle-1"
+    assert data["turnRef"] == "turn-1"
+    serialized_data = json.dumps(data)
+    assert "hello" not in serialized_data
+    assert "remember:hello" not in serialized_data
+    assert "args" not in data
 
 
 @pytest.mark.asyncio

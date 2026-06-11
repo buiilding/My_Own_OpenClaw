@@ -7,6 +7,7 @@ const path = require('path');
 const CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH = 'conversation.metadata.list';
 const BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH = 'browser.session_control';
 const MCP_DISCOVERY_DIAGNOSTICS_PATH = 'mcp.discovery';
+const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const APP_DATA_DIR_NAME = 'windieos';
 
@@ -50,6 +51,12 @@ const ALLOWED_DATA_KEYS = new Set([
   'elapsedMs',
   'stderrTail',
   'toolCount',
+  'exposedToolName',
+  'mcpToolName',
+  'toolCallId',
+  'correlationId',
+  'bundleId',
+  'turnRef',
   'exitCode',
   'signal',
 ]);
@@ -377,6 +384,7 @@ module.exports = {
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
+  MCP_EXECUTION_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   ensureDiagnosticsSchema,

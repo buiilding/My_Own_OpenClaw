@@ -37,6 +37,10 @@ longer owns production MCP tool execution.
   - `extension_id`.
 - Added sidecar-authored `mcp.discovery` diagnostics for spawn, request,
   timeout, shutdown, and discovery phases.
+- Added sidecar-authored `mcp.execution` diagnostics for MCP `tools/call`
+  execution, including sanitized server/tool identity, elapsed time, optional
+  request/conversation/tool-call correlation fields, stderr tail, and short
+  errors without storing arguments or raw tool results.
 - Rewired MCP control refresh to prefer a sidecar local runtime when available.
 - Desktop agent startup now passes enabled MCP specs into `WindieClient.wakeUp`,
   letting the SDK register MCPs with the sidecar before building the backend
@@ -94,3 +98,6 @@ desktop production execution path.
 - CUA Driver still depends on `cua-driver` being resolvable from the sidecar
   runtime environment. When it is missing, discovery should report a sidecar
   spawn error and expose no CUA tools.
+- Discovery and execution now have separate durable app-diagnostics paths:
+  `mcp.discovery` for enablement/startup and `mcp.execution` for registered MCP
+  tool invocations.

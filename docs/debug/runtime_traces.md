@@ -167,9 +167,11 @@ App diagnostic paths:
 - `conversation.metadata.list`: dashboard/sidebar chat-list load.
 - `browser.session_control`: chat header browser readiness and browser action
   request lifecycle before a conversation turn exists.
-- `mcp.discovery`: Electron main MCP discovery and stdio initialization,
+- `mcp.discovery`: sidecar-owned MCP discovery and stdio initialization,
   including sanitized command basename, argument summary, timeout phase,
   elapsed time, stderr tail, and short spawn/request errors.
+- `mcp.execution`: sidecar-owned MCP `tools/call` execution for MCP tools that
+  have already been discovered and registered into the local tool manifest.
 
 The `conversation.metadata.list` path covers:
 
@@ -200,6 +202,13 @@ stderr tail, and short errors. They must not include environment variables,
 absolute command paths, raw MCP payloads, tool schemas, tool results, tokens, or
 stack traces.
 
+`mcp.execution` rows may include server id, exposed Windie tool name, original
+MCP tool name, phase, elapsed milliseconds, request id, conversation ref,
+tool-call/correlation/bundle ids, turn ref, stderr tail, and short timeout or
+transport errors. They must not include tool arguments, raw MCP payloads, tool
+results, schemas, screenshots, tokens, absolute paths, stack traces, prompt text,
+or user/assistant message text.
+
 Do not store raw user ids, chat titles, last-message text, workspace paths,
 SQL rows, stack traces, tokens, prompt text, user text, assistant text, or raw
 payloads in app diagnostics.
@@ -220,6 +229,12 @@ For MCP discovery:
 
 ```bash
 bin/windie diagnostics list --path mcp.discovery --limit 50
+```
+
+For MCP tool execution:
+
+```bash
+bin/windie diagnostics list --path mcp.execution --limit 50
 ```
 
 Inspect a single trace timeline with:

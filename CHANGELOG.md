@@ -45,6 +45,10 @@ All notable changes to WindieOS will be documented in this file.
   registry, restart the managed agent after MCP toggles so backend receives a
   fresh manifest, and remove Electron main's production MCP execution
   interception.
+- frontend/sidecar/mcp: split MCP tool-call monitoring into a sanitized
+  `mcp.execution` app diagnostics path with server/tool identity, elapsed time,
+  optional request correlation, stderr tail, and short errors without storing
+  tool args or raw MCP results.
 - frontend/auth: validate cached install auth against the hosted identity
   endpoint before reuse, discard only confirmed-invalid 401 tokens, and
   re-register so app reinstalls or backend auth resets do not break chat

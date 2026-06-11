@@ -8,6 +8,7 @@ const {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
+  MCP_EXECUTION_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
@@ -190,5 +191,58 @@ describe('app diagnostics store', () => {
     }));
     expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
     expect(JSON.stringify(events[0])).not.toContain('/private/path');
+  });
+
+  test('persists sanitized MCP execution diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'mcp-exec-test',
+      spanId: 'mcp-exec-span',
+      path: MCP_EXECUTION_DIAGNOSTICS_PATH,
+      stage: 'tool_call_succeeded',
+      status: 'succeeded',
+      runtime: 'sidecar',
+      requestId: 'req-1',
+      conversationRef: 'conv-1',
+      durationMs: 9,
+      data: {
+        serverId: 'notes',
+        phase: 'tools_call',
+        exposedToolName: 'mcp_notes__remember',
+        mcpToolName: 'remember',
+        toolCallId: 'call-1',
+        correlationId: 'corr-1',
+        bundleId: 'bundle-1',
+        turnRef: 'turn-1',
+        arguments: { value: 'do not store' },
+        result: 'remember:do not store',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: MCP_EXECUTION_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'mcp-exec-test',
+      stage: 'tool_call_succeeded',
+      status: 'succeeded',
+      requestId: 'req-1',
+      conversationRef: 'conv-1',
+      data: expect.objectContaining({
+        serverId: 'notes',
+        phase: 'tools_call',
+        exposedToolName: 'mcp_notes__remember',
+        mcpToolName: 'remember',
+        toolCallId: 'call-1',
+        correlationId: 'corr-1',
+        bundleId: 'bundle-1',
+        turnRef: 'turn-1',
+        durationMs: 9,
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+    expect(events[0].data.arguments).toBeUndefined();
+    expect(events[0].data.result).toBeUndefined();
   });
 });

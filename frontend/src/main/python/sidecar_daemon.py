@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextvars
 import json
 import logging
 import os
@@ -29,7 +30,11 @@ DEFAULT_DISCOVERY_FILE = (
 )
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
+MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
 MAX_DIAGNOSTIC_TEXT_LENGTH = 240
+CURRENT_MCP_EXECUTION_CONTEXT: contextvars.ContextVar[dict[str, Any]] = (
+    contextvars.ContextVar("CURRENT_MCP_EXECUTION_CONTEXT", default={})
+)
 LAUNCH_CONTEXT_ENV_KEYS = (
     "WINDIE_BACKEND_HTTP_URL",
     "WINDIE_BACKEND_AUTH_STATE_PATH",
@@ -49,6 +54,12 @@ ALLOWED_DIAGNOSTIC_DATA_KEYS = {
     "elapsedMs",
     "stderrTail",
     "toolCount",
+    "exposedToolName",
+    "mcpToolName",
+    "toolCallId",
+    "correlationId",
+    "bundleId",
+    "turnRef",
     "exitCode",
     "signal",
     "shortError",
@@ -160,9 +171,12 @@ def sanitize_diagnostic_data(data: dict[str, Any] | None) -> dict[str, Any]:
 def append_mcp_diagnostic_event(
     *,
     trace_id: str,
+    path: str = MCP_DISCOVERY_DIAGNOSTICS_PATH,
     stage: str,
     status: str,
     duration_ms: int | None = None,
+    request_id: str | None = None,
+    conversation_ref: str | None = None,
     data: dict[str, Any] | None = None,
     error: Any = None,
 ) -> None:
@@ -215,18 +229,20 @@ def append_mcp_diagnostic_event(
                   id, trace_id, span_id, parent_span_id, path, stage, status,
                   runtime, timestamp, duration_ms, request_id, session_id,
                   conversation_ref, data, error
-                ) VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?)
+                ) VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)
                 """,
                 (
                     f"evt_{secrets.token_hex(16)}",
                     trace_id,
                     f"span_{secrets.token_hex(16)}",
-                    MCP_DISCOVERY_DIAGNOSTICS_PATH,
+                    path,
                     stage,
                     status,
                     "sidecar",
                     time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                     int(duration_ms) if duration_ms is not None else None,
+                    normalize_string(request_id),
+                    normalize_string(conversation_ref),
                     json.dumps(sanitized_data, separators=(",", ":")),
                     (
                         json.dumps(sanitized_error, separators=(",", ":"))
@@ -237,6 +253,45 @@ def append_mcp_diagnostic_event(
             )
     except Exception:
         logger.debug("Unable to append MCP diagnostic event", exc_info=True)
+
+
+def build_mcp_execution_context(payload: dict[str, Any]) -> dict[str, Any]:
+    request_id = (
+        normalize_string(payload.get("request_id"))
+        or normalize_string(payload.get("requestId"))
+        or normalize_string(payload.get("correlation_id"))
+        or normalize_string(payload.get("correlationId"))
+    )
+    tool_call_id = normalize_string(payload.get("tool_call_id")) or normalize_string(
+        payload.get("toolCallId")
+    )
+    correlation_id = normalize_string(
+        payload.get("correlation_id")
+    ) or normalize_string(payload.get("correlationId"))
+    bundle_id = normalize_string(payload.get("bundle_id")) or normalize_string(
+        payload.get("bundleId")
+    )
+    turn_ref = normalize_string(payload.get("turn_ref")) or normalize_string(
+        payload.get("turnRef")
+    )
+    conversation_ref = normalize_string(
+        payload.get("conversation_ref")
+    ) or normalize_string(payload.get("conversationRef"))
+    data: dict[str, Any] = {}
+    if tool_call_id:
+        data["toolCallId"] = tool_call_id
+    if correlation_id:
+        data["correlationId"] = correlation_id
+    if bundle_id:
+        data["bundleId"] = bundle_id
+    if turn_ref:
+        data["turnRef"] = turn_ref
+    return {
+        "trace_id": f"mcp-execution-{int(time.time() * 1000)}-{secrets.token_hex(6)}",
+        "request_id": request_id,
+        "conversation_ref": conversation_ref,
+        "data": data,
+    }
 
 
 def build_launch_context() -> dict[str, str]:
@@ -478,12 +533,14 @@ class McpStdioClient:
                 else ("tools_call" if method == "tools/call" else "request")
             )
         )
+        emit_request_diagnostic = method != "tools/call"
         started_at = time.monotonic()
-        self.emit_diagnostic(
-            stage="request_start",
-            status="started",
-            data={"phase": phase},
-        )
+        if emit_request_diagnostic:
+            self.emit_diagnostic(
+                stage="request_start",
+                status="started",
+                data={"phase": phase},
+            )
         request_id = self.next_request_id
         self.next_request_id += 1
         message = {
@@ -500,32 +557,35 @@ class McpStdioClient:
             result = await asyncio.wait_for(
                 future, timeout=max(self.server.timeout_ms / 1000, 1)
             )
-            self.emit_diagnostic(
-                stage="request_succeeded",
-                status="succeeded",
-                duration_ms=int((time.monotonic() - started_at) * 1000),
-                data={"phase": phase},
-            )
+            if emit_request_diagnostic:
+                self.emit_diagnostic(
+                    stage="request_succeeded",
+                    status="succeeded",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data={"phase": phase},
+                )
             return result
         except asyncio.TimeoutError as exc:
             self.pending.pop(request_id, None)
-            self.emit_diagnostic(
-                stage="request_timeout",
-                status="failed",
-                duration_ms=int((time.monotonic() - started_at) * 1000),
-                data={"phase": phase},
-                error=f"MCP {phase} timed out for {self.server.id}",
-            )
+            if emit_request_diagnostic:
+                self.emit_diagnostic(
+                    stage="request_timeout",
+                    status="failed",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data={"phase": phase},
+                    error=f"MCP {phase} timed out for {self.server.id}",
+                )
             raise
         except Exception as exc:
             self.pending.pop(request_id, None)
-            self.emit_diagnostic(
-                stage="request_failed",
-                status="failed",
-                duration_ms=int((time.monotonic() - started_at) * 1000),
-                data={"phase": phase},
-                error=exc,
-            )
+            if emit_request_diagnostic:
+                self.emit_diagnostic(
+                    stage="request_failed",
+                    status="failed",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data={"phase": phase},
+                    error=exc,
+                )
             raise
 
     async def notify(self, method: str, params: dict[str, Any] | None = None) -> None:
@@ -917,15 +977,102 @@ class SidecarDaemon:
                 args: dict[str, Any],
                 *,
                 tool_name: str = original_name,
+                exposed_tool_name: str = exposed_name,
+                mcp_server: McpServerSpec = server,
                 mcp_client: McpStdioClient = client,
             ) -> dict[str, Any]:
-                result = await mcp_client.call_tool(tool_name, args)
+                execution_context = CURRENT_MCP_EXECUTION_CONTEXT.get() or {
+                    "trace_id": (
+                        f"mcp-execution-{int(time.time() * 1000)}-"
+                        f"{secrets.token_hex(6)}"
+                    ),
+                    "request_id": "",
+                    "conversation_ref": "",
+                    "data": {},
+                }
+                trace_id = normalize_string(execution_context.get("trace_id")) or (
+                    f"mcp-execution-{int(time.time() * 1000)}-{secrets.token_hex(6)}"
+                )
+                request_id = normalize_string(execution_context.get("request_id"))
+                conversation_ref = normalize_string(
+                    execution_context.get("conversation_ref")
+                )
+                context_data = normalize_object(execution_context.get("data"))
+
+                def diagnostic_data(
+                    extra: dict[str, Any] | None = None,
+                ) -> dict[str, Any]:
+                    stderr_tail = ""
+                    if hasattr(mcp_client, "stderr_tail"):
+                        stderr_tail = sanitize_diagnostic_text(
+                            "\n".join(getattr(mcp_client, "stderr_tail", [])[-20:])
+                        )
+                    data = {
+                        "serverId": mcp_server.id,
+                        "phase": "tools_call",
+                        "exposedToolName": exposed_tool_name,
+                        "mcpToolName": tool_name,
+                        **context_data,
+                    }
+                    if stderr_tail:
+                        data["stderrTail"] = stderr_tail
+                    data.update(extra or {})
+                    return data
+
+                started_at = time.monotonic()
+                append_mcp_diagnostic_event(
+                    trace_id=trace_id,
+                    path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                    stage="tool_call_start",
+                    status="started",
+                    request_id=request_id,
+                    conversation_ref=conversation_ref,
+                    data=diagnostic_data(),
+                )
+                try:
+                    result = await mcp_client.call_tool(tool_name, args)
+                except Exception as exc:
+                    elapsed_ms = int((time.monotonic() - started_at) * 1000)
+                    append_mcp_diagnostic_event(
+                        trace_id=trace_id,
+                        path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                        stage="tool_call_failed",
+                        status="failed",
+                        duration_ms=elapsed_ms,
+                        request_id=request_id,
+                        conversation_ref=conversation_ref,
+                        data=diagnostic_data({"elapsedMs": elapsed_ms}),
+                        error=exc,
+                    )
+                    raise
+                elapsed_ms = int((time.monotonic() - started_at) * 1000)
                 text = format_mcp_content(result.get("content"))
                 if result.get("isError"):
+                    append_mcp_diagnostic_event(
+                        trace_id=trace_id,
+                        path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                        stage="tool_call_failed",
+                        status="failed",
+                        duration_ms=elapsed_ms,
+                        request_id=request_id,
+                        conversation_ref=conversation_ref,
+                        data=diagnostic_data({"elapsedMs": elapsed_ms}),
+                        error=f"MCP tool {tool_name} returned error",
+                    )
                     return {
                         "success": False,
                         "error": text or f"MCP tool {tool_name} failed",
                     }
+                append_mcp_diagnostic_event(
+                    trace_id=trace_id,
+                    path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                    stage="tool_call_succeeded",
+                    status="succeeded",
+                    duration_ms=elapsed_ms,
+                    request_id=request_id,
+                    conversation_ref=conversation_ref,
+                    data=diagnostic_data({"elapsedMs": elapsed_ms}),
+                )
                 return {
                     "success": True,
                     "data": {
@@ -967,10 +1114,16 @@ class SidecarDaemon:
 
     async def handle_execute_tool(self, request: web.Request) -> web.Response:
         payload = await request.json()
-        result = await self.backend._handle_execute_tool(
-            tool_name=payload.get("tool_name") or payload.get("toolName"),
-            args=normalize_object(payload.get("args")),
+        context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(
+            build_mcp_execution_context(normalize_object(payload))
         )
+        try:
+            result = await self.backend._handle_execute_tool(
+                tool_name=payload.get("tool_name") or payload.get("toolName"),
+                args=normalize_object(payload.get("args")),
+            )
+        finally:
+            CURRENT_MCP_EXECUTION_CONTEXT.reset(context_token)
         await self.emit_event(
             {
                 "type": "tool-executed",
