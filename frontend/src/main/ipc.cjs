@@ -25,9 +25,11 @@ const {
   registerFrontendConfigHandlers,
 } = require('./ipc/ipc_frontend_config_handlers.cjs');
 const {
+  clearInstallAuthStateFromDisk,
   loadInstallAuthStateFromDisk,
   registerInstallWithBackend,
   saveInstallAuthStateToDisk,
+  validateInstallAuthStateWithBackend,
 } = require('./ipc/ipc_install_auth_state.cjs');
 const {
   isValidConfigPayload,
@@ -248,13 +250,47 @@ async function ensureInstallAuthState() {
   }
 
   pendingInstallAuthStatePromise = (async () => {
-    const cachedState = applyInstallAuthState(await loadInstallAuthStateFromDisk(log));
-    if (cachedState) {
-      return cachedState;
-    }
-
     let lastError = null;
     const endpointCandidates = backendEndpointState.getCandidates();
+    const cachedDiskState = await loadInstallAuthStateFromDisk(log);
+    if (cachedDiskState) {
+      let sawInvalidCachedToken = false;
+      for (let index = 0; index < endpointCandidates.length; index += 1) {
+        const candidate = endpointCandidates[index];
+        const validation = await validateInstallAuthStateWithBackend(cachedDiskState, {
+          backendHttpUrl: candidate.httpUrl,
+        });
+        if (validation.valid && validation.state) {
+          setActiveBackendEndpoint(index);
+          const validatedState = applyInstallAuthState(validation.state);
+          const persistedIdentityMatches = (
+            validation.state.userId === cachedDiskState.userId
+            && validation.state.installId === cachedDiskState.installId
+          );
+          if (!persistedIdentityMatches) {
+            await saveInstallAuthStateToDisk(validation.state, log);
+          }
+          return validatedState;
+        }
+        if (validation.invalidToken) {
+          sawInvalidCachedToken = true;
+          log(`Cached install auth was rejected by ${candidate.httpUrl} (${validation.status || 'invalid'}); registering a fresh install.`);
+        } else {
+          lastError = new Error(
+            `Install auth validation failed against ${candidate.httpUrl}: ${validation.error || 'unknown error'}`,
+          );
+          log(lastError.message);
+        }
+      }
+      if (!sawInvalidCachedToken) {
+        const cachedState = applyInstallAuthState(cachedDiskState);
+        if (cachedState) {
+          return cachedState;
+        }
+      }
+      await clearInstallAuthStateFromDisk(log);
+    }
+
     for (let index = 0; index < endpointCandidates.length; index += 1) {
       const candidate = endpointCandidates[index];
       try {

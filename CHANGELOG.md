@@ -40,6 +40,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/auth: validate cached install auth against the hosted identity
+  endpoint before reuse, discard only confirmed-invalid 401 tokens, and
+  re-register so app reinstalls or backend auth resets do not break chat
+  loading with stale bearer state.
 - storage: unify default local data roots under the `windieos` user-data folder
   for sidecar memory/history, diagnostics, browser state, backend artifacts,
   install-auth SQLite, and TTS model paths.
