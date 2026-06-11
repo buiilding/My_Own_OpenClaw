@@ -40,6 +40,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- cli/windows: run extensionless repo helper scripts through Git Bash so
+  `windie start dev` can launch Vite and Electron from PowerShell.
 - storage: unify default local data roots under the `windieos` user-data folder
   for sidecar memory/history, diagnostics, browser state, backend artifacts,
   install-auth SQLite, and TTS model paths.
