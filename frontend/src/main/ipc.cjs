@@ -85,10 +85,9 @@ const {
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
-  clearMcpControlState,
   listMcpServersForConfig,
   refreshMcpServersForConfig,
-  setMcpServerEnabledInConfig,
+  updateMcpServerEnablementForConfig,
 } = require('./extensions/mcp_control.cjs');
 const {
   createChatQueryHandlers,
@@ -1268,17 +1267,12 @@ function initializeIpc(win, options = {}) {
         error: 'Missing MCP server id.',
       };
     }
-    const nextConfig = setMcpServerEnabledInConfig(
-      latestFrontendConfig || {},
+    return updateMcpServerEnablementForConfig({
+      config: latestFrontendConfig || {},
       serverId,
-      payload.enabled === true,
-    );
-    const result = await persistFrontendConfigToDisk(nextConfig);
-    clearMcpControlState();
-    return {
-      success: result?.success !== false,
-      registry: listMcpServersForConfig({ config: latestFrontendConfig }),
-    };
+      enabled: payload.enabled === true,
+      persistConfig: persistFrontendConfigToDisk,
+    });
   });
 
   ipcMain.handle('refresh-mcp-servers', async () => (

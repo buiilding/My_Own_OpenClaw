@@ -8,6 +8,7 @@ const {
   listMcpServersForConfig,
   refreshMcpServersForConfig,
   setMcpServerEnabledInConfig,
+  updateMcpServerEnablementForConfig,
 } = require('../../frontend/src/main/extensions/mcp_control.cjs');
 const {
   clearExtensionRuntimeCache,
@@ -84,5 +85,67 @@ describe('MCP control runtime', () => {
     expect(registry.mcp_errors).toEqual([
       { server_id: 'cua-driver', reason: 'spawn cua-driver ENOENT' },
     ]);
+  });
+
+  test('refreshes discovery immediately after enabling a gated MCP', async () => {
+    const contributionRoot = writeCuaMcpRegistry();
+    const persistConfig = jest.fn(async () => ({ success: true }));
+    const listTools = jest.fn(async () => ([{
+      name: 'click',
+      description: 'Click screen coordinates.',
+      inputSchema: { type: 'object', properties: {} },
+    }]));
+
+    const result = await updateMcpServerEnablementForConfig({
+      config: {},
+      serverId: 'mcp:cua-driver',
+      enabled: true,
+      persistConfig,
+      contributionsDir: contributionRoot,
+      createClient: () => ({ listTools }),
+    });
+
+    expect(result.success).toBe(true);
+    expect(persistConfig).toHaveBeenCalledWith(expect.objectContaining({
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    }));
+    expect(listTools).toHaveBeenCalledTimes(1);
+    expect(result.registry.mcps[0]).toEqual(expect.objectContaining({
+      effective_enabled: true,
+      status: expect.objectContaining({
+        state: 'ready',
+        label: 'Ready',
+      }),
+    }));
+    expect(result.registry.mcps[0].tools).toEqual([]);
+  });
+
+  test('disabling a gated MCP clears status without running discovery', async () => {
+    const contributionRoot = writeCuaMcpRegistry();
+    const persistConfig = jest.fn(async () => ({ success: true }));
+    const listTools = jest.fn();
+    const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
+
+    const result = await updateMcpServerEnablementForConfig({
+      config,
+      serverId: 'mcp:cua-driver',
+      enabled: false,
+      persistConfig,
+      contributionsDir: contributionRoot,
+      createClient: () => ({ listTools }),
+    });
+
+    expect(result.success).toBe(true);
+    expect(persistConfig).toHaveBeenCalledWith(expect.objectContaining({
+      agent_enabled_mcp_servers: [],
+    }));
+    expect(listTools).not.toHaveBeenCalled();
+    expect(result.registry.mcps[0]).toEqual(expect.objectContaining({
+      effective_enabled: false,
+      status: expect.objectContaining({
+        state: 'off',
+        label: 'Off',
+      }),
+    }));
   });
 });

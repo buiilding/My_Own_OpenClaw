@@ -194,6 +194,58 @@ async function refreshMcpServersForConfig({
   };
 }
 
+async function updateMcpServerEnablementForConfig({
+  config = null,
+  serverId = '',
+  enabled = false,
+  persistConfig,
+  contributionsDir = undefined,
+  createClient = undefined,
+  spawnImpl = undefined,
+} = {}) {
+  const normalizedServerId = normalizeString(serverId);
+  if (!normalizedServerId) {
+    return {
+      success: false,
+      error: 'Missing MCP server id.',
+      registry: listMcpServersForConfig({ config, contributionsDir }),
+    };
+  }
+  if (typeof persistConfig !== 'function') {
+    return {
+      success: false,
+      error: 'Missing MCP config persistence handler.',
+      registry: listMcpServersForConfig({ config, contributionsDir }),
+    };
+  }
+
+  const nextConfig = setMcpServerEnabledInConfig(config || {}, normalizedServerId, enabled === true);
+  const result = await persistConfig(nextConfig);
+  clearMcpControlState();
+
+  if (result?.success === false) {
+    return {
+      success: false,
+      error: result.error || 'Unable to update MCP server.',
+      registry: listMcpServersForConfig({ config, contributionsDir }),
+    };
+  }
+
+  const registry = enabled === true
+    ? await refreshMcpServersForConfig({
+      config: nextConfig,
+      contributionsDir,
+      createClient,
+      spawnImpl,
+    })
+    : listMcpServersForConfig({ config: nextConfig, contributionsDir });
+
+  return {
+    success: true,
+    registry,
+  };
+}
+
 function clearMcpControlState() {
   lastDiscoveryStatusByServerId = new Map();
   clearMcpRuntimeCache();
@@ -207,4 +259,5 @@ module.exports = {
   normalizeEnabledMcpServers,
   refreshMcpServersForConfig,
   setMcpServerEnabledInConfig,
+  updateMcpServerEnablementForConfig,
 };

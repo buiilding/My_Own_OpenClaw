@@ -48,7 +48,7 @@ describe('McpsSection', () => {
         registry: registry({
           effective_enabled: true,
           user_enabled: true,
-          status: { state: 'unknown', label: 'Unknown', reason: 'Discovery has not been refreshed.' },
+          status: { state: 'ready', label: 'Ready', reason: '' },
         }),
       });
 
@@ -65,7 +65,7 @@ describe('McpsSection', () => {
         enabled: true,
       });
     });
-    expect(await screen.findByText('Unknown')).toBeInTheDocument();
+    expect(await screen.findByText('Ready')).toBeInTheDocument();
   });
 
   test('refreshes MCP discovery through IPC', async () => {

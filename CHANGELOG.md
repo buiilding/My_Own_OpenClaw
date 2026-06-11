@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/mcp: refresh live MCP discovery immediately after a user enables a
+  gated MCP server, while keeping manual refresh as the retry path for install
+  or permission fixes.
 - frontend/browser: wake the SDK-owned local runtime from the browser header
   readiness check, replace the misleading `Starting browser...` state with
   local-runtime/browser-unavailable labels, and add sanitized

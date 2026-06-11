@@ -113,14 +113,18 @@ That exposes `local_memory__search`.
    enabling or starting them.
 3. Electron main filters `requires_user_enable` servers against the local
    `agent_enabled_mcp_servers` allowlist.
-4. Electron main starts each enabled MCP server over stdio.
-5. Electron main sends MCP `initialize` and `notifications/initialized`.
-6. Electron main calls `tools/list`.
-7. Discovered tools are appended to `client_tool_manifest`.
-8. Backend validates and projects the schemas like any other client-local tool.
-9. When the backend emits an MCP tool call, Electron main intercepts it and
+4. When a user enables a gated MCP from the dashboard, Electron main persists
+   the allowlist change and immediately runs a discovery pass. The manual
+   refresh action remains the retry path after installing binaries or granting
+   permissions.
+5. Electron main starts each enabled MCP server over stdio.
+6. Electron main sends MCP `initialize` and `notifications/initialized`.
+7. Electron main calls `tools/list`.
+8. Discovered tools are appended to `client_tool_manifest`.
+9. Backend validates and projects the schemas like any other client-local tool.
+10. When the backend emits an MCP tool call, Electron main intercepts it and
    sends MCP `tools/call`.
-10. The MCP result is normalized into WindieOS tool result data.
+11. The MCP result is normalized into WindieOS tool result data.
 
 Each discovery pass reconciles the executable MCP tool registry with the current
 enabled server specs. Removed, disabled, duplicate, or manifest-disabled MCP
