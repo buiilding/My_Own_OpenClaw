@@ -11,7 +11,7 @@ Plan: [Unified WindieOS Storage Root Plan](2026-06-11-unified-windieos-storage-r
 
 ## Status
 
-Implementation complete; final commit pending.
+Complete.
 
 ## Checklist
 
@@ -23,7 +23,7 @@ Implementation complete; final commit pending.
 - [x] Update docs and tests.
 - [x] Run focused validation.
 - [x] Perform final old-root inventory and classify remaining references.
-- [ ] Commit completed changes.
+- [x] Commit completed changes.
 
 ## Decisions
 
@@ -70,4 +70,4 @@ Implementation complete; final commit pending.
 
 ## Commits
 
-Pending.
+- `c15f60cc7` - `fix(storage): unify local data root`
