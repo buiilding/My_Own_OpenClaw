@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: twentieth hardening slice validated.
+- Current slice: twentieth hardening slice committed.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -121,7 +121,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement twentieth slice.
 - [x] Run focused validation and `git diff --check` for the twentieth slice.
 - [x] Update changelog and report with the twentieth slice result.
-- [ ] Commit the twentieth slice.
+- [x] Commit the twentieth slice.
 
 ## Validation Log
 
@@ -658,6 +658,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `6983a65b9` - `fix(frontend-surfaces): normalize screenshot suppression bounds`
 - `76c3a3c36` - `fix(frontend-surfaces): normalize display affinity bounds`
 - `bb872526e` - `fix(frontend-sdk): reject non-positive live surface bounds`
+- `2ebb12860` - `fix(frontend-agent): default malformed prompt priorities`
 
 ## Remaining Candidates
 
