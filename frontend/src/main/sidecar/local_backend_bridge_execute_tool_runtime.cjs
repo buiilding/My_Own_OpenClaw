@@ -28,6 +28,9 @@ const {
   executeMcpTool,
   hasDiscoveredMcpTool,
 } = require('../extensions/mcp_runtime.cjs');
+const {
+  getEnabledMcpServersFromConfig,
+} = require('../extensions/mcp_control.cjs');
 
 function normalizeToolName(toolName) {
   return typeof toolName === 'string' ? toolName.trim().toLowerCase() : '';
@@ -114,8 +117,11 @@ function createLocalBackendExecuteToolRuntime({
       const timeoutMs = resolveExecuteToolTimeoutMs(toolName);
       let result = null;
       if (hasLocalMcpTool(toolName)) {
+        const frontendConfig = typeof getFrontendConfig === 'function' ? getFrontendConfig() : null;
         result = await executeLocalMcpTool(toolName, normalizedArgs, {
           senderWindowId: event?.sender?.id || null,
+        }, {
+          enabledMcpServers: getEnabledMcpServersFromConfig(frontendConfig),
         });
       }
       if (!result) {

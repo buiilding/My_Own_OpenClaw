@@ -19,6 +19,7 @@ const FRONTEND_CONFIG_FIELDS = [
   'agent_custom_instructions',
   'agent_disabled_local_tools',
   'agent_disabled_remote_tools',
+  'agent_enabled_mcp_servers',
   'browser_automation_enabled',
   'global_agent_stop_shortcut',
   'include_query_screenshot',

@@ -3,6 +3,7 @@ const {
   getBuiltinClientToolNames,
   getClientToolNames,
 } = require('../extensions/tool_manifest.cjs');
+const { buildClientToolManifestWithMcp } = require('../extensions/mcp_runtime.cjs');
 const { buildAgentDefinition } = require('./agent_definition.cjs');
 
 const HANDSHAKE_REMOTE_TOOLS = Object.freeze([
@@ -98,10 +99,31 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
   return payload;
 }
 
+async function buildAgentCapabilityHandshakePayloadWithMcp(options = {}) {
+  if (options.clientToolManifest) {
+    return buildAgentCapabilityHandshakePayload(options);
+  }
+  const disabledTools = normalizeStringList(options.disabledTools) || [];
+  const baseManifest = buildClientToolManifest({
+    disabledTools,
+    contributionsDir: options.contributionsDir,
+  });
+  const clientToolManifest = await buildClientToolManifestWithMcp({
+    ...options,
+    disabledTools,
+    baseManifest,
+  });
+  return buildAgentCapabilityHandshakePayload({
+    ...options,
+    clientToolManifest,
+  });
+}
+
 module.exports = {
   HANDSHAKE_AVAILABLE_TOOLS: Object.freeze([
     ...getBuiltinClientToolNames(),
     ...HANDSHAKE_REMOTE_TOOLS,
   ]),
   buildAgentCapabilityHandshakePayload,
+  buildAgentCapabilityHandshakePayloadWithMcp,
 };

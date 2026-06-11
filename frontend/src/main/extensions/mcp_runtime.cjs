@@ -19,6 +19,20 @@ function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
 }
 
+function normalizeMcpEnablementIds(values) {
+  const sourceValues = Array.isArray(values)
+    ? values
+    : (typeof values === 'string' ? values.split(',') : []);
+  const normalized = new Set();
+  for (const value of sourceValues) {
+    const item = normalizeString(value);
+    if (item) {
+      normalized.add(item);
+    }
+  }
+  return normalized;
+}
+
 function normalizeObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
@@ -75,6 +89,7 @@ function normalizeMcpServerSpec(server) {
     return null;
   }
   const timeoutMs = Number(readMcpTimeoutMs(server));
+  const mcpId = normalizeString(server.mcp_id || server.mcpId);
   return {
     id,
     name: normalizeString(server.name) || id,
@@ -89,16 +104,46 @@ function normalizeMcpServerSpec(server) {
       ? timeoutMs
       : DEFAULT_MCP_REQUEST_TIMEOUT_MS,
     tool_prefix: normalizeString(server.tool_prefix || server.toolPrefix),
+    requires_user_enable: server.requires_user_enable === true || server.requiresUserEnable === true,
     tools: Array.isArray(server.tools) ? server.tools : [],
+    mcp_id: mcpId,
     extension_id: normalizeString(server.extension_id),
   };
+}
+
+function readEnabledMcpServersOption(options) {
+  if (Object.prototype.hasOwnProperty.call(options, 'enabledMcpServers')) {
+    return options.enabledMcpServers;
+  }
+  if (Object.prototype.hasOwnProperty.call(options, 'enabledMcpServerIds')) {
+    return options.enabledMcpServerIds;
+  }
+  return process.env.WINDIE_ENABLED_MCPS;
+}
+
+function isMcpServerEnabled(server, enabledMcpIds = normalizeMcpEnablementIds()) {
+  if (!server || server.enabled === false) {
+    return false;
+  }
+  if (server.requires_user_enable !== true) {
+    return true;
+  }
+  if (enabledMcpIds.has('*')) {
+    return true;
+  }
+  return [server.id, server.mcp_id, server.extension_id]
+    .filter(Boolean)
+    .some((id) => enabledMcpIds.has(id));
 }
 
 function loadMcpServerSpecs(options = {}) {
   const configuredServers = Array.isArray(options.mcpServers)
     ? options.mcpServers
     : loadExtensionMcpServers({ contributionsDir: options.contributionsDir });
-  return configuredServers.map(normalizeMcpServerSpec).filter(Boolean);
+  const enabledMcpIds = normalizeMcpEnablementIds(readEnabledMcpServersOption(options));
+  return configuredServers
+    .map(normalizeMcpServerSpec)
+    .filter((server) => server && isMcpServerEnabled(server, enabledMcpIds));
 }
 
 function cacheKeyForServer(server) {
@@ -428,6 +473,11 @@ async function executeMcpTool(toolName, args = {}, context = {}, options = {}) {
   if (!registration) {
     return null;
   }
+  const enabledMcpIds = normalizeMcpEnablementIds(readEnabledMcpServersOption(options));
+  if (!isMcpServerEnabled(registration.server, enabledMcpIds)) {
+    toolRegistry.delete(normalizedToolName);
+    return null;
+  }
   try {
     const client = getMcpClient(registration.server, options);
     const result = await client.callTool(registration.originalToolName, args, context);
@@ -474,6 +524,8 @@ module.exports = {
   executeMcpTool,
   formatMcpContent,
   hasDiscoveredMcpTool,
+  isMcpServerEnabled,
   loadMcpServerSpecs,
+  normalizeMcpEnablementIds,
   normalizeMcpServerSpec,
 };

@@ -100,7 +100,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 | Built-in local manifest source | `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/windie_shared/browser_contract*` |
 | Generated Electron manifest artifact | `frontend/src/main/generated/builtin_tool_manifest.json`, `scripts/generate-builtin-tool-manifest` |
 | Client manifest validation | `backend/src/tools/client_manifest.py` |
-| Client manifest handshake | `backend/src/api/routes/websocket/router.py`, `frontend/src/main/agent_capability_handshake.cjs`, `frontend/src/main/tool_manifest.cjs` |
+| Client manifest handshake | `backend/src/api/routes/websocket/router.py`, `frontend/src/main/sdk/agent_capability_handshake.cjs`, `frontend/src/main/extensions/tool_manifest.cjs` |
 | Backend tool catalog | `backend/src/tools/tool_catalog.py` |
 | Backend schemas and remote tools | `backend/src/tools/remote_tools/*`, `backend/src/tools/*schema*` |
 | Tool policy and capability filters | `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_health.py` |

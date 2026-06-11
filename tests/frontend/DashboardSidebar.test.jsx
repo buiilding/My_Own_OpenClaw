@@ -13,11 +13,13 @@ function buildProps(overrides = {}) {
     onOpenMemory: jest.fn(),
     onOpenUsage: jest.fn(),
     onOpenModels: jest.fn(),
+    onOpenMcps: jest.fn(),
     onOpenSettings: jest.fn(),
     searchOpen: false,
     memoryOpen: false,
     usageOpen: false,
     modelsOpen: false,
+    mcpsOpen: false,
     isLoadingRecentConversations: false,
     recentConversationsError: '',
     recentWorkspaceGroups: [],
@@ -113,6 +115,15 @@ describe('DashboardSidebar collapsed header controls', () => {
 
     expect(screen.getByText('No chats yet.')).toBeInTheDocument();
     expect(screen.queryByText('Unable to load chats.')).not.toBeInTheDocument();
+  });
+
+  test('opens MCPs from expanded product navigation', () => {
+    const onOpenMcps = jest.fn();
+    render(<DashboardSidebar {...buildProps({ sidebarOpen: true, onOpenMcps })} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'MCPs' }));
+
+    expect(onOpenMcps).toHaveBeenCalledTimes(1);
   });
 
   test('shows load error copy when chat list loading fails', () => {

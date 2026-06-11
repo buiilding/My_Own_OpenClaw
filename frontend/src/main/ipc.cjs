@@ -85,6 +85,12 @@ const {
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
+  clearMcpControlState,
+  listMcpServersForConfig,
+  refreshMcpServersForConfig,
+  setMcpServerEnabledInConfig,
+} = require('./extensions/mcp_control.cjs');
+const {
   createChatQueryHandlers,
 } = require('./ipc/ipc_chat_query_handlers.cjs');
 const {
@@ -1241,7 +1247,43 @@ function initializeIpc(win, options = {}) {
     setGlobalAgentStopShortcutAccelerator,
   });
 
-  ipcMain.handle('list-agent-extensions', async () => loadPublicExtensionRegistry());
+  ipcMain.handle('list-agent-extensions', async () => {
+    const registry = loadPublicExtensionRegistry();
+    const mcpRegistry = listMcpServersForConfig({ config: latestFrontendConfig });
+    return {
+      ...registry,
+      mcps: mcpRegistry.mcps,
+    };
+  });
+
+  ipcMain.handle('list-mcp-servers', async () => (
+    listMcpServersForConfig({ config: latestFrontendConfig })
+  ));
+
+  ipcMain.handle('set-mcp-server-enabled', async (_event, payload = {}) => {
+    const serverId = typeof payload?.id === 'string' ? payload.id.trim() : '';
+    if (!serverId) {
+      return {
+        success: false,
+        error: 'Missing MCP server id.',
+      };
+    }
+    const nextConfig = setMcpServerEnabledInConfig(
+      latestFrontendConfig || {},
+      serverId,
+      payload.enabled === true,
+    );
+    const result = await persistFrontendConfigToDisk(nextConfig);
+    clearMcpControlState();
+    return {
+      success: result?.success !== false,
+      registry: listMcpServersForConfig({ config: latestFrontendConfig }),
+    };
+  });
+
+  ipcMain.handle('refresh-mcp-servers', async () => (
+    refreshMcpServersForConfig({ config: latestFrontendConfig })
+  ));
 
   ipcMain.handle('get-client-user-id', async () => {
     return {

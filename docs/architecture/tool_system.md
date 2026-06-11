@@ -82,7 +82,7 @@ This is the live remote tool surface today: 14 direct remote tools shared across
 Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-owned remote tools and backend policy
-- frontend `frontend/src/main/tool_manifest.cjs` is the source of truth for built-in client-local schemas
+- frontend `frontend/src/main/extensions/tool_manifest.cjs` is the source of truth for built-in client-local schemas
 - plugin `schema` contributions are loaded by Electron main from `plugins/*/plugin.json`
 - plugin Python entrypoints are loaded by the sidecar from `plugins/*/plugin.json`
 - backend validates accepted/rejected client manifest entries before prompt construction

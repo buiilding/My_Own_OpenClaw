@@ -38,8 +38,13 @@ tools.
 
 - Use `plugins`, `skills`, or `mcps` for normal
   extension contributions.
-- Change `frontend/src/main/extension_manifest.cjs` only when changing the
+- Change `frontend/src/main/extensions/extension_manifest.cjs`,
+  `frontend/src/main/extensions/mcp_runtime.cjs`, or
+  `frontend/src/main/extensions/mcp_control.cjs` only when changing the
   extension platform itself.
+- MCP integrations with desktop authority must set `requires_user_enable: true`
+  so they stay listed but out of `client_tool_manifest` until explicitly
+  enabled.
 - Do not make a new backend tool model-visible until it is registered,
   policy-allowed, documented, and tested.
 - Do not put provider credentials in plugin docs, fixtures, or code.
@@ -75,6 +80,10 @@ Likely code:
 - bundled MCP server code under the same MCP folder when needed
 
 Validate MCP runtime tests and extension registry tests.
+
+CUA Driver lives at `mcps/cua-driver/mcp.json`. It uses `cua-driver mcp`, has no
+committed local checkout path, and relies on live `tools/list` discovery after
+explicit enablement.
 
 ### Add An Extension Skill
 

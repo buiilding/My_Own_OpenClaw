@@ -341,9 +341,8 @@ function buildDesktopEventWriteParams(
 
 export function createDesktopConversationStore(
   userId: string,
-  deps: DesktopConversationStoreDeps = {},
+  _deps: DesktopConversationStoreDeps = {},
 ): ConversationStore {
-  const resolvedDeps = resolveDesktopConversationStoreDeps(deps);
   return {
     async appendEvent(event: ConversationEvent): Promise<void> {
       await invokeWindieCommand('conversation.appendEvent', {

@@ -70,6 +70,7 @@ function writeExtensionRegistry() {
       args: ['memory-server.cjs'],
       timeout_ms: 0,
       timeoutMs: 9000,
+      requires_user_enable: true,
       tools: [{
         name: 'search_notes',
         description: 'Search notes through MCP.',
@@ -130,6 +131,7 @@ describe('extension registry loader', () => {
         id: 'notes-memory',
         extension_id: 'mcp:notes-memory',
         command: 'node',
+        requires_user_enable: true,
         timeout_ms: 0,
         tools: [expect.objectContaining({ name: 'search_notes' })],
       }),
@@ -151,6 +153,7 @@ describe('extension registry loader', () => {
     expect(publicRuntime.mcps[0]).toEqual(expect.objectContaining({
       id: 'notes-memory',
       env_keys: [],
+      requires_user_enable: true,
       tools: [expect.objectContaining({ name: 'search_notes' })],
     }));
     expect(JSON.stringify(publicRuntime)).not.toContain('def run');

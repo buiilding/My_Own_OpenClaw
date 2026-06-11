@@ -26,6 +26,12 @@ tools with `execution_target: "sidecar"` and `argument_resolution:
 "passthrough"`, validates the manifest, and emits tool calls back to the
 frontend.
 
+Powerful MCP integrations should use explicit enablement. A server can be
+visible in the dashboard without becoming model-visible by setting
+`"requires_user_enable": true`; Electron main filters those servers out of
+discovery, `client_tool_manifest`, `available_tools`, and execution until the
+local user enables them.
+
 ## Add An MCP Server
 
 Create `mcps/<id>/mcp.json`:
@@ -36,6 +42,7 @@ Create `mcps/<id>/mcp.json`:
   "command": "node",
   "args": ["server.cjs"],
   "cwd": ".",
+  "requires_user_enable": true,
   "env": {
     "MEMORY_DB": "notes.sqlite"
   },
@@ -73,6 +80,7 @@ declare multiple server processes.
 | `cwd` | no | Working directory. Relative paths are resolved inside the MCP folder. |
 | `env` | no | Extra environment variables for the MCP process. Do not commit real credentials. |
 | `enabled` | no | Set `false` to keep a server declared but not loaded. |
+| `requires_user_enable` | no | Set `true` for integrations that must be explicitly enabled before discovery or execution. |
 | `timeout_ms` | no | Request timeout for initialize, discovery, and calls. |
 | `tool_prefix` | no | Override generated model-visible tool prefix. |
 | `tools` | no | Fallback tool schemas if live `tools/list` discovery fails. |
@@ -101,25 +109,46 @@ That exposes `local_memory__search`.
 ## Runtime Flow
 
 1. Electron main reads `mcps/*/mcp.json`.
-2. Electron main starts each enabled MCP server over stdio.
-3. Electron main sends MCP `initialize` and `notifications/initialized`.
-4. Electron main calls `tools/list`.
-5. Discovered tools are appended to `client_tool_manifest`.
-6. Backend validates and projects the schemas like any other client-local tool.
-7. When the backend emits an MCP tool call, Electron main intercepts it and
+2. Dashboard MCPs can list configured servers through Electron main IPC without
+   enabling or starting them.
+3. Electron main filters `requires_user_enable` servers against the local
+   `agent_enabled_mcp_servers` allowlist.
+4. Electron main starts each enabled MCP server over stdio.
+5. Electron main sends MCP `initialize` and `notifications/initialized`.
+6. Electron main calls `tools/list`.
+7. Discovered tools are appended to `client_tool_manifest`.
+8. Backend validates and projects the schemas like any other client-local tool.
+9. When the backend emits an MCP tool call, Electron main intercepts it and
    sends MCP `tools/call`.
-8. The MCP result is normalized into WindieOS tool result data.
+10. The MCP result is normalized into WindieOS tool result data.
 
 Each discovery pass reconciles the executable MCP tool registry with the current
 enabled server specs. Removed, disabled, duplicate, or manifest-disabled MCP
 tools are not left executable through stale registry entries.
+Execution also checks the latest local allowlist before calling a gated MCP
+tool, so stale model-visible tool calls are refused after disablement.
+
+## CUA Driver
+
+`mcps/cua-driver/mcp.json` declares CUA Driver as a disabled-by-default MCP:
+
+- command: `cua-driver`
+- args: `["mcp"]`
+- model-visible prefix after enablement/discovery: `cua_driver__*`
+- schema source: live `tools/list`
+
+Do not commit a local checkout path or generated CUA fallback schemas. If the
+binary is not on `PATH`, the MCPs dashboard reports `Not installed`; if CUA
+starts but macOS automation grants are missing, the status reports
+`Needs permission`.
 
 ## What Devs Should Not Edit
 
 For normal MCP integrations, do not edit:
 
-- `frontend/src/main/mcp_runtime.cjs`
-- `frontend/src/main/extension_manifest.cjs`
+- `frontend/src/main/extensions/mcp_runtime.cjs`
+- `frontend/src/main/extensions/extension_manifest.cjs`
+- `frontend/src/main/extensions/mcp_control.cjs`
 - backend tool registries
 - Python sidecar tool registries
 

@@ -119,6 +119,8 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
         "WINDIE_ENABLE_SEMANTIC_SUMMARIZER": "0",
         "WINDIE_PACKAGED_APP": "",
         "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL": "",
+        "WINDIE_SIDECAR_SOURCE_PATH": "",
+        "WINDIE_SIDECAR_SOURCE_STAMP": "",
     }
 
 

@@ -23,11 +23,13 @@ function DashboardSidebar({
   onOpenMemory,
   onOpenUsage,
   onOpenModels,
+  onOpenMcps,
   onOpenSettings,
   searchOpen,
   memoryOpen,
   usageOpen,
   modelsOpen,
+  mcpsOpen,
   isLoadingRecentConversations,
   recentConversationsError,
   recentWorkspaceGroups = [],
@@ -225,10 +227,12 @@ function DashboardSidebar({
           onOpenMemory={onOpenMemory}
           onOpenUsage={onOpenUsage}
           onOpenModels={onOpenModels}
+          onOpenMcps={onOpenMcps}
           searchOpen={searchOpen}
           memoryOpen={memoryOpen}
           usageOpen={usageOpen}
           modelsOpen={modelsOpen}
+          mcpsOpen={mcpsOpen}
         />
 
         {!isCollapsed ? (
@@ -280,11 +284,13 @@ DashboardSidebar.propTypes = {
   onOpenMemory: PropTypes.func.isRequired,
   onOpenUsage: PropTypes.func.isRequired,
   onOpenModels: PropTypes.func.isRequired,
+  onOpenMcps: PropTypes.func.isRequired,
   onOpenSettings: PropTypes.func.isRequired,
   searchOpen: PropTypes.bool.isRequired,
   memoryOpen: PropTypes.bool.isRequired,
   usageOpen: PropTypes.bool.isRequired,
   modelsOpen: PropTypes.bool.isRequired,
+  mcpsOpen: PropTypes.bool.isRequired,
   isLoadingRecentConversations: PropTypes.bool.isRequired,
   recentConversationsError: PropTypes.string.isRequired,
   recentWorkspaceGroups: workspaceConversationGroupsPropType,

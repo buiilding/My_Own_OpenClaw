@@ -41,9 +41,9 @@ SDK path below for backend-owned remote tools or built-in WindieOS tools.
 - Sidecar extension tool loader:
   `frontend/src/main/python/tools/extension_loader.py`
 - Client model-facing manifest builder:
-  `frontend/src/main/tool_manifest.cjs`
+  `frontend/src/main/extensions/tool_manifest.cjs`
 - Extension manifest loader:
-  `frontend/src/main/extension_manifest.cjs`
+  `frontend/src/main/extensions/extension_manifest.cjs`
 - Tool implementations: `frontend/src/main/python/tools/`
 - Exposed direct-tool set for backend parity:
   `frontend/src/main/python/tools/manifest.py` (`EXPOSED_TO_BACKEND_TOOL_NAMES`)

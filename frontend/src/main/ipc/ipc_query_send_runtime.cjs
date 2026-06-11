@@ -2,8 +2,6 @@ async function prepareRendererQuerySend({
   event,
   payload,
   currentConversationRef,
-  currentSessionId,
-  currentServerUserId,
   currentUserId,
   isFirstQuery,
   deps,

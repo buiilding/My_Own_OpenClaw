@@ -170,14 +170,19 @@ Declare MCP servers under `mcps/<id>/mcp.json`:
 `tools` is a fallback schema list. When live discovery succeeds, WindieOS uses
 the MCP server's `tools/list` response.
 
+Set `"requires_user_enable": true` for MCPs that should be visible in the
+dashboard but unavailable to the model until the local user enables them. This
+is required for desktop-control integrations such as CUA Driver.
+
 ## Runtime Flow
 
 1. Electron main reads `plugins/*/plugin.json` and appends plugin
    tools to `client_tool_manifest`.
 2. Electron main reads `skills/**/SKILL.md` and appends prompt
    layers to the agent definition.
-3. Electron main reads `mcps/*/mcp.json`, discovers MCP tools, reconciles the
-   executable MCP registry with enabled specs, and appends visible tools to
+3. Electron main reads `mcps/*/mcp.json`, filters user-gated MCPs through the
+   local allowlist, discovers enabled MCP tools, reconciles the executable MCP
+   registry with enabled specs, and appends visible tools to
    `client_tool_manifest`.
 4. The backend validates and policy-projects the client manifest.
 5. Local plugin tool calls route to the sidecar tool registry.

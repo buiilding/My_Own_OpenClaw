@@ -1,0 +1,10 @@
+{
+  "id": "cua-driver",
+  "name": "CUA Driver",
+  "description": "Background computer-use driver exposed through cua-driver mcp.",
+  "command": "cua-driver",
+  "args": ["mcp"],
+  "tool_prefix": "cua_driver",
+  "timeout_ms": 30000,
+  "requires_user_enable": true
+}

@@ -1,5 +1,6 @@
 const {
   buildAgentCapabilityHandshakePayload,
+  buildAgentCapabilityHandshakePayloadWithMcp,
 } = require('../../frontend/src/main/sdk/agent_capability_handshake.cjs');
 const {
   buildClientToolManifest,
@@ -156,6 +157,68 @@ describe('agent capability handshake manifest', () => {
         }),
       ]),
     );
+  });
+
+  test('loads enabled MCP tools through the async handshake path', async () => {
+    const payload = await buildAgentCapabilityHandshakePayloadWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        tool_prefix: 'memory',
+        requires_user_enable: true,
+        extension_id: 'mcp:memory',
+      }],
+      enabledMcpServers: ['mcp:memory'],
+      createClient: () => ({
+        listTools: jest.fn(async () => [{
+          name: 'search',
+          description: 'Search memory through MCP.',
+          inputSchema: {
+            type: 'object',
+            properties: { query: { type: 'string' } },
+            required: ['query'],
+            additionalProperties: false,
+          },
+        }]),
+      }),
+    });
+
+    expect(payload.available_tools).toContain('memory__search');
+    expect(payload.client_tool_manifest.tools).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'memory__search',
+          extension_id: 'mcp:memory',
+          mcp_server_id: 'memory',
+          mcp_tool_name: 'search',
+        }),
+      ]),
+    );
+    expect(payload.agent_definition.tools.client_manifest).toEqual(payload.client_tool_manifest);
+  });
+
+  test('omits user-gated MCP tools from async handshakes until enabled', async () => {
+    const payload = await buildAgentCapabilityHandshakePayloadWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        tool_prefix: 'memory',
+        requires_user_enable: true,
+        extension_id: 'mcp:memory',
+      }],
+      enabledMcpServers: [],
+      createClient: () => ({
+        listTools: jest.fn(async () => [{
+          name: 'search',
+          inputSchema: { type: 'object', properties: {} },
+        }]),
+      }),
+    });
+
+    expect(payload.available_tools).not.toContain('memory__search');
+    expect(payload.client_tool_manifest.tools.map((tool) => tool.name)).not.toContain('memory__search');
   });
 
   test('builds custom instructions and system prompt into agent definition', () => {

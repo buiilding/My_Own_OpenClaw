@@ -19,7 +19,6 @@ export function waitForNextPaint() {
 export async function runManualCompaction({
   config,
   conversationRef,
-  userId,
   setThinkingStatus,
   setThinkingSourceEventType,
   warningContext = 'manual compaction',

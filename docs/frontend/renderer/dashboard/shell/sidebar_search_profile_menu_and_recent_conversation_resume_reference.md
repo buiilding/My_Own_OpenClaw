@@ -28,7 +28,7 @@ title: "Dashboard Sidebar, Search, and Profile Menu Runtime Reference"
 Two primary nav groups:
 
 - primary: `new-chat`, `search`
-- product: `memory`, `usage`, `models`
+- product: `memory`, `usage`, `models`, `mcps`
 
 Every nav item has:
 
@@ -56,6 +56,9 @@ Module split ownership:
 - `DashboardSidebarUserMenu` owns profile menu state/rendering.
 - `DashboardSidebar` owns conversation row rendering and per-row action menu state.
 - `useDismissOnOutside` is shared by both profile menu and conversation kebab menu.
+- The `MCPs` product item opens the MCP control panel. Renderer code only sends
+  list/toggle/refresh intent through IPC; Electron main owns local registry
+  discovery, enablement, and process execution.
 
 Collapse/expand motion contract:
 
@@ -213,7 +216,7 @@ Recent-chat title visibility sync details:
 2. Breaking `row.conversation || row` fallback can fail opening search results built from normalized result rows.
 3. Removing document listeners in shared outside-dismiss hook without cleanup causes leaked handlers and stale close behavior for both profile and conversation menus.
 4. Changing collapsed nav filtering (new-chat removal) without keeping collapsed header new-chat action can create duplicate/missing new-chat controls.
-5. Changing product nav ids (`memory/usage/models`) without matching shell predicates can break active-state highlighting.
+5. Changing product nav ids (`memory/usage/models/mcps`) without matching shell predicates can break active-state highlighting.
 
 ## Related Pages
 

@@ -299,6 +299,7 @@ function normalizeMcpServer(server, mcpDir, mcpId) {
       ? timeoutMs
       : null,
     tool_prefix: normalizeString(server.tool_prefix || server.toolPrefix),
+    requires_user_enable: server.requires_user_enable === true || server.requiresUserEnable === true,
     tools,
     mcp_id: mcpId,
     extension_id: `mcp:${mcpId}`,
@@ -427,6 +428,7 @@ function toPublicMcpServer(server) {
     args: server.args,
     cwd: server.cwd,
     enabled: server.enabled,
+    requires_user_enable: server.requires_user_enable,
     timeout_ms: server.timeout_ms,
     tool_prefix: server.tool_prefix,
     tools: server.tools.map((tool) => ({

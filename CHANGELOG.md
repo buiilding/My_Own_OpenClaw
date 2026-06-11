@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- frontend/mcp/docs: add explicit repo-level MCP enablement, dashboard MCP
+  controls, and a disabled-by-default CUA Driver MCP declaration that uses
+  `cua-driver mcp` after local user enablement.
 - frontend/sdk/sidecar/cli: add persistent app diagnostics for the dashboard
   `conversation.metadata.list` path, storing sanitized rows in
   `diagnostics/diagnostics.db` with CLI list/inspect commands.
@@ -37,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/lint: remove stale unused bindings in query send, manual
+  compaction, message presentation, and desktop conversation store code so the
+  frontend lint gate passes.
 - frontend/packaging: include the generated SDK CommonJS runtime and `ws`
   dependency in bundled Electron resources so installed macOS apps can resolve
   Electron main SDK imports from `app.asar` at startup.

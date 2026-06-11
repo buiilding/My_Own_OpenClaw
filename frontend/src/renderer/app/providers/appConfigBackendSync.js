@@ -8,6 +8,7 @@ const LOCAL_ONLY_FRONTEND_CONFIG_KEYS = new Set([
   'agent_custom_instructions',
   'agent_disabled_local_tools',
   'agent_disabled_remote_tools',
+  'agent_enabled_mcp_servers',
   'appearance_mode',
   'appearance_theme',
 ]);

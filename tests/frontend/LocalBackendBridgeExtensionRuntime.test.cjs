@@ -36,7 +36,7 @@ describe('local backend bridge extension runtime', () => {
       sendRequest,
       backendHttpUrl: 'http://127.0.0.1:8765',
       getArtifactUploadHeaders: async () => ({}),
-      getFrontendConfig: () => ({}),
+      getFrontendConfig: () => ({ agent_enabled_mcp_servers: ['mcp:memory'] }),
       resolveWindows: () => [],
       resolveChatWindow: () => null,
       resolveMainWindow: () => null,
@@ -77,7 +77,7 @@ describe('local backend bridge extension runtime', () => {
       sendRequest,
       backendHttpUrl: 'http://127.0.0.1:8765',
       getArtifactUploadHeaders: async () => ({}),
-      getFrontendConfig: () => ({}),
+      getFrontendConfig: () => ({ agent_enabled_mcp_servers: ['mcp:memory'] }),
       resolveWindows: () => [],
       resolveChatWindow: () => null,
       resolveMainWindow: () => null,
@@ -96,6 +96,7 @@ describe('local backend bridge extension runtime', () => {
       'mcp_memory__search',
       { query: 'windie' },
       { senderWindowId: null },
+      { enabledMcpServers: ['mcp:memory'] },
     );
     expect(result).toEqual({
       success: true,

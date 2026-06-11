@@ -9,6 +9,7 @@ const {
   discoverMcpTools,
   executeMcpTool,
   hasDiscoveredMcpTool,
+  loadMcpServerSpecs,
   normalizeMcpServerSpec,
 } = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
 
@@ -77,6 +78,61 @@ describe('MCP runtime', () => {
     })).toEqual(expect.objectContaining({
       timeout_ms: 0,
     }));
+  });
+
+  test('keeps user-gated MCP specs out of discovery unless explicitly enabled', async () => {
+    const client = createClient();
+    const toolName = createMcpToolName('memory', 'search');
+    const gatedServer = {
+      id: 'memory',
+      command: 'node',
+      args: ['server.cjs'],
+      requires_user_enable: true,
+      mcp_id: 'memory',
+      extension_id: 'mcp:memory',
+    };
+
+    await discoverMcpTools({
+      mcpServers: [gatedServer],
+      enabledMcpServers: [],
+      createClient: () => client,
+    });
+
+    expect(client.listTools).not.toHaveBeenCalled();
+    expect(hasDiscoveredMcpTool(toolName)).toBe(false);
+
+    const manifest = await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [gatedServer],
+      enabledMcpServers: ['mcp:memory'],
+      createClient: () => client,
+    });
+
+    expect(client.listTools).toHaveBeenCalledTimes(1);
+    expect(manifest.tools).toEqual([
+      expect.objectContaining({
+        name: toolName,
+        mcp_server_id: 'memory',
+      }),
+    ]);
+    expect(hasDiscoveredMcpTool(toolName)).toBe(true);
+  });
+
+  test('loads enabled MCP ids from comma-delimited options', () => {
+    expect(loadMcpServerSpecs({
+      enabledMcpServers: 'mcp:memory, other',
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        requires_user_enable: true,
+        extension_id: 'mcp:memory',
+      }, {
+        id: 'disabled',
+        command: 'node',
+        requires_user_enable: true,
+        extension_id: 'mcp:disabled',
+      }],
+    }).map((server) => server.id)).toEqual(['memory']);
   });
 
   test('executes discovered MCP tools through the local MCP client', async () => {

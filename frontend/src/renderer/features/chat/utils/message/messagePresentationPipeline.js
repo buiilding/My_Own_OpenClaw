@@ -129,7 +129,6 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
 
 export function buildThreadPresentationMessages(
   messages,
-  _options = {},
 ) {
   return Array.isArray(messages) ? messages : [];
 }

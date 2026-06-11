@@ -5,6 +5,7 @@ import {
   Brain,
   BarChart3,
   Cpu,
+  Cable,
 } from 'lucide-react';
 
 const PRIMARY_NAV_ITEMS = Object.freeze([
@@ -16,6 +17,7 @@ const PRODUCT_NAV_ITEMS = Object.freeze([
   { id: 'memory', label: 'Memory', icon: Brain },
   { id: 'usage', label: 'Usage', icon: BarChart3 },
   { id: 'models', label: 'Models', icon: Cpu },
+  { id: 'mcps', label: 'MCPs', icon: Cable },
 ]);
 
 function SidebarItem({
@@ -56,10 +58,12 @@ export default function DashboardSidebarNavigation({
   onOpenMemory,
   onOpenUsage,
   onOpenModels,
+  onOpenMcps,
   searchOpen,
   memoryOpen,
   usageOpen,
   modelsOpen,
+  mcpsOpen,
 }) {
   const primaryNavItems = collapsed
     ? PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'new-chat')
@@ -88,8 +92,20 @@ export default function DashboardSidebarNavigation({
             key={item.id}
             label={item.label}
             icon={item.icon}
-            onClick={item.id === 'memory' ? onOpenMemory : item.id === 'usage' ? onOpenUsage : onOpenModels}
-            isActive={item.id === 'memory' ? memoryOpen : item.id === 'usage' ? usageOpen : modelsOpen}
+            onClick={item.id === 'memory'
+              ? onOpenMemory
+              : item.id === 'usage'
+                ? onOpenUsage
+                : item.id === 'models'
+                  ? onOpenModels
+                  : onOpenMcps}
+            isActive={item.id === 'memory'
+              ? memoryOpen
+              : item.id === 'usage'
+                ? usageOpen
+                : item.id === 'models'
+                  ? modelsOpen
+                  : mcpsOpen}
             collapsed={collapsed}
           />
         ))}
@@ -105,9 +121,10 @@ DashboardSidebarNavigation.propTypes = {
   onOpenMemory: PropTypes.func.isRequired,
   onOpenUsage: PropTypes.func.isRequired,
   onOpenModels: PropTypes.func.isRequired,
+  onOpenMcps: PropTypes.func.isRequired,
   searchOpen: PropTypes.bool.isRequired,
   memoryOpen: PropTypes.bool.isRequired,
   usageOpen: PropTypes.bool.isRequired,
   modelsOpen: PropTypes.bool.isRequired,
+  mcpsOpen: PropTypes.bool.isRequired,
 };
-

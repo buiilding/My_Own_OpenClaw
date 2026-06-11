@@ -4,6 +4,7 @@ import ChatInterface from '../../chat/components/ChatInterface';
 import { useChatStore } from '../../chat/stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import ModelsSection from './sections/ModelsSection';
+import McpsSection from './sections/McpsSection';
 import SettingsSection from './sections/SettingsSection';
 import UsageSection from './sections/UsageSection';
 import DashboardSidebar from './DashboardSidebar';
@@ -81,6 +82,7 @@ function DashboardShell({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState('general');
   const [modelsOpen, setModelsOpen] = useState(false);
+  const [mcpsOpen, setMcpsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [usageOpen, setUsageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -130,6 +132,7 @@ function DashboardShell({
   const closeAllPanels = useCallback(() => {
     setSettingsOpen(false);
     setModelsOpen(false);
+    setMcpsOpen(false);
     setMemoryOpen(false);
     setUsageOpen(false);
     setSearchOpen(false);
@@ -144,6 +147,11 @@ function DashboardShell({
   const openModels = useCallback(() => {
     closeAllPanels();
     setModelsOpen(true);
+  }, [closeAllPanels]);
+
+  const openMcps = useCallback(() => {
+    closeAllPanels();
+    setMcpsOpen(true);
   }, [closeAllPanels]);
 
   const openMemory = useCallback(() => {
@@ -265,6 +273,10 @@ function DashboardShell({
         openModels();
         return;
       }
+      if (target === 'mcps') {
+        openMcps();
+        return;
+      }
       if (target === 'memory') {
         openMemory();
       }
@@ -277,6 +289,7 @@ function DashboardShell({
     handleChatSurface,
     loadRecentConversations,
     openMemory,
+    openMcps,
     openModels,
     openSettings,
     vmModeEnabled,
@@ -305,11 +318,13 @@ function DashboardShell({
           onOpenMemory={handleMemorySurface}
           onOpenUsage={openUsage}
           onOpenModels={openModels}
+          onOpenMcps={openMcps}
           onOpenSettings={openSettings}
           searchOpen={searchOpen}
           memoryOpen={memoryOpen}
           usageOpen={usageOpen}
           modelsOpen={modelsOpen}
+          mcpsOpen={mcpsOpen}
           isLoadingRecentConversations={isLoadingRecentConversations}
           recentConversationsError={recentConversationsError}
           recentWorkspaceGroups={recentWorkspaceGroups}
@@ -369,6 +384,12 @@ function DashboardShell({
                 onConfigChange={onConfigChange}
                 onClose={() => setModelsOpen(false)}
               />
+            </div>
+          </DashboardModal>
+
+          <DashboardModal isOpen={mcpsOpen} onClose={() => setMcpsOpen(false)}>
+            <div className="cg-panel-wrapper">
+              <McpsSection onClose={() => setMcpsOpen(false)} />
             </div>
           </DashboardModal>
 
