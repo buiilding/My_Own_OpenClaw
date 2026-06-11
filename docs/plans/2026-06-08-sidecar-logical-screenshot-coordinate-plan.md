@@ -41,7 +41,7 @@ Out of scope:
 - OCR/vision service internals
 - OpenAI provider image detail settings
 - Dual full-resolution-plus-normalized artifact architecture from
-  `docs/planning/windieos_screenshot_normalization_plan_2026-03-01.md`
+  the previous screenshot-normalization planning track
 
 ## Target Behavior
 
@@ -170,7 +170,7 @@ git diff --check
 - `frontend/src/main/python/tools/computer/screenshot_tool.py`
 - `tests/sidecar/test_screenshot_tool.py`
 - `docs/frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md`
-- `docs/planning/windieos_screenshot_normalization_plan_2026-03-01.md`
+- previous screenshot-normalization planning notes
 
 ## Assumptions
 

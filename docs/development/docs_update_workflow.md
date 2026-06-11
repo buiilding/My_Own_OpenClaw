@@ -94,5 +94,5 @@ Behavior after fix: describe what they can rely on now." -- CHANGELOG.md docs/..
 ## Related Docs
 
 - [Documentation Hub](../getting-started/docs_hub.md)
-- [Planning Current vs Future Boundary](../planning/current_vs_future_boundary.md)
+- [Planning Hub](../planning/README.md)
 - [Architecture Decision Records](../adr/README.md)

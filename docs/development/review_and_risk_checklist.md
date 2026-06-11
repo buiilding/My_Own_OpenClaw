@@ -69,6 +69,6 @@ For each changed boundary:
 ## Related Docs
 
 - [Validation Matrix](validation_matrix.md)
-- [Current vs Future Boundary](../planning/current_vs_future_boundary.md)
+- [Planning Hub](../planning/README.md)
 - [Security Change Playbook](../security/security_change_playbook.md)
 - [Architecture Failure Domain Map](../architecture/failure_domain_map.md)

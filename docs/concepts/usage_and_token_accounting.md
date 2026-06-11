@@ -93,4 +93,3 @@ Future subscription/usage metering belongs in planning or hosted operations unti
 - [Backend Services Token Docs Hub](../backend/services/token/README.md)
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
 - [Dashboard Usage Section Runtime Reference](../frontend/renderer/dashboard/sections/usage_section_placeholder_panel_and_modal_contract_reference.md)
-- [Billing and Usage Plan](../planning/billing_and_usage.md)

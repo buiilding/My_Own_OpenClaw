@@ -456,7 +456,6 @@ Welcome to the comprehensive documentation for WindieOS. This documentation cove
 - [**Memory System**](architecture/memory_system.md) - Memory management and retrieval
 - [**Python Sidecar**](architecture/python_sidecar.md) - Local tool execution + memory service
 - [**LLM Integration**](architecture/llm_integration.md) - LLM providers and configuration
-- [**Billing & Usage (Planned)**](planning/billing_and_usage.md) - Subscriptions, entitlements, and usage limits
 
 ### Development Guides
 - [**Development Hub**](development/README.md) - Agent-facing contributor workflow, validation, environment, and change routing hub
@@ -482,14 +481,9 @@ Welcome to the comprehensive documentation for WindieOS. This documentation cove
 - [**Configuration Guide**](operations/configuration.md) - Configuration options and settings
 - [**Deployment Guide**](operations/deployment.md) - Production deployment instructions
 - [**Release Guide**](operations/release.md) - Repeatable release checklist and guardrails
-- [**Planning Hub**](planning/README.md) - Roadmap status, current-vs-future boundaries, initiative indexes, promotion checklists, and future plans
-- [**Current vs Future Boundary**](planning/current_vs_future_boundary.md) - Keep implemented docs separate from planned, proposed, partial, and speculative work
-- [**Roadmap Status Matrix**](planning/roadmap_status_matrix.md) - Planning tracks grouped by implementation status and stable-doc destination
-- [**Plan Promotion Checklist**](planning/plan_promotion_checklist.md) - Move shipped plans into stable docs with code roots, tests, security, and operations coverage
-- [**Initiative Index**](planning/initiative_index.md) - Planning docs grouped by hosted, desktop, sidecar, inference, automation, mobile, billing, security, and refactor tracks
+- [**Planning Hub**](planning/README.md) - Active roadmap and future initiative plans
 - [**Future Product Plan (Draft)**](planning/future_plan.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
 - [**Environment Setup**](development/environment_setup.md) - Development environment configuration
-- [**Security & Compliance (Planned)**](planning/security_and_compliance.md) - Security posture and compliance roadmap
 - [**Plan Matrix (Draft)**](planning/plan_matrix.md) - Subscription tiers and limits
 
 ### User Guides
@@ -501,12 +495,11 @@ Welcome to the comprehensive documentation for WindieOS. This documentation cove
 - [**Security Guide**](operations/security.md) - Security considerations and best practices
 - [**Multi-User Runtime Hardening**](operations/multi_user_runtime_hardening.md) - Session identity, multi-device policy, and per-user model isolation guidance
 - [**Performance Guide**](operations/performance.md) - Performance optimization strategies
-- [**Planning Hub**](planning/README.md) - Single entrypoint for roadmap status, future initiative plans, and promotion rules
+- [**Planning Hub**](planning/README.md) - Single entrypoint for active future initiative plans
 - [**Contributing Guide**](development/contributing.md) - How to contribute to the project
 
 ### Hosted Platform (Planned)
-- [**Planning Hub**](planning/README.md) - Canonical list of hosted roadmap + initiative docs
-- [**Roadmap Status Matrix**](planning/roadmap_status_matrix.md) - Status map for current, partial, planned, and future tracks
+- [**Planning Hub**](planning/README.md) - Canonical list of hosted roadmap and initiative docs
 
 ## 🎯 Quick Navigation
 

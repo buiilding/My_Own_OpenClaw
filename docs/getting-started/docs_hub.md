@@ -818,12 +818,7 @@ Use these when a change path is not enough and you need exact file ownership:
 ### Planning
 
 - [Planning Hub](../planning/README.md)
-- [Current vs Future Boundary](../planning/current_vs_future_boundary.md)
-- [Roadmap Status Matrix](../planning/roadmap_status_matrix.md)
-- [Plan Promotion Checklist](../planning/plan_promotion_checklist.md)
-- [Initiative Index](../planning/initiative_index.md)
 - [Future Product Plan](../planning/future_plan.md)
-- [OS Layer UX Evolution Plan](../planning/os_layer_ux_evolution_plan.md)
 - [VM Multi-Agent Plan](../planning/windieos_vm_multi_agent_plan.md)
 - [CLI OS Control Plan](../planning/windieos_cli_os_control_plan.md)
 

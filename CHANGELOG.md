@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/plans: add the app diagnostics conversation metadata list plan for a
+  persistent `diagnostics/diagnostics.db` trace path covering dashboard chat
+  list failures.
 - sdk/backend/docs: expand durable hidden `trace_event` diagnostics across 15
   additional runtime paths, including query dispatch/resources, backend
   stream/prompt/provider/compaction, tool execution, sidecar RPC, artifact
@@ -28,6 +31,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- docs/planning: prune stale future-planning documents and remove navigation
+  links that pointed at deleted planning pages.
 - frontend/docs: align local backend bridge naming around the SDK local
   runtime, refresh moved sidecar bridge documentation paths, and remove stale
   ad hoc prompt files.

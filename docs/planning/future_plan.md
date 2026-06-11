@@ -20,41 +20,6 @@ This plan is conceptual and intentionally non-final.
 - Prefer reversible architecture decisions in early phases.
 
 ## Roadmap Tracks
-
-### 1) Scale OCR + Vision Grounding for Multi-User
-
-### Goal
-Serve many concurrent users with predictable latency and cost.
-
-### Plan
-- Split inference into dedicated OCR and vision pools.
-- Add queue-based dispatch and per-tenant rate limits.
-- Add fallback chain: hosted -> local sidecar -> graceful error.
-- Add admission control for expensive grounding paths.
-
-### Milestones
-- M1: hosted OCR endpoint + tenant meter.
-- M2: hosted vision endpoint + GPU pool.
-- M3: autoscaling by queue depth and p95 latency.
-
-### 2) Prompt Policy Split: Computer-Use vs Non-Computer-Use
-
-### Goal
-Reduce over-tooling in normal chat while keeping computer-use reliable.
-
-### Plan
-- Maintain two system-prompt templates:
-  - `computer_use_prompt`
-  - `general_chat_prompt`
-- Add router decision before each turn.
-- Emit selected prompt profile in transparency stream.
-- Add policy checks to prevent forbidden tool invocations in chat-only mode.
-
-### Milestones
-- M1: prompt profile flag in config/session.
-- M2: routing heuristic + eval suite.
-- M3: per-model prompt variants with AB testing.
-
 ### 3) Windie Improves Its Own Frontend (Controlled Self-Evolution)
 
 ### Goal

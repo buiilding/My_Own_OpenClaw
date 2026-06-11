@@ -34,7 +34,7 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 | Tool execution | Narrow model-visible capabilities and route local actions through sidecar execution boundaries | [Tools Hub](../tools/README.md), [Backend Tools Security Docs Hub](../backend/tools/security/README.md) |
 | Permissions | Gate screen/input/microphone/browser capabilities through OS-aware probes and onboarding | [Onboarding and Permissions](../desktop/onboarding_permissions.md), [Platform Docs](../platforms/README.md) |
 | Sidecar runtime | Keep local JSON-RPC, filesystem/shell/browser/computer actions, and subprocess protocols explicit | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md) |
-| Future compliance | Plan durable hosted security/compliance before implementing broad hosted features | [Security and Compliance Plan](../planning/security_and_compliance.md) |
+| Future compliance | Plan durable hosted security/compliance before implementing broad hosted features | [Planning Hub](../planning/README.md) |
 
 ## Rules
 

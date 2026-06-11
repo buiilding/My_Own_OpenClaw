@@ -192,7 +192,6 @@
             "pages": [
               "development/docs_update_workflow",
               "reference/openclaw_docs_structure_reference",
-              "planning/current_vs_future_boundary",
               "adr/README"
             ]
           }

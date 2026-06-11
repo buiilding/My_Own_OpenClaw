@@ -44,6 +44,6 @@ Each ADR should include:
 ## Related Docs
 
 - [Architecture Hub](../architecture/README.md)
-- [Current vs Future Boundary](../planning/current_vs_future_boundary.md)
+- [Planning Hub](../planning/README.md)
 - [Extension Points](../architecture/extension_points.md)
 - [Security Change Playbook](../security/security_change_playbook.md)

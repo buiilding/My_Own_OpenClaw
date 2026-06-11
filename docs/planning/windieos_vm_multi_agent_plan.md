@@ -344,7 +344,7 @@ This plan depends on and extends:
 - `docs/planning/future_plan.md` (Windie-owned machine strategy).
 - `docs/operations/deployment.md` (hosted disposable workspace track).
 - `docs/operations/multi_user_runtime_hardening.md` (identity/session safety).
-- `docs/planning/security_and_compliance.md` and `docs/planning/billing_and_usage.md`.
+- `docs/planning/README.md`.
 
 ## Open Decisions
 
