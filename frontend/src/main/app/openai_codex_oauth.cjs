@@ -131,12 +131,34 @@ async function exchangeCodeForTokens({ issuer, clientId, redirectUri, codeVerifi
   return await response.json();
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function createCallbackResponse(content, statusCode = 200) {
+  const body = `<!doctype html><html><body><pre>${escapeHtml(content)}</pre></body></html>`;
   return {
     statusCode,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    body: `<!doctype html><html><body><pre>${content}</pre></body></html>`,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Length': Buffer.byteLength(body),
+    },
+    body,
   };
+}
+
+function sendCallbackResponse(res, response, onComplete = null) {
+  res.writeHead(response.statusCode, response.headers);
+  if (typeof onComplete === 'function') {
+    res.end(response.body, onComplete);
+    return;
+  }
+  res.end(response.body);
 }
 
 async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, issuer, clientId, timeoutMs, fetchImpl, cancelSignal }) {
@@ -189,17 +211,16 @@ async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, 
       const requestUrl = new URL(req.url || '/', `http://127.0.0.1:${OPENAI_CODEX_CALLBACK_PORT}`);
       if (requestUrl.pathname !== OPENAI_CODEX_CALLBACK_PATH) {
         const notFound = createCallbackResponse('Not Found', 404);
-        res.writeHead(notFound.statusCode, notFound.headers);
-        res.end(notFound.body);
+        sendCallbackResponse(res, notFound);
         return;
       }
 
       const callbackState = (requestUrl.searchParams.get('state') || '').trim();
       if (!callbackState || callbackState !== state) {
         const invalidState = createCallbackResponse('State mismatch.', 400);
-        res.writeHead(invalidState.statusCode, invalidState.headers);
-        res.end(invalidState.body);
-        finish(new Error('OAuth callback state mismatch.'));
+        sendCallbackResponse(res, invalidState, () => {
+          finish(new Error('OAuth callback state mismatch.'));
+        });
         return;
       }
 
@@ -208,18 +229,18 @@ async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, 
         const oauthDescription = (requestUrl.searchParams.get('error_description') || '').trim();
         const message = oauthDescription || oauthError;
         const callbackError = createCallbackResponse(`OAuth login failed: ${message}`, 400);
-        res.writeHead(callbackError.statusCode, callbackError.headers);
-        res.end(callbackError.body);
-        finish(new Error(`OpenAI Codex OAuth login failed: ${message}`));
+        sendCallbackResponse(res, callbackError, () => {
+          finish(new Error(`OpenAI Codex OAuth login failed: ${message}`));
+        });
         return;
       }
 
       const code = (requestUrl.searchParams.get('code') || '').trim();
       if (!code) {
         const missingCode = createCallbackResponse('Missing authorization code.', 400);
-        res.writeHead(missingCode.statusCode, missingCode.headers);
-        res.end(missingCode.body);
-        finish(new Error('OAuth callback did not include an authorization code.'));
+        sendCallbackResponse(res, missingCode, () => {
+          finish(new Error('OAuth callback did not include an authorization code.'));
+        });
         return;
       }
 
@@ -234,14 +255,14 @@ async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, 
         });
         const tokenPayload = buildTokenPayload(rawTokens);
         const success = createCallbackResponse('Codex login complete. You can close this tab.');
-        res.writeHead(success.statusCode, success.headers);
-        res.end(success.body);
-        finish(null, tokenPayload);
+        sendCallbackResponse(res, success, () => {
+          finish(null, tokenPayload);
+        });
       } catch (error) {
         const tokenError = createCallbackResponse('Token exchange failed. Return to WindieOS for details.', 500);
-        res.writeHead(tokenError.statusCode, tokenError.headers);
-        res.end(tokenError.body);
-        finish(error instanceof Error ? error : new Error(String(error)));
+        sendCallbackResponse(res, tokenError, () => {
+          finish(error instanceof Error ? error : new Error(String(error)));
+        });
       }
     });
   });
@@ -292,6 +313,7 @@ async function loginOpenAICodexOAuth(options = {}) {
     fetchImpl,
     cancelSignal: callbackAbortController.signal,
   });
+  waitForCallbackPromise.catch(() => {});
 
   try {
     await openExternal(authUrl);

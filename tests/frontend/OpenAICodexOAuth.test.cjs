@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const http = require('http');
+const net = require('net');
 const {
   loginOpenAICodexOAuth,
 } = require('../../frontend/src/main/app/openai_codex_oauth.cjs');
@@ -9,6 +10,46 @@ function createJwt(payload) {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
   return `${header}.${body}.sig`;
+}
+
+function requestCallback(path) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let raw = '';
+    const finish = (error = null) => {
+      if (settled) {
+        return;
+      }
+      if (error && !raw) {
+        settled = true;
+        reject(error);
+        return;
+      }
+      if (!raw) {
+        settled = true;
+        reject(new Error('OAuth callback did not return a response.'));
+        return;
+      }
+      settled = true;
+      const [head, body = ''] = raw.split('\r\n\r\n');
+      const statusCode = Number(head.match(/^HTTP\/1\.1\s+(\d+)/)?.[1]) || null;
+      resolve({ statusCode, body });
+    };
+
+    const socket = net.createConnection({ host: '127.0.0.1', port: 1455 }, () => {
+      socket.write(`GET ${path} HTTP/1.1\r\nHost: 127.0.0.1:1455\r\nConnection: close\r\n\r\n`);
+    });
+    socket.setEncoding('utf8');
+    socket.on('data', (chunk) => {
+      raw += chunk;
+    });
+    socket.on('error', (error) => {
+      finish(error);
+    });
+    socket.on('close', () => {
+      finish();
+    });
+  });
 }
 
 describe('openai_codex_oauth', () => {
@@ -69,5 +110,29 @@ describe('openai_codex_oauth', () => {
     expect(openExternal).toHaveBeenCalledTimes(1);
     expect(fetchImpl).not.toHaveBeenCalled();
     expect(jest.getTimerCount()).toBe(0);
+  });
+
+  test('loginOpenAICodexOAuth escapes oauth callback error descriptions in browser response', async () => {
+    const rawDescription = '<script>alert("x")</script>';
+    const fetchImpl = jest.fn();
+    let callbackResponse = null;
+    const openExternal = jest.fn(async (authUrl) => {
+      const parsed = new URL(authUrl);
+      const state = parsed.searchParams.get('state');
+      expect(state).toBeTruthy();
+
+      callbackResponse = await requestCallback(
+        `/auth/callback?state=${encodeURIComponent(state)}&error=access_denied&error_description=${encodeURIComponent(rawDescription)}`,
+      );
+    });
+
+    await expect(loginOpenAICodexOAuth({ openExternal, fetchImpl })).rejects.toThrow(
+      `OpenAI Codex OAuth login failed: ${rawDescription}`,
+    );
+
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(callbackResponse.statusCode).toBe(400);
+    expect(callbackResponse.body).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;');
+    expect(callbackResponse.body).not.toContain(rawDescription);
   });
 });

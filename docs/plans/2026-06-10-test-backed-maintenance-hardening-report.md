@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: third hardening slice committed.
+- Current slice: fourth hardening slice complete; commit pending.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -37,6 +37,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the third slice.
 - [x] Update changelog and report with the third slice result.
 - [x] Commit the third slice.
+- [x] Select fourth code slice with a concrete owner and regression test.
+- [x] Implement fourth slice.
+- [x] Run focused validation and `git diff --check` for the fourth slice.
+- [x] Update changelog and report with the fourth slice result.
+- [ ] Commit the fourth slice.
 
 ## Validation Log
 
@@ -64,6 +69,14 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   - passed.
 - `rg -n "WINDIE_DEFAULT_PACKAGED_BACKEND" tests/frontend/BackendEndpoints.test.cjs docs/help/doctor_checklist.md docs/operations/runtime_configuration_matrix.md docs/operations/configuration.md docs/getting-started/installation.md docs/install/local_backend_and_endpoint_setup.md`
   - passed for docs; only the regression test itself contains the removed names.
+- `cd frontend && npm run test -- OpenAICodexOAuth --runInBand` - initially
+  failed because the new callback-error test exposed a socket hang-up and a
+  transient unhandled rejection; passed after response completion and promise
+  observation fixes. Final result: 2 suites and 8 tests passed.
+- `bin/windie docs list` - passed after fourth-slice changelog update;
+  canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/app/openai_codex_oauth.cjs tests/frontend/OpenAICodexOAuth.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
 
 ## Inspection Log
 
@@ -118,6 +131,22 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   env names in `docs/operations/sidecar_runtime_packaging.md`, but that file had
   unrelated pre-existing dirty edits, so it remains a follow-up rather than
   being mixed into this slice.
+- Slice 4 owner: Electron main owns the OpenAI Codex OAuth browser callback
+  server, callback response rendering, OAuth state validation, and token payload
+  construction.
+- Slice 4 failure mode: provider-supplied OAuth `error_description` text was
+  inserted directly into local callback HTML. The regression test also exposed
+  that callback error responses could be observed as socket hang-ups and that a
+  callback rejection during `openExternal(...)` could briefly become an
+  unhandled promise rejection before the caller awaited it.
+- Slice 4 change: callback response text is HTML-escaped, callback responses now
+  include content length and settle the OAuth flow after response completion,
+  and `waitForCallbackPromise` is observed immediately while preserving the
+  later rejection for `loginOpenAICodexOAuth(...)` callers.
+- Slice 4 inspection: token exchange, PKCE/state validation, profile id
+  derivation, and IPC storage behavior are unchanged. The fix only affects local
+  callback response rendering and promise lifecycle around the existing callback
+  server.
 
 ## Decisions
 
@@ -137,6 +166,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat selected endpoint-doc cleanup as a docs/test contract fix. No runtime,
   persisted data, IPC payload, or backend API shape changed, so no migration is
   required.
+- Treat OAuth callback escaping as a security hardening fix. No credential
+  storage, provider token payload, IPC payload, backend API, or persisted data
+  shape changed, so no migration is required.
 
 ## Commits
 

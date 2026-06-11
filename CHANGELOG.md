@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/oauth: HTML-escape OpenAI Codex OAuth callback response text and
+  observe early callback rejections so provider-supplied error descriptions
+  cannot render as markup or produce transient unhandled promise rejections.
 - docs/frontend: remove removed packaged backend default env names from active
   endpoint setup docs and add regression coverage so docs stay aligned with the
   Electron endpoint resolver.
