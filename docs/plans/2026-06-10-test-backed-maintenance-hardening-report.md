@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: eighteenth hardening slice committed.
+- Current slice: nineteenth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -112,6 +112,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the eighteenth slice.
 - [x] Update changelog and report with the eighteenth slice result.
 - [x] Commit the eighteenth slice.
+- [x] Select nineteenth code slice with a concrete owner and regression test.
+- [x] Implement nineteenth slice.
+- [x] Run focused validation and `git diff --check` for the nineteenth slice.
+- [x] Update changelog and report with the nineteenth slice result.
+- [ ] Commit the nineteenth slice.
 
 ## Validation Log
 
@@ -244,6 +249,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after eighteenth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/display_affinity_runtime.cjs tests/frontend/DisplayAffinityRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- SdkLiveTurnSurfaceController --runInBand` -
+  passed after nineteenth slice; 1 suite and 11 tests passed, including the
+  new non-positive SDK live-turn response bounds regression.
+- `bin/windie docs list` - passed after nineteenth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs tests/frontend/SdkLiveTurnSurfaceController.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -502,6 +514,19 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Slice 18 inspection: no IPC payload, sidecar screenshot request shape,
   renderer state, stored affinity shape, or display source ordering changed.
   The fix only tightens Electron main's display-affinity geometry boundary.
+- Slice 19 owner: Electron main SDK live-turn surface controller owns applying
+  SDK current-turn response overlay intent to the native response overlay
+  window.
+- Slice 19 failure mode: SDK response overlay bounds with finite but
+  non-positive dimensions could still reach `responseWindow.setBounds(...)`
+  because the existing guard only rejected non-finite fields.
+- Slice 19 change: SDK live-turn response bounds now require positive width
+  and height before computing the visible intent signature, logging dimensions,
+  or mutating the native response window.
+- Slice 19 inspection: no SDK current-turn projection contract, renderer
+  layout state, IPC payload, stale-guard semantics, or persisted data shape
+  changed. The fix only tightens Electron main's native response-window
+  dimension boundary for SDK overlay intents.
 
 ## Decisions
 
@@ -575,6 +600,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   hardening. No persisted data, IPC payload, sidecar screenshot request shape,
   renderer state, stored affinity shape, or display source ordering changed, so
   no migration is required.
+- Treat non-positive SDK live-turn response bounds as Electron main
+  native-window boundary hardening. No persisted data, IPC payload, SDK
+  projection shape, renderer layout contract, or stale-guard contract changed,
+  so no migration is required.
 
 ## Commits
 

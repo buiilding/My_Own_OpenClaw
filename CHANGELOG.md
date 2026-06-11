@@ -28,6 +28,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sdk: reject non-positive SDK live-turn response overlay dimensions
+  before mutating the native response window.
 - frontend/surfaces: normalize display-affinity bounds before monitor matching
   or display work-area placement so malformed native geometry cannot select or
   mutate windows with invalid coordinates.

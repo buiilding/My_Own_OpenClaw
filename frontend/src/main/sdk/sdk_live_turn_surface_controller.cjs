@@ -72,6 +72,8 @@ function normalizeFiniteBounds(bounds) {
     || !Number.isFinite(y)
     || !Number.isFinite(width)
     || !Number.isFinite(height)
+    || width <= 0
+    || height <= 0
   ) {
     return null;
   }
