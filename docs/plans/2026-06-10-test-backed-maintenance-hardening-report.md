@@ -52,6 +52,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the sixth slice.
 - [x] Update changelog and report with the sixth slice result.
 - [x] Commit the sixth slice.
+- [x] Select seventh code slice with a concrete owner and regression test.
+- [x] Implement seventh slice.
+- [x] Run focused validation and `git diff --check` for the seventh slice.
+- [x] Update changelog and report with the seventh slice result.
+- [ ] Commit the seventh slice.
 
 ## Validation Log
 
@@ -100,6 +105,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after sixth-slice changelog/report updates;
   canonical navigation reported 83 page references validated.
 - `git diff --check -- packages/windie-sdk-js/src/stores/SidecarConversationStore.ts tests/frontend/WindieAgentConversationStoreApi.test.ts CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- SurfaceRuntime --runInBand` - passed after
+  seventh slice; 1 suite and 22 tests passed, including the new invalid Linux
+  screenshot settle-delay regression test.
+- `bin/windie docs list` - passed after seventh-slice changelog/report updates;
+  canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/surface_runtime.cjs tests/frontend/SurfaceRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -194,6 +206,18 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Slice 6 inspection: no sidecar storage schema, sidecar RPC method, event
   payload, display projection, rehydrate projection, or persisted conversation
   event shape changed. The fix only tightens the SDK adapter output shape.
+- Slice 7 owner: Electron main surface runtime owns overlay screenshot leases,
+  Linux hide/restore behavior, and the settle delay between hiding overlays and
+  allowing sidecar screenshot capture.
+- Slice 7 failure mode: malformed `toolSurfaceSettleMs` injection values such
+  as `80ms` normalized to zero because the runtime used `Number(...) || 0`,
+  silently skipping the Linux overlay hide-before-capture settle wait.
+- Slice 7 change: screenshot settle-delay normalization now preserves explicit
+  `0` as the opt-out while falling back to the production default for invalid
+  or negative values.
+- Slice 7 inspection: no sidecar screenshot RPC payload, IPC channel, renderer
+  state shape, platform policy, or persisted data changed. The existing Linux
+  hide/restore and macOS/Windows content-protection paths remain unchanged.
 
 ## Decisions
 
@@ -222,6 +246,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat sidecar metadata event-count normalization as SDK adapter hardening. No
   persisted data, sidecar RPC payload, backend API, or renderer event shape
   changed, so no migration is required.
+- Treat invalid screenshot settle-delay normalization as Electron main surface
+  hardening. No persisted data, IPC payload, sidecar RPC payload, or renderer
+  event shape changed, so no migration is required.
 
 ## Commits
 

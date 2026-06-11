@@ -32,6 +32,8 @@ const {
   summarizeWindow,
 } = require('../debug/live_surface_trace_runtime.cjs');
 
+const DEFAULT_TOOL_SURFACE_SETTLE_MS = 80;
+
 const CHAT_PILL_SHOW_REASON = Object.freeze({
   APP_ACTIVATE: 'app-activate',
   DASHBOARD_CLOSE: 'dashboard-close',
@@ -68,6 +70,14 @@ function normalizeChatPillReason(value, fallback = null) {
   return normalized || fallback;
 }
 
+function normalizeToolSurfaceSettleMs(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_TOOL_SURFACE_SETTLE_MS;
+  }
+  return Math.round(parsed);
+}
+
 function createSurfaceRuntime({
   screen,
   platform = process.platform,
@@ -91,7 +101,7 @@ function createSurfaceRuntime({
   initialChatPillUserHidden = false,
   persistChatPillUserHidden = () => {},
   reapplyLatestSdkLiveTurnSurfaceIntent = () => {},
-  toolSurfaceSettleMs = 80,
+  toolSurfaceSettleMs = DEFAULT_TOOL_SURFACE_SETTLE_MS,
   log = console.log,
   warn = console.warn,
 } = {}) {
@@ -349,7 +359,7 @@ function createSurfaceRuntime({
   }
 
   function delayToolSurfaceSettle() {
-    const delayMs = Math.max(0, Math.round(Number(toolSurfaceSettleMs) || 0));
+    const delayMs = normalizeToolSurfaceSettleMs(toolSurfaceSettleMs);
     if (delayMs <= 0) {
       return Promise.resolve();
     }

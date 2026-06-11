@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/surface: fall back to the default Linux screenshot overlay settle
+  delay for invalid injected values so malformed config cannot skip the
+  hide-before-capture wait.
 - sdk/conversation: normalize sidecar-backed conversation metadata event counts
   to non-negative integers before exposing list/search rows to SDK consumers.
 - frontend/main: fall back to the default single-instance focus cooldown for

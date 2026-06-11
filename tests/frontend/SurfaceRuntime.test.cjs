@@ -222,6 +222,43 @@ describe('surface_runtime', () => {
     expect(responseWindow.showInactive).toHaveBeenCalledTimes(1);
   });
 
+  test('linux screenshot lease falls back to default settle delay for invalid overrides', async () => {
+    jest.useFakeTimers();
+    try {
+      const runtime = createSurfaceRuntime({
+        ...createSurfaceDeps(),
+        platform: 'linux',
+        toolSurfaceSettleMs: '80ms',
+      });
+      const chatWindow = createWindow({ visible: true });
+      runtime.setChatWindow(chatWindow);
+
+      let settled = false;
+      const leasePromise = runtime.beginScreenshotCaptureLease({ toolName: 'screenshot' })
+        .then((release) => {
+          settled = true;
+          return release;
+        });
+      await Promise.resolve();
+
+      expect(chatWindow.hide).toHaveBeenCalledTimes(1);
+      expect(settled).toBe(false);
+
+      jest.advanceTimersByTime(79);
+      await Promise.resolve();
+      expect(settled).toBe(false);
+
+      jest.advanceTimersByTime(1);
+      const release = await leasePromise;
+
+      expect(settled).toBe(true);
+      await release();
+      expect(chatWindow.showInactive).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('macos and windows screenshot lease use content protection instead of hide-show', async () => {
     const deps = createSurfaceDeps();
     const runtime = createSurfaceRuntime({
