@@ -40,6 +40,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/browser: wake the SDK-owned local runtime from the browser header
+  readiness check, replace the misleading `Starting browser...` state with
+  local-runtime/browser-unavailable labels, and add sanitized
+  `browser.session_control` diagnostics.
 - frontend/chat-pill: gate the minimal chat pill textarea caret behind a
   main-process `activate-chatbox-text-entry` focus handoff so passive overlay
   rendering, screenshot/tool restores, and pointer-control leases cannot show a

@@ -25,6 +25,10 @@ const {
 const {
   loadInstallAuthStateFromDisk,
 } = require('../ipc/ipc_install_auth_state.cjs');
+const {
+  appendDiagnosticEvent,
+  BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+} = require('../diagnostics/app_diagnostics_store.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 const {
   createDesktopAutoSidecarLaunchPlan,
@@ -55,10 +59,64 @@ let sdkLocalRuntimeSnapshot = null;
 let localRuntimeSessionRef = null;
 let sdkStatusMainWindow = null;
 
-function markBackendReady(mainWindow) {
+function createBrowserSessionDiagnosticId(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function appendBrowserSessionDiagnostic(input = {}) {
+  try {
+    appendDiagnosticEvent({
+      path: BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+      ...input,
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[LocalBackend] Browser session diagnostic failed: ${getErrorMessage(error)}`);
+    }
+  }
+}
+
+function buildLocalRuntimeDiagnosticData(extra = {}) {
+  const snapshot = localRuntimeStatusSupervisor.getSnapshot();
+  return {
+    ready: snapshot.ready === true,
+    status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
+    hasProvider: Boolean(sdkLocalRuntimeProvider),
+    hasClient: Boolean(sdkLocalRuntime),
+    hasDiscoveryPath: Boolean(sdkLocalRuntimeSnapshot?.discoveryPath),
+    ...extra,
+  };
+}
+
+function buildCurrentLocalBackendStatusPayload() {
+  return buildLocalBackendStatusPayload({
+    supervisor: localRuntimeStatusSupervisor,
+    localRuntimeSnapshot: sdkLocalRuntimeSnapshot,
+  });
+}
+
+function publishLocalBackendStatus(mainWindow, diagnostic = {}) {
+  const payload = buildCurrentLocalBackendStatusPayload();
+  sendLocalBackendStatus(mainWindow, payload);
+  appendBrowserSessionDiagnostic({
+    traceId: diagnostic.traceId,
+    requestId: diagnostic.requestId,
+    stage: diagnostic.stage || 'status_broadcast',
+    status: diagnostic.status || 'succeeded',
+    runtime: 'electron-main',
+    durationMs: diagnostic.durationMs,
+    data: buildLocalRuntimeDiagnosticData(diagnostic.data),
+    error: diagnostic.error,
+  });
+  return payload;
+}
+
+function markBackendReady(mainWindow, diagnostic = {}) {
   localRuntimeStatusSupervisor.markReady();
-  sendLocalBackendStatus(mainWindow, {
-    ready: true,
+  return publishLocalBackendStatus(mainWindow, {
+    stage: 'status_broadcast',
+    status: 'succeeded',
+    ...diagnostic,
   });
 }
 
@@ -117,6 +175,99 @@ async function ensureSdkLocalRuntime() {
     markBackendReady(sdkStatusMainWindow);
   }
   return runtime;
+}
+
+async function wakeSdkLocalRuntimeForStatus(mainWindow) {
+  const traceId = createBrowserSessionDiagnosticId('browser-session');
+  const requestId = createBrowserSessionDiagnosticId('status');
+  const startedAt = Date.now();
+  appendBrowserSessionDiagnostic({
+    traceId,
+    requestId,
+    stage: 'status_bootstrap',
+    status: 'started',
+    runtime: 'electron-main',
+    data: buildLocalRuntimeDiagnosticData({
+      wakeRequested: Boolean(sdkLocalRuntimeProvider && !sdkLocalRuntime),
+      alreadyReady: sdkLocalRuntime && localRuntimeStatusSupervisor.getSnapshot().ready === true,
+    }),
+  });
+
+  if (!sdkLocalRuntimeProvider) {
+    const payload = buildCurrentLocalBackendStatusPayload();
+    appendBrowserSessionDiagnostic({
+      traceId,
+      requestId,
+      stage: 'status_bootstrap',
+      status: 'failed',
+      runtime: 'electron-main',
+      durationMs: Date.now() - startedAt,
+      data: buildLocalRuntimeDiagnosticData({
+        wakeSucceeded: false,
+      }),
+      error: payload.error || 'Windie SDK local runtime provider is unavailable.',
+    });
+    return payload;
+  }
+
+  if (sdkLocalRuntime && localRuntimeStatusSupervisor.getSnapshot().ready === true) {
+    appendBrowserSessionDiagnostic({
+      traceId,
+      requestId,
+      stage: 'status_bootstrap',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      durationMs: Date.now() - startedAt,
+      data: buildLocalRuntimeDiagnosticData({
+        alreadyReady: true,
+        wakeSucceeded: true,
+      }),
+    });
+    return buildCurrentLocalBackendStatusPayload();
+  }
+
+  try {
+    await ensureSdkLocalRuntime();
+    const payload = buildCurrentLocalBackendStatusPayload();
+    appendBrowserSessionDiagnostic({
+      traceId,
+      requestId,
+      stage: 'status_bootstrap',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      durationMs: Date.now() - startedAt,
+      data: buildLocalRuntimeDiagnosticData({
+        wakeSucceeded: payload.ready === true,
+      }),
+    });
+    return payload;
+  } catch (error) {
+    const message = getErrorMessage(error);
+    localRuntimeStatusSupervisor.clear({
+      status: 'error',
+      error: message,
+    });
+    const payload = publishLocalBackendStatus(mainWindow, {
+      traceId,
+      requestId,
+      stage: 'status_broadcast',
+      status: 'failed',
+      error: message,
+    });
+    appendBrowserSessionDiagnostic({
+      traceId,
+      requestId,
+      stage: 'status_bootstrap',
+      status: 'failed',
+      runtime: 'electron-main',
+      durationMs: Date.now() - startedAt,
+      data: buildLocalRuntimeDiagnosticData({
+        wakeSucceeded: false,
+      }),
+      error: message,
+    });
+    return payload;
+  }
 }
 
 function createSdkRpcRequestId() {
@@ -279,8 +430,13 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
       error: '',
     });
   } else {
-    sendLocalBackendStatus(mainWindow, {
-      ready: false,
+    localRuntimeStatusSupervisor.clear({
+      status: 'error',
+      error: sidecarLaunchPlan?.error || 'Windie SDK local runtime provider is unavailable.',
+    });
+    publishLocalBackendStatus(mainWindow, {
+      stage: 'status_broadcast',
+      status: 'failed',
       error: sidecarLaunchPlan?.error || 'Windie SDK local runtime provider is unavailable.',
     });
   }
@@ -308,19 +464,65 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   ));
   ipcMain.handle('run-browser-action', async (event, payload = {}) => {
     const { action, ...extras } = payload || {};
-    return executeToolRuntime.executeTool(event, {
-      toolName: 'browser',
-      args: {
+    const traceId = createBrowserSessionDiagnosticId('browser-session');
+    const requestId = createBrowserSessionDiagnosticId('browser-action');
+    const startedAt = Date.now();
+    appendBrowserSessionDiagnostic({
+      traceId,
+      requestId,
+      stage: 'browser_action',
+      status: 'started',
+      runtime: 'electron-main',
+      data: buildLocalRuntimeDiagnosticData({
         action,
-        explanation: BROWSER_CONTROL_EXPLANATION,
-        ...extras,
-      },
+      }),
     });
+    try {
+      const result = await executeToolRuntime.executeTool(event, {
+        toolName: 'browser',
+        args: {
+          action,
+          explanation: BROWSER_CONTROL_EXPLANATION,
+          ...extras,
+        },
+      });
+      const resultData = result?.data && typeof result.data === 'object' ? result.data : {};
+      const tabs = Array.isArray(resultData.tabs) ? resultData.tabs : [];
+      appendBrowserSessionDiagnostic({
+        traceId,
+        requestId,
+        stage: 'browser_action',
+        status: result?.success === false ? 'failed' : 'succeeded',
+        runtime: 'electron-main',
+        durationMs: Date.now() - startedAt,
+        data: buildLocalRuntimeDiagnosticData({
+          action,
+          success: result?.success === true,
+          connected: resultData.connected === true,
+          tabCount: Number.isFinite(resultData.tab_count) ? resultData.tab_count : tabs.length,
+          responseKeyCount: Object.keys(resultData).length,
+        }),
+        error: result?.success === false ? result?.error : null,
+      });
+      return result;
+    } catch (error) {
+      appendBrowserSessionDiagnostic({
+        traceId,
+        requestId,
+        stage: 'browser_action',
+        status: 'failed',
+        runtime: 'electron-main',
+        durationMs: Date.now() - startedAt,
+        data: buildLocalRuntimeDiagnosticData({
+          action,
+          success: false,
+        }),
+        error,
+      });
+      throw error;
+    }
   });
-  ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload({
-    supervisor: localRuntimeStatusSupervisor,
-    localRuntimeSnapshot: sdkLocalRuntimeSnapshot,
-  }));
+  ipcMain.handle('get-local-backend-status', async () => wakeSdkLocalRuntimeForStatus(mainWindow));
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();
   runtimeExecuteTool = async (payload = {}) => executeToolRuntime.executeTool(null, payload);

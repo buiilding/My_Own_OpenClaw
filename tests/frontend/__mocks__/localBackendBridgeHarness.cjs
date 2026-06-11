@@ -1,5 +1,11 @@
 const path = require('path');
 
+const mockAppendDiagnosticEvent = jest.fn(() => ({
+  stored: true,
+  traceId: 'diag-test',
+  spanId: 'span-test',
+}));
+
 jest.mock('child_process', () => ({
   spawn: jest.fn(),
 }));
@@ -43,6 +49,12 @@ jest.mock('fs', () => ({
   existsSync: jest.fn(() => true),
 }));
 
+jest.mock('../../../frontend/src/main/diagnostics/app_diagnostics_store.cjs', () => ({
+  APP_DIAGNOSTICS_PATH: 'conversation.metadata.list',
+  BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH: 'browser.session_control',
+  appendDiagnosticEvent: (...args) => mockAppendDiagnosticEvent(...args),
+}));
+
 const { createBridgeSuiteLifecycle } = require('./bridgeSuiteLifecycle.cjs');
 
 const ORIGINAL_ENV = process.env;
@@ -66,6 +78,7 @@ let queuedSdkRuntimeResponses;
 
 function resetHarnessState() {
   jest.resetModules();
+  mockAppendDiagnosticEvent.mockClear();
   handlers = {};
   currentWindowState = null;
   sdkRuntime = null;
@@ -251,6 +264,7 @@ function rejectNextSdkRuntimeRequest(error) {
 
 module.exports = {
   createWindow,
+  getAppendDiagnosticEventMock: () => mockAppendDiagnosticEvent,
   getLastWrittenRequest,
   initBridge,
   markReady,

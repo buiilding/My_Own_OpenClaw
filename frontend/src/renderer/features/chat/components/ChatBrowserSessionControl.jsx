@@ -92,8 +92,14 @@ function ChatBrowserSessionControl() {
 
   const buttonTitle = connected
     ? (currentTabTitle || currentTabUrl || currentTabLabel)
-    : 'Connect the dedicated Windie browser';
+    : (error || 'Connect the dedicated Windie browser');
   const controlsDisabled = Boolean(busyAction) || !localBackendReady;
+  const disconnectedButtonLabel = !localBackendReady && error
+    ? 'Browser unavailable'
+    : 'Connect browser';
+  const disconnectedButtonText = localBackendReady
+    ? (busyAction === 'connect' ? 'Connecting browser…' : 'Connect browser')
+    : (error ? 'Browser unavailable' : 'Starting local runtime…');
 
   return (
     <div className="chat-browser-session-control" ref={rootRef}>
@@ -163,15 +169,13 @@ function ChatBrowserSessionControl() {
         <button
           type="button"
           className="chat-browser-chip chat-browser-button is-disconnected"
-          aria-label="Connect browser"
-          title={error || 'Connect the dedicated Windie browser'}
+          aria-label={disconnectedButtonLabel}
+          title={buttonTitle}
           onClick={handleConnectBrowser}
           disabled={controlsDisabled}
         >
           <span className="chat-browser-button-text">
-            {localBackendReady
-              ? (busyAction === 'connect' ? 'Connecting browser…' : 'Connect browser')
-              : 'Starting browser…'}
+            {disconnectedButtonText}
           </span>
         </button>
       )}

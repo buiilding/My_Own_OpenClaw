@@ -4,7 +4,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const APP_DIAGNOSTICS_PATH = 'conversation.metadata.list';
+const CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH = 'conversation.metadata.list';
+const BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH = 'browser.session_control';
+const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 
 const ALLOWED_DATA_KEYS = new Set([
   'hasUserId',
@@ -17,6 +19,23 @@ const ALLOWED_DATA_KEYS = new Set([
   'backendConnected',
   'sidecarReady',
   'storeKind',
+  'ready',
+  'status',
+  'localBackendReady',
+  'connected',
+  'busyAction',
+  'action',
+  'hasProvider',
+  'hasClient',
+  'hasDiscoveryPath',
+  'wakeRequested',
+  'wakeSucceeded',
+  'alreadyReady',
+  'suppressed',
+  'reason',
+  'success',
+  'tabCount',
+  'responseKeyCount',
   'durationMs',
   'requestId',
   'shortError',
@@ -326,6 +345,8 @@ function inspectDiagnosticTrace(traceId, options = {}) {
 
 module.exports = {
   APP_DIAGNOSTICS_PATH,
+  BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+  CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   ensureDiagnosticsSchema,
