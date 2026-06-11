@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/overlays: normalize malformed chat-window dimensions before
+  resolving move-target display affinity so invalid native sizes cannot
+  propagate into monitor selection.
 - frontend/extensions: preserve explicit MCP `timeout_ms` values when a
   camelCase `timeoutMs` fallback is also present, keeping canonical server
   specs from being silently overwritten.

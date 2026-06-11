@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: thirteenth hardening slice committed.
+- Current slice: fourteenth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -87,6 +87,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the thirteenth slice.
 - [x] Update changelog and report with the thirteenth slice result.
 - [x] Commit the thirteenth slice.
+- [x] Select fourteenth code slice with a concrete owner and regression test.
+- [x] Implement fourteenth slice.
+- [x] Run focused validation and `git diff --check` for the fourteenth slice.
+- [x] Update changelog and report with the fourteenth slice result.
+- [ ] Commit the fourteenth slice.
 
 ## Validation Log
 
@@ -184,6 +189,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after thirteenth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/extensions/extension_manifest.cjs frontend/src/main/extensions/mcp_runtime.cjs tests/frontend/ExtensionManifest.test.cjs tests/frontend/McpRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- OverlayChatboxHandler --runInBand` - passed
+  after fourteenth slice; 1 suite and 7 tests passed, including the new
+  malformed chat-window dimension regression test.
+- `bin/windie docs list` - passed after fourteenth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/overlay_chatbox_handler.cjs tests/frontend/OverlayChatboxHandler.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -371,6 +383,19 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Slice 13 inspection: no MCP manifest shape, client tool manifest shape,
   sidecar tool payload, backend manifest validation, or persisted data changed.
   The fix only tightens Electron main's MCP server-spec normalization boundary.
+- Slice 14 owner: Electron main chatbox overlay handler owns user-initiated
+  chatbox movement and the display-affinity lookup for the moved native window.
+- Slice 14 failure mode: malformed chat-window dimensions from `getSize()`
+  such as `Infinity` or `NaN` could pass through move-target display-affinity
+  resolution because coordinate validation only covered the requested `x` and
+  `y` values.
+- Slice 14 change: chatbox move now normalizes current native window width and
+  height to finite positive integers before resolving the target display
+  affinity, preserving valid sizes and the previous minimum-size fallback.
+- Slice 14 inspection: no renderer drag contract, IPC payload, persisted
+  position shape, display-affinity producer, or dependent overlay placement
+  path changed. The fix only tightens Electron main's geometry input boundary
+  during chatbox moves.
 
 ## Decisions
 
@@ -424,6 +449,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   hardening. No persisted data, MCP manifest shape, client tool manifest shape,
   sidecar payload, or backend validation contract changed, so no migration is
   required.
+- Treat malformed chat-window move dimensions as Electron main geometry
+  boundary hardening. No persisted data, IPC payload, renderer drag contract,
+  display-affinity producer, or dependent overlay placement path changed, so no
+  migration is required.
 
 ## Commits
 

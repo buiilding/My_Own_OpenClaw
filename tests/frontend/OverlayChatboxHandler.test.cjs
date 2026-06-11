@@ -92,6 +92,25 @@ describe('overlay_chatbox_handler move runtime', () => {
     expect(deps.positionResponseWindow).not.toHaveBeenCalled();
   });
 
+  test('normalizes malformed chat window dimensions before resolving display affinity', () => {
+    const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        getSize: jest.fn(() => [Infinity, Number.NaN]),
+        setPosition: jest.fn(),
+      },
+    });
+
+    handleMoveChatboxTo({ x: 10, y: 20 }, deps);
+
+    expect(deps.resolveDisplayAffinityForBounds).toHaveBeenCalledWith(deps.screen, {
+      x: 10,
+      y: 20,
+      width: 1,
+      height: 1,
+    });
+  });
+
   test('warns on move failure', () => {
     const deps = createDeps({
       chatWindow: {

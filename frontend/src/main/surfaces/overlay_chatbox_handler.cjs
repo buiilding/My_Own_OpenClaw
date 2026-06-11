@@ -1,3 +1,11 @@
+function normalizePositiveWindowDimension(value) {
+  const rounded = Math.round(Number(value));
+  if (!Number.isFinite(rounded)) {
+    return 1;
+  }
+  return Math.max(1, rounded);
+}
+
 function handleMoveChatboxTo(
   {
     x,
@@ -36,8 +44,8 @@ function handleMoveChatboxTo(
     const targetDisplayAffinity = resolveDisplayAffinityForBounds(screen, {
       x: nextX,
       y: nextY,
-      width: Math.max(1, Math.round(Number(windowWidth) || 0)),
-      height: Math.max(1, Math.round(Number(windowHeight) || 0)),
+      width: normalizePositiveWindowDimension(windowWidth),
+      height: normalizePositiveWindowDimension(windowHeight),
     });
 
     if (targetDisplayAffinity) {
