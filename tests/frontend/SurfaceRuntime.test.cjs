@@ -165,6 +165,40 @@ describe('surface_runtime', () => {
     expect(responseWindow.setFocusable).toHaveBeenLastCalledWith(true);
   });
 
+  test('activates chatbox text entry through the focused chat window path', () => {
+    const runtime = createSurfaceRuntime(createSurfaceDeps());
+    const chatWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+
+    const result = runtime.activateChatboxTextEntry();
+
+    expect(result).toEqual({ success: true });
+    expect(chatWindow.focus).toHaveBeenCalledTimes(1);
+    expect(chatWindow.webContents.send).toHaveBeenCalledWith('chatbox-focus');
+    expect(runtime.getPrimarySurface()).toBe('chat');
+  });
+
+  test('refuses chatbox text entry activation during pointer-control leases', async () => {
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      toolSurfaceSettleMs: 0,
+    });
+    const chatWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+
+    const release = await runtime.beginPointerControlLease({ toolName: 'mouse_control' });
+    const result = runtime.activateChatboxTextEntry();
+
+    expect(result).toEqual({
+      success: false,
+      reason: 'pointer-control-lease-active',
+    });
+    expect(chatWindow.focus).not.toHaveBeenCalled();
+    expect(chatWindow.webContents.send).not.toHaveBeenCalledWith('chatbox-focus');
+
+    await release();
+  });
+
   test('response overlay hit-test is active only while renderer reports pointer inside response shell', () => {
     const runtime = createSurfaceRuntime({
       ...createSurfaceDeps(),

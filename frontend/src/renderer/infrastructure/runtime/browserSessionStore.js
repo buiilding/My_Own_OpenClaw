@@ -6,6 +6,7 @@ import {
 
 const DEFAULT_CONNECTED_POLL_MS = 2000;
 const INTERACTIVE_CONNECTED_POLL_MS = 1000;
+const BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH = 'browser.session_control';
 
 function normalizeString(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -98,7 +99,51 @@ let localBackendUnsubscribe = null;
 let pollIntervalId = null;
 let interactivePollingRequests = 0;
 let syncRequestId = 0;
+let diagnosticsTraceId = '';
 const storeSubscribers = new Set();
+
+function createBrowserSessionDiagnosticId(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getBrowserSessionDiagnosticsTraceId() {
+  if (!diagnosticsTraceId) {
+    diagnosticsTraceId = createBrowserSessionDiagnosticId('browser-session');
+  }
+  return diagnosticsTraceId;
+}
+
+function emitBrowserSessionDiagnostic({
+  stage,
+  status = 'succeeded',
+  requestId = createBrowserSessionDiagnosticId('browser-session'),
+  durationMs,
+  data = {},
+  error = null,
+} = {}) {
+  if (!stage) {
+    return;
+  }
+  const payload = {
+    _diagnostics: {
+      path: BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+      traceId: getBrowserSessionDiagnosticsTraceId(),
+      requestId,
+    },
+    stage,
+    status,
+    runtime: 'renderer',
+    data,
+    ...(Number.isFinite(durationMs) ? { durationMs } : {}),
+    ...(error ? { error } : {}),
+  };
+  void Promise.resolve(
+    IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_INVOKE, {
+      command: 'diagnostics.append',
+      payload,
+    }),
+  ).catch(() => undefined);
+}
 
 function notifyStoreSubscribers() {
   for (const onStoreChange of storeSubscribers) {
@@ -178,6 +223,14 @@ function invalidateBrowserSessionSync() {
 
 async function syncBrowserSession() {
   if (currentSnapshot.localBackendReady !== true) {
+    emitBrowserSessionDiagnostic({
+      stage: 'status_sync_suppressed',
+      data: {
+        localBackendReady: false,
+        suppressed: true,
+        reason: 'local_backend_not_ready',
+      },
+    });
     return;
   }
 
@@ -249,6 +302,15 @@ async function syncBrowserSession() {
 
 function handleLocalBackendStatusChange() {
   const backendStatus = getLocalBackendStatusSnapshot();
+  emitBrowserSessionDiagnostic({
+    stage: 'local_backend_status_observed',
+    data: {
+      localBackendReady: backendStatus.ready === true,
+      ready: backendStatus.ready === true,
+      status: normalizeString(backendStatus.status) || 'unknown',
+    },
+    error: backendStatus.ready === true ? null : normalizeString(backendStatus.error),
+  });
   if (backendStatus.ready !== true) {
     applySnapshot(buildDisconnectedSnapshot({
       localBackendReady: false,
@@ -347,17 +409,74 @@ export function enableInteractiveBrowserSessionPolling() {
 }
 
 export async function connectBrowserSession() {
-  if (currentSnapshot.localBackendReady !== true || currentSnapshot.busyAction) {
+  if (currentSnapshot.localBackendReady !== true) {
+    emitBrowserSessionDiagnostic({
+      stage: 'connect_suppressed',
+      data: {
+        localBackendReady: false,
+        busyAction: currentSnapshot.busyAction,
+        suppressed: true,
+        reason: 'local_backend_not_ready',
+      },
+    });
     return;
   }
 
+  if (currentSnapshot.busyAction) {
+    emitBrowserSessionDiagnostic({
+      stage: 'connect_suppressed',
+      data: {
+        localBackendReady: true,
+        busyAction: currentSnapshot.busyAction,
+        suppressed: true,
+        reason: 'busy',
+      },
+    });
+    return;
+  }
+
+  const requestId = createBrowserSessionDiagnosticId('connect');
+  const startedAt = Date.now();
+  emitBrowserSessionDiagnostic({
+    stage: 'connect',
+    status: 'started',
+    requestId,
+    data: {
+      localBackendReady: true,
+      busyAction: 'connect',
+      action: 'connect',
+    },
+  });
   updateSnapshot({ busyAction: 'connect' });
   try {
     await runBrowserAction('connect');
     await syncBrowserSession();
+    emitBrowserSessionDiagnostic({
+      stage: 'connect',
+      status: 'succeeded',
+      requestId,
+      durationMs: Date.now() - startedAt,
+      data: {
+        localBackendReady: true,
+        action: 'connect',
+        success: true,
+      },
+    });
   } catch (error) {
     updateSnapshot({
       error: normalizeString(error?.message) || 'Failed to connect the browser.',
+    });
+    emitBrowserSessionDiagnostic({
+      stage: 'connect',
+      status: 'failed',
+      requestId,
+      durationMs: Date.now() - startedAt,
+      data: {
+        localBackendReady: true,
+        action: 'connect',
+        success: false,
+      },
+      error,
     });
   } finally {
     updateSnapshot({ busyAction: '' });

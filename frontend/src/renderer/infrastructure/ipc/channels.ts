@@ -34,6 +34,7 @@ export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     SHOW_MAIN_WINDOW: 'show-main-window',
     GET_MAIN_WINDOW_VISIBILITY: 'get-main-window-visibility',
     SHOW_CHATBOX: 'show-chatbox',
+    ACTIVATE_CHATBOX_TEXT_ENTRY: 'activate-chatbox-text-entry',
     HIDE_CHATBOX: 'hide-chatbox',
     HANDOFF_SURFACE_FOR_COMPUTER_USE: 'handoff-surface-for-computer-use',
     PREPARE_SURFACE_FOR_SCREENSHOT: 'prepare-surface-for-screenshot',

@@ -40,6 +40,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat-pill: gate the minimal chat pill textarea caret behind a
+  main-process `activate-chatbox-text-entry` focus handoff so passive overlay
+  rendering, screenshot/tool restores, and pointer-control leases cannot show a
+  misleading active text cursor.
 - frontend/chat: keep tool call and tool output card foreground colors readable
   on their dark diagnostic surfaces when the app is using the light theme.
 - frontend/lint: remove stale unused bindings in query send, manual

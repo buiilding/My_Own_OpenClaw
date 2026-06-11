@@ -6,10 +6,6 @@ const CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS = 120;
 
 export function useChatboxFocusBindings(focusInput) {
   useEffect(() => {
-    focusInput();
-  }, [focusInput]);
-
-  useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
       focusInput();
     });
@@ -24,7 +20,6 @@ export function useChatboxWakewordSttTriggerBinding({
   resetTranscription,
   setInputValue,
   setWakewordSttSessionActive,
-  focusInput,
 }) {
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_STT_TRIGGER, () => {
@@ -35,13 +30,11 @@ export function useChatboxWakewordSttTriggerBinding({
       resetTranscription();
       setInputValue('');
       setWakewordSttSessionActive(true);
-      focusInput();
     });
     return () => {
       removeListener?.();
     };
   }, [
-    focusInput,
     resetTranscription,
     setInputValue,
     setWakewordSttSessionActive,

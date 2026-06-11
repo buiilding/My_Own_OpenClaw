@@ -38,6 +38,24 @@ function handleShowChatbox(
   }));
 }
 
+function handleActivateChatboxTextEntry(options = {}, deps = {}) {
+  const {
+    activateChatboxTextEntry,
+    resolveTargetDisplayAffinity = () => null,
+  } = deps;
+  if (typeof activateChatboxTextEntry !== 'function') {
+    return { success: false, reason: 'Chatbox text entry activation is unavailable' };
+  }
+  return activateChatboxTextEntry(normalizeChatSurfaceWindowOptions({
+    ...options,
+    focus: true,
+    reason: typeof options?.reason === 'string' && options.reason.trim()
+      ? options.reason
+      : 'text-entry',
+    targetDisplayAffinity: resolveTargetDisplayAffinity(options),
+  }));
+}
+
 function handleHideChatbox(options = {}, deps = {}) {
   const { hideChatWindow } = deps;
   return hideChatWindow(options);
@@ -259,6 +277,7 @@ async function handlePrepareSurfaceForScreenshot(
 }
 
 module.exports = {
+  handleActivateChatboxTextEntry,
   handleHideChatbox,
   handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,

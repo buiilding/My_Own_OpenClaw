@@ -6,6 +6,7 @@ const path = require('path');
 
 const {
   APP_DIAGNOSTICS_PATH,
+  BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
@@ -89,12 +90,58 @@ describe('app diagnostics store', () => {
     expect(sanitizeData({
       hasUserId: true,
       resultCount: 2,
+      localBackendReady: true,
+      action: 'connect',
+      tabCount: 1,
       lastMessage: 'secret',
       workspacePath: '/repo',
       title: 'chat title',
+      url: 'https://example.com/private',
     })).toEqual({
       hasUserId: true,
       resultCount: 2,
+      localBackendReady: true,
+      action: 'connect',
+      tabCount: 1,
     });
+  });
+
+  test('persists sanitized browser session control diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'browser-diag-test',
+      spanId: 'browser-span-test',
+      path: BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+      stage: 'status_bootstrap',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      data: {
+        localBackendReady: true,
+        ready: true,
+        action: 'connect',
+        tabCount: 2,
+        title: 'do not store',
+        url: 'https://example.com/private',
+        workspacePath: '/Users/peter/private',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'browser-diag-test',
+      stage: 'status_bootstrap',
+      data: expect.objectContaining({
+        localBackendReady: true,
+        ready: true,
+        action: 'connect',
+        tabCount: 2,
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+    expect(JSON.stringify(events[0])).not.toContain('example.com/private');
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
   });
 });

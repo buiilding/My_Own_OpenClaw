@@ -386,6 +386,7 @@ function initializeMainProcessIpc() {
       setActiveResponseOverlayGuardRef: surfaceRuntime.setActiveResponseOverlayGuardRef,
       dismissResponseOverlayGuardRef: surfaceRuntime.dismissResponseOverlayGuardRef,
       canShowFloatingResponseOverlay: surfaceRuntime.canShowFloatingResponseOverlay,
+      activateChatboxTextEntry: surfaceRuntime.activateChatboxTextEntry,
       broadcastResponseOverlayVisibility: surfaceRuntime.broadcastResponseOverlayVisibility,
       syncChatboxHitTestState: surfaceRuntime.syncChatboxHitTestState,
       syncResponseboxHitTestState: surfaceRuntime.syncResponseboxHitTestState,

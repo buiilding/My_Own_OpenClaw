@@ -1,4 +1,5 @@
 const {
+  handleActivateChatboxTextEntry,
   handleHideChatbox,
   handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
@@ -40,6 +41,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     dismissResponseOverlayGuardRef = () => false,
     canShowFloatingResponseOverlay = () => true,
     setActiveDisplayAffinity = () => {},
+    activateChatboxTextEntry,
     showChatWindow,
     hideChatWindow,
     hideMainWindow,
@@ -143,6 +145,19 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       }),
       positionChatWindow,
       setActiveDisplayAffinity,
+    });
+  });
+
+  ipcMain.handle('activate-chatbox-text-entry', async (event, options = {}) => {
+    return handleActivateChatboxTextEntry(options, {
+      activateChatboxTextEntry,
+      resolveTargetDisplayAffinity: () => resolveActiveSurfaceDisplayAffinityForWindows({
+        BrowserWindow,
+        screen,
+        webContents: event?.sender || null,
+        getWindows,
+        getActiveDisplayAffinity,
+      }),
     });
   });
 

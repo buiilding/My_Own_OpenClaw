@@ -725,6 +725,36 @@ function createSurfaceRuntime({
     return result;
   }
 
+  function activateChatboxTextEntry(options = {}) {
+    const reason = normalizeChatPillReason(options?.reason, 'text-entry');
+    if (state.pointerControlLeaseCount > 0) {
+      logLiveSurfaceTrace('chat_pill.text_entry.activate', {
+        source: 'surface-runtime',
+        reason: 'pointer-control-lease-active',
+        success: false,
+        chatWindow: summarizeWindow(state.chatWindow, 'chat box'),
+      });
+      return {
+        success: false,
+        reason: 'pointer-control-lease-active',
+      };
+    }
+
+    const result = showChatWindow({
+      ...options,
+      focus: true,
+      reason,
+    });
+    logLiveSurfaceTrace('chat_pill.text_entry.activate', {
+      source: 'surface-runtime',
+      reason,
+      success: result?.success === true,
+      resultReason: typeof result?.reason === 'string' ? result.reason : null,
+      chatWindow: summarizeWindow(state.chatWindow, 'chat box'),
+    });
+    return result;
+  }
+
   function hideChatWindow(options = {}) {
     const reason = normalizeChatPillReason(options?.reason, null);
     if (reason === CHAT_PILL_HIDE_REASON.USER) {
@@ -853,6 +883,7 @@ function createSurfaceRuntime({
   }
 
   return {
+    activateChatboxTextEntry,
     applyOverlayWindowPolicy,
     applyResponseOverlayPhase,
     broadcastResponseOverlayVisibility,

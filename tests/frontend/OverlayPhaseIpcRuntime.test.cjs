@@ -38,6 +38,7 @@ describe('overlay_phase_ipc_runtime', () => {
       showResponseWindowInactive: jest.fn(),
       setChatboxHitTestActive: jest.fn(() => false),
       setResponseboxHitTestActive: jest.fn(() => false),
+      activateChatboxTextEntry: jest.fn(),
       showChatWindow: jest.fn(),
       showMainWindow: jest.fn(),
       hideChatWindow: jest.fn(),
@@ -68,6 +69,7 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(typeof invokeHandlers['set-chatbox-hit-test-active']).toBe('function');
     expect(typeof invokeHandlers['set-responsebox-hit-test-active']).toBe('function');
     expect(typeof invokeHandlers['show-chatbox']).toBe('function');
+    expect(typeof invokeHandlers['activate-chatbox-text-entry']).toBe('function');
     expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
     expect(typeof invokeHandlers['handoff-surface-for-computer-use']).toBe('function');
     expect(typeof invokeHandlers['prepare-surface-for-screenshot']).toBe('function');
@@ -131,6 +133,23 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(showChatWindow).toHaveBeenCalledWith({
       focus: false,
       restoreResponseOverlay: true,
+      targetDisplayAffinity: null,
+    });
+  });
+
+  test('activate-chatbox-text-entry routes through explicit text-entry activation', async () => {
+    const activateChatboxTextEntry = jest.fn(() => ({ success: true }));
+    const { invokeHandlers } = createRuntime({
+      activateChatboxTextEntry,
+    });
+
+    const result = await invokeHandlers['activate-chatbox-text-entry']({ sender: {} }, {});
+
+    expect(result).toEqual({ success: true });
+    expect(activateChatboxTextEntry).toHaveBeenCalledWith({
+      focus: true,
+      reason: 'text-entry',
+      restoreResponseOverlay: false,
       targetDisplayAffinity: null,
     });
   });

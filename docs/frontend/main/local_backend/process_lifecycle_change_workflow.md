@@ -64,9 +64,10 @@ readiness/status broadcasts.
 2. The bridge must not spawn `local_backend.py` as a standalone Electron-owned process.
 3. Launch target resolution must prefer packaged binaries/runtime paths in packaged mode and source Python paths in development mode.
 4. Startup env must preserve `PYTHONUNBUFFERED=1`, `WINDIE_BACKEND_HTTP_URL`, `WINDIE_BACKEND_AUTH_STATE_PATH` when provided, `WINDIE_PERMISSION_STATE_PATH` when provided, `WINDIE_PACKAGED_APP`, `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`, and packaged Python isolation variables when applicable.
-5. A resolved SDK local runtime provider emits `local-backend-status` with `{ ready: true }`.
-6. SDK provider failures keep `ready:false` and helper calls fail closed.
-7. `stopLocalBackend()` shuts down the resolved SDK runtime when present and clears the local status snapshot.
+5. The `get-local-backend-status` bootstrap read is a readiness probe: when a valid SDK local runtime provider exists and no runtime client has been resolved yet, it wakes the SDK local runtime and then returns the current status payload.
+6. A resolved SDK local runtime provider emits `local-backend-status` with `ready:true` and the full normalized status payload.
+7. SDK provider failures keep `ready:false`, publish `status:"error"` with a short sanitized error, and helper calls fail closed.
+8. `stopLocalBackend()` shuts down the resolved SDK runtime when present and clears the local status snapshot.
 
 ## Status Payload Contract
 
@@ -114,9 +115,20 @@ overwrite the newer event snapshot.
 | Consumer | Expected behavior |
 | --- | --- |
 | Browser session store | Disconnects and clears busy state while local backend is not ready; syncs browser session after readiness becomes true. |
-| Browser controls | Wait for readiness before issuing browser tool calls. |
+| Browser controls | Wait for readiness before issuing browser tool calls; the bootstrap status read is allowed to wake the SDK local runtime so the control does not wait forever on a runtime it never starts. |
 | Dashboard conversation retry paths | Treat local-backend-not-ready as retryable where the existing dashboard utility does so. |
 | Permission/browser probes | Use Electron main permission service and local-backend status helpers rather than direct process checks. |
+
+## Browser Session Diagnostics
+
+Use the persistent app diagnostics path `browser.session_control` when the
+browser header is disabled, stuck, or failing before a conversation turn exists.
+Renderer events record local-backend status observations and suppressed connect
+attempts. Electron main events record status bootstrap wake success/failure,
+`local-backend-status` broadcasts, and summarized `run-browser-action` results.
+Rows must stay sanitized: store booleans, action names, status strings, counts,
+request ids, durations, and short errors only. Do not store browser URLs, page
+titles, local paths, page text, screenshots, tool output, or stack traces.
 
 When adding a new renderer feature that depends on the sidecar, wire it through the status store and test both initial bootstrap read and later `local-backend-status` event updates.
 

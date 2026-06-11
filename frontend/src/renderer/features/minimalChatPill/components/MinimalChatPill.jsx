@@ -80,6 +80,7 @@ function MinimalChatPill() {
   });
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
+  const textEntryActiveRef = useRef(false);
   const chatSurface = useChatSurfaceController({
     isSending,
     messages,
@@ -194,10 +195,26 @@ function MinimalChatPill() {
   }, [clearNativeFrameCollapse]);
 
   const focusInput = useCallback(() => {
+    textEntryActiveRef.current = true;
     inputRef.current?.focus();
     const textLength = inputRef.current?.value?.length || 0;
     inputRef.current?.setSelectionRange?.(textLength, textLength);
   }, []);
+
+  const activateTextEntry = useCallback(() => {
+    IpcBridge.invoke(INVOKE_CHANNELS.ACTIVATE_CHATBOX_TEXT_ENTRY, {
+      reason: 'text-entry',
+    }).catch((error) => {
+      console.warn('[MinimalChatPill] Failed to activate text entry:', error);
+    });
+  }, []);
+
+  const requestTextEntryActivation = useCallback((event) => {
+    if (textEntryActiveRef.current !== true) {
+      event.preventDefault();
+    }
+    activateTextEntry();
+  }, [activateTextEntry]);
 
   useChatboxFocusBindings(focusInput);
   useChatboxWakewordSttTriggerBinding({
@@ -205,7 +222,6 @@ function MinimalChatPill() {
     resetTranscription,
     setInputValue,
     setWakewordSttSessionActive,
-    focusInput,
   });
 
   useEffect(() => {
@@ -477,16 +493,22 @@ function MinimalChatPill() {
     setChatboxHitTestActive(false);
   }, [setChatboxHitTestActive]);
 
+  const clearTextEntryActive = useCallback(() => {
+    textEntryActiveRef.current = false;
+  }, []);
+
   useEffect(() => {
     window.addEventListener('mousemove', syncChatboxHitTestForPointer);
     window.addEventListener('mouseleave', disableChatboxHitTest);
     window.addEventListener('blur', disableChatboxHitTest);
+    window.addEventListener('blur', clearTextEntryActive);
     return () => {
       window.removeEventListener('mousemove', syncChatboxHitTestForPointer);
       window.removeEventListener('mouseleave', disableChatboxHitTest);
       window.removeEventListener('blur', disableChatboxHitTest);
+      window.removeEventListener('blur', clearTextEntryActive);
     };
-  }, [disableChatboxHitTest, syncChatboxHitTestForPointer]);
+  }, [clearTextEntryActive, disableChatboxHitTest, syncChatboxHitTestForPointer]);
 
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
@@ -535,9 +557,9 @@ function MinimalChatPill() {
 
   const handleToggleQueryScreenshot = useCallback(() => {
     if (chatSurface.toggleQueryScreenshot()) {
-      focusInput();
+      activateTextEntry();
     }
-  }, [chatSurface, focusInput]);
+  }, [activateTextEntry, chatSurface]);
 
   const handleToggleSpeechMode = useCallback(() => {
     chatSurface.toggleSpeechMode();
@@ -705,6 +727,8 @@ function MinimalChatPill() {
                   });
                 }}
                 onKeyDown={handleComposerKeyDown}
+                onPointerDown={requestTextEntryActivation}
+                onBlur={clearTextEntryActive}
                 placeholder="Ask me to do anything..."
                 className="chatbox-input composer-textarea"
                 rows={1}

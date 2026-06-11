@@ -78,6 +78,16 @@ async function flushAnimationFrames() {
   await Promise.resolve();
 }
 
+function createPointerDownEvent() {
+  const PointerEventCtor = window.PointerEvent || window.MouseEvent;
+  return new PointerEventCtor('pointerdown', {
+    bubbles: true,
+    cancelable: true,
+    pointerId: 1,
+    pointerType: 'mouse',
+  });
+}
+
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
@@ -95,6 +105,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
     SET_CHATBOX_HIT_TEST_ACTIVE: 'set-chatbox-hit-test-active',
+    ACTIVATE_CHATBOX_TEXT_ENTRY: 'activate-chatbox-text-entry',
     SHOW_MAIN_WINDOW: 'show-main-window',
     HIDE_CHATBOX: 'hide-chatbox',
   },
@@ -530,11 +541,30 @@ describe('ChatBox overlay mouse ignore', () => {
     );
   });
 
-  test('auto-focuses input on mount', () => {
+  test('does not auto-focus input on passive mount', () => {
     render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
 
-    expect(document.activeElement).toBe(input);
+    expect(document.activeElement).not.toBe(input);
+  });
+
+  test('requests native text-entry activation before showing caret', () => {
+    render(<MinimalChatPill />);
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
+
+    const pointerDown = createPointerDownEvent();
+    const preventDefaultSpy = jest.spyOn(pointerDown, 'preventDefault');
+
+    input.dispatchEvent(pointerDown);
+
+    expect(preventDefaultSpy).toHaveBeenCalledTimes(1);
+    expectInvokeCall(
+      ([channel, payload]) =>
+        channel === 'activate-chatbox-text-entry'
+        && payload?.reason === 'text-entry',
+    );
+    expect(document.activeElement).not.toBe(input);
+    preventDefaultSpy.mockRestore();
   });
 
   test('responds only to explicit chatbox-focus events and ignores generic window focus churn', () => {
@@ -549,6 +579,26 @@ describe('ChatBox overlay mouse ignore', () => {
       mockListeners.get('chatbox-focus')?.();
     });
     expect(document.activeElement).toBe(input);
+  });
+
+  test('allows normal textarea pointer placement after main-owned focus is active', () => {
+    render(<MinimalChatPill />);
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
+
+    act(() => {
+      mockListeners.get('chatbox-focus')?.();
+    });
+
+    const pointerDown = createPointerDownEvent();
+    const preventDefaultSpy = jest.spyOn(pointerDown, 'preventDefault');
+
+    input.dispatchEvent(pointerDown);
+
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+    expectInvokeCall(
+      ([channel]) => channel === 'activate-chatbox-text-entry',
+    );
+    preventDefaultSpy.mockRestore();
   });
 
   test('focuses input from chatbox-focus while active loop keeps pill interactive', async () => {

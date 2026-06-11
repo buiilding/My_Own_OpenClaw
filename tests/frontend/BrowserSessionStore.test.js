@@ -12,6 +12,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     RUN_BROWSER_ACTION: 'run-browser-action',
+    WINDIE_INVOKE: 'windie:invoke',
   },
 }));
 
@@ -31,8 +32,9 @@ function createDeferred() {
 }
 
 async function flushPromises() {
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let index = 0; index < 6; index += 1) {
+    await Promise.resolve();
+  }
 }
 
 describe('browserSessionStore', () => {
@@ -54,6 +56,9 @@ describe('browserSessionStore', () => {
     const getTabsResult = createDeferred();
 
     mockInvoke.mockImplementation(async (_channel, payload) => {
+      if (_channel === 'windie:invoke') {
+        return { ok: true, data: { stored: true } };
+      }
       if (payload.action === 'status') {
         return statusResult.promise;
       }
@@ -112,6 +117,122 @@ describe('browserSessionStore', () => {
       connected: false,
       currentTargetId: '',
       tabs: [],
+    }));
+
+    unsubscribe();
+  });
+
+  test('suppresses browser connect actions until the local backend is ready', async () => {
+    mockGetLocalBackendStatusSnapshot.mockReturnValue({
+      ready: false,
+      status: 'starting',
+      error: '',
+    });
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'windie:invoke') {
+        return { ok: true, data: { stored: true } };
+      }
+      throw new Error('Browser actions should not run before local backend readiness.');
+    });
+
+    const {
+      connectBrowserSession,
+      subscribeBrowserSessionStore,
+    } = require('../../frontend/src/renderer/infrastructure/runtime/browserSessionStore');
+
+    const unsubscribe = subscribeBrowserSessionStore(jest.fn());
+    await flushPromises();
+
+    await connectBrowserSession();
+
+    expect(mockInvoke).not.toHaveBeenCalledWith(
+      'run-browser-action',
+      expect.anything(),
+    );
+    expect(mockInvoke).toHaveBeenCalledWith('windie:invoke', expect.objectContaining({
+      command: 'diagnostics.append',
+      payload: expect.objectContaining({
+        stage: 'connect_suppressed',
+      }),
+    }));
+
+    unsubscribe();
+  });
+
+  test('syncs the browser session when the local backend becomes ready', async () => {
+    let localBackendListener = null;
+    mockSubscribeLocalBackendStatusStore.mockImplementation((listener) => {
+      localBackendListener = listener;
+      return jest.fn();
+    });
+    mockGetLocalBackendStatusSnapshot.mockReturnValue({
+      ready: false,
+      status: 'starting',
+      error: '',
+    });
+    mockInvoke.mockImplementation(async (channel, payload = {}) => {
+      if (channel === 'windie:invoke') {
+        return { ok: true, data: { stored: true } };
+      }
+      if (payload.action === 'status') {
+        return {
+          success: true,
+          data: {
+            connected: true,
+            title: 'Docs',
+            url: 'https://docs.windieos.com',
+            tab_count: 1,
+          },
+        };
+      }
+      if (payload.action === 'get_tabs') {
+        return {
+          success: true,
+          data: {
+            tabs: [
+              {
+                tab_index: 0,
+                title: 'Docs',
+                url: 'https://docs.windieos.com',
+              },
+            ],
+          },
+        };
+      }
+      throw new Error(`Unexpected browser action: ${payload.action}`);
+    });
+
+    const {
+      getBrowserSessionSnapshot,
+      subscribeBrowserSessionStore,
+    } = require('../../frontend/src/renderer/infrastructure/runtime/browserSessionStore');
+
+    const unsubscribe = subscribeBrowserSessionStore(jest.fn());
+    await flushPromises();
+    expect(getBrowserSessionSnapshot()).toEqual(expect.objectContaining({
+      localBackendReady: false,
+      connected: false,
+    }));
+    expect(mockInvoke).not.toHaveBeenCalledWith(
+      'run-browser-action',
+      expect.objectContaining({ action: 'status' }),
+    );
+
+    mockGetLocalBackendStatusSnapshot.mockReturnValue({
+      ready: true,
+      status: 'ready',
+      error: '',
+    });
+    localBackendListener();
+    await flushPromises();
+
+    expect(mockInvoke).toHaveBeenCalledWith('run-browser-action', expect.objectContaining({
+      action: 'status',
+    }));
+    expect(getBrowserSessionSnapshot()).toEqual(expect.objectContaining({
+      localBackendReady: true,
+      connected: true,
+      currentTabLabel: 'Docs',
     }));
 
     unsubscribe();
