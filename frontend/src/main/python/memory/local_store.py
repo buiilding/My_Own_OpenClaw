@@ -234,6 +234,8 @@ class LocalMemoryStore:
             raise
 
         self.memory_dir = memory_dir
+        self.history_dir = memory_dir.parent / "history"
+        self.history_dir.mkdir(parents=True, exist_ok=True)
         self._event_sink = event_sink
 
         # Watermark state file for tracking semanticization progress
@@ -245,6 +247,7 @@ class LocalMemoryStore:
         # Separate database paths for each memory type
         self.episodic_db_path = str(memory_dir / "episodic.db")
         self.semantic_db_path = str(memory_dir / "semantic.db")
+        self.history_db_path = str(self.history_dir / "history.db")
 
         # Separate FAISS indices for each memory type
         self.episodic_index_path = memory_dir / "episodic.faiss.index"
@@ -323,7 +326,10 @@ class LocalMemoryStore:
         for memory_type, init_fn in self._MEMORY_SCHEMA_INIT.items():
             attrs = self._get_memory_attrs(memory_type)
             await init_fn(getattr(self, attrs.db_path))
-        await init_chat_event_schema(self.episodic_db_path)
+        await init_chat_event_schema(
+            self.history_db_path,
+            legacy_db_path=self.episodic_db_path,
+        )
 
     async def _load_vector_mappings(self) -> None:
         """Load vector ID to memory ID mappings from both databases."""
@@ -1423,7 +1429,7 @@ class LocalMemoryStore:
         producer_sequence: Optional[int] = None,
     ) -> Dict[str, Any]:
         stored = await append_chat_event(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
             event_type=event_type,
@@ -1451,7 +1457,7 @@ class LocalMemoryStore:
         self, user_id: str, limit: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         return await list_chat_conversations(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             limit=limit,
         )
@@ -1466,7 +1472,7 @@ class LocalMemoryStore:
         revision_updated_at: Optional[str] = None,
     ) -> Dict[str, int]:
         result = await replace_chat_conversation(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
             events=events,
@@ -1486,7 +1492,7 @@ class LocalMemoryStore:
         revision_updated_at: Optional[str] = None,
     ) -> Dict[str, int]:
         result = await rewrite_chat_conversation_after_event(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
             cut_after_event_id=cut_after_event_id,
@@ -1502,7 +1508,7 @@ class LocalMemoryStore:
         conversation_id: Optional[str],
     ) -> Optional[Dict[str, Any]]:
         return await get_chat_conversation_revision(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
         )
@@ -1511,7 +1517,7 @@ class LocalMemoryStore:
         self, user_id: str, query: str, limit: int = 40
     ) -> List[Dict[str, Any]]:
         return await search_chat_conversations(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             query=query,
             limit=limit,
@@ -1701,13 +1707,13 @@ class LocalMemoryStore:
         return await clear_chat_history_admin(self, user_id=user_id)
 
     async def clear_chat_events(self, user_id: str) -> int:
-        return await clear_chat_events(db_path=self.episodic_db_path, user_id=user_id)
+        return await clear_chat_events(db_path=self.history_db_path, user_id=user_id)
 
     async def delete_chat_conversation(
         self, user_id: str, conversation_id: Optional[str]
     ) -> int:
         return await delete_chat_conversation(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
         )
@@ -1759,7 +1765,7 @@ class LocalMemoryStore:
         self, user_id: str, conversation_id: Optional[str]
     ) -> int:
         return await get_next_chat_event_index(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
         )
@@ -1772,7 +1778,7 @@ class LocalMemoryStore:
         after_message_index: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         return await get_chat_events(
-            db_path=self.episodic_db_path,
+            db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
             limit=limit,

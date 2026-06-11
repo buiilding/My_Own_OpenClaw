@@ -176,7 +176,7 @@ function logStoredCompactionEvent(
   response: Record<string, unknown>,
 ): void {
   const payload = normalizeRecord(event.payload) ?? {};
-  console.log('[Windie SDK][Compaction] store_chat_event succeeded', {
+  console.log('[Windie SDK][Compaction] conversation.append_event succeeded', {
     conversationRef: event.conversationRef,
     turnRef: event.turnRef,
     revisionId: event.revisionId,
@@ -235,7 +235,7 @@ export class SidecarConversationStore implements ConversationStore {
   async appendEvents(events: ConversationEvent[]): Promise<void> {
     for (const event of events) {
       const params = this.buildEventWriteParams(event);
-      const response = await this.call('store_chat_event', params);
+      const response = await this.call('conversation.append_event', params);
       if (isCompactionEvent(event)) {
         logStoredCompactionEvent(event, params, response);
       }
@@ -248,7 +248,7 @@ export class SidecarConversationStore implements ConversationStore {
       (plan.reason === 'edit_resend' || plan.reason === 'retry')
       && rewriteEvent?.type === 'conversation_rewritten'
     ) {
-      await this.call('rewrite_chat_conversation_after_event', {
+      await this.call('conversation.rewrite_after_event', {
         user_id: this.options.userId,
         conversation_id: plan.conversationRef,
         record_kind: CHAT_EVENT_RECORD_KIND,
@@ -259,7 +259,7 @@ export class SidecarConversationStore implements ConversationStore {
       });
       return;
     }
-    await this.call('replace_chat_conversation', {
+    await this.call('conversation.replace', {
       user_id: this.options.userId,
       conversation_id: plan.conversationRef,
       record_kind: CHAT_EVENT_RECORD_KIND,
@@ -294,7 +294,7 @@ export class SidecarConversationStore implements ConversationStore {
     const rows: Record<string, unknown>[] = [];
     let afterMessageIndex: number | null = null;
     for (let page = 0; page < this.maxPages; page += 1) {
-      const result = await this.call('get_chat_events', {
+      const result = await this.call('conversation.load_events', {
         user_id: this.options.userId,
         conversation_id: conversationRef,
         record_kind: CHAT_EVENT_RECORD_KIND,
@@ -343,7 +343,7 @@ export class SidecarConversationStore implements ConversationStore {
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
-    const result = await this.call('list_chat_conversations', {
+    const result = await this.call('conversation.list', {
       user_id: this.options.userId,
       record_kind: CHAT_EVENT_RECORD_KIND,
       limit: options.cursor ? undefined : options.limit,
@@ -357,7 +357,7 @@ export class SidecarConversationStore implements ConversationStore {
   }
 
   async searchMetadata(options: SearchConversationOptions): Promise<ConversationMetadata[]> {
-    const result = await this.call('search_chat_conversations', {
+    const result = await this.call('conversation.search', {
       user_id: this.options.userId,
       record_kind: CHAT_EVENT_RECORD_KIND,
       query: options.query,
@@ -371,7 +371,7 @@ export class SidecarConversationStore implements ConversationStore {
   }
 
   async deleteConversation(conversationRef: string): Promise<void> {
-    await this.call('delete_chat_conversation', {
+    await this.call('conversation.delete', {
       user_id: this.options.userId,
       conversation_id: conversationRef,
       record_kind: CHAT_EVENT_RECORD_KIND,
@@ -386,7 +386,7 @@ export class SidecarConversationStore implements ConversationStore {
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
-    const result = await this.call('get_chat_conversation_revision', {
+    const result = await this.call('conversation.get_revision', {
       user_id: this.options.userId,
       conversation_id: conversationRef,
       record_kind: CHAT_EVENT_RECORD_KIND,

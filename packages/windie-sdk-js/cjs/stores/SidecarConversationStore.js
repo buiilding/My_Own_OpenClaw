@@ -119,7 +119,7 @@ function responseMessageIndex(response) {
 }
 function logStoredCompactionEvent(event, params, response) {
     const payload = normalizeRecord(event.payload) ?? {};
-    console.log('[Windie SDK][Compaction] store_chat_event succeeded', {
+    console.log('[Windie SDK][Compaction] conversation.append_event succeeded', {
         conversationRef: event.conversationRef,
         turnRef: event.turnRef,
         revisionId: event.revisionId,
@@ -172,7 +172,7 @@ class SidecarConversationStore {
     async appendEvents(events) {
         for (const event of events) {
             const params = this.buildEventWriteParams(event);
-            const response = await this.call('store_chat_event', params);
+            const response = await this.call('conversation.append_event', params);
             if (isCompactionEvent(event)) {
                 logStoredCompactionEvent(event, params, response);
             }
@@ -182,7 +182,7 @@ class SidecarConversationStore {
         const rewriteEvent = plan.preservedEvents[plan.preservedEvents.length - 1] ?? null;
         if ((plan.reason === 'edit_resend' || plan.reason === 'retry')
             && rewriteEvent?.type === 'conversation_rewritten') {
-            await this.call('rewrite_chat_conversation_after_event', {
+            await this.call('conversation.rewrite_after_event', {
                 user_id: this.options.userId,
                 conversation_id: plan.conversationRef,
                 record_kind: CHAT_EVENT_RECORD_KIND,
@@ -193,7 +193,7 @@ class SidecarConversationStore {
             });
             return;
         }
-        await this.call('replace_chat_conversation', {
+        await this.call('conversation.replace', {
             user_id: this.options.userId,
             conversation_id: plan.conversationRef,
             record_kind: CHAT_EVENT_RECORD_KIND,
@@ -224,7 +224,7 @@ class SidecarConversationStore {
         const rows = [];
         let afterMessageIndex = null;
         for (let page = 0; page < this.maxPages; page += 1) {
-            const result = await this.call('get_chat_events', {
+            const result = await this.call('conversation.load_events', {
                 user_id: this.options.userId,
                 conversation_id: conversationRef,
                 record_kind: CHAT_EVENT_RECORD_KIND,
@@ -269,7 +269,7 @@ class SidecarConversationStore {
         return (0, conversationProjections_js_1.buildRehydrateSnapshot)(events);
     }
     async listMetadata(options = {}) {
-        const result = await this.call('list_chat_conversations', {
+        const result = await this.call('conversation.list', {
             user_id: this.options.userId,
             record_kind: CHAT_EVENT_RECORD_KIND,
             limit: options.cursor ? undefined : options.limit,
@@ -282,7 +282,7 @@ class SidecarConversationStore {
         return (0, metadata_js_1.applyConversationMetadataPagination)(metadata, options);
     }
     async searchMetadata(options) {
-        const result = await this.call('search_chat_conversations', {
+        const result = await this.call('conversation.search', {
             user_id: this.options.userId,
             record_kind: CHAT_EVENT_RECORD_KIND,
             query: options.query,
@@ -295,7 +295,7 @@ class SidecarConversationStore {
         return (0, metadata_js_1.searchConversationMetadata)(metadata, options);
     }
     async deleteConversation(conversationRef) {
-        await this.call('delete_chat_conversation', {
+        await this.call('conversation.delete', {
             user_id: this.options.userId,
             conversation_id: conversationRef,
             record_kind: CHAT_EVENT_RECORD_KIND,
@@ -308,7 +308,7 @@ class SidecarConversationStore {
         });
     }
     async getRevision(conversationRef) {
-        const result = await this.call('get_chat_conversation_revision', {
+        const result = await this.call('conversation.get_revision', {
             user_id: this.options.userId,
             conversation_id: conversationRef,
             record_kind: CHAT_EVENT_RECORD_KIND,

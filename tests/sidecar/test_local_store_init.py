@@ -31,6 +31,9 @@ def test_local_memory_store_init_skips_sync_faiss_reads(monkeypatch, tmp_path):
 
     assert store.episodic_index is None
     assert store.semantic_index is None
+    assert store.episodic_db_path == str(memory_dir / "episodic.db")
+    assert store.semantic_db_path == str(memory_dir / "semantic.db")
+    assert store.history_db_path == str(tmp_path / "history" / "history.db")
 
 
 @pytest.mark.asyncio

@@ -150,7 +150,7 @@ describe('SidecarConversationStore event payload write params', () => {
     await store.appendEvent(event);
 
     expect(rpc).toHaveBeenCalledWith({
-      method: 'store_chat_event',
+      method: 'conversation.append_event',
       params: expect.objectContaining({
         user_id: 'user-1',
         conversation_id: 'conv-1',
@@ -199,7 +199,7 @@ describe('SidecarConversationStore event payload write params', () => {
     await store.appendEvent(event);
 
     expect(logSpy).toHaveBeenCalledWith(
-      '[Windie SDK][Compaction] store_chat_event succeeded',
+      '[Windie SDK][Compaction] conversation.append_event succeeded',
       expect.objectContaining({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',

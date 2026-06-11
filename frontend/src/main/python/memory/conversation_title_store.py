@@ -46,7 +46,7 @@ async def get_first_title_exchange(
         await cursor.execute(
             """
             SELECT content
-            FROM chat_events
+            FROM conversation_events
             WHERE user_id = ?
               AND conversation_id = ?
               AND role = 'user'
@@ -61,7 +61,7 @@ async def get_first_title_exchange(
         await cursor.execute(
             """
             SELECT content
-            FROM chat_events
+            FROM conversation_events
             WHERE user_id = ?
               AND conversation_id = ?
               AND role = 'assistant'

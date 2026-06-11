@@ -202,6 +202,10 @@ def _memory_dir() -> Path:
     return home_dir / ".config" / APP_NAME / "memory"
 
 
+def _history_dir() -> Path:
+    return _memory_dir().parent / "history"
+
+
 def _target_user_ids() -> List[str]:
     candidates = [
         DEFAULT_USER_ID,
@@ -263,41 +267,6 @@ def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
             screenshot TEXT
         )
         """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS conversation_titles (
-            user_id TEXT NOT NULL,
-            conversation_id TEXT NOT NULL,
-            title TEXT NOT NULL,
-            source TEXT NOT NULL DEFAULT 'heuristic',
-            is_locked INTEGER NOT NULL DEFAULT 0,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            PRIMARY KEY (user_id, conversation_id)
-        )
-        """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS chat_events (
-            id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            conversation_id TEXT,
-            event_type TEXT NOT NULL,
-            role TEXT,
-            content TEXT,
-            timestamp TEXT NOT NULL,
-            message_index INTEGER NOT NULL,
-            revision_id TEXT,
-            turn_ref TEXT,
-            tool_name TEXT,
-            correlation_id TEXT,
-            workspace_path TEXT,
-            workspace_name TEXT,
-            metadata TEXT,
-            attachments TEXT,
-            event_payload TEXT NOT NULL,
-            compaction_checkpoint TEXT
-        )
-        """)
-
     for column, definition in (
         ("is_semanticized", "INTEGER DEFAULT 0"),
         ("conversation_id", "TEXT"),
@@ -330,17 +299,105 @@ def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_conversation_message_index ON memories(conversation_id, message_index)"
     )
+    conn.commit()
+
+
+def _ensure_history_schema(conn: sqlite3.Connection) -> None:
+    cursor = conn.cursor()
     cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_chat_events_conversation_order
-        ON chat_events(user_id, conversation_id, message_index, timestamp)
+        CREATE TABLE IF NOT EXISTS conversation_events (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            conversation_id TEXT,
+            event_type TEXT NOT NULL,
+            role TEXT,
+            content TEXT,
+            timestamp TEXT NOT NULL,
+            message_index INTEGER NOT NULL,
+            revision_id TEXT,
+            turn_ref TEXT,
+            tool_name TEXT,
+            correlation_id TEXT,
+            workspace_path TEXT,
+            workspace_name TEXT,
+            metadata TEXT,
+            attachments TEXT,
+            producer TEXT NOT NULL DEFAULT 'sdk',
+            producer_event_id TEXT,
+            producer_sequence INTEGER,
+            event_payload TEXT NOT NULL,
+            compaction_checkpoint TEXT
+        )
         """)
     cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_chat_events_timestamp
-        ON chat_events(user_id, timestamp)
+        CREATE TABLE IF NOT EXISTS conversation_revisions (
+            user_id TEXT NOT NULL,
+            conversation_id TEXT NOT NULL,
+            revision_id TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, conversation_id)
+        )
         """)
     cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_chat_events_type
-        ON chat_events(user_id, conversation_id, event_type)
+        CREATE TABLE IF NOT EXISTS conversations (
+            user_id TEXT NOT NULL,
+            conversation_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
+            title TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            last_message TEXT,
+            event_count INTEGER NOT NULL DEFAULT 0,
+            turn_count INTEGER NOT NULL DEFAULT 0,
+            workspace_path TEXT,
+            workspace_name TEXT,
+            latest_revision_id TEXT,
+            archived_at TEXT,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, conversation_id)
+        )
+        """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS conversation_turns (
+            user_id TEXT NOT NULL,
+            conversation_id TEXT NOT NULL,
+            turn_ref TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'open',
+            started_at TEXT,
+            completed_at TEXT,
+            model_provider TEXT,
+            model_id TEXT,
+            user_event_id TEXT,
+            assistant_event_id TEXT,
+            trace_count INTEGER NOT NULL DEFAULT 0,
+            tool_call_count INTEGER NOT NULL DEFAULT 0,
+            memory_retrieval_status TEXT,
+            PRIMARY KEY (user_id, conversation_id, turn_ref)
+        )
+        """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS conversation_titles (
+            user_id TEXT NOT NULL,
+            conversation_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'heuristic',
+            is_locked INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, conversation_id)
+        )
+        """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_conversation_events_order
+        ON conversation_events(user_id, conversation_id, message_index, timestamp)
+        """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_conversation_events_timestamp
+        ON conversation_events(user_id, timestamp)
+        """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_conversation_events_type
+        ON conversation_events(user_id, conversation_id, event_type)
         """)
     conn.commit()
 
@@ -367,24 +424,50 @@ def _ensure_semantic_schema(conn: sqlite3.Connection) -> None:
 
 
 def _clear_existing_mock_data(
+    history_conn: sqlite3.Connection,
     episodic_conn: sqlite3.Connection,
     semantic_conn: sqlite3.Connection,
     user_id: str,
 ) -> Dict[str, int]:
+    history_cursor = history_conn.cursor()
     episodic_cursor = episodic_conn.cursor()
     semantic_cursor = semantic_conn.cursor()
 
-    chat_deleted = episodic_cursor.execute(
+    chat_deleted = history_cursor.execute(
         """
-        DELETE FROM chat_events
+        DELETE FROM conversation_events
         WHERE user_id = ?
           AND conversation_id LIKE 'conv_mock_%'
         """,
         (user_id,),
     ).rowcount
-    episodic_cursor.execute(
+    history_cursor.execute(
         """
         DELETE FROM conversation_titles
+        WHERE user_id = ?
+          AND conversation_id LIKE 'conv_mock_%'
+        """,
+        (user_id,),
+    )
+    history_cursor.execute(
+        """
+        DELETE FROM conversation_revisions
+        WHERE user_id = ?
+          AND conversation_id LIKE 'conv_mock_%'
+        """,
+        (user_id,),
+    )
+    history_cursor.execute(
+        """
+        DELETE FROM conversation_turns
+        WHERE user_id = ?
+          AND conversation_id LIKE 'conv_mock_%'
+        """,
+        (user_id,),
+    )
+    history_cursor.execute(
+        """
+        DELETE FROM conversations
         WHERE user_id = ?
           AND conversation_id LIKE 'conv_mock_%'
         """,
@@ -407,6 +490,7 @@ def _clear_existing_mock_data(
         (user_id, f'%"source": "{MOCK_SOURCE}"%'),
     ).rowcount
 
+    history_conn.commit()
     episodic_conn.commit()
     semantic_conn.commit()
     return {
@@ -433,11 +517,17 @@ def _insert_chat_event_rows(conn: sqlite3.Connection, user_id: str) -> int:
     for conversation in MOCK_CONVERSATIONS:
         conversation_id = conversation["conversation_id"]
         revision_id = f"rev-mock-{conversation_id}"
+        first_timestamp = None
+        last_timestamp = None
+        last_message = ""
         for index, message in enumerate(conversation["messages"]):
             timestamp = _iso_timestamp(
                 offset_days=message.get("offset_days", 0),
                 offset_minutes=message.get("offset_minutes", 0),
             )
+            first_timestamp = first_timestamp or timestamp
+            last_timestamp = timestamp
+            last_message = message["text"]
             event_id = str(uuid.uuid4())
             event_type = _message_event_type(message)
             metadata = {
@@ -465,7 +555,7 @@ def _insert_chat_event_rows(conn: sqlite3.Connection, user_id: str) -> int:
             }
             cursor.execute(
                 """
-                INSERT INTO chat_events (
+                INSERT INTO conversation_events (
                     id,
                     user_id,
                     conversation_id,
@@ -482,9 +572,12 @@ def _insert_chat_event_rows(conn: sqlite3.Connection, user_id: str) -> int:
                     workspace_name,
                     metadata,
                     attachments,
+                    producer,
+                    producer_event_id,
+                    producer_sequence,
                     event_payload,
                     compaction_checkpoint
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     event_id,
@@ -503,11 +596,63 @@ def _insert_chat_event_rows(conn: sqlite3.Connection, user_id: str) -> int:
                     None,
                     json.dumps(metadata),
                     json.dumps([]),
+                    "sdk",
+                    None,
+                    None,
                     json.dumps(event_payload),
                     None,
                 ),
             )
             inserted += 1
+
+        if first_timestamp and last_timestamp:
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO conversation_revisions (
+                    user_id,
+                    conversation_id,
+                    revision_id,
+                    updated_at
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (user_id, conversation_id, revision_id, last_timestamp),
+            )
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO conversations (
+                    user_id,
+                    conversation_id,
+                    status,
+                    title,
+                    created_at,
+                    updated_at,
+                    last_message,
+                    event_count,
+                    turn_count,
+                    workspace_path,
+                    workspace_name,
+                    latest_revision_id,
+                    archived_at,
+                    deleted_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user_id,
+                    conversation_id,
+                    "active",
+                    None,
+                    first_timestamp,
+                    last_timestamp,
+                    last_message,
+                    len(conversation["messages"]),
+                    0,
+                    None,
+                    None,
+                    revision_id,
+                    None,
+                    None,
+                ),
+            )
 
     conn.commit()
     return inserted
@@ -618,27 +763,29 @@ def _insert_semantic_rows(conn: sqlite3.Connection, user_id: str) -> int:
 
 
 def _count_summary(
+    history_conn: sqlite3.Connection,
     episodic_conn: sqlite3.Connection,
     semantic_conn: sqlite3.Connection,
     user_id: str,
 ) -> Dict[str, int]:
+    history_cursor = history_conn.cursor()
     episodic_cursor = episodic_conn.cursor()
     semantic_cursor = semantic_conn.cursor()
 
-    chat_total = episodic_cursor.execute(
+    chat_total = history_cursor.execute(
         """
         SELECT COUNT(DISTINCT conversation_id)
-        FROM chat_events
+        FROM conversation_events
         WHERE user_id = ?
           AND conversation_id IS NOT NULL
         """,
         (user_id,),
     ).fetchone()[0]
 
-    chat_mock = episodic_cursor.execute(
+    chat_mock = history_cursor.execute(
         """
         SELECT COUNT(DISTINCT conversation_id)
-        FROM chat_events
+        FROM conversation_events
         WHERE user_id = ?
           AND conversation_id LIKE 'conv_mock_%'
         """,
@@ -686,17 +833,22 @@ def _count_summary(
 
 def main() -> int:
     memory_dir = _memory_dir()
+    history_dir = _history_dir()
     memory_dir.mkdir(parents=True, exist_ok=True)
+    history_dir.mkdir(parents=True, exist_ok=True)
 
     episodic_db = memory_dir / "episodic.db"
     semantic_db = memory_dir / "semantic.db"
+    history_db = history_dir / "history.db"
 
     episodic_conn = sqlite3.connect(str(episodic_db))
     semantic_conn = sqlite3.connect(str(semantic_db))
+    history_conn = sqlite3.connect(str(history_db))
 
     try:
         _ensure_episodic_schema(episodic_conn)
         _ensure_semantic_schema(semantic_conn)
+        _ensure_history_schema(history_conn)
 
         target_user_ids = _target_user_ids()
         aggregate_deleted = {
@@ -709,12 +861,12 @@ def main() -> int:
 
         for user_id in target_user_ids:
             deleted_counts = _clear_existing_mock_data(
-                episodic_conn, semantic_conn, user_id
+                history_conn, episodic_conn, semantic_conn, user_id
             )
-            chat_events_inserted = _insert_chat_event_rows(episodic_conn, user_id)
+            chat_events_inserted = _insert_chat_event_rows(history_conn, user_id)
             episodic_inserted = _insert_episodic_rows(episodic_conn, user_id)
             semantic_inserted = _insert_semantic_rows(semantic_conn, user_id)
-            summary = _count_summary(episodic_conn, semantic_conn, user_id)
+            summary = _count_summary(history_conn, episodic_conn, semantic_conn, user_id)
             per_user_summary[user_id] = summary
 
             aggregate_deleted["chat_event_rows"] += deleted_counts["chat_event_rows"]
@@ -726,6 +878,7 @@ def main() -> int:
 
         print("Mock memory seed complete for target users.")
         print(f"Memory dir: {memory_dir}")
+        print(f"History dir: {history_dir}")
         print(f"Target users: {target_user_ids}")
         print(f"Removed rows: {aggregate_deleted}")
         print(
@@ -737,6 +890,7 @@ def main() -> int:
         print(f"Current totals by user: {per_user_summary}")
         return 0
     finally:
+        history_conn.close()
         episodic_conn.close()
         semantic_conn.close()
 

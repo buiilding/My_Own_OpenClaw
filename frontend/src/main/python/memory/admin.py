@@ -93,19 +93,23 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
     chat_events_deleted = 0
     conversation_revisions_deleted = 0
     conversation_titles_deleted = 0
+    history_db_path = getattr(store, "history_db_path", store.episodic_db_path)
 
-    await init_chat_event_schema(store.episodic_db_path)
-    async with aiosqlite.connect(store.episodic_db_path) as conn:
+    await init_chat_event_schema(
+        history_db_path,
+        legacy_db_path=store.episodic_db_path,
+    )
+    async with aiosqlite.connect(history_db_path) as conn:
         cursor = await conn.cursor()
         await cursor.execute(
-            "DELETE FROM chat_events WHERE user_id = ?",
+            "DELETE FROM conversation_events WHERE user_id = ?",
             (user_id,),
         )
         chat_events_deleted = (
             cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
         )
         await cursor.execute(
-            "DELETE FROM chat_conversation_revisions WHERE user_id = ?",
+            "DELETE FROM conversation_revisions WHERE user_id = ?",
             (user_id,),
         )
         conversation_revisions_deleted = (
@@ -117,6 +121,14 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
         )
         conversation_titles_deleted = (
             cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        )
+        await cursor.execute(
+            "DELETE FROM conversation_turns WHERE user_id = ?",
+            (user_id,),
+        )
+        await cursor.execute(
+            "DELETE FROM conversations WHERE user_id = ?",
+            (user_id,),
         )
         await conn.commit()
 

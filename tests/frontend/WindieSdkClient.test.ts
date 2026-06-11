@@ -712,7 +712,7 @@ describe('WindieSdkClient', () => {
     await agent.chat({ conversationRef: 'conv-durable-chat' }).send('persist me');
 
     expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'store_chat_event',
+      method: 'conversation.append_event',
       params: expect.objectContaining({
         user_id: 'dev-user',
         conversation_id: 'conv-durable-chat',
@@ -782,7 +782,7 @@ describe('WindieSdkClient', () => {
 
     const rpc = localRuntime.rpc as jest.Mock;
     const searchCallIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'search_memory_by_embedding');
-    const firstStoreChatIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'store_chat_event');
+    const firstStoreChatIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'conversation.append_event');
     const queryMessage = socket.sent
       .map(frame => JSON.parse(frame))
       .find(message => message.type === 'query');
@@ -856,7 +856,7 @@ describe('WindieSdkClient', () => {
       method: 'search_memory_by_embedding',
     }));
     expect(localRuntime.rpc).not.toHaveBeenCalledWith(expect.objectContaining({
-      method: 'store_chat_event',
+      method: 'conversation.append_event',
     }));
   });
 
@@ -905,7 +905,7 @@ describe('WindieSdkClient', () => {
       conversationRef: 'conv-custom-store',
     }));
     expect(localRuntime.rpc).not.toHaveBeenCalledWith(expect.objectContaining({
-      method: 'store_chat_event',
+      method: 'conversation.append_event',
     }));
   });
 
@@ -2312,7 +2312,7 @@ describe('WindieSdkClient', () => {
 
   test('SidecarConversationStore routes conversation commands through sidecar rpc', async () => {
     const rpc = jest.fn(async ({ method, params }) => {
-      if (method === 'list_chat_conversations') {
+      if (method === 'conversation.list') {
         return {
           success: true,
           data: {
@@ -2329,7 +2329,7 @@ describe('WindieSdkClient', () => {
           },
         };
       }
-      if (method === 'get_chat_events') {
+      if (method === 'conversation.load_events') {
         return {
           success: true,
           data: {
@@ -2389,7 +2389,7 @@ describe('WindieSdkClient', () => {
     await store.clearConversations();
 
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'replace_chat_conversation',
+      method: 'conversation.replace',
       params: expect.objectContaining({
         conversation_id: 'conv-sidecar',
         revision_id: 'rev-2',
@@ -2406,7 +2406,7 @@ describe('WindieSdkClient', () => {
       }),
     }));
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'delete_chat_conversation',
+      method: 'conversation.delete',
     }));
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'clear_chat_history',
@@ -2520,7 +2520,7 @@ describe('WindieSdkClient', () => {
     const revisions = new Map<string, { revision_id: string; updated_at: string }>();
     const eventsByConversation = new Map<string, unknown[]>();
     const rpc = jest.fn(async ({ method, params }) => {
-      if (method === 'replace_chat_conversation') {
+      if (method === 'conversation.replace') {
         revisions.set(params.conversation_id, {
           revision_id: params.revision_id,
           updated_at: params.revision_updated_at,
@@ -2528,13 +2528,13 @@ describe('WindieSdkClient', () => {
         eventsByConversation.set(params.conversation_id, params.events);
         return { success: true, data: {} };
       }
-      if (method === 'get_chat_conversation_revision') {
+      if (method === 'conversation.get_revision') {
         return {
           success: true,
           data: revisions.get(params.conversation_id) ?? {},
         };
       }
-      if (method === 'get_chat_events') {
+      if (method === 'conversation.load_events') {
         return {
           success: true,
           data: {
@@ -2618,7 +2618,7 @@ describe('WindieSdkClient', () => {
     });
 
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'store_chat_event',
+      method: 'conversation.append_event',
       params: expect.objectContaining({
         user_id: 'user-1',
         conversation_id: 'conv-host-write',

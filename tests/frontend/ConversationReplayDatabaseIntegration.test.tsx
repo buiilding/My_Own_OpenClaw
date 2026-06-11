@@ -101,7 +101,7 @@ def insert_event(conn, user_id, event, message_index):
     source = event.get("source")
     conn.execute(
         """
-        INSERT INTO chat_events
+        INSERT INTO conversation_events
         (id, user_id, conversation_id, event_type, role, content, timestamp,
          message_index, revision_id, turn_ref, tool_name, correlation_id,
          workspace_path, workspace_name, producer, producer_event_id,
@@ -150,7 +150,7 @@ try:
     if action == "init":
         conn.execute(
             """
-            CREATE TABLE chat_events (
+            CREATE TABLE conversation_events (
               id TEXT PRIMARY KEY,
               user_id TEXT NOT NULL,
               conversation_id TEXT,
@@ -186,7 +186,7 @@ try:
         rows = conn.execute(
             """
             SELECT *
-            FROM chat_events
+            FROM conversation_events
             WHERE conversation_id = ?
             ORDER BY message_index ASC
             """,
@@ -196,11 +196,11 @@ try:
     elif action == "rpc":
         method = payload["method"]
         params = payload.get("params") or {}
-        if method == "get_chat_events":
+        if method == "conversation.load_events":
             rows = conn.execute(
                 """
                 SELECT *
-                FROM chat_events
+                FROM conversation_events
                 WHERE user_id = ? AND conversation_id = ?
                   AND message_index > ?
                 ORDER BY message_index ASC
@@ -221,14 +221,14 @@ try:
                     "count": len(rows),
                 },
             }))
-        elif method == "rewrite_chat_conversation_after_event":
+        elif method == "conversation.rewrite_after_event":
             cutoff_index = 0
             cut_after_event_id = params.get("cut_after_event_id")
             if isinstance(cut_after_event_id, str) and cut_after_event_id.strip():
                 cutoff = conn.execute(
                     """
                     SELECT message_index
-                    FROM chat_events
+                    FROM conversation_events
                     WHERE user_id = ? AND conversation_id = ? AND id = ?
                     """,
                     (
@@ -246,7 +246,7 @@ try:
                 cutoff_index = int(cutoff["message_index"] or 0)
             deleted = conn.execute(
                 """
-                DELETE FROM chat_events
+                DELETE FROM conversation_events
                 WHERE user_id = ? AND conversation_id = ? AND message_index > ?
                 """,
                 (
@@ -300,7 +300,7 @@ function runPythonSqliteBridge<T>(
 
 class SqliteConversationHistory {
   readonly dir = mkdtempSync(join(tmpdir(), 'windie-replay-db-'));
-  readonly dbPath = join(this.dir, 'episodic.db');
+  readonly dbPath = join(this.dir, 'history.db');
   rewriteFailure: string | null = null;
 
   constructor() {
@@ -329,7 +329,7 @@ class SqliteConversationHistory {
   }
 
   async rpc({ method, params }: { method: string; params?: JsonRecord }): Promise<JsonRecord> {
-    if (method === 'rewrite_chat_conversation_after_event' && this.rewriteFailure) {
+    if (method === 'conversation.rewrite_after_event' && this.rewriteFailure) {
       return {
         success: false,
         error: this.rewriteFailure,

@@ -60,6 +60,12 @@ def requires_memory_store(
 class LocalBackendMemoryHandlersMixin:
     """Memory RPC handlers shared by the local backend service."""
 
+    def _conversation_history_db_path(self) -> str:
+        history_db_path = getattr(self.memory_store, "history_db_path", None)
+        if history_db_path:
+            return history_db_path
+        return getattr(self.memory_store, "episodic_db_path")
+
     @staticmethod
     def _normalize_transcript_structured_payload(
         structured_payload: Optional[Dict[str, Any]],
@@ -497,7 +503,7 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": "title is required"}
         try:
             await upsert_generated_conversation_title(
-                db_path=self.memory_store.episodic_db_path,
+                db_path=self._conversation_history_db_path(),
                 user_id=user_id,
                 conversation_id=conversation_id,
                 title=normalized_title,
@@ -536,7 +542,7 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": "conversation_id is required"}
         try:
             state = await get_conversation_title_state(
-                db_path=self.memory_store.episodic_db_path,
+                db_path=self._conversation_history_db_path(),
                 user_id=user_id,
                 conversation_id=conversation_id,
             )

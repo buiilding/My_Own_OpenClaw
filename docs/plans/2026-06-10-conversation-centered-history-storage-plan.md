@@ -8,7 +8,7 @@ title: "Conversation-Centered History Storage Plan"
 
 # Conversation-Centered History Storage Plan
 
-Status: approved and in implementation.
+Status: complete.
 
 ## User Intent
 
@@ -553,6 +553,23 @@ bin/windie trace <conversation-id> <turn-ref> --json
 - New names describe the domain: conversation history, events, revisions,
   traces, turns, memory links.
 - Old RPC/table compatibility remains until callers are moved deliberately.
+
+## Completion Notes
+
+Implemented on June 10, 2026:
+
+- local conversation history now initializes in
+  `desktop-assistant/history/history.db`
+- canonical tables now exist for `conversations`, `conversation_turns`,
+  `conversation_events`, `conversation_titles`, and `conversation_revisions`
+- startup migration imports legacy `memory/episodic.db` chat history, revision
+  pointers, and title rows into `history.db`
+- active sidecar history reads and writes use canonical conversation tables
+- SDK sidecar conversation writes use canonical `conversation.*` RPC names
+- old RPC names and old table names remain as compatibility surfaces
+- CLI conversation and trace diagnostics prefer `history/history.db` and fall
+  back to legacy `memory/episodic.db` until migration has run
+- memory rows remain in `memory/episodic.db` and `memory/semantic.db`
 
 ## Approval Gate
 

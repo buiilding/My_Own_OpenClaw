@@ -1,7 +1,7 @@
-"""Dedicated durable storage for SDK chat events.
+"""Dedicated durable storage for SDK conversation history.
 
-Chat events are not memories. They are an ordered event log used for visible
-chat replay and backend rehydrate snapshots.
+Conversation events are not memories. They are an ordered event log used for
+visible chat replay, backend rehydrate snapshots, and durable path traces.
 """
 
 from __future__ import annotations
@@ -23,6 +23,37 @@ SIDEBAR_METADATA_EVENT_TYPES = (
     "tool_output",
     "tool_bundle_output",
     "turn_error",
+)
+
+CONVERSATION_EVENTS_TABLE = "conversation_events"
+CONVERSATION_REVISIONS_TABLE = "conversation_revisions"
+CONVERSATIONS_TABLE = "conversations"
+CONVERSATION_TURNS_TABLE = "conversation_turns"
+CONVERSATION_TITLES_TABLE = "conversation_titles"
+LEGACY_EVENTS_TABLE = "chat_events"
+LEGACY_REVISIONS_TABLE = "chat_conversation_revisions"
+EVENT_COPY_COLUMNS = (
+    "id",
+    "user_id",
+    "conversation_id",
+    "event_type",
+    "role",
+    "content",
+    "timestamp",
+    "message_index",
+    "revision_id",
+    "turn_ref",
+    "tool_name",
+    "correlation_id",
+    "workspace_path",
+    "workspace_name",
+    "producer",
+    "producer_event_id",
+    "producer_sequence",
+    "metadata",
+    "attachments",
+    "event_payload",
+    "compaction_checkpoint",
 )
 
 
@@ -126,7 +157,7 @@ def _resolve_producer_fields(
     return producer, normalized_producer_event_id, producer_sequence
 
 
-async def init_chat_event_schema(db_path: str) -> None:
+async def init_chat_event_schema(db_path: str, legacy_db_path: Optional[str] = None) -> None:
     if aiosqlite is None:
         raise ImportError(
             "aiosqlite is not installed. Install with: pip install aiosqlite"
@@ -135,7 +166,7 @@ async def init_chat_event_schema(db_path: str) -> None:
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
         await cursor.execute("""
-            CREATE TABLE IF NOT EXISTS chat_events (
+            CREATE TABLE IF NOT EXISTS conversation_events (
                 id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL,
                 conversation_id TEXT,
@@ -159,30 +190,37 @@ async def init_chat_event_schema(db_path: str) -> None:
                 compaction_checkpoint TEXT
             )
             """)
-        await _ensure_chat_event_column(cursor, "attachments", "TEXT")
-        await _ensure_chat_event_column(
-            cursor, "producer", "TEXT NOT NULL DEFAULT 'sdk'"
+        await _ensure_event_column(cursor, CONVERSATION_EVENTS_TABLE, "attachments", "TEXT")
+        await _ensure_event_column(
+            cursor,
+            CONVERSATION_EVENTS_TABLE,
+            "producer",
+            "TEXT NOT NULL DEFAULT 'sdk'",
         )
-        await _ensure_chat_event_column(cursor, "producer_event_id", "TEXT")
-        await _ensure_chat_event_column(cursor, "producer_sequence", "INTEGER")
+        await _ensure_event_column(cursor, CONVERSATION_EVENTS_TABLE, "producer_event_id", "TEXT")
+        await _ensure_event_column(cursor, CONVERSATION_EVENTS_TABLE, "producer_sequence", "INTEGER")
         await cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_chat_events_conversation_order
-            ON chat_events(user_id, conversation_id, message_index, timestamp)
+            CREATE INDEX IF NOT EXISTS idx_conversation_events_order
+            ON conversation_events(user_id, conversation_id, message_index, timestamp)
             """)
         await cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_chat_events_timestamp
-            ON chat_events(user_id, timestamp)
+            CREATE INDEX IF NOT EXISTS idx_conversation_events_timestamp
+            ON conversation_events(user_id, timestamp)
             """)
         await cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_chat_events_type
-            ON chat_events(user_id, conversation_id, event_type)
+            CREATE INDEX IF NOT EXISTS idx_conversation_events_type
+            ON conversation_events(user_id, conversation_id, event_type, timestamp)
             """)
         await cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_chat_events_producer_order
-            ON chat_events(user_id, conversation_id, turn_ref, producer, producer_sequence)
+            CREATE INDEX IF NOT EXISTS idx_conversation_events_turn
+            ON conversation_events(user_id, conversation_id, turn_ref, message_index)
             """)
         await cursor.execute("""
-            CREATE TABLE IF NOT EXISTS chat_conversation_revisions (
+            CREATE INDEX IF NOT EXISTS idx_conversation_events_producer_order
+            ON conversation_events(user_id, conversation_id, turn_ref, producer, producer_sequence)
+            """)
+        await cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversation_revisions (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
                 revision_id TEXT NOT NULL,
@@ -191,22 +229,463 @@ async def init_chat_event_schema(db_path: str) -> None:
             )
             """)
         await cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_chat_conversation_revisions_updated
-            ON chat_conversation_revisions(user_id, updated_at)
+            CREATE INDEX IF NOT EXISTS idx_conversation_revisions_updated
+            ON conversation_revisions(user_id, updated_at)
             """)
+        await cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversations (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active',
+                title TEXT,
+                created_at TEXT,
+                updated_at TEXT,
+                last_message TEXT,
+                event_count INTEGER NOT NULL DEFAULT 0,
+                turn_count INTEGER NOT NULL DEFAULT 0,
+                workspace_path TEXT,
+                workspace_name TEXT,
+                latest_revision_id TEXT,
+                archived_at TEXT,
+                deleted_at TEXT,
+                PRIMARY KEY (user_id, conversation_id)
+            )
+            """)
+        await cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_conversations_updated
+            ON conversations(user_id, updated_at)
+            """)
+        await cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversation_turns (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                turn_ref TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'open',
+                started_at TEXT,
+                completed_at TEXT,
+                model_provider TEXT,
+                model_id TEXT,
+                user_event_id TEXT,
+                assistant_event_id TEXT,
+                trace_count INTEGER NOT NULL DEFAULT 0,
+                tool_call_count INTEGER NOT NULL DEFAULT 0,
+                memory_retrieval_status TEXT,
+                PRIMARY KEY (user_id, conversation_id, turn_ref)
+            )
+            """)
+        await cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_conversation_turns_order
+            ON conversation_turns(user_id, conversation_id, started_at)
+            """)
+        await cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversation_titles (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'heuristic',
+                is_locked INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, conversation_id)
+            )
+            """)
+        await cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_conversation_titles_updated_at
+            ON conversation_titles(updated_at)
+            """)
+        await _migrate_legacy_tables(cursor)
+        await _create_compatibility_views(cursor)
         await conn.commit()
+    if legacy_db_path and legacy_db_path != db_path:
+        await _migrate_legacy_history_database(db_path=db_path, legacy_db_path=legacy_db_path)
 
 
-async def _ensure_chat_event_column(
-    cursor: Any, column_name: str, column_type: str
+async def _ensure_event_column(
+    cursor: Any, table_name: str, column_name: str, column_type: str
 ) -> None:
-    await cursor.execute("PRAGMA table_info(chat_events)")
+    await cursor.execute(f"PRAGMA table_info({table_name})")
     columns = await cursor.fetchall()
     existing = {row[1] for row in columns}
     if column_name not in existing:
         await cursor.execute(
-            f"ALTER TABLE chat_events ADD COLUMN {column_name} {column_type}"
+            f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
         )
+
+
+async def _sqlite_object_type(cursor: Any, name: str) -> Optional[str]:
+    await cursor.execute(
+        """
+        SELECT type
+        FROM sqlite_master
+        WHERE name = ?
+        LIMIT 1
+        """,
+        (name,),
+    )
+    row = await cursor.fetchone()
+    return row[0] if row else None
+
+
+async def _table_columns(cursor: Any, table_ref: str) -> set[str]:
+    if "." in table_ref:
+        database_name, table_name = table_ref.split(".", 1)
+        await cursor.execute(f"PRAGMA {database_name}.table_info({table_name})")
+    else:
+        await cursor.execute(f"PRAGMA table_info({table_ref})")
+    return {row[1] for row in await cursor.fetchall()}
+
+
+def _legacy_event_select_expression(column: str, existing_columns: set[str]) -> str:
+    if column in existing_columns:
+        if column == "producer":
+            return "COALESCE(producer, 'sdk')"
+        if column == "attachments":
+            return "COALESCE(attachments, '[]')"
+        if column == "event_payload":
+            return "COALESCE(event_payload, '{}')"
+        return column
+    defaults = {
+        "producer": "'sdk'",
+        "producer_event_id": "NULL",
+        "producer_sequence": "NULL",
+        "attachments": "'[]'",
+        "compaction_checkpoint": "NULL",
+    }
+    return defaults.get(column, "NULL")
+
+
+async def _copy_legacy_event_rows(cursor: Any, source_table_ref: str) -> None:
+    existing_columns = await _table_columns(cursor, source_table_ref)
+    insert_columns = ", ".join(EVENT_COPY_COLUMNS)
+    select_columns = ", ".join(
+        _legacy_event_select_expression(column, existing_columns)
+        for column in EVENT_COPY_COLUMNS
+    )
+    await cursor.execute(f"""
+        INSERT OR IGNORE INTO {CONVERSATION_EVENTS_TABLE}
+        ({insert_columns})
+        SELECT {select_columns}
+        FROM {source_table_ref}
+        """)
+
+
+async def _migrate_legacy_tables(cursor: Any) -> None:
+    if await _sqlite_object_type(cursor, LEGACY_EVENTS_TABLE) == "table":
+        await _copy_legacy_event_rows(cursor, LEGACY_EVENTS_TABLE)
+    if await _sqlite_object_type(cursor, LEGACY_REVISIONS_TABLE) == "table":
+        await cursor.execute(f"""
+            INSERT OR REPLACE INTO {CONVERSATION_REVISIONS_TABLE}
+            (user_id, conversation_id, revision_id, updated_at)
+            SELECT user_id, conversation_id, revision_id, updated_at
+            FROM {LEGACY_REVISIONS_TABLE}
+            """)
+    await _rebuild_materialized_conversation_indexes(cursor)
+
+
+async def _create_compatibility_views(cursor: Any) -> None:
+    if await _sqlite_object_type(cursor, LEGACY_EVENTS_TABLE) is None:
+        await cursor.execute(f"""
+            CREATE VIEW {LEGACY_EVENTS_TABLE} AS
+            SELECT *
+            FROM {CONVERSATION_EVENTS_TABLE}
+            """)
+    if await _sqlite_object_type(cursor, LEGACY_REVISIONS_TABLE) is None:
+        await cursor.execute(f"""
+            CREATE VIEW {LEGACY_REVISIONS_TABLE} AS
+            SELECT *
+            FROM {CONVERSATION_REVISIONS_TABLE}
+            """)
+
+
+async def _legacy_attached_table_exists(cursor: Any, table_name: str) -> bool:
+    await cursor.execute(
+        """
+        SELECT name
+        FROM legacy.sqlite_master
+        WHERE type = 'table' AND name = ?
+        LIMIT 1
+        """,
+        (table_name,),
+    )
+    return await cursor.fetchone() is not None
+
+
+async def _migrate_legacy_history_database(*, db_path: str, legacy_db_path: str) -> None:
+    async with aiosqlite.connect(db_path) as conn:
+        cursor = await conn.cursor()
+        await cursor.execute("ATTACH DATABASE ? AS legacy", (legacy_db_path,))
+        try:
+            if await _legacy_attached_table_exists(cursor, LEGACY_EVENTS_TABLE):
+                await _copy_legacy_event_rows(cursor, f"legacy.{LEGACY_EVENTS_TABLE}")
+            if await _legacy_attached_table_exists(cursor, LEGACY_REVISIONS_TABLE):
+                await cursor.execute(f"""
+                    INSERT OR REPLACE INTO {CONVERSATION_REVISIONS_TABLE}
+                    (user_id, conversation_id, revision_id, updated_at)
+                    SELECT user_id, conversation_id, revision_id, updated_at
+                    FROM legacy.{LEGACY_REVISIONS_TABLE}
+                    """)
+            if await _legacy_attached_table_exists(cursor, CONVERSATION_TITLES_TABLE):
+                await cursor.execute(f"""
+                    INSERT OR REPLACE INTO {CONVERSATION_TITLES_TABLE}
+                    (user_id, conversation_id, title, source, is_locked, created_at, updated_at)
+                    SELECT user_id, conversation_id, title, source, is_locked, created_at, updated_at
+                    FROM legacy.{CONVERSATION_TITLES_TABLE}
+                    """)
+            await _rebuild_materialized_conversation_indexes(cursor)
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
+        finally:
+            await cursor.execute("DETACH DATABASE legacy")
+
+
+async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
+    await cursor.execute(f"DELETE FROM {CONVERSATIONS_TABLE}")
+    await cursor.execute(f"DELETE FROM {CONVERSATION_TURNS_TABLE}")
+    await cursor.execute(f"""
+        INSERT INTO {CONVERSATIONS_TABLE}
+        (user_id, conversation_id, status, title, created_at, updated_at,
+         last_message, event_count, turn_count, workspace_path, workspace_name,
+         latest_revision_id, archived_at, deleted_at)
+        SELECT e.user_id,
+               e.conversation_id,
+               'active',
+               (
+                 SELECT title
+                 FROM {CONVERSATION_TITLES_TABLE} t
+                 WHERE t.user_id = e.user_id
+                   AND t.conversation_id = e.conversation_id
+                   AND t.title IS NOT NULL
+                   AND t.title != ''
+                 ORDER BY t.is_locked DESC, t.updated_at DESC
+                 LIMIT 1
+               ),
+               MIN(e.timestamp),
+               MAX(e.timestamp),
+               (
+                 SELECT e2.content
+                 FROM {CONVERSATION_EVENTS_TABLE} e2
+                 WHERE e2.user_id = e.user_id
+                   AND e2.conversation_id = e.conversation_id
+                   AND e2.content IS NOT NULL
+                   AND e2.content != ''
+                   AND e2.content NOT LIKE '[sdk event:%'
+                 ORDER BY e2.message_index DESC, e2.timestamp DESC
+                 LIMIT 1
+               ),
+               COUNT(*),
+               COUNT(DISTINCT e.turn_ref),
+               (
+                 SELECT e2.workspace_path
+                 FROM {CONVERSATION_EVENTS_TABLE} e2
+                 WHERE e2.user_id = e.user_id
+                   AND e2.conversation_id = e.conversation_id
+                   AND e2.workspace_path IS NOT NULL
+                   AND e2.workspace_path != ''
+                 ORDER BY e2.message_index DESC, e2.timestamp DESC
+                 LIMIT 1
+               ),
+               (
+                 SELECT e2.workspace_name
+                 FROM {CONVERSATION_EVENTS_TABLE} e2
+                 WHERE e2.user_id = e.user_id
+                   AND e2.conversation_id = e.conversation_id
+                   AND e2.workspace_name IS NOT NULL
+                   AND e2.workspace_name != ''
+                 ORDER BY e2.message_index DESC, e2.timestamp DESC
+                 LIMIT 1
+               ),
+               COALESCE(
+                 (
+                   SELECT r.revision_id
+                   FROM {CONVERSATION_REVISIONS_TABLE} r
+                   WHERE r.user_id = e.user_id
+                     AND r.conversation_id = e.conversation_id
+                   LIMIT 1
+                 ),
+                 (
+                   SELECT e2.revision_id
+                   FROM {CONVERSATION_EVENTS_TABLE} e2
+                   WHERE e2.user_id = e.user_id
+                     AND e2.conversation_id = e.conversation_id
+                   ORDER BY e2.message_index DESC, e2.timestamp DESC
+                   LIMIT 1
+                 )
+               ),
+               NULL,
+               NULL
+        FROM {CONVERSATION_EVENTS_TABLE} e
+        WHERE e.conversation_id IS NOT NULL
+        GROUP BY e.user_id, e.conversation_id
+        """)
+    await cursor.execute(f"""
+        INSERT INTO {CONVERSATION_TURNS_TABLE}
+        (user_id, conversation_id, turn_ref, status, started_at, completed_at,
+         model_provider, model_id, user_event_id, assistant_event_id,
+         trace_count, tool_call_count, memory_retrieval_status)
+        SELECT e.user_id,
+               e.conversation_id,
+               e.turn_ref,
+               CASE
+                 WHEN SUM(CASE WHEN e.event_type = 'turn_error' THEN 1 ELSE 0 END) > 0
+                   THEN 'failed'
+                 WHEN SUM(CASE WHEN e.event_type = 'turn_completed' THEN 1 ELSE 0 END) > 0
+                   THEN 'completed'
+                 ELSE 'open'
+               END,
+               MIN(e.timestamp),
+               MAX(CASE WHEN e.event_type IN ('turn_completed', 'turn_error', 'turn_stopped') THEN e.timestamp ELSE NULL END),
+               NULL,
+               NULL,
+               MIN(CASE WHEN e.event_type = 'user_message' THEN e.id ELSE NULL END),
+               MAX(CASE WHEN e.event_type = 'assistant_message' THEN e.id ELSE NULL END),
+               SUM(CASE WHEN e.event_type = 'trace_event' THEN 1 ELSE 0 END),
+               SUM(CASE WHEN e.event_type = 'tool_call' THEN 1 ELSE 0 END),
+               MAX(CASE
+                 WHEN e.event_type = 'trace_event'
+                   AND json_valid(e.event_payload)
+                   AND json_extract(e.event_payload, '$.payload.path') = 'memory.retrieval'
+                 THEN json_extract(e.event_payload, '$.payload.status')
+                 ELSE NULL
+               END)
+        FROM {CONVERSATION_EVENTS_TABLE} e
+        WHERE e.conversation_id IS NOT NULL
+          AND e.turn_ref IS NOT NULL
+        GROUP BY e.user_id, e.conversation_id, e.turn_ref
+        """)
+
+
+async def _refresh_conversation_indexes(
+    conn: Any,
+    *,
+    user_id: str,
+    conversation_id: Optional[str],
+) -> None:
+    if not isinstance(conversation_id, str) or not conversation_id.strip():
+        return
+    cursor = await conn.cursor()
+    await cursor.execute(
+        f"DELETE FROM {CONVERSATIONS_TABLE} WHERE user_id = ? AND conversation_id = ?",
+        (user_id, conversation_id),
+    )
+    await cursor.execute(
+        f"DELETE FROM {CONVERSATION_TURNS_TABLE} WHERE user_id = ? AND conversation_id = ?",
+        (user_id, conversation_id),
+    )
+    await cursor.execute(f"""
+        INSERT INTO {CONVERSATIONS_TABLE}
+        (user_id, conversation_id, status, title, created_at, updated_at,
+         last_message, event_count, turn_count, workspace_path, workspace_name,
+         latest_revision_id, archived_at, deleted_at)
+        SELECT e.user_id,
+               e.conversation_id,
+               'active',
+               (
+                 SELECT title
+                 FROM {CONVERSATION_TITLES_TABLE} t
+                 WHERE t.user_id = e.user_id
+                   AND t.conversation_id = e.conversation_id
+                   AND t.title IS NOT NULL
+                   AND t.title != ''
+                 ORDER BY t.is_locked DESC, t.updated_at DESC
+                 LIMIT 1
+               ),
+               MIN(e.timestamp),
+               MAX(e.timestamp),
+               (
+                 SELECT e2.content
+                 FROM {CONVERSATION_EVENTS_TABLE} e2
+                 WHERE e2.user_id = e.user_id
+                   AND e2.conversation_id = e.conversation_id
+                   AND e2.content IS NOT NULL
+                   AND e2.content != ''
+                   AND e2.content NOT LIKE '[sdk event:%'
+                 ORDER BY e2.message_index DESC, e2.timestamp DESC
+                 LIMIT 1
+               ),
+               COUNT(*),
+               COUNT(DISTINCT e.turn_ref),
+               (
+                 SELECT e2.workspace_path
+                 FROM {CONVERSATION_EVENTS_TABLE} e2
+                 WHERE e2.user_id = e.user_id
+                   AND e2.conversation_id = e.conversation_id
+                   AND e2.workspace_path IS NOT NULL
+                   AND e2.workspace_path != ''
+                 ORDER BY e2.message_index DESC, e2.timestamp DESC
+                 LIMIT 1
+               ),
+               (
+                 SELECT e2.workspace_name
+                 FROM {CONVERSATION_EVENTS_TABLE} e2
+                 WHERE e2.user_id = e.user_id
+                   AND e2.conversation_id = e.conversation_id
+                   AND e2.workspace_name IS NOT NULL
+                   AND e2.workspace_name != ''
+                 ORDER BY e2.message_index DESC, e2.timestamp DESC
+                 LIMIT 1
+               ),
+               COALESCE(
+                 (
+                   SELECT r.revision_id
+                   FROM {CONVERSATION_REVISIONS_TABLE} r
+                   WHERE r.user_id = e.user_id
+                     AND r.conversation_id = e.conversation_id
+                   LIMIT 1
+                 ),
+                 (
+                   SELECT e2.revision_id
+                   FROM {CONVERSATION_EVENTS_TABLE} e2
+                   WHERE e2.user_id = e.user_id
+                     AND e2.conversation_id = e.conversation_id
+                   ORDER BY e2.message_index DESC, e2.timestamp DESC
+                   LIMIT 1
+                 )
+               ),
+               NULL,
+               NULL
+        FROM {CONVERSATION_EVENTS_TABLE} e
+        WHERE e.user_id = ?
+          AND e.conversation_id = ?
+        GROUP BY e.user_id, e.conversation_id
+        """, (user_id, conversation_id))
+    await cursor.execute(f"""
+        INSERT INTO {CONVERSATION_TURNS_TABLE}
+        (user_id, conversation_id, turn_ref, status, started_at, completed_at,
+         model_provider, model_id, user_event_id, assistant_event_id,
+         trace_count, tool_call_count, memory_retrieval_status)
+        SELECT e.user_id,
+               e.conversation_id,
+               e.turn_ref,
+               CASE
+                 WHEN SUM(CASE WHEN e.event_type = 'turn_error' THEN 1 ELSE 0 END) > 0
+                   THEN 'failed'
+                 WHEN SUM(CASE WHEN e.event_type = 'turn_completed' THEN 1 ELSE 0 END) > 0
+                   THEN 'completed'
+                 ELSE 'open'
+               END,
+               MIN(e.timestamp),
+               MAX(CASE WHEN e.event_type IN ('turn_completed', 'turn_error', 'turn_stopped') THEN e.timestamp ELSE NULL END),
+               NULL,
+               NULL,
+               MIN(CASE WHEN e.event_type = 'user_message' THEN e.id ELSE NULL END),
+               MAX(CASE WHEN e.event_type = 'assistant_message' THEN e.id ELSE NULL END),
+               SUM(CASE WHEN e.event_type = 'trace_event' THEN 1 ELSE 0 END),
+               SUM(CASE WHEN e.event_type = 'tool_call' THEN 1 ELSE 0 END),
+               MAX(CASE
+                 WHEN e.event_type = 'trace_event'
+                   AND json_valid(e.event_payload)
+                   AND json_extract(e.event_payload, '$.payload.path') = 'memory.retrieval'
+                 THEN json_extract(e.event_payload, '$.payload.status')
+                 ELSE NULL
+               END)
+        FROM {CONVERSATION_EVENTS_TABLE} e
+        WHERE e.user_id = ?
+          AND e.conversation_id = ?
+          AND e.turn_ref IS NOT NULL
+        GROUP BY e.user_id, e.conversation_id, e.turn_ref
+        """, (user_id, conversation_id))
 
 
 async def get_next_chat_event_index(
@@ -221,7 +700,7 @@ async def get_next_chat_event_index(
         await cursor.execute(
             f"""
             SELECT MAX(message_index)
-            FROM chat_events
+            FROM {CONVERSATION_EVENTS_TABLE}
             WHERE user_id = ? AND {clause}
             """,
             (user_id, *params),
@@ -277,8 +756,8 @@ async def append_chat_event(
 
     async with aiosqlite.connect(db_path) as conn:
         await conn.execute(
-            """
-            INSERT OR REPLACE INTO chat_events
+            f"""
+            INSERT OR REPLACE INTO {CONVERSATION_EVENTS_TABLE}
             (id, user_id, conversation_id, event_type, role, content, timestamp,
              message_index, revision_id, turn_ref, tool_name, correlation_id,
              workspace_path, workspace_name, producer, producer_event_id,
@@ -312,8 +791,8 @@ async def append_chat_event(
         )
         if isinstance(conversation_id, str) and conversation_id.strip() and revision_id:
             await conn.execute(
-                """
-                INSERT INTO chat_conversation_revisions
+                f"""
+                INSERT INTO {CONVERSATION_REVISIONS_TABLE}
                 (user_id, conversation_id, revision_id, updated_at)
                 VALUES (?, ?, ?, ?)
                 ON CONFLICT(user_id, conversation_id)
@@ -323,6 +802,9 @@ async def append_chat_event(
                 """,
                 (user_id, conversation_id, revision_id, normalized_timestamp),
             )
+        await _refresh_conversation_indexes(
+            conn, user_id=user_id, conversation_id=conversation_id
+        )
         await conn.commit()
 
     return {
@@ -387,7 +869,7 @@ async def get_chat_events(
         await cursor.execute(
             f"""
             SELECT *
-            FROM chat_events
+            FROM {CONVERSATION_EVENTS_TABLE}
             WHERE user_id = ? AND {clause}
             {pagination_clause}
             ORDER BY message_index ASC, timestamp ASC
@@ -415,7 +897,7 @@ async def list_chat_conversations(
             f"""
             WITH visible_events AS (
                 SELECT *
-                FROM chat_events
+                FROM {CONVERSATION_EVENTS_TABLE}
                 WHERE user_id = ?
                   AND conversation_id IS NOT NULL
                   AND event_type IN ({metadata_event_placeholders})
@@ -434,11 +916,11 @@ async def list_chat_conversations(
                      WHERE e.conversation_id = c.conversation_id
                    ) as last_timestamp,
                    (
-                     SELECT COUNT(*) FROM chat_events e
+                     SELECT COUNT(*) FROM {CONVERSATION_EVENTS_TABLE} e
                      WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
                    ) as entry_count,
                    (
-                     SELECT title FROM conversation_titles t
+                     SELECT title FROM {CONVERSATION_TITLES_TABLE} t
                      WHERE t.user_id = ?
                        AND t.conversation_id = c.conversation_id
                        AND t.title IS NOT NULL
@@ -465,19 +947,19 @@ async def list_chat_conversations(
                      LIMIT 1
                    ) as last_content,
                    (
-                     SELECT revision_id FROM chat_conversation_revisions r
+                     SELECT revision_id FROM {CONVERSATION_REVISIONS_TABLE} r
                      WHERE r.user_id = ?
                        AND r.conversation_id = c.conversation_id
                      LIMIT 1
                    ) as stored_revision_id,
                    (
-                     SELECT updated_at FROM chat_conversation_revisions r
+                     SELECT updated_at FROM {CONVERSATION_REVISIONS_TABLE} r
                      WHERE r.user_id = ?
                        AND r.conversation_id = c.conversation_id
                      LIMIT 1
                    ) as revision_updated_at,
                    (
-                     SELECT revision_id FROM chat_events e2
+                     SELECT revision_id FROM {CONVERSATION_EVENTS_TABLE} e2
                      WHERE e2.user_id = ?
                        AND e2.conversation_id = c.conversation_id
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
@@ -558,9 +1040,9 @@ async def get_chat_conversation_revision(
         conn.row_factory = aiosqlite.Row
         cursor = await conn.cursor()
         await cursor.execute(
-            """
+            f"""
             SELECT revision_id, updated_at
-            FROM chat_conversation_revisions
+            FROM {CONVERSATION_REVISIONS_TABLE}
             WHERE user_id = ? AND conversation_id = ?
             LIMIT 1
             """,
@@ -575,9 +1057,9 @@ async def get_chat_conversation_revision(
                 "record_kind": "chat_event",
             }
         await cursor.execute(
-            """
+            f"""
             SELECT revision_id, timestamp
-            FROM chat_events
+            FROM {CONVERSATION_EVENTS_TABLE}
             WHERE user_id = ? AND conversation_id = ?
             ORDER BY message_index DESC, timestamp DESC
             LIMIT 1
@@ -610,9 +1092,9 @@ async def search_chat_conversations(
         conn.row_factory = aiosqlite.Row
         cursor = await conn.cursor()
         await cursor.execute(
-            """
+            f"""
             SELECT conversation_id, MAX(timestamp) as last_timestamp, COUNT(*) as hit_count
-            FROM chat_events
+            FROM {CONVERSATION_EVENTS_TABLE}
             WHERE user_id = ?
               AND conversation_id IS NOT NULL
               AND LOWER(content) LIKE ?
@@ -651,14 +1133,28 @@ async def delete_chat_conversation(
         await conn.execute("BEGIN")
         try:
             await cursor.execute(
-                f"DELETE FROM chat_events WHERE user_id = ? AND {clause}",
+                f"DELETE FROM {CONVERSATION_EVENTS_TABLE} WHERE user_id = ? AND {clause}",
                 (user_id, *params),
             )
             deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
             if isinstance(conversation_id, str) and conversation_id.strip():
                 await cursor.execute(
-                    """
-                    DELETE FROM chat_conversation_revisions
+                    f"""
+                    DELETE FROM {CONVERSATION_REVISIONS_TABLE}
+                    WHERE user_id = ? AND conversation_id = ?
+                    """,
+                    (user_id, conversation_id),
+                )
+                await cursor.execute(
+                    f"""
+                    DELETE FROM {CONVERSATIONS_TABLE}
+                    WHERE user_id = ? AND conversation_id = ?
+                    """,
+                    (user_id, conversation_id),
+                )
+                await cursor.execute(
+                    f"""
+                    DELETE FROM {CONVERSATION_TURNS_TABLE}
                     WHERE user_id = ? AND conversation_id = ?
                     """,
                     (user_id, conversation_id),
@@ -685,7 +1181,7 @@ async def replace_chat_conversation(
         await conn.execute("BEGIN")
         try:
             await cursor.execute(
-                f"DELETE FROM chat_events WHERE user_id = ? AND {clause}",
+                f"DELETE FROM {CONVERSATION_EVENTS_TABLE} WHERE user_id = ? AND {clause}",
                 (user_id, *params),
             )
             deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
@@ -712,8 +1208,8 @@ async def replace_chat_conversation(
                     else index + 1
                 )
                 await conn.execute(
-                    """
-                    INSERT OR REPLACE INTO chat_events
+                    f"""
+                    INSERT OR REPLACE INTO {CONVERSATION_EVENTS_TABLE}
                     (id, user_id, conversation_id, event_type, role, content, timestamp,
                      message_index, revision_id, turn_ref, tool_name, correlation_id,
                      workspace_path, workspace_name, producer, producer_event_id,
@@ -775,8 +1271,8 @@ async def replace_chat_conversation(
                         )
                     )
                     await conn.execute(
-                        """
-                        INSERT INTO chat_conversation_revisions
+                        f"""
+                        INSERT INTO {CONVERSATION_REVISIONS_TABLE}
                         (user_id, conversation_id, revision_id, updated_at)
                         VALUES (?, ?, ?, ?)
                         ON CONFLICT(user_id, conversation_id)
@@ -793,13 +1289,16 @@ async def replace_chat_conversation(
                     )
                 else:
                     await conn.execute(
-                        """
-                        DELETE FROM chat_conversation_revisions
+                        f"""
+                        DELETE FROM {CONVERSATION_REVISIONS_TABLE}
                         WHERE user_id = ? AND conversation_id = ?
                         """,
                         (user_id, conversation_id),
                     )
 
+            await _refresh_conversation_indexes(
+                conn, user_id=user_id, conversation_id=conversation_id
+            )
             await conn.commit()
         except Exception:
             await conn.rollback()
@@ -830,7 +1329,7 @@ async def rewrite_chat_conversation_after_event(
             if isinstance(cut_after_event_id, str) and cut_after_event_id.strip():
                 await cursor.execute(
                     f"""
-                    SELECT message_index FROM chat_events
+                    SELECT message_index FROM {CONVERSATION_EVENTS_TABLE}
                     WHERE user_id = ? AND {clause} AND id = ?
                     """,
                     (user_id, *params, cut_after_event_id),
@@ -842,7 +1341,7 @@ async def rewrite_chat_conversation_after_event(
 
             await cursor.execute(
                 f"""
-                DELETE FROM chat_events
+                DELETE FROM {CONVERSATION_EVENTS_TABLE}
                 WHERE user_id = ? AND {clause} AND message_index > ?
                 """,
                 (user_id, *params, cutoff_index),
@@ -860,8 +1359,8 @@ async def rewrite_chat_conversation_after_event(
             )
             normalized_index = cutoff_index + 1
             await conn.execute(
-                """
-                INSERT OR REPLACE INTO chat_events
+                f"""
+                INSERT OR REPLACE INTO {CONVERSATION_EVENTS_TABLE}
                 (id, user_id, conversation_id, event_type, role, content, timestamp,
                  message_index, revision_id, turn_ref, tool_name, correlation_id,
                  workspace_path, workspace_name, producer, producer_event_id,
@@ -921,8 +1420,8 @@ async def rewrite_chat_conversation_after_event(
                         )
                     )
                     await conn.execute(
-                        """
-                        INSERT INTO chat_conversation_revisions
+                        f"""
+                        INSERT INTO {CONVERSATION_REVISIONS_TABLE}
                         (user_id, conversation_id, revision_id, updated_at)
                         VALUES (?, ?, ?, ?)
                         ON CONFLICT(user_id, conversation_id)
@@ -938,6 +1437,9 @@ async def rewrite_chat_conversation_after_event(
                         ),
                     )
 
+            await _refresh_conversation_indexes(
+                conn, user_id=user_id, conversation_id=conversation_id
+            )
             await conn.commit()
         except Exception:
             await conn.rollback()
@@ -951,11 +1453,19 @@ async def clear_chat_events(*, db_path: str, user_id: str) -> int:
         await conn.execute("BEGIN")
         try:
             await cursor.execute(
-                "DELETE FROM chat_events WHERE user_id = ?", (user_id,)
+                f"DELETE FROM {CONVERSATION_EVENTS_TABLE} WHERE user_id = ?", (user_id,)
             )
             deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
             await cursor.execute(
-                "DELETE FROM chat_conversation_revisions WHERE user_id = ?",
+                f"DELETE FROM {CONVERSATION_REVISIONS_TABLE} WHERE user_id = ?",
+                (user_id,),
+            )
+            await cursor.execute(
+                f"DELETE FROM {CONVERSATION_TURNS_TABLE} WHERE user_id = ?",
+                (user_id,),
+            )
+            await cursor.execute(
+                f"DELETE FROM {CONVERSATIONS_TABLE} WHERE user_id = ?",
                 (user_id,),
             )
             await conn.commit()

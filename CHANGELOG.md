@@ -70,6 +70,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/sdk/cli: move durable local conversation history from
+  `memory/episodic.db` chat tables into `history/history.db` conversation
+  tables, with legacy import, canonical `conversation.*` RPCs, and CLI fallback
+  to legacy rows until migration runs.
 - backend/prompts: replace the default model-facing prompt with a
   computer-native Windie companion identity and preserve the previous active
   prompt as a dated deprecated snapshot.

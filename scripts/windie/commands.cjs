@@ -110,6 +110,17 @@ function script(relativePath) {
 }
 
 function historyDatabasePath() {
+  const historyPath = path.join(
+    os.homedir(),
+    'Library',
+    'Application Support',
+    'desktop-assistant',
+    'history',
+    'history.db',
+  );
+  if (fs.existsSync(historyPath)) {
+    return historyPath;
+  }
   return path.join(
     os.homedir(),
     'Library',
@@ -118,6 +129,16 @@ function historyDatabasePath() {
     'memory',
     'episodic.db',
   );
+}
+
+function historyTableNames() {
+  const dbPath = historyDatabasePath();
+  const usingCanonicalHistory = dbPath.endsWith(path.join('history', 'history.db'));
+  return {
+    events: usingCanonicalHistory ? 'conversation_events' : 'chat_events',
+    revisions: usingCanonicalHistory ? 'conversation_revisions' : 'chat_conversation_revisions',
+    titles: 'conversation_titles',
+  };
 }
 
 function sqlString(value) {
@@ -185,6 +206,7 @@ function parseTraceRow(row, pathFilter = '') {
 }
 
 function loadTraceEvents({ conversationRef, turnRef = '', pathFilter = '', limit = 1000 }) {
+  const tables = historyTableNames();
   const where = [
     `conversation_id = ${sqlString(conversationRef)}`,
     "event_type = 'trace_event'",
@@ -197,7 +219,7 @@ function loadTraceEvents({ conversationRef, turnRef = '', pathFilter = '', limit
            timestamp AS timestamp,
            message_index AS messageIndex,
            turn_ref AS turnRef
-    FROM chat_events
+    FROM ${tables.events}
     WHERE ${where.join(' AND ')}
     ORDER BY message_index ASC, timestamp ASC
     LIMIT ${sqlLimit(limit, 1000)}
@@ -372,6 +394,7 @@ function runTrace(args) {
 }
 
 function loadConversationList(args) {
+  const tables = historyTableNames();
   const limit = sqlLimit(optionValue(args, '--limit', '25'), 25);
   return queryHistoryDatabase(`
     SELECT conversation_id AS conversationId,
@@ -384,12 +407,12 @@ function loadConversationList(args) {
            MAX(workspace_path) AS workspacePath,
            (
              SELECT title
-             FROM conversation_titles
-             WHERE conversation_titles.conversation_id = chat_events.conversation_id
+             FROM ${tables.titles}
+             WHERE ${tables.titles}.conversation_id = ${tables.events}.conversation_id
              ORDER BY updated_at DESC
              LIMIT 1
            ) AS title
-    FROM chat_events
+    FROM ${tables.events}
     WHERE conversation_id IS NOT NULL
     GROUP BY conversation_id
     ORDER BY updatedAt DESC
@@ -398,6 +421,7 @@ function loadConversationList(args) {
 }
 
 function loadConversationTurns(conversationRef) {
+  const tables = historyTableNames();
   return queryHistoryDatabase(`
     SELECT turn_ref AS turnRef,
            MIN(timestamp) AS startedAt,
@@ -410,7 +434,7 @@ function loadConversationTurns(conversationRef) {
              WHEN SUM(CASE WHEN event_type = 'turn_completed' THEN 1 ELSE 0 END) > 0 THEN 'completed'
              ELSE 'open'
            END AS status
-    FROM chat_events
+    FROM ${tables.events}
     WHERE conversation_id = ${sqlString(conversationRef)}
       AND turn_ref IS NOT NULL
     GROUP BY turn_ref
@@ -419,6 +443,7 @@ function loadConversationTurns(conversationRef) {
 }
 
 function loadConversationEvents(args, conversationRef) {
+  const tables = historyTableNames();
   const turnRef = optionValue(args, '--turn', '');
   const eventType = optionValue(args, '--type', '');
   const limit = sqlLimit(optionValue(args, '--limit', '200'), 200);
@@ -451,7 +476,7 @@ function loadConversationEvents(args, conversationRef) {
            attachments,
            event_payload AS eventPayload,
            compaction_checkpoint AS compactionCheckpoint
-    FROM chat_events
+    FROM ${tables.events}
     WHERE ${where.join(' AND ')}
     ORDER BY message_index ASC, timestamp ASC
     LIMIT ${limit}
@@ -459,6 +484,7 @@ function loadConversationEvents(args, conversationRef) {
 }
 
 function loadConversationInspect(conversationRef) {
+  const tables = historyTableNames();
   const overviewRows = queryHistoryDatabase(`
     SELECT conversation_id AS conversationId,
            MIN(timestamp) AS createdAt,
@@ -468,14 +494,14 @@ function loadConversationInspect(conversationRef) {
            SUM(CASE WHEN event_type = 'trace_event' THEN 1 ELSE 0 END) AS traceCount,
            MAX(workspace_name) AS workspaceName,
            MAX(workspace_path) AS workspacePath
-    FROM chat_events
+    FROM ${tables.events}
     WHERE conversation_id = ${sqlString(conversationRef)}
     GROUP BY conversation_id
   `);
   const eventTypeCounts = queryHistoryDatabase(`
     SELECT event_type AS eventType,
            COUNT(*) AS count
-    FROM chat_events
+    FROM ${tables.events}
     WHERE conversation_id = ${sqlString(conversationRef)}
     GROUP BY event_type
     ORDER BY count DESC, event_type ASC
@@ -484,7 +510,7 @@ function loadConversationInspect(conversationRef) {
     SELECT json_extract(event_payload, '$.payload.path') AS path,
            json_extract(event_payload, '$.payload.status') AS status,
            COUNT(*) AS count
-    FROM chat_events
+    FROM ${tables.events}
     WHERE conversation_id = ${sqlString(conversationRef)}
       AND event_type = 'trace_event'
       AND json_valid(event_payload)
@@ -497,14 +523,14 @@ function loadConversationInspect(conversationRef) {
            is_locked AS isLocked,
            created_at AS createdAt,
            updated_at AS updatedAt
-    FROM conversation_titles
+    FROM ${tables.titles}
     WHERE conversation_id = ${sqlString(conversationRef)}
     ORDER BY updated_at DESC
   `);
   const revisions = queryHistoryDatabase(`
     SELECT revision_id AS revisionId,
            updated_at AS updatedAt
-    FROM chat_conversation_revisions
+    FROM ${tables.revisions}
     WHERE conversation_id = ${sqlString(conversationRef)}
     ORDER BY updated_at DESC
   `);

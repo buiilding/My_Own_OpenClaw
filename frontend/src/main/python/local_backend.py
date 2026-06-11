@@ -192,24 +192,50 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         )
         self.protocol.register_method("store_chat_event", self._handle_store_chat_event)
         self.protocol.register_method(
+            "conversation.append_event", self._handle_store_chat_event
+        )
+        self.protocol.register_method(
             "list_chat_conversations", self._handle_list_chat_conversations
+        )
+        self.protocol.register_method(
+            "conversation.list", self._handle_list_chat_conversations
         )
         self.protocol.register_method(
             "search_chat_conversations", self._handle_search_chat_conversations
         )
+        self.protocol.register_method(
+            "conversation.search", self._handle_search_chat_conversations
+        )
         self.protocol.register_method("get_chat_events", self._handle_get_chat_events)
         self.protocol.register_method(
+            "conversation.load_events", self._handle_get_chat_events
+        )
+        self.protocol.register_method(
             "get_chat_conversation_revision",
+            self._handle_get_chat_conversation_revision,
+        )
+        self.protocol.register_method(
+            "conversation.get_revision",
             self._handle_get_chat_conversation_revision,
         )
         self.protocol.register_method(
             "delete_chat_conversation", self._handle_delete_chat_conversation
         )
         self.protocol.register_method(
+            "conversation.delete", self._handle_delete_chat_conversation
+        )
+        self.protocol.register_method(
             "replace_chat_conversation", self._handle_replace_chat_conversation
         )
         self.protocol.register_method(
+            "conversation.replace", self._handle_replace_chat_conversation
+        )
+        self.protocol.register_method(
             "rewrite_chat_conversation_after_event",
+            self._handle_rewrite_chat_conversation_after_event,
+        )
+        self.protocol.register_method(
+            "conversation.rewrite_after_event",
             self._handle_rewrite_chat_conversation_after_event,
         )
         self.protocol.register_method(
