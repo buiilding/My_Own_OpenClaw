@@ -15,7 +15,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 | Boundary | Owns | First files |
 | --- | --- | --- |
 | Hosted backend | Agent loop, providers, tool schemas, websocket events, SDK routes, OCR/vision/TTS/STT | `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services` |
-| Electron main | Windows, overlay orchestration, IPC relay, local config, permission probes, sidecar process lifecycle | `frontend/src/main` |
+| Electron main | Windows, overlay orchestration, IPC relay, local config, permission probes, SDK local-runtime host/status context | `frontend/src/main` |
 | React renderer | Dashboard, chat UI, response overlay UI, permissions UI, voice controls, projected tool state | `frontend/src/renderer` |
 | Python sidecar | Local executable tools, memory store, browser runtime, screenshots, shell/process execution | `frontend/src/main/python` |
 | Tests | Contract drift and runtime regressions | `tests/backend`, `tests/frontend`, `tests/sidecar` |

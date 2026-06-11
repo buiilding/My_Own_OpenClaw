@@ -306,7 +306,7 @@ Action:
   exit/error source of truth.
 - Created `frontend/src/main/local_backend_stop_controller.cjs` as the daemon
   shutdown and standalone process stop/force-kill source of truth.
-- Updated `frontend/src/main/local_backend_bridge.cjs` so it wires focused
+- Updated `frontend/src/main/sidecar/local_backend_bridge.cjs` so it wires focused
   modules instead of owning startup/env, stderr, process-event, and shutdown
   policy.
 - Updated focused tests under `tests/frontend` for launch planning, stderr

@@ -1,5 +1,5 @@
 ---
-summary: "Electron main process runtime: window orchestration, SDK runtime bridge, sidecar process bridge, and IPC contracts."
+summary: "Electron main process runtime: window orchestration, SDK runtime bridge, SDK local-runtime bridge, and IPC contracts."
 read_when:
   - When changing renderer/main IPC channels or backend bridge logic.
   - When debugging window overlays, wakeword bridge, SDK runtime connectivity, or backend connectivity.
@@ -98,7 +98,7 @@ Adds backend-facing context before query send:
 
 Module:
 
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 
 Responsibilities:
 

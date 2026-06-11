@@ -1,8 +1,0 @@
-You are doing detailed docs handling.
-
-Create detailed docs for backend and frontend functionality in WindieOS.
-Read existing docs first, then read backend and frontend code extensively, and
-add missing technical details.
-
-Create new docs or update existing docs as needed.
-Remember to make commits regularly.

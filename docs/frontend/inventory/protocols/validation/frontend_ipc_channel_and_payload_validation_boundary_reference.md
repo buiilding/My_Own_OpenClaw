@@ -23,7 +23,7 @@ Validation boundary sources:
 - Renderer typed channel/bridge checks: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Query content escaping and fallback handling: `frontend/src/main/query_payload_builder.cjs`
-- Local-backend RPC mapping utilities: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- Local-backend RPC mapping utilities: `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 
 ## Channel Validation Layers
 
@@ -147,7 +147,7 @@ High-risk drift points to monitor:
 | outbound websocket payload normalization | `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
 | handshake user-id sanitization | `frontend/src/main/ipc/ipc_runtime_helpers.cjs` (`generateUserId`) | avoids backend handshake rejects from invalid/unsafe user-id values |
 | query XML/context sanitization fallback | `frontend/src/main/query_payload_builder.cjs` | escapes XML-sensitive content and guarantees structured fallback blocks |
-| local-backend mapper compatibility transforms | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |
+| local-backend mapper compatibility transforms | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |
 
 ## Recompute Validation Surface Commands
 
@@ -164,7 +164,7 @@ Use these commands to refresh validation-surface counts:
 - JSON-RPC mapper definition count:
   - `python - <<'PY'`
   - `import pathlib,re`
-  - `text=pathlib.Path('frontend/src/main/local_backend_bridge_rpc_mappers.cjs').read_text()`
+  - `text=pathlib.Path('frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs').read_text()`
   - `print('compiled_rpc_handler_definitions', len(re.findall(r\"\\{\\s*channel:\", text)))`
   - `PY`
 

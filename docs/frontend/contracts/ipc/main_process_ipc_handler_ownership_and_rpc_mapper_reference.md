@@ -31,9 +31,9 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/agent_sudo_access_handler.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
-- `frontend/src/main/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`

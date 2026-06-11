@@ -25,7 +25,7 @@ Primary modules:
 - `frontend/src/main/chat_pill_trace_runtime.cjs`
 - `frontend/src/main/window_suppression_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/*`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`

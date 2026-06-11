@@ -19,7 +19,7 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 | provider/capability | missing model/tool/search, provider unavailable, circuit breaker | backend provider/config/capability policy |
 | stream transport | events emitted but UI stale, stale turn, missing settings ACK | backend websocket, SDK runtime adapter, renderer event consumer |
 | IPC/preload | invalid channel, missing `window.ipc`, renderer cannot invoke main | preload/channel allowlist and Electron main IPC |
-| sidecar process | readiness timeout, stdout contamination, import failure | Electron main local backend bridge and Python sidecar entrypoint |
+| sidecar process | readiness timeout, stdout contamination, import failure | SDK local runtime, Electron launch-option helper, and Python sidecar entrypoint |
 | local tool execution | tool called but OS action fails | SDK runtime tool router, Electron bridge, sidecar tool registry/tool |
 | platform/permission | one OS fails, permission stuck, screenshots include UI | Electron permission/platform policy, sidecar platform adapter |
 | packaging/runtime | source works but installed app fails | Electron Builder config, bundled Python runtime, reinstall helpers |

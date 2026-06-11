@@ -36,7 +36,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `useBrowserSessionControl.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permission_service_browser.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Browser file or download behavior | Sidecar browser file store and Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
-| Browser execution bridge timeout/result shape | SDK/main local backend bridge and sidecar browser execution | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_timeout_policy.cjs` | `tests/frontend/WindieSdkDesktopAgent.test.ts`, `tests/frontend/WindieSdkDesktopAgent.test.ts`, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Browser execution bridge timeout/result shape | SDK local-runtime bridge and sidecar browser execution | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | `tests/frontend/WindieSdkDesktopAgent.test.ts`, `tests/frontend/WindieSdkDesktopAgent.test.ts`, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 
 ## End-to-End Action Flow
 
@@ -46,7 +46,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 4. Backend validation accepts or rejects the action before dispatch.
 5. SDK/main tool routing receives the remote tool call and invokes the local
    execute-tool runtime directly.
-6. Electron main normalizes/relays `execute_tool` to the Python sidecar local backend.
+6. SDK local runtime invokes the Python sidecar executable tool path, with Electron main supplying display/window context.
 7. Sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
 9. `BrowserUseEngineRuntime.execute()` maps the canonical action to Browser Use CLI daemon commands.

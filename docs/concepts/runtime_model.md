@@ -15,7 +15,7 @@ WindieOS is a desktop AI operator with a hosted backend, an Electron desktop app
 | Runtime | Owns | Main code |
 | --- | --- | --- |
 | Hosted FastAPI backend | Agent loop, prompt construction, LLM providers, model-facing tool schema, websocket/REST contracts, OCR/vision/embedding/TTS services, SDK and run-control APIs | `backend/src` |
-| Electron main process | Window lifecycle, overlay surfaces, SDK-runtime adaptation, local config, permission probes, sidecar process supervision, local JSON-RPC bridge | `frontend/src/main` |
+| Electron main process | Window lifecycle, overlay surfaces, SDK-runtime adaptation, local config, permission probes, SDK local-runtime host/status context | `frontend/src/main` |
 | React renderer | Dashboard, chat UI, minimal pill, response overlay, settings, permissions, voice controls, and tool-result projections | `frontend/src/renderer` |
 | Preload | Strict renderer IPC exposure and channel allowlist | `frontend/src/preload.js` |
 | Python sidecar | Local executable tools, browser automation, shell/filesystem/computer actions, local memory, system state, wakeword service | `frontend/src/main/python` |

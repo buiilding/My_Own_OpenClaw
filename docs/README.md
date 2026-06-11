@@ -6,7 +6,7 @@ read_when:
 
 # Desktop Assistant Documentation
 
-Welcome to the comprehensive documentation for the Desktop Assistant project. This documentation covers all aspects of the system, from high-level architecture to detailed implementation guides.
+Welcome to the comprehensive documentation for WindieOS. This documentation covers all aspects of the system, from high-level architecture to detailed implementation guides.
 
 ## 📚 Documentation Index
 

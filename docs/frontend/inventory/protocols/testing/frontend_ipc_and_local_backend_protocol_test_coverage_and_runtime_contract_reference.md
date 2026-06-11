@@ -21,7 +21,7 @@ Primary runtime modules:
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
@@ -58,7 +58,7 @@ Primary protocol tests:
 | outbound payload normalization | `normalizeBackendPayload` + `ipc_backend_payload_contract.cjs` | backend websocket contract tests and screenshot-strip tests | known command payloads are filtered to backend contract keys; client-supplied `screenshot_url` is removed from outbound `query` payload while keeping `screenshot_ref` |
 | query-context enrichment + escaping | `buildQueryPayloadContent` (`query_payload_builder.cjs`) | `QueryPayloadBuilder.test.cjs` + xml/escape tests in `IpcMainBridge.query.test.cjs` | system context + memories merged into XML-like content; XML-sensitive values escaped; fallback context/memory blocks used on upstream failure |
 | conversation-ref fallback lifecycle | `currentConversationRef` handling (`ipc.cjs`) | conversation-ref tests in `IpcMainBridge.query.test.cjs` | backend-streamed `conversation_ref` backfills local echo + outbound query; reconnect clears stale fallback before next turn |
-| local backend process lifecycle safety | process state/reset + readiness tokening (`local_backend_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | in-flight RPCs resolve with standardized errors on exit/error; stale readiness timers from old process generations do not clobber new process state |
+| SDK local-runtime readiness safety | runtime state/reset + readiness status (`local_backend_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | local-runtime provider failures resolve with standardized errors; stale status snapshots do not clobber current runtime state |
 | local backend RPC shape mapping | handler registration + mapper utilities (`local_backend_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
 | overlay IPC registrar ownership boundary | `overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` | overlay phase module registers only overlay-owned channels (`set-responsebox-size`, `set-chatbox-visual-anchor-height`, `show-chatbox`, `hide-chatbox`, `move-chatbox-to`) and does not own deprecated focus/interactivity channels |
 | window-control IPC registrar + display mapping | `window_controls_ipc_runtime.cjs`, `display_query_handler.cjs` | `WindowControlsIpcRuntime.test.cjs`, `DisplayQueryHandler.test.cjs` | `show-main-window` normalization/route emit stays in window-control module; display inventory payload is mapped to stable `{ id, label, isPrimary, bounds, scaleFactor }` |
@@ -84,7 +84,7 @@ Primary protocol tests:
 | permission/sudo IPC runtime channel ownership | `frontend/src/main/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
-| local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
+| local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/sidecar/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
 
 ## Renderer IPC Validation Contract
 

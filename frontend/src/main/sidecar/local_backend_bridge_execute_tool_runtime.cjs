@@ -63,7 +63,7 @@ function createLocalBackendExecuteToolRuntime({
   platform = process.platform,
   executeLocalMcpTool = executeMcpTool,
   hasLocalMcpTool = hasDiscoveredMcpTool,
-  sidecarDaemonClient = null,
+  sdkLocalToolExecutor = null,
 } = {}) {
   function resolveDisplayBounds(event) {
     return resolveScreenshotToolDisplayBounds({
@@ -91,8 +91,8 @@ function createLocalBackendExecuteToolRuntime({
   }
 
   async function runExecuteToolRequest(toolName, normalizedArgs, timeoutMs) {
-    if (sidecarDaemonClient && typeof sidecarDaemonClient.executeTool === 'function') {
-      return sidecarDaemonClient.executeTool({
+    if (sdkLocalToolExecutor && typeof sdkLocalToolExecutor.executeTool === 'function') {
+      return sdkLocalToolExecutor.executeTool({
         toolName,
         args: normalizedArgs,
         timeoutMs,
@@ -177,9 +177,9 @@ function createLocalBackendExecuteToolRuntime({
           },
           { timeoutMs: DEFAULT_REQUEST_TIMEOUT_MS },
         );
-        const runDaemonTool = () => (
-          sidecarDaemonClient && typeof sidecarDaemonClient.executeTool === 'function'
-            ? sidecarDaemonClient.executeTool({
+        const runSdkScreenshotTool = () => (
+          sdkLocalToolExecutor && typeof sdkLocalToolExecutor.executeTool === 'function'
+            ? sdkLocalToolExecutor.executeTool({
                 toolName: 'screenshot',
                 args: {
                   explanation: 'Screen capture permission verification',
@@ -191,7 +191,7 @@ function createLocalBackendExecuteToolRuntime({
         );
         const result = await withHiddenWindowForScreenshot({
           platform,
-          task: runDaemonTool,
+          task: runSdkScreenshotTool,
           resolveWindows,
           resolveChatWindow,
           resolveResponseWindow,

@@ -336,13 +336,13 @@ frontend/src/renderer/
        └─> SDK main runtime receives event
            ↓
 2. SDK LOCAL EXECUTION
-   └─> frontend/src/main/windie_agent_host.cjs
+   └─> packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts
        ├─> Route single tool or bundle to local runtime adapter
        ├─> Preserve request_id / bundle_id / tool_call_id
        └─> Send tool-result or tool-bundle-result back to backend
            ↓
 3. SIDECAR EXECUTION
-   └─> Electron main → Python sidecar daemon
+   └─> SDK local runtime → Python sidecar daemon
        ├─> Execute filesystem/shell/browser/computer-use/MCP/plugin tools
        └─> Return normalized local result to SDK runtime
            ↓

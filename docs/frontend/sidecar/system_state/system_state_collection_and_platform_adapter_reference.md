@@ -17,7 +17,7 @@ title: "System-State Collection and Platform Adapter Reference"
 - `frontend/src/main/python/core/platform/linux.py`
 - `frontend/src/main/python/core/system_metrics.py`
 - `frontend/src/main/python/local_backend.py`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 
 ## End-to-End Path

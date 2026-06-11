@@ -42,8 +42,8 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 
 ## Session Identity Model (Renderer)
 

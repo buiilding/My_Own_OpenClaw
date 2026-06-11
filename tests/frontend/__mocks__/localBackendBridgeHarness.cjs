@@ -137,7 +137,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     localRuntimeProvider: sdkRuntimeProvider,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
-    sidecarDaemonClient: options.sidecarDaemonClient,
+    sdkLocalToolExecutor: options.sdkLocalToolExecutor,
   });
   return {
     mainWindow,

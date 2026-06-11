@@ -22,7 +22,7 @@ Keep these nodes separate when developing. They run on the user's machine, but e
 
 | Local process | Owns | Does not own |
 | --- | --- | --- |
-| Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, sidecar process lifecycle | React component state, backend route implementation, hosted backend websocket policy, sidecar tool internals |
+| Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, local-runtime host/status context | React component state, backend route implementation, hosted backend websocket policy, sidecar tool internals |
 | Renderer | dashboard/chat/overlay UI, stream projection, transcript state, settings forms, voice UI, display-only tool state | direct filesystem/shell access, backend auth enforcement, native window authority, backend tool-result delivery |
 | Preload | narrow `window.ipc` bridge and channel allowlist | feature policy, backend schemas, broad Node.js access |
 | Python sidecar | local executable tools, local memory, browser runtime, system state, shell/filesystem/computer actions | model-facing tool schemas, websocket route validation, renderer UI |
@@ -39,8 +39,8 @@ Start with these files when local orchestration changes:
 - `frontend/src/main/ipc.cjs`: SDK-runtime adaptation, query dispatch, renderer fanout, session/config state.
 - `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`: starts the SDK desktop agent and supplies Electron's SDK local-runtime client.
 - `frontend/src/main/ipc/**`: narrower IPC modules.
-- `frontend/src/main/local_backend_bridge.cjs`: sidecar process bridge.
-- `frontend/src/main/local_backend_bridge_*`: sidecar request mapping, timeout, screenshot, bounds, and tool-argument helpers.
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`: SDK local-runtime host/status bridge.
+- `frontend/src/main/sidecar/local_backend_bridge_*`: local-runtime request mapping, timeout, screenshot, bounds, and tool-argument helpers.
 - `frontend/src/main/backend_endpoints.cjs`: hosted backend endpoint selection.
 - `frontend/src/main/permission_*`: OS permission probes and grant effects.
 - `frontend/src/main/wakeword_bridge*.cjs`: wakeword subprocess bridge.

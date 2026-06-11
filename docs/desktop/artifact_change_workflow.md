@@ -100,9 +100,9 @@ Use this path when artifact upload/fetch crosses the desktop IPC boundary or nee
 Primary files:
 
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
-- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 
 Validation:

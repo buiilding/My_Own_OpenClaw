@@ -34,8 +34,8 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 | Runtime | Owns | Does not own |
 | --- | --- | --- |
 | hosted backend | agent loop, providers, model-facing tool schema, route auth, websocket events, OCR/vision/embedding/TTS services, artifacts, SDK/runs APIs | local mouse/keyboard/files/processes, Electron windows, local permissions |
-| Electron main | desktop window lifecycle, overlay orchestration, SDK runtime adaptation, endpoint selection, local config, permission probes, sidecar process supervision | model-facing prompt/tool policy, hosted backend websocket primitives, sidecar tool implementation |
-| React renderer | dashboard/chat UI, stream presentation, settings UI, onboarding, transcript queue, SDK projection rendering | OS permission probing, backend route auth, sidecar process lifecycle, tool execution orchestration |
+| Electron main | desktop window lifecycle, overlay orchestration, SDK runtime adaptation, endpoint selection, local config, permission probes, local-runtime host/status context | model-facing prompt/tool policy, hosted backend websocket primitives, sidecar tool implementation |
+| React renderer | dashboard/chat UI, stream presentation, settings UI, onboarding, transcript queue, SDK projection rendering | OS permission probing, backend route auth, local-runtime lifecycle, tool execution orchestration |
 | preload | constrained renderer IPC exposure and channel allowlist | business logic, backend transport, local execution |
 | Python sidecar | local tool execution, browser automation runtime, local memory storage, system state, wakeword service process | backend agent loop, model provider selection, renderer UI |
 | VM worker mode | hosted run polling and dispatch into normal query path | normal desktop user interaction model |

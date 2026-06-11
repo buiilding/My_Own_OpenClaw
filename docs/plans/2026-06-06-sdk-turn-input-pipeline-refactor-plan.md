@@ -167,7 +167,7 @@ rows/current-turn projections.
 The implementation should reuse, not duplicate:
 
 - `read-attachment-file` local tool path in
-  `frontend/src/main/local_backend_bridge.cjs`.
+  `frontend/src/main/sidecar/local_backend_bridge.cjs`.
 - `capture-screenshot-attachment` local tool path in the same bridge.
 - artifact upload behavior behind `upload-artifact` /
   `frontend/src/main/ipc/ipc_artifact_handlers.cjs`.

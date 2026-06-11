@@ -288,7 +288,7 @@ When resuming after context compaction, read these first before coding:
 
 Then inspect live code rather than relying on prior chat:
 
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_status_broadcaster.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/shared/ipcChannels.json`

@@ -16,7 +16,7 @@ title: "Main Window Runtime Factory and Overlay Bootstrap Reference"
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/overlay_topmost_runtime.cjs`
 - `tests/frontend/MainWindowRuntime.test.cjs`
 - `tests/frontend/MainWindowIconRuntime.test.cjs`

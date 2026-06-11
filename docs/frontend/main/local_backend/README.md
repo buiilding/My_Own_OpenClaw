@@ -1,7 +1,7 @@
 ---
-summary: "Frontend Electron-main local-backend docs sub-hub for sidecar process lifecycle, readiness retries, request correlation timeouts, and mapped JSON-RPC handler contracts."
+summary: "Frontend Electron-main local-backend docs sub-hub for SDK local-runtime host/status context, readiness, request correlation timeouts, and mapped JSON-RPC handler contracts."
 read_when:
-  - When changing `frontend/src/main/local_backend_bridge*.cjs` request routing, readiness probes, or sidecar IPC handler registration.
+  - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` request routing, readiness probes, or sidecar IPC handler registration.
   - When debugging pending-request timeouts, stale readiness callbacks, or renderer invoke payload mapping drift.
 title: "Frontend Main Local-Backend Docs Hub"
 ---
@@ -36,13 +36,13 @@ title: "Frontend Main Local-Backend Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_display_bounds.cjs`
-- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
-- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
-- `frontend/src/main/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/local_backend_bridge_utils.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`

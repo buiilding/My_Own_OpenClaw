@@ -20,8 +20,8 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`

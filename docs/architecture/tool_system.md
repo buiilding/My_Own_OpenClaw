@@ -217,7 +217,7 @@ Tool calls are sent by the agent tool sender. Execution now has two lanes:
 
 1. SDK runtime receives and normalizes the backend `tool-call` or `tool-bundle`.
 2. `ToolExecutionCoordinator` claims executable local events and calls the SDK local-runtime client.
-3. Electron main routes the local call to the Python sidecar daemon/tool bridge.
+3. SDK local runtime routes the local call to the Python sidecar daemon/tool bridge, with Electron main supplying host context.
 4. Python sidecar executes the tool, including screenshot/system-state capture when required by the executable tool.
 5. SDK runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend and appends the normalized tool output event for display/projection.
 

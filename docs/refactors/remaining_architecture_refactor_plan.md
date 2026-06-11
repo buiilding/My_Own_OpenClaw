@@ -225,19 +225,19 @@ layers unless a verified external dependency requires one.
   Validation: Main IPC tests, query dispatch tests, frontend config tests, and
   Electron smoke launch.
 
-- [ ] Split the local backend bridge into process, transport, RPC, and status
+- [ ] Split the local backend bridge into RPC mapping, host context, and status
   ownership.
 
-  Issue: The sidecar/local backend bridge still carries process supervision,
-  JSON-RPC transport, request routing, tool host behavior, and status broadcast
-  logic in one large module.
+  Issue: The sidecar/local backend bridge still carries SDK local-runtime host
+  context, request routing, tool host behavior, and status broadcast logic in
+  one large module.
 
-  Owner: Electron main owns sidecar supervision and bridge transport. Sidecar
-  owns execution/storage. SDK/local runtime owns reusable client-side local
-  runtime behavior.
+  Owner: Electron main owns host context and status consumers. Sidecar owns
+  execution/storage. SDK/local runtime owns reusable client-side local runtime
+  lifecycle and transport behavior.
 
-  Implement: Split process lifecycle, JSON-RPC client transport, RPC method
-  mapping, tool host adapter, and status broadcasting into focused modules.
+  Implement: Split RPC method mapping, tool host adapter, launch-option
+  assembly, and status broadcasting into focused modules.
 
   Delete: Remove catch-all bridge helper functions once their behavior is owned
   by the extracted modules.

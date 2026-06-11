@@ -30,7 +30,7 @@ For browser changes that can cross schema, sidecar runtime, Electron bridge, ren
 - Sidecar tool entrypoint: `frontend/src/main/python/tools/browser/browser_tool.py`
 - Shared browser contract: `frontend/src/main/python/windie_shared/browser_contract*`
 - Renderer browser UI: `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`
-- Main bridge mapping: `frontend/src/main/local_backend_bridge*.cjs`
+- Main bridge mapping: `frontend/src/main/sidecar/local_backend_bridge*.cjs`
 
 Backend schema re-exports load the shared browser contract from its explicit
 `windie_shared` package path and must not prepend `frontend/src/main/python` to

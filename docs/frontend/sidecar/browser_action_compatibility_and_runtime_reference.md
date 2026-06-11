@@ -10,7 +10,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`

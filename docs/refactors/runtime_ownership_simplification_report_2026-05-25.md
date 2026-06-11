@@ -254,7 +254,7 @@ Success criteria covered:
 Verification:
 
 - `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js LocalBackendReadinessRuntime LocalBackendStdoutTransport LocalBackendRpcTransport LocalBackendBridgeRpcMappers LocalBackendStatusBroadcaster LocalBackendBridge.lifecycle LocalBackendBridge.rpc SidecarDaemonManager --runInBand` - pass
-- `rg -n "stdout\.on\('data'|readinessCheck|stdoutBuffer|pendingStdoutLines|isDrainingStdoutLines|shouldOffloadJsonParse|parseJsonInWorker|source\.userQuery|source\.assistantResponse|source\.memoryType|source\.userId|source\.sessionId|sidecarDaemonManager\s*&&\s*typeof sidecarDaemonManager\.rpc" frontend/src/main/local_backend_bridge.cjs -S` - pass, no matches
+- `rg -n "stdout\.on\('data'|readinessCheck|stdoutBuffer|pendingStdoutLines|isDrainingStdoutLines|shouldOffloadJsonParse|parseJsonInWorker|source\.userQuery|source\.assistantResponse|source\.memoryType|source\.userId|source\.sessionId|sidecarDaemonManager\s*&&\s*typeof sidecarDaemonManager\.rpc" frontend/src/main/sidecar/local_backend_bridge.cjs -S` - pass, no matches
 
 ### Frontend/Backend Websocket Command Contract Tests
 

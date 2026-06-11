@@ -17,7 +17,7 @@ title: "System-State Probe Layer and Window-Manager Adapter Boundary Reference"
 - `frontend/src/main/python/core/platform/macos.py`
 - `frontend/src/main/python/core/platform/linux.py`
 - `frontend/src/main/python/tools/system/window_tool.py`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 
 ## Two Platform Layers, Different Responsibilities
 

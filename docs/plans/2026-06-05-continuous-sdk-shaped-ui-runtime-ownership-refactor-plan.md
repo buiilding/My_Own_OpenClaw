@@ -79,7 +79,7 @@ The initial inspection for this plan ran:
 ./bin/docs-list
 git status --short --branch
 git log --oneline -8 -- frontend/src/renderer/app/runtime frontend/src/renderer/infrastructure/transcript frontend/src/main/ipc.cjs packages/windie-sdk-js/src/runtime packages/windie-sdk-js/src/stores docs/plans
-rg -n "IpcBridge\\.invoke\\(|window\\.ipc|window\\.windie|windie\\.invoke|invokeWindieCommand|INVOKE_CHANNELS\\.|WINDIE_SEND|WINDIE_STOP|WINDIE_REHYDRATE|WINDIE_COMPACT_HISTORY|CLEAR_LOCAL_MEMORY|CLEAR_CHAT_HISTORY|LIST_CHAT_CONVERSATIONS|GET_CHAT_EVENTS|DesktopLiveTurnRuntimeClient|DesktopConversationLibraryClient|DesktopTranscriptProjectionRuntimeClient|DesktopConversationContinuityService|localConversationStore|sdkSidecarConversationStore" frontend/src/renderer frontend/src/preload.js frontend/src/main/ipc.cjs frontend/src/main/local_backend_bridge_rpc_mappers.cjs frontend/src/shared/ipcChannels.json packages/windie-sdk-js/src
+rg -n "IpcBridge\\.invoke\\(|window\\.ipc|window\\.windie|windie\\.invoke|invokeWindieCommand|INVOKE_CHANNELS\\.|WINDIE_SEND|WINDIE_STOP|WINDIE_REHYDRATE|WINDIE_COMPACT_HISTORY|CLEAR_LOCAL_MEMORY|CLEAR_CHAT_HISTORY|LIST_CHAT_CONVERSATIONS|GET_CHAT_EVENTS|DesktopLiveTurnRuntimeClient|DesktopConversationLibraryClient|DesktopTranscriptProjectionRuntimeClient|DesktopConversationContinuityService|localConversationStore|sdkSidecarConversationStore" frontend/src/renderer frontend/src/preload.js frontend/src/main/ipc.cjs frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs frontend/src/shared/ipcChannels.json packages/windie-sdk-js/src
 ```
 
 Preliminary gaps to inspect and classify before implementation:

@@ -46,29 +46,29 @@ let runtimeExecuteTool = async () => ({
   success: false,
   error: 'Local backend bridge is not initialized.',
 });
-const localBackendSupervisor = createLocalBackendSupervisor();
+const localRuntimeStatusSupervisor = createLocalBackendSupervisor();
 let sdkLocalRuntimeProvider = null;
 let sdkLocalRuntime = null;
 let sdkLocalRuntimeEventUnsubscribe = null;
 let sdkLocalRuntimeEventHandler = null;
-let sdkSidecarSnapshot = null;
-let daemonBackendProcessRef = null;
+let sdkLocalRuntimeSnapshot = null;
+let localRuntimeSessionRef = null;
 let sdkStatusMainWindow = null;
 
 function markBackendReady(mainWindow) {
-  localBackendSupervisor.markReady();
+  localRuntimeStatusSupervisor.markReady();
   sendLocalBackendStatus(mainWindow, {
     ready: true,
   });
 }
 
-function clearDaemonRuntime() {
+function clearSdkLocalRuntime() {
   sdkLocalRuntimeEventUnsubscribe?.();
   sdkLocalRuntimeEventUnsubscribe = null;
   sdkLocalRuntime = null;
   sdkLocalRuntimeProvider = null;
-  sdkSidecarSnapshot = null;
-  daemonBackendProcessRef = null;
+  sdkLocalRuntimeSnapshot = null;
+  localRuntimeSessionRef = null;
   sdkStatusMainWindow = null;
 }
 
@@ -103,17 +103,17 @@ async function ensureSdkLocalRuntime() {
     throw new Error('Windie SDK local runtime provider did not return a runtime.');
   }
   sdkLocalRuntime = runtime;
-  sdkSidecarSnapshot = {
+  sdkLocalRuntimeSnapshot = {
     provider: 'sdk',
     hasClient: true,
-    ...(sdkSidecarSnapshot?.discoveryPath ? { discoveryPath: sdkSidecarSnapshot.discoveryPath } : {}),
+    ...(sdkLocalRuntimeSnapshot?.discoveryPath ? { discoveryPath: sdkLocalRuntimeSnapshot.discoveryPath } : {}),
   };
   attachSdkLocalRuntimeEvents(runtime);
-  if (!daemonBackendProcessRef) {
-    daemonBackendProcessRef = { kind: 'sdk-sidecar-daemon' };
-    localBackendSupervisor.attachProcess(daemonBackendProcessRef);
+  if (!localRuntimeSessionRef) {
+    localRuntimeSessionRef = { kind: 'sdk-local-runtime' };
+    localRuntimeStatusSupervisor.attachProcess(localRuntimeSessionRef);
   }
-  if (sdkStatusMainWindow && daemonBackendProcessRef) {
+  if (sdkStatusMainWindow && localRuntimeSessionRef) {
     markBackendReady(sdkStatusMainWindow);
   }
   return runtime;
@@ -171,8 +171,8 @@ function stopLocalBackend() {
   if (sdkLocalRuntime && typeof sdkLocalRuntime.shutdown === 'function') {
     void sdkLocalRuntime.shutdown();
   }
-  clearDaemonRuntime();
-  localBackendSupervisor.clear({
+  clearSdkLocalRuntime();
+  localRuntimeStatusSupervisor.clear({
     status: 'stopped',
     error: '',
   });
@@ -225,20 +225,20 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   );
   if (options.localRuntimeProvider) {
     sdkLocalRuntimeProvider = options.localRuntimeProvider;
-    sdkSidecarSnapshot = {
+    sdkLocalRuntimeSnapshot = {
       provider: 'sdk',
       hasClient: false,
     };
   } else if (sidecarLaunchPlan?.ok === true) {
     sdkLocalRuntimeProvider = createWindieLocalRuntimeProvider(sidecarLaunchPlan.options);
-    sdkSidecarSnapshot = {
+    sdkLocalRuntimeSnapshot = {
       provider: 'sdk',
       hasClient: false,
       discoveryPath: sidecarLaunchPlan.options.discoveryFile || null,
     };
   } else {
     sdkLocalRuntimeProvider = null;
-    sdkSidecarSnapshot = sidecarLaunchPlan && sidecarLaunchPlan.ok === false
+    sdkLocalRuntimeSnapshot = sidecarLaunchPlan && sidecarLaunchPlan.ok === false
       ? {
           provider: 'sdk',
           hasClient: false,
@@ -246,7 +246,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
         }
       : null;
   }
-  const sidecarDaemonClient = options.sidecarDaemonClient || (
+  const sdkLocalToolExecutor = options.sdkLocalToolExecutor || (
     sdkLocalRuntimeProvider
       ? {
           executeTool: async (payload) => {
@@ -268,13 +268,13 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     resolveChatWindow,
     resolveMainWindow,
     resolveResponseWindow,
-    sidecarDaemonClient,
+    sdkLocalToolExecutor,
   });
 
   const [mainWindow] = resolveWindows();
   sdkStatusMainWindow = mainWindow;
   if (sdkLocalRuntimeProvider) {
-    localBackendSupervisor.clear({
+    localRuntimeStatusSupervisor.clear({
       status: 'stopped',
       error: '',
     });
@@ -318,8 +318,8 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     });
   });
   ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload({
-    supervisor: localBackendSupervisor,
-    sidecarDaemonSnapshot: sdkSidecarSnapshot,
+    supervisor: localRuntimeStatusSupervisor,
+    localRuntimeSnapshot: sdkLocalRuntimeSnapshot,
   }));
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();

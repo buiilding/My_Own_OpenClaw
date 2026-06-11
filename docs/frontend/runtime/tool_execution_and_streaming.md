@@ -36,7 +36,7 @@ Current execution modules:
 - `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/**`
 
 Runtime path:

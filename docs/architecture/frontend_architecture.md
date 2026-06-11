@@ -15,7 +15,7 @@ See also: [Frontend Functionality Map](../frontend/README.md) and [Frontend Full
 WindieOS frontend is a multi-runtime desktop stack:
 
 1. Renderer (React): UX state, chat/dashboard surfaces, tool-stream rendering.
-2. Main process (Electron/Node): window lifecycle, thin SDK customer wiring, sidecar process bridge, wakeword subprocess bridge.
+2. Main process (Electron/Node): window lifecycle, thin SDK customer wiring, SDK local-runtime bridge, wakeword subprocess bridge.
 3. Preload boundary: allowlisted IPC bridge (`window.ipc`) between renderer and main.
 4. Sidecar (Python): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
 
@@ -23,7 +23,7 @@ WindieOS frontend is a multi-runtime desktop stack:
 
 - End users install one OS-specific WindieOS package (Windows/macOS/Linux).
 - Packaged app ships bundled Python sidecar runtime; no system Python prerequisite.
-- Frontend main process starts sidecar/wakeword from bundled runtime paths and reports clear reinstall errors when runtime assets are missing.
+- SDK local runtime starts/reuses the sidecar from bundled runtime paths; Electron main still starts wakeword and reports clear reinstall errors when runtime assets are missing.
 - Bundled runtime is expected to include:
   - wakeword model assets
   - browser Python dependencies

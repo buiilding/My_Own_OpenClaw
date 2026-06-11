@@ -40,7 +40,7 @@ routing slices are implemented and validated.
 - `frontend/src/renderer/infrastructure/transcript/sdkSidecarConversationStore.ts`
   maps SDK store RPC methods to sidecar-shaped IPC. This remains intentionally
   internal because it implements the SDK store adapter boundary.
-- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` still registers
+- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs` still registers
   sidecar-shaped memory and conversation channels. They remain internal during
   this plan for SDK local-runtime/store adapters, not renderer feature API.
 - SDK public APIs already exist for memory list/delete and conversation

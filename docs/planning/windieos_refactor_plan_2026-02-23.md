@@ -183,16 +183,16 @@ read_when:
 
 - Frontend main screenshot-bridge/helper extraction and chat-pill no-op runtime dedupe (2026-03-07):
   - extracted screenshot display-bound resolution from:
-    - `frontend/src/main/local_backend_bridge.cjs`
-    - into `frontend/src/main/local_backend_bridge_display_bounds.cjs`.
+    - `frontend/src/main/sidecar/local_backend_bridge.cjs`
+    - into `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`.
   - extracted screenshot temp-path artifact materialization/inline fallback from:
-    - `frontend/src/main/local_backend_bridge.cjs`
-    - into `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`.
+    - `frontend/src/main/sidecar/local_backend_bridge.cjs`
+    - into `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`.
   - deduplicated identical Windows/macOS chat-pill no-op capture runtimes into:
     - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/noop.ts`.
   - trimmed low-risk internal/test-only exports flagged by `knip` in display-affinity, IPC debug-trace, screenshot pipeline, and session/query screenshot helpers.
   - result:
-    - `frontend/src/main/local_backend_bridge.cjs` reduced from `835` LOC to `694` LOC.
+    - `frontend/src/main/sidecar/local_backend_bridge.cjs` reduced from `835` LOC to `694` LOC.
     - frontend `jscpd` reduced to `0` TypeScript/JavaScript clones; remaining clones are only in unrelated dirty backend Python files outside this slice.
   - regression coverage:
     - added `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`.
@@ -1061,7 +1061,7 @@ read_when:
   - extract shared runtime helper for Python executable path resolution into:
     - `frontend/src/main/runtime_paths.cjs`
   - reuse helper from:
-    - `frontend/src/main/local_backend_bridge.cjs`
+    - `frontend/src/main/sidecar/local_backend_bridge.cjs`
     - `frontend/src/main/wakeword_bridge.cjs`
   - preserve current resolution order and platform fallback semantics.
 
@@ -1904,7 +1904,7 @@ read_when:
   - added shared Python executable resolver in:
     - `frontend/src/main/runtime_paths.cjs`
   - rewired duplicate path-resolution logic in:
-    - `frontend/src/main/local_backend_bridge.cjs`
+    - `frontend/src/main/sidecar/local_backend_bridge.cjs`
     - `frontend/src/main/wakeword_bridge.cjs`
   - preserved local-backend Python-path caching behavior.
 - `knip` dead-export cleanup shipped:
@@ -2526,12 +2526,12 @@ read_when:
 
 - Local backend bridge file-structure refactor shipped:
   - extracted shared bridge utilities into:
-    - `frontend/src/main/local_backend_bridge_utils.cjs`
+    - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
   - extracted RPC payload mapper + canonical handler definitions into:
-    - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+    - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
   - extracted Linux screenshot window hide/restore + window resolver logic into:
-    - `frontend/src/main/local_backend_bridge_windows.cjs`
-  - simplified `frontend/src/main/local_backend_bridge.cjs` to bridge orchestration only and reduced file size from `766` LOC to `447` LOC.
+    - `frontend/src/main/sidecar/local_backend_bridge_windows.cjs`
+  - simplified `frontend/src/main/sidecar/local_backend_bridge.cjs` to bridge orchestration only and reduced file size from `766` LOC to `447` LOC.
 - Verification:
   - `bin/windie test frontend -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 49 tests)
   - `cd frontend && npm run lint` (pass)

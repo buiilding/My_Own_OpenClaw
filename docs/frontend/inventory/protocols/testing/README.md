@@ -37,7 +37,7 @@ title: "Frontend Protocol Testing Hub"
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`

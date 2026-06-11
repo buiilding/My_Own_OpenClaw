@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for adding, changing, or debugging WindieOS local-backend JSON-RPC methods across Electron main bridge mappings, Python sidecar method registration, payload normalization, timeouts, readiness, and tests."
+summary: "Workflow for adding, changing, or debugging WindieOS local-backend JSON-RPC methods across SDK local-runtime bridge mappings, Python sidecar method registration, payload normalization, timeouts, readiness, and tests."
 read_when:
   - When adding, renaming, deleting, or changing a Python sidecar JSON-RPC method.
   - When a renderer IPC call reaches Electron main but does not reach the expected sidecar method, maps payload keys incorrectly, times out, or returns the wrong success/error envelope.

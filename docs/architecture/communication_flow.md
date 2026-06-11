@@ -11,7 +11,7 @@ read_when:
 WindieOS uses a multi-layered communication architecture with:
 
 - IPC between renderer and Electron main
-- JSON-RPC between Electron main and the local Python sidecar
+- SDK local-runtime RPC between the desktop app and the local Python sidecar
 - WebSocket and HTTP between the client runtime and the backend control plane
 
 The default product topology is remote-first: the app and SDK talk to the hosted backend for orchestration and perception, while the sidecar performs local execution on the user's computer.

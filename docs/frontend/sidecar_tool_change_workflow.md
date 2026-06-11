@@ -13,7 +13,7 @@ WindieOS tool execution crosses four layers:
 
 1. Backend exposes model-facing tool schemas and receives tool results.
 2. SDK runtime interprets streamed tool-call events and builds backend result envelopes.
-3. Electron main hosts the SDK runtime and bridges local invokes to the Python sidecar.
+3. Electron main hosts SDK desktop adapters and supplies host context to the SDK local runtime.
 4. Python sidecar executes local actions and returns simple executable results.
 
 Do not make the sidecar import backend schemas. Keep parity in explicit tests and docs.
@@ -24,7 +24,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | --- | --- | --- |
 | Backend schema and policy | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/tools/tool_selection.py` | Model-visible tool names, descriptions, JSON schema, policy/profile filtering, tool-call history. |
 | SDK runtime dispatch | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` | Tool-call event consumption, bundle/single orchestration, backend result envelope, normalized tool-output events. |
-| Electron main bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/local_backend_bridge*.cjs`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` | SDK local runtime host, sidecar request transport, payload mapping, timeouts, display/window context. |
+| Electron main bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_backend_bridge*.cjs`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` | SDK local-runtime host context, payload mapping, timeouts, display/window context. |
 | Python sidecar | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | JSON-RPC handlers, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
 | Tests | `tests/backend`, `tests/frontend`, `tests/sidecar` | Contract, dispatch, execution, and result parity. |
 

@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/docs: align local backend bridge naming around the SDK local
+  runtime, refresh moved sidecar bridge documentation paths, and remove stale
+  ad hoc prompt files.
 - frontend/overlays: normalize fallback overlay dimensions before placement so
   malformed width or height inputs cannot propagate invalid native bounds.
 - frontend/overlays: normalize primary display fallback bounds before overlay

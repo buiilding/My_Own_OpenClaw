@@ -10,12 +10,12 @@ title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_display_bounds.cjs`
-- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
-- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
-- `frontend/src/main/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
 - `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`

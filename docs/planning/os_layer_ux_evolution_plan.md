@@ -79,7 +79,7 @@ Still in progress:
 ### Sidecar and IPC constraints
 
 - Sidecar RPC entrypoint is `frontend/src/main/python/local_backend.py`.
-- Electron bridge to sidecar is `frontend/src/main/local_backend_bridge.cjs`.
+- Electron bridge to sidecar is `frontend/src/main/sidecar/local_backend_bridge.cjs`.
 - Renderer IPC channels are allowlisted in `frontend/src/preload.js`.
 
 ### Config constraints
@@ -227,7 +227,7 @@ Target files:
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
-- `frontend/src/main/local_backend_bridge.cjs` (if subscription/poll helper added)
+- `frontend/src/main/sidecar/local_backend_bridge.cjs` (if subscription/poll helper added)
 - `frontend/src/main/python/core/system_state.py`
 
 Implementation:

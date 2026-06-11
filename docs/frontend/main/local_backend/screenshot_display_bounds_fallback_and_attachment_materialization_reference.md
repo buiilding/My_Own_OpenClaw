@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for local-backend screenshot routing in Electron main: display-bounds fallback resolution, screenshot-path artifact materialization, inline fallback behavior, and temp-file cleanup guarantees."
 read_when:
-  - When changing screenshot tool routing in `frontend/src/main/local_backend_bridge*.cjs`.
+  - When changing screenshot tool routing in `frontend/src/main/sidecar/local_backend_bridge*.cjs`.
   - When debugging missing `screenshot_ref`/`screenshot_url`, wrong monitor capture, or leaked temporary screenshot files.
 title: "Screenshot Display-Bounds Fallback and Attachment Materialization Reference"
 ---
@@ -10,10 +10,10 @@ title: "Screenshot Display-Bounds Fallback and Attachment Materialization Refere
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_display_bounds.cjs`
-- `frontend/src/main/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/display_affinity_runtime.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`

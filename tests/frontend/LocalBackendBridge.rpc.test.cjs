@@ -20,7 +20,7 @@ const {
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  test('search-memory routes through SDK local runtime rpc when daemon mode is active', async () => {
+  test('search-memory routes through SDK local runtime rpc when local runtime is active', async () => {
     const localRuntime = {
       executeTool: jest.fn(async () => ({ success: true, data: {} })),
       rpc: jest.fn(async ({ method, params }) => ({
@@ -153,11 +153,11 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, screenshotPromise, { screenshot: 'shot' });
   });
 
-  test('internal tool execution routes fallback execution through sidecar daemon client', async () => {
-    const sidecarDaemonClient = {
+  test('internal tool execution routes through the SDK local tool executor', async () => {
+    const sdkLocalToolExecutor = {
       executeTool: jest.fn(async () => ({ success: true, data: { value: 2 } })),
     };
-    const { bridge, spawn } = initBridge({ sidecarDaemonClient });
+    const { bridge, spawn } = initBridge({ sdkLocalToolExecutor });
     markReady();
 
     const result = await bridge.executeToolForBackend({
@@ -166,7 +166,7 @@ describe('local_backend_bridge RPC handlers', () => {
     });
 
     expect(result).toEqual({ success: true, data: { value: 2 } });
-    expect(sidecarDaemonClient.executeTool).toHaveBeenCalledWith({
+    expect(sdkLocalToolExecutor.executeTool).toHaveBeenCalledWith({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
       timeoutMs: 60000,

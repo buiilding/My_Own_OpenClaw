@@ -72,7 +72,7 @@ Inspect:
 - `packages/windie-sdk-js/src/runtime`
 - `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/registry.py`
 
 Docs:
@@ -97,7 +97,7 @@ Inspect:
 
 - `frontend/src/main/surface_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
-- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/python/tools/computer/screenshot_tool.py`
 - `backend/src/services/ocr`
 - `backend/src/services/vision`

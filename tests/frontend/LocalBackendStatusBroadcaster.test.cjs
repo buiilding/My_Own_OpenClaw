@@ -7,7 +7,7 @@ const {
 } = require('../../frontend/src/main/sidecar/local_backend_status_broadcaster.cjs');
 
 describe('local_backend_status_broadcaster', () => {
-  test('builds local backend status from supervisor and SDK sidecar snapshots', () => {
+  test('builds local backend status from supervisor and SDK local runtime snapshots', () => {
     expect(buildLocalBackendStatusPayload({
       supervisor: {
         getSnapshot: () => ({
@@ -16,7 +16,7 @@ describe('local_backend_status_broadcaster', () => {
           lastError: '',
         }),
       },
-      sidecarDaemonSnapshot: { provider: 'sdk', hasClient: true },
+      localRuntimeSnapshot: { provider: 'sdk', hasClient: true },
     })).toEqual({
       ready: true,
       status: 'ready',

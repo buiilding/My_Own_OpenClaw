@@ -35,7 +35,7 @@ flowchart LR
 
 - Backend schema changes live under `backend/src/tools/filesystem`, `backend/src/tools/system`, `backend/src/tools/tool_catalog.py`, and backend policy/profile code. Do not make the sidecar import backend schemas for parity.
 - SDK/local dispatch lives under `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, and `packages/windie-sdk-js/src/tools`. It should preserve correlation, bundle semantics, formatted model content, screenshot/system-state inclusion rules, and result envelopes.
-- Electron bridge payload shaping lives in `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` and `frontend/src/main/local_backend_bridge_tool_args.cjs`. This is where frontend-local defaults such as `sudo_auth_mode` and screenshot display bounds are injected before sidecar execution.
+- Electron bridge payload shaping lives in `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` and `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`. This is where frontend-local defaults such as `sudo_auth_mode` and screenshot display bounds are injected before sidecar execution.
 - Sidecar runtime argument models live in `frontend/src/main/python/tools/schemas.py`. Sidecar executable implementations live in `frontend/src/main/python/tools/filesystem` and `frontend/src/main/python/tools/system`.
 - `read_file` may read text, selected binary-safe formats, and paginated windows, but it must keep OCR/text extraction boundaries explicit. OCR belongs to screenshot/vision/OCR flows, not normal file reads.
 - `replace` must preserve the atomic edit contract: validate input first, read existing content, compute all matches/replacements, write through a temporary file, then `os.replace`. Failed matches must not partially mutate the target.
@@ -49,8 +49,8 @@ flowchart LR
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
 | Tool is missing from prompt or has the wrong argument schema | Backend tool schema/catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/filesystem/schemas.py`, `backend/src/tools/system/schemas.py` | [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md), backend schema tests |
-| Tool is visible but never reaches the sidecar | SDK conversation runtime/tool coordinator or sidecar bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
-| `run_shell_command` receives the wrong sudo mode | Electron bridge argument mapper | `frontend/src/main/local_backend_bridge_tool_args.cjs` | `frontend/src/main/python/tools/system/shell_tool.py`, `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`, `tests/sidecar/test_shell_process_tool.py` |
+| Tool is visible but never reaches the sidecar | SDK conversation runtime/tool coordinator or sidecar bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
+| `run_shell_command` receives the wrong sudo mode | Electron bridge argument mapper | `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs` | `frontend/src/main/python/tools/system/shell_tool.py`, `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`, `tests/sidecar/test_shell_process_tool.py` |
 | Shell command runs in the wrong directory | Sidecar shell path resolution plus selected workspace state | `frontend/src/main/python/tools/system/shell_tool.py` | workspace-context docs/tests and bridge payload tests |
 | Shell output is truncated, malformed, or missing metadata | Sidecar shell formatter | `frontend/src/main/python/tools/system/shell_output_formatting.py`, `frontend/src/main/python/tools/system/shell_response_payloads.py` | `tests/sidecar/test_shell_output_formatting.py`, renderer message formatter tests |
 | Background session cannot be polled, written to, killed, or cleared | Sidecar process tool/session registry | `frontend/src/main/python/tools/system/process_tool.py`, `frontend/src/main/python/tools/system/shell_process_registry.py` | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py` |
@@ -76,10 +76,10 @@ flowchart LR
 3. Trace the request through SDK main runtime and Electron.
    - SDK conversation runtime: `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`.
    - SDK tool coordinator: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
-   - Electron internal adapter: `frontend/src/main/local_backend_bridge.cjs`
+   - Electron internal adapter: `frontend/src/main/sidecar/local_backend_bridge.cjs`
      exposes `executeToolForBackend(...)` for SDK/main tool routing.
-   - Tool execution runtime: `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`.
-   - Argument mapper: `frontend/src/main/local_backend_bridge_tool_args.cjs`.
+   - Tool execution runtime: `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`.
+   - Argument mapper: `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`.
 
 4. Verify sidecar executable registration and schema.
    - Registry: `frontend/src/main/python/tools/registry.py`.

@@ -22,7 +22,7 @@ Do not route platform fixes through the hosted backend. The backend can own mode
 
 | Symptom or request | First owner | Source roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| WindieOS appears in screenshots | Electron main screenshot visibility and content protection | `frontend/src/main/platform/screenshot_window_visibility`, `frontend/src/main/platform/content_protection`, `frontend/src/main/local_backend_bridge_window_visibility.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs` |
+| WindieOS appears in screenshots | Electron main screenshot visibility and content protection | `frontend/src/main/platform/screenshot_window_visibility`, `frontend/src/main/platform/content_protection`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs` |
 | Linux chat pill flickers during capture | Renderer surface orchestrator plus Linux screenshot visibility runtime | `frontend/src/renderer/infrastructure/services/surfaceOrchestrator`, `frontend/src/main/platform/screenshot_window_visibility/linux.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md), [Linux](linux.md) | `tests/frontend/SurfaceOrchestrator*.test.ts`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | macOS or Windows content protection remains active while idle | Electron main content-protection policy | `frontend/src/main/window_platform_policy.cjs`, `frontend/src/main/platform/content_protection/*`, `frontend/src/main/response_overlay_phase_handler.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | Permission row is wrong or grant opens the wrong OS pane | Electron permission service and renderer permission UI | `frontend/src/main/permission_service*.cjs`, `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions` | [Platform Permission Matrix](permission_matrix.md), [Onboarding and Permissions](../desktop/onboarding_permissions.md) | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
@@ -57,7 +57,7 @@ Keep these rules explicit in the change, tests, and docs:
 
 ## Electron Main Platform Changes
 
-Electron main owns WindieOS windows, overlays, content protection, IPC handlers, permission probes, and sidecar process lifecycle. Use this path when the bug concerns a WindieOS-owned surface.
+Electron main owns WindieOS windows, overlays, content protection, IPC handlers, permission probes, and SDK local-runtime host/status context. Use this path when the bug concerns a WindieOS-owned surface.
 
 Primary files:
 

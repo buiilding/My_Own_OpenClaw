@@ -18,7 +18,7 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
-- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
 - `tests/frontend/SystemStateCapture.test.ts`
 - `tests/frontend/ArtifactUploader.test.ts`

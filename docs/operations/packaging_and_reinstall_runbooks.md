@@ -38,7 +38,7 @@ Primary files:
 - `frontend/src/main/python/requirements.runtime.txt`
 - `frontend/electron-builder.bundled-python.yml`
 - `frontend/src/main/runtime_paths.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 
 Runtime expectations:

@@ -25,7 +25,7 @@ title: "Frontend Protocol State Hub"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
-- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`

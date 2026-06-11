@@ -63,7 +63,7 @@ it adds the product-feature guardrails those plans need.
   search, update, delete, stats, chat events, conversation list/search/revision,
   title generation, semantic/episodic list/delete, clear operations,
   semanticization windows, and watermark access.
-- `frontend/src/main/ipc.cjs` and `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/ipc.cjs` and `frontend/src/main/sidecar/local_backend_bridge.cjs`
   are much smaller than before but remain large composition surfaces. The
   existing plans already track IPC and local bridge cleanup; do not re-expand
   them while adding new features.

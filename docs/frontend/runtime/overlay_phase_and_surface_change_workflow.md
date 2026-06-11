@@ -56,8 +56,8 @@ rather than the React component that happens to render the symptom.
 | Chat pill click-through or focusability is wrong | `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/tool_surface_lifecycle.cjs`, `frontend/src/main/overlay_chatbox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx` | `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/OverlayChatboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Response overlay click-through or close/scroll hit-testing is wrong | `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/overlay_responsebox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx` | `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/OverlayResponseboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Awaiting indicator flickers or sticks | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`, `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js` | `tests/frontend/WindieSdkConversationRuntime.test.ts`, `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/LiveTurnSurfaceState.test.js`, `tests/frontend/ResponseOverlayLayoutMode.test.js` |
-| Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/screenshot_window_visibility/*`, `frontend/src/main/platform/content_protection/*`, renderer capture services for user-initiated attachments | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, platform policy tests |
-| Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/tool_surface_lifecycle.cjs`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
+| Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/screenshot_window_visibility/*`, `frontend/src/main/platform/content_protection/*`, renderer capture services for user-initiated attachments | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, platform policy tests |
+| Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/tool_surface_lifecycle.cjs`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Window bounds, frame size, or drag anchor jumps | `frontend/src/main/overlay_bounds.cjs`, `frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs`, `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`, `frontend/src/renderer/features/chat/utils/chatbox/chatboxPillLayout.js` | `tests/frontend/OverlayBounds.test.cjs`, `tests/frontend/OverlayFrameSize.test.js`, `tests/frontend/ChatBoxPillLayout.test.js` |
 
 ## Phase Pipeline
@@ -111,7 +111,7 @@ Common phase producers:
 - SDK tool routing in `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
   and `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - main-process computer-use surface prep in
-  `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+  `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - renderer capture lifecycle transitions for user-initiated attachments in
   `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 
@@ -191,8 +191,8 @@ Read these files before changing screenshot or content-protection behavior:
 
 - `frontend/src/main/surface_runtime.cjs`
 - `frontend/src/main/tool_surface_lifecycle.cjs`
-- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
-- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/overlay_visibility_handler.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/*`

@@ -10,9 +10,9 @@ title: "Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/local_backend_bridge_utils.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
 
 ## Runtime Ownership

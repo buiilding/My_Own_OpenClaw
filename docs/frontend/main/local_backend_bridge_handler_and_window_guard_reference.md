@@ -1,6 +1,6 @@
 summary: "Electron main local-backend bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility runtime ownership references."
 read_when:
-  - When changing `frontend/src/main/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
+  - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
   - When tracing local-backend issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.
 title: "Local Backend Bridge Overview and Window Guard Index"
 ---
@@ -30,7 +30,7 @@ This page is the entrypoint for Electron-main local-backend bridge behavior. Det
 
 ## Bridge Boundary (Condensed)
 
-Bridge responsibilities in `frontend/src/main/local_backend_bridge.cjs`:
+Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 
 1. spawn/monitor Python sidecar process
 2. gate request sending on readiness (`isPythonReady`)
@@ -40,11 +40,11 @@ Bridge responsibilities in `frontend/src/main/local_backend_bridge.cjs`:
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
-- `frontend/src/main/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/local_backend_bridge_utils.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 

@@ -21,7 +21,7 @@ Primary sources:
 - Main websocket bridge/state: `frontend/src/main/ipc.cjs`
 - Settings-sync ACK timeout helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Synthetic query failure events: `frontend/src/main/ipc/ipc_query_events.cjs`
-- Local backend bridge + utils: `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`
+- Local backend bridge + utils: `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - Wakeword subprocess bridge: `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs`
 
 Primary error-path tests:
@@ -180,7 +180,7 @@ When changing error semantics, keep aligned:
 | websocket disconnect/error converge path | `frontend/src/main/ipc.cjs` | socket errors converge into close path; state reset + reconnect timer restoration |
 | query send unavailable fallback | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | failed send emits synthetic backend-style `error` event with preserved turn/session context |
 | settings ACK timeout fallback | `frontend/src/main/ipc.cjs` | unresolved ACKs auto-resolve false after `2500ms`; pending maps cleared on reconnect |
-| local-backend request/process failure handling | `frontend/src/main/local_backend_bridge.cjs` | RPC failures normalize to `{success:false,error}`; process failure rejects pending requests and broadcasts unavailable status |
+| local-backend request/process failure handling | `frontend/src/main/sidecar/local_backend_bridge.cjs` | RPC failures normalize to `{success:false,error}`; process failure rejects pending requests and broadcasts unavailable status |
 | wakeword subprocess failure/status handling | `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | startup/exit/stderr failures normalize to `wakeword-status` `{ready:false,error?}` without crashing bridge loops; helper runtime provides deterministic error/status normalization |
 
 ## Related Deep Dives

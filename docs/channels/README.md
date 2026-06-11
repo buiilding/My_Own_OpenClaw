@@ -20,7 +20,7 @@ WindieOS has several user and developer entry channels that eventually meet the 
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> sidecar subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
-| Local tools | Computer, browser, filesystem, shell, memory | SDK runtime in Electron main -> Python sidecar JSON-RPC | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
+| Local tools | Computer, browser, filesystem, shell, memory | SDK desktop runtime -> SDK local runtime -> Python sidecar daemon | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
 | VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
 
@@ -30,7 +30,7 @@ WindieOS has several user and developer entry channels that eventually meet the 
 - Use `/ws/transcription` only for voice-mode STT audio/control messages.
 - Use `/api/runs/*` only for VM worker assignment, run control, and run timeline events.
 - Use `/api/sdk/*` for hosted developer introspection and perception routes, not local sidecar execution.
-- Use the sidecar JSON-RPC path for local desktop control, browser actions, shell/filesystem tools, local memory, and system state.
+- Use the SDK local-runtime path for local desktop control, browser actions, shell/filesystem tools, local memory, and system state.
 - Do not make frontend or sidecar code import backend modules to share channel schemas.
 
 ## Common Change Paths
@@ -78,7 +78,7 @@ Likely code:
 - `frontend/src/renderer/infrastructure/ipc`
 - `frontend/src/main/ipc.cjs`
 - owning `frontend/src/main/*_ipc_runtime.cjs` or `frontend/src/main/ipc/*.cjs` helper
-- `frontend/src/main/local_backend_bridge*.cjs` when the channel reaches the Python sidecar
+- `frontend/src/main/sidecar/local_backend_bridge*.cjs` when the channel reaches the Python sidecar
 
 Validate preload/registry parity, the owning main-process handler, and the renderer consumer or sidecar mapper. Do not add generic renderer IPC access to bypass the preload allowlist.
 

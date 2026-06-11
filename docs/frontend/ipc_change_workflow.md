@@ -11,7 +11,7 @@ title: "IPC Change Workflow"
 
 WindieOS IPC is a trust boundary. The renderer can only use channels exposed by preload, and preload receives its allowlist from the shared channel registry passed by the main process. Do not add ad hoc `ipcRenderer` access to renderer code.
 
-Use this workflow for Electron IPC only: renderer <-> preload <-> Electron main. If the change crosses from Electron main into the Python sidecar, continue into [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md). If the channel relays backend websocket messages, continue into [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) or [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), depending on whether the changed contract is desktop query input or backend stream output.
+Use this workflow for Electron IPC only: renderer <-> preload <-> Electron main. If the change crosses into SDK local-runtime or Python sidecar methods, continue into [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md). If the channel relays backend websocket messages, continue into [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) or [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), depending on whether the changed contract is desktop query input or backend stream output.
 
 ## Runtime Path
 
@@ -38,7 +38,7 @@ The shared channel registry is the naming source of truth, but it is not a handl
 | Renderer constants | `frontend/src/renderer/infrastructure/ipc/channels.ts` | Typed channel constants derived from the shared JSON registry. |
 | Renderer wrapper | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | Typed `IpcBridge` helper used by renderer features and infrastructure. |
 | Main handler surface | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/*.cjs`, `frontend/src/main/*_ipc_runtime.cjs` | Registers handlers, backend relay, overlay channels, settings sync, memory, artifacts, permissions, lifecycle, and query events. |
-| Local sidecar bridge | `frontend/src/main/local_backend_bridge*.cjs` | Maps invoke handlers to Python JSON-RPC where local execution is required. |
+| Local sidecar bridge | `frontend/src/main/sidecar/local_backend_bridge*.cjs` | Maps invoke handlers to Python JSON-RPC where local execution is required. |
 
 ## Fast Owner Map
 
@@ -49,7 +49,7 @@ The shared channel registry is the naming source of truth, but it is not a handl
 | Overlay phase, chatbox, response overlay, screenshot prep | `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_*` | surface orchestrator, chat pill, response overlay | `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/SurfaceOrchestrator*.test.ts`, `tests/frontend/IpcOverlayPhase*.test.cjs` |
 | Main-window controls and display inventory | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/main_window_controls_handler.cjs`, `frontend/src/main/display_query_handler.cjs` | dashboard shell, app root, settings display picker | `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/MainWindowControlsHandler.test.cjs` |
 | Permission, workspace, sudo authority | `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/main/permission_service.cjs`, `frontend/src/main/agent_sudo_access_handler.cjs` | onboarding store, settings permissions tab, sidecar permission state | `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs`, permission store tests |
-| Local tool execution, memory, transcript storage | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` | tool execution service, transcript writer, memory panels | `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py`, related sidecar tests |
+| Local tool execution, memory, transcript storage | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` | tool execution service, transcript writer, memory panels | `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py`, related sidecar tests |
 | Artifact and image helpers | `frontend/src/main/ipc/ipc_artifact_fetch.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs` | message renderer, artifact uploader, image menus | `tests/frontend/IpcArtifactFetch.test.cjs`, `tests/frontend/IpcClipboardImageHandler.test.cjs`, `tests/frontend/IpcImageContextMenuHandler.test.cjs` |
 | Wakeword/audio bridge | `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | voice hooks, wakeword supervisor, Python wakeword subprocess | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/voice/WakewordDetectionHook.test.ts` |
 | Frontend config, model/settings sync, OAuth compatibility | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_frontend_config.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/openai_codex_oauth.cjs` | app config provider, settings tabs, model settings | `tests/frontend/AppConfigProvider*.test.tsx`, `tests/frontend/IpcSettingsSync.test.cjs`, settings tests |
@@ -101,7 +101,7 @@ Prefer one focused channel over a generic "do-anything" channel. The preload all
 | Strip privileged Electron event objects before renderer callbacks. | `preload.js` intentionally passes only payload args to `on` and `once` callbacks. |
 | Do not leak secrets through IPC payloads or logs. | IPC is local, but renderer state and test logs are easier to expose than main-process internals. |
 
-For sidecar-mapped invoke channels, inspect `COMPILED_RPC_HANDLER_DEFINITIONS` in `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`. The mapper should be the only place that translates renderer field names into Python JSON-RPC params. If more than one caller performs the same translation, move that normalization into the mapper or a focused helper and test it there.
+For sidecar-mapped invoke channels, inspect `COMPILED_RPC_HANDLER_DEFINITIONS` in `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`. The mapper should be the only place that translates renderer field names into Python JSON-RPC params. If more than one caller performs the same translation, move that normalization into the mapper or a focused helper and test it there.
 
 ## Change or Remove a Channel
 
