@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: fifteenth hardening slice committed.
+- Current slice: sixteenth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -97,6 +97,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the fifteenth slice.
 - [x] Update changelog and report with the fifteenth slice result.
 - [x] Commit the fifteenth slice.
+- [x] Select sixteenth code slice with a concrete owner and regression test.
+- [x] Implement sixteenth slice.
+- [x] Run focused validation and `git diff --check` for the sixteenth slice.
+- [x] Update changelog and report with the sixteenth slice result.
+- [ ] Commit the sixteenth slice.
 
 ## Validation Log
 
@@ -206,6 +211,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   passed after fifteenth slice; 1 suite and 14 tests passed, including the new
   malformed response-window size regressions.
 - `bin/windie docs list` - passed after fifteenth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs tests/frontend/OverlayWindowHelpersRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- OverlayWindowHelpersRuntime --runInBand` -
+  passed after sixteenth slice; 1 suite and 16 tests passed, including the new
+  malformed chat visual-anchor resize regressions.
+- `bin/windie docs list` - passed after sixteenth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs tests/frontend/OverlayWindowHelpersRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
@@ -423,6 +435,21 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   projection, display-affinity producer, or response overlay visibility policy
   changed. The fix only tightens Electron main's native response-window size
   boundary before bounds calculation.
+- Slice 16 owner: Electron main overlay window helpers own chat-window
+  visual-anchor frame resizing, bottom-preserving bounds updates, and manual
+  drag bottom-edge bookkeeping.
+- Slice 16 failure mode: malformed chat-window native sizes, current bounds,
+  or visual-anchor heights such as `Infinity` or `NaN` could flow into
+  `setBounds(...)`, `setSize(...)`, or manual bottom-edge calculations through
+  loose numeric coercion.
+- Slice 16 change: chat visual-anchor resize paths now normalize native sizes,
+  current bounds coordinates, current bounds dimensions, and requested anchor
+  heights before calculating Electron window geometry. Valid values preserve
+  existing bottom-anchor and fixed-frame behavior.
+- Slice 16 inspection: no renderer layout contract, IPC payload, SDK
+  projection, display-affinity producer, response overlay visibility policy, or
+  persisted manual position shape changed. The fix only tightens Electron
+  main's native chat-window geometry boundary.
 
 ## Decisions
 
@@ -484,6 +511,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   hardening. No persisted data, IPC payload, renderer layout contract, SDK
   projection, display-affinity producer, or visibility policy changed, so no
   migration is required.
+- Treat malformed chat-window visual-anchor resize geometry as Electron main
+  geometry boundary hardening. No persisted data, IPC payload, renderer layout
+  contract, SDK projection, display-affinity producer, visibility policy, or
+  manual position shape changed, so no migration is required.
 
 ## Commits
 

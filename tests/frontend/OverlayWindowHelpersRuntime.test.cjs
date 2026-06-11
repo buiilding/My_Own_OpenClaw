@@ -202,6 +202,69 @@ describe('overlay_window_helpers_runtime', () => {
     expect(chatWindow.setBounds).not.toHaveBeenCalled();
   });
 
+  test('normalizes malformed chat native bounds before bottom-preserving visual anchor resize', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [Infinity, Number.NaN]),
+      getBounds: jest.fn(() => ({
+        x: Infinity,
+        y: Number.NaN,
+        width: Infinity,
+        height: Number.NaN,
+      })),
+      setBounds: jest.fn(),
+    };
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    expect(runtime.setChatWindowBoundsForVisualAnchorHeight(200)).toBe(true);
+    expect(chatWindow.setBounds).toHaveBeenCalledWith({
+      x: 0,
+      y: -205,
+      width: 1,
+      height: 206,
+    }, false);
+  });
+
+  test('falls back when visual anchor resize receives malformed anchor height', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [520, 200]),
+      getBounds: jest.fn(() => ({ x: 300, y: 700, width: 520, height: 200 })),
+      setBounds: jest.fn(),
+    };
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    expect(runtime.resizeChatWindowForVisualAnchorHeight(Infinity)).toBe(true);
+    expect(chatWindow.setBounds).toHaveBeenCalledWith({
+      x: 300,
+      y: 700,
+      width: 520,
+      height: 164,
+    }, false);
+  });
+
   test('keeps compact fallback response height at 24px instead of inflating to 42px', () => {
     const responseWindow = {
       isDestroyed: jest.fn(() => false),

@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/overlays: normalize malformed chat-window visual-anchor resize
+  dimensions before mutating native bounds so invalid sizes or anchor heights
+  cannot propagate into Electron window geometry.
 - frontend/overlays: normalize malformed response-window sizes before
   repositioning or fallback placement so invalid native dimensions cannot
   propagate into response overlay bounds.

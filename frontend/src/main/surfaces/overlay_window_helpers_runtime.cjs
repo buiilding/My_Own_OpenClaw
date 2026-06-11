@@ -24,6 +24,15 @@ function normalizePositiveDimension(value, fallback = 1) {
   return fallbackRounded !== null && fallbackRounded > 0 ? fallbackRounded : 1;
 }
 
+function normalizeCoordinate(value, fallback = 0) {
+  const rounded = normalizeFiniteRounded(value);
+  if (rounded !== null) {
+    return rounded;
+  }
+  const fallbackRounded = normalizeFiniteRounded(fallback);
+  return fallbackRounded !== null ? fallbackRounded : 0;
+}
+
 function normalizeChatBoundsForAnchor(chatBounds) {
   if (!chatBounds || typeof chatBounds !== 'object') {
     return null;
@@ -122,7 +131,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
   }
 
   function getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight, options = {}) {
-    const normalizedAnchorHeight = Math.max(1, Math.round(Number(anchorHeight) || 0));
+    const normalizedAnchorHeight = normalizePositiveDimension(anchorHeight);
     const requestedFrameHeight = Math.round(Number(options?.frameHeight));
     return Math.max(
       CHAT_WINDOW_FIXED_FRAME_HEIGHT,
@@ -226,13 +235,11 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!chatWindow) {
       return;
     }
-    const [width, currentHeight] = chatWindow.getSize();
-    const height = Math.max(
-      1,
-      Number.isFinite(chatWindowHeightOverride)
-        ? chatWindowHeightOverride
-        : Math.round(Number(currentHeight) || 0),
-    );
+    const [widthRaw, currentHeightRaw] = chatWindow.getSize();
+    const width = normalizePositiveDimension(widthRaw);
+    const height = Number.isFinite(chatWindowHeightOverride)
+      ? chatWindowHeightOverride
+      : normalizePositiveDimension(currentHeightRaw);
     const { x, y } = resolveChatWindowPositionForHeight(width, height);
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
@@ -250,13 +257,10 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     }
 
     const [widthRaw, currentHeightRaw] = chatWindow.getSize();
-    const width = Math.max(1, Math.round(Number(widthRaw) || 0));
-    const currentHeight = Math.max(
-      1,
-      Number.isFinite(chatWindowHeightOverride)
-        ? chatWindowHeightOverride
-        : Math.round(Number(currentHeightRaw) || 0),
-    );
+    const width = normalizePositiveDimension(widthRaw);
+    const currentHeight = Number.isFinite(chatWindowHeightOverride)
+      ? chatWindowHeightOverride
+      : normalizePositiveDimension(currentHeightRaw);
     const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight, options);
 
     if (currentHeight === nextHeight) {
@@ -266,7 +270,8 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (typeof chatWindow.setBounds === 'function' && typeof chatWindow.getBounds === 'function') {
       const currentBounds = chatWindow.getBounds();
       chatWindow.setBounds({
-        ...currentBounds,
+        x: normalizeCoordinate(currentBounds?.x),
+        y: normalizeCoordinate(currentBounds?.y),
         width,
         height: nextHeight,
       }, false);
@@ -294,21 +299,18 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     }
 
     const [widthRaw, currentHeightRaw] = chatWindow.getSize();
-    const width = Math.max(1, Math.round(Number(widthRaw) || 0));
+    const width = normalizePositiveDimension(widthRaw);
     const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight, options);
 
     if (typeof chatWindow.setBounds === 'function' && typeof chatWindow.getBounds === 'function') {
       const currentBounds = chatWindow.getBounds();
       const normalizedCurrentBounds = {
-        x: Math.round(Number(currentBounds?.x) || 0),
-        y: Math.round(Number(currentBounds?.y) || 0),
-        width: Math.max(1, Math.round(Number(currentBounds?.width) || width)),
-        height: Math.max(
-          1,
-          Number.isFinite(chatWindowHeightOverride)
-            ? chatWindowHeightOverride
-            : Math.round(Number(currentBounds?.height) || currentHeightRaw || 0),
-        ),
+        x: normalizeCoordinate(currentBounds?.x),
+        y: normalizeCoordinate(currentBounds?.y),
+        width: normalizePositiveDimension(currentBounds?.width, width),
+        height: Number.isFinite(chatWindowHeightOverride)
+          ? chatWindowHeightOverride
+          : normalizePositiveDimension(currentBounds?.height, currentHeightRaw),
       };
       const currentBottom = normalizedCurrentBounds.y + normalizedCurrentBounds.height;
       const targetBounds = {
@@ -334,12 +336,9 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       return true;
     }
 
-    const currentHeight = Math.max(
-      1,
-      Number.isFinite(chatWindowHeightOverride)
-        ? chatWindowHeightOverride
-        : Math.round(Number(currentHeightRaw) || 0),
-    );
+    const currentHeight = Number.isFinite(chatWindowHeightOverride)
+      ? chatWindowHeightOverride
+      : normalizePositiveDimension(currentHeightRaw);
     if (currentHeight === nextHeight) {
       return false;
     }
@@ -379,7 +378,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       1,
       Number.isFinite(chatWindowHeightOverride)
         ? chatWindowHeightOverride
-        : Math.round(Number(currentHeightRaw) || 0),
+        : normalizePositiveDimension(currentHeightRaw),
     );
     manualChatWindowPosition = {
       x,
