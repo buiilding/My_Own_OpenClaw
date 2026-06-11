@@ -143,6 +143,37 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
+  test('drops malformed chat bounds before positioning dependent overlays', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getBounds: jest.fn(() => ({ x: 220, y: 700, width: 520, height: Infinity })),
+    };
+    const getOverlayResponseWindowBounds = jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 }));
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds,
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+      chatVisualAnchorHeight: 96,
+    });
+
+    runtime.getResponseWindowBounds(380, 140);
+
+    expect(getOverlayResponseWindowBounds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        width: 380,
+        height: 140,
+        chatBounds: null,
+      }),
+    );
+  });
+
   test('keeps chat window frame preallocated above compact and preview anchor heights', () => {
     let currentHeight = 164;
     const chatWindow = {

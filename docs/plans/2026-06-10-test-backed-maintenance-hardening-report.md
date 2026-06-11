@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: tenth hardening slice committed.
+- Current slice: eleventh hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -72,6 +72,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the tenth slice.
 - [x] Update changelog and report with the tenth slice result.
 - [x] Commit the tenth slice.
+- [x] Select eleventh code slice with a concrete owner and regression test.
+- [x] Implement eleventh slice.
+- [x] Run focused validation and `git diff --check` for the eleventh slice.
+- [x] Update changelog and report with the eleventh slice result.
+- [ ] Commit the eleventh slice.
 
 ## Validation Log
 
@@ -148,6 +153,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after tenth-slice changelog/report updates;
   canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/overlay_bounds.cjs tests/frontend/OverlayBounds.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- OverlayWindowHelpersRuntime --runInBand` -
+  passed after eleventh slice; 1 suite and 12 tests passed, including the new
+  malformed chat-window bounds regression test.
+- `bin/windie docs list` - passed after eleventh-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs tests/frontend/OverlayWindowHelpersRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -293,6 +305,20 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   lease policy, display-affinity producer, or persisted data shape changed. The
   fix only tightens Electron main's geometry input boundary before native
   window placement.
+- Slice 11 owner: Electron main overlay window helpers own dependent response
+  overlay and context-label placement from current chat-window geometry and the
+  compact visual anchor.
+- Slice 11 failure mode: malformed current chat-window bounds with non-finite
+  fields such as `height: Infinity` could be used during visual-anchor
+  adjustment and propagate invalid dependent overlay coordinates.
+- Slice 11 change: dependent overlay placement now normalizes current
+  chat-window bounds to finite rounded `x`, `y`, `width`, and `height` fields
+  before applying the compact visual anchor. Malformed bounds are dropped so
+  response/context overlays use their fallback placement path.
+- Slice 11 inspection: no renderer layout contract, IPC channel, screenshot
+  lease policy, native window producer, or persisted data shape changed. Valid
+  chat-window bounds still keep the existing visual-anchor and bottom-edge
+  behavior.
 
 ## Decisions
 
@@ -333,6 +359,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat non-finite display-affinity bounds as Electron main geometry boundary
   hardening. No persisted data, IPC payload, sidecar RPC payload, renderer
   layout contract, or display-affinity producer changed, so no migration is
+  required.
+- Treat malformed current chat-window bounds as Electron main geometry boundary
+  hardening. No persisted data, IPC payload, sidecar RPC payload, renderer
+  layout contract, or native window producer changed, so no migration is
   required.
 
 ## Commits

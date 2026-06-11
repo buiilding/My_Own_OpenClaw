@@ -7,6 +7,41 @@ const RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT = (
   Number(responseOverlayLayoutContract?.awaiting_frame_height) || 24
 );
 
+function normalizeFiniteRounded(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+  return Math.round(parsed);
+}
+
+function normalizeChatBoundsForAnchor(chatBounds) {
+  if (!chatBounds || typeof chatBounds !== 'object') {
+    return null;
+  }
+  const x = normalizeFiniteRounded(chatBounds.x);
+  const y = normalizeFiniteRounded(chatBounds.y);
+  const width = normalizeFiniteRounded(chatBounds.width);
+  const height = normalizeFiniteRounded(chatBounds.height);
+  if (
+    x === null
+    || y === null
+    || width === null
+    || height === null
+    || width <= 0
+    || height <= 0
+  ) {
+    return null;
+  }
+  return {
+    ...chatBounds,
+    x,
+    y,
+    width,
+    height,
+  };
+}
+
 function createOverlayWindowHelpersRuntime(deps = {}) {
   const {
     screen,
@@ -42,7 +77,8 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
   }
 
   function getAnchoredChatBounds(chatBounds) {
-    if (!chatBounds || typeof chatBounds !== 'object') {
+    const normalizedChatBounds = normalizeChatBoundsForAnchor(chatBounds);
+    if (!normalizedChatBounds) {
       return null;
     }
     const configuredAnchorHeight = (
@@ -51,17 +87,17 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
         : Number(chatVisualAnchorHeight)
     );
     if (!Number.isFinite(configuredAnchorHeight) || configuredAnchorHeight <= 0) {
-      return chatBounds;
+      return normalizedChatBounds;
     }
-    const currentHeight = Math.max(1, Math.round(Number(chatBounds.height) || 0));
+    const currentHeight = normalizedChatBounds.height;
     const anchorHeight = Math.min(currentHeight, Math.round(configuredAnchorHeight));
     const topOffset = Math.max(0, currentHeight - anchorHeight);
     if (topOffset === 0) {
-      return chatBounds;
+      return normalizedChatBounds;
     }
     return {
-      ...chatBounds,
-      y: Math.round(Number(chatBounds.y) || 0) + topOffset,
+      ...normalizedChatBounds,
+      y: normalizedChatBounds.y + topOffset,
       height: anchorHeight,
     };
   }

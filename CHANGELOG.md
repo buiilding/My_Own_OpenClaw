@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/overlays: drop malformed chat-window bounds before positioning
+  dependent response and context overlays so invalid native geometry cannot
+  propagate into overlay placement.
 - frontend/overlays: reject non-finite display-affinity bounds before placing
   overlay windows so malformed monitor metadata cannot produce invalid native
   coordinates.
