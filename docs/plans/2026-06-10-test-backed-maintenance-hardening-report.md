@@ -56,7 +56,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement seventh slice.
 - [x] Run focused validation and `git diff --check` for the seventh slice.
 - [x] Update changelog and report with the seventh slice result.
-- [ ] Commit the seventh slice.
+- [x] Commit the seventh slice.
 
 ## Validation Log
 
@@ -258,6 +258,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `6e26bc45e` - `fix(frontend-oauth): escape codex callback responses`
 - `a63c5c919` - `fix(frontend-main): harden second-instance cooldown parsing`
 - `c014ab059` - `fix(sdk-conversation): normalize sidecar metadata counts`
+- `fabd99d9f` - `fix(frontend-surface): harden screenshot settle delay parsing`
 
 ## Remaining Candidates
 
