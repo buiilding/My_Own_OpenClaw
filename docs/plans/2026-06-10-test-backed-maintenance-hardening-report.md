@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: fourteenth hardening slice validated.
+- Current slice: fourteenth hardening slice committed.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -91,7 +91,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement fourteenth slice.
 - [x] Run focused validation and `git diff --check` for the fourteenth slice.
 - [x] Update changelog and report with the fourteenth slice result.
-- [ ] Commit the fourteenth slice.
+- [x] Commit the fourteenth slice.
 
 ## Validation Log
 
@@ -469,6 +469,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `28b4a2bdf` - `fix(frontend-overlays): drop malformed chat bounds`
 - `87ac1933c` - `fix(frontend-sdk): reject invalid live surface bounds`
 - `13bc263d2` - `fix(frontend-extensions): preserve mcp timeout precedence`
+- `0283435eb` - `fix(frontend-overlays): normalize chatbox move dimensions`
 
 ## Remaining Candidates
 
