@@ -1563,10 +1563,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "ref": {
-            "description": "Element ref from the latest snapshot.",
-            "type": "string"
-          },
           "regex": {
             "default": false,
             "description": "Interpret the pattern as a regex.",
@@ -1932,10 +1928,6 @@
             "description": "Extraction goal or question. / Search query.",
             "maxLength": 2000,
             "minLength": 1,
-            "type": "string"
-          },
-          "ref": {
-            "description": "Element ref from the latest snapshot.",
             "type": "string"
           },
           "regex": {
