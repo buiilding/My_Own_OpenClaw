@@ -68,6 +68,8 @@ function writeExtensionRegistry() {
       id: 'notes-memory',
       command: 'node',
       args: ['memory-server.cjs'],
+      timeout_ms: 0,
+      timeoutMs: 9000,
       tools: [{
         name: 'search_notes',
         description: 'Search notes through MCP.',
@@ -128,6 +130,7 @@ describe('extension registry loader', () => {
         id: 'notes-memory',
         extension_id: 'mcp:notes-memory',
         command: 'node',
+        timeout_ms: 0,
         tools: [expect.objectContaining({ name: 'search_notes' })],
       }),
     ]);

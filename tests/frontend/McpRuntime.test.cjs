@@ -9,6 +9,7 @@ const {
   discoverMcpTools,
   executeMcpTool,
   hasDiscoveredMcpTool,
+  normalizeMcpServerSpec,
 } = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
 
 describe('MCP runtime', () => {
@@ -65,6 +66,17 @@ describe('MCP runtime', () => {
         }),
       }),
     ]);
+  });
+
+  test('keeps explicit snake_case timeout precedence over camelCase fallback', () => {
+    expect(normalizeMcpServerSpec({
+      id: 'memory',
+      command: 'node',
+      timeout_ms: 0,
+      timeoutMs: 9000,
+    })).toEqual(expect.objectContaining({
+      timeout_ms: 0,
+    }));
   });
 
   test('executes discovered MCP tools through the local MCP client', async () => {

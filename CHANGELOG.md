@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/extensions: preserve explicit MCP `timeout_ms` values when a
+  camelCase `timeoutMs` fallback is also present, keeping canonical server
+  specs from being silently overwritten.
 - frontend/sdk: reject non-finite SDK live-turn response overlay bounds before
   mutating the native response window, preventing malformed geometry from
   reaching Electron `setBounds`.

@@ -47,6 +47,13 @@ function normalizeMcpSchema(schema) {
   };
 }
 
+function readMcpTimeoutMs(server) {
+  if (Object.prototype.hasOwnProperty.call(server, 'timeout_ms')) {
+    return server.timeout_ms;
+  }
+  return server.timeoutMs;
+}
+
 function normalizeMcpServerSpec(server) {
   if (!server || typeof server !== 'object' || Array.isArray(server)) {
     return null;
@@ -56,6 +63,7 @@ function normalizeMcpServerSpec(server) {
   if (!id || !command || server.enabled === false) {
     return null;
   }
+  const timeoutMs = Number(readMcpTimeoutMs(server));
   return {
     id,
     name: normalizeString(server.name) || id,
@@ -66,8 +74,8 @@ function normalizeMcpServerSpec(server) {
       : [],
     env: normalizeObject(server.env),
     cwd: normalizeString(server.cwd) || process.cwd(),
-    timeout_ms: Number.isFinite(Number(server.timeout_ms || server.timeoutMs))
-      ? Number(server.timeout_ms || server.timeoutMs)
+    timeout_ms: Number.isFinite(timeoutMs)
+      ? timeoutMs
       : DEFAULT_MCP_REQUEST_TIMEOUT_MS,
     tool_prefix: normalizeString(server.tool_prefix || server.toolPrefix),
     tools: Array.isArray(server.tools) ? server.tools : [],

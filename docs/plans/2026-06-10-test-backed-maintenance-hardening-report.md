@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: twelfth hardening slice committed.
+- Current slice: thirteenth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -82,6 +82,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the twelfth slice.
 - [x] Update changelog and report with the twelfth slice result.
 - [x] Commit the twelfth slice.
+- [x] Select thirteenth code slice with a concrete owner and regression test.
+- [x] Implement thirteenth slice.
+- [x] Run focused validation and `git diff --check` for the thirteenth slice.
+- [x] Update changelog and report with the thirteenth slice result.
+- [ ] Commit the thirteenth slice.
 
 ## Validation Log
 
@@ -172,6 +177,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after twelfth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs tests/frontend/SdkLiveTurnSurfaceController.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- ExtensionManifest McpRuntime --runInBand` -
+  passed after thirteenth slice; 2 suites and 10 tests passed, including the
+  new canonical MCP timeout precedence regressions.
+- `bin/windie docs list` - passed after thirteenth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/extensions/extension_manifest.cjs frontend/src/main/extensions/mcp_runtime.cjs tests/frontend/ExtensionManifest.test.cjs tests/frontend/McpRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -345,6 +357,20 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   state, IPC channel, stale-guard semantics, or persisted data shape changed.
   Valid bounds still apply immediately and repeated identical SDK snapshots
   still no-op through the existing signature path.
+- Slice 13 owner: Electron main extension/MCP runtime owns reading repo-level
+  `mcps/<id>/mcp.json` specs and normalizing MCP server specs used for tool
+  discovery and execution.
+- Slice 13 failure mode: MCP timeout normalization used
+  `server.timeout_ms || server.timeoutMs`, so an explicit canonical
+  `timeout_ms` value such as `0` was discarded when a camelCase fallback was
+  present.
+- Slice 13 change: MCP timeout normalization now reads canonical `timeout_ms`
+  when the key is present and falls back to `timeoutMs` only when it is absent.
+  The existing finite-number behavior and runtime defaults are otherwise
+  preserved.
+- Slice 13 inspection: no MCP manifest shape, client tool manifest shape,
+  sidecar tool payload, backend manifest validation, or persisted data changed.
+  The fix only tightens Electron main's MCP server-spec normalization boundary.
 
 ## Decisions
 
@@ -393,6 +419,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat malformed SDK live-turn response bounds as Electron main native-window
   boundary hardening. No persisted data, IPC payload, SDK projection shape,
   renderer layout contract, or stale-guard contract changed, so no migration is
+  required.
+- Treat MCP timeout precedence as Electron main extension-spec normalization
+  hardening. No persisted data, MCP manifest shape, client tool manifest shape,
+  sidecar payload, or backend validation contract changed, so no migration is
   required.
 
 ## Commits

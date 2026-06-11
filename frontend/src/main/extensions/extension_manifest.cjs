@@ -208,6 +208,13 @@ function normalizeSettingsPanel(panel, pluginId, index) {
   };
 }
 
+function readMcpTimeoutMs(server) {
+  if (Object.prototype.hasOwnProperty.call(server, 'timeout_ms')) {
+    return server.timeout_ms;
+  }
+  return server.timeoutMs;
+}
+
 function loadPlugin(pluginDir) {
   const manifestPath = path.join(pluginDir, 'plugin.json');
   const manifest = readJsonFile(manifestPath);
@@ -267,6 +274,7 @@ function normalizeMcpServer(server, mcpDir, mcpId) {
   const tools = Array.isArray(server.tools)
     ? server.tools.map((tool) => normalizeMcpToolSpec(tool, mcpDir)).filter(Boolean)
     : [];
+  const timeoutMs = Number(readMcpTimeoutMs(server));
   return {
     id,
     name: normalizeString(server.name) || id,
@@ -278,8 +286,8 @@ function normalizeMcpServer(server, mcpDir, mcpId) {
     env: normalizeObject(server.env),
     cwd: cwd || mcpDir,
     enabled: true,
-    timeout_ms: Number.isFinite(Number(server.timeout_ms || server.timeoutMs))
-      ? Number(server.timeout_ms || server.timeoutMs)
+    timeout_ms: Number.isFinite(timeoutMs)
+      ? timeoutMs
       : null,
     tool_prefix: normalizeString(server.tool_prefix || server.toolPrefix),
     tools,
