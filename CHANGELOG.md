@@ -36,7 +36,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - frontend/sidecar: include sidecar source identity in the SDK daemon launch
   context so dev restarts do not reuse stale daemon processes after local
-  Python sidecar methods change.
+  Python sidecar methods change, and make desktop launches own a fresh sidecar
+  instead of reusing discovered daemons from prior UI sessions.
 - docs/planning: prune stale future-planning documents and remove navigation
   links that pointed at deleted planning pages.
 - frontend/docs: align local backend bridge naming around the SDK local

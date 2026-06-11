@@ -166,7 +166,7 @@ function createDesktopAutoSidecarLaunchPlan({
       env,
       envMode: 'replace',
       launchContext: buildSidecarLaunchContextFromEnv(env),
-      reuseExisting: true,
+      reuseExisting: false,
       startTimeoutMs: DEFAULT_DAEMON_START_TIMEOUT_MS,
       pollIntervalMs: DEFAULT_DAEMON_POLL_INTERVAL_MS,
       WebSocketImpl,

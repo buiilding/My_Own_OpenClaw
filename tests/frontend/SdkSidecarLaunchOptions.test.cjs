@@ -8,6 +8,7 @@ const {
   DAEMON_LAUNCH_CONTEXT_ENV_KEYS,
   buildSidecarDaemonEnv,
   buildSidecarLaunchContextFromEnv,
+  createDesktopAutoSidecarLaunchPlan,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
 
 describe('sdk sidecar launch options', () => {
@@ -41,5 +42,14 @@ describe('sdk sidecar launch options', () => {
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+
+  test('desktop launch owns a fresh sidecar instead of reusing discovered daemons', () => {
+    const plan = createDesktopAutoSidecarLaunchPlan({
+      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+    });
+
+    expect(plan.ok).toBe(true);
+    expect(plan.options.reuseExisting).toBe(false);
   });
 });
