@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: twentieth hardening slice committed.
+- Current slice: twenty-first hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -122,6 +122,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the twentieth slice.
 - [x] Update changelog and report with the twentieth slice result.
 - [x] Commit the twentieth slice.
+- [x] Select twenty-first code slice with a concrete owner and regression test.
+- [x] Implement twenty-first slice.
+- [x] Run focused validation and `git diff --check` for the twenty-first slice.
+- [x] Update changelog and report with the twenty-first slice result.
+- [ ] Commit the twenty-first slice.
 
 ## Validation Log
 
@@ -269,6 +274,16 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after twentieth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/extensions/extension_manifest.cjs frontend/src/main/sdk/agent_definition.cjs tests/frontend/ExtensionManifest.test.cjs tests/frontend/AgentCapabilityHandshake.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- McpRuntime --runInBand` - passed after
+  twenty-first slice; 1 suite and 8 tests passed, including the new malformed
+  base manifest metadata regression.
+- `./scripts/python-in-env backend python -m pytest tests/backend/test_client_tool_manifest.py -q`
+  - passed after twenty-first slice; 17 backend client-manifest validation
+    tests passed.
+- `bin/windie docs list` - passed after twenty-first-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/extensions/mcp_runtime.cjs tests/frontend/McpRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -555,6 +570,21 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   extension contribution layout, persisted data, sidecar tool manifest, or MCP
   discovery contract changed. The fix only tightens Electron main/SDK prompt
   priority normalization before existing prompt-layer projection.
+- Slice 21 owner: Electron main MCP runtime owns appending discovered MCP tools
+  to the client-local tool manifest that the backend later validates and
+  projects like any other client-provided manifest.
+- Slice 21 failure mode: a caller-provided MCP base manifest with a truthy
+  malformed `version` could preserve a non-numeric manifest version, and a
+  malformed non-array `tools` value could throw during MCP tool append before
+  the backend received a deterministic client manifest.
+- Slice 21 change: MCP manifest assembly now normalizes the base manifest
+  version to a positive integer defaulting to `1`, treats malformed base
+  `tools` values as an empty list, and still appends valid discovered MCP tools
+  with the existing duplicate/disabled registry reconciliation.
+- Slice 21 inspection: no MCP server spec, discovered tool entry shape,
+  backend manifest validator, sidecar execution payload, persisted data, or
+  extension contribution layout changed. The fix only tightens Electron main's
+  manifest assembly boundary before existing backend validation.
 
 ## Decisions
 
@@ -636,6 +666,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   normalization hardening. No persisted data, prompt-layer payload shape,
   backend prompt assembly, sidecar payload, tool manifest, or extension package
   layout changed, so no migration is required.
+- Treat malformed MCP base client manifests as Electron main manifest assembly
+  hardening. No persisted data, backend manifest validator behavior, MCP server
+  spec shape, sidecar payload, tool entry shape, or extension package layout
+  changed, so no migration is required.
 
 ## Commits
 

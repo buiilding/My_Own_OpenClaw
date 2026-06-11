@@ -23,6 +23,17 @@ function normalizeObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
 
+function normalizeManifestVersion(value) {
+  if (typeof value === 'number') {
+    return Number.isInteger(value) && value > 0 ? value : 1;
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value.trim());
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  }
+  return 1;
+}
+
 function normalizeToolNameSegment(value) {
   const normalized = normalizeString(value)
     .replace(/[^a-zA-Z0-9_-]+/g, '_')
@@ -363,7 +374,8 @@ async function discoverMcpTools(options = {}) {
 async function buildClientToolManifestWithMcp(options = {}) {
   const disabledTools = new Set(Array.isArray(options.disabledTools) ? options.disabledTools : []);
   const baseManifest = options.baseManifest || buildClientToolManifest(options);
-  const seenNames = new Set((baseManifest.tools || []).map((tool) => tool.name));
+  const baseTools = Array.isArray(baseManifest.tools) ? baseManifest.tools : [];
+  const seenNames = new Set(baseTools.map((tool) => tool.name));
   const discovered = await discoverMcpTools(options);
   const mcpTools = discovered.tools.filter((tool) => {
     if (!tool?.name || disabledTools.has(tool.name) || seenNames.has(tool.name)) {
@@ -374,9 +386,9 @@ async function buildClientToolManifestWithMcp(options = {}) {
     return true;
   });
   return {
-    version: baseManifest.version || 1,
+    version: normalizeManifestVersion(baseManifest.version),
     tools: [
-      ...(baseManifest.tools || []),
+      ...baseTools,
       ...mcpTools,
     ],
     mcp_errors: discovered.errors,

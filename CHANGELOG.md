@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/mcp: normalize caller-provided base client manifest versions and
+  tool lists before appending MCP tools so malformed local metadata cannot
+  crash or drift the backend-facing manifest shape.
 - frontend/extensions/sdk: default blank or non-numeric prompt-layer priorities
   instead of letting JavaScript coercion turn malformed values into top-priority
   `0` layers.

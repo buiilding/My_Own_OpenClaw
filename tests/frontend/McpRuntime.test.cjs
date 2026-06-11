@@ -164,6 +164,26 @@ describe('MCP runtime', () => {
     expect(client.callTool).not.toHaveBeenCalled();
   });
 
+  test('normalizes malformed base manifest metadata while appending MCP tools', async () => {
+    const manifest = await buildClientToolManifestWithMcp({
+      baseManifest: { version: 'next', tools: { name: 'not-a-list' } },
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        args: ['server.cjs'],
+      }],
+      createClient,
+    });
+
+    expect(manifest.version).toBe(1);
+    expect(manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'mcp_memory__search',
+        mcp_server_id: 'memory',
+      }),
+    ]);
+  });
+
   test('falls back to declared MCP tool schemas when live discovery fails', async () => {
     const manifest = await buildClientToolManifestWithMcp({
       baseManifest: { version: 1, tools: [] },
