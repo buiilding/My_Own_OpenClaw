@@ -9,8 +9,9 @@ function normalizeOptionalString(value) {
 }
 
 function parseHeartbeatMs(rawValue) {
-  const parsed = Number.parseInt(String(rawValue || ''), 10);
-  if (!Number.isFinite(parsed) || parsed < 1000) {
+  const rawText = String(rawValue ?? '').trim();
+  const parsed = Number(rawText);
+  if (!Number.isInteger(parsed) || parsed < 1000) {
     return DEFAULT_HEARTBEAT_MS;
   }
   return parsed;

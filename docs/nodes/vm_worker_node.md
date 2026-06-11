@@ -35,7 +35,7 @@ Mode flags:
 | `WINDIE_VM_WORKER_ID` | worker | optional fixed worker id; otherwise derived from user id |
 | `WINDIE_VM_ID` | worker | optional fixed VM id; otherwise derived from worker id |
 | `WINDIE_VM_AGENT_ID` | worker | optional agent identity attached to heartbeat payloads |
-| `WINDIE_VM_WORKER_HEARTBEAT_MS` | worker | heartbeat interval with a minimum of 1000ms |
+| `WINDIE_VM_WORKER_HEARTBEAT_MS` | worker | heartbeat interval as a strict integer with a minimum of 1000ms |
 | `WINDIE_VM_RUNS_API_KEY` | worker | worker-specific runs API key override |
 | `WINDIE_RUNS_API_KEY` | backend and worker | shared runs key accepted as `x-windie-runs-key` |
 

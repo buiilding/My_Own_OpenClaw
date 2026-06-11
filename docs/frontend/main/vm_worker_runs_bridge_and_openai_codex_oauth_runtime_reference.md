@@ -63,7 +63,8 @@ If key resolves, worker includes `x-windie-runs-key` on all `/api/runs/*` HTTP c
 Heartbeat interval parsing:
 
 - Runtime parses heartbeat ms as integer.
-- Non-numeric or `< 1000` values are clamped back to default `5000`.
+- Non-numeric, partial-numeric, decimal, or `< 1000` values are clamped back to
+  default `5000`.
 
 ## Heartbeat Tick Loop
 

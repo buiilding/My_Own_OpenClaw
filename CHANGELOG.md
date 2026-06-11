@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/vm-worker: require `WINDIE_VM_WORKER_HEARTBEAT_MS` to be a strict
+  integer millisecond value so malformed partial-numeric values fall back to
+  the documented default heartbeat interval.
 - sdk/frontend: forward conversation trace context through `WindieAgent` memory
   enrichment so desktop turns persist durable memory retrieval trace rows.
 - sdk/frontend: preserve same-turn resolved resource metadata during

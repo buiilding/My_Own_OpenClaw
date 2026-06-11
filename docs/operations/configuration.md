@@ -241,7 +241,7 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 - `WINDIE_VM_WORKER_ID`: optional fixed worker identifier (defaults to `worker-<backend-user-id>`).
 - `WINDIE_VM_ID`: optional fixed VM identifier (defaults to `vm-<worker-id>`).
 - `WINDIE_VM_AGENT_ID`: optional agent identity attached to worker heartbeat payloads.
-- `WINDIE_VM_WORKER_HEARTBEAT_MS`: heartbeat interval in milliseconds (minimum 1000, default 5000).
+- `WINDIE_VM_WORKER_HEARTBEAT_MS`: heartbeat interval in strict integer milliseconds (minimum 1000, default 5000).
 - `WINDIE_RUNS_API_KEY`: optional shared key protecting all `/api/runs/*` endpoints.
   - If set, every runs API request must include header `x-windie-runs-key: <key>`.
   - VM worker auto-uses `WINDIE_VM_RUNS_API_KEY` or falls back to this key.

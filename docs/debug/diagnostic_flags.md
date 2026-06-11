@@ -62,7 +62,7 @@ Sidecar stdout is protocol traffic. Never log debug text to stdout.
 | --- | --- |
 | `WINDIE_VM_MODE=1` | Enables hosted VM/dashboard-oriented app mode. |
 | `WINDIE_VM_WORKER_MODE=1` | Explicitly enables worker heartbeat/polling mode. |
-| `WINDIE_VM_WORKER_HEARTBEAT_MS=<ms>` | Worker heartbeat interval; minimum is 1000ms. |
+| `WINDIE_VM_WORKER_HEARTBEAT_MS=<ms>` | Worker heartbeat interval as a strict integer; minimum is 1000ms. |
 | `WINDIE_VM_RUNS_API_KEY=<key>` | Worker-specific runs API key override. |
 
 Use [VM Worker Node](../nodes/vm_worker_node.md) and [Runs API Runbook](../automation/runs_api_runbook.md) for the full control-plane flow.

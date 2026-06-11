@@ -17,6 +17,39 @@ function createDeferred() {
 }
 
 describe('vm_worker_runtime', () => {
+  test('uses configured heartbeat interval only for strict millisecond integers', () => {
+    const intervals = [];
+    const createRuntime = (heartbeatValue) => createVmWorkerRuntime({
+      env: {
+        WINDIE_VM_WORKER_HEARTBEAT_MS: heartbeatValue,
+      },
+      fetchFn: jest.fn(),
+      getBackendConnectionState: () => ({ isConnected: false }),
+      sendAutomatedQuery: jest.fn(),
+      sendStopQueryToBackend: jest.fn(),
+      registerBackendMessageObserver: () => () => {},
+      setIntervalFn: (_handler, ms) => {
+        intervals.push(ms);
+        return intervals.length;
+      },
+      clearIntervalFn: jest.fn(),
+      log: jest.fn(),
+      warn: jest.fn(),
+    });
+
+    createRuntime(' 2500 ').start();
+    createRuntime('2500ms').start();
+    createRuntime('1000.5').start();
+    createRuntime('999').start();
+
+    expect(intervals).toEqual([
+      2500,
+      5000,
+      5000,
+      5000,
+    ]);
+  });
+
   test('buildAttachmentContextFromFiles renders artifact list', () => {
     const runtime = createVmWorkerRuntime({
       env: {
