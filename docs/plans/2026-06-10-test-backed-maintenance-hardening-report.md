@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: twenty-third hardening slice validated.
+- Current slice: twenty-third hardening slice committed.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -136,7 +136,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement twenty-third slice.
 - [x] Run focused validation and `git diff --check` for the twenty-third slice.
 - [x] Update changelog and report with the twenty-third slice result.
-- [ ] Commit the twenty-third slice.
+- [x] Commit the twenty-third slice.
 
 ## Validation Log
 
@@ -756,6 +756,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `2ebb12860` - `fix(frontend-agent): default malformed prompt priorities`
 - `503b915d0` - `fix(frontend-mcp): normalize base manifest metadata`
 - `ca1ef1db7` - `fix(frontend-overlays): normalize primary display bounds`
+- `0046e7c8c` - `fix(frontend-overlays): normalize fallback dimensions`
 
 ## Remaining Candidates
 
