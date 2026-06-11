@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/overlays: reject non-finite display-affinity bounds before placing
+  overlay windows so malformed monitor metadata cannot produce invalid native
+  coordinates.
 - frontend/main: fall back to the default overlay capture focus settle wait for
   invalid injected values so malformed config cannot skip capture preparation.
 - sdk/conversation: normalize conversation metadata pagination limits to

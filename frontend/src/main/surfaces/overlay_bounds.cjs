@@ -1,18 +1,38 @@
 const COMPACT_RESPONSE_HEIGHT_THRESHOLD = 56;
 const COMPACT_RESPONSE_HOVER_OFFSET = 6;
 
+function normalizeRoundedFinite(value, { required = false } = {}) {
+  if (value === null || value === undefined || value === '') {
+    return required ? null : 0;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+  return Math.round(parsed);
+}
+
 function normalizeBounds(bounds) {
   if (!bounds || typeof bounds !== 'object') {
     return null;
   }
-  const width = Math.round(Number(bounds.width) || 0);
-  const height = Math.round(Number(bounds.height) || 0);
-  if (width <= 0 || height <= 0) {
+  const width = normalizeRoundedFinite(bounds.width, { required: true });
+  const height = normalizeRoundedFinite(bounds.height, { required: true });
+  const x = normalizeRoundedFinite(bounds.x);
+  const y = normalizeRoundedFinite(bounds.y);
+  if (
+    width === null
+    || height === null
+    || x === null
+    || y === null
+    || width <= 0
+    || height <= 0
+  ) {
     return null;
   }
   return {
-    x: Math.round(Number(bounds.x) || 0),
-    y: Math.round(Number(bounds.y) || 0),
+    x,
+    y,
     width,
     height,
   };

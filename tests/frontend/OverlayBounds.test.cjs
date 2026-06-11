@@ -80,6 +80,23 @@ describe('overlay_bounds', () => {
     });
   });
 
+  test('ignores non-finite display affinity work areas and uses fallback bounds', () => {
+    expect(getChatWindowBounds({
+      screen,
+      width: 520,
+      height: 96,
+      displayAffinity: {
+        workArea: { x: Infinity, y: 40, width: 2560, height: 1400 },
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      },
+    })).toEqual({
+      x: 2940,
+      y: 1320,
+      width: 520,
+      height: 96,
+    });
+  });
+
   test('response bounds align above current chat bounds when available', () => {
     expect(
       getResponseWindowBounds({
