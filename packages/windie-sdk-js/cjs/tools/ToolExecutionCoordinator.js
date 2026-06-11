@@ -194,6 +194,15 @@ function shouldSkipFrontendExecution(event) {
     const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
     return metadata?.skip_frontend_execution === true;
 }
+function resolveLocalToolRelease(release) {
+    if (typeof release === 'function') {
+        return release;
+    }
+    if (isJsonRecord(release) && typeof release.release === 'function') {
+        return release.release;
+    }
+    return null;
+}
 class ToolExecutionCoordinator {
     constructor(options) {
         this.options = options;
@@ -202,12 +211,12 @@ class ToolExecutionCoordinator {
         if (!this.options.localRuntime?.executeTool) {
             throw new Error('local runtime executeTool is unavailable');
         }
-        const release = await this.options.localToolLifecycle?.beforeExecute?.(call);
+        const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
         try {
             return await this.options.localRuntime.executeTool(call);
         }
         finally {
-            if (typeof release === 'function') {
+            if (release) {
                 await release();
             }
         }

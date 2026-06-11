@@ -258,6 +258,10 @@ class SdkConversationRuntime {
                     conversationRef: this.options.conversationRef,
                     turnRef,
                     payload: sourcePayload,
+                    traceContext: traceRecorder.context(),
+                    emitTrace: async (traceEvent) => {
+                        await traceRecorder.record(traceEvent);
+                    },
                 },
             });
             const payloadForEnrichment = {
@@ -293,6 +297,21 @@ class SdkConversationRuntime {
                 ...resourceResolution.metadata,
                 ...enrichedPayload,
             };
+            if ((input.resources ?? []).some(resource => resource.kind === 'query_screenshot_request')) {
+                await traceRecorder.record({
+                    path: 'screenshot.capture',
+                    stage: 'query_payload_applied',
+                    status: 'succeeded',
+                    data: {
+                        hasScreenshotRef: typeof enrichedPayload.screenshot_ref === 'string'
+                            && enrichedPayload.screenshot_ref.trim().length > 0,
+                        screenshotRefCount: Array.isArray(enrichedPayload.screenshot_refs)
+                            ? enrichedPayload.screenshot_refs.length
+                            : (typeof enrichedPayload.screenshot_ref === 'string' ? 1 : 0),
+                        hasCaptureMeta: isJsonRecord(enrichedPayload.capture_meta),
+                    },
+                });
+            }
             if (this.options.enrichQuery || hasOwnEnumerableKeys(resourceResolution.metadata)) {
                 await this.applyEvent((0, events_js_1.createConversationEvent)({
                     eventId: this.nextLocalEventId(turnRef, 'user_message_metadata'),

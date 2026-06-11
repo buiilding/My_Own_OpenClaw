@@ -35,8 +35,15 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDefaultTurnResourceResolvers = createDefaultTurnResourceResolvers;
 const DEFAULT_SCREENSHOT_CONTENT_TYPE = 'image/jpeg';
+const SCREENSHOT_CAPTURE_PATH = 'screenshot.capture';
 function isJsonRecord(value) {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+function nowMs() {
+    return Date.now();
+}
+function durationSince(startedAtMs) {
+    return Math.max(0, Date.now() - startedAtMs);
 }
 function optionalString(value) {
     if (typeof value !== 'string') {
@@ -123,17 +130,51 @@ function errorResult(kind, error, fatal = false) {
         fatal,
     };
 }
-async function executeLocalTool(options, call) {
+function normalizeLocalToolLease(release) {
+    if (typeof release === 'function') {
+        return {
+            release,
+            trace: isJsonRecord(release.trace) ? release.trace : null,
+        };
+    }
+    if (isJsonRecord(release)) {
+        const releaseFn = typeof release.release === 'function'
+            ? release.release
+            : undefined;
+        return {
+            ...(releaseFn ? { release: releaseFn } : {}),
+            trace: isJsonRecord(release.trace) ? release.trace : null,
+        };
+    }
+    return {};
+}
+async function executeLocalTool(options, call, hooks = {}) {
     if (!options.localRuntime?.executeTool) {
         throw new Error('local runtime executeTool is unavailable');
     }
-    const release = await options.localToolLifecycle?.beforeExecute?.(call);
+    let lease = {};
+    if (options.localToolLifecycle?.beforeExecute) {
+        const lifecycleStartedAtMs = nowMs();
+        await hooks.onLifecycleStart?.();
+        try {
+            lease = normalizeLocalToolLease(await options.localToolLifecycle.beforeExecute(call));
+            await hooks.onLifecycleSucceeded?.(lease.trace ?? null, durationSince(lifecycleStartedAtMs));
+        }
+        catch (error) {
+            await hooks.onLifecycleFailed?.(error, durationSince(lifecycleStartedAtMs));
+            throw error;
+        }
+    }
     try {
-        return await options.localRuntime.executeTool(call);
+        await hooks.onExecuteStart?.();
+        return {
+            result: await options.localRuntime.executeTool(call),
+            lifecycleTrace: lease.trace ?? null,
+        };
     }
     finally {
-        if (typeof release === 'function') {
-            await release();
+        if (typeof lease.release === 'function') {
+            await lease.release();
         }
     }
 }
@@ -143,6 +184,44 @@ function resolveReadFileOutput(result) {
 }
 function resolveScreenshotData(result) {
     return isJsonRecord(result.data) ? result.data : {};
+}
+function emitScreenshotTrace(context, event) {
+    return context.emitTrace?.({
+        path: SCREENSHOT_CAPTURE_PATH,
+        ...event,
+    });
+}
+function traceDataFromCaptureMeta(captureMeta) {
+    if (!isJsonRecord(captureMeta)) {
+        return {};
+    }
+    const virtualBounds = isJsonRecord(captureMeta.desktop_virtual_bounds)
+        ? captureMeta.desktop_virtual_bounds
+        : null;
+    return {
+        ...(typeof captureMeta.capture_engine === 'string' ? { captureEngine: captureMeta.capture_engine } : {}),
+        ...(typeof captureMeta.monitor_id === 'string' ? { monitorId: captureMeta.monitor_id } : {}),
+        ...(typeof captureMeta.source_w === 'number' ? { sourceW: captureMeta.source_w } : {}),
+        ...(typeof captureMeta.source_h === 'number' ? { sourceH: captureMeta.source_h } : {}),
+        ...(typeof captureMeta.crop_x === 'number' ? { cropX: captureMeta.crop_x } : {}),
+        ...(typeof captureMeta.crop_y === 'number' ? { cropY: captureMeta.crop_y } : {}),
+        ...(typeof captureMeta.crop_w === 'number' ? { cropW: captureMeta.crop_w } : {}),
+        ...(typeof captureMeta.crop_h === 'number' ? { cropH: captureMeta.crop_h } : {}),
+        ...(typeof virtualBounds?.x === 'number' ? { virtualX: virtualBounds.x } : {}),
+        ...(typeof virtualBounds?.y === 'number' ? { virtualY: virtualBounds.y } : {}),
+        ...(typeof virtualBounds?.width === 'number' ? { virtualWidth: virtualBounds.width } : {}),
+        ...(typeof virtualBounds?.height === 'number' ? { virtualHeight: virtualBounds.height } : {}),
+    };
+}
+function sidecarCaptureTraceData(data) {
+    const pathTrace = isJsonRecord(data.path_trace) ? data.path_trace : null;
+    return {
+        ...(pathTrace ?? {}),
+        ...traceDataFromCaptureMeta(data.capture_meta),
+        ...(typeof data.size === 'number' ? { byteCount: data.size } : {}),
+        ...(typeof data.screenshot_content_type === 'string' ? { contentType: data.screenshot_content_type } : {}),
+        hasCaptureMeta: isJsonRecord(data.capture_meta),
+    };
 }
 async function uploadScreenshotBase64(sdkClient, screenshot, contentTypeInput, filename) {
     if (!sdkClient?.artifacts?.upload) {
@@ -230,7 +309,7 @@ function createDefaultTurnResourceResolvers(options) {
             if (resource.kind !== 'readable_file') {
                 return null;
             }
-            const result = await executeLocalTool(options, {
+            const { result } = await executeLocalTool(options, {
                 toolName: 'read_file',
                 args: { file_path: resource.filePath },
                 turnRef: context.turnRef,
@@ -268,26 +347,233 @@ function createDefaultTurnResourceResolvers(options) {
             if (resource.kind !== 'query_screenshot_request') {
                 return null;
             }
-            const result = await executeLocalTool(options, {
-                toolName: 'screenshot',
-                args: {
-                    explanation: screenshotExplanation(resource),
-                    expectation: 'Current screen state',
+            const resolverStartedAtMs = nowMs();
+            await emitScreenshotTrace(context, {
+                stage: 'resource_detected',
+                status: 'succeeded',
+                data: {
+                    resourceKind: resource.kind,
+                    required: resource.required === true,
+                    isFirstUserMessage: resource.isFirstUserMessage === true,
+                    reason: optionalString(resource.reason) ?? null,
+                    localRuntimeAvailable: Boolean(options.localRuntime?.executeTool),
+                    artifactUploaderAvailable: Boolean(options.sdkClient?.artifacts?.upload),
                 },
-                turnRef: context.turnRef,
-                conversationRef: context.conversationRef,
             });
+            await emitScreenshotTrace(context, {
+                stage: 'resolver',
+                status: 'started',
+                data: {
+                    required: resource.required === true,
+                },
+            });
+            const fail = async (error, fallbackMessage = 'Screenshot capture failed.') => {
+                const message = error instanceof Error && error.message.trim()
+                    ? error.message
+                    : (typeof error === 'string' && error.trim() ? error : fallbackMessage);
+                await emitScreenshotTrace(context, {
+                    stage: 'resolver',
+                    status: resource.required === true ? 'failed' : 'skipped',
+                    durationMs: durationSince(resolverStartedAtMs),
+                    data: {
+                        optionalFailure: resource.required !== true,
+                    },
+                    error: { code: 'screenshot_capture_failed', message },
+                });
+                return errorResult(resource.kind, message, resource.required === true);
+            };
+            let result;
+            try {
+                const execution = await executeLocalTool(options, {
+                    toolName: 'screenshot',
+                    args: {
+                        explanation: screenshotExplanation(resource),
+                        expectation: 'Current screen state',
+                    },
+                    turnRef: context.turnRef,
+                    conversationRef: context.conversationRef,
+                }, {
+                    onLifecycleStart: async () => {
+                        await emitScreenshotTrace(context, {
+                            stage: 'surface_prepare',
+                            status: 'started',
+                            runtime: 'electron-main',
+                        });
+                    },
+                    onLifecycleSucceeded: async (trace, durationMs) => {
+                        await emitScreenshotTrace(context, {
+                            stage: 'surface_prepare',
+                            status: 'succeeded',
+                            runtime: 'electron-main',
+                            durationMs,
+                            data: trace ?? undefined,
+                        });
+                    },
+                    onLifecycleFailed: async (error, durationMs) => {
+                        await emitScreenshotTrace(context, {
+                            stage: 'surface_prepare',
+                            status: 'failed',
+                            runtime: 'electron-main',
+                            durationMs,
+                            error,
+                        });
+                    },
+                    onExecuteStart: async () => {
+                        await emitScreenshotTrace(context, {
+                            stage: 'sidecar_capture',
+                            status: 'started',
+                            runtime: 'sidecar',
+                        });
+                    },
+                });
+                result = execution.result;
+            }
+            catch (error) {
+                await emitScreenshotTrace(context, {
+                    stage: 'sidecar_capture',
+                    status: 'failed',
+                    runtime: 'sidecar',
+                    error,
+                });
+                return fail(error);
+            }
             if (result.success === false) {
-                return errorResult(resource.kind, optionalString(result.error) ?? 'Screenshot capture failed.', resource.required === true);
+                const message = optionalString(result.error) ?? 'Screenshot capture failed.';
+                await emitScreenshotTrace(context, {
+                    stage: 'sidecar_capture',
+                    status: 'failed',
+                    runtime: 'sidecar',
+                    error: { code: 'sidecar_screenshot_failed', message },
+                });
+                return fail(message);
             }
             const data = resolveScreenshotData(result);
+            await emitScreenshotTrace(context, {
+                stage: 'sidecar_capture',
+                status: 'succeeded',
+                runtime: 'sidecar',
+                data: sidecarCaptureTraceData(data),
+            });
             const existing = screenshotResolutionFromData(data);
             if (existing) {
+                await emitScreenshotTrace(context, {
+                    stage: 'artifact_upload',
+                    status: 'skipped',
+                    data: {
+                        uploadMode: 'existing_ref',
+                        hasScreenshotRef: Boolean(existing.screenshotRef),
+                        screenshotRefCount: Array.isArray(existing.screenshotRefs) ? existing.screenshotRefs.length : 0,
+                    },
+                });
+                await emitScreenshotTrace(context, {
+                    stage: 'resolver',
+                    status: 'succeeded',
+                    durationMs: durationSince(resolverStartedAtMs),
+                    data: {
+                        uploadMode: 'existing_ref',
+                        hasScreenshotRef: Boolean(existing.screenshotRef),
+                        hasCaptureMeta: isJsonRecord(existing.captureMeta),
+                    },
+                });
                 return existing;
             }
-            const screenshotPath = stringFromRecord(data, 'screenshot_path', 'screenshotPath');
-            if (screenshotPath) {
-                const uploaded = await uploadScreenshotFile(options.sdkClient, screenshotPath, data.screenshot_content_type);
+            try {
+                const screenshotPath = stringFromRecord(data, 'screenshot_path', 'screenshotPath');
+                if (screenshotPath) {
+                    const uploadStartedAtMs = nowMs();
+                    await emitScreenshotTrace(context, {
+                        stage: 'artifact_upload',
+                        status: 'started',
+                        data: {
+                            uploadMode: 'file',
+                            contentType: typeof data.screenshot_content_type === 'string'
+                                ? data.screenshot_content_type
+                                : null,
+                        },
+                    });
+                    const uploaded = await uploadScreenshotFile(options.sdkClient, screenshotPath, data.screenshot_content_type);
+                    await emitScreenshotTrace(context, {
+                        stage: 'artifact_upload',
+                        status: 'succeeded',
+                        durationMs: durationSince(uploadStartedAtMs),
+                        data: {
+                            uploadMode: 'file',
+                            artifactId: uploaded.artifactId,
+                            contentType: uploaded.contentType,
+                            hasUrl: Boolean(uploaded.url),
+                        },
+                    });
+                    const resolution = {
+                        kind: resource.kind,
+                        screenshotRef: uploaded.artifactId,
+                        screenshotUrl: uploaded.url ?? null,
+                        screenshotRefs: [uploaded.artifactId],
+                        captureMeta: isJsonRecord(data.capture_meta) ? data.capture_meta : null,
+                        metadata: {
+                            screenshotRef: uploaded.artifactId,
+                            ...(uploaded.url ? { screenshotUrl: uploaded.url } : {}),
+                        },
+                    };
+                    await emitScreenshotTrace(context, {
+                        stage: 'resolver',
+                        status: 'succeeded',
+                        durationMs: durationSince(resolverStartedAtMs),
+                        data: {
+                            uploadMode: 'file',
+                            hasScreenshotRef: true,
+                            screenshotRefCount: 1,
+                            hasCaptureMeta: isJsonRecord(data.capture_meta),
+                        },
+                    });
+                    return resolution;
+                }
+                const screenshot = stringFromRecord(data, 'screenshot');
+                if (!screenshot) {
+                    await emitScreenshotTrace(context, {
+                        stage: 'resolver',
+                        status: 'skipped',
+                        durationMs: durationSince(resolverStartedAtMs),
+                        data: {
+                            reason: 'empty_screenshot_payload',
+                            optionalFailure: resource.required !== true,
+                        },
+                    });
+                    return null;
+                }
+                const uploadStartedAtMs = nowMs();
+                await emitScreenshotTrace(context, {
+                    stage: 'artifact_upload',
+                    status: 'started',
+                    data: {
+                        uploadMode: 'inline',
+                        contentType: typeof data.screenshot_content_type === 'string'
+                            ? data.screenshot_content_type
+                            : null,
+                    },
+                });
+                const uploaded = await uploadScreenshotBase64(options.sdkClient, screenshot, data.screenshot_content_type);
+                await emitScreenshotTrace(context, {
+                    stage: 'artifact_upload',
+                    status: 'succeeded',
+                    durationMs: durationSince(uploadStartedAtMs),
+                    data: {
+                        uploadMode: 'inline',
+                        artifactId: uploaded.artifactId,
+                        contentType: uploaded.contentType,
+                        hasUrl: Boolean(uploaded.url),
+                    },
+                });
+                await emitScreenshotTrace(context, {
+                    stage: 'resolver',
+                    status: 'succeeded',
+                    durationMs: durationSince(resolverStartedAtMs),
+                    data: {
+                        uploadMode: 'inline',
+                        hasScreenshotRef: true,
+                        screenshotRefCount: 1,
+                        hasCaptureMeta: isJsonRecord(data.capture_meta),
+                    },
+                });
                 return {
                     kind: resource.kind,
                     screenshotRef: uploaded.artifactId,
@@ -300,22 +586,17 @@ function createDefaultTurnResourceResolvers(options) {
                     },
                 };
             }
-            const screenshot = stringFromRecord(data, 'screenshot');
-            if (!screenshot) {
-                return null;
+            catch (error) {
+                await emitScreenshotTrace(context, {
+                    stage: 'artifact_upload',
+                    status: 'failed',
+                    error: {
+                        code: 'artifact_upload_failed',
+                        message: 'Screenshot artifact upload failed.',
+                    },
+                });
+                return fail('Screenshot artifact upload failed.');
             }
-            const uploaded = await uploadScreenshotBase64(options.sdkClient, screenshot, data.screenshot_content_type);
-            return {
-                kind: resource.kind,
-                screenshotRef: uploaded.artifactId,
-                screenshotUrl: uploaded.url ?? null,
-                screenshotRefs: [uploaded.artifactId],
-                captureMeta: isJsonRecord(data.capture_meta) ? data.capture_meta : null,
-                metadata: {
-                    screenshotRef: uploaded.artifactId,
-                    ...(uploaded.url ? { screenshotUrl: uploaded.url } : {}),
-                },
-            };
         },
         async workspace(resource) {
             if (resource.kind !== 'workspace') {

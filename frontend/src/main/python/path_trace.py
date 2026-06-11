@@ -52,3 +52,40 @@ def build_sidecar_memory_search_trace(
         **count_grouped_memory_results(memories),
         "durationMs": elapsed_trace_ms(started_at),
     }
+
+
+def _number(value: Any) -> Optional[float]:
+    return value if isinstance(value, (int, float)) else None
+
+
+def build_sidecar_screenshot_capture_trace(
+    *,
+    capture_payload: Dict[str, Any],
+    started_at: float,
+) -> Dict[str, Any]:
+    capture_meta = capture_payload.get("capture_meta")
+    if not isinstance(capture_meta, dict):
+        capture_meta = {}
+    virtual_bounds = capture_meta.get("desktop_virtual_bounds")
+    if not isinstance(virtual_bounds, dict):
+        virtual_bounds = {}
+
+    trace: Dict[str, Any] = {
+        "captureEngine": capture_meta.get("capture_engine"),
+        "monitorId": capture_meta.get("monitor_id"),
+        "sourceW": _number(capture_meta.get("source_w")),
+        "sourceH": _number(capture_meta.get("source_h")),
+        "cropX": _number(capture_meta.get("crop_x")),
+        "cropY": _number(capture_meta.get("crop_y")),
+        "cropW": _number(capture_meta.get("crop_w")),
+        "cropH": _number(capture_meta.get("crop_h")),
+        "virtualX": _number(virtual_bounds.get("x")),
+        "virtualY": _number(virtual_bounds.get("y")),
+        "virtualWidth": _number(virtual_bounds.get("width")),
+        "virtualHeight": _number(virtual_bounds.get("height")),
+        "byteCount": _number(capture_payload.get("size")),
+        "contentType": capture_payload.get("screenshot_content_type"),
+        "durationMs": elapsed_trace_ms(started_at),
+        "hasCaptureMeta": bool(capture_meta),
+    }
+    return {key: value for key, value in trace.items() if value is not None}

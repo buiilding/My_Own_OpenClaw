@@ -107,6 +107,24 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
         "capture_engine": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
+    assert payload["path_trace"] == {
+        "captureEngine": "pyautogui_fallback",
+        "sourceW": 300,
+        "sourceH": 200,
+        "cropX": 10,
+        "cropY": 20,
+        "cropW": 300,
+        "cropH": 200,
+        "virtualX": 10,
+        "virtualY": 20,
+        "virtualWidth": 300,
+        "virtualHeight": 200,
+        "byteCount": len(b"fake-jpeg-bytes"),
+        "contentType": "image/jpeg",
+        "durationMs": payload["path_trace"]["durationMs"],
+        "hasCaptureMeta": True,
+    }
+    assert isinstance(payload["path_trace"]["durationMs"], int)
 
 
 @pytest.mark.asyncio

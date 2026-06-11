@@ -62,6 +62,7 @@ export function normalizeLocalToolResultData(data: JsonRecord | undefined, fallb
     ?? data.error
     ?? fallbackOutput;
   const normalized: JsonRecord = { ...data };
+  delete normalized.path_trace;
   normalized.output = output;
   return normalized;
 }

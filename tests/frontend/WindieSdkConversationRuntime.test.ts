@@ -3208,9 +3208,22 @@ describe('Windie SDK conversation runtime core', () => {
           crop_w: 1920,
           crop_h: 1080,
           timestamp: 123,
+          capture_engine: 'pyautogui_fallback',
         },
       },
     }));
+    const releaseScreenshotLease = jest.fn(async () => undefined) as jest.Mock & {
+      trace?: Record<string, unknown>;
+    };
+    releaseScreenshotLease.trace = {
+      platform: 'darwin',
+      leaseMode: 'content_protection',
+      visibleCaptureWindowCount: 2,
+      durationMs: 4,
+    };
+    const localToolLifecycle = {
+      beforeExecute: jest.fn(async () => releaseScreenshotLease),
+    };
     const transport = createMockBackendTransport({
       sendQuery: jest.fn(async () => 'query-after-screenshot-resource'),
     });
@@ -3231,6 +3244,7 @@ describe('Windie SDK conversation runtime core', () => {
         localRuntime: {
           executeTool,
         },
+        localToolLifecycle,
       }),
       enrichQuery: async ({ payload }) => payload ?? {},
     });
@@ -3258,6 +3272,12 @@ describe('Windie SDK conversation runtime core', () => {
     }));
     expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
     expect(artifactUploader.upload.mock.calls[0][1]).toBe('query-shot.jpg');
+    expect(localToolLifecycle.beforeExecute).toHaveBeenCalledWith(expect.objectContaining({
+      toolName: 'screenshot',
+      turnRef: 'turn-query-shot',
+      conversationRef: 'conv-sdk-runtime',
+    }));
+    expect(releaseScreenshotLease).toHaveBeenCalledTimes(1);
     await expect(stat(screenshotPath)).rejects.toThrow();
     expect(transport.sendQuery).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -3277,6 +3297,122 @@ describe('Windie SDK conversation runtime core', () => {
       expect.objectContaining({
         screenshotRef: 'artifact-query-shot.jpg',
         screenshot_ref: 'artifact-query-shot.jpg',
+      }),
+    );
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-query-shot',
+      path: 'screenshot.capture',
+    });
+    expect(timeline.map(entry => `${entry.runtime}:${entry.stage}:${entry.status}`)).toEqual([
+      'sdk:resource_detected:succeeded',
+      'sdk:resolver:started',
+      'electron-main:surface_prepare:started',
+      'electron-main:surface_prepare:succeeded',
+      'sidecar:sidecar_capture:started',
+      'sidecar:sidecar_capture:succeeded',
+      'sdk:artifact_upload:started',
+      'sdk:artifact_upload:succeeded',
+      'sdk:resolver:succeeded',
+      'sdk:query_payload_applied:succeeded',
+    ]);
+    expect(timeline.find(entry => entry.stage === 'surface_prepare' && entry.status === 'succeeded')?.data).toEqual(
+      expect.objectContaining({
+        platform: 'darwin',
+        leaseMode: 'content_protection',
+        visibleCaptureWindowCount: 2,
+      }),
+    );
+    expect(timeline.find(entry => entry.stage === 'sidecar_capture' && entry.status === 'succeeded')?.data).toEqual(
+      expect.objectContaining({
+        captureEngine: expect.any(String),
+        sourceW: 1920,
+        sourceH: 1080,
+        hasCaptureMeta: true,
+      }),
+    );
+    expect(timeline.find(entry => entry.stage === 'artifact_upload' && entry.status === 'succeeded')?.data).toEqual(
+      expect.objectContaining({
+        uploadMode: 'file',
+        artifactId: 'artifact-query-shot.jpg',
+        contentType: 'image/jpeg',
+      }),
+    );
+    expect(JSON.stringify(timeline)).not.toContain(screenshotPath);
+    expect(JSON.stringify(timeline)).not.toContain('screenshot_path');
+    expect(buildDisplayConversation(events).messages.some(message => message.messageType === 'trace_event')).toBe(false);
+  });
+
+  test('query screenshot resource traces optional capture failure while send continues', async () => {
+    const executeTool = jest.fn(async () => ({
+      success: false,
+      error: 'Screen capture permission denied',
+    }));
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-without-shot'),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+      localRuntime: {
+        executeTool,
+      },
+      resourceResolvers: createDefaultTurnResourceResolvers({
+        localRuntime: {
+          executeTool,
+        },
+      }),
+      enrichQuery: async ({ payload }) => payload ?? {},
+    });
+    const events: ConversationEvent[] = [];
+    runtime.subscribeEvents((event) => {
+      events.push(event);
+    });
+
+    await runtime.send({
+      text: 'what is on screen?',
+      turnRef: 'turn-query-shot-failed',
+      resources: [{
+        kind: 'query_screenshot_request',
+        reason: 'query_send_with_capture',
+        required: false,
+      }],
+    });
+
+    expect(transport.sendQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'what is on screen?',
+        conversation_ref: 'conv-sdk-runtime',
+      }),
+      { messageId: 'turn-query-shot-failed' },
+    );
+    expect(transport.sendQuery).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        screenshot_ref: expect.any(String),
+      }),
+      expect.anything(),
+    );
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-query-shot-failed',
+      path: 'screenshot.capture',
+    });
+    expect(timeline.map(entry => `${entry.runtime}:${entry.stage}:${entry.status}`)).toEqual([
+      'sdk:resource_detected:succeeded',
+      'sdk:resolver:started',
+      'sidecar:sidecar_capture:started',
+      'sidecar:sidecar_capture:failed',
+      'sdk:resolver:skipped',
+      'sdk:query_payload_applied:succeeded',
+    ]);
+    expect(timeline.find(entry => entry.stage === 'resolver' && entry.status === 'skipped')?.data).toEqual(
+      expect.objectContaining({
+        optionalFailure: true,
+      }),
+    );
+    expect(timeline.find(entry => entry.stage === 'query_payload_applied')?.data).toEqual(
+      expect.objectContaining({
+        hasScreenshotRef: false,
+        screenshotRefCount: 0,
       }),
     );
   });

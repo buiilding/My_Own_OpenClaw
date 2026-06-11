@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- sdk/frontend/sidecar: add durable `screenshot.capture` trace rows for query
+  screenshot resource resolution across SDK, Electron main surface prep,
+  sidecar capture, and SDK-observed artifact upload outcomes.
 - sdk/frontend/sidecar: add durable hidden `trace_event` rows for turn-scoped
   path diagnostics, with memory retrieval as the first traced path plus
   renderer and CLI timeline readers.

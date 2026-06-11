@@ -63,10 +63,12 @@ function normalizeLocalToolResultData(data) {
         return data === null || typeof data === 'undefined' ? { output: '' } : { output: data };
     }
     const output = resolveStringField(data, OUTPUT_FALLBACK_KEYS) ?? '';
-    return {
+    const normalized = {
         ...data,
         output,
     };
+    delete normalized.path_trace;
+    return normalized;
 }
 function readToolOutputDisplayText(data) {
     if (!isPlainObject(data)) {

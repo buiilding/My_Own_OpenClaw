@@ -412,6 +412,7 @@ function createSurfaceRuntime({
   }
 
   async function beginScreenshotCaptureLease(call = {}) {
+    const leaseStartedAtMs = Date.now();
     const captureWindows = visibleCaptureWindows();
     logLiveSurfaceTrace('tool_lease.screenshot.begin', {
       source: 'surface-runtime',
@@ -436,7 +437,7 @@ function createSurfaceRuntime({
         }
       }
       await delayToolSurfaceSettle();
-      return async () => {
+      const release = async () => {
         logLiveSurfaceTrace('tool_lease.screenshot.release', {
           source: 'surface-runtime',
           reason: 'local-tool-finally',
@@ -463,6 +464,13 @@ function createSurfaceRuntime({
           }
         }
       };
+      release.trace = {
+        platform,
+        leaseMode: 'hide_restore',
+        visibleCaptureWindowCount: captureWindows.length,
+        durationMs: Math.max(0, Date.now() - leaseStartedAtMs),
+      };
+      return release;
     }
 
     for (const [targetWindow, windowLabel] of [
@@ -486,7 +494,7 @@ function createSurfaceRuntime({
       });
     }
     await delayToolSurfaceSettle();
-    return async () => {
+    const release = async () => {
       logLiveSurfaceTrace('tool_lease.screenshot.release', {
         source: 'surface-runtime',
         reason: 'local-tool-finally',
@@ -513,6 +521,13 @@ function createSurfaceRuntime({
         });
       }
     };
+    release.trace = {
+      platform,
+      leaseMode: 'content_protection',
+      visibleCaptureWindowCount: captureWindows.length,
+      durationMs: Math.max(0, Date.now() - leaseStartedAtMs),
+    };
+    return release;
   }
 
   function syncWakewordToggleForChatVisibility() {

@@ -83,6 +83,20 @@ export type TraceContext = JsonRecord & {
   userId?: string | null;
 };
 
+export type TraceEventDraft = JsonRecord & {
+  path: string;
+  stage: string;
+  status: TraceStatus;
+  runtime?: TraceRuntime;
+  parentSpanId?: string | null;
+  requestId?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  durationMs?: number | null;
+  data?: JsonRecord | null;
+  error?: unknown;
+};
+
 export type ConversationEvent<TPayload extends JsonRecord = JsonRecord> = {
   eventId: string;
   type: ConversationEventType;
@@ -442,6 +456,8 @@ export type TurnResourceResolverContext = {
   conversationRef: string;
   turnRef: string;
   payload: JsonRecord;
+  traceContext?: TraceContext | null;
+  emitTrace?: (event: TraceEventDraft) => void | Promise<void>;
 };
 
 export type TurnResourceResolver = (
@@ -619,7 +635,19 @@ export type LocalToolResult = {
   error?: string;
 };
 
-export type LocalToolExecutionRelease = void | (() => void | Promise<void>);
+export type LocalToolExecutionReleaseFunction = (() => void | Promise<void>) & {
+  trace?: JsonRecord | null;
+};
+
+export type LocalToolExecutionLease = {
+  release?: () => void | Promise<void>;
+  trace?: JsonRecord | null;
+};
+
+export type LocalToolExecutionRelease =
+  | void
+  | LocalToolExecutionReleaseFunction
+  | LocalToolExecutionLease;
 
 export type LocalToolExecutionLifecycle = {
   beforeExecute?: (call: LocalToolCall) => LocalToolExecutionRelease | Promise<LocalToolExecutionRelease>;

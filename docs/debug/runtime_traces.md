@@ -32,12 +32,17 @@ rehydrate history. Do not persist user message text, retrieved memory text,
 embedding vectors, screenshots, file contents, shell output, provider payloads,
 tokens, credentials, raw SQL rows, or full stack traces in durable trace rows.
 
-Current durable traced path:
+Current durable traced paths:
 
 - `memory.retrieval`: SDK query enrichment records retrieval, embedding,
   sidecar search, injection, and completion spans. The sidecar returns
   sanitized search metadata such as searched memory types, limits, result
   counts, embedding-space version, and duration.
+- `screenshot.capture`: SDK query screenshot resource resolution records
+  request, resolver, Electron main surface-preparation, sidecar capture,
+  artifact upload, and backend query payload application spans. The sidecar
+  returns sanitized capture metadata such as capture engine, dimensions, crop
+  bounds, monitor id, byte count, content type, and duration.
 
 Renderer diagnostics should read the same rows through
 `DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads

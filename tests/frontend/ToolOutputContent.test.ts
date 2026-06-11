@@ -25,4 +25,16 @@ describe('local tool output content contract', () => {
       output: 'readable message',
     });
   });
+
+  test('strips diagnostic path trace metadata from model-facing tool data', () => {
+    expect(normalizeLocalToolResultData({
+      output: 'Screenshot captured successfully.',
+      path_trace: {
+        captureEngine: 'pyautogui_fallback',
+        byteCount: 123,
+      },
+    })).toEqual({
+      output: 'Screenshot captured successfully.',
+    });
+  });
 });

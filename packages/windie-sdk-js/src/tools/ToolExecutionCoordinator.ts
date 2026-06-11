@@ -4,6 +4,7 @@ import type {
   ConversationStore,
   JsonRecord,
   LocalToolExecutionLifecycle,
+  LocalToolExecutionRelease,
   LocalRuntime,
   LocalToolCall,
   LocalToolResult,
@@ -265,6 +266,16 @@ function shouldSkipFrontendExecution(event: ConversationEvent): boolean {
   return metadata?.skip_frontend_execution === true;
 }
 
+function resolveLocalToolRelease(release: LocalToolExecutionRelease): (() => void | Promise<void>) | null {
+  if (typeof release === 'function') {
+    return release;
+  }
+  if (isJsonRecord(release) && typeof release.release === 'function') {
+    return release.release as () => void | Promise<void>;
+  }
+  return null;
+}
+
 export class ToolExecutionCoordinator {
   constructor(private readonly options: ToolExecutionCoordinatorOptions) {}
 
@@ -272,11 +283,11 @@ export class ToolExecutionCoordinator {
     if (!this.options.localRuntime?.executeTool) {
       throw new Error('local runtime executeTool is unavailable');
     }
-    const release = await this.options.localToolLifecycle?.beforeExecute?.(call);
+    const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
     try {
       return await this.options.localRuntime.executeTool(call);
     } finally {
-      if (typeof release === 'function') {
+      if (release) {
         await release();
       }
     }

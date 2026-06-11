@@ -210,6 +210,11 @@ describe('surface_runtime', () => {
 
     expect(chatWindow.hide).toHaveBeenCalledTimes(1);
     expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(release.trace).toEqual(expect.objectContaining({
+      platform: 'linux',
+      leaseMode: 'hide_restore',
+      visibleCaptureWindowCount: 2,
+    }));
 
     await release();
 
@@ -232,6 +237,11 @@ describe('surface_runtime', () => {
     const release = await runtime.beginScreenshotCaptureLease({ toolName: 'screenshot' });
 
     expect(chatWindow.hide).not.toHaveBeenCalled();
+    expect(release.trace).toEqual(expect.objectContaining({
+      platform: 'darwin',
+      leaseMode: 'content_protection',
+      visibleCaptureWindowCount: 2,
+    }));
     expect(deps.windowPlatformPolicy.applyContentProtection).toHaveBeenNthCalledWith(1, {
       targetWindow: chatWindow,
       windowLabel: 'chat box',

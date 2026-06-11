@@ -18,6 +18,10 @@ from functools import lru_cache
 from typing import Dict, Any, Optional
 
 from core.executors import get_interactive_executor
+from path_trace import (
+    build_sidecar_screenshot_capture_trace,
+    monotonic_trace_start,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -638,6 +642,7 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dictionary with success status and screenshot payload.
     """
+    trace_started_at = monotonic_trace_start()
     try:
         import pyautogui
         from PIL import Image  # noqa: F401
@@ -748,6 +753,10 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 **capture_payload,
+                "path_trace": build_sidecar_screenshot_capture_trace(
+                    capture_payload=capture_payload,
+                    started_at=trace_started_at,
+                ),
                 "output": "Screenshot captured successfully.",
                 "message": "Screenshot captured",
             },

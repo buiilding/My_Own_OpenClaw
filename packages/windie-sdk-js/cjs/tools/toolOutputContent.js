@@ -54,6 +54,7 @@ function normalizeLocalToolResultData(data, fallbackOutput = '') {
         ?? data.error
         ?? fallbackOutput;
     const normalized = { ...data };
+    delete normalized.path_trace;
     normalized.output = output;
     return normalized;
 }
