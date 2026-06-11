@@ -51,4 +51,23 @@ describe('backend_endpoints hosted defaults', () => {
       },
     ]);
   });
+
+  test('falls back to hosted defaults when local host or port override is invalid', () => {
+    const env = {
+      BACKEND_PORT: 'not-a-port',
+    };
+
+    expect(resolveBackendEndpointCandidates(env)).toEqual([
+      {
+        httpUrl: 'https://api.windieos.com',
+        wsUrl: 'wss://api.windieos.com/ws',
+        wsOrigin: 'https://api.windieos.com',
+      },
+    ]);
+    expect(resolveBackendEndpoints(env)).toEqual({
+      httpUrl: 'https://api.windieos.com',
+      wsUrl: 'wss://api.windieos.com/ws',
+      wsOrigin: 'https://api.windieos.com',
+    });
+  });
 });

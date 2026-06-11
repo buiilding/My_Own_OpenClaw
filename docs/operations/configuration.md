@@ -223,7 +223,7 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 
 - `BACKEND_HTTP_URL`: full backend HTTP base URL.
 - `BACKEND_WS_URL`: full backend WebSocket URL (`/ws`).
-- `BACKEND_HOST` and `BACKEND_PORT`: explicit endpoint override when full URLs are unset.
+- `BACKEND_HOST` and `BACKEND_PORT`: explicit endpoint override when full URLs are unset; malformed local overrides fall back to hosted defaults instead of producing an empty endpoint set.
 - `WINDIE_DEFAULT_BACKEND_HTTP_URL`: hosted-default HTTP URL when no `BACKEND_*` override is set.
 - `WINDIE_DEFAULT_BACKEND_WS_URL`: hosted-default WS URL when no `BACKEND_*` override is set.
 - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`: packaged-app default HTTP URL when no `BACKEND_*` override is set.

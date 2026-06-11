@@ -187,9 +187,12 @@ function resolveBackendEndpointCandidates(env = process.env) {
   }
 
   if (explicitLocalHostOrPort) {
-    return dedupeEndpointCandidates([
+    const localCandidates = dedupeEndpointCandidates([
       resolveLocalFallbackEndpoints(env),
     ]);
+    if (localCandidates.length > 0) {
+      return localCandidates;
+    }
   }
 
   return dedupeEndpointCandidates([

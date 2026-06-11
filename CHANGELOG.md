@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/endpoints: fall back to hosted backend defaults when malformed
+  `BACKEND_HOST` or `BACKEND_PORT` overrides produce no valid local endpoint,
+  avoiding an undefined endpoint crash during Electron startup.
 - frontend/vm-worker: require `WINDIE_VM_WORKER_HEARTBEAT_MS` to be a strict
   integer millisecond value so malformed partial-numeric values fall back to
   the documented default heartbeat interval.

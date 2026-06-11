@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: first hardening slice committed.
+- Current slice: second hardening slice complete; commit pending.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -27,6 +27,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check`.
 - [x] Update changelog and report with the first slice result.
 - [x] Commit the first slice.
+- [x] Select second code slice with a concrete owner and regression test.
+- [x] Implement second slice.
+- [x] Run focused validation and `git diff --check` for the second slice.
+- [x] Update changelog and report with the second slice result.
+- [ ] Commit the second slice.
 
 ## Validation Log
 
@@ -38,6 +43,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   - passed.
 - `bin/windie docs list` - passed after docs changes; canonical navigation
   reported 83 page references validated.
+- `cd frontend && npm run test -- BackendEndpoints --runInBand` - passed; 2
+  suites and 10 tests passed, including endpoint-state coverage selected by
+  the test runner pattern.
+- `bin/windie docs list` - passed after second-slice docs changes; canonical
+  navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/app/backend_endpoints.cjs tests/frontend/BackendEndpoints.test.cjs docs/operations/configuration.md CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
 
 ## Inspection Log
 
@@ -64,6 +76,18 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   polling cadence locally; backend run-control APIs and dispatch behavior are
   unchanged. Adjacent tests still cover assignment dispatch, stream relay, stop
   controls, and pending dispatch dedupe.
+- Slice 2 owner: Electron main endpoint resolution owns desktop backend HTTP
+  and websocket endpoint selection from environment variables.
+- Slice 2 failure mode: malformed `BACKEND_HOST` or `BACKEND_PORT` local
+  overrides could normalize into zero endpoint candidates. `resolveBackendEndpoints`
+  then dereferenced an undefined fallback endpoint during Electron startup.
+- Slice 2 change: when explicit local host/port overrides produce no valid
+  candidate, endpoint resolution continues to the hosted-default candidate path
+  instead of returning an empty candidate set.
+- Slice 2 inspection: no backend transport contract changed. Explicit full
+  `BACKEND_HTTP_URL` / `BACKEND_WS_URL` priority is unchanged, valid local
+  host/port overrides still win when full URLs are absent, and artifact URL
+  selection remains covered by existing tests.
 
 ## Decisions
 
@@ -74,6 +98,12 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat heartbeat interval parsing as a config-boundary hardening fix, not a
   behavior migration. No persisted data shape or API payload changed, so no
   migration is required.
+- Treat malformed local endpoint fallback as a startup hardening fix. No
+  persisted data, IPC payload, or backend API shape changed, so no migration is
+  required.
+- Defer the separate docs drift where `docs/operations/configuration.md` still
+  mentions removed packaged backend override names that tests assert are
+  ignored. That cleanup should be its own slice.
 
 ## Commits
 
@@ -84,3 +114,5 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Continue with another focused hardening target outside the existing dirty
   sidecar bridge changes unless that bridge work becomes the highest-evidence
   path.
+- Clean up stale packaged backend override docs after confirming the current
+  replacement contract in endpoint docs and tests.
