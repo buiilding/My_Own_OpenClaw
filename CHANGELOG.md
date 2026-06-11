@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sdk: reject non-finite SDK live-turn response overlay bounds before
+  mutating the native response window, preventing malformed geometry from
+  reaching Electron `setBounds`.
 - frontend/overlays: drop malformed chat-window bounds before positioning
   dependent response and context overlays so invalid native geometry cannot
   propagate into overlay placement.

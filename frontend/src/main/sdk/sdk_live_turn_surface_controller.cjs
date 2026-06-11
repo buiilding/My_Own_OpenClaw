@@ -59,6 +59,31 @@ function responseBoundsForIntent(intent, getResponseWindowBounds) {
   return getResponseWindowBounds(RESPONSE_OVERLAY_WIDTH, height, { compactHover });
 }
 
+function normalizeFiniteBounds(bounds) {
+  if (!bounds || typeof bounds !== 'object') {
+    return null;
+  }
+  const x = Number(bounds.x);
+  const y = Number(bounds.y);
+  const width = Number(bounds.width);
+  const height = Number(bounds.height);
+  if (
+    !Number.isFinite(x)
+    || !Number.isFinite(y)
+    || !Number.isFinite(width)
+    || !Number.isFinite(height)
+  ) {
+    return null;
+  }
+  return {
+    ...bounds,
+    x,
+    y,
+    width,
+    height,
+  };
+}
+
 function createSdkLiveTurnSurfaceState() {
   return {
     lastAppliedOverlayIntentSignature: null,
@@ -354,7 +379,29 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
   }
 
   const bounds = responseBoundsForIntent(intent, getResponseWindowBounds);
-  const visibleSignature = buildVisibleIntentSignature(intent, bounds);
+  const normalizedBounds = normalizeFiniteBounds(bounds);
+  if (!normalizedBounds) {
+    logLiveSurfaceTrace('response_overlay.intent.ignored', {
+      source: 'sdk-live-turn-surface',
+      reason: 'invalid-response-bounds',
+      turnRef: intent.turnRef,
+      conversationRef: intent.conversationRef,
+      phase: getResponseOverlayPhase(),
+      overlayMode: intent.mode,
+      guardRef: intent.staleGuardRef,
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+    });
+    return {
+      success: false,
+      applied: false,
+      reason: 'invalid-response-bounds',
+      visible: false,
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+    };
+  }
+  const visibleSignature = buildVisibleIntentSignature(intent, normalizedBounds);
   if (
     sdkSurfaceState.lastAppliedOverlayIntentSignature === visibleSignature
     && safeWindowVisible(responseWindow) === true
@@ -369,8 +416,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       phase: getResponseOverlayPhase(),
       overlayMode: intent.mode,
       guardRef: intent.staleGuardRef,
-      width: bounds.width,
-      height: bounds.height,
+      width: normalizedBounds.width,
+      height: normalizedBounds.height,
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
     });
     return {
@@ -384,7 +431,7 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       staleGuardRef: intent.staleGuardRef,
     };
   }
-  responseWindow.setBounds(bounds, false);
+  responseWindow.setBounds(normalizedBounds, false);
   logLiveSurfaceTrace('response_overlay.window.resize', {
     source: 'sdk-live-turn-surface',
     reason: 'sdk-overlay-intent',
@@ -393,8 +440,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     phase: getResponseOverlayPhase(),
     overlayMode: intent.mode,
     guardRef: intent.staleGuardRef,
-    width: bounds.width,
-    height: bounds.height,
+    width: normalizedBounds.width,
+    height: normalizedBounds.height,
     responseWindow: summarizeWindow(responseWindow, 'response overlay'),
   });
   if (intent.staleGuardRef) {
@@ -431,8 +478,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     stale_guard_ref: intent.staleGuardRef,
     response_window_visible: safeWindowVisible(responseWindow),
     response_overlay_visible_flag: getResponseOverlayVisible(),
-    width: bounds.width,
-    height: bounds.height,
+    width: normalizedBounds.width,
+    height: normalizedBounds.height,
   });
   logChatPillMainTrace({
     source: 'sdk-live-turn-surface',
@@ -457,8 +504,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       guardRef: intent.staleGuardRef,
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       responseOverlayVisible: getResponseOverlayVisible(),
-      width: bounds.width,
-      height: bounds.height,
+      width: normalizedBounds.width,
+      height: normalizedBounds.height,
     },
   );
   sdkSurfaceState.lastAppliedOverlayIntentSignature = visibleSignature;

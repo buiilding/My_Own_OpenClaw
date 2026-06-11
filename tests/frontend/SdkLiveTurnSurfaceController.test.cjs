@@ -133,6 +133,36 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
   });
 
+  test('rejects non-finite response bounds before native window mutation', () => {
+    const deps = createDeps({
+      getResponseWindowBounds: jest.fn(() => ({
+        x: 10,
+        y: Infinity,
+        width: 520,
+        height: 236,
+      })),
+    });
+
+    const result = handleSdkLiveTurnSurfaceIntent(
+      createCurrentTurn({ mode: 'response' }),
+      deps,
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      applied: false,
+      reason: 'invalid-response-bounds',
+      visible: false,
+      mode: 'response',
+      staleGuardRef: 'turn-1',
+    });
+    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
+    expect(deps.syncContextLabelWindowVisibility).not.toHaveBeenCalled();
+  });
+
   test('suppresses visible SDK overlay intent when floating surface does not own presentation', () => {
     const responseWindow = createWindow({ visible: true });
     const deps = createDeps({
