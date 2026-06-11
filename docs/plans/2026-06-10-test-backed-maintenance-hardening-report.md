@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: fourth hardening slice complete; commit pending.
+- Current slice: fourth hardening slice committed.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -41,7 +41,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement fourth slice.
 - [x] Run focused validation and `git diff --check` for the fourth slice.
 - [x] Update changelog and report with the fourth slice result.
-- [ ] Commit the fourth slice.
+- [x] Commit the fourth slice.
 
 ## Validation Log
 
@@ -175,6 +175,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `185899229` - `fix(frontend-vm-worker): harden heartbeat interval parsing`
 - `1fb1cda3b` - `fix(frontend-endpoints): tolerate invalid local backend overrides`
 - `e3da2c394` - `docs(endpoints): remove stale packaged backend overrides`
+- `6e26bc45e` - `fix(frontend-oauth): escape codex callback responses`
 
 ## Remaining Candidates
 
