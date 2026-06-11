@@ -43,11 +43,13 @@ function resolvePrimaryWorkArea(screen) {
     return { x: 0, y: 0, width: 0, height: 0 };
   }
   const display = screen.getPrimaryDisplay();
-  if (display?.workArea) {
-    return display.workArea;
+  const workArea = normalizeBounds(display?.workArea);
+  if (workArea) {
+    return workArea;
   }
-  if (display?.bounds) {
-    return display.bounds;
+  const bounds = normalizeBounds(display?.bounds);
+  if (bounds) {
+    return bounds;
   }
   return { x: 0, y: 0, width: 0, height: 0 };
 }

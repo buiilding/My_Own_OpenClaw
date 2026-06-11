@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/overlays: normalize primary display fallback bounds before overlay
+  placement so malformed display work areas fall back to valid primary bounds
+  instead of producing invalid native coordinates.
 - frontend/mcp: normalize caller-provided base client manifest versions and
   tool lists before appending MCP tools so malformed local metadata cannot
   crash or drift the backend-facing manifest shape.

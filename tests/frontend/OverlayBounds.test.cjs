@@ -97,6 +97,26 @@ describe('overlay_bounds', () => {
     });
   });
 
+  test('ignores malformed primary display work area and uses primary bounds', () => {
+    const malformedPrimaryScreen = {
+      getPrimaryDisplay: jest.fn().mockReturnValue({
+        workArea: { x: Infinity, y: 50, width: 1400, height: 900 },
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      }),
+    };
+
+    expect(getChatWindowBounds({
+      screen: malformedPrimaryScreen,
+      width: 520,
+      height: 96,
+    })).toEqual({
+      x: 700,
+      y: 960,
+      width: 520,
+      height: 96,
+    });
+  });
+
   test('response bounds align above current chat bounds when available', () => {
     expect(
       getResponseWindowBounds({
