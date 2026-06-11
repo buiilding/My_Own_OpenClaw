@@ -28,6 +28,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/conversation: normalize sidecar-backed conversation metadata event counts
+  to non-negative integers before exposing list/search rows to SDK consumers.
 - frontend/main: fall back to the default single-instance focus cooldown for
   invalid injected override values so malformed config cannot silently disable
   second-instance focus throttling.

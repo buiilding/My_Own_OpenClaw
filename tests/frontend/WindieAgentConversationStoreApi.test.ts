@@ -120,6 +120,72 @@ describe('WindieAgent public conversation store APIs', () => {
 });
 
 describe('SidecarConversationStore event payload write params', () => {
+  test('normalizes sidecar metadata event counts before exposing conversation rows', async () => {
+    const rpc = jest.fn(async ({ method }) => {
+      if (method === 'conversation.list') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-valid',
+                revision_id: 'rev-1',
+                title: 'Valid count',
+                last_timestamp: '2026-06-05T12:00:00.000Z',
+                entry_count: '3',
+              },
+              {
+                conversation_id: 'conv-negative',
+                revision_id: 'rev-2',
+                title: 'Negative count',
+                last_timestamp: '2026-06-05T12:01:00.000Z',
+                entry_count: -2,
+              },
+            ],
+          },
+        };
+      }
+      if (method === 'conversation.search') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-fractional',
+                revision_id: 'rev-3',
+                title: 'Fractional count',
+                last_timestamp: '2026-06-05T12:02:00.000Z',
+                eventCount: 1.5,
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const store = new SidecarConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await expect(store.listMetadata()).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-negative',
+        eventCount: 0,
+      }),
+      expect.objectContaining({
+        conversationRef: 'conv-valid',
+        eventCount: 3,
+      }),
+    ]);
+    await expect(store.searchMetadata({ query: 'count' })).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-fractional',
+        eventCount: 0,
+      }),
+    ]);
+  });
+
   test('extracts UI-supplied event payload metadata before calling sidecar RPC', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: { message_index: 1 } }));
     const store = new SidecarConversationStore({

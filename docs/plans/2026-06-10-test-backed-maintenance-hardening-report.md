@@ -47,6 +47,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the fifth slice.
 - [x] Update changelog and report with the fifth slice result.
 - [x] Commit the fifth slice.
+- [x] Select sixth code slice with a concrete owner and regression test.
+- [x] Implement sixth slice.
+- [x] Run focused validation and `git diff --check` for the sixth slice.
+- [x] Update changelog and report with the sixth slice result.
+- [ ] Commit the sixth slice.
 
 ## Validation Log
 
@@ -88,6 +93,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after fifth-slice changelog/report updates;
   canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/app/main_process_lifecycle_runtime.cjs tests/frontend/MainProcessLifecycleRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- WindieAgentConversationStoreApi --runInBand`
+  - passed after sixth slice; 1 suite and 5 tests passed, including the new
+  sidecar metadata event-count normalization regression test.
+- `bin/windie docs list` - passed after sixth-slice changelog/report updates;
+  canonical navigation reported 83 page references validated.
+- `git diff --check -- packages/windie-sdk-js/src/stores/SidecarConversationStore.ts tests/frontend/WindieAgentConversationStoreApi.test.ts CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -170,6 +182,18 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Slice 5 inspection: no renderer, preload, sidecar, backend, IPC payload, or
   persisted data contract changed. The existing second-instance focus path and
   hidden-pill/dashboard routing remain unchanged.
+- Slice 6 owner: SDK conversation store adapters own normalization of
+  sidecar-backed conversation metadata before SDK consumers, renderer surfaces,
+  or external clients read list/search rows.
+- Slice 6 failure mode: malformed sidecar metadata rows could expose negative
+  or fractional `eventCount` values because the adapter used `Number(...) || 0`
+  instead of enforcing the non-negative integer shape of a count.
+- Slice 6 change: sidecar-backed metadata now normalizes `entry_count` /
+  `eventCount` to a non-negative integer, preserving valid numeric strings and
+  converting invalid, negative, or fractional values to zero.
+- Slice 6 inspection: no sidecar storage schema, sidecar RPC method, event
+  payload, display projection, rehydrate projection, or persisted conversation
+  event shape changed. The fix only tightens the SDK adapter output shape.
 
 ## Decisions
 
@@ -194,6 +218,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   shape changed, so no migration is required.
 - Treat invalid second-instance cooldown normalization as Electron main startup
   hardening. No persisted data, IPC payload, backend API, or user setting shape
+  changed, so no migration is required.
+- Treat sidecar metadata event-count normalization as SDK adapter hardening. No
+  persisted data, sidecar RPC payload, backend API, or renderer event shape
   changed, so no migration is required.
 
 ## Commits
