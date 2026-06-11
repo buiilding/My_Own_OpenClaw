@@ -46,7 +46,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement fifth slice.
 - [x] Run focused validation and `git diff --check` for the fifth slice.
 - [x] Update changelog and report with the fifth slice result.
-- [ ] Commit the fifth slice.
+- [x] Commit the fifth slice.
 
 ## Validation Log
 
@@ -202,6 +202,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `1fb1cda3b` - `fix(frontend-endpoints): tolerate invalid local backend overrides`
 - `e3da2c394` - `docs(endpoints): remove stale packaged backend overrides`
 - `6e26bc45e` - `fix(frontend-oauth): escape codex callback responses`
+- `a63c5c919` - `fix(frontend-main): harden second-instance cooldown parsing`
 
 ## Remaining Candidates
 
