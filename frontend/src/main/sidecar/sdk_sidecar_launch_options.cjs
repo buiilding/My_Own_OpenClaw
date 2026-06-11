@@ -26,6 +26,14 @@ const DAEMON_LAUNCH_CONTEXT_ENV_KEYS = [
   'WINDIE_ENABLE_SEMANTIC_SUMMARIZER',
   'WINDIE_PACKAGED_APP',
   'WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
+  'WINDIE_SIDECAR_SOURCE_PATH',
+  'WINDIE_SIDECAR_SOURCE_STAMP',
+];
+
+const SIDECAR_SOURCE_STAMP_FILES = [
+  'sidecar_daemon.py',
+  'local_backend.py',
+  'local_backend_memory_handlers.py',
 ];
 
 function createMissingCommandError({ isPackaged } = {}) {
@@ -33,6 +41,32 @@ function createMissingCommandError({ isPackaged } = {}) {
     return 'Bundled Python runtime not found in app resources. Please reinstall WindieOS.';
   }
   return 'Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the frontend_jarvis Python executable.';
+}
+
+function resolveSidecarSourceStamp(launchTarget) {
+  const resolvedPath = typeof launchTarget?.resolvedPath === 'string'
+    ? launchTarget.resolvedPath
+    : '';
+  if (!resolvedPath) {
+    return {
+      sourcePath: '',
+      sourceStamp: '',
+    };
+  }
+  const sourceDir = path.dirname(resolvedPath);
+  const stampParts = SIDECAR_SOURCE_STAMP_FILES.map((fileName) => {
+    const filePath = path.join(sourceDir, fileName);
+    try {
+      const stat = fs.statSync(filePath);
+      return `${fileName}:${Math.floor(stat.mtimeMs)}:${stat.size}`;
+    } catch {
+      return `${fileName}:missing`;
+    }
+  });
+  return {
+    sourcePath: resolvedPath,
+    sourceStamp: stampParts.join('|'),
+  };
 }
 
 function buildSidecarDaemonEnv({
@@ -45,12 +79,15 @@ function buildSidecarDaemonEnv({
   const endpointConfig = backendEndpoints || resolveBackendEndpoints(process.env, {
     isPackaged,
   });
+  const sourceIdentity = resolveSidecarSourceStamp(launchTarget);
   const backendEnv = withLocalBackendNodeOptions({
     ...process.env,
     PYTHONUNBUFFERED: '1',
     WINDIE_BACKEND_HTTP_URL: endpointConfig.httpUrl,
     WINDIE_PACKAGED_APP: isPackaged ? '1' : '0',
     WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: isPackaged ? '0' : '1',
+    WINDIE_SIDECAR_SOURCE_PATH: sourceIdentity.sourcePath,
+    WINDIE_SIDECAR_SOURCE_STAMP: sourceIdentity.sourceStamp,
     ...(typeof authStatePath === 'string' && authStatePath.trim()
       ? { WINDIE_BACKEND_AUTH_STATE_PATH: authStatePath.trim() }
       : {}),
