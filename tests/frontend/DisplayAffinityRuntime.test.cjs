@@ -3,6 +3,7 @@
 const {
   centerWindowOnDisplayWorkArea,
   getActiveDisplayAffinity,
+  resolveDisplayAffinityForBounds,
   resolveActiveSurfaceDisplayAffinity,
   resolveActiveSurfaceDisplayAffinityForWindows,
   syncActiveDisplayAffinityForWindow,
@@ -66,6 +67,70 @@ describe('display_affinity_runtime', () => {
     });
     expect(BrowserWindow.fromWebContents).toHaveBeenCalledWith(webContents);
     expect(screen.getDisplayMatching).toHaveBeenCalledWith({ x: 2100, y: 100, width: 800, height: 600 });
+  });
+
+  test('normalizes window bounds before display matching', () => {
+    const screen = {
+      getDisplayMatching: jest.fn(() => ({
+        id: 42,
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      })),
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 42,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+
+    expect(resolveDisplayAffinityForBounds(screen, {
+      x: 2100.4,
+      y: 100.6,
+      width: 800.2,
+      height: 600.8,
+    })).toEqual({
+      monitor_id: '42',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      desktopVirtualBounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+    });
+    expect(screen.getDisplayMatching).toHaveBeenCalledWith({
+      x: 2100,
+      y: 101,
+      width: 800,
+      height: 601,
+    });
+  });
+
+  test('falls back to primary display when window bounds are malformed', () => {
+    const screen = {
+      getDisplayMatching: jest.fn(),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+
+    expect(resolveDisplayAffinityForBounds(screen, {
+      x: Infinity,
+      y: 100,
+      width: 800,
+      height: 600,
+    })).toEqual({
+      monitor_id: '1',
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      desktopVirtualBounds: null,
+    });
+    expect(screen.getDisplayMatching).not.toHaveBeenCalled();
   });
 
   test('falls back when hidden sender surface is not visible', () => {
@@ -184,6 +249,20 @@ describe('display_affinity_runtime', () => {
       width: 1000,
       height: 700,
     }, false);
+  });
+
+  test('refuses to center a window with malformed target work area bounds', () => {
+    const targetWindow = {
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+    };
+
+    expect(centerWindowOnDisplayWorkArea(targetWindow, {
+      monitor_id: 'bad',
+      bounds: { x: 0, y: 0, width: 0, height: 0 },
+      workArea: { x: Infinity, y: 0, width: 2560, height: 1400 },
+    })).toBe(false);
+    expect(targetWindow.setBounds).not.toHaveBeenCalled();
   });
 
   test('stores active display affinity as cloned screenshot bounds payload', () => {

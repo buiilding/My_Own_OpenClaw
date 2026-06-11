@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/surfaces: normalize display-affinity bounds before monitor matching
+  or display work-area placement so malformed native geometry cannot select or
+  mutate windows with invalid coordinates.
 - frontend/surfaces: normalize screenshot suppression window bounds before
   offscreen placement or restore so malformed native geometry cannot propagate
   into Electron `setBounds`.

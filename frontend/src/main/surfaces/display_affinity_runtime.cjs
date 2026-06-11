@@ -6,18 +6,31 @@ function normalizeInteger(value, fallback = 0) {
   return Math.round(normalized);
 }
 
+function normalizeRequiredInteger(value, { allowZeroFallback = false } = {}) {
+  if (allowZeroFallback && (value === null || value === undefined || value === '')) {
+    return 0;
+  }
+  const normalized = Number(value);
+  if (!Number.isFinite(normalized)) {
+    return null;
+  }
+  return Math.round(normalized);
+}
+
 function normalizeBounds(bounds) {
   if (!bounds || typeof bounds !== 'object') {
     return null;
   }
-  const width = normalizeInteger(bounds.width);
-  const height = normalizeInteger(bounds.height);
-  if (width <= 0 || height <= 0) {
+  const x = normalizeRequiredInteger(bounds.x, { allowZeroFallback: true });
+  const y = normalizeRequiredInteger(bounds.y, { allowZeroFallback: true });
+  const width = normalizeRequiredInteger(bounds.width);
+  const height = normalizeRequiredInteger(bounds.height);
+  if (x === null || y === null || width === null || height === null || width <= 0 || height <= 0) {
     return null;
   }
   return {
-    x: normalizeInteger(bounds.x),
-    y: normalizeInteger(bounds.y),
+    x,
+    y,
     width,
     height,
   };
@@ -90,12 +103,13 @@ function resolvePrimaryDisplayAffinity(screen) {
 }
 
 function resolveDisplayAffinityForBounds(screen, bounds) {
-  if (!screen || typeof screen.getDisplayMatching !== 'function' || !bounds) {
+  const normalizedBounds = normalizeBounds(bounds);
+  if (!screen || typeof screen.getDisplayMatching !== 'function' || !normalizedBounds) {
     return resolvePrimaryDisplayAffinity(screen);
   }
   return (
     createDisplayAffinity(
-      screen.getDisplayMatching(bounds),
+      screen.getDisplayMatching(normalizedBounds),
       { desktopVirtualBounds: resolveDesktopVirtualBounds(screen) },
     )
     || resolvePrimaryDisplayAffinity(screen)
@@ -272,7 +286,10 @@ function centerWindowOnDisplayWorkArea(targetWindow, displayAffinity) {
   ) {
     return false;
   }
-  const workArea = displayAffinity.workArea || displayAffinity.bounds;
+  const workArea = normalizeBounds(displayAffinity.workArea) || normalizeBounds(displayAffinity.bounds);
+  if (!workArea) {
+    return false;
+  }
   const [windowWidthRaw, windowHeightRaw] = targetWindow.getSize();
   const windowWidth = Math.max(1, normalizeInteger(windowWidthRaw, 1000));
   const windowHeight = Math.max(1, normalizeInteger(windowHeightRaw, 700));

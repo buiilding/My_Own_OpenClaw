@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: seventeenth hardening slice committed.
+- Current slice: eighteenth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -107,6 +107,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the seventeenth slice.
 - [x] Update changelog and report with the seventeenth slice result.
 - [x] Commit the seventeenth slice.
+- [x] Select eighteenth code slice with a concrete owner and regression test.
+- [x] Implement eighteenth slice.
+- [x] Run focused validation and `git diff --check` for the eighteenth slice.
+- [x] Update changelog and report with the eighteenth slice result.
+- [ ] Commit the eighteenth slice.
 
 ## Validation Log
 
@@ -232,6 +237,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after seventeenth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/window_suppression_runtime.cjs tests/frontend/WindowSuppressionRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- DisplayAffinityRuntime --runInBand` -
+  passed after eighteenth slice; 1 suite and 19 tests passed, including the
+  new malformed display-affinity bounds regressions.
+- `bin/windie docs list` - passed after eighteenth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/display_affinity_runtime.cjs tests/frontend/DisplayAffinityRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -476,6 +488,20 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Slice 17 inspection: no screenshot lease policy, IPC payload, sidecar
   screenshot request shape, renderer state, or persisted data changed. The fix
   only tightens Electron main's temporary native-window geometry boundary.
+- Slice 18 owner: Electron main display-affinity runtime owns mapping native
+  surface bounds to monitor affinity and positioning main windows inside a
+  target display work area.
+- Slice 18 failure mode: malformed native surface bounds or caller-provided
+  display work areas with non-finite fields could reach Electron display
+  matching or native `setBounds(...)` through fallback-to-zero numeric
+  coercion.
+- Slice 18 change: display-affinity bounds normalization now rejects
+  non-finite coordinates or dimensions, normalizes valid fractional window
+  bounds before `screen.getDisplayMatching(...)`, and refuses to center windows
+  against malformed target display areas.
+- Slice 18 inspection: no IPC payload, sidecar screenshot request shape,
+  renderer state, stored affinity shape, or display source ordering changed.
+  The fix only tightens Electron main's display-affinity geometry boundary.
 
 ## Decisions
 
@@ -545,6 +571,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   boundary hardening. No persisted data, IPC payload, sidecar screenshot
   request shape, renderer state, screenshot lease policy, or restore state
   schema changed, so no migration is required.
+- Treat malformed display-affinity bounds as Electron main geometry boundary
+  hardening. No persisted data, IPC payload, sidecar screenshot request shape,
+  renderer state, stored affinity shape, or display source ordering changed, so
+  no migration is required.
 
 ## Commits
 
