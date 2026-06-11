@@ -37,6 +37,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/packaging: include the generated SDK CommonJS runtime and `ws`
+  dependency in bundled Electron resources so installed macOS apps can resolve
+  Electron main SDK imports from `app.asar` at startup.
 - frontend/sidecar: include sidecar source identity in the SDK daemon launch
   context so dev restarts do not reuse stale daemon processes after local
   Python sidecar methods change, and make desktop launches own a fresh sidecar

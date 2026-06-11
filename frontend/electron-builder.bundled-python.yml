@@ -5,3 +5,11 @@ extraResources:
     to: python-runtime
     filter:
       - "**/*"
+  - from: ../packages/windie-sdk-js/cjs
+    to: packages/windie-sdk-js/cjs
+    filter:
+      - "**/*"
+  - from: node_modules/ws
+    to: node_modules/ws
+    filter:
+      - "**/*"

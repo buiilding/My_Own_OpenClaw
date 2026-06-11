@@ -14,6 +14,9 @@ frontend app and do not need Python installed system-wide.
 
 - Installer includes Electron app.
 - Installer includes a bundled Python runtime at `resources/python-runtime`.
+- Installer includes generated SDK CommonJS runtime modules at
+  `resources/packages/windie-sdk-js/cjs` plus `resources/node_modules/ws` for
+  Electron main startup.
 - Sidecar processes run from `resources/python-runtime/sidecar`.
 - Runtime build ships sidecar bytecode (`.pyc`) only; sidecar plaintext `.py` files are removed before packaging.
 - Runtime defaults to system-browser-first packaging and does not prebundle Playwright Chromium.
@@ -30,6 +33,8 @@ frontend app and do not need Python installed system-wide.
   - `scripts/build-sidecar-runtime`
 - Bundled-python packaging profile:
   - `frontend/electron-builder.bundled-python.yml`
+- Generated SDK runtime consumed by Electron main:
+  - `packages/windie-sdk-js/cjs`
 
 ## Build Matrix Rule
 
@@ -113,6 +118,9 @@ On a clean test machine:
    - Uninstall command example: `sudo apt purge -y windieos`
    - Review dependency cleanup before running autoremove: `sudo apt autoremove --dry-run`
 3. Launch app and verify sidecar starts without Python-not-found errors.
+   - If Electron main reports a missing `packages/windie-sdk-js/cjs` module,
+     inspect the installed app resources for the generated SDK CJS tree and
+     `resources/node_modules/ws`.
 4. Send a prompt and verify local tools execute (screenshot/mouse/keyboard flow).
 5. Verify wakeword initialization path.
 6. Verify backend connectivity via hosted `wss://` + `https://`.
