@@ -140,3 +140,4 @@ focused SidecarConversationStore subset passed after the storage migration.
 ## Commits
 
 - `d6151f23e` - `feat(cli): add conversation history inspector`
+- `8b62a1811` - `feat(sidecar): move conversation history to history db`
