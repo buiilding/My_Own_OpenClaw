@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: eleventh hardening slice validated.
+- Current slice: eleventh hardening slice committed.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -76,7 +76,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement eleventh slice.
 - [x] Run focused validation and `git diff --check` for the eleventh slice.
 - [x] Update changelog and report with the eleventh slice result.
-- [ ] Commit the eleventh slice.
+- [x] Commit the eleventh slice.
 
 ## Validation Log
 
@@ -377,6 +377,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `75a92d4cb` - `fix(sdk-conversation): normalize metadata pagination limits`
 - `fb90b5a1f` - `fix(frontend-main): harden overlay capture wait parsing`
 - `54c1971e7` - `fix(frontend-overlays): reject non-finite display bounds`
+- `28b4a2bdf` - `fix(frontend-overlays): drop malformed chat bounds`
 
 ## Remaining Candidates
 
