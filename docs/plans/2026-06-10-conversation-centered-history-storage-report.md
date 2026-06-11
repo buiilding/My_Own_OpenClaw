@@ -32,7 +32,7 @@ conversation_id -> overview, turns, events, traces, titles, revision pointer
 - [x] Keep trace rows as durable hidden `trace_event` conversation events.
 - [x] Run smoke validation against the local SQLite history database.
 - [x] Update changelog.
-- [ ] Commit scoped changes.
+- [x] Commit scoped changes.
 
 ## Decisions
 
@@ -76,3 +76,7 @@ bin/windie trace conv_65a5fd9d-fb71-4866-bc44-0d395a0a3df7 81325cf0-56cf-421f-b8
 bin/windie docs list
 git diff --check -- scripts/windie/commands.cjs docs/plans/2026-06-10-conversation-centered-history-storage-plan.md docs/plans/2026-06-10-conversation-centered-history-storage-report.md CHANGELOG.md
 ```
+
+## Commits
+
+- `d6151f23e` - `feat(cli): add conversation history inspector`
