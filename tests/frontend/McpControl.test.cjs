@@ -135,10 +135,64 @@ describe('MCP control runtime', () => {
     expect(result.registry.mcps[0].tools).toEqual([]);
   });
 
-  test('disabling a gated MCP clears status without running discovery', async () => {
+  test('refreshes enabled MCPs through sidecar when local runtime is available', async () => {
+    const contributionRoot = writeCuaMcpRegistry();
+    const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
+    const registerMcp = jest.fn(async () => ({
+      success: true,
+      registered_tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+      errors: [],
+      statuses: [{
+        server_id: 'cua-driver',
+        state: 'ready',
+        tool_count: 1,
+      }],
+    }));
+    const listTools = jest.fn(async () => ({
+      version: 1,
+      tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+    }));
+
+    const registry = await refreshMcpServersForConfig({
+      config,
+      contributionsDir: contributionRoot,
+      localRuntime: { registerMcp, listTools },
+      createClient: () => {
+        throw new Error('Electron MCP discovery should not run');
+      },
+    });
+
+    expect(registerMcp).toHaveBeenCalledWith({
+      replace: true,
+      servers: [expect.objectContaining({
+        id: 'cua-driver',
+        command: 'cua-driver',
+        args: ['mcp'],
+      })],
+    });
+    expect(listTools).toHaveBeenCalledTimes(1);
+    expect(registry.mcps[0].status).toEqual(expect.objectContaining({
+      state: 'ready',
+      label: 'Ready',
+    }));
+  });
+
+  test('disabling a gated MCP reconciles sidecar with no enabled servers', async () => {
     const contributionRoot = writeCuaMcpRegistry();
     const persistConfig = jest.fn(async () => ({ success: true }));
-    const listTools = jest.fn();
+    const registerMcp = jest.fn(async () => ({
+      success: true,
+      registered_tools: [],
+      errors: [],
+      statuses: [],
+    }));
+    const listTools = jest.fn(async () => ({ version: 1, tools: [] }));
     const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
 
     const result = await updateMcpServerEnablementForConfig({
@@ -147,14 +201,18 @@ describe('MCP control runtime', () => {
       enabled: false,
       persistConfig,
       contributionsDir: contributionRoot,
-      createClient: () => ({ listTools }),
+      localRuntime: { registerMcp, listTools },
     });
 
     expect(result.success).toBe(true);
     expect(persistConfig).toHaveBeenCalledWith(expect.objectContaining({
       agent_enabled_mcp_servers: [],
     }));
-    expect(listTools).not.toHaveBeenCalled();
+    expect(registerMcp).toHaveBeenCalledWith({
+      replace: true,
+      servers: [],
+    });
+    expect(listTools).toHaveBeenCalledTimes(1);
     expect(result.registry.mcps[0]).toEqual(expect.objectContaining({
       effective_enabled: false,
       status: expect.objectContaining({

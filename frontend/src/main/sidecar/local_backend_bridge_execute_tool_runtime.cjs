@@ -24,14 +24,6 @@ const {
   resolveActiveSurfaceDisplayAffinityForWindows,
   toScreenshotDisplayBounds,
 } = require('../surfaces/display_affinity_runtime.cjs');
-const {
-  executeMcpTool,
-  hasDiscoveredMcpTool,
-} = require('../extensions/mcp_runtime.cjs');
-const {
-  getEnabledMcpServersFromConfig,
-} = require('../extensions/mcp_control.cjs');
-
 function normalizeToolName(toolName) {
   return typeof toolName === 'string' ? toolName.trim().toLowerCase() : '';
 }
@@ -64,8 +56,6 @@ function createLocalBackendExecuteToolRuntime({
   resolveMainWindow,
   resolveResponseWindow,
   platform = process.platform,
-  executeLocalMcpTool = executeMcpTool,
-  hasLocalMcpTool = hasDiscoveredMcpTool,
   sdkLocalToolExecutor = null,
 } = {}) {
   function resolveDisplayBounds(event) {
@@ -115,18 +105,7 @@ function createLocalBackendExecuteToolRuntime({
     try {
       const normalizedArgs = resolveNormalizedToolArgs(toolName, args, event);
       const timeoutMs = resolveExecuteToolTimeoutMs(toolName);
-      let result = null;
-      if (hasLocalMcpTool(toolName)) {
-        const frontendConfig = typeof getFrontendConfig === 'function' ? getFrontendConfig() : null;
-        result = await executeLocalMcpTool(toolName, normalizedArgs, {
-          senderWindowId: event?.sender?.id || null,
-        }, {
-          enabledMcpServers: getEnabledMcpServersFromConfig(frontendConfig),
-        });
-      }
-      if (!result) {
-        result = await runExecuteToolRequest(toolName, normalizedArgs, timeoutMs);
-      }
+      let result = await runExecuteToolRequest(toolName, normalizedArgs, timeoutMs);
 
       if (isScreenshotTool(toolName)) {
         result = await materializeScreenshotAttachment(result, backendHttpUrl, {

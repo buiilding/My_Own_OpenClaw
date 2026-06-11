@@ -225,6 +225,34 @@ class ToolRegistry:
         self.dynamic_tool_sources[name] = dict(source or {"kind": "runtime"})
         return self.describe_tool(name)
 
+    def unregister_dynamic_tool(self, name: str) -> bool:
+        """Remove a non-built-in dynamic/runtime tool."""
+        if name in EXPOSED_TO_BACKEND_TOOL_NAMES:
+            return False
+        existed = name in self.tools
+        self.tools.pop(name, None)
+        self.dynamic_tool_schemas.pop(name, None)
+        self.dynamic_tool_descriptions.pop(name, None)
+        self.dynamic_tool_sources.pop(name, None)
+        return existed
+
+    def unregister_dynamic_tools_by_source(
+        self,
+        *,
+        kind: str | None = None,
+        server_id: str | None = None,
+    ) -> list[str]:
+        """Remove dynamic tools matching source metadata."""
+        removed: list[str] = []
+        for tool_name, source in list(self.dynamic_tool_sources.items()):
+            if kind is not None and source.get("kind") != kind:
+                continue
+            if server_id is not None and source.get("server_id") != server_id:
+                continue
+            if self.unregister_dynamic_tool(tool_name):
+                removed.append(tool_name)
+        return removed
+
     @staticmethod
     def get_exposed_tool_names() -> set[str]:
         """Return sidecar tools that are expected to be exposed by backend schemas."""
@@ -242,6 +270,8 @@ class ToolRegistry:
             tool_manifest = {
                 "name": tool_name,
                 "schema": copy.deepcopy(self.dynamic_tool_schemas[tool_name]),
+                "execution_target": "sidecar",
+                "argument_resolution": "passthrough",
             }
             description = self.dynamic_tool_descriptions.get(tool_name)
             if description:
@@ -249,6 +279,13 @@ class ToolRegistry:
             source = self.dynamic_tool_sources.get(tool_name)
             if source:
                 tool_manifest["source"] = copy.deepcopy(source)
+                if source.get("kind") == "mcp":
+                    if source.get("server_id"):
+                        tool_manifest["mcp_server_id"] = source["server_id"]
+                    if source.get("tool_name"):
+                        tool_manifest["mcp_tool_name"] = source["tool_name"]
+                    if source.get("extension_id"):
+                        tool_manifest["extension_id"] = source["extension_id"]
             manifest["tools"].append(tool_manifest)
         return manifest
 
@@ -267,7 +304,9 @@ class ToolRegistry:
             raise ValueError("tool name is missing or invalid")
 
     @staticmethod
-    def _wrap_module_handler(handler: Callable[..., Any]) -> Callable[[dict[str, Any]], Any]:
+    def _wrap_module_handler(
+        handler: Callable[..., Any],
+    ) -> Callable[[dict[str, Any]], Any]:
         signature = inspect.signature(handler)
         parameters = list(signature.parameters.values())
         accepts_raw_args = (
@@ -314,7 +353,7 @@ class ToolRegistry:
 
     @staticmethod
     def _extract_failure_payload(
-        result: Dict[str, Any]
+        result: Dict[str, Any],
     ) -> tuple[str, Dict[str, Any] | None]:
         """Extract the most useful failure message from mapping-shaped tool results."""
         data = result.get("data")

@@ -64,12 +64,11 @@ describe('local backend bridge extension runtime', () => {
     });
   });
 
-  test('executes MCP tools before sidecar fallback', async () => {
-    const sendRequest = jest.fn();
-    const executeLocalMcpTool = jest.fn(async (toolName, args) => ({
+  test('routes MCP tools through the sidecar execution path', async () => {
+    const sendRequest = jest.fn(async (_method, payload) => ({
       success: true,
       data: {
-        output: `${toolName}:${args.query}`,
+        output: `${payload.tool_name}:${payload.args.query}`,
       },
     }));
 
@@ -82,8 +81,6 @@ describe('local backend bridge extension runtime', () => {
       resolveChatWindow: () => null,
       resolveMainWindow: () => null,
       resolveResponseWindow: () => null,
-      executeLocalMcpTool,
-      hasLocalMcpTool: (toolName) => toolName === 'mcp_memory__search',
     });
 
     const result = await runtime.executeTool(null, {
@@ -91,12 +88,13 @@ describe('local backend bridge extension runtime', () => {
       args: { query: 'windie' },
     });
 
-    expect(sendRequest).not.toHaveBeenCalled();
-    expect(executeLocalMcpTool).toHaveBeenCalledWith(
-      'mcp_memory__search',
-      { query: 'windie' },
-      { senderWindowId: null },
-      { enabledMcpServers: ['mcp:memory'] },
+    expect(sendRequest).toHaveBeenCalledWith(
+      'execute_tool',
+      {
+        tool_name: 'mcp_memory__search',
+        args: { query: 'windie' },
+      },
+      expect.objectContaining({ timeoutMs: expect.any(Number) }),
     );
     expect(result).toEqual({
       success: true,
@@ -106,15 +104,14 @@ describe('local backend bridge extension runtime', () => {
     });
   });
 
-  test('does not materialize or delete screenshot paths returned by MCP tools', async () => {
+  test('does not materialize or delete screenshot paths returned by non-screenshot tools', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-mcp-path-'));
     const untrustedPath = path.join(tempDir, 'secret.txt');
     await fsPromises.writeFile(untrustedPath, 'do-not-read-or-delete');
 
     const originalFetch = global.fetch;
     global.fetch = jest.fn();
-    const sendRequest = jest.fn();
-    const executeLocalMcpTool = jest.fn(async () => ({
+    const sendRequest = jest.fn(async () => ({
       success: true,
       data: {
         screenshot_path: untrustedPath,
@@ -131,8 +128,6 @@ describe('local backend bridge extension runtime', () => {
       resolveChatWindow: () => null,
       resolveMainWindow: () => null,
       resolveResponseWindow: () => null,
-      executeLocalMcpTool,
-      hasLocalMcpTool: (toolName) => toolName === 'mcp_memory__search',
     });
 
     try {

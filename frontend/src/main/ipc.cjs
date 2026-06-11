@@ -87,6 +87,7 @@ const {
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
+  getEnabledMcpServerSpecsForConfig,
   listMcpServersForConfig,
   refreshMcpServersForConfig,
   updateMcpServerEnablementForConfig,
@@ -932,6 +933,13 @@ function createDirectWakeUpAgentAdapter({
     noteBackendTraffic: reason => agent.noteBackendTraffic(reason),
     syncBackendIdleTimer: reason => agent.syncBackendIdleTimer(reason),
     localStatus: () => agent.status(),
+    localRuntime: agent.localRuntime || null,
+    refreshMcpServers: async ({ config = null } = {}) => (
+      refreshMcpServersForConfig({
+        config,
+        localRuntime: agent.localRuntime || null,
+      })
+    ),
     close: () => {
       if (closed) {
         return;
@@ -982,6 +990,9 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
     name: 'WindieOS',
     workspacePath: resolvedWorkspacePath,
     builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
+    mcps: process.env.NODE_ENV === 'test'
+      ? []
+      : getEnabledMcpServerSpecsForConfig({ config: latestFrontendConfig || {} }),
     ...(process.env.NODE_ENV === 'test' ? { memory: false, persistence: false } : {}),
     localToolLifecycle,
   });
@@ -1021,6 +1032,15 @@ function noteBackendTraffic(reason = 'traffic') {
   windieAgent?.noteBackendTraffic(reason);
 }
 
+async function restartWindieAgent(reason = 'restart') {
+  if (windieAgent) {
+    windieAgent.close?.();
+    windieAgent = null;
+  }
+  pendingWindieAgentStartPromise = null;
+  return ensureWindieAgent({ reason });
+}
+
 function isBackendRuntimeConnected() {
   return isConnected && Boolean(windieAgent?.isConnected());
 }
@@ -1035,6 +1055,16 @@ async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_C
     timeoutMs,
     conversationRef: currentConversationRef,
   });
+}
+
+async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
+  if (process.env.NODE_ENV !== 'test') {
+    const agent = await ensureWindieAgent({ reason });
+    if (typeof agent.refreshMcpServers === 'function') {
+      return agent.refreshMcpServers({ config: latestFrontendConfig || {} });
+    }
+  }
+  return refreshMcpServersForConfig({ config: latestFrontendConfig || {} });
 }
 
 function buildIpcStatusPayload(connected) {
@@ -1303,16 +1333,24 @@ function initializeIpc(win, options = {}) {
         error: 'Missing MCP server id.',
       };
     }
-    return updateMcpServerEnablementForConfig({
+    const result = await updateMcpServerEnablementForConfig({
       config: latestFrontendConfig || {},
       serverId,
       enabled: payload.enabled === true,
       persistConfig: persistFrontendConfigToDisk,
+      resolveLocalRuntime: process.env.NODE_ENV === 'test'
+        ? null
+        : async () => (await ensureWindieAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
     });
+    if (result?.success === true && process.env.NODE_ENV !== 'test') {
+      await restartWindieAgent('mcp-manifest-refresh');
+      result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-restart');
+    }
+    return result;
   });
 
   ipcMain.handle('refresh-mcp-servers', async () => (
-    refreshMcpServersForConfig({ config: latestFrontendConfig })
+    refreshMcpServersForLatestConfig('mcp-refresh')
   ));
 
   ipcMain.handle('get-client-user-id', async () => {

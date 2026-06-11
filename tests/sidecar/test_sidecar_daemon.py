@@ -28,6 +28,20 @@ class FakeEventSocket:
 
 
 class FakeMcpClient:
+    async def list_tools(self):
+        return [
+            {
+                "name": "remember",
+                "description": "Remember a value.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"value": {"type": "string"}},
+                    "required": ["value"],
+                    "additionalProperties": False,
+                },
+            }
+        ]
+
     async def call_tool(self, name, args):
         return {
             "content": [
@@ -37,6 +51,9 @@ class FakeMcpClient:
                 }
             ]
         }
+
+    async def close(self):
+        return None
 
 
 class FakeBackendWithEventSink:
@@ -167,7 +184,11 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
     payload = json.loads(response.text)
 
     assert response.status == 200
-    assert payload == {"success": False, "data": {"output": "Tool not found: missing_tool"}, "error": "Tool not found: missing_tool"}
+    assert payload == {
+        "success": False,
+        "data": {"output": "Tool not found: missing_tool"},
+        "error": "Tool not found: missing_tool",
+    }
     assert ws.sent == [
         {
             "type": "tool-executed",
@@ -355,6 +376,14 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
     registration_payload = json.loads(registration.text)
     assert registration_payload["success"] is True
     assert registration_payload["registered_tools"][0]["name"] == "mcp_notes__remember"
+    manifest = daemon.backend.tool_registry.get_tool_manifest()
+    mcp_tool = next(
+        tool for tool in manifest["tools"] if tool["name"] == "mcp_notes__remember"
+    )
+    assert mcp_tool["execution_target"] == "sidecar"
+    assert mcp_tool["argument_resolution"] == "passthrough"
+    assert mcp_tool["mcp_server_id"] == "notes"
+    assert mcp_tool["mcp_tool_name"] == "remember"
     assert json.loads(execution.text) == {
         "success": True,
         "data": {
@@ -362,6 +391,34 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
             "mcp_result": {"content": [{"type": "text", "text": "remember:hello"}]},
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_reconciles_removed_mcp_tools():
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    first = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "replace": True,
+                "servers": [{"id": "notes", "command": "fake-mcp-server"}],
+            }
+        )
+    )
+    assert first.status == 200
+    assert daemon.backend.tool_registry.has_tool("mcp_notes__remember")
+
+    second = await daemon.handle_register_mcp(
+        FakeRequest({"replace": True, "servers": []})
+    )
+    payload = json.loads(second.text)
+
+    assert second.status == 200
+    assert payload["success"] is True
+    assert payload["registered_tools"] == []
+    assert not daemon.backend.tool_registry.has_tool("mcp_notes__remember")
+    assert "notes" not in daemon.mcp_clients
 
 
 @pytest.mark.asyncio

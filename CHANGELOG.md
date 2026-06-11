@@ -40,6 +40,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sidecar/mcp: converge desktop MCP discovery and execution onto the
+  sidecar local runtime, reconcile disabled MCP tools out of the sidecar
+  registry, restart the managed agent after MCP toggles so backend receives a
+  fresh manifest, and remove Electron main's production MCP execution
+  interception.
 - frontend/auth: validate cached install auth against the hosted identity
   endpoint before reuse, discard only confirmed-invalid 401 tokens, and
   re-register so app reinstalls or backend auth resets do not break chat

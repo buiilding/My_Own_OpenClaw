@@ -1,8 +1,8 @@
 const {
+  loadExtensionMcpServers,
   loadPublicExtensionRegistry,
 } = require('./extension_manifest.cjs');
 const {
-  buildClientToolManifestWithMcp,
   clearMcpRuntimeCache,
   createMcpToolName,
 } = require('./mcp_runtime.cjs');
@@ -152,6 +152,17 @@ function listMcpServersForConfig({
   };
 }
 
+function getEnabledMcpServerSpecsForConfig({
+  config = null,
+  contributionsDir = undefined,
+} = {}) {
+  const enabledServers = getEnabledMcpServersFromConfig(config);
+  return loadExtensionMcpServers({ contributionsDir }).filter((server) => {
+    const userEnabled = isMcpServerUserEnabled(server, enabledServers);
+    return server.requires_user_enable ? userEnabled : server.enabled !== false;
+  });
+}
+
 function createMcpDiscoveryDiagnostics() {
   const context = {
     path: MCP_DISCOVERY_DIAGNOSTICS_PATH,
@@ -174,15 +185,88 @@ function createMcpDiscoveryDiagnostics() {
   };
 }
 
+async function refreshMcpServersThroughSidecar({
+  config = null,
+  contributionsDir = undefined,
+  localRuntime = null,
+} = {}) {
+  if (!localRuntime || typeof localRuntime.registerMcp !== 'function') {
+    return null;
+  }
+  const registry = loadPublicExtensionRegistry({ contributionsDir });
+  const enabledServers = getEnabledMcpServersFromConfig(config);
+  const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config, contributionsDir });
+  const result = await localRuntime.registerMcp({
+    servers: enabledSpecs,
+    replace: true,
+  });
+  const errors = Array.isArray(result?.errors) ? result.errors : [];
+  const statuses = Array.isArray(result?.statuses) ? result.statuses : [];
+  const tools = typeof localRuntime.listTools === 'function'
+    ? await localRuntime.listTools()
+    : null;
+  const manifestTools = Array.isArray(tools?.tools) ? tools.tools : [];
+  const nextStatusByServerId = new Map();
+  for (const status of statuses) {
+    const serverId = normalizeString(status?.server_id);
+    if (!serverId) {
+      continue;
+    }
+    nextStatusByServerId.set(serverId, {
+      state: normalizeString(status.state) || 'unknown',
+      reason: normalizeString(status.reason),
+      tool_count: Number.isFinite(status.tool_count) ? status.tool_count : undefined,
+    });
+  }
+  for (const error of errors) {
+    const serverId = normalizeString(error?.server_id);
+    if (serverId) {
+      nextStatusByServerId.set(serverId, {
+        state: 'error',
+        reason: normalizeString(error.reason) || 'Discovery failed.',
+      });
+    }
+  }
+  for (const server of registry.mcps || []) {
+    const discoveredCount = manifestTools.filter((tool) => (
+      tool?.mcp_server_id === server.id
+    )).length;
+    if (discoveredCount > 0 && !nextStatusByServerId.has(server.id)) {
+      nextStatusByServerId.set(server.id, {
+        state: 'ready',
+        tool_count: discoveredCount,
+      });
+    }
+  }
+  lastDiscoveryStatusByServerId = nextStatusByServerId;
+  return {
+    contributionRoot: registry.contributionRoot,
+    mcps: annotateMcpServers(registry.mcps || [], enabledServers, lastDiscoveryStatusByServerId),
+    errors: registry.errors || [],
+    enabled_mcp_servers: enabledServers,
+    mcp_errors: errors,
+  };
+}
+
 async function refreshMcpServersForConfig({
   config = null,
   contributionsDir = undefined,
+  localRuntime = null,
   createClient = undefined,
   spawnImpl = undefined,
   diagnostics = undefined,
 } = {}) {
+  const sidecarResult = await refreshMcpServersThroughSidecar({
+    config,
+    contributionsDir,
+    localRuntime,
+  });
+  if (sidecarResult) {
+    return sidecarResult;
+  }
   const registry = loadPublicExtensionRegistry({ contributionsDir });
   const enabledServers = getEnabledMcpServersFromConfig(config);
+  const { buildClientToolManifestWithMcp } = require('./mcp_runtime.cjs');
   const manifest = await buildClientToolManifestWithMcp({
     baseManifest: { version: 1, tools: [] },
     contributionsDir,
@@ -232,6 +316,8 @@ async function updateMcpServerEnablementForConfig({
   enabled = false,
   persistConfig,
   contributionsDir = undefined,
+  localRuntime = null,
+  resolveLocalRuntime = null,
   createClient = undefined,
   spawnImpl = undefined,
   diagnostics = undefined,
@@ -264,10 +350,15 @@ async function updateMcpServerEnablementForConfig({
     };
   }
 
-  const registry = enabled === true
+  const resolvedLocalRuntime = typeof resolveLocalRuntime === 'function'
+    ? await resolveLocalRuntime(nextConfig)
+    : localRuntime;
+  const shouldRefreshRuntime = enabled === true || Boolean(resolvedLocalRuntime);
+  const registry = shouldRefreshRuntime
     ? await refreshMcpServersForConfig({
       config: nextConfig,
       contributionsDir,
+      localRuntime: resolvedLocalRuntime,
       createClient,
       spawnImpl,
       diagnostics,
@@ -288,6 +379,7 @@ function clearMcpControlState() {
 module.exports = {
   MCP_ENABLED_CONFIG_KEY,
   clearMcpControlState,
+  getEnabledMcpServerSpecsForConfig,
   getEnabledMcpServersFromConfig,
   listMcpServersForConfig,
   normalizeEnabledMcpServers,
