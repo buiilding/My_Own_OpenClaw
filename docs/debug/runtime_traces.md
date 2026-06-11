@@ -162,13 +162,8 @@ conversation `trace_event` rows and live in:
 ~/Library/Application Support/desktop-assistant/diagnostics/diagnostics.db
 ```
 
-App diagnostic paths:
-
-- `conversation.metadata.list`: dashboard/sidebar chat-list load.
-- `browser.session_control`: chat header browser readiness and browser action
-  request lifecycle before a conversation turn exists.
-
-The `conversation.metadata.list` path covers:
+The first app diagnostic path is `conversation.metadata.list`, covering the
+dashboard/sidebar chat-list load:
 
 ```text
 renderer dashboard load
@@ -185,12 +180,6 @@ metadata. They may include booleans and counts such as `hasUserId`, `limit`,
 `resultCount`, `backendConnected`, `sidecarReady`,
 `canonicalHistoryDbExists`, `legacyEpisodicDbExists`, and `storeKind`.
 
-`browser.session_control` rows may include local-backend readiness booleans,
-status strings, browser action names, wake success/failure booleans, tab counts,
-response key counts, request ids, durations, and short errors. They must not
-include browser URLs, page titles, page text, screenshots, tool output, local
-paths, raw payloads, or stack traces.
-
 Do not store raw user ids, chat titles, last-message text, workspace paths,
 SQL rows, stack traces, tokens, prompt text, user text, assistant text, or raw
 payloads in app diagnostics.
@@ -199,12 +188,6 @@ Inspect the latest rows with:
 
 ```bash
 bin/windie diagnostics list --path conversation.metadata.list --limit 50
-```
-
-For browser header readiness:
-
-```bash
-bin/windie diagnostics list --path browser.session_control --limit 50
 ```
 
 Inspect a single trace timeline with:

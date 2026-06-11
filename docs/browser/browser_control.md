@@ -326,10 +326,8 @@ Optional:
 
 The dashboard chat header exposes the same dedicated browser session with a compact control:
 
-- While the local sidecar runtime is still starting, the button stays disabled, shows **Starting local runtime...**, and waits for the shared `local-backend-status` ready signal instead of issuing browser tool calls immediately on mount.
-- If local runtime startup fails, the button shows **Browser unavailable** and keeps the short sanitized error in the button title.
+- While the local sidecar runtime is still starting, the button stays disabled, shows **Starting browser...**, and waits for the shared `local-backend-status` ready signal instead of issuing browser tool calls immediately on mount.
 - When disconnected, it shows **Connect browser**.
-- After the user requests a connection, it shows **Connecting browser...** until the browser action finishes.
 - When connected, it shows **Browser Tab: <tab name>**.
 - Opening the carousel shows all current tabs, updates as tabs change, and uses internal-only `switch` calls (`activate=false`) so changing the controlled tab does not visibly switch the browser window for the user.
 - The renderer keeps one shared browser-session snapshot for this control and polls tab state every 2 seconds while connected, tightening to 1 second while the carousel is open.

@@ -25,7 +25,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     RUN_BROWSER_ACTION: 'run-browser-action',
     GET_LOCAL_BACKEND_STATUS: 'get-local-backend-status',
-    WINDIE_INVOKE: 'windie:invoke',
   },
   ON_CHANNELS: {
     LOCAL_BACKEND_STATUS: 'local-backend-status',
@@ -34,15 +33,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 function createBrowserToolHandler(session) {
   return async (channel, payload = {}) => {
-    if (channel === 'windie:invoke') {
-      return { ok: true, data: { stored: true } };
-    }
-
     if (channel === 'get-local-backend-status') {
       return {
         ready: session.localBackendReady !== false,
         status: session.localBackendReady === false ? 'starting' : 'ready',
-        error: session.localBackendError || '',
+        error: '',
       };
     }
 
@@ -258,8 +253,7 @@ describe('ChatBrowserSessionControl', () => {
     render(<ChatBrowserSessionControl />);
 
     expect(await screen.findByRole('button', { name: 'Connect browser' })).toBeDisabled();
-    expect(screen.getByText('Starting local runtime…')).toBeInTheDocument();
-    expect(mockInvoke).toHaveBeenCalledWith('get-local-backend-status');
+    expect(mockInvoke.mock.calls[0]).toEqual(['get-local-backend-status', undefined]);
     const issuedBrowserToolCall = mockInvoke.mock.calls.some(([channel, payload]) => (
       channel === 'run-browser-action'
     ));
@@ -278,97 +272,8 @@ describe('ChatBrowserSessionControl', () => {
     expect(mockInvoke).toHaveBeenCalledWith(
       'run-browser-action',
       expect.objectContaining({
-      action: 'status',
+        action: 'status',
       }),
     );
-  });
-
-  test('shows browser unavailable when the local runtime status reports a startup failure', async () => {
-    const session = {
-      connected: false,
-      localBackendReady: false,
-      localBackendError: 'daemon unavailable',
-      currentTargetId: '',
-      tabs: [],
-    };
-    mockInvoke.mockImplementation(createBrowserToolHandler(session));
-
-    render(<ChatBrowserSessionControl />);
-
-    const unavailableButton = await screen.findByRole('button', { name: 'Browser unavailable' });
-    expect(unavailableButton).toBeDisabled();
-    expect(unavailableButton).toHaveAttribute('title', 'daemon unavailable');
-    expect(screen.getByText('Browser unavailable')).toBeInTheDocument();
-  });
-
-  test('shows connecting browser while the connect action is in flight', async () => {
-    const session = {
-      connected: false,
-      localBackendReady: true,
-      currentTargetId: '',
-      tabs: [
-        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
-      ],
-    };
-    let resolveConnect;
-    mockInvoke.mockImplementation(async (channel, payload = {}) => {
-      if (channel === 'windie:invoke') {
-        return { ok: true, data: { stored: true } };
-      }
-      if (channel === 'get-local-backend-status') {
-        return { ready: true, status: 'ready', error: '' };
-      }
-      if (payload?.action === 'status') {
-        return {
-          success: true,
-          data: {
-            connected: session.connected,
-            title: session.connected ? 'Docs' : '',
-            url: session.connected ? 'https://docs.windieos.com' : '',
-            tab_count: session.connected ? 1 : 0,
-          },
-        };
-      }
-      if (payload?.action === 'get_tabs') {
-        return {
-          success: true,
-          data: {
-            tabs: session.connected
-              ? [{ tab_index: 0, title: 'Docs', url: 'https://docs.windieos.com' }]
-              : [],
-          },
-        };
-      }
-      if (payload?.action === 'connect') {
-        return new Promise((resolve) => {
-          resolveConnect = () => {
-            session.connected = true;
-            resolve({
-              success: true,
-              data: {
-                status: 'connected',
-                title: 'Docs',
-                url: 'https://docs.windieos.com',
-              },
-            });
-          };
-        });
-      }
-      throw new Error(`Unhandled channel/action in test: ${channel} ${payload?.action}`);
-    });
-
-    render(<ChatBrowserSessionControl />);
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Connect browser' }));
-
-    expect(await screen.findByText('Connecting browser…')).toBeInTheDocument();
-
-    await act(async () => {
-      resolveConnect();
-    });
-
-    expect(
-      await screen.findByRole('button', { name: 'Browser Tab: Docs' }),
-    ).toBeInTheDocument();
   });
 });
