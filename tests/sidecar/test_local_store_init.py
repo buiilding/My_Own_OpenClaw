@@ -36,6 +36,26 @@ def test_local_memory_store_init_skips_sync_faiss_reads(monkeypatch, tmp_path):
     assert store.history_db_path == str(tmp_path / "history" / "history.db")
 
 
+def test_local_memory_store_default_root_uses_windieos(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        local_store_module, "windie_user_data_root", lambda: tmp_path / "windieos"
+    )
+
+    store = LocalMemoryStore()
+
+    assert store.memory_dir == tmp_path / "windieos" / "memory"
+    assert store.history_dir == tmp_path / "windieos" / "history"
+    assert store.episodic_db_path == str(
+        tmp_path / "windieos" / "memory" / "episodic.db"
+    )
+    assert store.semantic_db_path == str(
+        tmp_path / "windieos" / "memory" / "semantic.db"
+    )
+    assert store.history_db_path == str(
+        tmp_path / "windieos" / "history" / "history.db"
+    )
+
+
 @pytest.mark.asyncio
 async def test_initialize_creates_faiss_indices_without_remote_clients(
     monkeypatch,

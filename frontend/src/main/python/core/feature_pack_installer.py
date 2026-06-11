@@ -8,15 +8,12 @@ packaged app resources remain immutable.
 from __future__ import annotations
 
 import importlib.util
-import os
 from pathlib import Path
-import platform
 import subprocess
 import sys
 from typing import Dict, Tuple
 
-
-APP_NAME = "desktop-assistant"
+from core.user_data_paths import windie_user_data_root
 
 _FEATURE_PACK_REQUIREMENTS: Dict[str, str] = {
     "browser": "requirements.runtime.txt",
@@ -28,19 +25,7 @@ _FEATURE_PACK_MODULE_MARKERS: Dict[str, Tuple[str, ...]] = {
 
 
 def _resolve_user_data_root() -> Path:
-    if os.name == "nt":
-        appdata = os.getenv("APPDATA")
-        if not appdata:
-            raise RuntimeError("APPDATA environment variable is not set on Windows")
-        return Path(appdata) / APP_NAME
-
-    if os.name == "posix":
-        home_dir = Path.home()
-        if platform.system() == "Darwin":
-            return home_dir / "Library" / "Application Support" / APP_NAME
-        return home_dir / ".config" / APP_NAME
-
-    raise RuntimeError(f"Unsupported OS for feature-pack runtime path: {os.name}")
+    return windie_user_data_root()
 
 
 def get_feature_pack_site_packages_dir() -> Path:

@@ -54,9 +54,9 @@ backfills/rebuilds wait until embeddings become available again.
 ## Storage Layout
 
 The sidecar stores memory in a local user data directory:
-- **Linux**: `~/.config/desktop-assistant/memory/`
-- **macOS**: `~/Library/Application Support/desktop-assistant/memory/`
-- **Windows**: `%APPDATA%/desktop-assistant/memory/`
+- **Linux**: `~/.config/windieos/memory/`
+- **macOS**: `~/Library/Application Support/windieos/memory/`
+- **Windows**: `%APPDATA%/windieos/memory/`
 
 Files created per user:
 - `episodic.db` (SQLite)
@@ -74,12 +74,12 @@ Use when you need a full local-memory reset in dev (episodic + semantic + FAISS 
 
 Linux/macOS (auto-detect path):
 ```bash
-if [[ "$OSTYPE" == "darwin"* ]]; then MEM="$HOME/Library/Application Support/desktop-assistant/memory"; else MEM="$HOME/.config/desktop-assistant/memory"; fi; rm -f "$MEM"/{episodic.db,semantic.db,episodic.faiss.index,semantic.faiss.index,watermark_state.json} && ls -la "$MEM"
+if [[ "$OSTYPE" == "darwin"* ]]; then MEM="$HOME/Library/Application Support/windieos/memory"; else MEM="$HOME/.config/windieos/memory"; fi; rm -f "$MEM"/{episodic.db,semantic.db,episodic.faiss.index,semantic.faiss.index,watermark_state.json} && ls -la "$MEM"
 ```
 
 Windows PowerShell:
 ```powershell
-$mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
+$mem = Join-Path $env:APPDATA "windieos\\memory"; Remove-Item -Force `
   (Join-Path $mem "episodic.db"), `
   (Join-Path $mem "semantic.db"), `
   (Join-Path $mem "episodic.faiss.index"), `

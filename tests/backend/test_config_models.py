@@ -250,7 +250,7 @@ class TestAppConfig:
 
         path = config_models._default_artifact_store_path()
 
-        assert path == "C:/Users/test/AppData/Roaming/DesktopAssistant/artifacts"
+        assert path == "C:/Users/test/AppData/Roaming/windieos/artifacts"
 
     def test_default_artifact_store_path_linux_uses_xdg_style_location(
         self, monkeypatch
@@ -265,7 +265,7 @@ class TestAppConfig:
 
         path = config_models._default_artifact_store_path()
 
-        assert path == "/home/test/.config/DesktopAssistant/artifacts"
+        assert path == "/home/test/.config/windieos/artifacts"
 
     def test_llm_model_property_online(self):
         config = AppConfig(

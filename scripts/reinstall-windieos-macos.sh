@@ -41,14 +41,25 @@ LOCAL_SIGNING_ENV_VARS=(
 )
 APP_NAME="${WINDIE_APP_NAME:-WindieOS.app}"
 APP_INSTALL_PATH="/Applications/${APP_NAME}"
-USER_DATA_DIR="${HOME}/Library/Application Support/WindieOS"
+USER_DATA_DIR="${HOME}/Library/Application Support/windieos"
 APP_SUPPORT_BUNDLE_DIR="${HOME}/Library/Application Support/${BUNDLE_ID}"
-CACHE_DIR="${HOME}/Library/Caches/WindieOS"
+CACHE_DIR="${HOME}/Library/Caches/windieos"
 CACHE_BUNDLE_DIR="${HOME}/Library/Caches/${BUNDLE_ID}"
-WEBKIT_DIR="${HOME}/Library/WebKit/WindieOS"
+WEBKIT_DIR="${HOME}/Library/WebKit/windieos"
 WEBKIT_BUNDLE_DIR="${HOME}/Library/WebKit/${BUNDLE_ID}"
 HTTP_STORAGE_DIR="${HOME}/Library/HTTPStorages/${BUNDLE_ID}"
 SAVED_STATE_DIR="${HOME}/Library/Saved Application State/${BUNDLE_ID}.savedState"
+LEGACY_APP_STATE_DIRS=(
+  "${HOME}/Library/Application Support/desktop-assistant"
+  "${HOME}/Library/Application Support/DesktopAssistant"
+  "${HOME}/Library/Application Support/WindieOS"
+  "${HOME}/Library/Caches/desktop-assistant"
+  "${HOME}/Library/Caches/DesktopAssistant"
+  "${HOME}/Library/Caches/WindieOS"
+  "${HOME}/Library/WebKit/desktop-assistant"
+  "${HOME}/Library/WebKit/DesktopAssistant"
+  "${HOME}/Library/WebKit/WindieOS"
+)
 LOG_FILE="${WINDIE_LOG_FILE:-${HOME}/windieos-packaged-run.log}"
 SIDECAR_LOG_LEVEL="${WINDIE_SIDECAR_LOG_LEVEL:-ERROR}"
 PYTHON_BUILD="${WINDIE_PYTHON_BUILD:-}"
@@ -248,6 +259,7 @@ rm -rf \
   "${WEBKIT_BUNDLE_DIR}" \
   "${HTTP_STORAGE_DIR}" \
   "${SAVED_STATE_DIR}"
+rm -rf "${LEGACY_APP_STATE_DIRS[@]}"
 rm -f "${LOG_FILE}"
 
 echo "[reinstall-windieos-macos] cleaning previous build artifacts"

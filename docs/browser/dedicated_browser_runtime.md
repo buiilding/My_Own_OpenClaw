@@ -25,9 +25,9 @@ WindieOS no longer keeps a direct browser-controller execution path in this stac
 | CDP host | `127.0.0.1` only |
 | Default CDP port | `9333` |
 | Port override | `WINDIE_BROWSER_CDP_PORT` |
-| macOS profile path | `~/Library/Application Support/WindieOS/BrowserProfile` |
-| Windows profile path | `%LOCALAPPDATA%/WindieOS/BrowserProfile` |
-| Linux profile path | `~/.config/windieos/browser-profile` |
+| macOS profile path | `~/Library/Application Support/windieos/BrowserProfile` |
+| Windows profile path | `%LOCALAPPDATA%/windieos/BrowserProfile` |
+| Linux profile path | `~/.config/windieos/BrowserProfile` |
 
 Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`. The default session name is `windieos`.
 

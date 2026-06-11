@@ -165,7 +165,7 @@ AppConfig controls WebSocket limits and timeouts:
 
 AppConfig controls HTTP artifact storage used for screenshots:
 
-- `artifact_store_path` (default: persistent user config dir `.../DesktopAssistant/artifacts`)
+- `artifact_store_path` (default: persistent user config dir `.../windieos/artifacts`)
 - `artifact_max_bytes` (default: 25MB)
 
 Runtime note:

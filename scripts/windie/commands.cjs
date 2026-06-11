@@ -12,6 +12,7 @@ const {
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
   queryDiagnosticEvents,
+  windieUserDataRoot,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 
 const HELP = `WindieOS command line
@@ -119,25 +120,7 @@ function script(relativePath) {
 }
 
 function historyDatabasePath() {
-  const historyPath = path.join(
-    os.homedir(),
-    'Library',
-    'Application Support',
-    'desktop-assistant',
-    'history',
-    'history.db',
-  );
-  if (fs.existsSync(historyPath)) {
-    return historyPath;
-  }
-  return path.join(
-    os.homedir(),
-    'Library',
-    'Application Support',
-    'desktop-assistant',
-    'memory',
-    'episodic.db',
-  );
+  return path.join(windieUserDataRoot(), 'history', 'history.db');
 }
 
 function historyTableNames() {

@@ -19,6 +19,19 @@ from backend.src.core.config.runtime import (
 )
 
 logger = logging.getLogger(__name__)
+APP_DATA_DIR_NAME = "windieos"
+
+
+def _default_user_data_root() -> Path:
+    if os.name == "nt":
+        appdata = os.getenv("APPDATA")
+        if appdata:
+            return Path(appdata) / APP_DATA_DIR_NAME
+
+    home_dir = Path.home()
+    if os.name == "posix" and platform.system() == "Darwin":
+        return home_dir / "Library" / "Application Support" / APP_DATA_DIR_NAME
+    return home_dir / ".config" / APP_DATA_DIR_NAME
 
 
 def _openai_model_supports_codex_oauth(selected_model_id: str) -> bool:
@@ -52,42 +65,8 @@ def get_default_tts_model_path() -> str:
     Returns:
         Default TTS model path string
     """
-    if os.name == "nt":  # Windows
-        appdata = os.getenv("APPDATA")
-        if appdata:
-            return str(
-                Path(appdata)
-                / "DesktopAssistant"
-                / "tts_models"
-                / "piper"
-                / "en_GB-jenny_dioco-medium.onnx"
-            )
-    elif os.name == "posix":
-        home_dir = Path.home()
-        if platform.system() == "Darwin":  # macOS
-            return str(
-                home_dir
-                / "Library"
-                / "Application Support"
-                / "DesktopAssistant"
-                / "tts_models"
-                / "piper"
-                / "en_GB-jenny_dioco-medium.onnx"
-            )
-        else:  # Linux
-            return str(
-                home_dir
-                / ".config"
-                / "DesktopAssistant"
-                / "tts_models"
-                / "piper"
-                / "en_GB-jenny_dioco-medium.onnx"
-            )
-    # Fallback
     return str(
-        Path.home()
-        / ".config"
-        / "DesktopAssistant"
+        _default_user_data_root()
         / "tts_models"
         / "piper"
         / "en_GB-jenny_dioco-medium.onnx"

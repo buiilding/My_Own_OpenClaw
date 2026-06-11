@@ -31,6 +31,7 @@ from windie._unicode_sanitizer import (
     sanitize_surrogates,
     sanitize_surrogates_in_text,
 )
+from core.user_data_paths import windie_user_data_root
 from memory.admin import clear_chat_history as clear_chat_history_admin
 from memory.admin import clear_local_memory as clear_local_memory_admin
 from memory.chat_event_store import (
@@ -188,31 +189,7 @@ class LocalMemoryStore:
         """
         # Determine memory directory
         if db_path is None:
-            # Use platform-specific user data directory
-            # Frontend has its own data folder, separate from backend config
-            import os
-            import platform
-
-            app_name = "desktop-assistant"
-
-            # Manually construct path to avoid platformdirs duplication issue
-            if os.name == "nt":  # Windows
-                appdata = os.getenv("APPDATA")
-                if not appdata:
-                    raise ValueError(
-                        "APPDATA environment variable is not set on Windows"
-                    )
-                db_path = Path(appdata) / app_name
-            elif os.name == "posix":
-                home_dir = Path.home()
-                if platform.system() == "Darwin":  # macOS
-                    db_path = home_dir / "Library" / "Application Support" / app_name
-                else:  # Linux and other Unix-like
-                    db_path = home_dir / ".config" / app_name
-            else:
-                raise ValueError(f"Unsupported OS: {os.name}")
-
-            memory_dir = db_path / "memory"
+            memory_dir = windie_user_data_root() / "memory"
         else:
             db_path_obj = Path(db_path)
             if db_path_obj.suffix:

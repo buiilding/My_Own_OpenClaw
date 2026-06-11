@@ -160,7 +160,7 @@ describe('windie CLI', () => {
 
   test('exports display conversation messages from the canonical history database', () => {
     const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-history-'));
-    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'desktop-assistant', 'history');
+    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'windieos', 'history');
     const dbPath = path.join(historyDir, 'history.db');
     fs.mkdirSync(historyDir, { recursive: true });
     const sql = `
@@ -220,7 +220,7 @@ describe('windie CLI', () => {
 
   test('exports display conversation messages from older history schemas without the view', () => {
     const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-history-legacy-'));
-    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'desktop-assistant', 'history');
+    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'windieos', 'history');
     const dbPath = path.join(historyDir, 'history.db');
     fs.mkdirSync(historyDir, { recursive: true });
     const sql = `

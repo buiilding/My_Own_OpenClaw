@@ -45,9 +45,9 @@ Execution returns process exit code from the Python script (`0` on success).
 
 ## Storage Path Resolution by OS
 
-- Windows: `%APPDATA%/desktop-assistant/memory`
-- macOS: `~/Library/Application Support/desktop-assistant/memory`
-- Linux: `~/.config/desktop-assistant/memory`
+- Windows: `%APPDATA%/windieos/memory`
+- macOS: `~/Library/Application Support/windieos/memory`
+- Linux: `~/.config/windieos/memory`
 
 DB files touched:
 

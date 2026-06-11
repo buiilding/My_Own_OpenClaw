@@ -217,7 +217,7 @@ read_when:
 2. **Clear Cache**:
    ```bash
    # Clear Electron cache
-   rm -rf ~/.config/DesktopAssistant/Cache
+   rm -rf ~/.config/windieos/Cache
    ```
 
 3. **Check React DevTools**:
@@ -345,9 +345,9 @@ read_when:
 
 2. **Check Database**:
    - Verify the sidecar memory directory exists and is writable:
-     `~/.config/desktop-assistant/memory/` (Linux),
-     `~/Library/Application Support/desktop-assistant/memory/` (macOS),
-     `%APPDATA%/desktop-assistant/memory/` (Windows)
+     `~/.config/windieos/memory/` (Linux),
+     `~/Library/Application Support/windieos/memory/` (macOS),
+     `%APPDATA%/windieos/memory/` (Windows)
 
 3. **Check Embeddings**:
    - Verify the backend is running and `/api/embeddings/health` is healthy

@@ -51,7 +51,7 @@ Browser Use runtime is now the default execution path. These flags are optional:
 
 ```bash
 # Browser Use daemon/session state root
-export WINDIE_BROWSER_USE_HOME="$HOME/.config/desktop-assistant/browser-use"
+export WINDIE_BROWSER_USE_HOME="$HOME/.config/windieos/browser-use"
 
 # Browser Use session name (default: windieos)
 export WINDIE_BROWSER_USE_SESSION=windieos

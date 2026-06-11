@@ -130,9 +130,9 @@ Local memory is implemented in the sidecar:
 - User transcript rows do not increment pending count. Example: 4 user messages with 4 assistant replies yields pending count `4`.
 
 Memory storage path:
-- Linux: `~/.config/desktop-assistant/memory/`
-- macOS: `~/Library/Application Support/desktop-assistant/memory/`
-- Windows: `%APPDATA%/desktop-assistant/memory/`
+- Linux: `~/.config/windieos/memory/`
+- macOS: `~/Library/Application Support/windieos/memory/`
+- Windows: `%APPDATA%/windieos/memory/`
 
 ## Wakeword
 

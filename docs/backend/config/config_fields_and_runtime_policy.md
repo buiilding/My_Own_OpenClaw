@@ -124,7 +124,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `websocket_max_concurrent_tasks` | `int` | `50` | Per-connection task cap in `TaskManager`. |
 | `websocket_receive_timeout` | `float` | `3600.0` | Slowloris protection timeout for receive loop. |
 | `websocket_task_cancellation_timeout` | `float` | `5.0` | Cleanup timeout on disconnect. |
-| `artifact_store_path` | `str` | user config path | Default `<APPDATA>/DesktopAssistant/artifacts` (Windows), `~/Library/Application Support/DesktopAssistant/artifacts` (macOS), `~/.config/DesktopAssistant/artifacts` (Linux). |
+| `artifact_store_path` | `str` | user config path | Default `<APPDATA>/windieos/artifacts` (Windows), `~/Library/Application Support/windieos/artifacts` (macOS), `~/.config/windieos/artifacts` (Linux). |
 | `artifact_max_bytes` | `int` | `25MB` | Max upload payload accepted by artifact route. |
 
 Artifact compatibility behavior:
@@ -153,9 +153,9 @@ From `apply_runtime_policies(...)`:
 
 Default TTS model path:
 
-- Windows: `%APPDATA%/DesktopAssistant/tts_models/piper/en_GB-jenny_dioco-medium.onnx`
-- macOS: `~/Library/Application Support/DesktopAssistant/tts_models/piper/en_GB-jenny_dioco-medium.onnx`
-- Linux: `~/.config/DesktopAssistant/tts_models/piper/en_GB-jenny_dioco-medium.onnx`
+- Windows: `%APPDATA%/windieos/tts_models/piper/en_GB-jenny_dioco-medium.onnx`
+- macOS: `~/Library/Application Support/windieos/tts_models/piper/en_GB-jenny_dioco-medium.onnx`
+- Linux: `~/.config/windieos/tts_models/piper/en_GB-jenny_dioco-medium.onnx`
 
 ### Policy 2: provider API key resolution
 

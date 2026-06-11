@@ -17,21 +17,23 @@ AgentToolProfile = Literal[
 ]
 AgentCapability = Literal["ocr", "vision", "embeddings", "web_search", "browser"]
 CoordinateMethod = Literal["manual", "ocr", "prediction"]
+APP_DATA_DIR_NAME = "windieos"
 
 
-def _default_artifact_store_path() -> str:
-    app_name = "DesktopAssistant"
+def _default_user_data_root() -> Path:
     if os.name == "nt":
         appdata = os.getenv("APPDATA")
         if appdata:
-            return str(Path(appdata) / app_name / "artifacts")
+            return Path(appdata) / APP_DATA_DIR_NAME
 
     home_dir = Path.home()
     if os.name == "posix" and platform.system() == "Darwin":
-        return str(
-            home_dir / "Library" / "Application Support" / app_name / "artifacts"
-        )
-    return str(home_dir / ".config" / app_name / "artifacts")
+        return home_dir / "Library" / "Application Support" / APP_DATA_DIR_NAME
+    return home_dir / ".config" / APP_DATA_DIR_NAME
+
+
+def _default_artifact_store_path() -> str:
+    return str(_default_user_data_root() / "artifacts")
 
 
 def _default_install_auth_db_path() -> str:

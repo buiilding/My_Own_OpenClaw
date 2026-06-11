@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote_plus
 
-from platformdirs import user_data_dir
+from core.user_data_paths import windie_user_data_root
 from tools.browser.chrome_launcher import (
     DEFAULT_WINDIE_CDP_PORT,
     ensure_chrome_with_cdp,
@@ -56,7 +56,7 @@ def _browser_use_home() -> str:
     configured = os.getenv("WINDIE_BROWSER_USE_HOME")
     if configured:
         return str(Path(configured).expanduser())
-    return str(Path(user_data_dir("desktop-assistant")) / "browser-use")
+    return str(windie_user_data_root() / "browser-use")
 
 
 def _browser_use_session() -> str:

@@ -151,7 +151,7 @@ def test_get_default_tts_model_path_windows_uses_appdata(monkeypatch):
 
     path = get_default_tts_model_path()
 
-    assert "DesktopAssistant/tts_models/piper" in path
+    assert "windieos/tts_models/piper" in path
     assert path.endswith("en_GB-jenny_dioco-medium.onnx")
     assert "AppData/Roaming" in path
 
@@ -167,7 +167,7 @@ def test_get_default_tts_model_path_windows_without_appdata_falls_back(monkeypat
     path = get_default_tts_model_path()
 
     assert path == (
-        "/home/test/.config/DesktopAssistant/tts_models/piper/"
+        "/home/test/.config/windieos/tts_models/piper/"
         "en_GB-jenny_dioco-medium.onnx"
     )
 
@@ -184,7 +184,7 @@ def test_get_default_tts_model_path_macos(monkeypatch):
     path = get_default_tts_model_path()
 
     assert path == (
-        "/Users/test/Library/Application Support/DesktopAssistant/tts_models/piper/"
+        "/Users/test/Library/Application Support/windieos/tts_models/piper/"
         "en_GB-jenny_dioco-medium.onnx"
     )
 

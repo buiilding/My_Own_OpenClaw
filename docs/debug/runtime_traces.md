@@ -159,7 +159,7 @@ or can fail before a conversation exists. These rows are separate from hidden
 conversation `trace_event` rows and live in:
 
 ```text
-~/Library/Application Support/desktop-assistant/diagnostics/diagnostics.db
+~/Library/Application Support/windieos/diagnostics/diagnostics.db
 ```
 
 App diagnostic paths:

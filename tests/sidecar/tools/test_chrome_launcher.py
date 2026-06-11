@@ -163,7 +163,7 @@ class TestGetChromeUserDataDir:
 
         assert result is not None
         assert str(result).endswith(
-            "Library/Application Support/WindieOS/BrowserProfile"
+            "Library/Application Support/windieos/BrowserProfile"
         )
 
     @mock.patch("platform.system")
@@ -176,7 +176,7 @@ class TestGetChromeUserDataDir:
         result = get_chrome_user_data_dir()
 
         assert result is not None
-        assert str(result).endswith(".config/windieos/browser-profile")
+        assert str(result).endswith(".config/windieos/BrowserProfile")
 
     @mock.patch("platform.system")
     @mock.patch("os.environ.get")
@@ -190,7 +190,7 @@ class TestGetChromeUserDataDir:
         result = get_chrome_user_data_dir()
 
         assert result is not None
-        assert str(result).endswith("AppData/Local/WindieOS/BrowserProfile")
+        assert str(result).endswith("AppData/Local/windieos/BrowserProfile")
 
 
 class TestLaunchChromeWithCdp:

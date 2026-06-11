@@ -66,6 +66,18 @@ def test_resolve_wakeword_model_supports_uppercase_models_map():
     assert model_path == "/tmp/hey_jarvis.tflite"
 
 
+def test_resolve_wakeword_model_directory_uses_windieos_root(monkeypatch, tmp_path):
+    monkeypatch.delenv("WINDIE_WAKEWORD_MODEL_DIR", raising=False)
+    monkeypatch.setattr(
+        wakeword_service, "windie_user_data_root", lambda: tmp_path / "windieos"
+    )
+
+    assert (
+        wakeword_service.resolve_wakeword_model_directory()
+        == tmp_path / "windieos" / "wakeword" / "models"
+    )
+
+
 def test_create_model_supports_new_openwakeword_signature():
     model, inference = wakeword_service.create_model(
         _NewApiModel,

@@ -69,9 +69,9 @@ discovery or generic listener checks.
 
 `get_chrome_user_data_dir()` isolates Windie automation state from the user's default browser profile:
 
-- Windows: `%LOCALAPPDATA%/WindieOS/BrowserProfile`
-- macOS: `~/Library/Application Support/WindieOS/BrowserProfile`
-- Linux: `~/.config/windieos/browser-profile`
+- Windows: `%LOCALAPPDATA%/windieos/BrowserProfile`
+- macOS: `~/Library/Application Support/windieos/BrowserProfile`
+- Linux: `~/.config/windieos/BrowserProfile`
 
 ## Launch Semantics
 

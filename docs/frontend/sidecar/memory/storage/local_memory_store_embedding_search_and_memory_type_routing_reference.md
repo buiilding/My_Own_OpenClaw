@@ -42,9 +42,9 @@ backend embedding calls and passes vectors into the sidecar through
 
 Default `db_path=None` resolves to:
 
-- Windows: `%APPDATA%/desktop-assistant/memory`
-- macOS: `~/Library/Application Support/desktop-assistant/memory`
-- Linux: `~/.config/desktop-assistant/memory`
+- Windows: `%APPDATA%/windieos/memory`
+- macOS: `~/Library/Application Support/windieos/memory`
+- Linux: `~/.config/windieos/memory`
 
 Directory creation is attempted eagerly. Path-creation failure raises because
 the store cannot run without a local persistence path.

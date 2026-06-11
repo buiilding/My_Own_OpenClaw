@@ -5,14 +5,14 @@ from __future__ import annotations
 
 import json
 import os
-import platform
 import sqlite3
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-APP_NAME = "desktop-assistant"
+from core.user_data_paths import windie_user_data_root
+
 DEFAULT_USER_ID = "default_user"
 MOCK_SOURCE = "mock_seed_dashboard"
 
@@ -189,17 +189,7 @@ MOCK_SEMANTIC_MEMORIES: List[Dict[str, Any]] = [
 
 
 def _memory_dir() -> Path:
-    if os.name == "nt":
-        appdata = os.getenv("APPDATA")
-        if not appdata:
-            raise RuntimeError("APPDATA is not set on Windows")
-        return Path(appdata) / APP_NAME / "memory"
-
-    home_dir = Path.home()
-    if platform.system() == "Darwin":
-        return home_dir / "Library" / "Application Support" / APP_NAME / "memory"
-
-    return home_dir / ".config" / APP_NAME / "memory"
+    return windie_user_data_root() / "memory"
 
 
 def _history_dir() -> Path:
