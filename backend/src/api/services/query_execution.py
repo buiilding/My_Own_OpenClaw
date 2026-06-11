@@ -117,11 +117,49 @@ class QueryExecutionService:
                 websocket,
                 msg_id,
             ) as tts_session:
+                tts_trace_enabled = bool(
+                    getattr(agent_instance.cfg, "speech_mode_enabled", False)
+                    or getattr(agent_instance.cfg, "tts_enabled", False)
+                )
+                tts_trace_started_at = time.perf_counter()
                 transport = transport_sender_cls(websocket)
                 tts_processor = tts_processor_cls(self._tts_manager)
                 pipeline = pipeline_cls(
                     tts_processor, self._response_formatter, transport
                 )
+                if tts_trace_enabled:
+                    await self._process_pipeline_event(
+                        pipeline=pipeline,
+                        event=TraceEvent(
+                            path="tts.playback",
+                            stage="session",
+                            status="started" if tts_session.service else "skipped",
+                            runtime="backend",
+                            request_id=msg_id,
+                            data={
+                                "speechModeEnabled": bool(
+                                    getattr(
+                                        agent_instance.cfg,
+                                        "speech_mode_enabled",
+                                        False,
+                                    )
+                                ),
+                                "ttsEnabled": bool(
+                                    getattr(agent_instance.cfg, "tts_enabled", False)
+                                ),
+                                "hasTtsService": tts_session.service is not None,
+                                "hasAudioTask": tts_session.audio_task is not None,
+                                "provider": str(
+                                    getattr(agent_instance.cfg, "speech_provider", "")
+                                    or ""
+                                ).strip()
+                                or None,
+                            },
+                        ),
+                        tts_service=None,
+                        msg_id=msg_id,
+                        stream_context=stream_context,
+                    )
                 await self._process_pipeline_event(
                     pipeline=pipeline,
                     event=TraceEvent(
@@ -253,6 +291,33 @@ class QueryExecutionService:
                 if tts_session.service:
                     await pipeline.wait_for_pending_tts()
                     await tts_session.service.flush()
+
+                if tts_trace_enabled:
+                    await self._process_pipeline_event(
+                        pipeline=pipeline,
+                        event=TraceEvent(
+                            path="tts.playback",
+                            stage="session",
+                            status="succeeded" if tts_session.service else "skipped",
+                            runtime="backend",
+                            request_id=msg_id,
+                            duration_ms=round(
+                                (time.perf_counter() - tts_trace_started_at) * 1000
+                            ),
+                            data={
+                                "hasTtsService": tts_session.service is not None,
+                                "hasAudioTask": tts_session.audio_task is not None,
+                                "audioTaskDone": (
+                                    bool(tts_session.audio_task.done())
+                                    if tts_session.audio_task is not None
+                                    else None
+                                ),
+                            },
+                        ),
+                        tts_service=None,
+                        msg_id=msg_id,
+                        stream_context=stream_context,
+                    )
 
                 await self._process_pipeline_event(
                     pipeline=pipeline,

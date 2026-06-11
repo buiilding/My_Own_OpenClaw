@@ -81,6 +81,7 @@ function createMockBackendTransport(
     sendToolBundleResult: jest.fn(async () => undefined),
     rehydrateConversation: jest.fn(async () => undefined),
     compactHistory: jest.fn(async () => 'compact-unused'),
+    wakewordDetected: jest.fn(async () => 'wakeword-unused'),
     updateSettings: jest.fn(async () => 'settings-unused'),
     listModels: jest.fn(async () => 'models-unused'),
     stop: jest.fn(async () => undefined),
@@ -2281,6 +2282,45 @@ describe('Windie SDK conversation runtime core', () => {
     expect(buildRehydrateSnapshot(events).messages).toEqual([]);
   });
 
+  test('conversation runtime records overlay phase projection traces for backend turn events', async () => {
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      memoryEnabled: false,
+    });
+    runtime.attachTransport();
+
+    transport.emit(backendEvent('query-accepted', {}, {
+      eventId: 'turn-overlay-evt-000001-query-accepted',
+      turnRef: 'turn-overlay',
+      sequence: 1,
+    }));
+    transport.emit(backendEvent('streaming-complete', { final_response: 'overlay answer text' }, {
+      eventId: 'turn-overlay-evt-000002-streaming-complete',
+      turnRef: 'turn-overlay',
+      sequence: 2,
+    }));
+
+    await waitForExpect(async () => {
+      const events = await store.loadEvents('conv-sdk-runtime');
+      expect(events.some(event => event.type === 'turn_completed')).toBe(true);
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-overlay',
+      path: 'overlay.phase',
+    });
+    expect(timeline.map(entry => `${entry.data?.sourceEventType}:${entry.data?.phaseBefore}->${entry.data?.phaseAfter}`)).toEqual([
+      'turn_started:idle->sending',
+      'turn_completed:sending->completed',
+    ]);
+    expect(JSON.stringify(timeline)).not.toContain('overlay answer text');
+  });
+
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const applied = normalizeBackendEventToConversationEvent({
@@ -3743,6 +3783,105 @@ describe('Windie SDK conversation runtime core', () => {
     expect(buildRehydrateSnapshot(events).messages.some(message => message.message_type === 'trace_event')).toBe(false);
   });
 
+  test('conversation runtime records agent definition and workspace feature traces', async () => {
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-feature-paths'),
+    });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      agentDefinition: {
+        tools: [{ name: 'read_file', description: 'do not persist tool payload text' }],
+        plugins: [{ id: 'plugin-secret-payload' }],
+        mcps: [{ id: 'mcp-secret-payload' }],
+        skills: [{ id: 'skill-secret-payload' }],
+      },
+      resourceResolvers: {
+        workspace: async resource => ({
+          kind: 'workspace',
+          workspacePath: resource.kind === 'workspace' ? resource.workspacePath : null,
+          metadata: {
+            workspace_path: resource.kind === 'workspace' ? resource.workspacePath : null,
+          },
+        }),
+      },
+    });
+
+    await runtime.send({
+      text: 'inspect this workspace',
+      turnRef: 'turn-feature-paths',
+      resources: [{
+        kind: 'workspace',
+        workspacePath: '/Users/peterbui/Agent_workspaces/Windieos_workspace/WindieOS',
+      }],
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const agentTimeline = buildTraceTimeline(events, {
+      turnRef: 'turn-feature-paths',
+      path: 'agent.definition',
+    });
+    expect(agentTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'shape:succeeded',
+    ]);
+    expect(agentTimeline[0].data).toEqual(expect.objectContaining({
+      hasAgentDefinition: true,
+      toolCount: 1,
+      pluginCount: 1,
+      mcpCount: 1,
+      skillCount: 1,
+      hasWorkspacePath: true,
+      hasLocalRuntime: false,
+    }));
+    const workspaceTimeline = buildTraceTimeline(events, {
+      turnRef: 'turn-feature-paths',
+      path: 'workspace.context',
+    });
+    expect(workspaceTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'resolve:succeeded',
+    ]);
+    expect(workspaceTimeline[0].data).toEqual(expect.objectContaining({
+      workspaceResourceCount: 1,
+      hasWorkspacePath: true,
+      hasWorkspaceResource: true,
+      sourceKind: 'resource',
+    }));
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-feature-paths',
+      path: 'extension.load',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'contribute',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          pluginCount: 1,
+          hasAgentDefinition: true,
+        }),
+      }),
+    ]);
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-feature-paths',
+      path: 'mcp.tool',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'contribute',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          mcpServerCount: 1,
+          hasAgentDefinition: true,
+        }),
+      }),
+    ]);
+    expect(JSON.stringify(agentTimeline)).not.toContain('do not persist tool payload text');
+    expect(JSON.stringify(agentTimeline)).not.toContain('skill-secret-payload');
+    expect(JSON.stringify(workspaceTimeline)).not.toContain('/Users/peterbui');
+    expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('inspect this workspace');
+    expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('plugin-secret-payload');
+    expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('mcp-secret-payload');
+  });
+
   test('conversation runtime records skipped query dispatch when no backend transport is attached', async () => {
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
@@ -4015,7 +4154,7 @@ describe('Windie SDK conversation runtime core', () => {
     await waitForExpect(() => {
       expect(notifiedTypes).toContain('memory_store_changed');
     });
-    expect(notifiedTypes.slice(-2)).toEqual([
+    expect(notifiedTypes.filter(type => type !== 'trace_event').slice(-2)).toEqual([
       'memory_store_changed',
       'turn_completed',
     ]);
@@ -4547,6 +4686,8 @@ describe('Windie SDK conversation runtime core', () => {
       compactHistory: jest.fn(async () => 'compact-control'),
       updateSettings: jest.fn(async () => 'settings-control'),
       listModels: jest.fn(async () => 'models-control'),
+      wakewordDetected: jest.fn(async () => 'wakeword-control'),
+      stop: jest.fn(async () => undefined),
     });
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
@@ -4569,6 +4710,8 @@ describe('Windie SDK conversation runtime core', () => {
       },
     } as any);
     await runtime.requestModelList();
+    await runtime.wakewordDetected({ source: 'test', transcript: 'do not persist wakeword transcript' });
+    await runtime.stop('turn-control-stop');
 
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(buildTraceTimeline(events, { path: 'conversation.rehydrate' }).map(entry => `${entry.stage}:${entry.status}`)).toEqual([
@@ -4600,8 +4743,22 @@ describe('Windie SDK conversation runtime core', () => {
     expect(buildTraceTimeline(events, { path: 'model.catalog' })[1]).toEqual(expect.objectContaining({
       requestId: 'models-control',
     }));
+    expect(buildTraceTimeline(events, { path: 'wakeword.runtime' }).map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'activate:started',
+      'activate:succeeded',
+    ]);
+    expect(buildTraceTimeline(events, { path: 'wakeword.runtime' })[1]).toEqual(expect.objectContaining({
+      requestId: 'wakeword-control',
+    }));
+    expect(buildTraceTimeline(events, { path: 'websocket.control' }).map(entry => `${entry.data?.messageType}:${entry.status}`)).toEqual([
+      'wakeword-detected:started',
+      'wakeword-detected:succeeded',
+      'stop-query:started',
+      'stop-query:succeeded',
+    ]);
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('do not persist this in trace');
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('sk-secret');
+    expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('do not persist wakeword transcript');
   });
 
   test('conversation runtime updates model selection before sending a turn', async () => {
@@ -5237,7 +5394,7 @@ describe('Windie SDK conversation runtime core', () => {
     await tick();
 
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'runtime_error',
       'assistant_delta',
     ]);
@@ -5326,6 +5483,87 @@ describe('Windie SDK conversation runtime core', () => {
     }));
     expect(JSON.stringify(timeline)).not.toContain('README.md');
     expect((await runtime.load()).state.phase).toBe('tool_result_sent');
+  });
+
+  test('conversation runtime records browser runtime traces for browser tool calls', async () => {
+    const sentToolResults: Record<string, unknown>[] = [];
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            mode: 'browser_use',
+            scope: 'windie_dedicated_browser',
+            connected: true,
+            tabs: [
+              { title: 'Secret Docs', url: 'https://example.test/secret-token' },
+            ],
+            output: 'Connected to secret browser page.',
+          },
+        })),
+      },
+      transport: createMockBackendTransport({
+        sendToolResult: jest.fn(async payload => {
+          sentToolResults.push(payload);
+        }),
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+      }),
+    });
+    runtime.attachTransport();
+
+    backendListener?.({
+      id: 'turn-browser',
+      event_id: 'turn-browser-evt-000001-tool-call',
+      sequence: 1,
+      type: 'tool-call',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-browser',
+      payload: {
+        tool_name: 'browser',
+        request_id: 'req-browser',
+        parameters: { action: 'connect', url: 'https://example.test/secret-token' },
+      },
+    } satisfies BackendEvent);
+    await tick();
+
+    expect(sentToolResults[0]).toMatchObject({
+      request_id: 'req-browser',
+      success: true,
+    });
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const timeline = buildTraceTimeline(events, {
+      turnRef: 'turn-browser',
+      path: 'browser.runtime',
+    });
+    expect(timeline.map(entry => `${entry.runtime}:${entry.stage}:${entry.status}`)).toEqual([
+      'sidecar:action:started',
+      'sidecar:action:succeeded',
+    ]);
+    expect(timeline[0].data).toEqual(expect.objectContaining({
+      action: 'connect',
+      argsKeyCount: 2,
+    }));
+    expect(timeline[1].data).toEqual(expect.objectContaining({
+      action: 'connect',
+      mode: 'browser_use',
+      scope: 'windie_dedicated_browser',
+      connected: true,
+      tabCount: 1,
+      hasCurrentUrl: false,
+      success: true,
+    }));
+    expect(JSON.stringify(timeline)).not.toContain('https://example.test');
+    expect(JSON.stringify(timeline)).not.toContain('Secret Docs');
+    expect(JSON.stringify(timeline)).not.toContain('Connected to secret browser page.');
   });
 
   test('conversation runtime passes sdk artifact upload to local tool result delivery', async () => {
@@ -5518,7 +5756,7 @@ describe('Windie SDK conversation runtime core', () => {
     expect(executeTool).not.toHaveBeenCalled();
     expect(sendToolResult).not.toHaveBeenCalled();
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'tool_call',
       'runtime_error',
     ]);
@@ -5573,7 +5811,7 @@ describe('Windie SDK conversation runtime core', () => {
     expect(executeTool).not.toHaveBeenCalled();
     expect(sendToolBundleResult).not.toHaveBeenCalled();
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
       'tool_bundle_call',
       'runtime_error',
     ]);

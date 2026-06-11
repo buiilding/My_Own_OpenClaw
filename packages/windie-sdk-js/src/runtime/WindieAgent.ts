@@ -1,3 +1,4 @@
+import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
 import type { BackendEvent } from '../events/backendEvents.js';
 import type {
@@ -12,6 +13,7 @@ import type {
   LocalToolExecutionLifecycle,
   SearchConversationOptions,
   TurnResourceResolverRegistry,
+  TraceEventPayload,
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
 import {
@@ -21,6 +23,7 @@ import {
 } from '../transport/WindieAgentSession.js';
 import {
   WindieSdkClient,
+  type WindieInstallIdentityResponse,
   type SdkGenerateTitleRequest,
   type SdkGenerateTitleResponse,
   type SdkModelsResponse,
@@ -46,6 +49,7 @@ import {
   type RetryTurnInput,
   type SendInput,
 } from './ConversationRuntime.js';
+import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
 import {
   enrichQueryPayload,
   formatCompletedTurnMemory,
@@ -156,6 +160,12 @@ export type WindieStoreMemoryResult = JsonRecord & {
 };
 
 export type WindieClearConversationsOptions = {
+  store?: ConversationStore;
+};
+
+export type WindieAgentTraceOptions = {
+  conversationRef?: string;
+  turnRef?: string | null;
   store?: ConversationStore;
 };
 
@@ -317,6 +327,7 @@ export class WindieAgent {
       sdkClient: this.sdkClient,
       userId: this.userId,
       memoryEnabled: this.memoryEnabled,
+      agentDefinition: this.agentDefinition,
       localToolLifecycle: resolvedLocalToolLifecycle,
       resourceResolvers: {
         ...defaultResourceResolvers,
@@ -382,8 +393,48 @@ export class WindieAgent {
     return this.sdkClient.systemPrompt();
   }
 
-  async listToolSchemas(): Promise<SdkToolSchemasResponse> {
-    return this.sdkClient.toolSchemas();
+  async listToolSchemas(options: WindieAgentTraceOptions = {}): Promise<SdkToolSchemasResponse> {
+    const startedAtMs = Date.now();
+    await this.recordAgentTrace({
+      path: 'tool.schema.policy',
+      stage: 'sdk_list',
+      status: 'started',
+      data: {
+        source: 'sdk_http',
+      },
+    }, options);
+    try {
+      const response = await this.sdkClient.toolSchemas();
+      const toolSchemas: unknown[] = Array.isArray((response as JsonRecord).canonical_tool_schemas)
+        ? (response as JsonRecord).canonical_tool_schemas as unknown[]
+        : Array.isArray((response as JsonRecord).tool_schemas)
+          ? (response as JsonRecord).tool_schemas as unknown[]
+        : [];
+      await this.recordAgentTrace({
+        path: 'tool.schema.policy',
+        stage: 'sdk_list',
+        status: 'succeeded',
+        durationMs: Date.now() - startedAtMs,
+        data: {
+          source: 'sdk_http',
+          toolSchemaCount: toolSchemas.length,
+          hasToolSchemas: toolSchemas.length > 0,
+        },
+      }, options);
+      return response;
+    } catch (error) {
+      await this.recordAgentTrace({
+        path: 'tool.schema.policy',
+        stage: 'sdk_list',
+        status: 'failed',
+        durationMs: Date.now() - startedAtMs,
+        error,
+        data: {
+          source: 'sdk_http',
+        },
+      }, options);
+      throw error;
+    }
   }
 
   async previewPrompt(payload: SdkPromptPreviewRequest): Promise<SdkPromptPreviewResponse> {
@@ -495,20 +546,159 @@ export class WindieAgent {
     }) as WindieClearMemoriesResult;
   }
 
-  async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
-    return this.localRuntime?.listTools ? this.localRuntime.listTools() : null;
+  async listTools(options: WindieAgentTraceOptions = {}): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
+    const startedAtMs = Date.now();
+    if (!this.localRuntime?.listTools) {
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'list_tools',
+        status: 'skipped',
+        runtime: 'sidecar',
+        data: {
+          reason: 'local_runtime_unavailable',
+        },
+      }, options);
+      return null;
+    }
+    await this.recordAgentTrace({
+      path: 'sidecar.lifecycle',
+      stage: 'list_tools',
+      status: 'started',
+      runtime: 'sidecar',
+    }, options);
+    try {
+      const response = await this.localRuntime.listTools();
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'list_tools',
+        status: 'succeeded',
+        runtime: 'sidecar',
+        durationMs: Date.now() - startedAtMs,
+        data: {
+          toolCount: Array.isArray(response?.tools) ? response.tools.length : 0,
+          hasVersion: typeof response?.version === 'number',
+        },
+      }, options);
+      return response;
+    } catch (error) {
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'list_tools',
+        status: 'failed',
+        runtime: 'sidecar',
+        durationMs: Date.now() - startedAtMs,
+        error,
+      }, options);
+      throw error;
+    }
   }
 
-  async status(): Promise<JsonRecord | null> {
-    return this.localRuntime?.status ? this.localRuntime.status() : null;
+  async status(options: WindieAgentTraceOptions = {}): Promise<JsonRecord | null> {
+    const startedAtMs = Date.now();
+    if (!this.localRuntime?.status) {
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'status',
+        status: 'skipped',
+        runtime: 'sidecar',
+        data: {
+          reason: 'local_runtime_unavailable',
+        },
+      }, options);
+      return null;
+    }
+    await this.recordAgentTrace({
+      path: 'sidecar.lifecycle',
+      stage: 'status',
+      status: 'started',
+      runtime: 'sidecar',
+    }, options);
+    try {
+      const response = await this.localRuntime.status();
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'status',
+        status: 'succeeded',
+        runtime: 'sidecar',
+        durationMs: Date.now() - startedAtMs,
+        data: {
+          responseKeyCount: response ? Object.keys(response).length : 0,
+          ready: typeof response?.ready === 'boolean' ? response.ready : null,
+          running: typeof response?.running === 'boolean' ? response.running : null,
+        },
+      }, options);
+      return response;
+    } catch (error) {
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'status',
+        status: 'failed',
+        runtime: 'sidecar',
+        durationMs: Date.now() - startedAtMs,
+        error,
+      }, options);
+      throw error;
+    }
   }
 
-  async shutdownLocalRuntime(): Promise<void> {
-    if (this.owner.shutdownLocalRuntime) {
-      await this.owner.shutdownLocalRuntime();
+  async shutdownLocalRuntime(options: WindieAgentTraceOptions = {}): Promise<void> {
+    const startedAtMs = Date.now();
+    const ownerShutdown = typeof this.owner.shutdownLocalRuntime === 'function';
+    const localShutdown = typeof this.localRuntime?.shutdown === 'function';
+    if (!ownerShutdown && !localShutdown) {
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'shutdown',
+        status: 'skipped',
+        runtime: 'sidecar',
+        data: {
+          reason: 'shutdown_unavailable',
+        },
+      }, options);
       return;
     }
-    await this.localRuntime?.shutdown?.();
+    await this.recordAgentTrace({
+      path: 'sidecar.lifecycle',
+      stage: 'shutdown',
+      status: 'started',
+      runtime: 'sidecar',
+      data: {
+        ownerShutdown,
+        localShutdown,
+      },
+    }, options);
+    try {
+      if (ownerShutdown) {
+        await this.owner.shutdownLocalRuntime?.();
+      } else {
+        await this.localRuntime?.shutdown?.();
+      }
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'shutdown',
+        status: 'succeeded',
+        runtime: 'sidecar',
+        durationMs: Date.now() - startedAtMs,
+        data: {
+          ownerShutdown,
+          localShutdown,
+        },
+      }, options);
+    } catch (error) {
+      await this.recordAgentTrace({
+        path: 'sidecar.lifecycle',
+        stage: 'shutdown',
+        status: 'failed',
+        runtime: 'sidecar',
+        durationMs: Date.now() - startedAtMs,
+        error,
+        data: {
+          ownerShutdown,
+          localShutdown,
+        },
+      }, options);
+      throw error;
+    }
   }
 
   async uploadArtifact(file: Blob | File, filename?: string) {
@@ -519,8 +709,85 @@ export class WindieAgent {
     return this.sdkClient.artifacts.url(artifactId);
   }
 
-  async fetchArtifact(artifactId: string): Promise<Response> {
-    return this.sdkClient.artifacts.fetch(artifactId);
+  async fetchArtifact(artifactId: string, options: WindieAgentTraceOptions = {}): Promise<Response> {
+    const startedAtMs = Date.now();
+    await this.recordAgentTrace({
+      path: 'artifact.fetch',
+      stage: 'http_get',
+      status: 'started',
+      data: {
+        hasArtifactId: Boolean(artifactId.trim()),
+      },
+    }, options);
+    try {
+      const response = await this.sdkClient.artifacts.fetch(artifactId);
+      await this.recordAgentTrace({
+        path: 'artifact.fetch',
+        stage: 'http_get',
+        status: 'succeeded',
+        durationMs: Date.now() - startedAtMs,
+        data: {
+          hasArtifactId: Boolean(artifactId.trim()),
+          statusCode: response.status,
+          ok: response.ok,
+          contentType: response.headers.get('content-type') ?? null,
+          contentLength: response.headers.get('content-length') ?? null,
+        },
+      }, options);
+      return response;
+    } catch (error) {
+      await this.recordAgentTrace({
+        path: 'artifact.fetch',
+        stage: 'http_get',
+        status: 'failed',
+        durationMs: Date.now() - startedAtMs,
+        error,
+        data: {
+          hasArtifactId: Boolean(artifactId.trim()),
+        },
+      }, options);
+      throw error;
+    }
+  }
+
+  async installIdentity(options: WindieAgentTraceOptions = {}): Promise<WindieInstallIdentityResponse> {
+    const startedAtMs = Date.now();
+    await this.recordAgentTrace({
+      path: 'install.auth',
+      stage: 'identity',
+      status: 'started',
+      data: {
+        source: 'sdk_http',
+      },
+    }, options);
+    try {
+      const response = await this.sdkClient.installIdentity();
+      await this.recordAgentTrace({
+        path: 'install.auth',
+        stage: 'identity',
+        status: 'succeeded',
+        durationMs: Date.now() - startedAtMs,
+        data: {
+          source: 'sdk_http',
+          hasInstallId: typeof (response as JsonRecord).install_id === 'string'
+            || typeof (response as JsonRecord).installId === 'string',
+          responseKeyCount: Object.keys(response as JsonRecord).length,
+        },
+      }, options);
+      return response;
+    } catch (error) {
+      await this.recordAgentTrace({
+        path: 'install.auth',
+        stage: 'identity',
+        status: 'failed',
+        durationMs: Date.now() - startedAtMs,
+        error,
+        data: {
+          source: 'sdk_http',
+        },
+      }, options);
+      throw error;
+    }
   }
 
   subscribeRawBackendEvents(listener: RawBackendEventListener): () => void {
@@ -642,6 +909,33 @@ export class WindieAgent {
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {
     return this.owner.listAgents();
+  }
+
+  private async recordAgentTrace(
+    input: TraceEventInput,
+    options: WindieAgentTraceOptions = {},
+  ): Promise<TraceEventPayload> {
+    const conversationRef = options.conversationRef ?? `conv-${this.id}`;
+    const turnRef = options.turnRef ?? null;
+    const store = options.store ?? this.defaultConversationStore;
+    const revisionId = createRuntimeId('rev');
+    const recorder = new TraceRecorder({
+      conversationRef,
+      turnRef,
+      userId: this.userId,
+      emit: async payload => {
+        await store.appendEvent(createConversationEvent<TraceEventPayload>({
+          eventId: `${turnRef ?? conversationRef}-sdk-evt-${createRuntimeId('trace_event')}`,
+          type: 'trace_event',
+          conversationRef,
+          revisionId,
+          turnRef,
+          source: 'sdk',
+          payload,
+        }));
+      },
+    });
+    return recorder.record(input);
   }
 
   private async callLocalRuntimeRpc(method: string, params: JsonRecord): Promise<JsonRecord> {

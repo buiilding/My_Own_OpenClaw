@@ -130,6 +130,8 @@ const {
 } = require('./sidecar/sdk_sidecar_launch_options.cjs');
 const {
   WindieClient,
+  TraceRecorder,
+  createConversationEvent,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
 const {
   buildConversationEventFromBackendEvent,
@@ -1439,6 +1441,46 @@ async function sendWakewordDetectedToBackend(payload = {}) {
   return agent.wakewordDetected(payload);
 }
 
+async function appendMainProcessTraceEvent(input = {}) {
+  const conversationRef = normalizeOptionalString(input.conversationRef)
+    || currentConversationRef;
+  if (!conversationRef) {
+    return { stored: false, reason: 'missing_conversation_ref' };
+  }
+  const turnRef = normalizeOptionalString(input.turnRef) || null;
+  const agent = await ensureWindieAgent({
+    reason: 'main-process-trace',
+    conversationRef,
+  });
+  const recorder = new TraceRecorder({
+    conversationRef,
+    turnRef,
+    runtime: input.runtime || 'electron-main',
+    emit: async (payload) => {
+      await agent.appendConversationEvent(createConversationEvent({
+        type: 'trace_event',
+        conversationRef,
+        turnRef,
+        source: 'ui',
+        payload,
+      }));
+    },
+  });
+  const payload = await recorder.record({
+    path: input.path,
+    stage: input.stage,
+    status: input.status,
+    runtime: input.runtime || 'electron-main',
+    requestId: input.requestId,
+    startedAt: input.startedAt,
+    endedAt: input.endedAt,
+    durationMs: input.durationMs,
+    data: input.data,
+    error: input.error,
+  });
+  return { stored: true, traceId: payload.traceId, spanId: payload.spanId };
+}
+
 async function triggerStopQueryFromMain() {
   const messageId = await sendStopQueryToBackend(
     currentConversationRef
@@ -1921,6 +1963,7 @@ module.exports = {
   initializeIpc,
   registerBackendMessageObserver,
   registerRendererWindow,
+  appendMainProcessTraceEvent,
   sendAutomatedQuery,
   sendStopQueryToBackend,
   shutdownIpcForTests,

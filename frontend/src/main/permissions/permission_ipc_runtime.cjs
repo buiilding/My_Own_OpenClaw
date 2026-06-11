@@ -40,6 +40,8 @@ function initializePermissionHandlersRuntime(deps = {}) {
     permissionStateStore,
     userDataPath,
     emitWorkspaceAccessUpdated,
+    emitTraceEvent,
+    log,
   } = deps;
 
   const resolvedPermissionStateStore = permissionStateStore || createPermissionStateStore({
@@ -73,13 +75,199 @@ function initializePermissionHandlersRuntime(deps = {}) {
       ? options.permissionId
       : '';
   };
-  const buildPermissionProbeResult = async (permissionId) => {
-    return {
-      success: true,
+
+  const recordPermissionTrace = async ({
+    stage,
+    status,
+    permissionId,
+    permissionStatus = null,
+    startedAt = null,
+    error = null,
+    data = {},
+  }) => {
+    if (typeof emitTraceEvent !== 'function') {
+      return;
+    }
+    const endedAt = new Date().toISOString();
+    const durationMs = startedAt ? Date.now() - Date.parse(startedAt) : null;
+    try {
+      await emitTraceEvent({
+        path: 'permission.probe',
+        stage,
+        status,
+        runtime: 'electron-main',
+        startedAt,
+        endedAt,
+        durationMs,
+        data: {
+          permissionId: permissionId || null,
+          permissionStatus: typeof permissionStatus?.status === 'string'
+            ? permissionStatus.status
+            : null,
+          granted: permissionStatus?.granted === true,
+          hasDetails: Boolean(permissionStatus?.details),
+          platform: typeof platform === 'string' ? platform : process.platform,
+          ...data,
+        },
+        error,
+      });
+    } catch (traceError) {
+      if (typeof log === 'function') {
+        log(`Failed to record permission trace: ${traceError?.message || traceError}`);
+      }
+    }
+  };
+
+  const buildPermissionProbeResult = async (permissionId, stage = 'probe') => {
+    const startedAt = new Date().toISOString();
+    await recordPermissionTrace({
+      stage,
+      status: 'started',
+      permissionId,
+      startedAt,
+    });
+    try {
+      const status = await runPermissionProbe(permissionId, permissionDeps);
+      await recordPermissionTrace({
+        stage,
+        status: 'succeeded',
+        permissionId,
+        permissionStatus: status,
+        startedAt,
+      });
+      return {
+        success: true,
+        data: {
+          status,
+        },
+      };
+    } catch (error) {
+      await recordPermissionTrace({
+        stage,
+        status: 'failed',
+        permissionId,
+        startedAt,
+        error,
+      });
+      throw error;
+    }
+  };
+
+  const buildBulkPermissionProbeResult = async (permissionIds) => {
+    const startedAt = new Date().toISOString();
+    const requestedCount = Array.isArray(permissionIds) ? permissionIds.length : 0;
+    await recordPermissionTrace({
+      stage: 'bulk_probe',
+      status: 'started',
+      permissionId: null,
+      startedAt,
       data: {
-        status: await runPermissionProbe(permissionId, permissionDeps),
+        requestedCount,
       },
-    };
+    });
+    try {
+      const statuses = await checkPermissions(permissionIds, permissionDeps);
+      await recordPermissionTrace({
+        stage: 'bulk_probe',
+        status: 'succeeded',
+        permissionId: null,
+        startedAt,
+        data: {
+          requestedCount,
+          statusCount: Array.isArray(statuses) ? statuses.length : 0,
+          grantedCount: Array.isArray(statuses)
+            ? statuses.filter((entry) => entry?.granted === true).length
+            : 0,
+        },
+      });
+      return {
+        success: true,
+        data: {
+          statuses,
+        },
+      };
+    } catch (error) {
+      await recordPermissionTrace({
+        stage: 'bulk_probe',
+        status: 'failed',
+        permissionId: null,
+        startedAt,
+        data: {
+          requestedCount,
+        },
+        error,
+      });
+      throw error;
+    }
+  };
+
+  const buildPermissionRequestResult = async (permissionId) => {
+    const startedAt = new Date().toISOString();
+    await recordPermissionTrace({
+      stage: 'request',
+      status: 'started',
+      permissionId,
+      startedAt,
+    });
+    try {
+      const status = await requestPermission(permissionId, permissionDeps);
+      await recordPermissionTrace({
+        stage: 'request',
+        status: 'succeeded',
+        permissionId,
+        permissionStatus: status,
+        startedAt,
+      });
+      return status;
+    } catch (error) {
+      await recordPermissionTrace({
+        stage: 'request',
+        status: 'failed',
+        permissionId,
+        startedAt,
+        error,
+      });
+      throw error;
+    }
+  };
+
+  const buildWorkspaceActivationTraceData = (workspacePath) => ({
+    hasWorkspacePath: typeof workspacePath === 'string' && Boolean(workspacePath.trim()),
+  });
+
+  const buildWorkspaceActivationResult = async (workspacePath, runActivation) => {
+    const startedAt = new Date().toISOString();
+    await recordPermissionTrace({
+      stage: 'workspace_activate',
+      status: 'started',
+      permissionId: 'filesystem_workspace_access',
+      startedAt,
+      data: buildWorkspaceActivationTraceData(workspacePath),
+    });
+    try {
+      const result = await runActivation();
+      await recordPermissionTrace({
+        stage: 'workspace_activate',
+        status: result?.success === false ? 'failed' : 'succeeded',
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: result?.data?.status,
+        startedAt,
+        data: buildWorkspaceActivationTraceData(workspacePath),
+        error: result?.success === false
+          ? { code: 'WorkspaceAccessDenied', message: result.error || 'Workspace activation failed.' }
+          : null,
+      });
+      return result;
+    } catch (error) {
+      await recordPermissionTrace({
+        stage: 'workspace_activate',
+        status: 'failed',
+        permissionId: 'filesystem_workspace_access',
+        startedAt,
+        error,
+      });
+      throw error;
+    }
   };
 
   ipcMain.handle('set-agent-sudo-access', async (_event, options = {}) => {
@@ -98,12 +286,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
 
   ipcMain.handle('check-permissions', async (_event, options = {}) => {
     const permissionIds = Array.isArray(options?.permissionIds) ? options.permissionIds : null;
-    return {
-      success: true,
-      data: {
-        statuses: await checkPermissions(permissionIds, permissionDeps),
-      },
-    };
+    return await buildBulkPermissionProbeResult(permissionIds);
   });
 
   ipcMain.handle('check-permission', async (_event, options = {}) => {
@@ -116,7 +299,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
 
   ipcMain.handle('request-permission', async (_event, options = {}) => {
     const permissionId = getPermissionId(options);
-    const status = await requestPermission(permissionId, permissionDeps);
+    const status = await buildPermissionRequestResult(permissionId);
     if (
       permissionId === 'filesystem_workspace_access'
       && status?.granted === true
@@ -137,53 +320,55 @@ function initializePermissionHandlersRuntime(deps = {}) {
       ? options.workspacePath.trim()
       : '';
 
-    if (rawWorkspacePath) {
-      const storedEntry = await resolvedPermissionStateStore.get('filesystem_workspace_access');
-      const selectedPaths = Array.isArray(storedEntry?.selected_paths)
-        ? storedEntry.selected_paths.filter((selectedPath) => (
-          typeof selectedPath === 'string' && selectedPath.trim()
-        ))
-        : [];
-      const hasExistingGrant = selectedPaths.includes(rawWorkspacePath);
-      if (!hasExistingGrant) {
-        const status = await runPermissionProbe('filesystem_workspace_access', permissionDeps);
-        if (typeof emitWorkspaceAccessUpdated === 'function') {
-          emitWorkspaceAccessUpdated(status);
+    return await buildWorkspaceActivationResult(rawWorkspacePath, async () => {
+      if (rawWorkspacePath) {
+        const storedEntry = await resolvedPermissionStateStore.get('filesystem_workspace_access');
+        const selectedPaths = Array.isArray(storedEntry?.selected_paths)
+          ? storedEntry.selected_paths.filter((selectedPath) => (
+            typeof selectedPath === 'string' && selectedPath.trim()
+          ))
+          : [];
+        const hasExistingGrant = selectedPaths.includes(rawWorkspacePath);
+        if (!hasExistingGrant) {
+          const status = await runPermissionProbe('filesystem_workspace_access', permissionDeps);
+          if (typeof emitWorkspaceAccessUpdated === 'function') {
+            emitWorkspaceAccessUpdated(status);
+          }
+          return {
+            success: false,
+            error: 'Workspace path must be selected through the workspace permission prompt before it can become active.',
+            data: {
+              status,
+            },
+          };
         }
-        return {
-          success: false,
-          error: 'Workspace path must be selected through the workspace permission prompt before it can become active.',
-          data: {
-            status,
-          },
-        };
-      }
-      await resolvedPermissionStateStore.set('filesystem_workspace_access', {
-        granted: true,
-        source: storedEntry?.source || 'workspace_picker',
-        selected_paths: [rawWorkspacePath],
-        details: {
-          ...(storedEntry?.details && typeof storedEntry.details === 'object'
-            ? storedEntry.details
-            : {}),
+        await resolvedPermissionStateStore.set('filesystem_workspace_access', {
+          granted: true,
+          source: storedEntry?.source || 'workspace_picker',
           selected_paths: [rawWorkspacePath],
+          details: {
+            ...(storedEntry?.details && typeof storedEntry.details === 'object'
+              ? storedEntry.details
+              : {}),
+            selected_paths: [rawWorkspacePath],
+          },
+        });
+      } else {
+        await resolvedPermissionStateStore.delete('filesystem_workspace_access');
+      }
+
+      const status = await runPermissionProbe('filesystem_workspace_access', permissionDeps);
+      if (typeof emitWorkspaceAccessUpdated === 'function') {
+        emitWorkspaceAccessUpdated(status);
+      }
+
+      return {
+        success: true,
+        data: {
+          status,
         },
-      });
-    } else {
-      await resolvedPermissionStateStore.delete('filesystem_workspace_access');
-    }
-
-    const status = await runPermissionProbe('filesystem_workspace_access', permissionDeps);
-    if (typeof emitWorkspaceAccessUpdated === 'function') {
-      emitWorkspaceAccessUpdated(status);
-    }
-
-    return {
-      success: true,
-      data: {
-        status,
-      },
-    };
+      };
+    });
   });
 }
 

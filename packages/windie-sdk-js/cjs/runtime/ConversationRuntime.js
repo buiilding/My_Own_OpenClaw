@@ -13,6 +13,15 @@ const TraceRecorder_js_1 = require("./TraceRecorder.js");
 const conversationReducer_js_1 = require("./conversationReducer.js");
 const conversationEventScope_js_1 = require("./conversationEventScope.js");
 const TurnInputPipeline_js_1 = require("./TurnInputPipeline.js");
+function nowMs() {
+    return Date.now();
+}
+function durationSince(startedAtMs) {
+    return Math.max(0, Date.now() - startedAtMs);
+}
+function optionalRequestId(value) {
+    return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
 const completedTurnTitleGenerationInFlight = new Set();
 function eventText(event) {
     if (typeof event.payload.text === 'string') {
@@ -94,6 +103,12 @@ function isTerminalConversationEvent(event) {
 }
 function isJsonRecord(value) {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+function arrayRecordCount(value) {
+    return Array.isArray(value) ? value.length : 0;
+}
+function recordKeyCount(value) {
+    return isJsonRecord(value) ? Object.keys(value).length : 0;
 }
 function hasOwnEnumerableKeys(value) {
     return Object.keys(value).length > 0;
@@ -250,20 +265,64 @@ class SdkConversationRuntime {
                 },
             }));
             const sourcePayload = isJsonRecord(input.payload) ? input.payload : {};
-            const resourceResolution = await (0, TurnInputPipeline_js_1.resolveTurnInputResources)({
-                resources: input.resources ?? null,
-                resolvers: this.options.resourceResolvers ?? null,
-                context: {
-                    text: input.text,
-                    conversationRef: this.options.conversationRef,
-                    turnRef,
-                    payload: sourcePayload,
-                    traceContext: traceRecorder.context(),
-                    emitTrace: async (traceEvent) => {
-                        await traceRecorder.record(traceEvent);
-                    },
+            const resources = input.resources ?? [];
+            const resourceKinds = resources.map(resource => resource.kind);
+            const resourceResolutionStartedAtMs = nowMs();
+            await traceRecorder.record({
+                path: 'query.resources',
+                stage: 'resolve',
+                status: 'started',
+                data: {
+                    resourceCount: resources.length,
+                    resourceKinds,
+                    resolverRegisteredCount: this.options.resourceResolvers
+                        ? Object.keys(this.options.resourceResolvers).length
+                        : 0,
                 },
             });
+            let resourceResolution;
+            try {
+                resourceResolution = await (0, TurnInputPipeline_js_1.resolveTurnInputResources)({
+                    resources: input.resources ?? null,
+                    resolvers: this.options.resourceResolvers ?? null,
+                    context: {
+                        text: input.text,
+                        conversationRef: this.options.conversationRef,
+                        turnRef,
+                        payload: sourcePayload,
+                        traceContext: traceRecorder.context(),
+                        emitTrace: async (traceEvent) => {
+                            await traceRecorder.record(traceEvent);
+                        },
+                    },
+                });
+                await traceRecorder.record({
+                    path: 'query.resources',
+                    stage: 'resolve',
+                    status: 'succeeded',
+                    durationMs: durationSince(resourceResolutionStartedAtMs),
+                    data: {
+                        resourceCount: resources.length,
+                        resourceKinds,
+                        payloadKeyCount: Object.keys(resourceResolution.payload).length,
+                        metadataKeyCount: Object.keys(resourceResolution.metadata).length,
+                    },
+                });
+            }
+            catch (error) {
+                await traceRecorder.record({
+                    path: 'query.resources',
+                    stage: 'resolve',
+                    status: 'failed',
+                    durationMs: durationSince(resourceResolutionStartedAtMs),
+                    error,
+                    data: {
+                        resourceCount: resources.length,
+                        resourceKinds,
+                    },
+                });
+                throw error;
+            }
             const payloadForEnrichment = {
                 ...sourcePayload,
                 ...resourceResolution.payload,
@@ -297,6 +356,60 @@ class SdkConversationRuntime {
                 ...resourceResolution.metadata,
                 ...enrichedPayload,
             };
+            const workspaceResources = resources.filter(resource => resource.kind === 'workspace');
+            const workspacePathPresent = typeof enrichedPayload.workspace_path === 'string'
+                ? enrichedPayload.workspace_path.trim().length > 0
+                : typeof resourceResolution.payload.workspace_path === 'string'
+                    && resourceResolution.payload.workspace_path.trim().length > 0;
+            await traceRecorder.record({
+                path: 'workspace.context',
+                stage: 'resolve',
+                status: workspaceResources.length > 0 || workspacePathPresent ? 'succeeded' : 'skipped',
+                data: {
+                    workspaceResourceCount: workspaceResources.length,
+                    hasWorkspacePath: workspacePathPresent,
+                    hasWorkspaceResource: workspaceResources.length > 0,
+                    sourceKind: workspaceResources.length > 0
+                        ? 'resource'
+                        : (workspacePathPresent ? 'payload' : 'none'),
+                },
+            });
+            const agentDefinition = isJsonRecord(enrichedPayload.agent_definition)
+                ? enrichedPayload.agent_definition
+                : (isJsonRecord(this.options.agentDefinition) ? this.options.agentDefinition : null);
+            await traceRecorder.record({
+                path: 'agent.definition',
+                stage: 'shape',
+                status: agentDefinition ? 'succeeded' : 'skipped',
+                data: {
+                    hasAgentDefinition: Boolean(agentDefinition),
+                    toolCount: arrayRecordCount(agentDefinition?.tools),
+                    pluginCount: arrayRecordCount(agentDefinition?.plugins),
+                    mcpCount: arrayRecordCount(agentDefinition?.mcps),
+                    skillCount: arrayRecordCount(agentDefinition?.skills),
+                    agentDefinitionKeyCount: recordKeyCount(agentDefinition),
+                    hasWorkspacePath: workspacePathPresent,
+                    hasLocalRuntime: Boolean(this.options.localRuntime),
+                },
+            });
+            await traceRecorder.record({
+                path: 'extension.load',
+                stage: 'contribute',
+                status: arrayRecordCount(agentDefinition?.plugins) > 0 ? 'succeeded' : 'skipped',
+                data: {
+                    pluginCount: arrayRecordCount(agentDefinition?.plugins),
+                    hasAgentDefinition: Boolean(agentDefinition),
+                },
+            });
+            await traceRecorder.record({
+                path: 'mcp.tool',
+                stage: 'contribute',
+                status: arrayRecordCount(agentDefinition?.mcps) > 0 ? 'succeeded' : 'skipped',
+                data: {
+                    mcpServerCount: arrayRecordCount(agentDefinition?.mcps),
+                    hasAgentDefinition: Boolean(agentDefinition),
+                },
+            });
             if ((input.resources ?? []).some(resource => resource.kind === 'query_screenshot_request')) {
                 await traceRecorder.record({
                     path: 'screenshot.capture',
@@ -327,20 +440,69 @@ class SdkConversationRuntime {
                 }));
             }
             if (!this.options.transport) {
+                await traceRecorder.record({
+                    path: 'query.dispatch',
+                    stage: 'transport_send',
+                    status: 'skipped',
+                    data: {
+                        reason: 'transport_unavailable',
+                        resourceCount: input.resources?.length ?? 0,
+                        payloadKeyCount: Object.keys(enrichedPayload).length,
+                        hasModelOverride: Boolean(input.model),
+                    },
+                });
                 queryMessageId = turnRef;
             }
             else {
-                const sentQueryMessageId = await this.options.transport.sendQuery({
-                    ...enrichedPayload,
-                    text: input.text,
-                    conversation_ref: this.options.conversationRef,
-                }, {
-                    messageId: turnRef,
+                const dispatchStartedAtMs = nowMs();
+                await traceRecorder.record({
+                    path: 'query.dispatch',
+                    stage: 'transport_send',
+                    status: 'started',
+                    data: {
+                        resourceCount: input.resources?.length ?? 0,
+                        payloadKeyCount: Object.keys(enrichedPayload).length,
+                        hasModelOverride: Boolean(input.model),
+                        hasConversationRef: true,
+                    },
                 });
-                if (!sentQueryMessageId) {
-                    throw new Error('Failed to send query to backend');
+                try {
+                    const sentQueryMessageId = await this.options.transport.sendQuery({
+                        ...enrichedPayload,
+                        text: input.text,
+                        conversation_ref: this.options.conversationRef,
+                    }, {
+                        messageId: turnRef,
+                    });
+                    if (!sentQueryMessageId) {
+                        throw new Error('Failed to send query to backend');
+                    }
+                    await traceRecorder.record({
+                        path: 'query.dispatch',
+                        stage: 'transport_send',
+                        status: 'succeeded',
+                        requestId: sentQueryMessageId,
+                        durationMs: durationSince(dispatchStartedAtMs),
+                        data: {
+                            backendMessageId: sentQueryMessageId,
+                            backendAccepted: true,
+                        },
+                    });
+                    queryMessageId = sentQueryMessageId;
                 }
-                queryMessageId = sentQueryMessageId;
+                catch (error) {
+                    await traceRecorder.record({
+                        path: 'query.dispatch',
+                        stage: 'transport_send',
+                        status: 'failed',
+                        durationMs: durationSince(dispatchStartedAtMs),
+                        error,
+                        data: {
+                            backendAccepted: false,
+                        },
+                    });
+                    throw error;
+                }
             }
         }
         catch (error) {
@@ -510,10 +672,60 @@ class SdkConversationRuntime {
         };
     }
     async stop(turnRef = this.state.activeTurnRef ?? null) {
-        await this.options.transport?.stop({
-            conversation_ref: this.options.conversationRef,
-            turn_ref: turnRef,
-        });
+        const startedAtMs = nowMs();
+        if (!this.options.transport) {
+            await this.recordRuntimeTrace({
+                path: 'websocket.control',
+                stage: 'send',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                    messageType: 'stop-query',
+                    hasTurnRef: Boolean(turnRef),
+                },
+            }, { turnRef });
+        }
+        else {
+            await this.recordRuntimeTrace({
+                path: 'websocket.control',
+                stage: 'send',
+                status: 'started',
+                data: {
+                    messageType: 'stop-query',
+                    hasTurnRef: Boolean(turnRef),
+                },
+            }, { turnRef });
+            try {
+                await this.options.transport.stop({
+                    conversation_ref: this.options.conversationRef,
+                    turn_ref: turnRef,
+                });
+                await this.recordRuntimeTrace({
+                    path: 'websocket.control',
+                    stage: 'send',
+                    status: 'succeeded',
+                    durationMs: durationSince(startedAtMs),
+                    data: {
+                        messageType: 'stop-query',
+                        hasTurnRef: Boolean(turnRef),
+                    },
+                }, { turnRef });
+            }
+            catch (error) {
+                await this.recordRuntimeTrace({
+                    path: 'websocket.control',
+                    stage: 'send',
+                    status: 'failed',
+                    durationMs: durationSince(startedAtMs),
+                    error,
+                    data: {
+                        messageType: 'stop-query',
+                        hasTurnRef: Boolean(turnRef),
+                    },
+                }, { turnRef });
+                throw error;
+            }
+        }
         await this.applyEvent((0, events_js_1.createConversationEvent)({
             eventId: this.nextLocalEventId(turnRef, 'turn_stopped'),
             type: 'turn_stopped',
@@ -525,19 +737,118 @@ class SdkConversationRuntime {
         }));
     }
     async rehydrate() {
+        const startedAtMs = nowMs();
         const snapshot = await this.options.store.loadForRehydrate(this.options.conversationRef);
-        await this.options.transport?.rehydrateConversation({
-            conversation_ref: this.options.conversationRef,
-            messages: snapshot.messages,
-            rehydrate_mode: 'replace',
+        if (!this.options.transport) {
+            await this.recordRuntimeTrace({
+                path: 'conversation.rehydrate',
+                stage: 'transport_send',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                    messageCount: snapshot.messages.length,
+                    rehydrateMode: 'replace',
+                },
+            });
+            return snapshot;
+        }
+        await this.recordRuntimeTrace({
+            path: 'conversation.rehydrate',
+            stage: 'transport_send',
+            status: 'started',
+            data: {
+                messageCount: snapshot.messages.length,
+                rehydrateMode: 'replace',
+            },
         });
+        try {
+            await this.options.transport.rehydrateConversation({
+                conversation_ref: this.options.conversationRef,
+                messages: snapshot.messages,
+                rehydrate_mode: 'replace',
+            });
+            await this.recordRuntimeTrace({
+                path: 'conversation.rehydrate',
+                stage: 'transport_send',
+                status: 'succeeded',
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    messageCount: snapshot.messages.length,
+                    rehydrateMode: 'replace',
+                },
+            });
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'conversation.rehydrate',
+                stage: 'transport_send',
+                status: 'failed',
+                durationMs: durationSince(startedAtMs),
+                error,
+                data: {
+                    messageCount: snapshot.messages.length,
+                    rehydrateMode: 'replace',
+                },
+            });
+            throw error;
+        }
         return snapshot;
     }
     async rehydrateMessages(payload) {
-        await this.options.transport?.rehydrateConversation({
-            ...payload,
-            rehydrate_mode: 'replace',
+        const messages = Array.isArray(payload.messages) ? payload.messages : [];
+        const startedAtMs = nowMs();
+        if (!this.options.transport) {
+            await this.recordRuntimeTrace({
+                path: 'conversation.rehydrate',
+                stage: 'transport_send',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                    messageCount: messages.length,
+                    rehydrateMode: 'replace',
+                },
+            });
+            return;
+        }
+        await this.recordRuntimeTrace({
+            path: 'conversation.rehydrate',
+            stage: 'transport_send',
+            status: 'started',
+            data: {
+                messageCount: messages.length,
+                rehydrateMode: 'replace',
+            },
         });
+        try {
+            await this.options.transport.rehydrateConversation({
+                ...payload,
+                rehydrate_mode: 'replace',
+            });
+            await this.recordRuntimeTrace({
+                path: 'conversation.rehydrate',
+                stage: 'transport_send',
+                status: 'succeeded',
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    messageCount: messages.length,
+                    rehydrateMode: 'replace',
+                },
+            });
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'conversation.rehydrate',
+                stage: 'transport_send',
+                status: 'failed',
+                durationMs: durationSince(startedAtMs),
+                error,
+                data: {
+                    messageCount: messages.length,
+                    rehydrateMode: 'replace',
+                },
+            });
+            throw error;
+        }
     }
     async compactHistory(input = {}) {
         const payload = {
@@ -545,16 +856,241 @@ class SdkConversationRuntime {
             force: input.force ?? true,
             conversation_ref: this.options.conversationRef,
         };
-        return this.options.transport?.compactHistory(payload);
+        const startedAtMs = nowMs();
+        if (!this.options.transport) {
+            await this.recordRuntimeTrace({
+                path: 'compaction.lifecycle',
+                stage: 'request',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                    force: payload.force,
+                    payloadKeyCount: Object.keys(payload).length,
+                },
+            });
+            return undefined;
+        }
+        await this.recordRuntimeTrace({
+            path: 'compaction.lifecycle',
+            stage: 'request',
+            status: 'started',
+            data: {
+                force: payload.force,
+                payloadKeyCount: Object.keys(payload).length,
+            },
+        });
+        try {
+            const backendMessageId = await this.options.transport.compactHistory(payload);
+            const requestId = optionalRequestId(backendMessageId);
+            await this.recordRuntimeTrace({
+                path: 'compaction.lifecycle',
+                stage: 'request',
+                status: 'succeeded',
+                requestId,
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    force: payload.force,
+                    backendMessageId: requestId,
+                },
+            });
+            return backendMessageId;
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'compaction.lifecycle',
+                stage: 'request',
+                status: 'failed',
+                durationMs: durationSince(startedAtMs),
+                error,
+                data: {
+                    force: payload.force,
+                },
+            });
+            throw error;
+        }
     }
     async wakewordDetected(payload = {}) {
-        return this.options.transport?.wakewordDetected(payload);
+        const startedAtMs = nowMs();
+        if (!this.options.transport) {
+            await this.recordRuntimeTrace({
+                path: 'wakeword.runtime',
+                stage: 'activate',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                    payloadKeyCount: Object.keys(payload).length,
+                },
+            });
+            await this.recordRuntimeTrace({
+                path: 'websocket.control',
+                stage: 'send',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                    messageType: 'wakeword-detected',
+                },
+            });
+            return undefined;
+        }
+        await this.recordRuntimeTrace({
+            path: 'wakeword.runtime',
+            stage: 'activate',
+            status: 'started',
+            data: {
+                payloadKeyCount: Object.keys(payload).length,
+            },
+        });
+        await this.recordRuntimeTrace({
+            path: 'websocket.control',
+            stage: 'send',
+            status: 'started',
+            data: {
+                messageType: 'wakeword-detected',
+            },
+        });
+        try {
+            const backendMessageId = await this.options.transport.wakewordDetected(payload);
+            const requestId = optionalRequestId(backendMessageId);
+            await this.recordRuntimeTrace({
+                path: 'wakeword.runtime',
+                stage: 'activate',
+                status: 'succeeded',
+                requestId,
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    backendMessageId: requestId,
+                },
+            });
+            await this.recordRuntimeTrace({
+                path: 'websocket.control',
+                stage: 'send',
+                status: 'succeeded',
+                requestId,
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    messageType: 'wakeword-detected',
+                    backendMessageId: requestId,
+                },
+            });
+            return backendMessageId;
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'wakeword.runtime',
+                stage: 'activate',
+                status: 'failed',
+                durationMs: durationSince(startedAtMs),
+                error,
+            });
+            await this.recordRuntimeTrace({
+                path: 'websocket.control',
+                stage: 'send',
+                status: 'failed',
+                durationMs: durationSince(startedAtMs),
+                error,
+                data: {
+                    messageType: 'wakeword-detected',
+                },
+            });
+            throw error;
+        }
     }
     async updateSettings(payload) {
-        return this.options.transport?.updateSettings(payload);
+        const updatedKeys = Object.keys(payload).sort();
+        const startedAtMs = nowMs();
+        if (!this.options.transport) {
+            await this.recordRuntimeTrace({
+                path: 'settings.sync',
+                stage: 'update',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                    updatedKeys,
+                },
+            });
+            return undefined;
+        }
+        await this.recordRuntimeTrace({
+            path: 'settings.sync',
+            stage: 'update',
+            status: 'started',
+            data: {
+                updatedKeys,
+            },
+        });
+        try {
+            const backendMessageId = await this.options.transport.updateSettings(payload);
+            const requestId = optionalRequestId(backendMessageId);
+            await this.recordRuntimeTrace({
+                path: 'settings.sync',
+                stage: 'update',
+                status: 'succeeded',
+                requestId,
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    updatedKeys,
+                    backendMessageId: requestId,
+                },
+            });
+            return backendMessageId;
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'settings.sync',
+                stage: 'update',
+                status: 'failed',
+                durationMs: durationSince(startedAtMs),
+                error,
+                data: {
+                    updatedKeys,
+                },
+            });
+            throw error;
+        }
     }
     async requestModelList() {
-        return this.options.transport?.listModels();
+        const startedAtMs = nowMs();
+        if (!this.options.transport) {
+            await this.recordRuntimeTrace({
+                path: 'model.catalog',
+                stage: 'list',
+                status: 'skipped',
+                data: {
+                    reason: 'transport_unavailable',
+                },
+            });
+            return undefined;
+        }
+        await this.recordRuntimeTrace({
+            path: 'model.catalog',
+            stage: 'list',
+            status: 'started',
+        });
+        try {
+            const backendMessageId = await this.options.transport.listModels();
+            const requestId = optionalRequestId(backendMessageId);
+            await this.recordRuntimeTrace({
+                path: 'model.catalog',
+                stage: 'list',
+                status: 'succeeded',
+                requestId,
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    backendMessageId: requestId,
+                },
+            });
+            return backendMessageId;
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'model.catalog',
+                stage: 'list',
+                status: 'failed',
+                durationMs: durationSince(startedAtMs),
+                error,
+            });
+            throw error;
+        }
     }
     async ensureConnected() {
         await this.options.transport?.connect();
@@ -564,7 +1100,8 @@ class SdkConversationRuntime {
             throw new Error('ConversationRuntime.setModel requires a backend transport');
         }
         const settings = (0, modelSelection_js_1.buildModelSettingsPatch)(selection, 'ConversationRuntime.setModel');
-        const backendMessageId = await this.options.transport.updateSettings(settings);
+        const backendMessageId = await this.updateSettings(settings);
+        const requestId = optionalRequestId(backendMessageId);
         const revisionId = this.state.revisionId === 'rev-empty'
             ? (0, events_js_1.createRuntimeId)('rev')
             : this.state.revisionId;
@@ -576,7 +1113,7 @@ class SdkConversationRuntime {
             source: 'sdk',
             payload: {
                 ...settings,
-                backendMessageId: backendMessageId ?? null,
+                backendMessageId: requestId,
             },
         }));
         return backendMessageId;
@@ -633,6 +1170,29 @@ class SdkConversationRuntime {
         await this.options.store.appendEvent(event);
         await this.maybeExecuteTool(event);
     }
+    async recordRuntimeTrace(input, options = {}) {
+        const turnRef = options.turnRef ?? null;
+        const revisionId = options.revisionId
+            ?? (this.state.revisionId === 'rev-empty' ? (0, events_js_1.createRuntimeId)('rev') : this.state.revisionId);
+        const traceRecorder = new TraceRecorder_js_1.TraceRecorder({
+            conversationRef: this.options.conversationRef,
+            turnRef,
+            userId: this.options.userId ?? null,
+            traceId: options.traceId ?? null,
+            emit: async (payload) => {
+                await this.applyEvent((0, events_js_1.createConversationEvent)({
+                    eventId: this.nextLocalEventId(turnRef, 'trace_event'),
+                    type: 'trace_event',
+                    conversationRef: this.options.conversationRef,
+                    revisionId,
+                    turnRef,
+                    source: 'sdk',
+                    payload,
+                }));
+            },
+        });
+        return traceRecorder.record(input);
+    }
     async applyBackendTurnCompleted(event) {
         const assistantResponse = completedAssistantResponse(event);
         const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
@@ -658,6 +1218,22 @@ class SdkConversationRuntime {
         if (!this.options.sdkClient) {
             return;
         }
+        const memoryPersistenceStartedAtMs = nowMs();
+        await this.recordRuntimeTrace({
+            path: 'memory.persistence',
+            stage: 'completed_turn',
+            status: 'started',
+            data: {
+                memoryEnabled: this.options.memoryEnabled !== false,
+                hasLocalRuntime: Boolean(this.options.localRuntime),
+                hasSdkClient: Boolean(this.options.sdkClient),
+                userQueryLength: pendingTurn.userText.trim().length,
+                assistantResponseLength: assistantResponse.trim().length,
+            },
+        }, {
+            turnRef: event.turnRef,
+            revisionId: event.revisionId,
+        });
         try {
             const result = await (0, ContextEnrichmentPipeline_js_1.storeCompletedTurnMemory)({
                 localRuntime: this.options.localRuntime,
@@ -669,8 +1245,35 @@ class SdkConversationRuntime {
                 memoryEnabled: this.options.memoryEnabled,
             });
             if (!result) {
+                await this.recordRuntimeTrace({
+                    path: 'memory.persistence',
+                    stage: 'completed_turn',
+                    status: 'skipped',
+                    durationMs: durationSince(memoryPersistenceStartedAtMs),
+                    data: {
+                        reason: 'memory_disabled_or_unavailable',
+                        memoryEnabled: this.options.memoryEnabled !== false,
+                    },
+                }, {
+                    turnRef: event.turnRef,
+                    revisionId: event.revisionId,
+                });
                 return;
             }
+            await this.recordRuntimeTrace({
+                path: 'memory.persistence',
+                stage: 'completed_turn',
+                status: 'succeeded',
+                durationMs: durationSince(memoryPersistenceStartedAtMs),
+                requestId: result.memoryId ?? null,
+                data: {
+                    memoryTypes: ['episodic'],
+                    hasMemoryId: Boolean(result.memoryId),
+                },
+            }, {
+                turnRef: event.turnRef,
+                revisionId: event.revisionId,
+            });
             await this.applyEvent((0, events_js_1.createConversationEvent)({
                 eventId: this.nextLocalEventId(event.turnRef, 'memory_store_changed'),
                 type: 'memory_store_changed',
@@ -688,6 +1291,19 @@ class SdkConversationRuntime {
             }));
         }
         catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'memory.persistence',
+                stage: 'completed_turn',
+                status: 'failed',
+                durationMs: durationSince(memoryPersistenceStartedAtMs),
+                error,
+                data: {
+                    memoryEnabled: this.options.memoryEnabled !== false,
+                },
+            }, {
+                turnRef: event.turnRef,
+                revisionId: event.revisionId,
+            });
             console.warn('[Windie SDK] Memory persistence failed:', error instanceof Error ? error.message : String(error));
         }
     }
@@ -709,6 +1325,8 @@ class SdkConversationRuntime {
         const input = {
             userId: this.options.userId ?? 'local-sdk-user',
             conversationRef: event.conversationRef,
+            turnRef: event.turnRef,
+            revisionId: event.revisionId,
             userMessage,
             assistantMessage,
             modelId: this.completedTurnModelId(event),
@@ -747,39 +1365,177 @@ class SdkConversationRuntime {
         if (!localRuntime?.rpc || !sdkClient || typeof sdkClient.generateConversationTitle !== 'function') {
             return;
         }
-        const titleState = await localRuntime.rpc({
+        const titleState = await this.traceLocalRuntimeRpc(localRuntime, {
             method: 'get_conversation_title_state',
             params: {
                 user_id: input.userId,
                 conversation_id: input.conversationRef,
             },
+        }, {
+            turnRef: input.turnRef ?? null,
+            revisionId: input.revisionId ?? null,
         });
         if (!titleStateAllowsGeneratedTitle(titleState)) {
             return;
         }
-        const response = await sdkClient.generateConversationTitle({
-            user_id: input.userId,
-            user_message: input.userMessage,
-            assistant_message: input.assistantMessage,
-            ...(input.modelId ? { model_id: input.modelId } : {}),
-            ...(input.modelProvider ? { model_provider: input.modelProvider } : {}),
+        const titleGenerationStartedAtMs = nowMs();
+        await this.recordRuntimeTrace({
+            path: 'title.generation',
+            stage: 'generate',
+            status: 'started',
+            data: {
+                hasModelId: Boolean(input.modelId),
+                modelProvider: input.modelProvider ?? null,
+                userMessageLength: input.userMessage.length,
+                assistantMessageLength: input.assistantMessage.length,
+            },
+        }, {
+            turnRef: input.turnRef ?? null,
+            revisionId: input.revisionId ?? null,
         });
+        let response;
+        try {
+            response = await sdkClient.generateConversationTitle({
+                user_id: input.userId,
+                user_message: input.userMessage,
+                assistant_message: input.assistantMessage,
+                ...(input.modelId ? { model_id: input.modelId } : {}),
+                ...(input.modelProvider ? { model_provider: input.modelProvider } : {}),
+            });
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'title.generation',
+                stage: 'generate',
+                status: 'failed',
+                durationMs: durationSince(titleGenerationStartedAtMs),
+                error,
+                data: {
+                    hasModelId: Boolean(input.modelId),
+                    modelProvider: input.modelProvider ?? null,
+                },
+            }, {
+                turnRef: input.turnRef ?? null,
+                revisionId: input.revisionId ?? null,
+            });
+            throw error;
+        }
         if (response.success === false) {
+            await this.recordRuntimeTrace({
+                path: 'title.generation',
+                stage: 'generate',
+                status: 'failed',
+                durationMs: durationSince(titleGenerationStartedAtMs),
+                data: {
+                    success: false,
+                },
+                error: {
+                    code: 'title_generation_failed',
+                    message: 'Conversation title generation failed.',
+                },
+            }, {
+                turnRef: input.turnRef ?? null,
+                revisionId: input.revisionId ?? null,
+            });
             return;
         }
         const title = typeof response.title === 'string' ? response.title.trim() : '';
         if (!title || title.toLowerCase() === 'new chat') {
+            await this.recordRuntimeTrace({
+                path: 'title.generation',
+                stage: 'generate',
+                status: 'skipped',
+                durationMs: durationSince(titleGenerationStartedAtMs),
+                data: {
+                    reason: 'empty_or_default_title',
+                },
+            }, {
+                turnRef: input.turnRef ?? null,
+                revisionId: input.revisionId ?? null,
+            });
             return;
         }
-        const updateResult = await localRuntime.rpc({
+        await this.recordRuntimeTrace({
+            path: 'title.generation',
+            stage: 'generate',
+            status: 'succeeded',
+            durationMs: durationSince(titleGenerationStartedAtMs),
+            data: {
+                success: true,
+                titleLength: title.length,
+            },
+        }, {
+            turnRef: input.turnRef ?? null,
+            revisionId: input.revisionId ?? null,
+        });
+        const updateResult = await this.traceLocalRuntimeRpc(localRuntime, {
             method: 'update_conversation_title',
             params: {
                 user_id: input.userId,
                 conversation_id: input.conversationRef,
                 title,
             },
+        }, {
+            turnRef: input.turnRef ?? null,
+            revisionId: input.revisionId ?? null,
         });
         rpcResponseData(updateResult, 'Conversation title update RPC failed');
+    }
+    async traceLocalRuntimeRpc(localRuntime, request, options = {}) {
+        if (!localRuntime.rpc) {
+            throw new Error('local runtime rpc is unavailable');
+        }
+        const startedAtMs = nowMs();
+        const method = request.method;
+        const params = isJsonRecord(request.params) ? request.params : {};
+        await this.recordRuntimeTrace({
+            path: 'sidecar.rpc',
+            stage: 'request',
+            status: 'started',
+            requestId: typeof request.id === 'string' || typeof request.id === 'number'
+                ? String(request.id)
+                : method,
+            data: {
+                method,
+                paramsKeyCount: Object.keys(params).length,
+                hasParams: Object.keys(params).length > 0,
+            },
+        }, options);
+        try {
+            const response = await localRuntime.rpc(request);
+            await this.recordRuntimeTrace({
+                path: 'sidecar.rpc',
+                stage: 'request',
+                status: 'succeeded',
+                requestId: typeof request.id === 'string' || typeof request.id === 'number'
+                    ? String(request.id)
+                    : method,
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    method,
+                    responseKeyCount: Object.keys(response).length,
+                    hasSuccessFlag: typeof response.success === 'boolean',
+                    ...(typeof response.success === 'boolean' ? { successFlag: response.success } : {}),
+                },
+            }, options);
+            return response;
+        }
+        catch (error) {
+            await this.recordRuntimeTrace({
+                path: 'sidecar.rpc',
+                stage: 'request',
+                status: 'failed',
+                requestId: typeof request.id === 'string' || typeof request.id === 'number'
+                    ? String(request.id)
+                    : method,
+                durationMs: durationSince(startedAtMs),
+                data: {
+                    method,
+                },
+                error,
+            }, options);
+            throw error;
+        }
     }
     completedTurnModelId(event) {
         const rawPayload = rawBackendPayload(event);
@@ -861,11 +1617,35 @@ class SdkConversationRuntime {
         state.eventIds.add(event.eventId);
         state.lastSequence = sequence;
         this.backendTurnSequences.set(key, state);
+        const phaseBefore = this.state.phase;
         if (event.type === 'turn_completed') {
             await this.applyBackendTurnCompleted(event);
+        }
+        else {
+            await this.applyEvent(event);
+        }
+        await this.recordOverlayPhaseTrace(event, phaseBefore);
+    }
+    async recordOverlayPhaseTrace(event, phaseBefore) {
+        const phaseAfter = this.state.phase;
+        if (phaseBefore === phaseAfter || event.type === 'trace_event') {
             return;
         }
-        await this.applyEvent(event);
+        await this.recordRuntimeTrace({
+            path: 'overlay.phase',
+            stage: 'projection',
+            status: 'succeeded',
+            data: {
+                sourceEventType: event.type,
+                phaseBefore,
+                phaseAfter,
+                hasTurnRef: Boolean(event.turnRef),
+                activeTurnMatches: event.turnRef ? event.turnRef === this.state.activeTurnRef : false,
+            },
+        }, {
+            turnRef: event.turnRef,
+            revisionId: event.revisionId,
+        });
     }
     async applyBackendSequenceError(event, payload) {
         await this.applyEvent((0, events_js_1.createConversationEvent)({
@@ -940,6 +1720,12 @@ class SdkConversationRuntime {
                 },
             },
             artifactUploader: this.options.sdkClient?.artifacts,
+            emitTrace: async (traceEvent) => {
+                await this.recordRuntimeTrace(traceEvent, {
+                    turnRef: event.turnRef,
+                    revisionId: event.revisionId,
+                });
+            },
             sendToolResult: async (payload) => this.options.transport.sendToolResult(payload),
             sendToolBundleResult: async (payload) => this.options.transport.sendToolBundleResult(payload),
         });

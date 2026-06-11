@@ -135,20 +135,50 @@ def test_transcription_route_forwards_control_and_audio(monkeypatch):
     with TestClient(app) as client:
         with client.websocket_connect("/ws/transcription") as websocket:
             status_event = websocket.receive_json()
+            session_trace = websocket.receive_json()
+            connect_trace = websocket.receive_json()
             realtime_event = websocket.receive_json()
 
-            websocket.send_text(json.dumps({"type": "set_langs", "source_language": "en"}))
+            websocket.send_text(
+                json.dumps({"type": "set_langs", "source_language": "en"})
+            )
             websocket.send_bytes(build_gateway_audio_frame(b"\x10\x11", 16000))
+            control_trace = websocket.receive_json()
+            audio_trace = websocket.receive_json()
 
             assert status_event["type"] == "status"
             assert isinstance(status_event["client_id"], str)
+            assert session_trace["type"] == "trace_event"
+            assert session_trace["payload"]["path"] == "voice.transcription"
+            assert session_trace["payload"]["stage"] == "session"
+            assert session_trace["payload"]["status"] == "started"
+            assert connect_trace["payload"]["stage"] == "provider_connect"
+            assert connect_trace["payload"]["status"] == "succeeded"
             assert realtime_event == {
                 "type": "realtime",
                 "text": "hello",
                 "is_final": False,
             }
+            assert control_trace["payload"]["data"] == {
+                "messageType": "set_langs",
+                "payloadKeyCount": 2,
+            }
+            assert audio_trace["payload"]["data"] == {
+                "sampleRate": 16000,
+                "byteLength": 2,
+            }
+            assert "hello" not in json.dumps(
+                [
+                    session_trace,
+                    connect_trace,
+                    control_trace,
+                    audio_trace,
+                ]
+            )
 
-    assert fake_provider.control_messages == [{"type": "set_langs", "source_language": "en"}]
+    assert fake_provider.control_messages == [
+        {"type": "set_langs", "source_language": "en"}
+    ]
     assert fake_provider.audio_chunks == [(16000, b"\x10\x11")]
     assert fake_provider.closed is True
 

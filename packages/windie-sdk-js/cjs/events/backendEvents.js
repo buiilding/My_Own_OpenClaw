@@ -26,6 +26,7 @@ const BACKEND_EVENT_TYPES = new Set([
     'assistant-message-full',
     'token-count',
     'tool-schemas',
+    'trace-event',
     'error',
 ]);
 function isBackendEvent(value) {

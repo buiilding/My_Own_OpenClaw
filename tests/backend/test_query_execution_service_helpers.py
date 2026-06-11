@@ -730,6 +730,94 @@ async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_
 
 
 @pytest.mark.asyncio
+async def test_execute_emits_sanitized_tts_playback_trace_when_voice_enabled():
+    observed_events = []
+
+    class _TtsService:
+        async def flush(self):
+            return None
+
+        async def shutdown(self):
+            return None
+
+    class _Pipeline:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        async def process(self, event, _tts_service, _msg_id, context):
+            observed_events.append((event, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class _TtsManager:
+        async def initialize_if_enabled(self, _config):
+            return _TtsService()
+
+        async def start_streaming_task(self, _service, _websocket, _msg_id):
+            task = asyncio.get_running_loop().create_future()
+            task.set_result(None)
+            return task
+
+        async def cleanup(self, _service, _task):
+            return None
+
+    class _SessionManager:
+        def __init__(self):
+            self.config = SimpleNamespace()
+
+        async def get_or_create_session(self, _user_id, conversation_ref=None):
+            _ = conversation_ref
+
+            class _Agent:
+                user_id = "user-1"
+                session_id = "session-1"
+                cfg = SimpleNamespace(
+                    speech_mode_enabled=True,
+                    speech_provider="local",
+                )
+
+                async def process_query(self, *_args, **_kwargs):
+                    yield ChunkEvent(content="spoken secret text")
+                    yield StreamingCompleteEvent(final_response="spoken secret text")
+
+            return _Agent()
+
+    service = QueryExecutionService(
+        _SessionManager(),
+        tts_manager=_TtsManager(),
+        response_formatter=object(),
+    )
+
+    await service.execute(
+        _build_message(),
+        websocket=_FakeWebSocket(),
+        user_id="user-1",
+        pipeline_cls=_Pipeline,
+    )
+
+    tts_events = [
+        event
+        for event in _trace_events(observed_events)
+        if event.path == "tts.playback"
+    ]
+    assert [event.status for event in tts_events] == ["started", "succeeded"]
+    assert tts_events[0].data == {
+        "speechModeEnabled": True,
+        "ttsEnabled": False,
+        "hasTtsService": True,
+        "hasAudioTask": True,
+        "provider": "local",
+    }
+    assert tts_events[1].data == {
+        "hasTtsService": True,
+        "hasAudioTask": True,
+        "audioTaskDone": True,
+    }
+    assert "spoken secret text" not in repr([event.to_dict() for event in tts_events])
+
+
+@pytest.mark.asyncio
 async def test_execute_ignores_post_error_events_and_skips_fallback_completion():
     observed_events = []
 

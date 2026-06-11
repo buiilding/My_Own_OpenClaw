@@ -156,9 +156,10 @@ async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events
     events = [event async for event in loop.run_loop()]
     trace_events = [event for event in events if isinstance(event, TraceEvent)]
 
-    assert [(event.path, event.stage, event.status) for event in trace_events[:4]] == [
+    assert [(event.path, event.stage, event.status) for event in trace_events[:5]] == [
         ("backend.prompt", "build", "started"),
         ("backend.prompt", "build", "succeeded"),
+        ("tool.schema.policy", "project", "succeeded"),
         ("provider.call", "request", "started"),
         ("provider.call", "request", "succeeded"),
     ]
@@ -169,7 +170,13 @@ async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events
         "toolSchemaCount": 1,
         "hasPromptMetadata": False,
     }
-    assert trace_events[3].data == {
+    assert trace_events[2].data == {
+        "iteration": 1,
+        "toolSchemaCount": 1,
+        "hasToolSchemas": True,
+        "promptMode": "initial",
+    }
+    assert trace_events[4].data == {
         "iteration": 1,
         "modelId": None,
         "modelProvider": None,

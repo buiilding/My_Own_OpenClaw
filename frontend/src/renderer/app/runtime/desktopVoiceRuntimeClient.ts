@@ -12,6 +12,13 @@ export type DesktopTranscriptionGatewayEvent =
   | { type: 'status'; clientId: string | null }
   | { type: 'realtime'; text: string; isFinal: boolean }
   | { type: 'utterance_end' }
+  | {
+    type: 'trace_event';
+    path: string | null;
+    stage: string | null;
+    status: string | null;
+    runtime: string | null;
+  }
   | { type: 'unknown'; messageType: string | null };
 
 function parseBoolean(value: unknown): boolean {
@@ -76,6 +83,17 @@ export const DesktopVoiceRuntimeClient = {
 
       case 'utterance_end':
         return { type: 'utterance_end' };
+
+      case 'trace_event': {
+        const payload = isRecord(data.payload) ? data.payload : {};
+        return {
+          type: 'trace_event',
+          path: typeof payload.path === 'string' ? payload.path : null,
+          stage: typeof payload.stage === 'string' ? payload.stage : null,
+          status: typeof payload.status === 'string' ? payload.status : null,
+          runtime: typeof payload.runtime === 'string' ? payload.runtime : null,
+        };
+      }
 
       default:
         return {

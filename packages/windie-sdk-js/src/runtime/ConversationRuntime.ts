@@ -19,7 +19,6 @@ import type {
   SettingsPayload,
   TraceEventPayload,
   TurnInputResource,
-  TurnResourceResolution,
   TurnResourceResolverRegistry,
   WakewordPayload,
 } from '../conversation/types.js';
@@ -43,7 +42,10 @@ import {
 import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 import { getConversationEventScope, isConversationControlEvent } from './conversationEventScope.js';
-import { resolveTurnInputResources } from './TurnInputPipeline.js';
+import {
+  resolveTurnInputResources,
+  type TurnInputResourceResolutionResult,
+} from './TurnInputPipeline.js';
 
 function nowMs(): number {
   return Date.now();
@@ -51,6 +53,10 @@ function nowMs(): number {
 
 function durationSince(startedAtMs: number): number {
   return Math.max(0, Date.now() - startedAtMs);
+}
+
+function optionalRequestId(value: string | void | null | undefined): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
@@ -135,6 +141,7 @@ export type ConversationRuntimeOptions = {
   sdkClient?: WindieSdkClient;
   userId?: string;
   memoryEnabled?: boolean;
+  agentDefinition?: JsonRecord | null;
   resourceResolvers?: TurnResourceResolverRegistry | null;
   enrichQuery?: (input: {
     text: string;
@@ -257,6 +264,14 @@ function isTerminalConversationEvent(event: ConversationEvent): boolean {
 
 function isJsonRecord(value: unknown): value is JsonRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function arrayRecordCount(value: unknown): number {
+  return Array.isArray(value) ? value.length : 0;
+}
+
+function recordKeyCount(value: unknown): number {
+  return isJsonRecord(value) ? Object.keys(value).length : 0;
 }
 
 function hasOwnEnumerableKeys(value: JsonRecord): boolean {
@@ -454,7 +469,7 @@ export class SdkConversationRuntime {
             : 0,
         },
       });
-      let resourceResolution: TurnResourceResolution;
+      let resourceResolution: TurnInputResourceResolutionResult;
       try {
         resourceResolution = await resolveTurnInputResources({
           resources: input.resources ?? null,
@@ -529,6 +544,60 @@ export class SdkConversationRuntime {
         ...resourceResolution.metadata,
         ...enrichedPayload,
       };
+      const workspaceResources = resources.filter(resource => resource.kind === 'workspace');
+      const workspacePathPresent = typeof enrichedPayload.workspace_path === 'string'
+        ? enrichedPayload.workspace_path.trim().length > 0
+        : typeof resourceResolution.payload.workspace_path === 'string'
+          && resourceResolution.payload.workspace_path.trim().length > 0;
+      await traceRecorder.record({
+        path: 'workspace.context',
+        stage: 'resolve',
+        status: workspaceResources.length > 0 || workspacePathPresent ? 'succeeded' : 'skipped',
+        data: {
+          workspaceResourceCount: workspaceResources.length,
+          hasWorkspacePath: workspacePathPresent,
+          hasWorkspaceResource: workspaceResources.length > 0,
+          sourceKind: workspaceResources.length > 0
+            ? 'resource'
+            : (workspacePathPresent ? 'payload' : 'none'),
+        },
+      });
+      const agentDefinition = isJsonRecord(enrichedPayload.agent_definition)
+        ? enrichedPayload.agent_definition
+        : (isJsonRecord(this.options.agentDefinition) ? this.options.agentDefinition : null);
+      await traceRecorder.record({
+        path: 'agent.definition',
+        stage: 'shape',
+        status: agentDefinition ? 'succeeded' : 'skipped',
+        data: {
+          hasAgentDefinition: Boolean(agentDefinition),
+          toolCount: arrayRecordCount(agentDefinition?.tools),
+          pluginCount: arrayRecordCount(agentDefinition?.plugins),
+          mcpCount: arrayRecordCount(agentDefinition?.mcps),
+          skillCount: arrayRecordCount(agentDefinition?.skills),
+          agentDefinitionKeyCount: recordKeyCount(agentDefinition),
+          hasWorkspacePath: workspacePathPresent,
+          hasLocalRuntime: Boolean(this.options.localRuntime),
+        },
+      });
+      await traceRecorder.record({
+        path: 'extension.load',
+        stage: 'contribute',
+        status: arrayRecordCount(agentDefinition?.plugins) > 0 ? 'succeeded' : 'skipped',
+        data: {
+          pluginCount: arrayRecordCount(agentDefinition?.plugins),
+          hasAgentDefinition: Boolean(agentDefinition),
+        },
+      });
+      await traceRecorder.record({
+        path: 'mcp.tool',
+        stage: 'contribute',
+        status: arrayRecordCount(agentDefinition?.mcps) > 0 ? 'succeeded' : 'skipped',
+        data: {
+          mcpServerCount: arrayRecordCount(agentDefinition?.mcps),
+          hasAgentDefinition: Boolean(agentDefinition),
+        },
+      });
       if ((input.resources ?? []).some(resource => resource.kind === 'query_screenshot_request')) {
         await traceRecorder.record({
           path: 'screenshot.capture',
@@ -800,10 +869,58 @@ export class SdkConversationRuntime {
   }
 
   async stop(turnRef: string | null = this.state.activeTurnRef ?? null): Promise<void> {
-    await this.options.transport?.stop({
-      conversation_ref: this.options.conversationRef,
-      turn_ref: turnRef,
-    });
+    const startedAtMs = nowMs();
+    if (!this.options.transport) {
+      await this.recordRuntimeTrace({
+        path: 'websocket.control',
+        stage: 'send',
+        status: 'skipped',
+        data: {
+          reason: 'transport_unavailable',
+          messageType: 'stop-query',
+          hasTurnRef: Boolean(turnRef),
+        },
+      }, { turnRef });
+    } else {
+      await this.recordRuntimeTrace({
+        path: 'websocket.control',
+        stage: 'send',
+        status: 'started',
+        data: {
+          messageType: 'stop-query',
+          hasTurnRef: Boolean(turnRef),
+        },
+      }, { turnRef });
+      try {
+        await this.options.transport.stop({
+          conversation_ref: this.options.conversationRef,
+          turn_ref: turnRef,
+        });
+        await this.recordRuntimeTrace({
+          path: 'websocket.control',
+          stage: 'send',
+          status: 'succeeded',
+          durationMs: durationSince(startedAtMs),
+          data: {
+            messageType: 'stop-query',
+            hasTurnRef: Boolean(turnRef),
+          },
+        }, { turnRef });
+      } catch (error) {
+        await this.recordRuntimeTrace({
+          path: 'websocket.control',
+          stage: 'send',
+          status: 'failed',
+          durationMs: durationSince(startedAtMs),
+          error,
+          data: {
+            messageType: 'stop-query',
+            hasTurnRef: Boolean(turnRef),
+          },
+        }, { turnRef });
+        throw error;
+      }
+    }
     await this.applyEvent(createConversationEvent({
       eventId: this.nextLocalEventId(turnRef, 'turn_stopped'),
       type: 'turn_stopped',
@@ -960,15 +1077,16 @@ export class SdkConversationRuntime {
     });
     try {
       const backendMessageId = await this.options.transport.compactHistory(payload);
+      const requestId = optionalRequestId(backendMessageId);
       await this.recordRuntimeTrace({
         path: 'compaction.lifecycle',
         stage: 'request',
         status: 'succeeded',
-        requestId: backendMessageId ?? null,
+        requestId,
         durationMs: durationSince(startedAtMs),
         data: {
           force: payload.force,
-          backendMessageId: backendMessageId ?? null,
+          backendMessageId: requestId,
         },
       });
       return backendMessageId;
@@ -988,7 +1106,89 @@ export class SdkConversationRuntime {
   }
 
   async wakewordDetected(payload: WakewordPayload = {}): Promise<string | void> {
-    return this.options.transport?.wakewordDetected(payload);
+    const startedAtMs = nowMs();
+    if (!this.options.transport) {
+      await this.recordRuntimeTrace({
+        path: 'wakeword.runtime',
+        stage: 'activate',
+        status: 'skipped',
+        data: {
+          reason: 'transport_unavailable',
+          payloadKeyCount: Object.keys(payload).length,
+        },
+      });
+      await this.recordRuntimeTrace({
+        path: 'websocket.control',
+        stage: 'send',
+        status: 'skipped',
+        data: {
+          reason: 'transport_unavailable',
+          messageType: 'wakeword-detected',
+        },
+      });
+      return undefined;
+    }
+    await this.recordRuntimeTrace({
+      path: 'wakeword.runtime',
+      stage: 'activate',
+      status: 'started',
+      data: {
+        payloadKeyCount: Object.keys(payload).length,
+      },
+    });
+    await this.recordRuntimeTrace({
+      path: 'websocket.control',
+      stage: 'send',
+      status: 'started',
+      data: {
+        messageType: 'wakeword-detected',
+      },
+    });
+    try {
+      const backendMessageId = await this.options.transport.wakewordDetected(payload);
+      const requestId = optionalRequestId(backendMessageId);
+      await this.recordRuntimeTrace({
+        path: 'wakeword.runtime',
+        stage: 'activate',
+        status: 'succeeded',
+        requestId,
+        durationMs: durationSince(startedAtMs),
+        data: {
+          backendMessageId: requestId,
+        },
+      });
+      await this.recordRuntimeTrace({
+        path: 'websocket.control',
+        stage: 'send',
+        status: 'succeeded',
+        requestId,
+        durationMs: durationSince(startedAtMs),
+        data: {
+          messageType: 'wakeword-detected',
+          backendMessageId: requestId,
+        },
+      });
+      return backendMessageId;
+    } catch (error) {
+      await this.recordRuntimeTrace({
+        path: 'wakeword.runtime',
+        stage: 'activate',
+        status: 'failed',
+        durationMs: durationSince(startedAtMs),
+        error,
+      });
+      await this.recordRuntimeTrace({
+        path: 'websocket.control',
+        stage: 'send',
+        status: 'failed',
+        durationMs: durationSince(startedAtMs),
+        error,
+        data: {
+          messageType: 'wakeword-detected',
+        },
+      });
+      throw error;
+    }
   }
 
   async updateSettings(payload: SettingsPayload): Promise<string | void> {
@@ -1016,15 +1216,16 @@ export class SdkConversationRuntime {
     });
     try {
       const backendMessageId = await this.options.transport.updateSettings(payload);
+      const requestId = optionalRequestId(backendMessageId);
       await this.recordRuntimeTrace({
         path: 'settings.sync',
         stage: 'update',
         status: 'succeeded',
-        requestId: backendMessageId ?? null,
+        requestId,
         durationMs: durationSince(startedAtMs),
         data: {
           updatedKeys,
-          backendMessageId: backendMessageId ?? null,
+          backendMessageId: requestId,
         },
       });
       return backendMessageId;
@@ -1063,14 +1264,15 @@ export class SdkConversationRuntime {
     });
     try {
       const backendMessageId = await this.options.transport.listModels();
+      const requestId = optionalRequestId(backendMessageId);
       await this.recordRuntimeTrace({
         path: 'model.catalog',
         stage: 'list',
         status: 'succeeded',
-        requestId: backendMessageId ?? null,
+        requestId,
         durationMs: durationSince(startedAtMs),
         data: {
-          backendMessageId: backendMessageId ?? null,
+          backendMessageId: requestId,
         },
       });
       return backendMessageId;
@@ -1096,6 +1298,7 @@ export class SdkConversationRuntime {
     }
     const settings = buildModelSettingsPatch(selection, 'ConversationRuntime.setModel');
     const backendMessageId = await this.updateSettings(settings);
+    const requestId = optionalRequestId(backendMessageId);
     const revisionId = this.state.revisionId === 'rev-empty'
       ? createRuntimeId('rev')
       : this.state.revisionId;
@@ -1107,7 +1310,7 @@ export class SdkConversationRuntime {
       source: 'sdk',
       payload: {
         ...settings,
-        backendMessageId: backendMessageId ?? null,
+        backendMessageId: requestId,
       },
     }));
     return backendMessageId;
@@ -1517,7 +1720,7 @@ export class SdkConversationRuntime {
   }
 
   private async traceLocalRuntimeRpc(
-    localRuntime: LocalRuntime,
+    localRuntime: Pick<LocalRuntime, 'rpc'>,
     request: { method: string; params?: JsonRecord; id?: string | number },
     options: { turnRef?: string | null; revisionId?: string | null } = {},
   ): Promise<JsonRecord> {
@@ -1665,11 +1868,38 @@ export class SdkConversationRuntime {
     state.eventIds.add(event.eventId);
     state.lastSequence = sequence;
     this.backendTurnSequences.set(key, state);
+    const phaseBefore = this.state.phase;
     if (event.type === 'turn_completed') {
       await this.applyBackendTurnCompleted(event);
+    } else {
+      await this.applyEvent(event);
+    }
+    await this.recordOverlayPhaseTrace(event, phaseBefore);
+  }
+
+  private async recordOverlayPhaseTrace(
+    event: ConversationEvent,
+    phaseBefore: ConversationRuntimeState['phase'],
+  ): Promise<void> {
+    const phaseAfter = this.state.phase;
+    if (phaseBefore === phaseAfter || event.type === 'trace_event') {
       return;
     }
-    await this.applyEvent(event);
+    await this.recordRuntimeTrace({
+      path: 'overlay.phase',
+      stage: 'projection',
+      status: 'succeeded',
+      data: {
+        sourceEventType: event.type,
+        phaseBefore,
+        phaseAfter,
+        hasTurnRef: Boolean(event.turnRef),
+        activeTurnMatches: event.turnRef ? event.turnRef === this.state.activeTurnRef : false,
+      },
+    }, {
+      turnRef: event.turnRef,
+      revisionId: event.revisionId,
+    });
   }
 
   private async applyBackendSequenceError(

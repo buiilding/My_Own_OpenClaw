@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.normalizeBackendEventToConversationEvent = normalizeBackendEventToConversationEvent;
 const events_js_1 = require("../conversation/events.js");
+const TraceRecorder_js_1 = require("../runtime/TraceRecorder.js");
 const toolCorrelationIds_js_1 = require("../tools/toolCorrelationIds.js");
 function payloadOf(event) {
     return (event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload))
@@ -109,6 +110,80 @@ function numberField(record, key) {
     const value = record[key];
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
+function traceStringField(record, ...keys) {
+    const value = stringField(record, ...keys);
+    return value && value.trim() ? value.trim() : null;
+}
+function traceNumberField(record, ...keys) {
+    for (const key of keys) {
+        const value = record[key];
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
+        }
+    }
+    return null;
+}
+const TRACE_STATUSES = new Set(['started', 'succeeded', 'failed', 'skipped']);
+const TRACE_RUNTIMES = new Set(['sdk', 'electron-main', 'renderer', 'sidecar', 'backend', 'provider']);
+function traceStatusOf(value) {
+    return typeof value === 'string' && TRACE_STATUSES.has(value)
+        ? value
+        : null;
+}
+function traceRuntimeOf(value) {
+    return typeof value === 'string' && TRACE_RUNTIMES.has(value)
+        ? value
+        : 'backend';
+}
+function traceErrorOf(value) {
+    if (!value) {
+        return null;
+    }
+    if (typeof value === 'string') {
+        return { code: 'Error', message: value };
+    }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return { code: 'Error', message: String(value) };
+    }
+    const record = value;
+    return {
+        code: traceStringField(record, 'code', 'name') ?? 'Error',
+        message: traceStringField(record, 'message', 'summary', 'error') ?? 'Unknown trace error',
+    };
+}
+function tracePayloadFromBackendEvent(event, base) {
+    const payload = payloadOf(event);
+    const path = traceStringField(payload, 'path');
+    const stage = traceStringField(payload, 'stage');
+    const status = traceStatusOf(payload.status);
+    if (!path || !stage || !status) {
+        return null;
+    }
+    const data = payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)
+        ? (0, TraceRecorder_js_1.sanitizeTraceData)(payload.data)
+        : undefined;
+    return {
+        schemaVersion: 1,
+        traceId: traceStringField(payload, 'traceId', 'trace_id') ?? (0, events_js_1.createRuntimeId)('trace'),
+        spanId: traceStringField(payload, 'spanId', 'span_id') ?? (0, events_js_1.createRuntimeId)('span'),
+        parentSpanId: traceStringField(payload, 'parentSpanId', 'parent_span_id'),
+        path,
+        stage,
+        status,
+        runtime: traceRuntimeOf(payload.runtime),
+        conversationRef: traceStringField(payload, 'conversationRef', 'conversation_ref') ?? base.conversationRef,
+        turnRef: traceStringField(payload, 'turnRef', 'turn_ref') ?? base.turnRef,
+        userId: traceStringField(payload, 'userId', 'user_id') ?? (typeof event.user_id === 'string' && event.user_id.trim() ? event.user_id.trim() : null),
+        requestId: traceStringField(payload, 'requestId', 'request_id'),
+        startedAt: traceStringField(payload, 'startedAt', 'started_at'),
+        endedAt: traceStringField(payload, 'endedAt', 'ended_at') ?? base.timestamp,
+        durationMs: traceNumberField(payload, 'durationMs', 'duration_ms'),
+        backendSequence: backendSequenceOf(event),
+        backendEventId: typeof event.event_id === 'string' && event.event_id.trim() ? event.event_id.trim() : null,
+        ...(data ? { data } : {}),
+        error: traceErrorOf(payload.error),
+    };
+}
 function logCompactionNormalization(event, base, normalizedType, payload) {
     const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
         ? payload.replacement_history_entries
@@ -170,6 +245,28 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
     }
     if (typeof event.event_id !== 'string' || !event.event_id.trim() || backendSequenceOf(event) === null) {
         return missingBackendIdentityEvent(event, base);
+    }
+    if (event.type === 'trace-event') {
+        const tracePayload = tracePayloadFromBackendEvent(event, base);
+        if (!tracePayload) {
+            return (0, events_js_1.createConversationEvent)({
+                ...base,
+                type: 'runtime_error',
+                source: 'sdk',
+                payload: {
+                    error: 'Backend trace event missing required path, stage, or status',
+                    reason: 'malformed_backend_trace_event',
+                    sourceEventType: event.type,
+                    ...backendMetadata,
+                },
+            });
+        }
+        return (0, events_js_1.createConversationEvent)({
+            ...base,
+            type: 'trace_event',
+            source: 'backend',
+            payload: tracePayload,
+        });
     }
     if (event.type === 'query-accepted') {
         return (0, events_js_1.createConversationEvent)({

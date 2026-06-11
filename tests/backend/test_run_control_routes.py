@@ -276,9 +276,23 @@ async def test_list_run_events_filters_by_after_seq() -> None:
     events = await list_run_events(run_id, service=service, after_seq=1, limit=50)
 
     assert events.run_id == run_id
-    assert len(events.events) == 2
-    assert events.events[0].event_type == "run-control"
-    assert events.events[1].payload["action"] == "resume"
+    control_events = [
+        event for event in events.events if event.event_type == "run-control"
+    ]
+    trace_events = [
+        event for event in events.events if event.event_type == "trace_event"
+    ]
+    assert [event.payload["action"] for event in control_events] == ["pause", "resume"]
+    assert [event.payload["path"] for event in trace_events] == ["run.control"] * 3
+    assert trace_events[0].payload["stage"] == "create"
+    assert trace_events[1].payload["data"] == {
+        "action": "pause",
+        "controlMode": "agent_only",
+        "status": "paused",
+        "bulk": False,
+        "pendingControlCount": 1,
+    }
+    assert "process files" not in str([event.payload for event in trace_events])
     assert events.next_after_seq == events.events[-1].seq
 
 
@@ -489,7 +503,7 @@ def test_get_run_route_network_contract(
         "query_message_id": None,
         "files": [],
         "metadata": {},
-        "last_event_seq": 1,
+        "last_event_seq": 2,
         "last_heartbeat_at": None,
     }
     assert missing_response.status_code == 404

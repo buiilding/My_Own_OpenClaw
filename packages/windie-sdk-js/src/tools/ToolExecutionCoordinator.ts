@@ -92,6 +92,23 @@ function durationSince(startedAtMs: number): number {
   return Math.max(0, Date.now() - startedAtMs);
 }
 
+function browserActionFromArgs(args: JsonRecord): string | null {
+  return typeof args.action === 'string' && args.action.trim()
+    ? args.action.trim()
+    : null;
+}
+
+function browserRuntimeData(data: JsonRecord | null | undefined): JsonRecord {
+  const tabs = Array.isArray(data?.tabs) ? data.tabs : null;
+  return {
+    mode: typeof data?.mode === 'string' ? data.mode : null,
+    scope: typeof data?.scope === 'string' ? data.scope : null,
+    connected: typeof data?.connected === 'boolean' ? data.connected : null,
+    tabCount: tabs ? tabs.length : null,
+    hasCurrentUrl: typeof data?.url === 'string' && data.url.trim().length > 0,
+  };
+}
+
 function artifactUploadError(error: unknown): Error {
   return new Error(`artifact_upload_failed: ${errorMessage(error)}`);
 }
@@ -614,6 +631,19 @@ export class ToolExecutionCoordinator {
         argsKeyCount: Object.keys(call.args).length,
       },
     });
+    if (call.toolName === 'browser') {
+      await this.options.emitTrace?.({
+        path: 'browser.runtime',
+        stage: 'action',
+        status: 'started',
+        runtime: 'sidecar',
+        requestId: call.requestId,
+        data: {
+          action: browserActionFromArgs(call.args),
+          argsKeyCount: Object.keys(call.args).length,
+        },
+      });
+    }
     let result: LocalToolResult;
     try {
       result = await this.executeLocalTool(call);
@@ -678,6 +708,23 @@ export class ToolExecutionCoordinator {
         },
         error: deliveryError ?? (success ? null : result.error ?? 'Tool execution failed'),
       });
+      if (call.toolName === 'browser') {
+        await this.options.emitTrace?.({
+          path: 'browser.runtime',
+          stage: 'action',
+          status: deliveryError || !success ? 'failed' : 'succeeded',
+          runtime: 'sidecar',
+          requestId: call.requestId,
+          durationMs: durationSince(startedAt),
+          data: {
+            action: browserActionFromArgs(call.args),
+            success: deliveryError ? false : success,
+            deliveryFailed: Boolean(deliveryError),
+            ...browserRuntimeData(isJsonRecord(result.data) ? result.data : null),
+          },
+          error: deliveryError ?? (success ? null : result.error ?? 'Browser action failed'),
+        });
+      }
     }
     if (deliveryError) {
       throw deliveryError;

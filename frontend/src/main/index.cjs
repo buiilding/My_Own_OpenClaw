@@ -26,6 +26,7 @@ const {
   initializeIpc,
   registerBackendMessageObserver,
   registerRendererWindow,
+  appendMainProcessTraceEvent,
   sendAutomatedQuery,
   sendStopQueryToBackend,
   triggerStopQueryFromMain,
@@ -599,6 +600,8 @@ function initializeMainProcessIpc() {
         return requestResult.data;
       },
       emitWorkspaceAccessUpdated: broadcastWorkspaceAccessUpdated,
+      emitTraceEvent: appendMainProcessTraceEvent,
+      log: console.warn,
     });
   });
 }

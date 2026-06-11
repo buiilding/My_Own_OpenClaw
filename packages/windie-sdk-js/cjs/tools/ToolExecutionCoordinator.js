@@ -29,6 +29,24 @@ function failureResult(error) {
 function errorMessage(error) {
     return error instanceof Error ? error.message : String(error);
 }
+function durationSince(startedAtMs) {
+    return Math.max(0, Date.now() - startedAtMs);
+}
+function browserActionFromArgs(args) {
+    return typeof args.action === 'string' && args.action.trim()
+        ? args.action.trim()
+        : null;
+}
+function browserRuntimeData(data) {
+    const tabs = Array.isArray(data?.tabs) ? data.tabs : null;
+    return {
+        mode: typeof data?.mode === 'string' ? data.mode : null,
+        scope: typeof data?.scope === 'string' ? data.scope : null,
+        connected: typeof data?.connected === 'boolean' ? data.connected : null,
+        tabCount: tabs ? tabs.length : null,
+        hasCurrentUrl: typeof data?.url === 'string' && data.url.trim().length > 0,
+    };
+}
 function artifactUploadError(error) {
     return new Error(`artifact_upload_failed: ${errorMessage(error)}`);
 }
@@ -472,6 +490,32 @@ class ToolExecutionCoordinator {
             return;
         }
         const startedAt = Date.now();
+        await this.options.emitTrace?.({
+            path: 'tool.execution',
+            stage: 'single_tool',
+            status: 'started',
+            runtime: 'sdk',
+            requestId: call.requestId,
+            data: {
+                toolName: call.toolName,
+                hasToolCallId: Boolean(call.toolCallId),
+                hasCorrelationId: Boolean(call.correlationId),
+                argsKeyCount: Object.keys(call.args).length,
+            },
+        });
+        if (call.toolName === 'browser') {
+            await this.options.emitTrace?.({
+                path: 'browser.runtime',
+                stage: 'action',
+                status: 'started',
+                runtime: 'sidecar',
+                requestId: call.requestId,
+                data: {
+                    action: browserActionFromArgs(call.args),
+                    argsKeyCount: Object.keys(call.args).length,
+                },
+            });
+        }
         let result;
         try {
             result = await this.executeLocalTool(call);
@@ -524,6 +568,38 @@ class ToolExecutionCoordinator {
                     elapsedMs: Date.now() - startedAt,
                 },
             }));
+            await this.options.emitTrace?.({
+                path: 'tool.execution',
+                stage: 'single_tool',
+                status: deliveryError || !success ? 'failed' : 'succeeded',
+                runtime: 'sdk',
+                requestId: call.requestId,
+                durationMs: durationSince(startedAt),
+                data: {
+                    toolName: call.toolName,
+                    success: deliveryError ? false : success,
+                    deliveryFailed: Boolean(deliveryError),
+                    hasScreenshotRef: Boolean(screenshotData?.screenshot_ref ?? screenshotData?.screenshotRef),
+                },
+                error: deliveryError ?? (success ? null : result.error ?? 'Tool execution failed'),
+            });
+            if (call.toolName === 'browser') {
+                await this.options.emitTrace?.({
+                    path: 'browser.runtime',
+                    stage: 'action',
+                    status: deliveryError || !success ? 'failed' : 'succeeded',
+                    runtime: 'sidecar',
+                    requestId: call.requestId,
+                    durationMs: durationSince(startedAt),
+                    data: {
+                        action: browserActionFromArgs(call.args),
+                        success: deliveryError ? false : success,
+                        deliveryFailed: Boolean(deliveryError),
+                        ...browserRuntimeData(isJsonRecord(result.data) ? result.data : null),
+                    },
+                    error: deliveryError ?? (success ? null : result.error ?? 'Browser action failed'),
+                });
+            }
         }
         if (deliveryError) {
             throw deliveryError;
@@ -534,6 +610,7 @@ class ToolExecutionCoordinator {
             return;
         }
         const payload = event.payload;
+        const startedAt = Date.now();
         const bundleId = typeof payload.bundleId === 'string'
             ? payload.bundleId
             : (typeof payload.bundle_id === 'string' ? payload.bundle_id : '');
@@ -547,6 +624,17 @@ class ToolExecutionCoordinator {
             step_results: stepResults,
         };
         let deliveryError = null;
+        await this.options.emitTrace?.({
+            path: 'tool.execution',
+            stage: 'bundle',
+            status: 'started',
+            runtime: 'sdk',
+            requestId: bundleId,
+            data: {
+                bundleId,
+                toolCount: tools.length,
+            },
+        });
         try {
             for (const [sourceToolIndex, step] of tools.entries()) {
                 if (!step || typeof step !== 'object' || Array.isArray(step)) {
@@ -634,6 +722,23 @@ class ToolExecutionCoordinator {
                     deliveryFailed: Boolean(deliveryError),
                 },
             }));
+            await this.options.emitTrace?.({
+                path: 'tool.execution',
+                stage: 'bundle',
+                status: deliveryError || status !== 'success' ? 'failed' : 'succeeded',
+                runtime: 'sdk',
+                requestId: bundleId,
+                durationMs: durationSince(startedAt),
+                data: {
+                    bundleId,
+                    toolCount: tools.length,
+                    executedStepCount: stepResults.length,
+                    bundleStatus: deliveryError ? 'failure' : status,
+                    deliveryFailed: Boolean(deliveryError),
+                    hasScreenshotRef: Boolean(resultPayload.screenshot_ref),
+                },
+                error: deliveryError ?? (status === 'success' ? null : resultPayload.error ?? 'Bundled tool execution failed'),
+            });
         }
         if (deliveryError) {
             throw deliveryError;

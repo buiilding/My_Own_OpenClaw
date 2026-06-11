@@ -74,6 +74,28 @@ describe('DesktopVoiceRuntimeClient', () => {
 
     expect(
       DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
+        type: 'trace_event',
+        payload: {
+          path: 'voice.transcription',
+          stage: 'audio_frame',
+          status: 'succeeded',
+          runtime: 'backend',
+          data: {
+            byteLength: 4,
+            text: 'must not surface',
+          },
+        },
+      })),
+    ).toEqual({
+      type: 'trace_event',
+      path: 'voice.transcription',
+      stage: 'audio_frame',
+      status: 'succeeded',
+      runtime: 'backend',
+    });
+
+    expect(
+      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
         type: 'custom',
       })),
     ).toEqual({ type: 'unknown', messageType: 'custom' });

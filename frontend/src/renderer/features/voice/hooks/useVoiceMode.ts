@@ -136,6 +136,15 @@ export function useVoiceMode(
               }
               break;
 
+            case 'trace_event':
+              logVoiceDebugTrace('voice-transcription-trace', {
+                path: data.path,
+                stage: data.stage,
+                status: data.status,
+                runtime: data.runtime,
+              });
+              break;
+
             default:
               logVoiceDebugTrace('voice-gateway-unknown-message', {
                 messageType: data.messageType,

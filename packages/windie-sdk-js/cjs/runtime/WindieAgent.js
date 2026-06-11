@@ -1,11 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieAgent = void 0;
+const events_js_1 = require("../conversation/events.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const metadata_js_1 = require("../conversation/metadata.js");
 const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ConversationRuntime_js_1 = require("./ConversationRuntime.js");
+const TraceRecorder_js_1 = require("./TraceRecorder.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const DefaultTurnResourceResolvers_js_1 = require("./DefaultTurnResourceResolvers.js");
 const WindieChatSession_js_1 = require("./WindieChatSession.js");
@@ -163,6 +165,7 @@ class WindieAgent {
             sdkClient: this.sdkClient,
             userId: this.userId,
             memoryEnabled: this.memoryEnabled,
+            agentDefinition: this.agentDefinition,
             localToolLifecycle: resolvedLocalToolLifecycle,
             resourceResolvers: {
                 ...defaultResourceResolvers,
@@ -213,8 +216,49 @@ class WindieAgent {
     async getSystemPrompt() {
         return this.sdkClient.systemPrompt();
     }
-    async listToolSchemas() {
-        return this.sdkClient.toolSchemas();
+    async listToolSchemas(options = {}) {
+        const startedAtMs = Date.now();
+        await this.recordAgentTrace({
+            path: 'tool.schema.policy',
+            stage: 'sdk_list',
+            status: 'started',
+            data: {
+                source: 'sdk_http',
+            },
+        }, options);
+        try {
+            const response = await this.sdkClient.toolSchemas();
+            const toolSchemas = Array.isArray(response.canonical_tool_schemas)
+                ? response.canonical_tool_schemas
+                : Array.isArray(response.tool_schemas)
+                    ? response.tool_schemas
+                    : [];
+            await this.recordAgentTrace({
+                path: 'tool.schema.policy',
+                stage: 'sdk_list',
+                status: 'succeeded',
+                durationMs: Date.now() - startedAtMs,
+                data: {
+                    source: 'sdk_http',
+                    toolSchemaCount: toolSchemas.length,
+                    hasToolSchemas: toolSchemas.length > 0,
+                },
+            }, options);
+            return response;
+        }
+        catch (error) {
+            await this.recordAgentTrace({
+                path: 'tool.schema.policy',
+                stage: 'sdk_list',
+                status: 'failed',
+                durationMs: Date.now() - startedAtMs,
+                error,
+                data: {
+                    source: 'sdk_http',
+                },
+            }, options);
+            throw error;
+        }
     }
     async previewPrompt(payload) {
         return this.sdkClient.promptPreview(payload);
@@ -308,18 +352,161 @@ class WindieAgent {
             user_id: options.userId ?? this.userId,
         });
     }
-    async listTools() {
-        return this.localRuntime?.listTools ? this.localRuntime.listTools() : null;
+    async listTools(options = {}) {
+        const startedAtMs = Date.now();
+        if (!this.localRuntime?.listTools) {
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'list_tools',
+                status: 'skipped',
+                runtime: 'sidecar',
+                data: {
+                    reason: 'local_runtime_unavailable',
+                },
+            }, options);
+            return null;
+        }
+        await this.recordAgentTrace({
+            path: 'sidecar.lifecycle',
+            stage: 'list_tools',
+            status: 'started',
+            runtime: 'sidecar',
+        }, options);
+        try {
+            const response = await this.localRuntime.listTools();
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'list_tools',
+                status: 'succeeded',
+                runtime: 'sidecar',
+                durationMs: Date.now() - startedAtMs,
+                data: {
+                    toolCount: Array.isArray(response?.tools) ? response.tools.length : 0,
+                    hasVersion: typeof response?.version === 'number',
+                },
+            }, options);
+            return response;
+        }
+        catch (error) {
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'list_tools',
+                status: 'failed',
+                runtime: 'sidecar',
+                durationMs: Date.now() - startedAtMs,
+                error,
+            }, options);
+            throw error;
+        }
     }
-    async status() {
-        return this.localRuntime?.status ? this.localRuntime.status() : null;
+    async status(options = {}) {
+        const startedAtMs = Date.now();
+        if (!this.localRuntime?.status) {
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'status',
+                status: 'skipped',
+                runtime: 'sidecar',
+                data: {
+                    reason: 'local_runtime_unavailable',
+                },
+            }, options);
+            return null;
+        }
+        await this.recordAgentTrace({
+            path: 'sidecar.lifecycle',
+            stage: 'status',
+            status: 'started',
+            runtime: 'sidecar',
+        }, options);
+        try {
+            const response = await this.localRuntime.status();
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'status',
+                status: 'succeeded',
+                runtime: 'sidecar',
+                durationMs: Date.now() - startedAtMs,
+                data: {
+                    responseKeyCount: response ? Object.keys(response).length : 0,
+                    ready: typeof response?.ready === 'boolean' ? response.ready : null,
+                    running: typeof response?.running === 'boolean' ? response.running : null,
+                },
+            }, options);
+            return response;
+        }
+        catch (error) {
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'status',
+                status: 'failed',
+                runtime: 'sidecar',
+                durationMs: Date.now() - startedAtMs,
+                error,
+            }, options);
+            throw error;
+        }
     }
-    async shutdownLocalRuntime() {
-        if (this.owner.shutdownLocalRuntime) {
-            await this.owner.shutdownLocalRuntime();
+    async shutdownLocalRuntime(options = {}) {
+        const startedAtMs = Date.now();
+        const ownerShutdown = typeof this.owner.shutdownLocalRuntime === 'function';
+        const localShutdown = typeof this.localRuntime?.shutdown === 'function';
+        if (!ownerShutdown && !localShutdown) {
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'shutdown',
+                status: 'skipped',
+                runtime: 'sidecar',
+                data: {
+                    reason: 'shutdown_unavailable',
+                },
+            }, options);
             return;
         }
-        await this.localRuntime?.shutdown?.();
+        await this.recordAgentTrace({
+            path: 'sidecar.lifecycle',
+            stage: 'shutdown',
+            status: 'started',
+            runtime: 'sidecar',
+            data: {
+                ownerShutdown,
+                localShutdown,
+            },
+        }, options);
+        try {
+            if (ownerShutdown) {
+                await this.owner.shutdownLocalRuntime?.();
+            }
+            else {
+                await this.localRuntime?.shutdown?.();
+            }
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'shutdown',
+                status: 'succeeded',
+                runtime: 'sidecar',
+                durationMs: Date.now() - startedAtMs,
+                data: {
+                    ownerShutdown,
+                    localShutdown,
+                },
+            }, options);
+        }
+        catch (error) {
+            await this.recordAgentTrace({
+                path: 'sidecar.lifecycle',
+                stage: 'shutdown',
+                status: 'failed',
+                runtime: 'sidecar',
+                durationMs: Date.now() - startedAtMs,
+                error,
+                data: {
+                    ownerShutdown,
+                    localShutdown,
+                },
+            }, options);
+            throw error;
+        }
     }
     async uploadArtifact(file, filename) {
         return this.sdkClient.artifacts.upload(file, filename);
@@ -327,8 +514,86 @@ class WindieAgent {
     artifactUrl(artifactId) {
         return this.sdkClient.artifacts.url(artifactId);
     }
-    async fetchArtifact(artifactId) {
-        return this.sdkClient.artifacts.fetch(artifactId);
+    async fetchArtifact(artifactId, options = {}) {
+        const startedAtMs = Date.now();
+        await this.recordAgentTrace({
+            path: 'artifact.fetch',
+            stage: 'http_get',
+            status: 'started',
+            data: {
+                hasArtifactId: Boolean(artifactId.trim()),
+            },
+        }, options);
+        try {
+            const response = await this.sdkClient.artifacts.fetch(artifactId);
+            await this.recordAgentTrace({
+                path: 'artifact.fetch',
+                stage: 'http_get',
+                status: 'succeeded',
+                durationMs: Date.now() - startedAtMs,
+                data: {
+                    hasArtifactId: Boolean(artifactId.trim()),
+                    statusCode: response.status,
+                    ok: response.ok,
+                    contentType: response.headers.get('content-type') ?? null,
+                    contentLength: response.headers.get('content-length') ?? null,
+                },
+            }, options);
+            return response;
+        }
+        catch (error) {
+            await this.recordAgentTrace({
+                path: 'artifact.fetch',
+                stage: 'http_get',
+                status: 'failed',
+                durationMs: Date.now() - startedAtMs,
+                error,
+                data: {
+                    hasArtifactId: Boolean(artifactId.trim()),
+                },
+            }, options);
+            throw error;
+        }
+    }
+    async installIdentity(options = {}) {
+        const startedAtMs = Date.now();
+        await this.recordAgentTrace({
+            path: 'install.auth',
+            stage: 'identity',
+            status: 'started',
+            data: {
+                source: 'sdk_http',
+            },
+        }, options);
+        try {
+            const response = await this.sdkClient.installIdentity();
+            await this.recordAgentTrace({
+                path: 'install.auth',
+                stage: 'identity',
+                status: 'succeeded',
+                durationMs: Date.now() - startedAtMs,
+                data: {
+                    source: 'sdk_http',
+                    hasInstallId: typeof response.install_id === 'string'
+                        || typeof response.installId === 'string',
+                    responseKeyCount: Object.keys(response).length,
+                },
+            }, options);
+            return response;
+        }
+        catch (error) {
+            await this.recordAgentTrace({
+                path: 'install.auth',
+                stage: 'identity',
+                status: 'failed',
+                durationMs: Date.now() - startedAtMs,
+                error,
+                data: {
+                    source: 'sdk_http',
+                },
+            }, options);
+            throw error;
+        }
     }
     subscribeRawBackendEvents(listener) {
         return this.session.on('event', listener);
@@ -411,6 +676,29 @@ class WindieAgent {
     }
     listAgents() {
         return this.owner.listAgents();
+    }
+    async recordAgentTrace(input, options = {}) {
+        const conversationRef = options.conversationRef ?? `conv-${this.id}`;
+        const turnRef = options.turnRef ?? null;
+        const store = options.store ?? this.defaultConversationStore;
+        const revisionId = (0, events_js_1.createRuntimeId)('rev');
+        const recorder = new TraceRecorder_js_1.TraceRecorder({
+            conversationRef,
+            turnRef,
+            userId: this.userId,
+            emit: async (payload) => {
+                await store.appendEvent((0, events_js_1.createConversationEvent)({
+                    eventId: `${turnRef ?? conversationRef}-sdk-evt-${(0, events_js_1.createRuntimeId)('trace_event')}`,
+                    type: 'trace_event',
+                    conversationRef,
+                    revisionId,
+                    turnRef,
+                    source: 'sdk',
+                    payload,
+                }));
+            },
+        });
+        return recorder.record(input);
     }
     async callLocalRuntimeRpc(method, params) {
         if (!this.localRuntime?.rpc) {

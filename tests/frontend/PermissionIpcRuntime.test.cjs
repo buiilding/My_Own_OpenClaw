@@ -80,6 +80,53 @@ describe('permission_ipc_runtime', () => {
     });
   });
 
+  test('records sanitized permission probe traces from the Electron main owner', async () => {
+    const traceEvents = [];
+    const permissionStateStore = {
+      get: jest.fn(async () => null),
+      set: jest.fn(async (_permissionId, entry) => entry),
+      delete: jest.fn(async () => true),
+    };
+    const { invokeHandlers } = createRuntime({
+      permissionStateStore,
+      emitTraceEvent: jest.fn(async (event) => {
+        traceEvents.push(event);
+      }),
+    });
+
+    const result = await invokeHandlers['run-permission-probe'](null, {
+      permissionId: 'filesystem_workspace_access',
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'filesystem_workspace_access',
+          status: 'needs-action',
+          granted: false,
+        }),
+      },
+    });
+    expect(traceEvents.map((event) => `${event.stage}:${event.status}`)).toEqual([
+      'probe:started',
+      'probe:succeeded',
+    ]);
+    expect(traceEvents[1]).toEqual(expect.objectContaining({
+      path: 'permission.probe',
+      runtime: 'electron-main',
+      data: expect.objectContaining({
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: 'needs-action',
+        granted: false,
+        hasDetails: true,
+        platform: 'win32',
+      }),
+    }));
+    expect(JSON.stringify(traceEvents)).not.toContain('selected_paths');
+    expect(JSON.stringify(traceEvents)).not.toContain('Workspace access prompt');
+  });
+
   test('passes browser warmup dependency through request-permission runtime wiring', async () => {
     const warmBrowserAutomationPermission = jest.fn(async () => ({
       success: true,

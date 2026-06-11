@@ -89,6 +89,56 @@ Current durable traced paths:
   persist credentials or provider payloads.
 - `model.catalog`: SDK runtime records model-list request spans with backend
   request id, transport availability, and duration.
+- `artifact.fetch`: SDK artifact helpers record backend artifact fetch spans
+  with artifact-id presence, HTTP status, content type/length, success state,
+  and duration without artifact bytes or ids from user-visible content.
+- `overlay.phase`: SDK current-turn projection records phase transitions with
+  source event type, before/after phase, active-turn match booleans, and turn
+  presence without assistant or user message text.
+- `permission.probe`: Electron main permission IPC records probe/request
+  spans through the active conversation trace handoff when a conversation is
+  available. Rows include permission id, platform, status enum, granted
+  boolean, details presence, duration, and short errors without selected
+  filesystem paths.
+- `browser.runtime`: SDK tool execution records sidecar browser action spans
+  with action name, mode, scope, connection state, tab count, and success
+  booleans without URLs, page titles, page text, or browser output.
+- `tool.schema.policy`: backend prompt projection and SDK schema helpers
+  record tool-schema projection/list spans with tool counts, prompt mode, and
+  source without schema bodies or tool descriptions.
+- `websocket.control`: SDK control sends record stop, wakeword, settings,
+  model-list, rehydrate, and compaction control spans with message type,
+  request id, transport availability, and duration.
+- `voice.transcription`: backend transcription websocket emits producer-owned
+  `trace_event` diagnostics for gateway session, provider connect, control
+  messages, and audio frames. Rows include provider session class, control
+  type, payload key count, sample rate, byte count, and short errors without
+  transcript text or audio bytes.
+- `tts.playback`: backend query execution records TTS session spans when
+  speech mode is enabled or attempted, with service/task presence, provider
+  mode, audio-task state, and duration without spoken text or audio chunks.
+- `wakeword.runtime`: SDK wakeword activation records transport availability,
+  payload key count, backend request id, and duration without transcript text.
+- `extension.load`: SDK agent-definition shaping records extension/plugin
+  contribution counts and definition presence without plugin payloads.
+- `mcp.tool`: SDK agent-definition shaping records MCP server contribution
+  counts and definition presence without server config payloads.
+- `workspace.context`: SDK turn send records workspace resource/path presence,
+  source kind, and resource counts without workspace paths.
+- `install.auth`: SDK install identity helper records identity lookup spans
+  with install-id presence and response key count without install ids, user ids,
+  tokens, or credentials.
+- `run.control`: backend VM run-control service appends sanitized
+  `trace_event` entries to the existing per-run event timeline for create,
+  control, dispatch, and worker stream events. Rows include run id as request
+  id, action/status/control mode, counts, assignment booleans, and payload key
+  counts without query text or worker payload bodies.
+- `sidecar.lifecycle`: SDK local-runtime helpers record sidecar status,
+  tool-list, and shutdown spans with ready/running booleans, tool count,
+  version presence, shutdown mode, and response key counts.
+- `agent.definition`: SDK conversation send records agent definition shape with
+  tool/plugin/MCP/skill counts, key count, workspace-path presence, and local
+  runtime availability without definition payload text or schemas.
 
 Renderer diagnostics should read the same rows through
 `DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads
@@ -96,6 +146,11 @@ persisted conversation events and applies the SDK trace projection. Use
 `bin/windie trace <conversation-ref> <turn-ref>` to inspect persisted trace
 events without renderer health. Add `--path <path>` to filter a runtime path and
 `--json` to export the raw sanitized timeline.
+
+Some producer-owned feature traces live on their existing non-conversation
+timeline because that runtime has no conversation writer. `voice.transcription`
+is emitted on `/ws/transcription`; `run.control` is appended to the VM run
+event timeline, which has the same lifetime as the run-control service.
 
 ## Stream Event Trace
 

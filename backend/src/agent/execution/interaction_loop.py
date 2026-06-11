@@ -179,6 +179,18 @@ class InteractionLoop:
                     "hasPromptMetadata": prompt_metadata is not None,
                 },
             )
+            yield TraceEvent(
+                path="tool.schema.policy",
+                stage="project",
+                status="succeeded",
+                runtime="backend",
+                data={
+                    "iteration": iteration,
+                    "toolSchemaCount": len(tool_schemas or []),
+                    "hasToolSchemas": bool(tool_schemas),
+                    "promptMode": prompt_mode,
+                },
+            )
 
             # Present prompt metadata events (only on first iteration)
             if iteration == 1 and prompt_metadata:

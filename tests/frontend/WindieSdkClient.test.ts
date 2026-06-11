@@ -946,6 +946,125 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('agent global helpers persist sanitized feature path traces', async () => {
+    const store = new InMemoryConversationStore();
+    const localRuntime = {
+      status: jest.fn(async () => ({
+        ready: true,
+        running: true,
+        secretStatus: 'do not persist status detail',
+      })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'browser', description: 'do not persist tool schema' }],
+      })),
+      shutdown: jest.fn(async () => undefined),
+    };
+    const sdkClient = {
+      artifacts: {
+        fetch: jest.fn(async () => ({
+          status: 200,
+          ok: true,
+          headers: {
+            get: (name: string) => {
+              if (name === 'content-type') {
+                return 'image/png';
+              }
+              if (name === 'content-length') {
+                return '12';
+              }
+              return null;
+            },
+          },
+        })),
+      },
+      installIdentity: jest.fn(async () => ({
+        user_id: 'user-secret',
+        install_id: 'install-secret',
+      })),
+      toolSchemas: jest.fn(async () => ({
+        canonical_tool_schemas: [{ name: 'read_file', description: 'do not persist schema body' }],
+        provider_tool_schemas: [],
+      })),
+    };
+    const agent = new WindieAgent(
+      'feature-agent',
+      { on: jest.fn(() => () => undefined), close: jest.fn() } as any,
+      {},
+      sdkClient as any,
+      { listAgents: jest.fn(() => []) },
+      localRuntime as any,
+      'user-1',
+      store,
+    );
+    const traceOptions = { conversationRef: 'conv-feature-agent' };
+
+    await agent.fetchArtifact('artifact-secret-id', traceOptions);
+    await agent.installIdentity(traceOptions);
+    await agent.listToolSchemas(traceOptions);
+    await agent.status(traceOptions);
+    await agent.listTools(traceOptions);
+    await agent.shutdownLocalRuntime(traceOptions);
+
+    const events = await store.loadEvents('conv-feature-agent');
+    const timelineByPath = (pathName: string) => events
+      .filter(event => event.type === 'trace_event' && event.payload.path === pathName)
+      .map(event => event.payload);
+
+    expect(timelineByPath('artifact.fetch').map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'http_get:started',
+      'http_get:succeeded',
+    ]);
+    expect(timelineByPath('artifact.fetch')[1].data).toEqual(expect.objectContaining({
+      hasArtifactId: true,
+      statusCode: 200,
+      ok: true,
+      contentType: 'image/png',
+      contentLength: '12',
+    }));
+    expect(timelineByPath('install.auth').map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'identity:started',
+      'identity:succeeded',
+    ]);
+    expect(timelineByPath('install.auth')[1].data).toEqual(expect.objectContaining({
+      hasInstallId: true,
+      responseKeyCount: 2,
+    }));
+    expect(timelineByPath('tool.schema.policy').map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'sdk_list:started',
+      'sdk_list:succeeded',
+    ]);
+    expect(timelineByPath('tool.schema.policy')[1].data).toEqual(expect.objectContaining({
+      toolSchemaCount: 1,
+      hasToolSchemas: true,
+    }));
+    expect(timelineByPath('sidecar.lifecycle').map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'status:started',
+      'status:succeeded',
+      'list_tools:started',
+      'list_tools:succeeded',
+      'shutdown:started',
+      'shutdown:succeeded',
+    ]);
+    expect(timelineByPath('sidecar.lifecycle')[1].data).toEqual(expect.objectContaining({
+      responseKeyCount: 3,
+      ready: true,
+      running: true,
+    }));
+    expect(timelineByPath('sidecar.lifecycle')[3].data).toEqual(expect.objectContaining({
+      toolCount: 1,
+      hasVersion: true,
+    }));
+    const serialized = JSON.stringify(events);
+    expect(serialized).not.toContain('artifact-secret-id');
+    expect(serialized).not.toContain('artifact bytes must not persist');
+    expect(serialized).not.toContain('install-secret');
+    expect(serialized).not.toContain('user-secret');
+    expect(serialized).not.toContain('do not persist schema body');
+    expect(serialized).not.toContain('do not persist tool schema');
+    expect(serialized).not.toContain('do not persist status detail');
+  });
+
   test('agent exposes prompt, schema, memory, title, and artifact facades', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async ({ method }) => ({ success: true, method, data: {} })),

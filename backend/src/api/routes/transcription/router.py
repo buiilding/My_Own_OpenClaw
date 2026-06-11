@@ -6,18 +6,55 @@ import asyncio
 import contextlib
 import json
 import logging
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from backend.src.api.deps import SessionManagerDep
-from backend.src.api.services.transcription.audio_frames import parse_gateway_audio_frame
+from backend.src.api.services.transcription.audio_frames import (
+    parse_gateway_audio_frame,
+)
 from backend.src.api.services.transcription.factory import (
     create_transcription_provider_session,
 )
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _trace_payload(
+    *,
+    trace_id: str,
+    path: str,
+    stage: str,
+    status: str,
+    data: dict[str, object] | None = None,
+    error: Exception | None = None,
+) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "schemaVersion": 1,
+        "traceId": trace_id,
+        "spanId": f"span_{uuid4().hex}",
+        "parentSpanId": None,
+        "path": path,
+        "stage": stage,
+        "status": status,
+        "runtime": "backend",
+        "endedAt": _now_iso(),
+    }
+    if data is not None:
+        payload["data"] = data
+    if error is not None:
+        payload["error"] = {
+            "code": error.__class__.__name__ or "Error",
+            "message": str(error)[:240] or "Unknown transcription error",
+        }
+    return payload
 
 
 @router.websocket("/ws/transcription")
@@ -32,15 +69,53 @@ async def transcription_websocket_endpoint(
     provider_session = create_transcription_provider_session(session_manager.config)
     receive_task: asyncio.Task | None = None
     provider_stream_task: asyncio.Task | None = None
+    trace_id = f"trace_{uuid4().hex}"
 
     async def send_event(payload: dict[str, object]) -> None:
         async with send_lock:
             await websocket.send_json(payload)
 
+    async def send_trace(
+        *,
+        stage: str,
+        status: str,
+        data: dict[str, object] | None = None,
+        error: Exception | None = None,
+    ) -> None:
+        await send_event(
+            {
+                "type": "trace_event",
+                "payload": _trace_payload(
+                    trace_id=trace_id,
+                    path="voice.transcription",
+                    stage=stage,
+                    status=status,
+                    data=data,
+                    error=error,
+                ),
+            }
+        )
+
     try:
         await send_event({"type": "status", "client_id": uuid4().hex})
+        await send_trace(
+            stage="session",
+            status="started",
+            data={
+                "providerSession": provider_session.__class__.__name__,
+            },
+        )
         await provider_session.connect()
-        provider_stream_task = asyncio.create_task(provider_session.stream_events(send_event))
+        await send_trace(
+            stage="provider_connect",
+            status="succeeded",
+            data={
+                "providerSession": provider_session.__class__.__name__,
+            },
+        )
+        provider_stream_task = asyncio.create_task(
+            provider_session.stream_events(send_event)
+        )
         receive_task = asyncio.create_task(websocket.receive())
 
         while True:
@@ -71,13 +146,43 @@ async def transcription_websocket_endpoint(
                 else:
                     if isinstance(control_message, dict):
                         await provider_session.handle_control_message(control_message)
+                        await send_trace(
+                            stage="control",
+                            status="succeeded",
+                            data={
+                                "messageType": (
+                                    control_message.get("type")
+                                    if isinstance(control_message.get("type"), str)
+                                    else None
+                                ),
+                                "payloadKeyCount": len(control_message),
+                            },
+                        )
             elif binary_payload is not None:
                 try:
                     sample_rate, audio_bytes = parse_gateway_audio_frame(binary_payload)
                 except ValueError as exc:
-                    logger.warning("Ignoring invalid transcription audio frame: %s", exc)
+                    logger.warning(
+                        "Ignoring invalid transcription audio frame: %s", exc
+                    )
+                    await send_trace(
+                        stage="audio_frame",
+                        status="failed",
+                        data={
+                            "rawByteLength": len(binary_payload),
+                        },
+                        error=exc,
+                    )
                 else:
                     await provider_session.handle_audio_chunk(audio_bytes, sample_rate)
+                    await send_trace(
+                        stage="audio_frame",
+                        status="succeeded",
+                        data={
+                            "sampleRate": sample_rate,
+                            "byteLength": len(audio_bytes),
+                        },
+                    )
 
             receive_task = asyncio.create_task(websocket.receive())
 
@@ -86,6 +191,7 @@ async def transcription_websocket_endpoint(
     except Exception as exc:
         logger.error("Transcription websocket failed: %s", exc, exc_info=True)
         try:
+            await send_trace(stage="session", status="failed", error=exc)
             await send_event({"type": "error", "message": str(exc)})
         except Exception:
             logger.debug("Failed to send transcription error event", exc_info=True)

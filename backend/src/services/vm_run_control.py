@@ -77,6 +77,45 @@ class VmRunControlService:
             payload=payload,
         )
 
+    def _append_trace_event_locked(
+        self,
+        run: Dict[str, Any],
+        *,
+        stage: str,
+        status: str,
+        source: str,
+        data: Optional[Dict[str, Any]] = None,
+        error: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "schemaVersion": 1,
+            "traceId": f"trace_{run['run_id']}",
+            "spanId": f"span_{uuid4()}",
+            "parentSpanId": None,
+            "path": "run.control",
+            "stage": stage,
+            "status": status,
+            "runtime": "backend",
+            "conversationRef": run.get("conversation_ref"),
+            "turnRef": run.get("query_message_id"),
+            "requestId": run.get("run_id"),
+            "endedAt": now_iso(),
+            "data": data or {},
+        }
+        if error:
+            payload["error"] = {
+                "code": str(error.get("code") or "Error"),
+                "message": str(error.get("message") or "Unknown run-control error")[
+                    :240
+                ],
+            }
+        return self._append_event_locked(
+            run,
+            event_type="trace_event",
+            source=source,
+            payload=payload,
+        )
+
     def _enqueue_run_locked(self, workspace_id: str, run_id: str) -> None:
         queue = self._workspace_run_queues.setdefault(workspace_id, [])
         queue.append(run_id)
@@ -117,8 +156,12 @@ class VmRunControlService:
             clone_run=self._clone_run,
         )
 
-    def _collect_pending_control_commands_locked(self, worker_id: str) -> List[Dict[str, Any]]:
-        return collect_pending_control_commands_for_worker(self._runs, worker_id=worker_id)
+    def _collect_pending_control_commands_locked(
+        self, worker_id: str
+    ) -> List[Dict[str, Any]]:
+        return collect_pending_control_commands_for_worker(
+            self._runs, worker_id=worker_id
+        )
 
     def _enqueue_control_command_locked(
         self,
@@ -137,6 +180,19 @@ class VmRunControlService:
             created_at=now_iso(),
         )
         run.setdefault("pending_controls", []).append(command)
+        self._append_trace_event_locked(
+            run,
+            stage="control",
+            status="succeeded",
+            source="api",
+            data={
+                "action": action,
+                "controlMode": control_mode,
+                "status": run.get("status"),
+                "bulk": bulk,
+                "pendingControlCount": len(run.get("pending_controls") or []),
+            },
+        )
         self._append_event_locked(
             run,
             event_type="run-control",
@@ -191,7 +247,9 @@ class VmRunControlService:
 
             run_id = str(uuid4())
             now = now_iso()
-            normalized_metadata = deepcopy(metadata) if isinstance(metadata, dict) else {}
+            normalized_metadata = (
+                deepcopy(metadata) if isinstance(metadata, dict) else {}
+            )
             explicit_conversation_ref = normalize_optional_string(
                 normalized_metadata.get("conversation_ref")
             )
@@ -229,6 +287,21 @@ class VmRunControlService:
                     status=run["status"],
                     control_mode=run["control_mode"],
                 ),
+            )
+            self._append_trace_event_locked(
+                run,
+                stage="create",
+                status="succeeded",
+                source="api",
+                data={
+                    "status": run["status"],
+                    "controlMode": run["control_mode"],
+                    "hasAgentId": bool(agent_id),
+                    "fileCount": len(run["files"]),
+                    "metadataKeyCount": len(normalized_metadata),
+                    "workspaceActiveRunCount": active_runs,
+                    "maxActiveRunsPerWorkspace": self._max_active_runs_per_workspace,
+                },
             )
             self._runs[run_id] = run
             self._enqueue_run_locked(workspace_id, run_id)
@@ -300,6 +373,17 @@ class VmRunControlService:
                 event_type=event_type,
                 terminal_event_to_status=self._TERMINAL_EVENT_TO_STATUS,
             )
+            self._append_trace_event_locked(
+                run,
+                stage="stream_event",
+                status="succeeded",
+                source=source,
+                data={
+                    "eventType": event_type,
+                    "runStatus": run.get("status"),
+                    "payloadKeyCount": len(payload) if isinstance(payload, dict) else 0,
+                },
+            )
             return {
                 "run": self._clone_run(run),
                 "event": deepcopy(event),
@@ -340,6 +424,7 @@ class VmRunControlService:
         requested_by: Optional[str] = None,
     ) -> List[str]:
         async with self._lock:
+
             def enqueue_stop_control(run: Dict[str, Any]) -> None:
                 self._enqueue_control_command_locked(
                     run,
@@ -424,6 +509,18 @@ class VmRunControlService:
             normalized_conversation_ref = normalize_optional_string(conversation_ref)
             if normalized_conversation_ref:
                 run["conversation_ref"] = normalized_conversation_ref
+            self._append_trace_event_locked(
+                run,
+                stage="dispatch",
+                status="succeeded",
+                source="worker",
+                data={
+                    "hasWorkerId": bool(worker_id),
+                    "hasUserId": bool(user_id),
+                    "hasTurnRef": bool(turn_ref),
+                    "status": run.get("status"),
+                },
+            )
             self._append_event_locked(
                 run,
                 event_type="run-dispatched",

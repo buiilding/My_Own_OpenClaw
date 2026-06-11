@@ -191,6 +191,12 @@ function emitScreenshotTrace(context, event) {
         ...event,
     });
 }
+function emitArtifactUploadTrace(context, event) {
+    return context.emitTrace?.({
+        path: 'artifact.upload',
+        ...event,
+    });
+}
 function traceDataFromCaptureMeta(captureMeta) {
     if (!isJsonRecord(captureMeta)) {
         return {};
@@ -456,6 +462,15 @@ function createDefaultTurnResourceResolvers(options) {
             });
             const existing = screenshotResolutionFromData(data);
             if (existing) {
+                await emitArtifactUploadTrace(context, {
+                    stage: 'upload',
+                    status: 'skipped',
+                    data: {
+                        reason: 'existing_ref',
+                        hasScreenshotRef: Boolean(existing.screenshotRef),
+                        screenshotRefCount: Array.isArray(existing.screenshotRefs) ? existing.screenshotRefs.length : 0,
+                    },
+                });
                 await emitScreenshotTrace(context, {
                     stage: 'artifact_upload',
                     status: 'skipped',
@@ -491,7 +506,28 @@ function createDefaultTurnResourceResolvers(options) {
                                 : null,
                         },
                     });
+                    await emitArtifactUploadTrace(context, {
+                        stage: 'upload',
+                        status: 'started',
+                        data: {
+                            uploadMode: 'file',
+                            contentType: typeof data.screenshot_content_type === 'string'
+                                ? data.screenshot_content_type
+                                : null,
+                        },
+                    });
                     const uploaded = await uploadScreenshotFile(options.sdkClient, screenshotPath, data.screenshot_content_type);
+                    await emitArtifactUploadTrace(context, {
+                        stage: 'upload',
+                        status: 'succeeded',
+                        durationMs: durationSince(uploadStartedAtMs),
+                        data: {
+                            uploadMode: 'file',
+                            artifactId: uploaded.artifactId,
+                            contentType: uploaded.contentType,
+                            hasUrl: Boolean(uploaded.url),
+                        },
+                    });
                     await emitScreenshotTrace(context, {
                         stage: 'artifact_upload',
                         status: 'succeeded',
@@ -551,7 +587,28 @@ function createDefaultTurnResourceResolvers(options) {
                             : null,
                     },
                 });
+                await emitArtifactUploadTrace(context, {
+                    stage: 'upload',
+                    status: 'started',
+                    data: {
+                        uploadMode: 'inline',
+                        contentType: typeof data.screenshot_content_type === 'string'
+                            ? data.screenshot_content_type
+                            : null,
+                    },
+                });
                 const uploaded = await uploadScreenshotBase64(options.sdkClient, screenshot, data.screenshot_content_type);
+                await emitArtifactUploadTrace(context, {
+                    stage: 'upload',
+                    status: 'succeeded',
+                    durationMs: durationSince(uploadStartedAtMs),
+                    data: {
+                        uploadMode: 'inline',
+                        artifactId: uploaded.artifactId,
+                        contentType: uploaded.contentType,
+                        hasUrl: Boolean(uploaded.url),
+                    },
+                });
                 await emitScreenshotTrace(context, {
                     stage: 'artifact_upload',
                     status: 'succeeded',
@@ -587,6 +644,14 @@ function createDefaultTurnResourceResolvers(options) {
                 };
             }
             catch (error) {
+                await emitArtifactUploadTrace(context, {
+                    stage: 'upload',
+                    status: 'failed',
+                    error: {
+                        code: 'artifact_upload_failed',
+                        message: 'Screenshot artifact upload failed.',
+                    },
+                });
                 await emitScreenshotTrace(context, {
                     stage: 'artifact_upload',
                     status: 'failed',
