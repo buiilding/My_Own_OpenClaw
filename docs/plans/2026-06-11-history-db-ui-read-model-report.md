@@ -22,7 +22,7 @@ Complete.
 - [x] Update docs and changelog.
 - [x] Run validation.
 - [x] Complete inspection pass.
-- [ ] Commit completed work.
+- [x] Commit completed work.
 
 ## Decisions
 
@@ -48,4 +48,4 @@ Complete.
 
 ## Commits
 
-Pending.
+- `a3dbe7c1d feat(history): add visible chat read model` - implementation, tests, docs, and initial plan/report ledger.
