@@ -220,4 +220,25 @@ describe('agent capability handshake manifest', () => {
     ]);
     expect(definition.runtime.workspace_path).toBe('/tmp/project');
   });
+
+  test('defaults non-numeric prompt layer priority instead of coercing it to zero', () => {
+    const definition = buildAgentDefinition({
+      includeToolManifest: false,
+      promptLayers: [{
+        id: 'temporary-guidance',
+        type: 'custom',
+        priority: false,
+        content: 'Use temporary guidance.',
+      }],
+    });
+
+    expect(definition.prompt_layers).toEqual([
+      {
+        id: 'temporary-guidance',
+        type: 'custom',
+        priority: 100,
+        content: 'Use temporary guidance.',
+      },
+    ]);
+  });
 });

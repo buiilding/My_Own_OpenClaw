@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/extensions/sdk: default blank or non-numeric prompt-layer priorities
+  instead of letting JavaScript coercion turn malformed values into top-priority
+  `0` layers.
 - frontend/sdk: reject non-positive SDK live-turn response overlay dimensions
   before mutating the native response window.
 - frontend/surfaces: normalize display-affinity bounds before monitor matching

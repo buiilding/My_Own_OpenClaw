@@ -29,6 +29,17 @@ function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
 }
 
+function normalizeNumber(value, fallback) {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : fallback;
+  }
+  if (typeof value !== 'string' || !value.trim()) {
+    return fallback;
+  }
+  const normalized = Number(value.trim());
+  return Number.isFinite(normalized) ? normalized : fallback;
+}
+
 function normalizeObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
@@ -136,9 +147,7 @@ function readSkillLayer(skillFilePath, skillsRoot) {
   if (!slug) {
     return null;
   }
-  const priority = Number.isFinite(Number(parsed.metadata.priority))
-    ? Number(parsed.metadata.priority)
-    : 75;
+  const priority = normalizeNumber(parsed.metadata.priority, 75);
   return {
     id: `extension:skill:${slug}`,
     skill_id: slug,

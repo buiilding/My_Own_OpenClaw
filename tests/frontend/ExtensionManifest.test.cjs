@@ -182,4 +182,30 @@ describe('extension registry loader', () => {
 
     expect(loadExtensionPluginTools({ contributionsDir: contributionRoot })).toEqual([]);
   });
+
+  test('defaults blank skill priority instead of coercing it to zero', () => {
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+    const skillDir = path.join(contributionRoot, 'skills', 'blank-priority');
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(skillDir, 'SKILL.md'),
+      [
+        '---',
+        'title: Blank Priority',
+        'priority:',
+        '---',
+        '',
+        'Use the blank priority skill.',
+      ].join('\n'),
+    );
+
+    expect(loadExtensionSkillPromptLayers({ contributionsDir: contributionRoot })).toEqual([
+      {
+        id: 'extension:skill:blank-priority',
+        type: 'extension_skill',
+        priority: 75,
+        content: '# Blank Priority\n\nUse the blank priority skill.',
+      },
+    ]);
+  });
 });

@@ -4,6 +4,17 @@ function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
 }
 
+function normalizeNumber(value, fallback) {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : fallback;
+  }
+  if (typeof value !== 'string' || !value.trim()) {
+    return fallback;
+  }
+  const normalized = Number(value.trim());
+  return Number.isFinite(normalized) ? normalized : fallback;
+}
+
 function normalizeStringList(values) {
   if (!Array.isArray(values)) {
     return [];
@@ -30,7 +41,7 @@ function normalizePromptLayers(values) {
     .map((layer, index) => ({
       id: normalizeString(layer.id) || `client-layer-${index}`,
       type: normalizeString(layer.type) || 'custom',
-      priority: Number.isFinite(Number(layer.priority)) ? Number(layer.priority) : 100,
+      priority: normalizeNumber(layer.priority, 100),
       content: normalizeString(layer.content),
     }))
     .filter((layer) => layer.id && layer.type && layer.content);

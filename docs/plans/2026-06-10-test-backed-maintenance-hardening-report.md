@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: nineteenth hardening slice committed.
+- Current slice: twentieth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -117,6 +117,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the nineteenth slice.
 - [x] Update changelog and report with the nineteenth slice result.
 - [x] Commit the nineteenth slice.
+- [x] Select twentieth code slice with a concrete owner and regression test.
+- [x] Implement twentieth slice.
+- [x] Run focused validation and `git diff --check` for the twentieth slice.
+- [x] Update changelog and report with the twentieth slice result.
+- [ ] Commit the twentieth slice.
 
 ## Validation Log
 
@@ -256,6 +261,14 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after nineteenth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs tests/frontend/SdkLiveTurnSurfaceController.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- ExtensionManifest AgentCapabilityHandshake --runInBand`
+  - passed after twentieth slice; 2 suites and 11 tests passed, including the
+    new blank extension skill priority and non-numeric prompt-layer priority
+    regressions.
+- `bin/windie docs list` - passed after twentieth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/extensions/extension_manifest.cjs frontend/src/main/sdk/agent_definition.cjs tests/frontend/ExtensionManifest.test.cjs tests/frontend/AgentCapabilityHandshake.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -527,6 +540,21 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   layout state, IPC payload, stale-guard semantics, or persisted data shape
   changed. The fix only tightens Electron main's native response-window
   dimension boundary for SDK overlay intents.
+- Slice 20 owner: Electron main extension discovery owns skill frontmatter
+  priority normalization, and the SDK-shaped agent definition builder owns
+  client prompt-layer priority normalization before backend prompt assembly.
+- Slice 20 failure mode: blank skill frontmatter priorities and non-numeric
+  ad hoc prompt-layer priorities could become numeric `0` through JavaScript
+  coercion, silently elevating malformed prompt layers above their documented
+  default priority.
+- Slice 20 change: prompt-layer priority normalization now accepts only finite
+  numbers or nonblank numeric strings, defaulting extension skills to `75` and
+  ad hoc client prompt layers to `100` for blank, null, boolean, object, or
+  non-finite values.
+- Slice 20 inspection: no prompt-layer payload shape, backend prompt assembly,
+  extension contribution layout, persisted data, sidecar tool manifest, or MCP
+  discovery contract changed. The fix only tightens Electron main/SDK prompt
+  priority normalization before existing prompt-layer projection.
 
 ## Decisions
 
@@ -604,6 +632,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   native-window boundary hardening. No persisted data, IPC payload, SDK
   projection shape, renderer layout contract, or stale-guard contract changed,
   so no migration is required.
+- Treat malformed prompt-layer priorities as Electron main/SDK prompt input
+  normalization hardening. No persisted data, prompt-layer payload shape,
+  backend prompt assembly, sidecar payload, tool manifest, or extension package
+  layout changed, so no migration is required.
 
 ## Commits
 
