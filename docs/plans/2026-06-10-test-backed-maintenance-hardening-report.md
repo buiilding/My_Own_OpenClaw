@@ -61,7 +61,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement eighth slice.
 - [x] Run focused validation and `git diff --check` for the eighth slice.
 - [x] Update changelog and report with the eighth slice result.
-- [ ] Commit the eighth slice.
+- [x] Commit the eighth slice.
 
 ## Validation Log
 
@@ -288,6 +288,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `a63c5c919` - `fix(frontend-main): harden second-instance cooldown parsing`
 - `c014ab059` - `fix(sdk-conversation): normalize sidecar metadata counts`
 - `fabd99d9f` - `fix(frontend-surface): harden screenshot settle delay parsing`
+- `75a92d4cb` - `fix(sdk-conversation): normalize metadata pagination limits`
 
 ## Remaining Candidates
 
