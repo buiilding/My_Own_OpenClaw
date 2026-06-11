@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: fourteenth hardening slice committed.
+- Current slice: fifteenth hardening slice validated.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -92,6 +92,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the fourteenth slice.
 - [x] Update changelog and report with the fourteenth slice result.
 - [x] Commit the fourteenth slice.
+- [x] Select fifteenth code slice with a concrete owner and regression test.
+- [x] Implement fifteenth slice.
+- [x] Run focused validation and `git diff --check` for the fifteenth slice.
+- [x] Update changelog and report with the fifteenth slice result.
+- [ ] Commit the fifteenth slice.
 
 ## Validation Log
 
@@ -196,6 +201,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after fourteenth-slice changelog/report
   updates; canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/overlay_chatbox_handler.cjs tests/frontend/OverlayChatboxHandler.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- OverlayWindowHelpersRuntime --runInBand` -
+  passed after fifteenth slice; 1 suite and 14 tests passed, including the new
+  malformed response-window size regressions.
+- `bin/windie docs list` - passed after fifteenth-slice changelog/report
+  updates; canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs tests/frontend/OverlayWindowHelpersRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -396,6 +408,21 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   position shape, display-affinity producer, or dependent overlay placement
   path changed. The fix only tightens Electron main's geometry input boundary
   during chatbox moves.
+- Slice 15 owner: Electron main overlay window helpers own response overlay
+  repositioning and fallback response bounds from native response-window and
+  chat-window sizes.
+- Slice 15 failure mode: malformed response-window sizes from `getSize()` such
+  as `Infinity` or `NaN` could flow into response overlay repositioning or
+  fallback placement before the overlay bounds helper calculated native
+  `setBounds(...)` values.
+- Slice 15 change: response overlay repositioning and fallback placement now
+  normalize native size reads to finite positive dimensions, preserving valid
+  sizes, using the chat/default width fallback for invalid fallback widths, and
+  preserving the compact awaiting height floor.
+- Slice 15 inspection: no renderer layout contract, IPC payload, SDK
+  projection, display-affinity producer, or response overlay visibility policy
+  changed. The fix only tightens Electron main's native response-window size
+  boundary before bounds calculation.
 
 ## Decisions
 
@@ -452,6 +479,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat malformed chat-window move dimensions as Electron main geometry
   boundary hardening. No persisted data, IPC payload, renderer drag contract,
   display-affinity producer, or dependent overlay placement path changed, so no
+  migration is required.
+- Treat malformed response-window sizes as Electron main geometry boundary
+  hardening. No persisted data, IPC payload, renderer layout contract, SDK
+  projection, display-affinity producer, or visibility policy changed, so no
   migration is required.
 
 ## Commits

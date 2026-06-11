@@ -247,6 +247,91 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
+  test('normalizes malformed response window size before repositioning', () => {
+    const responseWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [Infinity, Number.NaN]),
+      setBounds: jest.fn(),
+    };
+    const getOverlayResponseWindowBounds = jest.fn((args) => ({
+      x: 0,
+      y: 0,
+      width: args.width,
+      height: args.height,
+    }));
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getResponseWindow: () => responseWindow,
+      getResponseOverlayVisible: () => true,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds,
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    runtime.positionResponseWindow();
+
+    expect(getOverlayResponseWindowBounds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        width: 1,
+        height: 1,
+      }),
+    );
+    expect(responseWindow.setBounds).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 1, height: 1 }),
+      false,
+    );
+  });
+
+  test('falls back when response fallback bounds read malformed native sizes', () => {
+    const responseWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [Infinity, Number.NaN]),
+      setBounds: jest.fn(),
+    };
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [Number.NaN, 64]),
+    };
+    const getOverlayResponseWindowBounds = jest.fn((args) => ({
+      x: 0,
+      y: 0,
+      width: args.width,
+      height: args.height,
+    }));
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getResponseWindow: () => responseWindow,
+      getResponseOverlayVisible: () => true,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds,
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    runtime.ensureResponseOverlayFallbackBounds();
+
+    expect(getOverlayResponseWindowBounds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        width: 520,
+        height: 24,
+      }),
+    );
+    expect(responseWindow.setBounds).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 520, height: 24 }),
+      false,
+    );
+  });
+
   test('keeps manually dragged chat window position on subsequent reposition calls', () => {
     const chatWindow = {
       isDestroyed: jest.fn(() => false),

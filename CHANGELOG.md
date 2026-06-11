@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/overlays: normalize malformed response-window sizes before
+  repositioning or fallback placement so invalid native dimensions cannot
+  propagate into response overlay bounds.
 - frontend/overlays: normalize malformed chat-window dimensions before
   resolving move-target display affinity so invalid native sizes cannot
   propagate into monitor selection.

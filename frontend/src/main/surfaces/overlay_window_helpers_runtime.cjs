@@ -15,6 +15,15 @@ function normalizeFiniteRounded(value) {
   return Math.round(parsed);
 }
 
+function normalizePositiveDimension(value, fallback = 1) {
+  const rounded = normalizeFiniteRounded(value);
+  if (rounded !== null && rounded > 0) {
+    return rounded;
+  }
+  const fallbackRounded = normalizeFiniteRounded(fallback);
+  return fallbackRounded !== null && fallbackRounded > 0 ? fallbackRounded : 1;
+}
+
 function normalizeChatBoundsForAnchor(chatBounds) {
   if (!chatBounds || typeof chatBounds !== 'object') {
     return null;
@@ -196,7 +205,9 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!responseWindow || responseWindow.isDestroyed() || !getResponseOverlayVisible()) {
       return;
     }
-    const [width, height] = responseWindow.getSize();
+    const [widthRaw, heightRaw] = responseWindow.getSize();
+    const width = normalizePositiveDimension(widthRaw);
+    const height = normalizePositiveDimension(heightRaw);
     const bounds = getResponseWindowBounds(width, height);
     responseWindow.setBounds(bounds, false);
   }
@@ -386,16 +397,20 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       return;
     }
     const chatWindow = getChatWindow();
-    const defaultWidth = chatWindow
+    const defaultWidthRaw = chatWindow
       && !chatWindow.isDestroyed()
       && typeof chatWindow.getSize === 'function'
       ? chatWindow.getSize()[0]
       : 520;
     const [currentWidth, currentHeight] = responseWindow.getSize();
-    const width = Math.max(1, currentWidth || defaultWidth);
+    const defaultWidth = normalizePositiveDimension(defaultWidthRaw, 520);
+    const width = normalizePositiveDimension(currentWidth, defaultWidth);
     // Keep compact awaiting typing overlays from being forced to taller fallback
     // bounds during hide/show restore races.
-    const height = Math.max(RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT, currentHeight || 0);
+    const height = Math.max(
+      RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT,
+      normalizePositiveDimension(currentHeight, RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT),
+    );
     const bounds = getResponseWindowBounds(width, height);
     responseWindow.setBounds(bounds, false);
   }
