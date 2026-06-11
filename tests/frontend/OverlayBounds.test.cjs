@@ -117,6 +117,19 @@ describe('overlay_bounds', () => {
     });
   });
 
+  test('normalizes malformed fallback overlay dimensions before placement', () => {
+    expect(getChatWindowBounds({
+      screen,
+      width: Infinity,
+      height: Number.NaN,
+    })).toEqual({
+      x: 800,
+      y: 925,
+      width: 1,
+      height: 1,
+    });
+  });
+
   test('response bounds align above current chat bounds when available', () => {
     expect(
       getResponseWindowBounds({

@@ -38,6 +38,11 @@ function normalizeBounds(bounds) {
   };
 }
 
+function normalizePositiveDimension(value) {
+  const rounded = normalizeRoundedFinite(value, { required: true });
+  return rounded !== null && rounded > 0 ? rounded : 1;
+}
+
 function resolvePrimaryWorkArea(screen) {
   if (!screen || typeof screen.getPrimaryDisplay !== 'function') {
     return { x: 0, y: 0, width: 0, height: 0 };
@@ -81,15 +86,17 @@ function getChatWindowBounds({
   marginBottom = 24,
   targetX = null,
 }) {
+  const normalizedWidth = normalizePositiveDimension(width);
+  const normalizedHeight = normalizePositiveDimension(height);
   const workArea = resolveTargetWorkArea({ screen, displayAffinity });
-  const maxX = workArea.x + Math.max(0, workArea.width - width);
-  const centeredX = Math.round(workArea.x + (workArea.width - width) / 2);
+  const maxX = workArea.x + Math.max(0, workArea.width - normalizedWidth);
+  const centeredX = Math.round(workArea.x + (workArea.width - normalizedWidth) / 2);
   const hasManualTargetX = targetX !== null && targetX !== undefined && Number.isFinite(Number(targetX));
   const x = hasManualTargetX
     ? clampToRange(Math.round(Number(targetX)), workArea.x, maxX)
     : centeredX;
-  const y = Math.round(workArea.y + workArea.height - height - marginBottom);
-  return { x, y, width, height };
+  const y = Math.round(workArea.y + workArea.height - normalizedHeight - marginBottom);
+  return { x, y, width: normalizedWidth, height: normalizedHeight };
 }
 
 function resolveResponseGap({ gap = 10, height, compactHover = false }) {

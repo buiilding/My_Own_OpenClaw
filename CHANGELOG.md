@@ -28,6 +28,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/overlays: normalize fallback overlay dimensions before placement so
+  malformed width or height inputs cannot propagate invalid native bounds.
 - frontend/overlays: normalize primary display fallback bounds before overlay
   placement so malformed display work areas fall back to valid primary bounds
   instead of producing invalid native coordinates.
