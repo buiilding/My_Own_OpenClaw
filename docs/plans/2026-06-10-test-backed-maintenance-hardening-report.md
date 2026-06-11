@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: second hardening slice committed.
+- Current slice: third hardening slice complete; commit pending.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -32,6 +32,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the second slice.
 - [x] Update changelog and report with the second slice result.
 - [x] Commit the second slice.
+- [x] Select third code/docs slice with a concrete owner and regression test.
+- [x] Implement third slice.
+- [x] Run focused validation and `git diff --check` for the third slice.
+- [x] Update changelog and report with the third slice result.
+- [ ] Commit the third slice.
 
 ## Validation Log
 
@@ -50,6 +55,15 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/app/backend_endpoints.cjs tests/frontend/BackendEndpoints.test.cjs docs/operations/configuration.md CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
+- `cd frontend && npm run test -- BackendEndpoints --runInBand` - passed after
+  third slice; 2 suites and 11 tests passed, including the new active endpoint
+  docs regression guard.
+- `bin/windie docs list` - passed after third-slice docs changes; canonical
+  navigation reported 83 page references validated.
+- `git diff --check -- tests/frontend/BackendEndpoints.test.cjs docs/help/doctor_checklist.md docs/operations/runtime_configuration_matrix.md docs/operations/configuration.md docs/getting-started/installation.md docs/install/local_backend_and_endpoint_setup.md CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `rg -n "WINDIE_DEFAULT_PACKAGED_BACKEND" tests/frontend/BackendEndpoints.test.cjs docs/help/doctor_checklist.md docs/operations/runtime_configuration_matrix.md docs/operations/configuration.md docs/getting-started/installation.md docs/install/local_backend_and_endpoint_setup.md`
+  - passed for docs; only the regression test itself contains the removed names.
 
 ## Inspection Log
 
@@ -88,6 +102,22 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   `BACKEND_HTTP_URL` / `BACKEND_WS_URL` priority is unchanged, valid local
   host/port overrides still win when full URLs are absent, and artifact URL
   selection remains covered by existing tests.
+- Slice 3 owner: docs/tests own endpoint configuration contracts that agents and
+  operators use to choose runtime env vars. Electron main remains the code
+  source of truth for endpoint env handling.
+- Slice 3 failure mode: active endpoint setup docs still advertised
+  `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL` and
+  `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL` even though the endpoint resolver
+  ignores them and the existing endpoint test asserts they are removed.
+- Slice 3 change: active endpoint docs now point users to
+  `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL`, and
+  `BackendEndpoints.test.cjs` now guards that selected active endpoint docs do
+  not reintroduce the removed packaged default env names.
+- Slice 3 inspection: no runtime code changed. Endpoint resolver behavior
+  remains as committed in slice 2. A full docs search still finds the removed
+  env names in `docs/operations/sidecar_runtime_packaging.md`, but that file had
+  unrelated pre-existing dirty edits, so it remains a follow-up rather than
+  being mixed into this slice.
 
 ## Decisions
 
@@ -104,6 +134,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Defer the separate docs drift where `docs/operations/configuration.md` still
   mentions removed packaged backend override names that tests assert are
   ignored. That cleanup should be its own slice.
+- Treat selected endpoint-doc cleanup as a docs/test contract fix. No runtime,
+  persisted data, IPC payload, or backend API shape changed, so no migration is
+  required.
 
 ## Commits
 
@@ -115,5 +148,6 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Continue with another focused hardening target outside the existing dirty
   sidecar bridge changes unless that bridge work becomes the highest-evidence
   path.
-- Clean up stale packaged backend override docs after confirming the current
-  replacement contract in endpoint docs and tests.
+- Clean up the remaining stale packaged backend override mention in
+  `docs/operations/sidecar_runtime_packaging.md` after reconciling that file's
+  pre-existing dirty edits.

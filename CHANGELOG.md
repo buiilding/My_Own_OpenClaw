@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- docs/frontend: remove removed packaged backend default env names from active
+  endpoint setup docs and add regression coverage so docs stay aligned with the
+  Electron endpoint resolver.
 - frontend/endpoints: fall back to hosted backend defaults when malformed
   `BACKEND_HOST` or `BACKEND_PORT` overrides produce no valid local endpoint,
   avoiding an undefined endpoint crash during Electron startup.

@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const {
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
@@ -50,6 +53,22 @@ describe('backend_endpoints hosted defaults', () => {
         wsOrigin: 'https://api.windieos.com',
       },
     ]);
+  });
+
+  test('active endpoint docs do not list removed packaged default env names', () => {
+    const docs = [
+      'docs/help/doctor_checklist.md',
+      'docs/operations/runtime_configuration_matrix.md',
+      'docs/operations/configuration.md',
+      'docs/getting-started/installation.md',
+      'docs/install/local_backend_and_endpoint_setup.md',
+    ];
+
+    for (const docPath of docs) {
+      const content = fs.readFileSync(path.resolve(__dirname, '../..', docPath), 'utf8');
+      expect(content).not.toContain('WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL');
+      expect(content).not.toContain('WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL');
+    }
   });
 
   test('falls back to hosted defaults when local host or port override is invalid', () => {

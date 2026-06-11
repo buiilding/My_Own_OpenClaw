@@ -294,11 +294,11 @@ export BACKEND_HTTP_URL="https://your-api.example.com"
 export BACKEND_WS_URL="wss://your-api.example.com/ws"
 ```
 
-You can also override packaged fallback defaults without setting `BACKEND_*`:
+You can also override hosted defaults without setting `BACKEND_*`:
 
 ```bash
-export WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL="https://your-api.example.com"
-export WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL="wss://your-api.example.com/ws"
+export WINDIE_DEFAULT_BACKEND_HTTP_URL="https://your-api.example.com"
+export WINDIE_DEFAULT_BACKEND_WS_URL="wss://your-api.example.com/ws"
 ```
 
 The app still starts the local Python sidecar for local tool execution.

@@ -226,8 +226,6 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 - `BACKEND_HOST` and `BACKEND_PORT`: explicit endpoint override when full URLs are unset; malformed local overrides fall back to hosted defaults instead of producing an empty endpoint set.
 - `WINDIE_DEFAULT_BACKEND_HTTP_URL`: hosted-default HTTP URL when no `BACKEND_*` override is set.
 - `WINDIE_DEFAULT_BACKEND_WS_URL`: hosted-default WS URL when no `BACKEND_*` override is set.
-- `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`: packaged-app default HTTP URL when no `BACKEND_*` override is set.
-- `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`: packaged-app default WS URL when no `BACKEND_*` override is set.
 - `WINDIE_PYTHON_PATH`: explicit Python executable path for sidecar processes.
 - `WINDIE_VM_MODE`: set to `1` to boot WindieOS in hosted VM dashboard mode.
   - Disables first-run permission/onboarding gates in renderer.
@@ -254,7 +252,7 @@ Default behavior:
 
 - Dev/source runs default to the hosted backend (`https://api.windieos.com`, `wss://api.windieos.com/ws`) unless `BACKEND_*` explicitly pins a different target.
 - Packaged builds also default to the hosted backend and do not auto-fall back to frontend-local `127.0.0.1:8765`.
-- `WINDIE_DEFAULT_BACKEND_*` and `WINDIE_DEFAULT_PACKAGED_BACKEND_*` change that hosted default when `BACKEND_*` is unset.
+- `WINDIE_DEFAULT_BACKEND_*` changes that hosted default when `BACKEND_*` is unset.
 - Preferred self-hosted setup for serving `api.windieos.com`: keep both the Cloudflare tunnel and the backend available as persistent user services so the hosted endpoint does not intermittently route to an origin with nothing listening on `127.0.0.1:8765`.
 
 For bundled runtime packaging details, see `docs/operations/sidecar_runtime_packaging.md`.

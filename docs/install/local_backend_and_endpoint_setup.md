@@ -61,16 +61,16 @@ bin/windie start dev
 
 If a hosted route returns auth errors, confirm that the install token or runs API key belongs to the same backend host the app is using.
 
-## Packaged Defaults
+## Hosted Defaults
 
-Packaged app defaults can be overridden without replacing high-priority `BACKEND_*` variables:
+Hosted defaults can be overridden without replacing high-priority `BACKEND_*` variables:
 
 ```bash
-export WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL=https://your-api.example.com
-export WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL=wss://your-api.example.com/ws
+export WINDIE_DEFAULT_BACKEND_HTTP_URL=https://your-api.example.com
+export WINDIE_DEFAULT_BACKEND_WS_URL=wss://your-api.example.com/ws
 ```
 
-Use packaged defaults for install-specific routing. Use `BACKEND_HTTP_URL` and `BACKEND_WS_URL` when you need a hard override for the current launch.
+Use hosted defaults for install-specific routing. Use `BACKEND_HTTP_URL` and `BACKEND_WS_URL` when you need a hard override for the current launch.
 
 ## Self-Hosted Origin And Tunnel
 

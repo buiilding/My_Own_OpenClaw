@@ -29,8 +29,6 @@ WindieOS configuration is intentionally split by runtime boundary. Do not add a 
 | `BACKEND_HOST` / `BACKEND_PORT` | Electron main env | `127.0.0.1` / `8765` only when explicitly set | Local fallback endpoint pair | You want old-style local endpoint pinning without full URLs |
 | `WINDIE_DEFAULT_BACKEND_HTTP_URL` | Electron main env | unset | Hosted default HTTP override when no `BACKEND_*` is set | You are changing the default host for all app modes |
 | `WINDIE_DEFAULT_BACKEND_WS_URL` | Electron main env | unset | Hosted default websocket override when no `BACKEND_*` is set | You need a non-derived hosted websocket URL |
-| `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL` | Electron main env | unset | Legacy packaged default HTTP override | You are supporting existing packaged override workflows |
-| `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL` | Electron main env | unset | Legacy packaged default websocket override | You are supporting existing packaged override workflows |
 | `WINDIE_BACKEND_HTTP_URL` | Sidecar env injected by Electron main | resolved active backend URL | Backend URL used by sidecar remote memory/embedding clients | You are debugging sidecar-to-backend routes, not renderer websocket selection |
 
 Current default with no endpoint env override:
