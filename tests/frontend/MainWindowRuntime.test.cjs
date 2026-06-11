@@ -146,6 +146,41 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     }
   });
 
+  test('falls back to the default settle interval for invalid wait overrides', async () => {
+    jest.useFakeTimers();
+
+    try {
+      let settled = false;
+      const pending = prepareOverlayQueryCaptureFocus({
+        platform: 'linux',
+        waitMs: '120ms',
+      }).then((result) => {
+        settled = true;
+        return result;
+      });
+      await Promise.resolve();
+
+      expect(settled).toBe(false);
+
+      jest.advanceTimersByTime(119);
+      await Promise.resolve();
+      expect(settled).toBe(false);
+
+      jest.advanceTimersByTime(1);
+      const result = await pending;
+
+      expect(settled).toBe(true);
+      expect(result).toEqual({
+        restoredExternalFocus: false,
+        demotedOverlayFocus: false,
+        externalFocusActive: false,
+        canVerifyExternalFocus: false,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('ignores skipDemotion and still returns blur-only result', async () => {
     const responseWindow = {
       isDestroyed: jest.fn().mockReturnValue(false),

@@ -28,6 +28,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/main: fall back to the default overlay capture focus settle wait for
+  invalid injected values so malformed config cannot skip capture preparation.
 - sdk/conversation: normalize conversation metadata pagination limits to
   finite non-negative integers so negative or non-finite limits cannot return
   surprising list/search pages.

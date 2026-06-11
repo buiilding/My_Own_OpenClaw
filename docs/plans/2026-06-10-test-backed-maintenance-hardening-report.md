@@ -62,6 +62,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the eighth slice.
 - [x] Update changelog and report with the eighth slice result.
 - [x] Commit the eighth slice.
+- [x] Select ninth code slice with a concrete owner and regression test.
+- [x] Implement ninth slice.
+- [x] Run focused validation and `git diff --check` for the ninth slice.
+- [x] Update changelog and report with the ninth slice result.
+- [ ] Commit the ninth slice.
 
 ## Validation Log
 
@@ -124,6 +129,13 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `bin/windie docs list` - passed after eighth-slice changelog/report updates;
   canonical navigation reported 83 page references validated.
 - `git diff --check -- packages/windie-sdk-js/src/conversation/metadata.ts tests/frontend/WindieSdkConversationRuntime.test.ts CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
+  - passed.
+- `cd frontend && npm run test -- MainWindowRuntime --runInBand` - passed
+  after ninth slice; 1 suite and 47 tests passed, including the new invalid
+  overlay capture focus wait regression test.
+- `bin/windie docs list` - passed after ninth-slice changelog/report updates;
+  canonical navigation reported 83 page references validated.
+- `git diff --check -- frontend/src/main/surfaces/main_window_runtime.cjs tests/frontend/MainWindowRuntime.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
 
 ## Inspection Log
@@ -244,6 +256,17 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Slice 8 inspection: no store persistence format, sidecar RPC payload,
   renderer event shape, display projection, or rehydrate projection changed.
   The fix only tightens SDK list/search pagination output.
+- Slice 9 owner: Electron main main-window runtime owns overlay query capture
+  focus preparation and the settle wait after blurring assistant windows.
+- Slice 9 failure mode: malformed `waitMs` injection values such as `120ms`
+  skipped the capture-prep settle wait because the runtime compared the raw
+  value directly with zero and let JavaScript coercion decide the branch.
+- Slice 9 change: overlay capture focus wait normalization now preserves
+  explicit `0` as the no-wait path while falling back to the production default
+  for invalid, non-finite, or negative values.
+- Slice 9 inspection: no IPC channel, sidecar screenshot RPC payload, renderer
+  state shape, platform policy, or persisted data changed. The existing
+  blur-only capture prep and macOS no-op path remain unchanged.
 
 ## Decisions
 
@@ -278,6 +301,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat metadata pagination limit normalization as SDK helper hardening. No
   persisted data, sidecar RPC payload, backend API, or renderer event shape
   changed, so no migration is required.
+- Treat invalid overlay capture focus wait normalization as Electron main
+  capture-prep hardening. No persisted data, IPC payload, sidecar RPC payload,
+  or renderer event shape changed, so no migration is required.
 
 ## Commits
 

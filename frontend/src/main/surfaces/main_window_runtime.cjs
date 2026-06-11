@@ -20,13 +20,28 @@ const {
 
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 164;
+const DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS = 120;
+
+function normalizeOverlayQueryCaptureFocusWaitMs(value) {
+  if (typeof value !== 'number' && typeof value !== 'string') {
+    return DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS;
+  }
+  if (typeof value === 'string' && !value.trim()) {
+    return DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS;
+  }
+  return Math.round(parsed);
+}
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
   responseWindow,
   mainWindow,
   platform = process.platform,
-  waitMs = 120,
+  waitMs = DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS,
 }) {
   if (platform === 'darwin') {
     return {
@@ -47,8 +62,9 @@ async function prepareOverlayQueryCaptureFocus({
     mainWindow.blur();
   }
 
-  if (waitMs > 0) {
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
+  const normalizedWaitMs = normalizeOverlayQueryCaptureFocusWaitMs(waitMs);
+  if (normalizedWaitMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, normalizedWaitMs));
   }
 
   return {
