@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: second hardening slice complete; commit pending.
+- Current slice: second hardening slice committed.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -31,7 +31,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Implement second slice.
 - [x] Run focused validation and `git diff --check` for the second slice.
 - [x] Update changelog and report with the second slice result.
-- [ ] Commit the second slice.
+- [x] Commit the second slice.
 
 ## Validation Log
 
@@ -108,6 +108,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Commits
 
 - `185899229` - `fix(frontend-vm-worker): harden heartbeat interval parsing`
+- `1fb1cda3b` - `fix(frontend-endpoints): tolerate invalid local backend overrides`
 
 ## Remaining Candidates
 
