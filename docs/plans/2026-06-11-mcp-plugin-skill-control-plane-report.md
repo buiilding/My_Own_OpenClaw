@@ -12,8 +12,8 @@ Plan: `docs/plans/2026-06-11-mcp-plugin-skill-control-plane-plan.md`
 
 ## Status
 
-Complete pending commit. Core MCP gating, dashboard controls, and CUA
-declaration are implemented and validated.
+Complete. Core MCP gating, dashboard controls, and CUA declaration are
+implemented, validated, and committed.
 
 ## Starting State
 
@@ -107,4 +107,4 @@ declaration are implemented and validated.
 
 ## Commits
 
-- Pending.
+- `0bbe32d49 feat(frontend-mcp): add gated MCP control plane`
