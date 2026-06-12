@@ -261,3 +261,13 @@ Start with [Observability Change Workflow](../debug/observability_change_workflo
 Validate log level, trace flag gating, diagnostic event shape, user-facing error state, retry behavior, redaction, and evidence-collection docs. Prefer narrow diagnostics that identify the producer and consumer.
 
 Avoid: adding always-on verbose logs or raw payload dumps for cross-runtime failures.
+
+## Docs-Only Update
+
+Owner: docs and tests, with runtime docs consulted when the doc describes behavior owned by a runtime.
+
+Start with [Docs Update Workflow](docs_update_workflow.md), [Documentation Hub](../getting-started/docs_hub.md), and [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md).
+
+Validate front matter, `read_when` routing, hub wiring, canonical navigation, relative links, changelog coverage, `bin/windie docs list`, and `git diff --check`. Docs-only changes usually do not need code tests unless a generator, schema snapshot, or script changed.
+
+Avoid: documenting intended behavior as current behavior before checking the owning runtime or marking the page as planning material.
