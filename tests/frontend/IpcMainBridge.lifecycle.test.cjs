@@ -710,7 +710,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+Alt+.');
   });
 
-  test('save-frontend-config preserves existing MCP enablement when payload omits it', async () => {
+  test('save-frontend-config preserves existing MCP enablement from stale renderer payloads', async () => {
     const { handlers, fs } = initIpc();
     const appDataPath = path.join(path.sep, 'tmp', 'appdata');
     const configPath = path.join(appDataPath, 'frontend-config.json');
@@ -724,6 +724,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     const result = await handlers['save-frontend-config'](null, {
       model_mode: 'online',
+      agent_enabled_mcp_servers: [],
     });
 
     expect(result).toEqual({ success: true });

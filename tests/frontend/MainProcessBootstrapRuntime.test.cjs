@@ -41,6 +41,8 @@ describe('main_process_bootstrap_runtime', () => {
         syncSdkLiveTurnSurfaceIntent: jest.fn(),
         initializeWakewordBridge: jest.fn(),
         initializeLocalBackendBridge: jest.fn(),
+        getKnownLocalRuntime: jest.fn(),
+        ensureLocalRuntime: jest.fn(),
         initializeMainProcessIpc: jest.fn(),
         createVmWorkerRuntime: jest.fn(),
         getBackendConnectionState: jest.fn(),
@@ -95,6 +97,8 @@ describe('main_process_bootstrap_runtime', () => {
       setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
       localToolLifecycle: deps.localToolLifecycle,
       syncSdkLiveTurnSurfaceIntent: deps.syncSdkLiveTurnSurfaceIntent,
+      getKnownLocalRuntime: deps.getKnownLocalRuntime,
+      ensureLocalRuntime: deps.ensureLocalRuntime,
     }));
     expect(state.windows.mainWindow).toEqual({ id: 'main-window' });
   });

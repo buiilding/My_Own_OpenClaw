@@ -5,7 +5,6 @@ import {
   X,
 } from 'lucide-react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
-import { useAppConfigContext } from '../../../../app/providers/AppConfigContext';
 import { CloneToggle } from './settings/settingsControls';
 
 function normalizeMcpRegistry(payload) {
@@ -20,7 +19,6 @@ function normalizeMcpRegistry(payload) {
 }
 
 function McpsSection({ onClose = () => {} }) {
-  const { updateConfig } = useAppConfigContext();
   const [registry, setRegistry] = useState({ mcps: [], errors: [], mcp_errors: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -69,13 +67,10 @@ function McpsSection({ onClose = () => {} }) {
       }
       const nextRegistry = normalizeMcpRegistry(payload?.registry);
       setRegistry(nextRegistry);
-      updateConfig({
-        agent_enabled_mcp_servers: nextRegistry.enabled_mcp_servers,
-      });
     } catch (toggleError) {
       setError(toggleError?.message || 'Unable to update MCP server.');
     }
-  }, [updateConfig]);
+  }, []);
 
   return (
     <div className="clone-model-panel">

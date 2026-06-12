@@ -51,6 +51,10 @@ paths consume the SDK runtime manager instead of owning sidecar lifecycle.
   and uses SDK resolvers for RPC/tool execution.
 - 2026-06-12: Updated SDK/frontend architecture docs and changelog for the new
   local-runtime layer split.
+- 2026-06-12: Fixed the main-process window bootstrap gap that passed SDK
+  local-runtime resolvers into `createWindowBootstrapRuntime(...)` but did not
+  forward them into `createMainWindowRuntime(...)`, leaving pre-conversation
+  browser header/status bootstrap without an SDK resolver.
 
 ## Decisions
 
@@ -77,6 +81,7 @@ paths consume the SDK runtime manager instead of owning sidecar lifecycle.
 - Passed follow-up bridge rerun:
   `bin/windie test frontend -- LocalBackendBridge.lifecycle.test.cjs LocalBackendBridge.rpc.test.cjs`.
 - Passed: `bin/windie docs list`.
+- Passed: `bin/windie test frontend -- MainProcessBootstrapRuntime.test.cjs MainWindowRuntime.test.cjs LocalBackendBridge.lifecycle.test.cjs ChatBrowserSessionControl.test.jsx BrowserSessionStore.test.js`.
 
 ## Inspection Log
 
@@ -91,6 +96,8 @@ paths consume the SDK runtime manager instead of owning sidecar lifecycle.
   `frontend/src/main/ipc.cjs`,
   `frontend/src/main/surfaces/main_window_runtime.cjs`, and
   `frontend/src/main/index.cjs`.
+- `node -c` passed for
+  `frontend/src/main/app/main_process_bootstrap_runtime.cjs`.
 
 ## Commits
 

@@ -423,11 +423,14 @@ async function loadCachedFrontendConfigFromDisk() {
   return loadFrontendConfigFromDisk(log);
 }
 
-function preserveMainOwnedFrontendConfigFields(config) {
+function preserveMainOwnedFrontendConfigFields(config, options = {}) {
+  const {
+    preserveMcpEnablement = true,
+  } = options;
   if (!isValidConfigPayload(config)) {
     return config;
   }
-  if (Object.prototype.hasOwnProperty.call(config, MCP_ENABLED_CONFIG_KEY)) {
+  if (!preserveMcpEnablement) {
     return config;
   }
   const enabledMcpServers = latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY];
@@ -440,9 +443,9 @@ function preserveMainOwnedFrontendConfigFields(config) {
   };
 }
 
-async function persistFrontendConfigToDisk(config) {
+async function persistFrontendConfigToDisk(config, options = {}) {
   const persistableConfig = redactProviderSecretsFromFrontendConfig(
-    preserveMainOwnedFrontendConfigFields(config),
+    preserveMainOwnedFrontendConfigFields(config, options),
   );
   const result = await saveFrontendConfigToDisk(persistableConfig, log);
   if (
@@ -1383,7 +1386,9 @@ function initializeIpc(win, options = {}) {
       config: latestFrontendConfig || {},
       serverId,
       enabled: payload.enabled === true,
-      persistConfig: persistFrontendConfigToDisk,
+      persistConfig: (nextConfig) => persistFrontendConfigToDisk(nextConfig, {
+        preserveMcpEnablement: false,
+      }),
       resolveLocalRuntime: process.env.NODE_ENV === 'test'
         ? null
         : async () => (await ensureWindieAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,

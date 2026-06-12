@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/mcp: keep MCP enablement main-owned so stale renderer/default
+  AppConfig saves cannot erase an enabled MCP allowlist after discovery, while
+  dashboard toggles still persist enable/disable through the MCP control path.
 - frontend/diagnostics: export and wire the Electron main app-diagnostic sink so
   startup permission IPC registration no longer aborts with
   `appendAppDiagnostic is not defined`.
@@ -89,6 +92,9 @@ All notable changes to WindieOS will be documented in this file.
   `WindieClient` surface usable without an agent loop, and delete the Electron
   local-backend bridge's duplicate sidecar provider/cache in favor of shared SDK
   local-runtime resolvers.
+- frontend/bootstrap: forward the shared SDK local-runtime resolvers through
+  main-process window bootstrap so pre-conversation browser header/status
+  checks use the same `WindieClient` runtime as agent tool turns.
 - frontend/chat-pill: gate the minimal chat pill textarea caret behind a
   main-process `activate-chatbox-text-entry` focus handoff so passive overlay
   rendering, screenshot/tool restores, and pointer-control leases cannot show a
