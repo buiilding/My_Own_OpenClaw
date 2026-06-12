@@ -161,3 +161,13 @@ Start with [Permissions and Local Authority Workflow](../security/permissions_an
 Validate screen, input, microphone, browser, workspace, and sudo authority paths on the relevant platform. Keep permission state, credential state, and tool execution state separate.
 
 Avoid: granting backend code authority over local input, filesystem, or OS permissions.
+
+## Credential Or Token Handling
+
+Owner: backend auth and config for hosted tokens, Electron/renderer for user-entered local settings, sidecar only for scoped remote-client credentials.
+
+Start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md), [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md), and [Hosted Backend Auth](../operations/hosted_backend_auth.md).
+
+Validate environment-variable loading, install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, redaction, and logs. Use placeholders in docs and tests.
+
+Avoid: writing real credentials, user data, or machine-specific paths into docs, fixtures, logs, or snapshots.
