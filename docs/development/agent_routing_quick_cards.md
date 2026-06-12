@@ -201,3 +201,13 @@ Start with [Automation Hub](../automation/README.md), [VM Run Control Change Wor
 Validate run creation, worker heartbeat assignment, event timelines, pending controls, stop behavior, runs API keys, and Electron worker dispatch. Keep `/api/runs/*` as the control plane; normal desktop chat stays on `/ws`.
 
 Avoid: reusing chat websocket assumptions for VM worker polling or run-control state.
+
+## Voice, Wakeword, STT, Or TTS
+
+Owner: renderer for capture/playback UI, Electron main for wakeword supervision, sidecar for local wakeword/audio helpers, backend for STT/TTS provider services.
+
+Start with [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), and [Voice and Audio Channels](../channels/voice_and_audio_channels.md).
+
+Validate microphone permissions, wakeword subprocess lifecycle, audio framing, transcription websocket behavior, STT provider routing, TTS chunk streaming, cleanup, and renderer status state. Keep audio side-channels separate from text query streams.
+
+Avoid: debugging voice failures only through chat-stream events before checking audio transport and wakeword process health.
