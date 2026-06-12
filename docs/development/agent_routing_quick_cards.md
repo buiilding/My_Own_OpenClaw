@@ -131,3 +131,13 @@ Start with [WebSocket Event Contract Change Workflow](../channels/websocket_even
 Validate event names, payload fields, correlation identifiers, terminal events, stale-turn filtering, Electron rebroadcast, and renderer guards. Update reference docs when persisted or public event shape changes.
 
 Avoid: accepting unknown renderer event shapes as a compatibility path instead of fixing the formatter or contract.
+
+## Gateway Or WebSocket Connection
+
+Owner: backend gateway ingress and websocket lifecycle.
+
+Start with [Gateway Hub](../gateway/README.md), [WebSocket Connection Change Workflow](../gateway/websocket_connection_change_workflow.md), and [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md).
+
+Validate auth handshake, identity binding, message validation, task admission limits, receive timeouts, handler dispatch, transport sends, and cleanup. Keep connection admission separate from query execution behavior.
+
+Avoid: changing stream event payloads to compensate for a connection lifecycle or auth failure.
