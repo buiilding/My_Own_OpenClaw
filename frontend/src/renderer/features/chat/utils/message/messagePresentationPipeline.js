@@ -127,8 +127,76 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
   return false;
 }
 
+function isTextlessCurrentTurnThinkingMessage(message) {
+  return (
+    message?.sourceChannel === 'windie:current-turn'
+    && message?.sender === 'assistant'
+    && (!message.type || message.type === 'llm-text')
+    && !normalizeText(message.text)
+    && normalizeText(message.thinkingText)
+  );
+}
+
+function hasMaterializedAssistantTextForTurn(messages, turnRef) {
+  if (!turnRef) {
+    return false;
+  }
+  return messages.some((message) => (
+    message?.sender === 'assistant'
+    && message?.turnRef === turnRef
+    && (!message.type || message.type === 'llm-text')
+    && normalizeText(message.text)
+  ));
+}
+
+function belongsToLatestUserTurn(messages, message) {
+  const lastUserIndex = findLastUserIndex(messages);
+  if (lastUserIndex < 0) {
+    return true;
+  }
+  const latestUserTurnRef = messages[lastUserIndex]?.turnRef;
+  if (!latestUserTurnRef || !message?.turnRef) {
+    return true;
+  }
+  return latestUserTurnRef === message.turnRef;
+}
+
+function selectCurrentTurnThinkingMessages(messages, currentTurnMessages) {
+  if (!Array.isArray(currentTurnMessages) || currentTurnMessages.length === 0) {
+    return [];
+  }
+  const existingIds = new Set(
+    messages
+      .map((message) => (typeof message?.id === 'string' ? message.id : null))
+      .filter(Boolean),
+  );
+  return currentTurnMessages.filter((message) => (
+    isTextlessCurrentTurnThinkingMessage(message)
+    && !existingIds.has(message.id)
+    && belongsToLatestUserTurn(messages, message)
+    && !hasMaterializedAssistantTextForTurn(messages, message.turnRef)
+  ));
+}
+
 export function buildThreadPresentationMessages(
   messages,
+  {
+    currentTurnMessages = [],
+  } = {},
 ) {
-  return Array.isArray(messages) ? messages : [];
+  const baseMessages = Array.isArray(messages) ? messages : [];
+  const thinkingMessages = selectCurrentTurnThinkingMessages(baseMessages, currentTurnMessages);
+  if (thinkingMessages.length === 0) {
+    return baseMessages;
+  }
+
+  const lastUserIndex = findLastUserIndex(baseMessages);
+  if (lastUserIndex < 0) {
+    return [...baseMessages, ...thinkingMessages];
+  }
+  return [
+    ...baseMessages.slice(0, lastUserIndex + 1),
+    ...thinkingMessages,
+    ...baseMessages.slice(lastUserIndex + 1),
+  ];
 }

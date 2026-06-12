@@ -207,6 +207,10 @@ Dashboard and custom UIs render `snapshot.displayRows`; they must not
 reconstruct transcript rows from `snapshot.currentTurn`. `snapshot.currentTurn`
 remains the SDK-owned phase/status/overlay projection for busy state, stop
 eligibility, active turn identity, and overlay-specific progressive state.
+Desktop may render a temporary, textless thinking disclosure from
+`snapshot.currentTurn.reasoningText` while a turn is active, but that disclosure
+is not a transcript assistant row and must disappear once the SDK display row
+contains assistant-visible text for the same turn.
 
 Terminal `turn_error` and `runtime_error` events are authoritative for their
 turn. If assistant text or deltas were already projected for the same

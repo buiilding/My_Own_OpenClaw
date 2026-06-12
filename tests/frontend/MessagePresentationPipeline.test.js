@@ -57,6 +57,98 @@ describe('messagePresentationPipeline', () => {
     })).toBe(messages);
   });
 
+  test('buildThreadPresentationMessages inserts current-turn thinking without reserving the assistant answer row', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        text: 'Reading README.md',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+      },
+    ];
+    const currentTurnMessages = [
+      {
+        id: 'conv-1:turn-1:thinking',
+        sender: 'assistant',
+        text: '',
+        type: 'llm-text',
+        thinkingText: 'Checking the project structure.',
+        thinkingSourceEventType: 'reasoning_delta',
+        sourceChannel: 'windie:current-turn',
+        turnRef: 'turn-1',
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnMessages,
+    })).toEqual([
+      messages[0],
+      currentTurnMessages[0],
+      messages[1],
+    ]);
+  });
+
+  test('buildThreadPresentationMessages drops current-turn thinking once assistant text is materialized', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        text: 'Reading README.md',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'The workspace contains src and tests.',
+        type: 'llm-text',
+        thinkingText: 'Checking the project structure.',
+        turnRef: 'turn-1',
+      },
+    ];
+    const currentTurnMessages = [
+      {
+        id: 'conv-1:turn-1:thinking',
+        sender: 'assistant',
+        text: '',
+        type: 'llm-text',
+        thinkingText: 'Checking the project structure.',
+        thinkingSourceEventType: 'reasoning_delta',
+        sourceChannel: 'windie:current-turn',
+        turnRef: 'turn-1',
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnMessages,
+    })).toBe(messages);
+  });
+
+  test('buildThreadPresentationMessages ignores stale current-turn thinking from an older user turn', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      { id: 'user-2', sender: 'user', text: 'Now answer this', turnRef: 'turn-2' },
+    ];
+    const currentTurnMessages = [
+      {
+        id: 'conv-1:turn-1:thinking',
+        sender: 'assistant',
+        text: '',
+        type: 'llm-text',
+        thinkingText: 'Old turn thinking.',
+        sourceChannel: 'windie:current-turn',
+        turnRef: 'turn-1',
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnMessages,
+    })).toBe(messages);
+  });
+
   test('buildCurrentTurnResponseOverlayEntries includes live tool explanations only for tool calls', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Find OCR code' },
