@@ -562,6 +562,13 @@ export class SdkConversationRuntime {
           },
         })
         : payloadForEnrichment;
+      const transportPayload = isJsonRecord(this.options.agentDefinition)
+        && !isJsonRecord(enrichedPayload.agent_definition)
+        ? {
+          ...enrichedPayload,
+          agent_definition: this.options.agentDefinition,
+        }
+        : enrichedPayload;
       for (const diagnostic of memoryDiagnostics) {
         await this.applyEvent(createConversationEvent({
           eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
@@ -597,8 +604,8 @@ export class SdkConversationRuntime {
             : (workspacePathPresent ? 'payload' : 'none'),
         },
       });
-      const agentDefinition = isJsonRecord(enrichedPayload.agent_definition)
-        ? enrichedPayload.agent_definition
+      const agentDefinition = isJsonRecord(transportPayload.agent_definition)
+        ? transportPayload.agent_definition
         : (isJsonRecord(this.options.agentDefinition) ? this.options.agentDefinition : null);
       const mcpManifestStats = getMcpManifestToolStats(agentDefinition);
       await traceRecorder.record({
@@ -676,7 +683,7 @@ export class SdkConversationRuntime {
           data: {
             reason: 'transport_unavailable',
             resourceCount: input.resources?.length ?? 0,
-            payloadKeyCount: Object.keys(enrichedPayload).length,
+            payloadKeyCount: Object.keys(transportPayload).length,
             hasModelOverride: Boolean(input.model),
           },
         });
@@ -689,14 +696,14 @@ export class SdkConversationRuntime {
           status: 'started',
           data: {
             resourceCount: input.resources?.length ?? 0,
-            payloadKeyCount: Object.keys(enrichedPayload).length,
+            payloadKeyCount: Object.keys(transportPayload).length,
             hasModelOverride: Boolean(input.model),
             hasConversationRef: true,
           },
         });
         try {
           const sentQueryMessageId = await this.options.transport.sendQuery({
-            ...enrichedPayload,
+            ...transportPayload,
             text: input.text,
             conversation_ref: this.options.conversationRef,
           }, {

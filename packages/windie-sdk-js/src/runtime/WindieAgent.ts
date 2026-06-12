@@ -39,7 +39,10 @@ import {
   buildModelSettingsPatch,
   type WindieModelSelection,
 } from '../settings/modelSelection.js';
-import type { WindieLocalRuntimeClient } from './LocalSidecarRuntime.js';
+import type {
+  WindieLocalRuntimeClient,
+  WindieMcpDefinition,
+} from './LocalSidecarRuntime.js';
 import type {
   WindieLocalRuntimeEventListener,
 } from './LocalSidecarRuntime.js';
@@ -75,6 +78,28 @@ export type WindieAgentOwner = {
   localRuntime?(options?: { reason?: string }): Promise<WindieLocalRuntimeClient>;
   shutdownLocalRuntime?(): Promise<void>;
 };
+
+export type WindieAgentRegisterMcpOptions = {
+  replace?: boolean;
+};
+
+function setAgentDefinitionToolManifest(agentDefinition: JsonRecord, toolSchemas: JsonRecord[]): void {
+  const tools = agentDefinition.tools && typeof agentDefinition.tools === 'object' && !Array.isArray(agentDefinition.tools)
+    ? agentDefinition.tools as JsonRecord
+    : {};
+  const clientManifest = tools.client_manifest && typeof tools.client_manifest === 'object' && !Array.isArray(tools.client_manifest)
+    ? tools.client_manifest as JsonRecord
+    : {};
+  agentDefinition.tools = {
+    ...tools,
+    mode: typeof tools.mode === 'string' ? tools.mode : 'client_only',
+    client_manifest: {
+      ...clientManifest,
+      version: Number.isFinite(clientManifest.version) ? clientManifest.version : 1,
+      tools: toolSchemas,
+    },
+  };
+}
 
 function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): void {
   const details = [
@@ -483,7 +508,7 @@ export class WindieAgent {
   }
 
   async updateToolSchemas(toolSchemas: JsonRecord[]): Promise<string> {
-    return this.updateSettings({
+    const messageId = await this.updateSettings({
       tools: {
         mode: 'replace_client_manifest',
         client_manifest: {
@@ -492,6 +517,32 @@ export class WindieAgent {
         },
       },
     });
+    setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
+    return messageId;
+  }
+
+  async registerMcps(
+    mcps: WindieMcpDefinition[],
+    options: WindieAgentRegisterMcpOptions = {},
+  ): Promise<{ registration: JsonRecord; toolSchemas: JsonRecord[] }> {
+    const localRuntime = await this.ensureLocalRuntime('MCP registration');
+    if (typeof localRuntime.registerMcp !== 'function') {
+      throw new Error('Local runtime does not support MCP registration.');
+    }
+    const servers = Array.isArray(mcps) ? mcps : [];
+    const registration = await localRuntime.registerMcp({
+      servers,
+      replace: options.replace !== false,
+    } as WindieMcpDefinition);
+    const manifest = await localRuntime.listTools?.();
+    const toolSchemas = Array.isArray(manifest?.tools) ? manifest.tools : [];
+    await this.updateToolSchemas(toolSchemas);
+    return {
+      registration: registration && typeof registration === 'object' && !Array.isArray(registration)
+        ? registration as JsonRecord
+        : {},
+      toolSchemas,
+    };
   }
 
   async generateConversationTitle(payload: SdkGenerateTitleRequest): Promise<SdkGenerateTitleResponse> {
@@ -1043,6 +1094,7 @@ export class WindieAgent {
     });
     return {
       ...input,
+      agentDefinition: input.agentDefinition ?? this.agentDefinition,
       rawPayload: enriched.payload,
       content: typeof enriched.payload.content === 'string' ? enriched.payload.content : input.content,
       attachmentContext: null,

@@ -1053,6 +1053,7 @@ function createDirectWakeUpAgentAdapter({
     syncBackendIdleTimer: reason => agent.syncBackendIdleTimer(reason),
     localStatus: () => agent.status(),
     localRuntime: agent.localRuntime || null,
+    registerMcps: (mcps, options) => agent.registerMcps(mcps, options),
     refreshMcpServers: async ({ config = null } = {}) => (
       refreshMcpServersForConfig({
         config,
@@ -1450,8 +1451,10 @@ function initializeIpc(win, options = {}) {
         : async () => (await ensureWindieAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
     });
     if (result?.success === true && process.env.NODE_ENV !== 'test') {
-      await restartWindieAgent('mcp-manifest-refresh');
-      result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-restart');
+      const agent = await ensureWindieAgent({ reason: 'mcp-manifest-refresh' });
+      const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: latestFrontendConfig || {} });
+      await agent.registerMcps?.(enabledSpecs, { replace: true });
+      result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-sdk-refresh');
     }
     return result;
   });

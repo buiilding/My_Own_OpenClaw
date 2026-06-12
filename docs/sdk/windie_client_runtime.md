@@ -55,6 +55,13 @@ Ownership rules:
   TypeScript callers that omit `workspacePath` get a runtime-derived workspace:
   `process.cwd()` first, then the best available home-directory environment
   path.
+- the SDK `WindieAgent` runtime module owns live MCP manifest refresh after an
+  agent is already awake. `WindieAgent.registerMcps([...], { replace: true })`
+  registers the requested MCP servers through the local runtime, reads the
+  refreshed local tool manifest, sends a backend `update-settings` command with
+  `tools.mode = replace_client_manifest`, mutates the SDK agent definition, and
+  includes that updated client manifest on the next `ask`, `run`, `stream`, or
+  conversation send.
 - the SDK agent stream-event module owns the public event projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.

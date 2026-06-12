@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- sdk/frontend/mcp: add SDK-owned live MCP registration on `WindieAgent` so an
+  enabled MCP can be registered through the local runtime, pushed to the backend
+  client manifest, stored in the SDK agent definition, and included on the next
+  message without relying on an app restart.
 - docs/agents: require bug investigations to check `bin/windie` for
   path-specific diagnostics, logs, traces, conversation inspection, and test
   commands before inventing ad hoc shell probes, and to add a focused

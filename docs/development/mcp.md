@@ -185,6 +185,12 @@ Use the returned `traceId` with `bin/windie diagnostics inspect <trace-id>
 stderr-tail events, or the enablement/registration lifecycle rows for the same
 MCP path.
 
+After an MCP is enabled while an agent is already awake, Electron main should
+route the enabled server specs through `WindieAgent.registerMcps(...)`. The SDK
+then owns local-runtime registration, backend `replace_client_manifest`
+settings update, in-memory agent-definition mutation, and inclusion of the MCP
+tool schemas on the next message.
+
 ## What Devs Should Not Edit
 
 For normal MCP integrations, do not edit:

@@ -2081,6 +2081,161 @@ describe('WindieSdkClient', () => {
     expect(handshake.agent_definition).not.toHaveProperty('mcps');
   });
 
+  test('wakeUp registers MCPs before building the handshake client manifest', async () => {
+    const mcpTool = {
+      name: 'cua_driver__get_open_windows',
+      description: 'List open windows.',
+      execution_target: 'sidecar',
+      mcp_server_id: 'cua-driver',
+      mcp_tool_name: 'get_open_windows',
+      schema: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+      },
+    };
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerMcp: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'mcp-manifest-agent',
+      mcps: [{ id: 'cua-driver', command: 'cua-driver', args: ['mcp'] }],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    const agent = await wakePromise;
+
+    expect(localRuntime.registerMcp).toHaveBeenCalledWith({
+      id: 'cua-driver',
+      command: 'cua-driver',
+      args: ['mcp'],
+    });
+    expect((localRuntime.registerMcp as jest.Mock).mock.invocationCallOrder[0])
+      .toBeLessThan((localRuntime.listTools as jest.Mock).mock.invocationCallOrder[0]);
+    const handshake = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(handshake.agent_definition).not.toHaveProperty('mcps');
+    expect(handshake.agent_definition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+        mcp_tool_name: 'get_open_windows',
+      }),
+    ]);
+    expect(agent.agentDefinition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+      }),
+    ]);
+  });
+
+  test('agent.registerMcps updates the SDK manifest used by the next message', async () => {
+    const mcpTool = {
+      name: 'cua_driver__get_open_windows',
+      description: 'List open windows.',
+      execution_target: 'sidecar',
+      mcp_server_id: 'cua-driver',
+      mcp_tool_name: 'get_open_windows',
+      schema: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+      },
+    };
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerMcp: jest.fn(async () => ({ success: true, registered_tools: [mcpTool] })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'live-mcp-agent',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    socket.clearSent();
+
+    const registration = await agent.registerMcps([
+      { id: 'cua-driver', command: 'cua-driver', args: ['mcp'] },
+    ], { replace: true });
+
+    expect(localRuntime.registerMcp).toHaveBeenCalledWith({
+      servers: [{
+        id: 'cua-driver',
+        command: 'cua-driver',
+        args: ['mcp'],
+      }],
+      replace: true,
+    });
+    expect(registration.toolSchemas).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+      }),
+    ]);
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        tools: {
+          mode: 'replace_client_manifest',
+          client_manifest: {
+            version: 1,
+            tools: [expect.objectContaining({
+              name: 'cua_driver__get_open_windows',
+              mcp_server_id: 'cua-driver',
+            })],
+          },
+        },
+      },
+    });
+    expect(agent.agentDefinition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+      }),
+    ]);
+
+    await agent.ask('using the CUA Driver MCP, list the currently running apps', {
+      conversationRef: 'conv-live-mcp',
+    });
+    const query = sentMessageOfType(socket, 'query');
+    expect(query).toMatchObject({
+      type: 'query',
+      payload: {
+        conversation_ref: 'conv-live-mcp',
+        agent_definition: {
+          tools: {
+            client_manifest: {
+              tools: [expect.objectContaining({
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+              })],
+            },
+          },
+        },
+      },
+    });
+  });
+
   test('wakeUp ensures a local runtime when module tools need sidecar execution', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),

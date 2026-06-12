@@ -52,6 +52,23 @@ function unwrapLocalRuntimeRpcData(response, fallbackMessage) {
     }
     return record;
 }
+function setAgentDefinitionToolManifest(agentDefinition, toolSchemas) {
+    const tools = agentDefinition.tools && typeof agentDefinition.tools === 'object' && !Array.isArray(agentDefinition.tools)
+        ? agentDefinition.tools
+        : {};
+    const clientManifest = tools.client_manifest && typeof tools.client_manifest === 'object' && !Array.isArray(tools.client_manifest)
+        ? tools.client_manifest
+        : {};
+    agentDefinition.tools = {
+        ...tools,
+        mode: typeof tools.mode === 'string' ? tools.mode : 'client_only',
+        client_manifest: {
+            ...clientManifest,
+            version: Number.isFinite(clientManifest.version) ? clientManifest.version : 1,
+            tools: toolSchemas,
+        },
+    };
+}
 class WindieAgent {
     constructor(id, session, agentDefinition, sdkClient, owner, localRuntime, userId = 'local-sdk-user', defaultConversationStore = new InMemoryConversationStore_js_1.InMemoryConversationStore(), memoryEnabled = true, localToolLifecycle) {
         this.id = id;
@@ -298,7 +315,7 @@ class WindieAgent {
         });
     }
     async updateToolSchemas(toolSchemas) {
-        return this.updateSettings({
+        const messageId = await this.updateSettings({
             tools: {
                 mode: 'replace_client_manifest',
                 client_manifest: {
@@ -307,6 +324,28 @@ class WindieAgent {
                 },
             },
         });
+        setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
+        return messageId;
+    }
+    async registerMcps(mcps, options = {}) {
+        const localRuntime = await this.ensureLocalRuntime('MCP registration');
+        if (typeof localRuntime.registerMcp !== 'function') {
+            throw new Error('Local runtime does not support MCP registration.');
+        }
+        const servers = Array.isArray(mcps) ? mcps : [];
+        const registration = await localRuntime.registerMcp({
+            servers,
+            replace: options.replace !== false,
+        });
+        const manifest = await localRuntime.listTools?.();
+        const toolSchemas = Array.isArray(manifest?.tools) ? manifest.tools : [];
+        await this.updateToolSchemas(toolSchemas);
+        return {
+            registration: registration && typeof registration === 'object' && !Array.isArray(registration)
+                ? registration
+                : {},
+            toolSchemas,
+        };
     }
     async generateConversationTitle(payload) {
         return this.sdkClient.generateConversationTitle(payload);
@@ -798,6 +837,7 @@ class WindieAgent {
         });
         return {
             ...input,
+            agentDefinition: input.agentDefinition ?? this.agentDefinition,
             rawPayload: enriched.payload,
             content: typeof enriched.payload.content === 'string' ? enriched.payload.content : input.content,
             attachmentContext: null,
