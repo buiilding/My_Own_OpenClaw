@@ -28,6 +28,10 @@ from backend.src.agent.execution.tool_call_bridge import (
 from backend.src.agent.execution.policies import (
     ToolExecutionPolicy,
 )
+from backend.src.agent.session.capability_application import (
+    capability_revision_from_agent_definition,
+    final_tool_schema_source_counts,
+)
 from backend.src.core.types.enums import MessageType
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
@@ -73,6 +77,23 @@ CONTEXT_OVERFLOW_ERROR_MARKERS = (
     "input is too long",
     "token limit",
 )
+
+
+def _session_capability_revision(session: Any) -> str | None:
+    runtime = getattr(session, "runtime", None)
+    return capability_revision_from_agent_definition(
+        getattr(runtime, "agent_definition", None)
+    )
+
+
+def _prompt_layer_count(prompt_metadata: Any) -> int:
+    summary = getattr(prompt_metadata, "client_prompt_layer_summary", None)
+    if isinstance(summary, dict):
+        count = summary.get("count")
+        if isinstance(count, int):
+            return count
+    layers = getattr(prompt_metadata, "client_prompt_layers", None)
+    return len(layers) if isinstance(layers, list) else 0
 
 
 class InteractionLoop:
@@ -177,6 +198,18 @@ class InteractionLoop:
                     "promptMessageCount": len(prompt),
                     "toolSchemaCount": len(tool_schemas or []),
                     "hasPromptMetadata": prompt_metadata is not None,
+                    "capabilityRevision": _session_capability_revision(
+                        self.session
+                    ),
+                    "finalToolSourceCounts": final_tool_schema_source_counts(
+                        tool_schemas or [],
+                        getattr(
+                            getattr(self.session, "runtime", None),
+                            "client_tool_manifest",
+                            None,
+                        ),
+                    ),
+                    "finalPromptLayerCount": _prompt_layer_count(prompt_metadata),
                 },
             )
             yield TraceEvent(

@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   client tools, MCP/plugin tools, and prompt-layer skills, including
   `client_prompt_layers.validate/apply`, `capability_manifest.rebuild/send`,
   and capability revision fields in SDK/backend traces.
+- backend/cli: add aggregate `client_capability_manifest.validate/apply/policy`
+  traces, final `backend.prompt` capability source counts, and
+  `windie capability trace` so one command can inspect revisioned runtime
+  capability acceptance, policy, and final prompt visibility.
 - backend/tools: add turn-scoped `client_tool_manifest.validate` and
   `client_tool_manifest.apply` traces so client manifest acceptance,
   rejection, and prompt-builder application counts are visible when MCP tools

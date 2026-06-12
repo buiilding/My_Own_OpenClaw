@@ -36,6 +36,84 @@ def accepted_client_tool_schemas(manifest_result: Any) -> list[dict[str, Any]]:
     ]
 
 
+def capability_revision_from_agent_definition(agent_definition: Any) -> str | None:
+    metadata = getattr(agent_definition, "metadata", None)
+    if not isinstance(metadata, dict):
+        return None
+    revision = metadata.get("client_capability_revision")
+    if isinstance(revision, str) and revision.strip():
+        return revision.strip()
+    capability = metadata.get("client_capability")
+    if isinstance(capability, dict):
+        nested_revision = capability.get("revision")
+        if isinstance(nested_revision, str) and nested_revision.strip():
+            return nested_revision.strip()
+    return None
+
+
+def client_manifest_source_counts(manifest_result: Any) -> dict[str, int]:
+    counts = _empty_source_counts()
+    entries = list(getattr(manifest_result, "accepted", []) or [])
+    for entry in entries:
+        source = _entry_source_kind(entry)
+        counts[source] += 1
+    counts["client"] = len(entries)
+    return counts
+
+
+def final_tool_schema_source_counts(
+    tool_schemas: list[dict[str, Any]] | None,
+    manifest_result: Any,
+) -> dict[str, int]:
+    counts = _empty_source_counts()
+    source_by_name = {
+        str(getattr(entry, "name", "")): _entry_source_kind(entry)
+        for entry in list(getattr(manifest_result, "accepted", []) or [])
+        if isinstance(getattr(entry, "name", None), str)
+    }
+    for schema in tool_schemas or []:
+        if not isinstance(schema, dict):
+            continue
+        name = _tool_schema_name(schema)
+        source = source_by_name.get(name, "builtin")
+        counts[source] += 1
+        if source != "builtin":
+            counts["client"] += 1
+    return counts
+
+
+def policy_rejected_client_tool_sample(
+    manifest_result: Any,
+    prompt_builder: Any,
+    *,
+    limit: int = 8,
+) -> list[dict[str, str]]:
+    accepted_schemas = accepted_client_tool_schemas(manifest_result)
+    if not accepted_schemas:
+        return []
+    policy = getattr(prompt_builder, "tool_policy", None)
+    if not isinstance(policy, ToolPolicy):
+        return []
+    allowed_names = {
+        name
+        for schema in policy.filter_tool_schemas(accepted_schemas)
+        for name in [_tool_schema_name(schema)]
+        if name
+    }
+    rejected: list[dict[str, str]] = []
+    for name in accepted_client_tool_names(manifest_result):
+        if name not in allowed_names:
+            rejected.append(
+                {
+                    "name": name,
+                    "reason": "filtered by active ToolPolicy",
+                }
+            )
+        if len(rejected) >= limit:
+            break
+    return rejected
+
+
 def capability_config_overrides(
     *,
     manifest_result: Any,
@@ -253,3 +331,42 @@ def _dedupe_strings(values: list[str]) -> list[str]:
         seen.add(item)
         deduped.append(item)
     return deduped
+
+
+def _empty_source_counts() -> dict[str, int]:
+    return {
+        "builtin": 0,
+        "client": 0,
+        "mcp": 0,
+        "plugin": 0,
+        "backend_remote": 0,
+    }
+
+
+def _entry_source_kind(entry: Any) -> str:
+    execution_target = getattr(entry, "execution_target", None)
+    if execution_target == "backend":
+        return "backend_remote"
+    if isinstance(getattr(entry, "mcp_server_id", None), str):
+        return "mcp"
+    plugin_id = getattr(entry, "plugin_id", None)
+    if isinstance(plugin_id, str) and plugin_id.strip():
+        return "plugin"
+    extension_id = getattr(entry, "extension_id", None)
+    if isinstance(extension_id, str) and extension_id.strip():
+        if extension_id.strip().startswith("mcp:"):
+            return "mcp"
+        return "plugin"
+    return "client"
+
+
+def _tool_schema_name(schema: dict[str, Any]) -> str:
+    name = schema.get("name")
+    if isinstance(name, str) and name.strip():
+        return name.strip()
+    function = schema.get("function")
+    if isinstance(function, dict):
+        function_name = function.get("name")
+        if isinstance(function_name, str) and function_name.strip():
+            return function_name.strip()
+    return ""

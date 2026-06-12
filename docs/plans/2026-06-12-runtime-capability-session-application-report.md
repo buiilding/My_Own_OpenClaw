@@ -60,6 +60,14 @@ execution route checks, and diagnostics are implemented and validated.
 - [x] Add capability-generic MCP enablement diagnostics for persist/rebuild.
 - [x] Run focused backend, frontend, and SDK package validation.
 - [x] Commit completed final slice.
+- [x] Add aggregate `client_capability_manifest.validate/apply/policy` backend
+      traces with revision, accepted/rejected counts, source counts, and
+      prompt-builder counts.
+- [x] Add final `backend.prompt` capability revision, source counts, and
+      prompt-layer count for provider-bound prompts.
+- [x] Add `bin/windie capability trace` for one-command capability-path
+      inspection from conversation traces.
+- [x] Commit and push continuation trace/diagnostic slice.
 
 ## Changes Made
 
@@ -101,6 +109,18 @@ execution route checks, and diagnostics are implemented and validated.
   execution.
 - Added capability-generic MCP diagnostics stages:
   `capability_manifest.persist` and `capability_manifest.rebuild`.
+- Preserved MCP/plugin source metadata through backend client-manifest
+  validation so source-count traces can distinguish MCP, plugin, client,
+  backend-remote, and built-in schemas.
+- Added aggregate backend capability traces:
+  `client_capability_manifest.validate`,
+  `client_capability_manifest.apply`, and
+  `client_capability_manifest.policy`.
+- Enriched `backend.prompt` traces with `capabilityRevision`,
+  `finalToolSourceCounts`, and `finalPromptLayerCount`.
+- Added `bin/windie capability trace <conversation-ref> [--turn <turn-ref>]`
+  to summarize local rebuild/send, backend validation/application/policy, and
+  final prompt visibility from existing conversation trace rows.
 
 ## Validation Log
 
@@ -121,6 +141,16 @@ execution route checks, and diagnostics are implemented and validated.
 - `npm --prefix packages/windie-sdk-js run build` - passed.
 - `git diff --check` - passed.
 - `bin/windie docs list` - passed.
+- `./scripts/python-in-env backend python -m py_compile backend/src/tools/client_manifest.py backend/src/agent/session/capability_application.py backend/src/agent/session/session.py backend/src/agent/execution/interaction_loop.py` - passed.
+- `node -c scripts/windie/commands.cjs` - passed.
+- `bin/windie --help | sed -n '1,45p'` - passed and includes
+  `windie capability trace`.
+- `./scripts/python-in-env backend python -m pytest tests/backend/test_client_tool_manifest.py tests/backend/test_session_client_manifest_trace.py tests/backend/test_interaction_loop.py -q` - passed, 30 tests.
+- `cd frontend && npm test -- --runTestsByPath ../tests/frontend/WindieCliCapabilityTrace.test.cjs --runInBand --forceExit` - passed, 1 test.
+- `./scripts/python-in-env backend python -m pytest tests/backend/test_client_tool_manifest.py tests/backend/test_session_client_manifest_trace.py tests/backend/test_session_manager.py tests/backend/test_prompt_constructor_utils.py tests/backend/test_events.py tests/backend/test_interaction_loop.py tests/backend/test_api_handlers.py::test_update_settings_handler_applies_agent_definition tests/backend/test_api_handlers.py::test_update_settings_handler_applies_client_tool_manifest tests/backend/test_incoming_message_contract.py -q` - passed.
+- `cd frontend && npm test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkConversationRuntime.test.ts ../tests/frontend/McpControl.test.cjs ../tests/frontend/AgentCapabilityHandshake.test.cjs ../tests/frontend/FrontendBackendWebsocketContract.test.cjs ../tests/frontend/WindieCliCapabilityTrace.test.cjs --runInBand --forceExit` - passed, 228 tests.
+- `git diff --check && bin/windie docs list >/tmp/windie-docs-list.out && tail -5 /tmp/windie-docs-list.out` - passed.
+- `bin/windie capability trace __missing_conversation__ --json` - passed against the local history DB with an empty structured summary.
 - `cd frontend && npm run lint` - failed on pre-existing unrelated
   `frontend/src/main/ipc.cjs:1139` unused `restartWindieAgent`; this file was
   not touched in the runtime capability slice.
@@ -189,3 +219,12 @@ execution route checks, and diagnostics are implemented and validated.
 - Backend traces can correlate SDK revisioned sends with backend
   `client_tool_manifest.*` and `client_prompt_layers.*` events through
   `capabilityRevision`.
+- Backend aggregate capability traces now answer the plan's diagnostic
+  question directly: accepted tool count, prompt-layer count, policy-allowed
+  count, rejected-by-policy sample, effective available-tool count, and prompt
+  builder counts are on `client_capability_manifest.*`.
+- Final `backend.prompt` traces now report the revision, final schema count,
+  final prompt-layer count, and final source counts for the actual
+  provider-bound prompt.
+- `bin/windie capability trace` is the local inspection command for the latest
+  capability revision chain in a conversation or turn.

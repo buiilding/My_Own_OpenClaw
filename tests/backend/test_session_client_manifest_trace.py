@@ -67,9 +67,10 @@ class FakeExecutor:
 class FakeAgentDefinition:
     runtime = SimpleNamespace(operating_system=None, workspace_path=None)
 
-    def __init__(self, manifest=None, prompt_layers=None):
+    def __init__(self, manifest=None, prompt_layers=None, metadata=None):
         self._manifest = manifest
         self._prompt_layers = prompt_layers
+        self.metadata = metadata or {}
 
     def client_tool_manifest(self):
         return self._manifest
@@ -112,6 +113,8 @@ async def test_process_query_traces_client_manifest_validation_and_application()
                 "description": "Capture the screen through CUA.",
                 "execution_target": "sidecar",
                 "argument_resolution": "passthrough",
+                "mcp_server_id": "cua-driver",
+                "mcp_tool_name": "screenshot",
                 "schema": {
                     "type": "object",
                     "properties": {},
@@ -147,6 +150,21 @@ async def test_process_query_traces_client_manifest_validation_and_application()
     apply_event = next(
         event for event in trace_events if event.path == "client_tool_manifest.apply"
     )
+    capability_validate_event = next(
+        event
+        for event in trace_events
+        if event.path == "client_capability_manifest.validate"
+    )
+    capability_apply_event = next(
+        event
+        for event in trace_events
+        if event.path == "client_capability_manifest.apply"
+    )
+    policy_event = next(
+        event
+        for event in trace_events
+        if event.path == "client_capability_manifest.policy"
+    )
 
     assert validate_event.stage == "validate"
     assert validate_event.status == "succeeded"
@@ -173,6 +191,45 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         "effectiveAvailableToolCount": 1,
         "policyAllowedClientToolCount": 1,
         "acceptedToolNameSample": ["cua_driver__screenshot"],
+        "sourceCounts": {
+            "builtin": 0,
+            "client": 1,
+            "mcp": 1,
+            "plugin": 0,
+            "backend_remote": 0,
+        },
+    }
+    assert capability_validate_event.data == {
+        "capabilityRevision": None,
+        "rawToolCount": 2,
+        "acceptedToolCount": 1,
+        "rejectedToolCount": 1,
+        "rawPromptLayerCount": 0,
+        "acceptedPromptLayerCount": 0,
+        "rejectedPromptLayerCount": 0,
+        "sourceCounts": {
+            "builtin": 0,
+            "client": 1,
+            "mcp": 1,
+            "plugin": 0,
+            "backend_remote": 0,
+        },
+    }
+    assert capability_apply_event.data == {
+        "capabilityRevision": None,
+        "acceptedToolCount": 1,
+        "acceptedPromptLayerCount": 0,
+        "effectiveAvailableToolCount": 1,
+        "toolPolicyRebuilt": True,
+        "promptBuilderClientToolCount": 1,
+        "promptBuilderPromptLayerCount": 0,
+    }
+    assert policy_event.data == {
+        "capabilityRevision": None,
+        "policyInputCount": 1,
+        "policyAllowedCount": 1,
+        "policyRejectedCount": 0,
+        "rejectedByPolicySample": [],
     }
     assert [
         schema.get("name") for schema in session.prompt_builder.client_tool_schemas
@@ -224,6 +281,16 @@ async def test_process_query_traces_prompt_layer_validation_and_application():
     apply_event = next(
         event for event in trace_events if event.path == "client_prompt_layers.apply"
     )
+    capability_validate_event = next(
+        event
+        for event in trace_events
+        if event.path == "client_capability_manifest.validate"
+    )
+    capability_apply_event = next(
+        event
+        for event in trace_events
+        if event.path == "client_capability_manifest.apply"
+    )
 
     assert validate_event.data == {
         "rawLayerCount": 3,
@@ -242,6 +309,31 @@ async def test_process_query_traces_prompt_layer_validation_and_application():
         "capabilityRevision": None,
         "acceptedLayerIdSample": ["skill.review"],
         "runtimePromptLayerCount": 1,
+        "promptBuilderPromptLayerCount": 1,
+    }
+    assert capability_validate_event.data == {
+        "capabilityRevision": None,
+        "rawToolCount": 0,
+        "acceptedToolCount": 0,
+        "rejectedToolCount": 0,
+        "rawPromptLayerCount": 3,
+        "acceptedPromptLayerCount": 1,
+        "rejectedPromptLayerCount": 2,
+        "sourceCounts": {
+            "builtin": 0,
+            "client": 0,
+            "mcp": 0,
+            "plugin": 0,
+            "backend_remote": 0,
+        },
+    }
+    assert capability_apply_event.data == {
+        "capabilityRevision": None,
+        "acceptedToolCount": 0,
+        "acceptedPromptLayerCount": 1,
+        "effectiveAvailableToolCount": 0,
+        "toolPolicyRebuilt": False,
+        "promptBuilderClientToolCount": 0,
         "promptBuilderPromptLayerCount": 1,
     }
     assert session.prompt_builder.client_prompt_layers == [

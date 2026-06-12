@@ -31,6 +31,7 @@ Status and diagnostics:
   windie diagnostics list [--path <path>] [--limit <n>] [--json]
   windie diagnostics inspect <trace-id> [--json]
   windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]
+  windie capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]
   windie conversation list [--limit <n>] [--json]
   windie conversation inspect <conversation-ref> [--json]
   windie conversation messages <conversation-ref> [--limit <n>] [--json]
@@ -247,6 +248,112 @@ function printTraceEvents(events, emptyMessage) {
   }
 }
 
+const CAPABILITY_TRACE_PATHS = new Set([
+  'capability_manifest.rebuild',
+  'capability_manifest.persist',
+  'capability_manifest.send',
+  'client_capability_manifest.validate',
+  'client_capability_manifest.apply',
+  'client_capability_manifest.policy',
+  'client_tool_manifest.validate',
+  'client_tool_manifest.apply',
+  'client_prompt_layers.validate',
+  'client_prompt_layers.apply',
+  'backend.prompt',
+  'mcp.tool',
+]);
+
+function traceCapabilityRevision(event) {
+  const data = event && typeof event.data === 'object' && event.data !== null ? event.data : {};
+  const revision = data.capabilityRevision || data.revision;
+  return typeof revision === 'string' && revision.trim() ? revision.trim() : null;
+}
+
+function traceDataNumber(data, key) {
+  const value = data && typeof data === 'object' ? data[key] : undefined;
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function summarizeCapabilityTrace(events) {
+  const latestByPath = new Map();
+  const revisions = [];
+  const seenRevisions = new Set();
+  for (const event of events) {
+    latestByPath.set(event.path, event);
+    const revision = traceCapabilityRevision(event);
+    if (revision && !seenRevisions.has(revision)) {
+      seenRevisions.add(revision);
+      revisions.push(revision);
+    }
+  }
+
+  const latest = Object.fromEntries(latestByPath.entries());
+  const validate = latest['client_capability_manifest.validate'];
+  const apply = latest['client_capability_manifest.apply'];
+  const policy = latest['client_capability_manifest.policy'];
+  const prompt = latest['backend.prompt'];
+  const validateData = validate?.data || {};
+  const applyData = apply?.data || {};
+  const policyData = policy?.data || {};
+  const promptData = prompt?.data || {};
+
+  return {
+    revision: revisions[revisions.length - 1] || null,
+    revisions,
+    rawToolCount: traceDataNumber(validateData, 'rawToolCount'),
+    acceptedToolCount: traceDataNumber(validateData, 'acceptedToolCount'),
+    rejectedToolCount: traceDataNumber(validateData, 'rejectedToolCount'),
+    acceptedPromptLayerCount: traceDataNumber(validateData, 'acceptedPromptLayerCount'),
+    rejectedPromptLayerCount: traceDataNumber(validateData, 'rejectedPromptLayerCount'),
+    effectiveAvailableToolCount: traceDataNumber(applyData, 'effectiveAvailableToolCount'),
+    policyAllowedCount: traceDataNumber(policyData, 'policyAllowedCount'),
+    policyRejectedCount: traceDataNumber(policyData, 'policyRejectedCount'),
+    finalToolSchemaCount: traceDataNumber(promptData, 'toolSchemaCount'),
+    finalPromptLayerCount: traceDataNumber(promptData, 'finalPromptLayerCount'),
+    sourceCounts: promptData.finalToolSourceCounts || validateData.sourceCounts || null,
+    pathCounts: events.reduce((acc, event) => {
+      acc[event.path] = (acc[event.path] || 0) + 1;
+      return acc;
+    }, {}),
+  };
+}
+
+function loadCapabilityTrace({ conversationRef, turnRef = '', limit = 1000 }) {
+  return loadTraceEvents({ conversationRef, turnRef, limit })
+    .filter((event) => CAPABILITY_TRACE_PATHS.has(event.path));
+}
+
+function printCapabilityTrace(payload) {
+  const events = payload.events || [];
+  if (events.length === 0) {
+    console.log(`No capability trace events found for ${payload.conversationRef}.`);
+    return;
+  }
+  const summary = payload.summary || {};
+  printSection('Capability Trace', [
+    `conversation: ${payload.conversationRef}`,
+    payload.turnRef ? `turn: ${payload.turnRef}` : null,
+    `revision: ${summary.revision || 'unknown'}`,
+    `raw tools: ${summary.rawToolCount ?? 'unknown'}`,
+    `accepted tools: ${summary.acceptedToolCount ?? 'unknown'}`,
+    `rejected tools: ${summary.rejectedToolCount ?? 'unknown'}`,
+    `policy allowed: ${summary.policyAllowedCount ?? 'unknown'}`,
+    `policy rejected: ${summary.policyRejectedCount ?? 'unknown'}`,
+    `final schemas: ${summary.finalToolSchemaCount ?? 'unknown'}`,
+    `prompt layers: ${summary.finalPromptLayerCount ?? 'unknown'}`,
+    summary.sourceCounts ? `source counts: ${JSON.stringify(summary.sourceCounts)}` : null,
+  ].filter(Boolean));
+  printSection(
+    'Capability Trace Events',
+    events.map((event) => {
+      const revision = traceCapabilityRevision(event);
+      const turn = event.turnRef ? ` turn=${event.turnRef}` : '';
+      const rev = revision ? ` revision=${revision}` : '';
+      return `${event.timestamp} ${event.path} ${event.stage} ${event.status}${turn}${rev}`;
+    }),
+  );
+}
+
 function getFrontendDevUrl() {
   return process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
 }
@@ -398,6 +505,36 @@ function runTrace(args) {
     return;
   }
   printTraceEvents(payload.events, `No trace events found for ${conversationRef} ${turnRef}.`);
+}
+
+function runCapability(args) {
+  const subcommand = args[0];
+  if (subcommand !== 'trace') {
+    throw new Error('Usage: windie capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]');
+  }
+  const rest = args.slice(1);
+  const json = hasFlag(rest, '--json');
+  const limit = sqlLimit(optionValue(rest, '--limit', '1000'), 1000);
+  const turnRef = optionValue(rest, '--turn', '');
+  const [conversationRef] = positionalArgs(rest, ['--turn', '--limit']);
+  if (!conversationRef) {
+    throw new Error('Usage: windie capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]');
+  }
+
+  const events = loadCapabilityTrace({ conversationRef, turnRef, limit });
+  const payload = {
+    ok: true,
+    database: historyDatabasePath(),
+    conversationRef,
+    turnRef: turnRef || null,
+    summary: summarizeCapabilityTrace(events),
+    events,
+  };
+  if (json) {
+    printJson(payload);
+    return;
+  }
+  printCapabilityTrace(payload);
 }
 
 function loadConversationList(args) {
@@ -1322,6 +1459,8 @@ async function dispatch(argv) {
       return runDiagnostics(args);
     case 'trace':
       return runTrace(args);
+    case 'capability':
+      return runCapability(args);
     case 'conversation':
       return runConversation(args);
     case 'start':
@@ -1424,5 +1563,6 @@ module.exports = {
   buildFrontendLogTailArgs,
   optionValue,
   resolveFrontendLogFile,
+  summarizeCapabilityTrace,
   stripSeparator,
 };

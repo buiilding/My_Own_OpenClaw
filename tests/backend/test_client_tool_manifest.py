@@ -339,6 +339,40 @@ def test_client_tool_manifest_preserves_executable_schema_metadata():
     )
 
 
+def test_client_tool_manifest_preserves_source_metadata_for_diagnostics():
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "cua_driver__list_apps",
+                    "description": "List apps through CUA.",
+                    "execution_target": "sidecar",
+                    "schema": _schema(),
+                    "argument_resolution": "passthrough",
+                    "extension_id": "mcp:cua-driver",
+                    "mcp_server_id": "cua-driver",
+                    "mcp_tool_name": "list_apps",
+                }
+            ]
+        }
+    )
+
+    assert result.rejected == []
+    assert result.accepted[0].extension_id == "mcp:cua-driver"
+    assert result.accepted[0].mcp_server_id == "cua-driver"
+    assert result.accepted[0].mcp_tool_name == "list_apps"
+    assert result.to_public_dict()["accepted"][0] == {
+        "name": "cua_driver__list_apps",
+        "description": "List apps through CUA.",
+        "execution_target": "sidecar",
+        "schema": _schema(),
+        "argument_resolution": "passthrough",
+        "extension_id": "mcp:cua-driver",
+        "mcp_server_id": "cua-driver",
+        "mcp_tool_name": "list_apps",
+    }
+
+
 def test_client_tool_manifest_rejects_invalid_executable_schema_metadata():
     result = validate_client_tool_manifest(
         {

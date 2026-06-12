@@ -78,6 +78,10 @@ class ClientToolManifestEntry:
     schema: dict[str, Any]
     argument_resolution: Literal["passthrough", "backend_grounding"]
     executable_schema: dict[str, Any] | None = None
+    extension_id: str | None = None
+    plugin_id: str | None = None
+    mcp_server_id: str | None = None
+    mcp_tool_name: str | None = None
 
     @property
     def function_tool_schema(self) -> dict[str, Any]:
@@ -104,6 +108,10 @@ class ClientToolManifestEntry:
         }
         if self.executable_schema is not None:
             public["executable_schema"] = copy.deepcopy(self.executable_schema)
+        for key in ("extension_id", "plugin_id", "mcp_server_id", "mcp_tool_name"):
+            value = getattr(self, key)
+            if value:
+                public[key] = value
         return public
 
 
@@ -260,9 +268,28 @@ def _validate_tool_entry(
                 if executable_schema is not None
                 else None
             ),
+            extension_id=_normalize_optional_manifest_string(
+                raw_tool.get("extension_id")
+            ),
+            plugin_id=_normalize_optional_manifest_string(raw_tool.get("plugin_id")),
+            mcp_server_id=_normalize_optional_manifest_string(
+                raw_tool.get("mcp_server_id")
+            ),
+            mcp_tool_name=_normalize_optional_manifest_string(
+                raw_tool.get("mcp_tool_name")
+            ),
         ),
         None,
     )
+
+
+def _normalize_optional_manifest_string(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    if not normalized or len(normalized) > 256:
+        return None
+    return normalized
 
 
 def _validate_client_tool_schema(schema: dict[str, Any]) -> str | None:
