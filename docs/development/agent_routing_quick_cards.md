@@ -241,3 +241,13 @@ Start with [Main Process Change Workflow](../frontend/main/main_process_change_w
 Validate channel registration, preload exposure, renderer caller shape, main handler lifecycle, permission boundaries, packaged behavior, and IPC contract tests. Keep policy decisions in the owning runtime, not in preload.
 
 Avoid: adding a new bridge for behavior that belongs in the SDK runtime, sidecar, or backend contract.
+
+## Sidecar Process Or JSON-RPC
+
+Owner: Electron main/SDK runtime for sidecar startup and reuse, Python sidecar for daemon methods and local execution.
+
+Start with [Local-Backend Process Lifecycle Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md), [Local Backend JSON-RPC Change Workflow](../frontend/sidecar/local_backend_jsonrpc_change_workflow.md), and [Frontend Sidecar Hub](../frontend/sidecar/README.md).
+
+Validate launch args, readiness, source identity, request correlation, timeouts, response envelopes, packaged paths, and focused sidecar tests. Keep daemon lifecycle distinct from the behavior of one executable tool.
+
+Avoid: masking stale sidecar processes with renderer retries instead of fixing startup or readiness ownership.
