@@ -1576,14 +1576,15 @@ async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
 
 async function sendStopQueryToBackend(payload = {}) {
   if (!windieAgent) {
-    return null;
+    return false;
   }
-  return windieAgent.stop({
+  await windieAgent.stop({
     conversation_ref: resolveConversationRefFromPayload(payload),
     turn_ref: payload && typeof payload.turn_ref === 'string'
       ? payload.turn_ref
       : null,
   });
+  return true;
 }
 
 async function updateSettingsOnBackend(payload = {}) {
@@ -1657,12 +1658,12 @@ async function appendMainProcessTraceEvent(input = {}) {
 }
 
 async function triggerStopQueryFromMain() {
-  const messageId = await sendStopQueryToBackend(
+  const stopped = await sendStopQueryToBackend(
     currentConversationRef
       ? { conversation_ref: currentConversationRef }
       : {},
   );
-  if (!messageId) {
+  if (!stopped) {
     return false;
   }
   setResponseOverlayPhase('complete', 'stop-query');

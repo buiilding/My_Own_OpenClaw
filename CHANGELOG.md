@@ -43,6 +43,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/diagnostics: export and wire the Electron main app-diagnostic sink so
   startup permission IPC registration no longer aborts with
   `appendAppDiagnostic is not defined`.
+- frontend/sdk: treat completed SDK conversation stops as successful in
+  Electron main so renderer stop commands and the global stop shortcut no
+  longer report failure after sending `stop-query`.
 - frontend/diagnostics: route idle permission probes and workspace activation
   checks to persistent app diagnostics instead of mutating the active
   conversation history, while preserving explicit turn-scoped permission trace

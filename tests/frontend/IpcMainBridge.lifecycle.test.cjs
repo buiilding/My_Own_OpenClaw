@@ -413,10 +413,17 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('sends conversation.stop through the SDK runtime', async () => {
     const { handlers, ws } = await setupOpenedIpc();
 
-    await invokeWindieCommand(handlers, 'conversation.stop', {
+    const result = await invokeWindieCommand(handlers, 'conversation.stop', {
       conversation_ref: 'conv-typed-stop',
     });
 
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        ok: true,
+        stopped: true,
+      },
+    });
     const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
     expect(sentStopQuery.type).toBe('stop-query');
     expect(sentStopQuery.payload).toEqual({

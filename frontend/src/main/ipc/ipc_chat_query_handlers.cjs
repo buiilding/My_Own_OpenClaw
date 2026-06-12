@@ -123,9 +123,9 @@ function createChatQueryHandlers({
 
   async function handleRendererStopQuery(payloadInput = {}) {
     const payload = normalizePayload(payloadInput);
-    const messageId = await stopQuery(payload);
+    const stopped = await stopQuery(payload);
     setResponseOverlayPhase('complete', 'stop-query');
-    return { ok: Boolean(messageId), messageId };
+    return { ok: Boolean(stopped), stopped: Boolean(stopped) };
   }
 
   return {
