@@ -11,10 +11,6 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.tools.schema_registry import SchemaRegistry
-from backend.src.tools.remote_tools.computer import (
-    RemoteGroundedMouseTool,
-    RemoteGroundedScrollTool,
-)
 from backend.src.tools.tool_catalog import (
     get_built_tool_catalog,
     get_model_visible_tool_names,
@@ -67,11 +63,7 @@ class ToolRegistry:
                 logger.error("Failed to register remote tool %s: %s", name, exc)
 
     def _register_backend_tools(self) -> None:
-        for tool_class in (
-            WebSearchTool,
-            RemoteGroundedMouseTool,
-            RemoteGroundedScrollTool,
-        ):
+        for tool_class in (WebSearchTool,):
             name = tool_class.name
             try:
                 self.register_tool(tool_class())

@@ -56,6 +56,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/tools: stop manually re-registering catalog-owned grounded computer
+  tools during backend startup so `grounded_mouse_action` and
+  `grounded_scroll_action` no longer emit overwrite warnings.
 - backend/sdk/frontend/mcp: accept and filter `update-settings.payload.tools`
   replacement manifests, preserve SDK MCP tools when Electron adds query
   context, and add agent-definition trace counts for the SDK-vs-query manifest

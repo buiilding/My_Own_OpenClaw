@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 import pytest
@@ -131,6 +132,17 @@ def test_tool_registry_declarations_and_capabilities():
     capabilities = registry.get_tool_capabilities("dummy_tool")
     assert capabilities is not None
     assert capabilities["name"] == "dummy_tool"
+
+
+def test_tool_registry_startup_does_not_duplicate_catalog_tools(caplog):
+    config = AppConfig()
+
+    with caplog.at_level(logging.WARNING, logger="backend.src.tools.registry"):
+        registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    assert registry.get_tool("grounded_mouse_action") is not None
+    assert registry.get_tool("grounded_scroll_action") is not None
+    assert "already registered. Overwriting." not in caplog.text
 
 
 def test_tool_registry_register_overwrites_existing_tool():
