@@ -34,6 +34,7 @@ MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
 MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
 MCP_REGISTRATION_DIAGNOSTICS_PATH = "mcp.registration"
 MAX_DIAGNOSTIC_TEXT_LENGTH = 240
+MCP_STDIO_STREAM_LIMIT_BYTES = 64 * 1024 * 1024
 CURRENT_MCP_EXECUTION_CONTEXT: contextvars.ContextVar[dict[str, Any]] = (
     contextvars.ContextVar("CURRENT_MCP_EXECUTION_CONTEXT", default={})
 )
@@ -170,7 +171,12 @@ def diagnostics_database_path() -> Path:
 
 def classify_error_code(message: Any) -> str:
     text = str(message or "").lower()
-    if "enoent" in text or "not found" in text or "no such file" in text:
+    if (
+        "enoent" in text
+        or "no such file" in text
+        or "command not found" in text
+        or "file not found" in text
+    ):
         return "ENOENT"
     if "timed out" in text or "timeout" in text:
         return "timeout"
@@ -520,6 +526,7 @@ class McpStdioClient:
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                limit=MCP_STDIO_STREAM_LIMIT_BYTES,
             )
         except Exception as exc:
             self.emit_diagnostic(
@@ -539,29 +546,46 @@ class McpStdioClient:
         asyncio.create_task(self._read_stdout())
         asyncio.create_task(self._read_stderr())
 
+    def _fail_pending(self, error: Exception) -> None:
+        for request_id, future in list(self.pending.items()):
+            self.pending.pop(request_id, None)
+            if not future.done():
+                future.set_exception(error)
+
     async def _read_stdout(self) -> None:
         assert self.proc is not None
         assert self.proc.stdout is not None
-        while True:
-            line = await self.proc.stdout.readline()
-            if not line:
-                break
-            try:
-                message = json.loads(line.decode("utf-8"))
-            except json.JSONDecodeError:
-                continue
-            request_id = message.get("id") if isinstance(message, dict) else None
-            if request_id not in self.pending:
-                continue
-            future = self.pending.pop(request_id)
-            if message.get("error"):
-                future.set_exception(
-                    RuntimeError(
-                        message["error"].get("message") or json.dumps(message["error"])
+        try:
+            while True:
+                line = await self.proc.stdout.readline()
+                if not line:
+                    break
+                try:
+                    message = json.loads(line.decode("utf-8"))
+                except json.JSONDecodeError:
+                    continue
+                request_id = message.get("id") if isinstance(message, dict) else None
+                if request_id not in self.pending:
+                    continue
+                future = self.pending.pop(request_id)
+                if message.get("error"):
+                    future.set_exception(
+                        RuntimeError(
+                            message["error"].get("message")
+                            or json.dumps(message["error"])
+                        )
                     )
-                )
-            else:
-                future.set_result(message.get("result"))
+                else:
+                    future.set_result(message.get("result"))
+        except Exception as exc:
+            error = RuntimeError(f"MCP stdout reader failed for {self.server.id}: {exc}")
+            self.emit_diagnostic(
+                stage="stdout_reader_failed",
+                status="failed",
+                data={"phase": "stdio_read"},
+                error=error,
+            )
+            self._fail_pending(error)
 
     async def _read_stderr(self) -> None:
         assert self.proc is not None

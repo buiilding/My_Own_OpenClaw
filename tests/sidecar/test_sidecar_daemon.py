@@ -10,6 +10,8 @@ ensure_frontend_python_path()
 
 import sidecar_daemon  # noqa: E402
 from sidecar_daemon import (  # noqa: E402
+    McpServerSpec,
+    McpStdioClient,
     SidecarDaemon,
     resolve_mcp_command_for_spawn,
     write_discovery_file,
@@ -107,6 +109,15 @@ class FakeBackendWithShutdown:
         self.shutdown_calls += 1
 
 
+class FakeBrokenStdout:
+    async def readline(self):
+        raise ValueError("Separator is not found, and chunk exceed the limit")
+
+
+class FakeMcpProcessWithBrokenStdout:
+    stdout = FakeBrokenStdout()
+
+
 def test_resolve_mcp_command_uses_cua_driver_app_fallback(tmp_path: Path, monkeypatch):
     binary = tmp_path / "cua-driver"
     binary.write_text("#!/bin/sh\n", encoding="utf-8")
@@ -119,6 +130,35 @@ def test_resolve_mcp_command_uses_cua_driver_app_fallback(tmp_path: Path, monkey
     )
 
     assert resolve_mcp_command_for_spawn("cua-driver") == str(binary)
+
+
+@pytest.mark.asyncio
+async def test_mcp_stdout_reader_failure_fails_pending_request(tmp_path: Path, monkeypatch):
+    diagnostics_db = tmp_path / "diagnostics.db"
+    monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
+    client = McpStdioClient(McpServerSpec(id="large", command="fake-mcp-server"))
+    client.proc = FakeMcpProcessWithBrokenStdout()
+    future = asyncio.get_running_loop().create_future()
+    client.pending[1] = future
+
+    await client._read_stdout()
+
+    assert client.pending == {}
+    with pytest.raises(RuntimeError, match="MCP stdout reader failed for large"):
+        await future
+    with sqlite3.connect(diagnostics_db) as conn:
+        rows = conn.execute("""
+            SELECT path, stage, status, data, error
+            FROM diagnostic_events
+            WHERE stage = 'stdout_reader_failed'
+            """).fetchall()
+    assert len(rows) == 1
+    path, stage, status, data, error = rows[0]
+    assert path == "mcp.discovery"
+    assert stage == "stdout_reader_failed"
+    assert status == "failed"
+    assert json.loads(data)["phase"] == "stdio_read"
+    assert json.loads(error)["code"] == "runtime_error"
 
 
 @pytest.mark.asyncio
