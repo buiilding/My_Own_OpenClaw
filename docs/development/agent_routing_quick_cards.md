@@ -171,3 +171,13 @@ Start with [Credential and Token Change Workflow](../security/credential_token_c
 Validate environment-variable loading, install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, redaction, and logs. Use placeholders in docs and tests.
 
 Avoid: writing real credentials, user data, or machine-specific paths into docs, fixtures, logs, or snapshots.
+
+## Plugin Or Extension Contribution
+
+Owner: the extension contribution surface being changed, with package metadata as the stable entrypoint.
+
+Start with [Plugins and Extensions Hub](../plugins/README.md), [Extension Convention](extensions.md), and [Extension Surface Matrix](../plugins/extension_surface_matrix.md).
+
+Validate package metadata, plugin tools, MCP server config, skill prompt layers, sidecar schemas/code, settings panels, and lifecycle hooks according to the contribution type. Keep contribution types separated inside the extension package.
+
+Avoid: adding a generic adapter that only renames extension payloads without enforcing a lifecycle, security, or runtime boundary.
