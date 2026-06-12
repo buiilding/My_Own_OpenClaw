@@ -63,6 +63,7 @@ Important main-process flags:
 | `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors wakeword lifecycle diagnostics to stdout as `[Wakeword]` lines. |
 | `WINDIE_DEBUG_LOCAL_BACKEND_STDOUT=1` | Mirrors local-backend lifecycle diagnostics to stdout as `[LocalBackend]` lines. |
 | `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors surface visibility and frontend interaction diagnostics to stdout as compact lines. |
+| `WINDIE_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer durable `backend.compaction` trace rows for turn-scoped evidence. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enabled by `npm --prefix frontend run test:ghost-cursor` for OS tool ghost overlay debugging. |
 

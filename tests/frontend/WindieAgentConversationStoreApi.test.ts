@@ -389,6 +389,8 @@ describe('SidecarConversationStore event payload write params', () => {
 
   test('logs successful compaction event storage after sidecar RPC succeeds', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: { message_index: 7 } }));
+    const previousDebugCompactionStdout = process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+    process.env.WINDIE_DEBUG_COMPACTION_STDOUT = '1';
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const store = new SidecarConversationStore({
       userId: 'user-1',
@@ -427,5 +429,10 @@ describe('SidecarConversationStore event payload write params', () => {
     );
     expect(logSpy.mock.calls[0][1]).not.toHaveProperty('summaryText');
     logSpy.mockRestore();
+    if (previousDebugCompactionStdout === undefined) {
+      delete process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+    } else {
+      process.env.WINDIE_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
+    }
   });
 });

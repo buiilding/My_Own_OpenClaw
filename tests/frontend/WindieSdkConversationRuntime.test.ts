@@ -2403,6 +2403,8 @@ describe('Windie SDK conversation runtime core', () => {
   });
 
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
+    const previousDebugCompactionStdout = process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+    process.env.WINDIE_DEBUG_COMPACTION_STDOUT = '1';
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
@@ -2451,6 +2453,11 @@ describe('Windie SDK conversation runtime core', () => {
     );
     expect(logSpy.mock.calls[0][1]).not.toHaveProperty('summaryText');
     logSpy.mockRestore();
+    if (previousDebugCompactionStdout === undefined) {
+      delete process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+    } else {
+      process.env.WINDIE_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
+    }
 
     expect(applied).toMatchObject({
       type: 'compaction_applied',

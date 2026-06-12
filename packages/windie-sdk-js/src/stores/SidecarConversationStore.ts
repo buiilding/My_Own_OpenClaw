@@ -204,6 +204,9 @@ function logStoredCompactionEvent(
   params: JsonRecord,
   response: Record<string, unknown>,
 ): void {
+  if (!isCompactionStdoutEnabled()) {
+    return;
+  }
   const payload = normalizeRecord(event.payload) ?? {};
   console.log('[Windie SDK][Compaction] conversation.append_event succeeded', {
     conversationRef: event.conversationRef,
@@ -221,6 +224,11 @@ function logStoredCompactionEvent(
     skippedReason: normalizeString(payload.skippedReason) ?? normalizeString(payload.skipped_reason),
     hasCompactionCheckpoint: Boolean(params.compaction_checkpoint),
   });
+}
+
+function isCompactionStdoutEnabled(): boolean {
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 
 function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | null {

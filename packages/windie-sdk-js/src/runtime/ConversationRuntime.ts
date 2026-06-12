@@ -56,6 +56,11 @@ function durationSince(startedAtMs: number): number {
   return Math.max(0, Date.now() - startedAtMs);
 }
 
+function isCompactionStdoutEnabled(): boolean {
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
+}
+
 function optionalRequestId(value: string | void | null | undefined): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
@@ -2028,6 +2033,9 @@ export class SdkConversationRuntime {
 
   private logRejectedBackendEvent(event: ConversationEvent, reason: string): void {
     if (!isConversationControlEvent(event)) {
+      return;
+    }
+    if (!isCompactionStdoutEnabled()) {
       return;
     }
     console.log('[Windie SDK][Compaction] backend event rejected', {

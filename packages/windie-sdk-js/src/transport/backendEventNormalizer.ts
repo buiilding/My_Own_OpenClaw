@@ -227,6 +227,9 @@ function logCompactionNormalization(
   normalizedType: ConversationEvent['type'],
   payload: JsonRecord,
 ): void {
+  if (!isCompactionStdoutEnabled()) {
+    return;
+  }
   const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
     ? payload.replacement_history_entries
     : null;
@@ -246,6 +249,11 @@ function logCompactionNormalization(
     afterTokens: numberField(payload, 'after_tokens'),
     removedMessages: numberField(payload, 'removed_messages'),
   });
+}
+
+function isCompactionStdoutEnabled(): boolean {
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 
 function missingBackendIdentityEvent(
