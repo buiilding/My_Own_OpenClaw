@@ -99,7 +99,7 @@ paths consume the SDK runtime manager instead of owning sidecar lifecycle.
 
 ## Commits
 
-- Pending commit.
+- `24ad2abdb feat(sdk): make local runtime first-class`
 
 ## Blockers
 
