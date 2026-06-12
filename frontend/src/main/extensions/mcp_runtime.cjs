@@ -666,8 +666,31 @@ async function buildClientToolManifestWithMcp(options = {}) {
   };
 }
 
+function stripMcpImageDataForOutput(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripMcpImageDataForOutput(item));
+  }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  const outputValue = {};
+  for (const [key, childValue] of Object.entries(value)) {
+    if (
+      key === 'data'
+      && value.type === 'image'
+      && typeof childValue === 'string'
+      && childValue.trim()
+    ) {
+      outputValue[key] = '[image data omitted; promoted to native screenshot field]';
+      continue;
+    }
+    outputValue[key] = stripMcpImageDataForOutput(childValue);
+  }
+  return outputValue;
+}
+
 function serializeMcpResultForOutput(result) {
-  return JSON.stringify(result || {});
+  return JSON.stringify(stripMcpImageDataForOutput(result || {}));
 }
 
 function extractMcpImageContent(content) {
@@ -767,4 +790,5 @@ module.exports = {
   normalizeMcpEnablementIds,
   normalizeMcpServerSpec,
   serializeMcpResultForOutput,
+  stripMcpImageDataForOutput,
 };

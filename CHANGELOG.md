@@ -69,6 +69,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sidecar/mcp: elide promoted MCP image base64 from model-facing
+  `data.output` while preserving native screenshot fields and raw
+  `data.mcp_result` for inspection.
 - frontend/main: make `npm run electron:dev` stop auto-enabling verbose
   `[LiveSurfaceTrace]` dumps, keep live-surface tracing behind explicit debug
   flags, and replace default assistant chunk logs with compact one-line

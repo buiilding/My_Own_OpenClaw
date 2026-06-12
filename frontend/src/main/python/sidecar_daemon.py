@@ -360,8 +360,34 @@ def mcp_server_launch_key(server: "McpServerSpec") -> str:
     )
 
 
+MCP_IMAGE_DATA_OUTPUT_PLACEHOLDER = (
+    "[image data omitted; promoted to native screenshot field]"
+)
+
+
+def strip_mcp_image_data_for_output(value: Any) -> Any:
+    if isinstance(value, list):
+        return [strip_mcp_image_data_for_output(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    output_value: dict[str, Any] = {}
+    for key, child_value in value.items():
+        if (
+            key == "data"
+            and value.get("type") == "image"
+            and normalize_string(child_value)
+        ):
+            output_value[key] = MCP_IMAGE_DATA_OUTPUT_PLACEHOLDER
+            continue
+        output_value[key] = strip_mcp_image_data_for_output(child_value)
+    return output_value
+
+
 def serialize_mcp_result_for_output(result: dict[str, Any] | None) -> str:
-    return json.dumps(result or {}, separators=(",", ":"))
+    return json.dumps(
+        strip_mcp_image_data_for_output(result or {}),
+        separators=(",", ":"),
+    )
 
 
 def extract_mcp_image_content(content: Any) -> dict[str, str] | None:

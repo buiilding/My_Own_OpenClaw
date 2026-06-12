@@ -91,11 +91,12 @@ Client-local schemas are merged with backend registry schemas before policy filt
 - MCP-backed sidecar results are an exception to any local summarization habit:
   preserve the MCP server's raw result for every MCP tool, including `content`,
   `structuredContent`, and other returned fields. Put the serialized MCP result
-  content in `data.output` so model history can see it, and keep the raw object
-  in `data.mcp_result` for inspection. If an MCP item contains image data,
-  additively promote it into WindieOS native image fields such as
-  `data.screenshot` and `data.screenshot_content_type`; do not remove or rewrite
-  the original MCP result.
+  content in `data.output` so model history can see it, but elide image base64
+  there after promotion. Keep the raw object in `data.mcp_result` for
+  inspection. If an MCP item contains image data, additively promote it into
+  WindieOS native image fields such as `data.screenshot` and
+  `data.screenshot_content_type`; do not remove or rewrite the original MCP
+  result.
 - Backend may truncate raw `data.output` with the selected model's tokenizer
   when available, then falls back to the conservative character estimate.
 - Backend remote tools can be model-visible without sidecar entries. Sidecar helpers can exist without model visibility.

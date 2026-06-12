@@ -524,7 +524,7 @@ async def test_sidecar_daemon_preserves_mcp_structured_content():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_promotes_mcp_image_content():
+async def test_sidecar_daemon_omits_promoted_mcp_image_bytes_from_output():
     daemon = SidecarDaemon(token="test-token")
     daemon.mcp_clients["vision"] = FakeImageMcpClient()
 
@@ -553,10 +553,11 @@ async def test_sidecar_daemon_promotes_mcp_image_content():
     )
 
     assert registration.status == 200
-    assert json.loads(execution.text) == {
+    payload = json.loads(execution.text)
+    assert payload == {
         "success": True,
         "data": {
-            "output": '{"content":[{"type":"image","data":"png-base64","mimeType":"image/png"}]}',
+            "output": '{"content":[{"type":"image","data":"[image data omitted; promoted to native screenshot field]","mimeType":"image/png"}]}',
             "screenshot": "png-base64",
             "screenshot_content_type": "image/png",
             "mcp_result": {
@@ -566,6 +567,7 @@ async def test_sidecar_daemon_promotes_mcp_image_content():
             },
         },
     }
+    assert "png-base64" not in payload["data"]["output"]
 
 
 @pytest.mark.asyncio

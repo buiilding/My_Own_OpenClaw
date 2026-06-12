@@ -201,7 +201,7 @@ describe('MCP runtime', () => {
     });
   });
 
-  test('promotes MCP image content into native screenshot fields', async () => {
+  test('omits promoted MCP image bytes from model-facing output', async () => {
     const client = {
       ...createClient(),
       callTool: jest.fn(async () => ({
@@ -233,7 +233,7 @@ describe('MCP runtime', () => {
     expect(result).toEqual({
       success: true,
       data: {
-        output: '{"content":[{"type":"image","data":"png-base64","mimeType":"image/png"}]}',
+        output: '{"content":[{"type":"image","data":"[image data omitted; promoted to native screenshot field]","mimeType":"image/png"}]}',
         screenshot: 'png-base64',
         screenshot_content_type: 'image/png',
         mcp_result: {
@@ -241,6 +241,7 @@ describe('MCP runtime', () => {
         },
       },
     });
+    expect(result.data.output).not.toContain('png-base64');
   });
 
   test('reconciles stale MCP tools after server removal', async () => {
