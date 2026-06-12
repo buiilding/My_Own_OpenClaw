@@ -368,9 +368,12 @@ export function createWindieAgentBackendTransport(
       conversationRef: typeof payload.conversation_ref === 'string'
         ? payload.conversation_ref
         : conversationRef,
-      agentDefinition: payload.agent_definition && typeof payload.agent_definition === 'object'
-        ? payload.agent_definition as JsonRecord
-        : agentDefinition,
+      agentDefinition: mergeQueryAgentDefinition(
+        agentDefinition,
+        payload.agent_definition && typeof payload.agent_definition === 'object'
+          ? payload.agent_definition as JsonRecord
+          : null,
+      ),
       rawPayload: payload,
       turnRef: options.messageId ?? null,
       content: typeof payload.content === 'string' ? payload.content : null,
@@ -417,5 +420,75 @@ export function createWindieAgentBackendTransport(
     subscribe: listener => session.on('event', listener),
     close: async () => session.close(1000, 'conversation-runtime-close'),
   };
+}
+
+function cloneJsonRecord(value: unknown): JsonRecord {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return JSON.parse(JSON.stringify(value)) as JsonRecord;
+}
+
+function mergeJsonRecord(base: unknown, override: unknown): JsonRecord | undefined {
+  const baseRecord = cloneJsonRecord(base);
+  const overrideRecord = cloneJsonRecord(override);
+  const merged = {
+    ...baseRecord,
+    ...overrideRecord,
+  };
+  return Object.keys(merged).length > 0 ? merged : undefined;
+}
+
+function mergeArrayValues(base: unknown, override: unknown): unknown[] | undefined {
+  const merged = [
+    ...(Array.isArray(base) ? base : []),
+    ...(Array.isArray(override) ? override : []),
+  ];
+  return merged.length > 0 ? merged : undefined;
+}
+
+function mergeAgentDefinitionTools(baseTools: unknown, overrideTools: unknown): JsonRecord | undefined {
+  const mergedTools = mergeJsonRecord(baseTools, overrideTools);
+  if (!mergedTools) {
+    return undefined;
+  }
+  const baseClientManifest = cloneJsonRecord((baseTools as JsonRecord | undefined)?.client_manifest);
+  const overrideClientManifest = cloneJsonRecord((overrideTools as JsonRecord | undefined)?.client_manifest);
+  if (Object.keys(overrideClientManifest).length > 0) {
+    mergedTools.client_manifest = overrideClientManifest;
+  } else if (Object.keys(baseClientManifest).length > 0) {
+    mergedTools.client_manifest = baseClientManifest;
+  }
+  return mergedTools;
+}
+
+function mergeQueryAgentDefinition(
+  baseDefinition: JsonRecord | undefined,
+  queryDefinition: JsonRecord | null,
+): JsonRecord | undefined {
+  if (!queryDefinition || Object.keys(queryDefinition).length === 0) {
+    return baseDefinition;
+  }
+  const base = cloneJsonRecord(baseDefinition);
+  const query = cloneJsonRecord(queryDefinition);
+  const merged: JsonRecord = {
+    ...base,
+    ...query,
+  };
+  const tools = mergeAgentDefinitionTools(base.tools, query.tools);
+  if (tools) {
+    merged.tools = tools;
+  }
+  const runtime = mergeJsonRecord(base.runtime, query.runtime);
+  if (runtime) {
+    merged.runtime = runtime;
+  }
+  for (const key of ['prompt_layers', 'agents_md', 'skills', 'plugins']) {
+    const values = mergeArrayValues(base[key], query[key]);
+    if (values) {
+      merged[key] = values;
+    }
+  }
+  return Object.keys(merged).length > 0 ? merged : undefined;
 }
 import NodeWebSocket from 'ws';

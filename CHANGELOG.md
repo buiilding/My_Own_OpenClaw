@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend/mcp: preserve the agent's client tool manifest when per-turn
+  workspace/AGENTS.md context supplies a partial agent definition, so enabled
+  MCP tools remain model-visible in chat turns.
 - frontend/mcp: keep MCP enablement main-owned so stale renderer/default
   AppConfig saves cannot erase an enabled MCP allowlist after discovery, while
   dashboard toggles still persist enable/disable through the MCP control path.

@@ -1348,6 +1348,99 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('SDK backend transport preserves agent tool manifest when query context supplies a partial agent definition', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+      operatingSystem: 'macOS',
+      agentDefinition: {
+        id: 'transport-agent',
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            version: 1,
+            tools: [{
+              name: 'cua_driver__get_open_windows',
+              mcp_server_id: 'cua-driver',
+              schema: { type: 'object', properties: {} },
+            }],
+          },
+        },
+      },
+    });
+
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+    FakeWebSocket.instances[0].clearSent();
+
+    const transport = createWindieAgentBackendTransport(session, 'conv-agent-context', {
+      id: 'transport-agent',
+      tools: {
+        mode: 'client_only',
+        client_manifest: {
+          version: 1,
+          tools: [{
+            name: 'cua_driver__get_open_windows',
+            mcp_server_id: 'cua-driver',
+            schema: { type: 'object', properties: {} },
+          }],
+        },
+      },
+    });
+    await transport.sendQuery({
+      text: 'u got the mcp',
+      conversation_ref: 'conv-agent-context',
+      agent_definition: {
+        id: 'windie-default',
+        tools: {
+          mode: 'default_plus_client',
+          enabled_remote_tools: [],
+          disabled_tools: [],
+          disabled_capabilities: [],
+        },
+        agents_md: [{
+          id: 'repo',
+          type: 'agents_md',
+          priority: 40,
+          content: 'Follow repo rules.',
+        }],
+        runtime: {
+          workspace_path: '/tmp/project',
+        },
+      },
+    });
+
+    const query = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(query).toMatchObject({
+      type: 'query',
+      payload: {
+        agent_definition: {
+          id: 'windie-default',
+          tools: {
+            mode: 'default_plus_client',
+            client_manifest: {
+              version: 1,
+              tools: [
+                expect.objectContaining({
+                  name: 'cua_driver__get_open_windows',
+                  mcp_server_id: 'cua-driver',
+                }),
+              ],
+            },
+          },
+          runtime: {
+            workspace_path: '/tmp/project',
+          },
+          agents_md: [
+            expect.objectContaining({ id: 'repo' }),
+          ],
+        },
+      },
+    });
+  });
+
   test('SDK backend transport exposes typed compaction and wakeword messages', async () => {
     const session = createWindieAgentSession({
       backendUrl: 'https://api.windieos.com',
