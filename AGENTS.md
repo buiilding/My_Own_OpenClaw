@@ -37,7 +37,10 @@ Before coding or answering implementation questions:
   registry behind it for existing commands tied to the affected runtime or
   failing path. Prefer the relevant `bin/windie` diagnostics, logs, trace,
   conversation, docs, start, and `test pick` commands for reproduction,
-  inspection, and validation before inventing ad hoc shell commands.
+  inspection, and validation before inventing ad hoc shell commands. If no
+  existing command, diagnostic, trace, or log exposes the bug, add a focused,
+  sanitized diagnostic or command at the owning runtime as part of the fix so
+  the same failure can be reproduced and validated deterministically later.
 - Before fixing a bug or adding behavior, inspect recent related commits for
   the files, symbols, or subsystem you are touching. Use `git log`, `git show`,
   and `git blame` to understand what changed recently, why the current behavior
