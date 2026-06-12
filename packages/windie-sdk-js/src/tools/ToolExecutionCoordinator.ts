@@ -20,6 +20,7 @@ import { normalizeLocalToolResultData } from './toolOutputContent.js';
 export type ToolExecutionCoordinatorOptions = {
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
   localToolLifecycle?: LocalToolExecutionLifecycle | null;
+  agentDefinition?: JsonRecord | null;
   store?: Pick<ConversationStore, 'appendEvent'> | null;
   artifactUploader?: ToolResultArtifactUploader | null;
   emitTrace?: (input: ToolExecutionTraceInput) => Promise<void> | void;
@@ -301,6 +302,23 @@ function shouldSkipFrontendExecution(event: ConversationEvent): boolean {
   return metadata?.skip_frontend_execution === true;
 }
 
+function activeClientToolNames(agentDefinition: JsonRecord | null | undefined): Set<string> | null {
+  if (!agentDefinition || !isJsonRecord(agentDefinition.tools)) {
+    return null;
+  }
+  const clientManifest = isJsonRecord(agentDefinition.tools.client_manifest)
+    ? agentDefinition.tools.client_manifest
+    : null;
+  const tools = Array.isArray(clientManifest?.tools) ? clientManifest.tools : [];
+  if (tools.length === 0) {
+    return null;
+  }
+  const names = tools
+    .map(tool => (isJsonRecord(tool) && typeof tool.name === 'string' ? tool.name.trim() : ''))
+    .filter(Boolean);
+  return names.length > 0 ? new Set(names) : null;
+}
+
 function resolveLocalToolRelease(release: LocalToolExecutionRelease): (() => void | Promise<void>) | null {
   if (typeof release === 'function') {
     return release;
@@ -317,6 +335,12 @@ export class ToolExecutionCoordinator {
   private async executeLocalTool(call: LocalToolCall): Promise<LocalToolResult> {
     if (!this.options.localRuntime?.executeTool) {
       throw new Error('local runtime executeTool is unavailable');
+    }
+    const activeToolNames = activeClientToolNames(this.options.agentDefinition ?? null);
+    if (activeToolNames && !activeToolNames.has(call.toolName)) {
+      throw new Error(
+        `Local tool route unavailable for ${call.toolName}. The active capability manifest no longer exposes this tool.`,
+      );
     }
     const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
     try {

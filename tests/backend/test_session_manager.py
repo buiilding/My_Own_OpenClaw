@@ -7,6 +7,7 @@ import pytest
 from backend.src.agent.session.manager import SessionManager
 from backend.src.api.schemas.agent_definition import AgentDefinition
 from backend.src.core.config.models import AppConfig
+from backend.src.tools.client_manifest import validate_client_tool_manifest
 
 
 class DummySession:
@@ -221,6 +222,14 @@ async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt()
                 "type": "extension_skill",
                 "priority": 70,
                 "content": "Review before answering.",
+                "revision": "rev-1",
+            },
+            {
+                "id": "review",
+                "type": "extension_skill",
+                "priority": 70,
+                "content": "Review before answering.",
+                "revision": "rev-1",
             }
         ],
     )
@@ -246,6 +255,7 @@ async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt()
             "type": "extension_skill",
             "priority": 70,
             "content": "Review before answering.",
+            "revision": "rev-1",
         },
     ]
 
@@ -305,6 +315,46 @@ async def test_partial_agent_definition_does_not_clear_existing_client_tools() -
             "content": "Follow repo rules.",
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_set_client_tool_manifest_applies_to_active_and_future_sessions() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    active = DummySession("active")
+    _assign_active_session(manager, "user-1", active, conversation_ref="conv-a")
+    manifest_result = validate_client_tool_manifest(
+        {
+            "version": 1,
+            "tools": [
+                {
+                    "name": "cua_driver__screenshot",
+                    "description": "Capture the screen through CUA.",
+                    "execution_target": "sidecar",
+                    "argument_resolution": "passthrough",
+                    "schema": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": False,
+                    },
+                }
+            ],
+        }
+    )
+
+    manager.set_client_tool_manifest("user-1", manifest_result)
+    future = await manager.get_or_create_session(
+        "user-1",
+        conversation_ref="conv-b",
+    )
+
+    assert [
+        schema.get("name") for schema in active.prompt_builder.client_tool_schemas
+    ] == ["cua_driver__screenshot"]
+    assert active.cfg.agent_available_tools == ["cua_driver__screenshot"]
+    assert [
+        schema.get("name") for schema in future.prompt_builder.client_tool_schemas
+    ] == ["cua_driver__screenshot"]
+    assert future.cfg.agent_available_tools == ["cua_driver__screenshot"]
 
 
 @pytest.mark.asyncio

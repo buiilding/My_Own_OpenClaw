@@ -28,6 +28,8 @@ function createWindowBootstrapRuntime(deps) {
       showChatWindow: deps.showChatWindow,
       emitWakewordSttTrigger: deps.emitWakewordSttTrigger,
       initializeLocalBackendBridge: deps.initializeLocalBackendBridge,
+      getKnownLocalRuntime: deps.getKnownLocalRuntime,
+      ensureLocalRuntime: deps.ensureLocalRuntime,
       permissionStatePath: typeof deps.getPermissionStatePath === 'function'
         ? deps.getPermissionStatePath()
         : null,

@@ -484,8 +484,8 @@ function mergeUserMessageMetadata(
 type StreamingAssistantDisplayRow = Extract<SdkDisplayRow, { type: 'assistant_message' }>;
 
 type StreamingAssistantState = {
-  rowIndex: number;
-  rowId: string;
+  rowIndex: number | null;
+  rowId: string | null;
   assistantText: string;
   reasoningText: string | null;
   eventIds: string[];
@@ -601,25 +601,34 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
     if (event.type === 'assistant_delta' || event.type === 'reasoning_delta') {
       const key = streamingAssistantKey(event);
       const current = streamingAssistants.get(key) ?? {
-        rowIndex: rows.length,
-        rowId: assistantDisplayRowIdForSegment(event, assistantRowsByTurn),
+        rowIndex: null,
+        rowId: null,
         assistantText: '',
         reasoningText: null,
         eventIds: [],
       };
       const text = textFromPayload(event.payload);
+      const assistantText = event.type === 'assistant_delta'
+        ? `${current.assistantText}${text}`
+        : current.assistantText;
+      const reasoningText = event.type === 'reasoning_delta'
+        ? `${current.reasoningText ?? ''}${text}`
+        : current.reasoningText;
+      const rowIndex = current.rowIndex
+        ?? (assistantText ? rows.length : null);
+      const rowId = current.rowId
+        ?? (assistantText ? assistantDisplayRowIdForSegment(event, assistantRowsByTurn) : null);
       const nextState: StreamingAssistantState = {
-        rowIndex: current.rowIndex,
-        rowId: current.rowId,
-        assistantText: event.type === 'assistant_delta'
-          ? `${current.assistantText}${text}`
-          : current.assistantText,
-        reasoningText: event.type === 'reasoning_delta'
-          ? `${current.reasoningText ?? ''}${text}`
-          : current.reasoningText,
+        rowIndex,
+        rowId,
+        assistantText,
+        reasoningText,
         eventIds: [...current.eventIds, event.eventId],
       };
       streamingAssistants.set(key, nextState);
+      if (nextState.rowIndex === null || nextState.rowId === null) {
+        continue;
+      }
       const row = buildStreamingAssistantRow(
         event,
         nextState.rowIndex,
@@ -639,10 +648,12 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
       const key = streamingAssistantKey(event);
       const streamingState = streamingAssistants.get(key);
       if (streamingState) {
-        rows[streamingState.rowIndex] = buildFinalAssistantRow(
+        const rowIndex = streamingState.rowIndex ?? rows.length;
+        const rowId = streamingState.rowId ?? assistantDisplayRowIdForSegment(event, assistantRowsByTurn);
+        rows[rowIndex] = buildFinalAssistantRow(
           event,
-          streamingState.rowIndex,
-          streamingState.rowId,
+          rowIndex,
+          rowId,
           streamingState,
         );
         streamingAssistants.delete(key);

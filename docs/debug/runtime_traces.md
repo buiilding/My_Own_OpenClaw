@@ -95,11 +95,6 @@ Current durable traced paths:
 - `overlay.phase`: SDK current-turn projection records phase transitions with
   source event type, before/after phase, active-turn match booleans, and turn
   presence without assistant or user message text.
-- `permission.probe`: Electron main permission IPC records probe/request
-  spans through the active conversation trace handoff when a conversation is
-  available. Rows include permission id, platform, status enum, granted
-  boolean, details presence, duration, and short errors without selected
-  filesystem paths.
 - `browser.runtime`: SDK tool execution records sidecar browser action spans
   with action name, mode, scope, connection state, tab count, and success
   booleans without URLs, page titles, page text, or browser output.
@@ -123,6 +118,12 @@ Current durable traced paths:
   contribution counts and definition presence without plugin payloads.
 - `mcp.tool`: SDK agent-definition shaping records MCP server contribution
   counts and definition presence without server config payloads.
+- `client_tool_manifest.validate`: backend turn handling records client tool
+  manifest validation counts, raw tool count, accepted-name sample, and bounded
+  rejected-reason sample without raw schemas or manifest payloads.
+- `client_tool_manifest.apply`: backend turn handling records client manifest
+  application counts, including the resulting prompt-builder client tool count,
+  without raw schemas or manifest payloads.
 - `workspace.context`: SDK turn send records workspace resource/path presence,
   source kind, and resource counts without workspace paths.
 - `install.auth`: SDK install identity helper records identity lookup spans
@@ -137,8 +138,9 @@ Current durable traced paths:
   tool-list, and shutdown spans with ready/running booleans, tool count,
   version presence, shutdown mode, and response key counts.
 - `agent.definition`: SDK conversation send records agent definition shape with
-  tool/plugin/MCP/skill counts, key count, workspace-path presence, and local
-  runtime availability without definition payload text or schemas.
+  merged tool/plugin/MCP/skill counts, SDK-vs-query agent-definition presence,
+  SDK-vs-query client-manifest tool counts, key count, workspace-path presence,
+  and local runtime availability without definition payload text or schemas.
 
 Renderer diagnostics should read the same rows through
 `DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads
@@ -167,9 +169,24 @@ App diagnostic paths:
 - `conversation.metadata.list`: dashboard/sidebar chat-list load.
 - `browser.session_control`: chat header browser readiness and browser action
   request lifecycle before a conversation turn exists.
-- `mcp.discovery`: Electron main MCP discovery and stdio initialization,
+- `permission.probe`: Electron main permission probe/request and workspace
+  activation diagnostics by default. Rows include permission id, platform,
+  status enum, granted boolean, details presence, workspace-path presence,
+  duration, and short errors without selected filesystem paths. If a caller
+  explicitly supplies both `conversationRef` and `turnRef`, the same sanitized
+  path may be written as a hidden conversation `trace_event` because it is then
+  part of a real user turn.
+- `mcp.discovery`: sidecar-owned MCP discovery and stdio initialization,
   including sanitized command basename, argument summary, timeout phase,
   elapsed time, stderr tail, and short spawn/request errors.
+- `mcp.enablement`: Electron main MCP dashboard toggle and frontend-config
+  persistence lifecycle, including whether a renderer save preserved MCP
+  enablement from loaded main config or disk.
+- `mcp.registration`: sidecar-owned SDK/local-runtime MCP registration
+  lifecycle, including `/mcps/register` request, replace/reconcile, and
+  registered tool counts.
+- `mcp.execution`: sidecar-owned MCP `tools/call` execution for MCP tools that
+  have already been discovered and registered into the local tool manifest.
 
 The `conversation.metadata.list` path covers:
 
@@ -200,6 +217,25 @@ stderr tail, and short errors. They must not include environment variables,
 absolute command paths, raw MCP payloads, tool schemas, tool results, tokens, or
 stack traces.
 
+`mcp.enablement` rows may include server id, requested enabled state, config
+save phase, preserve source (`latest`, `disk`, or `none`), persisted enabled
+server count, registry status counts, and MCP tool counts. They must not include
+raw frontend config, provider secrets, absolute paths, raw MCP payloads, tool
+schemas, prompt text, or message text.
+
+`mcp.registration` rows may include replace/reconcile booleans, requested
+server count, registered server/tool counts, status/error counts, active MCP
+server count, MCP tool count, elapsed time, and short errors. They must not
+include raw server definitions, absolute command paths, environment variables,
+tool schemas, raw MCP payloads, tokens, prompt text, or message text.
+
+`mcp.execution` rows may include server id, exposed Windie tool name, original
+MCP tool name, phase, elapsed milliseconds, request id, conversation ref,
+tool-call/correlation/bundle ids, turn ref, stderr tail, and short timeout or
+transport errors. They must not include tool arguments, raw MCP payloads, tool
+results, schemas, screenshots, tokens, absolute paths, stack traces, prompt text,
+or user/assistant message text.
+
 Do not store raw user ids, chat titles, last-message text, workspace paths,
 SQL rows, stack traces, tokens, prompt text, user text, assistant text, or raw
 payloads in app diagnostics.
@@ -220,6 +256,24 @@ For MCP discovery:
 
 ```bash
 bin/windie diagnostics list --path mcp.discovery --limit 50
+```
+
+For MCP enablement/persistence:
+
+```bash
+bin/windie diagnostics list --path mcp.enablement --limit 50
+```
+
+For MCP registration into the local runtime:
+
+```bash
+bin/windie diagnostics list --path mcp.registration --limit 50
+```
+
+For MCP tool execution:
+
+```bash
+bin/windie diagnostics list --path mcp.execution --limit 50
 ```
 
 Inspect a single trace timeline with:

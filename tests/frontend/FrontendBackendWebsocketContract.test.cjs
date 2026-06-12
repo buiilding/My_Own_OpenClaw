@@ -73,6 +73,13 @@ function assertPayloadMatchesContract(type, payload) {
       });
     }
   }
+
+  const toolsContract = payloadContract.nested?.tools;
+  if (toolsContract && payload.tools !== undefined && payload.tools !== null) {
+    assertAllowedKeys(`${type}.payload.tools`, payload.tools, toolsContract.keys, {
+      allowExtra: toolsContract.extra === 'allow',
+    });
+  }
 }
 
 async function createOpenSession() {
@@ -226,6 +233,10 @@ describe('frontend/backend websocket incoming contract', () => {
     });
     session.sendUpdateSettings({
       selected_model_id: 'gpt-test',
+      tools: {
+        mode: 'replace_client_manifest',
+        client_manifest: { version: 1, tools: [] },
+      },
       provider_api_keys: {
         openai: {
           enabled: true,
@@ -275,6 +286,10 @@ describe('frontend/backend websocket incoming contract', () => {
     });
     expect(sentPayload(socket, 2)).toEqual({
       selected_model_id: 'gpt-test',
+      tools: {
+        mode: 'replace_client_manifest',
+        client_manifest: { version: 1, tools: [] },
+      },
       provider_api_keys: {
         openai: {
           enabled: true,

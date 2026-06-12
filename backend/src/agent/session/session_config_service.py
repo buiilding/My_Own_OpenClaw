@@ -7,10 +7,16 @@ import logging
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
+from backend.src.agent.session.capability_application import (
+    apply_agent_definition_tool_policy_to_session,
+    apply_client_capability_to_session,
+    capability_config_overrides,
+)
+from backend.src.agent.session.prompt_layers import validate_client_prompt_layers
 from backend.src.core.config import AppConfig
 from backend.src.llm.prompts.prompts import render_contextual_system_prompt
-from backend.src.tools.provider_health import merge_unavailable_capabilities
 from backend.src.tools.client_manifest import validate_client_tool_manifest
+from backend.src.tools.provider_health import merge_unavailable_capabilities
 from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
@@ -18,13 +24,6 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session_registry import SessionRegistry
 
 logger = logging.getLogger(__name__)
-
-
-def _coerce_prompt_layer_priority(value: Any) -> int:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return 100
 
 
 class SessionConfigService:
@@ -154,24 +153,9 @@ class SessionConfigService:
                 and message["content"].strip()
             )
         ]
-        normalized_client_prompt_layers = [
-            {
-                "id": str(layer["id"]).strip(),
-                "type": str(layer["type"]).strip(),
-                "priority": _coerce_prompt_layer_priority(layer.get("priority")),
-                "content": str(layer["content"]).strip(),
-            }
-            for layer in (client_prompt_layers or [])
-            if (
-                isinstance(layer, dict)
-                and isinstance(layer.get("id"), str)
-                and layer["id"].strip()
-                and isinstance(layer.get("type"), str)
-                and layer["type"].strip()
-                and isinstance(layer.get("content"), str)
-                and layer["content"].strip()
-            )
-        ]
+        normalized_client_prompt_layers = validate_client_prompt_layers(
+            client_prompt_layers
+        ).accepted
         runtime = getattr(session, "runtime", None)
         if runtime is not None:
             runtime.workspace_path = normalized_workspace_path
@@ -195,18 +179,15 @@ class SessionConfigService:
         self,
         session: "AgentSession",
         manifest_result: Any,
+        *,
+        agent_definition: Any = None,
+        replace_available_tools: bool = True,
     ) -> None:
-        runtime = getattr(session, "runtime", None)
-        if runtime is not None:
-            runtime.client_tool_manifest = manifest_result
-        accepted_tool_schemas = (
-            manifest_result.accepted_tool_schemas
-            if manifest_result is not None
-            and hasattr(manifest_result, "accepted_tool_schemas")
-            else []
-        )
-        setattr(
-            session.prompt_builder, "client_tool_schemas", list(accepted_tool_schemas)
+        apply_client_capability_to_session(
+            session,
+            manifest_result,
+            agent_definition=agent_definition,
+            replace_available_tools=replace_available_tools,
         )
 
     def set_client_tool_manifest(
@@ -215,6 +196,12 @@ class SessionConfigService:
         manifest_result: Any,
     ) -> None:
         self.client_tool_manifests[user_id] = manifest_result
+        overrides = capability_config_overrides(
+            manifest_result=manifest_result,
+            replace_available_tools=True,
+        )
+        if overrides:
+            self.user_config_overrides.setdefault(user_id, {}).update(overrides)
         for _, session in self._registry.iter_user_sessions(user_id):
             self.apply_client_tool_manifest_to_session(session, manifest_result)
 
@@ -235,7 +222,13 @@ class SessionConfigService:
         )
         if raw_manifest is not None:
             manifest_result = validate_client_tool_manifest(raw_manifest)
-            self.apply_client_tool_manifest_to_session(session, manifest_result)
+            self.apply_client_tool_manifest_to_session(
+                session,
+                manifest_result,
+                agent_definition=agent_definition,
+            )
+        else:
+            apply_agent_definition_tool_policy_to_session(session, agent_definition)
         definition_runtime = getattr(agent_definition, "runtime", None)
         operating_system = getattr(definition_runtime, "operating_system", None)
         workspace_path = getattr(definition_runtime, "workspace_path", None)

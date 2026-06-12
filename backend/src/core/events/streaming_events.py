@@ -159,6 +159,7 @@ class SystemPromptEvent(StreamingEvent):
     content: str
     tool_schemas: Optional[List[ToolSchema]] = None
     client_prompt_layers: Optional[List[Dict[str, Any]]] = None
+    client_prompt_layer_summary: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         self.type = StreamingEventType.SYSTEM_PROMPT

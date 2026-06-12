@@ -71,7 +71,7 @@ let bridge;
 let currentMainWindow;
 let currentWindowState;
 let sdkRuntime;
-let sdkRuntimeProvider;
+let ensureLocalRuntime;
 let sdkRuntimeRequests;
 let sdkRuntimeRequestHistory;
 let queuedSdkRuntimeResponses;
@@ -82,7 +82,7 @@ function resetHarnessState() {
   handlers = {};
   currentWindowState = null;
   sdkRuntime = null;
-  sdkRuntimeProvider = null;
+  ensureLocalRuntime = null;
   sdkRuntimeRequests = [];
   sdkRuntimeRequestHistory = [];
   queuedSdkRuntimeResponses = [];
@@ -128,9 +128,9 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
 
   bridge = require(path.join(__dirname, '../../../frontend/src/main/sidecar/local_backend_bridge.cjs'));
   sdkRuntime = options.localRuntime || createMockSdkRuntime();
-  sdkRuntimeProvider = options.localRuntimeProvider === undefined
+  ensureLocalRuntime = options.ensureLocalRuntime === undefined
     ? jest.fn(async () => sdkRuntime)
-    : options.localRuntimeProvider;
+    : options.ensureLocalRuntime;
 
   const mainWindow = options.mainWindow || createMainWindow();
   const chatWindow = options.chatWindow || null;
@@ -145,9 +145,9 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
   bridge.initializeLocalBackendBridge(() => currentWindowState, {
     getFrontendConfig: () => options.frontendConfig || null,
     getArtifactUploadHeaders: options.getArtifactUploadHeaders,
+    getKnownLocalRuntime: options.getKnownLocalRuntime,
+    ensureLocalRuntime,
     isPackaged: options.isPackaged === true,
-    autoSidecarLaunchPlan: options.autoSidecarLaunchPlan,
-    localRuntimeProvider: sdkRuntimeProvider,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
     sdkLocalToolExecutor: options.sdkLocalToolExecutor,
@@ -160,7 +160,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     handlers,
     spawn,
     sdkRuntime,
-    sdkRuntimeProvider,
+    ensureLocalRuntime,
   };
 }
 
@@ -213,7 +213,7 @@ function initBridge(options = {}) {
     handlers,
     spawn,
     sdkRuntime,
-    sdkRuntimeProvider,
+    ensureLocalRuntime,
     uuid,
     stdoutHandler: () => null,
     stderrHandler: () => null,

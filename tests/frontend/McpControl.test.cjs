@@ -16,6 +16,10 @@ const {
 const {
   clearMcpRuntimeCache,
 } = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
+const {
+  MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+  queryDiagnosticEvents,
+} = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 
 function writeCuaMcpRegistry() {
   const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cua-mcp-'));
@@ -135,10 +139,64 @@ describe('MCP control runtime', () => {
     expect(result.registry.mcps[0].tools).toEqual([]);
   });
 
-  test('disabling a gated MCP clears status without running discovery', async () => {
+  test('refreshes enabled MCPs through sidecar when local runtime is available', async () => {
+    const contributionRoot = writeCuaMcpRegistry();
+    const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
+    const registerMcp = jest.fn(async () => ({
+      success: true,
+      registered_tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+      errors: [],
+      statuses: [{
+        server_id: 'cua-driver',
+        state: 'ready',
+        tool_count: 1,
+      }],
+    }));
+    const listTools = jest.fn(async () => ({
+      version: 1,
+      tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+    }));
+
+    const registry = await refreshMcpServersForConfig({
+      config,
+      contributionsDir: contributionRoot,
+      localRuntime: { registerMcp, listTools },
+      createClient: () => {
+        throw new Error('Electron MCP discovery should not run');
+      },
+    });
+
+    expect(registerMcp).toHaveBeenCalledWith({
+      replace: true,
+      servers: [expect.objectContaining({
+        id: 'cua-driver',
+        command: 'cua-driver',
+        args: ['mcp'],
+      })],
+    });
+    expect(listTools).toHaveBeenCalledTimes(1);
+    expect(registry.mcps[0].status).toEqual(expect.objectContaining({
+      state: 'ready',
+      label: 'Ready',
+    }));
+  });
+
+  test('disabling a gated MCP reconciles sidecar with no enabled servers', async () => {
     const contributionRoot = writeCuaMcpRegistry();
     const persistConfig = jest.fn(async () => ({ success: true }));
-    const listTools = jest.fn();
+    const registerMcp = jest.fn(async () => ({
+      success: true,
+      registered_tools: [],
+      errors: [],
+      statuses: [],
+    }));
+    const listTools = jest.fn(async () => ({ version: 1, tools: [] }));
     const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
 
     const result = await updateMcpServerEnablementForConfig({
@@ -147,20 +205,82 @@ describe('MCP control runtime', () => {
       enabled: false,
       persistConfig,
       contributionsDir: contributionRoot,
-      createClient: () => ({ listTools }),
+      localRuntime: { registerMcp, listTools },
     });
 
     expect(result.success).toBe(true);
     expect(persistConfig).toHaveBeenCalledWith(expect.objectContaining({
       agent_enabled_mcp_servers: [],
     }));
-    expect(listTools).not.toHaveBeenCalled();
+    expect(registerMcp).toHaveBeenCalledWith({
+      replace: true,
+      servers: [],
+    });
+    expect(listTools).toHaveBeenCalledTimes(1);
     expect(result.registry.mcps[0]).toEqual(expect.objectContaining({
       effective_enabled: false,
       status: expect.objectContaining({
         state: 'off',
         label: 'Off',
       }),
+    }));
+  });
+
+  test('records enablement diagnostics around dashboard toggles', async () => {
+    const contributionRoot = writeCuaMcpRegistry();
+    const persistConfig = jest.fn(async () => ({ success: true }));
+    const registerMcp = jest.fn(async () => ({
+      success: true,
+      registered_tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+      errors: [],
+      statuses: [{
+        server_id: 'cua-driver',
+        state: 'ready',
+        tool_count: 1,
+      }],
+    }));
+    const listTools = jest.fn(async () => ({
+      version: 1,
+      tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+    }));
+
+    const result = await updateMcpServerEnablementForConfig({
+      config: {},
+      serverId: 'mcp:cua-driver',
+      enabled: true,
+      persistConfig,
+      contributionsDir: contributionRoot,
+      localRuntime: { registerMcp, listTools },
+    });
+
+    expect(result.success).toBe(true);
+    const events = queryDiagnosticEvents({
+      pathFilter: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events.map((event) => event.stage)).toEqual(expect.arrayContaining([
+      'toggle_requested',
+      'config_persisted',
+      'capability_manifest.persist',
+      'registry_refreshed',
+      'capability_manifest.rebuild',
+    ]));
+    const registryEvent = events.find((event) => event.stage === 'registry_refreshed');
+    expect(registryEvent.data).toEqual(expect.objectContaining({
+      serverId: 'mcp:cua-driver',
+      phase: 'registry_refresh',
+      requestedEnabled: true,
+      enabledServerCount: 1,
+      registryServerCount: 1,
+      registryReadyCount: 1,
+      registryErrorCount: 0,
+      mcpToolCount: 1,
     }));
   });
 });

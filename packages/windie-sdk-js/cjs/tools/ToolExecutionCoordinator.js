@@ -212,6 +212,22 @@ function shouldSkipFrontendExecution(event) {
     const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
     return metadata?.skip_frontend_execution === true;
 }
+function activeClientToolNames(agentDefinition) {
+    if (!agentDefinition || !isJsonRecord(agentDefinition.tools)) {
+        return null;
+    }
+    const clientManifest = isJsonRecord(agentDefinition.tools.client_manifest)
+        ? agentDefinition.tools.client_manifest
+        : null;
+    const tools = Array.isArray(clientManifest?.tools) ? clientManifest.tools : [];
+    if (tools.length === 0) {
+        return null;
+    }
+    const names = tools
+        .map(tool => (isJsonRecord(tool) && typeof tool.name === 'string' ? tool.name.trim() : ''))
+        .filter(Boolean);
+    return names.length > 0 ? new Set(names) : null;
+}
 function resolveLocalToolRelease(release) {
     if (typeof release === 'function') {
         return release;
@@ -228,6 +244,10 @@ class ToolExecutionCoordinator {
     async executeLocalTool(call) {
         if (!this.options.localRuntime?.executeTool) {
             throw new Error('local runtime executeTool is unavailable');
+        }
+        const activeToolNames = activeClientToolNames(this.options.agentDefinition ?? null);
+        if (activeToolNames && !activeToolNames.has(call.toolName)) {
+            throw new Error(`Local tool route unavailable for ${call.toolName}. The active capability manifest no longer exposes this tool.`);
         }
         const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
         try {

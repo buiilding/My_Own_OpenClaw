@@ -28,6 +28,7 @@ from backend.src.core.validation.validators import (
     validate_frontend_config,
 )
 from backend.src.llm.models.model_service import ModelService
+from backend.src.tools.client_manifest import validate_client_tool_manifest
 
 logger = logging.getLogger(__name__)
 
@@ -195,18 +196,53 @@ class UpdateSettingsHandler(TypedMessageHandler[UpdateSettingsMessage]):
         Applies frontend-owned config updates to the user's session.
         """
         try:
-            updates = validate_frontend_config(
-                message.payload.model_dump(exclude_none=True)
-            )
+            payload = message.payload.model_dump(exclude_none=True)
+            tools_payload = payload.pop("tools", None)
+            agent_definition = message.payload.agent_definition
+            payload.pop("agent_definition", None)
+            updates = validate_frontend_config(payload)
 
             if updates:
                 await self.session_manager.update_session_config(user_id, updates)
+
+            updated_keys = list(updates.keys())
+            if tools_payload is not None:
+                mode = tools_payload.get("mode")
+                if mode != "replace_client_manifest":
+                    raise ValidationError(f"Unsupported tools.mode: {mode}")
+                manifest_result = validate_client_tool_manifest(
+                    tools_payload.get("client_manifest")
+                )
+                set_client_tool_manifest = getattr(
+                    self.session_manager,
+                    "set_client_tool_manifest",
+                    None,
+                )
+                if not callable(set_client_tool_manifest):
+                    raise ValidationError(
+                        "Client tool manifests are not supported by this session manager"
+                    )
+                set_client_tool_manifest(user_id, manifest_result)
+                updated_keys.append("tools")
+
+            if agent_definition is not None:
+                set_agent_definition = getattr(
+                    self.session_manager,
+                    "set_agent_definition",
+                    None,
+                )
+                if not callable(set_agent_definition):
+                    raise ValidationError(
+                        "Agent definitions are not supported by this session manager"
+                    )
+                set_agent_definition(user_id, agent_definition)
+                updated_keys.append("agent_definition")
 
             await send_success_response(
                 websocket,
                 message.id,
                 OutgoingMessageType.SETTINGS_UPDATED,
-                {"updated_keys": list(updates.keys())},
+                {"updated_keys": updated_keys},
             )
         except ValidationError as e:
             await send_error_response(

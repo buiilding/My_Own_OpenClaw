@@ -11,5 +11,7 @@ def project_tool_schemas_for_provider(
     *,
     tool_schemas: List[Dict[str, Any]],
     config: Any,
+    tool_policy: ToolPolicy | None = None,
 ) -> List[Dict[str, Any]]:
-    return ToolPolicy.from_config(config).filter_tool_schemas(tool_schemas)
+    policy = tool_policy or ToolPolicy.from_config(config)
+    return policy.filter_tool_schemas(tool_schemas)

@@ -29,6 +29,7 @@ class PromptMetadata:
     system_prompt: str
     tool_schemas: Optional[List[Dict[str, Any]]] = None
     client_prompt_layers: Optional[List[Dict[str, Any]]] = None
+    client_prompt_layer_summary: Optional[Dict[str, Any]] = None
     user_message_metadata: Optional[UserMessageMetadata] = None
 
 

@@ -169,6 +169,15 @@ async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events
         "promptMessageCount": 1,
         "toolSchemaCount": 1,
         "hasPromptMetadata": False,
+        "capabilityRevision": None,
+        "finalToolSourceCounts": {
+            "builtin": 1,
+            "client": 0,
+            "mcp": 0,
+            "plugin": 0,
+            "backend_remote": 0,
+        },
+        "finalPromptLayerCount": 0,
     }
     assert trace_events[2].data == {
         "iteration": 1,

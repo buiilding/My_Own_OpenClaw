@@ -66,6 +66,7 @@ class AgentPromptContribution(BaseModel):
     type: str = Field(min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_.:-]+$")
     priority: int = Field(default=100, ge=0, le=1_000)
     content: str = Field(min_length=1, max_length=200_000)
+    revision: Optional[str] = Field(None, max_length=128)
     source_path: Optional[str] = Field(None, max_length=4096)
 
     @field_validator("content")
@@ -76,9 +77,9 @@ class AgentPromptContribution(BaseModel):
             raise ValueError("content cannot be empty")
         return normalized
 
-    @field_validator("source_path")
+    @field_validator("revision", "source_path")
     @classmethod
-    def validate_source_path(cls, value: Optional[str]) -> Optional[str]:
+    def validate_optional_strings(cls, value: Optional[str]) -> Optional[str]:
         return _normalize_optional_string(value)
 
     def to_client_prompt_layer(self) -> dict[str, Any]:
@@ -87,6 +88,12 @@ class AgentPromptContribution(BaseModel):
             "type": self.type,
             "priority": self.priority,
             "content": self.content,
+            **({"revision": self.revision} if self.revision is not None else {}),
+            **(
+                {"source_path": self.source_path}
+                if self.source_path is not None
+                else {}
+            ),
         }
 
 

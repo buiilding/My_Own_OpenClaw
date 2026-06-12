@@ -5,10 +5,14 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextvars
 import json
 import logging
 import os
+import re
 import secrets
+import shutil
+import sqlite3
 import tempfile
 import time
 from dataclasses import dataclass, field
@@ -26,6 +30,17 @@ DEFAULT_DISCOVERY_FILE = (
     Path(tempfile.gettempdir()) / "windieos" / "sidecar-daemon.json"
 )
 MCP_PROTOCOL_VERSION = "2024-11-05"
+MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
+MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
+MCP_REGISTRATION_DIAGNOSTICS_PATH = "mcp.registration"
+MAX_DIAGNOSTIC_TEXT_LENGTH = 240
+CURRENT_MCP_EXECUTION_CONTEXT: contextvars.ContextVar[dict[str, Any]] = (
+    contextvars.ContextVar("CURRENT_MCP_EXECUTION_CONTEXT", default={})
+)
+CUA_DRIVER_MACOS_COMMAND_CANDIDATES = (
+    Path("/Applications/CuaDriver.app/Contents/MacOS/cua-driver"),
+    Path.home() / ".local" / "bin" / "cua-driver",
+)
 LAUNCH_CONTEXT_ENV_KEYS = (
     "WINDIE_BACKEND_HTTP_URL",
     "WINDIE_BACKEND_AUTH_STATE_PATH",
@@ -36,6 +51,35 @@ LAUNCH_CONTEXT_ENV_KEYS = (
     "WINDIE_SIDECAR_SOURCE_STAMP",
 )
 
+ALLOWED_DIAGNOSTIC_DATA_KEYS = {
+    "serverId",
+    "command",
+    "args",
+    "phase",
+    "replace",
+    "requestedServerCount",
+    "registeredServerCount",
+    "registeredToolCount",
+    "statusCount",
+    "errorCount",
+    "mcpServerCount",
+    "mcpToolCount",
+    "timeoutMs",
+    "elapsedMs",
+    "stderrTail",
+    "toolCount",
+    "exposedToolName",
+    "mcpToolName",
+    "toolCallId",
+    "correlationId",
+    "bundleId",
+    "turnRef",
+    "exitCode",
+    "signal",
+    "shortError",
+    "errorCode",
+}
+
 
 def normalize_object(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
@@ -45,11 +89,243 @@ def normalize_string(value: Any) -> str:
     return value.strip() if isinstance(value, str) and value.strip() else ""
 
 
-def build_launch_context() -> dict[str, str]:
+def sanitize_diagnostic_text(
+    value: Any, *, max_length: int = MAX_DIAGNOSTIC_TEXT_LENGTH
+) -> str:
+    if value is None:
+        return ""
+    text = str(value)
+    text = re.sub(r"[A-Za-z]:\\[^\s'\"]+", "[path]", text)
+    text = re.sub(
+        r"/(?:Users|private|var|tmp|Volumes|Applications)/[^\s'\"]+", "[path]", text
+    )
+    text = re.sub(
+        r"(bearer|token|api[_-]?key|secret|password)=?[^\s'\",)]+",
+        r"\1=[redacted]",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) > max_length:
+        return f"{text[: max_length - 3]}..."
+    return text
+
+
+def command_for_diagnostics(command: str) -> str:
+    normalized = normalize_string(command)
+    if not normalized:
+        return ""
+    return sanitize_diagnostic_text(Path(normalized).name)
+
+
+def resolve_mcp_command_for_spawn(command: str) -> str:
+    normalized = normalize_string(command)
+    if not normalized:
+        return normalized
+    if Path(normalized).parts and ("/" in normalized or "\\" in normalized):
+        return normalized
+    resolved = shutil.which(normalized)
+    if resolved:
+        return resolved
+    if normalized == "cua-driver":
+        for candidate in CUA_DRIVER_MACOS_COMMAND_CANDIDATES:
+            if candidate.exists() and os.access(candidate, os.X_OK):
+                return str(candidate)
+    return normalized
+
+
+def serialize_diagnostic_args(args: list[str]) -> str:
+    sanitized = [
+        sanitize_diagnostic_text(arg) for arg in args if sanitize_diagnostic_text(arg)
+    ]
+    return sanitize_diagnostic_text(json.dumps(sanitized, separators=(",", ":")))
+
+
+def windie_user_data_root() -> Path:
+    override = normalize_string(os.getenv("WINDIE_USER_DATA_DIR"))
+    if override:
+        return Path(override)
+    if sys_platform := os.getenv("WINDIE_TEST_PLATFORM"):
+        platform_name = sys_platform
+    else:
+        import sys
+
+        platform_name = sys.platform
+    if platform_name == "win32":
+        return (
+            Path(os.getenv("APPDATA") or (Path.home() / "AppData" / "Roaming"))
+            / "windieos"
+        )
+    if platform_name == "darwin":
+        return Path.home() / "Library" / "Application Support" / "windieos"
+    return Path(os.getenv("XDG_CONFIG_HOME") or (Path.home() / ".config")) / "windieos"
+
+
+def diagnostics_database_path() -> Path:
+    override = normalize_string(os.getenv("WINDIE_APP_DIAGNOSTICS_DB"))
+    if override:
+        return Path(override)
+    return windie_user_data_root() / "diagnostics" / "diagnostics.db"
+
+
+def classify_error_code(message: Any) -> str:
+    text = str(message or "").lower()
+    if "enoent" in text or "not found" in text or "no such file" in text:
+        return "ENOENT"
+    if "timed out" in text or "timeout" in text:
+        return "timeout"
+    if "permission" in text or "accessibility" in text or "tcc" in text:
+        return "permission"
+    return "runtime_error"
+
+
+def sanitize_diagnostic_data(data: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(data, dict):
+        return {}
+    sanitized: dict[str, Any] = {}
+    for key, value in data.items():
+        if key not in ALLOWED_DIAGNOSTIC_DATA_KEYS:
+            continue
+        if (
+            isinstance(value, bool)
+            or isinstance(value, int)
+            or isinstance(value, float)
+            or value is None
+        ):
+            sanitized[key] = value
+        elif isinstance(value, str):
+            sanitized[key] = sanitize_diagnostic_text(value)
+    return sanitized
+
+
+def append_mcp_diagnostic_event(
+    *,
+    trace_id: str,
+    path: str = MCP_DISCOVERY_DIAGNOSTICS_PATH,
+    stage: str,
+    status: str,
+    duration_ms: int | None = None,
+    request_id: str | None = None,
+    conversation_ref: str | None = None,
+    data: dict[str, Any] | None = None,
+    error: Any = None,
+) -> None:
+    try:
+        db_path = diagnostics_database_path()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        sanitized_error = None
+        sanitized_data = sanitize_diagnostic_data(data)
+        if error is not None:
+            message = sanitize_diagnostic_text(
+                getattr(error, "strerror", None) or error
+            )
+            sanitized_error = {
+                "code": getattr(error, "code", None) or classify_error_code(message),
+                "message": message,
+            }
+            sanitized_data["shortError"] = message
+            sanitized_data["errorCode"] = str(sanitized_error["code"])
+        with sqlite3.connect(db_path) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS diagnostic_events (
+                  id TEXT PRIMARY KEY,
+                  trace_id TEXT NOT NULL,
+                  span_id TEXT NOT NULL,
+                  parent_span_id TEXT,
+                  path TEXT NOT NULL,
+                  stage TEXT NOT NULL,
+                  status TEXT NOT NULL,
+                  runtime TEXT NOT NULL,
+                  timestamp TEXT NOT NULL,
+                  duration_ms INTEGER,
+                  request_id TEXT,
+                  session_id TEXT,
+                  conversation_ref TEXT,
+                  data TEXT,
+                  error TEXT
+                )
+                """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_diagnostic_events_path_time
+                ON diagnostic_events(path, timestamp)
+                """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_diagnostic_events_trace
+                ON diagnostic_events(trace_id, timestamp)
+                """)
+            conn.execute(
+                """
+                INSERT INTO diagnostic_events (
+                  id, trace_id, span_id, parent_span_id, path, stage, status,
+                  runtime, timestamp, duration_ms, request_id, session_id,
+                  conversation_ref, data, error
+                ) VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)
+                """,
+                (
+                    f"evt_{secrets.token_hex(16)}",
+                    trace_id,
+                    f"span_{secrets.token_hex(16)}",
+                    path,
+                    stage,
+                    status,
+                    "sidecar",
+                    time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    int(duration_ms) if duration_ms is not None else None,
+                    normalize_string(request_id),
+                    normalize_string(conversation_ref),
+                    json.dumps(sanitized_data, separators=(",", ":")),
+                    (
+                        json.dumps(sanitized_error, separators=(",", ":"))
+                        if sanitized_error
+                        else None
+                    ),
+                ),
+            )
+    except Exception:
+        logger.debug("Unable to append MCP diagnostic event", exc_info=True)
+
+
+def build_mcp_execution_context(payload: dict[str, Any]) -> dict[str, Any]:
+    request_id = (
+        normalize_string(payload.get("request_id"))
+        or normalize_string(payload.get("requestId"))
+        or normalize_string(payload.get("correlation_id"))
+        or normalize_string(payload.get("correlationId"))
+    )
+    tool_call_id = normalize_string(payload.get("tool_call_id")) or normalize_string(
+        payload.get("toolCallId")
+    )
+    correlation_id = normalize_string(
+        payload.get("correlation_id")
+    ) or normalize_string(payload.get("correlationId"))
+    bundle_id = normalize_string(payload.get("bundle_id")) or normalize_string(
+        payload.get("bundleId")
+    )
+    turn_ref = normalize_string(payload.get("turn_ref")) or normalize_string(
+        payload.get("turnRef")
+    )
+    conversation_ref = normalize_string(
+        payload.get("conversation_ref")
+    ) or normalize_string(payload.get("conversationRef"))
+    data: dict[str, Any] = {}
+    if tool_call_id:
+        data["toolCallId"] = tool_call_id
+    if correlation_id:
+        data["correlationId"] = correlation_id
+    if bundle_id:
+        data["bundleId"] = bundle_id
+    if turn_ref:
+        data["turnRef"] = turn_ref
     return {
-        key: os.getenv(key, "").strip()
-        for key in LAUNCH_CONTEXT_ENV_KEYS
+        "trace_id": f"mcp-execution-{int(time.time() * 1000)}-{secrets.token_hex(6)}",
+        "request_id": request_id,
+        "conversation_ref": conversation_ref,
+        "data": data,
     }
+
+
+def build_launch_context() -> dict[str, str]:
+    return {key: os.getenv(key, "").strip() for key in LAUNCH_CONTEXT_ENV_KEYS}
 
 
 def create_mcp_tool_name(
@@ -63,6 +339,19 @@ def create_mcp_tool_name(
         return cleaned or "tool"
 
     return f"{_segment(prefix or f'mcp_{server_id}')}__{_segment(tool_name)}"
+
+
+def mcp_server_launch_key(server: "McpServerSpec") -> str:
+    return json.dumps(
+        {
+            "command": server.command,
+            "args": server.args,
+            "cwd": server.cwd,
+            "env": sorted(server.env.items()),
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
 
 
 def format_mcp_content(content: Any) -> str:
@@ -93,6 +382,8 @@ class McpServerSpec:
     timeout_ms: int = 15000
     tool_prefix: str | None = None
     tools: list[dict[str, Any]] = field(default_factory=list)
+    mcp_id: str | None = None
+    extension_id: str | None = None
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> "McpServerSpec":
@@ -123,6 +414,12 @@ class McpServerSpec:
                 payload.get("tool_prefix") or payload.get("toolPrefix")
             )
             or None,
+            mcp_id=normalize_string(payload.get("mcp_id") or payload.get("mcpId"))
+            or None,
+            extension_id=normalize_string(
+                payload.get("extension_id") or payload.get("extensionId")
+            )
+            or None,
             tools=(
                 [tool for tool in payload.get("tools", []) if isinstance(tool, dict)]
                 if isinstance(payload.get("tools"), list)
@@ -130,28 +427,93 @@ class McpServerSpec:
             ),
         )
 
+    def public_id(self) -> str:
+        return self.mcp_id or self.extension_id or self.id
+
+    def diagnostic_data(self, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+        return {
+            "serverId": self.id,
+            "command": command_for_diagnostics(self.command),
+            "args": serialize_diagnostic_args(self.args),
+            "timeoutMs": self.timeout_ms,
+            **(extra or {}),
+        }
+
 
 class McpStdioClient:
-    def __init__(self, server: McpServerSpec):
+    def __init__(self, server: McpServerSpec, *, trace_id: str | None = None):
         self.server = server
         self.proc: asyncio.subprocess.Process | None = None
         self.pending: dict[int, asyncio.Future[Any]] = {}
         self.next_request_id = 1
         self.initialized = False
+        self.trace_id = (
+            trace_id
+            or f"mcp-discovery-{int(time.time() * 1000)}-{secrets.token_hex(6)}"
+        )
+        self.stderr_tail: list[str] = []
+
+    def diagnostic_data(self, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+        stderr_tail = sanitize_diagnostic_text("\n".join(self.stderr_tail[-20:]))
+        data = self.server.diagnostic_data({"stderrTail": stderr_tail})
+        data.update(extra or {})
+        return data
+
+    def emit_diagnostic(
+        self,
+        *,
+        stage: str,
+        status: str,
+        duration_ms: int | None = None,
+        data: dict[str, Any] | None = None,
+        error: Any = None,
+    ) -> None:
+        append_mcp_diagnostic_event(
+            trace_id=self.trace_id,
+            stage=stage,
+            status=status,
+            duration_ms=duration_ms,
+            data=self.diagnostic_data(data),
+            error=error,
+        )
 
     async def ensure_started(self) -> None:
         if self.proc is not None:
             return
-        self.proc = await asyncio.create_subprocess_exec(
-            self.server.command,
-            *self.server.args,
-            cwd=self.server.cwd or os.getcwd(),
-            env={**os.environ, **self.server.env},
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+        started_at = time.monotonic()
+        self.emit_diagnostic(
+            stage="process_spawn",
+            status="started",
+            data={"phase": "spawn"},
+        )
+        try:
+            command = resolve_mcp_command_for_spawn(self.server.command)
+            self.proc = await asyncio.create_subprocess_exec(
+                command,
+                *self.server.args,
+                cwd=self.server.cwd or os.getcwd(),
+                env={**os.environ, **self.server.env},
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        except Exception as exc:
+            self.emit_diagnostic(
+                stage="process_error",
+                status="failed",
+                duration_ms=int((time.monotonic() - started_at) * 1000),
+                data={"phase": "spawn"},
+                error=exc,
+            )
+            raise
+        self.emit_diagnostic(
+            stage="process_spawn",
+            status="succeeded",
+            duration_ms=int((time.monotonic() - started_at) * 1000),
+            data={"phase": "spawn"},
         )
         asyncio.create_task(self._read_stdout())
+        asyncio.create_task(self._read_stderr())
 
     async def _read_stdout(self) -> None:
         assert self.proc is not None
@@ -177,10 +539,39 @@ class McpStdioClient:
             else:
                 future.set_result(message.get("result"))
 
+    async def _read_stderr(self) -> None:
+        assert self.proc is not None
+        assert self.proc.stderr is not None
+        while True:
+            line = await self.proc.stderr.readline()
+            if not line:
+                break
+            text = sanitize_diagnostic_text(line.decode("utf-8", errors="replace"))
+            if text:
+                self.stderr_tail.append(text)
+                self.stderr_tail = self.stderr_tail[-20:]
+
     async def request(self, method: str, params: dict[str, Any] | None = None) -> Any:
         await self.ensure_started()
         assert self.proc is not None
         assert self.proc.stdin is not None
+        phase = (
+            "initialize"
+            if method == "initialize"
+            else (
+                "tools_list"
+                if method == "tools/list"
+                else ("tools_call" if method == "tools/call" else "request")
+            )
+        )
+        emit_request_diagnostic = method != "tools/call"
+        started_at = time.monotonic()
+        if emit_request_diagnostic:
+            self.emit_diagnostic(
+                stage="request_start",
+                status="started",
+                data={"phase": phase},
+            )
         request_id = self.next_request_id
         self.next_request_id += 1
         message = {
@@ -191,11 +582,42 @@ class McpStdioClient:
         }
         future: asyncio.Future[Any] = asyncio.get_running_loop().create_future()
         self.pending[request_id] = future
-        self.proc.stdin.write((json.dumps(message) + "\n").encode("utf-8"))
-        await self.proc.stdin.drain()
-        return await asyncio.wait_for(
-            future, timeout=max(self.server.timeout_ms / 1000, 1)
-        )
+        try:
+            self.proc.stdin.write((json.dumps(message) + "\n").encode("utf-8"))
+            await self.proc.stdin.drain()
+            result = await asyncio.wait_for(
+                future, timeout=max(self.server.timeout_ms / 1000, 1)
+            )
+            if emit_request_diagnostic:
+                self.emit_diagnostic(
+                    stage="request_succeeded",
+                    status="succeeded",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data={"phase": phase},
+                )
+            return result
+        except asyncio.TimeoutError as exc:
+            self.pending.pop(request_id, None)
+            if emit_request_diagnostic:
+                self.emit_diagnostic(
+                    stage="request_timeout",
+                    status="failed",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data={"phase": phase},
+                    error=f"MCP {phase} timed out for {self.server.id}",
+                )
+            raise
+        except Exception as exc:
+            self.pending.pop(request_id, None)
+            if emit_request_diagnostic:
+                self.emit_diagnostic(
+                    stage="request_failed",
+                    status="failed",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data={"phase": phase},
+                    error=exc,
+                )
+            raise
 
     async def notify(self, method: str, params: dict[str, Any] | None = None) -> None:
         await self.ensure_started()
@@ -258,11 +680,24 @@ class McpStdioClient:
                 future.set_exception(RuntimeError("MCP server closed"))
         self.pending.clear()
         if self.proc and self.proc.returncode is None:
+            self.emit_diagnostic(
+                stage="process_shutdown",
+                status="started",
+                data={"phase": "shutdown"},
+            )
             self.proc.terminate()
             try:
                 await asyncio.wait_for(self.proc.wait(), timeout=2)
             except asyncio.TimeoutError:
                 self.proc.kill()
+            self.emit_diagnostic(
+                stage="process_shutdown",
+                status="succeeded",
+                data={
+                    "phase": "shutdown",
+                    "exitCode": self.proc.returncode,
+                },
+            )
         self.proc = None
         self.initialized = False
 
@@ -276,6 +711,8 @@ class SidecarDaemon:
         self.created_at = time.time()
         self.events: set[web.WebSocketResponse] = set()
         self.mcp_clients: dict[str, McpStdioClient] = {}
+        self.mcp_specs: dict[str, McpServerSpec] = {}
+        self.mcp_status_by_server_id: dict[str, dict[str, Any]] = {}
         self.shutdown_event: asyncio.Event | None = None
         if hasattr(self.backend, "set_event_sink"):
             self.backend.set_event_sink(self.emit_event)
@@ -402,38 +839,227 @@ class SidecarDaemon:
             if isinstance(payload.get("servers"), list)
             else [payload]
         )
+        replace = payload.get("replace") is True or payload.get("reconcile") is True
+        registration_trace_id = (
+            f"mcp-registration-{int(time.time() * 1000)}-{secrets.token_hex(6)}"
+        )
+        registration_started_at = time.monotonic()
         registered_tools: list[dict[str, Any]] = []
         errors: list[dict[str, str]] = []
+        statuses: list[dict[str, Any]] = []
+        requested_server_ids: set[str] = set()
+        append_mcp_diagnostic_event(
+            trace_id=registration_trace_id,
+            path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+            stage="registration_requested",
+            status="started",
+            data={
+                "phase": "registration",
+                "replace": replace,
+                "requestedServerCount": len(
+                    [server for server in servers if isinstance(server, dict)]
+                ),
+            },
+        )
+        if replace:
+            for raw_server in servers:
+                if isinstance(raw_server, dict):
+                    server_id = normalize_string(
+                        raw_server.get("id") or raw_server.get("name")
+                    )
+                    if server_id:
+                        requested_server_ids.add(server_id)
+            append_mcp_diagnostic_event(
+                trace_id=registration_trace_id,
+                path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+                stage="reconcile_start",
+                status="started",
+                data={
+                    "phase": "reconcile",
+                    "replace": replace,
+                    "requestedServerCount": len(requested_server_ids),
+                    "mcpServerCount": len(self.mcp_status_by_server_id),
+                },
+            )
+            await self.reconcile_mcp_servers(requested_server_ids)
+            append_mcp_diagnostic_event(
+                trace_id=registration_trace_id,
+                path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+                stage="reconcile_succeeded",
+                status="succeeded",
+                data={
+                    "phase": "reconcile",
+                    "replace": replace,
+                    "requestedServerCount": len(requested_server_ids),
+                    "mcpServerCount": len(self.mcp_status_by_server_id),
+                },
+            )
         for raw_server in servers:
             if not isinstance(raw_server, dict):
                 continue
+            server_id = (
+                normalize_string(raw_server.get("id") or raw_server.get("name"))
+                or "unknown"
+            )
+            trace_id = f"mcp-discovery-{int(time.time() * 1000)}-{secrets.token_hex(6)}"
+            started_at = time.monotonic()
             try:
-                registered_tools.extend(
-                    await self.register_mcp_server(
-                        McpServerSpec.from_payload(raw_server)
-                    )
+                server = McpServerSpec.from_payload(raw_server)
+                append_mcp_diagnostic_event(
+                    trace_id=trace_id,
+                    stage="server_discovery_start",
+                    status="started",
+                    data=server.diagnostic_data({"phase": "discovery"}),
+                )
+                server_tools = await self.register_mcp_server(
+                    server,
+                    trace_id=trace_id,
+                )
+                registered_tools.extend(server_tools)
+                status = {
+                    "server_id": server.id,
+                    "state": "ready",
+                    "tool_count": len(server_tools),
+                }
+                self.mcp_status_by_server_id[server.id] = status
+                statuses.append(status)
+                append_mcp_diagnostic_event(
+                    trace_id=trace_id,
+                    stage="server_discovery_succeeded",
+                    status="succeeded",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data=server.diagnostic_data(
+                        {
+                            "phase": "discovery",
+                            "elapsedMs": int((time.monotonic() - started_at) * 1000),
+                            "toolCount": len(server_tools),
+                        }
+                    ),
                 )
             except Exception as exc:
+                error_reason = self.format_mcp_error_reason(server_id, exc)
                 errors.append(
                     {
-                        "server_id": normalize_string(
-                            raw_server.get("id") or raw_server.get("name")
-                        )
-                        or "unknown",
-                        "reason": str(exc),
+                        "server_id": server_id,
+                        "reason": error_reason,
                     }
                 )
-        result = {"registered_tools": registered_tools, "errors": errors}
+                status = {
+                    "server_id": server_id,
+                    "state": "error",
+                    "reason": error_reason,
+                }
+                self.mcp_status_by_server_id[server_id] = status
+                statuses.append(status)
+                append_mcp_diagnostic_event(
+                    trace_id=trace_id,
+                    stage="server_discovery_failed",
+                    status="failed",
+                    duration_ms=int((time.monotonic() - started_at) * 1000),
+                    data={
+                        "serverId": server_id,
+                        "phase": "discovery",
+                        "elapsedMs": int((time.monotonic() - started_at) * 1000),
+                    },
+                    error=error_reason,
+                )
+        result = {
+            "registered_tools": registered_tools,
+            "errors": errors,
+            "statuses": statuses,
+        }
         await self.emit_event({"type": "mcp-registered", "payload": result})
+        append_mcp_diagnostic_event(
+            trace_id=registration_trace_id,
+            path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+            stage="registration_completed",
+            status="failed" if errors else "succeeded",
+            duration_ms=int((time.monotonic() - registration_started_at) * 1000),
+            data={
+                "phase": "registration",
+                "replace": replace,
+                "requestedServerCount": len(
+                    [server for server in servers if isinstance(server, dict)]
+                ),
+                "registeredServerCount": len(
+                    {
+                        normalize_string(status.get("server_id"))
+                        for status in statuses
+                        if normalize_string(status.get("server_id"))
+                    }
+                ),
+                "registeredToolCount": len(registered_tools),
+                "statusCount": len(statuses),
+                "errorCount": len(errors),
+                "mcpServerCount": len(self.mcp_status_by_server_id),
+                "mcpToolCount": len(
+                    [
+                        tool
+                        for tool in self.backend.tool_registry.get_tool_manifest().get(
+                            "tools", []
+                        )
+                        if normalize_string(tool.get("mcp_server_id"))
+                    ]
+                ),
+                "elapsedMs": int((time.monotonic() - registration_started_at) * 1000),
+            },
+            error=errors[0]["reason"] if errors else None,
+        )
         return web.json_response(
             {"success": len(errors) == 0, **result}, status=207 if errors else 200
         )
 
-    async def register_mcp_server(self, server: McpServerSpec) -> list[dict[str, Any]]:
+    async def reconcile_mcp_servers(self, enabled_server_ids: set[str]) -> None:
+        for server_id in list(self.mcp_status_by_server_id):
+            if server_id not in enabled_server_ids:
+                self.mcp_status_by_server_id.pop(server_id, None)
+                self.mcp_specs.pop(server_id, None)
+        for server_id in list(self.mcp_clients):
+            if server_id in enabled_server_ids:
+                continue
+            client = self.mcp_clients.pop(server_id)
+            await client.close()
+            self.mcp_specs.pop(server_id, None)
+            self.mcp_status_by_server_id.pop(server_id, None)
+            self.backend.tool_registry.unregister_dynamic_tools_by_source(
+                kind="mcp",
+                server_id=server_id,
+            )
+
+    def format_mcp_error_reason(self, server_id: str, exc: Exception) -> str:
+        message = str(exc)
+        if isinstance(exc, asyncio.TimeoutError):
+            message = f"MCP initialize timed out for {server_id}"
+        return sanitize_diagnostic_text(message, max_length=500)
+
+    async def register_mcp_server(
+        self,
+        server: McpServerSpec,
+        *,
+        trace_id: str | None = None,
+    ) -> list[dict[str, Any]]:
         client = self.mcp_clients.get(server.id)
+        existing_spec = self.mcp_specs.get(server.id)
+        if (
+            client is not None
+            and existing_spec is not None
+            and mcp_server_launch_key(existing_spec) != mcp_server_launch_key(server)
+        ):
+            await client.close()
+            self.mcp_clients.pop(server.id, None)
+            client = None
         if client is None:
-            client = McpStdioClient(server)
+            client = McpStdioClient(server, trace_id=trace_id)
             self.mcp_clients[server.id] = client
+        else:
+            client.server = server
+            if trace_id:
+                client.trace_id = trace_id
+        self.mcp_specs[server.id] = server
+        self.backend.tool_registry.unregister_dynamic_tools_by_source(
+            kind="mcp",
+            server_id=server.id,
+        )
         discovered_tools = server.tools or await client.list_tools()
         registered: list[dict[str, Any]] = []
         for discovered_tool in discovered_tools:
@@ -459,20 +1085,106 @@ class SidecarDaemon:
                 args: dict[str, Any],
                 *,
                 tool_name: str = original_name,
+                exposed_tool_name: str = exposed_name,
+                mcp_server: McpServerSpec = server,
                 mcp_client: McpStdioClient = client,
             ) -> dict[str, Any]:
-                result = await mcp_client.call_tool(tool_name, args)
+                execution_context = CURRENT_MCP_EXECUTION_CONTEXT.get() or {
+                    "trace_id": (
+                        f"mcp-execution-{int(time.time() * 1000)}-"
+                        f"{secrets.token_hex(6)}"
+                    ),
+                    "request_id": "",
+                    "conversation_ref": "",
+                    "data": {},
+                }
+                trace_id = normalize_string(execution_context.get("trace_id")) or (
+                    f"mcp-execution-{int(time.time() * 1000)}-{secrets.token_hex(6)}"
+                )
+                request_id = normalize_string(execution_context.get("request_id"))
+                conversation_ref = normalize_string(
+                    execution_context.get("conversation_ref")
+                )
+                context_data = normalize_object(execution_context.get("data"))
+
+                def diagnostic_data(
+                    extra: dict[str, Any] | None = None,
+                ) -> dict[str, Any]:
+                    stderr_tail = ""
+                    if hasattr(mcp_client, "stderr_tail"):
+                        stderr_tail = sanitize_diagnostic_text(
+                            "\n".join(getattr(mcp_client, "stderr_tail", [])[-20:])
+                        )
+                    data = {
+                        "serverId": mcp_server.id,
+                        "phase": "tools_call",
+                        "exposedToolName": exposed_tool_name,
+                        "mcpToolName": tool_name,
+                        **context_data,
+                    }
+                    if stderr_tail:
+                        data["stderrTail"] = stderr_tail
+                    data.update(extra or {})
+                    return data
+
+                started_at = time.monotonic()
+                append_mcp_diagnostic_event(
+                    trace_id=trace_id,
+                    path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                    stage="tool_call_start",
+                    status="started",
+                    request_id=request_id,
+                    conversation_ref=conversation_ref,
+                    data=diagnostic_data(),
+                )
+                try:
+                    result = await mcp_client.call_tool(tool_name, args)
+                except Exception as exc:
+                    elapsed_ms = int((time.monotonic() - started_at) * 1000)
+                    append_mcp_diagnostic_event(
+                        trace_id=trace_id,
+                        path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                        stage="tool_call_failed",
+                        status="failed",
+                        duration_ms=elapsed_ms,
+                        request_id=request_id,
+                        conversation_ref=conversation_ref,
+                        data=diagnostic_data({"elapsedMs": elapsed_ms}),
+                        error=exc,
+                    )
+                    raise
+                elapsed_ms = int((time.monotonic() - started_at) * 1000)
                 text = format_mcp_content(result.get("content"))
                 if result.get("isError"):
+                    append_mcp_diagnostic_event(
+                        trace_id=trace_id,
+                        path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                        stage="tool_call_failed",
+                        status="failed",
+                        duration_ms=elapsed_ms,
+                        request_id=request_id,
+                        conversation_ref=conversation_ref,
+                        data=diagnostic_data({"elapsedMs": elapsed_ms}),
+                        error=f"MCP tool {tool_name} returned error",
+                    )
                     return {
                         "success": False,
                         "error": text or f"MCP tool {tool_name} failed",
                     }
+                append_mcp_diagnostic_event(
+                    trace_id=trace_id,
+                    path=MCP_EXECUTION_DIAGNOSTICS_PATH,
+                    stage="tool_call_succeeded",
+                    status="succeeded",
+                    duration_ms=elapsed_ms,
+                    request_id=request_id,
+                    conversation_ref=conversation_ref,
+                    data=diagnostic_data({"elapsedMs": elapsed_ms}),
+                )
                 return {
                     "success": True,
                     "data": {
-                        "output": text
-                        or json.dumps(result, separators=(",", ":")),
+                        "output": text or json.dumps(result, separators=(",", ":")),
                         "mcp_result": result,
                     },
                 }
@@ -488,6 +1200,7 @@ class SidecarDaemon:
                         "kind": "mcp",
                         "server_id": server.id,
                         "tool_name": original_name,
+                        "extension_id": server.extension_id or f"mcp:{server.id}",
                     },
                 )
             )
@@ -509,10 +1222,16 @@ class SidecarDaemon:
 
     async def handle_execute_tool(self, request: web.Request) -> web.Response:
         payload = await request.json()
-        result = await self.backend._handle_execute_tool(
-            tool_name=payload.get("tool_name") or payload.get("toolName"),
-            args=normalize_object(payload.get("args")),
+        context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(
+            build_mcp_execution_context(normalize_object(payload))
         )
+        try:
+            result = await self.backend._handle_execute_tool(
+                tool_name=payload.get("tool_name") or payload.get("toolName"),
+                args=normalize_object(payload.get("args")),
+            )
+        finally:
+            CURRENT_MCP_EXECUTION_CONTEXT.reset(context_token)
         await self.emit_event(
             {
                 "type": "tool-executed",

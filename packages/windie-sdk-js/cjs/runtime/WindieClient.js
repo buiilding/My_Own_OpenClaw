@@ -9,6 +9,7 @@ const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const ManagedWindieAgentSession_js_1 = require("../transport/ManagedWindieAgentSession.js");
 const HostedBackendHttpClient_js_1 = require("../transport/HostedBackendHttpClient.js");
 const WindieAgent_js_1 = require("./WindieAgent.js");
+const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
 const LocalSidecarRuntime_js_1 = require("./LocalSidecarRuntime.js");
 class WindieClient {
     constructor(options = {}) {
@@ -75,15 +76,68 @@ class WindieClient {
         return this.createSdkClient(this.resolveBackendUrl(backendUrl)).models(queryOptions);
     }
     async listTools() {
-        const localRuntime = this.resolveKnownLocalRuntime();
+        const localRuntime = this.getKnownLocalRuntime();
         return localRuntime?.listTools ? localRuntime.listTools() : null;
     }
     async status() {
-        const localRuntime = this.resolveKnownLocalRuntime();
+        const localRuntime = this.getKnownLocalRuntime();
         return localRuntime?.status ? localRuntime.status() : null;
     }
+    getKnownLocalRuntime() {
+        return this.resolveKnownLocalRuntime() ?? null;
+    }
+    async localRuntime(options = {}) {
+        return this.ensureLocalRuntime({
+            reason: options.reason ?? 'local-runtime',
+            wakeUp: {},
+            errorMessage: 'WindieClient local runtime provider did not return a runtime.',
+        });
+    }
+    async executeTool(call, options = {}) {
+        const runtime = await this.localRuntime({
+            ...options,
+            reason: options.reason ?? 'execute-tool',
+        });
+        if (typeof runtime.executeTool !== 'function') {
+            throw new Error('WindieClient local runtime does not support tool execution.');
+        }
+        return runtime.executeTool({
+            toolName: call.toolName,
+            args: call.args,
+        });
+    }
+    async rpc(payload, options = {}) {
+        const runtime = await this.localRuntime({
+            ...options,
+            reason: options.reason ?? 'local-runtime-rpc',
+        });
+        if (typeof runtime.rpc !== 'function') {
+            throw new Error('WindieClient local runtime does not support RPC.');
+        }
+        return runtime.rpc(payload);
+    }
+    async listLocalTools(options = {}) {
+        const runtime = await this.localRuntime({
+            ...options,
+            reason: options.reason ?? 'list-local-tools',
+        });
+        if (typeof runtime.listTools !== 'function') {
+            throw new Error('WindieClient local runtime does not support tool listing.');
+        }
+        return runtime.listTools();
+    }
+    async localStatus(options = {}) {
+        const runtime = await this.localRuntime({
+            ...options,
+            reason: options.reason ?? 'local-status',
+        });
+        if (typeof runtime.status !== 'function') {
+            throw new Error('WindieClient local runtime does not support status.');
+        }
+        return runtime.status();
+    }
     async shutdownLocalRuntime() {
-        const localRuntime = this.resolveKnownLocalRuntime();
+        const localRuntime = this.getKnownLocalRuntime();
         await localRuntime?.shutdown?.();
         if (localRuntime && localRuntime === this.activeLocalRuntime) {
             this.activeLocalRuntime = undefined;
@@ -227,31 +281,35 @@ class WindieClient {
         return undefined;
     }
     resolveKnownLocalRuntime() {
-        return this.activeLocalRuntime ?? this.resolveConfiguredLocalRuntime();
-    }
-    async resolveLocalRuntimeForWakeUp(options, runtimeFeatures) {
+        if (this.activeLocalRuntime) {
+            return this.activeLocalRuntime;
+        }
         const configuredRuntime = this.resolveConfiguredLocalRuntime();
         if (configuredRuntime) {
             this.activeLocalRuntime = configuredRuntime;
             return configuredRuntime;
         }
-        if (!this.needsLocalRuntime(options, runtimeFeatures)) {
-            return undefined;
+        return undefined;
+    }
+    async ensureLocalRuntime({ wakeUp, reason, errorMessage, }) {
+        const knownRuntime = this.resolveKnownLocalRuntime();
+        if (knownRuntime) {
+            return knownRuntime;
         }
         const context = {
-            wakeUp: options,
+            wakeUp,
             needsLocalRuntime: true,
         };
         if (this.defaultOptions.ensureLocalRuntime) {
             const runtime = await this.defaultOptions.ensureLocalRuntime(context);
             if (!runtime) {
-                throw new Error('WindieClient local runtime provider did not return a runtime for required local features.');
+                throw new Error(errorMessage);
             }
             this.activeLocalRuntime = runtime;
             return runtime;
         }
         if (this.defaultOptions.autoStartLocalRuntime === false) {
-            throw new Error('WindieClient local runtime is required for memory, persistence, tools, plugins, MCPs, or builtins, but autoStartLocalRuntime is false.');
+            throw new Error(`WindieClient local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
         }
         if (!this.autoLocalRuntimeProvider) {
             this.autoLocalRuntimeProvider = (0, LocalSidecarRuntime_js_1.createWindieLocalRuntimeProvider)({
@@ -261,10 +319,24 @@ class WindieClient {
         }
         const runtime = await this.autoLocalRuntimeProvider(context);
         if (!runtime) {
-            throw new Error('WindieClient local runtime provider did not return a runtime for required local features.');
+            throw new Error(errorMessage);
         }
         this.activeLocalRuntime = runtime;
         return runtime;
+    }
+    async resolveLocalRuntimeForWakeUp(options, runtimeFeatures) {
+        const knownRuntime = this.resolveKnownLocalRuntime();
+        if (knownRuntime) {
+            return knownRuntime;
+        }
+        if (!this.needsLocalRuntime(options, runtimeFeatures)) {
+            return undefined;
+        }
+        return this.ensureLocalRuntime({
+            wakeUp: options,
+            reason: 'memory, persistence, tools, plugins, MCPs, or builtins',
+            errorMessage: 'WindieClient local runtime provider did not return a runtime for required local features.',
+        });
     }
     needsLocalRuntime(options, runtimeFeatures) {
         const builtins = normalizeBuiltins(options);
@@ -350,7 +422,7 @@ function validateLocalRuntimeFeatures(localRuntime, runtimeFeatures) {
     }
 }
 function buildWakeUpAgentDefinition(options, tools) {
-    return {
+    const definition = {
         version: 1,
         id: options.agentId ?? `windie-agent-${(0, WindieAgentSession_js_1.createMessageId)()}`,
         name: options.name ?? 'Windie Agent',
@@ -371,6 +443,8 @@ function buildWakeUpAgentDefinition(options, tools) {
             operating_system: options.operatingSystem ?? detectOperatingSystem(),
         },
     };
+    (0, CapabilityManifest_js_1.stampAgentDefinitionCapabilityMetadata)(definition);
+    return definition;
 }
 function isHostedWindieBackendUrl(backendUrl) {
     try {

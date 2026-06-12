@@ -8,6 +8,10 @@ const {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
+  MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+  MCP_EXECUTION_DIAGNOSTICS_PATH,
+  MCP_REGISTRATION_DIAGNOSTICS_PATH,
+  PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
@@ -190,5 +194,213 @@ describe('app diagnostics store', () => {
     }));
     expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
     expect(JSON.stringify(events[0])).not.toContain('/private/path');
+  });
+
+  test('persists sanitized MCP execution diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'mcp-exec-test',
+      spanId: 'mcp-exec-span',
+      path: MCP_EXECUTION_DIAGNOSTICS_PATH,
+      stage: 'tool_call_succeeded',
+      status: 'succeeded',
+      runtime: 'sidecar',
+      requestId: 'req-1',
+      conversationRef: 'conv-1',
+      durationMs: 9,
+      data: {
+        serverId: 'notes',
+        phase: 'tools_call',
+        exposedToolName: 'mcp_notes__remember',
+        mcpToolName: 'remember',
+        toolCallId: 'call-1',
+        correlationId: 'corr-1',
+        bundleId: 'bundle-1',
+        turnRef: 'turn-1',
+        arguments: { value: 'do not store' },
+        result: 'remember:do not store',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: MCP_EXECUTION_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'mcp-exec-test',
+      stage: 'tool_call_succeeded',
+      status: 'succeeded',
+      requestId: 'req-1',
+      conversationRef: 'conv-1',
+      data: expect.objectContaining({
+        serverId: 'notes',
+        phase: 'tools_call',
+        exposedToolName: 'mcp_notes__remember',
+        mcpToolName: 'remember',
+        toolCallId: 'call-1',
+        correlationId: 'corr-1',
+        bundleId: 'bundle-1',
+        turnRef: 'turn-1',
+        durationMs: 9,
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+    expect(events[0].data.arguments).toBeUndefined();
+    expect(events[0].data.result).toBeUndefined();
+  });
+
+  test('persists sanitized MCP enablement diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'mcp-enable-test',
+      spanId: 'mcp-enable-span',
+      path: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+      stage: 'config_saved',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      data: {
+        phase: 'config_save',
+        serverId: 'mcp:cua-driver',
+        requestedEnabled: true,
+        preserveMcpEnablement: true,
+        preserveSource: 'disk',
+        payloadHasEnabledKey: false,
+        latestHasEnabledKey: false,
+        enabledServerCount: 1,
+        persistedEnabledServerCount: 1,
+        payloadEnabledServerCount: 0,
+        rawConfig: { agent_enabled_mcp_servers: ['do not store'] },
+        workspacePath: '/Users/peter/private',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'mcp-enable-test',
+      stage: 'config_saved',
+      status: 'succeeded',
+      data: expect.objectContaining({
+        phase: 'config_save',
+        serverId: 'mcp:cua-driver',
+        requestedEnabled: true,
+        preserveMcpEnablement: true,
+        preserveSource: 'disk',
+        payloadHasEnabledKey: false,
+        latestHasEnabledKey: false,
+        enabledServerCount: 1,
+        persistedEnabledServerCount: 1,
+        payloadEnabledServerCount: 0,
+      }),
+    }));
+    expect(events[0].data.rawConfig).toBeUndefined();
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+  });
+
+  test('persists sanitized MCP registration diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'mcp-registration-test',
+      spanId: 'mcp-registration-span',
+      path: MCP_REGISTRATION_DIAGNOSTICS_PATH,
+      stage: 'registration_completed',
+      status: 'succeeded',
+      runtime: 'sidecar',
+      durationMs: 21,
+      data: {
+        phase: 'registration',
+        replace: true,
+        requestedServerCount: 1,
+        registeredServerCount: 1,
+        registeredToolCount: 35,
+        statusCount: 1,
+        errorCount: 0,
+        mcpServerCount: 1,
+        mcpToolCount: 35,
+        rawServers: [{ command: '/Users/peter/private/cua-driver' }],
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: MCP_REGISTRATION_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'mcp-registration-test',
+      stage: 'registration_completed',
+      status: 'succeeded',
+      durationMs: 21,
+      data: expect.objectContaining({
+        phase: 'registration',
+        replace: true,
+        requestedServerCount: 1,
+        registeredServerCount: 1,
+        registeredToolCount: 35,
+        statusCount: 1,
+        errorCount: 0,
+        mcpServerCount: 1,
+        mcpToolCount: 35,
+        durationMs: 21,
+      }),
+    }));
+    expect(events[0].data.rawServers).toBeUndefined();
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+  });
+
+  test('persists sanitized permission probe diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'permission-diag-test',
+      spanId: 'permission-span-test',
+      path: PERMISSION_PROBE_DIAGNOSTICS_PATH,
+      stage: 'workspace_activate',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      durationMs: 18,
+      data: {
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: 'granted',
+        granted: true,
+        hasDetails: true,
+        platform: 'darwin',
+        hasWorkspacePath: true,
+        selected_paths: ['/Users/peter/private'],
+        workspacePath: '/Users/peter/private',
+        promptText: 'Workspace access prompt',
+        url: 'https://example.com/private',
+      },
+      error: new Error('permission path failed at /Users/peter/private'),
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: PERMISSION_PROBE_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'permission-diag-test',
+      stage: 'workspace_activate',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      durationMs: 18,
+      data: expect.objectContaining({
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: 'granted',
+        granted: true,
+        hasDetails: true,
+        platform: 'darwin',
+        hasWorkspacePath: true,
+        durationMs: 18,
+      }),
+      error: expect.objectContaining({
+        message: expect.stringContaining('[path]'),
+      }),
+    }));
+    expect(events[0].data.selected_paths).toBeUndefined();
+    expect(events[0].data.workspacePath).toBeUndefined();
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+    expect(JSON.stringify(events[0])).not.toContain('Workspace access prompt');
+    expect(JSON.stringify(events[0])).not.toContain('example.com/private');
   });
 });

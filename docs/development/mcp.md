@@ -17,9 +17,11 @@ mcps/
     server.cjs
 ```
 
-Electron main reads `mcp.json`, starts configured stdio servers, discovers
-`tools/list`, converts those tools into `client_tool_manifest` entries, and
-executes `tools/call` locally when the model invokes an MCP-backed tool.
+Electron main reads `mcp.json` for dashboard/config presentation and forwards
+enabled server specs to the SDK/sidecar local runtime. The sidecar starts
+configured stdio servers, discovers `tools/list`, registers discovered tools
+into the executable local tool registry, and executes `tools/call` when the model
+invokes an MCP-backed tool.
 
 The backend does not need MCP-specific tool code. It sees normal client-local
 tools with `execution_target: "sidecar"` and `argument_resolution:
@@ -117,14 +119,17 @@ That exposes `local_memory__search`.
    the allowlist change and immediately runs a discovery pass. The manual
    refresh action remains the retry path after installing binaries or granting
    permissions.
-5. Electron main starts each enabled MCP server over stdio.
-6. Electron main sends MCP `initialize` and `notifications/initialized`.
-7. Electron main calls `tools/list`.
-8. Discovered tools are appended to `client_tool_manifest`.
-9. Backend validates and projects the schemas like any other client-local tool.
-10. When the backend emits an MCP tool call, Electron main intercepts it and
-   sends MCP `tools/call`.
-11. The MCP result is normalized into WindieOS tool result data.
+5. Electron main sends enabled server specs to the SDK/sidecar local runtime.
+6. The sidecar starts each enabled MCP server over stdio.
+7. The sidecar sends MCP `initialize` and `notifications/initialized`.
+8. The sidecar calls `tools/list`.
+9. Discovered tools are registered as executable sidecar local tools and exposed
+   through the client tool manifest.
+10. Backend validates and projects the schemas like any other client-local tool.
+11. When the backend emits an MCP tool call, the SDK routes it to the sidecar
+    like any other local tool.
+12. The sidecar sends MCP `tools/call`.
+13. The MCP result is normalized into WindieOS tool result data.
 
 Each discovery pass reconciles the executable MCP tool registry with the current
 enabled server specs. Removed, disabled, duplicate, or manifest-disabled MCP
@@ -146,16 +151,55 @@ binary is not on `PATH`, the MCPs dashboard reports `Not installed`; if CUA
 starts but macOS automation grants are missing, the status reports
 `Needs permission`.
 
-MCP discovery emits persistent app diagnostics under `mcp.discovery`. Inspect
-recent discovery failures with:
+On macOS, the sidecar also resolves `cua-driver` to the installed
+`/Applications/CuaDriver.app/Contents/MacOS/cua-driver` binary, then
+`~/.local/bin/cua-driver`, before surfacing `Not installed`. This keeps the GUI
+app from depending on interactive shell PATH setup after the CUA installer runs.
+
+MCP enablement, registration, discovery, and execution emit persistent app
+diagnostics:
+
+- `mcp.enablement`: dashboard toggle, frontend-config persistence, and registry
+  refresh/list after enablement changes.
+- `mcp.registration`: SDK/local-runtime registration through the sidecar
+  `/mcps/register` boundary, including replace/reconcile and registered tool
+  counts.
+- `mcp.discovery`: sidecar subprocess startup, initialize, and `tools/list`.
+- `mcp.execution`: MCP `tools/call` execution after tools are registered.
+
+Inspect recent discovery failures with:
 
 ```bash
 bin/windie diagnostics list --path mcp.discovery --limit 10 --json
 ```
 
+Inspect persistence or registration gaps with:
+
+```bash
+bin/windie diagnostics list --path mcp.enablement --limit 10 --json
+bin/windie diagnostics list --path mcp.registration --limit 10 --json
+```
+
 Use the returned `traceId` with `bin/windie diagnostics inspect <trace-id>
 --json` to see spawn, initialize, `tools/list`, timeout, elapsed-time, and
-stderr-tail events.
+stderr-tail events, or the enablement/registration lifecycle rows for the same
+MCP path.
+
+After an MCP is enabled while an agent is already awake, Electron main should
+route the enabled server specs through `WindieAgent.registerMcps(...)`. The SDK
+then owns local-runtime registration, backend `replace_client_manifest`
+settings update, in-memory agent-definition mutation, and inclusion of the MCP
+tool schemas on the next message.
+
+The live manifest refresh has two observable checkpoints:
+
+- `mcp.registration` app diagnostics show sidecar registration and sidecar tool
+  counts before a conversation turn exists.
+- `agent.definition` and `mcp.tool` conversation traces on the next turn show
+  whether the SDK MCP client manifest survived the merge with Electron-provided
+  workspace/prompt context. `agent.definition` includes SDK-vs-query manifest
+  tool counts so a manifest-less Electron agent definition cannot hide a dropped
+  SDK MCP manifest.
 
 ## What Devs Should Not Edit
 

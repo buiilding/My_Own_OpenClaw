@@ -10,6 +10,7 @@ exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
 exports.createWindieAgentSession = createWindieAgentSession;
 exports.createWindieAgentBackendTransport = createWindieAgentBackendTransport;
+exports.mergeQueryAgentDefinition = mergeQueryAgentDefinition;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const backendPayloadContract_js_1 = require("./backendPayloadContract.js");
 function resolveWebSocketImplementation(WebSocketImpl) {
@@ -249,9 +250,9 @@ function createWindieAgentBackendTransport(session, conversationRef, agentDefini
             conversationRef: typeof payload.conversation_ref === 'string'
                 ? payload.conversation_ref
                 : conversationRef,
-            agentDefinition: payload.agent_definition && typeof payload.agent_definition === 'object'
+            agentDefinition: mergeQueryAgentDefinition(agentDefinition, payload.agent_definition && typeof payload.agent_definition === 'object'
                 ? payload.agent_definition
-                : agentDefinition,
+                : null),
             rawPayload: payload,
             turnRef: options.messageId ?? null,
             content: typeof payload.content === 'string' ? payload.content : null,
@@ -296,5 +297,74 @@ function createWindieAgentBackendTransport(session, conversationRef, agentDefini
         subscribe: listener => session.on('event', listener),
         close: async () => session.close(1000, 'conversation-runtime-close'),
     };
+}
+function cloneJsonRecord(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    return JSON.parse(JSON.stringify(value));
+}
+function mergeJsonRecord(base, override) {
+    const baseRecord = cloneJsonRecord(base);
+    const overrideRecord = cloneJsonRecord(override);
+    const merged = {
+        ...baseRecord,
+        ...overrideRecord,
+    };
+    return Object.keys(merged).length > 0 ? merged : undefined;
+}
+function mergeArrayValues(base, override) {
+    const merged = [
+        ...(Array.isArray(base) ? base : []),
+        ...(Array.isArray(override) ? override : []),
+    ];
+    return merged.length > 0 ? merged : undefined;
+}
+function hasNonEmptyManifestTools(manifest) {
+    return Array.isArray(manifest.tools) && manifest.tools.length > 0;
+}
+function mergeAgentDefinitionTools(baseTools, overrideTools) {
+    const mergedTools = mergeJsonRecord(baseTools, overrideTools);
+    if (!mergedTools) {
+        return undefined;
+    }
+    const baseClientManifest = cloneJsonRecord(baseTools?.client_manifest);
+    const overrideClientManifest = cloneJsonRecord(overrideTools?.client_manifest);
+    if (hasNonEmptyManifestTools(overrideClientManifest)) {
+        mergedTools.client_manifest = overrideClientManifest;
+    }
+    else if (Object.keys(baseClientManifest).length > 0) {
+        mergedTools.client_manifest = baseClientManifest;
+    }
+    else if (Object.keys(overrideClientManifest).length > 0) {
+        mergedTools.client_manifest = overrideClientManifest;
+    }
+    return mergedTools;
+}
+function mergeQueryAgentDefinition(baseDefinition, queryDefinition) {
+    if (!queryDefinition || Object.keys(queryDefinition).length === 0) {
+        return baseDefinition;
+    }
+    const base = cloneJsonRecord(baseDefinition);
+    const query = cloneJsonRecord(queryDefinition);
+    const merged = {
+        ...base,
+        ...query,
+    };
+    const tools = mergeAgentDefinitionTools(base.tools, query.tools);
+    if (tools) {
+        merged.tools = tools;
+    }
+    const runtime = mergeJsonRecord(base.runtime, query.runtime);
+    if (runtime) {
+        merged.runtime = runtime;
+    }
+    for (const key of ['prompt_layers', 'agents_md', 'skills', 'plugins']) {
+        const values = mergeArrayValues(base[key], query[key]);
+        if (values) {
+            merged[key] = values;
+        }
+    }
+    return Object.keys(merged).length > 0 ? merged : undefined;
 }
 const ws_1 = __importDefault(require("ws"));

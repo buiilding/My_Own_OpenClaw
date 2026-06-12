@@ -9,6 +9,14 @@ const {
 } = require('../../frontend/src/main/permissions/permission_ipc_runtime.cjs');
 
 describe('permission_ipc_runtime', () => {
+  const runtimeDirs = [];
+
+  afterEach(() => {
+    while (runtimeDirs.length > 0) {
+      fs.rmSync(runtimeDirs.pop(), { recursive: true, force: true });
+    }
+  });
+
   function createRuntime(overrides = {}) {
     const invokeHandlers = {};
     const ipcMain = {
@@ -16,12 +24,15 @@ describe('permission_ipc_runtime', () => {
         invokeHandlers[channel] = handler;
       }),
     };
+    const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-permission-runtime-'));
+    runtimeDirs.push(userDataPath);
 
     initializePermissionHandlersRuntime({
       ipcMain,
       shell: {},
       systemPreferences: {},
       platform: 'win32',
+      userDataPath,
       ...overrides,
     });
 
@@ -80,8 +91,9 @@ describe('permission_ipc_runtime', () => {
     });
   });
 
-  test('records sanitized permission probe traces from the Electron main owner', async () => {
+  test('records idle permission probes as app diagnostics instead of conversation traces', async () => {
     const traceEvents = [];
+    const appDiagnostics = [];
     const permissionStateStore = {
       get: jest.fn(async () => null),
       set: jest.fn(async (_permissionId, entry) => entry),
@@ -91,6 +103,9 @@ describe('permission_ipc_runtime', () => {
       permissionStateStore,
       emitTraceEvent: jest.fn(async (event) => {
         traceEvents.push(event);
+      }),
+      emitAppDiagnosticEvent: jest.fn(async (event) => {
+        appDiagnostics.push(event);
       }),
     });
 
@@ -108,11 +123,12 @@ describe('permission_ipc_runtime', () => {
         }),
       },
     });
-    expect(traceEvents.map((event) => `${event.stage}:${event.status}`)).toEqual([
+    expect(traceEvents).toHaveLength(0);
+    expect(appDiagnostics.map((event) => `${event.stage}:${event.status}`)).toEqual([
       'probe:started',
       'probe:succeeded',
     ]);
-    expect(traceEvents[1]).toEqual(expect.objectContaining({
+    expect(appDiagnostics[1]).toEqual(expect.objectContaining({
       path: 'permission.probe',
       runtime: 'electron-main',
       data: expect.objectContaining({
@@ -123,8 +139,60 @@ describe('permission_ipc_runtime', () => {
         platform: 'win32',
       }),
     }));
-    expect(JSON.stringify(traceEvents)).not.toContain('selected_paths');
-    expect(JSON.stringify(traceEvents)).not.toContain('Workspace access prompt');
+    expect(JSON.stringify(appDiagnostics)).not.toContain('selected_paths');
+    expect(JSON.stringify(appDiagnostics)).not.toContain('Workspace access prompt');
+  });
+
+  test('records permission probe conversation traces only with explicit turn context', async () => {
+    const traceEvents = [];
+    const appDiagnostics = [];
+    const permissionStateStore = {
+      get: jest.fn(async () => null),
+      set: jest.fn(async (_permissionId, entry) => entry),
+      delete: jest.fn(async () => true),
+    };
+    const { invokeHandlers } = createRuntime({
+      permissionStateStore,
+      emitTraceEvent: jest.fn(async (event) => {
+        traceEvents.push(event);
+      }),
+      emitAppDiagnosticEvent: jest.fn(async (event) => {
+        appDiagnostics.push(event);
+      }),
+    });
+
+    const result = await invokeHandlers['run-permission-probe'](null, {
+      permissionId: 'filesystem_workspace_access',
+      conversationRef: 'conv-test',
+      turnRef: 'turn-test',
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'filesystem_workspace_access',
+          status: 'needs-action',
+          granted: false,
+        }),
+      },
+    });
+    expect(appDiagnostics).toHaveLength(0);
+    expect(traceEvents.map((event) => `${event.stage}:${event.status}`)).toEqual([
+      'probe:started',
+      'probe:succeeded',
+    ]);
+    expect(traceEvents[1]).toEqual(expect.objectContaining({
+      path: 'permission.probe',
+      runtime: 'electron-main',
+      conversationRef: 'conv-test',
+      turnRef: 'turn-test',
+      data: expect.objectContaining({
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: 'needs-action',
+        granted: false,
+      }),
+    }));
   });
 
   test('passes browser warmup dependency through request-permission runtime wiring', async () => {
@@ -253,6 +321,66 @@ describe('permission_ipc_runtime', () => {
         }),
       },
     });
+  });
+
+  test('records active workspace changes as sanitized app diagnostics without paths', async () => {
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-diagnostic-workspace-'));
+    const appDiagnostics = [];
+    let storedEntry = {
+      granted: true,
+      source: 'workspace_picker',
+      selected_paths: [workspacePath],
+      details: {
+        selected_paths: [workspacePath],
+      },
+    };
+    const permissionStateStore = {
+      get: jest.fn(async () => storedEntry),
+      set: jest.fn(async (_permissionId, entry) => {
+        storedEntry = entry;
+        return storedEntry;
+      }),
+      delete: jest.fn(async () => {
+        storedEntry = null;
+        return true;
+      }),
+    };
+    const { invokeHandlers } = createRuntime({
+      permissionStateStore,
+      emitAppDiagnosticEvent: jest.fn(async (event) => {
+        appDiagnostics.push(event);
+      }),
+    });
+
+    const result = await invokeHandlers['set-active-workspace'](null, {
+      workspacePath,
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'filesystem_workspace_access',
+          granted: true,
+        }),
+      },
+    });
+    expect(appDiagnostics.map((event) => `${event.stage}:${event.status}`)).toEqual([
+      'workspace_activate:started',
+      'workspace_activate:succeeded',
+    ]);
+    expect(appDiagnostics[1]).toEqual(expect.objectContaining({
+      path: 'permission.probe',
+      runtime: 'electron-main',
+      data: expect.objectContaining({
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: 'granted',
+        granted: true,
+        hasWorkspacePath: true,
+      }),
+    }));
+    expect(JSON.stringify(appDiagnostics)).not.toContain(workspacePath);
+    expect(JSON.stringify(appDiagnostics)).not.toContain('selected_paths');
   });
 
   test('rejects arbitrary active workspace paths that were not selected through permission flow', async () => {

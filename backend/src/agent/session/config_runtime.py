@@ -1,10 +1,15 @@
 """Runtime config update coordination for AgentSession."""
+
 from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
 
 from backend.src.agent.llm.conversation_context import ConversationContext
+from backend.src.agent.session.capability_application import (
+    accepted_client_tool_names,
+    merge_runtime_tools_into_prompt_policy,
+)
 from backend.src.llm.prompts import PromptConstructor
 
 if TYPE_CHECKING:
@@ -50,7 +55,9 @@ class SessionConfigRuntime:
             system_prompt=previous_prompt.system_prompt,
             metrics_service=session.metrics_service,
         )
-        session.prompt_builder.workspace_path = getattr(previous_prompt, "workspace_path", None)
+        session.prompt_builder.workspace_path = getattr(
+            previous_prompt, "workspace_path", None
+        )
         session.prompt_builder.repo_instruction_messages = list(
             getattr(previous_prompt, "repo_instruction_messages", []) or []
         )
@@ -59,6 +66,16 @@ class SessionConfigRuntime:
         )
         session.prompt_builder.client_tool_schemas = list(
             getattr(previous_prompt, "client_tool_schemas", []) or []
+        )
+        runtime = getattr(session, "runtime", None)
+        merge_runtime_tools_into_prompt_policy(
+            session.prompt_builder,
+            accepted_tool_names=accepted_client_tool_names(
+                getattr(runtime, "client_tool_manifest", None)
+                if runtime is not None
+                else None
+            ),
+            previous_tool_names=[],
         )
 
         session.executor.prompt_builder = session.prompt_builder

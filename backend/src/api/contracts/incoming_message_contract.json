@@ -8,6 +8,8 @@
     "session_id",
     "conversation_ref",
     "turn_ref",
+    "event_id",
+    "sequence",
     "timestamp"
   ],
   "payloads": {
@@ -62,8 +64,19 @@
         "browser_automation_enabled",
         "include_query_screenshot",
         "provider_api_keys",
-        "provider_oauth"
-      ]
+        "provider_oauth",
+        "tools",
+        "agent_definition"
+      ],
+      "nested": {
+        "tools": {
+          "extra": "forbid",
+          "keys": [
+            "mode",
+            "client_manifest"
+          ]
+        }
+      }
     },
     "wakeword-detected": {
       "keys": []

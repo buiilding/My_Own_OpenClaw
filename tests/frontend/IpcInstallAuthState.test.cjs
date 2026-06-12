@@ -17,6 +17,7 @@ const {
   loadInstallAuthStateFromDisk,
   saveInstallAuthStateToDisk,
   shouldApplyPosixFileModes,
+  validateInstallAuthStateWithBackend,
 } = require('../../frontend/src/main/ipc/ipc_install_auth_state.cjs');
 
 function modeOf(targetPath) {
@@ -87,5 +88,75 @@ describe('ipc_install_auth_state persistence', () => {
       expect(modeOf(filePath)).toBe(0o600);
       expect(modeOf(userDataPath)).toBe(0o700);
     }
+  });
+
+  test('validates cached install auth against backend identity endpoint', async () => {
+    const fetchImpl = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        user_id: 'user_backend',
+        install_id: 'install_backend',
+      }),
+    }));
+
+    const result = await validateInstallAuthStateWithBackend(
+      {
+        installToken: 'wnd_install_secret',
+        userId: 'user_cached',
+        installId: 'install_cached',
+      },
+      {
+        backendHttpUrl: 'https://api.windieos.test/',
+        fetchImpl,
+      },
+    );
+
+    expect(result).toEqual({
+      valid: true,
+      invalidToken: false,
+      status: 200,
+      state: {
+        installToken: 'wnd_install_secret',
+        userId: 'user_backend',
+        installId: 'install_backend',
+      },
+    });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://api.windieos.test/api/install/me',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: 'Bearer wnd_install_secret',
+        },
+      },
+    );
+  });
+
+  test('classifies backend 401 as an invalid cached install token', async () => {
+    const fetchImpl = jest.fn(async () => ({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      text: async () => '{"detail":"Invalid install bearer token"}',
+    }));
+
+    const result = await validateInstallAuthStateWithBackend(
+      {
+        installToken: 'wnd_install_secret',
+        userId: 'user_cached',
+        installId: 'install_cached',
+      },
+      {
+        backendHttpUrl: 'https://api.windieos.test',
+        fetchImpl,
+      },
+    );
+
+    expect(result).toMatchObject({
+      valid: false,
+      invalidToken: true,
+      status: 401,
+    });
   });
 });

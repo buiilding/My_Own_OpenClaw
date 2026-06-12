@@ -12,6 +12,9 @@ function normalizeMcpRegistry(payload) {
     mcps: Array.isArray(payload?.mcps) ? payload.mcps : [],
     errors: Array.isArray(payload?.errors) ? payload.errors : [],
     mcp_errors: Array.isArray(payload?.mcp_errors) ? payload.mcp_errors : [],
+    enabled_mcp_servers: Array.isArray(payload?.enabled_mcp_servers)
+      ? payload.enabled_mcp_servers.filter((serverId) => typeof serverId === 'string')
+      : [],
   };
 }
 
@@ -62,7 +65,8 @@ function McpsSection({ onClose = () => {} }) {
       if (payload?.success === false) {
         throw new Error(payload.error || 'Unable to update MCP server.');
       }
-      setRegistry(normalizeMcpRegistry(payload?.registry));
+      const nextRegistry = normalizeMcpRegistry(payload?.registry);
+      setRegistry(nextRegistry);
     } catch (toggleError) {
       setError(toggleError?.message || 'Unable to update MCP server.');
     }

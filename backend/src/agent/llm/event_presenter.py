@@ -88,6 +88,7 @@ class EventPresenter:
             content=metadata.system_prompt,
             tool_schemas=None,  # Tool schemas are emitted via dedicated tool-schemas event
             client_prompt_layers=metadata.client_prompt_layers,
+            client_prompt_layer_summary=metadata.client_prompt_layer_summary,
         )
 
         # Present user message event

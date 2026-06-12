@@ -18,6 +18,7 @@ const {
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
 const {
   loadFrontendConfigFromDisk,
+  loadFrontendConfigFromDiskSync,
   redactProviderSecretsFromFrontendConfig,
   saveFrontendConfigToDisk,
 } = require('./ipc/ipc_frontend_config.cjs');
@@ -25,9 +26,11 @@ const {
   registerFrontendConfigHandlers,
 } = require('./ipc/ipc_frontend_config_handlers.cjs');
 const {
+  clearInstallAuthStateFromDisk,
   loadInstallAuthStateFromDisk,
   registerInstallWithBackend,
   saveInstallAuthStateToDisk,
+  validateInstallAuthStateWithBackend,
 } = require('./ipc/ipc_install_auth_state.cjs');
 const {
   isValidConfigPayload,
@@ -40,6 +43,8 @@ const {
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
   APP_DIAGNOSTICS_PATH,
+  MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+  PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
 } = require('./diagnostics/app_diagnostics_store.cjs');
 const {
@@ -85,6 +90,8 @@ const {
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
+  MCP_ENABLED_CONFIG_KEY,
+  getEnabledMcpServerSpecsForConfig,
   listMcpServersForConfig,
   refreshMcpServersForConfig,
   updateMcpServerEnablementForConfig,
@@ -181,6 +188,7 @@ let syncSdkLiveTurnSurfaceIntent = null;
 let windieAgentWebSocketImpl = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
+let windieClient = null;
 let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
 let latestCurrentTurnProjection = null;
@@ -248,13 +256,47 @@ async function ensureInstallAuthState() {
   }
 
   pendingInstallAuthStatePromise = (async () => {
-    const cachedState = applyInstallAuthState(await loadInstallAuthStateFromDisk(log));
-    if (cachedState) {
-      return cachedState;
-    }
-
     let lastError = null;
     const endpointCandidates = backendEndpointState.getCandidates();
+    const cachedDiskState = await loadInstallAuthStateFromDisk(log);
+    if (cachedDiskState) {
+      let sawInvalidCachedToken = false;
+      for (let index = 0; index < endpointCandidates.length; index += 1) {
+        const candidate = endpointCandidates[index];
+        const validation = await validateInstallAuthStateWithBackend(cachedDiskState, {
+          backendHttpUrl: candidate.httpUrl,
+        });
+        if (validation.valid && validation.state) {
+          setActiveBackendEndpoint(index);
+          const validatedState = applyInstallAuthState(validation.state);
+          const persistedIdentityMatches = (
+            validation.state.userId === cachedDiskState.userId
+            && validation.state.installId === cachedDiskState.installId
+          );
+          if (!persistedIdentityMatches) {
+            await saveInstallAuthStateToDisk(validation.state, log);
+          }
+          return validatedState;
+        }
+        if (validation.invalidToken) {
+          sawInvalidCachedToken = true;
+          log(`Cached install auth was rejected by ${candidate.httpUrl} (${validation.status || 'invalid'}); registering a fresh install.`);
+        } else {
+          lastError = new Error(
+            `Install auth validation failed against ${candidate.httpUrl}: ${validation.error || 'unknown error'}`,
+          );
+          log(lastError.message);
+        }
+      }
+      if (!sawInvalidCachedToken) {
+        const cachedState = applyInstallAuthState(cachedDiskState);
+        if (cachedState) {
+          return cachedState;
+        }
+      }
+      await clearInstallAuthStateFromDisk(log);
+    }
+
     for (let index = 0; index < endpointCandidates.length; index += 1) {
       const candidate = endpointCandidates[index];
       try {
@@ -383,9 +425,85 @@ async function loadCachedFrontendConfigFromDisk() {
   return loadFrontendConfigFromDisk(log);
 }
 
-async function persistFrontendConfigToDisk(config) {
-  const persistableConfig = redactProviderSecretsFromFrontendConfig(config);
+function preserveMainOwnedFrontendConfigFields(config, options = {}) {
+  const {
+    preserveMcpEnablement = true,
+  } = options;
+  if (!isValidConfigPayload(config)) {
+    return config;
+  }
+  if (!preserveMcpEnablement) {
+    return config;
+  }
+  const diskConfig = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
+    ? null
+    : loadFrontendConfigFromDiskSync(log);
+  const enabledMcpServers = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
+    ? latestFrontendConfig[MCP_ENABLED_CONFIG_KEY]
+    : diskConfig?.[MCP_ENABLED_CONFIG_KEY];
+  if (!Array.isArray(enabledMcpServers)) {
+    return config;
+  }
+  return {
+    ...config,
+    [MCP_ENABLED_CONFIG_KEY]: enabledMcpServers.filter((serverId) => typeof serverId === 'string'),
+  };
+}
+
+function countMcpEnabledServersInConfig(config) {
+  return Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY])
+    ? config[MCP_ENABLED_CONFIG_KEY].filter((serverId) => typeof serverId === 'string').length
+    : 0;
+}
+
+function resolveMcpEnablementPreserveSource(config, options = {}) {
+  if (!isValidConfigPayload(config) || options.preserveMcpEnablement === false) {
+    return 'none';
+  }
+  if (Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])) {
+    return 'latest';
+  }
+  const diskConfig = loadFrontendConfigFromDiskSync(log);
+  if (Array.isArray(diskConfig?.[MCP_ENABLED_CONFIG_KEY])) {
+    return 'disk';
+  }
+  return 'none';
+}
+
+function recordMcpEnablementDiagnostic(input = {}) {
+  try {
+    return appendDiagnosticEvent({
+      path: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+      traceId: input.traceId || `mcp-enable-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      runtime: 'electron-main',
+      ...input,
+    });
+  } catch {
+    return { stored: false };
+  }
+}
+
+async function persistFrontendConfigToDisk(config, options = {}) {
+  const preserveSource = resolveMcpEnablementPreserveSource(config, options);
+  const payloadHasEnabledKey = Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY]);
+  const persistableConfig = redactProviderSecretsFromFrontendConfig(
+    preserveMainOwnedFrontendConfigFields(config, options),
+  );
   const result = await saveFrontendConfigToDisk(persistableConfig, log);
+  recordMcpEnablementDiagnostic({
+    stage: result?.success === false ? 'config_save_failed' : 'config_saved',
+    status: result?.success === false ? 'failed' : 'succeeded',
+    data: {
+      phase: 'config_save',
+      preserveMcpEnablement: options.preserveMcpEnablement !== false,
+      preserveSource,
+      payloadHasEnabledKey,
+      latestHasEnabledKey: Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY]),
+      persistedEnabledServerCount: countMcpEnabledServersInConfig(persistableConfig),
+      payloadEnabledServerCount: countMcpEnabledServersInConfig(config),
+    },
+    error: result?.success === false ? result.error : null,
+  });
   if (
     result?.success
     && persistableConfig
@@ -582,6 +700,44 @@ function buildDesktopAutoSidecarOptionsForAgent() {
     throw new Error(plan.error || 'Windie sidecar daemon launch is unavailable.');
   }
   return plan.options;
+}
+
+function buildDesktopLocalRuntimeOptions() {
+  return process.env.NODE_ENV === 'test'
+    ? { autoStartLocalRuntime: false }
+    : { autoSidecar: buildDesktopAutoSidecarOptionsForAgent() };
+}
+
+function createDesktopWindieClient() {
+  return new WindieClient({
+    backendUrl: backendEndpointState.getHttpUrl(),
+    httpBaseUrl: backendEndpointState.getHttpUrl(),
+    wsUrl: backendEndpointState.getWsUrl(),
+    wsOrigin: backendEndpointState.getHttpUrl(),
+    backendEndpoints: buildManagedBackendEndpoints(),
+    backendSession: 'managed',
+    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
+    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
+    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
+    ...buildDesktopLocalRuntimeOptions(),
+    onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
+    onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
+    onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
+    onBackendHandshakeError: error => handleWindieAgentConnection({ type: 'handshake-error', error }),
+    onBackendMessageError: error => handleWindieAgentConnection({ type: 'message-error', error }),
+    onBackendSend: type => {
+      windieAgent?.noteBackendTraffic?.(`send:${type}`);
+    },
+    onBackendFallback: endpoint => handleWindieAgentBackendFallback(endpoint),
+  });
+}
+
+function getWindieClient() {
+  if (!windieClient) {
+    windieClient = createDesktopWindieClient();
+  }
+  return windieClient;
 }
 
 function createDirectWakeUpAgentAdapter({
@@ -896,6 +1052,14 @@ function createDirectWakeUpAgentAdapter({
     noteBackendTraffic: reason => agent.noteBackendTraffic(reason),
     syncBackendIdleTimer: reason => agent.syncBackendIdleTimer(reason),
     localStatus: () => agent.status(),
+    localRuntime: agent.localRuntime || null,
+    registerMcps: (mcps, options) => agent.registerMcps(mcps, options),
+    refreshMcpServers: async ({ config = null } = {}) => (
+      refreshMcpServersForConfig({
+        config,
+        localRuntime: agent.localRuntime || null,
+      })
+    ),
     close: () => {
       if (closed) {
         return;
@@ -916,36 +1080,15 @@ function createDirectWakeUpAgentAdapter({
 async function startWindieAgent({ reason = 'request', workspacePath = null } = {}) {
   await ensureInstallAuthState();
   const resolvedWorkspacePath = workspacePath || resolveWorkspacePathForAgent() || undefined;
-  const localRuntimeOptions = process.env.NODE_ENV === 'test'
-    ? { autoStartLocalRuntime: false }
-    : { autoSidecar: buildDesktopAutoSidecarOptionsForAgent() };
-  const client = new WindieClient({
-    backendUrl: backendEndpointState.getHttpUrl(),
-    httpBaseUrl: backendEndpointState.getHttpUrl(),
-    wsUrl: backendEndpointState.getWsUrl(),
-    wsOrigin: backendEndpointState.getHttpUrl(),
-    backendEndpoints: buildManagedBackendEndpoints(),
-    backendSession: 'managed',
-    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
-    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
-    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
-    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
-    ...localRuntimeOptions,
-    onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
-    onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
-    onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
-    onBackendHandshakeError: error => handleWindieAgentConnection({ type: 'handshake-error', error }),
-    onBackendMessageError: error => handleWindieAgentConnection({ type: 'message-error', error }),
-    onBackendSend: type => {
-      windieAgent?.noteBackendTraffic?.(`send:${type}`);
-    },
-    onBackendFallback: endpoint => handleWindieAgentBackendFallback(endpoint),
-  });
+  const client = getWindieClient();
   const agent = await client.wakeUp({
     installAuth: buildDesktopInstallAuth(),
     name: 'WindieOS',
     workspacePath: resolvedWorkspacePath,
     builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
+    mcps: process.env.NODE_ENV === 'test'
+      ? []
+      : getEnabledMcpServerSpecsForConfig({ config: latestFrontendConfig || {} }),
     ...(process.env.NODE_ENV === 'test' ? { memory: false, persistence: false } : {}),
     localToolLifecycle,
   });
@@ -985,6 +1128,23 @@ function noteBackendTraffic(reason = 'traffic') {
   windieAgent?.noteBackendTraffic(reason);
 }
 
+function getKnownWindieLocalRuntime() {
+  return windieClient?.getKnownLocalRuntime?.() || windieAgent?.localRuntime || null;
+}
+
+async function ensureWindieLocalRuntime({ reason = 'local-runtime' } = {}) {
+  return getWindieClient().localRuntime({ reason });
+}
+
+async function restartWindieAgent(reason = 'restart') {
+  if (windieAgent) {
+    windieAgent.close?.();
+    windieAgent = null;
+  }
+  pendingWindieAgentStartPromise = null;
+  return ensureWindieAgent({ reason });
+}
+
 function isBackendRuntimeConnected() {
   return isConnected && Boolean(windieAgent?.isConnected());
 }
@@ -999,6 +1159,16 @@ async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_C
     timeoutMs,
     conversationRef: currentConversationRef,
   });
+}
+
+async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
+  if (process.env.NODE_ENV !== 'test') {
+    const agent = await ensureWindieAgent({ reason });
+    if (typeof agent.refreshMcpServers === 'function') {
+      return agent.refreshMcpServers({ config: latestFrontendConfig || {} });
+    }
+  }
+  return refreshMcpServersForConfig({ config: latestFrontendConfig || {} });
 }
 
 function buildIpcStatusPayload(connected) {
@@ -1175,6 +1345,8 @@ function shutdownIpcForTests() {
   pendingInstallAuthStatePromise = null;
   isConnected = false;
   pendingWindieAgentStartPromise = null;
+  void windieClient?.shutdownLocalRuntime?.();
+  windieClient = null;
   windieAgent?.close();
   windieAgent = null;
   desktopAutoSidecarLaunchConfig = null;
@@ -1267,16 +1439,28 @@ function initializeIpc(win, options = {}) {
         error: 'Missing MCP server id.',
       };
     }
-    return updateMcpServerEnablementForConfig({
+    const result = await updateMcpServerEnablementForConfig({
       config: latestFrontendConfig || {},
       serverId,
       enabled: payload.enabled === true,
-      persistConfig: persistFrontendConfigToDisk,
+      persistConfig: (nextConfig) => persistFrontendConfigToDisk(nextConfig, {
+        preserveMcpEnablement: false,
+      }),
+      resolveLocalRuntime: process.env.NODE_ENV === 'test'
+        ? null
+        : async () => (await ensureWindieAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
     });
+    if (result?.success === true && process.env.NODE_ENV !== 'test') {
+      const agent = await ensureWindieAgent({ reason: 'mcp-manifest-refresh' });
+      const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: latestFrontendConfig || {} });
+      await agent.registerMcps?.(enabledSpecs, { replace: true });
+      result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-sdk-refresh');
+    }
+    return result;
   });
 
   ipcMain.handle('refresh-mcp-servers', async () => (
-    refreshMcpServersForConfig({ config: latestFrontendConfig })
+    refreshMcpServersForLatestConfig('mcp-refresh')
   ));
 
   ipcMain.handle('get-client-user-id', async () => {
@@ -1456,14 +1640,15 @@ async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
 
 async function sendStopQueryToBackend(payload = {}) {
   if (!windieAgent) {
-    return null;
+    return false;
   }
-  return windieAgent.stop({
+  await windieAgent.stop({
     conversation_ref: resolveConversationRefFromPayload(payload),
     turn_ref: payload && typeof payload.turn_ref === 'string'
       ? payload.turn_ref
       : null,
   });
+  return true;
 }
 
 async function updateSettingsOnBackend(payload = {}) {
@@ -1482,12 +1667,27 @@ async function sendWakewordDetectedToBackend(payload = {}) {
 }
 
 async function appendMainProcessTraceEvent(input = {}) {
-  const conversationRef = normalizeOptionalString(input.conversationRef)
-    || currentConversationRef;
+  const path = normalizeOptionalString(input.path);
+  const conversationRef = normalizeOptionalString(input.conversationRef);
+  const turnRef = normalizeOptionalString(input.turnRef);
+  if (path === PERMISSION_PROBE_DIAGNOSTICS_PATH && (!conversationRef || !turnRef)) {
+    return appendAppDiagnostic({
+      path,
+      stage: normalizeOptionalString(input.stage) || 'unknown',
+      status: normalizeOptionalString(input.status) || 'succeeded',
+      runtime: normalizeOptionalString(input.runtime) || 'electron-main',
+      requestId: normalizeOptionalString(input.requestId),
+      durationMs: normalizePositiveInteger(input.durationMs),
+      data: isPlainObject(input.data) ? input.data : {},
+      error: input.error,
+    });
+  }
   if (!conversationRef) {
     return { stored: false, reason: 'missing_conversation_ref' };
   }
-  const turnRef = normalizeOptionalString(input.turnRef) || null;
+  if (!turnRef) {
+    return { stored: false, reason: 'missing_turn_ref' };
+  }
   const agent = await ensureWindieAgent({
     reason: 'main-process-trace',
     conversationRef,
@@ -1507,7 +1707,7 @@ async function appendMainProcessTraceEvent(input = {}) {
     },
   });
   const payload = await recorder.record({
-    path: input.path,
+    path,
     stage: input.stage,
     status: input.status,
     runtime: input.runtime || 'electron-main',
@@ -1522,12 +1722,12 @@ async function appendMainProcessTraceEvent(input = {}) {
 }
 
 async function triggerStopQueryFromMain() {
-  const messageId = await sendStopQueryToBackend(
+  const stopped = await sendStopQueryToBackend(
     currentConversationRef
       ? { conversation_ref: currentConversationRef }
       : {},
   );
-  if (!messageId) {
+  if (!stopped) {
     return false;
   }
   setResponseOverlayPhase('complete', 'stop-query');
@@ -2112,11 +2312,14 @@ module.exports = {
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
   BACKEND_RECONNECT_INTERVAL_MS,
   getBackendConnectionState,
+  getKnownWindieLocalRuntime,
+  ensureWindieLocalRuntime,
   getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,
   registerRendererWindow,
   appendMainProcessTraceEvent,
+  appendAppDiagnostic,
   sendAutomatedQuery,
   sendStopQueryToBackend,
   shutdownIpcForTests,

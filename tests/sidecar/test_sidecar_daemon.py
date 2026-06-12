@@ -1,5 +1,6 @@
 import asyncio
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -7,7 +8,12 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from sidecar_daemon import SidecarDaemon, write_discovery_file  # noqa: E402
+import sidecar_daemon  # noqa: E402
+from sidecar_daemon import (  # noqa: E402
+    SidecarDaemon,
+    resolve_mcp_command_for_spawn,
+    write_discovery_file,
+)
 
 
 class FakeRequest:
@@ -28,6 +34,23 @@ class FakeEventSocket:
 
 
 class FakeMcpClient:
+    def __init__(self):
+        self.stderr_tail = []
+
+    async def list_tools(self):
+        return [
+            {
+                "name": "remember",
+                "description": "Remember a value.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"value": {"type": "string"}},
+                    "required": ["value"],
+                    "additionalProperties": False,
+                },
+            }
+        ]
+
     async def call_tool(self, name, args):
         return {
             "content": [
@@ -37,6 +60,9 @@ class FakeMcpClient:
                 }
             ]
         }
+
+    async def close(self):
+        return None
 
 
 class FakeBackendWithEventSink:
@@ -56,6 +82,20 @@ class FakeBackendWithShutdown:
 
     async def shutdown(self):
         self.shutdown_calls += 1
+
+
+def test_resolve_mcp_command_uses_cua_driver_app_fallback(tmp_path: Path, monkeypatch):
+    binary = tmp_path / "cua-driver"
+    binary.write_text("#!/bin/sh\n", encoding="utf-8")
+    binary.chmod(0o755)
+    monkeypatch.setattr(sidecar_daemon.shutil, "which", lambda _command: None)
+    monkeypatch.setattr(
+        sidecar_daemon,
+        "CUA_DRIVER_MACOS_COMMAND_CANDIDATES",
+        (binary,),
+    )
+
+    assert resolve_mcp_command_for_spawn("cua-driver") == str(binary)
 
 
 @pytest.mark.asyncio
@@ -167,7 +207,11 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
     payload = json.loads(response.text)
 
     assert response.status == 200
-    assert payload == {"success": False, "data": {"output": "Tool not found: missing_tool"}, "error": "Tool not found: missing_tool"}
+    assert payload == {
+        "success": False,
+        "data": {"output": "Tool not found: missing_tool"},
+        "error": "Tool not found: missing_tool",
+    }
     assert ws.sent == [
         {
             "type": "tool-executed",
@@ -355,6 +399,14 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
     registration_payload = json.loads(registration.text)
     assert registration_payload["success"] is True
     assert registration_payload["registered_tools"][0]["name"] == "mcp_notes__remember"
+    manifest = daemon.backend.tool_registry.get_tool_manifest()
+    mcp_tool = next(
+        tool for tool in manifest["tools"] if tool["name"] == "mcp_notes__remember"
+    )
+    assert mcp_tool["execution_target"] == "sidecar"
+    assert mcp_tool["argument_resolution"] == "passthrough"
+    assert mcp_tool["mcp_server_id"] == "notes"
+    assert mcp_tool["mcp_tool_name"] == "remember"
     assert json.loads(execution.text) == {
         "success": True,
         "data": {
@@ -362,6 +414,163 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
             "mcp_result": {"content": [{"type": "text", "text": "remember:hello"}]},
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_records_mcp_execution_diagnostics(
+    tmp_path: Path, monkeypatch
+):
+    diagnostics_db = tmp_path / "diagnostics.db"
+    monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    registration = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "id": "notes",
+                "command": "fake-mcp-server",
+                "tools": [
+                    {
+                        "name": "remember",
+                        "description": "Remember a value.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {"value": {"type": "string"}},
+                            "required": ["value"],
+                            "additionalProperties": False,
+                        },
+                    }
+                ],
+            }
+        )
+    )
+    execution = await daemon.handle_execute_tool(
+        FakeRequest(
+            {
+                "tool_name": "mcp_notes__remember",
+                "args": {"value": "hello"},
+                "request_id": "req-1",
+                "tool_call_id": "call-1",
+                "correlation_id": "corr-1",
+                "bundle_id": "bundle-1",
+                "conversation_ref": "conv-1",
+                "turn_ref": "turn-1",
+            }
+        )
+    )
+
+    assert registration.status == 200
+    assert json.loads(execution.text)["success"] is True
+    with sqlite3.connect(diagnostics_db) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT path, stage, status, request_id, conversation_ref, data, error
+            FROM diagnostic_events
+            WHERE path = 'mcp.execution'
+            ORDER BY rowid ASC
+            """).fetchall()
+
+    assert [row["stage"] for row in rows] == [
+        "tool_call_start",
+        "tool_call_succeeded",
+    ]
+    assert {row["request_id"] for row in rows} == {"req-1"}
+    assert {row["conversation_ref"] for row in rows} == {"conv-1"}
+    assert rows[-1]["status"] == "succeeded"
+    assert rows[-1]["error"] is None
+    data = json.loads(rows[-1]["data"])
+    assert data["serverId"] == "notes"
+    assert data["phase"] == "tools_call"
+    assert data["exposedToolName"] == "mcp_notes__remember"
+    assert data["mcpToolName"] == "remember"
+    assert data["toolCallId"] == "call-1"
+    assert data["correlationId"] == "corr-1"
+    assert data["bundleId"] == "bundle-1"
+    assert data["turnRef"] == "turn-1"
+    serialized_data = json.dumps(data)
+    assert "hello" not in serialized_data
+    assert "remember:hello" not in serialized_data
+    assert "args" not in data
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_records_mcp_registration_diagnostics(
+    tmp_path: Path, monkeypatch
+):
+    diagnostics_db = tmp_path / "diagnostics.db"
+    monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    registration = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "replace": True,
+                "servers": [{"id": "notes", "command": "fake-mcp-server"}],
+            }
+        )
+    )
+
+    assert registration.status == 200
+    assert json.loads(registration.text)["success"] is True
+    with sqlite3.connect(diagnostics_db) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT path, stage, status, data, error
+            FROM diagnostic_events
+            WHERE path = 'mcp.registration'
+            ORDER BY rowid ASC
+            """).fetchall()
+
+    assert [row["stage"] for row in rows] == [
+        "registration_requested",
+        "reconcile_start",
+        "reconcile_succeeded",
+        "registration_completed",
+    ]
+    assert rows[-1]["status"] == "succeeded"
+    assert rows[-1]["error"] is None
+    data = json.loads(rows[-1]["data"])
+    assert data["phase"] == "registration"
+    assert data["replace"] is True
+    assert data["requestedServerCount"] == 1
+    assert data["registeredServerCount"] == 1
+    assert data["registeredToolCount"] == 1
+    assert data["statusCount"] == 1
+    assert data["errorCount"] == 0
+    assert data["mcpServerCount"] == 1
+    assert data["mcpToolCount"] == 1
+    serialized_data = json.dumps(data)
+    assert "fake-mcp-server" not in serialized_data
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_reconciles_removed_mcp_tools():
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    first = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "replace": True,
+                "servers": [{"id": "notes", "command": "fake-mcp-server"}],
+            }
+        )
+    )
+    assert first.status == 200
+    assert daemon.backend.tool_registry.has_tool("mcp_notes__remember")
+
+    second = await daemon.handle_register_mcp(
+        FakeRequest({"replace": True, "servers": []})
+    )
+    payload = json.loads(second.text)
+
+    assert second.status == 200
+    assert payload["success"] is True
+    assert payload["registered_tools"] == []
+    assert not daemon.backend.tool_registry.has_tool("mcp_notes__remember")
+    assert "notes" not in daemon.mcp_clients
 
 
 @pytest.mark.asyncio

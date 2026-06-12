@@ -8,6 +8,7 @@ const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ConversationRuntime_js_1 = require("./ConversationRuntime.js");
 const TraceRecorder_js_1 = require("./TraceRecorder.js");
+const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const DefaultTurnResourceResolvers_js_1 = require("./DefaultTurnResourceResolvers.js");
 const WindieChatSession_js_1 = require("./WindieChatSession.js");
@@ -67,6 +68,19 @@ class WindieAgent {
     }
     getDefaultConversationStore() {
         return this.defaultConversationStore;
+    }
+    getKnownLocalRuntime() {
+        return this.localRuntime ?? this.owner.getKnownLocalRuntime?.() ?? undefined;
+    }
+    async ensureLocalRuntime(reason) {
+        const knownRuntime = this.getKnownLocalRuntime();
+        if (knownRuntime) {
+            return knownRuntime;
+        }
+        if (typeof this.owner.localRuntime !== 'function') {
+            throw new Error(`Local runtime is required for ${reason}`);
+        }
+        return this.owner.localRuntime({ reason });
     }
     async ask(text, options = {}) {
         if (options.model) {
@@ -155,7 +169,9 @@ class WindieAgent {
     }
     conversation(options = {}) {
         const conversationRef = options.conversationRef ?? `conv-${this.id}`;
-        const resolvedLocalRuntime = options.localRuntime === undefined ? this.localRuntime : options.localRuntime;
+        const resolvedLocalRuntime = options.localRuntime === undefined
+            ? this.getKnownLocalRuntime()
+            : options.localRuntime;
         const resolvedLocalToolLifecycle = options.localToolLifecycle === undefined
             ? this.localToolLifecycle
             : options.localToolLifecycle;
@@ -283,7 +299,22 @@ class WindieAgent {
         });
     }
     async updateToolSchemas(toolSchemas) {
-        return this.updateSettings({
+        const summary = (0, CapabilityManifest_js_1.setAgentDefinitionToolManifest)(this.agentDefinition, toolSchemas);
+        await this.recordAgentTrace({
+            path: 'capability_manifest.rebuild',
+            stage: 'sdk_apply',
+            status: 'succeeded',
+            runtime: 'sdk',
+            data: {
+                revision: summary.revision,
+                toolCount: summary.toolCount,
+                promptLayerCount: summary.promptLayerCount,
+                skillCount: summary.skillCount,
+                pluginCount: summary.pluginCount,
+            },
+        });
+        const messageId = await this.updateSettings({
+            agent_definition: this.agentDefinition,
             tools: {
                 mode: 'replace_client_manifest',
                 client_manifest: {
@@ -292,6 +323,38 @@ class WindieAgent {
                 },
             },
         });
+        await this.recordAgentTrace({
+            path: 'capability_manifest.send',
+            stage: 'update_settings',
+            status: 'succeeded',
+            runtime: 'sdk',
+            data: {
+                revision: summary.revision,
+                toolCount: summary.toolCount,
+                promptLayerCount: summary.promptLayerCount,
+            },
+        });
+        return messageId;
+    }
+    async registerMcps(mcps, options = {}) {
+        const localRuntime = await this.ensureLocalRuntime('MCP registration');
+        if (typeof localRuntime.registerMcp !== 'function') {
+            throw new Error('Local runtime does not support MCP registration.');
+        }
+        const servers = Array.isArray(mcps) ? mcps : [];
+        const registration = await localRuntime.registerMcp({
+            servers,
+            replace: options.replace !== false,
+        });
+        const manifest = await localRuntime.listTools?.();
+        const toolSchemas = Array.isArray(manifest?.tools) ? manifest.tools : [];
+        await this.updateToolSchemas(toolSchemas);
+        return {
+            registration: registration && typeof registration === 'object' && !Array.isArray(registration)
+                ? registration
+                : {},
+            toolSchemas,
+        };
     }
     async generateConversationTitle(payload) {
         return this.sdkClient.generateConversationTitle(payload);
@@ -362,7 +425,8 @@ class WindieAgent {
     }
     async listTools(options = {}) {
         const startedAtMs = Date.now();
-        if (!this.localRuntime?.listTools) {
+        const localRuntime = this.getKnownLocalRuntime();
+        if (!localRuntime?.listTools) {
             await this.recordAgentTrace({
                 path: 'sidecar.lifecycle',
                 stage: 'list_tools',
@@ -381,7 +445,7 @@ class WindieAgent {
             runtime: 'sidecar',
         }, options);
         try {
-            const response = await this.localRuntime.listTools();
+            const response = await localRuntime.listTools();
             await this.recordAgentTrace({
                 path: 'sidecar.lifecycle',
                 stage: 'list_tools',
@@ -409,7 +473,8 @@ class WindieAgent {
     }
     async status(options = {}) {
         const startedAtMs = Date.now();
-        if (!this.localRuntime?.status) {
+        const localRuntime = this.getKnownLocalRuntime();
+        if (!localRuntime?.status) {
             await this.recordAgentTrace({
                 path: 'sidecar.lifecycle',
                 stage: 'status',
@@ -428,7 +493,7 @@ class WindieAgent {
             runtime: 'sidecar',
         }, options);
         try {
-            const response = await this.localRuntime.status();
+            const response = await localRuntime.status();
             await this.recordAgentTrace({
                 path: 'sidecar.lifecycle',
                 stage: 'status',
@@ -457,8 +522,9 @@ class WindieAgent {
     }
     async shutdownLocalRuntime(options = {}) {
         const startedAtMs = Date.now();
+        const localRuntime = this.getKnownLocalRuntime();
         const ownerShutdown = typeof this.owner.shutdownLocalRuntime === 'function';
-        const localShutdown = typeof this.localRuntime?.shutdown === 'function';
+        const localShutdown = typeof localRuntime?.shutdown === 'function';
         if (!ownerShutdown && !localShutdown) {
             await this.recordAgentTrace({
                 path: 'sidecar.lifecycle',
@@ -486,7 +552,7 @@ class WindieAgent {
                 await this.owner.shutdownLocalRuntime?.();
             }
             else {
-                await this.localRuntime?.shutdown?.();
+                await localRuntime?.shutdown?.();
             }
             await this.recordAgentTrace({
                 path: 'sidecar.lifecycle',
@@ -607,7 +673,7 @@ class WindieAgent {
         return this.session.on('event', listener);
     }
     subscribeLocalRuntimeEvents(listener) {
-        return this.localRuntime?.subscribeEvents?.(listener) ?? (() => { });
+        return this.getKnownLocalRuntime()?.subscribeEvents?.(listener) ?? (() => { });
     }
     async listConversations(options = {}) {
         const { store, ...listOptions } = options;
@@ -744,10 +810,11 @@ class WindieAgent {
         return recorder.record(input);
     }
     async callLocalRuntimeRpc(method, params) {
-        if (!this.localRuntime?.rpc) {
+        const localRuntime = await this.ensureLocalRuntime(`local-runtime-rpc:${method}`);
+        if (!localRuntime.rpc) {
             throw new Error(`Local runtime RPC is required for ${method}`);
         }
-        return this.localRuntime.rpc({ method, params });
+        return localRuntime.rpc({ method, params });
     }
     async callLocalRuntimeRpcData(method, params) {
         const result = await this.callLocalRuntimeRpc(method, params);
@@ -773,12 +840,13 @@ class WindieAgent {
                 attachment_filenames: input.attachmentFilenames ?? undefined,
             },
             sdkClient: this.sdkClient,
-            localRuntime: this.localRuntime,
+            localRuntime: this.getKnownLocalRuntime(),
             memoryEnabled: this.memoryEnabled,
             emitDiagnostic: logMemoryRetrievalDiagnostic,
         });
         return {
             ...input,
+            agentDefinition: input.agentDefinition ?? this.agentDefinition,
             rawPayload: enriched.payload,
             content: typeof enriched.payload.content === 'string' ? enriched.payload.content : input.content,
             attachmentContext: null,

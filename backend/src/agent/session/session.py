@@ -20,6 +20,13 @@ from typing import (
     Union,
 )
 
+from backend.src.agent.session.capability_application import (
+    apply_agent_definition_tool_policy_to_session,
+    apply_client_capability_to_session,
+    capability_revision_from_agent_definition,
+    client_manifest_source_counts,
+    policy_rejected_client_tool_sample,
+)
 from backend.src.agent.session.config_runtime import SessionConfigRuntime
 from backend.src.agent.session.initializer import (
     init_compaction_engine,
@@ -33,15 +40,21 @@ from backend.src.agent.session.initializer import (
     subscribe_events,
 )
 from backend.src.agent.session.lifecycle import SessionLifecycle
+from backend.src.agent.session.prompt_layers import (
+    prompt_layer_id_sample,
+    prompt_layer_rejected_reason_sample,
+    validate_client_prompt_layers,
+)
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
+from backend.src.core.events.streaming_events import TraceEvent
 from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.prompts.prompts import (
     PromptManager,
     render_contextual_system_prompt,
 )
-from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.client_manifest import validate_client_tool_manifest
+from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
@@ -52,6 +65,39 @@ if TYPE_CHECKING:
     from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 logger = logging.getLogger(__name__)
+
+_CLIENT_TOOL_TRACE_SAMPLE_LIMIT = 8
+_CLIENT_TOOL_TRACE_REASON_LIMIT = 240
+
+
+def _count_raw_client_manifest_tools(raw_manifest: Any) -> int:
+    raw_tools = (
+        raw_manifest.get("tools", raw_manifest)
+        if isinstance(raw_manifest, dict)
+        else raw_manifest
+    )
+    return len(raw_tools) if isinstance(raw_tools, list) else 0
+
+
+def _client_manifest_tool_name_sample(names: List[str]) -> List[str]:
+    return names[:_CLIENT_TOOL_TRACE_SAMPLE_LIMIT]
+
+
+def _client_manifest_rejected_reason_sample(
+    rejected: List[Dict[str, str]],
+) -> List[Dict[str, str]]:
+    sample: List[Dict[str, str]] = []
+    for item in rejected[:_CLIENT_TOOL_TRACE_SAMPLE_LIMIT]:
+        name = item.get("name") if isinstance(item, dict) else ""
+        reason = item.get("reason") if isinstance(item, dict) else ""
+        if len(reason) > _CLIENT_TOOL_TRACE_REASON_LIMIT:
+            reason = f"{reason[:_CLIENT_TOOL_TRACE_REASON_LIMIT]}..."
+        sample.append({"name": name or "", "reason": reason or ""})
+    return sample
+
+
+def _agent_definition_capability_revision(agent_definition: Any) -> Optional[str]:
+    return capability_revision_from_agent_definition(agent_definition)
 
 
 class AgentSession:
@@ -409,36 +455,7 @@ class AgentSession:
     def _normalize_client_prompt_layers(
         client_prompt_layers: Optional[List[Dict[str, Any]]],
     ) -> list[Dict[str, Any]]:
-        normalized_layers: list[Dict[str, Any]] = []
-        for layer in client_prompt_layers or []:
-            if not isinstance(layer, dict):
-                continue
-            layer_id = layer.get("id")
-            layer_type = layer.get("type")
-            content = layer.get("content")
-            priority = layer.get("priority", 100)
-            if (
-                not isinstance(layer_id, str)
-                or not layer_id.strip()
-                or not isinstance(layer_type, str)
-                or not layer_type.strip()
-                or not isinstance(content, str)
-                or not content.strip()
-            ):
-                continue
-            try:
-                normalized_priority = int(priority)
-            except (TypeError, ValueError):
-                normalized_priority = 100
-            normalized_layers.append(
-                {
-                    "id": layer_id.strip(),
-                    "type": layer_type.strip(),
-                    "priority": normalized_priority,
-                    "content": content.strip(),
-                }
-            )
-        return normalized_layers
+        return validate_client_prompt_layers(client_prompt_layers).accepted
 
     def _apply_query_prompt_context_locked(
         self,
@@ -587,20 +604,22 @@ class AgentSession:
                 and hasattr(agent_definition, "system_prompt_override")
                 else None
             )
-            if (
-                resolved_operating_system is not None
-                or resolved_workspace_path is not None
-                or repo_instruction_messages is not None
-                or resolved_client_prompt_layers is not None
-                or resolved_system_prompt_override is not None
-            ):
-                self._apply_query_prompt_context_locked(
-                    operating_system=resolved_operating_system,
-                    workspace_path=resolved_workspace_path,
-                    repo_instruction_messages=repo_instruction_messages,
-                    client_prompt_layers=resolved_client_prompt_layers,
-                    system_prompt_override=resolved_system_prompt_override,
-                )
+            capability_trace_payload: Optional[Dict[str, Any]] = None
+            prompt_layer_trace_payload: Optional[Dict[str, Any]] = None
+            capability_revision = (
+                _agent_definition_capability_revision(agent_definition)
+                if agent_definition is not None
+                else None
+            )
+            raw_manifest: Any = None
+            raw_tool_count = 0
+            manifest_result: Any = None
+            prompt_layer_validation: Any = None
+            raw_prompt_layer_count = (
+                len(resolved_client_prompt_layers)
+                if isinstance(resolved_client_prompt_layers, list)
+                else 0
+            )
             if agent_definition is not None:
                 self.runtime.agent_definition = agent_definition
                 raw_manifest = (
@@ -608,14 +627,246 @@ class AgentSession:
                     if hasattr(agent_definition, "client_tool_manifest")
                     else None
                 )
-                if raw_manifest is not None:
-                    manifest_result = validate_client_tool_manifest(raw_manifest)
-                    self.runtime.client_tool_manifest = manifest_result
-                    setattr(
-                        self.prompt_builder,
-                        "client_tool_schemas",
-                        list(manifest_result.accepted_tool_schemas),
+                raw_tool_count = _count_raw_client_manifest_tools(raw_manifest)
+                if raw_manifest is None:
+                    apply_agent_definition_tool_policy_to_session(
+                        self,
+                        agent_definition,
                     )
+                    yield TraceEvent(
+                        path="client_tool_manifest.validate",
+                        stage="validate",
+                        status="skipped",
+                        runtime="backend",
+                        data={
+                            "hasAgentDefinition": True,
+                            "hasClientManifest": False,
+                            "rawToolCount": 0,
+                            "capabilityRevision": capability_revision,
+                        },
+                    )
+                else:
+                    manifest_result = validate_client_tool_manifest(raw_manifest)
+                    accepted_tool_names = manifest_result.accepted_tool_names
+                    rejected_reasons = _client_manifest_rejected_reason_sample(
+                        list(manifest_result.rejected)
+                    )
+                    yield TraceEvent(
+                        path="client_tool_manifest.validate",
+                        stage="validate",
+                        status="succeeded",
+                        runtime="backend",
+                        data={
+                            "hasAgentDefinition": True,
+                            "hasClientManifest": True,
+                            "rawToolCount": raw_tool_count,
+                            "capabilityRevision": capability_revision,
+                            "acceptedCount": len(manifest_result.accepted),
+                            "rejectedCount": len(manifest_result.rejected),
+                            "acceptedToolNameSample": _client_manifest_tool_name_sample(
+                                accepted_tool_names
+                            ),
+                            "rejectedReasonSample": rejected_reasons,
+                        },
+                    )
+                    capability_counts = apply_client_capability_to_session(
+                        self,
+                        manifest_result,
+                        agent_definition=agent_definition,
+                    )
+                    capability_trace_payload = {
+                        "acceptedCount": len(manifest_result.accepted),
+                        "rejectedCount": len(manifest_result.rejected),
+                        "capabilityRevision": capability_revision,
+                        "runtimeAcceptedToolCount": len(
+                            self.runtime.client_tool_manifest.accepted
+                        ),
+                        "promptBuilderClientToolCount": capability_counts[
+                            "prompt_builder_client_tool_count"
+                        ],
+                        "effectiveAvailableToolCount": capability_counts[
+                            "effective_available_tool_count"
+                        ],
+                        "policyAllowedClientToolCount": capability_counts[
+                            "policy_allowed_client_tool_count"
+                        ],
+                        "acceptedToolNameSample": _client_manifest_tool_name_sample(
+                            accepted_tool_names
+                        ),
+                        "sourceCounts": client_manifest_source_counts(
+                            manifest_result
+                        ),
+                    }
+            if (
+                resolved_operating_system is not None
+                or resolved_workspace_path is not None
+                or repo_instruction_messages is not None
+                or resolved_client_prompt_layers is not None
+                or resolved_system_prompt_override is not None
+            ):
+                if resolved_client_prompt_layers is not None:
+                    prompt_layer_validation = validate_client_prompt_layers(
+                        resolved_client_prompt_layers
+                    )
+                    yield TraceEvent(
+                        path="client_prompt_layers.validate",
+                        stage="validate",
+                        status="succeeded",
+                        runtime="backend",
+                        data={
+                            "rawLayerCount": len(resolved_client_prompt_layers),
+                            "capabilityRevision": capability_revision,
+                            "acceptedCount": len(prompt_layer_validation.accepted),
+                            "rejectedCount": len(prompt_layer_validation.rejected),
+                            "acceptedLayerIdSample": prompt_layer_id_sample(
+                                prompt_layer_validation.accepted
+                            ),
+                            "rejectedReasonSample": prompt_layer_rejected_reason_sample(
+                                prompt_layer_validation.rejected
+                            ),
+                        },
+                    )
+                    resolved_client_prompt_layers = prompt_layer_validation.accepted
+                    prompt_layer_trace_payload = {
+                        "acceptedCount": len(prompt_layer_validation.accepted),
+                        "rejectedCount": len(prompt_layer_validation.rejected),
+                        "capabilityRevision": capability_revision,
+                        "acceptedLayerIdSample": prompt_layer_id_sample(
+                            prompt_layer_validation.accepted
+                        ),
+                    }
+                self._apply_query_prompt_context_locked(
+                    operating_system=resolved_operating_system,
+                    workspace_path=resolved_workspace_path,
+                    repo_instruction_messages=repo_instruction_messages,
+                    client_prompt_layers=resolved_client_prompt_layers,
+                    system_prompt_override=resolved_system_prompt_override,
+                )
+                if prompt_layer_trace_payload is not None:
+                    prompt_layer_trace_payload.update(
+                        {
+                            "runtimePromptLayerCount": len(
+                                getattr(self.runtime, "client_prompt_layers", [])
+                            ),
+                            "promptBuilderPromptLayerCount": len(
+                                getattr(
+                                    self.prompt_builder,
+                                    "client_prompt_layers",
+                                    [],
+                                )
+                            ),
+                        }
+                    )
+            should_emit_capability_aggregate = agent_definition is not None and (
+                raw_manifest is not None or raw_prompt_layer_count > 0
+            )
+            accepted_tool_count = (
+                len(manifest_result.accepted) if manifest_result is not None else 0
+            )
+            rejected_tool_count = (
+                len(manifest_result.rejected) if manifest_result is not None else 0
+            )
+            accepted_prompt_layer_count = (
+                len(prompt_layer_validation.accepted)
+                if prompt_layer_validation is not None
+                else 0
+            )
+            rejected_prompt_layer_count = (
+                len(prompt_layer_validation.rejected)
+                if prompt_layer_validation is not None
+                else 0
+            )
+            if should_emit_capability_aggregate:
+                yield TraceEvent(
+                    path="client_capability_manifest.validate",
+                    stage="validate",
+                    status="succeeded",
+                    runtime="backend",
+                    data={
+                        "capabilityRevision": capability_revision,
+                        "rawToolCount": raw_tool_count,
+                        "acceptedToolCount": accepted_tool_count,
+                        "rejectedToolCount": rejected_tool_count,
+                        "rawPromptLayerCount": raw_prompt_layer_count,
+                        "acceptedPromptLayerCount": accepted_prompt_layer_count,
+                        "rejectedPromptLayerCount": rejected_prompt_layer_count,
+                        "sourceCounts": (
+                            client_manifest_source_counts(manifest_result)
+                            if manifest_result is not None
+                            else {
+                                "builtin": 0,
+                                "client": 0,
+                                "mcp": 0,
+                                "plugin": 0,
+                                "backend_remote": 0,
+                            }
+                        ),
+                    },
+                )
+            if capability_trace_payload is not None:
+                yield TraceEvent(
+                    path="client_tool_manifest.apply",
+                    stage="apply",
+                    status="succeeded",
+                    runtime="backend",
+                    data=capability_trace_payload,
+                )
+                yield TraceEvent(
+                    path="client_capability_manifest.policy",
+                    stage="policy",
+                    status="succeeded",
+                    runtime="backend",
+                    data={
+                        "capabilityRevision": capability_revision,
+                        "policyInputCount": capability_trace_payload[
+                            "acceptedCount"
+                        ],
+                        "policyAllowedCount": capability_trace_payload[
+                            "policyAllowedClientToolCount"
+                        ],
+                        "policyRejectedCount": max(
+                            0,
+                            capability_trace_payload["acceptedCount"]
+                            - capability_trace_payload[
+                                "policyAllowedClientToolCount"
+                            ],
+                        ),
+                        "rejectedByPolicySample": policy_rejected_client_tool_sample(
+                            manifest_result,
+                            self.prompt_builder,
+                        ),
+                    },
+                )
+            if prompt_layer_trace_payload is not None:
+                yield TraceEvent(
+                    path="client_prompt_layers.apply",
+                    stage="apply",
+                    status="succeeded",
+                    runtime="backend",
+                    data=prompt_layer_trace_payload,
+                )
+            if should_emit_capability_aggregate:
+                yield TraceEvent(
+                    path="client_capability_manifest.apply",
+                    stage="apply",
+                    status="succeeded",
+                    runtime="backend",
+                    data={
+                        "capabilityRevision": capability_revision,
+                        "acceptedToolCount": accepted_tool_count,
+                        "acceptedPromptLayerCount": accepted_prompt_layer_count,
+                        "effectiveAvailableToolCount": (
+                            capability_trace_payload or {}
+                        ).get("effectiveAvailableToolCount", 0),
+                        "toolPolicyRebuilt": capability_trace_payload is not None,
+                        "promptBuilderClientToolCount": (
+                            capability_trace_payload or {}
+                        ).get("promptBuilderClientToolCount", 0),
+                        "promptBuilderPromptLayerCount": (
+                            prompt_layer_trace_payload or {}
+                        ).get("promptBuilderPromptLayerCount", 0),
+                    },
+                )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
                 yield {

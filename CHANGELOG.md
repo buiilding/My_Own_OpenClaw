@@ -14,6 +14,30 @@ All notable changes to WindieOS will be documented in this file.
   plugin/extension, MCP, VM-run, voice/wakeword, packaging/release,
   renderer/dashboard, Electron IPC, sidecar process, observability/error, and
   docs-only ownership.
+- backend/sdk/frontend: add revisioned runtime capability application for
+  client tools, MCP/plugin tools, and prompt-layer skills, including
+  `client_prompt_layers.validate/apply`, `capability_manifest.rebuild/send`,
+  and capability revision fields in SDK/backend traces.
+- backend/cli: add aggregate `client_capability_manifest.validate/apply/policy`
+  traces, final `backend.prompt` capability source counts, and
+  `windie capability trace` so one command can inspect revisioned runtime
+  capability acceptance, policy, and final prompt visibility.
+- backend/tools: add turn-scoped `client_tool_manifest.validate` and
+  `client_tool_manifest.apply` traces so client manifest acceptance,
+  rejection, and prompt-builder application counts are visible when MCP tools
+  fail to appear in the final model-visible schema set.
+- sdk/frontend/mcp: add SDK-owned live MCP registration on `WindieAgent` so an
+  enabled MCP can be registered through the local runtime, pushed to the backend
+  client manifest, stored in the SDK agent definition, and included on the next
+  message without relying on an app restart.
+- docs/agents: require bug investigations to check `bin/windie` for
+  path-specific diagnostics, logs, traces, conversation inspection, and test
+  commands before inventing ad hoc shell probes, and to add a focused
+  diagnostic or command when no existing route exposes the bug.
+- frontend/sidecar/mcp: add persistent `mcp.enablement` and
+  `mcp.registration` diagnostics so MCP dashboard toggles, config persistence,
+  SDK/local-runtime registration, sidecar reconcile, and registered tool counts
+  are visible without relying on frontend logs.
 - frontend/mcp/docs: add explicit repo-level MCP enablement, dashboard MCP
   controls, and a disabled-by-default CUA Driver MCP declaration that uses
   `cua-driver mcp` after local user enablement.
@@ -50,6 +74,63 @@ All notable changes to WindieOS will be documented in this file.
 
 - cli/windows: run extensionless repo helper scripts through Git Bash so
   `windie start dev` can launch Vite and Electron from PowerShell.
+- backend/sdk/frontend: allow `update-settings` to carry the full
+  `agent_definition` so active sessions immediately apply runtime tools and
+  skills without waiting for app restart, and fail stale local tool calls when
+  the active client manifest no longer exposes the route.
+- backend/tools: apply accepted runtime client tool manifests to the active
+  session tool policy before prompt construction, so enabled MCP/plugin tools
+  are not accepted by validation and then filtered out by a stale native
+  allowlist.
+- backend/tools: stop manually re-registering catalog-owned grounded computer
+  tools during backend startup so `grounded_mouse_action` and
+  `grounded_scroll_action` no longer emit overwrite warnings.
+- backend/sdk/frontend/mcp: accept and filter `update-settings.payload.tools`
+  replacement manifests, preserve SDK MCP tools when Electron adds query
+  context, and add agent-definition trace counts for the SDK-vs-query manifest
+  merge so enabled CUA Driver tools can reach the next model-visible schema set.
+- sdk/frontend: keep reasoning-only deltas from reserving a visible assistant
+  display row before tool rows, while preserving reasoning metadata on the
+  eventual assistant row.
+- frontend/mcp: preserve existing disk MCP enablement during startup config-save
+  races before Electron main has loaded `latestFrontendConfig`, preventing app
+  restarts from erasing enabled MCP servers.
+- sdk/frontend/mcp: preserve the agent's client tool manifest when per-turn
+  workspace/AGENTS.md context supplies a partial agent definition, and make
+  `mcp.tool` traces count MCP-backed manifest tools so enabled MCP tools remain
+  model-visible and diagnosable in chat turns.
+- frontend/mcp: keep MCP enablement main-owned so stale renderer/default
+  AppConfig saves cannot erase an enabled MCP allowlist after discovery, while
+  dashboard toggles still persist enable/disable through the MCP control path.
+- frontend/diagnostics: export and wire the Electron main app-diagnostic sink so
+  startup permission IPC registration no longer aborts with
+  `appendAppDiagnostic is not defined`.
+- frontend/sdk: treat completed SDK conversation stops as successful in
+  Electron main so renderer stop commands and the global stop shortcut no
+  longer report failure after sending `stop-query`.
+- frontend/diagnostics: route idle permission probes and workspace activation
+  checks to persistent app diagnostics instead of mutating the active
+  conversation history, while preserving explicit turn-scoped permission trace
+  rows.
+- frontend/sidecar/mcp: converge desktop MCP discovery and execution onto the
+  sidecar local runtime, reconcile disabled MCP tools out of the sidecar
+  registry, restart the managed agent after MCP toggles so backend receives a
+  fresh manifest, and remove Electron main's production MCP execution
+  interception.
+- frontend/sidecar/mcp: split MCP tool-call monitoring into a sanitized
+  `mcp.execution` app diagnostics path with server/tool identity, elapsed time,
+  optional request correlation, stderr tail, and short errors without storing
+  tool args or raw MCP results.
+- frontend/sidecar/mcp: resolve `cua-driver` to the installed macOS
+  `CuaDriver.app` binary when the GUI sidecar process cannot see the shell PATH,
+  so the CUA Driver MCP can start after local installation.
+- frontend/mcp: persist MCP dashboard enablement through renderer AppConfig and
+  preserve the main-owned MCP allowlist across older settings saves, so enabled
+  MCP tools survive panel reloads and reach the next agent manifest.
+- frontend/auth: validate cached install auth against the hosted identity
+  endpoint before reuse, discard only confirmed-invalid 401 tokens, and
+  re-register so app reinstalls or backend auth resets do not break chat
+  loading with stale bearer state.
 - storage: unify default local data roots under the `windieos` user-data folder
   for sidecar memory/history, diagnostics, browser state, backend artifacts,
   install-auth SQLite, and TTS model paths.
@@ -66,6 +147,13 @@ All notable changes to WindieOS will be documented in this file.
   readiness check, replace the misleading `Starting browser...` state with
   local-runtime/browser-unavailable labels, and add sanitized
   `browser.session_control` diagnostics.
+- sdk/frontend/sidecar: make SDK local runtime/tool execution a first-class
+  `WindieClient` surface usable without an agent loop, and delete the Electron
+  local-backend bridge's duplicate sidecar provider/cache in favor of shared SDK
+  local-runtime resolvers.
+- frontend/bootstrap: forward the shared SDK local-runtime resolvers through
+  main-process window bootstrap so pre-conversation browser header/status
+  checks use the same `WindieClient` runtime as agent tool turns.
 - frontend/chat-pill: gate the minimal chat pill textarea caret behind a
   main-process `activate-chatbox-text-entry` focus handoff so passive overlay
   rendering, screenshot/tool restores, and pointer-control leases cannot show a
@@ -4500,6 +4588,7 @@ Includes the last 300 commits on `main`.
 - unreleased refactor(frontend-tool-capture): collapse screenshot/system-state handling onto a single internal capture snapshot so auto-capture branches stop threading parallel attachment fields
 - unreleased feat(frontend-display-affinity): move automatic screenshot monitor selection and dashboard-open placement to main-owned window display affinity, removing renderer localStorage monitor selection from the automatic path
 - unreleased fix(frontend-display-affinity): treat the dashboard and chat pill as the only screenshot monitor sources of truth, ignoring response-overlay visibility and centralizing active-surface display resolution in main
+- unreleased fix(frontend-browser): route the chat-header browser control through the active SDK agent local runtime when available, so browser connect/status actions do not hit a stale duplicate sidecar client after model tool turns already work.
 - unreleased fix(frontend-display-affinity): route dashboard-open monitor targeting through the same active-surface resolver used by screenshot capture, instead of using raw sender-window display matching
 - unreleased fix(frontend-display-affinity): seed query-time active monitor state from the same dashboard/chat active-surface resolver used elsewhere, instead of directly from sender webContents
 - unreleased fix(frontend-display-affinity): avoid implicit primary-display fallback inside the active-surface resolver when no sender webContents exist, so sender-less fullscreen/overlay paths still honor chat/dashboard monitor state

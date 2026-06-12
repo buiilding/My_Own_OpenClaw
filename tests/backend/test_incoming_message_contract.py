@@ -11,6 +11,7 @@ from backend.src.api.schemas.incoming import (
     StopQueryPayload,
     ToolBundleResultPayload,
     ToolBundleStepResult,
+    ToolManifestSettingsPayload,
     ToolResultData,
     ToolResultPayload,
     UpdateSettingsPayload,
@@ -69,4 +70,8 @@ def test_incoming_message_contract_records_intentional_nested_extra_allowance():
     assert contract["payloads"]["tool-bundle-result"]["nested"]["step_results[]"] == {
         "extra": "allow",
         "keys": _field_names(ToolBundleStepResult),
+    }
+    assert contract["payloads"]["update-settings"]["nested"]["tools"] == {
+        "extra": "forbid",
+        "keys": _field_names(ToolManifestSettingsPayload),
     }

@@ -317,6 +317,54 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('SDK display rows do not reserve an assistant row for reasoning before tool rows', () => {
+    const reasoningOnlyEvents = [
+      event('user_message', { text: 'inspect the screen' }),
+      event('reasoning_delta', { text: 'I need to inspect the available tools first.' }),
+    ];
+    const events = [
+      ...reasoningOnlyEvents,
+      event('tool_call', {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+        toolCallId: 'call-shot',
+        args: {},
+      }),
+      event('tool_output', {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+        toolCallId: 'call-shot',
+        result: { output: 'captured screen' },
+        success: true,
+      }),
+      event('assistant_delta', { text: 'The screenshot is ready.' }),
+      event('assistant_message', { text: 'The screenshot is ready.' }),
+    ];
+
+    const reasoningOnlyRows = buildDisplayRows(reasoningOnlyEvents);
+    const rows = buildDisplayRows(events);
+
+    expect(reasoningOnlyRows.map(row => row.type)).toEqual([
+      'user_message',
+    ]);
+    expect(rows.map(row => row.type)).toEqual([
+      'user_message',
+      'tool_call',
+      'tool_output',
+      'assistant_message',
+    ]);
+    expect(rows.map(row => row.index)).toEqual([0, 1, 2, 3]);
+    expect(rows[3]).toMatchObject({
+      id: 'conv-sdk-runtime:turn-1:assistant',
+      content: 'The screenshot is ready.',
+      metadata: expect.objectContaining({
+        raw: expect.objectContaining({
+          reasoningText: 'I need to inspect the available tools first.',
+        }),
+      }),
+    });
+  });
+
   test('SDK display rows give same-turn assistant segments distinct row ids', () => {
     const events = [
       event('user_message', { text: 'find the appointment email' }),
@@ -2596,6 +2644,42 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator fails stale local routes before sidecar execution', async () => {
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      agentDefinition: {
+        tools: {
+          client_manifest: {
+            version: 1,
+            tools: [{ name: 'read_file', schema: { type: 'object' } }],
+          },
+        },
+      },
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    const claim = await coordinator.execute(event('tool_call', {
+      toolName: 'cua_driver__get_open_windows',
+      requestId: 'req-stale-cua',
+      args: {},
+    }));
+
+    expect(claim.claimed).toBe(true);
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-stale-cua',
+      success: false,
+      data: {
+        output: expect.stringContaining('active capability manifest no longer exposes this tool'),
+      },
+    }));
+  });
+
   test('tool coordinator skips backend-marked synthetic validation calls', async () => {
     const store = new InMemoryConversationStore();
     const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
@@ -3944,6 +4028,183 @@ describe('Windie SDK conversation runtime core', () => {
       hasModelOverride: false,
     }));
     expect(JSON.stringify(timeline)).not.toContain('offline dispatch');
+  });
+
+  test('conversation runtime records MCP contribution from client manifest tools', async () => {
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-mcp-manifest'),
+    });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      agentDefinition: {
+        metadata: {
+          client_capability_revision: 'cap_sdk_trace',
+        },
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            version: 1,
+            tools: [
+              { name: 'read_file', schema: { type: 'object' } },
+              {
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+                schema: { type: 'object' },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await runtime.send({
+      text: 'inspect mcp manifest tools',
+      turnRef: 'turn-mcp-manifest',
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-manifest',
+      path: 'agent.definition',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'shape',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          toolCount: 2,
+          mcpManifestToolCount: 1,
+          capabilityRevision: 'cap_sdk_trace',
+        }),
+      }),
+    ]);
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-manifest',
+      path: 'mcp.tool',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'contribute',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          mcpServerCount: 1,
+          mcpDefinitionCount: 0,
+          mcpManifestToolCount: 1,
+          capabilityRevision: 'cap_sdk_trace',
+        }),
+      }),
+    ]);
+  });
+
+  test('conversation runtime merges SDK MCP manifest with query agent context before trace and dispatch', async () => {
+    const sendQuery = jest.fn(async () => 'query-mcp-merged');
+    const transport = createMockBackendTransport({ sendQuery });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      agentDefinition: {
+        id: 'sdk-agent',
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            version: 1,
+            tools: [
+              {
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+                schema: { type: 'object' },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await runtime.send({
+      text: 'do you have the CUA MCP',
+      turnRef: 'turn-mcp-merge',
+      payload: {
+        agent_definition: {
+          id: 'electron-context',
+          tools: {
+            mode: 'default_plus_client',
+            enabled_remote_tools: [],
+          },
+          runtime: {
+            workspace_path: '/tmp/project',
+          },
+          agents_md: [
+            {
+              id: 'repo',
+              type: 'agents_md',
+              priority: 50,
+              content: 'Follow repo rules.',
+            },
+          ],
+        },
+      },
+    });
+
+    expect(sendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      agent_definition: expect.objectContaining({
+        id: 'electron-context',
+        runtime: expect.objectContaining({
+          workspace_path: '/tmp/project',
+        }),
+        agents_md: [
+          expect.objectContaining({ id: 'repo' }),
+        ],
+        tools: expect.objectContaining({
+          mode: 'default_plus_client',
+          client_manifest: expect.objectContaining({
+            tools: [
+              expect.objectContaining({
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+              }),
+            ],
+          }),
+        }),
+      }),
+    }), expect.objectContaining({ messageId: 'turn-mcp-merge' }));
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-merge',
+      path: 'agent.definition',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'shape',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          toolCount: 1,
+          sdkToolCount: 1,
+          queryToolCount: 0,
+          mcpManifestToolCount: 1,
+          sdkMcpManifestToolCount: 1,
+          queryMcpManifestToolCount: 0,
+          hasSdkAgentDefinition: true,
+          hasQueryAgentDefinition: true,
+          hasWorkspacePath: false,
+        }),
+      }),
+    ]);
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-merge',
+      path: 'mcp.tool',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'contribute',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          mcpServerCount: 1,
+          mcpManifestToolCount: 1,
+        }),
+      }),
+    ]);
   });
 
   test('conversation runtime terminalizes active turn for unsequenced backend error envelope', async () => {

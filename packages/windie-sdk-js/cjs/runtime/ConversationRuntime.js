@@ -6,6 +6,7 @@ const events_js_1 = require("../conversation/events.js");
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const backendEventNormalizer_js_1 = require("../transport/backendEventNormalizer.js");
+const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const ToolExecutionCoordinator_js_1 = require("../tools/ToolExecutionCoordinator.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
@@ -106,6 +107,48 @@ function isJsonRecord(value) {
 }
 function arrayRecordCount(value) {
     return Array.isArray(value) ? value.length : 0;
+}
+function getAgentDefinitionClientManifestTools(agentDefinition) {
+    if (!isJsonRecord(agentDefinition)) {
+        return [];
+    }
+    const tools = isJsonRecord(agentDefinition.tools) ? agentDefinition.tools : null;
+    const clientManifest = isJsonRecord(tools?.client_manifest) ? tools.client_manifest : null;
+    const manifestTools = Array.isArray(clientManifest?.tools) ? clientManifest.tools : [];
+    return manifestTools.filter(isJsonRecord);
+}
+function getMcpManifestToolStats(agentDefinition) {
+    const mcpTools = getAgentDefinitionClientManifestTools(agentDefinition).filter((tool) => (typeof tool.mcp_server_id === 'string' && tool.mcp_server_id.trim().length > 0));
+    const serverIds = new Set(mcpTools
+        .map((tool) => (typeof tool.mcp_server_id === 'string' ? tool.mcp_server_id.trim() : ''))
+        .filter(Boolean));
+    return {
+        toolCount: mcpTools.length,
+        serverCount: serverIds.size,
+    };
+}
+function getAgentDefinitionToolCount(agentDefinition) {
+    if (!isJsonRecord(agentDefinition)) {
+        return 0;
+    }
+    if (Array.isArray(agentDefinition.tools)) {
+        return agentDefinition.tools.length;
+    }
+    return getAgentDefinitionClientManifestTools(agentDefinition).length;
+}
+function getAgentDefinitionCapabilityRevision(agentDefinition) {
+    if (!isJsonRecord(agentDefinition) || !isJsonRecord(agentDefinition.metadata)) {
+        return null;
+    }
+    const revision = agentDefinition.metadata.client_capability_revision;
+    if (typeof revision === 'string' && revision.trim()) {
+        return revision.trim();
+    }
+    const capability = agentDefinition.metadata.client_capability;
+    if (isJsonRecord(capability) && typeof capability.revision === 'string' && capability.revision.trim()) {
+        return capability.revision.trim();
+    }
+    return null;
 }
 function recordKeyCount(value) {
     return isJsonRecord(value) ? Object.keys(value).length : 0;
@@ -339,6 +382,19 @@ class SdkConversationRuntime {
                     },
                 })
                 : payloadForEnrichment;
+            const sdkAgentDefinition = isJsonRecord(this.options.agentDefinition)
+                ? this.options.agentDefinition
+                : null;
+            const queryAgentDefinition = isJsonRecord(enrichedPayload.agent_definition)
+                ? enrichedPayload.agent_definition
+                : null;
+            const mergedAgentDefinition = (0, WindieAgentSession_js_1.mergeQueryAgentDefinition)(sdkAgentDefinition ?? undefined, queryAgentDefinition);
+            const transportPayload = mergedAgentDefinition
+                ? {
+                    ...enrichedPayload,
+                    agent_definition: mergedAgentDefinition,
+                }
+                : enrichedPayload;
             for (const diagnostic of memoryDiagnostics) {
                 await this.applyEvent((0, events_js_1.createConversationEvent)({
                     eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
@@ -374,19 +430,32 @@ class SdkConversationRuntime {
                         : (workspacePathPresent ? 'payload' : 'none'),
                 },
             });
-            const agentDefinition = isJsonRecord(enrichedPayload.agent_definition)
-                ? enrichedPayload.agent_definition
-                : (isJsonRecord(this.options.agentDefinition) ? this.options.agentDefinition : null);
+            const agentDefinition = isJsonRecord(transportPayload.agent_definition)
+                ? transportPayload.agent_definition
+                : null;
+            const mcpManifestStats = getMcpManifestToolStats(agentDefinition);
+            const sdkMcpManifestStats = getMcpManifestToolStats(sdkAgentDefinition);
+            const queryMcpManifestStats = getMcpManifestToolStats(queryAgentDefinition);
             await traceRecorder.record({
                 path: 'agent.definition',
                 stage: 'shape',
                 status: agentDefinition ? 'succeeded' : 'skipped',
                 data: {
                     hasAgentDefinition: Boolean(agentDefinition),
-                    toolCount: arrayRecordCount(agentDefinition?.tools),
+                    hasSdkAgentDefinition: Boolean(sdkAgentDefinition),
+                    hasQueryAgentDefinition: Boolean(queryAgentDefinition),
+                    toolCount: getAgentDefinitionToolCount(agentDefinition),
+                    sdkToolCount: getAgentDefinitionToolCount(sdkAgentDefinition),
+                    queryToolCount: getAgentDefinitionToolCount(queryAgentDefinition),
                     pluginCount: arrayRecordCount(agentDefinition?.plugins),
                     mcpCount: arrayRecordCount(agentDefinition?.mcps),
+                    mcpManifestToolCount: mcpManifestStats.toolCount,
+                    sdkMcpManifestToolCount: sdkMcpManifestStats.toolCount,
+                    queryMcpManifestToolCount: queryMcpManifestStats.toolCount,
                     skillCount: arrayRecordCount(agentDefinition?.skills),
+                    capabilityRevision: getAgentDefinitionCapabilityRevision(agentDefinition),
+                    sdkCapabilityRevision: getAgentDefinitionCapabilityRevision(sdkAgentDefinition),
+                    queryCapabilityRevision: getAgentDefinitionCapabilityRevision(queryAgentDefinition),
                     agentDefinitionKeyCount: recordKeyCount(agentDefinition),
                     hasWorkspacePath: workspacePathPresent,
                     hasLocalRuntime: Boolean(this.options.localRuntime),
@@ -404,9 +473,14 @@ class SdkConversationRuntime {
             await traceRecorder.record({
                 path: 'mcp.tool',
                 stage: 'contribute',
-                status: arrayRecordCount(agentDefinition?.mcps) > 0 ? 'succeeded' : 'skipped',
+                status: mcpManifestStats.toolCount > 0 || arrayRecordCount(agentDefinition?.mcps) > 0
+                    ? 'succeeded'
+                    : 'skipped',
                 data: {
-                    mcpServerCount: arrayRecordCount(agentDefinition?.mcps),
+                    mcpServerCount: mcpManifestStats.serverCount || arrayRecordCount(agentDefinition?.mcps),
+                    mcpDefinitionCount: arrayRecordCount(agentDefinition?.mcps),
+                    mcpManifestToolCount: mcpManifestStats.toolCount,
+                    capabilityRevision: getAgentDefinitionCapabilityRevision(agentDefinition),
                     hasAgentDefinition: Boolean(agentDefinition),
                 },
             });
@@ -447,7 +521,7 @@ class SdkConversationRuntime {
                     data: {
                         reason: 'transport_unavailable',
                         resourceCount: input.resources?.length ?? 0,
-                        payloadKeyCount: Object.keys(enrichedPayload).length,
+                        payloadKeyCount: Object.keys(transportPayload).length,
                         hasModelOverride: Boolean(input.model),
                     },
                 });
@@ -461,14 +535,14 @@ class SdkConversationRuntime {
                     status: 'started',
                     data: {
                         resourceCount: input.resources?.length ?? 0,
-                        payloadKeyCount: Object.keys(enrichedPayload).length,
+                        payloadKeyCount: Object.keys(transportPayload).length,
                         hasModelOverride: Boolean(input.model),
                         hasConversationRef: true,
                     },
                 });
                 try {
                     const sentQueryMessageId = await this.options.transport.sendQuery({
-                        ...enrichedPayload,
+                        ...transportPayload,
                         text: input.text,
                         conversation_ref: this.options.conversationRef,
                     }, {
@@ -1714,6 +1788,9 @@ class SdkConversationRuntime {
         const coordinator = new ToolExecutionCoordinator_js_1.ToolExecutionCoordinator({
             localRuntime: this.options.localRuntime,
             localToolLifecycle: this.options.localToolLifecycle,
+            agentDefinition: isJsonRecord(this.options.agentDefinition)
+                ? this.options.agentDefinition
+                : null,
             store: {
                 appendEvent: async (outputEvent) => {
                     await this.applyEvent(outputEvent);

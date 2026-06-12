@@ -80,6 +80,7 @@ jest.mock('os', () => ({
 
 jest.mock('fs', () => ({
   existsSync: jest.fn(() => false),
+  readFileSync: jest.fn(),
   promises: {
     readFile: jest.fn(),
     mkdir: jest.fn(),

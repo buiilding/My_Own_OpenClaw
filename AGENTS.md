@@ -33,6 +33,14 @@ Before coding or answering implementation questions:
 - Search local docs by feature or symptom when orientation is incomplete:
   `bin/windie docs search <query>` or the shorthand `bin/windie docs <query>`.
 - Read the nearest `read_when` docs until the domain and behavior are clear.
+- When finding or fixing a bug, check `bin/windie --help` and the command
+  registry behind it for existing commands tied to the affected runtime or
+  failing path. Prefer the relevant `bin/windie` diagnostics, logs, trace,
+  conversation, docs, start, and `test pick` commands for reproduction,
+  inspection, and validation before inventing ad hoc shell commands. If no
+  existing command, diagnostic, trace, or log exposes the bug, add a focused,
+  sanitized diagnostic or command at the owning runtime as part of the fix so
+  the same failure can be reproduced and validated deterministically later.
 - Before fixing a bug or adding behavior, inspect recent related commits for
   the files, symbols, or subsystem you are touching. Use `git log`, `git show`,
   and `git blame` to understand what changed recently, why the current behavior

@@ -30,8 +30,8 @@ describe('local_backend_bridge RPC handlers', () => {
       })),
       subscribeEvents: jest.fn(() => jest.fn()),
     };
-    const localRuntimeProvider = jest.fn(async () => localRuntime);
-    const { handlers, spawn } = initBridge({ localRuntimeProvider });
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const { handlers, spawn } = initBridge({ ensureLocalRuntime });
 
     const result = await handlers['search-memory'](null, {
       query: 'hello',

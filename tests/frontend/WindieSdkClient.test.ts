@@ -44,6 +44,14 @@ async function waitForExpect(assertion: () => void | Promise<void>, attempts = 2
   throw lastError;
 }
 
+function sentMessages(socket: FakeWebSocket): Array<Record<string, any>> {
+  return socket.sent.map(frame => JSON.parse(frame));
+}
+
+function sentMessageOfType(socket: FakeWebSocket, type: string): Record<string, any> | undefined {
+  return sentMessages(socket).find(message => message.type === type);
+}
+
 class FakeWebSocket {
   static instances: FakeWebSocket[] = [];
 
@@ -688,6 +696,133 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('localRuntime starts the SDK local runtime without creating an agent session', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+      executeTool: jest.fn(async () => ({ success: true, data: { connected: true } })),
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+      shutdown: jest.fn(async () => undefined),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+      memory: false,
+      persistence: false,
+    });
+
+    await expect(client.localRuntime({ reason: 'browser-control' })).resolves.toBe(localRuntime);
+
+    expect(ensureLocalRuntime).toHaveBeenCalledWith({
+      wakeUp: {},
+      needsLocalRuntime: true,
+    });
+    expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+
+  test('executeTool and rpc use standalone SDK local runtime execution', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      executeTool: jest.fn(async () => ({ success: true, data: { output: 'ran' } })),
+      rpc: jest.fn(async ({ method }) => ({ success: true, data: { method } })),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+      memory: false,
+      persistence: false,
+    });
+
+    await expect(client.executeTool({
+      toolName: 'browser',
+      args: { action: 'connect' },
+    })).resolves.toEqual({ success: true, data: { output: 'ran' } });
+    await expect(client.rpc({
+      method: 'browser.status',
+      params: { detailed: true },
+    })).resolves.toEqual({ success: true, data: { method: 'browser.status' } });
+
+    expect(localRuntime.executeTool).toHaveBeenCalledWith({
+      toolName: 'browser',
+      args: { action: 'connect' },
+    });
+    expect(localRuntime.rpc).toHaveBeenCalledWith({
+      method: 'browser.status',
+      params: { detailed: true },
+    });
+    expect(ensureLocalRuntime).toHaveBeenCalledTimes(1);
+    expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+
+  test('wakeUp reuses a standalone SDK local runtime instead of resolving another one', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerModuleTool: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'save_note', schema: { type: 'object', properties: {} } }],
+      })),
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+      memory: false,
+      persistence: false,
+    });
+
+    await client.localRuntime({ reason: 'preconversation-browser' });
+    const wakePromise = client.wakeUp({
+      agentId: 'tool-agent',
+      memory: false,
+      persistence: false,
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: { type: 'object', properties: {} },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(ensureLocalRuntime).toHaveBeenCalledTimes(1);
+    expect(localRuntime.registerModuleTool).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'save_note' }),
+      expect.objectContaining({ workspacePath: expect.any(String) }),
+    );
+  });
+
+  test('standalone localRuntime fails closed when auto-start is disabled and no runtime is configured', async () => {
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      autoStartLocalRuntime: false,
+      memory: false,
+      persistence: false,
+    });
+
+    await expect(client.localRuntime({ reason: 'browser-control' })).rejects.toThrow(
+      'WindieClient local runtime is required for browser-control, but autoStartLocalRuntime is false.',
+    );
+    expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+
   test('agent.chat uses sidecar-backed persistence by default', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
@@ -782,12 +917,8 @@ describe('WindieSdkClient', () => {
 
     const rpc = localRuntime.rpc as jest.Mock;
     const searchCallIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'search_memory_by_embedding');
-    const firstStoreChatIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'conversation.append_event');
-    const queryMessage = socket.sent
-      .map(frame => JSON.parse(frame))
-      .find(message => message.type === 'query');
+    const queryMessage = sentMessageOfType(socket, 'query');
     expect(searchCallIndex).toBeGreaterThanOrEqual(0);
-    expect(firstStoreChatIndex).toBeGreaterThan(searchCallIndex);
     expect(queryMessage).toMatchObject({
       type: 'query',
       payload: {
@@ -809,6 +940,8 @@ describe('WindieSdkClient', () => {
     });
     await new Promise(resolve => setTimeout(resolve, 0));
 
+    const storeMemoryIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'store_memory_by_embedding');
+    expect(storeMemoryIndex).toBeGreaterThan(searchCallIndex);
     expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'store_memory_by_embedding',
       params: expect.objectContaining({
@@ -1164,7 +1297,15 @@ describe('WindieSdkClient', () => {
     });
     expect(JSON.parse(socket.sent.at(-1) ?? '{}')).toMatchObject({
       type: 'update-settings',
-      payload: {},
+      payload: {
+        tools: {
+          mode: 'replace_client_manifest',
+          client_manifest: {
+            version: 1,
+            tools: [{ name: 'read_file' }],
+          },
+        },
+      },
     });
   });
 
@@ -1213,6 +1354,193 @@ describe('WindieSdkClient', () => {
       payload: {},
       user_id: 'transport-user',
     });
+  });
+
+  test('SDK backend transport preserves agent tool manifest when query context supplies a partial agent definition', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+      operatingSystem: 'macOS',
+      agentDefinition: {
+        id: 'transport-agent',
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            version: 1,
+            tools: [{
+              name: 'cua_driver__get_open_windows',
+              mcp_server_id: 'cua-driver',
+              schema: { type: 'object', properties: {} },
+            }],
+          },
+        },
+      },
+    });
+
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+    FakeWebSocket.instances[0].clearSent();
+
+    const transport = createWindieAgentBackendTransport(session, 'conv-agent-context', {
+      id: 'transport-agent',
+      tools: {
+        mode: 'client_only',
+        client_manifest: {
+          version: 1,
+          tools: [{
+            name: 'cua_driver__get_open_windows',
+            mcp_server_id: 'cua-driver',
+            schema: { type: 'object', properties: {} },
+          }],
+        },
+      },
+    });
+    await transport.sendQuery({
+      text: 'u got the mcp',
+      conversation_ref: 'conv-agent-context',
+      agent_definition: {
+        id: 'windie-default',
+        tools: {
+          mode: 'default_plus_client',
+          enabled_remote_tools: [],
+          disabled_tools: [],
+          disabled_capabilities: [],
+        },
+        agents_md: [{
+          id: 'repo',
+          type: 'agents_md',
+          priority: 40,
+          content: 'Follow repo rules.',
+        }],
+        runtime: {
+          workspace_path: '/tmp/project',
+        },
+        metadata: {
+          client_capability_revision: expect.stringMatching(/^cap_/),
+          client_capability: expect.objectContaining({
+            tool_count: 1,
+            prompt_layer_count: 1,
+            skill_count: 1,
+            plugin_count: 1,
+          }),
+        },
+      },
+    });
+
+    const query = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(query).toMatchObject({
+      type: 'query',
+      payload: {
+        agent_definition: {
+          id: 'windie-default',
+          tools: {
+            mode: 'default_plus_client',
+            client_manifest: {
+              version: 1,
+              tools: [
+                expect.objectContaining({
+                  name: 'cua_driver__get_open_windows',
+                  mcp_server_id: 'cua-driver',
+                }),
+              ],
+            },
+          },
+          runtime: {
+            workspace_path: '/tmp/project',
+          },
+          agents_md: [
+            expect.objectContaining({ id: 'repo' }),
+          ],
+        },
+      },
+    });
+  });
+
+  test('SDK backend transport only lets a non-empty query client manifest replace SDK tools', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+      operatingSystem: 'macOS',
+    });
+
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+    FakeWebSocket.instances[0].clearSent();
+
+    const transport = createWindieAgentBackendTransport(session, 'conv-agent-context', {
+      id: 'transport-agent',
+      tools: {
+        mode: 'client_only',
+        client_manifest: {
+          version: 1,
+          tools: [{
+            name: 'cua_driver__get_open_windows',
+            mcp_server_id: 'cua-driver',
+            schema: { type: 'object', properties: {} },
+          }],
+        },
+      },
+    });
+
+    await transport.sendQuery({
+      text: 'empty manifest should not erase sdk tools',
+      conversation_ref: 'conv-agent-context',
+      agent_definition: {
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: {
+            version: 1,
+            tools: [],
+          },
+        },
+      },
+    });
+
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      payload: {
+        agent_definition: {
+          tools: {
+            client_manifest: {
+              tools: [
+                expect.objectContaining({
+                  name: 'cua_driver__get_open_windows',
+                }),
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    FakeWebSocket.instances[0].clearSent();
+
+    await transport.sendQuery({
+      text: 'non-empty manifest replaces sdk tools',
+      conversation_ref: 'conv-agent-context',
+      agent_definition: {
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: {
+            version: 1,
+            tools: [{
+              name: 'query_supplied_tool',
+              schema: { type: 'object', properties: {} },
+            }],
+          },
+        },
+      },
+    });
+
+    const replacementQuery = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(replacementQuery.payload.agent_definition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'query_supplied_tool',
+      }),
+    ]);
   });
 
   test('SDK backend transport exposes typed compaction and wakeword messages', async () => {
@@ -1853,6 +2181,175 @@ describe('WindieSdkClient', () => {
       command: 'filesystem-server',
     });
     expect(handshake.agent_definition).not.toHaveProperty('mcps');
+  });
+
+  test('wakeUp registers MCPs before building the handshake client manifest', async () => {
+    const mcpTool = {
+      name: 'cua_driver__get_open_windows',
+      description: 'List open windows.',
+      execution_target: 'sidecar',
+      mcp_server_id: 'cua-driver',
+      mcp_tool_name: 'get_open_windows',
+      schema: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+      },
+    };
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerMcp: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'mcp-manifest-agent',
+      mcps: [{ id: 'cua-driver', command: 'cua-driver', args: ['mcp'] }],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    const agent = await wakePromise;
+
+    expect(localRuntime.registerMcp).toHaveBeenCalledWith({
+      id: 'cua-driver',
+      command: 'cua-driver',
+      args: ['mcp'],
+    });
+    expect((localRuntime.registerMcp as jest.Mock).mock.invocationCallOrder[0])
+      .toBeLessThan((localRuntime.listTools as jest.Mock).mock.invocationCallOrder[0]);
+    const handshake = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(handshake.agent_definition).not.toHaveProperty('mcps');
+    expect(handshake.agent_definition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+        mcp_tool_name: 'get_open_windows',
+      }),
+    ]);
+    expect(agent.agentDefinition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+      }),
+    ]);
+  });
+
+  test('agent.registerMcps updates the SDK manifest used by the next message', async () => {
+    const mcpTool = {
+      name: 'cua_driver__get_open_windows',
+      description: 'List open windows.',
+      execution_target: 'sidecar',
+      mcp_server_id: 'cua-driver',
+      mcp_tool_name: 'get_open_windows',
+      schema: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+      },
+    };
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerMcp: jest.fn(async () => ({ success: true, registered_tools: [mcpTool] })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'live-mcp-agent',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    socket.clearSent();
+
+    const registration = await agent.registerMcps([
+      { id: 'cua-driver', command: 'cua-driver', args: ['mcp'] },
+    ], { replace: true });
+
+    expect(localRuntime.registerMcp).toHaveBeenCalledWith({
+      servers: [{
+        id: 'cua-driver',
+        command: 'cua-driver',
+        args: ['mcp'],
+      }],
+      replace: true,
+    });
+    expect(registration.toolSchemas).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+      }),
+    ]);
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        agent_definition: {
+          metadata: {
+            client_capability_revision: expect.stringMatching(/^cap_/),
+          },
+        },
+        tools: {
+          mode: 'replace_client_manifest',
+          client_manifest: {
+            version: 1,
+            tools: [expect.objectContaining({
+              name: 'cua_driver__get_open_windows',
+              mcp_server_id: 'cua-driver',
+            })],
+          },
+        },
+      },
+    });
+    expect(agent.agentDefinition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'cua_driver__get_open_windows',
+        mcp_server_id: 'cua-driver',
+      }),
+    ]);
+    expect(agent.agentDefinition.metadata).toEqual(expect.objectContaining({
+      client_capability_revision: expect.stringMatching(/^cap_/),
+      client_capability: expect.objectContaining({
+        tool_count: 1,
+      }),
+    }));
+
+    await agent.ask('using the CUA Driver MCP, list the currently running apps', {
+      conversationRef: 'conv-live-mcp',
+    });
+    const query = sentMessageOfType(socket, 'query');
+    expect(query).toMatchObject({
+      type: 'query',
+      payload: {
+        conversation_ref: 'conv-live-mcp',
+        agent_definition: {
+          metadata: {
+            client_capability_revision: expect.stringMatching(/^cap_/),
+          },
+          tools: {
+            client_manifest: {
+              tools: [expect.objectContaining({
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+              })],
+            },
+          },
+        },
+      },
+    });
   });
 
   test('wakeUp ensures a local runtime when module tools need sidecar execution', async () => {
@@ -2966,7 +3463,7 @@ describe('WindieSdkClient', () => {
         id: 'fake-e2e-agent',
       },
     });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
+    expect(sentMessageOfType(socket, 'query')).toMatchObject({
       type: 'query',
       payload: {
         text: 'save this note',
@@ -3064,12 +3561,14 @@ describe('WindieSdkClient', () => {
         conversationRef: 'conv-stream',
       },
     });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
-      type: 'query',
-      payload: {
-        text: 'save this note',
-        conversation_ref: 'conv-stream',
-      },
+    await waitForExpect(() => {
+      expect(sentMessageOfType(socket, 'query')).toMatchObject({
+        type: 'query',
+        payload: {
+          text: 'save this note',
+          conversation_ref: 'conv-stream',
+        },
+      });
     });
 
     socket.emit('message', {
@@ -3155,7 +3654,7 @@ describe('WindieSdkClient', () => {
       },
     });
     await waitForExpect(() => {
-      expect(JSON.parse(socket.sent[2])).toMatchObject({
+      expect(sentMessageOfType(socket, 'tool-result')).toMatchObject({
         type: 'tool-result',
         payload: {
           request_id: 'req-stream-save',
@@ -3197,12 +3696,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-stream',
         payload: { final_response: 'done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      done: false,
-      value: {
-        type: 'memory_diagnostic',
-      },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
@@ -3327,7 +3820,7 @@ describe('WindieSdkClient', () => {
       },
     });
     await waitForExpect(() => {
-      expect(JSON.parse(socket.sent[2])).toMatchObject({
+      expect(sentMessageOfType(socket, 'tool-bundle-result')).toMatchObject({
         type: 'tool-bundle-result',
         payload: {
           bundle_id: 'bundle-read',
@@ -3372,9 +3865,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-bundle-stream',
         payload: { final_response: 'bundle done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: { type: 'memory_diagnostic' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'assistant_message', text: 'bundle done' },
@@ -3458,7 +3948,7 @@ describe('WindieSdkClient', () => {
     });
 
     await waitForExpect(() => {
-      expect(JSON.parse(socket.sent[2])).toMatchObject({
+      expect(sentMessageOfType(socket, 'tool-result')).toMatchObject({
         type: 'tool-result',
         payload: {
           request_id: 'req-capture',
@@ -3527,9 +4017,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-tool-output-attachments',
         payload: { final_response: 'done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: { type: 'memory_diagnostic' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'assistant_message', text: 'done' },
@@ -3696,7 +4183,7 @@ describe('WindieSdkClient', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
     await conversation.rehydrate();
 
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
+    expect(sentMessageOfType(socket, 'query')).toMatchObject({
       id: 'turn-runtime-public',
       type: 'query',
       payload: {
@@ -3704,7 +4191,7 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-runtime-public',
       },
     });
-    expect(JSON.parse(socket.sent[2])).toMatchObject({
+    expect(sentMessageOfType(socket, 'rehydrate-conversation')).toMatchObject({
       type: 'rehydrate-conversation',
       payload: {
         conversation_ref: 'conv-runtime-public',
@@ -3776,7 +4263,7 @@ describe('WindieSdkClient', () => {
     })).resolves.toMatchObject({
       text: 'edited runtime',
       payload: expect.objectContaining({
-        text: 'hello runtime',
+        text: 'edited runtime',
         screenshot_ref: 'artifact-edit',
       }),
     });
@@ -3936,11 +4423,6 @@ describe('WindieSdkClient', () => {
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
-        type: 'memory_diagnostic',
-      },
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: {
         type: 'assistant_message',
         text: 'done',
       },
@@ -4001,12 +4483,14 @@ describe('WindieSdkClient', () => {
         conversationRef: 'conv-default-chat-agent',
       },
     });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
-      type: 'query',
-      payload: {
-        text: 'hello default chat',
-        conversation_ref: 'conv-default-chat-agent',
-      },
+    await waitForExpect(() => {
+      expect(sentMessageOfType(socket, 'query')).toMatchObject({
+        type: 'query',
+        payload: {
+          text: 'hello default chat',
+          conversation_ref: 'conv-default-chat-agent',
+        },
+      });
     });
 
     socket.emit('message', {
@@ -4017,11 +4501,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-default-chat-agent',
         payload: { final_response: 'done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: {
-        type: 'memory_diagnostic',
-      },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {

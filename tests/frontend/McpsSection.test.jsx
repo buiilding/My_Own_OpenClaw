@@ -32,6 +32,7 @@ function registry(overrides = {}) {
     }],
     errors: [],
     mcp_errors: [],
+    enabled_mcp_servers: overrides.effective_enabled ? ['mcp:memory'] : [],
   };
 }
 

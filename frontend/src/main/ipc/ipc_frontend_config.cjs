@@ -62,6 +62,25 @@ async function loadFrontendConfigFromDisk(log) {
   }
 }
 
+function loadFrontendConfigFromDiskSync(log) {
+  try {
+    const filePath = getFrontendConfigPath();
+    if (!fs.existsSync(filePath)) {
+      return null;
+    }
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      log('Frontend config on disk is invalid; ignoring');
+      return null;
+    }
+    return redactProviderSecretsFromFrontendConfig(parsed);
+  } catch (error) {
+    log(`Failed to synchronously load frontend config from disk: ${error.message}`);
+    return null;
+  }
+}
+
 async function saveFrontendConfigToDisk(config, log) {
   try {
     if (!config || typeof config !== 'object' || Array.isArray(config)) {
@@ -79,6 +98,7 @@ async function saveFrontendConfigToDisk(config, log) {
 
 module.exports = {
   loadFrontendConfigFromDisk,
+  loadFrontendConfigFromDiskSync,
   redactProviderSecretsFromFrontendConfig,
   saveFrontendConfigToDisk,
 };

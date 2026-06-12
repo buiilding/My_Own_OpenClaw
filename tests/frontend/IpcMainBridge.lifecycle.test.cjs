@@ -14,6 +14,7 @@ const {
 const {
   BACKEND_RECONNECT_INTERVAL_MS,
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+  appendAppDiagnostic,
 } = require('../../frontend/src/main/ipc.cjs');
 
 describe('ipc.cjs bridge lifecycle/config', () => {
@@ -93,12 +94,17 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   function mockFrontendConfigFile(fs, content) {
     fs.existsSync.mockReturnValue(true);
     fs.promises.readFile.mockResolvedValue(content);
+    fs.readFileSync.mockReturnValue(content);
   }
 
   test('does not create the backend websocket during ipc initialization', () => {
     const bridge = initIpc();
 
     expect(bridge.ws).toBeNull();
+  });
+
+  test('exports the app diagnostic sink used by Electron main composition', () => {
+    expect(typeof appendAppDiagnostic).toBe('function');
   });
 
   test('does not expose a user id before backend auth has been established', async () => {
@@ -408,10 +414,17 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('sends conversation.stop through the SDK runtime', async () => {
     const { handlers, ws } = await setupOpenedIpc();
 
-    await invokeWindieCommand(handlers, 'conversation.stop', {
+    const result = await invokeWindieCommand(handlers, 'conversation.stop', {
       conversation_ref: 'conv-typed-stop',
     });
 
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        ok: true,
+        stopped: true,
+      },
+    });
     const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
     expect(sentStopQuery.type).toBe('stop-query');
     expect(sentStopQuery.payload).toEqual({
@@ -696,6 +709,60 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       [tempConfigPath, configPath],
     ]);
     expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+Alt+.');
+  });
+
+  test('save-frontend-config preserves existing MCP enablement from stale renderer payloads', async () => {
+    const { handlers, fs } = initIpc();
+    const appDataPath = path.join(path.sep, 'tmp', 'appdata');
+    const configPath = path.join(appDataPath, 'frontend-config.json');
+    mockFrontendConfigFile(fs, JSON.stringify({
+      speech_mode_enabled: false,
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    }));
+    await invokeLoadFrontendConfig(handlers);
+    fs.promises.writeFile.mockClear();
+    fs.promises.rename.mockClear();
+
+    const result = await handlers['save-frontend-config'](null, {
+      model_mode: 'online',
+      agent_enabled_mcp_servers: [],
+    });
+
+    expect(result).toEqual({ success: true });
+    const [tempConfigPath, serializedConfig] = fs.promises.writeFile.mock.calls[0];
+    expect(JSON.parse(serializedConfig)).toEqual({
+      model_mode: 'online',
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    });
+    expect(fs.promises.rename.mock.calls).toEqual([
+      [tempConfigPath, configPath],
+    ]);
+  });
+
+  test('save-frontend-config preserves disk MCP enablement before config has loaded', async () => {
+    const { handlers, fs } = initIpc();
+    const appDataPath = path.join(path.sep, 'tmp', 'appdata');
+    const configPath = path.join(appDataPath, 'frontend-config.json');
+    mockFrontendConfigFile(fs, JSON.stringify({
+      model_mode: 'online',
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    }));
+
+    const result = await handlers['save-frontend-config'](null, {
+      model_mode: 'online',
+      browser_automation_enabled: true,
+    });
+
+    expect(result).toEqual({ success: true });
+    const [tempConfigPath, serializedConfig] = fs.promises.writeFile.mock.calls[0];
+    expect(JSON.parse(serializedConfig)).toEqual({
+      model_mode: 'online',
+      browser_automation_enabled: true,
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    });
+    expect(fs.promises.rename.mock.calls).toEqual([
+      [tempConfigPath, configPath],
+    ]);
   });
 
   test('save-frontend-config redacts provider secrets before writing disk config', async () => {

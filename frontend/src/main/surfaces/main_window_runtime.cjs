@@ -199,6 +199,8 @@ function createMainWindow({
   showChatWindow,
   emitWakewordSttTrigger,
   initializeLocalBackendBridge,
+  getKnownLocalRuntime = null,
+  ensureLocalRuntime = null,
   permissionStatePath = null,
   initializeMainProcessIpc,
   getLatestFrontendConfig,
@@ -263,6 +265,8 @@ function createMainWindow({
   });
   initializeLocalBackendBridge(getWindows, {
     getFrontendConfig: getLatestFrontendConfig,
+    getKnownLocalRuntime,
+    ensureLocalRuntime,
     isPackaged: app.isPackaged,
     permissionStatePath,
     authStatePath: getInstallAuthStatePath(),

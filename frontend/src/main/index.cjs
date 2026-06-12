@@ -22,11 +22,14 @@ const {
 } = require('./permissions/permission_state_store.cjs');
 const {
   getBackendConnectionState,
+  getKnownWindieLocalRuntime,
+  ensureWindieLocalRuntime,
   getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,
   registerRendererWindow,
   appendMainProcessTraceEvent,
+  appendAppDiagnostic,
   sendAutomatedQuery,
   sendStopQueryToBackend,
   triggerStopQueryFromMain,
@@ -258,6 +261,8 @@ const {
   setAgentLoopStopShortcutEnabled: agentStopShortcutRuntime.setEnabled,
   initializeWakewordBridge,
   initializeLocalBackendBridge,
+  getKnownLocalRuntime: getKnownWindieLocalRuntime,
+  ensureLocalRuntime: ensureWindieLocalRuntime,
   getPermissionStatePath,
   initializeMainProcessIpc,
   createVmWorkerRuntime,
@@ -602,6 +607,7 @@ function initializeMainProcessIpc() {
       },
       emitWorkspaceAccessUpdated: broadcastWorkspaceAccessUpdated,
       emitTraceEvent: appendMainProcessTraceEvent,
+      emitAppDiagnosticEvent: appendAppDiagnostic,
       log: console.warn,
     });
   });
