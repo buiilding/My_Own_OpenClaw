@@ -41,3 +41,13 @@ Start with [Tools Hub](../tools/README.md), [Tool Schema and Policy Change Workf
 Validate model schema projection, provider policy, sidecar parity when executable fields change, and result-contract tests. Preserve the distinction between model-facing schema and prepared sidecar arguments.
 
 Avoid: changing only the Python tool executor while leaving the model-visible schema or provider projection stale.
+
+## Filesystem Or Shell Tool Behavior
+
+Owner: Python sidecar execution with backend/client tool contract parity.
+
+Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), and [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md).
+
+Validate schema visibility, working-directory handling, process/session behavior, sudo policy, output formatting, and sidecar tests. Keep local machine authority in the sidecar.
+
+Avoid: moving filesystem or shell execution into backend code to make a local failure easier to reproduce.
