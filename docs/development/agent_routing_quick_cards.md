@@ -31,3 +31,13 @@ Start with [SDK Hub](../sdk/README.md), [SDK Route Change Workflow](../sdk/sdk_r
 Validate backend route models, TypeScript/Python client behavior, error envelopes, and example or unit coverage. Keep reusable route behavior in the SDK instead of adding an Electron-only bridge.
 
 Avoid: creating a second Electron path that renames and forwards SDK payloads without enforcing a real boundary.
+
+## Model-Visible Tool Schema
+
+Owner: backend schema and policy, with client-local manifest parity when the tool executes locally.
+
+Start with [Tools Hub](../tools/README.md), [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md).
+
+Validate model schema projection, provider policy, sidecar parity when executable fields change, and result-contract tests. Preserve the distinction between model-facing schema and prepared sidecar arguments.
+
+Avoid: changing only the Python tool executor while leaving the model-visible schema or provider projection stale.
