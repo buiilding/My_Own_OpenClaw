@@ -51,3 +51,13 @@ Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_chan
 Validate schema visibility, working-directory handling, process/session behavior, sudo policy, output formatting, and sidecar tests. Keep local machine authority in the sidecar.
 
 Avoid: moving filesystem or shell execution into backend code to make a local failure easier to reproduce.
+
+## Browser Automation
+
+Owner: sidecar browser runtime, shared browser contract, and renderer controls.
+
+Start with [Browser Change Workflow](../browser/browser_change_workflow.md), [Browser Hub](../browser/README.md), and [Browser Tool](../tools/browser.md).
+
+Validate browser action schemas, CDP/session startup, snapshot/ref behavior, downloaded files, Electron readiness controls, and focused browser tests. Keep dedicated browser state distinct from generic shell or computer-use behavior.
+
+Avoid: treating browser failures as plain tool-dispatch failures before checking the browser runtime and session lifecycle.
