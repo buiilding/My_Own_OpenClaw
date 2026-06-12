@@ -221,3 +221,13 @@ Start with [Release and Packaging Change Workflow](../operations/release_packagi
 Validate sidecar runtime bundling, Electron package targets, endpoint defaults, reinstall helpers, smoke checks, signing/notarization expectations, and platform-specific packaging behavior. Do not change versions or publish artifacts without explicit approval.
 
 Avoid: testing only the source dev loop when the change affects packaged app resources or startup paths.
+
+## Renderer State Or Dashboard UI
+
+Owner: renderer display state and user-facing flows.
+
+Start with [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md), [Frontend Renderer Hub](../frontend/renderer/README.md), and [Dashboard Change Workflow](../frontend/renderer/dashboard/dashboard_change_workflow.md).
+
+Validate state normalization, loading/error/empty/data states, stale event guards, accessibility of controls, dashboard navigation, and focused Jest coverage. Keep transport loops, durable storage, and tool execution out of renderer components.
+
+Avoid: adding renderer state that becomes a second source of truth for SDK/runtime conversation data.
