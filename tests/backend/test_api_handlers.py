@@ -345,6 +345,7 @@ class DummySessionManager:
         self.frontend_operating_system = None
         self.config = AppConfig()
         self.client_tool_manifests = {}
+        self.agent_definitions = {}
 
     async def get_or_create_session(
         self,
@@ -535,6 +536,9 @@ class DummySessionManager:
 
     def set_client_tool_manifest(self, user_id: str, manifest_result: Any) -> None:
         self.client_tool_manifests[user_id] = manifest_result
+
+    def set_agent_definition(self, user_id: str, agent_definition: Any) -> None:
+        self.agent_definitions[user_id] = agent_definition
 
     def get_frontend_operating_system(self, user_id: str):
         _ = user_id
@@ -2099,6 +2103,63 @@ async def test_update_settings_handler_applies_client_tool_manifest():
     manifest_result = session_manager.client_tool_manifests["user_1"]
     assert manifest_result.accepted_tool_names == ["cua_driver__get_open_windows"]
     assert manifest_result.rejected == []
+
+
+@pytest.mark.asyncio
+async def test_update_settings_handler_applies_agent_definition():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = UpdateSettingsHandler(session_manager)
+
+    message = UpdateSettingsMessage(
+        id="msg_agent_definition",
+        type="update-settings",
+        user_id="user_1",
+        payload={
+            "agent_definition": {
+                "version": 1,
+                "metadata": {
+                    "client_capability_revision": "cap_test",
+                },
+                "tools": {
+                    "mode": "client_only",
+                    "client_manifest": {
+                        "version": 1,
+                        "tools": [
+                            {
+                                "name": "cua_driver__get_open_windows",
+                                "description": "List currently open windows.",
+                                "execution_target": "sidecar",
+                                "argument_resolution": "passthrough",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {},
+                                    "additionalProperties": False,
+                                },
+                            }
+                        ],
+                    },
+                },
+                "skills": [
+                    {
+                        "id": "review",
+                        "type": "extension_skill",
+                        "content": "Lead with risks.",
+                        "revision": "rev-1",
+                    }
+                ],
+            }
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "settings-updated"
+    assert websocket.sent[0]["payload"]["updated_keys"] == ["agent_definition"]
+    definition = session_manager.agent_definitions["user_1"]
+    assert definition.metadata["client_capability_revision"] == "cap_test"
+    assert definition.client_prompt_layers()[0]["revision"] == "rev-1"
 
 
 @pytest.mark.asyncio

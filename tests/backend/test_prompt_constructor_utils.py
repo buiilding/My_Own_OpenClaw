@@ -158,6 +158,41 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
     assert [schema["name"] for schema in schemas] == ["read_file"]
 
 
+def test_build_prompt_stamps_client_prompt_layer_metadata_summary():
+    constructor = _make_constructor()
+    constructor.client_prompt_layers = [
+        {
+            "id": "skill.review",
+            "type": "extension_skill",
+            "priority": 20,
+            "content": "Lead with risks.",
+            "revision": "rev-1",
+            "source_path": "skills/review/SKILL.md",
+        }
+    ]
+
+    prompt_messages, _schemas, metadata = constructor.build_prompt(
+        None, include_tools=True
+    )
+
+    assert "Lead with risks." in prompt_messages[1]["content"]
+    assert metadata.client_prompt_layer_summary == {
+        "count": 1,
+        "ids": ["skill.review"],
+        "revisions": ["rev-1"],
+    }
+    assert metadata.client_prompt_layers == [
+        {
+            "id": "skill.review",
+            "type": "extension_skill",
+            "priority": 20,
+            "content": "Lead with risks.",
+            "revision": "rev-1",
+            "source_path": "skills/review/SKILL.md",
+        }
+    ]
+
+
 def test_format_user_message_content_filters_mouse_coordinate_methods(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

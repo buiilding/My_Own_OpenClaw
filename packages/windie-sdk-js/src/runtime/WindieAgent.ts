@@ -55,6 +55,9 @@ import {
 } from './ConversationRuntime.js';
 import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
 import {
+  setAgentDefinitionToolManifest,
+} from './CapabilityManifest.js';
+import {
   enrichQueryPayload,
   formatCompletedTurnMemory,
   type MemoryRetrievalDiagnostic,
@@ -82,24 +85,6 @@ export type WindieAgentOwner = {
 export type WindieAgentRegisterMcpOptions = {
   replace?: boolean;
 };
-
-function setAgentDefinitionToolManifest(agentDefinition: JsonRecord, toolSchemas: JsonRecord[]): void {
-  const tools = agentDefinition.tools && typeof agentDefinition.tools === 'object' && !Array.isArray(agentDefinition.tools)
-    ? agentDefinition.tools as JsonRecord
-    : {};
-  const clientManifest = tools.client_manifest && typeof tools.client_manifest === 'object' && !Array.isArray(tools.client_manifest)
-    ? tools.client_manifest as JsonRecord
-    : {};
-  agentDefinition.tools = {
-    ...tools,
-    mode: typeof tools.mode === 'string' ? tools.mode : 'client_only',
-    client_manifest: {
-      ...clientManifest,
-      version: Number.isFinite(clientManifest.version) ? clientManifest.version : 1,
-      tools: toolSchemas,
-    },
-  };
-}
 
 function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): void {
   const details = [
@@ -508,14 +493,39 @@ export class WindieAgent {
   }
 
   async updateToolSchemas(toolSchemas: JsonRecord[]): Promise<string> {
-    setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
+    const summary = setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
+    await this.recordAgentTrace({
+      path: 'capability_manifest.rebuild',
+      stage: 'sdk_apply',
+      status: 'succeeded',
+      runtime: 'sdk',
+      data: {
+        revision: summary.revision,
+        toolCount: summary.toolCount,
+        promptLayerCount: summary.promptLayerCount,
+        skillCount: summary.skillCount,
+        pluginCount: summary.pluginCount,
+      },
+    });
     const messageId = await this.updateSettings({
+      agent_definition: this.agentDefinition,
       tools: {
         mode: 'replace_client_manifest',
         client_manifest: {
           version: 1,
           tools: toolSchemas,
         },
+      },
+    });
+    await this.recordAgentTrace({
+      path: 'capability_manifest.send',
+      stage: 'update_settings',
+      status: 'succeeded',
+      runtime: 'sdk',
+      data: {
+        revision: summary.revision,
+        toolCount: summary.toolCount,
+        promptLayerCount: summary.promptLayerCount,
       },
     });
     return messageId;

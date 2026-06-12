@@ -34,6 +34,7 @@ import {
   type WindieSdkQueryOptions,
 } from '../transport/HostedBackendHttpClient.js';
 import { WindieAgent } from './WindieAgent.js';
+import { stampAgentDefinitionCapabilityMetadata } from './CapabilityManifest.js';
 import {
   createWindieLocalRuntimeProvider,
   SidecarDaemonHttpClient,
@@ -656,7 +657,7 @@ function validateLocalRuntimeFeatures(
 }
 
 function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRecord[]): JsonRecord {
-  return {
+  const definition: JsonRecord = {
     version: 1,
     id: options.agentId ?? `windie-agent-${createMessageId()}`,
     name: options.name ?? 'Windie Agent',
@@ -677,6 +678,8 @@ function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRec
       operating_system: options.operatingSystem ?? detectOperatingSystem(),
     },
   };
+  stampAgentDefinitionCapabilityMetadata(definition);
+  return definition;
 }
 
 function isHostedWindieBackendUrl(backendUrl: string): boolean {

@@ -466,6 +466,17 @@ async function updateMcpServerEnablementForConfig({
       persistedEnabledServerCount: nextEnabledServerCount,
     },
   });
+  await emitMcpDiagnostic(enablementTrace, {
+    stage: 'capability_manifest.persist',
+    status: 'succeeded',
+    data: {
+      serverId: normalizedServerId,
+      contributionId: normalizedServerId,
+      contributionKind: 'mcp',
+      requestedEnabled: enabled === true,
+      enabledContributionCount: nextEnabledServerCount,
+    },
+  });
 
   let resolvedLocalRuntime = localRuntime;
   let shouldRefreshRuntime = enabled === true || Boolean(resolvedLocalRuntime);
@@ -509,6 +520,18 @@ async function updateMcpServerEnablementForConfig({
       phase: shouldRefreshRuntime ? 'registry_refresh' : 'registry_list',
       requestedEnabled: enabled === true,
       previousEnabledServerCount,
+      ...summarizeMcpRegistry(registry),
+    },
+  });
+  await emitMcpDiagnostic(enablementTrace, {
+    stage: 'capability_manifest.rebuild',
+    status: 'succeeded',
+    data: {
+      serverId: normalizedServerId,
+      contributionId: normalizedServerId,
+      contributionKind: 'mcp',
+      requestedEnabled: enabled === true,
+      registryRefresh: shouldRefreshRuntime,
       ...summarizeMcpRegistry(registry),
     },
   });

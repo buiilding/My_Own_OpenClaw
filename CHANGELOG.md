@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- backend/sdk/frontend: add revisioned runtime capability application for
+  client tools, MCP/plugin tools, and prompt-layer skills, including
+  `client_prompt_layers.validate/apply`, `capability_manifest.rebuild/send`,
+  and capability revision fields in SDK/backend traces.
 - backend/tools: add turn-scoped `client_tool_manifest.validate` and
   `client_tool_manifest.apply` traces so client manifest acceptance,
   rejection, and prompt-builder application counts are visible when MCP tools
@@ -56,6 +60,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/sdk/frontend: allow `update-settings` to carry the full
+  `agent_definition` so active sessions immediately apply runtime tools and
+  skills without waiting for app restart, and fail stale local tool calls when
+  the active client manifest no longer exposes the route.
 - backend/tools: apply accepted runtime client tool manifests to the active
   session tool policy before prompt construction, so enabled MCP/plugin tools
   are not accepted by validation and then filtered out by a stale native

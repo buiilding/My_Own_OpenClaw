@@ -67,14 +67,15 @@ class FakeExecutor:
 class FakeAgentDefinition:
     runtime = SimpleNamespace(operating_system=None, workspace_path=None)
 
-    def __init__(self, manifest):
+    def __init__(self, manifest=None, prompt_layers=None):
         self._manifest = manifest
+        self._prompt_layers = prompt_layers
 
     def client_tool_manifest(self):
         return self._manifest
 
     def client_prompt_layers(self):
-        return None
+        return self._prompt_layers
 
     def system_prompt_override(self):
         return None
@@ -153,6 +154,7 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         "hasAgentDefinition": True,
         "hasClientManifest": True,
         "rawToolCount": 2,
+        "capabilityRevision": None,
         "acceptedCount": 1,
         "rejectedCount": 1,
         "acceptedToolNameSample": ["cua_driver__screenshot"],
@@ -165,6 +167,7 @@ async def test_process_query_traces_client_manifest_validation_and_application()
     assert apply_event.data == {
         "acceptedCount": 1,
         "rejectedCount": 1,
+        "capabilityRevision": None,
         "runtimeAcceptedToolCount": 1,
         "promptBuilderClientToolCount": 1,
         "effectiveAvailableToolCount": 1,
@@ -181,6 +184,76 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         "cua_driver__screenshot"
     ]
     assert session.cfg.agent_available_tools == ["cua_driver__screenshot"]
+
+
+@pytest.mark.asyncio
+async def test_process_query_traces_prompt_layer_validation_and_application():
+    session = _build_session()
+
+    events = [
+        event
+        async for event in session.process_query(
+            "check prompt layers",
+            agent_definition=FakeAgentDefinition(
+                prompt_layers=[
+                    {
+                        "id": "skill.review",
+                        "type": "extension_skill",
+                        "priority": 20,
+                        "content": "Lead with risks.",
+                        "revision": "rev-1",
+                        "source_path": "skills/review/SKILL.md",
+                    },
+                    {
+                        "id": "skill.review",
+                        "type": "extension_skill",
+                        "priority": 20,
+                        "content": "Lead with risks.",
+                        "revision": "rev-1",
+                    },
+                    {"id": "broken", "type": "extension_skill", "content": ""},
+                ]
+            ),
+        )
+    ]
+
+    trace_events = [event for event in events if isinstance(event, TraceEvent)]
+    validate_event = next(
+        event for event in trace_events if event.path == "client_prompt_layers.validate"
+    )
+    apply_event = next(
+        event for event in trace_events if event.path == "client_prompt_layers.apply"
+    )
+
+    assert validate_event.data == {
+        "rawLayerCount": 3,
+        "capabilityRevision": None,
+        "acceptedCount": 1,
+        "rejectedCount": 2,
+        "acceptedLayerIdSample": ["skill.review"],
+        "rejectedReasonSample": [
+            {"name": "skill.review", "reason": "duplicate prompt layer"},
+            {"name": "broken", "reason": "content is required"},
+        ],
+    }
+    assert apply_event.data == {
+        "acceptedCount": 1,
+        "rejectedCount": 2,
+        "capabilityRevision": None,
+        "acceptedLayerIdSample": ["skill.review"],
+        "runtimePromptLayerCount": 1,
+        "promptBuilderPromptLayerCount": 1,
+    }
+    assert session.prompt_builder.client_prompt_layers == [
+        {
+            "id": "skill.review",
+            "type": "extension_skill",
+            "priority": 20,
+            "content": "Lead with risks.",
+            "revision": "rev-1",
+            "source_path": "skills/review/SKILL.md",
+        }
+    ]
 
 
 @pytest.mark.asyncio

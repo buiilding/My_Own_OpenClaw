@@ -12,6 +12,7 @@ from backend.src.agent.session.capability_application import (
     apply_client_capability_to_session,
     capability_config_overrides,
 )
+from backend.src.agent.session.prompt_layers import validate_client_prompt_layers
 from backend.src.core.config import AppConfig
 from backend.src.llm.prompts.prompts import render_contextual_system_prompt
 from backend.src.tools.client_manifest import validate_client_tool_manifest
@@ -23,13 +24,6 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session_registry import SessionRegistry
 
 logger = logging.getLogger(__name__)
-
-
-def _coerce_prompt_layer_priority(value: Any) -> int:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return 100
 
 
 class SessionConfigService:
@@ -159,24 +153,9 @@ class SessionConfigService:
                 and message["content"].strip()
             )
         ]
-        normalized_client_prompt_layers = [
-            {
-                "id": str(layer["id"]).strip(),
-                "type": str(layer["type"]).strip(),
-                "priority": _coerce_prompt_layer_priority(layer.get("priority")),
-                "content": str(layer["content"]).strip(),
-            }
-            for layer in (client_prompt_layers or [])
-            if (
-                isinstance(layer, dict)
-                and isinstance(layer.get("id"), str)
-                and layer["id"].strip()
-                and isinstance(layer.get("type"), str)
-                and layer["type"].strip()
-                and isinstance(layer.get("content"), str)
-                and layer["content"].strip()
-            )
-        ]
+        normalized_client_prompt_layers = validate_client_prompt_layers(
+            client_prompt_layers
+        ).accepted
         runtime = getattr(session, "runtime", None)
         if runtime is not None:
             runtime.workspace_path = normalized_workspace_path

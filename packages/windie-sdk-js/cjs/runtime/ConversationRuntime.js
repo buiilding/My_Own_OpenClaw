@@ -136,6 +136,20 @@ function getAgentDefinitionToolCount(agentDefinition) {
     }
     return getAgentDefinitionClientManifestTools(agentDefinition).length;
 }
+function getAgentDefinitionCapabilityRevision(agentDefinition) {
+    if (!isJsonRecord(agentDefinition) || !isJsonRecord(agentDefinition.metadata)) {
+        return null;
+    }
+    const revision = agentDefinition.metadata.client_capability_revision;
+    if (typeof revision === 'string' && revision.trim()) {
+        return revision.trim();
+    }
+    const capability = agentDefinition.metadata.client_capability;
+    if (isJsonRecord(capability) && typeof capability.revision === 'string' && capability.revision.trim()) {
+        return capability.revision.trim();
+    }
+    return null;
+}
 function recordKeyCount(value) {
     return isJsonRecord(value) ? Object.keys(value).length : 0;
 }
@@ -439,6 +453,9 @@ class SdkConversationRuntime {
                     sdkMcpManifestToolCount: sdkMcpManifestStats.toolCount,
                     queryMcpManifestToolCount: queryMcpManifestStats.toolCount,
                     skillCount: arrayRecordCount(agentDefinition?.skills),
+                    capabilityRevision: getAgentDefinitionCapabilityRevision(agentDefinition),
+                    sdkCapabilityRevision: getAgentDefinitionCapabilityRevision(sdkAgentDefinition),
+                    queryCapabilityRevision: getAgentDefinitionCapabilityRevision(queryAgentDefinition),
                     agentDefinitionKeyCount: recordKeyCount(agentDefinition),
                     hasWorkspacePath: workspacePathPresent,
                     hasLocalRuntime: Boolean(this.options.localRuntime),
@@ -463,6 +480,7 @@ class SdkConversationRuntime {
                     mcpServerCount: mcpManifestStats.serverCount || arrayRecordCount(agentDefinition?.mcps),
                     mcpDefinitionCount: arrayRecordCount(agentDefinition?.mcps),
                     mcpManifestToolCount: mcpManifestStats.toolCount,
+                    capabilityRevision: getAgentDefinitionCapabilityRevision(agentDefinition),
                     hasAgentDefinition: Boolean(agentDefinition),
                 },
             });
@@ -1770,6 +1788,9 @@ class SdkConversationRuntime {
         const coordinator = new ToolExecutionCoordinator_js_1.ToolExecutionCoordinator({
             localRuntime: this.options.localRuntime,
             localToolLifecycle: this.options.localToolLifecycle,
+            agentDefinition: isJsonRecord(this.options.agentDefinition)
+                ? this.options.agentDefinition
+                : null,
             store: {
                 appendEvent: async (outputEvent) => {
                     await this.applyEvent(outputEvent);

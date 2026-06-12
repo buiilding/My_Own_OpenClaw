@@ -2644,6 +2644,42 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator fails stale local routes before sidecar execution', async () => {
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      agentDefinition: {
+        tools: {
+          client_manifest: {
+            version: 1,
+            tools: [{ name: 'read_file', schema: { type: 'object' } }],
+          },
+        },
+      },
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    const claim = await coordinator.execute(event('tool_call', {
+      toolName: 'cua_driver__get_open_windows',
+      requestId: 'req-stale-cua',
+      args: {},
+    }));
+
+    expect(claim.claimed).toBe(true);
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-stale-cua',
+      success: false,
+      data: {
+        output: expect.stringContaining('active capability manifest no longer exposes this tool'),
+      },
+    }));
+  });
+
   test('tool coordinator skips backend-marked synthetic validation calls', async () => {
     const store = new InMemoryConversationStore();
     const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
@@ -4004,6 +4040,9 @@ describe('Windie SDK conversation runtime core', () => {
       store,
       transport,
       agentDefinition: {
+        metadata: {
+          client_capability_revision: 'cap_sdk_trace',
+        },
         tools: {
           mode: 'client_only',
           client_manifest: {
@@ -4037,6 +4076,7 @@ describe('Windie SDK conversation runtime core', () => {
         data: expect.objectContaining({
           toolCount: 2,
           mcpManifestToolCount: 1,
+          capabilityRevision: 'cap_sdk_trace',
         }),
       }),
     ]);
@@ -4051,6 +4091,7 @@ describe('Windie SDK conversation runtime core', () => {
           mcpServerCount: 1,
           mcpDefinitionCount: 0,
           mcpManifestToolCount: 1,
+          capabilityRevision: 'cap_sdk_trace',
         }),
       }),
     ]);

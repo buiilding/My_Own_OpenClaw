@@ -1417,6 +1417,15 @@ describe('WindieSdkClient', () => {
         runtime: {
           workspace_path: '/tmp/project',
         },
+        metadata: {
+          client_capability_revision: expect.stringMatching(/^cap_/),
+          client_capability: expect.objectContaining({
+            tool_count: 1,
+            prompt_layer_count: 1,
+            skill_count: 1,
+            plugin_count: 1,
+          }),
+        },
       },
     });
 
@@ -2288,6 +2297,11 @@ describe('WindieSdkClient', () => {
     expect(JSON.parse(socket.sent[0])).toMatchObject({
       type: 'update-settings',
       payload: {
+        agent_definition: {
+          metadata: {
+            client_capability_revision: expect.stringMatching(/^cap_/),
+          },
+        },
         tools: {
           mode: 'replace_client_manifest',
           client_manifest: {
@@ -2306,6 +2320,12 @@ describe('WindieSdkClient', () => {
         mcp_server_id: 'cua-driver',
       }),
     ]);
+    expect(agent.agentDefinition.metadata).toEqual(expect.objectContaining({
+      client_capability_revision: expect.stringMatching(/^cap_/),
+      client_capability: expect.objectContaining({
+        tool_count: 1,
+      }),
+    }));
 
     await agent.ask('using the CUA Driver MCP, list the currently running apps', {
       conversationRef: 'conv-live-mcp',
@@ -2316,6 +2336,9 @@ describe('WindieSdkClient', () => {
       payload: {
         conversation_ref: 'conv-live-mcp',
         agent_definition: {
+          metadata: {
+            client_capability_revision: expect.stringMatching(/^cap_/),
+          },
           tools: {
             client_manifest: {
               tools: [expect.objectContaining({

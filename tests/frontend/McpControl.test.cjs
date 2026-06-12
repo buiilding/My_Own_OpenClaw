@@ -267,7 +267,9 @@ describe('MCP control runtime', () => {
     expect(events.map((event) => event.stage)).toEqual(expect.arrayContaining([
       'toggle_requested',
       'config_persisted',
+      'capability_manifest.persist',
       'registry_refreshed',
+      'capability_manifest.rebuild',
     ]));
     const registryEvent = events.find((event) => event.stage === 'registry_refreshed');
     expect(registryEvent.data).toEqual(expect.objectContaining({

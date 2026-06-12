@@ -9,6 +9,7 @@ const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const ManagedWindieAgentSession_js_1 = require("../transport/ManagedWindieAgentSession.js");
 const HostedBackendHttpClient_js_1 = require("../transport/HostedBackendHttpClient.js");
 const WindieAgent_js_1 = require("./WindieAgent.js");
+const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
 const LocalSidecarRuntime_js_1 = require("./LocalSidecarRuntime.js");
 class WindieClient {
     constructor(options = {}) {
@@ -421,7 +422,7 @@ function validateLocalRuntimeFeatures(localRuntime, runtimeFeatures) {
     }
 }
 function buildWakeUpAgentDefinition(options, tools) {
-    return {
+    const definition = {
         version: 1,
         id: options.agentId ?? `windie-agent-${(0, WindieAgentSession_js_1.createMessageId)()}`,
         name: options.name ?? 'Windie Agent',
@@ -442,6 +443,8 @@ function buildWakeUpAgentDefinition(options, tools) {
             operating_system: options.operatingSystem ?? detectOperatingSystem(),
         },
     };
+    (0, CapabilityManifest_js_1.stampAgentDefinitionCapabilityMetadata)(definition);
+    return definition;
 }
 function isHostedWindieBackendUrl(backendUrl) {
     try {

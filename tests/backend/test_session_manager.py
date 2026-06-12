@@ -222,6 +222,14 @@ async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt()
                 "type": "extension_skill",
                 "priority": 70,
                 "content": "Review before answering.",
+                "revision": "rev-1",
+            },
+            {
+                "id": "review",
+                "type": "extension_skill",
+                "priority": 70,
+                "content": "Review before answering.",
+                "revision": "rev-1",
             }
         ],
     )
@@ -247,6 +255,7 @@ async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt()
             "type": "extension_skill",
             "priority": 70,
             "content": "Review before answering.",
+            "revision": "rev-1",
         },
     ]
 

@@ -229,6 +229,7 @@ class PromptConstructor:
             system_prompt=self._get_effective_system_prompt(prompt_messages),
             tool_schemas=tool_schemas,
             client_prompt_layers=self._get_client_prompt_layer_metadata(),
+            client_prompt_layer_summary=self._get_client_prompt_layer_summary(),
             user_message_metadata=user_message_metadata,
         )
 
@@ -525,16 +526,37 @@ class PromptConstructor:
             if isinstance(layer, dict) and isinstance(layer.get("content"), str)
         ]
         layers.sort(key=lambda layer: int(layer.get("priority", 100)))
-        return [
-            {
+        metadata: List[Dict[str, Any]] = []
+        for layer in layers:
+            content = layer["content"]
+            if not content.strip():
+                continue
+            item = {
                 "id": str(layer.get("id") or "client-layer"),
                 "type": str(layer.get("type") or "custom"),
                 "priority": int(layer.get("priority", 100)),
-                "content": layer["content"],
+                "content": content,
             }
-            for layer in layers
-            if layer["content"].strip()
-        ]
+            if isinstance(layer.get("revision"), str) and layer["revision"].strip():
+                item["revision"] = layer["revision"].strip()
+            if isinstance(layer.get("source_path"), str) and layer[
+                "source_path"
+            ].strip():
+                item["source_path"] = layer["source_path"].strip()
+            metadata.append(item)
+        return metadata
+
+    def _get_client_prompt_layer_summary(self) -> Dict[str, Any]:
+        metadata = self._get_client_prompt_layer_metadata()
+        return {
+            "count": len(metadata),
+            "ids": [str(layer.get("id") or "") for layer in metadata],
+            "revisions": [
+                str(layer.get("revision") or "")
+                for layer in metadata
+                if layer.get("revision")
+            ],
+        }
 
     def get_prompt_token_count(
         self,

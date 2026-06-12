@@ -37,6 +37,11 @@ from backend.src.agent.session.initializer import (
     subscribe_events,
 )
 from backend.src.agent.session.lifecycle import SessionLifecycle
+from backend.src.agent.session.prompt_layers import (
+    prompt_layer_id_sample,
+    prompt_layer_rejected_reason_sample,
+    validate_client_prompt_layers,
+)
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.core.events.streaming_events import TraceEvent
@@ -86,6 +91,21 @@ def _client_manifest_rejected_reason_sample(
             reason = f"{reason[:_CLIENT_TOOL_TRACE_REASON_LIMIT]}..."
         sample.append({"name": name or "", "reason": reason or ""})
     return sample
+
+
+def _agent_definition_capability_revision(agent_definition: Any) -> Optional[str]:
+    metadata = getattr(agent_definition, "metadata", None)
+    if not isinstance(metadata, dict):
+        return None
+    revision = metadata.get("client_capability_revision")
+    if isinstance(revision, str) and revision.strip():
+        return revision.strip()
+    capability = metadata.get("client_capability")
+    if isinstance(capability, dict):
+        nested_revision = capability.get("revision")
+        if isinstance(nested_revision, str) and nested_revision.strip():
+            return nested_revision.strip()
+    return None
 
 
 class AgentSession:
@@ -443,36 +463,7 @@ class AgentSession:
     def _normalize_client_prompt_layers(
         client_prompt_layers: Optional[List[Dict[str, Any]]],
     ) -> list[Dict[str, Any]]:
-        normalized_layers: list[Dict[str, Any]] = []
-        for layer in client_prompt_layers or []:
-            if not isinstance(layer, dict):
-                continue
-            layer_id = layer.get("id")
-            layer_type = layer.get("type")
-            content = layer.get("content")
-            priority = layer.get("priority", 100)
-            if (
-                not isinstance(layer_id, str)
-                or not layer_id.strip()
-                or not isinstance(layer_type, str)
-                or not layer_type.strip()
-                or not isinstance(content, str)
-                or not content.strip()
-            ):
-                continue
-            try:
-                normalized_priority = int(priority)
-            except (TypeError, ValueError):
-                normalized_priority = 100
-            normalized_layers.append(
-                {
-                    "id": layer_id.strip(),
-                    "type": layer_type.strip(),
-                    "priority": normalized_priority,
-                    "content": content.strip(),
-                }
-            )
-        return normalized_layers
+        return validate_client_prompt_layers(client_prompt_layers).accepted
 
     def _apply_query_prompt_context_locked(
         self,
@@ -622,8 +613,12 @@ class AgentSession:
                 else None
             )
             capability_trace_payload: Optional[Dict[str, Any]] = None
+            prompt_layer_trace_payload: Optional[Dict[str, Any]] = None
             if agent_definition is not None:
                 self.runtime.agent_definition = agent_definition
+                capability_revision = _agent_definition_capability_revision(
+                    agent_definition
+                )
                 raw_manifest = (
                     agent_definition.client_tool_manifest()
                     if hasattr(agent_definition, "client_tool_manifest")
@@ -643,6 +638,7 @@ class AgentSession:
                             "hasAgentDefinition": True,
                             "hasClientManifest": False,
                             "rawToolCount": 0,
+                            "capabilityRevision": capability_revision,
                         },
                     )
                 else:
@@ -662,6 +658,7 @@ class AgentSession:
                             "rawToolCount": _count_raw_client_manifest_tools(
                                 raw_manifest
                             ),
+                            "capabilityRevision": capability_revision,
                             "acceptedCount": len(manifest_result.accepted),
                             "rejectedCount": len(manifest_result.rejected),
                             "acceptedToolNameSample": _client_manifest_tool_name_sample(
@@ -678,6 +675,7 @@ class AgentSession:
                     capability_trace_payload = {
                         "acceptedCount": len(manifest_result.accepted),
                         "rejectedCount": len(manifest_result.rejected),
+                        "capabilityRevision": capability_revision,
                         "runtimeAcceptedToolCount": len(
                             self.runtime.client_tool_manifest.accepted
                         ),
@@ -701,6 +699,47 @@ class AgentSession:
                 or resolved_client_prompt_layers is not None
                 or resolved_system_prompt_override is not None
             ):
+                if resolved_client_prompt_layers is not None:
+                    prompt_layer_validation = validate_client_prompt_layers(
+                        resolved_client_prompt_layers
+                    )
+                    yield TraceEvent(
+                        path="client_prompt_layers.validate",
+                        stage="validate",
+                        status="succeeded",
+                        runtime="backend",
+                        data={
+                            "rawLayerCount": len(resolved_client_prompt_layers),
+                            "capabilityRevision": (
+                                _agent_definition_capability_revision(
+                                    agent_definition
+                                )
+                                if agent_definition is not None
+                                else None
+                            ),
+                            "acceptedCount": len(prompt_layer_validation.accepted),
+                            "rejectedCount": len(prompt_layer_validation.rejected),
+                            "acceptedLayerIdSample": prompt_layer_id_sample(
+                                prompt_layer_validation.accepted
+                            ),
+                            "rejectedReasonSample": prompt_layer_rejected_reason_sample(
+                                prompt_layer_validation.rejected
+                            ),
+                        },
+                    )
+                    resolved_client_prompt_layers = prompt_layer_validation.accepted
+                    prompt_layer_trace_payload = {
+                        "acceptedCount": len(prompt_layer_validation.accepted),
+                        "rejectedCount": len(prompt_layer_validation.rejected),
+                        "capabilityRevision": (
+                            _agent_definition_capability_revision(agent_definition)
+                            if agent_definition is not None
+                            else None
+                        ),
+                        "acceptedLayerIdSample": prompt_layer_id_sample(
+                            prompt_layer_validation.accepted
+                        ),
+                    }
                 self._apply_query_prompt_context_locked(
                     operating_system=resolved_operating_system,
                     workspace_path=resolved_workspace_path,
@@ -708,6 +747,21 @@ class AgentSession:
                     client_prompt_layers=resolved_client_prompt_layers,
                     system_prompt_override=resolved_system_prompt_override,
                 )
+                if prompt_layer_trace_payload is not None:
+                    prompt_layer_trace_payload.update(
+                        {
+                            "runtimePromptLayerCount": len(
+                                getattr(self.runtime, "client_prompt_layers", [])
+                            ),
+                            "promptBuilderPromptLayerCount": len(
+                                getattr(
+                                    self.prompt_builder,
+                                    "client_prompt_layers",
+                                    [],
+                                )
+                            ),
+                        }
+                    )
             if capability_trace_payload is not None:
                 yield TraceEvent(
                     path="client_tool_manifest.apply",
@@ -715,6 +769,14 @@ class AgentSession:
                     status="succeeded",
                     runtime="backend",
                     data=capability_trace_payload,
+                )
+            if prompt_layer_trace_payload is not None:
+                yield TraceEvent(
+                    path="client_prompt_layers.apply",
+                    stage="apply",
+                    status="succeeded",
+                    runtime="backend",
+                    data=prompt_layer_trace_payload,
                 )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:

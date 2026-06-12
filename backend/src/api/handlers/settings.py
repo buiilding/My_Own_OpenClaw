@@ -198,6 +198,8 @@ class UpdateSettingsHandler(TypedMessageHandler[UpdateSettingsMessage]):
         try:
             payload = message.payload.model_dump(exclude_none=True)
             tools_payload = payload.pop("tools", None)
+            agent_definition = message.payload.agent_definition
+            payload.pop("agent_definition", None)
             updates = validate_frontend_config(payload)
 
             if updates:
@@ -222,6 +224,19 @@ class UpdateSettingsHandler(TypedMessageHandler[UpdateSettingsMessage]):
                     )
                 set_client_tool_manifest(user_id, manifest_result)
                 updated_keys.append("tools")
+
+            if agent_definition is not None:
+                set_agent_definition = getattr(
+                    self.session_manager,
+                    "set_agent_definition",
+                    None,
+                )
+                if not callable(set_agent_definition):
+                    raise ValidationError(
+                        "Agent definitions are not supported by this session manager"
+                    )
+                set_agent_definition(user_id, agent_definition)
+                updated_keys.append("agent_definition")
 
             await send_success_response(
                 websocket,

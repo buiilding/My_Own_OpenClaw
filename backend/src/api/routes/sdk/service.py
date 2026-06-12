@@ -20,6 +20,7 @@ from backend.src.agent.session.capability_application import (
     merge_runtime_tools_into_config_overrides,
     merge_runtime_tools_into_prompt_policy,
 )
+from backend.src.agent.session.prompt_layers import validate_client_prompt_layers
 from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
     OcrCoordinateResolver,
     VisionCoordinateResolver,
@@ -282,11 +283,11 @@ def apply_agent_definition_to_constructor(
     workspace_path = getattr(runtime, "workspace_path", None)
     if isinstance(workspace_path, str) and workspace_path.strip():
         constructor.workspace_path = workspace_path.strip()
-    constructor.client_prompt_layers = (
+    constructor.client_prompt_layers = validate_client_prompt_layers(
         agent_definition.client_prompt_layers()
         if hasattr(agent_definition, "client_prompt_layers")
         else []
-    )
+    ).accepted
     raw_manifest = (
         agent_definition.client_tool_manifest()
         if hasattr(agent_definition, "client_tool_manifest")

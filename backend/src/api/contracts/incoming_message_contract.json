@@ -65,7 +65,8 @@
         "include_query_screenshot",
         "provider_api_keys",
         "provider_oauth",
-        "tools"
+        "tools",
+        "agent_definition"
       ],
       "nested": {
         "tools": {

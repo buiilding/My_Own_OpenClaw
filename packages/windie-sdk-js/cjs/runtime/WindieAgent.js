@@ -8,6 +8,7 @@ const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ConversationRuntime_js_1 = require("./ConversationRuntime.js");
 const TraceRecorder_js_1 = require("./TraceRecorder.js");
+const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const DefaultTurnResourceResolvers_js_1 = require("./DefaultTurnResourceResolvers.js");
 const WindieChatSession_js_1 = require("./WindieChatSession.js");
@@ -51,23 +52,6 @@ function unwrapLocalRuntimeRpcData(response, fallbackMessage) {
         return normalizeJsonRecord(record.data) ?? {};
     }
     return record;
-}
-function setAgentDefinitionToolManifest(agentDefinition, toolSchemas) {
-    const tools = agentDefinition.tools && typeof agentDefinition.tools === 'object' && !Array.isArray(agentDefinition.tools)
-        ? agentDefinition.tools
-        : {};
-    const clientManifest = tools.client_manifest && typeof tools.client_manifest === 'object' && !Array.isArray(tools.client_manifest)
-        ? tools.client_manifest
-        : {};
-    agentDefinition.tools = {
-        ...tools,
-        mode: typeof tools.mode === 'string' ? tools.mode : 'client_only',
-        client_manifest: {
-            ...clientManifest,
-            version: Number.isFinite(clientManifest.version) ? clientManifest.version : 1,
-            tools: toolSchemas,
-        },
-    };
 }
 class WindieAgent {
     constructor(id, session, agentDefinition, sdkClient, owner, localRuntime, userId = 'local-sdk-user', defaultConversationStore = new InMemoryConversationStore_js_1.InMemoryConversationStore(), memoryEnabled = true, localToolLifecycle) {
@@ -315,14 +299,39 @@ class WindieAgent {
         });
     }
     async updateToolSchemas(toolSchemas) {
-        setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
+        const summary = (0, CapabilityManifest_js_1.setAgentDefinitionToolManifest)(this.agentDefinition, toolSchemas);
+        await this.recordAgentTrace({
+            path: 'capability_manifest.rebuild',
+            stage: 'sdk_apply',
+            status: 'succeeded',
+            runtime: 'sdk',
+            data: {
+                revision: summary.revision,
+                toolCount: summary.toolCount,
+                promptLayerCount: summary.promptLayerCount,
+                skillCount: summary.skillCount,
+                pluginCount: summary.pluginCount,
+            },
+        });
         const messageId = await this.updateSettings({
+            agent_definition: this.agentDefinition,
             tools: {
                 mode: 'replace_client_manifest',
                 client_manifest: {
                     version: 1,
                     tools: toolSchemas,
                 },
+            },
+        });
+        await this.recordAgentTrace({
+            path: 'capability_manifest.send',
+            stage: 'update_settings',
+            status: 'succeeded',
+            runtime: 'sdk',
+            data: {
+                revision: summary.revision,
+                toolCount: summary.toolCount,
+                promptLayerCount: summary.promptLayerCount,
             },
         });
         return messageId;

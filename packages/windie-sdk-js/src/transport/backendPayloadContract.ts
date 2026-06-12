@@ -39,6 +39,7 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE: Record<string, readonly string[]> = Object.f
     'provider_api_keys',
     'provider_oauth',
     'tools',
+    'agent_definition',
   ]),
   'wakeword-detected': Object.freeze([]),
   'compact-history': Object.freeze(['force', 'conversation_ref']),

@@ -255,6 +255,7 @@ class UpdateSettingsPayload(BaseModel):
     provider_api_keys: Optional[ProviderApiKeysPayload] = None
     provider_oauth: Optional[ProviderOAuthPayload] = None
     tools: Optional[ToolManifestSettingsPayload] = None
+    agent_definition: Optional[AgentDefinition] = None
 
 
 class UpdateSettingsMessage(BaseMessage):
