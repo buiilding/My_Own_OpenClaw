@@ -191,3 +191,13 @@ Start with [MCP Runtime](mcp.md), [Tool Schema and Policy Change Workflow](../to
 Validate server enablement, stdio launch args, discovery diagnostics, schema projection, trust boundaries, dashboard refresh behavior, and backend manifest validation. Keep disabled-by-default servers gated until the user enables them.
 
 Avoid: treating MCP tools as backend built-ins when the active local tool surface comes from the client manifest.
+
+## VM Run Or Worker Control
+
+Owner: backend runs API and run-control service, with Electron VM worker dispatch as the local executor path.
+
+Start with [Automation Hub](../automation/README.md), [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md), and [Runs API Runbook](../automation/runs_api_runbook.md).
+
+Validate run creation, worker heartbeat assignment, event timelines, pending controls, stop behavior, runs API keys, and Electron worker dispatch. Keep `/api/runs/*` as the control plane; normal desktop chat stays on `/ws`.
+
+Avoid: reusing chat websocket assumptions for VM worker polling or run-control state.

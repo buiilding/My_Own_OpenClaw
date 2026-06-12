@@ -11,7 +11,7 @@ All notable changes to WindieOS will be documented in this file.
   overlay/chat-pill, screenshot/artifact, transcript/replay, memory,
   provider/model, inference capability, websocket event, gateway connection,
   config/settings, permission/local-authority, credential/token,
-  plugin/extension, and MCP ownership.
+  plugin/extension, MCP, and VM-run ownership.
 - frontend/mcp/docs: add explicit repo-level MCP enablement, dashboard MCP
   controls, and a disabled-by-default CUA Driver MCP declaration that uses
   `cua-driver mcp` after local user enablement.
