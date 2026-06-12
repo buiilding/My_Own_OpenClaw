@@ -79,6 +79,10 @@ All notable changes to WindieOS will be documented in this file.
   readiness check, replace the misleading `Starting browser...` state with
   local-runtime/browser-unavailable labels, and add sanitized
   `browser.session_control` diagnostics.
+- sdk/frontend/sidecar: make SDK local runtime/tool execution a first-class
+  `WindieClient` surface usable without an agent loop, and delete the Electron
+  local-backend bridge's duplicate sidecar provider/cache in favor of shared SDK
+  local-runtime resolvers.
 - frontend/chat-pill: gate the minimal chat pill textarea caret behind a
   main-process `activate-chatbox-text-entry` focus handoff so passive overlay
   rendering, screenshot/tool restores, and pointer-control leases cannot show a

@@ -5,6 +5,8 @@ import {
 import type {
   ConversationStore,
   JsonRecord,
+  LocalToolManifest,
+  LocalToolResult,
   LocalToolExecutionLifecycle,
 } from '../conversation/types.js';
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
@@ -108,6 +110,11 @@ export type WindieClientOptions = {
   autoSidecar?: WindieAutoSidecarOptions;
   memory?: WindieRuntimeFeatureOption;
   persistence?: WindieRuntimeFeatureOption;
+};
+
+export type WindieLocalRuntimeRequest = {
+  reason?: string;
+  require?: boolean;
 };
 
 export type WindieRuntimeFeatureOption = boolean | {
@@ -214,17 +221,82 @@ export class WindieClient {
   }
 
   async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
-    const localRuntime = this.resolveKnownLocalRuntime();
+    const localRuntime = this.getKnownLocalRuntime();
     return localRuntime?.listTools ? localRuntime.listTools() : null;
   }
 
   async status(): Promise<JsonRecord | null> {
-    const localRuntime = this.resolveKnownLocalRuntime();
+    const localRuntime = this.getKnownLocalRuntime();
     return localRuntime?.status ? localRuntime.status() : null;
   }
 
+  getKnownLocalRuntime(): WindieLocalRuntimeClient | null {
+    return this.resolveKnownLocalRuntime() ?? null;
+  }
+
+  async localRuntime(options: WindieLocalRuntimeRequest = {}): Promise<WindieLocalRuntimeClient> {
+    return this.ensureLocalRuntime({
+      reason: options.reason ?? 'local-runtime',
+      wakeUp: {},
+      errorMessage: 'WindieClient local runtime provider did not return a runtime.',
+    });
+  }
+
+  async executeTool(
+    call: { toolName: string; args: JsonRecord; timeoutMs?: number },
+    options: WindieLocalRuntimeRequest = {},
+  ): Promise<LocalToolResult> {
+    const runtime = await this.localRuntime({
+      ...options,
+      reason: options.reason ?? 'execute-tool',
+    });
+    if (typeof runtime.executeTool !== 'function') {
+      throw new Error('WindieClient local runtime does not support tool execution.');
+    }
+    return runtime.executeTool({
+      toolName: call.toolName,
+      args: call.args,
+    });
+  }
+
+  async rpc(
+    payload: { method: string; params?: JsonRecord; id?: string | number },
+    options: WindieLocalRuntimeRequest = {},
+  ): Promise<JsonRecord> {
+    const runtime = await this.localRuntime({
+      ...options,
+      reason: options.reason ?? 'local-runtime-rpc',
+    });
+    if (typeof runtime.rpc !== 'function') {
+      throw new Error('WindieClient local runtime does not support RPC.');
+    }
+    return runtime.rpc(payload);
+  }
+
+  async listLocalTools(options: WindieLocalRuntimeRequest = {}): Promise<LocalToolManifest> {
+    const runtime = await this.localRuntime({
+      ...options,
+      reason: options.reason ?? 'list-local-tools',
+    });
+    if (typeof runtime.listTools !== 'function') {
+      throw new Error('WindieClient local runtime does not support tool listing.');
+    }
+    return runtime.listTools() as Promise<LocalToolManifest>;
+  }
+
+  async localStatus(options: WindieLocalRuntimeRequest = {}): Promise<JsonRecord> {
+    const runtime = await this.localRuntime({
+      ...options,
+      reason: options.reason ?? 'local-status',
+    });
+    if (typeof runtime.status !== 'function') {
+      throw new Error('WindieClient local runtime does not support status.');
+    }
+    return runtime.status();
+  }
+
   async shutdownLocalRuntime(): Promise<void> {
-    const localRuntime = this.resolveKnownLocalRuntime();
+    const localRuntime = this.getKnownLocalRuntime();
     await localRuntime?.shutdown?.();
     if (localRuntime && localRuntime === this.activeLocalRuntime) {
       this.activeLocalRuntime = undefined;
@@ -399,35 +471,44 @@ export class WindieClient {
   }
 
   private resolveKnownLocalRuntime(): WindieLocalRuntimeClient | undefined {
-    return this.activeLocalRuntime ?? this.resolveConfiguredLocalRuntime();
-  }
-
-  private async resolveLocalRuntimeForWakeUp(
-    options: WindieWakeUpOptions,
-    runtimeFeatures: NormalizedWindieRuntimeFeatures,
-  ): Promise<WindieLocalRuntimeClient | undefined> {
+    if (this.activeLocalRuntime) {
+      return this.activeLocalRuntime;
+    }
     const configuredRuntime = this.resolveConfiguredLocalRuntime();
     if (configuredRuntime) {
       this.activeLocalRuntime = configuredRuntime;
       return configuredRuntime;
     }
-    if (!this.needsLocalRuntime(options, runtimeFeatures)) {
-      return undefined;
+    return undefined;
+  }
+
+  private async ensureLocalRuntime({
+    wakeUp,
+    reason,
+    errorMessage,
+  }: {
+    wakeUp: WindieWakeUpOptions;
+    reason: string;
+    errorMessage: string;
+  }): Promise<WindieLocalRuntimeClient> {
+    const knownRuntime = this.resolveKnownLocalRuntime();
+    if (knownRuntime) {
+      return knownRuntime;
     }
     const context = {
-      wakeUp: options,
+      wakeUp,
       needsLocalRuntime: true,
     };
     if (this.defaultOptions.ensureLocalRuntime) {
       const runtime = await this.defaultOptions.ensureLocalRuntime(context);
       if (!runtime) {
-        throw new Error('WindieClient local runtime provider did not return a runtime for required local features.');
+        throw new Error(errorMessage);
       }
       this.activeLocalRuntime = runtime;
       return runtime;
     }
     if (this.defaultOptions.autoStartLocalRuntime === false) {
-      throw new Error('WindieClient local runtime is required for memory, persistence, tools, plugins, MCPs, or builtins, but autoStartLocalRuntime is false.');
+      throw new Error(`WindieClient local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
     }
     if (!this.autoLocalRuntimeProvider) {
       this.autoLocalRuntimeProvider = createWindieLocalRuntimeProvider<WindieWakeUpOptions>({
@@ -437,10 +518,28 @@ export class WindieClient {
     }
     const runtime = await this.autoLocalRuntimeProvider(context);
     if (!runtime) {
-      throw new Error('WindieClient local runtime provider did not return a runtime for required local features.');
+      throw new Error(errorMessage);
     }
     this.activeLocalRuntime = runtime;
     return runtime;
+  }
+
+  private async resolveLocalRuntimeForWakeUp(
+    options: WindieWakeUpOptions,
+    runtimeFeatures: NormalizedWindieRuntimeFeatures,
+  ): Promise<WindieLocalRuntimeClient | undefined> {
+    const knownRuntime = this.resolveKnownLocalRuntime();
+    if (knownRuntime) {
+      return knownRuntime;
+    }
+    if (!this.needsLocalRuntime(options, runtimeFeatures)) {
+      return undefined;
+    }
+    return this.ensureLocalRuntime({
+      wakeUp: options,
+      reason: 'memory, persistence, tools, plugins, MCPs, or builtins',
+      errorMessage: 'WindieClient local runtime provider did not return a runtime for required local features.',
+    });
   }
 
   private needsLocalRuntime(

@@ -71,6 +71,8 @@ export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text'
 
 export type WindieAgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
+  getKnownLocalRuntime?(): WindieLocalRuntimeClient | null;
+  localRuntime?(options?: { reason?: string }): Promise<WindieLocalRuntimeClient>;
   shutdownLocalRuntime?(): Promise<void>;
 };
 
@@ -208,6 +210,21 @@ export class WindieAgent {
     return this.defaultConversationStore;
   }
 
+  private getKnownLocalRuntime(): WindieLocalRuntimeClient | undefined {
+    return this.localRuntime ?? this.owner.getKnownLocalRuntime?.() ?? undefined;
+  }
+
+  private async ensureLocalRuntime(reason: string): Promise<WindieLocalRuntimeClient> {
+    const knownRuntime = this.getKnownLocalRuntime();
+    if (knownRuntime) {
+      return knownRuntime;
+    }
+    if (typeof this.owner.localRuntime !== 'function') {
+      throw new Error(`Local runtime is required for ${reason}`);
+    }
+    return this.owner.localRuntime({ reason });
+  }
+
   async ask(text: string, options: WindieAgentQueryOptions = {}): Promise<string> {
     if (options.model) {
       await this.setModel(options.model);
@@ -318,7 +335,9 @@ export class WindieAgent {
     resourceResolvers?: TurnResourceResolverRegistry | null;
   } = {}): SdkConversationRuntime {
     const conversationRef = options.conversationRef ?? `conv-${this.id}`;
-    const resolvedLocalRuntime = options.localRuntime === undefined ? this.localRuntime : options.localRuntime;
+    const resolvedLocalRuntime = options.localRuntime === undefined
+      ? this.getKnownLocalRuntime()
+      : options.localRuntime;
     const resolvedLocalToolLifecycle = options.localToolLifecycle === undefined
       ? this.localToolLifecycle
       : options.localToolLifecycle;
@@ -557,7 +576,8 @@ export class WindieAgent {
 
   async listTools(options: WindieAgentTraceOptions = {}): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
     const startedAtMs = Date.now();
-    if (!this.localRuntime?.listTools) {
+    const localRuntime = this.getKnownLocalRuntime();
+    if (!localRuntime?.listTools) {
       await this.recordAgentTrace({
         path: 'sidecar.lifecycle',
         stage: 'list_tools',
@@ -576,7 +596,7 @@ export class WindieAgent {
       runtime: 'sidecar',
     }, options);
     try {
-      const response = await this.localRuntime.listTools();
+      const response = await localRuntime.listTools();
       await this.recordAgentTrace({
         path: 'sidecar.lifecycle',
         stage: 'list_tools',
@@ -604,7 +624,8 @@ export class WindieAgent {
 
   async status(options: WindieAgentTraceOptions = {}): Promise<JsonRecord | null> {
     const startedAtMs = Date.now();
-    if (!this.localRuntime?.status) {
+    const localRuntime = this.getKnownLocalRuntime();
+    if (!localRuntime?.status) {
       await this.recordAgentTrace({
         path: 'sidecar.lifecycle',
         stage: 'status',
@@ -623,7 +644,7 @@ export class WindieAgent {
       runtime: 'sidecar',
     }, options);
     try {
-      const response = await this.localRuntime.status();
+      const response = await localRuntime.status();
       await this.recordAgentTrace({
         path: 'sidecar.lifecycle',
         stage: 'status',
@@ -652,8 +673,9 @@ export class WindieAgent {
 
   async shutdownLocalRuntime(options: WindieAgentTraceOptions = {}): Promise<void> {
     const startedAtMs = Date.now();
+    const localRuntime = this.getKnownLocalRuntime();
     const ownerShutdown = typeof this.owner.shutdownLocalRuntime === 'function';
-    const localShutdown = typeof this.localRuntime?.shutdown === 'function';
+    const localShutdown = typeof localRuntime?.shutdown === 'function';
     if (!ownerShutdown && !localShutdown) {
       await this.recordAgentTrace({
         path: 'sidecar.lifecycle',
@@ -680,7 +702,7 @@ export class WindieAgent {
       if (ownerShutdown) {
         await this.owner.shutdownLocalRuntime?.();
       } else {
-        await this.localRuntime?.shutdown?.();
+        await localRuntime?.shutdown?.();
       }
       await this.recordAgentTrace({
         path: 'sidecar.lifecycle',
@@ -804,7 +826,7 @@ export class WindieAgent {
   }
 
   subscribeLocalRuntimeEvents(listener: WindieLocalRuntimeEventListener): () => void {
-    return this.localRuntime?.subscribeEvents?.(listener) ?? (() => {});
+    return this.getKnownLocalRuntime()?.subscribeEvents?.(listener) ?? (() => {});
   }
 
   async listConversations(options: ListConversationOptions & {
@@ -982,10 +1004,11 @@ export class WindieAgent {
   }
 
   private async callLocalRuntimeRpc(method: string, params: JsonRecord): Promise<JsonRecord> {
-    if (!this.localRuntime?.rpc) {
+    const localRuntime = await this.ensureLocalRuntime(`local-runtime-rpc:${method}`);
+    if (!localRuntime.rpc) {
       throw new Error(`Local runtime RPC is required for ${method}`);
     }
-    return this.localRuntime.rpc({ method, params });
+    return localRuntime.rpc({ method, params });
   }
 
   private async callLocalRuntimeRpcData(method: string, params: JsonRecord): Promise<JsonRecord> {
@@ -1014,7 +1037,7 @@ export class WindieAgent {
         attachment_filenames: input.attachmentFilenames ?? undefined,
       },
       sdkClient: this.sdkClient,
-      localRuntime: this.localRuntime,
+      localRuntime: this.getKnownLocalRuntime(),
       memoryEnabled: this.memoryEnabled,
       emitDiagnostic: logMemoryRetrievalDiagnostic,
     });

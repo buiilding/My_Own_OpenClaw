@@ -688,6 +688,133 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('localRuntime starts the SDK local runtime without creating an agent session', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+      executeTool: jest.fn(async () => ({ success: true, data: { connected: true } })),
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+      shutdown: jest.fn(async () => undefined),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+      memory: false,
+      persistence: false,
+    });
+
+    await expect(client.localRuntime({ reason: 'browser-control' })).resolves.toBe(localRuntime);
+
+    expect(ensureLocalRuntime).toHaveBeenCalledWith({
+      wakeUp: {},
+      needsLocalRuntime: true,
+    });
+    expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+
+  test('executeTool and rpc use standalone SDK local runtime execution', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      executeTool: jest.fn(async () => ({ success: true, data: { output: 'ran' } })),
+      rpc: jest.fn(async ({ method }) => ({ success: true, data: { method } })),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+      memory: false,
+      persistence: false,
+    });
+
+    await expect(client.executeTool({
+      toolName: 'browser',
+      args: { action: 'connect' },
+    })).resolves.toEqual({ success: true, data: { output: 'ran' } });
+    await expect(client.rpc({
+      method: 'browser.status',
+      params: { detailed: true },
+    })).resolves.toEqual({ success: true, data: { method: 'browser.status' } });
+
+    expect(localRuntime.executeTool).toHaveBeenCalledWith({
+      toolName: 'browser',
+      args: { action: 'connect' },
+    });
+    expect(localRuntime.rpc).toHaveBeenCalledWith({
+      method: 'browser.status',
+      params: { detailed: true },
+    });
+    expect(ensureLocalRuntime).toHaveBeenCalledTimes(1);
+    expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+
+  test('wakeUp reuses a standalone SDK local runtime instead of resolving another one', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerModuleTool: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'save_note', schema: { type: 'object', properties: {} } }],
+      })),
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+      memory: false,
+      persistence: false,
+    });
+
+    await client.localRuntime({ reason: 'preconversation-browser' });
+    const wakePromise = client.wakeUp({
+      agentId: 'tool-agent',
+      memory: false,
+      persistence: false,
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: { type: 'object', properties: {} },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(ensureLocalRuntime).toHaveBeenCalledTimes(1);
+    expect(localRuntime.registerModuleTool).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'save_note' }),
+      expect.objectContaining({ workspacePath: expect.any(String) }),
+    );
+  });
+
+  test('standalone localRuntime fails closed when auto-start is disabled and no runtime is configured', async () => {
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      autoStartLocalRuntime: false,
+      memory: false,
+      persistence: false,
+    });
+
+    await expect(client.localRuntime({ reason: 'browser-control' })).rejects.toThrow(
+      'WindieClient local runtime is required for browser-control, but autoStartLocalRuntime is false.',
+    );
+    expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+
   test('agent.chat uses sidecar-backed persistence by default', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),

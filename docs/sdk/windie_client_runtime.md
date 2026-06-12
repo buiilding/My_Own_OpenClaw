@@ -69,11 +69,17 @@ Ownership rules:
 
 Local runtime facts must not unlock backend capabilities. In particular, coordinate methods are backend policy/provider outputs. The client can report or narrow local executable tools; it cannot grant OCR, vision, prediction, or paid backend capabilities.
 
-All SDK consumers use the high-level `WindieClient.wakeUp(...)` surface because
-it hides agent definition, websocket/session, local-runtime, tool manifest, and
-store details. Desktop-style clients should create one client with managed
-backend connection settings, call `wakeUp(...)`, then create a conversation
-runtime from the returned agent. The SDK owns websocket normalization,
+SDK consumers can use local runtime/tool execution independently from the agent
+loop. `WindieClient.localRuntime(...)`, `executeTool(...)`, `rpc(...)`,
+`listLocalTools(...)`, and `localStatus(...)` start or reuse the SDK-owned local
+runtime without creating a `WindieAgent`, backend websocket, conversation, or
+model turn. Use `WindieClient.wakeUp(...)` when the caller wants the full agent
+conversation path: agent definition, websocket/session, local-runtime manifest,
+tool-result return, and store wiring.
+
+Desktop-style agent clients should create one client with managed backend
+connection settings, call `wakeUp(...)`, then create a conversation runtime from
+the returned agent. The SDK owns websocket normalization,
 reconnect/fallback/idle policy, local tool routing, backend result return,
 conversation projections, retry/edit/rehydrate helpers, model/settings commands,
 and memory/title helpers. The host renders projections and supplies only
@@ -353,6 +359,21 @@ stateless backend-only session and does not request local builtins, module
 tools, plugins, or MCPs. In that case `wakeUp` does not require or start a
 sidecar runtime.
 
+Standalone local tool callers should use the root client instead of creating an
+agent solely to reach the sidecar:
+
+```ts
+const client = new WindieClient({ autoSidecar });
+await client.executeTool({
+  toolName: "browser",
+  args: {
+    action: "connect",
+    explanation: "Open the dedicated WindieOS browser."
+  }
+});
+const status = await client.localStatus();
+```
+
 When a local runtime supports events, callers can subscribe through the SDK
 runtime instead of connecting to the sidecar daemon directly:
 
@@ -570,11 +591,14 @@ one.
 
 ## Local Runtime Options
 
-`WindieClient.wakeUp()` resolves the local runtime through the SDK. Electron main
-does not create a daemon HTTP client or pass `ensureLocalRuntime` for the desktop
-daemon path. Instead, Electron computes desktop launch options (Python or packaged
-daemon command, args, cwd, environment, auth/permission paths, discovery path, and
-launch context) and passes them as `autoSidecar`.
+`WindieClient.localRuntime()` and `WindieClient.wakeUp()` resolve the local
+runtime through the same SDK manager. Electron main does not create a daemon
+HTTP client or a second local-runtime provider for the desktop daemon path.
+Instead, Electron computes desktop launch options (Python or packaged daemon
+command, args, cwd, environment, auth/permission paths, discovery path, and
+launch context), passes them as `autoSidecar` to one shared `WindieClient`, and
+hands `client.getKnownLocalRuntime()` / `client.localRuntime({ reason })`
+resolvers to host IPC facades such as browser control and local-backend status.
 
 The SDK auto sidecar provider reads the daemon discovery file, validates launch
 context when one is provided, starts or reuses `sidecar_daemon.py`, owns
@@ -596,7 +620,8 @@ Non-Electron SDK hosts can override that behavior with:
   while leaving daemon discovery, registration, JSON-RPC unwrapping, and
   shutdown with `WindieClient`.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
-  a `WindieLocalRuntimeClient` when `wakeUp` needs local execution.
+  a `WindieLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
+  execution.
 - `sidecar`: a custom `WindieLocalRuntimeClient` implementation.
 - `localRuntime`: an alias for the same custom runtime interface.
 - `sidecarDaemon`: daemon `baseUrl` and per-process `token`; `WindieClient`
@@ -613,12 +638,15 @@ The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `localRuntime`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly
 when they need local execution.
 
-After `wakeUp` resolves a local runtime, `WindieClient.status()`,
-`WindieClient.listTools()`, and `WindieClient.shutdownLocalRuntime()` operate on
-that known runtime. The returned `WindieAgent` exposes the same local-runtime
-status/tool-list/shutdown helpers, so SDK hosts can keep using the agent object
-after wake-up instead of retaining the root client. These helpers do not
-auto-start a daemon just to inspect status.
+After any SDK path resolves a local runtime, `WindieClient.status()`,
+`WindieClient.listTools()`, `WindieClient.getKnownLocalRuntime()`, and
+`WindieClient.shutdownLocalRuntime()` operate on that known runtime. `status()`
+and `listTools()` remain non-starting inspection helpers. Use
+`localStatus()` and `listLocalTools()` when the caller intentionally wants to
+start/reuse the local runtime for inspection. The returned `WindieAgent` exposes
+the same local-runtime status/tool-list/shutdown helpers, so SDK hosts can keep
+using the agent object after wake-up instead of retaining the root client.
+These agent helpers do not auto-start a daemon just to inspect status.
 Use `agent.shutdown()` for CLI and custom SDK host teardown; it closes the
 backend websocket and then shuts down the known local runtime. `agent.sleep()`
 only closes the backend session.
@@ -664,6 +692,12 @@ conversation store.
 
 Current canonical surface:
 
+- `localRuntime`
+- `getKnownLocalRuntime`
+- `executeTool`
+- `rpc`
+- `listLocalTools`
+- `localStatus`
 - `wakeUp`
 - `ask`
 - `query`

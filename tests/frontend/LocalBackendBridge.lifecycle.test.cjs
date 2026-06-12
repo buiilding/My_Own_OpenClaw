@@ -10,24 +10,21 @@ const {
 describe('local_backend_bridge SDK sidecar lifecycle', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  test('unavailable SDK sidecar launch plan reports failure without spawning a standalone sidecar', async () => {
+  test('missing SDK local runtime resolver reports failure without spawning a standalone sidecar', async () => {
     const { handlers, mainWindow, spawn } = initBridge({
-      localRuntimeProvider: null,
-      autoSidecarLaunchPlan: {
-        ok: false,
-        error: 'Sidecar daemon launch is unavailable.',
-      },
+      ensureLocalRuntime: null,
+      getKnownLocalRuntime: null,
     });
 
     expect(spawn).not.toHaveBeenCalled();
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
       ready: false,
       status: 'error',
-      error: 'Sidecar daemon launch is unavailable.',
+      error: 'Windie SDK local runtime resolver is unavailable.',
     }));
     await expect(handlers['search-memory'](null, { query: 'hello' })).resolves.toEqual({
       success: false,
-      error: 'Windie SDK local runtime provider is not initialized.',
+      error: 'Windie SDK local runtime resolver is not initialized.',
     });
   });
 
@@ -38,12 +35,12 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
       subscribeEvents: jest.fn(() => jest.fn()),
       shutdown: jest.fn(async () => undefined),
     };
-    const localRuntimeProvider = jest.fn(async () => localRuntime);
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
 
-    const { handlers, mainWindow, spawn } = initBridge({ localRuntimeProvider });
+    const { handlers, mainWindow, spawn } = initBridge({ ensureLocalRuntime });
 
     expect(spawn).not.toHaveBeenCalled();
-    expect(localRuntimeProvider).not.toHaveBeenCalled();
+    expect(ensureLocalRuntime).not.toHaveBeenCalled();
     const result = await handlers['get-local-backend-status']();
     expect(result).toEqual(expect.objectContaining({
       ready: true,
@@ -53,10 +50,9 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
         hasClient: true,
       }),
     }));
-    expect(localRuntimeProvider).toHaveBeenCalledTimes(1);
-    expect(localRuntimeProvider).toHaveBeenCalledWith({
-      wakeUp: {},
-      needsLocalRuntime: true,
+    expect(ensureLocalRuntime).toHaveBeenCalledTimes(1);
+    expect(ensureLocalRuntime).toHaveBeenCalledWith({
+      reason: 'status_bootstrap',
     });
     expect(localRuntime.subscribeEvents).toHaveBeenCalledTimes(1);
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
@@ -70,33 +66,33 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     }));
   });
 
-  test('status bootstrap reuses the active agent local runtime before the bridge provider', async () => {
+  test('status bootstrap reuses the known SDK local runtime before ensuring another one', async () => {
     const activeRuntime = {
       executeTool: jest.fn(async () => ({ success: true, data: {} })),
       rpc: jest.fn(async () => ({ success: true })),
       subscribeEvents: jest.fn(() => jest.fn()),
       shutdown: jest.fn(async () => undefined),
     };
-    const localRuntimeProvider = jest.fn(async () => {
-      throw new Error('bridge provider should not be called');
+    const ensureLocalRuntime = jest.fn(async () => {
+      throw new Error('ensure resolver should not be called');
     });
 
     const { handlers, mainWindow, spawn } = initBridge({
-      getActiveLocalRuntime: () => activeRuntime,
-      localRuntimeProvider,
+      getKnownLocalRuntime: () => activeRuntime,
+      ensureLocalRuntime,
     });
 
     const result = await handlers['get-local-backend-status']();
 
     expect(spawn).not.toHaveBeenCalled();
-    expect(localRuntimeProvider).not.toHaveBeenCalled();
+    expect(ensureLocalRuntime).not.toHaveBeenCalled();
     expect(result).toEqual(expect.objectContaining({
       ready: true,
       status: 'ready',
       sidecarDaemon: expect.objectContaining({
         provider: 'sdk',
         hasClient: true,
-        source: 'active-agent',
+        source: 'sdk-client-known',
       }),
     }));
     expect(activeRuntime.subscribeEvents).toHaveBeenCalledTimes(1);
@@ -106,7 +102,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     }));
   });
 
-  test('stopLocalBackend shuts down SDK runtime and rejects later backend tool execution', async () => {
+  test('stopLocalBackend stops bridge execution without shutting down the SDK-owned runtime', async () => {
     const { bridge, handlers, sdkRuntime } = initBridge();
 
     const searchPromise = handlers['search-memory'](null, { query: 'hello' });
@@ -116,7 +112,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
 
     bridge.stopLocalBackend();
 
-    expect(sdkRuntime.shutdown).toHaveBeenCalledTimes(1);
+    expect(sdkRuntime.shutdown).not.toHaveBeenCalled();
     await expect(bridge.executeToolForBackend({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
@@ -132,11 +128,11 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     );
   });
 
-  test('SDK provider errors fail closed for bridge RPC helpers', async () => {
-    const localRuntimeProvider = jest.fn(async () => {
+  test('SDK resolver errors fail closed for bridge RPC helpers', async () => {
+    const ensureLocalRuntime = jest.fn(async () => {
       throw new Error('daemon unavailable');
     });
-    const { handlers, spawn } = initBridge({ localRuntimeProvider });
+    const { handlers, spawn } = initBridge({ ensureLocalRuntime });
 
     expect(spawn).not.toHaveBeenCalled();
     await expect(handlers['search-memory'](null, { query: 'hello' })).resolves.toEqual({
@@ -145,11 +141,11 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     });
   });
 
-  test('status bootstrap reports SDK provider failures without leaving the browser control spinning', async () => {
-    const localRuntimeProvider = jest.fn(async () => {
+  test('status bootstrap reports SDK resolver failures without leaving the browser control spinning', async () => {
+    const ensureLocalRuntime = jest.fn(async () => {
       throw new Error('daemon unavailable');
     });
-    const { handlers, mainWindow, spawn } = initBridge({ localRuntimeProvider });
+    const { handlers, mainWindow, spawn } = initBridge({ ensureLocalRuntime });
 
     expect(spawn).not.toHaveBeenCalled();
     await expect(handlers['get-local-backend-status']()).resolves.toEqual(expect.objectContaining({

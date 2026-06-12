@@ -30,15 +30,8 @@ const {
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
 } = require('../diagnostics/app_diagnostics_store.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
-const {
-  createDesktopAutoSidecarLaunchPlan,
-} = require('./sdk_sidecar_launch_options.cjs');
-const {
-  createWindieLocalRuntimeProvider,
-} = require('../../../../packages/windie-sdk-js/cjs/index.js');
 
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
-const isTestEnv = process.env.NODE_ENV === 'test';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
   granted: false,
   reason: 'Local backend bridge is not initialized.',
@@ -51,15 +44,13 @@ let runtimeExecuteTool = async () => ({
   error: 'Local backend bridge is not initialized.',
 });
 const localRuntimeStatusSupervisor = createLocalBackendSupervisor();
-let sdkLocalRuntimeProvider = null;
 let sdkLocalRuntime = null;
 let sdkLocalRuntimeEventUnsubscribe = null;
 let sdkLocalRuntimeEventHandler = null;
 let sdkLocalRuntimeSnapshot = null;
-let localRuntimeSessionRef = null;
 let sdkStatusMainWindow = null;
-let getActiveLocalRuntime = null;
-let sdkLocalRuntimeSource = '';
+let getKnownLocalRuntime = null;
+let ensureLocalRuntime = null;
 
 function createBrowserSessionDiagnosticId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -83,7 +74,8 @@ function buildLocalRuntimeDiagnosticData(extra = {}) {
   return {
     ready: snapshot.ready === true,
     status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
-    hasProvider: Boolean(sdkLocalRuntimeProvider),
+    hasResolver: Boolean(ensureLocalRuntime),
+    hasKnownRuntime: Boolean(resolveKnownLocalRuntime({ quiet: true })),
     hasClient: Boolean(sdkLocalRuntime),
     hasDiscoveryPath: Boolean(sdkLocalRuntimeSnapshot?.discoveryPath),
     ...extra,
@@ -126,12 +118,10 @@ function clearSdkLocalRuntime() {
   sdkLocalRuntimeEventUnsubscribe?.();
   sdkLocalRuntimeEventUnsubscribe = null;
   sdkLocalRuntime = null;
-  sdkLocalRuntimeProvider = null;
   sdkLocalRuntimeSnapshot = null;
-  localRuntimeSessionRef = null;
   sdkStatusMainWindow = null;
-  getActiveLocalRuntime = null;
-  sdkLocalRuntimeSource = '';
+  getKnownLocalRuntime = null;
+  ensureLocalRuntime = null;
 }
 
 function createStoppedToolExecutor() {
@@ -150,35 +140,35 @@ function attachSdkLocalRuntimeEvents(runtime) {
   });
 }
 
-function resolveActiveLocalRuntime() {
-  if (typeof getActiveLocalRuntime !== 'function') {
+function resolveKnownLocalRuntime({ quiet = false } = {}) {
+  if (typeof getKnownLocalRuntime !== 'function') {
     return null;
   }
   try {
-    const runtime = getActiveLocalRuntime();
+    const runtime = getKnownLocalRuntime();
     return runtime && typeof runtime === 'object' ? runtime : null;
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[LocalBackend] Active SDK local runtime lookup failed: ${getErrorMessage(error)}`);
+    if (!quiet && process.env.NODE_ENV !== 'production') {
+      console.warn(`[LocalBackend] Known SDK local runtime lookup failed: ${getErrorMessage(error)}`);
     }
     return null;
   }
 }
 
 function rememberSdkLocalRuntime(runtime, {
-  source,
+  source = 'sdk-client',
   discoveryPath = null,
 } = {}) {
-  if (sdkLocalRuntime && sdkLocalRuntime !== runtime) {
+  const isNewRuntime = sdkLocalRuntime !== runtime;
+  if (sdkLocalRuntime && isNewRuntime) {
     sdkLocalRuntimeEventUnsubscribe?.();
     sdkLocalRuntimeEventUnsubscribe = null;
   }
   sdkLocalRuntime = runtime;
-  sdkLocalRuntimeSource = typeof source === 'string' ? source : '';
   sdkLocalRuntimeSnapshot = {
     provider: 'sdk',
     hasClient: true,
-    source: sdkLocalRuntimeSource || 'unknown',
+    source: typeof source === 'string' ? source : 'sdk-client',
     ...(
       discoveryPath || sdkLocalRuntimeSnapshot?.discoveryPath
         ? { discoveryPath: discoveryPath || sdkLocalRuntimeSnapshot.discoveryPath }
@@ -186,38 +176,37 @@ function rememberSdkLocalRuntime(runtime, {
     ),
   };
   attachSdkLocalRuntimeEvents(runtime);
-  if (!localRuntimeSessionRef) {
-    localRuntimeSessionRef = { kind: 'sdk-local-runtime' };
-    localRuntimeStatusSupervisor.attachProcess(localRuntimeSessionRef);
+  if (isNewRuntime || !localRuntimeStatusSupervisor.getSnapshot().process) {
+    localRuntimeStatusSupervisor.attachProcess({ kind: 'sdk-local-runtime' });
   }
-  if (sdkStatusMainWindow && localRuntimeSessionRef) {
+  if (sdkStatusMainWindow) {
     markBackendReady(sdkStatusMainWindow);
   }
   return runtime;
 }
 
-async function ensureSdkLocalRuntime() {
-  const activeRuntime = resolveActiveLocalRuntime();
-  if (activeRuntime) {
-    return rememberSdkLocalRuntime(activeRuntime, {
-      source: 'active-agent',
+async function ensureSdkLocalRuntime(reason = 'local-runtime') {
+  const knownRuntime = resolveKnownLocalRuntime();
+  if (knownRuntime) {
+    if (knownRuntime === sdkLocalRuntime) {
+      return sdkLocalRuntime;
+    }
+    return rememberSdkLocalRuntime(knownRuntime, {
+      source: 'sdk-client-known',
     });
-  }
-  if (!sdkLocalRuntimeProvider) {
-    throw new Error('Windie SDK local runtime provider is not initialized.');
   }
   if (sdkLocalRuntime) {
     return sdkLocalRuntime;
   }
-  const runtime = await sdkLocalRuntimeProvider({
-    wakeUp: {},
-    needsLocalRuntime: true,
-  });
+  if (typeof ensureLocalRuntime !== 'function') {
+    throw new Error('Windie SDK local runtime resolver is not initialized.');
+  }
+  const runtime = await ensureLocalRuntime({ reason });
   if (!runtime) {
-    throw new Error('Windie SDK local runtime provider did not return a runtime.');
+    throw new Error('Windie SDK local runtime resolver did not return a runtime.');
   }
   return rememberSdkLocalRuntime(runtime, {
-    source: 'bridge-provider',
+    source: 'sdk-client',
     discoveryPath: sdkLocalRuntimeSnapshot?.discoveryPath || null,
   });
 }
@@ -233,12 +222,12 @@ async function wakeSdkLocalRuntimeForStatus(mainWindow) {
     status: 'started',
     runtime: 'electron-main',
     data: buildLocalRuntimeDiagnosticData({
-      wakeRequested: Boolean(sdkLocalRuntimeProvider && !sdkLocalRuntime),
+      wakeRequested: Boolean(ensureLocalRuntime && !sdkLocalRuntime),
       alreadyReady: sdkLocalRuntime && localRuntimeStatusSupervisor.getSnapshot().ready === true,
     }),
   });
 
-  if (!sdkLocalRuntimeProvider) {
+  if (!ensureLocalRuntime && !resolveKnownLocalRuntime({ quiet: true })) {
     const payload = buildCurrentLocalBackendStatusPayload();
     appendBrowserSessionDiagnostic({
       traceId,
@@ -250,7 +239,7 @@ async function wakeSdkLocalRuntimeForStatus(mainWindow) {
       data: buildLocalRuntimeDiagnosticData({
         wakeSucceeded: false,
       }),
-      error: payload.error || 'Windie SDK local runtime provider is unavailable.',
+      error: payload.error || 'Windie SDK local runtime resolver is unavailable.',
     });
     return payload;
   }
@@ -272,7 +261,7 @@ async function wakeSdkLocalRuntimeForStatus(mainWindow) {
   }
 
   try {
-    await ensureSdkLocalRuntime();
+    await ensureSdkLocalRuntime('status_bootstrap');
     const payload = buildCurrentLocalBackendStatusPayload();
     appendBrowserSessionDiagnostic({
       traceId,
@@ -320,14 +309,16 @@ function createSdkRpcRequestId() {
 }
 
 function sendRequest(method, params = {}) {
-  if (!sdkLocalRuntimeProvider && !resolveActiveLocalRuntime()) {
-    return Promise.reject(new Error('Windie SDK local runtime provider is not initialized.'));
-  }
-  return ensureSdkLocalRuntime().then(runtime => runtime.rpc({
-    id: createSdkRpcRequestId(),
-    method,
-    params,
-  }));
+  return ensureSdkLocalRuntime(`rpc:${method}`).then((runtime) => {
+    if (typeof runtime.rpc !== 'function') {
+      throw new Error(`Windie SDK local runtime does not support RPC method ${method}.`);
+    }
+    return runtime.rpc({
+      id: createSdkRpcRequestId(),
+      method,
+      params,
+    });
+  });
 }
 
 async function sendRequestOrError(method, params = {}, options = {}) {
@@ -364,13 +355,6 @@ async function sendMemorySearchRequest(payload = {}) {
 
 function stopLocalBackend() {
   runtimeExecuteTool = createStoppedToolExecutor();
-  if (
-    sdkLocalRuntime
-    && sdkLocalRuntimeSource !== 'active-agent'
-    && typeof sdkLocalRuntime.shutdown === 'function'
-  ) {
-    void sdkLocalRuntime.shutdown();
-  }
   clearSdkLocalRuntime();
   localRuntimeStatusSupervisor.clear({
     status: 'stopped',
@@ -409,58 +393,25 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   const getArtifactUploadHeaders = typeof options.getArtifactUploadHeaders === 'function'
     ? options.getArtifactUploadHeaders
     : loadArtifactUploadHeaders;
-  getActiveLocalRuntime = typeof options.getActiveLocalRuntime === 'function'
-    ? options.getActiveLocalRuntime
+  getKnownLocalRuntime = typeof options.getKnownLocalRuntime === 'function'
+    ? options.getKnownLocalRuntime
+    : null;
+  ensureLocalRuntime = typeof options.ensureLocalRuntime === 'function'
+    ? options.ensureLocalRuntime
     : null;
   sdkLocalRuntimeEventHandler = (payload) => {
     broadcastConversationMetadataInvalidation(resolveWindows, payload);
   };
-  const sidecarLaunchPlan = options.autoSidecarLaunchPlan || (
-    isTestEnv
-      ? null
-      : createDesktopAutoSidecarLaunchPlan({
-          isPackaged,
-          backendEndpoints,
-          permissionStatePath: options.permissionStatePath,
-          authStatePath: options.authStatePath,
-          WebSocketImpl: options.WebSocketImpl,
-        })
-  );
-  if (options.localRuntimeProvider) {
-    sdkLocalRuntimeProvider = options.localRuntimeProvider;
-    sdkLocalRuntimeSnapshot = {
-      provider: 'sdk',
-      hasClient: false,
-    };
-  } else if (sidecarLaunchPlan?.ok === true) {
-    sdkLocalRuntimeProvider = createWindieLocalRuntimeProvider(sidecarLaunchPlan.options);
-    sdkLocalRuntimeSnapshot = {
-      provider: 'sdk',
-      hasClient: false,
-      discoveryPath: sidecarLaunchPlan.options.discoveryFile || null,
-    };
-  } else {
-    sdkLocalRuntimeProvider = null;
-    sdkLocalRuntimeSnapshot = sidecarLaunchPlan && sidecarLaunchPlan.ok === false
-      ? {
-          provider: 'sdk',
-          hasClient: false,
-          error: sidecarLaunchPlan.error || 'Sidecar daemon launch is unavailable.',
-        }
-      : null;
-  }
   const sdkLocalToolExecutor = options.sdkLocalToolExecutor || (
-    sdkLocalRuntimeProvider
-      ? {
-          executeTool: async (payload) => {
-            const runtime = await ensureSdkLocalRuntime();
-            if (typeof runtime.executeTool !== 'function') {
-              throw new Error('Windie SDK local runtime does not support tool execution.');
-            }
-            return runtime.executeTool(payload);
-          },
+    {
+      executeTool: async (payload) => {
+        const runtime = await ensureSdkLocalRuntime('execute_tool');
+        if (typeof runtime.executeTool !== 'function') {
+          throw new Error('Windie SDK local runtime does not support tool execution.');
         }
-      : null
+        return runtime.executeTool(payload);
+      },
+    }
   );
   const executeToolRuntime = createLocalBackendExecuteToolRuntime({
     sendRequest,
@@ -476,20 +427,30 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
 
   const [mainWindow] = resolveWindows();
   sdkStatusMainWindow = mainWindow;
-  if (sdkLocalRuntimeProvider) {
+  if (ensureLocalRuntime || resolveKnownLocalRuntime({ quiet: true })) {
+    sdkLocalRuntimeSnapshot = {
+      provider: 'sdk',
+      hasClient: false,
+      source: 'sdk-client',
+    };
     localRuntimeStatusSupervisor.clear({
       status: 'stopped',
       error: '',
     });
   } else {
+    sdkLocalRuntimeSnapshot = {
+      provider: 'sdk',
+      hasClient: false,
+      error: 'Windie SDK local runtime resolver is unavailable.',
+    };
     localRuntimeStatusSupervisor.clear({
       status: 'error',
-      error: sidecarLaunchPlan?.error || 'Windie SDK local runtime provider is unavailable.',
+      error: 'Windie SDK local runtime resolver is unavailable.',
     });
     publishLocalBackendStatus(mainWindow, {
       stage: 'status_broadcast',
       status: 'failed',
-      error: sidecarLaunchPlan?.error || 'Windie SDK local runtime provider is unavailable.',
+      error: 'Windie SDK local runtime resolver is unavailable.',
     });
   }
 

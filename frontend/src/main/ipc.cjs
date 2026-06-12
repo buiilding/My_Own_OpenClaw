@@ -186,6 +186,7 @@ let syncSdkLiveTurnSurfaceIntent = null;
 let windieAgentWebSocketImpl = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
+let windieClient = null;
 let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
 let latestCurrentTurnProjection = null;
@@ -642,6 +643,44 @@ function buildDesktopAutoSidecarOptionsForAgent() {
   return plan.options;
 }
 
+function buildDesktopLocalRuntimeOptions() {
+  return process.env.NODE_ENV === 'test'
+    ? { autoStartLocalRuntime: false }
+    : { autoSidecar: buildDesktopAutoSidecarOptionsForAgent() };
+}
+
+function createDesktopWindieClient() {
+  return new WindieClient({
+    backendUrl: backendEndpointState.getHttpUrl(),
+    httpBaseUrl: backendEndpointState.getHttpUrl(),
+    wsUrl: backendEndpointState.getWsUrl(),
+    wsOrigin: backendEndpointState.getHttpUrl(),
+    backendEndpoints: buildManagedBackendEndpoints(),
+    backendSession: 'managed',
+    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
+    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
+    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
+    ...buildDesktopLocalRuntimeOptions(),
+    onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
+    onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
+    onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
+    onBackendHandshakeError: error => handleWindieAgentConnection({ type: 'handshake-error', error }),
+    onBackendMessageError: error => handleWindieAgentConnection({ type: 'message-error', error }),
+    onBackendSend: type => {
+      windieAgent?.noteBackendTraffic?.(`send:${type}`);
+    },
+    onBackendFallback: endpoint => handleWindieAgentBackendFallback(endpoint),
+  });
+}
+
+function getWindieClient() {
+  if (!windieClient) {
+    windieClient = createDesktopWindieClient();
+  }
+  return windieClient;
+}
+
 function createDirectWakeUpAgentAdapter({
   agent,
   workspacePath = null,
@@ -981,31 +1020,7 @@ function createDirectWakeUpAgentAdapter({
 async function startWindieAgent({ reason = 'request', workspacePath = null } = {}) {
   await ensureInstallAuthState();
   const resolvedWorkspacePath = workspacePath || resolveWorkspacePathForAgent() || undefined;
-  const localRuntimeOptions = process.env.NODE_ENV === 'test'
-    ? { autoStartLocalRuntime: false }
-    : { autoSidecar: buildDesktopAutoSidecarOptionsForAgent() };
-  const client = new WindieClient({
-    backendUrl: backendEndpointState.getHttpUrl(),
-    httpBaseUrl: backendEndpointState.getHttpUrl(),
-    wsUrl: backendEndpointState.getWsUrl(),
-    wsOrigin: backendEndpointState.getHttpUrl(),
-    backendEndpoints: buildManagedBackendEndpoints(),
-    backendSession: 'managed',
-    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
-    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
-    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
-    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
-    ...localRuntimeOptions,
-    onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
-    onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
-    onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
-    onBackendHandshakeError: error => handleWindieAgentConnection({ type: 'handshake-error', error }),
-    onBackendMessageError: error => handleWindieAgentConnection({ type: 'message-error', error }),
-    onBackendSend: type => {
-      windieAgent?.noteBackendTraffic?.(`send:${type}`);
-    },
-    onBackendFallback: endpoint => handleWindieAgentBackendFallback(endpoint),
-  });
+  const client = getWindieClient();
   const agent = await client.wakeUp({
     installAuth: buildDesktopInstallAuth(),
     name: 'WindieOS',
@@ -1053,8 +1068,12 @@ function noteBackendTraffic(reason = 'traffic') {
   windieAgent?.noteBackendTraffic(reason);
 }
 
-function getActiveWindieLocalRuntime() {
-  return windieAgent?.localRuntime || null;
+function getKnownWindieLocalRuntime() {
+  return windieClient?.getKnownLocalRuntime?.() || windieAgent?.localRuntime || null;
+}
+
+async function ensureWindieLocalRuntime({ reason = 'local-runtime' } = {}) {
+  return getWindieClient().localRuntime({ reason });
 }
 
 async function restartWindieAgent(reason = 'restart') {
@@ -1266,6 +1285,8 @@ function shutdownIpcForTests() {
   pendingInstallAuthStatePromise = null;
   isConnected = false;
   pendingWindieAgentStartPromise = null;
+  void windieClient?.shutdownLocalRuntime?.();
+  windieClient = null;
   windieAgent?.close();
   windieAgent = null;
   desktopAutoSidecarLaunchConfig = null;
@@ -2226,7 +2247,8 @@ module.exports = {
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
   BACKEND_RECONNECT_INTERVAL_MS,
   getBackendConnectionState,
-  getActiveWindieLocalRuntime,
+  getKnownWindieLocalRuntime,
+  ensureWindieLocalRuntime,
   getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,

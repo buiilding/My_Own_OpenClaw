@@ -22,7 +22,6 @@ const {
 } = require('./permissions/permission_state_store.cjs');
 const {
   getBackendConnectionState,
-  getActiveWindieLocalRuntime,
   getKnownWindieLocalRuntime,
   ensureWindieLocalRuntime,
   getLatestFrontendConfig,
@@ -261,7 +260,6 @@ const {
   setAgentLoopStopShortcutEnabled: agentStopShortcutRuntime.setEnabled,
   initializeWakewordBridge,
   initializeLocalBackendBridge,
-  getActiveLocalRuntime: getActiveWindieLocalRuntime,
   getKnownLocalRuntime: getKnownWindieLocalRuntime,
   ensureLocalRuntime: ensureWindieLocalRuntime,
   getPermissionStatePath,
