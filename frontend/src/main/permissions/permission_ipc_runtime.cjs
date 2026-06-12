@@ -41,6 +41,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
     userDataPath,
     emitWorkspaceAccessUpdated,
     emitTraceEvent,
+    emitAppDiagnosticEvent,
     log,
   } = deps;
 
@@ -75,6 +76,33 @@ function initializePermissionHandlersRuntime(deps = {}) {
       ? options.permissionId
       : '';
   };
+  const normalizeTraceString = (value) => (
+    typeof value === 'string' && value.trim()
+      ? value.trim()
+      : null
+  );
+  const getTraceContext = (options = {}) => {
+    const nestedTrace = options && typeof options._trace === 'object' && !Array.isArray(options._trace)
+      ? options._trace
+      : {};
+    return {
+      conversationRef: normalizeTraceString(
+        options?.conversationRef
+          || options?.conversation_ref
+          || nestedTrace.conversationRef
+          || nestedTrace.conversation_ref,
+      ),
+      turnRef: normalizeTraceString(
+        options?.turnRef
+          || options?.turn_ref
+          || nestedTrace.turnRef
+          || nestedTrace.turn_ref,
+      ),
+    };
+  };
+  const hasConversationTraceContext = (traceContext = {}) => (
+    Boolean(traceContext.conversationRef && traceContext.turnRef)
+  );
 
   const recordPermissionTrace = async ({
     stage,
@@ -84,47 +112,66 @@ function initializePermissionHandlersRuntime(deps = {}) {
     startedAt = null,
     error = null,
     data = {},
+    traceContext = {},
   }) => {
-    if (typeof emitTraceEvent !== 'function') {
+    const shouldRecordConversationTrace = (
+      hasConversationTraceContext(traceContext)
+      && typeof emitTraceEvent === 'function'
+    );
+    const shouldRecordAppDiagnostic = (
+      !shouldRecordConversationTrace
+      && typeof emitAppDiagnosticEvent === 'function'
+    );
+    if (!shouldRecordConversationTrace && !shouldRecordAppDiagnostic) {
       return;
     }
     const endedAt = new Date().toISOString();
     const durationMs = startedAt ? Date.now() - Date.parse(startedAt) : null;
+    const event = {
+      path: 'permission.probe',
+      stage,
+      status,
+      runtime: 'electron-main',
+      startedAt,
+      endedAt,
+      durationMs,
+      data: {
+        permissionId: permissionId || null,
+        permissionStatus: typeof permissionStatus?.status === 'string'
+          ? permissionStatus.status
+          : null,
+        granted: permissionStatus?.granted === true,
+        hasDetails: Boolean(permissionStatus?.details),
+        platform: typeof platform === 'string' ? platform : process.platform,
+        ...data,
+      },
+      error,
+    };
     try {
-      await emitTraceEvent({
-        path: 'permission.probe',
-        stage,
-        status,
-        runtime: 'electron-main',
-        startedAt,
-        endedAt,
-        durationMs,
-        data: {
-          permissionId: permissionId || null,
-          permissionStatus: typeof permissionStatus?.status === 'string'
-            ? permissionStatus.status
-            : null,
-          granted: permissionStatus?.granted === true,
-          hasDetails: Boolean(permissionStatus?.details),
-          platform: typeof platform === 'string' ? platform : process.platform,
-          ...data,
-        },
-        error,
-      });
+      if (shouldRecordConversationTrace) {
+        await emitTraceEvent({
+          ...event,
+          conversationRef: traceContext.conversationRef,
+          turnRef: traceContext.turnRef,
+        });
+        return;
+      }
+      await emitAppDiagnosticEvent(event);
     } catch (traceError) {
       if (typeof log === 'function') {
-        log(`Failed to record permission trace: ${traceError?.message || traceError}`);
+        log(`Failed to record permission diagnostic: ${traceError?.message || traceError}`);
       }
     }
   };
 
-  const buildPermissionProbeResult = async (permissionId, stage = 'probe') => {
+  const buildPermissionProbeResult = async (permissionId, stage = 'probe', traceContext = {}) => {
     const startedAt = new Date().toISOString();
     await recordPermissionTrace({
       stage,
       status: 'started',
       permissionId,
       startedAt,
+      traceContext,
     });
     try {
       const status = await runPermissionProbe(permissionId, permissionDeps);
@@ -134,6 +181,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
         permissionId,
         permissionStatus: status,
         startedAt,
+        traceContext,
       });
       return {
         success: true,
@@ -148,12 +196,13 @@ function initializePermissionHandlersRuntime(deps = {}) {
         permissionId,
         startedAt,
         error,
+        traceContext,
       });
       throw error;
     }
   };
 
-  const buildBulkPermissionProbeResult = async (permissionIds) => {
+  const buildBulkPermissionProbeResult = async (permissionIds, traceContext = {}) => {
     const startedAt = new Date().toISOString();
     const requestedCount = Array.isArray(permissionIds) ? permissionIds.length : 0;
     await recordPermissionTrace({
@@ -164,6 +213,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
       data: {
         requestedCount,
       },
+      traceContext,
     });
     try {
       const statuses = await checkPermissions(permissionIds, permissionDeps);
@@ -179,6 +229,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
             ? statuses.filter((entry) => entry?.granted === true).length
             : 0,
         },
+        traceContext,
       });
       return {
         success: true,
@@ -196,18 +247,20 @@ function initializePermissionHandlersRuntime(deps = {}) {
           requestedCount,
         },
         error,
+        traceContext,
       });
       throw error;
     }
   };
 
-  const buildPermissionRequestResult = async (permissionId) => {
+  const buildPermissionRequestResult = async (permissionId, traceContext = {}) => {
     const startedAt = new Date().toISOString();
     await recordPermissionTrace({
       stage: 'request',
       status: 'started',
       permissionId,
       startedAt,
+      traceContext,
     });
     try {
       const status = await requestPermission(permissionId, permissionDeps);
@@ -217,6 +270,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
         permissionId,
         permissionStatus: status,
         startedAt,
+        traceContext,
       });
       return status;
     } catch (error) {
@@ -226,6 +280,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
         permissionId,
         startedAt,
         error,
+        traceContext,
       });
       throw error;
     }
@@ -235,7 +290,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
     hasWorkspacePath: typeof workspacePath === 'string' && Boolean(workspacePath.trim()),
   });
 
-  const buildWorkspaceActivationResult = async (workspacePath, runActivation) => {
+  const buildWorkspaceActivationResult = async (workspacePath, runActivation, traceContext = {}) => {
     const startedAt = new Date().toISOString();
     await recordPermissionTrace({
       stage: 'workspace_activate',
@@ -243,6 +298,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
       permissionId: 'filesystem_workspace_access',
       startedAt,
       data: buildWorkspaceActivationTraceData(workspacePath),
+      traceContext,
     });
     try {
       const result = await runActivation();
@@ -256,6 +312,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
         error: result?.success === false
           ? { code: 'WorkspaceAccessDenied', message: result.error || 'Workspace activation failed.' }
           : null,
+        traceContext,
       });
       return result;
     } catch (error) {
@@ -265,6 +322,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
         permissionId: 'filesystem_workspace_access',
         startedAt,
         error,
+        traceContext,
       });
       throw error;
     }
@@ -286,20 +344,20 @@ function initializePermissionHandlersRuntime(deps = {}) {
 
   ipcMain.handle('check-permissions', async (_event, options = {}) => {
     const permissionIds = Array.isArray(options?.permissionIds) ? options.permissionIds : null;
-    return await buildBulkPermissionProbeResult(permissionIds);
+    return await buildBulkPermissionProbeResult(permissionIds, getTraceContext(options));
   });
 
   ipcMain.handle('check-permission', async (_event, options = {}) => {
-    return await buildPermissionProbeResult(getPermissionId(options));
+    return await buildPermissionProbeResult(getPermissionId(options), 'probe', getTraceContext(options));
   });
 
   ipcMain.handle('run-permission-probe', async (_event, options = {}) => {
-    return await buildPermissionProbeResult(getPermissionId(options));
+    return await buildPermissionProbeResult(getPermissionId(options), 'probe', getTraceContext(options));
   });
 
   ipcMain.handle('request-permission', async (_event, options = {}) => {
     const permissionId = getPermissionId(options);
-    const status = await buildPermissionRequestResult(permissionId);
+    const status = await buildPermissionRequestResult(permissionId, getTraceContext(options));
     if (
       permissionId === 'filesystem_workspace_access'
       && status?.granted === true
@@ -368,7 +426,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
           status,
         },
       };
-    });
+    }, getTraceContext(options));
   });
 }
 

@@ -23,6 +23,8 @@ const {
 const {
   getBackendConnectionState,
   getActiveWindieLocalRuntime,
+  getKnownWindieLocalRuntime,
+  ensureWindieLocalRuntime,
   getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,
@@ -260,6 +262,8 @@ const {
   initializeWakewordBridge,
   initializeLocalBackendBridge,
   getActiveLocalRuntime: getActiveWindieLocalRuntime,
+  getKnownLocalRuntime: getKnownWindieLocalRuntime,
+  ensureLocalRuntime: ensureWindieLocalRuntime,
   getPermissionStatePath,
   initializeMainProcessIpc,
   createVmWorkerRuntime,
@@ -604,6 +608,7 @@ function initializeMainProcessIpc() {
       },
       emitWorkspaceAccessUpdated: broadcastWorkspaceAccessUpdated,
       emitTraceEvent: appendMainProcessTraceEvent,
+      emitAppDiagnosticEvent: appendAppDiagnostic,
       log: console.warn,
     });
   });

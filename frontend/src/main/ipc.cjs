@@ -42,6 +42,7 @@ const {
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
   APP_DIAGNOSTICS_PATH,
+  PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
 } = require('./diagnostics/app_diagnostics_store.cjs');
 const {
@@ -1580,12 +1581,27 @@ async function sendWakewordDetectedToBackend(payload = {}) {
 }
 
 async function appendMainProcessTraceEvent(input = {}) {
-  const conversationRef = normalizeOptionalString(input.conversationRef)
-    || currentConversationRef;
+  const path = normalizeOptionalString(input.path);
+  const conversationRef = normalizeOptionalString(input.conversationRef);
+  const turnRef = normalizeOptionalString(input.turnRef);
+  if (path === PERMISSION_PROBE_DIAGNOSTICS_PATH && (!conversationRef || !turnRef)) {
+    return appendAppDiagnostic({
+      path,
+      stage: normalizeOptionalString(input.stage) || 'unknown',
+      status: normalizeOptionalString(input.status) || 'succeeded',
+      runtime: normalizeOptionalString(input.runtime) || 'electron-main',
+      requestId: normalizeOptionalString(input.requestId),
+      durationMs: normalizePositiveInteger(input.durationMs),
+      data: isPlainObject(input.data) ? input.data : {},
+      error: input.error,
+    });
+  }
   if (!conversationRef) {
     return { stored: false, reason: 'missing_conversation_ref' };
   }
-  const turnRef = normalizeOptionalString(input.turnRef) || null;
+  if (!turnRef) {
+    return { stored: false, reason: 'missing_turn_ref' };
+  }
   const agent = await ensureWindieAgent({
     reason: 'main-process-trace',
     conversationRef,
@@ -1605,7 +1621,7 @@ async function appendMainProcessTraceEvent(input = {}) {
     },
   });
   const payload = await recorder.record({
-    path: input.path,
+    path,
     stage: input.stage,
     status: input.status,
     runtime: input.runtime || 'electron-main',

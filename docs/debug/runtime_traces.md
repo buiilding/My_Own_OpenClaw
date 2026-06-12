@@ -95,11 +95,6 @@ Current durable traced paths:
 - `overlay.phase`: SDK current-turn projection records phase transitions with
   source event type, before/after phase, active-turn match booleans, and turn
   presence without assistant or user message text.
-- `permission.probe`: Electron main permission IPC records probe/request
-  spans through the active conversation trace handoff when a conversation is
-  available. Rows include permission id, platform, status enum, granted
-  boolean, details presence, duration, and short errors without selected
-  filesystem paths.
 - `browser.runtime`: SDK tool execution records sidecar browser action spans
   with action name, mode, scope, connection state, tab count, and success
   booleans without URLs, page titles, page text, or browser output.
@@ -167,6 +162,13 @@ App diagnostic paths:
 - `conversation.metadata.list`: dashboard/sidebar chat-list load.
 - `browser.session_control`: chat header browser readiness and browser action
   request lifecycle before a conversation turn exists.
+- `permission.probe`: Electron main permission probe/request and workspace
+  activation diagnostics by default. Rows include permission id, platform,
+  status enum, granted boolean, details presence, workspace-path presence,
+  duration, and short errors without selected filesystem paths. If a caller
+  explicitly supplies both `conversationRef` and `turnRef`, the same sanitized
+  path may be written as a hidden conversation `trace_event` because it is then
+  part of a real user turn.
 - `mcp.discovery`: sidecar-owned MCP discovery and stdio initialization,
   including sanitized command basename, argument summary, timeout phase,
   elapsed time, stderr tail, and short spawn/request errors.

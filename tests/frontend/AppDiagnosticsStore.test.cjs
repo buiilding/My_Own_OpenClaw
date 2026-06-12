@@ -9,6 +9,7 @@ const {
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_EXECUTION_DIAGNOSTICS_PATH,
+  PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
@@ -244,5 +245,60 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('do not store');
     expect(events[0].data.arguments).toBeUndefined();
     expect(events[0].data.result).toBeUndefined();
+  });
+
+  test('persists sanitized permission probe diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'permission-diag-test',
+      spanId: 'permission-span-test',
+      path: PERMISSION_PROBE_DIAGNOSTICS_PATH,
+      stage: 'workspace_activate',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      durationMs: 18,
+      data: {
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: 'granted',
+        granted: true,
+        hasDetails: true,
+        platform: 'darwin',
+        hasWorkspacePath: true,
+        selected_paths: ['/Users/peter/private'],
+        workspacePath: '/Users/peter/private',
+        promptText: 'Workspace access prompt',
+        url: 'https://example.com/private',
+      },
+      error: new Error('permission path failed at /Users/peter/private'),
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: PERMISSION_PROBE_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'permission-diag-test',
+      stage: 'workspace_activate',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      durationMs: 18,
+      data: expect.objectContaining({
+        permissionId: 'filesystem_workspace_access',
+        permissionStatus: 'granted',
+        granted: true,
+        hasDetails: true,
+        platform: 'darwin',
+        hasWorkspacePath: true,
+        durationMs: 18,
+      }),
+      error: expect.objectContaining({
+        message: expect.stringContaining('[path]'),
+      }),
+    }));
+    expect(events[0].data.selected_paths).toBeUndefined();
+    expect(events[0].data.workspacePath).toBeUndefined();
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+    expect(JSON.stringify(events[0])).not.toContain('Workspace access prompt');
+    expect(JSON.stringify(events[0])).not.toContain('example.com/private');
   });
 });

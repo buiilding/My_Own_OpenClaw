@@ -40,6 +40,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/diagnostics: route idle permission probes and workspace activation
+  checks to persistent app diagnostics instead of mutating the active
+  conversation history, while preserving explicit turn-scoped permission trace
+  rows.
 - frontend/sidecar/mcp: converge desktop MCP discovery and execution onto the
   sidecar local runtime, reconcile disabled MCP tools out of the sidecar
   registry, restart the managed agent after MCP toggles so backend receives a
