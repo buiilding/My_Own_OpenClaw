@@ -70,6 +70,42 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     }));
   });
 
+  test('status bootstrap reuses the active agent local runtime before the bridge provider', async () => {
+    const activeRuntime = {
+      executeTool: jest.fn(async () => ({ success: true, data: {} })),
+      rpc: jest.fn(async () => ({ success: true })),
+      subscribeEvents: jest.fn(() => jest.fn()),
+      shutdown: jest.fn(async () => undefined),
+    };
+    const localRuntimeProvider = jest.fn(async () => {
+      throw new Error('bridge provider should not be called');
+    });
+
+    const { handlers, mainWindow, spawn } = initBridge({
+      getActiveLocalRuntime: () => activeRuntime,
+      localRuntimeProvider,
+    });
+
+    const result = await handlers['get-local-backend-status']();
+
+    expect(spawn).not.toHaveBeenCalled();
+    expect(localRuntimeProvider).not.toHaveBeenCalled();
+    expect(result).toEqual(expect.objectContaining({
+      ready: true,
+      status: 'ready',
+      sidecarDaemon: expect.objectContaining({
+        provider: 'sdk',
+        hasClient: true,
+        source: 'active-agent',
+      }),
+    }));
+    expect(activeRuntime.subscribeEvents).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
+      ready: true,
+      status: 'ready',
+    }));
+  });
+
   test('stopLocalBackend shuts down SDK runtime and rejects later backend tool execution', async () => {
     const { bridge, handlers, sdkRuntime } = initBridge();
 

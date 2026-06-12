@@ -29,6 +29,13 @@ Status: implemented and validated.
   - `Browser unavailable` when local runtime startup reports an error.
 - Updated browser, local-backend lifecycle, runtime trace, observability workflow, user guide, and changelog documentation.
 
+## Follow-Up: Active Runtime Reuse
+
+- User report on 2026-06-12 showed repeated `[LocalBackend] Tool execution failed: fetch failed` when pressing the chat-header `Connect browser` button, while an assistant-issued `browser.connect` tool call had just succeeded.
+- Root cause: the live turn path used the active SDK agent local runtime, but the chat-header local-backend bridge could still create or cache a separate SDK local runtime provider/client. That left the header path vulnerable to a stale sidecar HTTP client even when the active agent runtime could execute browser tools successfully.
+- Fix: Electron main now exposes the active SDK agent local runtime to the local-backend bridge, and the bridge prefers that runtime for status bootstrap, browser header actions, and scoped local tool helpers before falling back to its own auto-start provider.
+- Ownership note: this preserves SDK ownership of sidecar startup/reuse and local tool execution. Renderer remains display-only, and Python sidecar remains the browser executor. No storage migration is required.
+
 ## Validation Log
 
 - `bin/windie test frontend -- ChatBrowserSessionControl.test.jsx BrowserSessionStore.test.js LocalBackendBridge.lifecycle.test.cjs AppDiagnosticsStore.test.cjs`

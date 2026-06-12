@@ -559,6 +559,7 @@ describe('main_window_runtime createMainWindow', () => {
       showChatWindow: jest.fn().mockReturnValue({ success: true }),
       emitWakewordSttTrigger: jest.fn(),
       initializeLocalBackendBridge: jest.fn(),
+      getActiveLocalRuntime: jest.fn(),
       initializeMainProcessIpc: jest.fn(),
       getLatestFrontendConfig: jest.fn(),
       getWindows: jest.fn(() => ({ mainWindow })),
@@ -618,6 +619,7 @@ describe('main_window_runtime createMainWindow', () => {
     expect(typeof getWindows).toBe('function');
     expect(bridgeOptions).toEqual(expect.objectContaining({
       getFrontendConfig: deps.getLatestFrontendConfig,
+      getActiveLocalRuntime: deps.getActiveLocalRuntime,
       isPackaged: false,
       permissionStatePath: '/tmp/windieos-permission-state.json',
       authStatePath: expect.stringContaining(`${require('path').sep}windieos${require('path').sep}install-auth.json`),

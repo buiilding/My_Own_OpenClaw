@@ -58,6 +58,8 @@ let sdkLocalRuntimeEventHandler = null;
 let sdkLocalRuntimeSnapshot = null;
 let localRuntimeSessionRef = null;
 let sdkStatusMainWindow = null;
+let getActiveLocalRuntime = null;
+let sdkLocalRuntimeSource = '';
 
 function createBrowserSessionDiagnosticId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -128,6 +130,8 @@ function clearSdkLocalRuntime() {
   sdkLocalRuntimeSnapshot = null;
   localRuntimeSessionRef = null;
   sdkStatusMainWindow = null;
+  getActiveLocalRuntime = null;
+  sdkLocalRuntimeSource = '';
 }
 
 function createStoppedToolExecutor() {
@@ -146,7 +150,59 @@ function attachSdkLocalRuntimeEvents(runtime) {
   });
 }
 
+function resolveActiveLocalRuntime() {
+  if (typeof getActiveLocalRuntime !== 'function') {
+    return null;
+  }
+  try {
+    const runtime = getActiveLocalRuntime();
+    return runtime && typeof runtime === 'object' ? runtime : null;
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[LocalBackend] Active SDK local runtime lookup failed: ${getErrorMessage(error)}`);
+    }
+    return null;
+  }
+}
+
+function rememberSdkLocalRuntime(runtime, {
+  source,
+  discoveryPath = null,
+} = {}) {
+  if (sdkLocalRuntime && sdkLocalRuntime !== runtime) {
+    sdkLocalRuntimeEventUnsubscribe?.();
+    sdkLocalRuntimeEventUnsubscribe = null;
+  }
+  sdkLocalRuntime = runtime;
+  sdkLocalRuntimeSource = typeof source === 'string' ? source : '';
+  sdkLocalRuntimeSnapshot = {
+    provider: 'sdk',
+    hasClient: true,
+    source: sdkLocalRuntimeSource || 'unknown',
+    ...(
+      discoveryPath || sdkLocalRuntimeSnapshot?.discoveryPath
+        ? { discoveryPath: discoveryPath || sdkLocalRuntimeSnapshot.discoveryPath }
+        : {}
+    ),
+  };
+  attachSdkLocalRuntimeEvents(runtime);
+  if (!localRuntimeSessionRef) {
+    localRuntimeSessionRef = { kind: 'sdk-local-runtime' };
+    localRuntimeStatusSupervisor.attachProcess(localRuntimeSessionRef);
+  }
+  if (sdkStatusMainWindow && localRuntimeSessionRef) {
+    markBackendReady(sdkStatusMainWindow);
+  }
+  return runtime;
+}
+
 async function ensureSdkLocalRuntime() {
+  const activeRuntime = resolveActiveLocalRuntime();
+  if (activeRuntime) {
+    return rememberSdkLocalRuntime(activeRuntime, {
+      source: 'active-agent',
+    });
+  }
   if (!sdkLocalRuntimeProvider) {
     throw new Error('Windie SDK local runtime provider is not initialized.');
   }
@@ -160,21 +216,10 @@ async function ensureSdkLocalRuntime() {
   if (!runtime) {
     throw new Error('Windie SDK local runtime provider did not return a runtime.');
   }
-  sdkLocalRuntime = runtime;
-  sdkLocalRuntimeSnapshot = {
-    provider: 'sdk',
-    hasClient: true,
-    ...(sdkLocalRuntimeSnapshot?.discoveryPath ? { discoveryPath: sdkLocalRuntimeSnapshot.discoveryPath } : {}),
-  };
-  attachSdkLocalRuntimeEvents(runtime);
-  if (!localRuntimeSessionRef) {
-    localRuntimeSessionRef = { kind: 'sdk-local-runtime' };
-    localRuntimeStatusSupervisor.attachProcess(localRuntimeSessionRef);
-  }
-  if (sdkStatusMainWindow && localRuntimeSessionRef) {
-    markBackendReady(sdkStatusMainWindow);
-  }
-  return runtime;
+  return rememberSdkLocalRuntime(runtime, {
+    source: 'bridge-provider',
+    discoveryPath: sdkLocalRuntimeSnapshot?.discoveryPath || null,
+  });
 }
 
 async function wakeSdkLocalRuntimeForStatus(mainWindow) {
@@ -275,7 +320,7 @@ function createSdkRpcRequestId() {
 }
 
 function sendRequest(method, params = {}) {
-  if (!sdkLocalRuntimeProvider) {
+  if (!sdkLocalRuntimeProvider && !resolveActiveLocalRuntime()) {
     return Promise.reject(new Error('Windie SDK local runtime provider is not initialized.'));
   }
   return ensureSdkLocalRuntime().then(runtime => runtime.rpc({
@@ -319,7 +364,11 @@ async function sendMemorySearchRequest(payload = {}) {
 
 function stopLocalBackend() {
   runtimeExecuteTool = createStoppedToolExecutor();
-  if (sdkLocalRuntime && typeof sdkLocalRuntime.shutdown === 'function') {
+  if (
+    sdkLocalRuntime
+    && sdkLocalRuntimeSource !== 'active-agent'
+    && typeof sdkLocalRuntime.shutdown === 'function'
+  ) {
     void sdkLocalRuntime.shutdown();
   }
   clearSdkLocalRuntime();
@@ -360,6 +409,9 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   const getArtifactUploadHeaders = typeof options.getArtifactUploadHeaders === 'function'
     ? options.getArtifactUploadHeaders
     : loadArtifactUploadHeaders;
+  getActiveLocalRuntime = typeof options.getActiveLocalRuntime === 'function'
+    ? options.getActiveLocalRuntime
+    : null;
   sdkLocalRuntimeEventHandler = (payload) => {
     broadcastConversationMetadataInvalidation(resolveWindows, payload);
   };

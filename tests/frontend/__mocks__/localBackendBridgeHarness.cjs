@@ -145,6 +145,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
   bridge.initializeLocalBackendBridge(() => currentWindowState, {
     getFrontendConfig: () => options.frontendConfig || null,
     getArtifactUploadHeaders: options.getArtifactUploadHeaders,
+    getActiveLocalRuntime: options.getActiveLocalRuntime,
     isPackaged: options.isPackaged === true,
     autoSidecarLaunchPlan: options.autoSidecarLaunchPlan,
     localRuntimeProvider: sdkRuntimeProvider,

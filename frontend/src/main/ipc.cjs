@@ -1032,6 +1032,10 @@ function noteBackendTraffic(reason = 'traffic') {
   windieAgent?.noteBackendTraffic(reason);
 }
 
+function getActiveWindieLocalRuntime() {
+  return windieAgent?.localRuntime || null;
+}
+
 async function restartWindieAgent(reason = 'restart') {
   if (windieAgent) {
     windieAgent.close?.();
@@ -2186,6 +2190,7 @@ module.exports = {
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
   BACKEND_RECONNECT_INTERVAL_MS,
   getBackendConnectionState,
+  getActiveWindieLocalRuntime,
   getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,
