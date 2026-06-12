@@ -81,3 +81,13 @@ Start with [Artifact Change Workflow](../desktop/artifact_change_workflow.md), [
 Validate capture-time overlay hiding, artifact upload/fetch, screenshot refs in query payloads, post-action tool screenshot output, and replay rendering. Include a migration note when persisted artifact identifiers or storage paths change.
 
 Avoid: fixing a missing image only in the renderer before checking whether the capture, upload, or replay producer dropped the reference.
+
+## Transcript Or Replay Behavior
+
+Owner: SDK/runtime stores and renderer projection, with sidecar transcript storage and backend rehydrate contracts where applicable.
+
+Start with [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md), [Sessions and Conversations](../concepts/sessions_and_conversations.md), and [Session and Transcript Reference](../reference/session_and_transcript_reference.md).
+
+Validate transcript writes, pending queue retries, dashboard replay, backend rehydrate payloads, stale-event filtering, and tool-row reconstruction. Keep visible transcript state distinct from raw event/history rows.
+
+Avoid: patching dashboard replay output before finding the producer that persisted or omitted the row.
