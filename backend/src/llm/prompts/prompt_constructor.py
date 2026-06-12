@@ -148,6 +148,7 @@ class PromptConstructor:
         projected_schemas = project_tool_schemas_for_provider(
             tool_schemas=tool_schemas,
             config=self.config,
+            tool_policy=self.tool_policy,
         )
         provider_tool_schemas = self.tool_policy.filter_projected_tool_schemas(
             projected_schemas,

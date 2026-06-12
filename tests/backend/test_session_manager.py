@@ -341,9 +341,11 @@ async def test_set_client_tool_manifest_applies_to_active_and_future_sessions() 
     assert [
         schema.get("name") for schema in active.prompt_builder.client_tool_schemas
     ] == ["cua_driver__screenshot"]
+    assert active.cfg.agent_available_tools == ["cua_driver__screenshot"]
     assert [
         schema.get("name") for schema in future.prompt_builder.client_tool_schemas
     ] == ["cua_driver__screenshot"]
+    assert future.cfg.agent_available_tools == ["cua_driver__screenshot"]
 
 
 @pytest.mark.asyncio

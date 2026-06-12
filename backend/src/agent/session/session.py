@@ -20,6 +20,10 @@ from typing import (
     Union,
 )
 
+from backend.src.agent.session.capability_application import (
+    apply_agent_definition_tool_policy_to_session,
+    apply_client_capability_to_session,
+)
 from backend.src.agent.session.config_runtime import SessionConfigRuntime
 from backend.src.agent.session.initializer import (
     init_compaction_engine,
@@ -41,8 +45,8 @@ from backend.src.llm.prompts.prompts import (
     PromptManager,
     render_contextual_system_prompt,
 )
-from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.client_manifest import validate_client_tool_manifest
+from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
@@ -617,20 +621,7 @@ class AgentSession:
                 and hasattr(agent_definition, "system_prompt_override")
                 else None
             )
-            if (
-                resolved_operating_system is not None
-                or resolved_workspace_path is not None
-                or repo_instruction_messages is not None
-                or resolved_client_prompt_layers is not None
-                or resolved_system_prompt_override is not None
-            ):
-                self._apply_query_prompt_context_locked(
-                    operating_system=resolved_operating_system,
-                    workspace_path=resolved_workspace_path,
-                    repo_instruction_messages=repo_instruction_messages,
-                    client_prompt_layers=resolved_client_prompt_layers,
-                    system_prompt_override=resolved_system_prompt_override,
-                )
+            capability_trace_payload: Optional[Dict[str, Any]] = None
             if agent_definition is not None:
                 self.runtime.agent_definition = agent_definition
                 raw_manifest = (
@@ -639,6 +630,10 @@ class AgentSession:
                     else None
                 )
                 if raw_manifest is None:
+                    apply_agent_definition_tool_policy_to_session(
+                        self,
+                        agent_definition,
+                    )
                     yield TraceEvent(
                         path="client_tool_manifest.validate",
                         stage="validate",
@@ -675,37 +670,52 @@ class AgentSession:
                             "rejectedReasonSample": rejected_reasons,
                         },
                     )
-                    self.runtime.client_tool_manifest = manifest_result
-                    accepted_tool_schemas = list(manifest_result.accepted_tool_schemas)
-                    setattr(
-                        self.prompt_builder,
-                        "client_tool_schemas",
-                        accepted_tool_schemas,
+                    capability_counts = apply_client_capability_to_session(
+                        self,
+                        manifest_result,
+                        agent_definition=agent_definition,
                     )
-                    yield TraceEvent(
-                        path="client_tool_manifest.apply",
-                        stage="apply",
-                        status="succeeded",
-                        runtime="backend",
-                        data={
-                            "acceptedCount": len(manifest_result.accepted),
-                            "rejectedCount": len(manifest_result.rejected),
-                            "runtimeAcceptedToolCount": len(
-                                self.runtime.client_tool_manifest.accepted
-                            ),
-                            "promptBuilderClientToolCount": len(
-                                getattr(
-                                    self.prompt_builder,
-                                    "client_tool_schemas",
-                                    [],
-                                )
-                                or []
-                            ),
-                            "acceptedToolNameSample": _client_manifest_tool_name_sample(
-                                accepted_tool_names
-                            ),
-                        },
-                    )
+                    capability_trace_payload = {
+                        "acceptedCount": len(manifest_result.accepted),
+                        "rejectedCount": len(manifest_result.rejected),
+                        "runtimeAcceptedToolCount": len(
+                            self.runtime.client_tool_manifest.accepted
+                        ),
+                        "promptBuilderClientToolCount": capability_counts[
+                            "prompt_builder_client_tool_count"
+                        ],
+                        "effectiveAvailableToolCount": capability_counts[
+                            "effective_available_tool_count"
+                        ],
+                        "policyAllowedClientToolCount": capability_counts[
+                            "policy_allowed_client_tool_count"
+                        ],
+                        "acceptedToolNameSample": _client_manifest_tool_name_sample(
+                            accepted_tool_names
+                        ),
+                    }
+            if (
+                resolved_operating_system is not None
+                or resolved_workspace_path is not None
+                or repo_instruction_messages is not None
+                or resolved_client_prompt_layers is not None
+                or resolved_system_prompt_override is not None
+            ):
+                self._apply_query_prompt_context_locked(
+                    operating_system=resolved_operating_system,
+                    workspace_path=resolved_workspace_path,
+                    repo_instruction_messages=repo_instruction_messages,
+                    client_prompt_layers=resolved_client_prompt_layers,
+                    system_prompt_override=resolved_system_prompt_override,
+                )
+            if capability_trace_payload is not None:
+                yield TraceEvent(
+                    path="client_tool_manifest.apply",
+                    stage="apply",
+                    status="succeeded",
+                    runtime="backend",
+                    data=capability_trace_payload,
+                )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
                 yield {

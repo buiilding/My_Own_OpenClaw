@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from backend.src.agent.session.session import AgentSession
+from backend.src.api.schemas.agent_definition import AgentDefinition
 from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import TraceEvent
 from backend.src.core.infrastructure.bus import EventBus
@@ -51,6 +52,14 @@ class DummyLLMClient(LLMClient):
 
 
 class FakeExecutor:
+    def __init__(self):
+        self.llm_client = None
+        self.prompt_builder = None
+        self.interaction_loop = SimpleNamespace(
+            llm_handler=SimpleNamespace(llm_client=None),
+            prompt_coordinator=None,
+        )
+
     async def process_query(self, *_args, **_kwargs):
         yield {"type": "done"}
 
@@ -77,8 +86,8 @@ def _init_prompt_manager():
     yield
 
 
-def _build_session() -> AgentSession:
-    config = AppConfig()
+def _build_session(config: AppConfig | None = None) -> AgentSession:
+    config = config or AppConfig()
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     session = AgentSession(
         cfg=config,
@@ -158,8 +167,177 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         "rejectedCount": 1,
         "runtimeAcceptedToolCount": 1,
         "promptBuilderClientToolCount": 1,
+        "effectiveAvailableToolCount": 1,
+        "policyAllowedClientToolCount": 1,
         "acceptedToolNameSample": ["cua_driver__screenshot"],
     }
     assert [
         schema.get("name") for schema in session.prompt_builder.client_tool_schemas
     ] == ["cua_driver__screenshot"]
+    _canonical_schemas, provider_schemas = (
+        session.prompt_builder.get_tool_schema_surfaces()
+    )
+    assert [schema.get("name") for schema in provider_schemas] == [
+        "cua_driver__screenshot"
+    ]
+    assert session.cfg.agent_available_tools == ["cua_driver__screenshot"]
+
+
+@pytest.mark.asyncio
+async def test_process_query_extends_existing_allowlist_for_default_plus_client():
+    manifest = {
+        "version": 1,
+        "tools": [
+            {
+                "name": "cua_driver__list_apps",
+                "description": "List apps through CUA.",
+                "execution_target": "sidecar",
+                "argument_resolution": "passthrough",
+                "schema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False,
+                },
+            }
+        ],
+    }
+    session = _build_session(AppConfig(agent_available_tools=["read_file"]))
+
+    events = [
+        event
+        async for event in session.process_query(
+            "check tools",
+            agent_definition=AgentDefinition(
+                tools={
+                    "mode": "default_plus_client",
+                    "client_manifest": manifest,
+                },
+            ),
+        )
+    ]
+
+    trace_events = [event for event in events if isinstance(event, TraceEvent)]
+    apply_event = next(
+        event for event in trace_events if event.path == "client_tool_manifest.apply"
+    )
+    _canonical_schemas, provider_schemas = (
+        session.prompt_builder.get_tool_schema_surfaces()
+    )
+    provider_names = [schema.get("name") for schema in provider_schemas]
+
+    assert apply_event.data["effectiveAvailableToolCount"] == 2
+    assert apply_event.data["policyAllowedClientToolCount"] == 1
+    assert session.cfg.agent_available_tools == [
+        "read_file",
+        "cua_driver__list_apps",
+    ]
+    assert "read_file" in provider_names
+    assert "cua_driver__list_apps" in provider_names
+
+
+@pytest.mark.asyncio
+async def test_process_query_replaces_previous_runtime_client_tool_policy():
+    session = _build_session()
+
+    first_manifest = {
+        "version": 1,
+        "tools": [
+            {
+                "name": "cua_driver__list_apps",
+                "description": "List apps through CUA.",
+                "execution_target": "sidecar",
+                "argument_resolution": "passthrough",
+                "schema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False,
+                },
+            }
+        ],
+    }
+    second_manifest = {
+        "version": 1,
+        "tools": [
+            {
+                "name": "plugin_tool",
+                "description": "Run a plugin tool.",
+                "execution_target": "sidecar",
+                "argument_resolution": "passthrough",
+                "schema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False,
+                },
+            }
+        ],
+    }
+
+    _ = [
+        event
+        async for event in session.process_query(
+            "first",
+            agent_definition=AgentDefinition(
+                tools={"mode": "client_only", "client_manifest": first_manifest},
+            ),
+        )
+    ]
+    _ = [
+        event
+        async for event in session.process_query(
+            "second",
+            agent_definition=AgentDefinition(
+                tools={"mode": "client_only", "client_manifest": second_manifest},
+            ),
+        )
+    ]
+
+    _canonical_schemas, provider_schemas = (
+        session.prompt_builder.get_tool_schema_surfaces()
+    )
+    provider_names = [schema.get("name") for schema in provider_schemas]
+
+    assert "plugin_tool" in provider_names
+    assert "cua_driver__list_apps" not in provider_names
+    assert session.cfg.agent_available_tools == ["plugin_tool"]
+
+
+@pytest.mark.asyncio
+async def test_config_rewire_preserves_runtime_client_tool_policy():
+    session = _build_session()
+    manifest = {
+        "version": 1,
+        "tools": [
+            {
+                "name": "cua_driver__list_apps",
+                "description": "List apps through CUA.",
+                "execution_target": "sidecar",
+                "argument_resolution": "passthrough",
+                "schema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False,
+                },
+            }
+        ],
+    }
+
+    _ = [
+        event
+        async for event in session.process_query(
+            "first",
+            agent_definition=AgentDefinition(
+                tools={"mode": "client_only", "client_manifest": manifest},
+            ),
+        )
+    ]
+
+    await session.update_config(
+        session.cfg.model_copy(update={"selected_model_id": "updated-model"})
+    )
+
+    _canonical_schemas, provider_schemas = (
+        session.prompt_builder.get_tool_schema_surfaces()
+    )
+    provider_names = [schema.get("name") for schema in provider_schemas]
+
+    assert "cua_driver__list_apps" in provider_names

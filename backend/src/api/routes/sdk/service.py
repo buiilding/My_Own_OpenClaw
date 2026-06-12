@@ -15,6 +15,11 @@ from typing import Any, Optional
 from fastapi import HTTPException
 from PIL import Image, ImageDraw
 
+from backend.src.agent.session.capability_application import (
+    capability_config_overrides,
+    merge_runtime_tools_into_config_overrides,
+    merge_runtime_tools_into_prompt_policy,
+)
 from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
     OcrCoordinateResolver,
     VisionCoordinateResolver,
@@ -185,10 +190,42 @@ def build_debug_tool_schemas(
     client_tool_schemas: Optional[list[dict[str, Any]]] = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Return the same tool surfaces the live prompt path resolves."""
-    constructor = build_prompt_constructor(config=config, container=container)
-    constructor.client_tool_schemas = [
+    normalized_client_tool_schemas = [
         schema for schema in (client_tool_schemas or []) if isinstance(schema, dict)
     ]
+    client_tool_names = [
+        tool_name
+        for schema in normalized_client_tool_schemas
+        for tool_name in [get_tool_spec_name(schema)]
+        if isinstance(tool_name, str)
+    ]
+    if client_tool_names:
+        overrides: dict[str, Any] = {}
+        base_available_tools = getattr(config, "agent_available_tools", None)
+        if base_available_tools is not None:
+            overrides["agent_available_tools"] = list(
+                dict.fromkeys([*base_available_tools, *client_tool_names])
+            )
+        merge_runtime_tools_into_config_overrides(
+            config,
+            overrides,
+            accepted_tool_names=client_tool_names,
+            previous_tool_names=[],
+        )
+        if overrides:
+            config_dict = (
+                config.model_dump() if hasattr(config, "model_dump") else dict(config)
+            )
+            config_dict.update(overrides)
+            config = AppConfig(**config_dict)
+
+    constructor = build_prompt_constructor(config=config, container=container)
+    constructor.client_tool_schemas = normalized_client_tool_schemas
+    merge_runtime_tools_into_prompt_policy(
+        constructor,
+        accepted_tool_names=client_tool_names,
+        previous_tool_names=[],
+    )
     return constructor.get_tool_schema_surfaces(prompt_messages=prompt_messages)
 
 
@@ -209,8 +246,17 @@ def apply_agent_definition_to_config(config: Any, agent_definition: Any) -> Any:
         if hasattr(agent_definition, "client_tool_manifest")
         else None
     )
-    overrides = agent_definition.to_session_config_overrides(
-        accepted_client_tool_names=manifest_result.accepted_tool_names
+    overrides = capability_config_overrides(
+        manifest_result=manifest_result,
+        agent_definition=agent_definition,
+        replace_available_tools=False,
+        base_available_tools=getattr(config, "agent_available_tools", None),
+    )
+    merge_runtime_tools_into_config_overrides(
+        config,
+        overrides,
+        accepted_tool_names=manifest_result.accepted_tool_names,
+        previous_tool_names=[],
     )
     if not overrides:
         return config
@@ -249,6 +295,11 @@ def apply_agent_definition_to_constructor(
     if raw_manifest is not None:
         manifest_result = validate_client_tool_manifest(raw_manifest)
         constructor.client_tool_schemas = list(manifest_result.accepted_tool_schemas)
+        merge_runtime_tools_into_prompt_policy(
+            constructor,
+            accepted_tool_names=manifest_result.accepted_tool_names,
+            previous_tool_names=[],
+        )
 
 
 def build_debug_user_message_full(

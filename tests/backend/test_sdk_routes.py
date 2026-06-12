@@ -47,12 +47,17 @@ try:
         VisionOverlayRequest,
     )
     from backend.src.api.routes.sdk.service import (
+        build_debug_tool_schemas,
         build_image_metadata,
+        build_prompt_preview,
         list_debug_models,
         resolve_image_source,
     )
 finally:
     restore_route_deps_shim(_original_deps)
+
+from backend.src.api.schemas.agent_definition import AgentDefinition
+from backend.src.tools.tool_specs import get_tool_spec_name
 
 
 def _png_base64(*, size=(800, 400), color=(255, 255, 255)) -> str:
@@ -1374,6 +1379,88 @@ async def test_sdk_debug_tool_schemas_applies_query_overrides_to_response_shape(
     assert payload["provider_tool_schemas"] == [
         {"type": "function", "function": {"name": "provider_only"}}
     ]
+
+
+def test_prompt_preview_agent_definition_runtime_tools_reach_provider_schemas(
+    tmp_path,
+) -> None:
+    container = _container(
+        tmp_path,
+        config=AppConfig(
+            artifact_store_path=str(tmp_path),
+            artifact_max_bytes=1024 * 1024,
+            agent_available_tools=["read_file"],
+        ),
+    )
+    preview = build_prompt_preview(
+        config=container.config,
+        container=container,
+        messages=[],
+        user_query_raw="list apps",
+        include_tools=True,
+        workspace_path=None,
+        agent_definition=AgentDefinition(
+            tools={
+                "mode": "default_plus_client",
+                "client_manifest": {
+                    "version": 1,
+                    "tools": [
+                        {
+                            "name": "cua_driver__list_apps",
+                            "description": "List apps through CUA.",
+                            "execution_target": "sidecar",
+                            "argument_resolution": "passthrough",
+                            "schema": {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": False,
+                            },
+                        }
+                    ],
+                },
+            },
+        ),
+    )
+
+    provider_names = [
+        get_tool_spec_name(schema) for schema in preview["provider_tool_schemas"]
+    ]
+    assert "read_file" in provider_names
+    assert "cua_driver__list_apps" in provider_names
+
+
+def test_build_debug_tool_schemas_applies_client_schema_policy(
+    tmp_path,
+) -> None:
+    container = _container(
+        tmp_path,
+        config=AppConfig(
+            artifact_store_path=str(tmp_path),
+            artifact_max_bytes=1024 * 1024,
+            agent_available_tools=["read_file"],
+        ),
+    )
+
+    _canonical_schemas, provider_schemas = build_debug_tool_schemas(
+        config=container.config,
+        container=container,
+        client_tool_schemas=[
+            {
+                "type": "function",
+                "name": "cua_driver__list_apps",
+                "description": "List apps through CUA.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False,
+                },
+            }
+        ],
+    )
+
+    provider_names = [get_tool_spec_name(schema) for schema in provider_schemas]
+    assert "read_file" in provider_names
+    assert "cua_driver__list_apps" in provider_names
 
 
 @pytest.mark.asyncio

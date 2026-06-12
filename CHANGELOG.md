@@ -56,6 +56,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/tools: apply accepted runtime client tool manifests to the active
+  session tool policy before prompt construction, so enabled MCP/plugin tools
+  are not accepted by validation and then filtered out by a stale native
+  allowlist.
 - backend/tools: stop manually re-registering catalog-owned grounded computer
   tools during backend startup so `grounded_mouse_action` and
   `grounded_scroll_action` no longer emit overwrite warnings.
