@@ -5,6 +5,6 @@
   "command": "cua-driver",
   "args": ["mcp"],
   "tool_prefix": "cua_driver",
-  "timeout_ms": 30000,
+  "timeout_ms": 60000,
   "requires_user_enable": true
 }
