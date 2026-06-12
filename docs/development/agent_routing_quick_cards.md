@@ -111,3 +111,13 @@ Start with [Providers Hub](../providers/README.md), [Provider Change Workflow](.
 Validate provider factory behavior, streaming and non-streaming responses, tool-call compatibility, credential gates, model metadata, and frontend model picker behavior. Keep provider defaults and credential handling in config-owned paths.
 
 Avoid: adding a model option only in the renderer without updating backend capability metadata and provider validation.
+
+## Inference Capability
+
+Owner: backend inference/provider services with SDK routes and sidecar clients where local capture or playback is involved.
+
+Start with [Inference Capability Change Workflow](../providers/inference_capability_change_workflow.md), [Providers Hub](../providers/README.md), and [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md).
+
+Validate OCR, vision, embeddings, STT, TTS, provider health gates, SDK route envelopes, and renderer/sidecar consumers. Keep capability detection explicit instead of inferring support from a provider name.
+
+Avoid: wiring a new inference button or setting before the backend capability and failure path are testable.
