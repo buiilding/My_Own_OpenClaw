@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import secrets
+import shutil
 import sqlite3
 import tempfile
 import time
@@ -34,6 +35,10 @@ MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
 MAX_DIAGNOSTIC_TEXT_LENGTH = 240
 CURRENT_MCP_EXECUTION_CONTEXT: contextvars.ContextVar[dict[str, Any]] = (
     contextvars.ContextVar("CURRENT_MCP_EXECUTION_CONTEXT", default={})
+)
+CUA_DRIVER_MACOS_COMMAND_CANDIDATES = (
+    Path("/Applications/CuaDriver.app/Contents/MacOS/cua-driver"),
+    Path.home() / ".local" / "bin" / "cua-driver",
 )
 LAUNCH_CONTEXT_ENV_KEYS = (
     "WINDIE_BACKEND_HTTP_URL",
@@ -102,6 +107,22 @@ def command_for_diagnostics(command: str) -> str:
     if not normalized:
         return ""
     return sanitize_diagnostic_text(Path(normalized).name)
+
+
+def resolve_mcp_command_for_spawn(command: str) -> str:
+    normalized = normalize_string(command)
+    if not normalized:
+        return normalized
+    if Path(normalized).parts and ("/" in normalized or "\\" in normalized):
+        return normalized
+    resolved = shutil.which(normalized)
+    if resolved:
+        return resolved
+    if normalized == "cua-driver":
+        for candidate in CUA_DRIVER_MACOS_COMMAND_CANDIDATES:
+            if candidate.exists() and os.access(candidate, os.X_OK):
+                return str(candidate)
+    return normalized
 
 
 def serialize_diagnostic_args(args: list[str]) -> str:
@@ -457,8 +478,9 @@ class McpStdioClient:
             data={"phase": "spawn"},
         )
         try:
+            command = resolve_mcp_command_for_spawn(self.server.command)
             self.proc = await asyncio.create_subprocess_exec(
-                self.server.command,
+                command,
                 *self.server.args,
                 cwd=self.server.cwd or os.getcwd(),
                 env={**os.environ, **self.server.env},

@@ -8,7 +8,12 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from sidecar_daemon import SidecarDaemon, write_discovery_file  # noqa: E402
+import sidecar_daemon  # noqa: E402
+from sidecar_daemon import (  # noqa: E402
+    SidecarDaemon,
+    resolve_mcp_command_for_spawn,
+    write_discovery_file,
+)
 
 
 class FakeRequest:
@@ -77,6 +82,20 @@ class FakeBackendWithShutdown:
 
     async def shutdown(self):
         self.shutdown_calls += 1
+
+
+def test_resolve_mcp_command_uses_cua_driver_app_fallback(tmp_path: Path, monkeypatch):
+    binary = tmp_path / "cua-driver"
+    binary.write_text("#!/bin/sh\n", encoding="utf-8")
+    binary.chmod(0o755)
+    monkeypatch.setattr(sidecar_daemon.shutil, "which", lambda _command: None)
+    monkeypatch.setattr(
+        sidecar_daemon,
+        "CUA_DRIVER_MACOS_COMMAND_CANDIDATES",
+        (binary,),
+    )
+
+    assert resolve_mcp_command_for_spawn("cua-driver") == str(binary)
 
 
 @pytest.mark.asyncio

@@ -49,6 +49,9 @@ All notable changes to WindieOS will be documented in this file.
   `mcp.execution` app diagnostics path with server/tool identity, elapsed time,
   optional request correlation, stderr tail, and short errors without storing
   tool args or raw MCP results.
+- frontend/sidecar/mcp: resolve `cua-driver` to the installed macOS
+  `CuaDriver.app` binary when the GUI sidecar process cannot see the shell PATH,
+  so the CUA Driver MCP can start after local installation.
 - frontend/auth: validate cached install auth against the hosted identity
   endpoint before reuse, discard only confirmed-invalid 401 tokens, and
   re-register so app reinstalls or backend auth resets do not break chat

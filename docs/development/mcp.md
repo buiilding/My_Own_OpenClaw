@@ -17,9 +17,11 @@ mcps/
     server.cjs
 ```
 
-Electron main reads `mcp.json`, starts configured stdio servers, discovers
-`tools/list`, converts those tools into `client_tool_manifest` entries, and
-executes `tools/call` locally when the model invokes an MCP-backed tool.
+Electron main reads `mcp.json` for dashboard/config presentation and forwards
+enabled server specs to the SDK/sidecar local runtime. The sidecar starts
+configured stdio servers, discovers `tools/list`, registers discovered tools
+into the executable local tool registry, and executes `tools/call` when the model
+invokes an MCP-backed tool.
 
 The backend does not need MCP-specific tool code. It sees normal client-local
 tools with `execution_target: "sidecar"` and `argument_resolution:
@@ -117,14 +119,17 @@ That exposes `local_memory__search`.
    the allowlist change and immediately runs a discovery pass. The manual
    refresh action remains the retry path after installing binaries or granting
    permissions.
-5. Electron main starts each enabled MCP server over stdio.
-6. Electron main sends MCP `initialize` and `notifications/initialized`.
-7. Electron main calls `tools/list`.
-8. Discovered tools are appended to `client_tool_manifest`.
-9. Backend validates and projects the schemas like any other client-local tool.
-10. When the backend emits an MCP tool call, Electron main intercepts it and
-   sends MCP `tools/call`.
-11. The MCP result is normalized into WindieOS tool result data.
+5. Electron main sends enabled server specs to the SDK/sidecar local runtime.
+6. The sidecar starts each enabled MCP server over stdio.
+7. The sidecar sends MCP `initialize` and `notifications/initialized`.
+8. The sidecar calls `tools/list`.
+9. Discovered tools are registered as executable sidecar local tools and exposed
+   through the client tool manifest.
+10. Backend validates and projects the schemas like any other client-local tool.
+11. When the backend emits an MCP tool call, the SDK routes it to the sidecar
+    like any other local tool.
+12. The sidecar sends MCP `tools/call`.
+13. The MCP result is normalized into WindieOS tool result data.
 
 Each discovery pass reconciles the executable MCP tool registry with the current
 enabled server specs. Removed, disabled, duplicate, or manifest-disabled MCP
@@ -145,6 +150,11 @@ Do not commit a local checkout path or generated CUA fallback schemas. If the
 binary is not on `PATH`, the MCPs dashboard reports `Not installed`; if CUA
 starts but macOS automation grants are missing, the status reports
 `Needs permission`.
+
+On macOS, the sidecar also resolves `cua-driver` to the installed
+`/Applications/CuaDriver.app/Contents/MacOS/cua-driver` binary, then
+`~/.local/bin/cua-driver`, before surfacing `Not installed`. This keeps the GUI
+app from depending on interactive shell PATH setup after the CUA installer runs.
 
 MCP discovery emits persistent app diagnostics under `mcp.discovery`. Inspect
 recent discovery failures with:
