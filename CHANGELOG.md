@@ -64,6 +64,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sidecar/mcp: promote MCP image content into native screenshot
+  fields while preserving raw MCP results and concise model-facing output.
 - backend/sdk/frontend: allow `update-settings` to carry the full
   `agent_definition` so active sessions immediately apply runtime tools and
   skills without waiting for app restart, and fail stale local tool calls when

@@ -65,6 +65,19 @@ class FakeMcpClient:
         return None
 
 
+class FakeImageMcpClient(FakeMcpClient):
+    async def call_tool(self, name, args):
+        return {
+            "content": [
+                {
+                    "type": "image",
+                    "data": "png-base64",
+                    "mimeType": "image/png",
+                }
+            ]
+        }
+
+
 class FakeBackendWithEventSink:
     def __init__(self):
         self.event_sink = None
@@ -412,6 +425,51 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
         "data": {
             "output": "remember:hello",
             "mcp_result": {"content": [{"type": "text", "text": "remember:hello"}]},
+        },
+    }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_promotes_mcp_image_content():
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["vision"] = FakeImageMcpClient()
+
+    registration = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "id": "vision",
+                "command": "fake-mcp-server",
+                "tools": [
+                    {
+                        "name": "capture",
+                        "description": "Capture a window.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {"value": {"type": "string"}},
+                            "required": ["value"],
+                            "additionalProperties": False,
+                        },
+                    }
+                ],
+            }
+        )
+    )
+    execution = await daemon.handle_execute_tool(
+        FakeRequest({"tool_name": "mcp_vision__capture", "args": {"value": "window"}})
+    )
+
+    assert registration.status == 200
+    assert json.loads(execution.text) == {
+        "success": True,
+        "data": {
+            "output": "[MCP image: image/png]",
+            "screenshot": "png-base64",
+            "screenshot_content_type": "image/png",
+            "mcp_result": {
+                "content": [
+                    {"type": "image", "data": "png-base64", "mimeType": "image/png"}
+                ]
+            },
         },
     }
 

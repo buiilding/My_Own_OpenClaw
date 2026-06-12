@@ -681,10 +681,48 @@ function formatMcpContent(content) {
       if (item.type === 'resource' && item.resource) {
         return JSON.stringify(item.resource);
       }
+      if (item.type === 'image' && typeof item.data === 'string' && item.data.trim()) {
+        const contentType = normalizeString(
+          item.mimeType || item.mime_type || item.contentType || item.content_type,
+        ) || 'image/png';
+        return `[MCP image: ${contentType}]`;
+      }
       return JSON.stringify(item);
     })
     .filter(Boolean)
     .join('\n\n');
+}
+
+function extractMcpImageContent(content) {
+  if (!Array.isArray(content)) {
+    return null;
+  }
+  for (const item of content) {
+    if (!item || typeof item !== 'object' || item.type !== 'image') {
+      continue;
+    }
+    const screenshot = typeof item.data === 'string' ? item.data.trim() : '';
+    if (!screenshot) {
+      continue;
+    }
+    const contentType = normalizeString(
+      item.mimeType || item.mime_type || item.contentType || item.content_type,
+    ) || 'image/png';
+    return {
+      screenshot,
+      screenshot_content_type: contentType,
+    };
+  }
+  return null;
+}
+
+function buildMcpToolData(result, text) {
+  const imageContent = extractMcpImageContent(result?.content);
+  return {
+    output: text || JSON.stringify(result || {}),
+    ...(imageContent || {}),
+    mcp_result: result || null,
+  };
 }
 
 async function executeMcpTool(toolName, args = {}, context = {}, options = {}) {
@@ -716,10 +754,7 @@ async function executeMcpTool(toolName, args = {}, context = {}, options = {}) {
     }
     return {
       success: true,
-      data: {
-        output: text || JSON.stringify(result || {}),
-        mcp_result: result || null,
-      },
+      data: buildMcpToolData(result, text),
     };
   } catch (error) {
     return {
@@ -748,6 +783,7 @@ module.exports = {
   createMcpToolName,
   discoverMcpTools,
   executeMcpTool,
+  extractMcpImageContent,
   formatMcpContent,
   hasDiscoveredMcpTool,
   isMcpServerEnabled,

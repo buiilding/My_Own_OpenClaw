@@ -158,9 +158,50 @@ describe('MCP runtime', () => {
       success: true,
       data: {
         output: 'search:windie',
-        output: 'search:windie',
         mcp_result: {
           content: [{ type: 'text', text: 'search:windie' }],
+        },
+      },
+    });
+  });
+
+  test('promotes MCP image content into native screenshot fields', async () => {
+    const client = {
+      ...createClient(),
+      callTool: jest.fn(async () => ({
+        content: [
+          {
+            type: 'image',
+            data: 'png-base64',
+            mimeType: 'image/png',
+          },
+        ],
+      })),
+    };
+    await discoverMcpTools({
+      mcpServers: [{
+        id: 'vision',
+        command: 'node',
+        args: ['server.cjs'],
+      }],
+      createClient: () => client,
+    });
+
+    const result = await executeMcpTool(
+      createMcpToolName('vision', 'search'),
+      { query: 'window' },
+      {},
+      { createClient: () => client },
+    );
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        output: '[MCP image: image/png]',
+        screenshot: 'png-base64',
+        screenshot_content_type: 'image/png',
+        mcp_result: {
+          content: [{ type: 'image', data: 'png-base64', mimeType: 'image/png' }],
         },
       },
     });

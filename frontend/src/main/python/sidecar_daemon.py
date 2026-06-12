@@ -365,9 +365,56 @@ def format_mcp_content(content: Any) -> str:
             chunks.append(item["text"])
         elif item.get("type") == "resource":
             chunks.append(json.dumps(item.get("resource"), separators=(",", ":")))
+        elif item.get("type") == "image" and normalize_string(item.get("data")):
+            content_type = (
+                normalize_string(
+                    item.get("mimeType")
+                    or item.get("mime_type")
+                    or item.get("contentType")
+                    or item.get("content_type")
+                )
+                or "image/png"
+            )
+            chunks.append(f"[MCP image: {content_type}]")
         else:
             chunks.append(json.dumps(item, separators=(",", ":")))
     return "\n\n".join(chunk for chunk in chunks if chunk)
+
+
+def extract_mcp_image_content(content: Any) -> dict[str, str] | None:
+    if not isinstance(content, list):
+        return None
+    for item in content:
+        if not isinstance(item, dict) or item.get("type") != "image":
+            continue
+        screenshot = normalize_string(item.get("data"))
+        if not screenshot:
+            continue
+        content_type = (
+            normalize_string(
+                item.get("mimeType")
+                or item.get("mime_type")
+                or item.get("contentType")
+                or item.get("content_type")
+            )
+            or "image/png"
+        )
+        return {
+            "screenshot": screenshot,
+            "screenshot_content_type": content_type,
+        }
+    return None
+
+
+def build_mcp_tool_data(result: dict[str, Any], text: str) -> dict[str, Any]:
+    image_content = extract_mcp_image_content(result.get("content"))
+    data: dict[str, Any] = {
+        "output": text or json.dumps(result, separators=(",", ":")),
+        "mcp_result": result,
+    }
+    if image_content:
+        data.update(image_content)
+    return data
 
 
 @dataclass(slots=True)
@@ -1183,10 +1230,7 @@ class SidecarDaemon:
                 )
                 return {
                     "success": True,
-                    "data": {
-                        "output": text or json.dumps(result, separators=(",", ":")),
-                        "mcp_result": result,
-                    },
+                    "data": build_mcp_tool_data(result, text),
                 }
 
             registered.append(
