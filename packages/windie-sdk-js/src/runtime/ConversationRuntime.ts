@@ -270,6 +270,41 @@ function arrayRecordCount(value: unknown): number {
   return Array.isArray(value) ? value.length : 0;
 }
 
+function getAgentDefinitionClientManifestTools(agentDefinition: unknown): JsonRecord[] {
+  if (!isJsonRecord(agentDefinition)) {
+    return [];
+  }
+  const tools = isJsonRecord(agentDefinition.tools) ? agentDefinition.tools : null;
+  const clientManifest = isJsonRecord(tools?.client_manifest) ? tools.client_manifest : null;
+  const manifestTools = Array.isArray(clientManifest?.tools) ? clientManifest.tools : [];
+  return manifestTools.filter(isJsonRecord);
+}
+
+function getMcpManifestToolStats(agentDefinition: unknown): { toolCount: number; serverCount: number } {
+  const mcpTools = getAgentDefinitionClientManifestTools(agentDefinition).filter((tool) => (
+    typeof tool.mcp_server_id === 'string' && tool.mcp_server_id.trim().length > 0
+  ));
+  const serverIds = new Set(
+    mcpTools
+      .map((tool) => (typeof tool.mcp_server_id === 'string' ? tool.mcp_server_id.trim() : ''))
+      .filter(Boolean),
+  );
+  return {
+    toolCount: mcpTools.length,
+    serverCount: serverIds.size,
+  };
+}
+
+function getAgentDefinitionToolCount(agentDefinition: unknown): number {
+  if (!isJsonRecord(agentDefinition)) {
+    return 0;
+  }
+  if (Array.isArray(agentDefinition.tools)) {
+    return agentDefinition.tools.length;
+  }
+  return getAgentDefinitionClientManifestTools(agentDefinition).length;
+}
+
 function recordKeyCount(value: unknown): number {
   return isJsonRecord(value) ? Object.keys(value).length : 0;
 }
@@ -565,15 +600,17 @@ export class SdkConversationRuntime {
       const agentDefinition = isJsonRecord(enrichedPayload.agent_definition)
         ? enrichedPayload.agent_definition
         : (isJsonRecord(this.options.agentDefinition) ? this.options.agentDefinition : null);
+      const mcpManifestStats = getMcpManifestToolStats(agentDefinition);
       await traceRecorder.record({
         path: 'agent.definition',
         stage: 'shape',
         status: agentDefinition ? 'succeeded' : 'skipped',
         data: {
           hasAgentDefinition: Boolean(agentDefinition),
-          toolCount: arrayRecordCount(agentDefinition?.tools),
+          toolCount: getAgentDefinitionToolCount(agentDefinition),
           pluginCount: arrayRecordCount(agentDefinition?.plugins),
           mcpCount: arrayRecordCount(agentDefinition?.mcps),
+          mcpManifestToolCount: mcpManifestStats.toolCount,
           skillCount: arrayRecordCount(agentDefinition?.skills),
           agentDefinitionKeyCount: recordKeyCount(agentDefinition),
           hasWorkspacePath: workspacePathPresent,
@@ -592,9 +629,13 @@ export class SdkConversationRuntime {
       await traceRecorder.record({
         path: 'mcp.tool',
         stage: 'contribute',
-        status: arrayRecordCount(agentDefinition?.mcps) > 0 ? 'succeeded' : 'skipped',
+        status: mcpManifestStats.toolCount > 0 || arrayRecordCount(agentDefinition?.mcps) > 0
+          ? 'succeeded'
+          : 'skipped',
         data: {
-          mcpServerCount: arrayRecordCount(agentDefinition?.mcps),
+          mcpServerCount: mcpManifestStats.serverCount || arrayRecordCount(agentDefinition?.mcps),
+          mcpDefinitionCount: arrayRecordCount(agentDefinition?.mcps),
+          mcpManifestToolCount: mcpManifestStats.toolCount,
           hasAgentDefinition: Boolean(agentDefinition),
         },
       });

@@ -3946,6 +3946,68 @@ describe('Windie SDK conversation runtime core', () => {
     expect(JSON.stringify(timeline)).not.toContain('offline dispatch');
   });
 
+  test('conversation runtime records MCP contribution from client manifest tools', async () => {
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-mcp-manifest'),
+    });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      agentDefinition: {
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            version: 1,
+            tools: [
+              { name: 'read_file', schema: { type: 'object' } },
+              {
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+                schema: { type: 'object' },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await runtime.send({
+      text: 'inspect mcp manifest tools',
+      turnRef: 'turn-mcp-manifest',
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-manifest',
+      path: 'agent.definition',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'shape',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          toolCount: 2,
+          mcpManifestToolCount: 1,
+        }),
+      }),
+    ]);
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-manifest',
+      path: 'mcp.tool',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'contribute',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          mcpServerCount: 1,
+          mcpDefinitionCount: 0,
+          mcpManifestToolCount: 1,
+        }),
+      }),
+    ]);
+  });
+
   test('conversation runtime terminalizes active turn for unsequenced backend error envelope', async () => {
     let backendListener: ((event: unknown) => void) | null = null;
     const store = new InMemoryConversationStore();
