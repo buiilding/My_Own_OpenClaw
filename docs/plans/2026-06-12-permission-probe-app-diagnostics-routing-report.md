@@ -125,6 +125,18 @@ Tests:       15 passed, 15 total
 ```
 
 ```text
+cd frontend && npm run test -- WindieSdkConversationRuntime
+```
+
+Result:
+
+```text
+PASS ../tests/frontend/WindieSdkConversationRuntime.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       125 passed, 125 total
+```
+
+```text
 bin/windie docs list
 ```
 
@@ -198,4 +210,5 @@ Remaining in-scope findings: none.
 ## Commits
 
 - `e4d46f458 fix(frontend-diagnostics): route idle permission probes to app diagnostics`
-- Final report ledger update: this docs-only follow-up commit.
+- `8f34f57d2 docs(plans): finalize permission diagnostics routing report`
+- Final validation ledger update: this docs-only follow-up commit.
