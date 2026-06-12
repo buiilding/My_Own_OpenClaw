@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend: keep reasoning-only deltas from reserving a visible assistant
+  display row before tool rows, while preserving reasoning metadata on the
+  eventual assistant row.
 - frontend/mcp: preserve existing disk MCP enablement during startup config-save
   races before Electron main has loaded `latestFrontendConfig`, preventing app
   restarts from erasing enabled MCP servers.

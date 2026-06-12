@@ -317,6 +317,54 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('SDK display rows do not reserve an assistant row for reasoning before tool rows', () => {
+    const reasoningOnlyEvents = [
+      event('user_message', { text: 'inspect the screen' }),
+      event('reasoning_delta', { text: 'I need to inspect the available tools first.' }),
+    ];
+    const events = [
+      ...reasoningOnlyEvents,
+      event('tool_call', {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+        toolCallId: 'call-shot',
+        args: {},
+      }),
+      event('tool_output', {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+        toolCallId: 'call-shot',
+        result: { output: 'captured screen' },
+        success: true,
+      }),
+      event('assistant_delta', { text: 'The screenshot is ready.' }),
+      event('assistant_message', { text: 'The screenshot is ready.' }),
+    ];
+
+    const reasoningOnlyRows = buildDisplayRows(reasoningOnlyEvents);
+    const rows = buildDisplayRows(events);
+
+    expect(reasoningOnlyRows.map(row => row.type)).toEqual([
+      'user_message',
+    ]);
+    expect(rows.map(row => row.type)).toEqual([
+      'user_message',
+      'tool_call',
+      'tool_output',
+      'assistant_message',
+    ]);
+    expect(rows.map(row => row.index)).toEqual([0, 1, 2, 3]);
+    expect(rows[3]).toMatchObject({
+      id: 'conv-sdk-runtime:turn-1:assistant',
+      content: 'The screenshot is ready.',
+      metadata: expect.objectContaining({
+        raw: expect.objectContaining({
+          reasoningText: 'I need to inspect the available tools first.',
+        }),
+      }),
+    });
+  });
+
   test('SDK display rows give same-turn assistant segments distinct row ids', () => {
     const events = [
       event('user_message', { text: 'find the appointment email' }),

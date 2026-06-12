@@ -198,13 +198,15 @@ renderer-local failure row.
 The display projection is the canonical live and historical transcript state.
 It renders user, assistant, tool, and terminal error rows from canonical
 conversation events. During a live turn, `assistant_delta` and
-`reasoning_delta` events update a stable streaming assistant display row keyed
-by conversation and turn. When the final `assistant_message` event arrives, that
-same row identity becomes the completed assistant row. Dashboard and custom UIs
-render `snapshot.displayRows`; they must not reconstruct transcript rows from
-`snapshot.currentTurn`. `snapshot.currentTurn` remains the SDK-owned
-phase/status/overlay projection for busy state, stop eligibility, active turn
-identity, and overlay-specific progressive state.
+`reasoning_delta` events update turn state, but reasoning-only deltas do not
+reserve a visible assistant display row. The first assistant-visible delta
+creates the stable streaming assistant row at the current transcript position
+and carries any prior reasoning metadata. When the final `assistant_message`
+event arrives, that same row identity becomes the completed assistant row.
+Dashboard and custom UIs render `snapshot.displayRows`; they must not
+reconstruct transcript rows from `snapshot.currentTurn`. `snapshot.currentTurn`
+remains the SDK-owned phase/status/overlay projection for busy state, stop
+eligibility, active turn identity, and overlay-specific progressive state.
 
 Terminal `turn_error` and `runtime_error` events are authoritative for their
 turn. If assistant text or deltas were already projected for the same

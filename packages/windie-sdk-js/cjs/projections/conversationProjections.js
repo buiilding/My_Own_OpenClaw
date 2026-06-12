@@ -507,25 +507,34 @@ function buildDisplayRows(events) {
         if (event.type === 'assistant_delta' || event.type === 'reasoning_delta') {
             const key = streamingAssistantKey(event);
             const current = streamingAssistants.get(key) ?? {
-                rowIndex: rows.length,
-                rowId: assistantDisplayRowIdForSegment(event, assistantRowsByTurn),
+                rowIndex: null,
+                rowId: null,
                 assistantText: '',
                 reasoningText: null,
                 eventIds: [],
             };
             const text = textFromPayload(event.payload);
+            const assistantText = event.type === 'assistant_delta'
+                ? `${current.assistantText}${text}`
+                : current.assistantText;
+            const reasoningText = event.type === 'reasoning_delta'
+                ? `${current.reasoningText ?? ''}${text}`
+                : current.reasoningText;
+            const rowIndex = current.rowIndex
+                ?? (assistantText ? rows.length : null);
+            const rowId = current.rowId
+                ?? (assistantText ? assistantDisplayRowIdForSegment(event, assistantRowsByTurn) : null);
             const nextState = {
-                rowIndex: current.rowIndex,
-                rowId: current.rowId,
-                assistantText: event.type === 'assistant_delta'
-                    ? `${current.assistantText}${text}`
-                    : current.assistantText,
-                reasoningText: event.type === 'reasoning_delta'
-                    ? `${current.reasoningText ?? ''}${text}`
-                    : current.reasoningText,
+                rowIndex,
+                rowId,
+                assistantText,
+                reasoningText,
                 eventIds: [...current.eventIds, event.eventId],
             };
             streamingAssistants.set(key, nextState);
+            if (nextState.rowIndex === null || nextState.rowId === null) {
+                continue;
+            }
             const row = buildStreamingAssistantRow(event, nextState.rowIndex, nextState.rowId, nextState.assistantText, nextState.reasoningText, nextState.eventIds);
             if (nextState.rowIndex === rows.length) {
                 rows.push(row);
@@ -539,7 +548,9 @@ function buildDisplayRows(events) {
             const key = streamingAssistantKey(event);
             const streamingState = streamingAssistants.get(key);
             if (streamingState) {
-                rows[streamingState.rowIndex] = buildFinalAssistantRow(event, streamingState.rowIndex, streamingState.rowId, streamingState);
+                const rowIndex = streamingState.rowIndex ?? rows.length;
+                const rowId = streamingState.rowId ?? assistantDisplayRowIdForSegment(event, assistantRowsByTurn);
+                rows[rowIndex] = buildFinalAssistantRow(event, rowIndex, rowId, streamingState);
                 streamingAssistants.delete(key);
                 recordAssistantDisplayRow(event, assistantRowsByTurn);
                 continue;
