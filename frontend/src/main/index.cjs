@@ -29,6 +29,7 @@ const {
   registerBackendMessageObserver,
   registerRendererWindow,
   appendMainProcessTraceEvent,
+  appendAppDiagnostic,
   sendAutomatedQuery,
   sendStopQueryToBackend,
   triggerStopQueryFromMain,

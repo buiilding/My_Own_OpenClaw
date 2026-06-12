@@ -14,6 +14,7 @@ const {
 const {
   BACKEND_RECONNECT_INTERVAL_MS,
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+  appendAppDiagnostic,
 } = require('../../frontend/src/main/ipc.cjs');
 
 describe('ipc.cjs bridge lifecycle/config', () => {
@@ -99,6 +100,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const bridge = initIpc();
 
     expect(bridge.ws).toBeNull();
+  });
+
+  test('exports the app diagnostic sink used by Electron main composition', () => {
+    expect(typeof appendAppDiagnostic).toBe('function');
   });
 
   test('does not expose a user id before backend auth has been established', async () => {

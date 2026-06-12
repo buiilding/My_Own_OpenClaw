@@ -2254,6 +2254,7 @@ module.exports = {
   registerBackendMessageObserver,
   registerRendererWindow,
   appendMainProcessTraceEvent,
+  appendAppDiagnostic,
   sendAutomatedQuery,
   sendStopQueryToBackend,
   shutdownIpcForTests,
