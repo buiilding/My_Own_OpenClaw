@@ -49,6 +49,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(wakeCall).toContain('getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() })');
     expect(wakeCall).toContain('localToolLifecycle');
     expect(wakeCall).not.toContain('conversationRef:');
+    expect(source).toContain('onFrontendConfigLoaded: refreshEnabledMcpServersAfterStartup');
+    expect(source).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
   });
 
   test('electron main exposes SDK-shaped user commands through a strict invoke allowlist', async () => {

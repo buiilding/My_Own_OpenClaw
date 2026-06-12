@@ -28,6 +28,7 @@ function createDeps(overrides = {}) {
     setAgentLoopStopShortcutEnabled: jest.fn(),
     getResponseOverlayPhase: jest.fn(() => 'active-loop'),
     isAgentLoopStopShortcutPhase: jest.fn((phase) => phase === 'active-loop'),
+    onFrontendConfigLoaded: jest.fn(),
     ...overrides,
   };
 }
@@ -54,6 +55,27 @@ describe('ipc_startup_state', () => {
       shortcutFallbackApplied: true,
     });
     expect(deps.setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+.');
+    expect(deps.onFrontendConfigLoaded).toHaveBeenCalledWith({
+      speech_mode_enabled: true,
+      global_agent_stop_shortcut: 'CommandOrControl+.',
+      shortcutFallbackApplied: true,
+    });
+  });
+
+  test('notifies startup consumers with persisted MCP enablement', async () => {
+    const deps = createDeps({
+      loadCachedFrontendConfigFromDisk: jest.fn(async () => ({
+        agent_enabled_mcp_servers: ['mcp:cua-driver'],
+      })),
+    });
+
+    initializeIpcStartupState(deps);
+    await flushPromises();
+
+    expect(deps.onFrontendConfigLoaded).toHaveBeenCalledWith({
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+      shortcutFallbackApplied: true,
+    });
   });
 
   test('initializes stop shortcut state from the current response-overlay phase', () => {
@@ -74,6 +96,7 @@ describe('ipc_startup_state', () => {
 
     expect(deps.setLatestFrontendConfig).not.toHaveBeenCalled();
     expect(deps.setGlobalAgentStopShortcutAccelerator).not.toHaveBeenCalled();
+    expect(deps.onFrontendConfigLoaded).not.toHaveBeenCalled();
   });
 
   test('startup hydration failures are fail-open', async () => {

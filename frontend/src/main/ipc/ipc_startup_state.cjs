@@ -9,6 +9,7 @@ function initializeIpcStartupState({
   setAgentLoopStopShortcutEnabled,
   getResponseOverlayPhase,
   isAgentLoopStopShortcutPhase,
+  onFrontendConfigLoaded,
   log,
 }) {
   loadInstallAuthStateFromDisk(log)
@@ -27,8 +28,15 @@ function initializeIpcStartupState({
       if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
         setGlobalAgentStopShortcutAccelerator(nextConfig.global_agent_stop_shortcut);
       }
+      if (typeof onFrontendConfigLoaded === 'function') {
+        onFrontendConfigLoaded(nextConfig);
+      }
     })
-    .catch(() => {});
+    .catch((error) => {
+      if (typeof log === 'function') {
+        log(`Failed to hydrate cached frontend config during startup: ${error?.message || error}`);
+      }
+    });
 
   if (typeof setAgentLoopStopShortcutEnabled === 'function') {
     setAgentLoopStopShortcutEnabled(

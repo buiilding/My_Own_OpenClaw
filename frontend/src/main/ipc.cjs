@@ -191,6 +191,7 @@ let pendingInstallAuthStatePromise = null;
 let windieClient = null;
 let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
+let pendingStartupMcpRefreshPromise = null;
 let latestCurrentTurnProjection = null;
 let desktopAutoSidecarLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
@@ -557,6 +558,7 @@ function resetIpcProcessStateForTests() {
   latestFrontendConfig = null;
   currentGlobalAgentStopShortcutStatus = null;
   pendingInstallAuthStatePromise = null;
+  pendingStartupMcpRefreshPromise = null;
   latestCurrentTurnProjection = null;
   syncSdkLiveTurnSurfaceIntent = null;
   currentTurnTraceLogger.reset();
@@ -1176,6 +1178,22 @@ async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
   return refreshMcpServersForConfig({ config });
 }
 
+function refreshEnabledMcpServersAfterStartup(config) {
+  if (process.env.NODE_ENV === 'test' || countMcpEnabledServersInConfig(config) === 0) {
+    return;
+  }
+  if (pendingStartupMcpRefreshPromise) {
+    return;
+  }
+  pendingStartupMcpRefreshPromise = refreshMcpServersForLatestConfig('mcp-startup')
+    .catch((error) => {
+      log(`Failed to refresh enabled MCP servers at startup: ${error?.message || error}`);
+    })
+    .finally(() => {
+      pendingStartupMcpRefreshPromise = null;
+    });
+}
+
 function buildIpcStatusPayload(connected) {
   return {
     isConnected: connected,
@@ -1350,6 +1368,7 @@ function shutdownIpcForTests() {
   pendingInstallAuthStatePromise = null;
   isConnected = false;
   pendingWindieAgentStartPromise = null;
+  pendingStartupMcpRefreshPromise = null;
   void windieClient?.shutdownLocalRuntime?.();
   windieClient = null;
   windieAgent?.close();
@@ -1407,6 +1426,7 @@ function initializeIpc(win, options = {}) {
     setAgentLoopStopShortcutEnabled,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     isAgentLoopStopShortcutPhase,
+    onFrontendConfigLoaded: refreshEnabledMcpServersAfterStartup,
     log,
   });
 

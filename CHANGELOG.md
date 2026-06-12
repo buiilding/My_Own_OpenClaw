@@ -68,6 +68,8 @@ All notable changes to WindieOS will be documented in this file.
   fields while preserving raw MCP results and concise model-facing output.
 - frontend/mcp: preserve enabled MCP server ids through startup and settings
   sync so dashboard toggles stay enabled after app restart.
+- frontend/mcp: refresh enabled MCP servers after startup config hydration so
+  persisted MCPs are discovered and registered without a manual dashboard refresh.
 - backend/sdk/frontend: allow `update-settings` to carry the full
   `agent_definition` so active sessions immediately apply runtime tools and
   skills without waiting for app restart, and fail stale local tool calls when
