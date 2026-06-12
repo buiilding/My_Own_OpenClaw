@@ -181,3 +181,13 @@ Start with [Plugins and Extensions Hub](../plugins/README.md), [Extension Conven
 Validate package metadata, plugin tools, MCP server config, skill prompt layers, sidecar schemas/code, settings panels, and lifecycle hooks according to the contribution type. Keep contribution types separated inside the extension package.
 
 Avoid: adding a generic adapter that only renames extension payloads without enforcing a lifecycle, security, or runtime boundary.
+
+## MCP Server Or Tool Exposure
+
+Owner: client-side MCP configuration and SDK/Electron tool manifest assembly, with backend validation of the submitted manifest.
+
+Start with [MCP Runtime](mcp.md), [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), and [Plugins and Extensions Hub](../plugins/README.md).
+
+Validate server enablement, stdio launch args, discovery diagnostics, schema projection, trust boundaries, dashboard refresh behavior, and backend manifest validation. Keep disabled-by-default servers gated until the user enables them.
+
+Avoid: treating MCP tools as backend built-ins when the active local tool surface comes from the client manifest.
