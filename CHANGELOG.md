@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   path-specific diagnostics, logs, traces, conversation inspection, and test
   commands before inventing ad hoc shell probes, and to add a focused
   diagnostic or command when no existing route exposes the bug.
+- frontend/sidecar/mcp: add persistent `mcp.enablement` and
+  `mcp.registration` diagnostics so MCP dashboard toggles, config persistence,
+  SDK/local-runtime registration, sidecar reconcile, and registered tool counts
+  are visible without relying on frontend logs.
 - frontend/mcp/docs: add explicit repo-level MCP enablement, dashboard MCP
   controls, and a disabled-by-default CUA Driver MCP declaration that uses
   `cua-driver mcp` after local user enablement.

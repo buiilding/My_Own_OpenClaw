@@ -172,6 +172,12 @@ App diagnostic paths:
 - `mcp.discovery`: sidecar-owned MCP discovery and stdio initialization,
   including sanitized command basename, argument summary, timeout phase,
   elapsed time, stderr tail, and short spawn/request errors.
+- `mcp.enablement`: Electron main MCP dashboard toggle and frontend-config
+  persistence lifecycle, including whether a renderer save preserved MCP
+  enablement from loaded main config or disk.
+- `mcp.registration`: sidecar-owned SDK/local-runtime MCP registration
+  lifecycle, including `/mcps/register` request, replace/reconcile, and
+  registered tool counts.
 - `mcp.execution`: sidecar-owned MCP `tools/call` execution for MCP tools that
   have already been discovered and registered into the local tool manifest.
 
@@ -204,6 +210,18 @@ stderr tail, and short errors. They must not include environment variables,
 absolute command paths, raw MCP payloads, tool schemas, tool results, tokens, or
 stack traces.
 
+`mcp.enablement` rows may include server id, requested enabled state, config
+save phase, preserve source (`latest`, `disk`, or `none`), persisted enabled
+server count, registry status counts, and MCP tool counts. They must not include
+raw frontend config, provider secrets, absolute paths, raw MCP payloads, tool
+schemas, prompt text, or message text.
+
+`mcp.registration` rows may include replace/reconcile booleans, requested
+server count, registered server/tool counts, status/error counts, active MCP
+server count, MCP tool count, elapsed time, and short errors. They must not
+include raw server definitions, absolute command paths, environment variables,
+tool schemas, raw MCP payloads, tokens, prompt text, or message text.
+
 `mcp.execution` rows may include server id, exposed Windie tool name, original
 MCP tool name, phase, elapsed milliseconds, request id, conversation ref,
 tool-call/correlation/bundle ids, turn ref, stderr tail, and short timeout or
@@ -231,6 +249,18 @@ For MCP discovery:
 
 ```bash
 bin/windie diagnostics list --path mcp.discovery --limit 50
+```
+
+For MCP enablement/persistence:
+
+```bash
+bin/windie diagnostics list --path mcp.enablement --limit 50
+```
+
+For MCP registration into the local runtime:
+
+```bash
+bin/windie diagnostics list --path mcp.registration --limit 50
 ```
 
 For MCP tool execution:

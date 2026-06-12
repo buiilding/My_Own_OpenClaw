@@ -9,6 +9,7 @@ const {
 const {
   appendDiagnosticEvent,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
+  MCP_ENABLEMENT_DIAGNOSTICS_PATH,
 } = require('../diagnostics/app_diagnostics_store.cjs');
 
 const MCP_ENABLED_CONFIG_KEY = 'agent_enabled_mcp_servers';
@@ -115,6 +116,7 @@ function getServerStatus(server, effectiveEnabled, discoveryStatus) {
       state: 'ready',
       label: 'Ready',
       reason: '',
+      ...(Number.isFinite(discoveryStatus.tool_count) ? { tool_count: discoveryStatus.tool_count } : {}),
     };
   }
   return {
@@ -182,6 +184,61 @@ function createMcpDiscoveryDiagnostics() {
         return { stored: false };
       }
     },
+  };
+}
+
+function createMcpEnablementDiagnostics() {
+  const context = {
+    path: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+    traceId: createDiagnosticId('mcp-enable'),
+  };
+  return {
+    ...context,
+    emit: async (input = {}) => {
+      try {
+        return appendDiagnosticEvent({
+          path: context.path,
+          traceId: context.traceId,
+          runtime: 'electron-main',
+          ...input,
+        });
+      } catch {
+        return { stored: false };
+      }
+    },
+  };
+}
+
+async function emitMcpDiagnostic(diagnostics, input = {}) {
+  if (!diagnostics || typeof diagnostics.emit !== 'function') {
+    return { stored: false };
+  }
+  try {
+    return await diagnostics.emit(input);
+  } catch {
+    return { stored: false };
+  }
+}
+
+function summarizeMcpRegistry(registry = {}) {
+  const mcps = Array.isArray(registry.mcps) ? registry.mcps : [];
+  return {
+    enabledServerCount: getEnabledMcpServersFromConfig({
+      [MCP_ENABLED_CONFIG_KEY]: registry.enabled_mcp_servers,
+    }).length,
+    registryServerCount: mcps.length,
+    registryReadyCount: mcps.filter((server) => server?.status?.state === 'ready').length,
+    registryErrorCount: mcps.filter((server) => (
+      server?.status?.state === 'error'
+      || server?.status?.state === 'not_installed'
+      || server?.status?.state === 'needs_permission'
+    )).length,
+    mcpToolCount: mcps.reduce((count, server) => {
+      const toolCount = Number.isFinite(server?.status?.tool_count)
+        ? server.status.tool_count
+        : 0;
+      return count + toolCount;
+    }, 0),
   };
 }
 
@@ -321,9 +378,22 @@ async function updateMcpServerEnablementForConfig({
   createClient = undefined,
   spawnImpl = undefined,
   diagnostics = undefined,
+  enablementDiagnostics = undefined,
 } = {}) {
   const normalizedServerId = normalizeString(serverId);
+  const enablementTrace = enablementDiagnostics || createMcpEnablementDiagnostics();
+  const previousEnabledServerCount = getEnabledMcpServersFromConfig(config).length;
   if (!normalizedServerId) {
+    await emitMcpDiagnostic(enablementTrace, {
+      stage: 'toggle_rejected',
+      status: 'failed',
+      data: {
+        phase: 'toggle',
+        requestedEnabled: enabled === true,
+        previousEnabledServerCount,
+      },
+      error: 'Missing MCP server id.',
+    });
     return {
       success: false,
       error: 'Missing MCP server id.',
@@ -331,6 +401,17 @@ async function updateMcpServerEnablementForConfig({
     };
   }
   if (typeof persistConfig !== 'function') {
+    await emitMcpDiagnostic(enablementTrace, {
+      stage: 'toggle_rejected',
+      status: 'failed',
+      data: {
+        serverId: normalizedServerId,
+        phase: 'toggle',
+        requestedEnabled: enabled === true,
+        previousEnabledServerCount,
+      },
+      error: 'Missing MCP config persistence handler.',
+    });
     return {
       success: false,
       error: 'Missing MCP config persistence handler.',
@@ -339,31 +420,98 @@ async function updateMcpServerEnablementForConfig({
   }
 
   const nextConfig = setMcpServerEnabledInConfig(config || {}, normalizedServerId, enabled === true);
+  const nextEnabledServerCount = getEnabledMcpServersFromConfig(nextConfig).length;
+  await emitMcpDiagnostic(enablementTrace, {
+    stage: 'toggle_requested',
+    status: 'started',
+    data: {
+      serverId: normalizedServerId,
+      phase: 'toggle',
+      requestedEnabled: enabled === true,
+      previousEnabledServerCount,
+      enabledServerCount: nextEnabledServerCount,
+    },
+  });
   const result = await persistConfig(nextConfig);
   clearMcpControlState();
 
   if (result?.success === false) {
+    await emitMcpDiagnostic(enablementTrace, {
+      stage: 'config_persist_failed',
+      status: 'failed',
+      data: {
+        serverId: normalizedServerId,
+        phase: 'config_save',
+        requestedEnabled: enabled === true,
+        previousEnabledServerCount,
+        enabledServerCount: nextEnabledServerCount,
+      },
+      error: result.error || 'Unable to update MCP server.',
+    });
     return {
       success: false,
       error: result.error || 'Unable to update MCP server.',
       registry: listMcpServersForConfig({ config, contributionsDir }),
     };
   }
+  await emitMcpDiagnostic(enablementTrace, {
+    stage: 'config_persisted',
+    status: 'succeeded',
+    data: {
+      serverId: normalizedServerId,
+      phase: 'config_save',
+      requestedEnabled: enabled === true,
+      previousEnabledServerCount,
+      enabledServerCount: nextEnabledServerCount,
+      persistedEnabledServerCount: nextEnabledServerCount,
+    },
+  });
 
-  const resolvedLocalRuntime = typeof resolveLocalRuntime === 'function'
-    ? await resolveLocalRuntime(nextConfig)
-    : localRuntime;
-  const shouldRefreshRuntime = enabled === true || Boolean(resolvedLocalRuntime);
-  const registry = shouldRefreshRuntime
-    ? await refreshMcpServersForConfig({
-      config: nextConfig,
-      contributionsDir,
-      localRuntime: resolvedLocalRuntime,
-      createClient,
-      spawnImpl,
-      diagnostics,
-    })
-    : listMcpServersForConfig({ config: nextConfig, contributionsDir });
+  let resolvedLocalRuntime = localRuntime;
+  let shouldRefreshRuntime = enabled === true || Boolean(resolvedLocalRuntime);
+  let registry;
+  try {
+    resolvedLocalRuntime = typeof resolveLocalRuntime === 'function'
+      ? await resolveLocalRuntime(nextConfig)
+      : localRuntime;
+    shouldRefreshRuntime = enabled === true || Boolean(resolvedLocalRuntime);
+    registry = shouldRefreshRuntime
+      ? await refreshMcpServersForConfig({
+        config: nextConfig,
+        contributionsDir,
+        localRuntime: resolvedLocalRuntime,
+        createClient,
+        spawnImpl,
+        diagnostics,
+      })
+      : listMcpServersForConfig({ config: nextConfig, contributionsDir });
+  } catch (error) {
+    await emitMcpDiagnostic(enablementTrace, {
+      stage: shouldRefreshRuntime ? 'registry_refresh_failed' : 'registry_list_failed',
+      status: 'failed',
+      data: {
+        serverId: normalizedServerId,
+        phase: shouldRefreshRuntime ? 'registry_refresh' : 'registry_list',
+        requestedEnabled: enabled === true,
+        previousEnabledServerCount,
+        enabledServerCount: nextEnabledServerCount,
+      },
+      error,
+    });
+    throw error;
+  }
+
+  await emitMcpDiagnostic(enablementTrace, {
+    stage: shouldRefreshRuntime ? 'registry_refreshed' : 'registry_listed',
+    status: 'succeeded',
+    data: {
+      serverId: normalizedServerId,
+      phase: shouldRefreshRuntime ? 'registry_refresh' : 'registry_list',
+      requestedEnabled: enabled === true,
+      previousEnabledServerCount,
+      ...summarizeMcpRegistry(registry),
+    },
+  });
 
   return {
     success: true,
@@ -379,6 +527,7 @@ function clearMcpControlState() {
 module.exports = {
   MCP_ENABLED_CONFIG_KEY,
   clearMcpControlState,
+  createMcpEnablementDiagnostics,
   getEnabledMcpServerSpecsForConfig,
   getEnabledMcpServersFromConfig,
   listMcpServersForConfig,

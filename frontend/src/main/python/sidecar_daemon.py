@@ -32,6 +32,7 @@ DEFAULT_DISCOVERY_FILE = (
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
 MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
+MCP_REGISTRATION_DIAGNOSTICS_PATH = "mcp.registration"
 MAX_DIAGNOSTIC_TEXT_LENGTH = 240
 CURRENT_MCP_EXECUTION_CONTEXT: contextvars.ContextVar[dict[str, Any]] = (
     contextvars.ContextVar("CURRENT_MCP_EXECUTION_CONTEXT", default={})
@@ -55,6 +56,14 @@ ALLOWED_DIAGNOSTIC_DATA_KEYS = {
     "command",
     "args",
     "phase",
+    "replace",
+    "requestedServerCount",
+    "registeredServerCount",
+    "registeredToolCount",
+    "statusCount",
+    "errorCount",
+    "mcpServerCount",
+    "mcpToolCount",
     "timeoutMs",
     "elapsedMs",
     "stderrTail",
@@ -831,10 +840,27 @@ class SidecarDaemon:
             else [payload]
         )
         replace = payload.get("replace") is True or payload.get("reconcile") is True
+        registration_trace_id = (
+            f"mcp-registration-{int(time.time() * 1000)}-{secrets.token_hex(6)}"
+        )
+        registration_started_at = time.monotonic()
         registered_tools: list[dict[str, Any]] = []
         errors: list[dict[str, str]] = []
         statuses: list[dict[str, Any]] = []
         requested_server_ids: set[str] = set()
+        append_mcp_diagnostic_event(
+            trace_id=registration_trace_id,
+            path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+            stage="registration_requested",
+            status="started",
+            data={
+                "phase": "registration",
+                "replace": replace,
+                "requestedServerCount": len(
+                    [server for server in servers if isinstance(server, dict)]
+                ),
+            },
+        )
         if replace:
             for raw_server in servers:
                 if isinstance(raw_server, dict):
@@ -843,7 +869,31 @@ class SidecarDaemon:
                     )
                     if server_id:
                         requested_server_ids.add(server_id)
+            append_mcp_diagnostic_event(
+                trace_id=registration_trace_id,
+                path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+                stage="reconcile_start",
+                status="started",
+                data={
+                    "phase": "reconcile",
+                    "replace": replace,
+                    "requestedServerCount": len(requested_server_ids),
+                    "mcpServerCount": len(self.mcp_status_by_server_id),
+                },
+            )
             await self.reconcile_mcp_servers(requested_server_ids)
+            append_mcp_diagnostic_event(
+                trace_id=registration_trace_id,
+                path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+                stage="reconcile_succeeded",
+                status="succeeded",
+                data={
+                    "phase": "reconcile",
+                    "replace": replace,
+                    "requestedServerCount": len(requested_server_ids),
+                    "mcpServerCount": len(self.mcp_status_by_server_id),
+                },
+            )
         for raw_server in servers:
             if not isinstance(raw_server, dict):
                 continue
@@ -919,6 +969,42 @@ class SidecarDaemon:
             "statuses": statuses,
         }
         await self.emit_event({"type": "mcp-registered", "payload": result})
+        append_mcp_diagnostic_event(
+            trace_id=registration_trace_id,
+            path=MCP_REGISTRATION_DIAGNOSTICS_PATH,
+            stage="registration_completed",
+            status="failed" if errors else "succeeded",
+            duration_ms=int((time.monotonic() - registration_started_at) * 1000),
+            data={
+                "phase": "registration",
+                "replace": replace,
+                "requestedServerCount": len(
+                    [server for server in servers if isinstance(server, dict)]
+                ),
+                "registeredServerCount": len(
+                    {
+                        normalize_string(status.get("server_id"))
+                        for status in statuses
+                        if normalize_string(status.get("server_id"))
+                    }
+                ),
+                "registeredToolCount": len(registered_tools),
+                "statusCount": len(statuses),
+                "errorCount": len(errors),
+                "mcpServerCount": len(self.mcp_status_by_server_id),
+                "mcpToolCount": len(
+                    [
+                        tool
+                        for tool in self.backend.tool_registry.get_tool_manifest().get(
+                            "tools", []
+                        )
+                        if normalize_string(tool.get("mcp_server_id"))
+                    ]
+                ),
+                "elapsedMs": int((time.monotonic() - registration_started_at) * 1000),
+            },
+            error=errors[0]["reason"] if errors else None,
+        )
         return web.json_response(
             {"success": len(errors) == 0, **result}, status=207 if errors else 200
         )

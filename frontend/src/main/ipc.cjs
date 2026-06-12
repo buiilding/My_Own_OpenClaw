@@ -43,6 +43,7 @@ const {
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
   APP_DIAGNOSTICS_PATH,
+  MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
 } = require('./diagnostics/app_diagnostics_store.cjs');
@@ -449,11 +450,60 @@ function preserveMainOwnedFrontendConfigFields(config, options = {}) {
   };
 }
 
+function countMcpEnabledServersInConfig(config) {
+  return Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY])
+    ? config[MCP_ENABLED_CONFIG_KEY].filter((serverId) => typeof serverId === 'string').length
+    : 0;
+}
+
+function resolveMcpEnablementPreserveSource(config, options = {}) {
+  if (!isValidConfigPayload(config) || options.preserveMcpEnablement === false) {
+    return 'none';
+  }
+  if (Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])) {
+    return 'latest';
+  }
+  const diskConfig = loadFrontendConfigFromDiskSync(log);
+  if (Array.isArray(diskConfig?.[MCP_ENABLED_CONFIG_KEY])) {
+    return 'disk';
+  }
+  return 'none';
+}
+
+function recordMcpEnablementDiagnostic(input = {}) {
+  try {
+    return appendDiagnosticEvent({
+      path: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+      traceId: input.traceId || `mcp-enable-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      runtime: 'electron-main',
+      ...input,
+    });
+  } catch {
+    return { stored: false };
+  }
+}
+
 async function persistFrontendConfigToDisk(config, options = {}) {
+  const preserveSource = resolveMcpEnablementPreserveSource(config, options);
+  const payloadHasEnabledKey = Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY]);
   const persistableConfig = redactProviderSecretsFromFrontendConfig(
     preserveMainOwnedFrontendConfigFields(config, options),
   );
   const result = await saveFrontendConfigToDisk(persistableConfig, log);
+  recordMcpEnablementDiagnostic({
+    stage: result?.success === false ? 'config_save_failed' : 'config_saved',
+    status: result?.success === false ? 'failed' : 'succeeded',
+    data: {
+      phase: 'config_save',
+      preserveMcpEnablement: options.preserveMcpEnablement !== false,
+      preserveSource,
+      payloadHasEnabledKey,
+      latestHasEnabledKey: Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY]),
+      persistedEnabledServerCount: countMcpEnabledServersInConfig(persistableConfig),
+      payloadEnabledServerCount: countMcpEnabledServersInConfig(config),
+    },
+    error: result?.success === false ? result.error : null,
+  });
   if (
     result?.success
     && persistableConfig

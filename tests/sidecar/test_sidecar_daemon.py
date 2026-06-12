@@ -495,6 +495,57 @@ async def test_sidecar_daemon_records_mcp_execution_diagnostics(
 
 
 @pytest.mark.asyncio
+async def test_sidecar_daemon_records_mcp_registration_diagnostics(
+    tmp_path: Path, monkeypatch
+):
+    diagnostics_db = tmp_path / "diagnostics.db"
+    monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    registration = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "replace": True,
+                "servers": [{"id": "notes", "command": "fake-mcp-server"}],
+            }
+        )
+    )
+
+    assert registration.status == 200
+    assert json.loads(registration.text)["success"] is True
+    with sqlite3.connect(diagnostics_db) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT path, stage, status, data, error
+            FROM diagnostic_events
+            WHERE path = 'mcp.registration'
+            ORDER BY rowid ASC
+            """).fetchall()
+
+    assert [row["stage"] for row in rows] == [
+        "registration_requested",
+        "reconcile_start",
+        "reconcile_succeeded",
+        "registration_completed",
+    ]
+    assert rows[-1]["status"] == "succeeded"
+    assert rows[-1]["error"] is None
+    data = json.loads(rows[-1]["data"])
+    assert data["phase"] == "registration"
+    assert data["replace"] is True
+    assert data["requestedServerCount"] == 1
+    assert data["registeredServerCount"] == 1
+    assert data["registeredToolCount"] == 1
+    assert data["statusCount"] == 1
+    assert data["errorCount"] == 0
+    assert data["mcpServerCount"] == 1
+    assert data["mcpToolCount"] == 1
+    serialized_data = json.dumps(data)
+    assert "fake-mcp-server" not in serialized_data
+
+
+@pytest.mark.asyncio
 async def test_sidecar_daemon_reconciles_removed_mcp_tools():
     daemon = SidecarDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()

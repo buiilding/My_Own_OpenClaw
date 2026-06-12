@@ -16,6 +16,10 @@ const {
 const {
   clearMcpRuntimeCache,
 } = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
+const {
+  MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+  queryDiagnosticEvents,
+} = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 
 function writeCuaMcpRegistry() {
   const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cua-mcp-'));
@@ -219,6 +223,62 @@ describe('MCP control runtime', () => {
         state: 'off',
         label: 'Off',
       }),
+    }));
+  });
+
+  test('records enablement diagnostics around dashboard toggles', async () => {
+    const contributionRoot = writeCuaMcpRegistry();
+    const persistConfig = jest.fn(async () => ({ success: true }));
+    const registerMcp = jest.fn(async () => ({
+      success: true,
+      registered_tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+      errors: [],
+      statuses: [{
+        server_id: 'cua-driver',
+        state: 'ready',
+        tool_count: 1,
+      }],
+    }));
+    const listTools = jest.fn(async () => ({
+      version: 1,
+      tools: [{
+        name: 'cua_driver__click',
+        mcp_server_id: 'cua-driver',
+      }],
+    }));
+
+    const result = await updateMcpServerEnablementForConfig({
+      config: {},
+      serverId: 'mcp:cua-driver',
+      enabled: true,
+      persistConfig,
+      contributionsDir: contributionRoot,
+      localRuntime: { registerMcp, listTools },
+    });
+
+    expect(result.success).toBe(true);
+    const events = queryDiagnosticEvents({
+      pathFilter: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events.map((event) => event.stage)).toEqual(expect.arrayContaining([
+      'toggle_requested',
+      'config_persisted',
+      'registry_refreshed',
+    ]));
+    const registryEvent = events.find((event) => event.stage === 'registry_refreshed');
+    expect(registryEvent.data).toEqual(expect.objectContaining({
+      serverId: 'mcp:cua-driver',
+      phase: 'registry_refresh',
+      requestedEnabled: true,
+      enabledServerCount: 1,
+      registryServerCount: 1,
+      registryReadyCount: 1,
+      registryErrorCount: 0,
+      mcpToolCount: 1,
     }));
   });
 });

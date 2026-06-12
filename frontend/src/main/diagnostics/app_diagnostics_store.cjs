@@ -7,7 +7,9 @@ const path = require('path');
 const CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH = 'conversation.metadata.list';
 const BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH = 'browser.session_control';
 const MCP_DISCOVERY_DIAGNOSTICS_PATH = 'mcp.discovery';
+const MCP_ENABLEMENT_DIAGNOSTICS_PATH = 'mcp.enablement';
 const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
+const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
 const PERMISSION_PROBE_DIAGNOSTICS_PATH = 'permission.probe';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const APP_DATA_DIR_NAME = 'windieos';
@@ -48,6 +50,29 @@ const ALLOWED_DATA_KEYS = new Set([
   'command',
   'args',
   'phase',
+  'enabled',
+  'requestedEnabled',
+  'payloadHasEnabledKey',
+  'latestHasEnabledKey',
+  'diskHasEnabledKey',
+  'preserveMcpEnablement',
+  'preserveSource',
+  'enabledServerCount',
+  'previousEnabledServerCount',
+  'persistedEnabledServerCount',
+  'payloadEnabledServerCount',
+  'latestEnabledServerCount',
+  'diskEnabledServerCount',
+  'registryServerCount',
+  'registryReadyCount',
+  'registryErrorCount',
+  'mcpServerCount',
+  'mcpToolCount',
+  'replace',
+  'requestedServerCount',
+  'registeredServerCount',
+  'registeredToolCount',
+  'errorCount',
   'timeoutMs',
   'elapsedMs',
   'stderrTail',
@@ -394,7 +419,9 @@ module.exports = {
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
+  MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   MCP_EXECUTION_DIAGNOSTICS_PATH,
+  MCP_REGISTRATION_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,

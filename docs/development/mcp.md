@@ -156,16 +156,34 @@ On macOS, the sidecar also resolves `cua-driver` to the installed
 `~/.local/bin/cua-driver`, before surfacing `Not installed`. This keeps the GUI
 app from depending on interactive shell PATH setup after the CUA installer runs.
 
-MCP discovery emits persistent app diagnostics under `mcp.discovery`. Inspect
-recent discovery failures with:
+MCP enablement, registration, discovery, and execution emit persistent app
+diagnostics:
+
+- `mcp.enablement`: dashboard toggle, frontend-config persistence, and registry
+  refresh/list after enablement changes.
+- `mcp.registration`: SDK/local-runtime registration through the sidecar
+  `/mcps/register` boundary, including replace/reconcile and registered tool
+  counts.
+- `mcp.discovery`: sidecar subprocess startup, initialize, and `tools/list`.
+- `mcp.execution`: MCP `tools/call` execution after tools are registered.
+
+Inspect recent discovery failures with:
 
 ```bash
 bin/windie diagnostics list --path mcp.discovery --limit 10 --json
 ```
 
+Inspect persistence or registration gaps with:
+
+```bash
+bin/windie diagnostics list --path mcp.enablement --limit 10 --json
+bin/windie diagnostics list --path mcp.registration --limit 10 --json
+```
+
 Use the returned `traceId` with `bin/windie diagnostics inspect <trace-id>
 --json` to see spawn, initialize, `tools/list`, timeout, elapsed-time, and
-stderr-tail events.
+stderr-tail events, or the enablement/registration lifecycle rows for the same
+MCP path.
 
 ## What Devs Should Not Edit
 
