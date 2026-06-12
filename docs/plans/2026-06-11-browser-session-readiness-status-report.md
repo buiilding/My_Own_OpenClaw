@@ -48,6 +48,15 @@ Status: implemented and validated.
   - Result: pass.
 - `cd frontend && npm run lint`
   - Result: pass.
+- Follow-up active-runtime reuse validation on 2026-06-12:
+  - `bin/windie test frontend -- LocalBackendBridge.lifecycle.test.cjs LocalBackendBridge.rpc.test.cjs MainWindowRuntime.test.cjs`
+    - Result: pass, 3 suites / 85 tests.
+  - `git diff --check`
+    - Result: pass.
+  - `bin/windie docs list`
+    - Result: pass; canonical navigation validated 82 page references.
+  - `cd frontend && npm run lint`
+    - Result: pass.
 
 ## Security And Persistence Notes
 
@@ -61,3 +70,5 @@ Status: implemented and validated.
 - The implementation preserves SDK ownership of local runtime startup; renderer browser actions remain gated on local-backend readiness.
 - `git log` showed the browser implementation was captured in commit `3abbf94c4` alongside the parallel minimal-chat focus handoff work.
 - `git status` after that commit showed only the browser changelog entry, these browser readiness plan files, and unrelated local generated/state files pending.
+- Follow-up active-runtime reuse was committed as `c886a678c` (`fix(frontend-browser): reuse active local runtime for header`).
+- `git status` after the follow-up implementation commit was clean before this report reconciliation entry.
