@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/agents: require bug investigations to check `bin/windie` for
+  path-specific diagnostics, logs, traces, conversation inspection, and test
+  commands before inventing ad hoc shell probes.
 - frontend/mcp/docs: add explicit repo-level MCP enablement, dashboard MCP
   controls, and a disabled-by-default CUA Driver MCP declaration that uses
   `cua-driver mcp` after local user enablement.
