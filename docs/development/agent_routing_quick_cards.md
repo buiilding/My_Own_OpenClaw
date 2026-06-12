@@ -231,3 +231,13 @@ Start with [Renderer State Change Workflow](../frontend/renderer/renderer_state_
 Validate state normalization, loading/error/empty/data states, stale event guards, accessibility of controls, dashboard navigation, and focused Jest coverage. Keep transport loops, durable storage, and tool execution out of renderer components.
 
 Avoid: adding renderer state that becomes a second source of truth for SDK/runtime conversation data.
+
+## Electron Main Or IPC
+
+Owner: Electron main for app/window/native lifecycle and preload for the narrow allowlisted bridge.
+
+Start with [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md), [IPC Change Workflow](../frontend/ipc_change_workflow.md), and [Frontend Contracts Hub](../frontend/contracts/README.md).
+
+Validate channel registration, preload exposure, renderer caller shape, main handler lifecycle, permission boundaries, packaged behavior, and IPC contract tests. Keep policy decisions in the owning runtime, not in preload.
+
+Avoid: adding a new bridge for behavior that belongs in the SDK runtime, sidecar, or backend contract.
