@@ -1,9 +1,7 @@
 function isLiveSurfaceTraceEnabled() {
   return (
     process.env.WINDIE_DEBUG_LIVE_SURFACE === '1'
-    || process.env.WINDIE_DEV_UI === '1'
     || process.env.WINDIE_DEBUG_CHAT_PILL === '1'
-    || process.env.WINDIE_DEBUG_STREAM_EVENTS === '1'
   );
 }
 

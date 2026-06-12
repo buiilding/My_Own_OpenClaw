@@ -129,7 +129,24 @@ That exposes `local_memory__search`.
 11. When the backend emits an MCP tool call, the SDK routes it to the sidecar
     like any other local tool.
 12. The sidecar sends MCP `tools/call`.
-13. The MCP result is normalized into WindieOS tool result data.
+13. The MCP result is wrapped into WindieOS tool result data.
+
+## MCP Tool Result Contract
+
+WindieOS must preserve raw MCP tool results for every MCP-backed tool, current
+and future. The adapter may wrap the MCP result in the native WindieOS
+`tool-result` envelope, but it must not summarize, flatten, or discard MCP
+`content`, `structuredContent`, or other returned fields.
+
+The model-facing `data.output` should contain the serialized MCP result content
+so the model can see the same data the MCP server returned, including
+structured data such as CUA window lists. The raw MCP object must also remain
+available as `data.mcp_result` for inspection and debugging.
+
+Image content is additive: when an MCP result includes an image item, promote
+that image into WindieOS native image fields such as `data.screenshot` and
+`data.screenshot_content_type`, while keeping the original MCP image item in
+the preserved raw result.
 
 Each discovery pass reconciles the executable MCP tool registry with the current
 enabled server specs. Removed, disabled, duplicate, or manifest-disabled MCP

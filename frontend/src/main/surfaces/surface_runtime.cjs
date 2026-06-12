@@ -31,6 +31,9 @@ const {
   logLiveSurfaceTrace,
   summarizeWindow,
 } = require('../debug/live_surface_trace_runtime.cjs');
+const {
+  appendSurfaceVisibilityDiagnostic: appendSurfaceVisibilityDiagnosticRuntime,
+} = require('../diagnostics/surface_diagnostics_runtime.cjs');
 
 const DEFAULT_TOOL_SURFACE_SETTLE_MS = 80;
 
@@ -101,6 +104,7 @@ function createSurfaceRuntime({
   initialChatPillUserHidden = false,
   persistChatPillUserHidden = () => {},
   reapplyLatestSdkLiveTurnSurfaceIntent = () => {},
+  appendSurfaceVisibilityDiagnostic = appendSurfaceVisibilityDiagnosticRuntime,
   toolSurfaceSettleMs = DEFAULT_TOOL_SURFACE_SETTLE_MS,
   log = console.log,
   warn = console.warn,
@@ -638,7 +642,7 @@ function createSurfaceRuntime({
     logChatPillVisibilityDecision({
       action: 'user-hidden-state-changed',
       userHidden: nextUserHidden,
-    }, { log });
+    }, { log, appendSurfaceVisibilityDiagnostic });
     return true;
   }
 
@@ -666,7 +670,7 @@ function createSurfaceRuntime({
         focus: options?.focus !== false,
         restoreResponseOverlay: options?.restoreResponseOverlay === true,
         resultReason,
-      }, { log });
+      }, { log, appendSurfaceVisibilityDiagnostic });
       return {
         success: true,
         suppressed: true,
@@ -721,7 +725,7 @@ function createSurfaceRuntime({
       resultReason: typeof result?.reason === 'string' ? result.reason : null,
       chatWindowVisible: safeWindowVisible(state.chatWindow),
       responseWindowVisible: safeWindowVisible(state.responseWindow),
-    }, { log });
+    }, { log, appendSurfaceVisibilityDiagnostic });
     return result;
   }
 
@@ -775,7 +779,7 @@ function createSurfaceRuntime({
       resultReason: typeof result?.reason === 'string' ? result.reason : null,
       chatWindowVisible: safeWindowVisible(state.chatWindow),
       responseWindowVisible: safeWindowVisible(state.responseWindow),
-    }, { log });
+    }, { log, appendSurfaceVisibilityDiagnostic });
     return result;
   }
 
@@ -953,8 +957,26 @@ function safeWindowVisible(win) {
   return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
 }
 
+function formatChatPillVisibilityDecision(payload = {}) {
+  const value = (input) => (
+    input === null || typeof input === 'undefined' ? '-' : String(input)
+  );
+  return [
+    `action=${value(payload.action)}`,
+    `reason=${value(payload.reason)}`,
+    `user_hidden=${value(payload.user_hidden)}`,
+    `focus=${value(payload.focus)}`,
+    `result=${value(payload.result_reason)}`,
+    `chat_visible=${value(payload.chat_window_visible)}`,
+    `response_visible=${value(payload.response_window_visible)}`,
+  ].join(' ');
+}
+
 function logChatPillVisibilityDecision(event = {}, deps = {}) {
-  const { log = console.log } = deps;
+  const {
+    appendSurfaceVisibilityDiagnostic = appendSurfaceVisibilityDiagnosticRuntime,
+    log = null,
+  } = deps;
   const payload = {
     action: normalizeChatPillReason(event.action, 'unknown'),
     reason: normalizeChatPillReason(event.reason, null),
@@ -971,7 +993,10 @@ function logChatPillVisibilityDecision(event = {}, deps = {}) {
       ? event.responseWindowVisible
       : null,
   };
-  log('[ChatPillVisibility][main]', payload);
+  appendSurfaceVisibilityDiagnostic(payload);
+  if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1' && typeof log === 'function') {
+    log(`[ChatPillVisibility][main] ${formatChatPillVisibilityDecision(payload)}`);
+  }
   if (payload.action === 'show-applied') {
     logLiveSurfaceTrace('chat_pill.window.show', {
       source: 'surface-runtime',
@@ -996,6 +1021,7 @@ function logChatPillVisibilityDecision(event = {}, deps = {}) {
 module.exports = {
   CHAT_PILL_HIDE_REASON,
   CHAT_PILL_SHOW_REASON,
+  formatChatPillVisibilityDecision,
   logChatPillVisibilityDecision,
   createSurfaceRuntime,
 };

@@ -354,31 +354,8 @@ def mcp_server_launch_key(server: "McpServerSpec") -> str:
     )
 
 
-def format_mcp_content(content: Any) -> str:
-    if not isinstance(content, list):
-        return ""
-    chunks: list[str] = []
-    for item in content:
-        if not isinstance(item, dict):
-            continue
-        if item.get("type") == "text" and isinstance(item.get("text"), str):
-            chunks.append(item["text"])
-        elif item.get("type") == "resource":
-            chunks.append(json.dumps(item.get("resource"), separators=(",", ":")))
-        elif item.get("type") == "image" and normalize_string(item.get("data")):
-            content_type = (
-                normalize_string(
-                    item.get("mimeType")
-                    or item.get("mime_type")
-                    or item.get("contentType")
-                    or item.get("content_type")
-                )
-                or "image/png"
-            )
-            chunks.append(f"[MCP image: {content_type}]")
-        else:
-            chunks.append(json.dumps(item, separators=(",", ":")))
-    return "\n\n".join(chunk for chunk in chunks if chunk)
+def serialize_mcp_result_for_output(result: dict[str, Any] | None) -> str:
+    return json.dumps(result or {}, separators=(",", ":"))
 
 
 def extract_mcp_image_content(content: Any) -> dict[str, str] | None:
@@ -406,10 +383,10 @@ def extract_mcp_image_content(content: Any) -> dict[str, str] | None:
     return None
 
 
-def build_mcp_tool_data(result: dict[str, Any], text: str) -> dict[str, Any]:
+def build_mcp_tool_data(result: dict[str, Any]) -> dict[str, Any]:
     image_content = extract_mcp_image_content(result.get("content"))
     data: dict[str, Any] = {
-        "output": text or json.dumps(result, separators=(",", ":")),
+        "output": serialize_mcp_result_for_output(result),
         "mcp_result": result,
     }
     if image_content:
@@ -1201,7 +1178,7 @@ class SidecarDaemon:
                     )
                     raise
                 elapsed_ms = int((time.monotonic() - started_at) * 1000)
-                text = format_mcp_content(result.get("content"))
+                output = serialize_mcp_result_for_output(result)
                 if result.get("isError"):
                     append_mcp_diagnostic_event(
                         trace_id=trace_id,
@@ -1216,7 +1193,7 @@ class SidecarDaemon:
                     )
                     return {
                         "success": False,
-                        "error": text or f"MCP tool {tool_name} failed",
+                        "error": output or f"MCP tool {tool_name} failed",
                     }
                 append_mcp_diagnostic_event(
                     trace_id=trace_id,
@@ -1230,7 +1207,7 @@ class SidecarDaemon:
                 )
                 return {
                     "success": True,
-                    "data": build_mcp_tool_data(result, text),
+                    "data": build_mcp_tool_data(result),
                 }
 
             registered.append(

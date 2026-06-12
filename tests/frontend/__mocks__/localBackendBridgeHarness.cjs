@@ -52,6 +52,8 @@ jest.mock('fs', () => ({
 jest.mock('../../../frontend/src/main/diagnostics/app_diagnostics_store.cjs', () => ({
   APP_DIAGNOSTICS_PATH: 'conversation.metadata.list',
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH: 'browser.session_control',
+  FRONTEND_INTERACTION_DIAGNOSTICS_PATH: 'frontend.interaction',
+  SURFACE_VISIBILITY_DIAGNOSTICS_PATH: 'surface.visibility',
   appendDiagnosticEvent: (...args) => mockAppendDiagnosticEvent(...args),
 }));
 

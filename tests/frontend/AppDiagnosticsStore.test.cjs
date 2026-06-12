@@ -7,11 +7,13 @@ const path = require('path');
 const {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+  FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   MCP_EXECUTION_DIAGNOSTICS_PATH,
   MCP_REGISTRATION_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
+  SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
@@ -148,6 +150,89 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('do not store');
     expect(JSON.stringify(events[0])).not.toContain('example.com/private');
     expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+  });
+
+  test('persists sanitized surface visibility diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'surface-diag-test',
+      spanId: 'surface-span-test',
+      path: SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
+      stage: 'hide-from-phase',
+      status: 'succeeded',
+      runtime: 'electron-main',
+      data: {
+        action: 'hide-from-phase',
+        mode: 'hidden',
+        phase: 'idle',
+        responseWindowVisible: false,
+        responseOverlayVisibleFlag: false,
+        width: 520,
+        height: 236,
+        title: 'do not store',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'surface-diag-test',
+      stage: 'hide-from-phase',
+      data: expect.objectContaining({
+        action: 'hide-from-phase',
+        mode: 'hidden',
+        phase: 'idle',
+        responseWindowVisible: false,
+        responseOverlayVisibleFlag: false,
+        width: 520,
+        height: 236,
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+  });
+
+  test('persists sanitized frontend interaction diagnostics without labels', () => {
+    appendDiagnosticEvent({
+      traceId: 'interaction-diag-test',
+      spanId: 'interaction-span-test',
+      path: FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
+      stage: 'button_clicked',
+      status: 'succeeded',
+      runtime: 'renderer',
+      conversationRef: 'conv-1',
+      data: {
+        action: 'button_clicked',
+        event: 'click',
+        view: 'minimal-chat-pill',
+        targetTag: 'button',
+        targetType: 'button',
+        hasTargetLabel: true,
+        label: 'do not store',
+        messageText: 'do not store either',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'interaction-diag-test',
+      stage: 'button_clicked',
+      conversationRef: 'conv-1',
+      data: expect.objectContaining({
+        action: 'button_clicked',
+        event: 'click',
+        view: 'minimal-chat-pill',
+        targetTag: 'button',
+        targetType: 'button',
+        hasTargetLabel: true,
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
   });
 
   test('persists sanitized MCP discovery diagnostics', () => {

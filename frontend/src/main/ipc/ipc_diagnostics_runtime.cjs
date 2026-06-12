@@ -1,3 +1,7 @@
+const {
+  appendFrontendInteractionDiagnostic: appendFrontendInteractionDiagnosticRuntime,
+} = require('../diagnostics/surface_diagnostics_runtime.cjs');
+
 const INTERACTION_SCHEMA_VERSION = 1;
 const MESSAGE_TEXT_REDACTION = '[redacted]';
 
@@ -44,18 +48,46 @@ function normalizeFrontendInteractionEntry(entry = {}, options = {}) {
   return normalized;
 }
 
+function compactDiagnosticValue(value, maxLength = 80) {
+  if (typeof value !== 'string') {
+    return '-';
+  }
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (!normalized) {
+    return '-';
+  }
+  return normalized.length > maxLength
+    ? `${normalized.slice(0, maxLength - 1)}…`
+    : normalized;
+}
+
+function formatFrontendInteractionSummary(entry = {}) {
+  const target = entry.target && typeof entry.target === 'object' && !Array.isArray(entry.target)
+    ? entry.target
+    : {};
+  return [
+    `action=${compactDiagnosticValue(entry.action, 48)}`,
+    `event=${compactDiagnosticValue(entry.event, 32)}`,
+    `view=${compactDiagnosticValue(entry.view, 48)}`,
+    `label=${JSON.stringify(compactDiagnosticValue(target.label, 64))}`,
+    `target=${compactDiagnosticValue(target.tagName, 24)}`,
+  ].join(' ');
+}
+
 function handleRendererLog(payload = {}, {
   log = console.log,
   diagnosticsOptions = {},
+  appendFrontendInteractionDiagnostic = appendFrontendInteractionDiagnosticRuntime,
 } = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return false;
   }
   if (payload.source === 'frontend-interaction') {
-    log(
-      '[FrontendInteraction][renderer]',
-      normalizeFrontendInteractionEntry(payload.entry || {}, diagnosticsOptions),
-    );
+    const entry = normalizeFrontendInteractionEntry(payload.entry || {}, diagnosticsOptions);
+    appendFrontendInteractionDiagnostic(entry);
+    if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1') {
+      log(`[FrontendInteraction][renderer] ${formatFrontendInteractionSummary(entry)}`);
+    }
     return true;
   }
   log('[RendererLog]', payload);
@@ -63,6 +95,7 @@ function handleRendererLog(payload = {}, {
 }
 
 module.exports = {
+  formatFrontendInteractionSummary,
   handleRendererLog,
   normalizeFrontendInteractionEntry,
   shouldIncludeMessageText,

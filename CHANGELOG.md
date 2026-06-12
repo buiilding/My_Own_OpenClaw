@@ -64,8 +64,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
-- frontend/sidecar/mcp: promote MCP image content into native screenshot
-  fields while preserving raw MCP results and concise model-facing output.
+- frontend/main: make `npm run electron:dev` stop auto-enabling verbose
+  `[LiveSurfaceTrace]` dumps, keep live-surface tracing behind explicit debug
+  flags, and replace default assistant chunk logs with compact one-line
+  `[ElectronTrace]` milestones for query send, backend connection, first
+  backend event, tool call/output, completion, and settings updates, while
+  moving chat-pill visibility, response-overlay window, and frontend
+  interaction traces into app diagnostics.
+- frontend/sidecar/mcp: preserve raw MCP tool results in model-facing output
+  while promoting MCP image content into native screenshot fields.
+- sdk/sidecar/mcp: forward local tool request, turn, and conversation ids to
+  sidecar execution so `mcp.execution` diagnostics can join back to turns.
 - frontend/mcp: preserve enabled MCP server ids through startup and settings
   sync so dashboard toggles stay enabled after app restart.
 - frontend/mcp: refresh enabled MCP servers after startup config hydration so

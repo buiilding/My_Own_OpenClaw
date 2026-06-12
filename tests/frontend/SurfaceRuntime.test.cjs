@@ -409,16 +409,19 @@ describe('surface_runtime', () => {
 
   test('logs chat pill show decisions with reasons', () => {
     const log = jest.fn();
+    const appendSurfaceVisibilityDiagnostic = jest.fn();
     const runtime = createSurfaceRuntime({
       ...createSurfaceDeps(),
       log,
+      appendSurfaceVisibilityDiagnostic,
     });
     const chatWindow = createWindow({ visible: false });
     runtime.setChatWindow(chatWindow);
 
     runtime.showChatWindow({ focus: true, reason: 'wakeword' });
 
-    expect(log).toHaveBeenCalledWith('[ChatPillVisibility][main]', expect.objectContaining({
+    expect(log).not.toHaveBeenCalledWith(expect.stringContaining('[ChatPillVisibility][main]'));
+    expect(appendSurfaceVisibilityDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'show-applied',
       reason: 'wakeword',
       user_hidden: false,
@@ -429,17 +432,20 @@ describe('surface_runtime', () => {
 
   test('logs suppressed chat pill show decisions with reasons', () => {
     const log = jest.fn();
+    const appendSurfaceVisibilityDiagnostic = jest.fn();
     const runtime = createSurfaceRuntime({
       ...createSurfaceDeps(),
       initialChatPillUserHidden: true,
       log,
+      appendSurfaceVisibilityDiagnostic,
     });
     const chatWindow = createWindow({ visible: false });
     runtime.setChatWindow(chatWindow);
 
     runtime.showChatWindow({ focus: true, reason: 'startup' });
 
-    expect(log).toHaveBeenCalledWith('[ChatPillVisibility][main]', expect.objectContaining({
+    expect(log).not.toHaveBeenCalledWith(expect.stringContaining('[ChatPillVisibility][main]'));
+    expect(appendSurfaceVisibilityDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'show-suppressed',
       reason: 'startup',
       user_hidden: true,
@@ -450,9 +456,11 @@ describe('surface_runtime', () => {
 
   test('suppresses repeated startup chat pill shows after startup handoff already ran', () => {
     const log = jest.fn();
+    const appendSurfaceVisibilityDiagnostic = jest.fn();
     const runtime = createSurfaceRuntime({
       ...createSurfaceDeps(),
       log,
+      appendSurfaceVisibilityDiagnostic,
     });
     const chatWindow = createWindow({ visible: false });
     runtime.setChatWindow(chatWindow);
@@ -465,7 +473,8 @@ describe('surface_runtime', () => {
       suppressed: true,
       reason: 'startup-surface-already-applied',
     });
-    expect(log).toHaveBeenCalledWith('[ChatPillVisibility][main]', expect.objectContaining({
+    expect(log).not.toHaveBeenCalledWith(expect.stringContaining('[ChatPillVisibility][main]'));
+    expect(appendSurfaceVisibilityDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'show-suppressed',
       reason: 'startup',
       result_reason: 'startup-surface-already-applied',

@@ -145,7 +145,6 @@ function buildLaunchEnv(options, baseEnv = process.env) {
   env.ELECTRON_DISABLE_SANDBOX = '1';
   if (options.dev) {
     env.WINDIE_DEV_UI = '1';
-    env.WINDIE_DEBUG_LIVE_SURFACE = env.WINDIE_DEBUG_LIVE_SURFACE || '1';
   }
   if (options.noSummarizer) {
     env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = '0';

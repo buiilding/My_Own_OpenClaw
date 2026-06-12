@@ -182,9 +182,37 @@ export function createFrontendInteractionEntry(action, details = {}, options = {
   };
 }
 
+function compactInteractionValue(value, maxLength = 80) {
+  if (typeof value !== 'string') {
+    return '-';
+  }
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (!normalized) {
+    return '-';
+  }
+  return normalized.length > maxLength
+    ? `${normalized.slice(0, maxLength - 1)}…`
+    : normalized;
+}
+
+export function formatFrontendInteractionSummary(entry = {}) {
+  const target = entry.target && typeof entry.target === 'object' && !Array.isArray(entry.target)
+    ? entry.target
+    : {};
+  return [
+    `action=${compactInteractionValue(entry.action, 48)}`,
+    `event=${compactInteractionValue(entry.event, 32)}`,
+    `view=${compactInteractionValue(entry.view, 48)}`,
+    `label=${JSON.stringify(compactInteractionValue(target.label, 64))}`,
+    `target=${compactInteractionValue(target.tagName, 24)}`,
+  ].join(' ');
+}
+
 export function logFrontendInteraction(action, details = {}) {
   const payload = createFrontendInteractionEntry(action, details);
-  console.log('[FrontendInteraction]', payload);
+  if (window.__WINDIE_DEBUG_SURFACE_STDOUT__ === true) {
+    console.log(`[FrontendInteraction] ${formatFrontendInteractionSummary(payload)}`);
+  }
   try {
     IpcBridge.send(SEND_CHANNELS.RENDERER_LOG, {
       source: 'frontend-interaction',

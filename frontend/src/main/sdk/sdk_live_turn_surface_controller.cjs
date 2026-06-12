@@ -5,6 +5,9 @@ const {
   summarizeCurrentTurn,
   summarizeWindow,
 } = require('../debug/live_surface_trace_runtime.cjs');
+const {
+  appendSurfaceVisibilityDiagnostic,
+} = require('../diagnostics/surface_diagnostics_runtime.cjs');
 
 const RESPONSE_OVERLAY_WIDTH = 520;
 const RESPONSE_OVERLAY_AWAITING_HEIGHT = (
@@ -228,11 +231,12 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       activeGuardRef,
       staleGuardRef: intent.staleGuardRef,
     })) {
-      log('[ResponseOverlayWindow][main]', {
+      appendSurfaceVisibilityDiagnostic({
         action: 'ignore-hide-from-sdk-overlay-intent',
         phase: getResponseOverlayPhase(),
         mode: intent.mode,
         turn_ref: intent.turnRef,
+        conversation_ref: intent.conversationRef,
         stale_guard_ref: intent.staleGuardRef,
         active_guard_ref: activeGuardRef,
         response_window_visible: safeWindowVisible(responseWindow),
@@ -287,11 +291,12 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       });
     }
     syncContextLabelWindowVisibility();
-    log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'hide-from-sdk-overlay-intent',
       phase: getResponseOverlayPhase(),
       mode: intent.mode,
       turn_ref: intent.turnRef,
+      conversation_ref: intent.conversationRef,
       stale_guard_ref: intent.staleGuardRef,
       response_window_visible: safeWindowVisible(responseWindow),
       response_overlay_visible_flag: getResponseOverlayVisible(),
@@ -337,11 +342,12 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       });
     }
     syncContextLabelWindowVisibility();
-    log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'suppress-sdk-overlay-intent-for-surface-owner',
       phase: getResponseOverlayPhase(),
       mode: intent.mode,
       turn_ref: intent.turnRef,
+      conversation_ref: intent.conversationRef,
       stale_guard_ref: intent.staleGuardRef,
       active_guard_ref: activeGuardRef,
       response_window_visible: safeWindowVisible(responseWindow),
@@ -472,11 +478,12 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     responseWindow: summarizeWindow(responseWindow, 'response overlay'),
   });
   syncContextLabelWindowVisibility();
-  log('[ResponseOverlayWindow][main]', {
+  appendSurfaceVisibilityDiagnostic({
     action: 'show-from-sdk-overlay-intent',
     phase: getResponseOverlayPhase(),
     mode: intent.mode,
     turn_ref: intent.turnRef,
+    conversation_ref: intent.conversationRef,
     stale_guard_ref: intent.staleGuardRef,
     response_window_visible: safeWindowVisible(responseWindow),
     response_overlay_visible_flag: getResponseOverlayVisible(),

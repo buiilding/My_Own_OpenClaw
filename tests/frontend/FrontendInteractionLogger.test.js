@@ -13,6 +13,7 @@ import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge
 import {
   createFrontendInteractionEntry,
   describeInteractionTarget,
+  formatFrontendInteractionSummary,
   installFrontendInteractionLogger,
   logUserSentMessage,
 } from '../../frontend/src/renderer/infrastructure/interaction/frontendInteractionLogger';
@@ -31,6 +32,7 @@ describe('frontendInteractionLogger', () => {
     cleanup?.();
     cleanup = null;
     delete window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
+    delete window.__WINDIE_DEBUG_SURFACE_STDOUT__;
     consoleSpy?.mockRestore();
   });
 
@@ -54,14 +56,7 @@ describe('frontendInteractionLogger', () => {
 
     document.querySelector('button').click();
 
-    expect(consoleSpy).toHaveBeenCalledWith('[FrontendInteraction]', expect.objectContaining({
-      action: 'chat_clicked',
-      event: 'click',
-      target: expect.objectContaining({
-        label: 'Chat: Planning notes',
-        className: 'cg-chat-item',
-      }),
-    }));
+    expect(consoleSpy).not.toHaveBeenCalled();
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
       source: 'frontend-interaction',
       entry: expect.objectContaining({
@@ -79,13 +74,7 @@ describe('frontendInteractionLogger', () => {
 
     document.querySelector('button').click();
 
-    expect(consoleSpy).toHaveBeenCalledWith('[FrontendInteraction]', expect.objectContaining({
-      action: 'settings_button_clicked',
-      event: 'click',
-      target: expect.objectContaining({
-        label: 'Settings',
-      }),
-    }));
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 
   test('logs control changes without exposing field values', () => {
@@ -101,16 +90,7 @@ describe('frontendInteractionLogger', () => {
     checkbox.checked = true;
     checkbox.dispatchEvent(new Event('change', { bubbles: true }));
 
-    expect(consoleSpy).toHaveBeenCalledWith('[FrontendInteraction]', expect.objectContaining({
-      action: 'control_changed',
-      event: 'change',
-      checked: true,
-      target: expect.objectContaining({
-        label: 'Enable wakeword',
-        type: 'checkbox',
-      }),
-    }));
-    expect(consoleSpy.mock.calls[0][1]).not.toHaveProperty('value');
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 
   test('redacts message text by default when logging message sends', () => {
@@ -124,19 +104,7 @@ describe('frontendInteractionLogger', () => {
       readableFileCount: 1,
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith('[FrontendInteraction]', expect.objectContaining({
-      action: 'message_sent',
-      event: 'send-message',
-      conversationRef: 'conv-1',
-      senderSurface: 'main-window',
-      messageText: '[redacted]',
-      messageTextRedacted: true,
-      messageTextLength: 27,
-      textLength: 27,
-      attachmentCount: 2,
-      imageCount: 1,
-      readableFileCount: 1,
-    }));
+    expect(consoleSpy).not.toHaveBeenCalled();
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
       source: 'frontend-interaction',
       entry: expect.objectContaining({
@@ -166,6 +134,33 @@ describe('frontendInteractionLogger', () => {
       messageTextRedacted: false,
       messageTextLength: 27,
     }));
+  });
+
+  test('formats frontend interaction entries as compact console summaries', () => {
+    expect(formatFrontendInteractionSummary({
+      action: 'button_clicked',
+      event: 'click',
+      view: 'minimal-chat-pill',
+      target: {
+        label: 'Open config',
+        tagName: 'button',
+      },
+    })).toBe('action=button_clicked event=click view=minimal-chat-pill label="Open config" target=button');
+  });
+
+  test('prints compact frontend interaction summaries only when debug stdout is enabled', () => {
+    window.__WINDIE_DEBUG_SURFACE_STDOUT__ = true;
+
+    logUserSentMessage({
+      conversationRef: 'conv-1',
+      senderSurface: 'main-window',
+      messageText: 'show this message in logs',
+      textLength: 27,
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[FrontendInteraction] action=message_sent event=send-message view=main label="-" target=-',
+    );
   });
 
   test('feature code does not write ad hoc frontend interaction logs', () => {

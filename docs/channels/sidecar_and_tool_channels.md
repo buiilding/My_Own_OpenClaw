@@ -100,6 +100,11 @@ Result path rules:
 - preserve raw `data.output` for local tool results; backend may truncate that
   raw output for model history but must not rewrite it into display/model
   duplicate fields.
+- for MCP-backed tools, preserve the raw MCP result shape in the WindieOS
+  envelope. `data.output` should contain the serialized MCP result content,
+  `data.mcp_result` should keep the raw MCP object, and image content should be
+  additively promoted into native image fields such as `data.screenshot` and
+  `data.screenshot_content_type`.
 - normalize local failures into raw output/error payloads rather than silently dropping the call.
 
 Read next:

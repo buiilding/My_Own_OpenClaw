@@ -214,17 +214,21 @@ Overlay phase updates during relay/stream lifecycle:
 
 ## Debug Checklist
 
-Assistant response lifecycle logs are emitted by default from Electron main:
+Compact response lifecycle milestones are emitted by default from Electron main:
 
-- `[AssistantTrace][backend]`: raw backend assistant lifecycle events received
-  by the SDK/main boundary, including `streaming-response` and
-  `streaming-complete` metadata.
-- `[AssistantTrace][sdk]`: SDK current-turn projection progress, including
-  response start, assistant text length changes, phase changes, and completion.
+- `[ElectronTrace] frontend query.send`: renderer query handoff into Electron
+  main, with conversation/turn ids, text length, and resource count.
+- `[ElectronTrace] backend connection.*`: backend websocket connection state.
+- `[ElectronTrace] backend first_event`: the first backend event received for a
+  turn.
+- `[ElectronTrace] backend tool_call` / `tool_output`: tool activity milestones.
+- `[ElectronTrace] backend complete`: backend agent-loop completion.
+- `[ElectronTrace] settings update.*`: settings send/ack milestones, including
+  provider/model ids and changed setting keys.
 
-The default assistant trace logs include conversation/turn ids, phases, and
+The default trace logs include conversation/turn ids, request ids, counts, and
 content lengths only. Set `WINDIE_DEBUG_STREAM_EVENTS=1` when full event-family
-receive/broadcast tracing is needed.
+receive/broadcast tracing or SDK projection progress is needed.
 
 If first query lacks expected settings:
 

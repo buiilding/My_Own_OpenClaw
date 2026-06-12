@@ -45,10 +45,21 @@ export type WindieLocalRuntimeClient = {
   registerModuleTool?: (tool: WindieToolDefinition, context: { workspacePath?: string }) => Promise<JsonRecord>;
   registerPlugin?: (plugin: WindiePluginDefinition) => Promise<JsonRecord>;
   registerMcp?: (mcp: WindieMcpDefinition) => Promise<JsonRecord>;
-  executeTool?: (payload: { toolName: string; args: JsonRecord }) => Promise<{ success?: boolean; data?: JsonRecord; error?: string }>;
+  executeTool?: (payload: WindieLocalToolExecutionPayload) => Promise<{ success?: boolean; data?: JsonRecord; error?: string }>;
   rpc?: (payload: { method: string; params?: JsonRecord; id?: string | number }) => Promise<JsonRecord>;
   subscribeEvents?: (listener: WindieLocalRuntimeEventListener) => () => void;
   shutdown?: () => Promise<void>;
+};
+
+export type WindieLocalToolExecutionPayload = {
+  toolName: string;
+  args: JsonRecord;
+  requestId?: string | null;
+  bundleId?: string | null;
+  toolCallId?: string | null;
+  correlationId?: string | null;
+  turnRef?: string | null;
+  conversationRef?: string | null;
 };
 
 export type WindieLocalRuntimeEvent = JsonRecord & {
@@ -183,10 +194,16 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
     return this.post('/mcps/register', mcp);
   }
 
-  async executeTool(payload: { toolName: string; args: JsonRecord }): Promise<{ success?: boolean; data?: JsonRecord; error?: string }> {
+  async executeTool(payload: WindieLocalToolExecutionPayload): Promise<{ success?: boolean; data?: JsonRecord; error?: string }> {
     return this.post('/execute-tool', {
       tool_name: payload.toolName,
       args: payload.args,
+      request_id: payload.requestId,
+      bundle_id: payload.bundleId,
+      tool_call_id: payload.toolCallId,
+      correlation_id: payload.correlationId,
+      turn_ref: payload.turnRef,
+      conversation_ref: payload.conversationRef,
     });
   }
 

@@ -2857,6 +2857,45 @@ describe('WindieSdkClient', () => {
     expect(FakeWebSocket.instances[0].closed).toBe(true);
   });
 
+  test('SidecarDaemonHttpClient forwards tool execution trace context', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      success: true,
+      data: { output: 'done' },
+    }));
+    const client = new SidecarDaemonHttpClient({
+      baseUrl: 'http://127.0.0.1:43126',
+      token: 'context-token',
+      fetchImpl: mockFetch as any,
+    });
+
+    await expect(client.executeTool({
+      toolName: 'cua_driver__get_window_state',
+      args: { pid: 123, window_id: 456 },
+      requestId: 'req-1',
+      toolCallId: 'call-1',
+      correlationId: 'corr-1',
+      bundleId: 'bundle-1',
+      turnRef: 'turn-1',
+      conversationRef: 'conv-1',
+    })).resolves.toEqual({
+      success: true,
+      data: { output: 'done' },
+    });
+
+    const [, request] = mockFetch.mock.calls[0];
+    expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:43126/execute-tool');
+    expect(JSON.parse(String((request as RequestInit).body))).toEqual({
+      tool_name: 'cua_driver__get_window_state',
+      args: { pid: 123, window_id: 456 },
+      request_id: 'req-1',
+      bundle_id: 'bundle-1',
+      tool_call_id: 'call-1',
+      correlation_id: 'corr-1',
+      turn_ref: 'turn-1',
+      conversation_ref: 'conv-1',
+    });
+  });
+
   test('SidecarDaemonHttpClient unwraps json-rpc rpc results', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       jsonrpc: '2.0',

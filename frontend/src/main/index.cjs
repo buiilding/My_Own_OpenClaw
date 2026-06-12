@@ -88,6 +88,9 @@ const {
   resolveOverlayIntent,
 } = require('./sdk/sdk_live_turn_surface_controller.cjs');
 const {
+  appendSurfaceVisibilityDiagnostic,
+} = require('./diagnostics/surface_diagnostics_runtime.cjs');
+const {
   createElectronToolSurfaceLifecycle,
 } = require('./sdk/tool_surface_lifecycle.cjs');
 const {
@@ -203,7 +206,7 @@ function syncSdkLiveTurnSurfaceIntent(currentTurn) {
     && overlayIntent.mode === 'response'
     && surfaceRuntime.isResponseOverlayGuardDismissed(overlayIntent.staleGuardRef)
   ) {
-    console.log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'skip-dismissed-sdk-overlay-intent',
       mode: overlayIntent.mode,
       turn_ref: overlayIntent.turnRef,

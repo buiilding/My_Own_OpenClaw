@@ -57,23 +57,46 @@ Important main-process flags:
 | `WINDIE_DEV_UI=1` | Set by `bin/windie start desktop`; enables developer UI/transparency paths. |
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation into renderer URLs and main IPC trace logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables main chat pill trace logs in `frontend/src/main/chat_pill_trace_runtime.cjs`. |
+| `WINDIE_DEBUG_LIVE_SURFACE=1` | Enables verbose ephemeral `[LiveSurfaceTrace]` surface state logs. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enabled by `npm --prefix frontend run test:ghost-cursor` for OS tool ghost overlay debugging. |
 
-Chat pill visibility decisions are always logged from Electron main with:
+Normal Electron main CLI output includes compact one-line `[ElectronTrace]`
+milestones for frontend query send, backend connection state, first backend
+event per turn, tool call/output, backend completion, and settings updates.
+These lines are ephemeral operator logs and summarize ids, counts, lengths, and
+selected settings names without raw user text, assistant text, provider payloads,
+or secrets.
 
-- `[ChatPillVisibility][main]`
+Chat pill visibility and response-overlay window decisions are stored as app
+diagnostics instead of being printed to stdout by default. Inspect them with:
 
-The payload includes `action`, `reason`, `user_hidden`, `focus`,
-`restore_response_overlay`, `result_reason`, `chat_window_visible`, and
-`response_window_visible`. Use it to tell why the pill appeared or why a
-generic restore was suppressed. Handoff hides include the main-window cause in
-the reason, for example `surface-handoff:chat-pill-settings` or
-`surface-handoff:renderer:settings`.
+```bash
+bin/windie diagnostics list --path surface.visibility --limit 50
+```
+
+Rows include action, reason, mode, phase, user-hidden state, focus, result
+reason, guard refs, requested visibility, and final chat/response visibility.
+Use it to tell why the pill appeared, why a generic restore was suppressed, or
+why the response overlay hid/showed. Handoff hides include the main-window cause
+in the reason, for example `surface-handoff:chat-pill-settings` or
+`surface-handoff:renderer:settings`. Use `[LiveSurfaceTrace]` or
+`[ChatPillTrace]` for deeper opt-in surface diagnostics.
 
 ## Renderer Logs
 
 Renderer logs are visible in Electron DevTools and are usually gated by query params that Electron main injects into window URLs.
+Frontend interaction logs are normalized through `renderer-log` IPC and stored
+as app diagnostics instead of being printed to stdout by default. Inspect them
+with:
+
+```bash
+bin/windie diagnostics list --path frontend.interaction --limit 50
+```
+
+Rows include action, event, view, target tag/type/role, and safe counts. They do
+not store raw labels or message text because those can contain chat titles or
+user content.
 
 | Trace | Code root | Enablement |
 | --- | --- | --- |

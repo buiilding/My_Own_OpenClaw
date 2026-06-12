@@ -666,31 +666,8 @@ async function buildClientToolManifestWithMcp(options = {}) {
   };
 }
 
-function formatMcpContent(content) {
-  if (!Array.isArray(content)) {
-    return '';
-  }
-  return content
-    .map((item) => {
-      if (!item || typeof item !== 'object') {
-        return '';
-      }
-      if (item.type === 'text' && typeof item.text === 'string') {
-        return item.text;
-      }
-      if (item.type === 'resource' && item.resource) {
-        return JSON.stringify(item.resource);
-      }
-      if (item.type === 'image' && typeof item.data === 'string' && item.data.trim()) {
-        const contentType = normalizeString(
-          item.mimeType || item.mime_type || item.contentType || item.content_type,
-        ) || 'image/png';
-        return `[MCP image: ${contentType}]`;
-      }
-      return JSON.stringify(item);
-    })
-    .filter(Boolean)
-    .join('\n\n');
+function serializeMcpResultForOutput(result) {
+  return JSON.stringify(result || {});
 }
 
 function extractMcpImageContent(content) {
@@ -716,10 +693,10 @@ function extractMcpImageContent(content) {
   return null;
 }
 
-function buildMcpToolData(result, text) {
+function buildMcpToolData(result) {
   const imageContent = extractMcpImageContent(result?.content);
   return {
-    output: text || JSON.stringify(result || {}),
+    output: serializeMcpResultForOutput(result),
     ...(imageContent || {}),
     mcp_result: result || null,
   };
@@ -745,16 +722,16 @@ async function executeMcpTool(toolName, args = {}, context = {}, options = {}) {
   try {
     const client = getMcpClient(registration.server, options);
     const result = await client.callTool(registration.originalToolName, args, context);
-    const text = formatMcpContent(result?.content);
+    const output = serializeMcpResultForOutput(result);
     if (result?.isError) {
       return {
         success: false,
-        error: text || `MCP tool ${registration.originalToolName} failed`,
+        error: output || `MCP tool ${registration.originalToolName} failed`,
       };
     }
     return {
       success: true,
-      data: buildMcpToolData(result, text),
+      data: buildMcpToolData(result),
     };
   } catch (error) {
     return {
@@ -784,10 +761,10 @@ module.exports = {
   discoverMcpTools,
   executeMcpTool,
   extractMcpImageContent,
-  formatMcpContent,
   hasDiscoveredMcpTool,
   isMcpServerEnabled,
   loadMcpServerSpecs,
   normalizeMcpEnablementIds,
   normalizeMcpServerSpec,
+  serializeMcpResultForOutput,
 };

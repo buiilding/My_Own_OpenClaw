@@ -67,6 +67,7 @@ const {
   uploadArtifact,
 } = require('./ipc/ipc_runtime_helpers.cjs');
 const {
+  createElectronMainTraceLogger,
   createCurrentTurnTraceLogger,
 } = require('./ipc/ipc_assistant_trace.cjs');
 const {
@@ -195,6 +196,7 @@ let pendingStartupMcpRefreshPromise = null;
 let latestCurrentTurnProjection = null;
 let desktopAutoSidecarLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
+const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
@@ -207,6 +209,11 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   isBackendRuntimeConnected,
   ensureBackendConnection,
   updateSettings: (payload) => updateSettingsOnBackend(payload),
+  traceSettingsUpdate: (config, source, msgId) => electronMainTraceLogger.traceSettingsUpdate(
+    config,
+    source,
+    msgId,
+  ),
   log,
   timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
 });
@@ -543,6 +550,7 @@ function resetBackendSessionState() {
   currentConversationRef = null;
   latestCurrentTurnProjection = null;
   currentTurnTraceLogger.reset();
+  electronMainTraceLogger.reset();
 }
 
 function resetIpcProcessStateForTests() {
@@ -562,6 +570,7 @@ function resetIpcProcessStateForTests() {
   latestCurrentTurnProjection = null;
   syncSdkLiveTurnSurfaceIntent = null;
   currentTurnTraceLogger.reset();
+  electronMainTraceLogger.reset();
 }
 
 function normalizeOptionalString(value) {
@@ -587,6 +596,7 @@ function handleWindieAgentConnection(event = {}) {
     }
     isConnected = true;
     isFirstQuery = true;
+    electronMainTraceLogger.traceBackendConnection(event);
     resetSettingsSyncState();
     setResponseOverlayPhase('idle', 'ws-open');
     ipcEventReplayState.clear();
@@ -596,18 +606,22 @@ function handleWindieAgentConnection(event = {}) {
     return;
   }
   if (event.type === 'close') {
+    electronMainTraceLogger.traceBackendConnection(event);
     handleAgentBackendClose(event);
     return;
   }
   if (event.type === 'error') {
+    electronMainTraceLogger.traceBackendConnection(event);
     log(`WebSocket error: ${event.error?.message || event.error}`);
     return;
   }
   if (event.type === 'handshake-error') {
+    electronMainTraceLogger.traceBackendConnection(event);
     log(`Error sending handshake: ${event.error}`);
     return;
   }
   if (event.type === 'message-error') {
+    electronMainTraceLogger.traceBackendConnection(event);
     log(`Error parsing message from backend: ${event.error}`);
   }
 }
@@ -800,7 +814,9 @@ function createDirectWakeUpAgentAdapter({
         source: 'conversation-runtime',
         displayRowCount: Array.isArray(snapshot.displayRows) ? snapshot.displayRows.length : 0,
       });
-      currentTurnTraceLogger.trace(snapshot.currentTurn);
+      if (process.env.WINDIE_DEBUG_STREAM_EVENTS === '1') {
+        currentTurnTraceLogger.trace(snapshot.currentTurn);
+      }
       if (syncSdkLiveTurnSurfaceIntent) {
         try {
           syncSdkLiveTurnSurfaceIntent(snapshot.currentTurn || null);
@@ -1293,6 +1309,7 @@ function handleAgentBackendEvent(rendererData) {
     setResponseOverlayPhase,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     broadcastToRenderers,
+    traceBackendEvent: (data) => electronMainTraceLogger.traceBackendEvent(data),
     log,
   });
 
@@ -1623,6 +1640,7 @@ function initializeIpc(win, options = {}) {
       buildQueryPayload,
       broadcastQuerySendFailureRuntime,
       buildQuerySendFailure,
+      traceFrontendQuery: (input) => electronMainTraceLogger.traceFrontendQuery(input),
     },
   });
 

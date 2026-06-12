@@ -11,8 +11,69 @@ const MCP_ENABLEMENT_DIAGNOSTICS_PATH = 'mcp.enablement';
 const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
 const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
 const PERMISSION_PROBE_DIAGNOSTICS_PATH = 'permission.probe';
+const DESKTOP_STARTUP_DIAGNOSTICS_PATH = 'desktop.startup';
+const IPC_BRIDGE_DIAGNOSTICS_PATH = 'ipc.bridge';
+const LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH = 'local_backend.lifecycle';
+const WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH = 'wakeword.lifecycle';
+const SURFACE_VISIBILITY_DIAGNOSTICS_PATH = 'surface.visibility';
+const FRONTEND_INTERACTION_DIAGNOSTICS_PATH = 'frontend.interaction';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const APP_DATA_DIR_NAME = 'windieos';
+
+const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
+  [CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH]: {
+    owner: 'SDK + sidecar conversation store',
+    purpose: 'Dashboard/sidebar conversation list lifecycle and local history-store reads.',
+  },
+  [BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main local-backend bridge',
+    purpose: 'Browser runtime readiness and chat-header browser action lifecycle before a turn exists.',
+  },
+  [DESKTOP_STARTUP_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main process lifecycle',
+    purpose: 'Desktop startup samples, process metrics, single-instance routing, and app quit cleanup.',
+  },
+  [FRONTEND_INTERACTION_DIAGNOSTICS_PATH]: {
+    owner: 'Renderer interaction logger through Electron main',
+    purpose: 'Sanitized UI interaction breadcrumbs without labels, chat text, or message content.',
+  },
+  [IPC_BRIDGE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main IPC bridge',
+    purpose: 'Backend connection and settings/update bridge milestones that are not owned by one conversation turn.',
+  },
+  [LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main local-backend bridge',
+    purpose: 'Local backend bridge initialization and lifecycle status outside a specific browser action.',
+  },
+  [MCP_DISCOVERY_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main and sidecar MCP runtime',
+    purpose: 'MCP stdio discovery, initialization, timeout, and sanitized startup failure evidence.',
+  },
+  [MCP_ENABLEMENT_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main MCP config runtime',
+    purpose: 'MCP dashboard enablement toggles and frontend-config persistence lifecycle.',
+  },
+  [MCP_EXECUTION_DIAGNOSTICS_PATH]: {
+    owner: 'Python sidecar MCP runtime',
+    purpose: 'MCP tool call execution lifecycle with tool ids, correlation ids, and sanitized transport failures.',
+  },
+  [MCP_REGISTRATION_DIAGNOSTICS_PATH]: {
+    owner: 'Python sidecar MCP runtime',
+    purpose: 'SDK/local-runtime MCP registration, reconciliation, and registered tool counts.',
+  },
+  [PERMISSION_PROBE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main permission runtime',
+    purpose: 'Permission probe/request and workspace activation diagnostics before or outside a turn.',
+  },
+  [SURFACE_VISIBILITY_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main surface runtime',
+    purpose: 'Chat pill and response-overlay show/hide decisions, phase decisions, guard refs, and final visibility.',
+  },
+  [WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main wakeword bridge',
+    purpose: 'Wakeword service enable/disable, process start/exit, readiness, frame parsing, and detection lifecycle.',
+  },
+});
 
 const ALLOWED_DATA_KEYS = new Set([
   'hasUserId',
@@ -27,10 +88,23 @@ const ALLOWED_DATA_KEYS = new Set([
   'storeKind',
   'ready',
   'status',
+  'statusReason',
   'localBackendReady',
   'connected',
   'busyAction',
   'action',
+  'event',
+  'view',
+  'targetTag',
+  'targetType',
+  'targetRole',
+  'hasTargetLabel',
+  'messageTextLength',
+  'textLength',
+  'attachmentCount',
+  'imageCount',
+  'readableFileCount',
+  'senderSurface',
   'hasProvider',
   'hasClient',
   'hasDiscoveryPath',
@@ -50,6 +124,23 @@ const ALLOWED_DATA_KEYS = new Set([
   'command',
   'args',
   'phase',
+  'mode',
+  'source',
+  'userHidden',
+  'focus',
+  'restoreResponseOverlay',
+  'resultReason',
+  'chatWindowVisible',
+  'responseWindowVisible',
+  'responseOverlayVisible',
+  'responseOverlayVisibleFlag',
+  'requestedVisible',
+  'responseLayoutMode',
+  'width',
+  'height',
+  'activeGuardRef',
+  'staleGuardRef',
+  'guardRef',
   'enabled',
   'requestedEnabled',
   'payloadHasEnabledKey',
@@ -94,6 +185,32 @@ const ALLOWED_DATA_KEYS = new Set([
   'requestedCount',
   'statusCount',
   'grantedCount',
+  'label',
+  'pid',
+  'rssMb',
+  'heapUsedMb',
+  'appProcessCount',
+  'browserProcessCount',
+  'rendererProcessCount',
+  'gpuProcessCount',
+  'utilityProcessCount',
+  'appWorkingSetMb',
+  'singleInstanceLockAcquired',
+  'duplicateInstance',
+  'focusCooldownMs',
+  'vmMode',
+  'launchKind',
+  'packaged',
+  'processPid',
+  'exitCode',
+  'frameBytes',
+  'maxFrameBytes',
+  'chunkCount',
+  'modelId',
+  'confidence',
+  'score',
+  'audioReady',
+  'audioEnabled',
 ]);
 
 function diagnosticsDatabasePath() {
@@ -414,19 +531,37 @@ function inspectDiagnosticTrace(traceId, options = {}) {
   return parseDiagnosticRows(rows);
 }
 
+function listDiagnosticPathDefinitions() {
+  return Object.entries(DIAGNOSTIC_PATH_DEFINITIONS)
+    .map(([diagnosticPath, definition]) => ({
+      path: diagnosticPath,
+      owner: definition.owner,
+      purpose: definition.purpose,
+    }))
+    .sort((left, right) => left.path.localeCompare(right.path));
+}
+
 module.exports = {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH,
+  DESKTOP_STARTUP_DIAGNOSTICS_PATH,
+  DIAGNOSTIC_PATH_DEFINITIONS,
+  FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
+  IPC_BRIDGE_DIAGNOSTICS_PATH,
+  LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   MCP_EXECUTION_DIAGNOSTICS_PATH,
   MCP_REGISTRATION_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
+  SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
+  WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   ensureDiagnosticsSchema,
   inspectDiagnosticTrace,
+  listDiagnosticPathDefinitions,
   queryDiagnosticEvents,
   sanitizeData,
   sanitizeError,

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  formatFrontendInteractionSummary,
   handleRendererLog,
   normalizeFrontendInteractionEntry,
   shouldIncludeMessageText,
@@ -17,13 +18,15 @@ describe('ipc_diagnostics_runtime', () => {
 
   test('routes frontend interaction logs through the interaction label with production redaction', () => {
     const log = jest.fn();
+    const appendFrontendInteractionDiagnostic = jest.fn();
 
     expect(handleRendererLog({
       source: 'frontend-interaction',
       entry: { event: 'send', messageText: 'secret user text', messageTextLength: 16 },
-    }, { log })).toBe(true);
+    }, { log, appendFrontendInteractionDiagnostic })).toBe(true);
 
-    expect(log).toHaveBeenCalledWith('[FrontendInteraction][renderer]', expect.objectContaining({
+    expect(log).not.toHaveBeenCalled();
+    expect(appendFrontendInteractionDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       schemaVersion: 1,
       source: 'frontend-interaction',
       action: 'unknown',
@@ -32,7 +35,19 @@ describe('ipc_diagnostics_runtime', () => {
       messageTextRedacted: true,
       messageTextLength: 16,
     }));
-    expect(JSON.stringify(log.mock.calls[0])).not.toContain('secret user text');
+    expect(JSON.stringify(appendFrontendInteractionDiagnostic.mock.calls[0])).not.toContain('secret user text');
+  });
+
+  test('formats frontend interaction entries as compact terminal summaries', () => {
+    expect(formatFrontendInteractionSummary({
+      action: 'button_clicked',
+      event: 'click',
+      view: 'minimal-chat-pill',
+      target: {
+        label: 'Open config',
+        tagName: 'button',
+      },
+    })).toBe('action=button_clicked event=click view=minimal-chat-pill label="Open config" target=button');
   });
 
   test('routes generic renderer logs through the renderer label', () => {

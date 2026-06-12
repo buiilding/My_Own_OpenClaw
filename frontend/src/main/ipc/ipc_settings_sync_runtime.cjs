@@ -31,6 +31,7 @@ function createIpcSettingsSyncRuntime({
   isBackendRuntimeConnected,
   ensureBackendConnection,
   updateSettings,
+  traceSettingsUpdate = null,
   log = () => {},
   timeoutMs = 2500,
 } = {}) {
@@ -112,6 +113,9 @@ function createIpcSettingsSyncRuntime({
     if (!msgId) {
       return Promise.resolve(false);
     }
+    if (typeof traceSettingsUpdate === 'function') {
+      traceSettingsUpdate(backendConfig, source, msgId);
+    }
 
     const ackPromise = waitForSettingsAck(
       pendingSettingsSyncs,
@@ -175,6 +179,7 @@ function createSettingsSyncRuntime({
   isBackendRuntimeConnected,
   ensureBackendConnection,
   updateSettings,
+  traceSettingsUpdate,
   timeoutMs,
   log,
 } = {}) {
@@ -186,6 +191,7 @@ function createSettingsSyncRuntime({
     isBackendRuntimeConnected,
     ensureBackendConnection,
     updateSettings,
+    traceSettingsUpdate,
     timeoutMs,
     log,
   });

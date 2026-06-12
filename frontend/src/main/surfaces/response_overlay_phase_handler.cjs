@@ -9,6 +9,9 @@ const {
   logLiveSurfaceTrace,
   summarizeWindow,
 } = require('../debug/live_surface_trace_runtime.cjs');
+const {
+  appendSurfaceVisibilityDiagnostic,
+} = require('../diagnostics/surface_diagnostics_runtime.cjs');
 
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
@@ -37,7 +40,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       ? getActiveResponseOverlayGuardRef()
       : null;
     if (activeGuardRef) {
-      console.log('[ResponseOverlayWindow][main]', {
+      appendSurfaceVisibilityDiagnostic({
         action: 'ignore-hide-from-phase-for-guarded-sdk-overlay',
         mode,
         phase,
@@ -72,7 +75,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
     }
-    console.log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'hide-from-phase',
       mode,
       phase,
@@ -89,7 +92,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP) {
     if (usePhaseVisibilityFallback !== true) {
-      console.log('[ResponseOverlayWindow][main]', {
+      appendSurfaceVisibilityDiagnostic({
         action: 'defer-show-to-sdk-overlay-intent',
         mode,
         phase,
@@ -124,7 +127,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         });
       }
       syncContextLabelWindowVisibility();
-      console.log('[ResponseOverlayWindow][main]', {
+      appendSurfaceVisibilityDiagnostic({
         action: 'suppress-phase-show-for-surface-owner',
         mode,
         phase,
@@ -159,7 +162,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       overlayMode: mode,
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
     });
-    console.log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'show-from-phase',
       mode,
       phase,
@@ -185,7 +188,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         overlayMode: mode,
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
-      console.log('[ResponseOverlayWindow][main]', {
+      appendSurfaceVisibilityDiagnostic({
         action: 'restore-terminal-from-phase',
         mode,
         phase,

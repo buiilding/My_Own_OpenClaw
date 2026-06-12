@@ -327,28 +327,44 @@ cd frontend
 WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
 ```
 
-Expected markers:
+Expected stdout markers when chat-pill or live-surface debug flags are enabled:
 
-- `[ChatPillVisibility][main]`
 - `[ChatPillTrace][main]`
 - `[ChatPillTrace][renderer]`
 - `[LiveSurfaceTrace]`
 
-`[ChatPillVisibility][main]` is always emitted for chat-pill show/hide
-decisions and includes the show/hide `reason`, whether persisted
-`user_hidden` intent was active, and whether a generic restore was suppressed.
+Chat-pill visibility and response-overlay window decisions are stored in app
+diagnostics under `surface.visibility` instead of being emitted to stdout by
+default:
+
+```bash
+bin/windie diagnostics list --path surface.visibility --limit 50
+```
+
+Rows include the show/hide reason, phase, mode, whether persisted `user_hidden`
+intent was active, response-window visibility, guard refs, and whether a generic
+restore was suppressed.
 `[ChatPillTrace][main]` and `[ChatPillTrace][renderer]` require the debug flag
 above and include deeper phase/window snapshots.
 
-`npm run electron:dev` enables `[LiveSurfaceTrace]` automatically. In packaged
-or customer-mode launches, set `WINDIE_DEBUG_LIVE_SURFACE=1` to enable the same
-trace. Renderer live-surface decisions are forwarded through the allowlisted
-`live-surface-trace` preload channel and printed by Electron main, so the
-terminal contains both `process: 'main'` and `process: 'renderer'` timeline
-entries. This channel is diagnostics-only; it does not drive window behavior.
-The trace intentionally logs ids, lengths, booleans, modes, counts, and window
-policy state; it does not log full message text, file contents, screenshot
-pixels, or credentials.
+`[ElectronTrace]` is the compact default Electron main CLI timeline. It emits
+one-line milestones for frontend query send, backend connection state, the first
+backend event received for a turn, tool call/output, backend completion, and
+settings updates. It is an ephemeral operator log, not a durable
+`trace_event` row, and it summarizes ids, counts, text lengths, selected setting
+names, provider ids, and model ids without raw user text, assistant text,
+provider payloads, or secrets.
+
+`[LiveSurfaceTrace]` is the verbose official ephemeral surface trace. Enable it
+with `WINDIE_DEBUG_LIVE_SURFACE=1` or the broader chat-pill debug flag when the
+bug depends on overlay/window ordering. `npm run electron:dev` does not enable
+it automatically. Renderer live-surface decisions are forwarded through the
+allowlisted `live-surface-trace` preload channel and printed by Electron main,
+so the terminal contains both `process: 'main'` and `process: 'renderer'`
+timeline entries. This channel is diagnostics-only; it does not drive window
+behavior. The trace intentionally logs ids, lengths, booleans, modes, counts,
+and window policy state; it does not log full message text, file contents,
+screenshot pixels, or credentials.
 
 High-value `[LiveSurfaceTrace]` events:
 

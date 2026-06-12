@@ -23,8 +23,14 @@ describe('live_surface_trace_runtime', () => {
     process.env = originalEnv;
   });
 
-  test('enables trace in dev UI mode', () => {
+  test('does not enable trace from dev UI mode alone', () => {
     process.env.WINDIE_DEV_UI = '1';
+
+    expect(isLiveSurfaceTraceEnabled()).toBe(false);
+  });
+
+  test('enables trace through the explicit live surface flag', () => {
+    process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
 
     expect(isLiveSurfaceTraceEnabled()).toBe(true);
   });

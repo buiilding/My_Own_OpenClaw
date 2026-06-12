@@ -6,6 +6,9 @@ const {
   logLiveSurfaceTrace,
   summarizeWindow,
 } = require('../debug/live_surface_trace_runtime.cjs');
+const {
+  appendSurfaceVisibilityDiagnostic,
+} = require('../diagnostics/surface_diagnostics_runtime.cjs');
 
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
@@ -207,7 +210,7 @@ async function handleSetResponseboxSize(
       staleGuardRef: normalizedStaleGuardRef,
       activeGuardRef,
     })) {
-      console.log('[ResponseOverlayWindow][main]', {
+      appendSurfaceVisibilityDiagnostic({
         action: 'ignore-stale-hide-from-size',
         phase: getResponseOverlayPhase(),
         turn_ref: normalizedTurnRef,
@@ -298,7 +301,7 @@ async function handleSetResponseboxSize(
       chatWindow,
       contextLabelWindow,
     });
-    console.log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'hide-from-size',
       phase: getResponseOverlayPhase(),
       requested_visible: false,
@@ -344,7 +347,7 @@ async function handleSetResponseboxSize(
       });
     }
     syncContextLabelWindowVisibility();
-    console.log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'suppress-size-show-for-surface-owner',
       phase: getResponseOverlayPhase(),
       requested_visible: true,
@@ -420,7 +423,7 @@ async function handleSetResponseboxSize(
         width: nextBounds.width,
         height: nextBounds.height,
       });
-      console.log('[ResponseOverlayWindow][main]', {
+      appendSurfaceVisibilityDiagnostic({
         action: 'show-fullscreen-from-size',
         phase: getResponseOverlayPhase(),
         requested_visible: true,
@@ -488,7 +491,7 @@ async function handleSetResponseboxSize(
       width: nextWidth,
       height: nextHeight,
     });
-    console.log('[ResponseOverlayWindow][main]', {
+    appendSurfaceVisibilityDiagnostic({
       action: 'show-or-resize-from-size',
       phase: getResponseOverlayPhase(),
       requested_visible: true,

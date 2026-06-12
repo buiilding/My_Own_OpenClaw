@@ -158,6 +158,15 @@ Fast routing queries:
   client-local tools; they must not import backend code for schema parity.
 - Tool changes must update the client tool manifest, docs, and focused tests in
   the same change.
+- MCP tool results must preserve the raw MCP result for every MCP tool, current
+  and future. The MCP adapter may wrap results in WindieOS native tool
+  call/tool output envelopes, but must not summarize, flatten, or discard MCP
+  `content`, `structuredContent`, or other returned fields. Model-facing
+  `data.output` should contain the MCP result content, and `data.mcp_result`
+  should keep the raw object for inspection. If an MCP result contains image
+  content, additively promote it into WindieOS native image fields such as
+  `data.screenshot` and `data.screenshot_content_type` without rewriting or
+  removing the raw MCP result.
 - Computer-use tools must return automatic post-action screenshot context in
   their tool outputs. Tool bundles that include any computer-use action must
   also return screenshot context for the bundle output; capture once after the

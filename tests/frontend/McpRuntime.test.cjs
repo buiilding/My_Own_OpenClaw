@@ -157,10 +157,46 @@ describe('MCP runtime', () => {
     expect(result).toEqual({
       success: true,
       data: {
-        output: 'search:windie',
+        output: '{"content":[{"type":"text","text":"search:windie"}]}',
         mcp_result: {
           content: [{ type: 'text', text: 'search:windie' }],
         },
+      },
+    });
+  });
+
+  test('preserves MCP structured content in model-facing output', async () => {
+    const mcpResult = {
+      content: [{ type: 'text', text: 'Found 1 window(s).' }],
+      structuredContent: {
+        windows: [{ window_id: 1045, title: 'WindieOS' }],
+      },
+    };
+    const client = {
+      ...createClient(),
+      callTool: jest.fn(async () => mcpResult),
+    };
+    await discoverMcpTools({
+      mcpServers: [{
+        id: 'cua-driver',
+        command: 'cua-driver',
+        args: ['mcp'],
+      }],
+      createClient: () => client,
+    });
+
+    const result = await executeMcpTool(
+      createMcpToolName('cua-driver', 'search'),
+      { query: 'windows' },
+      {},
+      { createClient: () => client },
+    );
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        output: JSON.stringify(mcpResult),
+        mcp_result: mcpResult,
       },
     });
   });
@@ -197,7 +233,7 @@ describe('MCP runtime', () => {
     expect(result).toEqual({
       success: true,
       data: {
-        output: '[MCP image: image/png]',
+        output: '{"content":[{"type":"image","data":"png-base64","mimeType":"image/png"}]}',
         screenshot: 'png-base64',
         screenshot_content_type: 'image/png',
         mcp_result: {

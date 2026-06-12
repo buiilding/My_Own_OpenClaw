@@ -32,6 +32,7 @@ LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
 | `WINDIE_DEV_UI=1` | Enables developer UI/transparency paths; set by `bin/windie start desktop`. |
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation and main IPC stream logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables chat pill and response overlay trace logs. |
+| `WINDIE_DEBUG_LIVE_SURFACE=1` | Enables verbose ephemeral `[LiveSurfaceTrace]` surface timeline logs. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enables OS tool ghost overlay debugging; used by `npm --prefix frontend run test:ghost-cursor`. |
 
@@ -41,6 +42,7 @@ Examples:
 cd frontend
 WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
 WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
+WINDIE_DEBUG_LIVE_SURFACE=1 bin/windie start desktop
 WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 ```
 

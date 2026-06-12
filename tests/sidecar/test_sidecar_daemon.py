@@ -78,6 +78,16 @@ class FakeImageMcpClient(FakeMcpClient):
         }
 
 
+class FakeStructuredMcpClient(FakeMcpClient):
+    async def call_tool(self, name, args):
+        return {
+            "content": [{"type": "text", "text": "Found 1 window(s)."}],
+            "structuredContent": {
+                "windows": [{"window_id": 1045, "title": "WindieOS"}]
+            },
+        }
+
+
 class FakeBackendWithEventSink:
     def __init__(self):
         self.event_sink = None
@@ -423,8 +433,52 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
     assert json.loads(execution.text) == {
         "success": True,
         "data": {
-            "output": "remember:hello",
+            "output": '{"content":[{"type":"text","text":"remember:hello"}]}',
             "mcp_result": {"content": [{"type": "text", "text": "remember:hello"}]},
+        },
+    }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_preserves_mcp_structured_content():
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["cua-driver"] = FakeStructuredMcpClient()
+
+    registration = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "id": "cua-driver",
+                "command": "fake-mcp-server",
+                "tools": [
+                    {
+                        "name": "list_windows",
+                        "description": "List windows.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "additionalProperties": False,
+                        },
+                    }
+                ],
+            }
+        )
+    )
+    execution = await daemon.handle_execute_tool(
+        FakeRequest({"tool_name": "mcp_cua-driver__list_windows", "args": {}})
+    )
+
+    assert registration.status == 200
+    mcp_result = {
+        "content": [{"type": "text", "text": "Found 1 window(s)."}],
+        "structuredContent": {
+            "windows": [{"window_id": 1045, "title": "WindieOS"}]
+        },
+    }
+    assert json.loads(execution.text) == {
+        "success": True,
+        "data": {
+            "output": json.dumps(mcp_result, separators=(",", ":")),
+            "mcp_result": mcp_result,
         },
     }
 
@@ -462,7 +516,7 @@ async def test_sidecar_daemon_promotes_mcp_image_content():
     assert json.loads(execution.text) == {
         "success": True,
         "data": {
-            "output": "[MCP image: image/png]",
+            "output": '{"content":[{"type":"image","data":"png-base64","mimeType":"image/png"}]}',
             "screenshot": "png-base64",
             "screenshot_content_type": "image/png",
             "mcp_result": {

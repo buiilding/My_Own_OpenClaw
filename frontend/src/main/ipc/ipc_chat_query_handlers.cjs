@@ -71,6 +71,11 @@ function createChatQueryHandlers({
       conversationRef: preparedQuery.conversationRef,
       accepted: false,
     });
+    deps.traceFrontendQuery?.({
+      payload,
+      conversationRef: preparedQuery.conversationRef,
+      queryMessageId,
+    });
     deps.log('Received query from renderer');
     deps.log('Complete user message built successfully');
 

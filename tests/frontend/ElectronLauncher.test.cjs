@@ -26,7 +26,7 @@ describe('electron-launcher', () => {
     });
   });
 
-  test('buildLaunchEnv enables live surface trace in developer mode', () => {
+  test('buildLaunchEnv enables developer UI without live surface trace noise', () => {
     const env = buildLaunchEnv({
       dev: true,
       noSummarizer: false,
@@ -34,7 +34,7 @@ describe('electron-launcher', () => {
     }, {});
 
     expect(env.WINDIE_DEV_UI).toBe('1');
-    expect(env.WINDIE_DEBUG_LIVE_SURFACE).toBe('1');
+    expect(env.WINDIE_DEBUG_LIVE_SURFACE).toBeUndefined();
     expect(env.ELECTRON_DISABLE_SANDBOX).toBe('1');
   });
 
