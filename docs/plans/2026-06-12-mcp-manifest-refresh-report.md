@@ -59,6 +59,10 @@ Complete.
   - Passed; docs navigation validated.
 - `git diff --check`
   - Passed.
+- Completion-audit rerun after report ledger update:
+  - Backend focused suite passed again: 70 tests.
+  - Frontend focused suite passed again with `--forceExit`: 7 suites, 284 tests.
+  - `git diff --check` passed again.
 - Earlier broader backend run including all of `tests/backend/test_api_handlers.py` failed in unrelated query-handler assertions because trace events increased processed event counts. The MCP-relevant settings-handler tests passed when run directly.
 
 ## Decisions
@@ -96,4 +100,4 @@ propagation path was found.
 
 ## Commits
 
-- Pending.
+- `c1ef644e3 fix(mcp): propagate enabled manifests to agent turns`
