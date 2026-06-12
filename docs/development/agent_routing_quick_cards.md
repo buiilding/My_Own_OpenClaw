@@ -61,3 +61,13 @@ Start with [Browser Change Workflow](../browser/browser_change_workflow.md), [Br
 Validate browser action schemas, CDP/session startup, snapshot/ref behavior, downloaded files, Electron readiness controls, and focused browser tests. Keep dedicated browser state distinct from generic shell or computer-use behavior.
 
 Avoid: treating browser failures as plain tool-dispatch failures before checking the browser runtime and session lifecycle.
+
+## Overlay Or Chat Pill Runtime
+
+Owner: Electron main window policy plus renderer display state.
+
+Start with [Minimal Chat Pill](../desktop/minimal_chat_pill.md), [Response Overlay](../desktop/response_overlay.md), and [Overlay Phase and Surface Change Workflow](../frontend/runtime/overlay_phase_and_surface_change_workflow.md).
+
+Validate phase transitions, focus handoff, visibility, click-through, screenshot hide/restore, and mode-specific tests. Define the event timeline before editing.
+
+Avoid: mixing focus, visibility, transport, and click-through changes in one patch unless the state machine requires it.

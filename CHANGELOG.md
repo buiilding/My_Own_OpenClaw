@@ -7,7 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 ### Added
 
 - docs/development: add agent routing quick cards, starting with backend API,
-  SDK route, tool-schema, filesystem/shell, and browser automation ownership.
+  SDK route, tool-schema, filesystem/shell, browser automation, and
+  overlay/chat-pill ownership.
 - frontend/mcp/docs: add explicit repo-level MCP enablement, dashboard MCP
   controls, and a disabled-by-default CUA Driver MCP declaration that uses
   `cua-driver mcp` after local user enablement.
