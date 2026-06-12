@@ -118,6 +118,12 @@ Current durable traced paths:
   contribution counts and definition presence without plugin payloads.
 - `mcp.tool`: SDK agent-definition shaping records MCP server contribution
   counts and definition presence without server config payloads.
+- `client_tool_manifest.validate`: backend turn handling records client tool
+  manifest validation counts, raw tool count, accepted-name sample, and bounded
+  rejected-reason sample without raw schemas or manifest payloads.
+- `client_tool_manifest.apply`: backend turn handling records client manifest
+  application counts, including the resulting prompt-builder client tool count,
+  without raw schemas or manifest payloads.
 - `workspace.context`: SDK turn send records workspace resource/path presence,
   source kind, and resource counts without workspace paths.
 - `install.auth`: SDK install identity helper records identity lookup spans

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- backend/tools: add turn-scoped `client_tool_manifest.validate` and
+  `client_tool_manifest.apply` traces so client manifest acceptance,
+  rejection, and prompt-builder application counts are visible when MCP tools
+  fail to appear in the final model-visible schema set.
 - sdk/frontend/mcp: add SDK-owned live MCP registration on `WindieAgent` so an
   enabled MCP can be registered through the local runtime, pushed to the backend
   client manifest, stored in the SDK agent definition, and included on the next

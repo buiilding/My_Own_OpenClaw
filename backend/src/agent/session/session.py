@@ -35,6 +35,7 @@ from backend.src.agent.session.initializer import (
 from backend.src.agent.session.lifecycle import SessionLifecycle
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
+from backend.src.core.events.streaming_events import TraceEvent
 from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.prompts.prompts import (
     PromptManager,
@@ -52,6 +53,35 @@ if TYPE_CHECKING:
     from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 logger = logging.getLogger(__name__)
+
+_CLIENT_TOOL_TRACE_SAMPLE_LIMIT = 8
+_CLIENT_TOOL_TRACE_REASON_LIMIT = 240
+
+
+def _count_raw_client_manifest_tools(raw_manifest: Any) -> int:
+    raw_tools = (
+        raw_manifest.get("tools", raw_manifest)
+        if isinstance(raw_manifest, dict)
+        else raw_manifest
+    )
+    return len(raw_tools) if isinstance(raw_tools, list) else 0
+
+
+def _client_manifest_tool_name_sample(names: List[str]) -> List[str]:
+    return names[:_CLIENT_TOOL_TRACE_SAMPLE_LIMIT]
+
+
+def _client_manifest_rejected_reason_sample(
+    rejected: List[Dict[str, str]],
+) -> List[Dict[str, str]]:
+    sample: List[Dict[str, str]] = []
+    for item in rejected[:_CLIENT_TOOL_TRACE_SAMPLE_LIMIT]:
+        name = item.get("name") if isinstance(item, dict) else ""
+        reason = item.get("reason") if isinstance(item, dict) else ""
+        if len(reason) > _CLIENT_TOOL_TRACE_REASON_LIMIT:
+            reason = f"{reason[:_CLIENT_TOOL_TRACE_REASON_LIMIT]}..."
+        sample.append({"name": name or "", "reason": reason or ""})
+    return sample
 
 
 class AgentSession:
@@ -608,13 +638,73 @@ class AgentSession:
                     if hasattr(agent_definition, "client_tool_manifest")
                     else None
                 )
-                if raw_manifest is not None:
+                if raw_manifest is None:
+                    yield TraceEvent(
+                        path="client_tool_manifest.validate",
+                        stage="validate",
+                        status="skipped",
+                        runtime="backend",
+                        data={
+                            "hasAgentDefinition": True,
+                            "hasClientManifest": False,
+                            "rawToolCount": 0,
+                        },
+                    )
+                else:
                     manifest_result = validate_client_tool_manifest(raw_manifest)
+                    accepted_tool_names = manifest_result.accepted_tool_names
+                    rejected_reasons = _client_manifest_rejected_reason_sample(
+                        list(manifest_result.rejected)
+                    )
+                    yield TraceEvent(
+                        path="client_tool_manifest.validate",
+                        stage="validate",
+                        status="succeeded",
+                        runtime="backend",
+                        data={
+                            "hasAgentDefinition": True,
+                            "hasClientManifest": True,
+                            "rawToolCount": _count_raw_client_manifest_tools(
+                                raw_manifest
+                            ),
+                            "acceptedCount": len(manifest_result.accepted),
+                            "rejectedCount": len(manifest_result.rejected),
+                            "acceptedToolNameSample": _client_manifest_tool_name_sample(
+                                accepted_tool_names
+                            ),
+                            "rejectedReasonSample": rejected_reasons,
+                        },
+                    )
                     self.runtime.client_tool_manifest = manifest_result
+                    accepted_tool_schemas = list(manifest_result.accepted_tool_schemas)
                     setattr(
                         self.prompt_builder,
                         "client_tool_schemas",
-                        list(manifest_result.accepted_tool_schemas),
+                        accepted_tool_schemas,
+                    )
+                    yield TraceEvent(
+                        path="client_tool_manifest.apply",
+                        stage="apply",
+                        status="succeeded",
+                        runtime="backend",
+                        data={
+                            "acceptedCount": len(manifest_result.accepted),
+                            "rejectedCount": len(manifest_result.rejected),
+                            "runtimeAcceptedToolCount": len(
+                                self.runtime.client_tool_manifest.accepted
+                            ),
+                            "promptBuilderClientToolCount": len(
+                                getattr(
+                                    self.prompt_builder,
+                                    "client_tool_schemas",
+                                    [],
+                                )
+                                or []
+                            ),
+                            "acceptedToolNameSample": _client_manifest_tool_name_sample(
+                                accepted_tool_names
+                            ),
+                        },
                     )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
