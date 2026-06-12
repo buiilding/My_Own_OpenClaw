@@ -94,6 +94,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   function mockFrontendConfigFile(fs, content) {
     fs.existsSync.mockReturnValue(true);
     fs.promises.readFile.mockResolvedValue(content);
+    fs.readFileSync.mockReturnValue(content);
   }
 
   test('does not create the backend websocket during ipc initialization', () => {
@@ -731,6 +732,32 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const [tempConfigPath, serializedConfig] = fs.promises.writeFile.mock.calls[0];
     expect(JSON.parse(serializedConfig)).toEqual({
       model_mode: 'online',
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    });
+    expect(fs.promises.rename.mock.calls).toEqual([
+      [tempConfigPath, configPath],
+    ]);
+  });
+
+  test('save-frontend-config preserves disk MCP enablement before config has loaded', async () => {
+    const { handlers, fs } = initIpc();
+    const appDataPath = path.join(path.sep, 'tmp', 'appdata');
+    const configPath = path.join(appDataPath, 'frontend-config.json');
+    mockFrontendConfigFile(fs, JSON.stringify({
+      model_mode: 'online',
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    }));
+
+    const result = await handlers['save-frontend-config'](null, {
+      model_mode: 'online',
+      browser_automation_enabled: true,
+    });
+
+    expect(result).toEqual({ success: true });
+    const [tempConfigPath, serializedConfig] = fs.promises.writeFile.mock.calls[0];
+    expect(JSON.parse(serializedConfig)).toEqual({
+      model_mode: 'online',
+      browser_automation_enabled: true,
       agent_enabled_mcp_servers: ['mcp:cua-driver'],
     });
     expect(fs.promises.rename.mock.calls).toEqual([

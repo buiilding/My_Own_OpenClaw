@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/mcp: preserve existing disk MCP enablement during startup config-save
+  races before Electron main has loaded `latestFrontendConfig`, preventing app
+  restarts from erasing enabled MCP servers.
 - sdk/frontend/mcp: preserve the agent's client tool manifest when per-turn
   workspace/AGENTS.md context supplies a partial agent definition, and make
   `mcp.tool` traces count MCP-backed manifest tools so enabled MCP tools remain

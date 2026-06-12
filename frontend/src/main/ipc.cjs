@@ -18,6 +18,7 @@ const {
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
 const {
   loadFrontendConfigFromDisk,
+  loadFrontendConfigFromDiskSync,
   redactProviderSecretsFromFrontendConfig,
   saveFrontendConfigToDisk,
 } = require('./ipc/ipc_frontend_config.cjs');
@@ -433,7 +434,12 @@ function preserveMainOwnedFrontendConfigFields(config, options = {}) {
   if (!preserveMcpEnablement) {
     return config;
   }
-  const enabledMcpServers = latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY];
+  const diskConfig = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
+    ? null
+    : loadFrontendConfigFromDiskSync(log);
+  const enabledMcpServers = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
+    ? latestFrontendConfig[MCP_ENABLED_CONFIG_KEY]
+    : diskConfig?.[MCP_ENABLED_CONFIG_KEY];
   if (!Array.isArray(enabledMcpServers)) {
     return config;
   }
