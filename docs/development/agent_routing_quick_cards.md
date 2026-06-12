@@ -151,3 +151,13 @@ Start with [Configuration Change Workflow](../operations/configuration_change_wo
 Validate defaults, environment overrides, persisted settings, ACK/error events, provider rebinding, and settings UI state. Document whether existing persisted values migrate or remain compatible.
 
 Avoid: adding a renderer-only default that disagrees with backend config or packaged runtime behavior.
+
+## Permission Or Local Authority
+
+Owner: Electron main for native permission prompts and window policy, Python sidecar for local machine actions, backend for policy validation only.
+
+Start with [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), and [Platform Permission Matrix](../platforms/permission_matrix.md).
+
+Validate screen, input, microphone, browser, workspace, and sudo authority paths on the relevant platform. Keep permission state, credential state, and tool execution state separate.
+
+Avoid: granting backend code authority over local input, filesystem, or OS permissions.
