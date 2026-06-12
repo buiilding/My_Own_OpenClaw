@@ -121,3 +121,13 @@ Start with [Inference Capability Change Workflow](../providers/inference_capabil
 Validate OCR, vision, embeddings, STT, TTS, provider health gates, SDK route envelopes, and renderer/sidecar consumers. Keep capability detection explicit instead of inferring support from a provider name.
 
 Avoid: wiring a new inference button or setting before the backend capability and failure path are testable.
+
+## WebSocket Event Contract
+
+Owner: backend event contract and formatter, with Electron relay and renderer consumers as follow-through.
+
+Start with [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), [Streaming and Events](../concepts/streaming_and_events.md), and [WebSocket Event Reference](../reference/websocket_event_reference.md).
+
+Validate event names, payload fields, correlation identifiers, terminal events, stale-turn filtering, Electron rebroadcast, and renderer guards. Update reference docs when persisted or public event shape changes.
+
+Avoid: accepting unknown renderer event shapes as a compatibility path instead of fixing the formatter or contract.
