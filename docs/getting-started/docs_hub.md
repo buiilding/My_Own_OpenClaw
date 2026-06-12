@@ -111,6 +111,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Web Client Integration](../web/web_client_integration.md) for TypeScript/Python hosted client and non-Electron integration boundaries.
 - [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
 - [Code Change Surface Index](../reference/code_change_surface_index.md) for routing concrete feature requests to source roots, tests, docs, and validation commands.
+- [Agent Routing Quick Cards](../development/agent_routing_quick_cards.md) for compact owner-first routes through common change types.
 - [Architecture Hub](../architecture/README.md) for runtime boundaries, ownership decision trees, state flow, and failure-domain maps.
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) for choosing the owning process/trust boundary.
 - [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) for query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run ownership.

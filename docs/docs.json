@@ -30,6 +30,7 @@
               "reference/code_change_surface_index",
               "architecture/change_ownership_decision_tree",
               "development/agent_runtime_ownership_and_change_routing",
+              "development/agent_routing_quick_cards",
               "development/agent_development_workflow"
             ]
           }
