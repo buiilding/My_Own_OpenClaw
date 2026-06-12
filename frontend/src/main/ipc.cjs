@@ -48,6 +48,9 @@ const {
   appendDiagnosticEvent,
 } = require('./diagnostics/app_diagnostics_store.cjs');
 const {
+  appendIpcBridgeDiagnostic,
+} = require('./diagnostics/app_diagnostics_runtime.cjs');
+const {
   handleRendererLiveSurfaceTrace,
 } = require('./debug/live_surface_trace_runtime.cjs');
 const {
@@ -410,8 +413,7 @@ function advanceToNextBackendEndpoint() {
 }
 
 function log(message) {
-  // Only log in development - production logging adds overhead
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.WINDIE_DEBUG_IPC_STDOUT === '1') {
     console.log(`[IPC Bridge] ${message}`);
   }
 }
@@ -1117,6 +1119,13 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
   const adapter = createDirectWakeUpAgentAdapter({
     agent,
     workspacePath: resolvedWorkspacePath || null,
+  });
+  appendIpcBridgeDiagnostic({
+    action: 'runtime.wakeup',
+    phase: 'sdk',
+    status: 'succeeded',
+    statusReason: reason,
+    hasWorkspacePath: Boolean(resolvedWorkspacePath),
   });
   log(`WindieClient wakeUp runtime started for ${reason}.`);
   return adapter;

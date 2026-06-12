@@ -146,6 +146,7 @@ function appendIpcBridgeDiagnostic(input = {}, options = {}) {
       requestId: normalizeString(input.requestId),
       statusReason: normalizeString(input.statusReason),
       errorCode: normalizeString(input.errorCode),
+      hasWorkspacePath: booleanOrNull(input.hasWorkspacePath),
       eventType: normalizeString(input.eventType),
       turnRef: normalizeString(input.turnRef),
       textLength: finiteNumberOrNull(input.textLength),
