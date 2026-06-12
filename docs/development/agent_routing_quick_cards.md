@@ -101,3 +101,13 @@ Start with [Memory Hub](../memory/README.md), [Memory Change Workflow](../memory
 Validate memory retrieval/injection, semanticization, transcript identity, compaction lifecycle, backend history, and any dashboard memory UI paths. State whether persisted data needs migration or no migration.
 
 Avoid: merging transcript replay, semantic memory, and compaction fixes into one undocumented state change.
+
+## Provider Or Model Catalog
+
+Owner: backend provider runtime and model catalog, with frontend settings/picker follow-through.
+
+Start with [Providers Hub](../providers/README.md), [Provider Change Workflow](../providers/provider_change_workflow.md), and [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md).
+
+Validate provider factory behavior, streaming and non-streaming responses, tool-call compatibility, credential gates, model metadata, and frontend model picker behavior. Keep provider defaults and credential handling in config-owned paths.
+
+Avoid: adding a model option only in the renderer without updating backend capability metadata and provider validation.
