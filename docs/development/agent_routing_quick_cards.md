@@ -71,3 +71,13 @@ Start with [Minimal Chat Pill](../desktop/minimal_chat_pill.md), [Response Overl
 Validate phase transitions, focus handoff, visibility, click-through, screenshot hide/restore, and mode-specific tests. Define the event timeline before editing.
 
 Avoid: mixing focus, visibility, transport, and click-through changes in one patch unless the state machine requires it.
+
+## Screenshots Or Artifacts
+
+Owner: sidecar capture for local screenshots, backend artifacts for hosted storage, and renderer replay/display for presentation.
+
+Start with [Artifact Change Workflow](../desktop/artifact_change_workflow.md), [Artifacts and Attachments](../desktop/artifacts_and_attachments.md), and [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md).
+
+Validate capture-time overlay hiding, artifact upload/fetch, screenshot refs in query payloads, post-action tool screenshot output, and replay rendering. Include a migration note when persisted artifact identifiers or storage paths change.
+
+Avoid: fixing a missing image only in the renderer before checking whether the capture, upload, or replay producer dropped the reference.
