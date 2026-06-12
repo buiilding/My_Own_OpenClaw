@@ -251,3 +251,13 @@ Start with [Local-Backend Process Lifecycle Workflow](../frontend/main/local_bac
 Validate launch args, readiness, source identity, request correlation, timeouts, response envelopes, packaged paths, and focused sidecar tests. Keep daemon lifecycle distinct from the behavior of one executable tool.
 
 Avoid: masking stale sidecar processes with renderer retries instead of fixing startup or readiness ownership.
+
+## Observability Or Error Handling
+
+Owner: the runtime that emits the signal, with docs and tests proving the failure path is actionable and sanitized.
+
+Start with [Observability Change Workflow](../debug/observability_change_workflow.md), [Error and Failure Change Workflow](../debug/error_failure_change_workflow.md), and [Diagnostic Flags](../debug/diagnostic_flags.md).
+
+Validate log level, trace flag gating, diagnostic event shape, user-facing error state, retry behavior, redaction, and evidence-collection docs. Prefer narrow diagnostics that identify the producer and consumer.
+
+Avoid: adding always-on verbose logs or raw payload dumps for cross-runtime failures.
