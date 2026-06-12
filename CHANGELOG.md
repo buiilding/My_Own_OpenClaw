@@ -52,6 +52,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar/mcp: resolve `cua-driver` to the installed macOS
   `CuaDriver.app` binary when the GUI sidecar process cannot see the shell PATH,
   so the CUA Driver MCP can start after local installation.
+- frontend/mcp: persist MCP dashboard enablement through renderer AppConfig and
+  preserve the main-owned MCP allowlist across older settings saves, so enabled
+  MCP tools survive panel reloads and reach the next agent manifest.
 - frontend/auth: validate cached install auth against the hosted identity
   endpoint before reuse, discard only confirmed-invalid 401 tokens, and
   re-register so app reinstalls or backend auth resets do not break chat

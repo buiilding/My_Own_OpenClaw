@@ -698,6 +698,33 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+Alt+.');
   });
 
+  test('save-frontend-config preserves existing MCP enablement when payload omits it', async () => {
+    const { handlers, fs } = initIpc();
+    const appDataPath = path.join(path.sep, 'tmp', 'appdata');
+    const configPath = path.join(appDataPath, 'frontend-config.json');
+    mockFrontendConfigFile(fs, JSON.stringify({
+      speech_mode_enabled: false,
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    }));
+    await invokeLoadFrontendConfig(handlers);
+    fs.promises.writeFile.mockClear();
+    fs.promises.rename.mockClear();
+
+    const result = await handlers['save-frontend-config'](null, {
+      model_mode: 'online',
+    });
+
+    expect(result).toEqual({ success: true });
+    const [tempConfigPath, serializedConfig] = fs.promises.writeFile.mock.calls[0];
+    expect(JSON.parse(serializedConfig)).toEqual({
+      model_mode: 'online',
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    });
+    expect(fs.promises.rename.mock.calls).toEqual([
+      [tempConfigPath, configPath],
+    ]);
+  });
+
   test('save-frontend-config redacts provider secrets before writing disk config', async () => {
     const { handlers, fs } = initIpc();
     const appDataPath = path.join(path.sep, 'tmp', 'appdata');

@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const mockInvoke = jest.fn();
+const mockUpdateConfig = jest.fn();
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -12,6 +13,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     SET_MCP_SERVER_ENABLED: 'set-mcp-server-enabled',
     REFRESH_MCP_SERVERS: 'refresh-mcp-servers',
   },
+}));
+
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
+  useAppConfigContext: () => ({
+    updateConfig: mockUpdateConfig,
+  }),
 }));
 
 import McpsSection from '../../frontend/src/renderer/features/dashboard/components/sections/McpsSection';
@@ -32,12 +39,14 @@ function registry(overrides = {}) {
     }],
     errors: [],
     mcp_errors: [],
+    enabled_mcp_servers: overrides.effective_enabled ? ['mcp:memory'] : [],
   };
 }
 
 describe('McpsSection', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
+    mockUpdateConfig.mockReset();
   });
 
   test('lists MCPs and toggles enablement through IPC', async () => {
@@ -66,6 +75,9 @@ describe('McpsSection', () => {
       });
     });
     expect(await screen.findByText('Ready')).toBeInTheDocument();
+    expect(mockUpdateConfig).toHaveBeenCalledWith({
+      agent_enabled_mcp_servers: ['mcp:memory'],
+    });
   });
 
   test('refreshes MCP discovery through IPC', async () => {

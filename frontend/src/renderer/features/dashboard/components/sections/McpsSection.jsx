@@ -5,6 +5,7 @@ import {
   X,
 } from 'lucide-react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { useAppConfigContext } from '../../../../app/providers/AppConfigContext';
 import { CloneToggle } from './settings/settingsControls';
 
 function normalizeMcpRegistry(payload) {
@@ -12,10 +13,14 @@ function normalizeMcpRegistry(payload) {
     mcps: Array.isArray(payload?.mcps) ? payload.mcps : [],
     errors: Array.isArray(payload?.errors) ? payload.errors : [],
     mcp_errors: Array.isArray(payload?.mcp_errors) ? payload.mcp_errors : [],
+    enabled_mcp_servers: Array.isArray(payload?.enabled_mcp_servers)
+      ? payload.enabled_mcp_servers.filter((serverId) => typeof serverId === 'string')
+      : [],
   };
 }
 
 function McpsSection({ onClose = () => {} }) {
+  const { updateConfig } = useAppConfigContext();
   const [registry, setRegistry] = useState({ mcps: [], errors: [], mcp_errors: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -62,11 +67,15 @@ function McpsSection({ onClose = () => {} }) {
       if (payload?.success === false) {
         throw new Error(payload.error || 'Unable to update MCP server.');
       }
-      setRegistry(normalizeMcpRegistry(payload?.registry));
+      const nextRegistry = normalizeMcpRegistry(payload?.registry);
+      setRegistry(nextRegistry);
+      updateConfig({
+        agent_enabled_mcp_servers: nextRegistry.enabled_mcp_servers,
+      });
     } catch (toggleError) {
       setError(toggleError?.message || 'Unable to update MCP server.');
     }
-  }, []);
+  }, [updateConfig]);
 
   return (
     <div className="clone-model-panel">

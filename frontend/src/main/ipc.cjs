@@ -87,6 +87,7 @@ const {
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
+  MCP_ENABLED_CONFIG_KEY,
   getEnabledMcpServerSpecsForConfig,
   listMcpServersForConfig,
   refreshMcpServersForConfig,
@@ -420,8 +421,27 @@ async function loadCachedFrontendConfigFromDisk() {
   return loadFrontendConfigFromDisk(log);
 }
 
+function preserveMainOwnedFrontendConfigFields(config) {
+  if (!isValidConfigPayload(config)) {
+    return config;
+  }
+  if (Object.prototype.hasOwnProperty.call(config, MCP_ENABLED_CONFIG_KEY)) {
+    return config;
+  }
+  const enabledMcpServers = latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY];
+  if (!Array.isArray(enabledMcpServers)) {
+    return config;
+  }
+  return {
+    ...config,
+    [MCP_ENABLED_CONFIG_KEY]: enabledMcpServers.filter((serverId) => typeof serverId === 'string'),
+  };
+}
+
 async function persistFrontendConfigToDisk(config) {
-  const persistableConfig = redactProviderSecretsFromFrontendConfig(config);
+  const persistableConfig = redactProviderSecretsFromFrontendConfig(
+    preserveMainOwnedFrontendConfigFields(config),
+  );
   const result = await saveFrontendConfigToDisk(persistableConfig, log);
   if (
     result?.success
