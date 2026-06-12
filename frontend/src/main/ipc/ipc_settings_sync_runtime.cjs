@@ -8,11 +8,19 @@ const {
   filterBackendPayload,
 } = require('./ipc_backend_payload_contract.cjs');
 
+const MCP_ENABLED_CONFIG_KEY = 'agent_enabled_mcp_servers';
+
 function buildBackendSettingsPayload(config) {
   if (!isValidConfigPayload(config)) {
     return null;
   }
   return filterBackendPayload('update-settings', config);
+}
+
+function copyStringArray(value) {
+  return Array.isArray(value)
+    ? value.filter((item) => typeof item === 'string')
+    : null;
 }
 
 function createIpcSettingsSyncRuntime({
@@ -44,6 +52,38 @@ function createIpcSettingsSyncRuntime({
     resolveSettingsSync(pendingSettingsSyncs, msgId, wasSuccessful);
   }
 
+  async function preserveLocalOnlyConfigFields(config) {
+    if (!isValidConfigPayload(config)) {
+      return config;
+    }
+    if (Array.isArray(config[MCP_ENABLED_CONFIG_KEY])) {
+      return { ...config };
+    }
+
+    const latestEnabled = copyStringArray(getLatestFrontendConfig?.()?.[MCP_ENABLED_CONFIG_KEY]);
+    if (latestEnabled) {
+      return {
+        ...config,
+        [MCP_ENABLED_CONFIG_KEY]: latestEnabled,
+      };
+    }
+
+    try {
+      const cachedConfig = await loadCachedFrontendConfig?.();
+      const cachedEnabled = copyStringArray(cachedConfig?.[MCP_ENABLED_CONFIG_KEY]);
+      if (cachedEnabled) {
+        return {
+          ...config,
+          [MCP_ENABLED_CONFIG_KEY]: cachedEnabled,
+        };
+      }
+    } catch (error) {
+      log(`Failed to load cached frontend config while preserving local fields: ${error?.message || error}`);
+    }
+
+    return { ...config };
+  }
+
   async function waitForPendingSync() {
     if (pendingSettingsSyncPromise) {
       await pendingSettingsSyncPromise;
@@ -57,7 +97,7 @@ function createIpcSettingsSyncRuntime({
     if (!backendConfig) {
       return Promise.resolve(false);
     }
-    setLatestFrontendConfig?.({ ...config });
+    setLatestFrontendConfig?.(await preserveLocalOnlyConfigFields(config));
 
     if (!isBackendRuntimeConnected?.()) {
       try {

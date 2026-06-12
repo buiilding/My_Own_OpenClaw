@@ -7,6 +7,19 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_settings_sync_runtime.cjs');
 
 describe('ipc_settings_sync_runtime', () => {
+  async function waitForUpdateSettings(updateSettings) {
+    while (updateSettings.mock.calls.length === 0) {
+      await Promise.resolve();
+    }
+  }
+
+  async function waitForPendingSettingsSync(runtime, updateSettings) {
+    await waitForUpdateSettings(updateSettings);
+    while (!runtime.getPendingSettingsSyncPromise()) {
+      await Promise.resolve();
+    }
+  }
+
   test('buildBackendSettingsPayload strips renderer-only config fields', () => {
     expect(buildBackendSettingsPayload({
       selected_model_id: 'model-1',
@@ -46,11 +59,7 @@ describe('ipc_settings_sync_runtime', () => {
       global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
     }, 'renderer');
 
-    await (async () => {
-      while (updateSettings.mock.calls.length === 0) {
-        await Promise.resolve();
-      }
-    })();
+    await waitForPendingSettingsSync(runtime, updateSettings);
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBe(true);
@@ -58,6 +67,72 @@ describe('ipc_settings_sync_runtime', () => {
     expect(setLatestFrontendConfig).toHaveBeenCalledWith(expect.objectContaining({
       selected_model_id: 'model-2',
     }));
+    expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'model-2' });
+  });
+
+  test('sendSettingsUpdate preserves local MCP enablement in latest config', async () => {
+    const updateSettings = jest.fn(async () => 'settings-msg-1');
+    const setLatestFrontendConfig = jest.fn();
+    const runtime = createIpcSettingsSyncRuntime({
+      getLatestFrontendConfig: () => ({
+        selected_model_id: 'model-1',
+        agent_enabled_mcp_servers: ['mcp:cua-driver'],
+      }),
+      setLatestFrontendConfig,
+      loadCachedFrontendConfig: jest.fn(async () => {
+        throw new Error('disk should not be needed');
+      }),
+      isBackendRuntimeConnected: () => true,
+      ensureBackendConnection: jest.fn(),
+      updateSettings,
+      log: jest.fn(),
+      timeoutMs: 1000,
+    });
+
+    const promise = runtime.sendSettingsUpdate({
+      selected_model_id: 'model-2',
+    }, 'renderer');
+
+    await waitForPendingSettingsSync(runtime, updateSettings);
+    runtime.resolveAck('settings-msg-1', true);
+
+    await expect(promise).resolves.toBe(true);
+    expect(setLatestFrontendConfig).toHaveBeenCalledWith({
+      selected_model_id: 'model-2',
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    });
+    expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'model-2' });
+  });
+
+  test('sendSettingsUpdate preserves disk MCP enablement when latest config is incomplete', async () => {
+    const updateSettings = jest.fn(async () => 'settings-msg-1');
+    const setLatestFrontendConfig = jest.fn();
+    const runtime = createIpcSettingsSyncRuntime({
+      getLatestFrontendConfig: () => ({ selected_model_id: 'model-1' }),
+      setLatestFrontendConfig,
+      loadCachedFrontendConfig: jest.fn(async () => ({
+        selected_model_id: 'model-1',
+        agent_enabled_mcp_servers: ['mcp:cua-driver'],
+      })),
+      isBackendRuntimeConnected: () => true,
+      ensureBackendConnection: jest.fn(),
+      updateSettings,
+      log: jest.fn(),
+      timeoutMs: 1000,
+    });
+
+    const promise = runtime.sendSettingsUpdate({
+      selected_model_id: 'model-2',
+    }, 'renderer');
+
+    await waitForPendingSettingsSync(runtime, updateSettings);
+    runtime.resolveAck('settings-msg-1', true);
+
+    await expect(promise).resolves.toBe(true);
+    expect(setLatestFrontendConfig).toHaveBeenCalledWith({
+      selected_model_id: 'model-2',
+      agent_enabled_mcp_servers: ['mcp:cua-driver'],
+    });
     expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'model-2' });
   });
 
@@ -77,7 +152,7 @@ describe('ipc_settings_sync_runtime', () => {
     });
 
     const promise = runtime.ensureInitialSettingsSync();
-    await Promise.resolve();
+    await waitForPendingSettingsSync(runtime, updateSettings);
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBeUndefined();
@@ -103,7 +178,7 @@ describe('ipc_settings_sync_runtime', () => {
     });
 
     const promise = runtime.sendSettingsUpdate({ selected_model_id: 'gpt-5' });
-    await Promise.resolve();
+    await waitForUpdateSettings(updateSettings);
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBe(true);

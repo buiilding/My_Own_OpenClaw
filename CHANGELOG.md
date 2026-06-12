@@ -66,6 +66,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - frontend/sidecar/mcp: promote MCP image content into native screenshot
   fields while preserving raw MCP results and concise model-facing output.
+- frontend/mcp: preserve enabled MCP server ids through startup and settings
+  sync so dashboard toggles stay enabled after app restart.
 - backend/sdk/frontend: allow `update-settings` to carry the full
   `agent_definition` so active sessions immediately apply runtime tools and
   skills without waiting for app restart, and fail stale local tool calls when

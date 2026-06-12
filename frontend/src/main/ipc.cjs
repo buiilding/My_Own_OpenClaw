@@ -450,6 +450,10 @@ function preserveMainOwnedFrontendConfigFields(config, options = {}) {
   };
 }
 
+function getFrontendConfigForMcpRegistry() {
+  return preserveMainOwnedFrontendConfigFields(latestFrontendConfig || {});
+}
+
 function countMcpEnabledServersInConfig(config) {
   return Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY])
     ? config[MCP_ENABLED_CONFIG_KEY].filter((serverId) => typeof serverId === 'string').length
@@ -1088,7 +1092,7 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
     builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
     mcps: process.env.NODE_ENV === 'test'
       ? []
-      : getEnabledMcpServerSpecsForConfig({ config: latestFrontendConfig || {} }),
+      : getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() }),
     ...(process.env.NODE_ENV === 'test' ? { memory: false, persistence: false } : {}),
     localToolLifecycle,
   });
@@ -1162,13 +1166,14 @@ async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_C
 }
 
 async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
+  const config = getFrontendConfigForMcpRegistry();
   if (process.env.NODE_ENV !== 'test') {
     const agent = await ensureWindieAgent({ reason });
     if (typeof agent.refreshMcpServers === 'function') {
-      return agent.refreshMcpServers({ config: latestFrontendConfig || {} });
+      return agent.refreshMcpServers({ config });
     }
   }
-  return refreshMcpServersForConfig({ config: latestFrontendConfig || {} });
+  return refreshMcpServersForConfig({ config });
 }
 
 function buildIpcStatusPayload(connected) {
@@ -1420,7 +1425,7 @@ function initializeIpc(win, options = {}) {
 
   ipcMain.handle('list-agent-extensions', async () => {
     const registry = loadPublicExtensionRegistry();
-    const mcpRegistry = listMcpServersForConfig({ config: latestFrontendConfig });
+    const mcpRegistry = listMcpServersForConfig({ config: getFrontendConfigForMcpRegistry() });
     return {
       ...registry,
       mcps: mcpRegistry.mcps,
@@ -1428,7 +1433,7 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.handle('list-mcp-servers', async () => (
-    listMcpServersForConfig({ config: latestFrontendConfig })
+    listMcpServersForConfig({ config: getFrontendConfigForMcpRegistry() })
   ));
 
   ipcMain.handle('set-mcp-server-enabled', async (_event, payload = {}) => {
@@ -1440,7 +1445,7 @@ function initializeIpc(win, options = {}) {
       };
     }
     const result = await updateMcpServerEnablementForConfig({
-      config: latestFrontendConfig || {},
+      config: getFrontendConfigForMcpRegistry(),
       serverId,
       enabled: payload.enabled === true,
       persistConfig: (nextConfig) => persistFrontendConfigToDisk(nextConfig, {
@@ -1452,7 +1457,7 @@ function initializeIpc(win, options = {}) {
     });
     if (result?.success === true && process.env.NODE_ENV !== 'test') {
       const agent = await ensureWindieAgent({ reason: 'mcp-manifest-refresh' });
-      const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: latestFrontendConfig || {} });
+      const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() });
       await agent.registerMcps?.(enabledSpecs, { replace: true });
       result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-sdk-refresh');
     }
