@@ -91,3 +91,13 @@ Start with [Transcript Replay Change Workflow](../memory/transcript_replay_chang
 Validate transcript writes, pending queue retries, dashboard replay, backend rehydrate payloads, stale-event filtering, and tool-row reconstruction. Keep visible transcript state distinct from raw event/history rows.
 
 Avoid: patching dashboard replay output before finding the producer that persisted or omitted the row.
+
+## Memory Or Compaction
+
+Owner: sidecar for local memory storage, backend for hosted semantic routes and compaction decisions, SDK/renderer for projection and replay.
+
+Start with [Memory Hub](../memory/README.md), [Memory Change Workflow](../memory/memory_change_workflow.md), and [Context and Memory](../concepts/context_and_memory.md).
+
+Validate memory retrieval/injection, semanticization, transcript identity, compaction lifecycle, backend history, and any dashboard memory UI paths. State whether persisted data needs migration or no migration.
+
+Avoid: merging transcript replay, semantic memory, and compaction fixes into one undocumented state change.
