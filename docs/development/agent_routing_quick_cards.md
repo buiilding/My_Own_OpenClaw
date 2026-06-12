@@ -141,3 +141,13 @@ Start with [Gateway Hub](../gateway/README.md), [WebSocket Connection Change Wor
 Validate auth handshake, identity binding, message validation, task admission limits, receive timeouts, handler dispatch, transport sends, and cleanup. Keep connection admission separate from query execution behavior.
 
 Avoid: changing stream event payloads to compensate for a connection lifecycle or auth failure.
+
+## Config, Settings, Or Runtime Policy
+
+Owner: backend config for hosted policy, Electron/main and renderer for local settings surfaces, SDK for reusable runtime sync.
+
+Start with [Configuration Change Workflow](../operations/configuration_change_workflow.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), and [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md).
+
+Validate defaults, environment overrides, persisted settings, ACK/error events, provider rebinding, and settings UI state. Document whether existing persisted values migrate or remain compatible.
+
+Avoid: adding a renderer-only default that disagrees with backend config or packaged runtime behavior.
