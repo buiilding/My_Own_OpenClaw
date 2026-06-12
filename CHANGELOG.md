@@ -52,6 +52,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/sdk/frontend/mcp: accept and filter `update-settings.payload.tools`
+  replacement manifests, preserve SDK MCP tools when Electron adds query
+  context, and add agent-definition trace counts for the SDK-vs-query manifest
+  merge so enabled CUA Driver tools can reach the next model-visible schema set.
 - sdk/frontend: keep reasoning-only deltas from reserving a visible assistant
   display row before tool rows, while preserving reasoning metadata on the
   eventual assistant row.

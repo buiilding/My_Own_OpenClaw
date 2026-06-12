@@ -225,6 +225,15 @@ class ProviderOAuthPayload(BaseModel):
     openai_codex: Optional[ProviderOAuthEntryPayload] = None
 
 
+class ToolManifestSettingsPayload(BaseModel):
+    """Frontend-provided client tool manifest replacement."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    mode: str = Field(min_length=1, max_length=64)
+    client_manifest: Dict[str, Any]
+
+
 class UpdateSettingsPayload(BaseModel):
     """Frontend-owned config update payload."""
 
@@ -245,6 +254,7 @@ class UpdateSettingsPayload(BaseModel):
     include_query_screenshot: Optional[bool] = None
     provider_api_keys: Optional[ProviderApiKeysPayload] = None
     provider_oauth: Optional[ProviderOAuthPayload] = None
+    tools: Optional[ToolManifestSettingsPayload] = None
 
 
 class UpdateSettingsMessage(BaseMessage):

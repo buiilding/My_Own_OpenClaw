@@ -4056,6 +4056,116 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('conversation runtime merges SDK MCP manifest with query agent context before trace and dispatch', async () => {
+    const sendQuery = jest.fn(async () => 'query-mcp-merged');
+    const transport = createMockBackendTransport({ sendQuery });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      agentDefinition: {
+        id: 'sdk-agent',
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            version: 1,
+            tools: [
+              {
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+                schema: { type: 'object' },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await runtime.send({
+      text: 'do you have the CUA MCP',
+      turnRef: 'turn-mcp-merge',
+      payload: {
+        agent_definition: {
+          id: 'electron-context',
+          tools: {
+            mode: 'default_plus_client',
+            enabled_remote_tools: [],
+          },
+          runtime: {
+            workspace_path: '/tmp/project',
+          },
+          agents_md: [
+            {
+              id: 'repo',
+              type: 'agents_md',
+              priority: 50,
+              content: 'Follow repo rules.',
+            },
+          ],
+        },
+      },
+    });
+
+    expect(sendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      agent_definition: expect.objectContaining({
+        id: 'electron-context',
+        runtime: expect.objectContaining({
+          workspace_path: '/tmp/project',
+        }),
+        agents_md: [
+          expect.objectContaining({ id: 'repo' }),
+        ],
+        tools: expect.objectContaining({
+          mode: 'default_plus_client',
+          client_manifest: expect.objectContaining({
+            tools: [
+              expect.objectContaining({
+                name: 'cua_driver__get_open_windows',
+                mcp_server_id: 'cua-driver',
+              }),
+            ],
+          }),
+        }),
+      }),
+    }), expect.objectContaining({ messageId: 'turn-mcp-merge' }));
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-merge',
+      path: 'agent.definition',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'shape',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          toolCount: 1,
+          sdkToolCount: 1,
+          queryToolCount: 0,
+          mcpManifestToolCount: 1,
+          sdkMcpManifestToolCount: 1,
+          queryMcpManifestToolCount: 0,
+          hasSdkAgentDefinition: true,
+          hasQueryAgentDefinition: true,
+          hasWorkspacePath: false,
+        }),
+      }),
+    ]);
+    expect(buildTraceTimeline(events, {
+      turnRef: 'turn-mcp-merge',
+      path: 'mcp.tool',
+    })).toEqual([
+      expect.objectContaining({
+        stage: 'contribute',
+        status: 'succeeded',
+        data: expect.objectContaining({
+          mcpServerCount: 1,
+          mcpManifestToolCount: 1,
+        }),
+      }),
+    ]);
+  });
+
   test('conversation runtime terminalizes active turn for unsequenced backend error envelope', async () => {
     let backendListener: ((event: unknown) => void) | null = null;
     const store = new InMemoryConversationStore();

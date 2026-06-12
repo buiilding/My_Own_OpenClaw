@@ -1297,7 +1297,15 @@ describe('WindieSdkClient', () => {
     });
     expect(JSON.parse(socket.sent.at(-1) ?? '{}')).toMatchObject({
       type: 'update-settings',
-      payload: {},
+      payload: {
+        tools: {
+          mode: 'replace_client_manifest',
+          client_manifest: {
+            version: 1,
+            tools: [{ name: 'read_file' }],
+          },
+        },
+      },
     });
   });
 
@@ -1439,6 +1447,91 @@ describe('WindieSdkClient', () => {
         },
       },
     });
+  });
+
+  test('SDK backend transport only lets a non-empty query client manifest replace SDK tools', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+      operatingSystem: 'macOS',
+    });
+
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+    FakeWebSocket.instances[0].clearSent();
+
+    const transport = createWindieAgentBackendTransport(session, 'conv-agent-context', {
+      id: 'transport-agent',
+      tools: {
+        mode: 'client_only',
+        client_manifest: {
+          version: 1,
+          tools: [{
+            name: 'cua_driver__get_open_windows',
+            mcp_server_id: 'cua-driver',
+            schema: { type: 'object', properties: {} },
+          }],
+        },
+      },
+    });
+
+    await transport.sendQuery({
+      text: 'empty manifest should not erase sdk tools',
+      conversation_ref: 'conv-agent-context',
+      agent_definition: {
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: {
+            version: 1,
+            tools: [],
+          },
+        },
+      },
+    });
+
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      payload: {
+        agent_definition: {
+          tools: {
+            client_manifest: {
+              tools: [
+                expect.objectContaining({
+                  name: 'cua_driver__get_open_windows',
+                }),
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    FakeWebSocket.instances[0].clearSent();
+
+    await transport.sendQuery({
+      text: 'non-empty manifest replaces sdk tools',
+      conversation_ref: 'conv-agent-context',
+      agent_definition: {
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: {
+            version: 1,
+            tools: [{
+              name: 'query_supplied_tool',
+              schema: { type: 'object', properties: {} },
+            }],
+          },
+        },
+      },
+    });
+
+    const replacementQuery = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(replacementQuery.payload.agent_definition.tools.client_manifest.tools).toEqual([
+      expect.objectContaining({
+        name: 'query_supplied_tool',
+      }),
+    ]);
   });
 
   test('SDK backend transport exposes typed compaction and wakeword messages', async () => {

@@ -132,8 +132,9 @@ Current durable traced paths:
   tool-list, and shutdown spans with ready/running booleans, tool count,
   version presence, shutdown mode, and response key counts.
 - `agent.definition`: SDK conversation send records agent definition shape with
-  tool/plugin/MCP/skill counts, key count, workspace-path presence, and local
-  runtime availability without definition payload text or schemas.
+  merged tool/plugin/MCP/skill counts, SDK-vs-query agent-definition presence,
+  SDK-vs-query client-manifest tool counts, key count, workspace-path presence,
+  and local runtime availability without definition payload text or schemas.
 
 Renderer diagnostics should read the same rows through
 `DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads

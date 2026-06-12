@@ -447,6 +447,10 @@ function mergeArrayValues(base: unknown, override: unknown): unknown[] | undefin
   return merged.length > 0 ? merged : undefined;
 }
 
+function hasNonEmptyManifestTools(manifest: JsonRecord): boolean {
+  return Array.isArray(manifest.tools) && manifest.tools.length > 0;
+}
+
 function mergeAgentDefinitionTools(baseTools: unknown, overrideTools: unknown): JsonRecord | undefined {
   const mergedTools = mergeJsonRecord(baseTools, overrideTools);
   if (!mergedTools) {
@@ -454,15 +458,17 @@ function mergeAgentDefinitionTools(baseTools: unknown, overrideTools: unknown): 
   }
   const baseClientManifest = cloneJsonRecord((baseTools as JsonRecord | undefined)?.client_manifest);
   const overrideClientManifest = cloneJsonRecord((overrideTools as JsonRecord | undefined)?.client_manifest);
-  if (Object.keys(overrideClientManifest).length > 0) {
+  if (hasNonEmptyManifestTools(overrideClientManifest)) {
     mergedTools.client_manifest = overrideClientManifest;
   } else if (Object.keys(baseClientManifest).length > 0) {
     mergedTools.client_manifest = baseClientManifest;
+  } else if (Object.keys(overrideClientManifest).length > 0) {
+    mergedTools.client_manifest = overrideClientManifest;
   }
   return mergedTools;
 }
 
-function mergeQueryAgentDefinition(
+export function mergeQueryAgentDefinition(
   baseDefinition: JsonRecord | undefined,
   queryDefinition: JsonRecord | null,
 ): JsonRecord | undefined {

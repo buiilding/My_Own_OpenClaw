@@ -40,6 +40,7 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE = Object.freeze({
     'include_query_screenshot',
     'provider_api_keys',
     'provider_oauth',
+    'tools',
   ]),
   'wakeword-detected': Object.freeze([]),
   'compact-history': Object.freeze([
@@ -88,6 +89,11 @@ const PROVIDER_OAUTH_ENTRY_KEYS = Object.freeze([
   'refresh_token',
   'expires_at',
   'profile_id',
+]);
+
+const TOOL_SETTINGS_KEYS = Object.freeze([
+  'mode',
+  'client_manifest',
 ]);
 
 const CAPTURE_META_KEYS = Object.freeze([
@@ -185,6 +191,12 @@ function normalizeCaptureMeta(value) {
 
 function normalizeUpdateSettingsPayload(payload) {
   const nextPayload = { ...payload };
+  const tools = filterObjectKeys(nextPayload.tools, TOOL_SETTINGS_KEYS);
+  if (tools) {
+    nextPayload.tools = tools;
+  } else {
+    delete nextPayload.tools;
+  }
   const providerApiKeys = filterNestedObjectMap(
     nextPayload.provider_api_keys,
     PROVIDER_API_KEY_KEYS,

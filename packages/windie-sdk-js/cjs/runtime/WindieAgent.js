@@ -315,6 +315,7 @@ class WindieAgent {
         });
     }
     async updateToolSchemas(toolSchemas) {
+        setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
         const messageId = await this.updateSettings({
             tools: {
                 mode: 'replace_client_manifest',
@@ -324,7 +325,6 @@ class WindieAgent {
                 },
             },
         });
-        setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
         return messageId;
     }
     async registerMcps(mcps, options = {}) {

@@ -10,6 +10,7 @@ exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
 exports.createWindieAgentSession = createWindieAgentSession;
 exports.createWindieAgentBackendTransport = createWindieAgentBackendTransport;
+exports.mergeQueryAgentDefinition = mergeQueryAgentDefinition;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const backendPayloadContract_js_1 = require("./backendPayloadContract.js");
 function resolveWebSocketImplementation(WebSocketImpl) {
@@ -319,6 +320,9 @@ function mergeArrayValues(base, override) {
     ];
     return merged.length > 0 ? merged : undefined;
 }
+function hasNonEmptyManifestTools(manifest) {
+    return Array.isArray(manifest.tools) && manifest.tools.length > 0;
+}
 function mergeAgentDefinitionTools(baseTools, overrideTools) {
     const mergedTools = mergeJsonRecord(baseTools, overrideTools);
     if (!mergedTools) {
@@ -326,11 +330,14 @@ function mergeAgentDefinitionTools(baseTools, overrideTools) {
     }
     const baseClientManifest = cloneJsonRecord(baseTools?.client_manifest);
     const overrideClientManifest = cloneJsonRecord(overrideTools?.client_manifest);
-    if (Object.keys(overrideClientManifest).length > 0) {
+    if (hasNonEmptyManifestTools(overrideClientManifest)) {
         mergedTools.client_manifest = overrideClientManifest;
     }
     else if (Object.keys(baseClientManifest).length > 0) {
         mergedTools.client_manifest = baseClientManifest;
+    }
+    else if (Object.keys(overrideClientManifest).length > 0) {
+        mergedTools.client_manifest = overrideClientManifest;
     }
     return mergedTools;
 }

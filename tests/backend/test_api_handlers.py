@@ -344,6 +344,7 @@ class DummySessionManager:
         self.workspace_updates = []
         self.frontend_operating_system = None
         self.config = AppConfig()
+        self.client_tool_manifests = {}
 
     async def get_or_create_session(
         self,
@@ -531,6 +532,9 @@ class DummySessionManager:
         await self.session.update_config(
             AppConfig(**{**self.session.cfg.model_dump(), **updates})
         )
+
+    def set_client_tool_manifest(self, user_id: str, manifest_result: Any) -> None:
+        self.client_tool_manifests[user_id] = manifest_result
 
     def get_frontend_operating_system(self, user_id: str):
         _ = user_id
@@ -2052,6 +2056,75 @@ async def test_update_settings_handler_updates_session():
         session_manager.session.cfg.provider_oauth.openai_codex.access_token
         == "codex-access"
     )
+
+
+@pytest.mark.asyncio
+async def test_update_settings_handler_applies_client_tool_manifest():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = UpdateSettingsHandler(session_manager)
+
+    message = UpdateSettingsMessage(
+        id="msg_tools",
+        type="update-settings",
+        user_id="user_1",
+        payload={
+            "tools": {
+                "mode": "replace_client_manifest",
+                "client_manifest": {
+                    "version": 1,
+                    "tools": [
+                        {
+                            "name": "cua_driver__get_open_windows",
+                            "description": "List currently open windows.",
+                            "execution_target": "sidecar",
+                            "argument_resolution": "passthrough",
+                            "schema": {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": False,
+                            },
+                        }
+                    ],
+                },
+            }
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "settings-updated"
+    assert websocket.sent[0]["payload"]["updated_keys"] == ["tools"]
+    manifest_result = session_manager.client_tool_manifests["user_1"]
+    assert manifest_result.accepted_tool_names == ["cua_driver__get_open_windows"]
+    assert manifest_result.rejected == []
+
+
+@pytest.mark.asyncio
+async def test_update_settings_handler_rejects_unsupported_tool_manifest_mode():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = UpdateSettingsHandler(session_manager)
+
+    message = UpdateSettingsMessage(
+        id="msg_bad_tools",
+        type="update-settings",
+        user_id="user_1",
+        payload={
+            "tools": {
+                "mode": "append_client_manifest",
+                "client_manifest": {"version": 1, "tools": []},
+            }
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "error"
+    assert "Unsupported tools.mode" in websocket.sent[0]["payload"]["message"]
+    assert session_manager.client_tool_manifests == {}
 
 
 @pytest.mark.asyncio

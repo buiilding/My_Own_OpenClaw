@@ -508,6 +508,7 @@ export class WindieAgent {
   }
 
   async updateToolSchemas(toolSchemas: JsonRecord[]): Promise<string> {
+    setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
     const messageId = await this.updateSettings({
       tools: {
         mode: 'replace_client_manifest',
@@ -517,7 +518,6 @@ export class WindieAgent {
         },
       },
     });
-    setAgentDefinitionToolManifest(this.agentDefinition, toolSchemas);
     return messageId;
   }
 

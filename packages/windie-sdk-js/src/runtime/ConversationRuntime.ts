@@ -29,6 +29,7 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { normalizeBackendEventToConversationEvent } from '../transport/backendEventNormalizer.js';
+import { mergeQueryAgentDefinition } from '../transport/WindieAgentSession.js';
 import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
 import { ToolExecutionCoordinator } from '../tools/ToolExecutionCoordinator.js';
 import {
@@ -562,11 +563,20 @@ export class SdkConversationRuntime {
           },
         })
         : payloadForEnrichment;
-      const transportPayload = isJsonRecord(this.options.agentDefinition)
-        && !isJsonRecord(enrichedPayload.agent_definition)
+      const sdkAgentDefinition = isJsonRecord(this.options.agentDefinition)
+        ? this.options.agentDefinition
+        : null;
+      const queryAgentDefinition = isJsonRecord(enrichedPayload.agent_definition)
+        ? enrichedPayload.agent_definition
+        : null;
+      const mergedAgentDefinition = mergeQueryAgentDefinition(
+        sdkAgentDefinition ?? undefined,
+        queryAgentDefinition,
+      );
+      const transportPayload = mergedAgentDefinition
         ? {
           ...enrichedPayload,
-          agent_definition: this.options.agentDefinition,
+          agent_definition: mergedAgentDefinition,
         }
         : enrichedPayload;
       for (const diagnostic of memoryDiagnostics) {
@@ -606,18 +616,26 @@ export class SdkConversationRuntime {
       });
       const agentDefinition = isJsonRecord(transportPayload.agent_definition)
         ? transportPayload.agent_definition
-        : (isJsonRecord(this.options.agentDefinition) ? this.options.agentDefinition : null);
+        : null;
       const mcpManifestStats = getMcpManifestToolStats(agentDefinition);
+      const sdkMcpManifestStats = getMcpManifestToolStats(sdkAgentDefinition);
+      const queryMcpManifestStats = getMcpManifestToolStats(queryAgentDefinition);
       await traceRecorder.record({
         path: 'agent.definition',
         stage: 'shape',
         status: agentDefinition ? 'succeeded' : 'skipped',
         data: {
           hasAgentDefinition: Boolean(agentDefinition),
+          hasSdkAgentDefinition: Boolean(sdkAgentDefinition),
+          hasQueryAgentDefinition: Boolean(queryAgentDefinition),
           toolCount: getAgentDefinitionToolCount(agentDefinition),
+          sdkToolCount: getAgentDefinitionToolCount(sdkAgentDefinition),
+          queryToolCount: getAgentDefinitionToolCount(queryAgentDefinition),
           pluginCount: arrayRecordCount(agentDefinition?.plugins),
           mcpCount: arrayRecordCount(agentDefinition?.mcps),
           mcpManifestToolCount: mcpManifestStats.toolCount,
+          sdkMcpManifestToolCount: sdkMcpManifestStats.toolCount,
+          queryMcpManifestToolCount: queryMcpManifestStats.toolCount,
           skillCount: arrayRecordCount(agentDefinition?.skills),
           agentDefinitionKeyCount: recordKeyCount(agentDefinition),
           hasWorkspacePath: workspacePathPresent,

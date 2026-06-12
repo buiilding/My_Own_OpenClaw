@@ -6,6 +6,7 @@ const events_js_1 = require("../conversation/events.js");
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const backendEventNormalizer_js_1 = require("../transport/backendEventNormalizer.js");
+const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const ToolExecutionCoordinator_js_1 = require("../tools/ToolExecutionCoordinator.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
@@ -367,11 +368,17 @@ class SdkConversationRuntime {
                     },
                 })
                 : payloadForEnrichment;
-            const transportPayload = isJsonRecord(this.options.agentDefinition)
-                && !isJsonRecord(enrichedPayload.agent_definition)
+            const sdkAgentDefinition = isJsonRecord(this.options.agentDefinition)
+                ? this.options.agentDefinition
+                : null;
+            const queryAgentDefinition = isJsonRecord(enrichedPayload.agent_definition)
+                ? enrichedPayload.agent_definition
+                : null;
+            const mergedAgentDefinition = (0, WindieAgentSession_js_1.mergeQueryAgentDefinition)(sdkAgentDefinition ?? undefined, queryAgentDefinition);
+            const transportPayload = mergedAgentDefinition
                 ? {
                     ...enrichedPayload,
-                    agent_definition: this.options.agentDefinition,
+                    agent_definition: mergedAgentDefinition,
                 }
                 : enrichedPayload;
             for (const diagnostic of memoryDiagnostics) {
@@ -411,18 +418,26 @@ class SdkConversationRuntime {
             });
             const agentDefinition = isJsonRecord(transportPayload.agent_definition)
                 ? transportPayload.agent_definition
-                : (isJsonRecord(this.options.agentDefinition) ? this.options.agentDefinition : null);
+                : null;
             const mcpManifestStats = getMcpManifestToolStats(agentDefinition);
+            const sdkMcpManifestStats = getMcpManifestToolStats(sdkAgentDefinition);
+            const queryMcpManifestStats = getMcpManifestToolStats(queryAgentDefinition);
             await traceRecorder.record({
                 path: 'agent.definition',
                 stage: 'shape',
                 status: agentDefinition ? 'succeeded' : 'skipped',
                 data: {
                     hasAgentDefinition: Boolean(agentDefinition),
+                    hasSdkAgentDefinition: Boolean(sdkAgentDefinition),
+                    hasQueryAgentDefinition: Boolean(queryAgentDefinition),
                     toolCount: getAgentDefinitionToolCount(agentDefinition),
+                    sdkToolCount: getAgentDefinitionToolCount(sdkAgentDefinition),
+                    queryToolCount: getAgentDefinitionToolCount(queryAgentDefinition),
                     pluginCount: arrayRecordCount(agentDefinition?.plugins),
                     mcpCount: arrayRecordCount(agentDefinition?.mcps),
                     mcpManifestToolCount: mcpManifestStats.toolCount,
+                    sdkMcpManifestToolCount: sdkMcpManifestStats.toolCount,
+                    queryMcpManifestToolCount: queryMcpManifestStats.toolCount,
                     skillCount: arrayRecordCount(agentDefinition?.skills),
                     agentDefinitionKeyCount: recordKeyCount(agentDefinition),
                     hasWorkspacePath: workspacePathPresent,

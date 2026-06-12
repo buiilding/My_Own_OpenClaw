@@ -191,6 +191,16 @@ then owns local-runtime registration, backend `replace_client_manifest`
 settings update, in-memory agent-definition mutation, and inclusion of the MCP
 tool schemas on the next message.
 
+The live manifest refresh has two observable checkpoints:
+
+- `mcp.registration` app diagnostics show sidecar registration and sidecar tool
+  counts before a conversation turn exists.
+- `agent.definition` and `mcp.tool` conversation traces on the next turn show
+  whether the SDK MCP client manifest survived the merge with Electron-provided
+  workspace/prompt context. `agent.definition` includes SDK-vs-query manifest
+  tool counts so a manifest-less Electron agent definition cannot hide a dropped
+  SDK MCP manifest.
+
 ## What Devs Should Not Edit
 
 For normal MCP integrations, do not edit:
