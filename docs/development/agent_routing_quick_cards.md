@@ -211,3 +211,13 @@ Start with [Voice Audio Change Workflow](../channels/voice_audio_change_workflow
 Validate microphone permissions, wakeword subprocess lifecycle, audio framing, transcription websocket behavior, STT provider routing, TTS chunk streaming, cleanup, and renderer status state. Keep audio side-channels separate from text query streams.
 
 Avoid: debugging voice failures only through chat-stream events before checking audio transport and wakeword process health.
+
+## Packaging Or Release
+
+Owner: operations and platform packaging paths, with Electron Builder and bundled sidecar runtime as the main implementation surfaces.
+
+Start with [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md), and [Packaged Desktop Builds](../install/packaged_desktop.md).
+
+Validate sidecar runtime bundling, Electron package targets, endpoint defaults, reinstall helpers, smoke checks, signing/notarization expectations, and platform-specific packaging behavior. Do not change versions or publish artifacts without explicit approval.
+
+Avoid: testing only the source dev loop when the change affects packaged app resources or startup paths.
