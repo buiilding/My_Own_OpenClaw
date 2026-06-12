@@ -39,4 +39,57 @@ describe('stopQueryState', () => {
       lastEventType: 'stop-query',
     });
   });
+
+  test('applyStopQueryUiState terminalizes active SDK current-turn projection immediately', () => {
+    const setCurrentTurnProjection = jest.fn();
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        phase: 'streaming',
+        entries: [{ id: 'entry-1', text: 'Partial answer' }],
+        hasVisibleContent: true,
+        typingVisible: false,
+        overlayVisible: true,
+        isBusy: true,
+        isTerminal: false,
+        overlayIntent: {
+          visible: true,
+          mode: 'response',
+          turnRef: 'turn-1',
+          conversationRef: 'conv-1',
+          staleGuardRef: 'turn-1',
+        },
+      },
+    };
+
+    applyStopQueryUiState({
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      updateStreamTracking: jest.fn(),
+      setCurrentTurnProjection,
+      currentTurnProjection,
+      conversationRef: 'conv-1',
+    });
+
+    expect(setCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phase: 'complete',
+        presentation: expect.objectContaining({
+          phase: 'complete',
+          isBusy: false,
+          isTerminal: true,
+          typingVisible: false,
+          overlayVisible: true,
+          overlayIntent: expect.objectContaining({
+            visible: true,
+            mode: 'response',
+          }),
+        }),
+      }),
+      'conv-1',
+    );
+  });
 });

@@ -57,6 +57,7 @@ function MinimalChatPill() {
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
+  const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
@@ -573,6 +574,9 @@ function MinimalChatPill() {
       setIsSending,
       setThinkingStatus,
       setThinkingSourceEventType,
+      setCurrentTurnProjection,
+      currentTurnProjection,
+      conversationRef: sessionInfo?.conversationRef || null,
       updateStreamTracking,
     });
     void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(sessionInfo?.conversationRef || null)).catch((error) => {
@@ -580,7 +584,9 @@ function MinimalChatPill() {
     });
   }, [
     loopInteractionLocked,
+    currentTurnProjection,
     sessionInfo?.conversationRef,
+    setCurrentTurnProjection,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,

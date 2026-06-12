@@ -69,6 +69,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/frontend: make Stop terminalize the active turn immediately, keeping late
+  backend chunks from reactivating a stopped response while cancellation
+  propagates.
 - frontend/sidecar/mcp: elide promoted MCP image base64 from model-facing
   `data.output` while preserving native screenshot fields and raw
   `data.mcp_result` for inspection.

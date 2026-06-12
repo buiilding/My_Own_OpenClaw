@@ -882,6 +882,27 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('current-turn projection terminalizes stopped turns', () => {
+    const stopped = buildCurrentTurnProjection([
+      event('turn_started', {}),
+      event('user_message', { text: 'stop this' }),
+      event('assistant_delta', { text: 'Partial answer' }),
+      event('turn_stopped', {}),
+    ]);
+
+    expect(stopped).toMatchObject({
+      phase: 'complete',
+      assistantText: 'Partial answer',
+      presentation: expect.objectContaining({
+        phase: 'complete',
+        isBusy: false,
+        isTerminal: true,
+        hasVisibleContent: true,
+        overlayVisible: true,
+      }),
+    });
+  });
+
   test('current-turn presentation resets to typing for a consecutive user turn', () => {
     const projection = buildCurrentTurnProjection([
       eventForTurn('turn-1', 'turn_started', {}),
@@ -5060,6 +5081,64 @@ describe('Windie SDK conversation runtime core', () => {
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('do not persist this in trace');
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('sk-secret');
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('do not persist wakeword transcript');
+  });
+
+  test('conversation runtime projects stop before backend transport resolves', async () => {
+    let resolveStop: (() => void) | null = null;
+    const stopPending = new Promise<void>((resolve) => {
+      resolveStop = resolve;
+    });
+    const transport = createControllableBackendTransport({
+      stop: jest.fn(() => stopPending),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+    });
+    const snapshots: Awaited<ReturnType<typeof runtime.load>>[] = [];
+    runtime.subscribe((snapshot) => {
+      snapshots.push(snapshot);
+    });
+
+    await runtime.send({ text: 'stop quickly', turnRef: 'turn-slow-stop' });
+    const stopPromise = runtime.stop('turn-slow-stop');
+
+    await waitForExpect(() => {
+      expect(snapshots.at(-1)?.currentTurn).toMatchObject({
+        turnRef: 'turn-slow-stop',
+        phase: 'complete',
+        presentation: expect.objectContaining({
+          isBusy: false,
+          isTerminal: true,
+        }),
+      });
+    });
+    await waitForExpect(() => {
+      expect(transport.stop).toHaveBeenCalledWith({
+        conversation_ref: 'conv-sdk-runtime',
+        turn_ref: 'turn-slow-stop',
+      });
+    });
+
+    transport.emit(backendEvent('assistant-message-full', {
+      content: 'late backend text',
+    }, {
+      eventId: 'evt-late-after-stop',
+      turnRef: 'turn-slow-stop',
+    }));
+    await tick();
+    expect(snapshots.at(-1)?.currentTurn).toMatchObject({
+      turnRef: 'turn-slow-stop',
+      phase: 'complete',
+      assistantText: '',
+      presentation: expect.objectContaining({
+        isBusy: false,
+      }),
+    });
+
+    resolveStop?.();
+    await stopPromise;
   });
 
   test('conversation runtime updates model selection before sending a turn', async () => {

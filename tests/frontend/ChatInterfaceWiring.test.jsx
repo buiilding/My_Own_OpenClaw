@@ -49,6 +49,7 @@ const mockSetIsSending = jest.fn();
 const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
+const mockSetCurrentTurnProjection = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
 const mockSetChatActiveConversationRef = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
@@ -80,6 +81,7 @@ const mockChatState = {
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
+  setCurrentTurnProjection: (...args) => mockSetCurrentTurnProjection(...args),
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
   setActiveConversationRef: (...args) => mockSetChatActiveConversationRef(...args),
 };
@@ -255,6 +257,7 @@ describe('ChatInterface wiring', () => {
     mockSetThinkingStatus.mockClear();
     mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
+    mockSetCurrentTurnProjection.mockClear();
     mockUpdateStreamTracking.mockClear();
     mockSetChatActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
@@ -1199,6 +1202,10 @@ describe('ChatInterface wiring', () => {
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
     expect(mockSetIsSending).toHaveBeenCalledWith(false);
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'complete' }),
+      'conv_existing',
+    );
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 
@@ -1220,6 +1227,10 @@ describe('ChatInterface wiring', () => {
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
     expect(mockSetIsSending).toHaveBeenCalledWith(false);
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'complete' }),
+      'conv_existing',
+    );
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 

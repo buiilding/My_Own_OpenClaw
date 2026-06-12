@@ -86,6 +86,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
+  const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config, updateConfig, availableModels } = useAppConfigContext();
   const sessionInfo = useRendererConversationSessionInfo();
@@ -378,13 +379,20 @@ function ChatInterface({ focusComposerToken = 0 }) {
       setIsSending,
       setThinkingStatus,
       setThinkingSourceEventType,
+      setCurrentTurnProjection,
+      currentTurnProjection,
+      conversationRef: sessionInfo.conversationRef || null,
       updateStreamTracking,
     });
     stopPlayback();
-    DesktopLiveTurnRuntimeClient.stop(sessionInfo.conversationRef || null);
+    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(sessionInfo.conversationRef || null)).catch((error) => {
+      console.warn('[ChatInterface] Failed to stop query:', error);
+    });
   }, [
     composerBusy,
+    currentTurnProjection,
     sessionInfo.conversationRef,
+    setCurrentTurnProjection,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,

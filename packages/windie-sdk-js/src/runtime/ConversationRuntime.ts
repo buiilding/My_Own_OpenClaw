@@ -960,6 +960,15 @@ export class SdkConversationRuntime {
 
   async stop(turnRef: string | null = this.state.activeTurnRef ?? null): Promise<void> {
     const startedAtMs = nowMs();
+    await this.applyEvent(createConversationEvent({
+      eventId: this.nextLocalEventId(turnRef, 'turn_stopped'),
+      type: 'turn_stopped',
+      conversationRef: this.options.conversationRef,
+      revisionId: this.state.revisionId,
+      turnRef,
+      source: 'ui',
+      payload: {},
+    }));
     if (!this.options.transport) {
       await this.recordRuntimeTrace({
         path: 'websocket.control',
@@ -1011,15 +1020,6 @@ export class SdkConversationRuntime {
         throw error;
       }
     }
-    await this.applyEvent(createConversationEvent({
-      eventId: this.nextLocalEventId(turnRef, 'turn_stopped'),
-      type: 'turn_stopped',
-      conversationRef: this.options.conversationRef,
-      revisionId: this.state.revisionId,
-      turnRef,
-      source: 'ui',
-      payload: {},
-    }));
   }
 
   async rehydrate(): Promise<RehydrateSnapshot> {
@@ -2017,6 +2017,17 @@ export class SdkConversationRuntime {
     }
     if (event.conversationRef !== this.options.conversationRef) {
       this.logRejectedBackendEvent(event, 'conversation_ref_mismatch');
+      return false;
+    }
+    if (
+      !isConversationControlEvent(event)
+      && this.state.stopState.requested
+      && event.turnRef
+      && (!this.state.stopState.turnRef || event.turnRef === this.state.stopState.turnRef)
+      && event.type !== 'turn_completed'
+      && event.type !== 'turn_error'
+      && event.type !== 'runtime_error'
+    ) {
       return false;
     }
     if (

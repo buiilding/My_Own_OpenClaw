@@ -26,6 +26,7 @@ const mockIsDevUiEnabled = jest.fn(() => false);
 const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
 const mockSetIsSending = jest.fn();
+const mockSetCurrentTurnProjection = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
 const originalFileReader = global.FileReader;
 const originalResizeObserver = global.ResizeObserver;
@@ -124,6 +125,7 @@ const mockChatState = {
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setIsSending: (...args) => mockSetIsSending(...args),
+  setCurrentTurnProjection: (...args) => mockSetCurrentTurnProjection(...args),
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
   streamTracking: { phase: 'idle' },
   currentTurnProjection: null,
@@ -209,6 +211,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockSetThinkingStatus.mockClear();
     mockSetThinkingSourceEventType.mockClear();
     mockSetIsSending.mockClear();
+    mockSetCurrentTurnProjection.mockClear();
     mockUpdateStreamTracking.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
@@ -466,6 +469,10 @@ describe('ChatBox overlay mouse ignore', () => {
     });
     expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
     expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'complete' }),
+      'conv-overlay',
+    );
   });
 
   test('does not render compaction control when dev UI flag is disabled', () => {
@@ -754,6 +761,10 @@ describe('ChatBox overlay mouse ignore', () => {
     });
     expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
     expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'complete' }),
+      'conv-overlay',
+    );
     expect(mockUpdateStreamTracking).toHaveBeenCalled();
   });
 
