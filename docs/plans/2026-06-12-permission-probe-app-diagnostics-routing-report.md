@@ -10,7 +10,7 @@ title: "Permission Probe App Diagnostics Routing Report"
 
 Plan: [2026-06-12-permission-probe-app-diagnostics-routing-plan.md](2026-06-12-permission-probe-app-diagnostics-routing-plan.md)
 
-Status: implementation complete; commit pending.
+Status: complete.
 
 ## Checklist
 
@@ -25,7 +25,7 @@ Status: implementation complete; commit pending.
 - [x] Update docs and changelog.
 - [x] Run focused validation.
 - [x] Run final design-inspection pass.
-- [ ] Commit scoped changes.
+- [x] Commit scoped changes.
 
 ## Initial Evidence
 
@@ -197,4 +197,5 @@ Remaining in-scope findings: none.
 
 ## Commits
 
-Pending.
+- `e4d46f458 fix(frontend-diagnostics): route idle permission probes to app diagnostics`
+- Final report ledger update: this docs-only follow-up commit.
