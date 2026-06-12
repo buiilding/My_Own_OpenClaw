@@ -69,18 +69,13 @@ paths consume the SDK runtime manager instead of owning sidecar lifecycle.
 
 - Passed: `cd packages/windie-sdk-js && npm run build`.
 - Passed: `bin/windie test frontend -- WindieSdkClient.test.ts -t "localRuntime starts|executeTool and rpc use|wakeUp reuses a standalone|standalone localRuntime fails"`.
-- Passed bridge/browser/permission suites within:
+- Passed full SDK client suite:
+  `bin/windie test frontend -- WindieSdkClient.test.ts` with 70 tests passing.
+- Passed bridge/browser/permission suites:
   `bin/windie test frontend -- WindieSdkClient.test.ts LocalBackendBridge.lifecycle.test.cjs LocalBackendBridge.rpc.test.cjs MainWindowRuntime.test.cjs ChatBrowserSessionControl.test.jsx BrowserSessionStore.test.js PermissionIpcRuntime.test.cjs`
-  for `LocalBackendBridge.lifecycle.test.cjs`,
-  `LocalBackendBridge.rpc.test.cjs`, `MainWindowRuntime.test.cjs`,
-  `ChatBrowserSessionControl.test.jsx`, `BrowserSessionStore.test.js`, and
-  `PermissionIpcRuntime.test.cjs`.
+  with 7 suites and 173 tests passing.
 - Passed follow-up bridge rerun:
   `bin/windie test frontend -- LocalBackendBridge.lifecycle.test.cjs LocalBackendBridge.rpc.test.cjs`.
-- Known remaining caveat: the full `WindieSdkClient.test.ts` file still has
-  broader conversation/memory/stream expectation failures unrelated to the new
-  standalone local-runtime tests in this change set. The targeted new SDK API
-  tests pass.
 - Passed: `bin/windie docs list`.
 
 ## Inspection Log

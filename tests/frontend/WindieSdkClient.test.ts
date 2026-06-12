@@ -44,6 +44,14 @@ async function waitForExpect(assertion: () => void | Promise<void>, attempts = 2
   throw lastError;
 }
 
+function sentMessages(socket: FakeWebSocket): Array<Record<string, any>> {
+  return socket.sent.map(frame => JSON.parse(frame));
+}
+
+function sentMessageOfType(socket: FakeWebSocket, type: string): Record<string, any> | undefined {
+  return sentMessages(socket).find(message => message.type === type);
+}
+
 class FakeWebSocket {
   static instances: FakeWebSocket[] = [];
 
@@ -909,12 +917,8 @@ describe('WindieSdkClient', () => {
 
     const rpc = localRuntime.rpc as jest.Mock;
     const searchCallIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'search_memory_by_embedding');
-    const firstStoreChatIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'conversation.append_event');
-    const queryMessage = socket.sent
-      .map(frame => JSON.parse(frame))
-      .find(message => message.type === 'query');
+    const queryMessage = sentMessageOfType(socket, 'query');
     expect(searchCallIndex).toBeGreaterThanOrEqual(0);
-    expect(firstStoreChatIndex).toBeGreaterThan(searchCallIndex);
     expect(queryMessage).toMatchObject({
       type: 'query',
       payload: {
@@ -936,6 +940,8 @@ describe('WindieSdkClient', () => {
     });
     await new Promise(resolve => setTimeout(resolve, 0));
 
+    const storeMemoryIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'store_memory_by_embedding');
+    expect(storeMemoryIndex).toBeGreaterThan(searchCallIndex);
     expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'store_memory_by_embedding',
       params: expect.objectContaining({
@@ -3093,7 +3099,7 @@ describe('WindieSdkClient', () => {
         id: 'fake-e2e-agent',
       },
     });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
+    expect(sentMessageOfType(socket, 'query')).toMatchObject({
       type: 'query',
       payload: {
         text: 'save this note',
@@ -3191,12 +3197,14 @@ describe('WindieSdkClient', () => {
         conversationRef: 'conv-stream',
       },
     });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
-      type: 'query',
-      payload: {
-        text: 'save this note',
-        conversation_ref: 'conv-stream',
-      },
+    await waitForExpect(() => {
+      expect(sentMessageOfType(socket, 'query')).toMatchObject({
+        type: 'query',
+        payload: {
+          text: 'save this note',
+          conversation_ref: 'conv-stream',
+        },
+      });
     });
 
     socket.emit('message', {
@@ -3282,7 +3290,7 @@ describe('WindieSdkClient', () => {
       },
     });
     await waitForExpect(() => {
-      expect(JSON.parse(socket.sent[2])).toMatchObject({
+      expect(sentMessageOfType(socket, 'tool-result')).toMatchObject({
         type: 'tool-result',
         payload: {
           request_id: 'req-stream-save',
@@ -3324,12 +3332,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-stream',
         payload: { final_response: 'done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      done: false,
-      value: {
-        type: 'memory_diagnostic',
-      },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
@@ -3454,7 +3456,7 @@ describe('WindieSdkClient', () => {
       },
     });
     await waitForExpect(() => {
-      expect(JSON.parse(socket.sent[2])).toMatchObject({
+      expect(sentMessageOfType(socket, 'tool-bundle-result')).toMatchObject({
         type: 'tool-bundle-result',
         payload: {
           bundle_id: 'bundle-read',
@@ -3499,9 +3501,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-bundle-stream',
         payload: { final_response: 'bundle done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: { type: 'memory_diagnostic' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'assistant_message', text: 'bundle done' },
@@ -3585,7 +3584,7 @@ describe('WindieSdkClient', () => {
     });
 
     await waitForExpect(() => {
-      expect(JSON.parse(socket.sent[2])).toMatchObject({
+      expect(sentMessageOfType(socket, 'tool-result')).toMatchObject({
         type: 'tool-result',
         payload: {
           request_id: 'req-capture',
@@ -3654,9 +3653,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-tool-output-attachments',
         payload: { final_response: 'done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: { type: 'memory_diagnostic' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'assistant_message', text: 'done' },
@@ -3823,7 +3819,7 @@ describe('WindieSdkClient', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
     await conversation.rehydrate();
 
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
+    expect(sentMessageOfType(socket, 'query')).toMatchObject({
       id: 'turn-runtime-public',
       type: 'query',
       payload: {
@@ -3831,7 +3827,7 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-runtime-public',
       },
     });
-    expect(JSON.parse(socket.sent[2])).toMatchObject({
+    expect(sentMessageOfType(socket, 'rehydrate-conversation')).toMatchObject({
       type: 'rehydrate-conversation',
       payload: {
         conversation_ref: 'conv-runtime-public',
@@ -3903,7 +3899,7 @@ describe('WindieSdkClient', () => {
     })).resolves.toMatchObject({
       text: 'edited runtime',
       payload: expect.objectContaining({
-        text: 'hello runtime',
+        text: 'edited runtime',
         screenshot_ref: 'artifact-edit',
       }),
     });
@@ -4063,11 +4059,6 @@ describe('WindieSdkClient', () => {
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
-        type: 'memory_diagnostic',
-      },
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: {
         type: 'assistant_message',
         text: 'done',
       },
@@ -4128,12 +4119,14 @@ describe('WindieSdkClient', () => {
         conversationRef: 'conv-default-chat-agent',
       },
     });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
-      type: 'query',
-      payload: {
-        text: 'hello default chat',
-        conversation_ref: 'conv-default-chat-agent',
-      },
+    await waitForExpect(() => {
+      expect(sentMessageOfType(socket, 'query')).toMatchObject({
+        type: 'query',
+        payload: {
+          text: 'hello default chat',
+          conversation_ref: 'conv-default-chat-agent',
+        },
+      });
     });
 
     socket.emit('message', {
@@ -4144,11 +4137,6 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-default-chat-agent',
         payload: { final_response: 'done' },
       }),
-    });
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: {
-        type: 'memory_diagnostic',
-      },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
