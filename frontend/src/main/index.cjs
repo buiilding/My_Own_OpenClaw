@@ -89,7 +89,7 @@ const {
 } = require('./sdk/sdk_live_turn_surface_controller.cjs');
 const {
   appendSurfaceVisibilityDiagnostic,
-} = require('./diagnostics/surface_diagnostics_runtime.cjs');
+} = require('./diagnostics/app_diagnostics_runtime.cjs');
 const {
   createElectronToolSurfaceLifecycle,
 } = require('./sdk/tool_surface_lifecycle.cjs');

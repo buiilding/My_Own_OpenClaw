@@ -6,6 +6,10 @@ const ASSISTANT_BACKEND_TRACE_TYPES = new Set([
   'error',
 ]);
 
+const {
+  appendIpcBridgeDiagnostic: appendIpcBridgeDiagnosticRuntime,
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
+
 const COMPACT_BACKEND_EVENT_TYPES = new Set([
   'query-accepted',
   'streaming-response',
@@ -288,17 +292,29 @@ function buildSettingsTraceSummary(config = {}, source = 'unknown', msgId = null
   ].join(' ');
 }
 
-function createElectronMainTraceLogger({ log, maxTrackedTurns = 64 } = {}) {
+function createElectronMainTraceLogger({
+  log,
+  maxTrackedTurns = 64,
+  appendIpcBridgeDiagnostic = appendIpcBridgeDiagnosticRuntime,
+  stdoutEnabled = process.env.WINDIE_DEBUG_IPC_STDOUT === '1',
+} = {}) {
   const seenBackendTurns = new Map();
 
   function emit(scope, action, fields = '') {
-    if (typeof log !== 'function') {
+    if (!stdoutEnabled || typeof log !== 'function') {
       return null;
     }
     const suffix = typeof fields === 'string' && fields.trim() ? ` ${fields.trim()}` : '';
     const message = `[ElectronTrace] ${scope} ${action}${suffix}`;
     log(message);
     return message;
+  }
+
+  function record(input = {}) {
+    if (typeof appendIpcBridgeDiagnostic !== 'function') {
+      return null;
+    }
+    return appendIpcBridgeDiagnostic(input);
   }
 
   function rememberBackendTurn(key) {
@@ -313,12 +329,25 @@ function createElectronMainTraceLogger({ log, maxTrackedTurns = 64 } = {}) {
   function traceBackendConnection(input = {}) {
     const type = safeString(input.type) || 'unknown';
     if (type === 'open') {
+      record({
+        action: 'connection.open',
+        phase: 'backend',
+        connected: true,
+        hasUserId: Boolean(input.handshake?.user_id || input.userId || input.user_id),
+        userIdSource: input.handshake?.user_id ? 'handshake' : 'event',
+      });
       return emit('backend', 'connection.open', [
         `connected=true`,
         `user=${safeId(input.handshake?.user_id || input.userId || input.user_id)}`,
       ].join(' '));
     }
     if (type === 'close') {
+      record({
+        action: 'connection.close',
+        phase: 'backend',
+        connected: false,
+        statusReason: input.closeReason || input.reason,
+      });
       return emit('backend', 'connection.close', [
         `connected=false`,
         `reason=${safeId(input.closeReason || input.reason)}`,
@@ -326,6 +355,13 @@ function createElectronMainTraceLogger({ log, maxTrackedTurns = 64 } = {}) {
       ].join(' '));
     }
     if (type === 'error' || type === 'handshake-error' || type === 'message-error') {
+      record({
+        action: `connection.${type}`,
+        phase: 'backend',
+        status: 'failed',
+        connected: false,
+        error: input.error,
+      });
       return emit('backend', `connection.${type}`, `error=${safeId(input.error?.message || input.error)}`);
     }
     return null;
@@ -333,15 +369,40 @@ function createElectronMainTraceLogger({ log, maxTrackedTurns = 64 } = {}) {
 
   function traceFrontendQuery(input = {}) {
     const payload = safeObject(input.payload);
+    const turnRef = safeId(input.queryMessageId || input.turnRef || payload.turn_ref || payload.turnRef);
+    const conversationRef = safeId(input.conversationRef || payload.conversation_ref || payload.conversationRef);
+    record({
+      action: 'query.send',
+      phase: 'frontend',
+      requestId: turnRef !== '-' ? turnRef : null,
+      conversationRef: conversationRef !== '-' ? conversationRef : null,
+      turnRef: turnRef !== '-' ? turnRef : null,
+      textLength: typeof payload.text === 'string' ? payload.text.length : 0,
+      resourceCount: Array.isArray(payload.resources) ? payload.resources.length : 0,
+    });
     return emit('frontend', 'query.send', [
-      `turn=${safeId(input.queryMessageId || input.turnRef || payload.turn_ref || payload.turnRef)}`,
-      `conv=${safeId(input.conversationRef || payload.conversation_ref || payload.conversationRef)}`,
+      `turn=${turnRef}`,
+      `conv=${conversationRef}`,
       `text_len=${typeof payload.text === 'string' ? payload.text.length : 0}`,
       `resources=${Array.isArray(payload.resources) ? payload.resources.length : 0}`,
     ].join(' '));
   }
 
   function traceSettingsUpdate(config = {}, source = 'unknown', msgId = null) {
+    const payload = safeObject(config);
+    const keys = SAFE_SETTINGS_KEYS.filter(key => Object.prototype.hasOwnProperty.call(payload, key));
+    const tools = safeObject(payload.tools);
+    record({
+      action: 'settings.update.send',
+      phase: 'settings',
+      requestId: msgId,
+      source,
+      updatedKeys: uniqueCsv(keys),
+      provider: payload.model_provider,
+      model: payload.selected_model_id,
+      modelMode: payload.model_mode,
+      toolsMode: tools.mode,
+    });
     return emit('settings', 'update.send', buildSettingsTraceSummary(config, source, msgId));
   }
 
@@ -352,8 +413,22 @@ function createElectronMainTraceLogger({ log, maxTrackedTurns = 64 } = {}) {
     const emitted = [];
     const turnRef = eventTurnRef(data);
     const conversationRef = eventConversationRef(data);
+    const payload = eventPayload(data);
     const turnKey = `${conversationRef}:${turnRef}`;
     if (turnRef !== '-' && !seenBackendTurns.has(turnKey)) {
+      record({
+        action: 'first_event',
+        phase: 'backend',
+        eventType: data.type,
+        requestId: eventRequestId(data) !== '-' ? eventRequestId(data) : null,
+        conversationRef: conversationRef !== '-' ? conversationRef : null,
+        turnRef: turnRef !== '-' ? turnRef : null,
+        toolName: eventToolName(data) !== '-' ? eventToolName(data) : null,
+        textLength: payloadStringLength(payload, ['text', 'delta', 'assistant_delta']),
+        finalLength: payloadStringLength(payload, ['final_response', 'finalResponse']),
+        contentLength: payloadStringLength(payload, ['content', 'message', 'output']),
+        success: typeof payload.success === 'boolean' ? payload.success : undefined,
+      });
       const message = emit('backend', 'first_event', compactBackendSummary(data));
       if (message) {
         emitted.push(message);
@@ -361,21 +436,55 @@ function createElectronMainTraceLogger({ log, maxTrackedTurns = 64 } = {}) {
       rememberBackendTurn(turnKey);
     }
     if (data.type === 'tool-call' || data.type === 'tool-bundle' || data.type === 'web-search-progress') {
+      record({
+        action: 'tool_call',
+        phase: 'backend',
+        eventType: data.type,
+        requestId: eventRequestId(data) !== '-' ? eventRequestId(data) : null,
+        conversationRef: conversationRef !== '-' ? conversationRef : null,
+        turnRef: turnRef !== '-' ? turnRef : null,
+        toolName: eventToolName(data) !== '-' ? eventToolName(data) : null,
+      });
       const message = emit('backend', 'tool_call', compactBackendSummary(data));
       if (message) {
         emitted.push(message);
       }
     } else if (data.type === 'tool-output') {
+      record({
+        action: 'tool_output',
+        phase: 'backend',
+        eventType: data.type,
+        requestId: eventRequestId(data) !== '-' ? eventRequestId(data) : null,
+        conversationRef: conversationRef !== '-' ? conversationRef : null,
+        turnRef: turnRef !== '-' ? turnRef : null,
+        contentLength: payloadStringLength(payload, ['content', 'message', 'output']),
+        success: typeof payload.success === 'boolean' ? payload.success : undefined,
+      });
       const message = emit('backend', 'tool_output', compactBackendSummary(data));
       if (message) {
         emitted.push(message);
       }
     } else if (data.type === 'streaming-complete') {
+      record({
+        action: 'complete',
+        phase: 'backend',
+        eventType: data.type,
+        requestId: eventRequestId(data) !== '-' ? eventRequestId(data) : null,
+        conversationRef: conversationRef !== '-' ? conversationRef : null,
+        turnRef: turnRef !== '-' ? turnRef : null,
+        finalLength: payloadStringLength(payload, ['final_response', 'finalResponse']),
+      });
       const message = emit('backend', 'complete', compactBackendSummary(data));
       if (message) {
         emitted.push(message);
       }
     } else if (data.type === 'settings-updated') {
+      record({
+        action: 'settings.update.ack',
+        phase: 'settings',
+        requestId: data.id || data.payload?.id,
+        success: true,
+      });
       const message = emit('settings', 'update.ack', [
         `id=${safeId(data.id || data.payload?.id)}`,
         `success=true`,
@@ -384,6 +493,16 @@ function createElectronMainTraceLogger({ log, maxTrackedTurns = 64 } = {}) {
         emitted.push(message);
       }
     } else if (data.type === 'error') {
+      record({
+        action: 'error',
+        phase: 'backend',
+        status: 'failed',
+        eventType: data.type,
+        requestId: eventRequestId(data) !== '-' ? eventRequestId(data) : null,
+        conversationRef: conversationRef !== '-' ? conversationRef : null,
+        turnRef: turnRef !== '-' ? turnRef : null,
+        error: payload.error || payload.message || data.error,
+      });
       const message = emit('backend', 'error', compactBackendSummary(data));
       if (message) {
         emitted.push(message);

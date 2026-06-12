@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- frontend/cli/diagnostics: add a registered app-diagnostics path catalog plus
+  persistent `desktop.startup`, `ipc.bridge`, `local_backend.lifecycle`,
+  `surface.visibility`, `frontend.interaction`, and `wakeword.lifecycle`
+  timelines so structured desktop traces are inspectable with
+  `bin/windie diagnostics paths/list` instead of default stdout noise.
 - backend/sdk/frontend: add revisioned runtime capability application for
   client tools, MCP/plugin tools, and prompt-layer skills, including
   `client_prompt_layers.validate/apply`, `capability_manifest.rebuild/send`,

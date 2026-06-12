@@ -8,7 +8,7 @@ const {
 } = require('../debug/live_surface_trace_runtime.cjs');
 const {
   appendSurfaceVisibilityDiagnostic,
-} = require('../diagnostics/surface_diagnostics_runtime.cjs');
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
 
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {

@@ -50,6 +50,7 @@ function createRuntimeDeps(overrides = {}) {
     stopLocalBackend: jest.fn(),
     log: jest.fn(),
     warn: jest.fn(),
+    appendDesktopStartupDiagnostic: jest.fn(),
     scheduleTimeout: jest.fn(() => 0),
     ...overrides,
   };
@@ -76,6 +77,11 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(app.whenReady).not.toHaveBeenCalled();
     expect(deps.createWindow).not.toHaveBeenCalled();
     expect(appEvents['second-instance']).toBeUndefined();
+    expect(deps.appendDesktopStartupDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'single_instance_lock',
+      singleInstanceLockAcquired: false,
+      duplicateInstance: true,
+    }));
   });
 
   test('focuses existing window when a second instance is launched', async () => {
@@ -86,9 +92,15 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
 
     expect(typeof appEvents['second-instance']).toBe('function');
     appEvents['second-instance']();
-    expect(deps.log).toHaveBeenCalledWith(
-      '[Main][StartupMetrics] second-instance event received; focusing existing window.',
+    expect(deps.log).not.toHaveBeenCalledWith(
+      expect.stringContaining('[Main][StartupMetrics] second-instance event received'),
     );
+    expect(deps.appendDesktopStartupDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'second_instance',
+      duplicateInstance: true,
+      focus: true,
+      suppressed: false,
+    }));
     expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'app-activate' });
   });
 
@@ -113,9 +125,15 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.showChatWindow).toHaveBeenCalledTimes(2);
     expect(deps.showChatWindow).toHaveBeenNthCalledWith(1, { focus: true, reason: 'app-activate' }); // first second-instance
     expect(deps.showChatWindow).toHaveBeenNthCalledWith(2, { focus: true, reason: 'app-activate' }); // post-throttle second-instance
-    expect(deps.log).toHaveBeenCalledWith(
-      '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
+    expect(deps.log).not.toHaveBeenCalledWith(
+      expect.stringContaining('[Main][StartupMetrics] second-instance event throttled'),
     );
+    expect(deps.appendDesktopStartupDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'second_instance',
+      duplicateInstance: true,
+      suppressed: true,
+      reason: 'focus-cooldown',
+    }));
   });
 
   test('supports disabling second-instance throttle via zero cooldown override', async () => {
@@ -137,9 +155,11 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     appEvents['second-instance']();
 
     expect(deps.showChatWindow).toHaveBeenCalledTimes(3);
-    expect(deps.log).not.toHaveBeenCalledWith(
-      '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
-    );
+    expect(deps.appendDesktopStartupDiagnostic).not.toHaveBeenCalledWith(expect.objectContaining({
+      action: 'second_instance',
+      suppressed: true,
+      reason: 'focus-cooldown',
+    }));
   });
 
   test('falls back to the default second-instance throttle for invalid cooldown overrides', async () => {
@@ -159,9 +179,11 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     appEvents['second-instance']();
 
     expect(deps.showChatWindow).toHaveBeenCalledTimes(1);
-    expect(deps.log).toHaveBeenCalledWith(
-      '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
-    );
+    expect(deps.appendDesktopStartupDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'second_instance',
+      suppressed: true,
+      reason: 'focus-cooldown',
+    }));
   });
 
   test('starts windows and tray once app becomes ready', async () => {
@@ -314,14 +336,21 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     await flushPromises();
 
     expect(scheduleTimeout).toHaveBeenCalledWith(expect.any(Function), 2000);
-    const startupMetricLines = deps.log.mock.calls
-      .map(([line]) => line)
-      .filter((line) => String(line).includes('[Main][StartupMetrics] startup-ready'));
-    expect(startupMetricLines).toHaveLength(2);
-    expect(startupMetricLines[0]).toContain('pid=4242');
-    expect(startupMetricLines[0]).toContain('app_processes=3');
-    expect(startupMetricLines[0]).toContain('renderer=1');
-    expect(startupMetricLines[0]).toContain('app_working_set_mb=220');
+    expect(deps.log).not.toHaveBeenCalledWith(expect.stringContaining('[Main][StartupMetrics]'));
+    expect(deps.appendDesktopStartupDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'metrics_snapshot',
+      label: 'startup-ready',
+      pid: 4242,
+      appProcessCount: 3,
+      rendererProcessCount: 1,
+      appWorkingSetMb: 220,
+    }));
+    expect(deps.appendDesktopStartupDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'metrics_snapshot',
+      label: 'startup-ready+2000ms',
+      pid: 4242,
+      appProcessCount: 3,
+    }));
   });
 
   test('only prevents window-all-closed in tray mode (not during app quit)', async () => {

@@ -36,6 +36,17 @@ cd frontend && npm run lint
 
 For trace flags, logging controls, symptom playbooks, and focused test selection, read [Debug](../debug/README.md).
 
+Use app diagnostics for persistent desktop/runtime evidence that is not tied to
+one conversation turn:
+
+```bash
+bin/windie diagnostics paths
+bin/windie diagnostics list --path desktop.startup --limit 50
+bin/windie diagnostics list --path ipc.bridge --limit 50
+bin/windie diagnostics list --path surface.visibility --limit 50
+bin/windie diagnostics list --path wakeword.lifecycle --limit 50
+```
+
 For a report that is not yet tied to a subsystem, start with [Triage Routes](triage_routes.md), then use [Doctor Checklist](doctor_checklist.md) and [Evidence Packet](evidence_packet.md) to collect only the evidence the owner runtime needs.
 
 ## Diagnostic Rule

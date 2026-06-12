@@ -7,7 +7,7 @@ const {
 } = require('../debug/live_surface_trace_runtime.cjs');
 const {
   appendSurfaceVisibilityDiagnostic,
-} = require('../diagnostics/surface_diagnostics_runtime.cjs');
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
 
 const RESPONSE_OVERLAY_WIDTH = 520;
 const RESPONSE_OVERLAY_AWAITING_HEIGHT = (

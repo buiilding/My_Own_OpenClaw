@@ -1,6 +1,6 @@
 const {
   appendFrontendInteractionDiagnostic: appendFrontendInteractionDiagnosticRuntime,
-} = require('../diagnostics/surface_diagnostics_runtime.cjs');
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
 
 const INTERACTION_SCHEMA_VERSION = 1;
 const MESSAGE_TEXT_REDACTION = '[redacted]';

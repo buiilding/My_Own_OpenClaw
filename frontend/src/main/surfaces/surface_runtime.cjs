@@ -33,7 +33,7 @@ const {
 } = require('../debug/live_surface_trace_runtime.cjs');
 const {
   appendSurfaceVisibilityDiagnostic: appendSurfaceVisibilityDiagnosticRuntime,
-} = require('../diagnostics/surface_diagnostics_runtime.cjs');
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
 
 const DEFAULT_TOOL_SURFACE_SETTLE_MS = 80;
 

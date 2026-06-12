@@ -1,5 +1,8 @@
 const { registerOverlayRendererWindows } = require('../surfaces/overlay_renderer_registration.cjs');
 const { syncVisibleSurfaceDisplayAffinity } = require('../surfaces/display_affinity_runtime.cjs');
+const {
+  appendDesktopStartupDiagnostic: appendDesktopStartupDiagnosticRuntime,
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
 
 const DEFAULT_SECOND_INSTANCE_FOCUS_COOLDOWN_MS = 1000;
 
@@ -49,6 +52,7 @@ function summarizeElectronAppMetrics(metrics = []) {
 function logStartupMetricsSnapshot(label, deps = {}) {
   const {
     log = console.log,
+    appendDesktopStartupDiagnostic = appendDesktopStartupDiagnosticRuntime,
     getPid = () => process.pid,
     getProcessMemoryUsage = () => process.memoryUsage(),
     getAppMetrics = () => [],
@@ -72,12 +76,27 @@ function logStartupMetricsSnapshot(label, deps = {}) {
   const rssMb = toMb(Number(memoryUsage?.rss));
   const heapUsedMb = toMb(Number(memoryUsage?.heapUsed));
   const workingSetMb = summary.totalWorkingSetMb ?? 'n/a';
-  log(
-    `[Main][StartupMetrics] ${label} pid=${pid} rss_mb=${rssMb ?? 'n/a'} ` +
-      `heap_used_mb=${heapUsedMb ?? 'n/a'} app_processes=${summary.processes} ` +
-      `browser=${summary.browser} renderer=${summary.renderer} gpu=${summary.gpu} ` +
-      `utility=${summary.utility} app_working_set_mb=${workingSetMb}`,
-  );
+  appendDesktopStartupDiagnostic({
+    action: 'metrics_snapshot',
+    label,
+    pid,
+    rssMb,
+    heapUsedMb,
+    appProcessCount: summary.processes,
+    browserProcessCount: summary.browser,
+    rendererProcessCount: summary.renderer,
+    gpuProcessCount: summary.gpu,
+    utilityProcessCount: summary.utility,
+    appWorkingSetMb: summary.totalWorkingSetMb,
+  });
+  if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+    log(
+      `[Main][StartupMetrics] ${label} pid=${pid} rss_mb=${rssMb ?? 'n/a'} ` +
+        `heap_used_mb=${heapUsedMb ?? 'n/a'} app_processes=${summary.processes} ` +
+        `browser=${summary.browser} renderer=${summary.renderer} gpu=${summary.gpu} ` +
+        `utility=${summary.utility} app_working_set_mb=${workingSetMb}`,
+    );
+  }
 }
 
 function buildWakewordHotkeyCandidates(wakewordHotkey, platform = process.platform) {
@@ -146,6 +165,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     stopVmWorker = () => {},
     log = console.log,
     warn = console.warn,
+    appendDesktopStartupDiagnostic = appendDesktopStartupDiagnosticRuntime,
     scheduleTimeout = (fn, ms) => setTimeout(fn, ms),
     getPid = () => process.pid,
     getProcessMemoryUsage = () => process.memoryUsage(),
@@ -204,8 +224,16 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
   }
 
   const singleInstanceLockAcquired = requestSingleInstanceLock();
+  appendDesktopStartupDiagnostic({
+    action: 'single_instance_lock',
+    singleInstanceLockAcquired,
+    duplicateInstance: !singleInstanceLockAcquired,
+    vmMode: Boolean(vmMode),
+  });
   if (!singleInstanceLockAcquired) {
-    log('[Main] Existing instance detected, exiting duplicate process.');
+    if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+      log('[Main] Existing instance detected, exiting duplicate process.');
+    }
     quitApp();
     return;
   }
@@ -220,11 +248,29 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       Number.isFinite(lastSecondInstanceFocusAt) &&
       focusTimestamp - lastSecondInstanceFocusAt < focusCooldownMs
     ) {
-      log('[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.');
+      appendDesktopStartupDiagnostic({
+        action: 'second_instance',
+        duplicateInstance: true,
+        suppressed: true,
+        reason: 'focus-cooldown',
+        focusCooldownMs,
+      });
+      if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+        log('[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.');
+      }
       return;
     }
     lastSecondInstanceFocusAt = focusTimestamp;
-    log('[Main][StartupMetrics] second-instance event received; focusing existing window.');
+    appendDesktopStartupDiagnostic({
+      action: 'second_instance',
+      duplicateInstance: true,
+      focus: true,
+      suppressed: false,
+      focusCooldownMs,
+    });
+    if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+      log('[Main][StartupMetrics] second-instance event received; focusing existing window.');
+    }
     focusPrimarySurface();
   });
 
@@ -295,6 +341,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
 
     logStartupMetricsSnapshot('startup-ready', {
       log,
+      appendDesktopStartupDiagnostic,
       getPid,
       getProcessMemoryUsage,
       getAppMetrics,
@@ -302,6 +349,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     scheduleTimeout(() => {
       logStartupMetricsSnapshot('startup-ready+2000ms', {
         log,
+        appendDesktopStartupDiagnostic,
         getPid,
         getProcessMemoryUsage,
         getAppMetrics,
@@ -327,6 +375,10 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
 
   app.on('before-quit', () => {
     app.isQuitting = true;
+    appendDesktopStartupDiagnostic({
+      action: 'before_quit',
+      status: 'succeeded',
+    });
     log('[Main] App quitting, cleaning up subprocesses...');
     stopLocalBackend();
     stopVmWorker();

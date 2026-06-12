@@ -19,6 +19,12 @@ jest.mock('electron', () => ({
   },
 }));
 
+const mockAppendWakewordLifecycleDiagnostic = jest.fn();
+
+jest.mock('../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs', () => ({
+  appendWakewordLifecycleDiagnostic: (...args) => mockAppendWakewordLifecycleDiagnostic(...args),
+}));
+
 describe('wakeword_bridge', () => {
   let spawn;
   let ipcMain;
@@ -28,6 +34,7 @@ describe('wakeword_bridge', () => {
   let beforeExitHandler;
 
   beforeEach(() => {
+    mockAppendWakewordLifecycleDiagnostic.mockClear();
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -153,6 +160,27 @@ describe('wakeword_bridge', () => {
         score: 0.91,
       }),
     );
+    expect(mockAppendWakewordLifecycleDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'enabled',
+      phase: 'toggle',
+      enabled: true,
+    }));
+    expect(mockAppendWakewordLifecycleDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'process_spawned',
+      phase: 'spawn',
+    }));
+    expect(mockAppendWakewordLifecycleDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'status_ready',
+      phase: 'stderr',
+      ready: true,
+    }));
+    expect(mockAppendWakewordLifecycleDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'detected',
+      phase: 'stdout',
+      modelId: 'hey_jarvis',
+      confidence: 0.91,
+      score: 0.91,
+    }));
   });
 
   test('ignores detection when wakeword disabled', () => {
@@ -173,6 +201,11 @@ describe('wakeword_bridge', () => {
       'wakeword-detected',
       expect.anything(),
     );
+    expect(mockAppendWakewordLifecycleDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'disabled',
+      phase: 'toggle',
+      enabled: false,
+    }));
   });
 
   test('preserves wakeword callback after process restart', () => {
@@ -241,9 +274,16 @@ describe('wakeword_bridge', () => {
     oversizedHeader.writeUInt32LE(64 * 1024 + 1, 0);
     emitRawBytes(oversizedHeader);
 
-    expect(console.error).toHaveBeenCalledWith(
+    expect(console.error).not.toHaveBeenCalledWith(
       expect.stringContaining('Invalid detection result frame length'),
     );
+    expect(mockAppendWakewordLifecycleDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'invalid_frame',
+      phase: 'stdout',
+      status: 'failed',
+      frameBytes: 64 * 1024 + 1,
+      maxFrameBytes: 64 * 1024,
+    }));
     expect(onWakewordDetected).not.toHaveBeenCalled();
     expect(mainWindow.webContents.send).not.toHaveBeenCalledWith(
       'wakeword-detected',

@@ -169,6 +169,16 @@ App diagnostic paths:
 - `conversation.metadata.list`: dashboard/sidebar chat-list load.
 - `browser.session_control`: chat header browser readiness and browser action
   request lifecycle before a conversation turn exists.
+- `desktop.startup`: Electron main startup metrics, single-instance behavior,
+  and app shutdown cleanup.
+- `frontend.interaction`: renderer UI interaction breadcrumbs normalized through
+  Electron main without raw labels, chat text, or message text.
+- `ipc.bridge`: compact Electron main bridge milestones formerly mirrored to
+  stdout as `[ElectronTrace]`, including backend connection, frontend query
+  send, backend event milestones, tool call/output markers, and settings update
+  send/ack summaries.
+- `local_backend.lifecycle`: Electron main local-backend bridge initialization
+  and lifecycle status outside a specific browser action.
 - `permission.probe`: Electron main permission probe/request and workspace
   activation diagnostics by default. Rows include permission id, platform,
   status enum, granted boolean, details presence, workspace-path presence,
@@ -187,6 +197,11 @@ App diagnostic paths:
   registered tool counts.
 - `mcp.execution`: sidecar-owned MCP `tools/call` execution for MCP tools that
   have already been discovered and registered into the local tool manifest.
+- `surface.visibility`: chat pill and response-overlay show/hide decisions,
+  phase-driven window decisions, guard refs, requested visibility, and final
+  visibility state.
+- `wakeword.lifecycle`: Electron main wakeword service toggle, process
+  start/exit, readiness, frame parsing, detection, and audio-send lifecycle.
 
 The `conversation.metadata.list` path covers:
 
@@ -256,6 +271,12 @@ For MCP discovery:
 
 ```bash
 bin/windie diagnostics list --path mcp.discovery --limit 50
+```
+
+List the full registered app diagnostics surface and each path purpose with:
+
+```bash
+bin/windie diagnostics paths
 ```
 
 For MCP enablement/persistence:
@@ -347,13 +368,14 @@ restore was suppressed.
 `[ChatPillTrace][main]` and `[ChatPillTrace][renderer]` require the debug flag
 above and include deeper phase/window snapshots.
 
-`[ElectronTrace]` is the compact default Electron main CLI timeline. It emits
-one-line milestones for frontend query send, backend connection state, the first
-backend event received for a turn, tool call/output, backend completion, and
-settings updates. It is an ephemeral operator log, not a durable
-`trace_event` row, and it summarizes ids, counts, text lengths, selected setting
-names, provider ids, and model ids without raw user text, assistant text,
-provider payloads, or secrets.
+`ipc.bridge` is the compact Electron main bridge timeline. It stores milestones
+for frontend query send, backend connection state, the first backend event
+received for a turn, tool call/output, backend completion, and settings updates.
+Inspect it with `bin/windie diagnostics list --path ipc.bridge --limit 50`.
+Set `WINDIE_DEBUG_IPC_STDOUT=1` only when the `[ElectronTrace]` stdout mirror is
+needed. The rows summarize ids, counts, text lengths, selected setting names,
+provider ids, and model ids without raw user text, assistant text, provider
+payloads, or secrets.
 
 `[LiveSurfaceTrace]` is the verbose official ephemeral surface trace. Enable it
 with `WINDIE_DEBUG_LIVE_SURFACE=1` or the broader chat-pill debug flag when the

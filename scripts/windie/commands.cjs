@@ -11,6 +11,7 @@ const {
   APP_DIAGNOSTICS_PATH,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
+  listDiagnosticPathDefinitions,
   queryDiagnosticEvents,
   windieUserDataRoot,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
@@ -28,6 +29,7 @@ Status and diagnostics:
   windie doctor --fix
   windie doctor --deep
   windie doctor --json
+  windie diagnostics paths [--json]
   windie diagnostics list [--path <path>] [--limit <n>] [--json]
   windie diagnostics inspect <trace-id> [--json]
   windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]
@@ -856,10 +858,36 @@ function printDiagnosticEvents(events, emptyMessage) {
   }
 }
 
+function printDiagnosticPathDefinitions(paths) {
+  if (paths.length === 0) {
+    console.log('No diagnostic paths are registered.');
+    return;
+  }
+  for (const pathDefinition of paths) {
+    console.log(`${pathDefinition.path}`);
+    console.log(`  owner: ${pathDefinition.owner}`);
+    console.log(`  purpose: ${pathDefinition.purpose}`);
+  }
+}
+
 function runDiagnostics(args) {
   const subcommand = args[0];
   const rest = args.slice(1);
   const json = hasFlag(rest, '--json');
+  if (subcommand === 'paths') {
+    const paths = listDiagnosticPathDefinitions();
+    if (json) {
+      printJson({
+        ok: true,
+        database: diagnosticsDatabasePath(),
+        paths,
+      });
+      return;
+    }
+    console.log(`database: ${diagnosticsDatabasePath()}`);
+    printDiagnosticPathDefinitions(paths);
+    return;
+  }
   if (subcommand === 'list') {
     const pathFilter = optionValue(rest, '--path', APP_DIAGNOSTICS_PATH);
     const limit = sqlLimit(optionValue(rest, '--limit', '50'), 50);
@@ -895,7 +923,7 @@ function runDiagnostics(args) {
     printDiagnosticEvents(events, `No diagnostics found for trace ${traceId}.`);
     return;
   }
-  throw new Error('Usage: windie diagnostics list [--path <path>] [--limit <n>] [--json] | inspect <trace-id> [--json]');
+  throw new Error('Usage: windie diagnostics paths [--json] | list [--path <path>] [--limit <n>] [--json] | inspect <trace-id> [--json]');
 }
 
 function runConversation(args) {

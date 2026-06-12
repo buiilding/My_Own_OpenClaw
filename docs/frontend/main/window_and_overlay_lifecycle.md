@@ -100,7 +100,7 @@ OS debug mode for ghost animation:
 Global app policy:
 
 - startup acquires `app.requestSingleInstanceLock()`; duplicate launches exit and trigger `second-instance` on the primary process to focus the existing main window.
-- startup emits `[Main][StartupMetrics]` snapshots (ready + 2s delayed) with PID, RSS/heap, and Electron process-type counts for repeated-launch diagnostics.
+- startup records `desktop.startup` diagnostics (ready + 2s delayed) with PID, RSS/heap, and Electron process-type counts for repeated-launch diagnostics. Inspect with `bin/windie diagnostics list --path desktop.startup --limit 50`; set `WINDIE_DEBUG_STARTUP_STDOUT=1` only when the `[Main][StartupMetrics]` stdout mirror is needed.
 - `window-all-closed` is prevented only while tray mode is active (`!app.isQuitting && !vmMode`).
 - `before-quit` sets `app.isQuitting=true`, stops local backend sidecar process, and stops VM worker runtime when active.
 

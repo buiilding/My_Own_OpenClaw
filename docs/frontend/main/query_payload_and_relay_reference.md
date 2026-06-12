@@ -214,21 +214,25 @@ Overlay phase updates during relay/stream lifecycle:
 
 ## Debug Checklist
 
-Compact response lifecycle milestones are emitted by default from Electron main:
+Compact response lifecycle milestones are stored in app diagnostics under
+`ipc.bridge`:
 
-- `[ElectronTrace] frontend query.send`: renderer query handoff into Electron
+- `frontend query.send`: renderer query handoff into Electron
   main, with conversation/turn ids, text length, and resource count.
-- `[ElectronTrace] backend connection.*`: backend websocket connection state.
-- `[ElectronTrace] backend first_event`: the first backend event received for a
+- `backend connection.*`: backend websocket connection state.
+- `backend first_event`: the first backend event received for a
   turn.
-- `[ElectronTrace] backend tool_call` / `tool_output`: tool activity milestones.
-- `[ElectronTrace] backend complete`: backend agent-loop completion.
-- `[ElectronTrace] settings update.*`: settings send/ack milestones, including
+- `backend tool_call` / `tool_output`: tool activity milestones.
+- `backend complete`: backend agent-loop completion.
+- `settings update.*`: settings send/ack milestones, including
   provider/model ids and changed setting keys.
 
-The default trace logs include conversation/turn ids, request ids, counts, and
-content lengths only. Set `WINDIE_DEBUG_STREAM_EVENTS=1` when full event-family
-receive/broadcast tracing or SDK projection progress is needed.
+Inspect them with `bin/windie diagnostics list --path ipc.bridge --limit 50`.
+Set `WINDIE_DEBUG_IPC_STDOUT=1` only when you also want the compact
+`[ElectronTrace]` stdout mirror. The diagnostics include conversation/turn ids,
+request ids, counts, and content lengths only. Set
+`WINDIE_DEBUG_STREAM_EVENTS=1` when full event-family receive/broadcast tracing
+or SDK projection progress is needed.
 
 If first query lacks expected settings:
 

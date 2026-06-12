@@ -7,16 +7,21 @@ const path = require('path');
 const {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+  DESKTOP_STARTUP_DIAGNOSTICS_PATH,
   FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
+  IPC_BRIDGE_DIAGNOSTICS_PATH,
+  LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   MCP_EXECUTION_DIAGNOSTICS_PATH,
   MCP_REGISTRATION_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
+  WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
+  listDiagnosticPathDefinitions,
   queryDiagnosticEvents,
   sanitizeData,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
@@ -231,6 +236,173 @@ describe('app diagnostics store', () => {
         targetType: 'button',
         hasTargetLabel: true,
       }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+  });
+
+  test('persists sanitized desktop startup diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'startup-diag-test',
+      path: DESKTOP_STARTUP_DIAGNOSTICS_PATH,
+      stage: 'metrics_snapshot',
+      runtime: 'electron-main',
+      data: {
+        action: 'metrics_snapshot',
+        startupLabel: 'startup-ready',
+        pid: 4242,
+        rssMb: 12.5,
+        heapUsedMb: 4.5,
+        appProcessCount: 3,
+        browserProcessCount: 1,
+        rendererProcessCount: 1,
+        appWorkingSetMb: 220,
+        commandLine: '--do-not-store',
+        workspacePath: '/Users/peter/private',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: DESKTOP_STARTUP_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0].data).toEqual(expect.objectContaining({
+      action: 'metrics_snapshot',
+      startupLabel: 'startup-ready',
+      pid: 4242,
+      rssMb: 12.5,
+      heapUsedMb: 4.5,
+      appProcessCount: 3,
+      browserProcessCount: 1,
+      rendererProcessCount: 1,
+      appWorkingSetMb: 220,
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('--do-not-store');
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+  });
+
+  test('persists sanitized ipc bridge diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'ipc-diag-test',
+      path: IPC_BRIDGE_DIAGNOSTICS_PATH,
+      stage: 'settings.update.send',
+      runtime: 'electron-main',
+      requestId: 'settings-1',
+      conversationRef: 'conv-1',
+      data: {
+        action: 'settings.update.send',
+        phase: 'settings',
+        source: 'renderer',
+        requestId: 'settings-1',
+        turnRef: 'turn-1',
+        textLength: 15,
+        resourceCount: 2,
+        updatedKeys: 'model_provider,selected_model_id',
+        provider: 'openai',
+        model: 'gpt-4.1',
+        modelMode: 'online',
+        providerApiKey: 'do-not-store',
+        promptText: 'do not store',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: IPC_BRIDGE_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'ipc-diag-test',
+      requestId: 'settings-1',
+      conversationRef: 'conv-1',
+      data: expect.objectContaining({
+        action: 'settings.update.send',
+        phase: 'settings',
+        source: 'renderer',
+        turnRef: 'turn-1',
+        textLength: 15,
+        resourceCount: 2,
+        updatedKeys: 'model_provider,selected_model_id',
+        provider: 'openai',
+        model: 'gpt-4.1',
+        modelMode: 'online',
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('do-not-store');
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+  });
+
+  test('persists sanitized local backend lifecycle diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'local-backend-diag-test',
+      path: LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
+      stage: 'bridge_initialized',
+      runtime: 'electron-main',
+      data: {
+        action: 'bridge_initialized',
+        status: 'ready',
+        ready: true,
+        localBackendReady: true,
+        hasClient: true,
+        hasDiscoveryPath: true,
+        discoveryPath: '/Users/peter/private',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0].data).toEqual(expect.objectContaining({
+      action: 'bridge_initialized',
+      status: 'ready',
+      ready: true,
+      localBackendReady: true,
+      hasClient: true,
+      hasDiscoveryPath: true,
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
+  });
+
+  test('persists sanitized wakeword lifecycle diagnostics', () => {
+    appendDiagnosticEvent({
+      traceId: 'wakeword-diag-test',
+      path: WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
+      stage: 'detected',
+      runtime: 'electron-main',
+      data: {
+        action: 'detected',
+        phase: 'stdout',
+        launchKind: 'python',
+        packaged: false,
+        processPid: 1234,
+        ready: true,
+        enabled: true,
+        modelId: 'hey_jarvis',
+        confidence: 0.9,
+        score: 0.8,
+        transcript: 'do not store',
+        audioBytes: 'do not store',
+      },
+    });
+
+    const events = queryDiagnosticEvents({
+      pathFilter: WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0].data).toEqual(expect.objectContaining({
+      action: 'detected',
+      phase: 'stdout',
+      launchKind: 'python',
+      packaged: false,
+      processPid: 1234,
+      ready: true,
+      enabled: true,
+      modelId: 'hey_jarvis',
+      confidence: 0.9,
+      score: 0.8,
     }));
     expect(JSON.stringify(events[0])).not.toContain('do not store');
   });
@@ -487,5 +659,27 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
     expect(JSON.stringify(events[0])).not.toContain('Workspace access prompt');
     expect(JSON.stringify(events[0])).not.toContain('example.com/private');
+  });
+
+  test('describes registered diagnostic paths for the CLI', () => {
+    const paths = listDiagnosticPathDefinitions();
+    expect(paths).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        path: DESKTOP_STARTUP_DIAGNOSTICS_PATH,
+        purpose: expect.stringContaining('Desktop startup'),
+      }),
+      expect.objectContaining({
+        path: IPC_BRIDGE_DIAGNOSTICS_PATH,
+        owner: expect.stringContaining('IPC bridge'),
+      }),
+      expect.objectContaining({
+        path: SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
+        purpose: expect.stringContaining('Chat pill'),
+      }),
+      expect.objectContaining({
+        path: WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
+        owner: expect.stringContaining('wakeword'),
+      }),
+    ]));
   });
 });

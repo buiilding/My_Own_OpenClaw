@@ -58,15 +58,31 @@ Important main-process flags:
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation into renderer URLs and main IPC trace logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables main chat pill trace logs in `frontend/src/main/chat_pill_trace_runtime.cjs`. |
 | `WINDIE_DEBUG_LIVE_SURFACE=1` | Enables verbose ephemeral `[LiveSurfaceTrace]` surface state logs. |
+| `WINDIE_DEBUG_IPC_STDOUT=1` | Mirrors compact IPC bridge diagnostics to stdout as `[ElectronTrace]` lines. |
+| `WINDIE_DEBUG_STARTUP_STDOUT=1` | Mirrors desktop startup diagnostics to stdout as `[Main][StartupMetrics]` lines. |
+| `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors wakeword lifecycle diagnostics to stdout as `[Wakeword]` lines. |
+| `WINDIE_DEBUG_LOCAL_BACKEND_STDOUT=1` | Mirrors local-backend lifecycle diagnostics to stdout as `[LocalBackend]` lines. |
+| `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors surface visibility and frontend interaction diagnostics to stdout as compact lines. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enabled by `npm --prefix frontend run test:ghost-cursor` for OS tool ghost overlay debugging. |
 
-Normal Electron main CLI output includes compact one-line `[ElectronTrace]`
-milestones for frontend query send, backend connection state, first backend
-event per turn, tool call/output, backend completion, and settings updates.
-These lines are ephemeral operator logs and summarize ids, counts, lengths, and
-selected settings names without raw user text, assistant text, provider payloads,
-or secrets.
+Default Electron main CLI output keeps structured lifecycle traces out of
+stdout. Use app diagnostics to inspect the persistent path registry and latest
+rows:
+
+```bash
+bin/windie diagnostics paths
+bin/windie diagnostics list --path desktop.startup --limit 50
+bin/windie diagnostics list --path ipc.bridge --limit 50
+bin/windie diagnostics list --path local_backend.lifecycle --limit 50
+bin/windie diagnostics list --path wakeword.lifecycle --limit 50
+```
+
+`ipc.bridge` is the persistent mirror for compact `[ElectronTrace]` milestones:
+frontend query send, backend connection state, first backend event per turn,
+tool call/output, backend completion, and settings updates. Rows summarize ids,
+counts, lengths, selected settings names, provider ids, and model ids without
+raw user text, assistant text, provider payloads, or secrets.
 
 Chat pill visibility and response-overlay window decisions are stored as app
 diagnostics instead of being printed to stdout by default. Inspect them with:

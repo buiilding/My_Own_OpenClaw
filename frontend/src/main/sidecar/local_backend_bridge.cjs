@@ -29,6 +29,9 @@ const {
   appendDiagnosticEvent,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
 } = require('../diagnostics/app_diagnostics_store.cjs');
+const {
+  appendLocalBackendLifecycleDiagnostic,
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
@@ -550,7 +553,12 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
 
   registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS);
 
-  if (process.env.NODE_ENV !== 'production') {
+  appendLocalBackendLifecycleDiagnostic({
+    action: 'bridge_initialized',
+    status: 'succeeded',
+    ...buildLocalRuntimeDiagnosticData(),
+  });
+  if (process.env.WINDIE_DEBUG_LOCAL_BACKEND_STDOUT === '1') {
     console.log('[LocalBackend] Local backend bridge initialized');
   }
 }

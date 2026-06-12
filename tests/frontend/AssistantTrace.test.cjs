@@ -18,8 +18,11 @@ describe('assistant runtime trace logging', () => {
 
   test('logs compact backend milestones once per turn without raw content', () => {
     const messages = [];
+    const appendIpcBridgeDiagnostic = jest.fn();
     const tracer = createElectronMainTraceLogger({
       log: message => messages.push(message),
+      appendIpcBridgeDiagnostic,
+      stdoutEnabled: true,
     });
 
     tracer.traceBackendEvent({
@@ -71,12 +74,30 @@ describe('assistant runtime trace logging', () => {
     expect(JSON.stringify(messages)).not.toContain('private command');
     expect(JSON.stringify(messages)).not.toContain('private output');
     expect(JSON.stringify(messages)).not.toContain('private final');
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'first_event',
+      phase: 'backend',
+      eventType: 'streaming-response',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      textLength: 22,
+    }));
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'tool_call',
+      toolName: 'run_shell_command',
+      requestId: 'req-1',
+    }));
+    expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('private command');
+    expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('private output');
   });
 
   test('logs frontend query, backend connection, and settings as compact lines', () => {
     const messages = [];
+    const appendIpcBridgeDiagnostic = jest.fn();
     const tracer = createElectronMainTraceLogger({
       log: message => messages.push(message),
+      appendIpcBridgeDiagnostic,
+      stdoutEnabled: true,
     });
 
     tracer.traceBackendConnection({
@@ -110,6 +131,26 @@ describe('assistant runtime trace logging', () => {
     ]);
     expect(JSON.stringify(messages)).not.toContain('private user request');
     expect(JSON.stringify(messages)).not.toContain('sk-secret');
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'connection.open',
+      connected: true,
+      hasUserId: true,
+    }));
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'query.send',
+      textLength: 20,
+      resourceCount: 1,
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    }));
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'settings.update.send',
+      updatedKeys: 'model_provider,selected_model_id',
+      provider: 'openai',
+      model: 'gpt-4.1',
+    }));
+    expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('private user request');
+    expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('sk-secret');
   });
 
   test('summarizes settings changes without provider secrets', () => {
