@@ -21,3 +21,13 @@ Start with [Backend API Hub](../backend/api/README.md), [API Route Change Workfl
 Validate route models, auth behavior, service tests, and any SDK/client examples that call the route. Keep route contracts in backend docs and do not make frontend or sidecar code import backend objects for parity.
 
 Avoid: adding a renderer-side fallback for malformed route payloads before fixing the backend producer.
+
+## SDK Route Or Client Method
+
+Owner: SDK runtime with backend route parity.
+
+Start with [SDK Hub](../sdk/README.md), [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md), and [SDK Auth and Error Handling](../sdk/sdk_auth_and_error_handling.md).
+
+Validate backend route models, TypeScript/Python client behavior, error envelopes, and example or unit coverage. Keep reusable route behavior in the SDK instead of adding an Electron-only bridge.
+
+Avoid: creating a second Electron path that renames and forwards SDK payloads without enforcing a real boundary.
