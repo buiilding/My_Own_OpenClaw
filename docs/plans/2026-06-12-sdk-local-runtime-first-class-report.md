@@ -95,6 +95,8 @@ paths consume the SDK runtime manager instead of owning sidecar lifecycle.
 ## Commits
 
 - `24ad2abdb feat(sdk): make local runtime first-class`
+- `d7d5e36e1 docs(plans): finalize sdk local runtime report`
+- `332592aea test(sdk): cover first-class local runtime suite`
 
 ## Blockers
 
