@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/main/logging: ignore closed-pipe console write failures such as
+  `EPIPE` during Ctrl-C shutdown after the main layer log sink has already
+  written the durable log line.
 - frontend/chat-pill: latch the minimal pill busy/Stop state immediately after
   local send acceptance, before async conversation lookup and shared optimistic
   row preparation finish.

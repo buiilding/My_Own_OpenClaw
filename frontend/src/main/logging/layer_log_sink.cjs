@@ -111,6 +111,15 @@ function formatConsoleArgs(args = []) {
   return Array.from(args).map(normalizeLogText).join(' ');
 }
 
+function isIgnorableConsoleWriteError(error) {
+  const code = error?.code;
+  return (
+    code === 'EPIPE'
+    || code === 'ERR_STREAM_DESTROYED'
+    || code === 'ERR_STREAM_WRITE_AFTER_END'
+  );
+}
+
 function prefixLayerLine(layer, line, prefix = '') {
   const text = String(line ?? '');
   if (prefix) {
@@ -258,7 +267,13 @@ function installConsoleLayerLog({
       } catch (_error) {
         // Logging must not break the runtime path that emitted the log.
       }
-      originals[method](...args);
+      try {
+        originals[method](...args);
+      } catch (error) {
+        if (!isIgnorableConsoleWriteError(error)) {
+          throw error;
+        }
+      }
     };
   });
   Object.defineProperty(consoleObject, '__windieLayerLogInstalled', {

@@ -117,4 +117,44 @@ describe('layer_log_sink', () => {
     expect(originalLog).toHaveBeenCalledWith('hello', { ok: true });
     expect(fs.readFileSync(logFile, 'utf8')).toContain('[Main] hello { ok: true }');
   });
+
+  test('ignores closed stdout write failures from wrapped console output', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-console-epipe-log-'));
+    const logFile = path.join(tempDir, 'main.log');
+    const epipeError = new Error('write EPIPE');
+    epipeError.code = 'EPIPE';
+    const consoleObject = {
+      log: jest.fn(() => {
+        throw epipeError;
+      }),
+    };
+
+    installConsoleLayerLog({
+      consoleObject,
+      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      methods: ['log'],
+    });
+
+    expect(() => consoleObject.log('during shutdown')).not.toThrow();
+    expect(fs.readFileSync(logFile, 'utf8')).toContain('[Main] during shutdown');
+  });
+
+  test('rethrows unexpected wrapped console output failures', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-console-unexpected-log-'));
+    const logFile = path.join(tempDir, 'main.log');
+    const consoleObject = {
+      log: jest.fn(() => {
+        throw new TypeError('unexpected console failure');
+      }),
+    };
+
+    installConsoleLayerLog({
+      consoleObject,
+      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      methods: ['log'],
+    });
+
+    expect(() => consoleObject.log('still logged')).toThrow('unexpected console failure');
+    expect(fs.readFileSync(logFile, 'utf8')).toContain('[Main] still logged');
+  });
 });
