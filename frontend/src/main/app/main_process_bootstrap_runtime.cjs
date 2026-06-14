@@ -41,6 +41,8 @@ function createWindowBootstrapRuntime(deps) {
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
       localToolLifecycle: deps.localToolLifecycle,
       syncSdkLiveTurnSurfaceIntent: deps.syncSdkLiveTurnSurfaceIntent,
+      log: (...args) => deps.log(...args),
+      warn: (...args) => deps.warn(...args),
     });
     deps.setMainWindow(mainWindow);
 
@@ -74,6 +76,8 @@ function createWindowBootstrapRuntime(deps) {
       setChatWindow: deps.setChatWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      log: (...args) => deps.log(...args),
+      warn: (...args) => deps.warn(...args),
     });
     deps.setChatWindow(chatWindow);
     syncCurrentOverlayPhase();
@@ -101,6 +105,8 @@ function createWindowBootstrapRuntime(deps) {
       setResponseWindow: deps.setResponseWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      log: (...args) => deps.log(...args),
+      warn: (...args) => deps.warn(...args),
     });
     deps.setResponseWindow(responseWindow);
     syncCurrentOverlayPhase();

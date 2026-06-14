@@ -414,8 +414,12 @@ function advanceToNextBackendEndpoint() {
 
 function log(message) {
   if (process.env.WINDIE_DEBUG_IPC_STDOUT === '1') {
-    console.log(`[IPC Bridge] ${message}`);
+    console.log(`[Main][IPC] ${message}`);
   }
+}
+
+function logMainRuntime(message) {
+  console.log(message);
 }
 
 function notifyBackendMessageObservers(data) {
@@ -602,6 +606,7 @@ function handleWindieAgentConnection(event = {}) {
     resetSettingsSyncState();
     setResponseOverlayPhase('idle', 'ws-open');
     ipcEventReplayState.clear();
+    logMainRuntime(`[Main][Backend] connected user=${handshakeUserId || currentUserId || 'unknown'}`);
     log('Successfully connected to Python backend through Windie SDK runtime.');
     log(`Handshake sent with authenticated user_id: ${handshakeUserId || currentUserId || 'unknown'}`);
     broadcastConnectionStatus(true);
@@ -609,21 +614,25 @@ function handleWindieAgentConnection(event = {}) {
   }
   if (event.type === 'close') {
     electronMainTraceLogger.traceBackendConnection(event);
+    logMainRuntime(`[Main][Backend] closed code=${event.code ?? 'unknown'} reason=${event.reason || 'unknown'}`);
     handleAgentBackendClose(event);
     return;
   }
   if (event.type === 'error') {
     electronMainTraceLogger.traceBackendConnection(event);
+    logMainRuntime(`[Main][Backend] error message=${JSON.stringify(event.error?.message || String(event.error || 'unknown'))}`);
     log(`WebSocket error: ${event.error?.message || event.error}`);
     return;
   }
   if (event.type === 'handshake-error') {
     electronMainTraceLogger.traceBackendConnection(event);
+    logMainRuntime(`[Main][Backend] handshake_error message=${JSON.stringify(event.error?.message || String(event.error || 'unknown'))}`);
     log(`Error sending handshake: ${event.error}`);
     return;
   }
   if (event.type === 'message-error') {
     electronMainTraceLogger.traceBackendConnection(event);
+    logMainRuntime(`[Main][Backend] message_error message=${JSON.stringify(event.error?.message || String(event.error || 'unknown'))}`);
     log(`Error parsing message from backend: ${event.error}`);
   }
 }
@@ -641,6 +650,7 @@ function handleWindieAgentBackendFallback(endpointPayload = {}) {
   } else {
     advanceToNextBackendEndpoint();
   }
+  logMainRuntime(`[Main][Backend] fallback ws=${backendEndpointState.getEndpoint().wsUrl}`);
   log(`Primary backend unavailable. Falling back to ${backendEndpointState.getEndpoint().wsUrl}.`);
 }
 
@@ -731,6 +741,7 @@ function buildDesktopLocalRuntimeOptions() {
 }
 
 function createDesktopWindieClient() {
+  logMainRuntime(`[Main][SDK] creating_client backend=${backendEndpointState.getHttpUrl()}`);
   return new WindieClient({
     backendUrl: backendEndpointState.getHttpUrl(),
     httpBaseUrl: backendEndpointState.getHttpUrl(),
@@ -757,6 +768,7 @@ function createDesktopWindieClient() {
 
 function getWindieClient() {
   if (!windieClient) {
+    logMainRuntime('[Main][SDK] client_initialized');
     windieClient = createDesktopWindieClient();
   }
   return windieClient;
@@ -1164,7 +1176,15 @@ function getKnownWindieLocalRuntime() {
 }
 
 async function ensureWindieLocalRuntime({ reason = 'local-runtime' } = {}) {
-  return getWindieClient().localRuntime({ reason });
+  logMainRuntime(`[Main][SDK] local_runtime_ensure_start reason=${reason}`);
+  try {
+    const runtime = await getWindieClient().localRuntime({ reason });
+    logMainRuntime(`[Main][SDK] local_runtime_ready reason=${reason}`);
+    return runtime;
+  } catch (error) {
+    logMainRuntime(`[Main][SDK] local_runtime_failed reason=${reason} message=${JSON.stringify(error?.message || String(error))}`);
+    throw error;
+  }
 }
 
 async function restartWindieAgent(reason = 'restart') {

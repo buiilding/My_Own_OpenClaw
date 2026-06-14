@@ -51,6 +51,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(wakeCall).not.toContain('conversationRef:');
     expect(source).toContain('onFrontendConfigLoaded: refreshEnabledMcpServersAfterStartup');
     expect(source).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
+    expect(source).toContain('[Main][SDK] client_initialized');
+    expect(source).toContain('[Main][SDK] creating_client backend=');
+    expect(source).toContain('[Main][SDK] local_runtime_ensure_start reason=');
+    expect(source).toContain('[Main][SDK] local_runtime_ready reason=');
+    expect(source).toContain('[Main][Backend] connected user=');
   });
 
   test('electron main exposes SDK-shaped user commands through a strict invoke allowlist', async () => {

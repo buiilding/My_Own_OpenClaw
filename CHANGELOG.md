@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/cli/logging: add layer-owned log files for Vite, Electron main,
   renderer console output, and the sidecar daemon, with `bin/windie logs`
   targets for tailing each layer directly.
+- frontend/main/logging: add main-process breadcrumbs for SDK client creation,
+  local runtime startup, backend connection lifecycle, and backend endpoint
+  fallback.
 - frontend/cli/diagnostics: add a registered app-diagnostics path catalog plus
   persistent `desktop.startup`, `ipc.bridge`, `local_backend.lifecycle`,
   `surface.visibility`, `frontend.interaction`, and `wakeword.lifecycle`
