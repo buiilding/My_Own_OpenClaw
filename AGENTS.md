@@ -216,6 +216,18 @@ Install and run:
 - Focused Electron dev app: `bin/windie start desktop`
 - Electron customer app: `cd frontend && npm run electron`
 
+Dev startup troubleshooting:
+
+- If `bin/windie start dev` prints
+  `[desktop] waiting for http://localhost:5173/` and then times out, debug the
+  Vite side first: run `bin/windie logs vite --no-follow --tail 120` and check
+  `lsof -nP -iTCP:5173 -sTCP:LISTEN` before changing Electron code or manually
+  activating conda.
+- `bin/windie start dev` starts Vite through `scripts/python-in-env frontend`,
+  then waits for the Vite URL before launching Electron. Cold `conda run` or
+  npm startup can be slow; use `WINDIE_FRONTEND_READY_TIMEOUT_MS=<ms>` only
+  when a machine needs a longer readiness window.
+
 Validation:
 
 - Backend tests: `bin/windie test backend`

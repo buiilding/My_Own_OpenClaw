@@ -78,7 +78,7 @@ describe('windie CLI', () => {
           label: 'desktop',
           command: path.join(repoRoot, 'scripts/run-frontend-electron'),
           cwd: repoRoot,
-          waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 30000 },
+          waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 90000 },
         },
       ],
     });
@@ -90,10 +90,28 @@ describe('windie CLI', () => {
           command: 'npm',
           args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'electron'],
           cwd: repoRoot,
-          waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 30000 },
+          waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 90000 },
         },
       ],
     });
+  });
+
+  test('allows frontend readiness timeout override for cold dev startup', () => {
+    const previous = process.env.WINDIE_FRONTEND_READY_TIMEOUT_MS;
+    process.env.WINDIE_FRONTEND_READY_TIMEOUT_MS = '120000';
+    try {
+      expect(getSpawnPlan(['start', 'dev']).concurrent[1].waitFor).toMatchObject({
+        type: 'http',
+        url: frontendDevUrl,
+        timeoutMs: 120000,
+      });
+    } finally {
+      if (previous === undefined) {
+        delete process.env.WINDIE_FRONTEND_READY_TIMEOUT_MS;
+      } else {
+        process.env.WINDIE_FRONTEND_READY_TIMEOUT_MS = previous;
+      }
+    }
   });
 
   test('routes test commands without requiring callers to cd frontend', () => {

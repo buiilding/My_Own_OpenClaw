@@ -372,6 +372,15 @@ function getFrontendDevUrl() {
   return process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
 }
 
+function getFrontendReadyTimeoutMs() {
+  const raw = process.env.WINDIE_FRONTEND_READY_TIMEOUT_MS;
+  if (!raw) {
+    return 90000;
+  }
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 90000;
+}
+
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -417,7 +426,10 @@ function afterFrontendReady(item) {
   const url = getFrontendDevUrl();
   return {
     ...item,
-    waitFor: ({ isShuttingDown } = {}) => waitForHttp(url, { isShuttingDown }),
+    waitFor: ({ isShuttingDown } = {}) => waitForHttp(url, {
+      isShuttingDown,
+      timeoutMs: getFrontendReadyTimeoutMs(),
+    }),
     waitMessage: `waiting for ${url}`,
   };
 }
@@ -426,7 +438,7 @@ function frontendReadyPlan() {
   return {
     type: 'http',
     url: getFrontendDevUrl(),
-    timeoutMs: 30000,
+    timeoutMs: getFrontendReadyTimeoutMs(),
   };
 }
 

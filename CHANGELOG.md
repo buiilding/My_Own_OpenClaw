@@ -81,6 +81,8 @@ All notable changes to WindieOS will be documented in this file.
   renderer and CLI timeline readers.
 - cli/docs: add conversation-centered local history inspection commands over
   the existing durable SQLite history rows.
+- cli/frontend/docs: extend the Vite readiness window for `bin/windie start dev`
+  and document the `localhost:5173` timeout diagnostic path in `AGENTS.md`.
 
 ### Fixed
 
