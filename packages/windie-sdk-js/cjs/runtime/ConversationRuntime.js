@@ -24,6 +24,10 @@ function nowMs() {
 function durationSince(startedAtMs) {
     return Math.max(0, Date.now() - startedAtMs);
 }
+function isCompactionStdoutEnabled() {
+    const env = globalThis.process?.env;
+    return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
+}
 function optionalRequestId(value) {
     return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
@@ -751,6 +755,15 @@ class SdkConversationRuntime {
     }
     async stop(turnRef = this.state.activeTurnRef ?? null) {
         const startedAtMs = nowMs();
+        await this.applyEvent((0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(turnRef, 'turn_stopped'),
+            type: 'turn_stopped',
+            conversationRef: this.options.conversationRef,
+            revisionId: this.state.revisionId,
+            turnRef,
+            source: 'ui',
+            payload: {},
+        }));
         if (!this.options.transport) {
             await this.recordRuntimeTrace({
                 path: 'websocket.control',
@@ -804,15 +817,6 @@ class SdkConversationRuntime {
                 throw error;
             }
         }
-        await this.applyEvent((0, events_js_1.createConversationEvent)({
-            eventId: this.nextLocalEventId(turnRef, 'turn_stopped'),
-            type: 'turn_stopped',
-            conversationRef: this.options.conversationRef,
-            revisionId: this.state.revisionId,
-            turnRef,
-            source: 'ui',
-            payload: {},
-        }));
     }
     async rehydrate() {
         const startedAtMs = nowMs();
@@ -1749,6 +1753,15 @@ class SdkConversationRuntime {
             return false;
         }
         if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)
+            && this.state.stopState.requested
+            && event.turnRef
+            && (!this.state.stopState.turnRef || event.turnRef === this.state.stopState.turnRef)
+            && event.type !== 'turn_completed'
+            && event.type !== 'turn_error'
+            && event.type !== 'runtime_error') {
+            return false;
+        }
+        if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)
             && event.turnRef
             && this.state.activeTurnRef
             && event.turnRef !== this.state.activeTurnRef) {
@@ -1759,6 +1772,9 @@ class SdkConversationRuntime {
     }
     logRejectedBackendEvent(event, reason) {
         if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)) {
+            return;
+        }
+        if (!isCompactionStdoutEnabled()) {
             return;
         }
         console.log('[Windie SDK][Compaction] backend event rejected', {
