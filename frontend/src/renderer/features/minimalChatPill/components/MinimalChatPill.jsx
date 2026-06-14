@@ -63,6 +63,12 @@ function applyAcceptedSendUiLatch({
   setCurrentTurnProjection(null, conversationRef);
 }
 
+function primeResponseOverlayAwaitingPreflight() {
+  void IpcBridge.invoke(INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING).catch((error) => {
+    console.warn('[MinimalChatPill] Failed to prime response overlay awaiting state:', error);
+  });
+}
+
 function MinimalChatPill() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
@@ -149,6 +155,7 @@ function MinimalChatPill() {
         setThinkingSourceEventType,
         setThinkingStatus,
       });
+      primeResponseOverlayAwaitingPreflight();
       logRendererLiveSurfaceTrace('turn_surface.reset', {
         source: 'minimal-chat-pill',
         reason: 'user-send',

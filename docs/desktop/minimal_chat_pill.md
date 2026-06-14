@@ -57,6 +57,10 @@ The chat pill is the small always-available desktop command surface. It is rende
   shared async send preparation resolves the active conversation. The shared
   send path still owns the optimistic user row, conversation ref, resources, and
   SDK dispatch.
+- The pill also primes the response overlay awaiting preflight immediately on
+  send acceptance. The response overlay renderer may use only that
+  `renderer-send-preflight` phase as a local pre-SDK typing fallback; SDK
+  current-turn presentation replaces it when the runtime projection arrives.
 - Active agent turns do not make the pill click-through by themselves. Electron
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill

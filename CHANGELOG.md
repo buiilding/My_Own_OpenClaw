@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat-pill: prime the response overlay awaiting preflight on send
+  acceptance and let the response overlay renderer latch local typing state
+  before SDK current-turn projection arrives.
 - frontend/main/logging: ignore closed-pipe console write failures such as
   `EPIPE` during Ctrl-C shutdown after the main layer log sink has already
   written the durable log line.

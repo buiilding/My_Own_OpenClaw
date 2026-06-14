@@ -69,9 +69,12 @@ SDK current-turn channel: `windie:current-turn`.
 Payload normalization boundary:
 
 - `responseOverlayPhasePayload.parseResponseOverlayPhasePayload(...)` is the canonical parser for phase + recovery metadata (`correlation_id`, `attempt`, `max_attempts`, `recovery_stage`, `failure_reason`).
-- React chat surfaces do not subscribe to `response-overlay-phase` for runtime
-  state. The main-process phase channel remains for native window/layout
-  policy and diagnostics.
+- React chat surfaces do not subscribe to generic `response-overlay-phase`
+  changes for runtime state. The response overlay renderer has one narrow
+  exception: `awaiting-first-chunk` with source `renderer-send-preflight`
+  latches local awaiting UI until SDK current-turn presentation arrives. The
+  main-process phase channel otherwise remains for native window/layout policy
+  and diagnostics.
 
 Modes:
 

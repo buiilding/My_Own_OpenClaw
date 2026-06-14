@@ -123,6 +123,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     ACTIVATE_CHATBOX_TEXT_ENTRY: 'activate-chatbox-text-entry',
     SHOW_MAIN_WINDOW: 'show-main-window',
     HIDE_CHATBOX: 'hide-chatbox',
+    PRIME_RESPONSE_OVERLAY_AWAITING: 'prime-response-overlay-awaiting',
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
@@ -478,10 +479,19 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv-overlay');
     expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith(null, 'conv-overlay');
     expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(null, 'conv-overlay');
+    expect(mockInvoke.mock.calls.some(
+      ([channel]) => channel === 'prime-response-overlay-awaiting',
+    )).toBe(true);
     expect(mockSetIsSending.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendMessage.mock.invocationCallOrder[0],
     );
     expect(mockSetCurrentTurnProjection.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSendMessage.mock.invocationCallOrder[0],
+    );
+    const primeCallIndex = mockInvoke.mock.calls.findIndex(
+      ([channel]) => channel === 'prime-response-overlay-awaiting',
+    );
+    expect(mockInvoke.mock.invocationCallOrder[primeCallIndex]).toBeLessThan(
       mockSendMessage.mock.invocationCallOrder[0],
     );
   });

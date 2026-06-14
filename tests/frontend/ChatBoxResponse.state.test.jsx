@@ -14,6 +14,7 @@ import {
 import {
   ChatBoxResponse,
   emitOverlayPhase,
+  emitResponseOverlayPhasePayload,
   emitOverlayVisibility,
   mockInvoke,
   mockSend,
@@ -86,6 +87,23 @@ describe('ChatBoxResponse state behavior', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
+  });
+
+  test('shows awaiting indicator from renderer send preflight before SDK current-turn arrives', async () => {
+    render(<ChatBoxResponse />);
+
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+
+    emitResponseOverlayPhasePayload({
+      phase: 'awaiting-first-chunk',
+      source: 'renderer-send-preflight',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    expect(useChatStore.getState().isSending).toBe(true);
+    expect(useChatStore.getState().currentTurnProjection).toBeNull();
   });
 
   test('logs when the awaiting typing indicator is actually rendered and removed', async () => {

@@ -199,6 +199,14 @@ export function emitOverlayPhase(phase) {
   });
 }
 
+export function emitResponseOverlayPhasePayload(payload) {
+  const onPhase = mockListeners.get('response-overlay-phase');
+  expect(onPhase).toEqual(expect.any(Function));
+  act(() => {
+    onPhase(payload);
+  });
+}
+
 export function emitOverlayVisibility(visible) {
   const onVisibility = mockListeners.get('response-overlay-visibility');
   expect(onVisibility).toEqual(expect.any(Function));
