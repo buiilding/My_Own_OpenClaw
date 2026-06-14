@@ -188,7 +188,7 @@ function buildOptimisticUserMessage({
   turnId: string;
 }): ChatMessage {
   return {
-    id: `optimistic-${turnId}`,
+    id: `${turnId}-sdk-evt-000002-user_message`,
     text,
     sender: 'user',
     turnRef: turnId,

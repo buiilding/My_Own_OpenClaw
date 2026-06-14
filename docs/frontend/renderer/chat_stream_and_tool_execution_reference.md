@@ -113,7 +113,10 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 9. let SDK `ConversationRuntime.send()` emit the authoritative base user row,
    resolve file/clipboard/workspace/query-screenshot resources, and update user
    metadata
-10. replace the temporary renderer row with SDK display rows from `windie:rows`
+10. preserve the temporary renderer row across intermediate `windie:rows`
+    refreshes that do not yet include that turn's SDK user row
+11. replace the temporary renderer row with SDK display rows from `windie:rows`
+    once the matching SDK user row is projected
 
 Before final query dispatch, the hook may send immediate model/provider updates via `DesktopSettingsRuntimeClient.setModel(...)` when deferred-model selection changes are detected.
 

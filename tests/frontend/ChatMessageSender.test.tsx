@@ -157,7 +157,7 @@ describe('useChatMessageSender', () => {
   ) {
     expect(useChatStore.getState().messages).toEqual([
       expect.objectContaining({
-        id: 'optimistic-msg-1',
+        id: 'msg-1-sdk-evt-000002-user_message',
         sender: 'user',
         text,
         turnRef: 'msg-1',
