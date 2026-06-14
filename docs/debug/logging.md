@@ -37,8 +37,9 @@ LOG_LEVEL=DEBUG bin/windie test backend tests/backend/test_websocket_route.py -q
 Electron main uses `console.log`, `console.warn`, and `console.error`. The launcher in `frontend/scripts/electron-launcher.cjs` forwards Electron stdout, filters a small set of known Chromium stderr warnings, and appends the forwarded stream to `.windie/logs/frontend.log`.
 Main-process console mirroring must not crash the app during shutdown: closed
 stdout/stderr transport errors such as `EPIPE` are treated as terminal pipe
-teardown, while the layer-owned `.windie/logs/main.log` write remains the
-durable record.
+teardown both when console writes throw synchronously and when stdout/stderr
+emit asynchronous stream errors. The layer-owned `.windie/logs/main.log` write
+remains the durable record.
 
 Useful commands:
 

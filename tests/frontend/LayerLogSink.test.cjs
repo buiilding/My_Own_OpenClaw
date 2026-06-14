@@ -12,6 +12,7 @@ const {
   attachLineStream,
   ensureLogFile,
   installConsoleLayerLog,
+  installConsoleStreamErrorGuards,
   resolveLayerLogFile,
   resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
@@ -156,5 +157,46 @@ describe('layer_log_sink', () => {
 
     expect(() => consoleObject.log('still logged')).toThrow('unexpected console failure');
     expect(fs.readFileSync(logFile, 'utf8')).toContain('[Main] still logged');
+  });
+
+  test('installs stdout and stderr guards for async closed-pipe errors', () => {
+    const handlers = {};
+    const stdout = {
+      on: jest.fn((event, handler) => {
+        handlers.stdout = { event, handler };
+      }),
+    };
+    const stderr = {
+      on: jest.fn((event, handler) => {
+        handlers.stderr = { event, handler };
+      }),
+    };
+    const epipeError = new Error('write EPIPE');
+    epipeError.code = 'EPIPE';
+
+    expect(installConsoleStreamErrorGuards({
+      processObject: { stdout, stderr },
+    })).toBe(true);
+
+    expect(handlers.stdout.event).toBe('error');
+    expect(handlers.stderr.event).toBe('error');
+    expect(() => handlers.stdout.handler(epipeError)).not.toThrow();
+    expect(() => handlers.stderr.handler(epipeError)).not.toThrow();
+  });
+
+  test('stream error guards still rethrow unexpected stream errors', () => {
+    const handlers = {};
+    const stdout = {
+      on: jest.fn((event, handler) => {
+        handlers.stdout = { event, handler };
+      }),
+    };
+
+    installConsoleStreamErrorGuards({
+      processObject: { stdout, stderr: null },
+    });
+
+    expect(() => handlers.stdout.handler(new Error('unexpected stream failure')))
+      .toThrow('unexpected stream failure');
   });
 });

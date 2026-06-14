@@ -10,6 +10,7 @@ const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const LOG_DIR = path.join(REPO_ROOT, '.windie', 'logs');
 const VALID_LOG_LAYERS = new Set(['frontend', 'vite', 'main', 'renderer', 'sidecar']);
 const RENDERER_VERBOSE_LOG_FILE_NAME = 'renderer.verbose.log';
+const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__windieConsoleStreamErrorGuardInstalled';
 
 function normalizeLayer(layer) {
   const normalized = String(layer || '').trim().toLowerCase();
@@ -118,6 +119,30 @@ function isIgnorableConsoleWriteError(error) {
     || code === 'ERR_STREAM_DESTROYED'
     || code === 'ERR_STREAM_WRITE_AFTER_END'
   );
+}
+
+function installConsoleStreamErrorGuards({
+  processObject = process,
+} = {}) {
+  const streams = [processObject?.stdout, processObject?.stderr];
+  let installed = false;
+  streams.forEach((stream) => {
+    if (!stream || typeof stream.on !== 'function' || stream[CONSOLE_STREAM_ERROR_GUARD_INSTALLED]) {
+      return;
+    }
+    stream.on('error', (error) => {
+      if (!isIgnorableConsoleWriteError(error)) {
+        throw error;
+      }
+    });
+    Object.defineProperty(stream, CONSOLE_STREAM_ERROR_GUARD_INSTALLED, {
+      value: true,
+      enumerable: false,
+      configurable: true,
+    });
+    installed = true;
+  });
+  return installed;
 }
 
 function prefixLayerLine(layer, line, prefix = '') {
@@ -245,9 +270,11 @@ function installConsoleLayerLog({
   consoleObject = console,
   env = process.env,
   methods = ['log', 'info', 'warn', 'error', 'debug'],
+  processObject = process,
   sessionLabel = null,
 } = {}) {
   const normalizedLayer = normalizeLayer(layer);
+  installConsoleStreamErrorGuards({ processObject });
   if (!consoleObject || consoleObject.__windieLayerLogInstalled) {
     return false;
   }
@@ -302,6 +329,7 @@ module.exports = {
   ensureLogFile,
   formatConsoleArgs,
   installConsoleLayerLog,
+  installConsoleStreamErrorGuards,
   normalizeLayer,
   resolveLayerLogFile,
   resolveRendererVerboseLogFile,
