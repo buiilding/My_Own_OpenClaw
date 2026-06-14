@@ -106,6 +106,53 @@ describe('ChatBoxResponse state behavior', () => {
     expect(useChatStore.getState().currentTurnProjection).toBeNull();
   });
 
+  test('keeps preflight awaiting visible through hidden startup SDK projection', async () => {
+    render(<ChatBoxResponse />);
+
+    emitResponseOverlayPhasePayload({
+      phase: 'awaiting-first-chunk',
+      source: 'renderer-send-preflight',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+
+    act(() => {
+      useChatStore.setState({
+        currentTurnProjection: sdkPresentationProjection({
+          mode: 'hidden',
+          phase: 'idle',
+          turnRef: 'startup-hidden',
+        }),
+        latestCurrentTurnProjection: sdkPresentationProjection({
+          mode: 'hidden',
+          phase: 'idle',
+          turnRef: 'startup-hidden',
+        }),
+      });
+    });
+
+    expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+
+    act(() => {
+      useChatStore.setState({
+        currentTurnProjection: sdkPresentationProjection({
+          mode: 'awaiting',
+          turnRef: 'turn-live',
+        }),
+        latestCurrentTurnProjection: sdkPresentationProjection({
+          mode: 'awaiting',
+          turnRef: 'turn-live',
+        }),
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+  });
+
   test('logs when the awaiting typing indicator is actually rendered and removed', async () => {
     window.history.pushState({}, '', '/?dev_ui=1&view=minimal-response-overlay');
     useChatStore.setState({

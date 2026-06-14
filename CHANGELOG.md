@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat-pill: keep the response overlay preflight typing latch through
+  hidden, non-busy SDK startup projections so first send does not show, hide,
+  then show the typing indicator again.
 - frontend/chat: preserve the active turn ref when dashboard and chat-pill Stop
   commands cross the renderer, SDK transport, and Electron main stop bridge so
   cancellation targets the current turn, and clear busy/thinking/stream state

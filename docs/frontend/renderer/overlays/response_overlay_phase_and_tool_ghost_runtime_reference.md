@@ -73,8 +73,10 @@ Payload normalization boundary:
   changes for runtime state. The response overlay renderer has one narrow
   exception: `awaiting-first-chunk` with source `renderer-send-preflight`
   latches local awaiting UI until SDK current-turn presentation arrives. The
-  main-process phase channel otherwise remains for native window/layout policy
-  and diagnostics.
+  latch may outlive hidden, non-busy SDK startup projections so first-send
+  typing does not flicker; active SDK awaiting or response presentation replaces
+  it. The main-process phase channel otherwise remains for native window/layout
+  policy and diagnostics.
 
 Modes:
 
