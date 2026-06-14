@@ -34,8 +34,12 @@ cd frontend && npm run lint
 | Backend OCR/vision | `bin/windie test backend -- tests/backend/test_ocr_service.py tests/backend/test_vision_service.py tests/backend/test_coordinate_scaling.py -q` |
 | Backend SDK routes | `bin/windie test backend -- tests/backend/test_sdk_routes.py tests/backend/test_sdk_helpers.py -q` |
 | Electron main IPC | `bin/windie test frontend -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
+| Electron main SDK query controls and VM worker | `bin/windie test frontend -- IpcAutomatedQueryDispatcher.test.cjs IpcMainConversationRuntimeRegistry.test.cjs IpcMainSdkRuntimeBoundary.test.cjs MainProcessBootstrapRuntime.test.cjs VmWorkerRuntime.test.cjs` |
+| Frontend CLI and layer logs | `bin/windie test frontend -- WindieCli.test.cjs LayerLogSink.test.cjs WindieRunLayerLog.test.cjs ElectronLauncher.test.cjs IpcDiagnosticsRuntime.test.cjs` |
 | Overlay windows/phases | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs SurfaceOrchestratorPhases.test.ts WindowVisibilityRuntime.test.cjs` |
-| Renderer chat stream | `bin/windie test frontend -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx` |
+| Minimal chat pill hit-testing and dragging | `bin/windie test frontend -- ChatBoxOverlayMouseIgnore.test.jsx ChatBoxPillLayout.test.js ChatPillSessionFlow.test.ts` |
+| Renderer chat stream | `bin/windie test frontend -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx ConversationRuntimeProjectionStream.test.ts` |
+| SDK conversation runtime and stop flow | `bin/windie test frontend -- WindieSdkConversationRuntime.test.ts DesktopBackendTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js StopQueryState.test.js` |
 | Renderer dashboard/settings | `bin/windie test frontend -- ChatGptDashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
 | Permissions/onboarding | `bin/windie test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx FrontendOnboardingSlideshow.test.jsx` |
 | Artifacts/screenshots | `bin/windie test frontend -- ArtifactUploader.test.ts ScreenshotAttachmentPipeline.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts` |
@@ -54,9 +58,10 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | Backend model-facing tool schema and frontend executable tools | `bin/windie test backend -- tests/backend/test_remote_tool_contract.py -q` plus `bin/windie test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
 | Tool result envelope | `bin/windie test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `bin/windie test frontend -- ToolResultEnvelope.test.ts ToolResultContractParity.test.ts` |
 | Response overlay phase names | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
-| Transcript/replay payloads | `bin/windie test frontend -- DesktopTranscriptProjectionRuntimeClient.test.ts DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts` |
+| Transcript/replay/display rows | `bin/windie test frontend -- DesktopTranscriptProjectionRuntimeClient.test.ts DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
 | Artifact refs and URLs | `bin/windie test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `bin/windie test frontend -- ArtifactUploader.test.ts IpcArtifactFetch.test.cjs` |
 | SDK HTTP/trace helpers | `bin/windie test backend -- tests/backend/test_sdk_routes.py -q` plus `bin/windie test frontend -- WindieSdkClient.test.ts WindieSdkClientExports.test.ts` |
+| Frontend CLI command routing and package exports | `bin/windie test frontend -- WindieCli.test.cjs` plus `bin/windie test backend -- tests/backend/test_formatter_package_exports.py -q` |
 
 ## When To Run Full Suites
 

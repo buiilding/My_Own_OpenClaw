@@ -56,6 +56,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/cli/docs: add the `conversation_display_messages` history.db read
   model and `windie conversation messages` export path for deterministic visible
   chat inspection without reading raw event rows.
+- docs/testing: expand focused test-selection routing for recent frontend chat,
+  chat-pill drag, SDK stop/display-row, Electron main query-control, frontend
+  logging, CLI, and formatter export changes.
 - docs/plans: add the app diagnostics conversation metadata list plan for a
   persistent `diagnostics/diagnostics.db` trace path covering dashboard chat
   list failures.
