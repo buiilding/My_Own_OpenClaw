@@ -533,6 +533,28 @@ describe('ChatBox overlay mouse ignore', () => {
     );
   });
 
+  test('stop targets the current-turn conversation when pill session ref is stale', async () => {
+    mockChatState.activeConversationRef = 'conv-stale-session';
+    mockChatState.currentTurnProjection = {
+      conversationRef: 'conv-visible-turn',
+      phase: 'streaming',
+      turnRef: 'turn-visible',
+    };
+    render(<MinimalChatPill />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
+    });
+
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-visible-turn', 'turn-visible');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-visible-turn');
+    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'complete' }),
+      'conv-visible-turn',
+    );
+    expect(mockUpdateStreamTracking.mock.calls.at(-1)?.[1]).toBe('conv-visible-turn');
+  });
+
   test('does not render compaction control when dev UI flag is disabled', () => {
     render(<MinimalChatPill />);
     expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();

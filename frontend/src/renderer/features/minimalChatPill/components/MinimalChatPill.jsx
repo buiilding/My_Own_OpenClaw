@@ -602,17 +602,18 @@ function MinimalChatPill() {
     if (!loopInteractionLocked) {
       return;
     }
+    const stoppedConversationRef = currentTurnProjection?.conversationRef || sessionInfo?.conversationRef || null;
     applyStopQueryUiState({
       setIsSending,
       setThinkingStatus,
       setThinkingSourceEventType,
       setCurrentTurnProjection,
       currentTurnProjection,
-      conversationRef: sessionInfo?.conversationRef || null,
+      conversationRef: stoppedConversationRef,
       updateStreamTracking,
     });
     void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(
-      sessionInfo?.conversationRef || null,
+      stoppedConversationRef,
       currentTurnProjection?.turnRef || null,
     )).catch((error) => {
       console.warn('[MinimalChatPill] Failed to stop query:', error);

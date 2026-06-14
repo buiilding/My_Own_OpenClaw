@@ -64,8 +64,10 @@ The chat pill is the small always-available desktop command surface. It is rende
 - Stop from the pill must preserve the active SDK current-turn id when one is
   available. The renderer may still send a null turn id during the pre-stream
   send latch, but it must not discard an existing current-turn id. Stop must
-  also clear busy, thinking, and stream-tracking state on that same conversation
-  ref so typing indicators cannot survive after backend cancellation succeeds.
+  also prefer the visible SDK current-turn conversation ref over the renderer
+  session fallback and clear busy, thinking, and stream-tracking state on that
+  same conversation ref so typing indicators cannot survive after backend
+  cancellation succeeds.
 - Active agent turns do not make the pill click-through by themselves. Electron
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill

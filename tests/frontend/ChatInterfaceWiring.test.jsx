@@ -1215,6 +1215,32 @@ describe('ChatInterface wiring', () => {
     expect(mockUpdateStreamTracking.mock.calls[0][1]).toBe('conv_existing');
   });
 
+  test('stop response handler targets the current-turn conversation when session ref is stale', () => {
+    mockTranscriptSessionSnapshot = {
+      conversationRef: 'conv_stale_session',
+      userId: 'default_user',
+    };
+    mockChatState.streamTracking.phase = 'streaming';
+    setMockCurrentTurnProjection('streaming', {
+      conversationRef: 'conv_visible_turn',
+      turnRef: 'turn_visible',
+    });
+
+    render(<ChatInterface />);
+
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    lastInputProps.onStopResponse();
+
+    expect(mockStopQuery).toHaveBeenCalledWith('conv_visible_turn', 'turn_visible');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv_visible_turn');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_visible_turn');
+    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'complete' }),
+      'conv_visible_turn',
+    );
+    expect(mockUpdateStreamTracking.mock.calls[0][1]).toBe('conv_visible_turn');
+  });
+
   test('stop shortcut sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
     setMockCurrentTurnProjection('streaming');

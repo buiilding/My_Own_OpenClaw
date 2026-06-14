@@ -93,6 +93,9 @@ All notable changes to WindieOS will be documented in this file.
   commands cross the renderer, SDK transport, and Electron main stop bridge so
   cancellation targets the current turn, and clear busy/thinking/stream state
   on the stopped conversation so the composer and typing dots visually stop.
+- frontend/chat: prefer the visible SDK current-turn conversation ref over the
+  renderer session fallback when Stop is clicked so dashboard or pill handoff
+  cannot leave typing state latched on the actual active conversation.
 - frontend/chat-pill: prime the response overlay awaiting preflight on send
   acceptance and let the response overlay renderer latch local typing state
   before SDK current-turn projection arrives.
