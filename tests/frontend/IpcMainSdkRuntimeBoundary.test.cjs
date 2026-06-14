@@ -40,6 +40,14 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('createManagedBackendSession');
     expect(source).not.toContain('sendSdkRuntimeCommand');
     expect(source).not.toContain('executeLocalTool:');
+    expect(source).not.toContain('sendQueryToBackend');
+    expect(source).not.toContain('sendStopQueryToBackend');
+    expect(source).not.toContain('requestModelListFromBackend');
+    expect(source).not.toContain('sendWakewordDetectedToBackend');
+    expect(source).toContain('sendQueryThroughSdkAgent');
+    expect(source).toContain('stopQueryThroughSdkAgent');
+    expect(source).toContain('requestModelListThroughSdkAgent');
+    expect(source).toContain('sendWakewordDetectedThroughSdkAgent');
     const wakeCall = source.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
     expect(wakeCall).toContain("name: 'WindieOS'");

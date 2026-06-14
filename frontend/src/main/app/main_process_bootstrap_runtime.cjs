@@ -55,7 +55,7 @@ function createWindowBootstrapRuntime(deps) {
         env: process.env,
         getBackendConnectionState: deps.getBackendConnectionState,
         sendAutomatedQuery: deps.sendAutomatedQuery,
-        sendStopQueryToBackend: deps.sendStopQueryToBackend,
+        stopQueryThroughSdkAgent: deps.stopQueryThroughSdkAgent,
         registerBackendMessageObserver: deps.registerBackendMessageObserver,
         log: (...args) => deps.log(...args),
         warn: (...args) => deps.warn(...args),

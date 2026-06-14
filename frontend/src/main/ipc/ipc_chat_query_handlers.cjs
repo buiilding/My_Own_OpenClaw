@@ -26,8 +26,8 @@ function createChatQueryHandlers({
   ensureBackendConnection,
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise,
-  sendQueryToBackend,
-  stopQuery,
+  sendQueryThroughSdkAgent,
+  stopQueryThroughSdkAgent,
   setResponseOverlayPhase,
   resolvePreferredArtifactHttpUrl,
   deps,
@@ -103,7 +103,7 @@ function createChatQueryHandlers({
 
     let messageId = null;
     if (backendConnectionReady) {
-      messageId = await sendQueryToBackend({
+      messageId = await sendQueryThroughSdkAgent({
         payload,
         messageId: queryMessageId,
       });
@@ -121,7 +121,7 @@ function createChatQueryHandlers({
         currentConversationRef: latestState.currentConversationRef,
         deps,
       });
-      return { ok: false, error: 'Failed to send query to backend' };
+      return { ok: false, error: 'Failed to send query through SDK agent' };
     }
 
     if (queryUsedInitialContext) {
@@ -132,7 +132,7 @@ function createChatQueryHandlers({
 
   async function handleRendererStopQuery(payloadInput = {}) {
     const payload = normalizePayload(payloadInput);
-    const stopped = await stopQuery(payload);
+    const stopped = await stopQueryThroughSdkAgent(payload);
     setResponseOverlayPhase('complete', 'stop-query');
     return { ok: Boolean(stopped), stopped: Boolean(stopped) };
   }

@@ -35,7 +35,7 @@ const {
   appendMainProcessTraceEvent,
   appendAppDiagnostic,
   sendAutomatedQuery,
-  sendStopQueryToBackend,
+  stopQueryThroughSdkAgent,
   triggerStopQueryFromMain,
   updateGlobalAgentStopShortcutStatus,
 } = require('./ipc.cjs');
@@ -279,7 +279,7 @@ const {
   createVmWorkerRuntime,
   getBackendConnectionState,
   sendAutomatedQuery,
-  sendStopQueryToBackend,
+  stopQueryThroughSdkAgent,
   registerBackendMessageObserver,
   createMainWindowRuntime,
   createChatWindowRuntime,

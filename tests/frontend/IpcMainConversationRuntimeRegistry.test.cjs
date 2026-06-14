@@ -204,12 +204,12 @@ describe('ipc.cjs conversation runtime registry', () => {
       ok: true,
       data: {
         ok: false,
-        error: 'Failed to send query to backend',
+        error: 'Failed to send query through SDK agent',
       },
     });
     expect(secondSend.data).toEqual({
       ok: false,
-      error: 'Failed to send query to backend',
+      error: 'Failed to send query through SDK agent',
     });
     expect(sdk.runtimes.get('conv-active').send).toHaveBeenCalledTimes(1);
 

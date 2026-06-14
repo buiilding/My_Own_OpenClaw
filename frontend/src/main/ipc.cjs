@@ -215,7 +215,7 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   isConnected: () => isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  updateSettings: (payload) => updateSettingsOnBackend(payload),
+  updateSettings: (payload) => updateSettingsThroughSdkAgent(payload),
   traceSettingsUpdate: (config, source, msgId) => electronMainTraceLogger.traceSettingsUpdate(
     config,
     source,
@@ -1647,8 +1647,8 @@ function initializeIpc(win, options = {}) {
     ensureBackendConnection,
     ensureInitialSettingsSync,
     getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-    sendQueryToBackend,
-    stopQuery: sendStopQueryToBackend,
+    sendQueryThroughSdkAgent,
+    stopQueryThroughSdkAgent,
     setResponseOverlayPhase,
     resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
       backendEndpointState.getHttpUrl(),
@@ -1686,7 +1686,7 @@ function initializeIpc(win, options = {}) {
 
 }
 
-async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
+async function sendQueryThroughSdkAgent({ payload = {}, messageId = null } = {}) {
   try {
     const sourcePayload = isPlainObject(payload) ? payload : {};
     const resources = Array.isArray(sourcePayload.resources) ? sourcePayload.resources : undefined;
@@ -1714,7 +1714,7 @@ async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
   }
 }
 
-async function sendStopQueryToBackend(payload = {}) {
+async function stopQueryThroughSdkAgent(payload = {}) {
   if (!windieAgent) {
     return false;
   }
@@ -1727,17 +1727,17 @@ async function sendStopQueryToBackend(payload = {}) {
   return true;
 }
 
-async function updateSettingsOnBackend(payload = {}) {
+async function updateSettingsThroughSdkAgent(payload = {}) {
   const agent = await ensureWindieAgent({ reason: 'update-settings' });
   return agent.updateSettings(payload);
 }
 
-async function requestModelListFromBackend() {
+async function requestModelListThroughSdkAgent() {
   const agent = await ensureWindieAgent({ reason: 'list-models' });
   return agent.requestModelList();
 }
 
-async function sendWakewordDetectedToBackend(payload = {}) {
+async function sendWakewordDetectedThroughSdkAgent(payload = {}) {
   const agent = await ensureWindieAgent({ reason: 'wakeword-detected' });
   return agent.wakewordDetected(payload);
 }
@@ -1798,7 +1798,7 @@ async function appendMainProcessTraceEvent(input = {}) {
 }
 
 async function triggerStopQueryFromMain() {
-  const stopped = await sendStopQueryToBackend(
+  const stopped = await stopQueryThroughSdkAgent(
     currentConversationRef
       ? { conversation_ref: currentConversationRef }
       : {},
@@ -2000,7 +2000,7 @@ function buildWindieSdkCommandHandlers({
       return agent.compactHistory(payload);
     },
     'settings.update': async (payload = {}) => sendSettingsUpdate(payload, 'renderer-sdk-command'),
-    'models.list': async () => requestModelListFromBackend(),
+    'models.list': async () => requestModelListThroughSdkAgent(),
     'wakeword.detected': async (payload = {}) => {
       if (!isBackendRuntimeConnected()) {
         await ensureBackendConnection('wakeword-detected');
@@ -2010,7 +2010,7 @@ function buildWindieSdkCommandHandlers({
       if (pendingSettingsSyncPromise) {
         await pendingSettingsSyncPromise;
       }
-      return sendWakewordDetectedToBackend(payload);
+      return sendWakewordDetectedThroughSdkAgent(payload);
     },
     'memories.list': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.list' });
@@ -2364,7 +2364,7 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
   attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
     attachAgentDefinitionContext(payload),
   ),
-  sendQueryToBackend,
+  sendQueryThroughSdkAgent,
   getState: () => ({
     currentUserId,
     isFirstQuery,
@@ -2397,7 +2397,7 @@ module.exports = {
   appendMainProcessTraceEvent,
   appendAppDiagnostic,
   sendAutomatedQuery,
-  sendStopQueryToBackend,
+  stopQueryThroughSdkAgent,
   shutdownIpcForTests,
   triggerStopQueryFromMain,
   updateGlobalAgentStopShortcutStatus,
