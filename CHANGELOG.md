@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/cli/logging: add layer-owned log files for Vite, Electron main,
   renderer console output, and the sidecar daemon, with `bin/windie logs`
   targets for tailing each layer directly.
+- frontend/sdk/sidecar/logging: route renderer IPC messages, sidecar daemon
+  lifecycle events, local backend bridge warnings, and sidecar process output
+  into the layer log sinks with request and conversation identifiers preserved.
 - frontend/main/logging: add main-process breadcrumbs for SDK client creation,
   local runtime startup, backend connection lifecycle, and backend endpoint
   fallback.
@@ -81,6 +84,9 @@ All notable changes to WindieOS will be documented in this file.
 - codebase: remove stray non-header migration hunks from the file description
   commit so the original checkout keeps its current SDK behavior while retaining
   the added file headers.
+- sdk/runtime: sync the committed CommonJS conversation runtime with the
+  immediate stop terminalization path so packaged consumers reject late backend
+  chunks after a local stop request.
 - sdk/frontend: make Stop terminalize the active turn immediately, keeping late
   backend chunks from reactivating a stopped response while cancellation
   propagates.
@@ -324,6 +330,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main/sdk: rename query, stop, model-list, settings, and wakeword
+  helpers around their SDK-agent ownership instead of the older backend-send
+  wording.
 - sidecar/sdk/cli: move durable local conversation history from
   `memory/episodic.db` chat tables into `history/history.db` conversation
   tables, with legacy import, canonical `conversation.*` RPCs, and CLI fallback

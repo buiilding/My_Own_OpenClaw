@@ -71,7 +71,7 @@ function appendBrowserSessionDiagnostic(input = {}) {
     });
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[LocalBackend] Browser session diagnostic failed: ${getErrorMessage(error)}`);
+      console.warn(`[Main][LocalBackendBridge] browser_session_diagnostic_failed message=${JSON.stringify(getErrorMessage(error))}`);
     }
   }
 }
@@ -156,7 +156,7 @@ function resolveKnownLocalRuntime({ quiet = false } = {}) {
     return runtime && typeof runtime === 'object' ? runtime : null;
   } catch (error) {
     if (!quiet && process.env.NODE_ENV !== 'production') {
-      console.warn(`[LocalBackend] Known SDK local runtime lookup failed: ${getErrorMessage(error)}`);
+      console.warn(`[Main][LocalBackendBridge] known_sdk_runtime_lookup_failed message=${JSON.stringify(getErrorMessage(error))}`);
     }
     return null;
   }
@@ -348,7 +348,7 @@ async function getSystemStateFromBackend(fields) {
     }
     return result.data || result;
   } catch (error) {
-    console.error(`[LocalBackend] System state request failed: ${getErrorMessage(error)}`);
+    console.error(`[Main][LocalBackendBridge] system_state_request_failed message=${JSON.stringify(getErrorMessage(error))}`);
     return null;
   }
 }
@@ -371,7 +371,7 @@ function stopLocalBackend() {
 
 async function loadArtifactUploadHeaders() {
   const authState = await loadInstallAuthStateFromDisk((message) => {
-    console.warn(`[LocalBackend] ${message}`);
+    console.warn(`[Main][LocalBackendBridge] install_auth_state_warning message=${JSON.stringify(message)}`);
   });
   const installToken = typeof authState?.installToken === 'string'
     ? authState.installToken.trim()
@@ -563,7 +563,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     ...buildLocalRuntimeDiagnosticData(),
   });
   if (process.env.WINDIE_DEBUG_LOCAL_BACKEND_STDOUT === '1') {
-    console.log('[LocalBackend] Local backend bridge initialized');
+    console.log('[Main][LocalBackendBridge] initialized');
   }
 }
 
@@ -583,27 +583,27 @@ async function getLocalBackendStatus() {
 }
 
 async function installBrowserChromium() {
-  console.log('[BrowserRuntime] Requesting browser runtime status/install from local backend');
+  console.log('[Main][BrowserRuntime] install_browser_chromium_start');
   const result = await sendRequestOrError(
     'install_browser_chromium',
     {},
     { timeoutMs: 10 * 60 * 1000 },
   );
   if (result && result.success === false && typeof result.error === 'string') {
-    console.error('[BrowserRuntime] Chromium install request failed:', result.error);
+    console.error(`[Main][BrowserRuntime] install_browser_chromium_failed message=${JSON.stringify(result.error)}`);
     return result;
   }
   if (result && typeof result === 'object') {
     if (result.skipped === true && typeof result.browser_binary_path === 'string') {
       console.log(
-        `[BrowserRuntime] Using existing Chrome/Chromium-family browser at ${result.browser_binary_path}; skipping Chromium install`,
+        `[Main][BrowserRuntime] install_browser_chromium_skipped browser=${JSON.stringify(result.browser_binary_path)}`,
       );
     } else if (result.installed === true && typeof result.browser_binary_path === 'string') {
       console.log(
-        `[BrowserRuntime] Chromium install completed and browser binary is ready at ${result.browser_binary_path}`,
+        `[Main][BrowserRuntime] install_browser_chromium_succeeded browser=${JSON.stringify(result.browser_binary_path)}`,
       );
     } else if (result.installed === false && result.skipped !== true) {
-      console.log('[BrowserRuntime] No existing Chrome/Chromium was detected; Chromium install was attempted');
+      console.log('[Main][BrowserRuntime] install_browser_chromium_attempted browser=unknown');
     }
   }
   return {

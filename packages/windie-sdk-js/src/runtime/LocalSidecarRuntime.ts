@@ -111,6 +111,8 @@ export type WindieAutoSidecarOptions = {
   reuseExisting?: boolean;
   startTimeoutMs?: number;
   pollIntervalMs?: number;
+  onProcessSpawn?: (details: { command: string; args: string[]; cwd?: string }) => void;
+  onStdoutLine?: (line: string) => void;
   onStderrLine?: (line: string) => void;
   fetchImpl?: FetchLike;
   WebSocketImpl?: EventWebSocketConstructor;
@@ -373,6 +375,9 @@ type NodeChildProcessLike = {
   spawn(command: string, args: string[], options?: Record<string, unknown>): {
     kill?: (signal?: string) => void;
     unref?: () => void;
+    stdout?: {
+      on?: (event: string, listener: (payload: unknown) => void) => void;
+    };
     stderr?: {
       on?: (event: string, listener: (payload: unknown) => void) => void;
     };
@@ -380,6 +385,28 @@ type NodeChildProcessLike = {
 };
 
 type NodeSpawnedProcessLike = ReturnType<NodeChildProcessLike['spawn']>;
+
+function attachProcessLineReader(
+  stream: { on?: (event: string, listener: (payload: unknown) => void) => void } | undefined,
+  onLine: ((line: string) => void) | undefined,
+) {
+  if (!stream || typeof stream.on !== 'function' || typeof onLine !== 'function') {
+    return;
+  }
+  let remainder = '';
+  stream.on('data', (payload: unknown) => {
+    const text = payload instanceof Uint8Array
+      ? new TextDecoder().decode(payload)
+      : String(payload ?? '');
+    const lines = `${remainder}${text}`.split(/\r?\n/);
+    remainder = lines.pop() ?? '';
+    for (const line of lines) {
+      if (line.trim()) {
+        onLine(line);
+      }
+    }
+  });
+}
 
 async function importNodeModule<TModule>(specifier: string): Promise<TModule> {
   return import(/* @vite-ignore */ specifier) as Promise<TModule>;
@@ -705,27 +732,27 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
     if (typeof options.port === 'number') {
       args.push('--port', String(options.port));
     }
+    const pipeStdout = typeof options.onStdoutLine === 'function';
+    const pipeStderr = typeof options.onStderrLine === 'function';
     ownedProcess = childProcess.spawn(launchCommand.command, args, {
       cwd: options.cwd,
       env: buildSpawnEnv(options),
-      stdio: options.onStderrLine ? ['ignore', 'ignore', 'pipe'] : 'ignore',
+      stdio: (pipeStdout || pipeStderr)
+        ? ['ignore', pipeStdout ? 'pipe' : 'ignore', pipeStderr ? 'pipe' : 'ignore']
+        : 'ignore',
       detached: true,
     });
-    if (options.onStderrLine) {
-      let stderrRemainder = '';
-      ownedProcess.stderr?.on?.('data', (payload: unknown) => {
-        const text = payload instanceof Uint8Array
-          ? new TextDecoder().decode(payload)
-          : String(payload ?? '');
-        const lines = `${stderrRemainder}${text}`.split(/\r?\n/);
-        stderrRemainder = lines.pop() ?? '';
-        for (const line of lines) {
-          if (line.trim()) {
-            options.onStderrLine?.(line);
-          }
-        }
+    try {
+      options.onProcessSpawn?.({
+        command: launchCommand.command,
+        args,
+        cwd: options.cwd,
       });
+    } catch {
+      // Logging callbacks must not break daemon startup.
     }
+    attachProcessLineReader(ownedProcess.stdout, options.onStdoutLine);
+    attachProcessLineReader(ownedProcess.stderr, options.onStderrLine);
     ownedProcess.unref?.();
 
     const deadline = Date.now() + (options.startTimeoutMs ?? 10000);

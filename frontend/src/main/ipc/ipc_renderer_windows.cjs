@@ -100,7 +100,7 @@ function broadcastToRenderers({
     const turnRef = typeof payload.turn_ref === 'string' ? payload.turn_ref : '-';
     const conversationRef = typeof payload.conversation_ref === 'string' ? payload.conversation_ref : '-';
     console.log(
-      `[IPC Bridge] [StreamTrace][main][broadcast] channel=${channel} type=${eventType} turn=${turnRef} conv=${conversationRef} renderer_count=${deliveredCount}`,
+      `[Main][IPC][StreamTrace] broadcast channel=${channel} type=${eventType} turn=${turnRef} conv=${conversationRef} renderer_count=${deliveredCount}`,
     );
   }
 }

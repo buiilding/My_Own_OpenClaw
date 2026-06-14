@@ -5,6 +5,10 @@
 const {
   appendFrontendInteractionDiagnostic: appendFrontendInteractionDiagnosticRuntime,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
+const {
+  appendLayerLogLine,
+  formatConsoleArgs,
+} = require('../logging/layer_log_sink.cjs');
 
 const INTERACTION_SCHEMA_VERSION = 1;
 const MESSAGE_TEXT_REDACTION = '[redacted]';
@@ -82,6 +86,7 @@ function handleRendererLog(payload = {}, {
   log = console.log,
   diagnosticsOptions = {},
   appendFrontendInteractionDiagnostic = appendFrontendInteractionDiagnosticRuntime,
+  writeRendererLogLine = appendLayerLogLine,
 } = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return false;
@@ -89,12 +94,16 @@ function handleRendererLog(payload = {}, {
   if (payload.source === 'frontend-interaction') {
     const entry = normalizeFrontendInteractionEntry(payload.entry || {}, diagnosticsOptions);
     appendFrontendInteractionDiagnostic(entry);
+    writeRendererLogLine('renderer', `[Renderer][interaction] ${formatFrontendInteractionSummary(entry)}`);
     if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1') {
       log(`[FrontendInteraction][renderer] ${formatFrontendInteractionSummary(entry)}`);
     }
     return true;
   }
-  log('[RendererLog]', payload);
+  writeRendererLogLine('renderer', `[Renderer][ipc] ${formatConsoleArgs([payload])}`);
+  if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1') {
+    log('[RendererLog]', payload);
+  }
   return true;
 }
 

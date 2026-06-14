@@ -110,6 +110,12 @@ class SidecarDaemonHttpClient {
         return this.post('/execute-tool', {
             tool_name: payload.toolName,
             args: payload.args,
+            request_id: payload.requestId,
+            bundle_id: payload.bundleId,
+            tool_call_id: payload.toolCallId,
+            correlation_id: payload.correlationId,
+            turn_ref: payload.turnRef,
+            conversation_ref: payload.conversationRef,
         });
     }
     async rpc(payload) {
@@ -243,6 +249,24 @@ class SidecarDaemonHttpClient {
     }
 }
 exports.SidecarDaemonHttpClient = SidecarDaemonHttpClient;
+function attachProcessLineReader(stream, onLine) {
+    if (!stream || typeof stream.on !== 'function' || typeof onLine !== 'function') {
+        return;
+    }
+    let remainder = '';
+    stream.on('data', (payload) => {
+        const text = payload instanceof Uint8Array
+            ? new TextDecoder().decode(payload)
+            : String(payload ?? '');
+        const lines = `${remainder}${text}`.split(/\r?\n/);
+        remainder = lines.pop() ?? '';
+        for (const line of lines) {
+            if (line.trim()) {
+                onLine(line);
+            }
+        }
+    });
+}
 async function importNodeModule(specifier) {
     return Promise.resolve(`${specifier}`).then(s => __importStar(require(s)));
 }
@@ -500,27 +524,28 @@ function createWindieLocalRuntimeProvider(options = {}) {
         if (typeof options.port === 'number') {
             args.push('--port', String(options.port));
         }
+        const pipeStdout = typeof options.onStdoutLine === 'function';
+        const pipeStderr = typeof options.onStderrLine === 'function';
         ownedProcess = childProcess.spawn(launchCommand.command, args, {
             cwd: options.cwd,
             env: buildSpawnEnv(options),
-            stdio: options.onStderrLine ? ['ignore', 'ignore', 'pipe'] : 'ignore',
+            stdio: (pipeStdout || pipeStderr)
+                ? ['ignore', pipeStdout ? 'pipe' : 'ignore', pipeStderr ? 'pipe' : 'ignore']
+                : 'ignore',
             detached: true,
         });
-        if (options.onStderrLine) {
-            let stderrRemainder = '';
-            ownedProcess.stderr?.on?.('data', (payload) => {
-                const text = payload instanceof Uint8Array
-                    ? new TextDecoder().decode(payload)
-                    : String(payload ?? '');
-                const lines = `${stderrRemainder}${text}`.split(/\r?\n/);
-                stderrRemainder = lines.pop() ?? '';
-                for (const line of lines) {
-                    if (line.trim()) {
-                        options.onStderrLine?.(line);
-                    }
-                }
+        try {
+            options.onProcessSpawn?.({
+                command: launchCommand.command,
+                args,
+                cwd: options.cwd,
             });
         }
+        catch {
+            // Logging callbacks must not break daemon startup.
+        }
+        attachProcessLineReader(ownedProcess.stdout, options.onStdoutLine);
+        attachProcessLineReader(ownedProcess.stderr, options.onStderrLine);
         ownedProcess.unref?.();
         const deadline = Date.now() + (options.startTimeoutMs ?? 10000);
         const pollIntervalMs = options.pollIntervalMs ?? 100;

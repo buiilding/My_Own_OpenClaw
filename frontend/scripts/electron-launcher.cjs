@@ -6,18 +6,15 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
+const {
+  createLayerLogStream,
+  resolveLayerLogFile,
+} = require('../src/main/logging/layer_log_sink.cjs');
 
 const REPO_ROOT = path.resolve(
   __dirname,
   '..',
   '..',
-);
-
-const DEFAULT_FRONTEND_LOG_FILE = path.resolve(
-  REPO_ROOT,
-  '.windie',
-  'logs',
-  'frontend.log',
 );
 
 function parseOptions(argv) {
@@ -94,28 +91,20 @@ function resolveElectronBinaryForPlatform(
 }
 
 function resolveFrontendLogFile(env = process.env) {
-  const configured = env.WINDIE_FRONTEND_LOG_FILE;
-  if (configured === '0' || configured === 'false') {
-    return null;
-  }
-  if (typeof configured === 'string' && configured.trim()) {
-    const value = configured.trim();
-    return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
-  }
-  return DEFAULT_FRONTEND_LOG_FILE;
+  return resolveLayerLogFile('frontend', env);
 }
 
-function createFrontendLogStream(logFile = resolveFrontendLogFile()) {
+function createFrontendLogStream(logFile = resolveFrontendLogFile(), env = process.env) {
   if (!logFile) {
     return null;
   }
-  fs.mkdirSync(path.dirname(logFile), { recursive: true });
-  const stream = fs.createWriteStream(logFile, { flags: 'a' });
-  stream.write(`\n[WindieOS] frontend log session ${new Date().toISOString()}\n`);
-  stream.on('error', (error) => {
-    console.warn(`[WindieOS] Failed to write frontend log: ${error.message}`);
+  const logEnv = logFile === resolveLayerLogFile('frontend', env)
+    ? env
+    : { ...env, WINDIE_FRONTEND_LOG_FILE: logFile };
+  return createLayerLogStream('frontend', {
+    env: logEnv,
+    sessionLabel: 'frontend aggregate log session',
   });
-  return stream;
 }
 
 function writeToDestinations(destinations, text) {

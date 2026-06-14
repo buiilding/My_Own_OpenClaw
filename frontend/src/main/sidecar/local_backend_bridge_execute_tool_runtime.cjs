@@ -130,7 +130,7 @@ function createLocalBackendExecuteToolRuntime({
         data: result.data || result,
       };
     } catch (error) {
-      console.error(`[LocalBackend] Tool execution failed: ${getErrorMessage(error)}`);
+      console.error(`[Main][LocalBackendBridge] tool_execution_failed message=${JSON.stringify(getErrorMessage(error))}`);
       return {
         success: false,
         error: getErrorMessage(error),
@@ -149,7 +149,7 @@ function createLocalBackendExecuteToolRuntime({
           await fs.promises.unlink(screenshotPath);
         } catch (error) {
           console.warn(
-            `[LocalBackend] Failed to delete screen-capture verification screenshot ${screenshotPath}: ${getErrorMessage(error)}`,
+            `[Main][LocalBackendBridge] screen_capture_verification_cleanup_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
           );
         }
       };

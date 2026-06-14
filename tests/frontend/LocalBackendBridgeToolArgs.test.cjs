@@ -51,7 +51,7 @@ describe('local_backend_bridge_tool_args', () => {
       sudo_auth_mode: 'os_prompt',
     });
     expect(warn).toHaveBeenCalledWith(
-      '[LocalBackend] Failed to read frontend config for sudo auth mode: boom',
+      '[Main][LocalBackendBridge] sudo_auth_config_read_failed message="boom"',
     );
   });
 

@@ -13,6 +13,7 @@ import re
 import secrets
 import shutil
 import sqlite3
+import sys
 import tempfile
 import time
 from dataclasses import dataclass, field
@@ -110,6 +111,14 @@ def sanitize_diagnostic_text(
     if len(text) > max_length:
         return f"{text[: max_length - 3]}..."
     return text
+
+
+def emit_sidecar_layer_log(prefix: str, message: str) -> None:
+    print(
+        f"{prefix} {sanitize_diagnostic_text(message)}",
+        file=sys.stderr,
+        flush=True,
+    )
 
 
 def command_for_diagnostics(command: str) -> str:
@@ -861,6 +870,7 @@ class SidecarDaemon:
         )
 
     async def handle_status(self, request: web.Request) -> web.Response:
+        emit_sidecar_layer_log("[LocalBackend]", "status requested")
         return web.json_response(await self.build_status_payload())
 
     async def handle_shutdown(self, request: web.Request) -> web.Response:
@@ -1202,6 +1212,10 @@ class SidecarDaemon:
                     return data
 
                 started_at = time.monotonic()
+                emit_sidecar_layer_log(
+                    "[MCP]",
+                    f"tool_call_start server={mcp_server.id} tool={tool_name} exposed={exposed_tool_name}",
+                )
                 append_mcp_diagnostic_event(
                     trace_id=trace_id,
                     path=MCP_EXECUTION_DIAGNOSTICS_PATH,
@@ -1215,6 +1229,10 @@ class SidecarDaemon:
                     result = await mcp_client.call_tool(tool_name, args)
                 except Exception as exc:
                     elapsed_ms = int((time.monotonic() - started_at) * 1000)
+                    emit_sidecar_layer_log(
+                        "[MCP]",
+                        f"tool_call_failed server={mcp_server.id} tool={tool_name} elapsed_ms={elapsed_ms}",
+                    )
                     append_mcp_diagnostic_event(
                         trace_id=trace_id,
                         path=MCP_EXECUTION_DIAGNOSTICS_PATH,
@@ -1230,6 +1248,10 @@ class SidecarDaemon:
                 elapsed_ms = int((time.monotonic() - started_at) * 1000)
                 output = serialize_mcp_result_for_output(result)
                 if result.get("isError"):
+                    emit_sidecar_layer_log(
+                        "[MCP]",
+                        f"tool_call_failed server={mcp_server.id} tool={tool_name} elapsed_ms={elapsed_ms}",
+                    )
                     append_mcp_diagnostic_event(
                         trace_id=trace_id,
                         path=MCP_EXECUTION_DIAGNOSTICS_PATH,
@@ -1254,6 +1276,10 @@ class SidecarDaemon:
                     request_id=request_id,
                     conversation_ref=conversation_ref,
                     data=diagnostic_data({"elapsedMs": elapsed_ms}),
+                )
+                emit_sidecar_layer_log(
+                    "[MCP]",
+                    f"tool_call_succeeded server={mcp_server.id} tool={tool_name} elapsed_ms={elapsed_ms}",
                 )
                 return {
                     "success": True,
@@ -1293,21 +1319,26 @@ class SidecarDaemon:
 
     async def handle_execute_tool(self, request: web.Request) -> web.Response:
         payload = await request.json()
+        tool_name = payload.get("tool_name") or payload.get("toolName")
         context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(
             build_mcp_execution_context(normalize_object(payload))
         )
         try:
             result = await self.backend._handle_execute_tool(
-                tool_name=payload.get("tool_name") or payload.get("toolName"),
+                tool_name=tool_name,
                 args=normalize_object(payload.get("args")),
             )
         finally:
             CURRENT_MCP_EXECUTION_CONTEXT.reset(context_token)
+        emit_sidecar_layer_log(
+            "[Tool]",
+            f"executed name={normalize_string(tool_name)} success={result.get('success')}",
+        )
         await self.emit_event(
             {
                 "type": "tool-executed",
                 "payload": {
-                    "tool_name": payload.get("tool_name") or payload.get("toolName"),
+                    "tool_name": tool_name,
                     "success": result.get("success"),
                 },
             }
@@ -1423,9 +1454,19 @@ async def run_daemon(
     await write_discovery_file(
         discovery_file, host=host, port=actual_port, token=daemon.token
     )
+    print(
+        f"[SidecarDaemon] listening base_url=http://{host}:{actual_port} pid={os.getpid()}",
+        file=sys.stderr,
+        flush=True,
+    )
     try:
         await shutdown_event.wait()
     finally:
+        print(
+            f"[SidecarDaemon] stopping pid={os.getpid()}",
+            file=sys.stderr,
+            flush=True,
+        )
         await runner.cleanup()
 
 

@@ -18,14 +18,19 @@ describe('ipc_diagnostics_runtime', () => {
 
   test('routes frontend interaction logs through the interaction label with production redaction', () => {
     const log = jest.fn();
+    const writeRendererLogLine = jest.fn();
     const appendFrontendInteractionDiagnostic = jest.fn();
 
     expect(handleRendererLog({
       source: 'frontend-interaction',
       entry: { event: 'send', messageText: 'secret user text', messageTextLength: 16 },
-    }, { log, appendFrontendInteractionDiagnostic })).toBe(true);
+    }, { log, appendFrontendInteractionDiagnostic, writeRendererLogLine })).toBe(true);
 
     expect(log).not.toHaveBeenCalled();
+    expect(writeRendererLogLine).toHaveBeenCalledWith(
+      'renderer',
+      expect.stringContaining('[Renderer][interaction]'),
+    );
     expect(appendFrontendInteractionDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       schemaVersion: 1,
       source: 'frontend-interaction',
@@ -50,13 +55,18 @@ describe('ipc_diagnostics_runtime', () => {
     })).toBe('action=button_clicked event=click view=minimal-chat-pill label="Open config" target=button');
   });
 
-  test('routes generic renderer logs through the renderer label', () => {
+  test('routes generic renderer logs through the renderer layer sink', () => {
     const log = jest.fn();
+    const writeRendererLogLine = jest.fn();
     const payload = { source: 'chat', message: 'mounted' };
 
-    expect(handleRendererLog(payload, { log })).toBe(true);
+    expect(handleRendererLog(payload, { log, writeRendererLogLine })).toBe(true);
 
-    expect(log).toHaveBeenCalledWith('[RendererLog]', payload);
+    expect(log).not.toHaveBeenCalled();
+    expect(writeRendererLogLine).toHaveBeenCalledWith(
+      'renderer',
+      expect.stringContaining("[Renderer][ipc] { source: 'chat', message: 'mounted' }"),
+    );
   });
 
   test('allows message text only when diagnostics opt in and build is non-production', () => {

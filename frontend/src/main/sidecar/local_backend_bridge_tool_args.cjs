@@ -86,7 +86,7 @@ function resolveRunShellCommandArgs(args, getFrontendConfig, warn = console.warn
       );
     } catch (error) {
       warn(
-        `[LocalBackend] Failed to read frontend config for sudo auth mode: ${getErrorMessage(error)}`,
+        `[Main][LocalBackendBridge] sudo_auth_config_read_failed message=${JSON.stringify(getErrorMessage(error))}`,
       );
     }
   }
