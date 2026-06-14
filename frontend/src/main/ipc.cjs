@@ -1718,11 +1718,12 @@ async function stopQueryThroughSdkAgent(payload = {}) {
   if (!windieAgent) {
     return false;
   }
+  const stopTurnRef = payload && typeof payload.turn_ref === 'string'
+    ? payload.turn_ref
+    : (payload && typeof payload.turnRef === 'string' ? payload.turnRef : null);
   await windieAgent.stop({
     conversation_ref: resolveConversationRefFromPayload(payload),
-    turn_ref: payload && typeof payload.turn_ref === 'string'
-      ? payload.turn_ref
-      : null,
+    turn_ref: stopTurnRef,
   });
   return true;
 }

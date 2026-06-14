@@ -19,14 +19,16 @@ describe('stopQueryState', () => {
       setThinkingStatus,
       setThinkingSourceEventType,
       updateStreamTracking,
+      conversationRef: 'conv-stop',
       stoppedAt,
     });
 
     expect(returnedStoppedAt).toBe(stoppedAt);
-    expect(setIsSending).toHaveBeenCalledWith(false);
-    expect(setThinkingStatus).toHaveBeenCalledWith(null);
-    expect(setThinkingSourceEventType).toHaveBeenCalledWith(null);
+    expect(setIsSending).toHaveBeenCalledWith(false, 'conv-stop');
+    expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conv-stop');
+    expect(setThinkingSourceEventType).toHaveBeenCalledWith(null, 'conv-stop');
     expect(updateStreamTracking).toHaveBeenCalledTimes(1);
+    expect(updateStreamTracking.mock.calls[0][1]).toBe('conv-stop');
 
     const update = updateStreamTracking.mock.calls[0][0];
     const updatedState = update({

@@ -90,15 +90,16 @@ export const DesktopLiveTurnRuntimeClient = {
     throwIfFailedIpcResult(result);
   },
 
-  async stop(conversationRef: string | null = null): Promise<void> {
+  async stop(conversationRef: string | null = null, turnRef: string | null = null): Promise<void> {
     const resolvedConversationRef = optionalString(conversationRef)
       ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
     if (!resolvedConversationRef) {
       return;
     }
+    const resolvedTurnRef = optionalString(turnRef);
     await invokeWindieCommand('conversation.stop', {
       conversation_ref: resolvedConversationRef,
-      turn_ref: null,
+      turn_ref: resolvedTurnRef,
     });
   },
 };

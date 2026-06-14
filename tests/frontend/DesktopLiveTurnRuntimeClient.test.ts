@@ -87,15 +87,29 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeWindieCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
-  test('stop routes through SDK-shaped command invoke', async () => {
+  test('stop routes through SDK-shaped command invoke with the active turn ref', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
     );
 
-    await DesktopLiveTurnRuntimeClient.stop('conv-stop');
+    await DesktopLiveTurnRuntimeClient.stop('conv-stop', ' turn-stop ');
 
     expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.stop', {
       conversation_ref: 'conv-stop',
+      turn_ref: 'turn-stop',
+    });
+  });
+
+  test('stop falls back to the active conversation and nullable turn ref', async () => {
+    mockGetActiveConversationRef.mockReturnValue('conv-active');
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await DesktopLiveTurnRuntimeClient.stop();
+
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.stop', {
+      conversation_ref: 'conv-active',
       turn_ref: null,
     });
   });

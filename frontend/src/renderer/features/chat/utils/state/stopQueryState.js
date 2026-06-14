@@ -62,9 +62,9 @@ export function applyStopQueryUiState({
   conversationRef = null,
   stoppedAt = new Date().toISOString(),
 }) {
-  setIsSending(false);
-  setThinkingStatus(null);
-  setThinkingSourceEventType(null);
+  setIsSending(false, conversationRef);
+  setThinkingStatus(null, conversationRef);
+  setThinkingSourceEventType(null, conversationRef);
   if (typeof setCurrentTurnProjection === 'function') {
     setCurrentTurnProjection(
       buildStoppedCurrentTurnProjection(currentTurnProjection),
@@ -74,6 +74,6 @@ export function applyStopQueryUiState({
   updateStreamTracking((current) => ({
     ...current,
     ...buildStopQueryTrackingPatch(stoppedAt),
-  }));
+  }), conversationRef);
   return stoppedAt;
 }

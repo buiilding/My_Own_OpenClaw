@@ -73,7 +73,10 @@ describe('desktopBackendTransport', () => {
     await transport.wakewordDetected({ turn_ref: 'turn-wake' });
     await transport.updateSettings({ model: 'model-1' });
     await transport.listModels();
-    await transport.stop({ conversation_ref: 'conv-stop' });
+    await transport.stop({
+      conversation_ref: 'conv-stop',
+      turn_ref: 'turn-stop',
+    });
 
     expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversation.rehydrate', {
       conversation_ref: 'conv-r',
@@ -94,6 +97,7 @@ describe('desktopBackendTransport', () => {
     expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(5, 'models.list');
     expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(6, 'conversation.stop', {
       conversation_ref: 'conv-stop',
+      turn_ref: 'turn-stop',
     });
   });
 });

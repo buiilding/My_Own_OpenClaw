@@ -1204,13 +1204,15 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastInputProps.onStopResponse).toBe('function');
     lastInputProps.onStopResponse();
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockStopQuery).toHaveBeenCalledWith('conv_existing', 'turn_test');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv_existing');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
       expect.objectContaining({ phase: 'complete' }),
       'conv_existing',
     );
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+    expect(mockUpdateStreamTracking.mock.calls[0][1]).toBe('conv_existing');
   });
 
   test('stop shortcut sends stop-query while stream is active', () => {
@@ -1229,13 +1231,15 @@ describe('ChatInterface wiring', () => {
 
     expect(shortcutEvent.defaultPrevented).toBe(true);
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockStopQuery).toHaveBeenCalledWith('conv_existing', 'turn_test');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv_existing');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
       expect.objectContaining({ phase: 'complete' }),
       'conv_existing',
     );
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+    expect(mockUpdateStreamTracking.mock.calls[0][1]).toBe('conv_existing');
   });
 
   test('stop shortcut ignores key presses when loop is idle', () => {
@@ -1268,9 +1272,11 @@ describe('ChatInterface wiring', () => {
     expect(lastInputProps.isSending).toBe(true);
     lastInputProps.onStopResponse();
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockStopQuery).toHaveBeenCalledWith('conv_existing', null);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv_existing');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+    expect(mockUpdateStreamTracking.mock.calls[0][1]).toBe('conv_existing');
   });
 
   test('keeps composer in stop state during tool loop even when isSending is false', () => {

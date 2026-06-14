@@ -389,7 +389,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
       updateStreamTracking,
     });
     stopPlayback();
-    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(sessionInfo.conversationRef || null)).catch((error) => {
+    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(
+      sessionInfo.conversationRef || null,
+      currentTurnProjection?.turnRef || null,
+    )).catch((error) => {
       console.warn('[ChatInterface] Failed to stop query:', error);
     });
   }, [

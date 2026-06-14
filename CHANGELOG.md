@@ -86,6 +86,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat: preserve the active turn ref when dashboard and chat-pill Stop
+  commands cross the renderer, SDK transport, and Electron main stop bridge so
+  cancellation targets the current turn, and clear busy/thinking/stream state
+  on the stopped conversation so the composer and typing dots visually stop.
 - frontend/chat-pill: prime the response overlay awaiting preflight on send
   acceptance and let the response overlay renderer latch local typing state
   before SDK current-turn projection arrives.

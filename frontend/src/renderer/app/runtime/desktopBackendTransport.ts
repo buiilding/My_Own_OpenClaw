@@ -21,9 +21,10 @@ function optionalStringArray(value: unknown): string[] | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-async function sendStopQuery(conversationRef: string | null): Promise<void> {
+async function sendStopQuery(conversationRef: string | null, turnRef: string | null): Promise<void> {
   await invokeWindieCommand('conversation.stop', {
     conversation_ref: conversationRef,
+    turn_ref: turnRef,
   });
 }
 
@@ -153,6 +154,7 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     stop: async (payload) => {
       await sendStopQuery(
         optionalString(payload.conversation_ref),
+        optionalString(payload.turn_ref) ?? optionalString(payload.turnRef),
       );
     },
     subscribe: () => () => undefined,

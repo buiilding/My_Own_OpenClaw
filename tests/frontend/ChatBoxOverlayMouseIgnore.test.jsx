@@ -525,8 +525,8 @@ describe('ChatBox overlay mouse ignore', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
     });
-    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay', 'turn-active');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-overlay');
     expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
       expect.objectContaining({ phase: 'complete' }),
       'conv-overlay',
@@ -851,13 +851,14 @@ describe('ChatBox overlay mouse ignore', () => {
     await act(async () => {
       fireEvent.click(stopButton);
     });
-    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay', 'turn-active');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-overlay');
     expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
       expect.objectContaining({ phase: 'complete' }),
       'conv-overlay',
     );
     expect(mockUpdateStreamTracking).toHaveBeenCalled();
+    expect(mockUpdateStreamTracking.mock.calls.at(-1)?.[1]).toBe('conv-overlay');
   });
 
   test('renders stop button when isSending is true before first stream event', async () => {
@@ -871,9 +872,10 @@ describe('ChatBox overlay mouse ignore', () => {
     await act(async () => {
       fireEvent.click(stopButton);
     });
-    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay', null);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-overlay');
     expect(mockUpdateStreamTracking).toHaveBeenCalled();
+    expect(mockUpdateStreamTracking.mock.calls.at(-1)?.[1]).toBe('conv-overlay');
   });
 
   test('does not start wakeword STT voice mode when setting is disabled', () => {

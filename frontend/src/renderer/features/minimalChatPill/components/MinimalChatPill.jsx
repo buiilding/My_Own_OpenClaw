@@ -611,7 +611,10 @@ function MinimalChatPill() {
       conversationRef: sessionInfo?.conversationRef || null,
       updateStreamTracking,
     });
-    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(sessionInfo?.conversationRef || null)).catch((error) => {
+    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(
+      sessionInfo?.conversationRef || null,
+      currentTurnProjection?.turnRef || null,
+    )).catch((error) => {
       console.warn('[MinimalChatPill] Failed to stop query:', error);
     });
   }, [
