@@ -83,9 +83,9 @@ async function flushAnimationFrames() {
   await Promise.resolve();
 }
 
-function createPointerDownEvent(options = {}) {
+function createPointerEvent(type, options = {}) {
   const PointerEventCtor = window.PointerEvent || window.MouseEvent;
-  return new PointerEventCtor('pointerdown', {
+  return new PointerEventCtor(type, {
     bubbles: true,
     cancelable: true,
     button: 0,
@@ -97,6 +97,10 @@ function createPointerDownEvent(options = {}) {
     pointerType: 'mouse',
     ...options,
   });
+}
+
+function createPointerDownEvent(options = {}) {
+  return createPointerEvent('pointerdown', options);
 }
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -545,8 +549,13 @@ describe('ChatBox overlay mouse ignore', () => {
     const preventDefaultSpy = jest.spyOn(pointerDown, 'preventDefault');
 
     input.dispatchEvent(pointerDown);
-    fireEvent.mouseMove(window, { clientX: 34, clientY: 30, screenX: 140, screenY: 130 });
-    fireEvent.mouseUp(window);
+    window.dispatchEvent(createPointerEvent('pointermove', {
+      clientX: 34,
+      clientY: 30,
+      screenX: 140,
+      screenY: 130,
+    }));
+    window.dispatchEvent(createPointerEvent('pointerup'));
 
     expect(preventDefaultSpy).toHaveBeenCalledTimes(1);
     expectInvokeCall(

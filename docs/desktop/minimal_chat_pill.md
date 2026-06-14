@@ -40,6 +40,10 @@ The chat pill is the small always-available desktop command surface. It is rende
   dashboard-close handoff may reopen the pill and clear the user-hidden intent.
 - Screenshot capture behavior differs by platform; Linux hides WindieOS overlays, Windows/macOS do not.
 - Drag and resize behavior should preserve the user-perceived anchor, especially when multiline input or image previews grow.
+- Press-and-hold dragging is a shell interaction, not text entry. The first
+  unfocused press on the textarea may request native text-entry activation for
+  click-to-type, but if the pointer moves past the drag threshold that same
+  gesture must drag the pill without requiring a prior focus click.
 - The pill should avoid focus stealing unless explicitly requested.
 - SDK current-turn presentation owns whether the pill shows typing or response
   content. The response overlay phase stays synchronized as BrowserWindow shell

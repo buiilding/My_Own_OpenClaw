@@ -75,11 +75,17 @@ compaction behind its loop lock.
 - explicit refocus only on `chatbox-focus` IPC event
 - `wakeword-stt-trigger` IPC starts STT session only when `wakeword_stt_enabled === true`
 - loop lock blocks refocus and blurs input while active
+- unfocused textarea pointer-down requests native text-entry activation, but
+  must not consume a press-and-hold drag gesture
 
 ### Drag and Move IPC
 
-- drag starts from pill `onMouseDown` only for primary button and non-interactive targets
+- drag starts from pill pointer-down capture for primary-button gestures, with
+  `onMouseDown` retained as a fallback
 - blocked targets are defined by `isDragBlockedTarget(...)` selector guard
+- drag tracking starts from pointer-down capture and listens for pointer
+  movement first, with mouse movement as a fallback, so a prevented first
+  pointer-down used for focus handoff can still become a drag
 - drag move is ignored until distance is at least 2 pixels
 - absolute move dispatch:
   - `IpcBridge.send("move-chatbox-to", { x, y })`

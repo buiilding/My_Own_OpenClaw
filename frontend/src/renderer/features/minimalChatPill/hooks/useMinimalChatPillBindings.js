@@ -48,10 +48,14 @@ export function useChatboxWakewordSttTriggerBinding({
 
 export function useChatboxDragWindowBindings(handleDragMove, stopDragging) {
   useEffect(() => {
+    window.addEventListener('pointermove', handleDragMove);
+    window.addEventListener('pointerup', stopDragging);
     window.addEventListener('mousemove', handleDragMove);
     window.addEventListener('mouseup', stopDragging);
     window.addEventListener('blur', stopDragging);
     return () => {
+      window.removeEventListener('pointermove', handleDragMove);
+      window.removeEventListener('pointerup', stopDragging);
       window.removeEventListener('mousemove', handleDragMove);
       window.removeEventListener('mouseup', stopDragging);
       window.removeEventListener('blur', stopDragging);
