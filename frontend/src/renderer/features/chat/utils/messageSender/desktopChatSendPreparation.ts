@@ -33,6 +33,7 @@ import {
   hasUserMessages,
 } from './chatMessageSenderUtils';
 import { createConversationRef } from '../session/conversationRef';
+import type { ChatMessage } from '../../stores/chatStore';
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 
@@ -175,6 +176,58 @@ async function ensureConversationWorkspaceBinding(conversationRef: string): Prom
   }
 }
 
+function buildOptimisticUserMessage({
+  attachmentFilenames,
+  text,
+  timestamp,
+  turnId,
+}: {
+  attachmentFilenames: string[];
+  text: string;
+  timestamp: string;
+  turnId: string;
+}): ChatMessage {
+  return {
+    id: `optimistic-${turnId}`,
+    text,
+    sender: 'user',
+    turnRef: turnId,
+    sourceEventType: 'renderer-compose',
+    sourceChannel: 'renderer-local',
+    isComplete: true,
+    timestamp,
+    attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
+  };
+}
+
+function applyOptimisticUserMessage({
+  attachmentFilenames,
+  conversationRef,
+  text,
+  timestamp,
+  turnId,
+}: {
+  attachmentFilenames: string[];
+  conversationRef: string;
+  text: string;
+  timestamp: string;
+  turnId: string;
+}): void {
+  const store = useChatStore.getState();
+  store.addMessage(
+    buildOptimisticUserMessage({
+      attachmentFilenames,
+      text,
+      timestamp,
+      turnId,
+    }),
+    conversationRef,
+  );
+  store.setIsSending(true, conversationRef);
+  store.setThinkingStatus(null, conversationRef);
+  store.setThinkingSourceEventType(null, conversationRef);
+}
+
 async function runSendSurfacePreflight({
   senderSurface,
   shouldReturnToChatboxOnSend,
@@ -225,12 +278,18 @@ export async function prepareDesktopChatSend({
   dependencies.stopPlayback?.();
 
   const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
-  const conversationRef = await ensureConversationRef(dependencies.setChatActiveConversationRef);
-  const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
-  const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
+  const conversationRef = await ensureConversationRef(dependencies.setChatActiveConversationRef);
+  applyOptimisticUserMessage({
+    attachmentFilenames,
+    conversationRef,
+    text,
+    timestamp,
+    turnId,
+  });
+  const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
+  const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
 
   logRendererChatPillTrace({
     source: 'renderer-send',

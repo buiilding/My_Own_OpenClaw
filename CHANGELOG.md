@@ -81,6 +81,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat: show a renderer-local optimistic user row immediately after
+  local send acceptance so a new chat canvas does not stay blank while workspace
+  lookup, overlay preflight, model sync, or SDK query dispatch finishes.
 - frontend/chat-pill: allow the first unfocused press-and-hold gesture on the
   minimal pill textarea to start window dragging while preserving the native
   focus handoff required for click-to-type.

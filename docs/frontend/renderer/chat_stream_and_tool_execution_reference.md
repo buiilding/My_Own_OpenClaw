@@ -104,20 +104,23 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
   - resolve from transcript/store active ref
   - fallback to main-process session snapshot (`GET_CLIENT_USER_ID`)
   - create new ref only when both are absent
-3. append pending user message immediately for optimistic UI
-4. set sending state
-5. optional overlay transition back to chatbox (`show-chatbox` invoke)
-6. optional screenshot capture via `captureScreenshotAttachment(...)`
-7. optional screenshot materialization (`ScreenshotAttachmentPipeline`)
-8. update already-rendered user message with `screenshot_ref/url`
-9. record transcript user row
-10. emit backend `query` via `DesktopLiveTurnRuntimeClient.sendQuery(...)`
+3. append a renderer-local optimistic user message with the outgoing turn id
+4. set sending state before async send preparation continues
+5. resolve workspace binding and typed resource handles for SDK send
+6. optional overlay preflight (`prime-response-overlay-awaiting` or `show-chatbox`)
+7. apply deferred model/provider selection through `DesktopSettingsRuntimeClient`
+8. dispatch the turn through `DesktopLiveTurnRuntimeClient.sendQuery(...)`
+9. let SDK `ConversationRuntime.send()` emit the authoritative base user row,
+   resolve file/clipboard/workspace/query-screenshot resources, and update user
+   metadata
+10. replace the temporary renderer row with SDK display rows from `windie:rows`
 
 Before final query dispatch, the hook may send immediate model/provider updates via `DesktopSettingsRuntimeClient.setModel(...)` when deferred-model selection changes are detected.
 
 Failure handling:
 
-- on query-send failure, `isSending=false` and synthetic assistant error message is appended.
+- on query-send failure, `isSending=false` and synthetic assistant error message
+  is appended after the optimistic user row.
 
 ## Stream Event Ingestion (`desktopChatStreamIngressRuntime`)
 

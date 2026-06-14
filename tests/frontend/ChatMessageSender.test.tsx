@@ -151,6 +151,24 @@ describe('useChatMessageSender', () => {
     );
   }
 
+  function expectOptimisticUserMessage(
+    text: string,
+    attachmentFilenames: string[] | null = null,
+  ) {
+    expect(useChatStore.getState().messages).toEqual([
+      expect.objectContaining({
+        id: 'optimistic-msg-1',
+        sender: 'user',
+        text,
+        turnRef: 'msg-1',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+        isComplete: true,
+        attachmentFilenames,
+      }),
+    ]);
+  }
+
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -264,6 +282,44 @@ describe('useChatMessageSender', () => {
     expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendQuery.mock.invocationCallOrder[0],
     );
+  });
+
+  test('shows an optimistic user row before async send preparation finishes', async () => {
+    mockActiveConversationRef = 'conv_existing';
+    let resolvePermission: ((value: unknown) => void) | null = null;
+    const permissionPromise = new Promise((resolve) => {
+      resolvePermission = resolve;
+    });
+    (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string) => {
+      if (channel === INVOKE_CHANNELS.CHECK_PERMISSION) {
+        return permissionPromise;
+      }
+      return Promise.resolve({ success: true });
+    });
+    const { result } = renderSender({
+      senderSurface: 'main-window',
+      returnToChatboxPolicy: 'never',
+    });
+
+    let sendPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      sendPromise = result.current.sendMessage('hello while prepping');
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expectOptimisticUserMessage('hello while prepping');
+    expect(useChatStore.getState().isSending).toBe(true);
+    expect(mockSendQuery).not.toHaveBeenCalled();
+
+    resolvePermission?.({ success: true });
+    await act(async () => {
+      await sendPromise;
+    });
+
+    expectSingleSendQueryCall('hello while prepping', 'conv_existing');
   });
 
   test('overlay-chatbox surface never switches windows by default', async () => {
@@ -456,7 +512,7 @@ describe('useChatMessageSender', () => {
     }]);
   });
 
-  test('sends screenshot capture request to the SDK without adding a renderer-local row', async () => {
+  test('sends screenshot capture request to the SDK after showing an optimistic row', async () => {
     mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'base64-shot',
       screenshotContentType: 'image/png',
@@ -480,7 +536,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expect(useChatStore.getState().messages).toEqual([]);
+    expectOptimisticUserMessage('hello');
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -505,7 +561,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expect(useChatStore.getState().messages).toEqual([]);
+    expectOptimisticUserMessage('hello auto screenshot');
   });
 
   test('sends pasted clipboard image as a SDK resource handle', async () => {
@@ -539,7 +595,7 @@ describe('useChatMessageSender', () => {
       attachmentFilenames: ['clipboard-image.png'],
       attachment_filenames: ['clipboard-image.png'],
     });
-    expect(useChatStore.getState().messages).toEqual([]);
+    expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png']);
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -592,7 +648,10 @@ describe('useChatMessageSender', () => {
       attachmentFilenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
       attachment_filenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
     });
-    expect(useChatStore.getState().messages).toEqual([]);
+    expectOptimisticUserMessage(
+      'Please inspect both images',
+      ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
+    );
   });
 
   test('sends selected non-image files as required SDK resource handles', async () => {
@@ -637,7 +696,7 @@ describe('useChatMessageSender', () => {
       attachment_filenames: ['notes.txt'],
     });
 
-    expect(useChatStore.getState().messages).toEqual([]);
+    expectOptimisticUserMessage('Summarize the attached file', ['notes.txt']);
   });
 
   test('does not block renderer send when selected file resolution will happen in SDK', async () => {
@@ -684,7 +743,7 @@ describe('useChatMessageSender', () => {
       attachmentFilenames: ['private.txt'],
       attachment_filenames: ['private.txt'],
     });
-    expect(useChatStore.getState().messages).toEqual([]);
+    expectOptimisticUserMessage('Summarize the attached file', ['private.txt']);
   });
 
   test('resets sending state and appends error message when send fails', async () => {
