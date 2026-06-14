@@ -272,6 +272,7 @@ describe('main_window_runtime createChatWindow', () => {
       applyOverlayWindowPolicy: jest.fn(),
       applyContentProtection: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
+      log: jest.fn(),
       ...overrides,
     };
     return { deps, handlers, chatWindow };
@@ -330,6 +331,7 @@ describe('main_window_runtime createChatWindow', () => {
     expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
     expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=minimal-chat-pill'));
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] shown name=chat-pill');
 
     handlers.show();
     expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
@@ -342,6 +344,20 @@ describe('main_window_runtime createChatWindow', () => {
     handlers.move();
 
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
+  });
+
+  test('logs chat overlay hide and close lifecycle events', () => {
+    const { deps, handlers } = createDeps();
+    const closeEvent = { preventDefault: jest.fn() };
+
+    createChatWindow(deps);
+    handlers.hide();
+    handlers.close(closeEvent);
+    handlers.closed();
+
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] hidden name=chat-pill');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] close_requested name=chat-pill quitting=false');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] closed name=chat-pill');
   });
 
   test('adds debug_stream query flag to chat overlay when stream tracing is enabled', () => {
@@ -423,6 +439,7 @@ describe('main_window_runtime createResponseWindow', () => {
       applyOverlayWindowPolicy: jest.fn(),
       applyContentProtection: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
+      log: jest.fn(),
       ...overrides,
     };
     return { deps, handlers, responseWindow };
@@ -439,9 +456,24 @@ describe('main_window_runtime createResponseWindow', () => {
     handlers.show();
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
     expect(deps.syncWindowDisplayAffinity).not.toHaveBeenCalled();
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] shown name=response-overlay');
 
     handlers.show();
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
+  });
+
+  test('logs response overlay close lifecycle events', () => {
+    const { deps, handlers, responseWindow } = createDeps();
+    const closeEvent = { preventDefault: jest.fn() };
+
+    createResponseWindow(deps);
+    handlers.close(closeEvent);
+    handlers.closed();
+
+    expect(closeEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] close_requested name=response-overlay quitting=false');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] closed name=response-overlay');
   });
 
   test('does not sync active display affinity from response overlay move events', () => {
@@ -568,6 +600,7 @@ describe('main_window_runtime createMainWindow', () => {
       setMainWindow: jest.fn(),
       enableContentProtectionSafely: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
+      log: jest.fn(),
       ...overrides,
     };
     return { deps, BrowserWindow, mainWindow, handlers };
@@ -638,6 +671,7 @@ describe('main_window_runtime createMainWindow', () => {
 
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledTimes(2);
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] shown name=main');
   });
 
   test('keeps dashboard visible in system screenshots', () => {
@@ -705,6 +739,19 @@ describe('main_window_runtime createMainWindow', () => {
 
     expect(closeEvent.preventDefault).not.toHaveBeenCalled();
     expect(deps.showChatWindow).not.toHaveBeenCalled();
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] close_requested name=main mode=dashboard minimizing=false');
+  });
+
+  test('logs main window close and closed lifecycle events', () => {
+    const { deps, handlers } = createDeps();
+    const closeEvent = { preventDefault: jest.fn() };
+
+    createMainWindow(deps);
+    handlers.close(closeEvent);
+    handlers.closed();
+
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] close_requested name=main mode=dashboard minimizing=true');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] closed name=main');
   });
 
   test('exits macOS fullscreen before hiding the dashboard on close', () => {

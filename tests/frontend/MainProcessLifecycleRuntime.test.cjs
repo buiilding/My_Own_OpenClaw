@@ -196,6 +196,13 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.createChatWindow).toHaveBeenCalledTimes(1);
     expect(deps.createResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.createTray).toHaveBeenCalledTimes(1);
+    expect(deps.log).toHaveBeenCalledWith(expect.stringContaining('[Main][App] ready'));
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] created name=main');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] created name=chat-pill');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] created name=response-overlay');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Tray] created');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Renderer] overlay_windows_registered count=2');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Shortcut] registered accelerator=Super+Alt+W');
     expect(deps.showMainWindow).not.toHaveBeenCalled();
     expect(deps.syncWakewordToggleForChatVisibility).toHaveBeenCalledTimes(1);
     expect(deps.globalShortcut.register).toHaveBeenCalledWith(
@@ -225,6 +232,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     )[1];
     displayMetricsHandler();
 
+    expect(deps.log).toHaveBeenCalledWith('[Main][Display] metrics_changed');
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledTimes(1);
     expect(deps.syncWindowDisplayAffinity.mock.calls[0][0]).toBe(deps.screen);
     expect(deps.syncWindowDisplayAffinity.mock.calls[0][1]).toBe(chatWindow);
@@ -365,11 +373,29 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     const trayModeEvent = { preventDefault: jest.fn() };
     handler(trayModeEvent);
     expect(trayModeEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] all_closed quitting=false vm_mode=false');
 
     app.isQuitting = true;
     const quittingEvent = { preventDefault: jest.fn() };
     handler(quittingEvent);
     expect(quittingEvent.preventDefault).not.toHaveBeenCalled();
+    expect(deps.log).toHaveBeenCalledWith('[Main][Window] all_closed quitting=true vm_mode=false');
+  });
+
+  test('logs app shutdown phases and stops local subprocesses', async () => {
+    const { deps, app, appEvents } = createRuntimeDeps();
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    appEvents['before-quit']();
+    appEvents['will-quit']();
+
+    expect(app.isQuitting).toBe(true);
+    expect(deps.log).toHaveBeenCalledWith('[Main][Shutdown] before_quit cleanup=subprocesses');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Shutdown] will_quit unregister_global_shortcuts');
+    expect(deps.stopLocalBackend).toHaveBeenCalledTimes(1);
+    expect(deps.globalShortcut.unregisterAll).toHaveBeenCalledTimes(1);
   });
 
   test('vm mode starts only main window and skips tray/overlay/hotkey wiring', async () => {
@@ -424,6 +450,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
 
     appEvents.activate();
 
+    expect(deps.log).toHaveBeenCalledWith('[Main][App] activate window_count=1');
     expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'app-activate' });
     expect(deps.showMainWindow).not.toHaveBeenCalled();
   });

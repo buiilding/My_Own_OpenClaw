@@ -97,7 +97,11 @@ const {
   readChatPillVisibilityIntent,
   writeChatPillVisibilityIntent,
 } = require('./surfaces/chat_pill_visibility_intent_store.cjs');
+const {
+  installConsoleLayerLog,
+} = require('./logging/layer_log_sink.cjs');
 
+installConsoleLayerLog({ layer: 'main' });
 configureGpuRuntime({ app, env: process.env });
 
 const WAKEWORD_HOTKEY = process.platform === 'win32'

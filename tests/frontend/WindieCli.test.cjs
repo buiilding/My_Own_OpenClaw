@@ -1,3 +1,7 @@
+/**
+ * Covers windie cli. behavior in the frontend test suite.
+ */
+
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -6,9 +10,12 @@ const { spawnSync } = require('child_process');
 const repoRoot = path.resolve(__dirname, '../..');
 const cliPath = path.join(repoRoot, 'scripts/windie-cli.cjs');
 const {
+  buildLayerLogTailArgs,
   buildFrontendLogTailArgs,
   getSpawnPlan,
+  normalizeWindieLogTarget,
   resolveFrontendLogFile,
+  resolveWindieLogFile,
 } = require('../../scripts/windie/commands.cjs');
 const frontendDevUrl = process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
 
@@ -34,6 +41,10 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('windie logs frontend');
     expect(result.stdout).toContain('windie docs list');
     expect(result.stdout).toContain('windie docs search <query>');
+    expect(result.stdout).toContain('windie logs vite');
+    expect(result.stdout).toContain('windie logs main');
+    expect(result.stdout).toContain('windie logs renderer [--verbose]');
+    expect(result.stdout).toContain('windie logs sidecar');
   });
 
   test('returns machine-readable status', () => {
@@ -53,9 +64,9 @@ describe('windie CLI', () => {
       cwd: repoRoot,
     });
     expect(getSpawnPlan(['start', 'frontend'])).toMatchObject({
-      command: path.join(repoRoot, 'scripts/run-frontend-dev'),
-      args: [],
-      cwd: repoRoot,
+      concurrent: [
+        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot, logLayer: 'vite' },
+      ],
     });
     expect(getSpawnPlan(['start', 'desktop'])).toMatchObject({
       command: path.join(repoRoot, 'scripts/run-frontend-electron'),
@@ -64,7 +75,7 @@ describe('windie CLI', () => {
     });
     expect(getSpawnPlan(['start', 'dev'])).toMatchObject({
       concurrent: [
-        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot },
+        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot, logLayer: 'vite' },
         {
           label: 'desktop',
           command: path.join(repoRoot, 'scripts/run-frontend-electron'),
@@ -75,7 +86,7 @@ describe('windie CLI', () => {
     });
     expect(getSpawnPlan(['start', 'customer'])).toMatchObject({
       concurrent: [
-        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot },
+        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot, logLayer: 'vite' },
         {
           label: 'customer',
           command: 'npm',
@@ -128,6 +139,38 @@ describe('windie CLI', () => {
       .toThrow('--tail must be a positive integer.');
   });
 
+  test('resolves layer-owned log tail arguments', () => {
+    const logsDir = path.join(repoRoot, '.windie', 'logs');
+    expect(normalizeWindieLogTarget('desktop')).toBe('main');
+    expect(resolveWindieLogFile('vite', {})).toBe(path.join(logsDir, 'vite.log'));
+    expect(resolveWindieLogFile('main', {})).toBe(path.join(logsDir, 'main.log'));
+    expect(resolveWindieLogFile('renderer', {})).toBe(path.join(logsDir, 'renderer.log'));
+    expect(resolveWindieLogFile('renderer', {}, { verbose: true }))
+      .toBe(path.join(logsDir, 'renderer.verbose.log'));
+    expect(resolveWindieLogFile('sidecar', {})).toBe(path.join(logsDir, 'sidecar.log'));
+    expect(resolveWindieLogFile('desktop', {})).toBe(path.join(logsDir, 'main.log'));
+    expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '/tmp/sidecar.log' }))
+      .toBe('/tmp/sidecar.log');
+    expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: 'logs/sidecar.log' }))
+      .toBe(path.join(repoRoot, 'logs', 'sidecar.log'));
+    expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: 'false' })).toBeNull();
+    expect(resolveWindieLogFile('renderer', { WINDIE_RENDERER_VERBOSE_LOG_FILE: '/tmp/renderer.verbose.log' }, { verbose: true }))
+      .toBe('/tmp/renderer.verbose.log');
+
+    expect(buildLayerLogTailArgs('sidecar', ['--tail', '10', '--no-follow'], {})).toEqual({
+      logFile: path.join(logsDir, 'sidecar.log'),
+      tailArgs: ['-n', '10', path.join(logsDir, 'sidecar.log')],
+    });
+    expect(buildLayerLogTailArgs('renderer', ['--verbose', '--tail', '20', '--no-follow'], {})).toEqual({
+      logFile: path.join(logsDir, 'renderer.verbose.log'),
+      tailArgs: ['-n', '20', path.join(logsDir, 'renderer.verbose.log')],
+    });
+    expect(buildLayerLogTailArgs('desktop', ['--tail', '5'], {})).toEqual({
+      logFile: path.join(logsDir, 'main.log'),
+      tailArgs: ['-n', '5', '-F', path.join(logsDir, 'main.log')],
+    });
+  });
+
   test('prints current frontend logs without following', () => {
     const testLogFile = path.join(repoRoot, '.windie', 'logs', `windie-cli-test-${process.pid}.log`);
     fs.rmSync(testLogFile, { force: true });
@@ -139,6 +182,19 @@ describe('windie CLI', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('[WindieOS] frontend log');
+  });
+
+  test('prints current sidecar logs without following', () => {
+    const testLogFile = path.join(repoRoot, '.windie', 'logs', `windie-sidecar-cli-test-${process.pid}.log`);
+    fs.rmSync(testLogFile, { force: true });
+
+    const result = runCli(
+      ['logs', 'sidecar', '--no-follow', '--tail', '3'],
+      { WINDIE_SIDECAR_LOG_FILE: testLogFile },
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('[WindieOS] sidecar log');
   });
 
   test('finds docs outside the canonical navigation map', () => {

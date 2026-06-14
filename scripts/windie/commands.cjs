@@ -1,3 +1,7 @@
+/**
+ * Runs the commands workflow for the developer CLI and automation tooling.
+ */
+
 const fs = require('fs');
 const net = require('net');
 const os = require('os');
@@ -15,6 +19,11 @@ const {
   queryDiagnosticEvents,
   windieUserDataRoot,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
+const {
+  ensureLogFile,
+  resolveLayerLogFile,
+  resolveRendererVerboseLogFile,
+} = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
 const HELP = `WindieOS command line
 
@@ -51,9 +60,12 @@ Lifecycle and logs:
   windie stop
   windie restart desktop
   windie logs backend [--remote --host <host>] [--service backend|tunnel|both]
-  windie logs frontend [--tail <lines>] [--no-follow]
-  windie logs desktop
-  windie logs sidecar
+  windie logs frontend [--tail <lines>] [--follow] [--no-follow]
+  windie logs vite [--tail <lines>] [--follow] [--no-follow]
+  windie logs main [--tail <lines>] [--follow] [--no-follow]
+  windie logs renderer [--verbose] [--tail <lines>] [--follow] [--no-follow]
+  windie logs sidecar [--tail <lines>] [--follow] [--no-follow]
+  windie logs desktop [--tail <lines>] [--follow] [--no-follow]
 
 Tests and docs:
   windie test backend [args...]
@@ -424,15 +436,25 @@ function printNoTrackedProcesses() {
 }
 
 function resolveFrontendLogFile(env = process.env) {
-  const configured = env.WINDIE_FRONTEND_LOG_FILE;
-  if (configured === '0' || configured === 'false') {
-    return null;
+  return resolveLayerLogFile('frontend', env);
+}
+
+function normalizeWindieLogTarget(target) {
+  const normalized = String(target || '').trim().toLowerCase();
+  if (normalized === 'desktop') {
+    return 'main';
   }
-  if (typeof configured === 'string' && configured.trim()) {
-    const value = configured.trim();
-    return path.isAbsolute(value) ? value : repoPath(value);
+  if (['frontend', 'vite', 'main', 'renderer', 'sidecar'].includes(normalized)) {
+    return normalized;
   }
-  return repoPath('.windie', 'logs', 'frontend.log');
+  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar|desktop');
+}
+
+function resolveWindieLogFile(target, env = process.env, { verbose = false } = {}) {
+  if (normalizeWindieLogTarget(target) === 'renderer' && verbose) {
+    return resolveRendererVerboseLogFile(env);
+  }
+  return resolveLayerLogFile(normalizeWindieLogTarget(target), env);
 }
 
 function normalizeTailLines(value, fallback = '200') {
@@ -443,25 +465,31 @@ function normalizeTailLines(value, fallback = '200') {
   return String(raw);
 }
 
-function ensureFrontendLogFile(logFile) {
+function ensureWindieLayerLogFile(target, logFile, { verbose = false } = {}) {
+  const normalizedTarget = normalizeWindieLogTarget(target);
+  const displayTarget = normalizedTarget === 'renderer' && verbose ? 'renderer verbose' : normalizedTarget;
   if (!logFile) {
-    throw new Error('Frontend log capture is disabled by WINDIE_FRONTEND_LOG_FILE.');
+    const envKey = normalizedTarget === 'renderer' && verbose
+      ? 'WINDIE_RENDERER_VERBOSE_LOG_FILE'
+      : `WINDIE_${normalizedTarget.toUpperCase()}_LOG_FILE`;
+    throw new Error(`${displayTarget} log capture is disabled by ${envKey}.`);
   }
-  fs.mkdirSync(path.dirname(logFile), { recursive: true });
-  if (!fs.existsSync(logFile)) {
-    fs.writeFileSync(
-      logFile,
-      [
-        '[WindieOS] frontend log file initialized.',
-        'Start a desktop run with: bin/windie start dev',
-        '',
-      ].join('\n'),
-    );
-  }
+  ensureLogFile(logFile, {
+    initialLines: [
+      `[WindieOS] ${displayTarget} log file initialized.`,
+      'Start a desktop run with: bin/windie start dev',
+      '',
+    ],
+  });
 }
 
 function buildFrontendLogTailArgs(args, env = process.env) {
-  const logFile = resolveFrontendLogFile(env);
+  return buildLayerLogTailArgs('frontend', args, env);
+}
+
+function buildLayerLogTailArgs(target, args, env = process.env) {
+  const verbose = normalizeWindieLogTarget(target) === 'renderer' && hasFlag(args, '--verbose');
+  const logFile = resolveWindieLogFile(target, env, { verbose });
   const tailLines = normalizeTailLines(optionValue(args, '--tail', '200'));
   const tailArgs = ['-n', tailLines];
   if (!hasFlag(args, '--no-follow')) {
@@ -1073,14 +1101,16 @@ function runStart(target) {
     return runForeground(script('scripts/run-backend'), [], { cwd: REPO_ROOT });
   }
   if (target === 'frontend') {
-    return runForeground(script('scripts/run-frontend-dev'), [], { cwd: REPO_ROOT });
+    return runConcurrent([
+      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+    ]).then((code) => process.exit(code));
   }
   if (target === 'desktop') {
     return runForeground(script('scripts/run-frontend-electron'), [], { cwd: REPO_ROOT });
   }
   if (target === 'dev') {
     return runConcurrent([
-      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
       afterFrontendReady({
         label: 'desktop',
         command: script('scripts/run-frontend-electron'),
@@ -1090,7 +1120,7 @@ function runStart(target) {
   }
   if (target === 'customer') {
     return runConcurrent([
-      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
       afterFrontendReady({
         label: 'customer',
         command: 'npm',
@@ -1102,7 +1132,7 @@ function runStart(target) {
   if (target === 'all') {
     return runConcurrent([
       { label: 'backend', command: script('scripts/run-backend'), cwd: REPO_ROOT },
-      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
       { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
     ]).then((code) => process.exit(code));
   }
@@ -1146,17 +1176,13 @@ function runLogs(args) {
     }
     return runForeground(script('scripts/dev/backend-logs'), forwarded, { cwd: REPO_ROOT });
   }
-  if (target === 'frontend' || target === 'desktop') {
-    const { logFile, tailArgs } = buildFrontendLogTailArgs(args.slice(1));
-    ensureFrontendLogFile(logFile);
+  if (['frontend', 'vite', 'main', 'renderer', 'sidecar', 'desktop'].includes(target)) {
+    const verbose = normalizeWindieLogTarget(target) === 'renderer' && hasFlag(args.slice(1), '--verbose');
+    const { logFile, tailArgs } = buildLayerLogTailArgs(target, args.slice(1));
+    ensureWindieLayerLogFile(target, logFile, { verbose });
     return runForeground('tail', tailArgs, { cwd: REPO_ROOT });
   }
-  if (target === 'sidecar') {
-    console.log('Sidecar logs are forwarded through Electron main stderr in desktop runs.');
-    console.log('Run: WINDIE_SIDECAR_LOG_LEVEL=DEBUG windie start desktop');
-    return;
-  }
-  throw new Error('Usage: windie logs backend|frontend|desktop|sidecar');
+  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar|desktop');
 }
 
 function runTest(args) {
@@ -1533,7 +1559,11 @@ function getSpawnPlan(argv) {
     return { command: script('scripts/run-backend'), args: [], cwd: REPO_ROOT };
   }
   if (command === 'start' && args[0] === 'frontend') {
-    return { command: script('scripts/run-frontend-dev'), args: [], cwd: REPO_ROOT };
+    return {
+      concurrent: [
+        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+      ],
+    };
   }
   if (command === 'start' && args[0] === 'desktop') {
     return { command: script('scripts/run-frontend-electron'), args: [], cwd: REPO_ROOT };
@@ -1541,7 +1571,7 @@ function getSpawnPlan(argv) {
   if (command === 'start' && args[0] === 'dev') {
     return {
       concurrent: [
-        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
         {
           label: 'desktop',
           command: script('scripts/run-frontend-electron'),
@@ -1554,7 +1584,7 @@ function getSpawnPlan(argv) {
   if (command === 'start' && args[0] === 'customer') {
     return {
       concurrent: [
-        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
         {
           label: 'customer',
           command: 'npm',
@@ -1588,9 +1618,12 @@ module.exports = {
   HELP,
   dispatch,
   getSpawnPlan,
+  buildLayerLogTailArgs,
   buildFrontendLogTailArgs,
+  normalizeWindieLogTarget,
   optionValue,
   resolveFrontendLogFile,
+  resolveWindieLogFile,
   summarizeCapabilityTrace,
   stripSeparator,
 };

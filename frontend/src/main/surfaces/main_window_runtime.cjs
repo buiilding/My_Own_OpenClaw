@@ -1,9 +1,14 @@
+/**
+ * Coordinates the main window runtime for the Electron main process.
+ */
+
 const {
   resolveAppIconNativeImage,
   resolveAppIconPathRuntime,
   resolveTrayIconNativeImage,
 } = require('./main_window_icon_runtime.cjs');
 const {
+  attachRendererConsoleLogging,
   createLazyRendererViewLoader,
   createOverlayBrowserWindow,
   loadRendererView,
@@ -210,6 +215,7 @@ function createMainWindow({
   syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
+  log = console.log,
   warn = console.warn,
 }) {
   const allowDevTools = Boolean(enableDevTransparencyUi);
@@ -235,6 +241,10 @@ function createMainWindow({
   });
 
   setMainWindow(mainWindow);
+  attachRendererConsoleLogging({
+    targetWindow: mainWindow,
+    view: 'main',
+  });
   loadRendererView({
     targetWindow: mainWindow,
     app,
@@ -281,6 +291,7 @@ function createMainWindow({
     const mainWindowMode = typeof getMainWindowMode === 'function'
       ? getMainWindowMode()
       : 'dashboard';
+    log(`[Main][Window] close_requested name=main mode=${mainWindowMode} minimizing=${Boolean(minimizeToTrayOnClose && !app.isQuitting)}`);
 
     if (!app.isQuitting && mainWindowMode === 'onboarding') {
       event.preventDefault();
@@ -303,10 +314,12 @@ function createMainWindow({
   });
 
   mainWindow.on('closed', () => {
+    log('[Main][Window] closed name=main');
     setMainWindow(null);
   });
 
   mainWindow.on('show', () => {
+    log('[Main][Window] shown name=main');
     syncWindowDisplayAffinity(mainWindow);
   });
 
@@ -333,6 +346,7 @@ function createChatWindow({
   syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
+  log = console.log,
   warn = console.warn,
 }) {
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
@@ -352,6 +366,10 @@ function createChatWindow({
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setChatWindow(chatWindow);
+  attachRendererConsoleLogging({
+    targetWindow: chatWindow,
+    view: 'chat-pill',
+  });
   applyOverlayPolicy({
     targetWindow: chatWindow,
     windowLabel: 'chat box',
@@ -370,6 +388,7 @@ function createChatWindow({
   });
 
   chatWindow.on('close', (event) => {
+    log(`[Main][Window] close_requested name=chat-pill quitting=${Boolean(app.isQuitting)}`);
     if (!app.isQuitting) {
       event.preventDefault();
       hideChatWindow({ reason: 'user' });
@@ -378,16 +397,19 @@ function createChatWindow({
   });
 
   chatWindow.on('closed', () => {
+    log('[Main][Window] closed name=chat-pill');
     setChatWindow(null);
   });
 
   chatWindow.on('show', () => {
+    log('[Main][Window] shown name=chat-pill');
     ensureChatRendererLoaded();
     syncWindowDisplayAffinity(chatWindow);
     syncWakewordToggleForChatVisibility();
   });
 
   chatWindow.on('hide', () => {
+    log('[Main][Window] hidden name=chat-pill');
     syncWakewordToggleForChatVisibility();
   });
 
@@ -417,6 +439,7 @@ function createResponseWindow({
   applyOverlayWindowPolicy = null,
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
+  log = console.log,
   warn = console.warn,
 }) {
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
@@ -437,6 +460,10 @@ function createResponseWindow({
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setResponseWindow(responseWindow);
+  attachRendererConsoleLogging({
+    targetWindow: responseWindow,
+    view: enableOsToolGhostDebug ? responseWindowDebugView : 'response-overlay',
+  });
   applyOverlayPolicy({
     targetWindow: responseWindow,
     windowLabel: 'response overlay',
@@ -462,10 +489,12 @@ function createResponseWindow({
   }
 
   responseWindow.on('show', () => {
+    log('[Main][Window] shown name=response-overlay');
     ensureResponseRendererLoaded();
   });
 
   responseWindow.on('close', (event) => {
+    log(`[Main][Window] close_requested name=response-overlay quitting=${Boolean(app.isQuitting)}`);
     if (!app.isQuitting) {
       event.preventDefault();
       setResponseOverlayVisibilityState(false);
@@ -475,6 +504,7 @@ function createResponseWindow({
   });
 
   responseWindow.on('closed', () => {
+    log('[Main][Window] closed name=response-overlay');
     setResponseWindow(null);
     setResponseOverlayVisible(false);
     syncContextLabelWindowVisibility();

@@ -1,4 +1,12 @@
+/**
+ * Runs the run workflow for the developer CLI and automation tooling.
+ */
+
 const { spawn, spawnSync } = require('child_process');
+const {
+  appendLayerLogLine,
+  appendLayerLogSessionBanner,
+} = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
 function commandForPlatform(command) {
   if (process.platform === 'win32') {
@@ -53,7 +61,7 @@ function runForeground(command, args = [], options = {}) {
   process.exit(result.status ?? 0);
 }
 
-function prefixStream(stream, prefix, destination) {
+function prefixStream(stream, prefix, destination, { logLayer = null } = {}) {
   let buffer = '';
   stream.setEncoding('utf8');
   stream.on('data', (chunk) => {
@@ -61,11 +69,17 @@ function prefixStream(stream, prefix, destination) {
     const lines = buffer.split(/\r?\n/);
     buffer = lines.pop() || '';
     for (const line of lines) {
+      if (logLayer) {
+        appendLayerLogLine(logLayer, line);
+      }
       destination.write(`${prefix}${line}\n`);
     }
   });
   stream.on('end', () => {
     if (buffer) {
+      if (logLayer) {
+        appendLayerLogLine(logLayer, buffer);
+      }
       destination.write(`${prefix}${buffer}\n`);
       buffer = '';
     }
@@ -114,6 +128,11 @@ function runConcurrent(processes) {
   };
 
   const spawnProcess = (item) => {
+    if (item.logLayer) {
+      appendLayerLogSessionBanner(item.logLayer, {
+        sessionLabel: `${item.label} child process log session`,
+      });
+    }
     const child = spawn(commandForPlatform(item.command), item.args || [], {
       cwd: item.cwd,
       env: item.env || process.env,
@@ -121,8 +140,8 @@ function runConcurrent(processes) {
     });
     children.push(child);
     remaining += 1;
-    prefixStream(child.stdout, `[${item.label}] `, process.stdout);
-    prefixStream(child.stderr, `[${item.label}] `, process.stderr);
+    prefixStream(child.stdout, `[${item.label}] `, process.stdout, { logLayer: item.logLayer });
+    prefixStream(child.stderr, `[${item.label}] `, process.stderr, { logLayer: item.logLayer });
     child.on('error', (error) => {
       if (finalCode === 0) {
         finalCode = 1;

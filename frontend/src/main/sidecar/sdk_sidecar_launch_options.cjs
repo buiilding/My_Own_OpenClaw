@@ -1,3 +1,7 @@
+/**
+ * Provides the sdk sidecar launch options module for the Electron main process.
+ */
+
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -12,6 +16,9 @@ const {
   shouldForwardStderrLine,
   withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
+const {
+  appendLayerLogLine,
+} = require('../logging/layer_log_sink.cjs');
 
 const DEFAULT_DAEMON_DISCOVERY_PATH = path.join(
   os.tmpdir(),
@@ -34,6 +41,12 @@ const SIDECAR_SOURCE_STAMP_FILES = [
   'sidecar_daemon.py',
   'local_backend.py',
   'local_backend_memory_handlers.py',
+];
+const SIDECAR_LOG_PREFIXES = [
+  '[SidecarDaemon]',
+  '[LocalBackend]',
+  '[Tool]',
+  '[MCP]',
 ];
 
 function createMissingCommandError({ isPackaged } = {}) {
@@ -126,6 +139,22 @@ function buildSidecarLaunchContextFromEnv(env = {}) {
   return normalized;
 }
 
+function writeSidecarDaemonLogLine(line, {
+  filter = true,
+  stream = process.stderr,
+  writeLayerLogLine = appendLayerLogLine,
+} = {}) {
+  const text = String(line || '').trim();
+  const hasSidecarPrefix = SIDECAR_LOG_PREFIXES.some((prefix) => text.startsWith(prefix));
+  if (!text || (filter && !hasSidecarPrefix && !shouldForwardStderrLine(text))) {
+    return false;
+  }
+  const formatted = text.startsWith('[') ? text : `[SidecarDaemon] ${text}`;
+  writeLayerLogLine('sidecar', formatted);
+  stream?.write?.(`${formatted}\n`);
+  return true;
+}
+
 function createDesktopAutoSidecarLaunchPlan({
   backendEndpoints,
   discoveryFile = DEFAULT_DAEMON_DISCOVERY_PATH,
@@ -170,12 +199,16 @@ function createDesktopAutoSidecarLaunchPlan({
       startTimeoutMs: DEFAULT_DAEMON_START_TIMEOUT_MS,
       pollIntervalMs: DEFAULT_DAEMON_POLL_INTERVAL_MS,
       WebSocketImpl,
-      onStderrLine: (line) => {
-        const text = String(line || '').trim();
-        if (text && shouldForwardStderrLine(text)) {
-          console.log(`[SidecarDaemon] ${text}`);
-        }
+      onProcessSpawn: (details = {}) => {
+        const command = typeof details.command === 'string' ? details.command : '';
+        const cwd = typeof details.cwd === 'string' ? details.cwd : '';
+        appendLayerLogLine(
+          'main',
+          `[Main][SidecarBridge] spawned sidecar daemon command=${JSON.stringify(command)} cwd=${JSON.stringify(cwd)}`,
+        );
       },
+      onStdoutLine: (line) => writeSidecarDaemonLogLine(line, { filter: false }),
+      onStderrLine: (line) => writeSidecarDaemonLogLine(line),
     },
     launchTarget,
   };
@@ -187,4 +220,5 @@ module.exports = {
   buildSidecarDaemonEnv,
   buildSidecarLaunchContextFromEnv,
   createDesktopAutoSidecarLaunchPlan,
+  writeSidecarDaemonLogLine,
 };

@@ -9,6 +9,7 @@ const {
   buildSidecarDaemonEnv,
   buildSidecarLaunchContextFromEnv,
   createDesktopAutoSidecarLaunchPlan,
+  writeSidecarDaemonLogLine,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
 
 describe('sdk sidecar launch options', () => {
@@ -51,5 +52,35 @@ describe('sdk sidecar launch options', () => {
 
     expect(plan.ok).toBe(true);
     expect(plan.options.reuseExisting).toBe(false);
+    expect(typeof plan.options.onProcessSpawn).toBe('function');
+    expect(typeof plan.options.onStdoutLine).toBe('function');
+    expect(typeof plan.options.onStderrLine).toBe('function');
+  });
+
+  test('sidecar daemon lines write to sidecar log layer and stderr stream', () => {
+    const stream = { write: jest.fn() };
+    const writeLayerLogLine = jest.fn();
+
+    expect(writeSidecarDaemonLogLine('daemon ready', {
+      filter: false,
+      stream,
+      writeLayerLogLine,
+    })).toBe(true);
+
+    expect(writeLayerLogLine).toHaveBeenCalledWith('sidecar', '[SidecarDaemon] daemon ready');
+    expect(stream.write).toHaveBeenCalledWith('[SidecarDaemon] daemon ready\n');
+
+    expect(writeSidecarDaemonLogLine('[LocalBackend] ready', {
+      filter: false,
+      stream,
+      writeLayerLogLine,
+    })).toBe(true);
+    expect(writeLayerLogLine).toHaveBeenCalledWith('sidecar', '[LocalBackend] ready');
+
+    expect(writeSidecarDaemonLogLine('[SidecarDaemon] listening pid=123', {
+      stream,
+      writeLayerLogLine,
+    })).toBe(true);
+    expect(writeLayerLogLine).toHaveBeenCalledWith('sidecar', '[SidecarDaemon] listening pid=123');
   });
 });

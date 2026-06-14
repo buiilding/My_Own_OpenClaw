@@ -1,3 +1,7 @@
+/**
+ * Coordinates the main process lifecycle runtime for the Electron main process.
+ */
+
 const { registerOverlayRendererWindows } = require('../surfaces/overlay_renderer_registration.cjs');
 const { syncVisibleSurfaceDisplayAffinity } = require('../surfaces/display_affinity_runtime.cjs');
 const {
@@ -224,6 +228,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
   }
 
   const singleInstanceLockAcquired = requestSingleInstanceLock();
+  log(`[Main][App] single_instance_lock acquired=${singleInstanceLockAcquired} vm_mode=${Boolean(vmMode)}`);
   appendDesktopStartupDiagnostic({
     action: 'single_instance_lock',
     singleInstanceLockAcquired,
@@ -268,6 +273,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       suppressed: false,
       focusCooldownMs,
     });
+    log(`[Main][App] second_instance focus=true suppressed=false cooldown_ms=${focusCooldownMs}`);
     if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
       log('[Main][StartupMetrics] second-instance event received; focusing existing window.');
     }
@@ -275,14 +281,20 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
   });
 
   app.whenReady().then(() => {
+    log(`[Main][App] ready pid=${getPid()} platform=${platform} vm_mode=${Boolean(vmMode)}`);
     installApplicationMenu();
+    log('[Main][App] application_menu_installed');
     createWindow();
+    log('[Main][Window] created name=main');
     let chatOverlay = null;
     let responseOverlay = null;
     if (!vmMode) {
       chatOverlay = createChatWindow();
+      log('[Main][Window] created name=chat-pill');
       responseOverlay = createResponseWindow();
+      log('[Main][Window] created name=response-overlay');
       createTray();
+      log('[Main][Tray] created');
     }
     if (vmMode) {
       showMainWindow({ focus: true, reason: 'startup-vm' });
@@ -294,8 +306,10 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
         [chatOverlay || getChatWindow(), responseOverlay || getResponseWindow()],
         { registerRendererWindow },
       );
+      log('[Main][Renderer] overlay_windows_registered count=2');
 
       screen.on('display-metrics-changed', () => {
+        log('[Main][Display] metrics_changed');
         syncVisibleSurfaceDisplayAffinity({
           screen,
           chatWindow: getChatWindow(),
@@ -336,6 +350,8 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
           `[Main] Registered fallback global shortcut: ${registeredHotkey} ` +
           `(primary ${wakewordHotkey} unavailable)`,
         );
+      } else {
+        log(`[Main][Shortcut] registered accelerator=${registeredHotkey}`);
       }
     }
 
@@ -357,11 +373,15 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     }, 2000);
 
     app.on('activate', () => {
+      log(`[Main][App] activate window_count=${BrowserWindow.getAllWindows().length}`);
       if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
+        log('[Main][Window] created name=main reason=activate');
         if (!vmMode) {
           const chatOverlay = createChatWindow();
+          log('[Main][Window] created name=chat-pill reason=activate');
           const responseOverlay = createResponseWindow();
+          log('[Main][Window] created name=response-overlay reason=activate');
           registerOverlayRendererWindows(
             [chatOverlay, responseOverlay],
             { registerRendererWindow },
@@ -379,16 +399,18 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       action: 'before_quit',
       status: 'succeeded',
     });
-    log('[Main] App quitting, cleaning up subprocesses...');
+    log('[Main][Shutdown] before_quit cleanup=subprocesses');
     stopLocalBackend();
     stopVmWorker();
   });
 
   app.on('will-quit', () => {
+    log('[Main][Shutdown] will_quit unregister_global_shortcuts');
     globalShortcut.unregisterAll();
   });
 
   app.on('window-all-closed', (event) => {
+    log(`[Main][Window] all_closed quitting=${Boolean(app.isQuitting)} vm_mode=${Boolean(vmMode)}`);
     if (!app.isQuitting && !vmMode) {
       event.preventDefault();
     }
