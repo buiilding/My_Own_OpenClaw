@@ -452,6 +452,40 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
+  test('latches stop state before dispatching the pill send path', async () => {
+    mockChatState.currentTurnProjection = {
+      phase: 'complete',
+      turnRef: 'previous-turn',
+      presentation: {
+        typingVisible: false,
+        overlayVisible: false,
+        isBusy: false,
+      },
+    };
+    render(<MinimalChatPill />);
+
+    await act(async () => {
+      fireEvent.change(screen.getByRole('textbox'), {
+        target: { value: 'Start immediately' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+    });
+
+    expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv-overlay');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv-overlay');
+    expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith(null, 'conv-overlay');
+    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(null, 'conv-overlay');
+    expect(mockSetIsSending.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSendMessage.mock.invocationCallOrder[0],
+    );
+    expect(mockSetCurrentTurnProjection.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSendMessage.mock.invocationCallOrder[0],
+    );
+  });
+
   test('config button opens and maximizes the dashboard on the chat surface', () => {
     render(<MinimalChatPill />);
 

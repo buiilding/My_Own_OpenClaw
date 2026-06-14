@@ -50,6 +50,19 @@ import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 
+function applyAcceptedSendUiLatch({
+  conversationRef,
+  setCurrentTurnProjection,
+  setIsSending,
+  setThinkingSourceEventType,
+  setThinkingStatus,
+}) {
+  setIsSending(true, conversationRef);
+  setThinkingStatus(null, conversationRef);
+  setThinkingSourceEventType(null, conversationRef);
+  setCurrentTurnProjection(null, conversationRef);
+}
+
 function MinimalChatPill() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
@@ -128,15 +141,23 @@ function MinimalChatPill() {
     isSubmitBlocked: loopInteractionLocked,
     onSendMessage: sendMessage,
     onBeforeSend: () => {
+      const conversationRef = sessionInfo?.conversationRef || null;
+      applyAcceptedSendUiLatch({
+        conversationRef,
+        setCurrentTurnProjection,
+        setIsSending,
+        setThinkingSourceEventType,
+        setThinkingStatus,
+      });
       logRendererLiveSurfaceTrace('turn_surface.reset', {
         source: 'minimal-chat-pill',
         reason: 'user-send',
-        conversationRef: sessionInfo?.conversationRef || null,
+        conversationRef,
         previousTurnRef: currentTurnProjection?.turnRef || null,
         previousPhase: currentTurnProjection?.phase || null,
         attachmentCount: clipboardImages.length + selectedReadableFiles.length,
         includeQueryScreenshot,
-      }, sessionInfo?.conversationRef || null);
+      }, conversationRef);
       setWakewordSttSessionActive(false);
     },
   });

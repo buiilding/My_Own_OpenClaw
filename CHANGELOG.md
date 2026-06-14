@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat-pill: latch the minimal pill busy/Stop state immediately after
+  local send acceptance, before async conversation lookup and shared optimistic
+  row preparation finish.
 - frontend/chat: show and preserve a renderer-local optimistic user row
   immediately after local send acceptance so a new chat canvas does not stay
   blank while workspace lookup, overlay preflight, model sync, SDK query

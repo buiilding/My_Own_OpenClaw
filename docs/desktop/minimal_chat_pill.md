@@ -52,6 +52,11 @@ The chat pill is the small always-available desktop command surface. It is rende
   may show only while the chat pill is the primary visible surface; dashboard
   and onboarding ownership suppress the overlay and typing shell while preserving
   SDK current-turn state for inline dashboard rendering.
+- After the user accepts a send from the pill, the pill must immediately latch
+  the local busy/Stop state and clear stale current-turn presentation before the
+  shared async send preparation resolves the active conversation. The shared
+  send path still owns the optimistic user row, conversation ref, resources, and
+  SDK dispatch.
 - Active agent turns do not make the pill click-through by themselves. Electron
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill
