@@ -1,3 +1,7 @@
+/**
+ * Covers config comparison. behavior in the frontend test suite.
+ */
+
 import { hasShallowConfigChanges } from '../../frontend/src/renderer/app/providers/configComparison';
 
 describe('hasShallowConfigChanges', () => {

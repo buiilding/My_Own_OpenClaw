@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Runs the committer workflow for the developer CLI and automation tooling.
 
 set -euo pipefail
 

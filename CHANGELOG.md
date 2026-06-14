@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- codebase/docs: add concise top-of-file descriptions across backend,
+  frontend, SDK, example, and test code files so file purpose is visible before
+  reading implementation details.
 - frontend/cli/logging: add layer-owned log files for Vite, Electron main,
   renderer console output, and the sidecar daemon, with `bin/windie logs`
   targets for tailing each layer directly.

@@ -1,3 +1,7 @@
+/**
+ * Provides the overlay frame size module for the renderer UI.
+ */
+
 export function getRoundedFrameSize(element) {
   const rect = element?.getBoundingClientRect?.();
   if (!rect) {

@@ -1,3 +1,7 @@
+/**
+ * Provides the markdown message module for the renderer UI.
+ */
+
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { highlightSanitizedHtml } from '../../../../../infrastructure/markdown';

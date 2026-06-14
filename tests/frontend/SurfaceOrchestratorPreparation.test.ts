@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator preparation. behavior in the frontend test suite.
+ */
+
 import { buildToolSurfacePreparation } from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/preparation';
 
 describe('surfaceOrchestrator preparation helper', () => {

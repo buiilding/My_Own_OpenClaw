@@ -1,3 +1,7 @@
+/**
+ * Provides the minimal chat pill app module for the renderer UI.
+ */
+
 import ErrorBoundary from '../components/ErrorBoundary';
 import { AppProvider } from './providers/AppProvider';
 import { ChatProvider } from './providers/ChatProvider';

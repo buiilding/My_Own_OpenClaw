@@ -1,3 +1,7 @@
+/**
+ * Covers chat message sender payloads. behavior in the frontend test suite.
+ */
+
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,

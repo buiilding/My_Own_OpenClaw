@@ -1,3 +1,7 @@
+/**
+ * Provides the mode module for the renderer UI.
+ */
+
 import type { SurfaceMode } from './types';
 import { resolveCorrelationId } from '../CorrelationId';
 import {

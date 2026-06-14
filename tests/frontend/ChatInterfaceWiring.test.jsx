@@ -1,3 +1,7 @@
+/**
+ * Covers chat interface wiring. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import {
   act,

@@ -1,3 +1,5 @@
+"""Covers transcription gateway behavior in the backend test suite."""
+
 import asyncio
 import json
 from contextlib import asynccontextmanager

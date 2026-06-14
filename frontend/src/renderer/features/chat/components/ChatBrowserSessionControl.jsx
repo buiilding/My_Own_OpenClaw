@@ -1,3 +1,7 @@
+/**
+ * Provides the chat browser session control module for the renderer UI.
+ */
+
 import { Link2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBrowserSessionControl } from '../../../infrastructure/hooks/useBrowserSessionControl';

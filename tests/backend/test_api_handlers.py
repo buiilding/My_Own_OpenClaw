@@ -1,3 +1,5 @@
+"""Covers api handlers behavior in the backend test suite."""
+
 import asyncio
 import logging
 from contextlib import suppress

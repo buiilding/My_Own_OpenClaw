@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend screenshot attachment behavior for the Electron main process.
+ */
+
 const fsPromises = require('fs/promises');
 const os = require('os');
 const path = require('path');

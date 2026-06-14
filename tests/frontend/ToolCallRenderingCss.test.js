@@ -1,3 +1,7 @@
+/**
+ * Covers tool call rendering . behavior in the frontend test suite.
+ */
+
 import fs from 'node:fs';
 import path from 'node:path';
 

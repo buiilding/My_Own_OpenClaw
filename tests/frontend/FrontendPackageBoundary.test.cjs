@@ -1,3 +1,7 @@
+/**
+ * Covers frontend package boundary. behavior in the frontend test suite.
+ */
+
 const fs = require('fs');
 const path = require('path');
 

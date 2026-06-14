@@ -1,3 +1,5 @@
+"""Provides the online module for the backend."""
+
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm

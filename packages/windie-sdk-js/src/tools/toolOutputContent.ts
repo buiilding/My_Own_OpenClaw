@@ -1,3 +1,7 @@
+/**
+ * Provides the tool output content module for the TypeScript SDK runtime.
+ */
+
 import type { JsonRecord } from '../conversation/types.js';
 
 export type ToolOutputContent = {

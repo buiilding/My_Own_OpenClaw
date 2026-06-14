@@ -1,3 +1,7 @@
+/**
+ * Provides the wakeword capture guard module for the renderer UI.
+ */
+
 type WakewordCaptureGuard = {
   missingDeviceLocked: boolean;
   nextRetryAt: number;

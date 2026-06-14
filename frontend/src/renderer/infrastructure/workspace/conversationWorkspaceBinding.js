@@ -1,3 +1,7 @@
+/**
+ * Provides the conversation workspace binding module for the renderer UI.
+ */
+
 const STORAGE_KEY = 'conversation-workspace-bindings';
 
 function getLastPathSegment(pathValue = '') {

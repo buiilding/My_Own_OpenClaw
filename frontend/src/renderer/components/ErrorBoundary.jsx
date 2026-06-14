@@ -1,3 +1,7 @@
+/**
+ * Provides the error boundary module for the renderer UI.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import '../styles/ErrorBoundary.css';

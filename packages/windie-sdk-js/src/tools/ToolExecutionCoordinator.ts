@@ -1,3 +1,7 @@
+/**
+ * Provides the tool execution coordinator module for the TypeScript SDK runtime.
+ */
+
 import { createConversationEvent } from '../conversation/events.js';
 import type {
   ConversationEvent,

@@ -1,3 +1,7 @@
+/**
+ * Provides the preparation module for the renderer UI.
+ */
+
 import type { SurfaceMode, ToolSurfacePreparation } from './types';
 
 export function buildToolSurfacePreparation(

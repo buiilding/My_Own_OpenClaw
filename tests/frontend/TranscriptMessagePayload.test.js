@@ -1,3 +1,7 @@
+/**
+ * Covers transcript message payload. behavior in the frontend test suite.
+ */
+
 import {
   normalizeProvider,
   resolveTranscriptMessageType,

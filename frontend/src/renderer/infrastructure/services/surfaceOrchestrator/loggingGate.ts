@@ -1,3 +1,7 @@
+/**
+ * Provides the logging gate module for the renderer UI.
+ */
+
 declare global {
   interface Window {
     __WINDIE_VERBOSE_TOOL_LOGS__?: boolean;

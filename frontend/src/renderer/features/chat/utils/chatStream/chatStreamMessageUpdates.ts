@@ -1,3 +1,7 @@
+/**
+ * Provides the chat stream message updates module for the renderer UI.
+ */
+
 import type { ToolSchema } from '../../../../types/toolSchemas';
 import type { ChatMessage } from '../../stores/chatStore';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';

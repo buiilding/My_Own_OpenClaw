@@ -1,3 +1,7 @@
+/**
+ * Covers windie sdk package boundary. behavior in the frontend test suite.
+ */
+
 import {
   WindieClient,
   WindieSdkClient,

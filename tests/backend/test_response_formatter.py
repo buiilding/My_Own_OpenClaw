@@ -1,3 +1,5 @@
+"""Covers response formatter behavior in the backend test suite."""
+
 from dataclasses import dataclass, field
 
 import pytest

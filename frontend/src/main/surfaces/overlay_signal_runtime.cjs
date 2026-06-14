@@ -1,3 +1,7 @@
+/**
+ * Coordinates the overlay signal runtime for the Electron main process.
+ */
+
 function syncWakewordToggleForChatVisibility(deps = {}) {
   const {
     mainWindow,

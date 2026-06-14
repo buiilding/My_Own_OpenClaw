@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend display bounds behavior for the Electron main process.
+ */
+
 function resolveScreenshotToolDisplayBounds({
   BrowserWindow,
   screen,

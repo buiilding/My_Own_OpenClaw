@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/**
+ * Runs the create windie extension workflow for the developer CLI and automation tooling.
+ */
+
 'use strict';
 
 const fs = require('fs');

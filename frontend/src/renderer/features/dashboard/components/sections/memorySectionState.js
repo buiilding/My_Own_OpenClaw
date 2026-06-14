@@ -1,3 +1,7 @@
+/**
+ * Provides the memory section state module for the renderer UI.
+ */
+
 export function resolveActiveMemoryTypeInfo(activeType, memoryTypes) {
   return memoryTypes.find((type) => type.id === activeType) || memoryTypes[0];
 }

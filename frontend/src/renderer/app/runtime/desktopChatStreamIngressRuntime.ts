@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop chat stream ingress runtime for the renderer UI.
+ */
+
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import {
   type ConversationEvent,

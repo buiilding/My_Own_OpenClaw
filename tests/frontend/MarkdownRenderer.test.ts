@@ -1,3 +1,7 @@
+/**
+ * Covers markdown renderer. behavior in the frontend test suite.
+ */
+
 import {
   highlightPlainTextToHtml,
   highlightSanitizedHtml,

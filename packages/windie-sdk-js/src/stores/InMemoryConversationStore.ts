@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves in memory conversation state for the TypeScript SDK runtime.
+ */
+
 import type {
   CompactedReplaySnapshot,
   ConversationEvent,

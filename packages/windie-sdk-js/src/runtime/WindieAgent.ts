@@ -1,3 +1,7 @@
+/**
+ * Provides the windie agent module for the TypeScript SDK runtime.
+ */
+
 import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
 import type { BackendEvent } from '../events/backendEvents.js';

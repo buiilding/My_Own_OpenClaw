@@ -1,3 +1,7 @@
+/**
+ * Covers chat pill session flow. behavior in the frontend test suite.
+ */
+
 import {
   CHAT_PILL_SURFACE_REASON,
   resolveChatPillSendLifecycle,

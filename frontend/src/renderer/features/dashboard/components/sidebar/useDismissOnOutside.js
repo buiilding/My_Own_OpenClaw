@@ -1,3 +1,7 @@
+/**
+ * Provides the use dismiss on outside module for the renderer UI.
+ */
+
 import { useEffect } from 'react';
 
 export function useDismissOnOutside({ isOpen, containerRef, onDismiss }) {

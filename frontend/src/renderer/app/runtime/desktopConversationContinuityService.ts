@@ -1,3 +1,7 @@
+/**
+ * Implements the desktop conversation continuity service service for the renderer UI.
+ */
+
 import {
   ConversationContinuityService,
   type JsonRecord,

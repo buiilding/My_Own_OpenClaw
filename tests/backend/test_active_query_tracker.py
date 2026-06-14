@@ -1,3 +1,5 @@
+"""Covers active query tracker behavior in the backend test suite."""
+
 import asyncio
 
 import pytest

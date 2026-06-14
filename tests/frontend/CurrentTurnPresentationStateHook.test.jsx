@@ -1,3 +1,7 @@
+/**
+ * Covers current turn presentation state hook. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { useCurrentTurnPresentationState } from '../../frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState';

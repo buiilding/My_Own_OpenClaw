@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+/**
+ * Runs the jest runner workflow for the frontend tooling.
+ */
 
 const path = require('path');
 const { spawnSync } = require('child_process');

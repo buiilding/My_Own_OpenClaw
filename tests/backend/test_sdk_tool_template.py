@@ -1,3 +1,5 @@
+"""Covers sdk tool template behavior in the backend test suite."""
+
 from backend.src.tools.templates.sdk_tool_template.tool import ExampleTool
 
 

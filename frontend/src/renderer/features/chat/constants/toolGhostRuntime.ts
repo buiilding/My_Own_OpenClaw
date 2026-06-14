@@ -1,3 +1,7 @@
+/**
+ * Coordinates the tool ghost runtime for the renderer UI.
+ */
+
 const TOOL_GHOST_CLICK_HOLD_START_MS = 1000;
 const TOOL_GHOST_CLICK_MOVE_MS = 1200;
 const TOOL_GHOST_CLICK_HOLD_END_MS = 1000;

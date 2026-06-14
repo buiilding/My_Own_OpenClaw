@@ -1,3 +1,7 @@
+/**
+ * Provides the noop module for the renderer UI.
+ */
+
 import type {
   HiddenSurface,
   SurfaceCollapseResult,

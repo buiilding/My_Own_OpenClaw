@@ -1,3 +1,7 @@
+/**
+ * Provides the message send ui policy module for the renderer UI.
+ */
+
 export type ChatSendSurface = 'main-window' | 'overlay-chatbox';
 export type ReturnToChatboxPolicy = 'never' | 'auto' | 'always';
 

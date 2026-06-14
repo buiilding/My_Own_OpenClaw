@@ -1,3 +1,7 @@
+/**
+ * Covers windie sdk client exports. behavior in the frontend test suite.
+ */
+
 import {
   WindieClient,
   WindieSdkClient,

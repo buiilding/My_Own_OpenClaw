@@ -1,3 +1,7 @@
+/**
+ * Handles overlay chatbox events for the Electron main process.
+ */
+
 function normalizePositiveWindowDimension(value) {
   const rounded = Math.round(Number(value));
   if (!Number.isFinite(rounded)) {

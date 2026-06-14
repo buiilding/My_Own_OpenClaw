@@ -1,3 +1,7 @@
+/*
+ * Styles the voice status surface for the renderer UI.
+ */
+
 .voice-status {
   display: flex;
   align-items: center;

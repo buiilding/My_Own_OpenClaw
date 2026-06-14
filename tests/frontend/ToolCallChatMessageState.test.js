@@ -1,3 +1,7 @@
+/**
+ * Covers tool call chat message state. behavior in the frontend test suite.
+ */
+
 import {
   buildToolCallChatMessageState,
 } from '../../frontend/src/renderer/infrastructure/transcript/toolCallChatMessageState';

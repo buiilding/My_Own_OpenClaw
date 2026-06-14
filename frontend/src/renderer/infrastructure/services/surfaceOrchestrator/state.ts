@@ -1,3 +1,7 @@
+/**
+ * Provides the state module for the renderer UI.
+ */
+
 import type { HiddenSurface } from './types';
 
 type SurfaceOrchestratorState = {

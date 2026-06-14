@@ -1,3 +1,7 @@
+/**
+ * Covers message token usage. behavior in the frontend test suite.
+ */
+
 import { resolveMessageTokenUsageTag } from '../../frontend/src/renderer/features/chat/utils/message/messageTokenUsage';
 
 describe('messageTokenUsage', () => {

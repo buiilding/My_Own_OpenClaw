@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop voice runtime client for the renderer UI.
+ */
+
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { buildTranscriptionWebSocketUrl } from '../../infrastructure/services/BackendEndpointStore';
 

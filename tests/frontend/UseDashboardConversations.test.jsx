@@ -1,3 +1,7 @@
+/**
+ * Covers use dashboard conversations. behavior in the frontend test suite.
+ */
+
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useDashboardConversations } from '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations';
 import { DesktopConversationLibraryClient } from '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient';

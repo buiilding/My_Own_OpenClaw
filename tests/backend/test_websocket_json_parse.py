@@ -1,3 +1,5 @@
+"""Covers websocket json parse behavior in the backend test suite."""
+
 import asyncio
 import json
 

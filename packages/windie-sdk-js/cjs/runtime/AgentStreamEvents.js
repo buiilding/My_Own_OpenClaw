@@ -1,3 +1,7 @@
+/**
+ * Provides the agent stream events module for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toolOutputStreamKey = toolOutputStreamKey;

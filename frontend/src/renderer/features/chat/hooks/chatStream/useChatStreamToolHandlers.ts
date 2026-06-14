@@ -1,3 +1,7 @@
+/**
+ * Handles use chat stream tool handlers events for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import {
   type ConversationEvent,

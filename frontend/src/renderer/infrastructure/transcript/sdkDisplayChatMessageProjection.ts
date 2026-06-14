@@ -1,3 +1,7 @@
+/**
+ * Projects sdk display chat message state for the renderer UI.
+ */
+
 import type { ChatMessage } from '../../features/chat/stores/chatStore';
 import {
   type SdkDisplayRow,

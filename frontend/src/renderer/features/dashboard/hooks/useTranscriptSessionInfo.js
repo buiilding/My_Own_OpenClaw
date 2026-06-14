@@ -1,3 +1,7 @@
+/**
+ * Provides the use transcript session info module for the renderer UI.
+ */
+
 import { useSyncExternalStore } from 'react';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 

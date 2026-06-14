@@ -1,3 +1,7 @@
+/**
+ * Implements the hosted backend http client integration for the TypeScript SDK runtime.
+ */
+
 import type { JsonRecord } from '../conversation/types.js';
 
 export type FetchLike = typeof fetch;

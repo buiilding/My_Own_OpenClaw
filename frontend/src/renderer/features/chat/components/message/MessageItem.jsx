@@ -1,3 +1,7 @@
+/**
+ * Provides the message item module for the renderer UI.
+ */
+
 import { memo } from 'react';
 import PropTypes from 'prop-types';
 import MessageContent from '../MessageContent';

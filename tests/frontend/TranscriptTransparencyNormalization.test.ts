@@ -1,3 +1,7 @@
+/**
+ * Covers transcript transparency normalization. behavior in the frontend test suite.
+ */
+
 import { normalizeTransparencyData } from '../../frontend/src/renderer/infrastructure/transcript/transparencyNormalization';
 
 describe('normalizeTransparencyData', () => {

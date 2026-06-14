@@ -1,3 +1,7 @@
+/**
+ * Covers ipc artifact handlers. behavior in the frontend test suite.
+ */
+
 const {
   registerArtifactHandlers,
 } = require('../../frontend/src/main/ipc/ipc_artifact_handlers.cjs');

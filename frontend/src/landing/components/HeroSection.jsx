@@ -1,3 +1,7 @@
+/**
+ * Provides the hero section module for the renderer UI.
+ */
+
 const HeroSection = () => {
   return (
     <section className="hero-section">

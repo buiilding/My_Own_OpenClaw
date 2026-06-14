@@ -1,3 +1,7 @@
+/**
+ * Covers transcript session sync payload. behavior in the frontend test suite.
+ */
+
 import { extractTranscriptSessionSyncPayload } from '../../frontend/src/renderer/infrastructure/transcript/sessionSyncPayload';
 
 describe('extractTranscriptSessionSyncPayload', () => {

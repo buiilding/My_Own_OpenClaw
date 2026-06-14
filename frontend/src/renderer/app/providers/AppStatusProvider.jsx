@@ -1,3 +1,7 @@
+/**
+ * Provides the app status provider module for the renderer UI.
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { AppStatusContext } from './AppStatusContext';

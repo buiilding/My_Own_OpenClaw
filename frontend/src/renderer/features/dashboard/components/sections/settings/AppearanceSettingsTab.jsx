@@ -1,3 +1,7 @@
+/**
+ * Defines appearance settings tab configuration for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { CloneToggle } from './settingsControls';

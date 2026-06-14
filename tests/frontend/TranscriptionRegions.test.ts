@@ -1,3 +1,7 @@
+/**
+ * Covers transcription regions. behavior in the frontend test suite.
+ */
+
 import {
   appendTranscriptionText,
   buildValueAfterPaste,

@@ -1,3 +1,7 @@
+/**
+ * Provides the windie agent session module for the TypeScript SDK runtime.
+ */
+
 import {
   isBackendEvent,
   type BackendEvent,

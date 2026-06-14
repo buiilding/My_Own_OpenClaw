@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend utils behavior for the Electron main process.
+ */
+
 const SUPPRESSED_STDERR_PATTERNS = [
   '[DEP0169] DeprecationWarning: `url.parse()`',
   'Use `node --trace-deprecation ...` to show where the warning was created',

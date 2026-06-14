@@ -1,3 +1,5 @@
+"""Covers tool result storage behavior in the backend test suite."""
+
 import asyncio
 import time
 

@@ -1,3 +1,7 @@
+/**
+ * Covers python in env script. behavior in the frontend test suite.
+ */
+
 const fs = require('fs');
 const os = require('os');
 const path = require('path');

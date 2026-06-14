@@ -1,3 +1,7 @@
+/**
+ * Provides the tool output messages module for the renderer UI.
+ */
+
 import { buildToolOutputChatMessageState } from '../../../infrastructure/transcript/toolOutputChatMessageState';
 import type { ChatMessage } from '../stores/chatStore';
 import type { TranscriptModelContext } from './transcriptModelContext';

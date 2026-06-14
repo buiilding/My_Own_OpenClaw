@@ -1,3 +1,7 @@
+/**
+ * Covers message presentation pipeline. behavior in the frontend test suite.
+ */
+
 import {
   buildCurrentTurnResponseOverlayEntries,
   buildThreadPresentationMessages,

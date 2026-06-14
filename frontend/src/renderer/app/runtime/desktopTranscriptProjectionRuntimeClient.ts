@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop transcript projection runtime client for the renderer UI.
+ */
+
 import {
   createDesktopConversationStore,
   rewriteTranscriptProjection as rewriteDesktopTranscriptProjection,

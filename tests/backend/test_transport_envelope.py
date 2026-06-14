@@ -1,3 +1,5 @@
+"""Covers transport envelope behavior in the backend test suite."""
+
 from backend.src.api.transport.envelope import (
     StreamEventSequencer,
     attach_context_fields,

@@ -1,3 +1,7 @@
+/**
+ * Provides the message presentation pipeline module for the renderer UI.
+ */
+
 import { collectToolExplanationTexts } from './toolExplanationMessages';
 
 function findLastUserIndex(messages) {

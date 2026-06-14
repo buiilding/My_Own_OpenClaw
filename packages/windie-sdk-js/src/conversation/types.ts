@@ -1,3 +1,7 @@
+/**
+ * Defines types contracts for the TypeScript SDK runtime.
+ */
+
 export type JsonRecord = Record<string, unknown>;
 
 export type ConversationEventSource = 'backend' | 'sdk' | 'sidecar' | 'ui';

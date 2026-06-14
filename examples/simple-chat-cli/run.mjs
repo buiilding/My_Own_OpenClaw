@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/**
+ * Runs the run workflow for the example application workspace.
+ */
+
 import readline from "node:readline/promises";
 import { exit, stderr, stdin, stdout } from "node:process";
 import path from "node:path";

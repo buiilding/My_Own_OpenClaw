@@ -1,3 +1,7 @@
+/**
+ * Provides the use chat surface controller module for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { runManualCompaction as runManualCompactionCommand } from '../utils/session/manualCompactionRuntime';

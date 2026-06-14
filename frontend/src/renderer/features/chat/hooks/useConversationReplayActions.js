@@ -1,3 +1,7 @@
+/**
+ * Provides the use conversation replay actions module for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import {

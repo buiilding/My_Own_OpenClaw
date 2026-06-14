@@ -1,3 +1,7 @@
+/**
+ * Covers permission grant effects. behavior in the frontend test suite.
+ */
+
 import { applyPermissionGrantEffects } from '../../frontend/src/renderer/features/permissions/utils/permissionGrantEffects';
 
 describe('applyPermissionGrantEffects', () => {

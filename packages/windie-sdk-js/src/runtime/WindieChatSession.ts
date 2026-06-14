@@ -1,3 +1,7 @@
+/**
+ * Provides the windie chat session module for the TypeScript SDK runtime.
+ */
+
 import type {
   ConversationEvent,
   DisplayConversation,

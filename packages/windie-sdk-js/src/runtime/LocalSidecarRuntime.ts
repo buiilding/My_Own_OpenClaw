@@ -1,3 +1,7 @@
+/**
+ * Coordinates the local sidecar runtime for the TypeScript SDK runtime.
+ */
+
 import type { JsonRecord } from '../conversation/types.js';
 
 type FetchLike = typeof fetch;

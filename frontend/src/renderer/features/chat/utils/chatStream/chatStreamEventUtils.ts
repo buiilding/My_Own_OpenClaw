@@ -1,3 +1,7 @@
+/**
+ * Provides the chat stream event utils module for the renderer UI.
+ */
+
 import {
   resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,

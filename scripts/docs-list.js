@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+/**
+ * Runs the docs list workflow for the developer CLI and automation tooling.
+ */
 
 const fs = require("node:fs");
 const path = require("node:path");

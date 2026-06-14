@@ -1,3 +1,7 @@
+/**
+ * Provides the chat workspace state module for the renderer UI.
+ */
+
 import type {
   ChatMessage,
   SdkCurrentTurnProjection,

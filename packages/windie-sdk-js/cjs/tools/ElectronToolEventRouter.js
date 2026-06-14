@@ -1,3 +1,7 @@
+/**
+ * Defines electron tool event router routing for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildRendererToolOutputEvent = buildRendererToolOutputEvent;

@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop live turn runtime client for the renderer UI.
+ */
+
 import {
   type TurnInputResource,
   type WindieModelSelection,

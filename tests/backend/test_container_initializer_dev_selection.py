@@ -1,3 +1,5 @@
+"""Covers container initializer dev selection behavior in the backend test suite."""
+
 from types import SimpleNamespace
 import importlib.util
 from pathlib import Path

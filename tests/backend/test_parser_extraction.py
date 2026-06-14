@@ -1,3 +1,5 @@
+"""Covers parser extraction behavior in the backend test suite."""
+
 import time
 
 import pytest

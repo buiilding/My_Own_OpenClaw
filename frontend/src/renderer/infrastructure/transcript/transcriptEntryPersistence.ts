@@ -1,3 +1,7 @@
+/**
+ * Provides the transcript entry persistence module for the renderer UI.
+ */
+
 import type { TranscriptProjectionAppendEntry } from './desktopConversationStore';
 import { buildRehydrateMessagePayload } from './rehydrateMessageState';
 import type { SessionInfo, TranscriptEntry } from './types';

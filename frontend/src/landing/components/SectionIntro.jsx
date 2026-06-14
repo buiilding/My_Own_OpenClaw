@@ -1,3 +1,7 @@
+/**
+ * Provides the section intro module for the renderer UI.
+ */
+
 const SectionIntro = ({
   badge,
   headingPrefix,

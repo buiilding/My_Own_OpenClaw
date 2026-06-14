@@ -1,3 +1,7 @@
+/**
+ * Coordinates the overlay topmost runtime for the Electron main process.
+ */
+
 const { logLiveSurfaceTrace } = require('../debug/live_surface_trace_runtime.cjs');
 
 function getOverlayAlwaysOnTopLevels(platform = process.platform) {

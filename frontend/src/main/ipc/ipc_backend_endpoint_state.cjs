@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc backend endpoint state module for the Electron main process.
+ */
+
 function createBackendEndpointState({
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,

@@ -1,3 +1,7 @@
+/**
+ * Coordinates the ipc settings sync runtime for the Electron main process.
+ */
+
 const {
   clearPendingSettingsSyncs,
   isValidConfigPayload,

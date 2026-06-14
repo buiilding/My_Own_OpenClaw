@@ -1,3 +1,5 @@
+"""Covers tool specs behavior in the backend test suite."""
+
 from backend.src.tools.tool_specs import (
     build_function_tool_spec,
     is_function_tool_spec,

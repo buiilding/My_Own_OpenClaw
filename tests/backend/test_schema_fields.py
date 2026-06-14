@@ -1,3 +1,5 @@
+"""Covers schema fields behavior in the backend test suite."""
+
 from pydantic.fields import PydanticUndefined
 
 from backend.src.tools.schema_fields import (

@@ -1,3 +1,7 @@
+/**
+ * Provides the episodic memory utils module for the renderer UI.
+ */
+
 import {
   buildRehydrateMessagePayload,
 } from '../../../infrastructure/transcript/rehydrateMessageState';

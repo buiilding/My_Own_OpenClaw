@@ -1,3 +1,5 @@
+"""Covers file utils behavior in the sidecar test suite."""
+
 import sys
 import builtins
 from pathlib import Path

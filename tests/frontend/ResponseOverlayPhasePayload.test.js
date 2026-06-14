@@ -1,3 +1,7 @@
+/**
+ * Covers response overlay phase payload. behavior in the frontend test suite.
+ */
+
 import {
   parseResponseOverlayPhasePayload,
 } from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload';

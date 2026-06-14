@@ -1,3 +1,5 @@
+"""Covers windie package boundary behavior in the sidecar test suite."""
+
 from tests.sidecar.remote_client_test_utils import (
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,

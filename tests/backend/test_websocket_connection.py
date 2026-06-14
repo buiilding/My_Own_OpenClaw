@@ -1,3 +1,5 @@
+"""Covers websocket connection behavior in the backend test suite."""
+
 import json
 
 import pytest

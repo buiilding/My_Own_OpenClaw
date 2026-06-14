@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream thinking status.metadata. behavior in the frontend test suite.
+ */
+
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { registerBackendListener, resetChatStreamTestState } from './ChatStreamThinkingStatus.testUtils';

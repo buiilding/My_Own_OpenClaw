@@ -1,3 +1,7 @@
+/**
+ * Covers desktop conversation continuity service. behavior in the frontend test suite.
+ */
+
 const mockCreateSeededConversationStore = jest.fn();
 const mockGetActiveConversationRef = jest.fn(() => null);
 

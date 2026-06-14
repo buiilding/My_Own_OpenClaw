@@ -1,3 +1,5 @@
+"""Covers conversation semanticization runtime behavior in the sidecar test suite."""
+
 import json
 from pathlib import Path
 from typing import Any

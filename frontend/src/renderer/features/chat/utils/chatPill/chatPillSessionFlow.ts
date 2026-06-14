@@ -1,3 +1,7 @@
+/**
+ * Provides the chat pill session flow module for the renderer UI.
+ */
+
 import {
   resolveMessageSendUiBehavior,
   type ChatSendSurface,

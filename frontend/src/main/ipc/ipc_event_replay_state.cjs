@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc event replay state module for the Electron main process.
+ */
+
 function cloneReplayEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {
     return null;

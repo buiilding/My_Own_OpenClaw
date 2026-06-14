@@ -1,3 +1,7 @@
+/**
+ * Provides the provider stack icon module for the renderer UI.
+ */
+
 const ProviderStackIcon = ({ size = 24, strokeWidth = 2 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth}>
     <path d="M12 2L2 7l10 5 10-5-10-5z"/>

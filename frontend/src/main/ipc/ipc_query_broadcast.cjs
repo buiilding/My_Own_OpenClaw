@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc query broadcast module for the Electron main process.
+ */
+
 const {
   buildConversationEventFromBackendEvent,
 } = require('./ipc_conversation_event_broadcast.cjs');

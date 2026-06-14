@@ -1,3 +1,7 @@
+/**
+ * Covers message formatter. behavior in the frontend test suite.
+ */
+
 import {
   formatBundledToolOutputMessage,
   formatToolOutputMessage,

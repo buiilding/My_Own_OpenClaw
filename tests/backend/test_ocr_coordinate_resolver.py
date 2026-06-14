@@ -1,3 +1,5 @@
+"""Covers ocr coordinate resolver behavior in the backend test suite."""
+
 import pytest
 import re
 import json

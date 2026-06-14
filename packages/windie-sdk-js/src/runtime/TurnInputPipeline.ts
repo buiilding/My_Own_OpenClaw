@@ -1,3 +1,7 @@
+/**
+ * Provides the turn input pipeline module for the TypeScript SDK runtime.
+ */
+
 import type {
   JsonRecord,
   TurnInputResource,

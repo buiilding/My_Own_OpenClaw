@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves local backend status state for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../ipc/bridge';
 
 const EMPTY_LOCAL_BACKEND_STATUS = Object.freeze({

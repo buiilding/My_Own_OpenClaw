@@ -1,3 +1,7 @@
+/**
+ * Covers chat selectors. behavior in the frontend test suite.
+ */
+
 import {
   selectChatBoxState,
   selectChatInterfaceState,

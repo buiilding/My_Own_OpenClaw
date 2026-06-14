@@ -1,3 +1,7 @@
+/**
+ * Covers bridge suite lifecycle behavior in the frontend test suite.
+ */
+
 function createBridgeSuiteLifecycle({
   originalEnv,
   useRealTimersAfterEach = false,

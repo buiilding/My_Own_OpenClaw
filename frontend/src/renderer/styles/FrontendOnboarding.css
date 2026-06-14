@@ -1,3 +1,7 @@
+/*
+ * Styles the frontend onboarding surface for the renderer UI.
+ */
+
 .frontend-onboarding-shell {
   --onboarding-shell-width: min(1120px, calc(100% - 88px));
   --onboarding-stage-width: min(1120px, 100%);

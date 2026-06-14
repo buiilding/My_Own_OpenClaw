@@ -1,3 +1,7 @@
+/**
+ * Provides the transcript record write module for the renderer UI.
+ */
+
 import type { SessionInfo, TranscriptEntry } from './types';
 
 type StoreWithRetry = (

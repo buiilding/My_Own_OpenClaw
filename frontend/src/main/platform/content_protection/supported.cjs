@@ -1,3 +1,7 @@
+/**
+ * Provides the supported module for the Electron main process.
+ */
+
 function normalizeWindowLabel(windowLabel) {
   if (typeof windowLabel !== 'string') {
     return 'window';

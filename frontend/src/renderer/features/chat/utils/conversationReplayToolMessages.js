@@ -1,3 +1,7 @@
+/**
+ * Provides the conversation replay tool messages module for the renderer UI.
+ */
+
 import {
   resolveCorrelationId,
   resolveToolBundleCorrelationId,

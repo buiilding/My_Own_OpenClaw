@@ -1,3 +1,7 @@
+/**
+ * Provides the use chat interface bindings module for the renderer UI.
+ */
+
 import { useEffect } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';

@@ -1,3 +1,7 @@
+/**
+ * Covers clipboard image utils. behavior in the frontend test suite.
+ */
+
 import { parseClipboardImageItems } from '../../frontend/src/renderer/features/chat/utils/clipboardImageUtils';
 
 describe('clipboardImageUtils', () => {

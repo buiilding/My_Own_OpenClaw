@@ -1,3 +1,7 @@
+/**
+ * Provides the stop query state module for the renderer UI.
+ */
+
 function buildStopQueryTrackingPatch(stoppedAt) {
   return {
     phase: 'complete',

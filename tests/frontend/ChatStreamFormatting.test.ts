@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream formatting. behavior in the frontend test suite.
+ */
+
 import {
   buildThinkingStatus,
   formatToolBundlePayload,

@@ -1,3 +1,7 @@
+/**
+ * Provides the use minimal chat pill bindings module for the renderer UI.
+ */
+
 import { useEffect } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../../chat/utils/state/chatBoxState';

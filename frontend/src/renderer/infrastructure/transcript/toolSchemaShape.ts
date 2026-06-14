@@ -1,3 +1,7 @@
+/**
+ * Defines tool schema shape contracts for the renderer UI.
+ */
+
 import type { ToolSchema } from '../../types/toolSchemas';
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {

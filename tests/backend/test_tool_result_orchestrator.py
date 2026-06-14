@@ -1,3 +1,5 @@
+"""Covers tool result orchestrator behavior in the backend test suite."""
+
 import pytest
 from types import SimpleNamespace
 

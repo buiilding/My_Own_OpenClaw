@@ -1,3 +1,7 @@
+/**
+ * Covers app status provider. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { act, renderHook } from '@testing-library/react';
 

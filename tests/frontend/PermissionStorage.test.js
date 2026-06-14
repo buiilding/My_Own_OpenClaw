@@ -1,3 +1,7 @@
+/**
+ * Covers permission storage. behavior in the frontend test suite.
+ */
+
 import {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,

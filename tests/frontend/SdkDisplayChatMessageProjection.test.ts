@@ -1,3 +1,7 @@
+/**
+ * Covers sdk display chat message projection. behavior in the frontend test suite.
+ */
+
 import {
   buildChatMessagesFromDisplayConversation,
   buildChatMessagesFromSdkDisplayRows,

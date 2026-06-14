@@ -1,3 +1,7 @@
+/**
+ * Coordinates the ipc diagnostics runtime for the Electron main process.
+ */
+
 const {
   appendFrontendInteractionDiagnostic: appendFrontendInteractionDiagnosticRuntime,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');

@@ -1,3 +1,7 @@
+/**
+ * Covers conversation workspace binding. behavior in the frontend test suite.
+ */
+
 const MODULE_PATH = '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 const STORAGE_KEY = 'conversation-workspace-bindings';
 

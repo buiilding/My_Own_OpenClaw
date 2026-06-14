@@ -1,3 +1,7 @@
+/**
+ * Provides the memory section data module for the renderer UI.
+ */
+
 import {
   BookOpen,
   Clock,

@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves stored transcript sdk projection state for the renderer UI.
+ */
+
 import {
   buildRehydrateSnapshot,
   createConversationEvent,

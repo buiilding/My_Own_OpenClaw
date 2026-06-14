@@ -1,3 +1,7 @@
+/**
+ * Provides the use chat session bootstrap module for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';

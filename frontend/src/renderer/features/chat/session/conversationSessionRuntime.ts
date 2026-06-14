@@ -1,3 +1,7 @@
+/**
+ * Coordinates the conversation session runtime for the renderer UI.
+ */
+
 type ConversationRefSource = 'transcript' | 'store' | 'generated';
 
 type TranscriptSessionUpdater = (

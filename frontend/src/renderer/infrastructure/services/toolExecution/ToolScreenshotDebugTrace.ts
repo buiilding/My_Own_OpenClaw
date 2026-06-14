@@ -1,3 +1,7 @@
+/**
+ * Provides the tool screenshot debug trace module for the renderer UI.
+ */
+
 function getRendererSearch(): string {
   if (typeof window === 'undefined') {
     return '';

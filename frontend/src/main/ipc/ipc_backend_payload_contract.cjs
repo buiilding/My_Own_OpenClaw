@@ -1,3 +1,7 @@
+/**
+ * Defines ipc backend payload contract contracts for the Electron main process.
+ */
+
 const BACKEND_PAYLOAD_KEYS_BY_TYPE = Object.freeze({
   query: Object.freeze([
     'text',

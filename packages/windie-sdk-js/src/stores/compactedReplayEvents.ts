@@ -1,3 +1,7 @@
+/**
+ * Provides the compacted replay events module for the TypeScript SDK runtime.
+ */
+
 import type {
   CompactedReplaySnapshot,
   ConversationEvent,

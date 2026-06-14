@@ -1,3 +1,5 @@
+"""Covers tool result processor behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 import pytest

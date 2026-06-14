@@ -1,3 +1,7 @@
+/**
+ * Covers transcript session event. utils behavior in the frontend test suite.
+ */
+
 export type TranscriptSessionUpdateDetail = {
   conversationRef: string | null;
   userId: string | null;

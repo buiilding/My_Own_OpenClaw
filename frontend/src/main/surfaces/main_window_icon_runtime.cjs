@@ -1,3 +1,7 @@
+/**
+ * Coordinates the main window icon runtime for the Electron main process.
+ */
+
 const { nativeImage } = require('electron');
 const fs = require('fs');
 const nodePath = require('path');

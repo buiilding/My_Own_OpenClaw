@@ -1,3 +1,5 @@
+"""Covers embedding service app behavior in the backend test suite."""
+
 from fastapi.testclient import TestClient
 
 from backend.src.embeddings import service_app

@@ -1,3 +1,7 @@
+/**
+ * Defines config storage configuration for the renderer UI.
+ */
+
 import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/shortcuts/agentStopShortcut';
 
 /**

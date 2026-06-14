@@ -1,3 +1,7 @@
+/**
+ * Provides the memory section module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {

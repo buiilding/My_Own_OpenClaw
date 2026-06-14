@@ -1,3 +1,7 @@
+/**
+ * Covers chat box state. behavior in the frontend test suite.
+ */
+
 import {
   CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
   createClipboardScreenshotImage,

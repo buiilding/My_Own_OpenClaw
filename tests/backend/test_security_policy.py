@@ -1,3 +1,5 @@
+"""Covers security policy behavior in the backend test suite."""
+
 from backend.src.core.security.policy import Permission, SecurityPolicy
 
 

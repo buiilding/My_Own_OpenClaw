@@ -1,3 +1,7 @@
+/**
+ * Provides the desktop backend transport module for the renderer UI.
+ */
+
 import type { BackendTransport } from '../../infrastructure/api/windieSdkClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';

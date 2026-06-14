@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves in memory conversation state for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryConversationStore = void 0;

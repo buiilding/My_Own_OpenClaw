@@ -1,3 +1,7 @@
+/**
+ * Provides the pending transcript messages module for the renderer UI.
+ */
+
 import { createPendingAssistantQueue } from './pendingAssistantQueue';
 import { createPendingToolQueue } from './pendingToolQueue';
 import { createPendingUserQueue } from './pendingUserQueue';

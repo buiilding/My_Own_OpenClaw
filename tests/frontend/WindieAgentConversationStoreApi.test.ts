@@ -1,3 +1,7 @@
+/**
+ * Covers windie agent conversation store api. behavior in the frontend test suite.
+ */
+
 import {
   WindieAgent,
   SidecarConversationStore,

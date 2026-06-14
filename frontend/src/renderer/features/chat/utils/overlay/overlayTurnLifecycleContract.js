@@ -1,3 +1,7 @@
+/**
+ * Defines overlay turn lifecycle contract contracts for the renderer UI.
+ */
+
 import overlayTurnLifecycleContract from '../../../../../shared/overlay_turn_lifecycle_contract.json';
 
 function normalizeStateList(states) {

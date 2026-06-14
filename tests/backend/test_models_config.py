@@ -1,3 +1,5 @@
+"""Covers models config behavior in the backend test suite."""
+
 from backend.src.llm.models.models_config import (
     LOCAL_VISION_MODELS,
     ONLINE_MODELS,

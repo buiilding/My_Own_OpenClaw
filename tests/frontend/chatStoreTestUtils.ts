@@ -1,3 +1,7 @@
+/**
+ * Covers chat store utils behavior in the frontend test suite.
+ */
+
 import {
   ChatMessage,
   useChatStore,

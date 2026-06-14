@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop chat stream event runtime for the renderer UI.
+ */
+
 import {
   applyTrackingEvent,
   type StreamTrackingEventType,

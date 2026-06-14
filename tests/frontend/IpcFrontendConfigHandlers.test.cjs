@@ -1,3 +1,7 @@
+/**
+ * Covers ipc frontend config handlers. behavior in the frontend test suite.
+ */
+
 const {
   registerFrontendConfigHandlers,
 } = require('../../frontend/src/main/ipc/ipc_frontend_config_handlers.cjs');

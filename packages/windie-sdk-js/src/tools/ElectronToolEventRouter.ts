@@ -1,3 +1,7 @@
+/**
+ * Defines electron tool event router routing for the TypeScript SDK runtime.
+ */
+
 function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }

@@ -1,3 +1,7 @@
+/**
+ * Coordinates the local backend bridge execute tool runtime for the Electron main process.
+ */
+
 const fs = require('fs');
 
 const { BrowserWindow, screen } = require('electron');

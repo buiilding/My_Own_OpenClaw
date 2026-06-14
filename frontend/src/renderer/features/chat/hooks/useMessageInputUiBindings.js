@@ -1,3 +1,7 @@
+/**
+ * Provides the use message input ui bindings module for the renderer UI.
+ */
+
 import { useEffect, useLayoutEffect } from 'react';
 
 export function useTextareaAutoResize(inputValue, resizeTextarea) {

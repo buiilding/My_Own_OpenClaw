@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream thinking status. utils behavior in the frontend test suite.
+ */
+
 import { renderHook } from '@testing-library/react';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';

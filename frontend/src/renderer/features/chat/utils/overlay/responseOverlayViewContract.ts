@@ -1,3 +1,7 @@
+/**
+ * Defines response overlay view contract contracts for the renderer UI.
+ */
+
 import { RESPONSE_OVERLAY_LAYOUT_MODE, resolveResponseOverlayLayoutMode } from './responseOverlayLayoutMode';
 import { OVERLAY_TURN_LIFECYCLE } from './overlayTurnLifecycleContract';
 

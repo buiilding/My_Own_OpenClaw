@@ -1,3 +1,5 @@
+"""Covers logging utils shared behavior in the backend test suite."""
+
 from backend.src.agent.tools.shared import short_id
 
 

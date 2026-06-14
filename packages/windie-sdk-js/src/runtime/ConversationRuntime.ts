@@ -1,3 +1,7 @@
+/**
+ * Coordinates the conversation runtime for the TypeScript SDK runtime.
+ */
+
 import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
 import { isBackendEvent } from '../events/backendEvents.js';
 import type {

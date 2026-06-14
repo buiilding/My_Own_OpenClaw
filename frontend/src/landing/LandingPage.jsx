@@ -1,3 +1,7 @@
+/**
+ * Provides the landing page module for the frontend.
+ */
+
 import HeroSection from './components/HeroSection';
 import WhySection from './components/WhySection';
 import HowItWorksSection from './components/HowItWorksSection';

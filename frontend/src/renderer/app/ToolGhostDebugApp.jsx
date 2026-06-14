@@ -1,3 +1,7 @@
+/**
+ * Provides the tool ghost debug app module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../features/chat/constants/toolGhostRuntime';
 import ToolGhostCursor from '../features/chat/components/ToolGhostCursor';

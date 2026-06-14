@@ -1,3 +1,7 @@
+/**
+ * Handles ipc artifact handlers events for the Electron main process.
+ */
+
 function registerArtifactHandlers({
   ipcMain,
   uploadArtifact,

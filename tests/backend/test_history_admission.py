@@ -1,3 +1,5 @@
+"""Covers history admission behavior in the backend test suite."""
+
 from backend.src.agent.history.history_admission import (
     normalize_assistant_history_structured_content,
     normalize_history_structured_content,

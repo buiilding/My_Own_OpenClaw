@@ -1,3 +1,7 @@
+/**
+ * Provides the conversation event scope module for the TypeScript SDK runtime.
+ */
+
 import type { ConversationEvent } from '../conversation/types.js';
 
 export type ConversationEventScope = 'turn_stream' | 'conversation_control';

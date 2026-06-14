@@ -1,3 +1,5 @@
+"""Covers model service behavior in the backend test suite."""
+
 import asyncio
 
 import pytest

@@ -1,3 +1,5 @@
+"""Covers platform module selection behavior in the sidecar test suite."""
+
 import importlib
 import platform
 import sys

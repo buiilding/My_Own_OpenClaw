@@ -1,3 +1,5 @@
+"""Covers remote tools behavior in the backend test suite."""
+
 import uuid
 
 import pytest

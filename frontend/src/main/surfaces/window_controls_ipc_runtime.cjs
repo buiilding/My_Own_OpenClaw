@@ -1,3 +1,7 @@
+/**
+ * Coordinates the window controls ipc runtime for the Electron main process.
+ */
+
 const { handleGetDisplays } = require('./display_query_handler.cjs');
 const { handleShowMainWindow } = require('./overlay_visibility_handler.cjs');
 const {

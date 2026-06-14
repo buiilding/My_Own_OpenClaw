@@ -1,3 +1,7 @@
+/**
+ * Covers mock backend. behavior in the frontend test suite.
+ */
+
 const WebSocket = require('../../frontend/node_modules/ws');
 const { createMockBackendServer } = require('../../scripts/mock-backend.cjs');
 

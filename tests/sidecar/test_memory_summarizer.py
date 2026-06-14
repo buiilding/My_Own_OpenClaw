@@ -1,3 +1,5 @@
+"""Covers memory summarizer behavior in the sidecar test suite."""
+
 import asyncio
 from datetime import datetime
 

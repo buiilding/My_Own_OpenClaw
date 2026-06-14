@@ -1,3 +1,7 @@
+/**
+ * Defines conversation group prop types contracts for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 
 export const conversationGroupsPropType = PropTypes.shape({

@@ -1,3 +1,5 @@
+"""Covers vision venus provider behavior in the backend test suite."""
+
 import pytest
 
 import backend.src.services.vision.providers.ui_venus as venus_module

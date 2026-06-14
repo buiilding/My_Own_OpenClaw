@@ -1,3 +1,7 @@
+/**
+ * Defines provider api keys prop types contracts for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 
 const providerApiKeyEntryPropType = PropTypes.shape({

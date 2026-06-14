@@ -1,3 +1,5 @@
+"""Covers typed message handler behavior in the backend test suite."""
+
 from __future__ import annotations
 
 import pytest

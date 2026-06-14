@@ -1,3 +1,7 @@
+/**
+ * Provides the context module for the renderer UI.
+ */
+
 import { resolveCorrelationId } from './state';
 import { type SurfaceTransitionSource } from './types';
 

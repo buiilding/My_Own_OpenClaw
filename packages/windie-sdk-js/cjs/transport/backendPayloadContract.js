@@ -1,3 +1,7 @@
+/**
+ * Defines backend payload contract contracts for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.filterBackendPayload = filterBackendPayload;

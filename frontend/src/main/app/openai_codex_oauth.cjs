@@ -1,3 +1,7 @@
+/**
+ * Provides the openai codex oauth module for the Electron main process.
+ */
+
 const crypto = require('crypto');
 const http = require('http');
 

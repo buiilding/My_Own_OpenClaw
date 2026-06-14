@@ -1,3 +1,7 @@
+/**
+ * Coordinates the display affinity runtime for the Electron main process.
+ */
+
 function normalizeInteger(value, fallback = 0) {
   const normalized = Number(value);
   if (!Number.isFinite(normalized)) {

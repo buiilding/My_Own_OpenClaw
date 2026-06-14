@@ -1,3 +1,7 @@
+/**
+ * Provides the tool actions summary message module for the renderer UI.
+ */
+
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 

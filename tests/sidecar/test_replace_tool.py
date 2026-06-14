@@ -1,3 +1,5 @@
+"""Covers replace tool behavior in the sidecar test suite."""
+
 from pathlib import Path
 
 import pytest

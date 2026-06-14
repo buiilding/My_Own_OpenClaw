@@ -1,3 +1,5 @@
+"""Covers settings payload builder behavior in the backend test suite."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace

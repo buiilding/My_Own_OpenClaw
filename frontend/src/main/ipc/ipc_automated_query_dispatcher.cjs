@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc automated query dispatcher module for the Electron main process.
+ */
+
 function createAutomatedQueryDispatcher({
   prepareAutomatedQueryPayload,
   ensureBackendConnection,

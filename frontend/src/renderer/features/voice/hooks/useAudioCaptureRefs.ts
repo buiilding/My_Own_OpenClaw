@@ -1,3 +1,7 @@
+/**
+ * Provides the use audio capture refs module for the renderer UI.
+ */
+
 import { useCallback, useRef } from 'react';
 import type { LegacyAudioProcessorNode } from '../utils/audioCaptureCleanup';
 

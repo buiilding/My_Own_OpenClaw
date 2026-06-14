@@ -1,3 +1,7 @@
+/**
+ * Covers ipc bridge. utils behavior in the frontend test suite.
+ */
+
 type MockIpc = {
   send: jest.Mock;
   invoke: jest.Mock;

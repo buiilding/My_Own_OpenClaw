@@ -1,3 +1,5 @@
+"""Covers tool result router behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.agent.tools.waiting.router import ToolResultRouter

@@ -1,3 +1,5 @@
+"""Covers tool schemas behavior in the sidecar test suite."""
+
 import pytest
 from pydantic import ValidationError
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path

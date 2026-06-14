@@ -1,3 +1,7 @@
+/**
+ * Provides the tool explanation messages module for the renderer UI.
+ */
+
 function normalizeExplanationText(value) {
   if (typeof value !== 'string') {
     return null;

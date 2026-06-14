@@ -1,3 +1,7 @@
+/**
+ * Covers data url image utils. behavior in the frontend test suite.
+ */
+
 import {
   parseBase64ImageDataUrl,
   readFileAsDataUrl,

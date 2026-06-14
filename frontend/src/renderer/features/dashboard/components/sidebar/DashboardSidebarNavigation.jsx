@@ -1,3 +1,7 @@
+/**
+ * Provides the dashboard sidebar navigation module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import {
   PenSquare,

@@ -1,3 +1,5 @@
+"""Covers local store delete cleanup behavior in the sidecar test suite."""
+
 import json
 import sqlite3
 from pathlib import Path

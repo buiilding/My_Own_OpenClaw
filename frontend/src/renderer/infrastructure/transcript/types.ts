@@ -1,3 +1,7 @@
+/**
+ * Defines types contracts for the renderer UI.
+ */
+
 import type { ToolSchema } from '../../types/toolSchemas';
 
 export type SessionInfo = {

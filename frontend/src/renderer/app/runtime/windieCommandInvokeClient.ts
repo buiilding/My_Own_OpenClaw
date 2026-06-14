@@ -1,3 +1,7 @@
+/**
+ * Implements the windie command invoke client integration for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 type WindieCommandResult<T = unknown> = {

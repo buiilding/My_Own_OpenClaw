@@ -1,3 +1,7 @@
+/**
+ * Covers message input utils. behavior in the frontend test suite.
+ */
+
 import {
   buildOutgoingMessage,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageInput';

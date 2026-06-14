@@ -1,3 +1,5 @@
+"""Covers wakeword service behavior in the sidecar test suite."""
+
 from pathlib import Path
 from types import SimpleNamespace
 

@@ -1,3 +1,7 @@
+/**
+ * Coordinates the repo instruction runtime for the Electron main process.
+ */
+
 const fs = require('fs');
 const path = require('path');
 

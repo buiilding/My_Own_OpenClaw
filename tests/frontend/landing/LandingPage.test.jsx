@@ -1,3 +1,7 @@
+/**
+ * Covers landing page. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';

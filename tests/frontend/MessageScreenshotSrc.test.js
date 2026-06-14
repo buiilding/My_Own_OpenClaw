@@ -1,3 +1,7 @@
+/**
+ * Covers message screenshot src. behavior in the frontend test suite.
+ */
+
 import { resolveMessageScreenshotSrc } from '../../frontend/src/renderer/features/chat/utils/message/messageScreenshots';
 
 describe('resolveMessageScreenshotSrc', () => {

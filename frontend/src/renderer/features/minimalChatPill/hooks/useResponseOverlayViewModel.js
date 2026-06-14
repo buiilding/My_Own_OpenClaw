@@ -1,3 +1,7 @@
+/**
+ * Provides the use response overlay view model module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useCurrentTurnPresentationState } from '../../chat/hooks/useCurrentTurnPresentationState';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';

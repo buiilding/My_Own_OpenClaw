@@ -1,3 +1,7 @@
+/**
+ * Provides the vm mode module for the renderer UI.
+ */
+
 export function isVmModeEnabled() {
   if (typeof window === 'undefined' || !window.location) {
     return false;

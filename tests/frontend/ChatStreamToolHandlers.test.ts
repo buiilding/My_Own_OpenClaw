@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream tool handlers. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 
 import { useChatStreamToolHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers';

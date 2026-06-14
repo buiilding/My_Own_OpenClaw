@@ -1,3 +1,7 @@
+/**
+ * Covers assistant text chat message state. behavior in the frontend test suite.
+ */
+
 import {
   buildAssistantTextChatMessageState,
 } from '../../frontend/src/renderer/infrastructure/transcript/assistantTextChatMessageState';

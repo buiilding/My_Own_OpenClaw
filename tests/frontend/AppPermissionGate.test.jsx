@@ -1,3 +1,7 @@
+/**
+ * Covers app permission gate. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 

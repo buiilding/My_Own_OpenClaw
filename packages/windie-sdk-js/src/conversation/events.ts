@@ -1,3 +1,7 @@
+/**
+ * Provides the events module for the TypeScript SDK runtime.
+ */
+
 import type {
   ConversationEvent,
   ConversationEventSource,

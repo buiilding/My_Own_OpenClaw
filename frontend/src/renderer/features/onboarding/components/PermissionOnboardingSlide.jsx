@@ -1,3 +1,7 @@
+/**
+ * Provides the permission onboarding slide module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import {
   getPermissionActionLabel,

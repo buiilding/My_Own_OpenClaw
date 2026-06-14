@@ -1,3 +1,7 @@
+/**
+ * Covers onboarding slides. behavior in the frontend test suite.
+ */
+
 import { buildOnboardingSlideState } from '../../frontend/src/renderer/features/onboarding/utils/onboardingSlides';
 
 describe('buildOnboardingSlideState', () => {

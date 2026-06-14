@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator phases. behavior in the frontend test suite.
+ */
+
 import { SURFACE_PHASE } from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/types';
 
 describe('surfaceOrchestrator phase constants', () => {

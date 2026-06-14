@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop memory runtime client for the renderer UI.
+ */
+
 import { invokeWindieCommand } from './windieCommandInvokeClient';
 
 type MemoryKind = 'episodic' | 'semantic';

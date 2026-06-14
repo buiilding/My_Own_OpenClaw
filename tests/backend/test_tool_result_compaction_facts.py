@@ -1,3 +1,5 @@
+"""Covers tool result compaction facts behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.agent.tools.processing.transformer import ResultTransformer

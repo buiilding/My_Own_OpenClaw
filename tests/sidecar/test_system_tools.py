@@ -1,3 +1,5 @@
+"""Covers system tools behavior in the sidecar test suite."""
+
 import builtins
 import sys
 import types

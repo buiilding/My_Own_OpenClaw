@@ -1,3 +1,5 @@
+"""Covers image dimensions behavior in the backend test suite."""
+
 import struct
 
 from backend.src.agent.tools.preparation.helpers import image_dimensions as image_dims

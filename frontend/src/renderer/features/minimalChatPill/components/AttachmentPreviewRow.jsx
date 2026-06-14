@@ -1,3 +1,7 @@
+/**
+ * Provides the attachment preview row module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { FileText, X } from 'lucide-react';
 import { resolveReadableFileTypeLabel } from '../../chat/utils/composerAttachmentPresentation';

@@ -1,3 +1,5 @@
+"""Covers system use schema contract behavior in the backend test suite."""
+
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.tools.registry import ToolRegistry

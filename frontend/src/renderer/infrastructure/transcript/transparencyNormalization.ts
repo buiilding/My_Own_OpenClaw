@@ -1,3 +1,7 @@
+/**
+ * Provides the transparency normalization module for the renderer UI.
+ */
+
 import { normalizeOptionalIncomingText } from '../text/incomingTextNormalization';
 import { normalizeToolSchemaList } from './toolSchemaShape';
 import type { TranscriptTransparencyData } from './types';

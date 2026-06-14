@@ -1,3 +1,5 @@
+"""Covers tool result formatting behavior in the backend test suite."""
+
 from backend.src.core.interfaces.tool import ToolResult
 
 

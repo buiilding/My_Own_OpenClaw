@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator window visibility. behavior in the frontend test suite.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { isMainWindowVisible } from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/windowVisibility';
 

@@ -1,3 +1,7 @@
+/*
+ * Styles the dashboard shell surface for the renderer UI.
+ */
+
 html.cg-scroll-locked,
 body.cg-scroll-locked,
 #root.cg-scroll-locked {

@@ -1,3 +1,7 @@
+/**
+ * Provides the overlay bounds module for the Electron main process.
+ */
+
 const COMPACT_RESPONSE_HEIGHT_THRESHOLD = 56;
 const COMPACT_RESPONSE_HOVER_OFFSET = 6;
 

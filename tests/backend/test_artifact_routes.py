@@ -1,3 +1,5 @@
+"""Covers artifact routes behavior in the backend test suite."""
+
 import io
 from importlib import import_module
 from types import SimpleNamespace

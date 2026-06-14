@@ -1,3 +1,7 @@
+/**
+ * Coordinates the surface window options runtime for the Electron main process.
+ */
+
 function normalizeTargetDisplayAffinity(targetDisplayAffinity) {
   return (
     targetDisplayAffinity

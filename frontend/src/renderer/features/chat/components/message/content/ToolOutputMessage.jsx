@@ -1,3 +1,7 @@
+/**
+ * Provides the tool output message module for the renderer UI.
+ */
+
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useResolvedMessageScreenshotSrc } from '../../../utils/message/useResolvedMessageScreenshots';

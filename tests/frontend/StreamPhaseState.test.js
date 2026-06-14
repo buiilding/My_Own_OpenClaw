@@ -1,3 +1,7 @@
+/**
+ * Covers stream phase state. behavior in the frontend test suite.
+ */
+
 import {
   isAwaitingFirstChunkPhase,
   isLoopActivePhase,

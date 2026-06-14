@@ -1,3 +1,7 @@
+/**
+ * Covers transcription hook. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 
 import { useTranscription } from '../../frontend/src/renderer/features/chat/hooks/useTranscription';

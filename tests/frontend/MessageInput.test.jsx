@@ -1,3 +1,7 @@
+/**
+ * Covers message input. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 

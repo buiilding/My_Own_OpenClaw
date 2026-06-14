@@ -1,3 +1,7 @@
+/**
+ * Covers app config backend sync. behavior in the frontend test suite.
+ */
+
 import {
   buildDeferredQueryModelSelection,
   buildImmediateBackendConfig,

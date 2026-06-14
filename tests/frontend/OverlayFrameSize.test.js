@@ -1,3 +1,7 @@
+/**
+ * Covers overlay frame size. behavior in the frontend test suite.
+ */
+
 import { getRoundedFrameSize } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize';
 
 describe('overlayFrameSize', () => {

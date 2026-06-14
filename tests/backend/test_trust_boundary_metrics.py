@@ -1,3 +1,5 @@
+"""Covers trust boundary metrics behavior in the backend test suite."""
+
 import threading
 import time
 

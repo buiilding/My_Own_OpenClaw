@@ -1,3 +1,7 @@
+/**
+ * Covers transcript pending messages. behavior in the frontend test suite.
+ */
+
 import { createPendingTranscriptMessages } from '../../frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages';
 import type { SessionInfo, TranscriptEntry } from '../../frontend/src/renderer/infrastructure/transcript/types';
 

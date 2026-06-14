@@ -1,3 +1,5 @@
+"""Covers initialization coordinator concurrency behavior in the backend test suite."""
+
 import asyncio
 import threading
 from typing import Any

@@ -1,3 +1,7 @@
+/**
+ * Provides the chat box response state module for the renderer UI.
+ */
+
 import { resolveSourceTag } from '../message/sourceTags';
 import { buildCurrentTurnResponseOverlayEntries as buildCurrentTurnResponseOverlayEntriesFromPipeline } from '../message/messagePresentationPipeline';
 import {

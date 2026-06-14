@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Runs the bootstrap windieos host workflow for the developer CLI and automation tooling.
+
 set -euo pipefail
 
 usage() {

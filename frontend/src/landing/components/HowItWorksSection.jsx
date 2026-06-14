@@ -1,3 +1,7 @@
+/**
+ * Provides the how it works section module for the renderer UI.
+ */
+
 const HowItWorksSection = () => {
   const steps = [
     {

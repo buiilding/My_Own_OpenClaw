@@ -1,3 +1,7 @@
+/**
+ * Defines onboarding settings tab configuration for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 

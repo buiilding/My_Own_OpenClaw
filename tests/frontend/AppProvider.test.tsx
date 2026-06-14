@@ -1,3 +1,7 @@
+/**
+ * Covers app provider. behavior in the frontend test suite.
+ */
+
 import { render } from '@testing-library/react';
 
 let mockConfigContext: {

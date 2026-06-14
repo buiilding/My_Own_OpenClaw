@@ -1,3 +1,7 @@
+/**
+ * Covers chat model options. behavior in the frontend test suite.
+ */
+
 import {
   buildChatModelOptions,
   buildChatProviderOptions,

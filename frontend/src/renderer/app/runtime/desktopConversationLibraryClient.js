@@ -1,3 +1,7 @@
+/**
+ * Implements the desktop conversation library client integration for the renderer UI.
+ */
+
 import {
   DesktopConversationContinuityService,
 } from './desktopConversationContinuityService';

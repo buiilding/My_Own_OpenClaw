@@ -1,3 +1,7 @@
+/**
+ * Covers episodic memory utils. behavior in the frontend test suite.
+ */
+
 import {
   DEFAULT_USER_ID,
   parseMemoriesToMessages,

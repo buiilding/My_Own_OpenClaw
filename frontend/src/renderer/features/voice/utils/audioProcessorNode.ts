@@ -1,3 +1,7 @@
+/**
+ * Provides the audio processor node module for the renderer UI.
+ */
+
 import type { LegacyAudioProcessorNode } from './audioCaptureCleanup';
 
 const CAPTURE_WORKLET_NAME = 'windieos-capture-processor';

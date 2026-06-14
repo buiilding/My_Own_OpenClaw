@@ -1,3 +1,5 @@
+"""Covers browser shared contract loader behavior in the backend test suite."""
+
 import sys
 
 from backend.src.tools.browser.shared_contract_loader import (

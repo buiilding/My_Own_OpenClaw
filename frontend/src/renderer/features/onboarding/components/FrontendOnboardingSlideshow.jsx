@@ -1,3 +1,7 @@
+/**
+ * Provides the frontend onboarding slideshow module for the renderer UI.
+ */
+
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import MainWindowControls from '../../../components/MainWindowControls';

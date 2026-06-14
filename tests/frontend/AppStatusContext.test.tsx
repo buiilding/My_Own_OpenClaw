@@ -1,3 +1,7 @@
+/**
+ * Covers app status context. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { renderHook } from '@testing-library/react';
 

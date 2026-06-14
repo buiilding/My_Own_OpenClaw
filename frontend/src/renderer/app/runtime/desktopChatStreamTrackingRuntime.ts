@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop chat stream tracking runtime for the renderer UI.
+ */
+
 export type StreamTrackingEventType = string;
 
 export type StreamPhase = 'idle'

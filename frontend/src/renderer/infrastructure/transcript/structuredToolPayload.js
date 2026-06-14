@@ -1,3 +1,7 @@
+/**
+ * Provides the structured tool payload module for the renderer UI.
+ */
+
 import {
   normalizeMessageType,
   parseToolCallPayload,

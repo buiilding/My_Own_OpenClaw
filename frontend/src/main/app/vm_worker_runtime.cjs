@@ -1,3 +1,7 @@
+/**
+ * Coordinates the vm worker runtime for the Electron main process.
+ */
+
 const DEFAULT_HEARTBEAT_MS = 5000;
 
 function normalizeOptionalString(value) {

@@ -1,3 +1,7 @@
+/**
+ * Provides the use wakeword detection module for the renderer UI.
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audioEncoding';

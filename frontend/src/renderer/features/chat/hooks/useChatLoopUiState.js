@@ -1,3 +1,7 @@
+/**
+ * Provides the use chat loop ui state module for the renderer UI.
+ */
+
 import { useEffect, useMemo, useReducer } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 

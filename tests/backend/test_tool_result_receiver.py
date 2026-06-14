@@ -1,3 +1,5 @@
+"""Covers tool result receiver behavior in the backend test suite."""
+
 from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
 from backend.src.api.schemas.incoming import ToolBundleStepResult
 

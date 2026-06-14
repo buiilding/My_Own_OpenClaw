@@ -1,3 +1,7 @@
+/**
+ * Handles overlay responsebox events for the Electron main process.
+ */
+
 const {
   resolveActiveSurfaceDisplayAffinity,
 } = require('./display_affinity_runtime.cjs');

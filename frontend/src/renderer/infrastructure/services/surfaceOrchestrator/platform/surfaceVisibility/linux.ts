@@ -1,3 +1,7 @@
+/**
+ * Provides the linux module for the renderer UI.
+ */
+
 import type {
   HiddenSurface,
   SurfaceCollapseResult,

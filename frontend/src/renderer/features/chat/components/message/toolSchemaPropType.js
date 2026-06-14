@@ -1,3 +1,7 @@
+/**
+ * Defines tool schema prop type contracts for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 
 const toolSchemaFunctionPropType = PropTypes.shape({

@@ -1,3 +1,7 @@
+/**
+ * Covers screenshot message state. behavior in the frontend test suite.
+ */
+
 import {
   buildMessageScreenshotState,
   buildRemoteScreenshotAttachment,

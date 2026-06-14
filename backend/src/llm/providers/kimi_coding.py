@@ -1,3 +1,5 @@
+"""Provides the kimi coding module for the backend."""
+
 from typing import Any, Dict, Optional
 
 from backend.src.llm.providers.online import OnlineLLMProvider

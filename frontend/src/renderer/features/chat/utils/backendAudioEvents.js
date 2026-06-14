@@ -1,3 +1,7 @@
+/**
+ * Provides the backend audio events module for the renderer UI.
+ */
+
 export function extractAudioChunkPayload(data) {
   if (!data || typeof data !== 'object') {
     return null;

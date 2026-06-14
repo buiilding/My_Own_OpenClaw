@@ -1,3 +1,7 @@
+/**
+ * Provides the voice debug trace module for the renderer UI.
+ */
+
 type VoiceTraceDetails = Record<string, unknown>;
 
 export function isVoiceDebugTraceEnabled(): boolean {

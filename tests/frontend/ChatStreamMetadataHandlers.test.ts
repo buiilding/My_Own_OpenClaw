@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream metadata handlers. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 import { useChatStreamMetadataHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamMetadataHandlers';
 

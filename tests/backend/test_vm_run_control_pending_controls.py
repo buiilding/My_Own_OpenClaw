@@ -1,3 +1,5 @@
+"""Covers vm run control pending controls behavior in the backend test suite."""
+
 from backend.src.services.vm_run_control_support.vm_run_control_pending_controls import (
     collect_pending_control_commands_for_worker,
     create_control_command,

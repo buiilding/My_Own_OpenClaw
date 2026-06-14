@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/**
+ * Runs the mock backend workflow for the developer CLI and automation tooling.
+ */
+
 const http = require('http');
 const path = require('path');
 const wsModule = require(path.resolve(__dirname, '../frontend/node_modules/ws'));

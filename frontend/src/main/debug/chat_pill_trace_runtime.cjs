@@ -1,3 +1,7 @@
+/**
+ * Coordinates the chat pill trace runtime for the Electron main process.
+ */
+
 function isTraceEnabled() {
   return (
     process.env.WINDIE_DEBUG_CHAT_PILL === '1'

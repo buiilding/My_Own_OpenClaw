@@ -1,3 +1,5 @@
+"""Provides the anthropic module for the backend."""
+
 import logging
 from typing import Any, Dict
 

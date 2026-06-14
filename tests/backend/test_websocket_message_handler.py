@@ -1,3 +1,5 @@
+"""Covers websocket message handler behavior in the backend test suite."""
+
 import json
 from types import SimpleNamespace
 

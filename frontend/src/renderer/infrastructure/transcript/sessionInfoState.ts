@@ -1,3 +1,7 @@
+/**
+ * Provides the session info state module for the renderer UI.
+ */
+
 import type { SessionInfo } from './types';
 
 type ReadSessionInfo = () => SessionInfo;

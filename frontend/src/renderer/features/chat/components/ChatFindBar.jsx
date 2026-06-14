@@ -1,3 +1,7 @@
+/**
+ * Provides the chat find bar module for the renderer UI.
+ */
+
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import PropTypes from 'prop-types';
 

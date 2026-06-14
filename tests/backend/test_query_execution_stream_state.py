@@ -1,3 +1,5 @@
+"""Covers query execution stream state behavior in the backend test suite."""
+
 from backend.src.api.services.query_execution_support.query_execution_stream_state import (
     QueryExecutionStreamState,
 )

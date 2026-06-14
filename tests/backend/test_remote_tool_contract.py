@@ -1,3 +1,5 @@
+"""Covers remote tool contract behavior in the backend test suite."""
+
 from pathlib import Path
 from importlib import import_module
 import sys

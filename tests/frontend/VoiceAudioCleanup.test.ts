@@ -1,3 +1,7 @@
+/**
+ * Covers voice audio cleanup. behavior in the frontend test suite.
+ */
+
 import {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,

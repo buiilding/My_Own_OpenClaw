@@ -1,3 +1,7 @@
+/**
+ * Provides the local backend supervisor module for the Electron main process.
+ */
+
 function createLocalBackendSupervisor({
   onStateChange = () => {},
 } = {}) {

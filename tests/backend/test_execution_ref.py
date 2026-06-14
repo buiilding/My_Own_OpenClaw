@@ -1,3 +1,5 @@
+"""Covers execution ref behavior in the backend test suite."""
+
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 
 

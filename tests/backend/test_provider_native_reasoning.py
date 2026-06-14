@@ -1,3 +1,5 @@
+"""Covers provider native reasoning behavior in the backend test suite."""
+
 from backend.src.llm.providers.provider_native_reasoning import (
     DEFAULT_NATIVE_THINKING_TOKEN_BUDGET,
     apply_provider_native_thinking_request_params,

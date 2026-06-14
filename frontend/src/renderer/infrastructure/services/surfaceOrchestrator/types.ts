@@ -1,3 +1,7 @@
+/**
+ * Defines types contracts for the renderer UI.
+ */
+
 export type SurfaceMode = 'none' | 'interactive' | 'screenshot';
 
 export const SURFACE_PHASE = Object.freeze({

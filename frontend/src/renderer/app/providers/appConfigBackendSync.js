@@ -1,3 +1,7 @@
+/**
+ * Defines app config backend sync configuration for the renderer UI.
+ */
+
 const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
   'model_provider',
   'selected_model_id',

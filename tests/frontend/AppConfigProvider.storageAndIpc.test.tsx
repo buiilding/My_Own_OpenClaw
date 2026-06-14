@@ -1,3 +1,7 @@
+/**
+ * Covers app config provider.storage and ipc. behavior in the frontend test suite.
+ */
+
 import {
   act,
   DesktopSettingsRuntimeClient,

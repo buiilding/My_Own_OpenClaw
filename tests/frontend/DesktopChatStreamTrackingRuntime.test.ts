@@ -1,3 +1,7 @@
+/**
+ * Covers desktop chat stream tracking runtime. behavior in the frontend test suite.
+ */
+
 import {
   applyTrackingEvent,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime';

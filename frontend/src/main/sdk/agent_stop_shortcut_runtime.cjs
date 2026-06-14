@@ -1,3 +1,7 @@
+/**
+ * Coordinates the agent stop shortcut runtime for the Electron main process.
+ */
+
 const ACTIVE_AGENT_LOOP_STOP_PHASES = new Set([
   'awaiting-first-chunk',
   'streaming',

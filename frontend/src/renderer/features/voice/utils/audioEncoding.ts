@@ -1,3 +1,7 @@
+/**
+ * Provides the audio encoding module for the renderer UI.
+ */
+
 const VALID_SCRIPT_PROCESSOR_CHUNK_SIZES = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];
 const metadataPrefixCache = new Map<number, Uint8Array>();
 

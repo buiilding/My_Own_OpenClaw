@@ -1,3 +1,5 @@
+"""Covers tool call thought signature behavior in the backend test suite."""
+
 from backend.src.core.messages.tool_call_thought_signature import (
     apply_tool_call_thought_signature,
     extract_tool_call_thought_signature,

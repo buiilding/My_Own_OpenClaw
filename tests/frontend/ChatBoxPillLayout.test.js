@@ -1,3 +1,7 @@
+/**
+ * Covers chat box pill layout. behavior in the frontend test suite.
+ */
+
 import {
   createChatboxDragState,
   getChatboxDragTarget,

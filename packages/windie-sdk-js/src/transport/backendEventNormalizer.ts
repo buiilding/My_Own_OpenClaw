@@ -1,3 +1,7 @@
+/**
+ * Provides the backend event normalizer module for the TypeScript SDK runtime.
+ */
+
 import type { BackendEvent } from '../events/backendEvents.js';
 import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
 import type {

@@ -1,3 +1,7 @@
+/**
+ * Covers conversation groups. behavior in the frontend test suite.
+ */
+
 import {
   buildConversationGroups,
   buildWorkspaceConversationGroups,

@@ -1,3 +1,7 @@
+/**
+ * Provides the chat model options module for the renderer UI.
+ */
+
 import { normalizeProvider } from './session/transcriptMessagePayload';
 import { getCurrentModels } from '../../dashboard/utils/modelSelectionUtils';
 

@@ -1,3 +1,5 @@
+"""Covers web search tool behavior in the backend test suite."""
+
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 

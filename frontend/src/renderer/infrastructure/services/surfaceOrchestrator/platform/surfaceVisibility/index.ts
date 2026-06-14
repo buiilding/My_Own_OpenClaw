@@ -1,3 +1,7 @@
+/**
+ * Exposes the package entrypoint for the renderer UI.
+ */
+
 import linuxRuntime from './linux';
 import macosRuntime from './macos';
 import windowsRuntime from './windows';

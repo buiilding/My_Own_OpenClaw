@@ -1,3 +1,7 @@
+/**
+ * Provides the logging module for the renderer UI.
+ */
+
 import type { SurfaceMode, SurfacePhase, SurfaceTransitionSource } from './types';
 import { nextTransitionSequence } from './state';
 import { shouldLogSurfaceTransitions } from './loggingGate';

@@ -1,3 +1,5 @@
+"""Covers vision utils behavior in the backend test suite."""
+
 from backend.src.services.vision.utils import normalize_model_name
 
 

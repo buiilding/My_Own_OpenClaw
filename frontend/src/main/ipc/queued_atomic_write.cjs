@@ -1,3 +1,7 @@
+/**
+ * Provides the queued atomic write module for the Electron main process.
+ */
+
 const fs = require('fs');
 const path = require('path');
 

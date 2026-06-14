@@ -1,3 +1,7 @@
+/**
+ * Coordinates the ipc query runtime for the Electron main process.
+ */
+
 function normalizeOptionalString(value) {
   if (typeof value !== 'string') {
     return null;

@@ -1,3 +1,7 @@
+/**
+ * Provides the agent capability handshake module for the Electron main process.
+ */
+
 const {
   buildClientToolManifest,
   getBuiltinClientToolNames,

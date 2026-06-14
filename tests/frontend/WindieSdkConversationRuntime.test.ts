@@ -1,3 +1,7 @@
+/**
+ * Covers windie sdk conversation runtime. behavior in the frontend test suite.
+ */
+
 import {
   type BackendEvent,
   buildCurrentTurnProjection,

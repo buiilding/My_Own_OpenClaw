@@ -1,3 +1,7 @@
+/**
+ * Covers windie sdk mock backend e2 e. behavior in the frontend test suite.
+ */
+
 import {
   moduleTool,
   WindieClient,

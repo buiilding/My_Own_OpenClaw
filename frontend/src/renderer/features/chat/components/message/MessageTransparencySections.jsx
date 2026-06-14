@@ -1,3 +1,7 @@
+/**
+ * Provides the message transparency sections module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { buildTransparencySectionConfigs } from '../../utils/message/messageTransparency';

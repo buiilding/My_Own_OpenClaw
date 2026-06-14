@@ -1,3 +1,5 @@
+"""Covers shell process registry behavior in the sidecar test suite."""
+
 import asyncio
 import os
 

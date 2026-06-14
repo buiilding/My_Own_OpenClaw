@@ -1,3 +1,5 @@
+"""Covers app assembly behavior in the backend test suite."""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI

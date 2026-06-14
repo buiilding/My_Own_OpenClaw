@@ -1,3 +1,7 @@
+/**
+ * Provides the permission grant effects module for the renderer UI.
+ */
+
 export function applyPermissionGrantEffects({ permissionId, status, updateConfig }) {
   if (
     permissionId === 'browser_automation'

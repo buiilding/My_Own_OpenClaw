@@ -1,3 +1,7 @@
+/**
+ * Covers chat workspace state. behavior in the frontend test suite.
+ */
+
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   createInitialWorkspaceState,

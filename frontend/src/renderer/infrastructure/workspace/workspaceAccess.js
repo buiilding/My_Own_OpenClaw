@@ -1,3 +1,7 @@
+/**
+ * Provides the workspace access module for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 
 export const WORKSPACE_ACCESS_PERMISSION_ID = 'filesystem_workspace_access';

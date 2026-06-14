@@ -1,3 +1,5 @@
+"""Covers scroll config behavior in the sidecar test suite."""
+
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()

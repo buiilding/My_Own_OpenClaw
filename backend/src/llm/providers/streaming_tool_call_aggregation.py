@@ -1,3 +1,5 @@
+"""Provides the streaming tool call aggregation module for the backend."""
+
 import copy
 import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional

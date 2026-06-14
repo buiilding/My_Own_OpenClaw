@@ -1,3 +1,7 @@
+/**
+ * Covers wakeword event utils. behavior in the frontend test suite.
+ */
+
 import {
   getChunkSizeWarning,
   isWithinCooldown,

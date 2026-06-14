@@ -1,3 +1,7 @@
+/**
+ * Coordinates the app menu runtime for the Electron main process.
+ */
+
 const { createPermissionStateStore } = require('../permissions/permission_state_store.cjs');
 const { requestPermission } = require('../permissions/permission_service.cjs');
 

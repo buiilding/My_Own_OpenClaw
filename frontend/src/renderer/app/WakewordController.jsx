@@ -1,3 +1,7 @@
+/**
+ * Provides the wakeword controller module for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import { useWakewordDetection } from '../features/voice/hooks/useWakewordDetection';
 import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';

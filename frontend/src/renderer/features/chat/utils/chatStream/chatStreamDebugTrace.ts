@@ -1,3 +1,7 @@
+/**
+ * Provides the chat stream debug trace module for the renderer UI.
+ */
+
 import { useChatStore } from '../../stores/chatStore';
 import { IpcBridge, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 

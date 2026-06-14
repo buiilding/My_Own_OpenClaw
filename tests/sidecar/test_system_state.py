@@ -1,3 +1,5 @@
+"""Covers system state behavior in the sidecar test suite."""
+
 import sys
 
 import pytest

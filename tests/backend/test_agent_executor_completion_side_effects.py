@@ -1,3 +1,5 @@
+"""Covers agent executor completion side effects behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 import pytest

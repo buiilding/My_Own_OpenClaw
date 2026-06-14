@@ -1,3 +1,7 @@
+/**
+ * Provides the tool output chat message state module for the renderer UI.
+ */
+
 import { buildMessageScreenshotState, resolveScreenshotAttachmentState } from '../services/screenshotMessageState';
 
 type ToolOutputChatMessageStateInput = {

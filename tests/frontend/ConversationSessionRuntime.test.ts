@@ -1,3 +1,7 @@
+/**
+ * Covers conversation session runtime. behavior in the frontend test suite.
+ */
+
 import {
   applyChatConversationProjection,
   applyEventChatConversationProjection,

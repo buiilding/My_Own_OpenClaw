@@ -1,3 +1,7 @@
+/**
+ * Defines llm output contract contracts for the renderer UI.
+ */
+
 type LlmOutputRenderSource = 'markdown' | 'structured-json';
 
 interface LlmOutputContractOptions {

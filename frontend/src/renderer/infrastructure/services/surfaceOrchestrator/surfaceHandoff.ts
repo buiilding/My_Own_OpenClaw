@@ -1,3 +1,7 @@
+/**
+ * Provides the surface handoff module for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import { isMainWindowVisible } from './windowVisibility';
 

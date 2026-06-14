@@ -1,3 +1,7 @@
+/**
+ * Covers app vm mode. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 

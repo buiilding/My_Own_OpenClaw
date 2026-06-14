@@ -1,3 +1,5 @@
+"""Provides the base module for the backend."""
+
 import contextvars
 import copy
 import logging

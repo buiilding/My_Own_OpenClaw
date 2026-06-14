@@ -1,3 +1,7 @@
+/**
+ * Provides the transcription regions module for the renderer UI.
+ */
+
 type TranscriptionRegion = {
   start: number;
   end: number;

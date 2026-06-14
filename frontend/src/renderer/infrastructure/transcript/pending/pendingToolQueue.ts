@@ -1,3 +1,7 @@
+/**
+ * Provides the pending tool queue module for the renderer UI.
+ */
+
 import type { PendingToolMessage } from '../types';
 
 type PendingToolQueue = {

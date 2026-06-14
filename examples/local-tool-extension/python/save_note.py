@@ -1,3 +1,5 @@
+"""Provides the save note module for the example application workspace."""
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -1,3 +1,5 @@
+"""Covers query execution pipeline events behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.api.services.query_execution_support.query_execution_pipeline_events import (

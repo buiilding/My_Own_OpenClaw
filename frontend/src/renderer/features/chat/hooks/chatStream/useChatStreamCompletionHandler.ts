@@ -1,3 +1,7 @@
+/**
+ * Handles use chat stream completion events for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import { useChatStore } from '../../stores/chatStore';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';

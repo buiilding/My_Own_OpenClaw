@@ -1,3 +1,7 @@
+/**
+ * Provides the assistant message actions module for the renderer UI.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Check, Copy, RotateCcw, ThumbsDown, ThumbsUp } from 'lucide-react';

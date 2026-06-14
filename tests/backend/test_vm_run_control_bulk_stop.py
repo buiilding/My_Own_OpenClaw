@@ -1,3 +1,5 @@
+"""Covers vm run control bulk stop behavior in the backend test suite."""
+
 from backend.src.services.vm_run_control_support.vm_run_control_bulk_stop import (
     stop_active_runs,
 )

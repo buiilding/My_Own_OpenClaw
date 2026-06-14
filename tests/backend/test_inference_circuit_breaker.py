@@ -1,3 +1,5 @@
+"""Covers inference circuit breaker behavior in the backend test suite."""
+
 from backend.src.core.inference.circuit_breaker import ProviderCircuitBreaker
 
 

@@ -1,3 +1,7 @@
+/**
+ * Provides the markdown module for the renderer UI.
+ */
+
 import DOMPurify from 'dompurify';
 import { Marked } from 'marked';
 import markedKatex from 'marked-katex-extension';

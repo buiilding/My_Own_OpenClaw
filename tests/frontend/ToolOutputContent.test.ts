@@ -1,3 +1,7 @@
+/**
+ * Covers tool output content. behavior in the frontend test suite.
+ */
+
 import { normalizeLocalToolResultData } from '../../packages/windie-sdk-js/src/tools/toolOutputContent';
 
 describe('local tool output content contract', () => {

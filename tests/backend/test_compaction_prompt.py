@@ -1,3 +1,5 @@
+"""Covers compaction prompt behavior in the backend test suite."""
+
 from backend.src.agent.compaction.prompt import render_messages_for_compaction_prompt
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType

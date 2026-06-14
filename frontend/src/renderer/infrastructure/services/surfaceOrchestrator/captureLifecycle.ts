@@ -1,3 +1,7 @@
+/**
+ * Provides the capture lifecycle module for the renderer UI.
+ */
+
 import { logSurfaceTransition } from './logging';
 import {
   resolveSurfaceTransitionContext,

@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc startup state module for the Electron main process.
+ */
+
 function initializeIpcStartupState({
   loadInstallAuthStateFromDisk,
   applyInstallAuthState,

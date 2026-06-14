@@ -1,3 +1,7 @@
+/**
+ * Covers ipc response overlay handlers. behavior in the frontend test suite.
+ */
+
 const {
   registerResponseOverlayHandlers,
 } = require('../../frontend/src/main/ipc/ipc_response_overlay_handlers.cjs');

@@ -1,3 +1,7 @@
+/**
+ * Provides the use copy message action module for the renderer UI.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 
 export function useCopyMessageAction({

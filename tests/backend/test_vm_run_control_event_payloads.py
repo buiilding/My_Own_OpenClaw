@@ -1,3 +1,5 @@
+"""Covers vm run control event payloads behavior in the backend test suite."""
+
 from backend.src.services.vm_run_control_support.vm_run_control_event_payloads import (
     build_run_control_payload,
     build_run_created_payload,

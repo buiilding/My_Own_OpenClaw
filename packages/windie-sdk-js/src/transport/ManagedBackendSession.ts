@@ -1,3 +1,7 @@
+/**
+ * Provides the managed backend session module for the TypeScript SDK runtime.
+ */
+
 import { isBackendEvent, type BackendEvent } from '../events/backendEvents.js';
 import type { JsonRecord } from '../conversation/types.js';
 import { createMessageId, type WebSocketLike } from './WindieAgentSession.js';

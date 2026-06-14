@@ -1,3 +1,7 @@
+/**
+ * Provides the provider api keys module for the renderer UI.
+ */
+
 const DEFAULT_PROVIDER_API_KEYS = Object.freeze({
   openai: Object.freeze({ enabled: false, api_key: '' }),
   anthropic: Object.freeze({ enabled: false, api_key: '' }),

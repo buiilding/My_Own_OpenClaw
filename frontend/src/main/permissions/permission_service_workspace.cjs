@@ -1,3 +1,7 @@
+/**
+ * Implements the permission service workspace service for the Electron main process.
+ */
+
 const {
   PERMISSION_STATUS,
   buildProbeResult,

@@ -1,3 +1,7 @@
+/**
+ * Provides the user message edit composer module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 
 export default function UserMessageEditComposer({

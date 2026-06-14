@@ -1,3 +1,5 @@
+"""Covers session registry behavior in the backend test suite."""
+
 from backend.src.agent.session.session_registry import SessionRegistry
 
 

@@ -1,3 +1,7 @@
+/**
+ * Provides the overlay renderer registration module for the Electron main process.
+ */
+
 function registerOverlayRendererWindows(
   windows = [],
   deps = {},

@@ -1,3 +1,7 @@
+/**
+ * Handles ipc chat query handlers events for the Electron main process.
+ */
+
 const {
   handleRendererQuerySendFailure,
   prepareRendererQuerySend,

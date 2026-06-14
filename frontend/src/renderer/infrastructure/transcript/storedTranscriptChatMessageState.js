@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves stored transcript chat message state state for the renderer UI.
+ */
+
 import {
   normalizeTransparencyData,
 } from './transparencyNormalization';

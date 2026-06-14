@@ -1,3 +1,7 @@
+/**
+ * Provides the use browser session control module for the renderer UI.
+ */
+
 import { useEffect, useSyncExternalStore } from 'react';
 import {
   connectBrowserSession,

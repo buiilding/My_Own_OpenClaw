@@ -1,3 +1,7 @@
+/**
+ * Provides the ctafooter module for the renderer UI.
+ */
+
 import ProviderStackIcon from './icons/ProviderStackIcon';
 
 const REPO_URL = 'https://github.com/buiilding/WindieOS';

@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream thinking status utils. behavior in the frontend test suite.
+ */
+
 import {
   COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,

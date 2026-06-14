@@ -1,3 +1,5 @@
+"""Covers container config updater behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 import pytest

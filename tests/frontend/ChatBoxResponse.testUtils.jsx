@@ -1,3 +1,7 @@
+/**
+ * Covers chat box response. utils behavior in the frontend test suite.
+ */
+
 import { act } from '@testing-library/react';
 
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });

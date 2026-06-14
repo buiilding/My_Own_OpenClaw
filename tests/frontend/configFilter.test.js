@@ -1,3 +1,7 @@
+/**
+ * Covers config filter. behavior in the frontend test suite.
+ */
+
 import {
   filterFrontendConfig,
 } from '../../frontend/src/renderer/utils/configFilter.js';

@@ -1,3 +1,7 @@
+/**
+ * Defines use settings management configuration for the renderer UI.
+ */
+
 import { useCallback, useMemo } from 'react';
 
 type ListedModelsPayload = {

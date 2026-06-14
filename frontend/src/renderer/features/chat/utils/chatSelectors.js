@@ -1,3 +1,7 @@
+/**
+ * Provides the chat selectors module for the renderer UI.
+ */
+
 import { selectActiveWorkspaceState } from '../stores/chatWorkspaceState';
 
 export function selectChatInterfaceState(state) {

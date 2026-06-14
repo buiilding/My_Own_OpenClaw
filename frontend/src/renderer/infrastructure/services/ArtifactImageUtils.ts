@@ -1,3 +1,7 @@
+/**
+ * Provides the artifact image utils module for the renderer UI.
+ */
+
 const IMAGE_CONTENT_TYPE_TO_EXTENSION: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',

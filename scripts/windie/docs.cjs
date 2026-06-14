@@ -1,3 +1,7 @@
+/**
+ * Runs the docs workflow for the developer CLI and automation tooling.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const { REPO_ROOT, repoPath } = require('./paths.cjs');

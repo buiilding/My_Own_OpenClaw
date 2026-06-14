@@ -1,3 +1,7 @@
+/**
+ * Provides the use resolved message screenshots module for the renderer UI.
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { inferArtifactRefFromUrl } from '../../../../infrastructure/services/screenshotMessageState';

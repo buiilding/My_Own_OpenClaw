@@ -1,3 +1,7 @@
+/**
+ * Handles response overlay phase events for the Electron main process.
+ */
+
 const {
   RESPONSE_OVERLAY_WINDOW_MODE,
   isStreamingResponseOverlayPhase,

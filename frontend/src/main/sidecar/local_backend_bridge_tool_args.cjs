@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend tool args behavior for the Electron main process.
+ */
+
 const { getErrorMessage } = require('./local_backend_bridge_utils.cjs');
 
 function isRecord(value) {

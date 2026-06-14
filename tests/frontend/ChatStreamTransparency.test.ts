@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream transparency. behavior in the frontend test suite.
+ */
+
 import { buildAssistantTranscriptTransparency } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamTransparency';
 import type { ChatMessage } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 

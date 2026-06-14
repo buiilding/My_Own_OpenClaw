@@ -1,3 +1,7 @@
+/**
+ * Provides the window visibility module for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 
 export async function isMainWindowVisible(): Promise<boolean> {

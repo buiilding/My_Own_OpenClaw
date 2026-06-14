@@ -1,3 +1,5 @@
+"""Covers coordinate methods utils behavior in the backend test suite."""
+
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 

@@ -1,3 +1,5 @@
+"""Covers single tool execution behavior in the backend test suite."""
+
 import pytest
 from types import SimpleNamespace
 import asyncio

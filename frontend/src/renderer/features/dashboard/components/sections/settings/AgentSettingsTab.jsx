@@ -1,3 +1,7 @@
+/**
+ * Defines agent settings tab configuration for the renderer UI.
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';

@@ -1,3 +1,7 @@
+/**
+ * Covers chat message sender utils. behavior in the frontend test suite.
+ */
+
 import {
   hasUserMessages,
 } from '../../frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils';

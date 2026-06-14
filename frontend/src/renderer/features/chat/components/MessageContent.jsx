@@ -1,3 +1,7 @@
+/**
+ * Provides the message content module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { isUserMessageWithScreenshot } from '../utils/message/messageScreenshots';
 import AssistantThinkingSection from './message/content/AssistantThinkingSection';

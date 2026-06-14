@@ -1,3 +1,7 @@
+/**
+ * Coordinates the window visibility runtime for the Electron main process.
+ */
+
 const {
   centerWindowOnDisplayWorkArea,
   fitWindowToDisplayWorkArea,

@@ -1,3 +1,7 @@
+/**
+ * Provides the file attachment utils module for the renderer UI.
+ */
+
 import {
   parseBase64ImageDataUrl,
   readFileAsDataUrl,

@@ -1,3 +1,7 @@
+/**
+ * Provides the use renderer conversation session info module for the renderer UI.
+ */
+
 import { useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';

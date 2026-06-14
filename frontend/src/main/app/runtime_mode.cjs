@@ -1,3 +1,7 @@
+/**
+ * Coordinates the runtime mode for the Electron main process.
+ */
+
 function isVmModeEnabled(env = process.env) {
   const rawValue = typeof env?.WINDIE_VM_MODE === 'string'
     ? env.WINDIE_VM_MODE.trim()

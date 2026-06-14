@@ -1,3 +1,5 @@
+"""Covers memory operations behavior in the sidecar test suite."""
+
 import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 

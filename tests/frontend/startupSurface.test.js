@@ -1,3 +1,7 @@
+/**
+ * Covers startup surface. behavior in the frontend test suite.
+ */
+
 import { selectStartupSurface } from '../../frontend/src/renderer/app/startupSurface';
 
 describe('startupSurface', () => {

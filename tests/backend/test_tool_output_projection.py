@@ -1,3 +1,5 @@
+"""Covers tool output projection behavior in the backend test suite."""
+
 from backend.src.agent.tools.processing import tool_output_projection as projection
 from backend.src.agent.tools.processing.tool_output_projection import (
     raw_tool_output_text,

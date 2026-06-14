@@ -1,3 +1,7 @@
+/**
+ * Provides the use chat common actions module for the renderer UI.
+ */
+
 import { useChatStore } from '../stores/chatStore';
 
 export function useChatCommonActions() {

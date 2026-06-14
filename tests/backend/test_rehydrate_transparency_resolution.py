@@ -1,3 +1,5 @@
+"""Covers rehydrate transparency resolution behavior in the backend test suite."""
+
 from backend.src.api.services.rehydrate_transparency_resolution import (
     extract_system_prompt_from_transparency,
     normalize_optional_string,

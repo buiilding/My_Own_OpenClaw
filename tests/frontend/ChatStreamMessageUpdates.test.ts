@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream message updates. behavior in the frontend test suite.
+ */
+
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,

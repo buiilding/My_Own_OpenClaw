@@ -1,3 +1,7 @@
+/**
+ * Implements the windie client integration for the TypeScript SDK runtime.
+ */
+
 import {
   buildModelSettingsPatch,
   type WindieModelSelection,

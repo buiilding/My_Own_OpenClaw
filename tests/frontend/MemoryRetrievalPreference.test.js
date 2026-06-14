@@ -1,3 +1,7 @@
+/**
+ * Covers memory retrieval preference. behavior in the frontend test suite.
+ */
+
 import {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,

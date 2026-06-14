@@ -1,3 +1,7 @@
+/**
+ * Covers local backend status store. behavior in the frontend test suite.
+ */
+
 describe('localBackendStatusStore', () => {
   function loadStoreWithDeferredBootstrap() {
     jest.resetModules();

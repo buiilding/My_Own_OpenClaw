@@ -1,3 +1,7 @@
+/**
+ * Covers ipc main bridge harness behavior in the frontend test suite.
+ */
+
 const path = require('path');
 
 jest.mock('ws', () => {

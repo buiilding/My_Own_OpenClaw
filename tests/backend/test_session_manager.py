@@ -1,3 +1,5 @@
+"""Covers session manager behavior in the backend test suite."""
+
 import asyncio
 from typing import Dict
 from unittest.mock import AsyncMock

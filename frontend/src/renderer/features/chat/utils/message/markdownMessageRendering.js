@@ -1,3 +1,7 @@
+/**
+ * Provides the markdown message rendering module for the renderer UI.
+ */
+
 import {
   extractTextFromHtml,
   toSanitizedMarkdownHtml,

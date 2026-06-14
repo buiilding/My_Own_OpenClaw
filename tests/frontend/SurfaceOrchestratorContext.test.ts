@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator context. behavior in the frontend test suite.
+ */
+
 import {
   resolveSurfaceTransitionContext,
 } from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/context';

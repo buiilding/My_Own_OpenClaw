@@ -1,3 +1,7 @@
+/**
+ * Covers conversation replay tool messages. behavior in the frontend test suite.
+ */
+
 import {
   buildReplayContextMessages,
 } from '../../frontend/src/renderer/features/chat/utils/conversationReplayToolMessages';

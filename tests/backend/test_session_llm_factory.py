@@ -1,3 +1,5 @@
+"""Covers session llm factory behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.agent.session.session import AgentSession

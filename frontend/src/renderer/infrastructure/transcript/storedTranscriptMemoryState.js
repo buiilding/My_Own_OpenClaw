@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves stored transcript memory state state for the renderer UI.
+ */
+
 import {
   normalizeMessageType,
   normalizeOptionalString,

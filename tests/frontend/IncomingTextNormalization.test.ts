@@ -1,3 +1,7 @@
+/**
+ * Covers incoming text normalization. behavior in the frontend test suite.
+ */
+
 import {
   normalizeIncomingText,
   normalizeOptionalIncomingText,

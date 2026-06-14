@@ -1,3 +1,5 @@
+"""Implements the client response normalization integration for the backend."""
+
 import copy
 from typing import Any, Dict, List, Optional
 

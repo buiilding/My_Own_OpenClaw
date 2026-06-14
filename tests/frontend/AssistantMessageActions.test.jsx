@@ -1,3 +1,7 @@
+/**
+ * Covers assistant message actions. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 

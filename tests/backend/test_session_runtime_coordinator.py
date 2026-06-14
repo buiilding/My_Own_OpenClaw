@@ -1,3 +1,5 @@
+"""Covers session runtime coordinator behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 from backend.src.core.config.models import AppConfig

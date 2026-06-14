@@ -1,3 +1,7 @@
+/**
+ * Exposes the package entrypoint for the Electron main process.
+ */
+
 const {
   app,
   BrowserWindow,

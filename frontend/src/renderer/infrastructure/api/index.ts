@@ -1,3 +1,7 @@
+/**
+ * Exposes the package entrypoint for the renderer UI.
+ */
+
 export {
   createWindieLocalRuntimeProvider,
   moduleTool,

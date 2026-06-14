@@ -1,3 +1,7 @@
+/**
+ * Covers tool execution logger. behavior in the frontend test suite.
+ */
+
 import {
   logScreenshotCaptureTiming,
   logSystemStateCaptureTiming,

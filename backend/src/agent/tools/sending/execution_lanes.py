@@ -1,3 +1,5 @@
+"""Provides the execution lanes module for the backend agent runtime."""
+
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef

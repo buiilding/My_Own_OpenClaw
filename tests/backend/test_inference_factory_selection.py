@@ -1,3 +1,5 @@
+"""Covers inference factory selection behavior in the backend test suite."""
+
 from backend.src.core.config.models import AppConfig
 from backend.src.core.container.factories import (
     _create_embedder,

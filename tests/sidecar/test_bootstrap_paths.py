@@ -1,3 +1,5 @@
+"""Covers bootstrap paths behavior in the sidecar test suite."""
+
 import os
 import subprocess
 import sys

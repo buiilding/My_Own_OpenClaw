@@ -1,3 +1,7 @@
+/**
+ * Defines extension manifest contracts for the Electron main process.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');

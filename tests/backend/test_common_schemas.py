@@ -1,3 +1,5 @@
+"""Covers common schemas behavior in the backend test suite."""
+
 import pytest
 from pydantic import ValidationError
 

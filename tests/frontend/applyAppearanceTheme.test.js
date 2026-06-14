@@ -1,3 +1,7 @@
+/**
+ * Covers apply appearance theme. behavior in the frontend test suite.
+ */
+
 import {
   applyAppearanceTheme,
   resolveEffectiveAppearanceTheme,

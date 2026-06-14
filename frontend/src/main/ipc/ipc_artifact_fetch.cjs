@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc artifact fetch module for the Electron main process.
+ */
+
 function inferArtifactId(input) {
   if (typeof input !== 'string') {
     return null;

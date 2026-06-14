@@ -1,3 +1,7 @@
+/**
+ * Covers desktop memory runtime client. behavior in the frontend test suite.
+ */
+
 import { DesktopMemoryRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient';
 import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/windieCommandInvokeClient';
 

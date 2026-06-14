@@ -1,3 +1,7 @@
+/**
+ * Provides the mcp control module for the Electron main process.
+ */
+
 const {
   loadExtensionMcpServers,
   loadPublicExtensionRegistry,

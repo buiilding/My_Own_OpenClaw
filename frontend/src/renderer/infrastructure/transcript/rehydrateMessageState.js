@@ -1,3 +1,7 @@
+/**
+ * Provides the rehydrate message state module for the renderer UI.
+ */
+
 import {
   buildRehydrateToolCall,
   normalizeMessageType,

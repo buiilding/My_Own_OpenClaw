@@ -1,3 +1,7 @@
+/**
+ * Defines tool schemas contracts for the renderer UI.
+ */
+
 export type ToolSchema = {
   type: string;
   name?: string;

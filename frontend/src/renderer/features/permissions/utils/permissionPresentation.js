@@ -1,3 +1,7 @@
+/**
+ * Provides the permission presentation module for the renderer UI.
+ */
+
 const ACCESS_KIND_LABELS = Object.freeze({
   os_permission: 'OS Permission',
   app_capability: 'App Capability',

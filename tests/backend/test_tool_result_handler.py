@@ -1,3 +1,5 @@
+"""Covers tool result handler behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.agent.tools.waiting.handler import ToolResultHandler

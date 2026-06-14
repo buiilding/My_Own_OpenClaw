@@ -1,3 +1,7 @@
+/**
+ * Provides the transcript pending flush module for the renderer UI.
+ */
+
 import type { TranscriptEntry } from '../types';
 
 type WarnFn = (message: string, error: unknown) => void;

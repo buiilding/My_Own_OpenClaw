@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves permission state state for the Electron main process.
+ */
+
 const fs = require('fs');
 const path = require('path');
 

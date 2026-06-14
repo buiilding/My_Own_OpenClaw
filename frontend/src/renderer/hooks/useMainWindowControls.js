@@ -1,3 +1,7 @@
+/**
+ * Provides the use main window controls module for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
 

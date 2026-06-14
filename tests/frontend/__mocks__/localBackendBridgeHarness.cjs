@@ -1,3 +1,7 @@
+/**
+ * Covers local backend bridge harness behavior in the frontend test suite.
+ */
+
 const path = require('path');
 
 const mockAppendDiagnosticEvent = jest.fn(() => ({

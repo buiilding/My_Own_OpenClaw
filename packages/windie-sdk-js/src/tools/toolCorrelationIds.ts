@@ -1,3 +1,7 @@
+/**
+ * Provides the tool correlation ids module for the TypeScript SDK runtime.
+ */
+
 type ToolCorrelationPayload = unknown;
 
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {

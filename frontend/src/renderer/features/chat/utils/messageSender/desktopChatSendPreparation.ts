@@ -1,3 +1,7 @@
+/**
+ * Provides the desktop chat send preparation module for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';

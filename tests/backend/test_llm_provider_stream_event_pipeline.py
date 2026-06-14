@@ -1,3 +1,5 @@
+"""Covers llm provider stream event pipeline behavior in the backend test suite."""
+
 from typing import Any, Dict, List, Optional
 
 import pytest

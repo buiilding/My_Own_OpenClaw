@@ -1,3 +1,7 @@
+/**
+ * Provides the roadmap section module for the renderer UI.
+ */
+
 const RoadmapSection = () => {
   const phases = [
     {

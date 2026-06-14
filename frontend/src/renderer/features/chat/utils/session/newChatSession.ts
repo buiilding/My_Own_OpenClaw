@@ -1,3 +1,7 @@
+/**
+ * Provides the new chat session module for the renderer UI.
+ */
+
 import type { TokenCounts } from '../../stores/chatStore';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {

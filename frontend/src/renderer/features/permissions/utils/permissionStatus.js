@@ -1,3 +1,7 @@
+/**
+ * Provides the permission status module for the renderer UI.
+ */
+
 import { getPermissionGrantedLabel } from './permissionPresentation';
 
 function isPermissionGrantedStatus(status) {

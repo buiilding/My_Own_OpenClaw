@@ -1,3 +1,5 @@
+"""Covers vm run control event log behavior in the backend test suite."""
+
 from backend.src.services.vm_run_control_support.vm_run_control_event_log import append_run_event, select_run_events
 
 

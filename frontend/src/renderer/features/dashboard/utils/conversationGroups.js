@@ -1,3 +1,7 @@
+/**
+ * Provides the conversation groups module for the renderer UI.
+ */
+
 function getConversationTimeBuckets() {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

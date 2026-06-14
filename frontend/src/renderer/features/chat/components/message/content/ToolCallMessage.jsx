@@ -1,3 +1,7 @@
+/**
+ * Provides the tool call message module for the renderer UI.
+ */
+
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import HighlightedPlainText from './HighlightedPlainText';

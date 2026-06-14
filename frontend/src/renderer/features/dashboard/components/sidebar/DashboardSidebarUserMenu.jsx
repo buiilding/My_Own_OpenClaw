@@ -1,3 +1,7 @@
+/**
+ * Provides the dashboard sidebar user menu module for the renderer UI.
+ */
+
 import { useCallback, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {

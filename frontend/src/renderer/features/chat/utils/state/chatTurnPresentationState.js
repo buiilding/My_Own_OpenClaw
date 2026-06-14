@@ -1,3 +1,7 @@
+/**
+ * Provides the chat turn presentation state module for the renderer UI.
+ */
+
 import {
   isChatLoopAwaitingReply,
   isChatLoopBusy,

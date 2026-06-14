@@ -1,3 +1,7 @@
+/**
+ * Provides the model card data module for the renderer UI.
+ */
+
 function buildModelDescription(model) {
   if (typeof model?.description === 'string' && model.description.trim()) {
     return model.description.trim();

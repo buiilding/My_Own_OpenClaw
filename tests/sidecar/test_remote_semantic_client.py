@@ -1,3 +1,5 @@
+"""Covers remote semantic client behavior in the sidecar test suite."""
+
 import pytest
 
 from tests.sidecar.remote_client_test_utils import (

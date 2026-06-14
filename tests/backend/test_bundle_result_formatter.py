@@ -1,3 +1,5 @@
+"""Covers bundle result formatter behavior in the backend test suite."""
+
 from backend.src.agent.tools.shared.bundle_result_formatter import (
     BundleResultFormatter,
     _format_system_state_xml,

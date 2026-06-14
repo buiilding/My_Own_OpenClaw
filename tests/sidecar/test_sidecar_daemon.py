@@ -1,3 +1,5 @@
+"""Covers sidecar daemon behavior in the sidecar test suite."""
+
 import asyncio
 import json
 import sqlite3

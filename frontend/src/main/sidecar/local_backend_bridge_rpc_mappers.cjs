@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend rpc mappers behavior for the Electron main process.
+ */
+
 function getPayloadObject(payload = {}) {
   if (payload && typeof payload === 'object') {
     return payload;

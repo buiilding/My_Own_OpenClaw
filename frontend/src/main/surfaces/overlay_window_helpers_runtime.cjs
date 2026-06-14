@@ -1,3 +1,7 @@
+/**
+ * Coordinates the overlay window helpers runtime for the Electron main process.
+ */
+
 const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
 const responseOverlayLayoutContract = require('../../shared/response_overlay_layout_contract.json');
 

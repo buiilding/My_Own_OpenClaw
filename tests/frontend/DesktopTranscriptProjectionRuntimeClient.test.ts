@@ -1,3 +1,7 @@
+/**
+ * Covers desktop transcript projection runtime client. behavior in the frontend test suite.
+ */
+
 const mockInvokeWindieCommand = jest.fn();
 const mockReplaceCompactedReplay = jest.fn();
 const mockRewriteDesktopTranscriptProjection = jest.fn();

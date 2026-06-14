@@ -1,3 +1,5 @@
+"""Covers browser file store behavior in the sidecar test suite."""
+
 from pathlib import Path
 
 import pytest

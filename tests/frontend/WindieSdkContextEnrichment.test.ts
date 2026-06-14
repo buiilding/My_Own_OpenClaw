@@ -1,3 +1,7 @@
+/**
+ * Covers windie sdk context enrichment. behavior in the frontend test suite.
+ */
+
 import {
   enrichQueryPayload,
   renderModelFacingUserContent,

@@ -1,3 +1,5 @@
+"""Covers initialization coordinator behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 import pytest

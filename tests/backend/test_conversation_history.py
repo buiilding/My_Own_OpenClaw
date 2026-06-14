@@ -1,3 +1,5 @@
+"""Covers conversation history behavior in the backend test suite."""
+
 import backend.src.services.token_service as token_service
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.messages.structures import StoredMessage

@@ -1,3 +1,5 @@
+"""Covers tool validator utils behavior in the backend test suite."""
+
 from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.llm.parser_validation import ToolCallValidator
 

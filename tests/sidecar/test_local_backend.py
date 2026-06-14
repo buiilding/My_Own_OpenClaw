@@ -1,3 +1,5 @@
+"""Covers local backend behavior in the sidecar test suite."""
+
 import asyncio
 import signal
 import logging

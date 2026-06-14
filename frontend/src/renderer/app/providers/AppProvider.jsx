@@ -1,3 +1,7 @@
+/**
+ * Provides the app provider module for the renderer UI.
+ */
+
 import { useEffect } from 'react';
 import { AppConfigProvider } from './AppConfigProvider';
 import { AppStatusProvider } from './AppStatusProvider';

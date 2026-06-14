@@ -1,3 +1,7 @@
+/**
+ * Covers message transparency. behavior in the frontend test suite.
+ */
+
 import {
   buildTransparencySectionConfigs,
   resolveConversationToolSchemas,

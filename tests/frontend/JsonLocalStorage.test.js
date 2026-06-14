@@ -1,3 +1,7 @@
+/**
+ * Covers json local storage. behavior in the frontend test suite.
+ */
+
 import {
   readJsonObjectFromLocalStorage,
   writeJsonObjectToLocalStorage,

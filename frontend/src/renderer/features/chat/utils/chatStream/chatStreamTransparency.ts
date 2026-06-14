@@ -1,3 +1,7 @@
+/**
+ * Provides the chat stream transparency module for the renderer UI.
+ */
+
 import type { ChatMessage } from '../../stores/chatStore';
 import type { TranscriptTransparencyData } from '../../../../infrastructure/transcript/types';
 import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';

@@ -1,3 +1,7 @@
+/**
+ * Covers transcript storage. behavior in the frontend test suite.
+ */
+
 import {
   emitSessionUpdateEvent,
   persistSessionInfoToStorage,

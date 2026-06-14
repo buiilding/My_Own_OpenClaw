@@ -1,3 +1,5 @@
+"""Covers coordinate resolution helper behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 import pytest

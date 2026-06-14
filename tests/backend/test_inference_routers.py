@@ -1,3 +1,5 @@
+"""Covers inference routers behavior in the backend test suite."""
+
 import json
 
 import pytest

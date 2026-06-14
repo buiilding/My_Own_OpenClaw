@@ -1,3 +1,5 @@
+"""Defines openrouter routing for the backend."""
+
 import logging
 from typing import Any, Dict, Optional
 

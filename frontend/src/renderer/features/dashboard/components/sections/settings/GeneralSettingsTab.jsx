@@ -1,3 +1,7 @@
+/**
+ * Defines general settings tab configuration for the renderer UI.
+ */
+
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';

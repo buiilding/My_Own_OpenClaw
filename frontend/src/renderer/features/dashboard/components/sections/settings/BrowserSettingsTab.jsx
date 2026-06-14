@@ -1,3 +1,7 @@
+/**
+ * Defines browser settings tab configuration for the renderer UI.
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';

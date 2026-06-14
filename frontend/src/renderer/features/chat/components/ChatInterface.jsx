@@ -1,3 +1,7 @@
+/**
+ * Provides the chat interface module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import MessageList from './MessageList';

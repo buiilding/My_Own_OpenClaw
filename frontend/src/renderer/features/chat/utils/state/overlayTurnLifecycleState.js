@@ -1,3 +1,7 @@
+/**
+ * Provides the overlay turn lifecycle state module for the renderer UI.
+ */
+
 import { OVERLAY_TURN_LIFECYCLE, OVERLAY_TURN_PHASE_GROUPS } from '../overlay/overlayTurnLifecycleContract';
 
 const AWAITING_PHASE_SET = new Set(OVERLAY_TURN_PHASE_GROUPS.awaiting);

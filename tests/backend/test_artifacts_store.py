@@ -1,3 +1,5 @@
+"""Covers artifacts store behavior in the backend test suite."""
+
 import base64
 import io
 from types import SimpleNamespace

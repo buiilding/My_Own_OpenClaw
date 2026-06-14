@@ -1,3 +1,5 @@
+"""Provides the openai module for the backend."""
+
 import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 

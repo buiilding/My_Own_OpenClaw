@@ -1,3 +1,5 @@
+"""Covers incoming message contract behavior in the backend test suite."""
+
 import json
 from pathlib import Path
 

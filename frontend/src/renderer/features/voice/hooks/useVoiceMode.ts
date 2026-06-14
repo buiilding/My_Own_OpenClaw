@@ -1,3 +1,7 @@
+/**
+ * Provides the use voice mode module for the renderer UI.
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding';
 import {

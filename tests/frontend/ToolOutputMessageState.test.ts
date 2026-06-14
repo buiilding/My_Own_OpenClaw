@@ -1,3 +1,7 @@
+/**
+ * Covers tool output message state. behavior in the frontend test suite.
+ */
+
 import { buildToolOutputChatMessageState } from '../../frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState';
 
 describe('toolOutputChatMessageState', () => {

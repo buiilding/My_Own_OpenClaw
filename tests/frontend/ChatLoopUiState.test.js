@@ -1,3 +1,7 @@
+/**
+ * Covers chat loop ui state. behavior in the frontend test suite.
+ */
+
 import {
   isChatLoopAwaitingReply,
   isChatLoopBusy,

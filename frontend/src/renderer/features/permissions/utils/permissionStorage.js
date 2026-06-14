@@ -1,3 +1,7 @@
+/**
+ * Provides the permission storage module for the renderer UI.
+ */
+
 import {
   readJsonObjectFromLocalStorage,
   writeJsonObjectToLocalStorage,

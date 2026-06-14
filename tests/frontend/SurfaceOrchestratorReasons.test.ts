@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator reasons. behavior in the frontend test suite.
+ */
+
 import {
   SURFACE_REASON_CAPTURE_OVERLAP_REUSE,
   SURFACE_REASON_CAPTURE_RESTORE_FAILED,

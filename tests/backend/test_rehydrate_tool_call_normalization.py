@@ -1,3 +1,5 @@
+"""Covers rehydrate tool call normalization behavior in the backend test suite."""
+
 from backend.src.api.services.rehydrate_tool_call_normalization import (
     extract_thought_signature,
     extract_tool_call_details,

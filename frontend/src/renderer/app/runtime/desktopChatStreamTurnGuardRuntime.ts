@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop chat stream turn guard runtime for the renderer UI.
+ */
+
 export function isStaleTurnForActiveStream(
   eventTurnRef: string | null | undefined,
   activeTurnRef: string | null | undefined,

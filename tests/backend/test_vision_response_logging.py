@@ -1,3 +1,5 @@
+"""Covers vision response logging behavior in the backend test suite."""
+
 from backend.src.services.vision.providers.internvl_runtime_helpers import (
     build_response_log_metadata,
     log_vision_response_metadata,

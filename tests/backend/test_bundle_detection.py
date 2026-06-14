@@ -1,3 +1,5 @@
+"""Covers bundle detection behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 from backend.src.agent.tools.shared.bundle_detection import (

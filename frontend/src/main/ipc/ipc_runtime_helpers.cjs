@@ -1,3 +1,7 @@
+/**
+ * Coordinates the ipc runtime helpers for the Electron main process.
+ */
+
 const {
   resolveBackendOverlayPhaseTransition,
 } = require('./ipc_overlay_phase_events.cjs');

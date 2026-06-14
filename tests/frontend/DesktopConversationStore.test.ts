@@ -1,3 +1,7 @@
+/**
+ * Covers desktop conversation store. behavior in the frontend test suite.
+ */
+
 import {
   buildRehydrateSnapshotFromTranscriptProjectionEntries,
   appendTranscriptProjectionEntry,

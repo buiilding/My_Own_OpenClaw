@@ -1,3 +1,5 @@
+"""Covers shared tool schema parity behavior in the sidecar test suite."""
+
 from __future__ import annotations
 
 from typing import Any

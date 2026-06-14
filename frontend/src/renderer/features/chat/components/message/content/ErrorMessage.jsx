@@ -1,3 +1,7 @@
+/**
+ * Provides the error message module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import HighlightedPlainText from './HighlightedPlainText';
 

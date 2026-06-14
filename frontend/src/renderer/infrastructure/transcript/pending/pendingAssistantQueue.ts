@@ -1,3 +1,7 @@
+/**
+ * Provides the pending assistant queue module for the renderer UI.
+ */
+
 import type { PendingAssistantMessage } from '../types';
 
 type PendingAssistantQueue = {

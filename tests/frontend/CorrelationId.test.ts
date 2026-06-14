@@ -1,3 +1,7 @@
+/**
+ * Covers correlation id. behavior in the frontend test suite.
+ */
+
 import {
   resolveCorrelationId,
 } from '../../frontend/src/renderer/infrastructure/services/CorrelationId';

@@ -1,3 +1,7 @@
+/**
+ * Covers chat session bootstrap. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 import { useChatSessionBootstrap } from '../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';

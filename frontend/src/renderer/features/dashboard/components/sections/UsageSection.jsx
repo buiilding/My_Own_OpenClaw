@@ -1,3 +1,7 @@
+/**
+ * Provides the usage section module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
 

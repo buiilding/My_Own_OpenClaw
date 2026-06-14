@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop transcript session runtime for the renderer UI.
+ */
+
 import {
   createTranscriptSessionRuntime,
   type TranscriptSessionResolveOptions,

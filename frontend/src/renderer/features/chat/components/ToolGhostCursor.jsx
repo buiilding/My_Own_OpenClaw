@@ -1,3 +1,7 @@
+/**
+ * Provides the tool ghost cursor module for the renderer UI.
+ */
+
 function ToolGhostCursor({ label }) {
   return (
     <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">

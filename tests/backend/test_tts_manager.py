@@ -1,3 +1,5 @@
+"""Covers tts manager behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.api.processing.tts.manager import TTSManager

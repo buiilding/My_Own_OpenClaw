@@ -1,3 +1,7 @@
+/**
+ * Covers tool correlation ids. behavior in the frontend test suite.
+ */
+
 import {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,

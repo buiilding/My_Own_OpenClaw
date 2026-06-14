@@ -1,3 +1,7 @@
+/**
+ * Handles overlay chatbox visual anchor events for the Electron main process.
+ */
+
 function handleSetChatboxVisualAnchorHeight(
   {
     height,

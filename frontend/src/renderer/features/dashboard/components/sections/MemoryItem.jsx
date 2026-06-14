@@ -1,3 +1,7 @@
+/**
+ * Provides the memory item module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import {
   ChevronDown,

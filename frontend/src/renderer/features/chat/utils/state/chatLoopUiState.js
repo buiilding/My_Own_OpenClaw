@@ -1,3 +1,7 @@
+/**
+ * Provides the chat loop ui state module for the renderer UI.
+ */
+
 import {
   isOverlayTurnLifecycleAwaiting,
 } from './overlayTurnLifecycleState';

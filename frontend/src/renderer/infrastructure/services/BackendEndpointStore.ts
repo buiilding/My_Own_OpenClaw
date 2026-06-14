@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves backend endpoint state for the renderer UI.
+ */
+
 const DEFAULT_BACKEND_HTTP_URL = 'http://127.0.0.1:8765';
 
 let backendHttpUrl = DEFAULT_BACKEND_HTTP_URL;

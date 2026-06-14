@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc overlay phase events module for the Electron main process.
+ */
+
 const {
   normalizeOverlayNumber,
   normalizeOverlayString,

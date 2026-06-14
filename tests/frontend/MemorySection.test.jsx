@@ -1,3 +1,7 @@
+/**
+ * Covers memory section. behavior in the frontend test suite.
+ */
+
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';

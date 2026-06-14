@@ -1,3 +1,7 @@
+/**
+ * Provides the minimal chat pill module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useChatStore } from '../../chat/stores/chatStore';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';

@@ -1,3 +1,5 @@
+"""Covers remote client utils behavior in the sidecar test suite."""
+
 import sys
 import types
 from pathlib import Path

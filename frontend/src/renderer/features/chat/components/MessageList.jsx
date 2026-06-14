@@ -1,3 +1,7 @@
+/**
+ * Provides the message list module for the renderer UI.
+ */
+
 import {
   useCallback,
   useEffect,

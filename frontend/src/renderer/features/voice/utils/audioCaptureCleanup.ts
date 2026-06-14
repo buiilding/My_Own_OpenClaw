@@ -1,3 +1,7 @@
+/**
+ * Provides the audio capture cleanup module for the renderer UI.
+ */
+
 import type { MutableRefObject } from 'react';
 
 export type LegacyAudioProcessEvent = {

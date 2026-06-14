@@ -1,3 +1,5 @@
+"""Covers local tool output contract behavior in the sidecar test suite."""
+
 from __future__ import annotations
 
 import re

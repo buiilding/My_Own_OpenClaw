@@ -1,3 +1,5 @@
+"""Covers repo agent example behavior in the sidecar test suite."""
+
 from pathlib import Path
 
 import pytest

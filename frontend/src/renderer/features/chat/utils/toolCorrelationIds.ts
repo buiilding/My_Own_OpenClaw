@@ -1,3 +1,7 @@
+/**
+ * Provides the tool correlation ids module for the renderer UI.
+ */
+
 import {
   resolveToolCallCorrelationId as resolveSdkToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSdkToolOutputCorrelationId,

@@ -1,3 +1,7 @@
+/**
+ * Covers dashboard conversation load. behavior in the frontend test suite.
+ */
+
 import {
   normalizeRecentConversations,
   prunePinnedConversationRefs,

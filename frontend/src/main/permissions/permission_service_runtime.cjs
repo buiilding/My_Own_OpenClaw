@@ -1,3 +1,7 @@
+/**
+ * Coordinates the permission service runtime for the Electron main process.
+ */
+
 const fs = require('fs');
 const { spawn } = require('child_process');
 

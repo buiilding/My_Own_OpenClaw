@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc assistant trace module for the Electron main process.
+ */
+
 const ASSISTANT_BACKEND_TRACE_TYPES = new Set([
   'query-accepted',
   'streaming-response',

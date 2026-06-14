@@ -1,3 +1,7 @@
+/**
+ * Provides the api keys section module for the renderer UI.
+ */
+
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ChevronDown, ChevronRight } from 'lucide-react';

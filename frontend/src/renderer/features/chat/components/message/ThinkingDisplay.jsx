@@ -1,3 +1,7 @@
+/**
+ * Provides the thinking display module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../utils/devUiFlag';

@@ -1,3 +1,7 @@
+/**
+ * Provides the data url image utils module for the renderer UI.
+ */
+
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,

@@ -1,3 +1,7 @@
+/**
+ * Covers ipc channels. behavior in the frontend test suite.
+ */
+
 import sharedIpcChannels from '../../frontend/src/shared/ipcChannels.json';
 import {
   EXPECTED_SHARED_CHANNEL_REGISTRY,

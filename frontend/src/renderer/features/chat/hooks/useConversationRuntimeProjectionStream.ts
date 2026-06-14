@@ -1,3 +1,7 @@
+/**
+ * Coordinates the use conversation runtime projection stream for the renderer UI.
+ */
+
 import { useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore } from '../stores/chatStore';

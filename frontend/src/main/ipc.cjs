@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc module for the Electron main process.
+ */
+
 const {
   ipcMain,
   shell,

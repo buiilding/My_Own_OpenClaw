@@ -1,3 +1,5 @@
+"""Covers sdk routes behavior in the backend test suite."""
+
 import base64
 import importlib
 import io

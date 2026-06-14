@@ -1,3 +1,7 @@
+/**
+ * Defines backend payload contract contracts for the TypeScript SDK runtime.
+ */
+
 import type { JsonRecord } from '../conversation/types.js';
 
 const BACKEND_PAYLOAD_KEYS_BY_TYPE: Record<string, readonly string[]> = Object.freeze({

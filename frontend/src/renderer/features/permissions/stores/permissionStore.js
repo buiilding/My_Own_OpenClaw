@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves permission state for the renderer UI.
+ */
+
 import { create } from 'zustand';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {

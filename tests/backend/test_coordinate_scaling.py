@@ -1,3 +1,5 @@
+"""Covers coordinate scaling behavior in the backend test suite."""
+
 import pytest
 from frontend.src.main.python.tools.schemas import (
     MouseControlArgs as SidecarMouseControlArgs,

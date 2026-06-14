@@ -1,3 +1,7 @@
+/**
+ * Covers app config persistence. behavior in the frontend test suite.
+ */
+
 import {
   applyConfigIfChanged,
   buildFrontendConfigPersistencePayload,

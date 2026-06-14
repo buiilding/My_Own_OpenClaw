@@ -1,3 +1,7 @@
+/**
+ * Provides the source tags module for the renderer UI.
+ */
+
 const SOURCE_EVENT_LABELS = {
   'llm-thought': 'thinking-token API',
   'streaming-response': 'normal-text API',

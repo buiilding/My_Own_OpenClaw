@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator capture lifecycle. behavior in the frontend test suite.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   prepareExternalFocusForCapture,

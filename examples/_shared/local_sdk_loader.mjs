@@ -1,3 +1,7 @@
+/**
+ * Provides the local sdk loader module for the example application workspace.
+ */
+
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';

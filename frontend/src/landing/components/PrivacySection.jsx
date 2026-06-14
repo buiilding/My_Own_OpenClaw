@@ -1,3 +1,7 @@
+/**
+ * Provides the privacy section module for the renderer UI.
+ */
+
 import SectionIntro from './SectionIntro';
 import ProviderStackIcon from './icons/ProviderStackIcon';
 

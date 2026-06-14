@@ -1,3 +1,5 @@
+"""Covers embeddings provider behavior in the backend test suite."""
+
 import numpy as np
 import pytest
 

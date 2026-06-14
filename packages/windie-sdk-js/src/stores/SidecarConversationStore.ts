@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves sidecar conversation state for the TypeScript SDK runtime.
+ */
+
 import type {
   AppDiagnosticEventDraft,
   CompactedReplaySnapshot,

@@ -1,3 +1,5 @@
+"""Covers parser types system use shell auth mode behavior in the backend test suite."""
+
 from backend.src.llm.parser_types import ToolCallSchema
 
 

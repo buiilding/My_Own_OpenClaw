@@ -1,3 +1,7 @@
+/**
+ * Covers transcript pending queue. behavior in the frontend test suite.
+ */
+
 import { createPendingUserQueue } from '../../frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue';
 
 describe('pendingUserQueue', () => {

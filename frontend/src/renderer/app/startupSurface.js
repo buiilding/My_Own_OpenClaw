@@ -1,3 +1,7 @@
+/**
+ * Provides the startup surface module for the renderer UI.
+ */
+
 export function selectStartupSurface({
   vmModeEnabled,
   bootstrapped,

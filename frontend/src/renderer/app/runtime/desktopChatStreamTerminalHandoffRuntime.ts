@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop chat stream terminal handoff runtime for the renderer UI.
+ */
+
 import type { StreamPhase } from './desktopChatStreamTrackingRuntime';
 
 type StreamGuardMessage = {

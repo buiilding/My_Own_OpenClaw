@@ -1,3 +1,7 @@
+/**
+ * Covers agent stop shortcut. behavior in the frontend test suite.
+ */
+
 import {
   getGlobalAgentStopShortcutOptions,
   getAgentStopShortcutLabel,

@@ -1,3 +1,7 @@
+/**
+ * Provides the artifact uploader module for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { logRendererArtifactScreenshotDebug } from './toolExecution/ToolScreenshotDebugTrace';
 import {

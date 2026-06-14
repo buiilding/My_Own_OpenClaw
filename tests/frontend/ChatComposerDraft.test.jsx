@@ -1,3 +1,7 @@
+/**
+ * Covers chat composer draft. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 
 import { useChatComposerDraft } from '../../frontend/src/renderer/features/chat/hooks/useChatComposerDraft';

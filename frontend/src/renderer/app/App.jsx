@@ -1,3 +1,7 @@
+/**
+ * Provides the app module for the renderer UI.
+ */
+
 import { useEffect, useRef } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import DashboardShell from '../features/dashboard/components/DashboardShell';

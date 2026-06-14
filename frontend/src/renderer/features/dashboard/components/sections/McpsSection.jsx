@@ -1,3 +1,7 @@
+/**
+ * Provides the mcps section module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {

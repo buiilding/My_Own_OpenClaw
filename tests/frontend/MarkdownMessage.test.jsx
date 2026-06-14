@@ -1,3 +1,7 @@
+/**
+ * Covers markdown message. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { render } from '@testing-library/react';
 

@@ -1,3 +1,7 @@
+/**
+ * Covers settings management hook. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 
 import { useSettingsManagement } from '../../frontend/src/renderer/features/settings/hooks/useSettingsManagement';

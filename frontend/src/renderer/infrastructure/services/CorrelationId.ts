@@ -1,3 +1,7 @@
+/**
+ * Provides the correlation id module for the renderer UI.
+ */
+
 function normalizeCorrelationId(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;

@@ -1,3 +1,7 @@
+/**
+ * Handles agent sudo access events for the Electron main process.
+ */
+
 const { spawn } = require('child_process');
 
 const SUDOERS_RULE_PATH = '/etc/sudoers.d/99-windieos-agent-nopasswd';

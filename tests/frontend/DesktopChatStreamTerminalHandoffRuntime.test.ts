@@ -1,3 +1,7 @@
+/**
+ * Covers desktop chat stream terminal handoff runtime. behavior in the frontend test suite.
+ */
+
 import {
   hasTerminalPendingHandoff,
   isAwaitingFirstChunkMismatch,

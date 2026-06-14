@@ -1,3 +1,7 @@
+/**
+ * Covers response overlay phase contract. behavior in the frontend test suite.
+ */
+
 import {
   isResponseOverlayPhase,
   normalizeResponseOverlayNumber,

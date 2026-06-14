@@ -1,3 +1,7 @@
+/**
+ * Coordinates the transcript session runtime for the renderer UI.
+ */
+
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../ipc/bridge';
 import { extractTranscriptSessionSyncPayload } from './sessionSyncPayload';
 import {

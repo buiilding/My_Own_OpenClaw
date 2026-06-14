@@ -1,3 +1,7 @@
+/**
+ * Defines capability manifest contracts for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAgentDefinitionToolManifest = setAgentDefinitionToolManifest;

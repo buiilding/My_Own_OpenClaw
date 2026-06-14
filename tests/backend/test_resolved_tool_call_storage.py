@@ -1,3 +1,5 @@
+"""Covers resolved tool call storage behavior in the backend test suite."""
+
 from backend.src.agent.tools.preparation.storage.resolved_call_storage import (
     ResolvedToolCallStorage,
 )

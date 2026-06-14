@@ -1,3 +1,7 @@
+/**
+ * Covers artifact uploader. behavior in the frontend test suite.
+ */
+
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: jest.fn(),

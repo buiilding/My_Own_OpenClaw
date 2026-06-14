@@ -1,3 +1,7 @@
+/**
+ * Provides the agent stop shortcut module for the renderer UI.
+ */
+
 import shortcutCatalog from '../../../shared/agent_stop_shortcut_catalog.json';
 
 export function getAgentStopShortcutLabel() {

@@ -1,3 +1,7 @@
+/**
+ * Provides the pending user queue module for the renderer UI.
+ */
+
 import type { PendingUserMessage } from '../types';
 
 type PendingUserQueue = {

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Runs the generate builtin tool manifest workflow for the developer CLI and automation tooling.
+
 """Generate the Electron-consumed built-in client tool manifest."""
 
 from __future__ import annotations

@@ -1,3 +1,7 @@
+/**
+ * Provides the assistant thinking section module for the renderer UI.
+ */
+
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import ThinkingDisplay from '../ThinkingDisplay';

@@ -1,3 +1,7 @@
+/**
+ * Provides the use chat composer draft module for the renderer UI.
+ */
+
 import { useCallback, useRef, useState } from 'react';
 import { useTranscription } from './useTranscription';
 import { buildOutgoingMessage } from '../utils/message/messageInput';

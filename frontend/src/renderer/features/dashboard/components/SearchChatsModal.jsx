@@ -1,3 +1,7 @@
+/**
+ * Provides the search chats modal module for the renderer UI.
+ */
+
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Circle, PenSquare, X } from 'lucide-react';

@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc renderer windows module for the Electron main process.
+ */
+
 function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
 }

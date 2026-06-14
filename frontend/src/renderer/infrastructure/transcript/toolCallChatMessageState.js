@@ -1,3 +1,7 @@
+/**
+ * Provides the tool call chat message state module for the renderer UI.
+ */
+
 export function buildToolCallChatMessageState({
   id = null,
   text,

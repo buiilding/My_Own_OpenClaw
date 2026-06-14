@@ -1,3 +1,7 @@
+/**
+ * Provides the context enrichment pipeline module for the TypeScript SDK runtime.
+ */
+
 import type { JsonRecord, TraceContext } from '../conversation/types.js';
 import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
 import type { WindieLocalRuntimeClient } from './LocalSidecarRuntime.js';

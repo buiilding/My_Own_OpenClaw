@@ -1,3 +1,7 @@
+/**
+ * Provides the agent definition module for the Electron main process.
+ */
+
 const { loadExtensionSkillPromptLayers } = require('../extensions/extension_manifest.cjs');
 
 function normalizeString(value) {

@@ -1,3 +1,7 @@
+/**
+ * Provides the windie chat session module for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieChatSession = void 0;

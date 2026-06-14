@@ -1,3 +1,7 @@
+/**
+ * Covers model card data. behavior in the frontend test suite.
+ */
+
 import {
   normalizeProviderLabel,
   toModelCard,

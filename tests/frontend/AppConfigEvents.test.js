@@ -1,3 +1,7 @@
+/**
+ * Covers app config events. behavior in the frontend test suite.
+ */
+
 import {
   extractTranscriptUserId,
   routeConfigBackendEvent,

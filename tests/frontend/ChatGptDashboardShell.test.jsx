@@ -1,3 +1,7 @@
+/**
+ * Covers chat gpt dashboard shell. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 

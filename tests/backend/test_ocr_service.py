@@ -1,3 +1,5 @@
+"""Covers ocr service behavior in the backend test suite."""
+
 import base64
 
 import backend.src.services.ocr.ocr_service as ocr_service_module

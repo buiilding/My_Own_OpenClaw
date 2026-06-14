@@ -1,3 +1,5 @@
+"""Covers prompt constructor utils behavior in the backend test suite."""
+
 import base64
 import io
 

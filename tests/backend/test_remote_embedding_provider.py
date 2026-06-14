@@ -1,3 +1,5 @@
+"""Covers remote embedding provider behavior in the backend test suite."""
+
 from __future__ import annotations
 
 import asyncio

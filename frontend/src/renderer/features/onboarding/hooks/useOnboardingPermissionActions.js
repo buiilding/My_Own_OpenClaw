@@ -1,3 +1,7 @@
+/**
+ * Provides the use onboarding permission actions module for the renderer UI.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';

@@ -1,3 +1,5 @@
+"""Covers token service fallback behavior in the backend test suite."""
+
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass

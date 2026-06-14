@@ -1,3 +1,7 @@
+/**
+ * Coordinates the gpu runtime for the Electron main process.
+ */
+
 function isTruthyEnv(value) {
   if (typeof value !== 'string') {
     return false;

@@ -1,3 +1,7 @@
+/**
+ * Covers transcript record write. behavior in the frontend test suite.
+ */
+
 import { recordImmediateTranscriptEntry } from '../../frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite';
 
 describe('transcriptRecordWrite', () => {

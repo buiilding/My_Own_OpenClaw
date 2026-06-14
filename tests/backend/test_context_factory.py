@@ -1,3 +1,5 @@
+"""Covers context factory behavior in the backend test suite."""
+
 from typing import Optional
 
 from backend.src.core.config.models import AppConfig

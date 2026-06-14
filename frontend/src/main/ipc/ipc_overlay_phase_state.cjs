@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc overlay phase state module for the Electron main process.
+ */
+
 const {
   RESPONSE_OVERLAY_PHASES,
   RESPONSE_OVERLAY_METADATA_KEYS,

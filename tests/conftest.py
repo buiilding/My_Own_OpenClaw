@@ -1,3 +1,5 @@
+"""Covers conftest behavior in the conftest.py test suite."""
+
 import os
 import warnings
 

@@ -1,3 +1,5 @@
+"""Covers validation utils behavior in the backend test suite."""
+
 import pytest
 from pydantic import BaseModel
 

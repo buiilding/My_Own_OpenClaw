@@ -1,3 +1,7 @@
+/**
+ * Provides the message list classes module for the renderer UI.
+ */
+
 import { hasMessageScreenshot } from './messageScreenshots';
 
 export function buildMessageClassName(message) {

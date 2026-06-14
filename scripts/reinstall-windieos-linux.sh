@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Runs the reinstall windieos linux workflow for the developer CLI and automation tooling.
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

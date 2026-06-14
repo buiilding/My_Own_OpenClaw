@@ -1,3 +1,5 @@
+"""Covers llm client response normalization behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.core.infrastructure.error_types import LLMAPIError

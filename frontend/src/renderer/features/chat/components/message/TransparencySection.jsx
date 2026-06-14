@@ -1,3 +1,7 @@
+/**
+ * Provides the transparency section module for the renderer UI.
+ */
+
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 

@@ -1,3 +1,7 @@
+/**
+ * Covers usage section. behavior in the frontend test suite.
+ */
+
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import UsageSection from '../../frontend/src/renderer/features/dashboard/components/sections/UsageSection';

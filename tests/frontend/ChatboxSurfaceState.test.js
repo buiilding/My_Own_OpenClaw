@@ -1,3 +1,7 @@
+/**
+ * Covers chatbox surface state. behavior in the frontend test suite.
+ */
+
 import {
   resolveCurrentTurnPresentationState,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';

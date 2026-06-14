@@ -1,3 +1,7 @@
+/**
+ * Provides the minimal chat pill layout module for the renderer UI.
+ */
+
 export const CHATBOX_DRAG_START_THRESHOLD = 5;
 
 const CHATBOX_CLOSE_BUMP_HEIGHT = 14;

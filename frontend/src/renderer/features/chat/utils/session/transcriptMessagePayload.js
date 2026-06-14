@@ -1,3 +1,7 @@
+/**
+ * Provides the transcript message payload module for the renderer UI.
+ */
+
 import {
   buildTranscriptTransparencyFromChatMessage,
   normalizeOptionalString,

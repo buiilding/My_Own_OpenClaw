@@ -1,3 +1,7 @@
+/**
+ * Implements the hosted backend http client integration for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieSdkClient = void 0;

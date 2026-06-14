@@ -1,3 +1,7 @@
+/**
+ * Handles ipc response overlay handlers events for the Electron main process.
+ */
+
 function registerResponseOverlayHandlers({
   ipcMain,
   getResponseOverlayPhase,

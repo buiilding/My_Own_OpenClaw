@@ -1,3 +1,5 @@
+"""Provides the stream event pipeline module for the backend."""
+
 from typing import Any, AsyncGenerator, Callable, Dict, Optional
 
 import litellm

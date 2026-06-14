@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc transcript session sync module for the Electron main process.
+ */
+
 function normalizeOptionalString(value) {
   if (typeof value !== 'string') {
     return null;

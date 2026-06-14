@@ -1,3 +1,7 @@
+/**
+ * Provides the use current turn presentation state module for the renderer UI.
+ */
+
 import { useMemo } from 'react';
 import {
   findLatestVisibleAssistantReply,

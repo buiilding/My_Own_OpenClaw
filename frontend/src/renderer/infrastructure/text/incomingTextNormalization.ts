@@ -1,3 +1,7 @@
+/**
+ * Provides the incoming text normalization module for the renderer UI.
+ */
+
 const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
   ['â€œ', '“'],
   ['â€\u009d', '”'],

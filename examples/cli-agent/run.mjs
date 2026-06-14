@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/**
+ * Runs the run workflow for the example application workspace.
+ */
+
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';

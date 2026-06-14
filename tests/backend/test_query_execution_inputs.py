@@ -1,3 +1,5 @@
+"""Covers query execution inputs behavior in the backend test suite."""
+
 from backend.src.api.schemas import QueryMessage
 from backend.src.api.services.query_execution_support.query_execution_inputs import (
     build_query_image_data,

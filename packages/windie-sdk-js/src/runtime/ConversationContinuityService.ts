@@ -1,3 +1,7 @@
+/**
+ * Implements the conversation continuity service service for the TypeScript SDK runtime.
+ */
+
 import type {
   BackendTransport,
   CompactedReplaySnapshot,

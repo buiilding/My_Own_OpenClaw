@@ -1,3 +1,7 @@
+/**
+ * Provides the main window controls module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { Minus, Square, X } from 'lucide-react';
 

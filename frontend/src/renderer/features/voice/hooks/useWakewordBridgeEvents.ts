@@ -1,3 +1,7 @@
+/**
+ * Bridges use wakeword events behavior for the renderer UI.
+ */
+
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { isWithinCooldown, resolveConfidence } from '../utils/wakewordEventUtils';

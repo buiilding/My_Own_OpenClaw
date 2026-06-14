@@ -1,3 +1,7 @@
+/**
+ * Covers modular refactor completion boundary. behavior in the frontend test suite.
+ */
+
 import fs from 'node:fs/promises';
 import path from 'node:path';
 

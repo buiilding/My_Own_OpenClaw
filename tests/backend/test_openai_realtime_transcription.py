@@ -1,3 +1,5 @@
+"""Covers openai realtime transcription behavior in the backend test suite."""
+
 import json
 
 import pytest

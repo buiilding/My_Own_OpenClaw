@@ -1,3 +1,7 @@
+/**
+ * Provides the response overlay layout mode module for the renderer UI.
+ */
+
 export const RESPONSE_OVERLAY_LAYOUT_MODE = Object.freeze({
   HIDDEN: 'hidden',
   RESPONSE: 'response',

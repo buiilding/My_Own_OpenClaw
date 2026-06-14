@@ -1,3 +1,5 @@
+"""Covers linux window manager behavior in the sidecar test suite."""
+
 from types import SimpleNamespace
 
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path

@@ -1,3 +1,7 @@
+/**
+ * Provides the message token usage module for the renderer UI.
+ */
+
 const APPROX_CHARS_PER_TOKEN = 4;
 const APPROX_IMAGE_TOKENS_PER_SCREENSHOT = 85;
 

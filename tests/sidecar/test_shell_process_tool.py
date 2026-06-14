@@ -1,3 +1,5 @@
+"""Covers shell process tool behavior in the sidecar test suite."""
+
 import asyncio
 import os
 import shlex

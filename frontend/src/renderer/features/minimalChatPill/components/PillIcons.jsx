@@ -1,3 +1,7 @@
+/**
+ * Provides the pill icons module for the renderer UI.
+ */
+
 export function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">

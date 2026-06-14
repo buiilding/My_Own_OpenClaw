@@ -1,3 +1,7 @@
+/**
+ * Covers voice audio processor node. behavior in the frontend test suite.
+ */
+
 import { createAudioCaptureProcessorNode } from '../../frontend/src/renderer/features/voice/utils/audioProcessorNode';
 
 type MockWorkletNodeInstance = {

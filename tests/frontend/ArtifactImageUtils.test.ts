@@ -1,3 +1,7 @@
+/**
+ * Covers artifact image utils. behavior in the frontend test suite.
+ */
+
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,

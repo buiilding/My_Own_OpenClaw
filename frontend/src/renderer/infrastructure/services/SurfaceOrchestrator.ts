@@ -1,3 +1,7 @@
+/**
+ * Provides the surface orchestrator module for the renderer UI.
+ */
+
 export type { CaptureVisibilityPreparation } from './surfaceOrchestrator/types';
 
 export {

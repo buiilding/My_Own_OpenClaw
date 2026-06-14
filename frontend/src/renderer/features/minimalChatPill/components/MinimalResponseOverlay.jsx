@@ -1,3 +1,7 @@
+/**
+ * Provides the minimal response overlay module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../../chat/stores/chatStore';

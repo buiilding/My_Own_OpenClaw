@@ -1,3 +1,7 @@
+/**
+ * Covers ipc backend endpoint state. behavior in the frontend test suite.
+ */
+
 const {
   createBackendEndpointState,
 } = require('../../frontend/src/main/ipc/ipc_backend_endpoint_state.cjs');

@@ -1,3 +1,5 @@
+"""Covers sdk helpers behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.core.config.models import AppConfig

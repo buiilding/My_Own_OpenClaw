@@ -1,3 +1,7 @@
+/**
+ * Implements the permission service automation service for the Electron main process.
+ */
+
 const {
   PERMISSION_STATUS,
   buildProbeResult,

@@ -1,3 +1,7 @@
+/**
+ * Covers ipc backend event channels. behavior in the frontend test suite.
+ */
+
 const {
   broadcastTypedBackendEvent,
   getRendererChannelsForBackendEvent,

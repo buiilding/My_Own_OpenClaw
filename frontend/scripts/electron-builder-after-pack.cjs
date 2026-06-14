@@ -1,3 +1,7 @@
+/**
+ * Runs the electron builder after pack workflow for the frontend tooling.
+ */
+
 const { spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");

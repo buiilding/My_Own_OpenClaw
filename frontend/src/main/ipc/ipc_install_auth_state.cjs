@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc install auth state module for the Electron main process.
+ */
+
 const fs = require('fs');
 const os = require('os');
 const path = require('path');

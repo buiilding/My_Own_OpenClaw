@@ -1,3 +1,7 @@
+/**
+ * Covers desktop chat stream event runtime. behavior in the frontend test suite.
+ */
+
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   recordTrackingEvent,

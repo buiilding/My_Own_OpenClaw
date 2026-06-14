@@ -1,3 +1,7 @@
+/**
+ * Provides the use response overlay scroll state module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;

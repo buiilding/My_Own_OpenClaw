@@ -1,3 +1,7 @@
+/**
+ * Covers ipc bridge validation. behavior in the frontend test suite.
+ */
+
 import { clearMockIpc, installMockIpc } from './ipcBridge.testUtils';
 
 describe('IpcBridge validation', () => {

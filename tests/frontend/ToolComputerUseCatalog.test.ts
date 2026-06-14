@@ -1,3 +1,7 @@
+/**
+ * Covers tool computer use catalog. behavior in the frontend test suite.
+ */
+
 import {
   CAPTURE_ONLY_COMPUTER_USE_TOOLS,
   INTERACTIVE_COMPUTER_USE_TOOLS,

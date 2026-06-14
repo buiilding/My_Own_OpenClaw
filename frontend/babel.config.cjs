@@ -1,3 +1,7 @@
+/**
+ * Defines babel.config configuration for the frontend.
+ */
+
 module.exports = {
   presets: [
     ['@babel/preset-env', { targets: { node: 'current' } }],

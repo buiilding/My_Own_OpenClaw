@@ -1,3 +1,7 @@
+/**
+ * Defines ipc frontend config configuration for the Electron main process.
+ */
+
 const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');

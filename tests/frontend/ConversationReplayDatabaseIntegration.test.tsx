@@ -1,3 +1,7 @@
+/**
+ * Covers conversation replay database integration. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';

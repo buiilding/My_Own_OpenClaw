@@ -1,3 +1,7 @@
+/**
+ * Coordinates the ipc query send runtime for the Electron main process.
+ */
+
 async function prepareRendererQuerySend({
   event,
   payload,

@@ -1,3 +1,7 @@
+/**
+ * Covers ipc automated query dispatcher. behavior in the frontend test suite.
+ */
+
 const {
   createAutomatedQueryDispatcher,
 } = require('../../frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs');

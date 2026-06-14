@@ -1,3 +1,7 @@
+/**
+ * Coordinates the surface runtime for the Electron main process.
+ */
+
 const { createOverlayWindowHelpersRuntime } = require('./overlay_window_helpers_runtime.cjs');
 const {
   handleResponseOverlayPhaseEvent,

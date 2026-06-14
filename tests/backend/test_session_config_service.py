@@ -1,3 +1,5 @@
+"""Covers session config service behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 from backend.src.agent.session.session_config_service import SessionConfigService

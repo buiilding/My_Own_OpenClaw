@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Runs the run backend with tools workflow for the backend.
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

@@ -1,3 +1,5 @@
+"""Covers repo instructions behavior in the backend test suite."""
+
 from backend.src.llm.prompts.repo_instructions import (
     build_agents_md_message,
     resolve_workspace_repo_instruction_messages,

@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend window visibility behavior for the Electron main process.
+ */
+
 const {
   createScreenshotWindowVisibilityRuntime,
 } = require('../platform/screenshot_window_visibility/index.cjs');

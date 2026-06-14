@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc conversation event broadcast module for the Electron main process.
+ */
+
 const {
   normalizeBackendEventToConversationEvent,
 } = require('../../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');

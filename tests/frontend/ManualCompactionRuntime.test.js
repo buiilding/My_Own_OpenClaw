@@ -1,3 +1,7 @@
+/**
+ * Covers manual compaction runtime. behavior in the frontend test suite.
+ */
+
 import { buildDeferredQueryModelSelection } from '../../frontend/src/renderer/app/providers/appConfigBackendSync';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';

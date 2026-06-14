@@ -1,3 +1,7 @@
+/**
+ * Provides the main module for the frontend.
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import LandingPage from './LandingPage';

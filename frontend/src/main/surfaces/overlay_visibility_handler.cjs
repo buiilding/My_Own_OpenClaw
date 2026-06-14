@@ -1,3 +1,7 @@
+/**
+ * Handles overlay visibility events for the Electron main process.
+ */
+
 const {
   normalizeChatSurfaceWindowOptions,
   normalizeMainSurfaceWindowOptions,

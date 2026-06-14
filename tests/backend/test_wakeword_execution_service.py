@@ -1,3 +1,5 @@
+"""Covers wakeword execution service behavior in the backend test suite."""
+
 import asyncio
 from types import SimpleNamespace
 

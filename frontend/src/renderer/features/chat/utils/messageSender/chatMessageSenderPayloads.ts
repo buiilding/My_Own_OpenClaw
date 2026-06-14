@@ -1,3 +1,7 @@
+/**
+ * Provides the chat message sender payloads module for the renderer UI.
+ */
+
 export type ClipboardImagePayload = {
   base64: string;
   contentType?: string | null;

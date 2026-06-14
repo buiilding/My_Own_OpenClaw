@@ -1,3 +1,7 @@
+/**
+ * Provides the rehydrate payload module for the renderer UI.
+ */
+
 import { normalizeToolSchemaList } from './toolSchemaShape';
 import { normalizeTransparencyData } from './transparencyNormalization';
 

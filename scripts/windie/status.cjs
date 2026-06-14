@@ -1,3 +1,7 @@
+/**
+ * Runs the status workflow for the developer CLI and automation tooling.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const { capture } = require('./run.cjs');

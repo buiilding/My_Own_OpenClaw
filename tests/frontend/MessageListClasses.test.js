@@ -1,3 +1,7 @@
+/**
+ * Covers message list classes. behavior in the frontend test suite.
+ */
+
 import { buildMessageClassName } from '../../frontend/src/renderer/features/chat/utils/message/messageListClasses';
 
 describe('buildMessageClassName', () => {

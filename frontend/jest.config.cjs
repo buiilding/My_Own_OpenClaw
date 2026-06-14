@@ -1,3 +1,7 @@
+/**
+ * Defines jest.config configuration for the frontend.
+ */
+
 const path = require('path');
 
 const babelConfig = path.join(__dirname, 'babel.config.cjs');

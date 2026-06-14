@@ -1,3 +1,7 @@
+/**
+ * Provides the session info storage module for the renderer UI.
+ */
+
 import type { SessionInfo } from './types';
 
 const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';

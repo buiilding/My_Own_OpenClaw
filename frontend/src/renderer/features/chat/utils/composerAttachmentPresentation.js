@@ -1,3 +1,7 @@
+/**
+ * Provides the composer attachment presentation module for the renderer UI.
+ */
+
 export function resolveReadableFileTypeLabel(filename) {
   if (typeof filename !== 'string') {
     return 'FILE';

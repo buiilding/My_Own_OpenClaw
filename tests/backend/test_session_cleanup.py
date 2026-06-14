@@ -1,3 +1,5 @@
+"""Covers session cleanup behavior in the backend test suite."""
+
 import asyncio
 from unittest.mock import MagicMock
 

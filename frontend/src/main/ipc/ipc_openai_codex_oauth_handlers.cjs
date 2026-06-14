@@ -1,3 +1,7 @@
+/**
+ * Handles ipc openai codex oauth handlers events for the Electron main process.
+ */
+
 function registerOpenAICodexOAuthHandlers({
   ipcMain,
   loginOpenAICodexOAuth,

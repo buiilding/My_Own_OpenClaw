@@ -1,3 +1,7 @@
+/**
+ * Provides the user message actions module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { Check, Copy, Pencil } from 'lucide-react';
 import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';

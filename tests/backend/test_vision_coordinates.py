@@ -1,3 +1,5 @@
+"""Covers vision coordinates behavior in the backend test suite."""
+
 from backend.src.services.vision.coordinates import (
     extract_first_point,
     extract_last_bbox,

@@ -1,3 +1,7 @@
+/**
+ * Provides the thread find state module for the renderer UI.
+ */
+
 import { collectTextMatches } from '../../../../infrastructure/markdown';
 import { buildMarkdownRenderModel } from './markdownMessageRendering';
 

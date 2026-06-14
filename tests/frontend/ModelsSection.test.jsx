@@ -1,3 +1,7 @@
+/**
+ * Covers models section. behavior in the frontend test suite.
+ */
+
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import ModelsSection from '../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection';

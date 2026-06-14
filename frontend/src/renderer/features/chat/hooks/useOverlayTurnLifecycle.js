@@ -1,3 +1,7 @@
+/**
+ * Provides the use overlay turn lifecycle module for the renderer UI.
+ */
+
 import { useMemo } from 'react';
 import { useChatLoopTransportState } from './useChatLoopUiState';
 import {

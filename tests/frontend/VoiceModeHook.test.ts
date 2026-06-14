@@ -1,3 +1,7 @@
+/**
+ * Covers voice mode hook. behavior in the frontend test suite.
+ */
+
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useAudioCaptureRefs } from '../../frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs';

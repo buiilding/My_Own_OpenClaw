@@ -1,3 +1,7 @@
+/**
+ * Coordinates the mcp runtime for the Electron main process.
+ */
+
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 const path = require('path');

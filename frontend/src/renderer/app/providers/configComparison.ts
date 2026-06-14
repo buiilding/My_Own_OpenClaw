@@ -1,3 +1,7 @@
+/**
+ * Defines config comparison configuration for the renderer UI.
+ */
+
 const CONTENT_AWARE_CONFIG_KEYS = new Set([
   'provider_api_keys',
   'provider_oauth',

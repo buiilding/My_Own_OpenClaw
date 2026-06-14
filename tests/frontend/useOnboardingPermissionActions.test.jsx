@@ -1,3 +1,7 @@
+/**
+ * Covers use onboarding permission actions. behavior in the frontend test suite.
+ */
+
 const React = require('react');
 const { act, fireEvent, render, screen } = require('@testing-library/react');
 const { useOnboardingPermissionActions } = require('../../frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions');

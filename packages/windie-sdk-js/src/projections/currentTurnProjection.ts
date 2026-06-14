@@ -1,3 +1,7 @@
+/**
+ * Projects current turn state for the TypeScript SDK runtime.
+ */
+
 function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }

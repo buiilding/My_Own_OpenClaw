@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc query events module for the Electron main process.
+ */
+
 function resolveConversationRef(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;

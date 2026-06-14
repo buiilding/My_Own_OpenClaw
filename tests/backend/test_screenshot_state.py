@@ -1,3 +1,5 @@
+"""Covers screenshot state behavior in the backend test suite."""
+
 import asyncio
 
 import pytest

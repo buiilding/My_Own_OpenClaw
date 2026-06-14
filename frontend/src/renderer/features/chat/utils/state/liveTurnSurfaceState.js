@@ -1,3 +1,7 @@
+/**
+ * Provides the live turn surface state module for the renderer UI.
+ */
+
 import { RESPONSE_OVERLAY_PHASE } from '../overlay/responseOverlayPhaseContract';
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({

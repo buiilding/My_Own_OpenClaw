@@ -1,3 +1,5 @@
+"""Covers response parser utils behavior in the backend test suite."""
+
 from collections.abc import Iterable
 
 from backend.src.core.config.models import AppConfig, SecurityLimits

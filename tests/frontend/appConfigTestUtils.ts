@@ -1,3 +1,7 @@
+/**
+ * Covers app config utils behavior in the frontend test suite.
+ */
+
 export type TestAppConfig = {
   selected_model_id: string;
   model_provider: string;

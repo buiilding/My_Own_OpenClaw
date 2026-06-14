@@ -1,3 +1,7 @@
+/**
+ * Provides the response overlay visibility policy module for the Electron main process.
+ */
+
 const RESPONSE_OVERLAY_WINDOW_MODE = Object.freeze({
   HIDDEN: 'hidden',
   ACTIVE_LOOP: 'active-loop',

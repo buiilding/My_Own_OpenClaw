@@ -1,3 +1,7 @@
+/**
+ * Covers chat loop ui state hook. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { useChatLoopTransportState } from '../../frontend/src/renderer/features/chat/hooks/useChatLoopUiState';

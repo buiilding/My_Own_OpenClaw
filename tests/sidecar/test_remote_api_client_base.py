@@ -1,3 +1,5 @@
+"""Covers remote api client base behavior in the sidecar test suite."""
+
 import pytest
 
 from tests.sidecar.remote_client_test_utils import (

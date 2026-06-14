@@ -1,3 +1,7 @@
+/**
+ * Covers desktop backend transport. behavior in the frontend test suite.
+ */
+
 import { createDesktopBackendTransport } from '../../frontend/src/renderer/app/runtime/desktopBackendTransport';
 import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/windieCommandInvokeClient';
 

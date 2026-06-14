@@ -1,3 +1,7 @@
+/**
+ * Provides the response overlay phase payload module for the renderer UI.
+ */
+
 import {
   isResponseOverlayPhase,
   normalizeResponseOverlayNumber,

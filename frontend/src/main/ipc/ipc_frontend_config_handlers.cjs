@@ -1,3 +1,7 @@
+/**
+ * Handles ipc frontend config handlers events for the Electron main process.
+ */
+
 function registerFrontendConfigHandlers({
   ipcMain,
   loadCachedFrontendConfigFromDisk,

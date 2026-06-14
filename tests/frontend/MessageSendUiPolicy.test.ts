@@ -1,3 +1,7 @@
+/**
+ * Covers message send ui policy. behavior in the frontend test suite.
+ */
+
 import {
   resolveMessageSendUiBehavior,
 } from '../../frontend/src/renderer/features/chat/policies/messageSendUiPolicy';

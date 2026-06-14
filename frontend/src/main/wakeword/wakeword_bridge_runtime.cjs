@@ -1,3 +1,7 @@
+/**
+ * Coordinates the wakeword bridge runtime for the Electron main process.
+ */
+
 function emitWakewordStatus(mainWindow, payload) {
   mainWindow?.webContents.send('wakeword-status', payload);
 }

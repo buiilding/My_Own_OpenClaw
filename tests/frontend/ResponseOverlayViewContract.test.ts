@@ -1,3 +1,7 @@
+/**
+ * Covers response overlay view contract. behavior in the frontend test suite.
+ */
+
 import { resolveResponseOverlayViewContract } from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayViewContract';
 
 describe('responseOverlayViewContract', () => {

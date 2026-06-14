@@ -1,3 +1,7 @@
+/**
+ * Implements the permission service screen capture service for the Electron main process.
+ */
+
 const {
   PERMISSION_STATUS,
   buildProbeResult,

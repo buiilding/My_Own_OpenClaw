@@ -1,3 +1,7 @@
+/**
+ * Covers file attachment utils. behavior in the frontend test suite.
+ */
+
 import { parseSelectedComposerFiles } from '../../frontend/src/renderer/features/chat/utils/fileAttachmentUtils';
 
 describe('fileAttachmentUtils', () => {

@@ -1,3 +1,7 @@
+/**
+ * Covers response overlay layout mode. behavior in the frontend test suite.
+ */
+
 import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,

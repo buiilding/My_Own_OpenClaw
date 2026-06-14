@@ -1,3 +1,7 @@
+/**
+ * Provides the clipboard image utils module for the renderer UI.
+ */
+
 import {
   parseBase64ImageDataUrl,
   readFileAsDataUrl,

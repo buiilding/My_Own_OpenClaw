@@ -1,3 +1,7 @@
+/**
+ * Defines use memory settings actions configuration for the renderer UI.
+ */
+
 import { useState } from 'react';
 import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
 import { useTranscriptSessionInfo } from '../../../hooks/useTranscriptSessionInfo';

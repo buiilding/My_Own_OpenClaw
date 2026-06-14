@@ -1,3 +1,7 @@
+/**
+ * Covers desktop live turn runtime client. behavior in the frontend test suite.
+ */
+
 const mockGetActiveConversationRef = jest.fn(() => null);
 const mockInvokeWindieCommand = jest.fn();
 

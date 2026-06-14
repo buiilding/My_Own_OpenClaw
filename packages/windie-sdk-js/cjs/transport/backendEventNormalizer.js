@@ -1,3 +1,7 @@
+/**
+ * Provides the backend event normalizer module for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.normalizeBackendEventToConversationEvent = normalizeBackendEventToConversationEvent;
@@ -185,6 +189,9 @@ function tracePayloadFromBackendEvent(event, base) {
     };
 }
 function logCompactionNormalization(event, base, normalizedType, payload) {
+    if (!isCompactionStdoutEnabled()) {
+        return;
+    }
     const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
         ? payload.replacement_history_entries
         : null;
@@ -204,6 +211,10 @@ function logCompactionNormalization(event, base, normalizedType, payload) {
         afterTokens: numberField(payload, 'after_tokens'),
         removedMessages: numberField(payload, 'removed_messages'),
     });
+}
+function isCompactionStdoutEnabled() {
+    const env = globalThis.process?.env;
+    return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 function missingBackendIdentityEvent(event, base) {
     return (0, events_js_1.createConversationEvent)({

@@ -1,3 +1,5 @@
+"""Covers config loader behavior in the backend test suite."""
+
 from pathlib import Path
 from types import SimpleNamespace
 

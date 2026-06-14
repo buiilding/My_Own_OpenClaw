@@ -1,3 +1,7 @@
+/**
+ * Provides the .eslintrc module for the frontend.
+ */
+
 module.exports = {
   root: true,
   env: {

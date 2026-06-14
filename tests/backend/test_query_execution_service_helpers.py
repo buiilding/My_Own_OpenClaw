@@ -1,3 +1,5 @@
+"""Covers query execution service helpers behavior in the backend test suite."""
+
 import asyncio
 from types import SimpleNamespace
 

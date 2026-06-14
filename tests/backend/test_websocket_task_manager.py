@@ -1,3 +1,5 @@
+"""Covers websocket task manager behavior in the backend test suite."""
+
 import asyncio
 import inspect
 import logging

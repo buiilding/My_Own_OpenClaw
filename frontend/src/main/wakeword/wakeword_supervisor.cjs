@@ -1,3 +1,7 @@
+/**
+ * Provides the wakeword supervisor module for the Electron main process.
+ */
+
 function createWakewordSupervisor({
   onStateChange = () => {},
 } = {}) {

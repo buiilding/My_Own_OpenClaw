@@ -1,3 +1,7 @@
+/**
+ * Provides the screenshot message state module for the renderer UI.
+ */
+
 import { buildArtifactUrl } from './BackendEndpointStore';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 

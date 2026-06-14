@@ -1,3 +1,7 @@
+/**
+ * Covers model selection utils. behavior in the frontend test suite.
+ */
+
 import {
   buildModelConfigUpdate,
   evaluateModelSelection,

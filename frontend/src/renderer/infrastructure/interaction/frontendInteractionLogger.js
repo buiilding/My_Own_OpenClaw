@@ -1,3 +1,7 @@
+/**
+ * Provides the frontend interaction logger module for the renderer UI.
+ */
+
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 
 const MAX_LABEL_LENGTH = 120;

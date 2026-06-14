@@ -1,3 +1,7 @@
+/**
+ * Covers agent capability handshake. behavior in the frontend test suite.
+ */
+
 const {
   buildAgentCapabilityHandshakePayload,
   buildAgentCapabilityHandshakePayloadWithMcp,

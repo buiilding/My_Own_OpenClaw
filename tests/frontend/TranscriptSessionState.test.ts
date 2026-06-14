@@ -1,3 +1,7 @@
+/**
+ * Covers transcript session state. behavior in the frontend test suite.
+ */
+
 import { createTranscriptSessionState } from '../../frontend/src/renderer/infrastructure/transcript/sessionInfoState';
 
 describe('transcript session state', () => {

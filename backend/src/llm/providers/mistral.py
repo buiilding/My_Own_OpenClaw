@@ -1,3 +1,5 @@
+"""Provides the mistral module for the backend."""
+
 import logging
 
 from backend.src.llm.providers.online import OnlineLLMProvider

@@ -1,3 +1,7 @@
+/**
+ * Projects conversation projections state for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildDisplayRows = buildDisplayRows;
@@ -868,6 +872,14 @@ function buildCurrentTurnProjection(events) {
                 ...projection,
                 phase: 'complete',
                 assistantText: projection.assistantText || finalResponse,
+                lastError: null,
+            };
+            continue;
+        }
+        if (event.type === 'turn_stopped') {
+            projection = {
+                ...projection,
+                phase: 'complete',
                 lastError: null,
             };
             continue;

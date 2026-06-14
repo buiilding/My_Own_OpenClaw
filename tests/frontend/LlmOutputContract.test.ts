@@ -1,3 +1,7 @@
+/**
+ * Covers llm output contract. behavior in the frontend test suite.
+ */
+
 import { resolveLlmOutputContract } from '../../frontend/src/renderer/infrastructure/llmOutputContract';
 
 describe('resolveLlmOutputContract', () => {

@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop settings runtime client for the renderer UI.
+ */
+
 import {
   buildModelSettingsPatch,
   type WindieModelSelection,

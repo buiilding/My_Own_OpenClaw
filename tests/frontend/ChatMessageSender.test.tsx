@@ -1,3 +1,7 @@
+/**
+ * Covers chat message sender. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
 import {

@@ -1,3 +1,7 @@
+/**
+ * Covers desktop chat stream turn guard runtime. behavior in the frontend test suite.
+ */
+
 import { isStaleTurnForActiveStream } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime';
 
 describe('DesktopChatStreamTurnGuardRuntime', () => {

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+/**
+ * Runs the electron launcher workflow for the frontend tooling.
+ */
 
 const fs = require('fs');
 const path = require('path');

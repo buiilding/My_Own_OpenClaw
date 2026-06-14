@@ -1,3 +1,7 @@
+/**
+ * Provides the session sync payload module for the renderer UI.
+ */
+
 import { normalizeOptionalIncomingText } from '../text/incomingTextNormalization';
 
 const hasOwnProperty = (value: unknown, key: string): boolean => {

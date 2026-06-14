@@ -1,3 +1,7 @@
+/**
+ * Provides the .prettierrc module for the frontend.
+ */
+
 module.exports = {
   semi: true,
   trailingComma: 'es5',

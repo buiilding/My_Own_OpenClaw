@@ -1,3 +1,7 @@
+/**
+ * Covers windie sdk managed backend session. behavior in the frontend test suite.
+ */
+
 import { EventEmitter } from 'events';
 
 import {

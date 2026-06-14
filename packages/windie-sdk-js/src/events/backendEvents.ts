@@ -1,3 +1,7 @@
+/**
+ * Provides the backend events module for the TypeScript SDK runtime.
+ */
+
 export type BackendEventType =
   | 'query-accepted'
   | 'llm-thought'

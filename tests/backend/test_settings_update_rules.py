@@ -1,3 +1,5 @@
+"""Covers settings update rules behavior in the backend test suite."""
+
 from backend.src.core.validation.settings_update_rules import (
     SETTINGS_UPDATE_RULES,
     validate_settings_update_field,

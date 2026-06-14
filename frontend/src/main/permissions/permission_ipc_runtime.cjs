@@ -1,3 +1,7 @@
+/**
+ * Coordinates the permission ipc runtime for the Electron main process.
+ */
+
 const os = require('os');
 const { handleSetAgentSudoAccess } = require('./agent_sudo_access_handler.cjs');
 const {

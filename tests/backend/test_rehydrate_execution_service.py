@@ -1,3 +1,5 @@
+"""Covers rehydrate execution service behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 import pytest

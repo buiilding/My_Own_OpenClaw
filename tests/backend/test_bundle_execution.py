@@ -1,3 +1,5 @@
+"""Covers bundle execution behavior in the backend test suite."""
+
 import asyncio
 
 import pytest

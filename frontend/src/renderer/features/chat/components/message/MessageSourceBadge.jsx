@@ -1,3 +1,7 @@
+/**
+ * Provides the message source badge module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../utils/devUiFlag';
 import { resolveMessageTokenUsageTag } from '../../utils/message/messageTokenUsage';

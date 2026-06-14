@@ -1,3 +1,7 @@
+/**
+ * Handles use chat stream metadata handlers events for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import {

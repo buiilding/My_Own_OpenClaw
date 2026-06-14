@@ -1,3 +1,5 @@
+"""Covers embeddings imports behavior in the backend test suite."""
+
 import builtins
 import importlib
 import sys

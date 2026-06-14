@@ -1,3 +1,7 @@
+/**
+ * Covers electron launcher. behavior in the frontend test suite.
+ */
+
 const path = require('path');
 
 const {

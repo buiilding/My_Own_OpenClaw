@@ -1,3 +1,7 @@
+/**
+ * Covers conversation continuity service. behavior in the frontend test suite.
+ */
+
 import {
   ConversationContinuityService,
   conversationMetadataInvalidationFromLocalRuntimeEvent,

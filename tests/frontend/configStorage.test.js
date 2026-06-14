@@ -1,3 +1,7 @@
+/**
+ * Covers config storage. behavior in the frontend test suite.
+ */
+
 import {
   loadConfigFromStorage,
   saveConfigToStorage,

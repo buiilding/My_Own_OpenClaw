@@ -1,3 +1,5 @@
+"""Covers tts session behavior in the backend test suite."""
+
 import asyncio
 
 import pytest

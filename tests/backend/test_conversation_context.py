@@ -1,3 +1,5 @@
+"""Covers conversation context behavior in the backend test suite."""
+
 from backend.src.agent.llm.conversation_context import ConversationContext
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.config.models import AppConfig

@@ -1,3 +1,7 @@
+/**
+ * Covers rehydrate payload. behavior in the frontend test suite.
+ */
+
 import {
   buildRehydrateToolCall,
   buildTranscriptTransparencyFromChatMessage,

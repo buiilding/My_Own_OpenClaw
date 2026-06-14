@@ -1,3 +1,7 @@
+/**
+ * Covers desktop voice runtime client. behavior in the frontend test suite.
+ */
+
 import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
 
 const mockInvokeWindieCommand = jest.fn(async () => undefined);

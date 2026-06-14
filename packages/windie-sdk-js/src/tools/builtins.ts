@@ -1,3 +1,7 @@
+/**
+ * Provides the builtins module for the TypeScript SDK runtime.
+ */
+
 export type WindieBuiltinToolSet =
   | 'desktop'
   | 'filesystem'

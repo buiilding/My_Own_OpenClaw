@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend behavior for the Electron main process.
+ */
+
 const { ipcMain } = require('electron');
 const {
   resolveBackendEndpointCandidates,

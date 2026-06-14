@@ -1,3 +1,5 @@
+"""Covers install auth behavior in the backend test suite."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+/**
+ * Runs the windie cli workflow for the developer CLI and automation tooling.
+ */
 
 const { main } = require('./windie/index.cjs');
 

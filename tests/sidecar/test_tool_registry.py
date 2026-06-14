@@ -1,3 +1,5 @@
+"""Covers tool registry behavior in the sidecar test suite."""
+
 import pytest
 from pathlib import Path
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path

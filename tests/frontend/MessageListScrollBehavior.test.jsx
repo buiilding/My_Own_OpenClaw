@@ -1,3 +1,7 @@
+/**
+ * Covers message list scroll behavior. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import {
   act,

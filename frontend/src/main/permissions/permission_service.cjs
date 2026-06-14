@@ -1,3 +1,7 @@
+/**
+ * Implements the permission service service for the Electron main process.
+ */
+
 const {
   PERMISSION_MANIFEST,
   PERMISSION_STATUS,

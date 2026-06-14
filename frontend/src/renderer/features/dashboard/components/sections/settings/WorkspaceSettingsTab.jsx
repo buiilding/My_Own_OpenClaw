@@ -1,3 +1,7 @@
+/**
+ * Defines workspace settings tab configuration for the renderer UI.
+ */
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import {

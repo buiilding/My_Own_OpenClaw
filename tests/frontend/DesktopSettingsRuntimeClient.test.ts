@@ -1,3 +1,7 @@
+/**
+ * Covers desktop settings runtime client. behavior in the frontend test suite.
+ */
+
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 
 const mockInvokeWindieCommand = jest.fn(async () => undefined);

@@ -1,3 +1,7 @@
+/**
+ * Coordinates the live surface trace runtime for the Electron main process.
+ */
+
 function isLiveSurfaceTraceEnabled() {
   return (
     process.env.WINDIE_DEBUG_LIVE_SURFACE === '1'

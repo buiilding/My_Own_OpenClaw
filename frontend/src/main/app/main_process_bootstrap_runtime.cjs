@@ -1,3 +1,7 @@
+/**
+ * Coordinates the main process bootstrap runtime for the Electron main process.
+ */
+
 function createWindowBootstrapRuntime(deps) {
   function syncCurrentOverlayPhase() {
     const state = deps.getState();

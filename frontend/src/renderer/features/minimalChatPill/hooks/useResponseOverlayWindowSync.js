@@ -1,3 +1,7 @@
+/**
+ * Provides the use response overlay window sync module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useRef } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { getRoundedFrameSize } from '../../chat/utils/overlay/overlayFrameSize';

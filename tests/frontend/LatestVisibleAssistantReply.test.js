@@ -1,3 +1,7 @@
+/**
+ * Covers latest visible assistant reply. behavior in the frontend test suite.
+ */
+
 import {
   resolveCurrentTurnPresentationState,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';

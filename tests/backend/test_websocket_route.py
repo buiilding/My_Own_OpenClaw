@@ -1,3 +1,5 @@
+"""Covers websocket route behavior in the backend test suite."""
+
 import asyncio
 import importlib
 

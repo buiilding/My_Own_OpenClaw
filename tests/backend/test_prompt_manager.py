@@ -1,3 +1,5 @@
+"""Covers prompt manager behavior in the backend test suite."""
+
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path

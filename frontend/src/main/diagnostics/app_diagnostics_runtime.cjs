@@ -1,3 +1,7 @@
+/**
+ * Coordinates the app diagnostics runtime for the Electron main process.
+ */
+
 const {
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,
   FRONTEND_INTERACTION_DIAGNOSTICS_PATH,

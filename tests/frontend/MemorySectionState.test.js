@@ -1,3 +1,7 @@
+/**
+ * Covers memory section state. behavior in the frontend test suite.
+ */
+
 import {
   filterMemoriesByQuery,
   resolveActiveMemoryTypeInfo,

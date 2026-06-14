@@ -1,3 +1,7 @@
+/**
+ * Coordinates the window suppression runtime for the Electron main process.
+ */
+
 function setWindowOpacityIfSupported(targetWindow, opacity) {
   if (!targetWindow || typeof targetWindow.setOpacity !== 'function') {
     return;

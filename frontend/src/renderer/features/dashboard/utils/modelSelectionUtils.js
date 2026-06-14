@@ -1,3 +1,7 @@
+/**
+ * Provides the model selection utils module for the renderer UI.
+ */
+
 const EMPTY_MODEL_SELECTION = { id: '', provider: '' };
 
 function normalizeProvider(provider) {

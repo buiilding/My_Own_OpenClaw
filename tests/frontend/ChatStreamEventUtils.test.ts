@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream event utils. behavior in the frontend test suite.
+ */
+
 import {
   buildScreenshotAttachment,
   buildScreenshotAttachments,

@@ -1,3 +1,7 @@
+/**
+ * Defines response overlay layout contract contracts for the renderer UI.
+ */
+
 import responseOverlayLayoutContract from '../../../../../shared/response_overlay_layout_contract.json';
 
 export const RESPONSE_OVERLAY_LAYOUT = Object.freeze({

@@ -1,3 +1,7 @@
+/**
+ * Covers thinking display. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 

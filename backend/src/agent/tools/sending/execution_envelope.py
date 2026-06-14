@@ -1,3 +1,5 @@
+"""Provides the execution envelope module for the backend agent runtime."""
+
 from dataclasses import dataclass, field
 from typing import Any
 

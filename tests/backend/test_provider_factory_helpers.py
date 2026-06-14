@@ -1,3 +1,5 @@
+"""Covers provider factory helpers behavior in the backend test suite."""
+
 import backend.src.llm.providers as providers_module
 from backend.src.core.config.models import (
     AppConfig,

@@ -1,3 +1,5 @@
+"""Covers windie sdk client behavior in the sidecar test suite."""
+
 import asyncio
 import json
 

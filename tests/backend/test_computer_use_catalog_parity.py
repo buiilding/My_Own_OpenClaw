@@ -1,3 +1,5 @@
+"""Covers computer use catalog parity behavior in the backend test suite."""
+
 import backend.src.tools.remote as remote_exports
 from backend.src.tools.remote_tools.computer import (
     RemoteGetOpenWindowsTool,

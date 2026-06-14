@@ -1,3 +1,5 @@
+"""Covers tool registry schema behavior in the backend test suite."""
+
 import logging
 from typing import Optional
 

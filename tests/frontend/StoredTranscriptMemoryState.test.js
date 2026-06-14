@@ -1,3 +1,7 @@
+/**
+ * Covers stored transcript memory state. behavior in the frontend test suite.
+ */
+
 import {
   resolveStoredTranscriptMemoryState,
 } from '../../frontend/src/renderer/infrastructure/transcript/storedTranscriptMemoryState';

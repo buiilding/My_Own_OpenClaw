@@ -1,3 +1,7 @@
+/**
+ * Covers ipc open aicodex oauth handlers. behavior in the frontend test suite.
+ */
+
 const {
   registerOpenAICodexOAuthHandlers,
 } = require('../../frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs');

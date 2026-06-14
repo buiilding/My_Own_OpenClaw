@@ -1,3 +1,7 @@
+/**
+ * Provides the dev ui flag module for the renderer UI.
+ */
+
 let cachedDevUiEnabled = null;
 
 export function isDevUiEnabled() {

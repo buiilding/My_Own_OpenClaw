@@ -1,3 +1,7 @@
+/**
+ * Covers message list state. behavior in the frontend test suite.
+ */
+
 import {
   resolveCompactionStatusText,
   shouldRenderAssistantActions,

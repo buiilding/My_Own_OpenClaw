@@ -1,3 +1,7 @@
+/**
+ * Covers voice audio encoding. behavior in the frontend test suite.
+ */
+
 import {
   buildGatewayAudioMessage,
   float32ToPcm16,

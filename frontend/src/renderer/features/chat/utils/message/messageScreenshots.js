@@ -1,3 +1,7 @@
+/**
+ * Provides the message screenshots module for the renderer UI.
+ */
+
 import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
 import { buildArtifactUrl } from '../../../../infrastructure/services/BackendEndpointStore';
 import {

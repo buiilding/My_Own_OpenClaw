@@ -1,3 +1,7 @@
+/**
+ * Covers chat store turn refs. behavior in the frontend test suite.
+ */
+
 import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';

@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc clipboard image module for the Electron main process.
+ */
+
 const MAX_DATA_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_REMOTE_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGE_REDIRECTS = 3;

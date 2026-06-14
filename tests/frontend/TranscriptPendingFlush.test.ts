@@ -1,3 +1,7 @@
+/**
+ * Covers transcript pending flush. behavior in the frontend test suite.
+ */
+
 import { flushPendingEntries, requeuePending } from '../../frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush';
 
 describe('transcriptPendingFlush', () => {

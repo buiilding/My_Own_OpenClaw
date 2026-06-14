@@ -1,3 +1,5 @@
+# Provides the setup windows module for the backend.
+
 $ErrorActionPreference = "Stop"
 
 Set-Location $PSScriptRoot

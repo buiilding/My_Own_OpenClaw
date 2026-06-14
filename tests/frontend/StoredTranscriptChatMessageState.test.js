@@ -1,3 +1,7 @@
+/**
+ * Covers stored transcript chat message state. behavior in the frontend test suite.
+ */
+
 import {
   buildStoredTranscriptChatMessages,
 } from '../../frontend/src/renderer/infrastructure/transcript/storedTranscriptChatMessageState';

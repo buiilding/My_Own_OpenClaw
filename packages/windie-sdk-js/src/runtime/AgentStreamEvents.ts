@@ -1,3 +1,7 @@
+/**
+ * Provides the agent stream events module for the TypeScript SDK runtime.
+ */
+
 import type {
   ConversationEvent,
   JsonRecord,

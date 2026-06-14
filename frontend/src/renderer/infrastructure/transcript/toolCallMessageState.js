@@ -1,3 +1,7 @@
+/**
+ * Provides the tool call message state module for the renderer UI.
+ */
+
 import {
   normalizeOptionalString,
 } from './rehydratePayload';

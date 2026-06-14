@@ -1,3 +1,7 @@
+/**
+ * Defines tool manifest contracts for the Electron main process.
+ */
+
 const builtinToolManifest = require('../generated/builtin_tool_manifest.json');
 const { loadExtensionPluginTools } = require('./extension_manifest.cjs');
 

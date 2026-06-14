@@ -1,3 +1,7 @@
+/**
+ * Provides the json local storage module for the renderer UI.
+ */
+
 export function readJsonObjectFromLocalStorage(key) {
   try {
     const raw = window.localStorage.getItem(key);

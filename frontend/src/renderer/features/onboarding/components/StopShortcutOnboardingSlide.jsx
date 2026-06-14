@@ -1,3 +1,7 @@
+/**
+ * Provides the stop shortcut onboarding slide module for the renderer UI.
+ */
+
 import { Fragment, useMemo } from 'react';
 import PropTypes from 'prop-types';
 

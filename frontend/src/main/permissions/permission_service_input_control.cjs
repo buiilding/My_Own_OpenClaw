@@ -1,3 +1,7 @@
+/**
+ * Implements the permission service input control service for the Electron main process.
+ */
+
 const {
   PERMISSION_STATUS,
   buildProbeResult,

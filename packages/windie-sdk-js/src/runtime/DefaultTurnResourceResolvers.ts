@@ -1,3 +1,7 @@
+/**
+ * Provides the default turn resource resolvers module for the TypeScript SDK runtime.
+ */
+
 import type {
   JsonRecord,
   LocalToolCall,

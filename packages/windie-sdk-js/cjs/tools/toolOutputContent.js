@@ -1,3 +1,7 @@
+/**
+ * Provides the tool output content module for the committed JavaScript SDK runtime.
+ */
+
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.recordFromUnknown = recordFromUnknown;

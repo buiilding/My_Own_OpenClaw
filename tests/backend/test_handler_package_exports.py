@@ -1,3 +1,5 @@
+"""Covers handler package exports behavior in the backend test suite."""
+
 import backend.src.api.handlers as handlers
 from backend.src.api.handlers import (
     ListModelsHandler,

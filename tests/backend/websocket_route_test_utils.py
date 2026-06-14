@@ -1,3 +1,5 @@
+"""Covers websocket route utils behavior in the backend test suite."""
+
 import sys
 import types
 

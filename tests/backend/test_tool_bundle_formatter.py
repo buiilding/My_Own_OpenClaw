@@ -1,3 +1,5 @@
+"""Covers tool bundle formatter behavior in the backend test suite."""
+
 from backend.src.api.processing.formatters.tool_bundle import ToolBundleEventFormatter
 from backend.src.core.events.streaming_events import ToolBundleEvent
 

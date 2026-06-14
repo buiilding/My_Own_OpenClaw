@@ -1,3 +1,7 @@
+/**
+ * Provides the available today section module for the renderer UI.
+ */
+
 const INSTALLATION_URL = 'https://github.com/buiilding/WindieOS/blob/main/README.md#quick-start';
 
 const AvailableTodaySection = () => {

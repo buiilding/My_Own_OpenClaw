@@ -1,3 +1,7 @@
+/**
+ * Provides the user message module for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useResolvedMessageScreenshotSrcList } from '../../../utils/message/useResolvedMessageScreenshots';

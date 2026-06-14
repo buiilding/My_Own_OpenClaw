@@ -1,3 +1,7 @@
+/**
+ * Covers frontend interaction logger. behavior in the frontend test suite.
+ */
+
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     send: jest.fn(),

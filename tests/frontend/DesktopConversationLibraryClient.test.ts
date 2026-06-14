@@ -1,3 +1,7 @@
+/**
+ * Covers desktop conversation library client. behavior in the frontend test suite.
+ */
+
 import { DesktopConversationLibraryClient } from '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient';
 import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/windieCommandInvokeClient';
 

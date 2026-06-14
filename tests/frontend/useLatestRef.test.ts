@@ -1,3 +1,7 @@
+/**
+ * Covers use latest ref. behavior in the frontend test suite.
+ */
+
 import { renderHook } from '@testing-library/react';
 
 import { useLatestRef } from '../../frontend/src/renderer/infrastructure/hooks/useLatestRef';

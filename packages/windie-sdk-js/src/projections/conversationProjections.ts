@@ -1,3 +1,7 @@
+/**
+ * Projects conversation projections state for the TypeScript SDK runtime.
+ */
+
 import type {
   CompactionState,
   ConversationEvent,

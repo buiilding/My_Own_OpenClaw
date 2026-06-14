@@ -1,3 +1,5 @@
+"""Covers local store init behavior in the sidecar test suite."""
+
 import types
 
 import numpy as np

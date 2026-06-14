@@ -1,3 +1,5 @@
+"""Covers rehydrate tool linkage repair behavior in the backend test suite."""
+
 from backend.src.api.services.rehydrate_tool_linkage_repair import (
     RehydrateToolLinkageState,
 )

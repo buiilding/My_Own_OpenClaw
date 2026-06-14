@@ -1,3 +1,5 @@
+"""Covers error metadata behavior in the backend test suite."""
+
 from backend.src.core.infrastructure.error_types import (
     InputSizeLimitError,
     LLMAPIError,

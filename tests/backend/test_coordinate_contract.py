@@ -1,3 +1,5 @@
+"""Covers coordinate contract behavior in the backend test suite."""
+
 from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     CoordinateContract,
     build_contract_metadata,

@@ -1,3 +1,7 @@
+/**
+ * Provides the sdk live turn surface controller module for the Electron main process.
+ */
+
 const responseOverlayLayoutContract = require('../../shared/response_overlay_layout_contract.json');
 const { logChatPillMainTrace } = require('../debug/chat_pill_trace_runtime.cjs');
 const {

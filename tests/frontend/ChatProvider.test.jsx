@@ -1,3 +1,7 @@
+/**
+ * Covers chat provider. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 

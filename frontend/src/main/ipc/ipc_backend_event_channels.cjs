@@ -1,3 +1,7 @@
+/**
+ * Provides the ipc backend event channels module for the Electron main process.
+ */
+
 const BACKEND_EVENT_RENDERER_CHANNELS = Object.freeze({
   'models-listed': Object.freeze(['backend-settings-event']),
   'settings-updated': Object.freeze(['backend-settings-event']),

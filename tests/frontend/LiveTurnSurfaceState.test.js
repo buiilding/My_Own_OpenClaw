@@ -1,3 +1,7 @@
+/**
+ * Covers live turn surface state. behavior in the frontend test suite.
+ */
+
 import {
   resolveLiveTurnPresentationInput,
 } from '../../frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState';

@@ -1,3 +1,7 @@
+/**
+ * Covers backend endpoints. behavior in the frontend test suite.
+ */
+
 const fs = require('fs');
 const path = require('path');
 

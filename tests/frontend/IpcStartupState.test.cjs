@@ -1,3 +1,7 @@
+/**
+ * Covers ipc startup state. behavior in the frontend test suite.
+ */
+
 const {
   initializeIpcStartupState,
 } = require('../../frontend/src/main/ipc/ipc_startup_state.cjs');

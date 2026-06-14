@@ -1,3 +1,7 @@
+/**
+ * Provides the use message list auto scroll module for the renderer UI.
+ */
+
 import {
   useCallback,
   useEffect,

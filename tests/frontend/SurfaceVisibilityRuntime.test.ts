@@ -1,3 +1,7 @@
+/**
+ * Covers surface visibility runtime. behavior in the frontend test suite.
+ */
+
 import {
   restoreSurfaceAfterBackgroundCapture,
   shouldManageSurfaceVisibilityForBackgroundCapture,

@@ -1,3 +1,5 @@
+"""Covers macos window manager behavior in the sidecar test suite."""
+
 import builtins
 import logging
 import sys

@@ -1,3 +1,7 @@
+/**
+ * Provides the backend socket factory module for the TypeScript SDK runtime.
+ */
+
 import type { WebSocketConstructor, WebSocketLike } from './WindieAgentSession.js';
 
 export type WindieSdkBackendSocketOptions = {

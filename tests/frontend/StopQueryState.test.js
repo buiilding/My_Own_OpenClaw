@@ -1,3 +1,7 @@
+/**
+ * Covers stop query state. behavior in the frontend test suite.
+ */
+
 import {
   applyStopQueryUiState,
 } from '../../frontend/src/renderer/features/chat/utils/state/stopQueryState';

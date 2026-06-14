@@ -1,3 +1,7 @@
+/**
+ * Defines app config persistence configuration for the renderer UI.
+ */
+
 import { hasShallowConfigChanges } from './configComparison';
 
 function isPlainObject(value) {

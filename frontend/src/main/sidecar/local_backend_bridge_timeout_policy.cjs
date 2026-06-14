@@ -1,3 +1,7 @@
+/**
+ * Bridges local backend timeout policy behavior for the Electron main process.
+ */
+
 const DEFAULT_REQUEST_TIMEOUT_MS = 60000;
 const DEFAULT_EXECUTE_TOOL_TIMEOUT_MS = 60000;
 const BROWSER_EXECUTE_TOOL_TIMEOUT_MS = 120000;

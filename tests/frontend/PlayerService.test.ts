@@ -1,3 +1,7 @@
+/**
+ * Covers player service. behavior in the frontend test suite.
+ */
+
 import { PlayerService } from '../../frontend/src/renderer/infrastructure/audio/PlayerService';
 
 class MockAudioBuffer {

@@ -1,3 +1,7 @@
+/**
+ * Handles main window controls events for the Electron main process.
+ */
+
 function getUnavailableMainWindowResult(withMaximizeState = false) {
   if (withMaximizeState) {
     return {

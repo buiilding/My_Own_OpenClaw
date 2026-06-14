@@ -1,3 +1,7 @@
+/**
+ * Provides the dashboard conversation load module for the renderer UI.
+ */
+
 const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;
 const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
 const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;

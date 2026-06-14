@@ -1,3 +1,5 @@
+"""Covers prompt package exports behavior in the backend test suite."""
+
 from backend.src.llm.prompts import (
     PromptConstructor,
     PromptManager,

@@ -1,3 +1,7 @@
+/**
+ * Provides the tool execution logger module for the renderer UI.
+ */
+
 declare global {
   interface Window {
     __WINDIE_VERBOSE_TOOL_LOGS__?: boolean;

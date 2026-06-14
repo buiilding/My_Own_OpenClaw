@@ -1,3 +1,7 @@
+/**
+ * Handles display query events for the Electron main process.
+ */
+
 function handleGetDisplays(deps = {}) {
   const { screen } = deps;
   const displays = screen.getAllDisplays();

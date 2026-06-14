@@ -1,3 +1,7 @@
+/**
+ * Provides the highlighted plain text module for the renderer UI.
+ */
+
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { highlightPlainTextToHtml } from '../../../../../infrastructure/markdown';

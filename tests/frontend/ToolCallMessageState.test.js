@@ -1,3 +1,7 @@
+/**
+ * Covers tool call message state. behavior in the frontend test suite.
+ */
+
 import {
   buildToolBundleMessageState,
   buildToolCallMessageState,

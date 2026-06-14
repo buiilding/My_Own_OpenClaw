@@ -1,3 +1,7 @@
+/**
+ * Provides the capture payload utils module for the renderer UI.
+ */
+
 export function sanitizeCaptureMeta<T extends Record<string, unknown> = Record<string, unknown>>(
   value: unknown,
 ): T | null {

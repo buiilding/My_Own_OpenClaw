@@ -1,3 +1,7 @@
+/**
+ * Provides the assistant text chat message state module for the renderer UI.
+ */
+
 export function buildAssistantTextChatMessageState({
   id = null,
   text,

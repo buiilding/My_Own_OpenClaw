@@ -1,3 +1,7 @@
+/**
+ * Provides the use stream message updaters module for the renderer UI.
+ */
+
 import { useCallback } from 'react';
 import {
   useChatStore,

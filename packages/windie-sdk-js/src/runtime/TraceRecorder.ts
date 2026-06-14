@@ -1,3 +1,7 @@
+/**
+ * Provides the trace recorder module for the TypeScript SDK runtime.
+ */
+
 import { createRuntimeId } from '../conversation/events.js';
 import type {
   JsonRecord,

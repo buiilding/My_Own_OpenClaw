@@ -1,3 +1,5 @@
+"""Covers vision provider loader behavior in the backend test suite."""
+
 import hashlib
 import logging
 

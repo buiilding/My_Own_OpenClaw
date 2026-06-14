@@ -1,3 +1,7 @@
+/**
+ * Provides the chat stream formatting module for the renderer UI.
+ */
+
 import {
   buildNormalizedToolCall,
   buildToolBundleMessageState,

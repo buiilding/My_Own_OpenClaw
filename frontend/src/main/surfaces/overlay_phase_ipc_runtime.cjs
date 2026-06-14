@@ -1,3 +1,7 @@
+/**
+ * Coordinates the overlay phase ipc runtime for the Electron main process.
+ */
+
 const {
   handleActivateChatboxTextEntry,
   handleHideChatbox,

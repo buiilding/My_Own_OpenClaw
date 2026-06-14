@@ -1,3 +1,7 @@
+/**
+ * Provides the chat provider module for the renderer UI.
+ */
+
 import { useEffect } from 'react';
 import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useConversationRuntimeProjectionStream } from '../../features/chat/hooks/useConversationRuntimeProjectionStream';

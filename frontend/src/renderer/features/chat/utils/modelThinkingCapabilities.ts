@@ -1,3 +1,7 @@
+/**
+ * Provides the model thinking capabilities module for the renderer UI.
+ */
+
 type ModelCapabilityDescriptor = {
   id?: string;
   provider?: string;

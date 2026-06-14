@@ -1,3 +1,5 @@
+"""Covers safe websocket behavior in the backend test suite."""
+
 import asyncio
 from typing import Any, Optional
 

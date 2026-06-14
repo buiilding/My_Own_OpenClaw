@@ -1,3 +1,5 @@
+# Runs the reinstall windieos windows workflow for the developer CLI and automation tooling.
+
 param(
   [switch]$SkipDataReset,
   [switch]$SkipLaunch

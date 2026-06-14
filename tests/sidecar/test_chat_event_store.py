@@ -1,3 +1,5 @@
+"""Covers chat event store behavior in the sidecar test suite."""
+
 from pathlib import Path
 import sqlite3
 

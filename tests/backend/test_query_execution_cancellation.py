@@ -1,3 +1,5 @@
+"""Covers query execution cancellation behavior in the backend test suite."""
+
 from types import SimpleNamespace
 
 from backend.src.api.services.query_execution_support.query_execution_cancellation import (

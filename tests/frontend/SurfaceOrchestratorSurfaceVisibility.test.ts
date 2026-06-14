@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator surface visibility. behavior in the frontend test suite.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import * as surfaceVisibility from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/surfaceVisibility';
 

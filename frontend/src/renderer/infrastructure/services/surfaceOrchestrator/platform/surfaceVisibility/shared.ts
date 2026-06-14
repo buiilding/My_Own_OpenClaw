@@ -1,3 +1,7 @@
+/**
+ * Provides the shared module for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../ipc/bridge';
 import type {
   HiddenSurface,

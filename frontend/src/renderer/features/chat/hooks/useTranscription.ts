@@ -1,3 +1,7 @@
+/**
+ * Provides the use transcription module for the renderer UI.
+ */
+
 import { useState, useRef, useCallback } from 'react';
 import {
   appendTranscriptionText,

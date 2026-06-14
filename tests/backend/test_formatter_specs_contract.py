@@ -1,3 +1,5 @@
+"""Covers formatter specs contract behavior in the backend test suite."""
+
 from backend.src.api.contracts.formatter_specs import get_formatter_specs
 from backend.src.core.types import StreamingEventType
 

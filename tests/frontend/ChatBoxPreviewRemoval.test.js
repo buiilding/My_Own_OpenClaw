@@ -1,3 +1,7 @@
+/**
+ * Covers chat box preview removal. behavior in the frontend test suite.
+ */
+
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import AttachmentPreviewRow from '../../frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow';

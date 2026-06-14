@@ -1,3 +1,7 @@
+/**
+ * Exposes the package entrypoint for the Electron main process.
+ */
+
 const linuxRuntime = require('./linux.cjs');
 const macosRuntime = require('./macos.cjs');
 const windowsRuntime = require('./windows.cjs');

@@ -1,3 +1,7 @@
+/**
+ * Covers browser session store. behavior in the frontend test suite.
+ */
+
 const mockInvoke = jest.fn();
 const mockSubscribeLocalBackendStatusStore = jest.fn(() => jest.fn());
 const mockGetLocalBackendStatusSnapshot = jest.fn(() => ({

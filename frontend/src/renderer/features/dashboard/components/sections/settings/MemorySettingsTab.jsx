@@ -1,3 +1,7 @@
+/**
+ * Defines memory settings tab configuration for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { useMemorySettingsActions } from './useMemorySettingsActions';
 

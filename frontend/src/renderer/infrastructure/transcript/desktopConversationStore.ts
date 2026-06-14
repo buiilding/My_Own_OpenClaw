@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves desktop conversation state for the renderer UI.
+ */
+
 import {
   buildConversationEventsFromStoredTranscript,
 } from './storedTranscriptSdkProjection';

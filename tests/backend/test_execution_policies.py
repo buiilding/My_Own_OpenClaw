@@ -1,3 +1,5 @@
+"""Covers execution policies behavior in the backend test suite."""
+
 from backend.src.agent.execution.policies import (
     ParseRecoveryPolicy,
     ToolExecutionPolicy,

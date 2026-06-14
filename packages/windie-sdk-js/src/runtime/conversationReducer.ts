@@ -1,3 +1,7 @@
+/**
+ * Provides the conversation reducer module for the TypeScript SDK runtime.
+ */
+
 import type {
   ConversationEvent,
   ConversationRuntimeState,

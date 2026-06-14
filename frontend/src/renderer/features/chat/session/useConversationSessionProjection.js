@@ -1,3 +1,7 @@
+/**
+ * Projects use conversation session state for the renderer UI.
+ */
+
 import { useEffect } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { applyChatConversationProjection } from './conversationSessionRuntime';

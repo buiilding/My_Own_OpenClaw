@@ -1,3 +1,7 @@
+/**
+ * Covers backend audio events. behavior in the frontend test suite.
+ */
+
 import { extractAudioChunkPayload } from '../../frontend/src/renderer/features/chat/utils/backendAudioEvents';
 
 describe('backendAudioEvents', () => {

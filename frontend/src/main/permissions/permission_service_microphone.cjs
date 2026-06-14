@@ -1,3 +1,7 @@
+/**
+ * Implements the permission service microphone service for the Electron main process.
+ */
+
 const {
   PERMISSION_STATUS,
   buildProbeResult,

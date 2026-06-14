@@ -1,3 +1,7 @@
+/**
+ * Covers chat store. behavior in the frontend test suite.
+ */
+
 import {
   buildResponseOverlayDismissalKey,
   useChatStore,

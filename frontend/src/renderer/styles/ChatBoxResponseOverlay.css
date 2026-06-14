@@ -1,3 +1,7 @@
+/*
+ * Styles the chat box response overlay surface for the renderer UI.
+ */
+
 .chatbox-response-shell-wrap {
   --chatbox-typing-surface-bg: var(--ui-panel-bg);
   --chatbox-typing-border: var(--ui-border-soft);

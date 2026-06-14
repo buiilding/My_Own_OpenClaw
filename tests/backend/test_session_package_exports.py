@@ -1,3 +1,5 @@
+"""Covers session package exports behavior in the backend test suite."""
+
 def test_session_package_exports_public_runtime_classes() -> None:
     import backend.src.agent.session as session_package
     from backend.src.agent.session import AgentSession, SessionManager

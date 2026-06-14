@@ -1,3 +1,5 @@
+"""Covers system metrics and watermark state behavior in the sidecar test suite."""
+
 import json
 import sys
 from datetime import datetime

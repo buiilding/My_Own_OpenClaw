@@ -1,3 +1,7 @@
+/**
+ * Provides the window platform policy module for the Electron main process.
+ */
+
 const {
   createContentProtectionRuntime,
 } = require('../platform/content_protection/index.cjs');

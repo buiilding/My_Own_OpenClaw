@@ -1,3 +1,7 @@
+/**
+ * Covers chat surface controller. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';

@@ -1,3 +1,7 @@
+/**
+ * Provides the wakeword event utils module for the renderer UI.
+ */
+
 export function getChunkSizeWarning(rawChunkSize: number, normalizedChunkSize: number): string | null {
   if (rawChunkSize === normalizedChunkSize) {
     return null;

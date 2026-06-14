@@ -1,3 +1,7 @@
+/**
+ * Covers reset active chat session. behavior in the frontend test suite.
+ */
+
 import { resetActiveChatSession } from '../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 

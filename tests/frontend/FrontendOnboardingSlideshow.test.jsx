@@ -1,3 +1,7 @@
+/**
+ * Covers frontend onboarding slideshow. behavior in the frontend test suite.
+ */
+
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import FrontendOnboardingSlideshow from '../../frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow';

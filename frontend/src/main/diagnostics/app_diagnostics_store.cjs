@@ -1,3 +1,7 @@
+/**
+ * Stores and retrieves app diagnostics state for the Electron main process.
+ */
+
 const childProcess = require('child_process');
 const crypto = require('crypto');
 const fs = require('fs');

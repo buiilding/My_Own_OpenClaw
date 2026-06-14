@@ -1,3 +1,7 @@
+/**
+ * Coordinates the desktop transcript session runtime client for the renderer UI.
+ */
+
 import { desktopTranscriptSessionRuntime } from './desktopTranscriptSessionRuntime';
 
 export const DesktopTranscriptSessionRuntimeClient = {

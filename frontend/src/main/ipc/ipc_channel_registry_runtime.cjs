@@ -1,3 +1,7 @@
+/**
+ * Coordinates the ipc channel registry runtime for the Electron main process.
+ */
+
 const IPC_CHANNELS = require('../../shared/ipcChannels.json');
 
 const IPC_CHANNELS_ARGUMENT_PREFIX = '--windie-ipc-channels=';

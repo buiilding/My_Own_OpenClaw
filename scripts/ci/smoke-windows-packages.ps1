@@ -1,3 +1,5 @@
+# Runs the smoke windows packages workflow for the developer CLI and automation tooling.
+
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..\..")

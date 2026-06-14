@@ -1,3 +1,5 @@
+"""Covers mouse tool behavior in the sidecar test suite."""
+
 import sys
 from types import SimpleNamespace
 

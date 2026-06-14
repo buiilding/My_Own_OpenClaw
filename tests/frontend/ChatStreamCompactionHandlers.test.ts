@@ -1,3 +1,7 @@
+/**
+ * Covers chat stream compaction handlers. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({

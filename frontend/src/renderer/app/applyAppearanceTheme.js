@@ -1,3 +1,7 @@
+/**
+ * Provides the apply appearance theme module for the renderer UI.
+ */
+
 import { DEFAULT_APPEARANCE_THEME } from '../utils/configStorage';
 
 const VALID_APPEARANCE_MODES = new Set(['light', 'dark', 'system']);

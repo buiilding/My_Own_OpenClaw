@@ -1,3 +1,5 @@
+"""Provides the initializer module for the backend core configuration."""
+
 import logging
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Optional

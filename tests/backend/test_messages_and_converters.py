@@ -1,3 +1,5 @@
+"""Covers messages and converters behavior in the backend test suite."""
+
 from backend.src.core.messages.converters import content_to_message_content
 from backend.src.core.messages.structures import (
     ImageContent,

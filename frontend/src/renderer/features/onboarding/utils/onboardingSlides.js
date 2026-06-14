@@ -1,3 +1,7 @@
+/**
+ * Provides the onboarding slides module for the renderer UI.
+ */
+
 export function buildOnboardingSlideState({ permissions, activeSlideIndex }) {
   const permissionSlides = Array.isArray(permissions) ? permissions : [];
   const permissionSlideCount = permissionSlides.length > 0 ? permissionSlides.length : 1;

@@ -1,3 +1,7 @@
+/**
+ * Covers windie sdk model selection. behavior in the frontend test suite.
+ */
+
 import { buildModelSettingsPatch } from '../../packages/windie-sdk-js/src/settings/modelSelection';
 
 describe('buildModelSettingsPatch', () => {

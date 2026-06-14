@@ -1,3 +1,7 @@
+/**
+ * Provides the use dashboard conversations module for the renderer UI.
+ */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildChatMessagesFromSdkDisplayRows } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';

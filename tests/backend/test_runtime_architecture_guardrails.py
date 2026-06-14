@@ -1,3 +1,5 @@
+"""Covers runtime architecture guardrails behavior in the backend test suite."""
+
 from pathlib import Path
 
 

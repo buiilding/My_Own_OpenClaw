@@ -1,3 +1,7 @@
+/**
+ * Provides the local backend status broadcaster module for the Electron main process.
+ */
+
 const {
   conversationMetadataInvalidationFromLocalRuntimeEvent,
 } = require('../../../../packages/windie-sdk-js/cjs/index.js');

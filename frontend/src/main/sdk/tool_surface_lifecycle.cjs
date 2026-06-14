@@ -1,3 +1,7 @@
+/**
+ * Provides the tool surface lifecycle module for the Electron main process.
+ */
+
 function normalizeToolName(value) {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }

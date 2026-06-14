@@ -1,3 +1,7 @@
+/**
+ * Covers surface orchestrator logging gate. behavior in the frontend test suite.
+ */
+
 import { shouldLogSurfaceTransitions } from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/loggingGate';
 
 describe('surfaceOrchestrator logging gate', () => {

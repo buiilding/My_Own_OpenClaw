@@ -1,3 +1,7 @@
+/**
+ * Covers message screenshots. behavior in the frontend test suite.
+ */
+
 import {
   hasMessageScreenshot,
   isUserMessageWithScreenshot,

@@ -1,3 +1,5 @@
+"""Covers tool manifest behavior in the sidecar test suite."""
+
 import asyncio
 import json
 from pathlib import Path

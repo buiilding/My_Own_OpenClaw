@@ -1,3 +1,7 @@
+/**
+ * Provides the message shape prop type module for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { toolSchemaListPropType } from './toolSchemaPropType';
 

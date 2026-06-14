@@ -1,3 +1,7 @@
+/**
+ * Provides the use latest ref module for the renderer UI.
+ */
+
 import { useRef } from 'react';
 
 /**

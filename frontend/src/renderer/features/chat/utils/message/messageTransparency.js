@@ -1,3 +1,7 @@
+/**
+ * Provides the message transparency module for the renderer UI.
+ */
+
 import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
 
 function resolveMessageToolSchemas(message) {

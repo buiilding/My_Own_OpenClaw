@@ -1,3 +1,7 @@
+/**
+ * Defines settings controls configuration for the renderer UI.
+ */
+
 import PropTypes from 'prop-types';
 import { ChevronDown } from 'lucide-react';
 

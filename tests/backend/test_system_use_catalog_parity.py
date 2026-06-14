@@ -1,3 +1,5 @@
+"""Covers system use catalog parity behavior in the backend test suite."""
+
 from backend.src.tools.remote_tools.system import (
     _SYSTEM_USE_MODEL_BY_TOOL,
     _SYSTEM_USE_TARGET_TOOL_BY_TOOL,

@@ -1,3 +1,7 @@
+/**
+ * Provides the metadata module for the TypeScript SDK runtime.
+ */
+
 import type {
   ConversationMetadata,
   ListConversationOptions,

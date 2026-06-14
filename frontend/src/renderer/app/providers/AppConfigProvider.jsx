@@ -1,3 +1,7 @@
+/**
+ * Defines app config provider configuration for the renderer UI.
+ */
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';

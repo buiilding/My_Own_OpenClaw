@@ -1,3 +1,5 @@
+"""Covers tool preparer behavior in the backend test suite."""
+
 import pytest
 
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (

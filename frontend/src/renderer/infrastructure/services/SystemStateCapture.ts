@@ -1,3 +1,7 @@
+/**
+ * Provides the system state capture module for the renderer UI.
+ */
+
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import type { SystemState } from './MessageFormatter';
 import { prepareExternalFocusForCapture } from './SurfaceOrchestrator';

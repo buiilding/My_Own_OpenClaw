@@ -1,3 +1,7 @@
+/**
+ * Covers wakeword bridge events hook. behavior in the frontend test suite.
+ */
+
 import { act, renderHook } from '@testing-library/react';
 import { useRef } from 'react';
 

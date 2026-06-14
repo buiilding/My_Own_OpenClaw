@@ -1,3 +1,5 @@
+"""Covers vision service behavior in the backend test suite."""
+
 import pytest
 
 import backend.src.services.vision.vision_service as vision_service_module
