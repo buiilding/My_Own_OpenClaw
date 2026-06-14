@@ -83,13 +83,19 @@ async function flushAnimationFrames() {
   await Promise.resolve();
 }
 
-function createPointerDownEvent() {
+function createPointerDownEvent(options = {}) {
   const PointerEventCtor = window.PointerEvent || window.MouseEvent;
   return new PointerEventCtor('pointerdown', {
     bubbles: true,
     cancelable: true,
+    button: 0,
+    clientX: 0,
+    clientY: 0,
+    screenX: 0,
+    screenY: 0,
     pointerId: 1,
     pointerType: 'mouse',
+    ...options,
   });
 }
 
@@ -522,6 +528,35 @@ describe('ChatBox overlay mouse ignore', () => {
     fireEvent.mouseUp(window);
 
     expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 130, y: 120 });
+  });
+
+  test('unfocused input pointer drag still starts chat pill movement', () => {
+    setWindowScreenPosition(90, 90);
+
+    render(<MinimalChatPill />);
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
+
+    const pointerDown = createPointerDownEvent({
+      clientX: 10,
+      clientY: 10,
+      screenX: 100,
+      screenY: 100,
+    });
+    const preventDefaultSpy = jest.spyOn(pointerDown, 'preventDefault');
+
+    input.dispatchEvent(pointerDown);
+    fireEvent.mouseMove(window, { clientX: 34, clientY: 30, screenX: 140, screenY: 130 });
+    fireEvent.mouseUp(window);
+
+    expect(preventDefaultSpy).toHaveBeenCalledTimes(1);
+    expectInvokeCall(
+      ([channel, payload]) =>
+        channel === 'activate-chatbox-text-entry'
+        && payload?.reason === 'text-entry',
+    );
+    expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 130, y: 120 });
+    expect(document.activeElement).not.toBe(input);
+    preventDefaultSpy.mockRestore();
   });
 
   test('button drag also starts chat pill movement after the movement threshold', () => {

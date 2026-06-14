@@ -81,6 +81,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat-pill: allow the first unfocused press-and-hold gesture on the
+  minimal pill textarea to start window dragging while preserving the native
+  focus handoff required for click-to-type.
 - codebase: remove stray non-header migration hunks from the file description
   commit so the original checkout keeps its current SDK behavior while retaining
   the added file headers.

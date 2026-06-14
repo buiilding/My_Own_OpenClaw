@@ -617,7 +617,7 @@ function MinimalChatPill() {
 
   useChatboxDragWindowBindings(handleDragMove, stopDragging);
 
-  const handlePillMouseDown = useCallback((event) => {
+  const beginPillDragTracking = useCallback((event) => {
     if (event.button !== 0) {
       return;
     }
@@ -653,7 +653,8 @@ function MinimalChatPill() {
           ref={pillRef}
           className={`chatbox-pill${hasAttachmentPreview ? ' with-preview' : ''}`}
           onSubmit={handleSubmit}
-          onMouseDown={handlePillMouseDown}
+          onPointerDownCapture={beginPillDragTracking}
+          onMouseDown={beginPillDragTracking}
           onClickCapture={handlePillClickCapture}
         >
           <button
