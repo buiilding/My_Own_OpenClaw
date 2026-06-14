@@ -78,6 +78,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- codebase: remove stray non-header migration hunks from the file description
+  commit so the original checkout keeps its current SDK behavior while retaining
+  the added file headers.
 - sdk/frontend: make Stop terminalize the active turn immediately, keeping late
   backend chunks from reactivating a stopped response while cancellation
   propagates.

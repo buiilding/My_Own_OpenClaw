@@ -876,14 +876,6 @@ function buildCurrentTurnProjection(events) {
             };
             continue;
         }
-        if (event.type === 'turn_stopped') {
-            projection = {
-                ...projection,
-                phase: 'complete',
-                lastError: null,
-            };
-            continue;
-        }
         if (event.type === 'turn_error' || event.type === 'runtime_error') {
             if (shouldIgnoreCurrentTurnError(event.payload)) {
                 continue;
