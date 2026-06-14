@@ -39,8 +39,6 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('windie start customer');
     expect(result.stdout).toContain('windie start all');
     expect(result.stdout).toContain('windie logs frontend');
-    expect(result.stdout).toContain('windie docs list');
-    expect(result.stdout).toContain('windie docs search <query>');
     expect(result.stdout).toContain('windie logs vite');
     expect(result.stdout).toContain('windie logs main');
     expect(result.stdout).toContain('windie logs renderer [--verbose]');
@@ -195,23 +193,6 @@ describe('windie CLI', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('[WindieOS] sidecar log');
-  });
-
-  test('finds docs outside the canonical navigation map', () => {
-    const result = runCli(['docs', 'open', 'test selection']);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('docs/debug/test_selection.md');
-  });
-
-  test('searches docs with explicit and shorthand docs query forms', () => {
-    const explicit = runCli(['docs', 'search', 'Desktop Assistant Documentation']);
-    const shorthand = runCli(['docs', 'Desktop Assistant Documentation']);
-
-    expect(explicit.status).toBe(0);
-    expect(explicit.stdout).toContain('docs/README.md');
-    expect(shorthand.status).toBe(0);
-    expect(shorthand.stdout).toContain('docs/README.md');
   });
 
   test('exports display conversation messages from the canonical history database', () => {

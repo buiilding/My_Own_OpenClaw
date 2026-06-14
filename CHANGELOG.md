@@ -330,6 +330,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/cli: drop copied docs-command assertions from the Windie CLI coverage
+  while keeping the original docs tree and `AGENTS.md` intact.
 - frontend/main/sdk: rename query, stop, model-list, settings, and wakeword
   helpers around their SDK-agent ownership instead of the older backend-send
   wording.

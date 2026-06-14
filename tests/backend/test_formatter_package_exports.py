@@ -1,6 +1,5 @@
 """Smoke tests for backend formatter package exports."""
 
-
 def test_formatter_package_import_exports_public_classes():
     from backend.src.api.processing import formatters
 
@@ -22,6 +21,7 @@ def test_formatter_package_import_exports_public_classes():
         "ContextCompactionStartedEventFormatter",
         "TokenCountEventFormatter",
         "ToolBundleEventFormatter",
+        "TraceEventFormatter",
     }
 
     assert set(formatters.__all__) == expected_exports
