@@ -272,7 +272,7 @@ class WindieClient {
         }
     }
     resolveConfiguredLocalRuntime() {
-        const explicitRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+        const explicitRuntime = this.defaultOptions.sidecar;
         if (explicitRuntime) {
             return explicitRuntime;
         }
