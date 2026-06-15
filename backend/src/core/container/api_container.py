@@ -168,8 +168,5 @@ def _create_handler_registry(
     ):
         registry.register(message_type, handler)
 
-    # Source compatibility breadcrumb for tests migrating from manual registration:
-    # registry.register("load-settings", load_settings_handler)
-
     logger.info("Message handler registry initialized with all handlers")
     return registry

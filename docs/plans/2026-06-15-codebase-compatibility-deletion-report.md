@@ -33,6 +33,7 @@ Date: 2026-06-15
 | --- | --- | --- | --- | --- | --- |
 | CD-001 | Frontend logging | Duplicate `frontend` branch in `resolveLayerLogFile(...)` | `envKeyForLayer('frontend')` already resolves `WINDIE_FRONTEND_LOG_FILE`, making the later `legacyConfigured` branch unreachable | Delete the duplicate branch; keep the current layer-owned env override | implemented |
 | CD-002 | Backend API events | Live `trace_event` stream event spelling in VM run control and transcription gateway | Outgoing trace event schema and `StreamingEventType.TRACE_EVENT` use `trace-event`; production grep found only these underscore emitters | Emit canonical `trace-event`, update focused tests, remove the underscore trace alias, and fix the transcription route dependency needed to validate the websocket path | implemented |
+| CD-003 | Backend container | Handler registry source compatibility breadcrumb | `api_container.py` only retained a commented manual registration example for tests migrating away from manual registration; active docs now describe declarative bindings | Delete the stale comment so the current registry path is the only in-code guidance | implemented |
 
 ## Commit Ledger
 
@@ -52,6 +53,15 @@ CD-001 validation:
 
 - `bin/windie test frontend -- LayerLogSink ElectronLauncher WindieCli`: passed,
   4 suites and 44 tests.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
+CD-003 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_api_container_source.py -q`:
+  passed, 12 tests.
+- targeted `rg "Source compatibility breadcrumb|manual registration" backend/src/core/container/api_container.py`:
+  no matches.
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
@@ -88,3 +98,5 @@ CD-002 validation:
   The route now uses the explicit FastAPI dependency, and the lightweight route
   import shim returns a minimal session object for tests that import route
   packages under the shim.
+- CD-003 has no runtime migration impact: it removes only a stale source
+  comment after declarative handler bindings became the active registry path.

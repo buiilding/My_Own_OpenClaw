@@ -411,6 +411,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/events: emit canonical `trace-event` types from VM run-control and
   transcription trace streams instead of preserving the old underscore
   `trace_event` spelling.
+- backend/container: remove the obsolete handler-registration compatibility
+  breadcrumb now that declarative handler bindings are the only documented
+  registry path.
 - docs/platforms: route packaged sidecar workflow docs from deleted
   `sidecar_process_runtime.cjs` to `runtime_paths.cjs` and
   `sdk_sidecar_launch_options.cjs`.
