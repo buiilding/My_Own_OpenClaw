@@ -18,7 +18,7 @@ title: "Backend API Processing Docs Hub"
 - [Response Formatter Registry Lifecycle, Lazy Specs, and Context Attachment Reference](formatters/registry/response_formatter_registry_lifecycle_lazy_specs_and_context_attachment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [Query Execution Runtime-State and Completion Resolver Reference](query_execution_runtime_state_and_completion_resolver_reference.md)
-- [Query Execution Helper Contracts and Compatibility Event Extraction Reference](completion/query_execution_helper_contracts_and_compatibility_event_extraction_reference.md)
+- [Query Execution Helper Contracts and Event Extraction Reference](completion/query_execution_helper_contracts_and_event_extraction_reference.md)
 - [Base Formatter Guard Utilities and Skip Semantics Reference](formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md)
 - [Formatter Validation and Contract-Test Matrix Reference](formatters/formatter_validation_and_contract_test_matrix_reference.md)
 - [Formatter Message Docs Hub](formatters/messages/README.md)

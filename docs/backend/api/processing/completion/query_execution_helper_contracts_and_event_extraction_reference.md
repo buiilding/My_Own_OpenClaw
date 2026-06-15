@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for QueryExecutionService helper contracts: event-type extraction compatibility, chunk/full-message/terminal text resolution, and synthetic completion emission behavior."
+summary: "Deep reference for QueryExecutionService helper contracts: event-type extraction, chunk/full-message/terminal text resolution, and synthetic completion emission behavior."
 read_when:
   - When changing query-execution helper methods that parse stream events.
-  - When debugging empty final responses, missing chunk aggregation, or dict-event compatibility regressions.
-title: "Query Execution Helper Contracts and Compatibility Event Extraction Reference"
+  - When debugging empty final responses, missing chunk aggregation, or dict-event extraction regressions.
+title: "Query Execution Helper Contracts and Event Extraction Reference"
 ---
 
-# Query Execution Helper Contracts and Compatibility Event Extraction Reference
+# Query Execution Helper Contracts and Event Extraction Reference
 
 ## Canonical Modules
 
@@ -23,7 +23,8 @@ title: "Query Execution Helper Contracts and Compatibility Event Extraction Refe
 ## Helper Surface in Query Execution
 
 `QueryExecutionService.execute(...)` relies on module-level helper functions in
-`query_event_extraction.py` to keep stream-loop logic compatible across event shapes:
+`query_event_extraction.py` to keep stream-loop parsing rules explicit across
+supported event shapes:
 
 - `extract_event_type`
 - `extract_dict_payload`
@@ -35,13 +36,13 @@ title: "Query Execution Helper Contracts and Compatibility Event Extraction Refe
 - `resolve_completion_text`
 - `_emit_completion_events`
 
-These helpers isolate parsing/compat logic from transport/tts orchestration.
+These helpers isolate parsing logic from transport/tts orchestration.
 
 `QueryExecutionStreamState` (`query_execution_support/query_execution_stream_state.py`) owns mutable
 per-turn aggregation/latch state and produces stable kwargs payloads consumed by
 `resolve_completion_text(...)`.
 
-## Event-Type Compatibility Contract
+## Event-Type Extraction Contract
 
 `extract_event_type(event)` supports:
 
@@ -53,7 +54,8 @@ Any other shape returns `None`.
 Whitespace-only type strings are normalized to `None` (trim + empty guard).
 Extracted type values are otherwise case-preserving and case-sensitive.
 
-This allows mixed event producers during migrations without failing the stream loop.
+This allows typed events and dict envelopes to share one extraction path without
+failing the stream loop.
 
 ## Dict Payload Field Resolution
 
@@ -67,8 +69,8 @@ This allows mixed event producers during migrations without failing the stream l
 
 Used for:
 
-- chunk/content extraction compatibility (`content` vs payload `text`)
-- streaming complete final response extraction from legacy/new envelope shapes
+- chunk/content field resolution (`content` vs payload `text`)
+- streaming complete final response extraction from supported envelope shapes
 
 ## Chunk Aggregation Rules
 
@@ -147,7 +149,7 @@ Current explicit tests cover:
 
 ## Drift Hotspots
 
-1. narrowing accepted chunk event aliases can drop streamed text aggregation for legacy emitters.
+1. narrowing accepted chunk event types can drop streamed text aggregation for supported emitters.
 2. changing helper precedence can produce empty or duplicated final responses.
 3. removing synthetic chunk backfill can yield completion-only turns with no visible assistant text in some frontend paths.
 4. desynchronizing stream-state helper shape (`completion_kwargs`) from resolver call signature can regress terminal fallback behavior.

@@ -17,6 +17,9 @@ All notable changes to WindieOS will be documented in this file.
   directly.
 - docs/frontend: delete the legacy settings display/config compatibility
   entrypoint and route docs hubs to the current settings-section reference.
+- docs/backend-api: rename the query-execution helper reference away from
+  compatibility event-extraction terminology now that stream event extraction
+  requires canonical event types.
 
 ### Added
 

@@ -149,4 +149,4 @@ These wrappers preserve a stable test seam while main helper logic lives in dedi
 - [Query Execution Service Stream Context and Completion Fallback Reference](query_execution_service_stream_context_and_completion_fallback_reference.md)
 - [Query Handler and Query Execution Service Runtime Reference](../handlers/query_handler_and_query_execution_service_runtime_reference.md)
 - [Query Execution Runtime-State and Completion Resolver Reference](../processing/query_execution_runtime_state_and_completion_resolver_reference.md)
-- [Query Execution Helper Contracts and Compatibility Event Extraction Reference](../processing/completion/query_execution_helper_contracts_and_compatibility_event_extraction_reference.md)
+- [Query Execution Helper Contracts and Event Extraction Reference](../processing/completion/query_execution_helper_contracts_and_event_extraction_reference.md)

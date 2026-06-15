@@ -42,6 +42,7 @@ Date: 2026-06-15
 | CD-009 | SDK/backend contract tests | `test_sdk_runtime_backend_compatibility.py` and `compat` fixture IDs for current SDK/backend payload validation | File inspection showed the test validates current SDK-emitted payloads against backend ingress schemas, not backward compatibility behavior | Rename the test and synthetic IDs to `contract`, and update active docs that route this validation command | implemented |
 | CD-010 | Backend prompt construction | `PromptConstructor.build_prompt(...)` tuple-returning compatibility wrapper | Production grep showed only SDK prompt preview still used the tuple wrapper; tests could assert directly through `ProviderPrompt` | Move callers to `build_provider_prompt(...)`, delete the wrapper, and update prompt docs/tests to use the typed provider prompt contract | implemented |
 | CD-011 | Frontend settings docs | Legacy settings display/config compatibility entrypoint page | Repo search showed only docs hubs linked to the redirect-style page, while current detailed settings docs live under `settings/sections` and `settings/config` | Delete the compatibility entrypoint and route docs hubs to the current settings docs directly | implemented |
+| CD-012 | Backend API completion docs | Query execution helper doc filename/title still described compatibility event extraction | CD-008 made stream event extraction canonical-only; current helper doc now describes supported dict/object extraction and field resolution, not compatibility aliasing | Rename the doc and links to the current event-extraction contract terminology | implemented |
 
 ## Commit Ledger
 
@@ -170,6 +171,13 @@ CD-011 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-012 validation:
+
+- targeted `rg -n "query_execution_helper_contracts_and_compatibility_event_extraction_reference|Query Execution Helper Contracts and Compatibility Event Extraction|compatibility event extraction|chunk/content extraction compatibility" docs backend/src tests --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -218,3 +226,6 @@ CD-011 validation:
   prompt preview now consumes the same typed provider prompt object.
 - CD-011 has no runtime migration impact: it deletes a docs-only compatibility
   entrypoint after updating the docs hubs that linked to it.
+- CD-012 has no runtime migration impact: it renames a docs-only reference page
+  and updates internal docs links after the code path already required
+  canonical event types.
