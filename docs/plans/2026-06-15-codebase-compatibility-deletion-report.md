@@ -72,6 +72,8 @@ Date: 2026-06-15
   completed CD-012.
 - `5563e3db2 docs(backend-api): rename package split references`
   completed CD-013.
+- `f6cc05187 refactor(backend-vision): remove internvl helper wrappers`
+  completed CD-014.
 
 ## Validation Log
 
