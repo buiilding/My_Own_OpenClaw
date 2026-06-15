@@ -3,14 +3,17 @@ Tool result router.
 
 Routes tool results to appropriate handlers.
 """
+
 import logging
-from typing import Any, Literal, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 from backend.src.services.artifacts import ArtifactStore
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.agent.tools.preparation.screenshot.processor import ScreenshotProcessor
+    from backend.src.agent.tools.preparation.screenshot.processor import (
+        ScreenshotProcessor,
+    )
     from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
     from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
     from backend.src.core.interfaces.tool import ToolResult
@@ -24,7 +27,7 @@ RouteMode = Literal["individual", "bundle"]
 class ToolResultRouter:
     """
     Routes tool results to appropriate handlers.
-    
+
     Responsibility: Routing results only.
     Routes to screenshot processor, storage, and future resolution.
     """
@@ -38,7 +41,7 @@ class ToolResultRouter:
     ):
         """
         Initialize the tool result router.
-        
+
         Args:
             receiver: Receiver for converting local-runtime results
             screenshot_processor: Processor for screenshot processing
@@ -49,7 +52,7 @@ class ToolResultRouter:
         self.screenshot_processor = screenshot_processor
         self.result_storage = result_storage
         self.session = session
-    
+
     async def _process_screenshot(
         self,
         screenshot: Optional[str],
@@ -75,7 +78,9 @@ class ToolResultRouter:
             store = ArtifactStore.from_config(self.session.cfg)
             return store.load_base64(screenshot_ref)
         except Exception as exc:
-            logger.warning(f"Failed to load screenshot artifact {screenshot_ref}: {exc}")
+            logger.warning(
+                f"Failed to load screenshot artifact {screenshot_ref}: {exc}"
+            )
             return None
 
     def _looks_like_artifact_id(self, value: Optional[str]) -> bool:
@@ -86,7 +91,9 @@ class ToolResultRouter:
         lowered = value.lower()
         return lowered.endswith((".png", ".jpg", ".jpeg")) and len(value) < 80
 
-    def _inject_screenshot_artifact(self, tool_result: "ToolResult", screenshot_data: str) -> None:
+    def _inject_screenshot_artifact(
+        self, tool_result: "ToolResult", screenshot_data: str
+    ) -> None:
         if tool_result.artifacts is None:
             tool_result.artifacts = {}
         tool_result.artifacts["screenshot"] = screenshot_data
@@ -103,9 +110,15 @@ class ToolResultRouter:
         self.result_storage.store_pending_result(request_id, tool_result)
         resolved = self.result_storage.resolve_result_future(request_id, tool_result)
         if resolved:
-            logger.info("Resolved %s result future for request_id %s", log_context, request_id[:15])
+            logger.info(
+                "Resolved %s result future for request_id %s",
+                log_context,
+                request_id[:15],
+            )
         elif log_on_miss:
-            logger.debug("No waiting future for %s request_id %s", log_context, request_id[:15])
+            logger.debug(
+                "No waiting future for %s request_id %s", log_context, request_id[:15]
+            )
 
     def _store_and_resolve_bundle_result(
         self,
@@ -128,12 +141,12 @@ class ToolResultRouter:
             runtime_state = tool_result.data.get("system_state_internal")
             if runtime_state is None or isinstance(runtime_state, dict):
                 self.session.set_current_system_state(runtime_state)
-                return
+            return
         if "system_state" not in tool_result.data:
             return
-        legacy_state = tool_result.data.get("system_state")
-        if legacy_state is None or isinstance(legacy_state, dict):
-            self.session.set_current_system_state(legacy_state)
+        public_state = tool_result.data.get("system_state")
+        if public_state is None or isinstance(public_state, dict):
+            self.session.set_current_system_state(public_state)
 
     @staticmethod
     def _extract_capture_meta(result_data: Any) -> Optional[dict]:
@@ -180,7 +193,7 @@ class ToolResultRouter:
     ) -> None:
         """
         Route individual tool result: process screenshot, store, resolve future.
-        
+
         Args:
             request_id: Request ID for the tool result
             tool_result: Tool result to route
@@ -198,7 +211,7 @@ class ToolResultRouter:
     ) -> None:
         """
         Route atomic bundle result: process screenshot, store, resolve future.
-        
+
         Args:
             bundle_id: Bundle ID for the bundle result
             tool_result: Bundle result to route
@@ -261,6 +274,10 @@ class ToolResultRouter:
         )
 
         if is_bundle:
-            self._store_and_resolve_bundle_result(normalized_correlation_id, tool_result)
+            self._store_and_resolve_bundle_result(
+                normalized_correlation_id, tool_result
+            )
             return
-        self._store_and_resolve_individual_result(normalized_correlation_id, tool_result)
+        self._store_and_resolve_individual_result(
+            normalized_correlation_id, tool_result
+        )

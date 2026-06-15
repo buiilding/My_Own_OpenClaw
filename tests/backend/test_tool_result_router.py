@@ -165,8 +165,9 @@ async def test_route_individual_result_prefers_internal_system_state():
 
 
 @pytest.mark.asyncio
-async def test_route_individual_result_falls_back_to_legacy_system_state_when_internal_is_invalid():
+async def test_route_individual_result_ignores_system_state_when_internal_is_invalid():
     router = _make_router()
+    router.session.current_system_state = {"active_window": "Terminal"}
     result = ToolResult(
         success=True,
         data={
@@ -178,14 +179,18 @@ async def test_route_individual_result_falls_back_to_legacy_system_state_when_in
 
     await router.route_individual_result("req-1", result)
 
-    assert router.session.current_system_state == {"active_window": "Browser"}
+    assert router.session.current_system_state == {"active_window": "Terminal"}
 
 
 @pytest.mark.asyncio
 async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
     router = _make_router()
-    monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "shot.png")
-    monkeypatch.setattr(router, "_resolve_screenshot_ref", lambda _value: "decoded-shot")
+    monkeypatch.setattr(
+        router, "_looks_like_artifact_id", lambda value: value == "shot.png"
+    )
+    monkeypatch.setattr(
+        router, "_resolve_screenshot_ref", lambda _value: "decoded-shot"
+    )
     result = ToolResult(success=True, data={"screenshot_ref": "shot.png"})
 
     await router.route_individual_result("req-1", result)
@@ -197,11 +202,15 @@ async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_route_individual_result_prefers_inline_screenshot_over_artifact_ref(monkeypatch):
+async def test_route_individual_result_prefers_inline_screenshot_over_artifact_ref(
+    monkeypatch,
+):
     router = _make_router()
 
     def _unexpected_artifact_lookup(_value):
-        raise AssertionError("artifact lookup should not run when inline screenshot is present")
+        raise AssertionError(
+            "artifact lookup should not run when inline screenshot is present"
+        )
 
     monkeypatch.setattr(router, "_looks_like_artifact_id", _unexpected_artifact_lookup)
     result = ToolResult(
@@ -248,7 +257,9 @@ async def test_route_result_keeps_individual_and_bundle_storage_isolated_for_sam
     await router.route_bundle_result("corr-shared", bundle_result)
 
     assert router.result_storage.pending == [("corr-shared", individual_result)]
-    assert router.result_storage.pending_resolves == [("corr-shared", individual_result)]
+    assert router.result_storage.pending_resolves == [
+        ("corr-shared", individual_result)
+    ]
     assert router.result_storage.bundled == [("corr-shared", bundle_result)]
     assert router.result_storage.bundle_resolves == [("corr-shared", bundle_result)]
 
@@ -295,8 +306,9 @@ async def test_route_bundle_result_allows_explicit_null_system_state_to_clear_se
 
 
 @pytest.mark.asyncio
-async def test_route_bundle_result_falls_back_to_legacy_system_state_when_internal_is_invalid():
+async def test_route_bundle_result_ignores_system_state_when_internal_is_invalid():
     router = _make_router()
+    router.session.current_system_state = {"active_window": "Terminal"}
     result = ToolResult(
         success=True,
         data={
@@ -308,14 +320,18 @@ async def test_route_bundle_result_falls_back_to_legacy_system_state_when_intern
 
     await router.route_bundle_result("bundle-1", result)
 
-    assert router.session.current_system_state == {"mouse_position": "(10, 20)"}
+    assert router.session.current_system_state == {"active_window": "Terminal"}
 
 
 @pytest.mark.asyncio
 async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
     router = _make_router()
-    monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "bundle.jpg")
-    monkeypatch.setattr(router, "_resolve_screenshot_ref", lambda _value: "decoded-bundle-shot")
+    monkeypatch.setattr(
+        router, "_looks_like_artifact_id", lambda value: value == "bundle.jpg"
+    )
+    monkeypatch.setattr(
+        router, "_resolve_screenshot_ref", lambda _value: "decoded-bundle-shot"
+    )
     result = ToolResult(success=True, data={"screenshot_ref": "bundle.jpg"})
 
     await router.route_bundle_result("bundle-1", result)
@@ -329,7 +345,9 @@ async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
 @pytest.mark.asyncio
 async def test_route_result_shared_pipeline_for_bundle_updates_state_and_storage():
     router = _make_router()
-    result = ToolResult(success=True, data={"system_state": {"active_window": "Browser"}})
+    result = ToolResult(
+        success=True, data={"system_state": {"active_window": "Browser"}}
+    )
 
     await router.route_result("bundle-2", result, route_mode="bundle")
 
@@ -343,7 +361,9 @@ async def test_route_result_shared_pipeline_for_bundle_updates_state_and_storage
 async def test_route_result_drops_whitespace_only_correlation_id(route_mode: str):
     router = _make_router()
     router.session.current_system_state = {"active_window": "Terminal"}
-    result = ToolResult(success=True, data={"system_state": {"active_window": "Browser"}})
+    result = ToolResult(
+        success=True, data={"system_state": {"active_window": "Browser"}}
+    )
 
     await router.route_result("   ", result, route_mode=route_mode)  # type: ignore[arg-type]
 

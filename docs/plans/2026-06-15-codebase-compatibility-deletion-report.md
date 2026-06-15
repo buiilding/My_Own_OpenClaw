@@ -49,6 +49,7 @@ Date: 2026-06-15
 | CD-016 | Backend rehydrate linkage | Synthetic tool-call ids, synthetic tool-call rows for orphan outputs, and synthetic missing tool-output rows | Current SDK transcript projection carries structured tool payloads and tool-call ids; the repair path kept incomplete or old transcript shapes alive | Rename the linkage helper away from repair terminology, require real tool-call ids and matched outputs, and fail rehydrate on incomplete linkage | implemented |
 | CD-017 | Windie CLI docs command | `bin/windie docs open <topic>` compatibility alias | Current docs routing uses `docs search <query>` and shorthand `docs <query>`; only the command matrix and CLI help still advertised the old alias | Delete the alias branch and remove it from the first-class CLI command docs/help | implemented |
 | CD-018 | Troubleshooting docs | Missing screenshot artifact section still referred to a "fallback fix" in rehydrate execution | Current behavior is a documented text-only continuation path for missing artifacts, not an old fix users need to hunt for | Replace stale fallback-fix wording with current rehydrate artifact-handling language | implemented |
+| CD-019 | Backend tool-result router | Invalid `system_state_internal` payloads fell back to older `system_state` data | Current backend-owned runtime state uses `system_state_internal` as the explicit authoritative field when present; repairing invalid internal state from the older public result field preserved a duplicate source of truth | Treat `system_state_internal` as authoritative when present and ignore invalid internal state instead of falling back to `system_state` | implemented |
 
 ## Commit Ledger
 
@@ -255,6 +256,19 @@ CD-018 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-019 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_tool_result_router.py tests/backend/test_tool_result_handler.py -q`:
+  passed, 25 tests.
+- `./scripts/python-in-env backend python -m black --check backend/src/agent/tools/waiting/router.py tests/backend/test_tool_result_router.py`:
+  passed.
+- `./scripts/python-in-env backend python -m isort --check-only backend/src/agent/tools/waiting/router.py tests/backend/test_tool_result_router.py`:
+  passed.
+- targeted `rg -n "falls_back_to_legacy_system_state|legacy_state|falls back to legacy system_state|fall back from invalid.*system_state_internal" backend/src tests/backend docs/backend --glob '!docs/plans/**'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -324,3 +338,7 @@ CD-018 validation:
   or `bin/windie docs <query>`.
 - CD-018 has no runtime or storage migration impact: it updates stale
   troubleshooting wording only.
+- CD-019 has no storage migration impact. It changes runtime routing strictness:
+  when a tool result includes `system_state_internal`, that field is the only
+  source considered for session runtime state; current `system_state`-only tool
+  results still update state when no internal field is present.

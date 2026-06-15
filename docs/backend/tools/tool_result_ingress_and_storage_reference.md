@@ -81,7 +81,11 @@ Division of responsibilities:
 `process_frontend_tool_result(request_id, success, result_data, error)`:
 
 1. receiver creates `ToolResult.from_payload(...)`
-2. router updates session system-state if present (`system_state_internal` preferred over `system_state`)
+2. router updates session system-state if present:
+   - `system_state_internal` is authoritative when the key is present
+   - invalid `system_state_internal` payloads are ignored instead of repaired
+     from `system_state`
+   - `system_state` updates session state only when `system_state_internal` is absent
 3. router extracts screenshot bytes if present
 4. if only `screenshot_ref` exists, router attempts artifact load (`ArtifactStore.load_base64`) only when ref passes artifact-id heuristic (`.png/.jpg/.jpeg`, short token, no path separator)
 5. router stores result under request ID

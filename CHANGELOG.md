@@ -66,6 +66,9 @@ All notable changes to WindieOS will be documented in this file.
   `bin/windie docs <query>`.
 - docs/troubleshooting: replace stale rehydrate screenshot-artifact fallback-fix
   wording with the current text-only missing-artifact behavior.
+- backend/tools: remove the tool-result router repair path that fell back from
+  invalid `system_state_internal` payloads to older `system_state` data; the
+  internal field is now authoritative when present.
 
 ### Added
 
