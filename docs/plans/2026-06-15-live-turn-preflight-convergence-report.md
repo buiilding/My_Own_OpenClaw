@@ -44,6 +44,9 @@ No storage, API, persisted data, or migration behavior changed.
 - Added focused regression coverage for hidden SDK presentation during send,
   SDK awaiting supersession, preflight guard installation/clearing, and hidden
   SDK intent ignored during preflight.
+- Follow-up: kept preflight latched over terminal/idle projections while
+  `isSending=true`, covering the shorter gap before the optimistic new user row
+  lands and the previous completed turn is still the latest projection.
 
 ## Validation
 
@@ -69,4 +72,16 @@ Passed:
 
 ```bash
 cd frontend && npm run lint
+```
+
+Passed after follow-up:
+
+```bash
+cd frontend && npm run test -- LiveTurnSurfaceState ChatSurfaceController ChatBoxResponse.state --runInBand
+```
+
+Passed after follow-up:
+
+```bash
+cd frontend && npm run test -- LiveTurnSurfaceState ChatSurfaceController ChatBoxResponse.state ResponseOverlayPhaseHandler SdkLiveTurnSurfaceController ChatBoxOverlayMouseIgnore --runInBand
 ```

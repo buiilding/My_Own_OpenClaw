@@ -64,7 +64,9 @@ The chat pill is the small always-available desktop command surface. It is rende
 - The renderer resolves that preflight fallback through one shared live-turn
   surface resolver. A hidden or idle SDK presentation does not clear local
   preflight while `isSending=true`; active SDK awaiting/response or terminal
-  state supersedes it.
+  state after the local send latch clears supersedes it. This also covers the
+  gap before the optimistic new user row lands, when the previous completed
+  turn may still be the latest SDK projection.
 - Electron main treats `renderer-send-preflight` as a temporary native response
   overlay guard. Stale SDK hidden intent must not hide the fallback window
   before SDK awaiting/response intent replaces the guard.

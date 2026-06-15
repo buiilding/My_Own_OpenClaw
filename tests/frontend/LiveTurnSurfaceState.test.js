@@ -141,7 +141,7 @@ describe('liveTurnSurfaceState', () => {
     });
   });
 
-  test('clears send preflight for hidden terminal SDK projection on the accepted turn', () => {
+  test('keeps send preflight over terminal projection while send latch is active', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'complete',
@@ -170,11 +170,35 @@ describe('liveTurnSurfaceState', () => {
     });
 
     expect(state).toMatchObject({
-      phase: 'complete',
-      isSending: false,
-      source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      source: 'send-preflight',
+      useLocalSendLatch: true,
       useSdkLiveTurnPresentation: true,
+    });
+  });
+
+  test('keeps send preflight over previous terminal projection before optimistic row lands', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'complete',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        assistantText: 'previous complete response',
+      },
+      isSending: true,
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
+        { id: 'assistant-1', sender: 'assistant', text: 'done', turnRef: 'turn-1' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      source: 'send-preflight',
+      useLocalSendLatch: true,
+      useSdkLiveTurnPresentation: false,
     });
   });
 

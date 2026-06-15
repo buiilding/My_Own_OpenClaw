@@ -947,6 +947,39 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('new local send shows awaiting before optimistic user row lands', async () => {
+    setChatState([
+      { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
+      {
+        id: 'assistant-1',
+        text: 'previous complete response',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: true,
+        turnRef: 'turn-1',
+      },
+    ]);
+    useChatStore.setState({
+      isSending: true,
+      currentTurnProjection: {
+        conversationRef: 'conv-test',
+        turnRef: 'turn-1',
+        phase: 'complete',
+        assistantText: 'previous complete response',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('previous complete response')).not.toBeInTheDocument();
+  });
+
   test('SDK presentation response bypasses local send latch and synthetic message fallback', async () => {
     setChatState([
       {

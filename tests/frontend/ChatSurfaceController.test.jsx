@@ -232,6 +232,48 @@ describe('useChatSurfaceController', () => {
     });
   });
 
+  test('keeps local send preflight busy before optimistic user row lands', () => {
+    const { result } = renderController({
+      presentationState: {
+        isBusy: true,
+        showChatboxAwaitingReply: true,
+        awaitingDotTargetMessageId: null,
+      },
+      props: {
+        isSending: true,
+        messages: [
+          { id: 'user-1', type: 'user', sender: 'user', text: 'first', turnRef: 'turn-1' },
+          {
+            id: 'assistant-1',
+            type: 'llm-text',
+            sender: 'assistant',
+            text: 'previous complete response',
+            turnRef: 'turn-1',
+          },
+        ],
+        currentTurnProjection: {
+          phase: 'complete',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          assistantText: 'previous complete response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+
+    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+    }));
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: true,
+      liveTurnSource: 'send-preflight',
+    });
+  });
+
   test('runs pill and dashboard config toggles through one busy gate', () => {
     const { result, updateConfig, rerender } = renderController();
 

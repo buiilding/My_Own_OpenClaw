@@ -111,27 +111,9 @@ export function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   };
 }
 
-function shouldUseSendLatchOverTerminalProjection({
-  currentTurnProjection,
-  isSending,
-  messages,
-}) {
-  if (isSending !== true) {
-    return false;
-  }
-  const projectionPhase = normalizePhase(currentTurnProjection?.phase);
-  if (!CURRENT_TURN_TERMINAL_PHASES.has(projectionPhase)) {
-    return false;
-  }
-  const latestUserTurnRef = findLatestUserTurnRef(messages);
-  const projectionTurnRef = normalizeTurnRef(currentTurnProjection?.turnRef);
-  return Boolean(latestUserTurnRef && projectionTurnRef && latestUserTurnRef !== projectionTurnRef);
-}
-
 function shouldUseSendPreflight({
   currentTurnProjection,
   isSending,
-  messages,
   useSdkLiveTurnPresentation,
 }) {
   if (isSending !== true) {
@@ -140,26 +122,21 @@ function shouldUseSendPreflight({
   if (!currentTurnProjection) {
     return true;
   }
+  if (
+    useSdkLiveTurnPresentation
+    && !isHiddenSdkLiveTurnPresentation(currentTurnProjection.presentation)
+  ) {
+    return false;
+  }
+  if (
+    useSdkLiveTurnPresentation
+    && isHiddenSdkLiveTurnPresentation(currentTurnProjection.presentation)
+  ) {
+    return true;
+  }
   const projectionPhase = normalizePhase(currentTurnProjection?.phase);
   if (CURRENT_TURN_TERMINAL_PHASES.has(projectionPhase)) {
-    if (
-      useSdkLiveTurnPresentation
-      && isHiddenSdkLiveTurnPresentation(currentTurnProjection.presentation)
-    ) {
-      const latestUserTurnRef = findLatestUserTurnRef(messages);
-      const projectionTurnRef = normalizeTurnRef(currentTurnProjection?.turnRef);
-      if (!latestUserTurnRef || !projectionTurnRef || latestUserTurnRef !== projectionTurnRef) {
-        return true;
-      }
-    }
-    return shouldUseSendLatchOverTerminalProjection({
-      currentTurnProjection,
-      isSending,
-      messages,
-    });
-  }
-  if (useSdkLiveTurnPresentation) {
-    return isHiddenSdkLiveTurnPresentation(currentTurnProjection.presentation);
+    return true;
   }
   return !mapCurrentTurnProjectionPhase(projectionPhase);
 }
@@ -173,7 +150,6 @@ export function resolveLiveTurnPresentationInput({
   const useLocalSendLatch = shouldUseSendPreflight({
     currentTurnProjection,
     isSending,
-    messages,
     useSdkLiveTurnPresentation,
   });
   if (useLocalSendLatch) {

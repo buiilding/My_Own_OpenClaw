@@ -115,6 +115,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat-pill: keep minimal chat pill send-preflight typing and Stop
   state stable while SDK current-turn presentation is hidden, and guard the
   native response overlay fallback against stale SDK hidden intent.
+- frontend/chat-pill: keep send-preflight latched over previous terminal
+  projections before the optimistic new user row lands.
 - frontend/main: remove the macOS and Windows content-protection re-export
   wrappers so platform dispatch points directly at the shared supported
   runtime.
