@@ -23,7 +23,7 @@ Do not route platform fixes through the hosted backend. The backend can own mode
 | Symptom or request | First owner | Source roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
 | WindieOS appears in screenshots | Electron main screenshot visibility and content protection | `frontend/src/main/platform/screenshot_window_visibility`, `frontend/src/main/platform/content_protection`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs` |
-| Linux chat pill flickers during capture | Renderer surface orchestrator plus Linux screenshot visibility runtime | `frontend/src/renderer/infrastructure/services/surfaceOrchestrator`, `frontend/src/main/platform/screenshot_window_visibility/linux.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md), [Linux](linux.md) | `tests/frontend/SurfaceOrchestrator*.test.ts`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
+| Linux chat pill flickers during capture | Renderer surface orchestrator plus main-process screenshot wrapper | `frontend/src/renderer/infrastructure/services/surfaceOrchestrator`, `frontend/src/main/platform/screenshot_window_visibility/index.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md), [Linux](linux.md) | `tests/frontend/SurfaceOrchestrator*.test.ts`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | macOS or Windows content protection remains active while idle | Electron main content-protection policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/platform/content_protection/*`, `frontend/src/main/surfaces/response_overlay_phase_handler.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | Permission row is wrong or grant opens the wrong OS pane | Electron permission service and renderer permission UI | `frontend/src/main/permission_service*.cjs`, `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions` | [Platform Permission Matrix](permission_matrix.md), [Onboarding and Permissions](../desktop/onboarding_permissions.md) | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
 | Mouse, keyboard, scroll, screenshot, or window switching fails on one OS | Python sidecar computer tools and platform adapter | `frontend/src/main/python/tools/computer`, `frontend/src/main/python/core/platform` | [Window and Input Matrix](window_input_matrix.md), [Computer Tools](../tools/computer.md) | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_screenshot_tool.py`, `tests/sidecar/test_*_window_manager.py` |
@@ -66,9 +66,6 @@ Primary files:
 - `frontend/src/main/platform/content_protection/linux.cjs`
 - `frontend/src/main/platform/content_protection/supported.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/linux.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/macos.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/windows.cjs`
 - `frontend/src/main/display_affinity_runtime.cjs`
 - `frontend/src/main/permission_service*.cjs`
 

@@ -33,14 +33,16 @@ Date: 2026-06-14
 | P25-002 | Backend core types | `backend/src/core/types/aliases.py` exports `JSONDict`/`StringDict` with no code or test consumers | `rg JSONDict StringDict` finds only docs, the alias module, and package export | Delete unused alias module and package export; update active core docs | queued |
 | P25-003 | SDK/runtime docs | Active docs still route SDK/main work to deleted `WindieDesktopAgent.ts` | `rg WindieDesktopAgent docs --glob '!docs/plans/**'` finds active workflow/reference pages | Replace active references with current `WindieAgent`/`WindieClient` runtime owners | queued |
 | P25-004 | Renderer docs | Active docs still mention deleted `view=chatbox` or `useChatBoxBindings` paths | Targeted `rg` finds active docs references outside historical plans | Align active docs with minimal view and hook names | queued |
+| P25-005 | Electron main screenshot visibility | Per-platform screenshot visibility modules all execute `task()` directly | Code inspection and existing tests show Windows/Linux runtimes are no-op; docs describe all platform modules as pass-through wrappers | Collapse to one shared pass-through runtime in `index.cjs`; delete per-OS no-op modules | approved-slice |
 
 ## Commit Ledger
 
-Counted cleanup commits: 1 / 25.
+Counted cleanup commits: 2 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | `b632e4832` | P25-001 | `node -c frontend/src/main/platform/content_protection/index.cjs`; `node -c frontend/src/main/platform/content_protection/supported.cjs`; `node -c frontend/src/main/platform/content_protection/linux.cjs`; `bin/windie test frontend -- WindowPlatformPolicy`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed macOS/Windows content-protection wrapper modules. |
+| 2 | `ce9385e86` | P25-002 | `./scripts/python-in-env backend python -c "import backend.src.core.types as t; assert 'JSONDict' not in t.__all__; assert 'StringDict' not in t.__all__; import backend.src.core.types.schemas"`; `./scripts/python-in-env backend pytest tests/backend/test_messages_and_converters.py -q`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed unused backend core type aliases. |
 
 ## Validation Log
 
@@ -49,4 +51,4 @@ Counted cleanup commits: 1 / 25.
 
 ## Current Status
 
-P25-001 is committed. P25-002 is in progress.
+P25-001 and P25-002 are committed. P25-005 is in progress.

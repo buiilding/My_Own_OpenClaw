@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for screenshot visibility runtime dispatch used by local-backend screenshot execution: current platform pass-through behavior, main-process computer-use surface prep, and renderer attachment capture boundaries."
 read_when:
-  - When changing `local_backend_bridge_window_visibility.cjs` or platform `screenshot_window_visibility/*` modules.
+  - When changing `local_backend_bridge_window_visibility.cjs` or the platform screenshot visibility runtime.
   - When debugging whether screenshot overlay hide/show is owned by Electron main process, SDK/main tool execution, or renderer attachment capture.
 title: "Linux Screenshot Window Visibility Runtime Dispatch Reference"
 ---
@@ -12,9 +12,6 @@ title: "Linux Screenshot Window Visibility Runtime Dispatch Reference"
 
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/linux.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/windows.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/macos.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
@@ -30,20 +27,16 @@ Used in local backend bridge:
 
 - wrapped around `execute-tool` only for screenshot tool requests
 
-Platform dispatch:
+Platform wrapper:
 
-- `createScreenshotWindowVisibilityRuntime(platform)` selects:
-  - `windows.cjs` for `win32`
-  - `macos.cjs` for `darwin`
-  - `linux.cjs` otherwise
+- `createScreenshotWindowVisibilityRuntime(platform)` returns the shared
+  pass-through runtime.
 
 ## Current Behavior (All Platforms)
 
-Current platform runtime modules are pass-through wrappers:
+Current platform runtime is a pass-through wrapper:
 
-- `windows.cjs` -> `return task()`
-- `macos.cjs` -> `return task()`
-- `linux.cjs` -> `return task()`
+- `index.cjs` -> `return task()`
 
 Implication:
 
@@ -63,7 +56,7 @@ Implication:
 - `resolveResponseWindow`
 - `task`
 
-Current platform runtimes ignore resolver arguments, but they remain part of the function contract for compatibility and future runtime strategy changes.
+Current runtime ignores resolver arguments, but they remain part of the function contract for future runtime strategy changes.
 
 ## Error and Cancellation Semantics
 
@@ -79,8 +72,8 @@ This means:
 1. Reintroducing wrapper-level hide/restore behavior without coordinating
    SDK/main surface prep and renderer attachment capture docs can create
    double-hide races.
-2. Changing platform runtime modules to use resolver arguments without updating wrapper call contracts can break screenshot execution paths.
-3. Assuming Linux-only behavior in callers is incorrect; wrapper is called for screenshot tool requests and runtime selection handles platform semantics.
+2. Changing the platform runtime to use resolver arguments without updating wrapper call contracts can break screenshot execution paths.
+3. Assuming Linux-only behavior in callers is incorrect; wrapper is called for screenshot tool requests on every platform.
 
 ## Debug Checklist
 

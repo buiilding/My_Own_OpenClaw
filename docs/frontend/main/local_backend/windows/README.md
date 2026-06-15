@@ -20,7 +20,5 @@ title: "Frontend Main Local-Backend Windows Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/linux.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/windows.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/macos.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`

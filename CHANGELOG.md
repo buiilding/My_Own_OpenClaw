@@ -91,6 +91,8 @@ All notable changes to WindieOS will be documented in this file.
   runtime.
 - backend/core: remove unused `JSONDict` and `StringDict` package aliases from
   the core type surface.
+- frontend/main: collapse screenshot-window visibility dispatch to one
+  pass-through runtime and delete the platform-specific no-op wrappers.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation

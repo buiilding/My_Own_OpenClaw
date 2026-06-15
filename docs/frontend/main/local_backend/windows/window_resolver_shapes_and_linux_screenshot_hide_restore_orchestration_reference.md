@@ -11,9 +11,6 @@ title: "Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Refere
 
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/linux.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/windows.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/macos.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 
 ## Resolver Input Normalization
@@ -44,22 +41,22 @@ Design intent:
 
 - the local tool execution runtime targets the screenshot tool path
 
-Dispatch behavior:
+Wrapper behavior:
 
-- selects platform runtime by `process.platform` through `createScreenshotWindowVisibilityRuntime(...)`
-- forwards resolver callbacks and `task` to selected runtime module
+- returns the shared pass-through runtime through `createScreenshotWindowVisibilityRuntime(...)`
+- forwards resolver callbacks and `task` to that runtime
 
 Current runtime implementation contract:
 
-- all platform modules (`linux`, `windows`, `macos`) execute `task()` directly
-- Linux runtime is pass-through for local tool execution; dashboard-to-pill
+- the platform runtime executes `task()` directly
+- local tool execution is pass-through here; dashboard-to-pill
   handoff happens earlier through Electron main's computer-use surface-prep hook,
   while renderer `SurfaceOrchestrator` remains scoped to renderer-initiated
   attachment capture flows
 
 ## Why Resolver Contracts Still Matter
 
-Although platform modules are currently pass-through, resolver helpers remain part of the wrapper API:
+Although the platform runtime is currently pass-through, resolver helpers remain part of the wrapper API:
 
 - preserves compatibility for future runtime strategies
 - keeps local-backend screenshot call-sites stable across platform behavior changes

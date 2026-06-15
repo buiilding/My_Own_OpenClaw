@@ -331,7 +331,7 @@ Primary modules:
   - Keeps Electron-only screenshot display bounds, artifact upload, and window visibility behavior out of the SDK.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
   - Screenshot args include virtual desktop bounds so sidecar screenshot capture can keep monitor targeting deterministic; Windows/Linux crop from all-displays captures when needed, while macOS uses direct bounded capture to avoid Retina scaling drift.
-  - Screenshot execution wrapper delegates to `main/local_backend_bridge_window_visibility.cjs`, which selects `main/platform/screenshot_window_visibility/*` per OS.
+  - Screenshot execution wrapper delegates to `main/local_backend_bridge_window_visibility.cjs`, whose platform runtime is currently a shared pass-through wrapper.
 - `main/window_visibility_runtime.cjs`:
   - Dashboard opens from the chat pill now target the sender display work area directly, avoiding Linux window-manager maximize hops that can reopen on the old monitor.
 - `main/window_suppression_runtime.cjs`:
