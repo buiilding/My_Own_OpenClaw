@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: twenty-third hardening slice committed.
+- Current slice: twenty-fourth hardening slice committed.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -137,6 +137,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the twenty-third slice.
 - [x] Update changelog and report with the twenty-third slice result.
 - [x] Commit the twenty-third slice.
+- [x] Select twenty-fourth code slice with a concrete owner and regression test.
+- [x] Implement twenty-fourth slice.
+- [x] Run focused validation and `git diff --check` for the twenty-fourth slice.
+- [x] Update changelog and report with the twenty-fourth slice result.
+- [x] Commit the twenty-fourth slice.
 
 ## Validation Log
 
@@ -214,6 +219,15 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   canonical navigation reported 83 page references validated.
 - `git diff --check -- frontend/src/main/surfaces/overlay_bounds.cjs tests/frontend/OverlayBounds.test.cjs CHANGELOG.md docs/plans/2026-06-10-test-backed-maintenance-hardening-report.md`
   - passed.
+- `cd frontend && npm run test -- ChatGptDashboardShell ChatInterfaceWiring UseDashboardConversations --runInBand`
+  - passed after twenty-fourth slice; 3 suites and 96 tests passed, including
+    selected-conversation loading propagation and chat loading-state
+    regressions. React emitted existing `act(...)` warnings from dashboard
+    recent-conversation async refreshes.
+- `bin/windie docs list` - passed before twenty-fourth-slice report updates;
+  canonical navigation reported 82 page references validated.
+- `git diff --check` - passed after twenty-fourth-slice implementation and
+  docs changes.
 - `cd frontend && npm run test -- OverlayWindowHelpersRuntime --runInBand` -
   passed after eleventh slice; 1 suite and 12 tests passed, including the new
   malformed chat-window bounds regression test.
@@ -638,6 +652,20 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   visibility policy changed. Valid integer dimensions still produce the same
   placement; the fix only tightens Electron main's fallback placement
   dimension boundary.
+- Slice 24 owner: renderer dashboard conversation orchestration owns the
+  transient state for opening an existing chat, while `ChatInterface` owns the
+  display-only loading projection for the selected empty conversation.
+- Slice 24 failure mode: opening an existing conversation with slow transcript
+  row loading could render the new-chat welcome/composer state before stored
+  rows arrived, making an existing chat briefly look like a fresh chat.
+- Slice 24 change: dashboard conversation opening now exposes a selected
+  `openingConversationRef`; the chat surface renders a loading state for that
+  active conversation until rows arrive instead of showing the empty welcome
+  state.
+- Slice 24 inspection: no SDK conversation store, transcript persistence,
+  IPC payload, backend event, sidecar RPC, or persisted data shape changed. The
+  new marker is transient renderer UI state and clears on the same request-id
+  guard that protects stale conversation-open results.
 
 ## Decisions
 
@@ -731,6 +759,9 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   boundary hardening. No persisted data, IPC payload, renderer layout contract,
   display affinity producer, screenshot lease policy, or overlay visibility
   policy changed, so no migration is required.
+- Treat selected-chat loading state as renderer-only transient UI hardening.
+  No persisted data, transcript row shape, SDK store contract, IPC payload,
+  backend API, or sidecar RPC shape changed, so no migration is required.
 
 ## Commits
 
@@ -757,6 +788,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `503b915d0` - `fix(frontend-mcp): normalize base manifest metadata`
 - `ca1ef1db7` - `fix(frontend-overlays): normalize primary display bounds`
 - `0046e7c8c` - `fix(frontend-overlays): normalize fallback dimensions`
+- `37d4fdfa5` - `fix(frontend-chat): show loading state for selected history`
 
 ## Remaining Candidates
 
