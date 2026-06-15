@@ -10,14 +10,14 @@ title: "Main Window Runtime Factory and Overlay Bootstrap Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/main_window_runtime.cjs`
-- `frontend/src/main/main_window_icon_runtime.cjs`
-- `frontend/src/main/main_window_overlay_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_icon_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_overlay_runtime.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
-- `frontend/src/main/overlay_topmost_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_topmost_runtime.cjs`
 - `tests/frontend/MainWindowRuntime.test.cjs`
 - `tests/frontend/MainWindowIconRuntime.test.cjs`
 - `tests/frontend/MainWindowOverlayRuntime.test.cjs`

@@ -13,7 +13,7 @@ title: "Overlay Query-Capture Blur and Settle Reference"
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
 
 ## Platform Scope
 

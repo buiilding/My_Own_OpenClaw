@@ -11,9 +11,9 @@ title: "Main Window Icon and Overlay Runtime Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/main_window_runtime.cjs`
-- `frontend/src/main/main_window_icon_runtime.cjs`
-- `frontend/src/main/main_window_overlay_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_icon_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_overlay_runtime.cjs`
 - `tests/frontend/MainWindowIconRuntime.test.cjs`
 - `tests/frontend/MainWindowOverlayRuntime.test.cjs`
 - `tests/frontend/MainWindowRuntime.test.cjs`

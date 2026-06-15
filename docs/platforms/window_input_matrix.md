@@ -14,9 +14,9 @@ Window and input behavior spans Electron main and the Python sidecar. Electron o
 
 | Concern | Owner files |
 | --- | --- |
-| WindieOS BrowserWindow policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_*` |
-| overlay topmost/all-workspaces behavior | `frontend/src/main/overlay_topmost_runtime.cjs`, `frontend/src/main/surface_window_options_runtime.cjs` |
-| active-window context label | `frontend/src/main/context_label_overlay_and_active_window_runtime_reference.md`, `frontend/src/main/window_visibility_runtime.cjs` |
+| WindieOS BrowserWindow policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/overlay_*` |
+| overlay topmost/all-workspaces behavior | `frontend/src/main/surfaces/overlay_topmost_runtime.cjs`, `frontend/src/main/surfaces/surface_window_options_runtime.cjs` |
+| active-window context label | `frontend/src/main/context_label_overlay_and_active_window_runtime_reference.md`, `frontend/src/main/surfaces/window_visibility_runtime.cjs` |
 | sidecar platform abstraction | `frontend/src/main/python/core/platform/__init__.py`, `base.py` |
 | macOS window management | `frontend/src/main/python/core/platform/macos.py` |
 | Windows window management | `frontend/src/main/python/core/platform/windows.py` |

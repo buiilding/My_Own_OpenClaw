@@ -14,7 +14,7 @@ title: "Linux Screenshot Window Visibility Runtime Dispatch Reference"
 - `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
 - `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts` for renderer-initiated attachment capture flows
 
 ## Runtime Scope and Entry

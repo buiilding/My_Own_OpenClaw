@@ -82,7 +82,7 @@ Primary files:
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/chat_pill_trace_runtime.cjs`
-- `frontend/src/main/main_window_overlay_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_overlay_runtime.cjs`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/logging.ts`

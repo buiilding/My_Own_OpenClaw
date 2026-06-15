@@ -96,7 +96,7 @@ Likely boundary: overlay visibility, screenshot capture, OCR/vision provider, co
 Inspect:
 
 - `frontend/src/main/surfaces/surface_runtime.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/python/tools/computer/screenshot_tool.py`
 - `backend/src/services/ocr`
@@ -127,7 +127,7 @@ Inspect:
 - `frontend/src/shared/response_overlay_phase_contract.json`
 - `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/surfaces/surface_runtime.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`

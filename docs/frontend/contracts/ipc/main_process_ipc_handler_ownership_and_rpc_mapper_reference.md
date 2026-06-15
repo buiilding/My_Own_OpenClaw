@@ -24,12 +24,12 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 - `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
-- `frontend/src/main/display_query_handler.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/display_query_handler.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`

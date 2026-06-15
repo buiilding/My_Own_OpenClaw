@@ -37,10 +37,10 @@ title: "Frontend Contracts IPC Docs Hub"
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`

@@ -89,7 +89,7 @@ Read:
 - `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
-- Electron window loading code in `frontend/src/main/main_window_runtime.cjs`
+- Electron window loading code in `frontend/src/main/surfaces/main_window_runtime.cjs`
 
 Root rules:
 
@@ -170,9 +170,9 @@ Read:
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
 - `frontend/src/main/surfaces/surface_runtime.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
 
 Surface rules:
 

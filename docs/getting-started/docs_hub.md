@@ -400,7 +400,7 @@ Read:
 
 Likely code:
 
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/overlay_*`
 - `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`

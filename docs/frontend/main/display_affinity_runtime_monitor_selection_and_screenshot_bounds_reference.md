@@ -16,7 +16,7 @@ title: "Display-Affinity Monitor Selection and Screenshot Bounds Reference"
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `tests/frontend/DisplayAffinityRuntime.test.cjs`
 - `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`

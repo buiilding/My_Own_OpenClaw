@@ -31,15 +31,15 @@ This page is the capability-first technical catalog for `frontend/src`.
 Primary files:
 
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
-- `frontend/src/main/overlay_signal_runtime.cjs`
-- `frontend/src/main/overlay_window_helpers_runtime.cjs`
-- `frontend/src/main/overlay_topmost_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_signal_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_topmost_runtime.cjs`
 - `frontend/src/main/runtime_mode.cjs`
 - `frontend/src/main/vm_worker_runtime.cjs`
 

@@ -13,14 +13,14 @@ title: "Electron Main and IPC"
 Primary entrypoint:
 
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
-- `frontend/src/main/main_window_icon_runtime.cjs`
-- `frontend/src/main/main_window_overlay_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_icon_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_overlay_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 
 Responsibilities:
 

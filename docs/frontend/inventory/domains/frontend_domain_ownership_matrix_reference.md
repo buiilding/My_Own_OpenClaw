@@ -12,7 +12,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 
 | Domain | Primary ownership modules | Secondary integration modules | Non-owners (avoid primary edits) |
 | --- | --- | --- | --- |
-| Electron window/runtime orchestration | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `main/main_process_lifecycle_runtime.cjs`, overlay handlers | `main/response_overlay_phase_handler.cjs`, `main/window_visibility_runtime.cjs` | renderer feature hooks |
+| Electron window/runtime orchestration | `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `main/main_process_lifecycle_runtime.cjs`, overlay handlers | `main/response_overlay_phase_handler.cjs`, `main/window_visibility_runtime.cjs` | renderer feature hooks |
 | Main overlay/window IPC + visibility runtime | `main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `main/window_visibility_runtime.cjs` | overlay/window handler modules + permission/visibility delegates | renderer feature hooks |
 | Main SDK runtime host + settings gate | `frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `main/ipc_runtime_helpers.cjs`, `main/ipc_renderer_windows.cjs`, `main/ipc_query_broadcast.cjs` | `main/backend_endpoints.cjs`, `main/ipc_query_events.cjs`, `main/query_payload_builder.cjs` | sidecar tool modules |
 | SDK local-runtime bridge | `frontend/src/main/sidecar/local_backend_bridge*.cjs` | `main/runtime_paths.cjs`, mapper/util modules | renderer store logic |

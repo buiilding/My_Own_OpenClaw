@@ -25,7 +25,7 @@ This index maps frontend functionality to file ownership.
 Core runtime:
 
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
@@ -37,20 +37,20 @@ Core runtime:
 
 Overlay/window control helpers:
 
-- `frontend/src/main/overlay_visibility_handler.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_visibility_handler.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/overlay_chatbox_handler.cjs`
-- `frontend/src/main/overlay_responsebox_handler.cjs`
-- `frontend/src/main/overlay_bounds.cjs`
-- `frontend/src/main/overlay_renderer_registration.cjs`
-- `frontend/src/main/overlay_signal_runtime.cjs`
-- `frontend/src/main/overlay_window_helpers_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_chatbox_handler.cjs`
+- `frontend/src/main/surfaces/overlay_responsebox_handler.cjs`
+- `frontend/src/main/surfaces/overlay_bounds.cjs`
+- `frontend/src/main/surfaces/overlay_renderer_registration.cjs`
+- `frontend/src/main/surfaces/overlay_signal_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs`
 - `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
-- `frontend/src/main/main_window_controls_handler.cjs`
-- `frontend/src/main/display_query_handler.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_controls_handler.cjs`
+- `frontend/src/main/surfaces/display_query_handler.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 
 Bridge/support modules:
 

@@ -10,8 +10,8 @@ title: "Display Query Handler Display Inventory Payload Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/display_query_handler.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/display_query_handler.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/index.cjs`
 - `tests/frontend/DisplayQueryHandler.test.cjs`
 

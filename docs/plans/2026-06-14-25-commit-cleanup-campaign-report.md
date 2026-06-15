@@ -37,7 +37,7 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 7 / 25.
+Counted cleanup commits: 8 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -48,6 +48,7 @@ Counted cleanup commits: 7 / 25.
 | 5 | `b5b7cd0e0` | P25-004 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed active docs references to deleted ChatBox overlay component paths and old chatbox routes. |
 | 6 | `2d47f6c9f` | P25-006 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active docs to moved Electron main surface modules. |
 | 7 | `791e543a7` | P25-007 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active display-affinity docs to the moved surfaces owner. |
+| 8 | `b6a3a57c5` | P25-008 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active permission docs to moved permissions modules. |
 
 ## Validation Log
 
@@ -56,4 +57,4 @@ Counted cleanup commits: 7 / 25.
 
 ## Current Status
 
-P25-001 through P25-007 are committed. P25-008 is in progress.
+P25-001 through P25-008 are committed. P25-009 is in progress.

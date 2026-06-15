@@ -14,16 +14,16 @@ Primary modules:
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/surfaces/surface_runtime.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
 - `frontend/src/main/surfaces/window_platform_policy.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/window_visibility_runtime.cjs`
-- `frontend/src/main/response_overlay_visibility_policy.cjs`
+- `frontend/src/main/surfaces/window_visibility_runtime.cjs`
+- `frontend/src/main/surfaces/response_overlay_visibility_policy.cjs`
 - `frontend/src/main/chat_pill_trace_runtime.cjs`
-- `frontend/src/main/window_suppression_runtime.cjs`
+- `frontend/src/main/surfaces/window_suppression_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/*`

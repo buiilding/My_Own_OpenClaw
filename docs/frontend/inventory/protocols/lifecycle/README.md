@@ -27,12 +27,12 @@ title: "Frontend Protocol Lifecycle Hub"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
-- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
-- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/main_window_runtime.cjs`
-- `frontend/src/main/overlay_signal_runtime.cjs`
-- `frontend/src/main/display_query_handler.cjs`
+- `frontend/src/main/surfaces/main_window_runtime.cjs`
+- `frontend/src/main/surfaces/overlay_signal_runtime.cjs`
+- `frontend/src/main/surfaces/display_query_handler.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/index.cjs`
