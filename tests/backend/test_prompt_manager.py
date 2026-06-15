@@ -314,19 +314,6 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "Please keep going until the query is completely resolved" not in content
 
 
-def test_previous_default_system_prompt_is_preserved_as_deprecated_snapshot():
-    prompt_file = (
-        Path(__file__).resolve().parents[2]
-        / "backend/src/llm/prompts/system_prompt_deprecated_2026_06_10.txt"
-    )
-    content = prompt_file.read_text(encoding="utf-8")
-
-    assert "Deprecated 2026-06-10" in content
-    assert "You are Windie, you are my friend." in content
-    assert "You can basically do anything." in content
-    assert "# AGENTS.md spec" in content
-
-
 def test_model_facing_system_prompt_includes_browser_scope_rules():
     prompt_file = (
         Path(__file__).resolve().parents[2]

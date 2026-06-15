@@ -423,6 +423,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/events: remove the Pydantic v1-style `.dict()` fallback from
   streaming event payload serialization; current schema payloads use
   `model_dump()`.
+- backend/prompts: delete preserved deprecated/legacy system prompt snapshots so
+  only the current runtime-loaded prompt remains in the prompt package.
 - docs/platforms: route packaged sidecar workflow docs from deleted
   `sidecar_process_runtime.cjs` to `runtime_paths.cjs` and
   `sdk_sidecar_launch_options.cjs`.

@@ -12,7 +12,6 @@ title: "Prompt Manager and System Prompt Lifecycle Reference"
 
 - `backend/src/llm/prompts/prompts.py`
 - `backend/src/llm/prompts/system_prompt.txt`
-- `backend/src/llm/prompts/system_prompt_deprecated_2026_06_10.txt`
 - `backend/src/agent/session/initializer.py`
 - `backend/src/sdk/agents/session_builder.py`
 - `backend/src/core/services/agent_factory.py`
@@ -110,11 +109,6 @@ Current prompt template defines:
 - work-mode sections for everyday, computer-use, browser, file/shell, coding, and WindieOS repository tasks
 - WindieOS repository orientation that points model behavior toward local docs first: `docs/docs.json`, `docs/getting-started/docs_directory.md`, and `bin/windie docs list`
 - concise communication guidance that makes coding one task mode rather than the default identity
-
-Deprecated prompt snapshots:
-
-- `backend/src/llm/prompts/system_prompt_deprecated_2026_06_10.txt` preserves the previous friend-plus-coding-harness prompt.
-- `backend/src/llm/prompts/system_prompt_legacy.txt` preserves the older WindieOS operator prompt from before the 2026-06-08 refresh.
 
 Because this file is runtime-loaded, prompt changes apply without Python code edits.
 

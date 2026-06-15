@@ -37,6 +37,7 @@ Date: 2026-06-15
 | CD-004 | Backend session stream | Raw dict `llm-thought` event in no-model-selected branch | `AgentSession.process_query` otherwise yields typed stream events; `ResponseFormatter` ignores dict events and formatter specs are typed/canonical | Replace raw dict with `ThinkingEvent` and tighten the return annotation | implemented |
 | CD-005 | Backend stream event enum | Alias enum members `THINKING` and `CHUNK` | Repo search showed no production callers; the only test use should assert `STREAMING_RESPONSE`; legacy dict strings are still bounded to query extraction normalization | Remove enum aliases and update docs/tests to name canonical stream event members | implemented |
 | CD-006 | Backend stream event serialization | Pydantic v1-style `.dict()` fallback in event value normalization | Current backend schemas are Pydantic v2 models with `model_dump()`; recursive schema serialization tests cover `model_dump()` payloads | Remove `.dict()` fallback and document supported payload object shapes | implemented |
+| CD-007 | Backend prompts | Preserved deprecated/legacy system prompt snapshots | `PromptManager` only default-loads `system_prompt.txt`; repo search showed snapshot references only in docs/tests preserving old prompt text | Delete snapshot files and remove docs/tests that treat old prompt text as active package content | implemented |
 
 ## Commit Ledger
 
@@ -108,6 +109,15 @@ CD-006 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-007 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_prompt_manager.py -q`:
+  passed, 16 tests.
+- targeted `rg "system_prompt_deprecated_2026_06_10|system_prompt_legacy" backend/src tests/backend docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -142,3 +152,6 @@ CD-006 validation:
   plain dict/list/tuple values, dataclasses, Enums, or current Pydantic schema
   objects still serialize recursively; only Pydantic v1-style `.dict()`-only
   objects stop being coerced inside stream-event payloads.
+- CD-007 has no runtime migration impact: prompt loading already targets only
+  `system_prompt.txt`; the deleted files were inactive text snapshots preserved
+  by tests/docs, not runtime prompt assets.
