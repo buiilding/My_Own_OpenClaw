@@ -94,6 +94,8 @@ Date: 2026-06-15
   completed CD-019.
 - `9e55637d6 refactor(backend): require prepared prompt content`
   completed CD-020 and CD-021.
+- `1a2bd4726 refactor(frontend): remove unused transcript memory helpers`
+  completed CD-022.
 
 ## Validation Log
 
