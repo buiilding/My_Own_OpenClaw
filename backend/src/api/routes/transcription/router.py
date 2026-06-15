@@ -1,7 +1,5 @@
 """WindieOS-owned local transcription websocket route."""
 
-from __future__ import annotations
-
 import asyncio
 import contextlib
 import json
@@ -9,9 +7,10 @@ import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
-from backend.src.api.deps import SessionManagerDep
+from backend.src.agent.session.manager import SessionManager
+from backend.src.api.deps import get_session_manager
 from backend.src.api.services.transcription.audio_frames import (
     parse_gateway_audio_frame,
 )
@@ -60,7 +59,7 @@ def _trace_payload(
 @router.websocket("/ws/transcription")
 async def transcription_websocket_endpoint(
     websocket: WebSocket,
-    session_manager: SessionManagerDep,
+    session_manager: SessionManager = Depends(get_session_manager),
 ) -> None:
     """Expose a single local STT websocket protocol regardless of provider."""
     await websocket.accept()
@@ -84,7 +83,7 @@ async def transcription_websocket_endpoint(
     ) -> None:
         await send_event(
             {
-                "type": "trace_event",
+                "type": "trace-event",
                 "payload": _trace_payload(
                     trace_id=trace_id,
                     path="voice.transcription",

@@ -11,6 +11,7 @@ def install_route_deps_shim():
     fake_deps.ContainerDep = object
     fake_deps.SessionManagerDep = object
     fake_deps.HandlerRegistryDep = object
+    fake_deps.get_session_manager = lambda: types.SimpleNamespace(config=None)
     sys.modules["backend.src.api.deps"] = fake_deps
     return original_deps
 

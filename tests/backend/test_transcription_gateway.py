@@ -150,7 +150,7 @@ def test_transcription_route_forwards_control_and_audio(monkeypatch):
 
             assert status_event["type"] == "status"
             assert isinstance(status_event["client_id"], str)
-            assert session_trace["type"] == "trace_event"
+            assert session_trace["type"] == "trace-event"
             assert session_trace["payload"]["path"] == "voice.transcription"
             assert session_trace["payload"]["stage"] == "session"
             assert session_trace["payload"]["status"] == "started"

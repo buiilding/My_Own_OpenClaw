@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/plans: add a WindieOS performance tracking plan covering runtime-owned
   spans, initial SLIs, CLI aggregation, baselines, and hosted dashboard
   sequencing.
+- docs/plans: add a broad deletion-first compatibility cleanup plan and
+  realtime report for removing stale aliases, compatibility branches, wrappers,
+  and unused code after classifying operational fallbacks.
 - codebase/docs: add concise top-of-file descriptions across backend,
   frontend, SDK, example, and test code files so file purpose is visible before
   reading implementation details.
@@ -89,6 +92,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/transcription: bind the websocket route to the session manager through
+  an explicit FastAPI dependency so the route no longer treats
+  `session_manager` as a query parameter during tests or startup.
 - frontend/chat-pill: keep minimal chat pill send-preflight typing and Stop
   state stable while SDK current-turn presentation is hidden, and guard the
   native response overlay fallback against stale SDK hidden intent.
@@ -399,6 +405,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/logging: remove the unreachable duplicate frontend-log environment
+  branch so layer log file resolution uses the single `WINDIE_FRONTEND_LOG_FILE`
+  path already owned by the generic layer resolver.
+- backend/events: emit canonical `trace-event` types from VM run-control and
+  transcription trace streams instead of preserving the old underscore
+  `trace_event` spelling.
 - docs/platforms: route packaged sidecar workflow docs from deleted
   `sidecar_process_runtime.cjs` to `runtime_paths.cjs` and
   `sdk_sidecar_launch_options.cjs`.

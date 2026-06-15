@@ -66,7 +66,6 @@ LEGACY_STREAMING_EVENT_TYPE_ALIASES: Final[dict[str, str]] = {
     "context_compaction_completed": StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
     "context_compaction_failed": StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
     "web_search_progress": StreamingEventType.WEB_SEARCH_PROGRESS.value,
-    "trace_event": StreamingEventType.TRACE_EVENT.value,
 }
 
 

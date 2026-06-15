@@ -111,7 +111,7 @@ class VmRunControlService:
             }
         return self._append_event_locked(
             run,
-            event_type="trace_event",
+            event_type="trace-event",
             source=source,
             payload=payload,
         )

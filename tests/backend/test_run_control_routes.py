@@ -282,7 +282,7 @@ async def test_list_run_events_filters_by_after_seq() -> None:
         event for event in events.events if event.event_type == "run-control"
     ]
     trace_events = [
-        event for event in events.events if event.event_type == "trace_event"
+        event for event in events.events if event.event_type == "trace-event"
     ]
     assert [event.payload["action"] for event in control_events] == ["pause", "resume"]
     assert [event.payload["path"] for event in trace_events] == ["run.control"] * 3

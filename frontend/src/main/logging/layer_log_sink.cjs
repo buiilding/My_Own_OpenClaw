@@ -34,16 +34,6 @@ function resolveLayerLogFile(layer, env = process.env) {
     const value = configured.trim();
     return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
   }
-  if (normalizedLayer === 'frontend') {
-    const legacyConfigured = env.WINDIE_FRONTEND_LOG_FILE;
-    if (legacyConfigured === '0' || legacyConfigured === 'false') {
-      return null;
-    }
-    if (typeof legacyConfigured === 'string' && legacyConfigured.trim()) {
-      const value = legacyConfigured.trim();
-      return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
-    }
-  }
   return path.join(LOG_DIR, `${normalizedLayer}.log`);
 }
 
