@@ -17,7 +17,7 @@ title: "Query Execution Runtime-State and Completion Resolver Reference"
 - `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
 - `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
 - `backend/src/api/schemas`
-- `backend/src/services/artifacts.py`
+- `backend/src/services/artifacts/store.py`
 - `backend/src/api/transport/envelope.py`
 - `backend/src/api/processing/pipeline.py`
 - `tests/backend/test_query_execution_service_helpers.py`

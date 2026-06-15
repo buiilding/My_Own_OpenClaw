@@ -12,7 +12,7 @@ title: "Artifact Ref Validation and Shared Route-Result Semantics Reference"
 
 - `backend/src/agent/tools/waiting/router.py`
 - `backend/src/agent/tools/waiting/storage/result_storage.py`
-- `backend/src/services/artifacts.py`
+- `backend/src/services/artifacts/store.py`
 - `tests/backend/test_tool_result_router.py`
 
 ## Route Entry Surface
