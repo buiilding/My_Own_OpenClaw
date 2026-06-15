@@ -12,7 +12,7 @@ Date: 2026-06-15
 
 Plan: [Stop Control Acknowledgement Plan](2026-06-15-stop-control-acknowledgement-plan.md)
 
-Status: implemented; awaiting commit.
+Status: complete.
 
 ## Objective
 
@@ -36,7 +36,7 @@ visible terminalization and exact turn targeting.
 - [x] Run focused validation.
 - [x] Perform final design inspection.
 - [x] Update changelog.
-- [ ] Commit scoped implementation.
+- [x] Commit scoped implementation.
 
 ## Inspection Log
 
@@ -163,8 +163,10 @@ Search confirmed no Stop handler references remain to:
 
 ## Commits
 
-Pending.
+2026-06-15:
+
+- `400b686b2 fix(stop): make stop an ack control path`
 
 ## Remaining Work
 
-- Commit scoped implementation.
+None.
