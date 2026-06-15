@@ -257,3 +257,10 @@ Primary folders under `backend/src`:
 6. Tool results return from frontend (`tool-result` or `tool-bundle-result`).
 7. Result processor commits tool outputs to history, loop continues or completes.
 8. Streamed events are formatted and sent back to frontend with transport context.
+
+## Evidence Notes
+
+- Backend behavior is best proven with route output, websocket events, hidden
+  traces, or focused backend tests rather than renderer-side symptoms.
+- When backend and frontend disagree, capture the backend outbound event before
+  changing renderer projection code.
