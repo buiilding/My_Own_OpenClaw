@@ -66,6 +66,8 @@ Date: 2026-06-15
   completed CD-010.
 - `5bd62aad3 docs(frontend): remove legacy settings entrypoint`
   completed CD-011.
+- `ddd1d3059 docs(backend-api): rename query event extraction reference`
+  completed CD-012.
 
 ## Validation Log
 
