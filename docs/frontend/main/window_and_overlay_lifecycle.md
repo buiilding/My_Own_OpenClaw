@@ -22,7 +22,7 @@ Primary modules:
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/surfaces/response_overlay_visibility_policy.cjs`
-- `frontend/src/main/chat_pill_trace_runtime.cjs`
+- `frontend/src/main/debug/chat_pill_trace_runtime.cjs`
 - `frontend/src/main/surfaces/window_suppression_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`

@@ -339,7 +339,7 @@ Use this when the minimal pill, awaiting indicator, or response overlay flickers
 | Main phase IPC | `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs` | Phase writes and renderer notification. |
 | Main window policy | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/surfaces/display_affinity_runtime.cjs` | Visibility, capture, content protection, and display affinity. |
 | Renderer view model | `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js` | SDK current-turn projection, awaiting, streaming, complete, and error state transitions. |
-| Chat pill trace | `frontend/src/main/chat_pill_trace_runtime.cjs`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts` | Main and renderer state snapshots. |
+| Chat pill trace | `frontend/src/main/debug/chat_pill_trace_runtime.cjs`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts` | Main and renderer state snapshots. |
 
 Enable:
 

@@ -37,7 +37,7 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 11 / 25.
+Counted cleanup commits: 12 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -52,6 +52,7 @@ Counted cleanup commits: 11 / 25.
 | 9 | `80a4ba560` | P25-009 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active overlay and window-surface docs to moved surfaces modules. |
 | 10 | `42a813e0f` | P25-010 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active app-runtime docs to moved app modules. |
 | 11 | `5d6399387` | P25-011 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active main SDK-runtime docs to moved SDK modules. |
+| 12 | `804839cdf` | P25-012 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active wakeword docs to moved wakeword modules. |
 
 ## Validation Log
 
@@ -60,4 +61,4 @@ Counted cleanup commits: 11 / 25.
 
 ## Current Status
 
-P25-001 through P25-011 are committed. P25-012 is in progress.
+P25-001 through P25-012 are committed. P25-013 is in progress.

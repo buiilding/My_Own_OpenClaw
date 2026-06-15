@@ -111,6 +111,8 @@ All notable changes to WindieOS will be documented in this file.
   `frontend/src/main/sdk` modules.
 - docs/wakeword: route active wakeword bridge docs to the moved
   `frontend/src/main/wakeword` modules.
+- docs/debug: route chat-pill trace docs to the moved
+  `frontend/src/main/debug/chat_pill_trace_runtime.cjs` module.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation

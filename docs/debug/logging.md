@@ -67,7 +67,7 @@ Important main-process flags:
 | --- | --- |
 | `WINDIE_DEV_UI=1` | Set by `bin/windie start desktop`; enables developer UI/transparency paths. |
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation into renderer URLs and main IPC trace logs. |
-| `WINDIE_DEBUG_CHAT_PILL=1` | Enables main chat pill trace logs in `frontend/src/main/chat_pill_trace_runtime.cjs`. |
+| `WINDIE_DEBUG_CHAT_PILL=1` | Enables main chat pill trace logs in `frontend/src/main/debug/chat_pill_trace_runtime.cjs`. |
 | `WINDIE_DEBUG_LIVE_SURFACE=1` | Enables verbose ephemeral `[LiveSurfaceTrace]` surface state logs. |
 | `WINDIE_DEBUG_IPC_STDOUT=1` | Mirrors compact IPC bridge diagnostics and generic bridge status to stdout as `[IPC Bridge]` / `[ElectronTrace]` lines. |
 | `WINDIE_DEBUG_STARTUP_STDOUT=1` | Mirrors desktop startup diagnostics to stdout as `[Main][StartupMetrics]` lines. |
