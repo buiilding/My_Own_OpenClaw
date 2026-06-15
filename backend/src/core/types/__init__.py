@@ -1,9 +1,8 @@
 """
 Types package.
 
-Type definitions including enums, TypedDict schemas, and type aliases.
+Type definitions including enums and TypedDict schemas.
 """
-from backend.src.core.types.aliases import JSONDict, StringDict
 from backend.src.core.types.enums import (
     ContentType,
     CoordinateFindingMethod,
@@ -74,7 +73,4 @@ __all__ = [
     "ThinkingChunk",
     "UserMessageFullChunk",
     "WebSocketMessage",
-    # Aliases
-    "JSONDict",
-    "StringDict",
 ]

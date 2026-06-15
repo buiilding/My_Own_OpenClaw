@@ -43,8 +43,7 @@ backend/src/core/
 ├── types/                             # Type definitions for type safety
 │   ├── __init__.py                    # Re-exports all types
 │   ├── enums.py                       # Enum classes: MessageRole, MessageType, StreamingEventType, ContentType, MouseAction, etc.
-│   ├── schemas.py                     # TypedDict schemas: LLMMessage, MultimodalContent, ToolResultDict, MemoryItem, etc.
-│   └── aliases.py                     # Type aliases: JSONDict, StringDict
+│   └── schemas.py                     # TypedDict schemas: LLMMessage, MultimodalContent, ToolResultDict, MemoryItem, etc.
 │
 ├── validation/                        # Input validation framework
 │   ├── __init__.py                    # Re-exports validation functions
@@ -207,9 +206,6 @@ types/enums.py
         ↓
 types/schemas.py
     └── TypedDicts (LLMMessage, MultimodalContent, etc.)
-        ↓
-types/aliases.py
-    └── Type aliases (JSONDict, StringDict)
         ↓
 Application Code (type safety)
 ```

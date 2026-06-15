@@ -36,10 +36,11 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 0 / 25.
+Counted cleanup commits: 1 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
+| 1 | `b632e4832` | P25-001 | `node -c frontend/src/main/platform/content_protection/index.cjs`; `node -c frontend/src/main/platform/content_protection/supported.cjs`; `node -c frontend/src/main/platform/content_protection/linux.cjs`; `bin/windie test frontend -- WindowPlatformPolicy`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed macOS/Windows content-protection wrapper modules. |
 
 ## Validation Log
 
@@ -48,4 +49,4 @@ Counted cleanup commits: 0 / 25.
 
 ## Current Status
 
-P25-001 is the first approved cleanup slice.
+P25-001 is committed. P25-002 is in progress.

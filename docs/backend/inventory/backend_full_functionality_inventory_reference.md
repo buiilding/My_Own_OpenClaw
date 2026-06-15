@@ -271,7 +271,7 @@ Functionality:
 - Container lifecycle and dependency resolution wiring.
 - Event bus/cache/exception hierarchies.
 - Frontend config validation allowlist and schema-bound checks.
-- Shared type aliases/schemas/message conversion helpers.
+- Shared TypedDict schemas and message conversion helpers.
 
 ## 7) Services Domain Inventory (`backend/src/services`)
 

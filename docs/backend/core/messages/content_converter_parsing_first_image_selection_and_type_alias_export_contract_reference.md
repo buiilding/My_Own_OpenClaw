@@ -1,20 +1,18 @@
 ---
-summary: "Deep reference for `content_to_message_content` parsing semantics: text-part aggregation, multi-image preservation, invalid-part filtering, fallback string conversion, plus core type-alias export boundaries."
+summary: "Deep reference for `content_to_message_content` parsing semantics: text-part aggregation, multi-image preservation, invalid-part filtering, and fallback string conversion."
 read_when:
   - When changing message content conversion from raw LLM payloads to `MessageContent` wrappers.
-  - When debugging multimodal content parsing, missing image URLs, or type alias import/export usage in core types package.
-title: "Content Converter Parsing, Multi-Image Preservation, and Type-Alias Export Contract Reference"
+  - When debugging multimodal content parsing or missing image URLs.
+title: "Content Converter Parsing and Multi-Image Preservation Reference"
 ---
 
-# Content Converter Parsing, Multi-Image Preservation, and Type-Alias Export Contract Reference
+# Content Converter Parsing and Multi-Image Preservation Reference
 
 ## Canonical Modules
 
 - `backend/src/core/messages/converters.py`
 - `backend/src/core/messages/structures.py`
 - `backend/src/core/messages/__init__.py`
-- `backend/src/core/types/aliases.py`
-- `backend/src/core/types/__init__.py`
 - `tests/backend/test_messages_and_converters.py`
 
 ## Converter Input Contract
@@ -52,22 +50,6 @@ Concrete content wrappers:
   - `to_llm_format() -> [{type:text}, {type:image_url}, ...]`
   - `has_image() -> true`
   - `get_image_urls()` returns every valid image URL in source order
-
-## Alias and Export Boundary Contract
-
-Type aliases in `core/types/aliases.py`:
-
-- `JSONDict = Dict[str, Any]`
-- `StringDict = Dict[str, str]`
-
-Exports:
-
-- aliases re-exported by `core/types/__init__.py`
-- message wrappers + converter re-exported by `core/messages/__init__.py`
-
-Practical contract:
-
-- import paths through package `__init__` files are part of public core API surface.
 
 ## Test-Backed Matrix
 

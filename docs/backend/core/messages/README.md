@@ -1,5 +1,5 @@
 ---
-summary: "Backend core message docs sub-hub for stored message serialization, multimodal content conversion, and message type alias export contracts."
+summary: "Backend core message docs sub-hub for stored message serialization and multimodal content conversion."
 read_when:
   - When changing `backend/src/core/messages/*` or message representation sent into prompt construction/history.
   - When debugging screenshot multimodal conversion, tool-call normalization, or message-content parser behavior.
@@ -11,7 +11,7 @@ title: "Backend Core Messages Docs Hub"
 ## Deep Pages
 
 - [Stored Message LLM Serialization, Tool-Call Normalization, and Multimodal Image Contract Reference](stored_message_llm_serialization_tool_call_normalization_and_multimodal_image_contract_reference.md)
-- [Content Converter Parsing, Multi-Image Preservation, and Type-Alias Export Contract Reference](content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
+- [Content Converter Parsing and Multi-Image Preservation Reference](content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
 
 ## Related Pages
 
@@ -25,7 +25,6 @@ title: "Backend Core Messages Docs Hub"
 - `backend/src/core/messages/__init__.py`
 - `backend/src/core/messages/structures.py`
 - `backend/src/core/messages/converters.py`
-- `backend/src/core/types/aliases.py`
 - `backend/src/core/types/__init__.py`
 - `tests/backend/test_messages_and_converters.py`
 - `tests/backend/test_interaction_loop.py`
