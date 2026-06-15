@@ -55,6 +55,7 @@ Date: 2026-06-15
 | CD-022 | Renderer dashboard/transcript utilities | `episodicMemoryUtils.js` and `storedTranscriptChatMessageState.js` preserved unused transcript-memory parsing and rehydrate mapping helpers, including `User:`/`Assistant:` display splitting | Production callers now open conversations through SDK `chat_events`, SDK display projection, and the desktop continuity service; search found these exports were referenced only by their tests and stale docs | Delete the unused helpers and tests, and point docs at SDK projection/command-runtime owners | implemented |
 | CD-023 | Frontend main shell harness | `frontend/src/main/app/test_shell.cjs` and `npm run test:shell` preserved a manual Chrome/shell smoke harness whose npm entry pointed at a non-existent path | Knip reported the harness as an unused file; docs said it was manual and stale, while current shell/process behavior is covered by sidecar and bridge tests | Delete the broken harness, remove the npm script, and route docs to current sidecar shell validation instead of the harness page | implemented |
 | CD-024 | Renderer transcript projection | `desktopTranscriptProjectionRuntimeClient.ts`, `transcriptRecordWrite.ts`, `transcriptEntryPersistence.ts`, `infrastructure/transcript/pending/*`, and their pending/entry type exports preserved a renderer-owned queue/write path | Knip reported the projection runtime and entry persistence as unused files; source search found the writer/queues referenced only by their tests and stale docs, while current display/replay uses SDK `chat_events`, `DesktopConversationContinuityService`, `DesktopConversationLibraryClient`, `desktopConversationStore.ts`, and `sdkDisplayChatMessageProjection.ts` | Delete the orphan runtime, pending queues, type exports, tests, and queue docs; update current docs to route transcript/replay work to SDK continuity/store/display projection owners | implemented |
+| CD-025 | Renderer desktop conversation store | Store-side transcript projection append/rewrite helpers, projection conversion types, and stored-transcript bridge utilities survived after deleting the renderer projection writer | Repo search showed `appendTranscriptProjectionEntry`, `rewriteTranscriptProjection`, projection conversion types, `CHAT_EVENT_RECORD_KIND`, `storedTranscriptSdkProjection.ts`, and `storedTranscriptMemoryState.js` were referenced only by tests and the store module itself | Delete the store-side projection helper exports, conversion functions, stored-transcript bridge utilities, dead constant, and tests that covered only that deleted surface | implemented |
 
 ## Commit Ledger
 
@@ -348,6 +349,19 @@ CD-024 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-025 validation:
+
+- targeted `rg -n "CHAT_EVENT_RECORD_KIND|TranscriptProjectionRewriteEntry|TranscriptProjectionAppendEntry|buildRehydrateSnapshotFromTranscriptProjection|appendTranscriptProjectionEntry|rewriteTranscriptProjection|transcript_projection_rewrite|projectionEntryToConversationEvent|eventTypeFromProjectionEntry|storedTranscriptSdkProjection|buildStoredTranscriptRehydrateMessages|buildConversationEventsFromStoredTranscript|storedTranscriptMemoryState|resolveStoredTranscriptMemoryState|resolveStoredTranscriptScreenshotAttachment|StoredTranscriptMemoryState" frontend/src tests/frontend docs --glob '!frontend/node_modules/**' --glob '!docs/plans/**'`:
+  no matches.
+- `bin/windie test frontend -- DesktopConversationStore DesktopConversationContinuityService SdkDisplayChatMessageProjection RendererChatRuntimeBoundary ModularRefactorCompletionBoundary`:
+  passed, 5 suites and 56 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  unused dependency/export/type findings, but it no longer reports
+  `storedTranscriptSdkProjection.ts` as an unused file and no longer lists the
+  CD-025 projection helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -439,3 +453,7 @@ CD-024 validation:
   imports; current durable transcript state remains owned by SDK conversation
   events, the desktop conversation store, the desktop continuity/library
   clients, and sidecar `chat_events`.
+- CD-025 has no storage migration impact. It deletes only the store-side helper
+  conversion path and stored-transcript bridge utilities that supported the
+  already-deleted renderer projection writer; current store calls still use SDK
+  conversation commands and sidecar `chat_events`.

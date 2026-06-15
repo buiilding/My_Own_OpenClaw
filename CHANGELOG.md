@@ -89,6 +89,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: delete the orphan transcript projection runtime and
   pending retry queues; visible transcript state now routes through SDK
   conversation storage, continuity, and display projection.
+- frontend/renderer: remove the store-side transcript projection append/rewrite
+  helper exports, stored-transcript bridge utilities, and tests that only
+  supported the deleted projection writer.
 
 ### Added
 

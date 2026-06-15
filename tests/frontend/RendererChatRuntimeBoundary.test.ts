@@ -551,7 +551,6 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('getTranscriptSessionInfo()');
     expect(source).not.toContain('setActiveConversationRef(');
     expect(source).not.toContain('updateTranscriptSession(');
-    expect(source).not.toContain('rewriteTranscriptProjection(input');
     expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
   });
 

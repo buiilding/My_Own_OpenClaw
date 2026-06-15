@@ -3,11 +3,8 @@
  */
 
 import {
-  buildRehydrateSnapshotFromTranscriptProjectionEntries,
-  appendTranscriptProjectionEntry,
   createDesktopConversationStore,
   loadDesktopTraceTimeline,
-  rewriteTranscriptProjection,
 } from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
 import {
   createConversationEvent,
@@ -182,92 +179,6 @@ describe('desktop conversation store factory', () => {
     });
   });
 
-  test('appends transcript projections as enriched canonical conversation events', async () => {
-    await appendTranscriptProjectionEntry('user-1', {
-      conversationRef: 'conv-append',
-      content: 'assistant answer',
-      role: 'assistant',
-      messageType: 'llm-text',
-      modelId: 'model-1',
-      modelProvider: 'provider-1',
-      screenshotRef: 'artifact-1',
-      timestamp: '2026-05-15T12:00:00.000Z',
-      rehydrateEntry: {
-        role: 'assistant',
-        content: 'assistant answer',
-        message_type: 'llm-text',
-      },
-    });
-
-    expect(mockInvokeWindieCommand).toHaveBeenCalledTimes(2);
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversation.getRevision', {
-      userId: 'user-1',
-      conversationRef: 'conv-append',
-    });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'conversation.appendEvent', {
-      userId: 'user-1',
-      conversationRef: 'conv-append',
-      event: expect.objectContaining({
-        type: 'assistant_message',
-        conversationRef: 'conv-append',
-        revisionId: 'rev-stored-test',
-        payload: expect.objectContaining({
-          text: 'assistant answer',
-          screenshotRef: 'artifact-1',
-          screenshot: null,
-          metadata: expect.objectContaining({
-            model_id: 'model-1',
-            model_provider: 'provider-1',
-            screenshot: 'artifact-1',
-          }),
-          attachments: [
-            expect.objectContaining({
-              kind: 'image',
-              ref: 'artifact-1',
-            }),
-          ],
-          structuredPayload: expect.objectContaining({
-            content: 'assistant answer',
-          }),
-        }),
-      }),
-    });
-  });
-
-  test('classifies hyphenated transcript tool rows as SDK tool events', async () => {
-    await appendTranscriptProjectionEntry('user-1', {
-      conversationRef: 'conv-tool-output',
-      content: 'clicked',
-      role: 'tool',
-      messageType: 'tool-output',
-      toolName: 'mouse_control',
-      correlationId: 'call-1',
-      screenshotRef: 'artifact-output-1',
-      timestamp: '2026-05-15T12:00:00.000Z',
-      rehydrateEntry: {
-        role: 'tool',
-        content: 'clicked',
-        message_type: 'tool-output',
-      },
-    });
-
-    expect(mockInvokeWindieCommand).toHaveBeenLastCalledWith('conversation.appendEvent', {
-      userId: 'user-1',
-      conversationRef: 'conv-tool-output',
-      event: expect.objectContaining({
-        type: 'tool_output',
-        payload: expect.objectContaining({
-          text: 'clicked',
-          toolName: 'mouse_control',
-          correlationId: 'call-1',
-          toolCallId: 'call-1',
-          screenshotRef: 'artifact-output-1',
-          screenshot: null,
-        }),
-      }),
-    });
-  });
-
   test('rewrites edit plans through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
     const preserved = createConversationEvent({
@@ -308,74 +219,6 @@ describe('desktop conversation store factory', () => {
     });
   });
 
-  test('rewrites transcript projection as canonical SDK events', async () => {
-    const rehydrateSnapshot = await rewriteTranscriptProjection({
-      userId: 'user-1',
-      conversationRef: 'conv-edit',
-      entries: [
-        {
-          content: 'edited prompt',
-          role: 'user',
-          messageType: 'user',
-          screenshot: 'artifact-1',
-          timestamp: '2026-05-15T12:00:00.000Z',
-        },
-        {
-          content: 'tool output',
-          role: 'tool',
-          messageType: 'tool_output',
-          toolName: 'shell',
-          correlationId: 'tool-call-1',
-        },
-      ],
-      rehydrateEntries: [
-        {
-          content: 'previous context',
-          role: 'user',
-          messageType: 'user',
-        },
-      ],
-    });
-
-    expect(mockInvokeWindieCommand).toHaveBeenCalledTimes(1);
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.rewrite', {
-      userId: 'user-1',
-      conversationRef: 'conv-edit',
-      plan: expect.objectContaining({
-        conversationRef: 'conv-edit',
-        reason: 'transcript_projection_rewrite',
-        preservedEvents: [
-          expect.objectContaining({
-            type: 'user_message',
-          payload: expect.objectContaining({
-            text: 'edited prompt',
-            attachments: [
-              expect.objectContaining({
-                kind: 'image',
-                data: 'artifact-1',
-              }),
-            ],
-          }),
-          }),
-          expect.objectContaining({
-            type: 'tool_output',
-            payload: expect.objectContaining({
-              text: 'tool output',
-              toolName: 'shell',
-              correlationId: 'tool-call-1',
-            }),
-          }),
-        ],
-      }),
-    });
-    expect(rehydrateSnapshot.messages).toEqual([
-      expect.objectContaining({
-        role: 'user',
-        content: 'previous context',
-      }),
-    ]);
-  });
-
   test('lists metadata through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
     const metadata = [
@@ -401,36 +244,4 @@ describe('desktop conversation store factory', () => {
     });
   });
 
-  test('builds replay rehydrate snapshots from transcript projection entries through SDK projections', () => {
-    const snapshot = buildRehydrateSnapshotFromTranscriptProjectionEntries({
-      conversationRef: 'conv-replay',
-      entries: [
-        {
-          content: 'previous prompt',
-          role: 'user',
-          messageType: 'user',
-          timestamp: '2026-05-15T12:00:00.000Z',
-        },
-        {
-          content: '{"name":"read_file"}',
-          role: 'assistant',
-          messageType: 'tool_call',
-          toolName: 'read_file',
-          correlationId: 'call-read',
-          timestamp: '2026-05-15T12:00:01.000Z',
-        },
-      ],
-    });
-
-    expect(snapshot).toMatchObject({
-      conversationRef: 'conv-replay',
-      messages: [
-        expect.objectContaining({
-          role: 'user',
-          content: 'previous prompt',
-        }),
-      ],
-    });
-    expect(snapshot.messages).toHaveLength(1);
-  });
 });

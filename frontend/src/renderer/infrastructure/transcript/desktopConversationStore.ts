@@ -3,13 +3,9 @@
  */
 
 import {
-  buildConversationEventsFromStoredTranscript,
-} from './storedTranscriptSdkProjection';
-import {
   getConversationWorkspaceBinding,
 } from '../workspace/conversationWorkspaceBinding';
 import {
-  buildRehydrateSnapshot,
   buildTraceTimeline,
   createConversationEvent,
   type CompactedReplaySnapshot,
@@ -28,31 +24,8 @@ import {
 } from '../api/windieSdkClient';
 import { invokeWindieCommand } from '../../app/runtime/windieCommandInvokeClient';
 
-export const CHAT_EVENT_RECORD_KIND = 'chat_event';
-
 type DesktopConversationStoreDeps = {
   getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
-};
-
-export type TranscriptProjectionRewriteEntry = {
-  messageId?: string | null;
-  content: string;
-  role: string;
-  messageType: string;
-  toolName?: string | null;
-  correlationId?: string | null;
-  screenshot?: unknown;
-  screenshotRef?: string | null;
-  timestamp?: string | null;
-};
-
-export type TranscriptProjectionAppendEntry = TranscriptProjectionRewriteEntry & {
-  conversationRef: string;
-  modelId?: string | null;
-  modelProvider?: string | null;
-  transparency?: Record<string, unknown> | null;
-  structuredPayload?: Record<string, unknown> | null;
-  rehydrateEntry: Record<string, unknown>;
 };
 
 export type DesktopTraceTimelineOptions = {
@@ -60,30 +33,6 @@ export type DesktopTraceTimelineOptions = {
   traceId?: string | null;
   path?: string | null;
 };
-
-export function buildRehydrateSnapshotFromTranscriptProjectionEntries({
-  conversationRef,
-  entries,
-}: {
-  conversationRef: string;
-  entries: TranscriptProjectionRewriteEntry[];
-}): RehydrateSnapshot {
-  const transcriptRows = entries.map((entry, index) => ({
-    id: `projection-${conversationRef}-${index}`,
-    content: entry.content,
-    role: entry.role,
-    message_type: entry.messageType,
-    tool_name: entry.toolName || null,
-    correlation_id: entry.correlationId || null,
-    screenshot: entry.screenshot ?? null,
-    timestamp: entry.timestamp || null,
-    record_kind: CHAT_EVENT_RECORD_KIND,
-    message_index: index + 1,
-  }));
-  return buildRehydrateSnapshot(
-    buildConversationEventsFromStoredTranscript(transcriptRows, { conversationRef }),
-  );
-}
 
 function normalizeNonEmptyString(value: unknown): string | null {
   if (typeof value !== 'string') {
@@ -221,79 +170,6 @@ function imageAttachmentsFromEvent(event: ConversationEvent): Record<string, unk
     seen.add(key);
     return true;
   });
-}
-
-function eventTypeFromProjectionEntry(entry: TranscriptProjectionRewriteEntry): ConversationEvent['type'] {
-  const messageType = typeof entry.messageType === 'string'
-    ? entry.messageType.trim().toLowerCase().replace(/_/g, '-')
-    : '';
-  if (entry.role === 'user' || messageType === 'user') {
-    return 'user_message';
-  }
-  if (messageType === 'tool-bundle-call' || messageType === 'tool-bundle') {
-    return 'tool_bundle_call';
-  }
-  if (messageType === 'tool-bundle-output') {
-    return 'tool_bundle_output';
-  }
-  if (messageType === 'tool-call') {
-    return 'tool_call';
-  }
-  if (entry.role === 'tool' || messageType === 'tool-output') {
-    return 'tool_output';
-  }
-  return 'assistant_message';
-}
-
-function projectionEntryToConversationEvent(
-  conversationRef: string,
-  revisionId: string,
-  entry: TranscriptProjectionRewriteEntry | TranscriptProjectionAppendEntry,
-  index: number,
-  deps: Required<DesktopConversationStoreDeps> = resolveDesktopConversationStoreDeps(),
-): ConversationEvent {
-  const structuredPayload = 'rehydrateEntry' in entry && entry.rehydrateEntry
-    ? entry.rehydrateEntry
-    : {};
-  const event = createConversationEvent({
-    eventId: `projection-${conversationRef}-${revisionId}-${index}`,
-    type: eventTypeFromProjectionEntry(entry),
-    conversationRef,
-    revisionId,
-    timestamp: entry.timestamp || undefined,
-    source: 'sdk',
-    payload: {
-      id: entry.messageId || undefined,
-      messageId: entry.messageId || undefined,
-      text: entry.content,
-      content: entry.content,
-      role: entry.role,
-      messageType: entry.messageType,
-      modelId: 'modelId' in entry ? entry.modelId ?? null : null,
-      modelProvider: 'modelProvider' in entry ? entry.modelProvider ?? null : null,
-      correlationId: entry.correlationId || null,
-      requestId: entry.correlationId || null,
-      toolName: entry.toolName || null,
-      toolCallId: entry.correlationId || null,
-      screenshotRef: entry.screenshotRef ?? null,
-      screenshot: entry.screenshot ?? null,
-      structuredPayload,
-    },
-  });
-  const writeParams = buildDesktopEventWriteParams(event, deps);
-  return {
-    ...event,
-    payload: {
-      ...event.payload,
-      toolName: writeParams.tool_name ?? event.payload.toolName ?? null,
-      correlationId: writeParams.correlation_id ?? event.payload.correlationId ?? null,
-      workspacePath: writeParams.workspace_path ?? null,
-      workspaceName: writeParams.workspace_name ?? null,
-      metadata: writeParams.metadata ?? {},
-      attachments: Array.isArray(writeParams.attachments) ? writeParams.attachments : [],
-      compactionCheckpoint: writeParams.compaction_checkpoint ?? null,
-    },
-  };
 }
 
 function modelMetadataFromEvent(event: ConversationEvent): {
@@ -466,54 +342,5 @@ export async function loadDesktopTraceTimeline(
     turnRef: options.turnRef,
     traceId: options.traceId,
     path: options.path,
-  });
-}
-
-export async function appendTranscriptProjectionEntry(
-  userId: string,
-  entry: TranscriptProjectionAppendEntry,
-  deps: DesktopConversationStoreDeps = {},
-): Promise<void> {
-  const store = createDesktopConversationStore(userId, deps);
-  const revision = await store.getRevision(entry.conversationRef);
-  await store.appendEvent(projectionEntryToConversationEvent(
-    entry.conversationRef,
-    revision.revisionId,
-    entry,
-    Date.now(),
-    resolveDesktopConversationStoreDeps(deps),
-  ));
-}
-
-export async function rewriteTranscriptProjection({
-  conversationRef,
-  userId,
-  entries,
-  rehydrateEntries,
-  deps,
-}: {
-  conversationRef: string;
-  userId: string;
-  entries: TranscriptProjectionRewriteEntry[];
-  rehydrateEntries?: TranscriptProjectionRewriteEntry[];
-  deps?: DesktopConversationStoreDeps;
-}): Promise<RehydrateSnapshot> {
-  const store = createDesktopConversationStore(userId, deps);
-  const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
-  const resolvedDeps = resolveDesktopConversationStoreDeps(deps);
-  await store.rewriteConversation({
-    conversationRef,
-    baseRevisionId: '',
-    newRevisionId: revisionId,
-    preservedEvents: entries.map((entry, index) => (
-      projectionEntryToConversationEvent(conversationRef, revisionId, entry, index, resolvedDeps)
-    )),
-    removedEventIds: [],
-    reason: 'transcript_projection_rewrite',
-  });
-
-  return buildRehydrateSnapshotFromTranscriptProjectionEntries({
-    conversationRef,
-    entries: rehydrateEntries ?? entries,
   });
 }
