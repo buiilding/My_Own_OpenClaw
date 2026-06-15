@@ -3,15 +3,14 @@
  */
 
 const linuxRuntime = require('./linux.cjs');
-const macosRuntime = require('./macos.cjs');
-const windowsRuntime = require('./windows.cjs');
+const supportedRuntime = require('./supported.cjs');
 
 function createContentProtectionRuntime(platform) {
   if (platform === 'win32') {
-    return windowsRuntime;
+    return supportedRuntime;
   }
   if (platform === 'darwin') {
-    return macosRuntime;
+    return supportedRuntime;
   }
   return linuxRuntime;
 }

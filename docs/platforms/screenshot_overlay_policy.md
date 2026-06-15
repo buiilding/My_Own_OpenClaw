@@ -34,7 +34,7 @@ short lease around SDK-local screenshot execution:
 
 | Concern | Files |
 | --- | --- |
-| platform content protection dispatch | `frontend/src/main/window_platform_policy.cjs`, `frontend/src/main/platform/content_protection/*` |
+| platform content protection dispatch | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/platform/content_protection/{index,linux,supported}.cjs` |
 | screenshot visibility runtime dispatch | `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/screenshot_window_visibility/*` |
 | overlay phase IPC | `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` |
 | renderer surface orchestration | `frontend/src/renderer/features/overlays`, `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts` |

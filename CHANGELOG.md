@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/main: remove the macOS and Windows content-protection re-export
+  wrappers so platform dispatch points directly at the shared supported
+  runtime.
 - frontend/dashboard: show a selected-chat loading state while conversation
   history rows are loading so opening an existing chat no longer flashes the
   new-chat welcome screen.
