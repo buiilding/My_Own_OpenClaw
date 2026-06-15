@@ -13,12 +13,19 @@ const {
   appendSurfaceVisibilityDiagnostic,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
 
+function normalizePositiveDimension(value, fallback) {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue > 0
+    ? Math.round(numericValue)
+    : fallback;
+}
+
 const RESPONSE_OVERLAY_WIDTH = 520;
 const RESPONSE_OVERLAY_AWAITING_HEIGHT = (
-  Number(responseOverlayLayoutContract?.awaiting_frame_height) || 24
+  normalizePositiveDimension(responseOverlayLayoutContract?.awaiting_frame_height, 24)
 );
 const RESPONSE_OVERLAY_RESPONSE_HEIGHT = (
-  Number(responseOverlayLayoutContract?.response_fixed_height) || 236
+  normalizePositiveDimension(responseOverlayLayoutContract?.response_fixed_height, 236)
 );
 
 function safeWindowVisible(win) {

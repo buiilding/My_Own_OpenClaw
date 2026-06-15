@@ -133,6 +133,33 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
   });
 
+  test('falls back from malformed layout contract heights before bounds resolution', () => {
+    jest.isolateModules(() => {
+      jest.doMock(
+        '../../frontend/src/shared/response_overlay_layout_contract.json',
+        () => ({
+          awaiting_frame_height: Infinity,
+          response_fixed_height: -1,
+        }),
+      );
+      const {
+        handleSdkLiveTurnSurfaceIntent: handleWithMalformedLayout,
+      } = require('../../frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs');
+      const awaitingDeps = createDeps();
+      const responseDeps = createDeps();
+
+      handleWithMalformedLayout(createCurrentTurn({ mode: 'awaiting' }), awaitingDeps);
+      handleWithMalformedLayout(createCurrentTurn({ mode: 'response' }), responseDeps);
+
+      expect(awaitingDeps.getResponseWindowBounds).toHaveBeenCalledWith(520, 24, {
+        compactHover: true,
+      });
+      expect(responseDeps.getResponseWindowBounds).toHaveBeenCalledWith(520, 236, {
+        compactHover: false,
+      });
+    });
+  });
+
   test('rejects non-finite response bounds before native window mutation', () => {
     const deps = createDeps({
       getResponseWindowBounds: jest.fn(() => ({

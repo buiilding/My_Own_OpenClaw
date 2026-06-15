@@ -13,7 +13,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 ## Current Status
 
 - Status: active.
-- Current slice: twenty-fourth hardening slice committed.
+- Current slice: twenty-fifth hardening slice ready to commit.
 - Repo state at start: `main` is ahead of `origin/main` with existing dirty
   docs and frontend sidecar bridge changes not created by this report.
 
@@ -142,6 +142,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - [x] Run focused validation and `git diff --check` for the twenty-fourth slice.
 - [x] Update changelog and report with the twenty-fourth slice result.
 - [x] Commit the twenty-fourth slice.
+- [x] Select twenty-fifth code slice with a concrete owner and regression test.
+- [x] Implement twenty-fifth slice.
+- [x] Run focused validation and `git diff --check` for the twenty-fifth slice.
+- [x] Update changelog and report with the twenty-fifth slice result.
 
 ## Validation Log
 
@@ -228,6 +232,11 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   canonical navigation reported 82 page references validated.
 - `git diff --check` - passed after twenty-fourth-slice implementation and
   docs changes.
+- `cd frontend && npm run test -- SdkLiveTurnSurfaceController --runInBand` -
+  passed after twenty-fifth slice; 1 suite and 12 tests passed, including the
+  new malformed layout-contract height fallback regression.
+- `git diff --check -- frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs tests/frontend/SdkLiveTurnSurfaceController.test.cjs`
+  - passed after twenty-fifth-slice implementation and test changes.
 - `cd frontend && npm run test -- OverlayWindowHelpersRuntime --runInBand` -
   passed after eleventh slice; 1 suite and 12 tests passed, including the new
   malformed chat-window bounds regression test.
@@ -666,6 +675,19 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
   IPC payload, backend event, sidecar RPC, or persisted data shape changed. The
   new marker is transient renderer UI state and clears on the same request-id
   guard that protects stale conversation-open results.
+- Slice 25 owner: Electron main SDK live-turn surface controller owns
+  translating SDK current-turn overlay intent into native response-window
+  placement and dimensions.
+- Slice 25 failure mode: malformed shared response overlay layout contract
+  heights such as `Infinity` or negative values could be passed into
+  `getResponseWindowBounds(...)` before the later native-bounds guard rejected
+  the final placement.
+- Slice 25 change: SDK live-turn layout heights now normalize to finite
+  positive rounded dimensions with the existing awaiting/response defaults
+  before resolving response-window bounds.
+- Slice 25 inspection: no SDK current-turn projection contract, renderer
+  layout contract, IPC payload, backend event, sidecar RPC, or persisted data
+  shape changed. Valid contract heights preserve the existing dimensions.
 
 ## Decisions
 
@@ -762,6 +784,10 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - Treat selected-chat loading state as renderer-only transient UI hardening.
   No persisted data, transcript row shape, SDK store contract, IPC payload,
   backend API, or sidecar RPC shape changed, so no migration is required.
+- Treat malformed SDK live-turn layout heights as Electron main native-window
+  boundary hardening. No persisted data, IPC payload, SDK projection shape,
+  renderer layout contract, backend API, or sidecar RPC shape changed, so no
+  migration is required.
 
 ## Commits
 
@@ -789,6 +815,7 @@ Plan: `docs/plans/2026-06-10-test-backed-maintenance-hardening-plan.md`
 - `ca1ef1db7` - `fix(frontend-overlays): normalize primary display bounds`
 - `0046e7c8c` - `fix(frontend-overlays): normalize fallback dimensions`
 - `37d4fdfa5` - `fix(frontend-chat): show loading state for selected history`
+- Pending - `fix(frontend-sdk): normalize live surface layout heights`
 
 ## Remaining Candidates
 
