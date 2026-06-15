@@ -630,7 +630,6 @@ Non-Electron SDK hosts can override that behavior with:
   a `WindieLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.
 - `sidecar`: a custom `WindieLocalRuntimeClient` implementation.
-- `localRuntime`: an alias for the same custom runtime interface.
 - `sidecarDaemon`: daemon `baseUrl` and per-process `token`; `WindieClient`
   creates a `SidecarDaemonHttpClient` and uses `/status`, registration endpoints,
   `/tools`, and `/execute-tool`.
@@ -642,7 +641,7 @@ Non-Electron SDK hosts can override that behavior with:
   chat event history survives process restart.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
-`sidecar`, `localRuntime`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly
+`sidecar`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly
 when they need local execution.
 
 After any SDK path resolves a local runtime, `WindieClient.status()`,

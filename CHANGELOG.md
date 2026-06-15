@@ -1775,6 +1775,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Removed
 
+- sdk/runtime: remove the `WindieClientOptions.localRuntime` alias so custom
+  local runtimes are configured through the canonical `sidecar` option.
 - sdk/tools: delete the unused `ElectronToolEventRouter.ts` duplicate now that
   local tool routing is owned by `ToolExecutionCoordinator.ts`.
 - chore(repo-cleanup): remove tracked audit scratch output under `.audit/plan1` and the empty `.cursorignore` file.
