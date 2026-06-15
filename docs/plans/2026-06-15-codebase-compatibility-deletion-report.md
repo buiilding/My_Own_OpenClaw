@@ -63,6 +63,8 @@ Date: 2026-06-15
   completed CD-009.
 - `85bc9f55e refactor(backend): remove prompt tuple wrapper`
   completed CD-010.
+- `5bd62aad3 docs(frontend): remove legacy settings entrypoint`
+  completed CD-011.
 
 ## Validation Log
 
