@@ -46,14 +46,19 @@ All other event classes use base `to_dict()` behavior.
 
 Enum values are mixed-format by design:
 
-- snake case: `tool_call`, `tool_output`, `token_count`, `user_message_full`
-- kebab case: `streaming-complete`, `tool-bundle`
-- plain: `chunk`, `thinking`, `error`, `content`
+- snake case: `full_response`
+- kebab case: `llm-thought`, `streaming-response`, `streaming-complete`,
+  `tool-call`, `token-count`, `tool-bundle`
+- plain: `error`, `content`
 
 Important literals:
 
 - `FULL_RESPONSE = "full_response"` (internal/full-text event type)
 - `CONTENT = "content"` (LLM-client internal stream token alias)
+
+Legacy dict event names such as `thinking`, `chunk`, and `tool_call` are
+normalized only in API extraction helpers. Typed stream-event code should use
+the canonical enum members directly.
 
 Consumers must not assume one global separator style.
 

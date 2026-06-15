@@ -19,7 +19,7 @@ def test_get_formatter_specs_contains_expected_stream_types():
     specs = get_formatter_specs()
     stream_types = {stream_type for _, stream_type, _ in specs}
 
-    assert StreamingEventType.CHUNK.value in stream_types
+    assert StreamingEventType.STREAMING_RESPONSE.value in stream_types
     assert StreamingEventType.ERROR.value in stream_types
     assert StreamingEventType.STREAMING_COMPLETE.value in stream_types
     assert StreamingEventType.TOOL_CALL.value in stream_types

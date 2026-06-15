@@ -30,9 +30,7 @@ class StreamingEventType(str, Enum):
     """Types of streaming events emitted by the agent."""
 
     LLM_THOUGHT = "llm-thought"
-    THINKING = LLM_THOUGHT
     STREAMING_RESPONSE = "streaming-response"
-    CHUNK = STREAMING_RESPONSE
     ERROR = "error"
     STREAMING_COMPLETE = "streaming-complete"
     TOOL_CALL = "tool-call"

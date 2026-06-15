@@ -417,6 +417,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/session: replace the no-model-selected raw dict stream event with a
   typed `ThinkingEvent` so `AgentSession.process_query` stays on the current
   typed event contract.
+- backend/events: remove old `StreamingEventType.THINKING` and
+  `StreamingEventType.CHUNK` enum member aliases so typed stream code uses the
+  canonical event names directly.
 - docs/platforms: route packaged sidecar workflow docs from deleted
   `sidecar_process_runtime.cjs` to `runtime_paths.cjs` and
   `sdk_sidecar_launch_options.cjs`.
