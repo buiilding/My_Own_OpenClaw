@@ -74,7 +74,6 @@ Used for:
 
 Accepted chunk-like event types:
 
-- `chunk`
 - `content`
 - `streaming-response`
 
@@ -89,7 +88,7 @@ Aggregated text is used as one completion fallback source when explicit terminal
 
 ## Assistant Full Message Fallback
 
-`extract_assistant_full_text` only reads events typed `assistant_message_full`.
+`extract_assistant_full_text` only reads events typed `assistant-message-full`.
 
 If present, trimmed assistant full text is retained as secondary completion fallback after aggregated chunk text.
 
@@ -99,7 +98,7 @@ If present, trimmed assistant full text is retained as secondary completion fall
 
 1. `streaming-complete.final_response`
 2. aggregated chunk text (when any non-empty chunk seen)
-3. last `assistant_message_full` text
+3. last `assistant-message-full` text
 4. constant fallback:
 - `"I completed the requested action(s), but the model returned an empty final response."`
 

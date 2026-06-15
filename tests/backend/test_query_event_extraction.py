@@ -19,7 +19,7 @@ def test_extract_event_type_supports_dict_and_typed_value_enum():
     class _Event:
         type = _TypeObj()
 
-    assert extract_event_type({"type": "chunk"}) == "streaming-response"
+    assert extract_event_type({"type": "streaming-response"}) == "streaming-response"
     assert extract_event_type(_Event()) == "streaming-complete"
     assert extract_event_type({"type": 123}) is None
     assert extract_event_type({"type": "   "}) is None
@@ -27,7 +27,7 @@ def test_extract_event_type_supports_dict_and_typed_value_enum():
 
 def test_extract_event_type_supports_typed_string_and_missing_value():
     class _DirectTypeEvent:
-        type = "assistant_message_full"
+        type = "assistant-message-full"
 
     class _NoValueType:
         pass
@@ -53,7 +53,7 @@ def test_extract_non_empty_chunk_text_accepts_payload_text_fallback():
     )
     assert (
         extract_non_empty_chunk_text(
-            {"type": "chunk", "content": "   "},
+            {"type": "streaming-response", "content": "   "},
             event_type="streaming-response",
         )
         == ""
@@ -119,14 +119,14 @@ def test_extract_chunk_text_supports_typed_event_content():
 def test_extract_assistant_full_text_prefers_top_level_then_payload():
     assert (
         extract_assistant_full_text(
-            {"type": "assistant_message_full", "content": "  top level  "},
+            {"type": "assistant-message-full", "content": "  top level  "},
             event_type="assistant-message-full",
         )
         == "top level"
     )
     assert (
         extract_assistant_full_text(
-            {"type": "assistant_message_full", "payload": {"content": "  payload full  "}},
+            {"type": "assistant-message-full", "payload": {"content": "  payload full  "}},
             event_type="assistant-message-full",
         )
         == "payload full"
@@ -134,7 +134,7 @@ def test_extract_assistant_full_text_prefers_top_level_then_payload():
     assert (
         extract_assistant_full_text(
             {
-                "type": "assistant_message_full",
+                "type": "assistant-message-full",
                 "content": "   ",
                 "payload": {"content": " payload fallback "},
             },
@@ -178,7 +178,7 @@ def test_extract_streaming_complete_text_supports_typed_events():
         final_response = "  typed done  "
 
     class _NonStreamingEvent:
-        type = "chunk"
+        type = "streaming-response"
         final_response = "ignored"
 
     assert extract_streaming_complete_text(_StreamingCompleteEvent()) == "typed done"

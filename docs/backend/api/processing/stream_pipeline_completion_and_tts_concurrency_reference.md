@@ -71,10 +71,9 @@ If stream ends without terminal event:
 - service logs warning
 - same completion-resolution + emission path runs as fallback
 
-Dict event compatibility for chunk extraction:
+Dict event chunk extraction:
 
 - accepted chunk-like event types set:
-  - `"chunk"`
   - `"content"`
   - `"streaming-response"`
 

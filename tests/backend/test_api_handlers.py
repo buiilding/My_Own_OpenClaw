@@ -199,7 +199,7 @@ class DummySilentAgent:
                 runtime_system_state,
             )
             yield {
-                "type": "chunk",
+                "type": "streaming-response",
                 "content": text,
                 "image_data": image_data,
                 "message_content": message_content,
@@ -318,7 +318,7 @@ class DummyBlockingAgent:
         await asyncio.sleep(3600)
         if False:
             yield {
-                "type": "chunk",
+                "type": "streaming-response",
                 "content": text,
                 "image_data": image_data,
                 "message_content": message_content,

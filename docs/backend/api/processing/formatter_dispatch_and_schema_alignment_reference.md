@@ -57,14 +57,14 @@ No context field gets attached when value is falsy.
 
 ## Formatter Behavior Matrix
 
-### `chunk` -> `streaming-response`
+### `streaming-response`
 
 - formatter: `ChunkEventFormatter`
 - required input: `content`
 - output payload: `{ "text": content }`
 - missing `content`: warning + `None` (event skipped)
 
-### `thinking` -> `llm-thought`
+### `llm-thought`
 
 - formatter: `ThinkingEventFormatter`
 - required input: `content`

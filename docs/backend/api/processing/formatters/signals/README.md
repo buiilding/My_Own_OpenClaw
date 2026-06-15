@@ -1,7 +1,7 @@
 ---
 summary: "Backend API formatter signal docs sub-hub for chunk/thinking required-content skip behavior, token-count/tool-schemas schema-alignment contracts, and context-compaction lifecycle formatter field guarantees."
 read_when:
-  - When changing stream-signal formatters (`chunk`, `thinking`, `token_count`, `tool_schemas`, `context_compaction_*`).
+  - When changing stream-signal formatters (`streaming-response`, `llm-thought`, `token-count`, `tool-schemas`, `context-compaction-*`).
   - When debugging missing `streaming-response`/`llm-thought`/`context-compaction-*` events or strict tool-schemas payload validation failures.
 title: "Backend API Formatter Signal Docs Hub"
 ---

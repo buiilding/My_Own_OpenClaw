@@ -496,7 +496,7 @@ def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
 
 
 def test_query_execution_event_extraction_helpers_passthrough():
-    assert extract_event_type({"type": "chunk"}) == "streaming-response"
+    assert extract_event_type({"type": "streaming-response"}) == "streaming-response"
     assert extract_dict_payload({"payload": {"x": 1}}) == {"x": 1}
     assert (
         extract_dict_string_field(

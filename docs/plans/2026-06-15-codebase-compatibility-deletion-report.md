@@ -38,6 +38,7 @@ Date: 2026-06-15
 | CD-005 | Backend stream event enum | Alias enum members `THINKING` and `CHUNK` | Repo search showed no production callers; the only test use should assert `STREAMING_RESPONSE`; legacy dict strings are still bounded to query extraction normalization | Remove enum aliases and update docs/tests to name canonical stream event members | implemented |
 | CD-006 | Backend stream event serialization | Pydantic v1-style `.dict()` fallback in event value normalization | Current backend schemas are Pydantic v2 models with `model_dump()`; recursive schema serialization tests cover `model_dump()` payloads | Remove `.dict()` fallback and document supported payload object shapes | implemented |
 | CD-007 | Backend prompts | Preserved deprecated/legacy system prompt snapshots | `PromptManager` only default-loads `system_prompt.txt`; repo search showed snapshot references only in docs/tests preserving old prompt text | Delete snapshot files and remove docs/tests that treat old prompt text as active package content | implemented |
+| CD-008 | Backend stream event extraction | Core legacy stream-event alias table plus query extraction alias acceptance | Validation exposed that query extraction still imported the alias helper and accepted `chunk`/`assistant_message_full` spellings after CD-005 removed enum aliases | Delete the shared alias helper, make query extraction trim-only, and require canonical stream event literals | implemented |
 
 ## Commit Ledger
 
@@ -120,6 +121,15 @@ CD-007 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-008 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_query_event_extraction.py tests/backend/test_query_execution_service_helpers.py tests/backend/test_formatter_specs_contract.py tests/backend/test_api_contract_registry.py tests/backend/test_events.py tests/backend/test_formatters.py -q`:
+  passed, 124 tests.
+- targeted `rg 'normalize_streaming_event_type|LEGACY_STREAMING_EVENT_TYPE_ALIASES|"type": "chunk"|"type": "assistant_message_full"|assistant_message_full' backend/src tests/backend docs/backend/contracts/events docs/backend/api/processing docs/backend/api/services docs/backend/api/handlers`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -157,3 +167,7 @@ CD-007 validation:
 - CD-007 has no runtime migration impact: prompt loading already targets only
   `system_prompt.txt`; the deleted files were inactive text snapshots preserved
   by tests/docs, not runtime prompt assets.
+- CD-008 migration note: backend query-stream extraction now requires canonical
+  stream event literals such as `streaming-response` and
+  `assistant-message-full`; producers still emitting old `chunk` or
+  `assistant_message_full` spellings must switch to canonical names.

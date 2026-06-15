@@ -4,6 +4,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- backend/core-api: delete the legacy stream-event alias normalizer and require
+  query-stream extraction callers to emit canonical event literals such as
+  `streaming-response` and `assistant-message-full`.
+
 ### Added
 
 - docs/plans: add a WindieOS performance tracking plan covering runtime-owned

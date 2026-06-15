@@ -21,8 +21,8 @@ title: "Chunk and Thinking Formatter Required-Content and Skip Contract Referenc
 
 `formatter_specs` maps:
 
-- `ChunkEvent` / `chunk` -> `ChunkEventFormatter` -> outgoing `streaming-response`
-- `ThinkingEvent` / `thinking` -> `ThinkingEventFormatter` -> outgoing `llm-thought`
+- `ChunkEvent` / `streaming-response` -> `ChunkEventFormatter` -> outgoing `streaming-response`
+- `ThinkingEvent` / `llm-thought` -> `ThinkingEventFormatter` -> outgoing `llm-thought`
 
 Both are treated as stream-signal events consumed incrementally by renderer stream handlers.
 

@@ -64,7 +64,7 @@ class TestChunkEventFormatter:
         return ChunkEventFormatter()
 
     def test_format_success(self, formatter):
-        event = {"type": "chunk", "content": "Hello world"}
+        event = {"type": "streaming-response", "content": "Hello world"}
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -76,7 +76,7 @@ class TestChunkEventFormatter:
         }
 
     def test_format_with_none_content(self, formatter):
-        event = {"type": "chunk", "content": None}
+        event = {"type": "streaming-response", "content": None}
         msg_id = "msg-123"
         
         with patch.object(formatter, "_get_event_dict", return_value=event):
@@ -105,7 +105,7 @@ class TestAssistantMessageFullEventFormatter:
         return AssistantMessageFullEventFormatter()
 
     def test_format_success(self, formatter):
-        event = {"type": "assistant_message_full", "content": "Full message"}
+        event = {"type": "assistant-message-full", "content": "Full message"}
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -117,7 +117,7 @@ class TestAssistantMessageFullEventFormatter:
         }
 
     def test_format_with_none_content(self, formatter):
-        event = {"type": "assistant_message_full", "content": None}
+        event = {"type": "assistant-message-full", "content": None}
         msg_id = "msg-123"
         
         with patch.object(formatter, "_get_event_dict", return_value=event):

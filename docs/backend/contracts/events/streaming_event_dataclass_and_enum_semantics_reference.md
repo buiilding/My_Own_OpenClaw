@@ -60,11 +60,9 @@ Important literals:
 - `FULL_RESPONSE = "full_response"` (internal/full-text event type)
 - `CONTENT = "content"` (LLM-client internal stream token alias)
 
-Legacy dict event names such as `thinking`, `chunk`, and `tool_call` are
-normalized only in API extraction helpers. Typed stream-event code should use
-the canonical enum members directly.
-
-Consumers must not assume one global separator style.
+API extraction helpers trim event type strings and reject blank values, but they
+do not translate old plain-word or snake_case aliases. Producers should use the
+canonical enum members directly.
 
 ## Test-Backed Semantics
 

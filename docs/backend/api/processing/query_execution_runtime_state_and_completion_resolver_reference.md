@@ -115,10 +115,10 @@ Dict payload helpers:
 - `extract_dict_payload(...)` returns object payload only
 - `extract_dict_string_field(...)` supports top-level key fallback to payload key
 
-Chunk extraction compatibility:
+Chunk extraction:
 
-- `TEXT_CHUNK_EVENT_TYPES = {"chunk", "content", "streaming-response"}`
-- permits legacy and normalized stream event aliases
+- `TEXT_CHUNK_EVENT_TYPES = {"content", "streaming-response"}`
+- rejects old plain-word or snake_case stream event aliases
 
 ## Completion Resolver Precedence
 
@@ -126,7 +126,7 @@ Chunk extraction compatibility:
 
 1. streaming-complete event `final_response`
 2. concatenated non-empty streamed chunk text
-3. `assistant_message_full` content
+3. `assistant-message-full` content
 4. constant fallback message:
    - `"I completed the requested action(s), but the model returned an empty final response."`
 

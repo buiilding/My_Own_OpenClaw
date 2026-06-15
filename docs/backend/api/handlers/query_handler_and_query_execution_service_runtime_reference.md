@@ -149,8 +149,8 @@ The service tracks:
 For each agent event:
 
 - events go through `_extract_event_type(...)`
-- non-empty chunk text captured from `chunk/content/streaming-response` family
-- assistant full text captured for `assistant_message_full`
+- non-empty chunk text captured from `content/streaming-response` family
+- assistant full text captured for `assistant-message-full`
 - `streaming-complete` triggers completion resolution and synthetic backfill when required
 
 ### Completion text precedence

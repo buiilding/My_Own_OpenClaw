@@ -51,19 +51,13 @@ The intended contract is now one vocabulary for streamed backend events and webs
 - `ContextCompactionFailedEvent` -> `context-compaction-failed` -> `ContextCompactionFailedEventFormatter` -> `ContextCompactionFailedMessage`
 - `ToolBundleEvent` -> `tool-bundle` -> `ToolBundleEventFormatter` -> `ToolBundleMessage`
 
-## Legacy Alias Handling
+## Event Name Handling
 
 The canonical stream vocabulary is kebab-case and matches the websocket transport contract directly.
 
-For bounded backward compatibility, helper paths still normalize legacy/internal dict event names such as:
-
-- `thinking` -> `llm-thought`
-- `chunk` -> `streaming-response`
-- `tool_call` -> `tool-call`
-- `tool_output` -> `tool-output`
-- `assistant_message_full` -> `assistant-message-full`
-
-Typed dataclass events should emit canonical values directly. New code should not produce the legacy spellings.
+Extraction helpers trim whitespace and reject blank type strings, but they no
+longer translate old plain-word or snake_case aliases. Producers should emit the
+canonical enum values directly.
 
 ## Internal-Only Event Literals
 
@@ -95,7 +89,7 @@ When an emitted event does not reach renderer:
 3. confirm mapped outgoing type exists in `OUTGOING_SCHEMA_MESSAGE_TYPES`
 4. confirm outgoing schema model has matching `type: Literal[...]`
 5. confirm formatter returns non-`None` (required field guards)
-6. if the source is a legacy dict event, confirm alias normalization covers its old spelling
+6. if the source is a dict event, confirm it uses the canonical event literal
 
 ## Related Pages
 

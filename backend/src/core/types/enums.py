@@ -5,7 +5,6 @@ This module provides Enum definitions for type safety throughout the codebase.
 """
 
 from enum import Enum
-from typing import Final
 
 
 class MessageRole(str, Enum):
@@ -48,33 +47,6 @@ class StreamingEventType(str, Enum):
     TOOL_BUNDLE = "tool-bundle"
     WEB_SEARCH_PROGRESS = "web-search-progress"
     TRACE_EVENT = "trace-event"
-
-
-LEGACY_STREAMING_EVENT_TYPE_ALIASES: Final[dict[str, str]] = {
-    "thinking": StreamingEventType.LLM_THOUGHT.value,
-    "chunk": StreamingEventType.STREAMING_RESPONSE.value,
-    "tool_call": StreamingEventType.TOOL_CALL.value,
-    "tool_output": StreamingEventType.TOOL_OUTPUT.value,
-    "system_prompt": StreamingEventType.SYSTEM_PROMPT.value,
-    "tool_schemas": StreamingEventType.TOOL_SCHEMAS.value,
-    "user_message_full": StreamingEventType.USER_MESSAGE_FULL.value,
-    "assistant_message_full": StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
-    "token_count": StreamingEventType.TOKEN_COUNT.value,
-    "context_compaction_started": StreamingEventType.CONTEXT_COMPACTION_STARTED.value,
-    "context_compaction_completed": StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
-    "context_compaction_failed": StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
-    "web_search_progress": StreamingEventType.WEB_SEARCH_PROGRESS.value,
-}
-
-
-def normalize_streaming_event_type(event_type: str | None) -> str | None:
-    """Normalize legacy/internal stream event type spellings to canonical transport names."""
-    if not isinstance(event_type, str):
-        return None
-    normalized = event_type.strip()
-    if not normalized:
-        return None
-    return LEGACY_STREAMING_EVENT_TYPE_ALIASES.get(normalized, normalized)
 
 
 class ContentType(str, Enum):

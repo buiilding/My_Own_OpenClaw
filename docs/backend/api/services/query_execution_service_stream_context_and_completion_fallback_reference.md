@@ -137,8 +137,8 @@ directly from `QueryExecutionService.execute(...)`.
 
 - `extract_event_type` supports both dict and dataclass-like events
 - `extract_event_type` trims type strings and treats whitespace-only values as missing
-- `extract_non_empty_chunk_text` only accepts `chunk/content/streaming-response`
-- `extract_assistant_full_text` only accepts `assistant_message_full`
+- `extract_non_empty_chunk_text` only accepts `content/streaming-response`
+- `extract_assistant_full_text` only accepts `assistant-message-full`
 - `resolve_completion_text` uses terminal/chunk/assistant/fallback precedence
 
 ### Completion text precedence (`resolve_completion_text`)
