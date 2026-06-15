@@ -36,6 +36,7 @@ MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
 MCP_REGISTRATION_DIAGNOSTICS_PATH = "mcp.registration"
 MAX_DIAGNOSTIC_TEXT_LENGTH = 240
 MCP_STDIO_STREAM_LIMIT_BYTES = 64 * 1024 * 1024
+PASSIVE_BROWSER_SESSION_ACTIONS = {"get_tabs", "status"}
 CURRENT_MCP_EXECUTION_CONTEXT: contextvars.ContextVar[dict[str, Any]] = (
     contextvars.ContextVar("CURRENT_MCP_EXECUTION_CONTEXT", default={})
 )
@@ -119,6 +120,28 @@ def emit_sidecar_layer_log(prefix: str, message: str) -> None:
         file=sys.stderr,
         flush=True,
     )
+
+
+def build_tool_execution_layer_log(
+    tool_name: Any, args: Any, result: dict[str, Any]
+) -> tuple[str, str]:
+    normalized_tool_name = normalize_string(tool_name)
+    normalized_args = normalize_object(args)
+    action = normalize_string(normalized_args.get("action"))
+    success = result.get("success")
+
+    if normalized_tool_name == "browser" and action:
+        if action in PASSIVE_BROWSER_SESSION_ACTIONS:
+            return (
+                "[BrowserSession]",
+                f"sync action={action} success={success}",
+            )
+        return (
+            "[Tool]",
+            f"executed name=browser action={action} success={success}",
+        )
+
+    return "[Tool]", f"executed name={normalized_tool_name} success={success}"
 
 
 def command_for_diagnostics(command: str) -> str:
@@ -1320,20 +1343,19 @@ class SidecarDaemon:
     async def handle_execute_tool(self, request: web.Request) -> web.Response:
         payload = await request.json()
         tool_name = payload.get("tool_name") or payload.get("toolName")
+        args = normalize_object(payload.get("args"))
         context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(
             build_mcp_execution_context(normalize_object(payload))
         )
         try:
             result = await self.backend._handle_execute_tool(
                 tool_name=tool_name,
-                args=normalize_object(payload.get("args")),
+                args=args,
             )
         finally:
             CURRENT_MCP_EXECUTION_CONTEXT.reset(context_token)
-        emit_sidecar_layer_log(
-            "[Tool]",
-            f"executed name={normalize_string(tool_name)} success={result.get('success')}",
-        )
+        log_prefix, log_message = build_tool_execution_layer_log(tool_name, args, result)
+        emit_sidecar_layer_log(log_prefix, log_message)
         await self.emit_event(
             {
                 "type": "tool-executed",

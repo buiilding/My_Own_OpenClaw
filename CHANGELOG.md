@@ -123,6 +123,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/sidecar: label passive browser session status and tab sync logs as
+  browser-session sync instead of repeated generic browser tool executions, while
+  keeping active browser actions action-labeled in tool logs.
 - frontend/chat: let stopped terminal SDK current-turn projections clear stale
   composer busy state so dashboard and minimal chat pill Stop buttons visually
   return to Send after cancellation.

@@ -111,6 +111,16 @@ class FakeBackendWithShutdown:
         self.shutdown_calls += 1
 
 
+class FakeBackendWithExecuteTool:
+    def __init__(self, result=None):
+        self.calls = []
+        self.result = result or {"success": True, "data": {"output": "ok"}}
+
+    async def _handle_execute_tool(self, tool_name, args):
+        self.calls.append((tool_name, args))
+        return self.result
+
+
 class FakeBrokenStdout:
     async def readline(self):
         raise ValueError("Separator is not found, and chunk exceed the limit")
@@ -283,6 +293,41 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
             "payload": {"tool_name": "missing_tool", "success": False},
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sync(capsys):
+    backend = FakeBackendWithExecuteTool()
+    daemon = SidecarDaemon(backend=backend, token="test-token")
+
+    response = await daemon.handle_execute_tool(
+        FakeRequest({"tool_name": "browser", "args": {"action": "status"}})
+    )
+    payload = json.loads(response.text)
+    captured = capsys.readouterr()
+
+    assert response.status == 200
+    assert payload == {"success": True, "data": {"output": "ok"}}
+    assert backend.calls == [("browser", {"action": "status"})]
+    assert "[BrowserSession] sync action=status success=True" in captured.err
+    assert "[Tool] executed name=browser" not in captured.err
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_execute_tool_log_includes_active_browser_action(capsys):
+    backend = FakeBackendWithExecuteTool()
+    daemon = SidecarDaemon(backend=backend, token="test-token")
+
+    response = await daemon.handle_execute_tool(
+        FakeRequest({"tool_name": "browser", "args": {"action": "click", "index": 4}})
+    )
+    payload = json.loads(response.text)
+    captured = capsys.readouterr()
+
+    assert response.status == 200
+    assert payload == {"success": True, "data": {"output": "ok"}}
+    assert backend.calls == [("browser", {"action": "click", "index": 4})]
+    assert "[Tool] executed name=browser action=click success=True" in captured.err
 
 
 @pytest.mark.asyncio
