@@ -60,6 +60,8 @@ Date: 2026-06-15
   completed CD-008.
 - `db53ef63f test(backend): rename sdk backend contract test`
   completed CD-009.
+- `85bc9f55e refactor(backend): remove prompt tuple wrapper`
+  completed CD-010.
 
 ## Validation Log
 
