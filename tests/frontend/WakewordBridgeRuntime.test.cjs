@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  emitWakewordStatus,
   handleWakewordStderrLine,
   normalizeAudioChunk,
   resolveWakewordProcessErrorMessage,
@@ -46,6 +47,59 @@ describe('wakeword_bridge_runtime', () => {
 
     expect(isReady).toBe(true);
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('wakeword-status', { ready: true });
+  });
+
+  test('does not emit wakeword status to a destroyed BrowserWindow', () => {
+    const mainWindow = {
+      isDestroyed: () => true,
+      webContents: {
+        send: jest.fn(),
+      },
+    };
+
+    expect(emitWakewordStatus(mainWindow, { ready: false })).toBe(false);
+    expect(mainWindow.webContents.send).not.toHaveBeenCalled();
+  });
+
+  test('does not emit wakeword status to destroyed webContents', () => {
+    const mainWindow = {
+      isDestroyed: () => false,
+      webContents: {
+        isDestroyed: () => true,
+        send: jest.fn(),
+      },
+    };
+
+    expect(emitWakewordStatus(mainWindow, { ready: false })).toBe(false);
+    expect(mainWindow.webContents.send).not.toHaveBeenCalled();
+  });
+
+  test('does not throw when wakeword status send races with window destruction', () => {
+    const mainWindow = {
+      isDestroyed: () => false,
+      webContents: {
+        isDestroyed: () => false,
+        send: jest.fn(() => {
+          throw new Error('Object has been destroyed');
+        }),
+      },
+    };
+
+    expect(emitWakewordStatus(mainWindow, { ready: false })).toBe(false);
+  });
+
+  test('rethrows non-destroyed wakeword status send failures', () => {
+    const mainWindow = {
+      isDestroyed: () => false,
+      webContents: {
+        isDestroyed: () => false,
+        send: jest.fn(() => {
+          throw new Error('send failed');
+        }),
+      },
+    };
+
+    expect(() => emitWakewordStatus(mainWindow, { ready: false })).toThrow('send failed');
   });
 
   test('promotes error/status stderr JSON to not-ready wakeword status updates', () => {

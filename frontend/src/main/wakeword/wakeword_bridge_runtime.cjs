@@ -2,8 +2,53 @@
  * Coordinates the wakeword bridge runtime for the Electron main process.
  */
 
+function isDestroyedObjectError(error) {
+  return error?.message === 'Object has been destroyed';
+}
+
+function canSendToWakewordWindow(mainWindow) {
+  try {
+    if (!mainWindow || typeof mainWindow !== 'object') {
+      return false;
+    }
+    if (typeof mainWindow.isDestroyed === 'function' && mainWindow.isDestroyed()) {
+      return false;
+    }
+
+    const { webContents } = mainWindow;
+    if (!webContents || typeof webContents.send !== 'function') {
+      return false;
+    }
+    if (typeof webContents.isDestroyed === 'function' && webContents.isDestroyed()) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    if (isDestroyedObjectError(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+function emitWakewordEvent(mainWindow, channel, payload) {
+  if (!canSendToWakewordWindow(mainWindow)) {
+    return false;
+  }
+  try {
+    mainWindow.webContents.send(channel, payload);
+    return true;
+  } catch (error) {
+    if (isDestroyedObjectError(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
 function emitWakewordStatus(mainWindow, payload) {
-  mainWindow?.webContents.send('wakeword-status', payload);
+  return emitWakewordEvent(mainWindow, 'wakeword-status', payload);
 }
 
 function shouldSuppressWakewordLogLine(line) {
@@ -85,6 +130,8 @@ function normalizeAudioChunk(audioData) {
 }
 
 module.exports = {
+  canSendToWakewordWindow,
+  emitWakewordEvent,
   emitWakewordStatus,
   handleWakewordStderrLine,
   normalizeAudioChunk,

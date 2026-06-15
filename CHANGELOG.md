@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: guard wakeword status and detection event emission against
+  destroyed BrowserWindow/webContents targets so late subprocess exit events do
+  not crash Electron main.
 - frontend/chat: keep the stopped current-turn conversation selected so Stop
   clears the active run without visually returning the dashboard to new chat.
 - backend/frontend: emit sequenced Stop completion events and keep stop command

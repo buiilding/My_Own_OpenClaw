@@ -11,6 +11,7 @@ const {
   resolveSidecarLaunchTarget,
 } = require('../app/runtime_paths.cjs');
 const {
+  emitWakewordEvent,
   emitWakewordStatus,
   handleWakewordStderrLine,
   normalizeAudioChunk,
@@ -350,7 +351,7 @@ function processDetectionResults(data, mainWindow, onWakewordDetected) {
             writeWakewordLog('error', '[Wakeword] Wakeword handler failed:', error);
           }
         }
-        mainWindow?.webContents.send('wakeword-detected', {
+        emitWakewordEvent(mainWindow, 'wakeword-detected', {
           model: result.model,
           confidence: result.confidence,
           score: result.score,

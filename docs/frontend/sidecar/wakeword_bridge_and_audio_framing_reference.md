@@ -49,6 +49,8 @@ Startup failure mapping nuance:
 Ready state signal:
 
 - bridge emits `wakeword-status { ready: true|false, error? }` to renderer
+- late status and detection events are dropped if the target `BrowserWindow` or
+  `webContents` has already been destroyed
 
 Failure behavior:
 

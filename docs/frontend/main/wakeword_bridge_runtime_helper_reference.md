@@ -35,7 +35,8 @@ This split keeps bridge orchestration code smaller while preserving deterministi
 ### `emitWakewordStatus(mainWindow, payload)`
 
 - single helper for `wakeword-status` renderer emission
-- sends via `mainWindow.webContents.send('wakeword-status', payload)` when window/webContents are present
+- sends via `mainWindow.webContents.send('wakeword-status', payload)` only when the target `BrowserWindow` and its `webContents` are present and not destroyed
+- returns `false` without sending when the renderer target was torn down before a late subprocess status/exit event arrives
 
 ### `handleWakewordStderrLine(...)`
 

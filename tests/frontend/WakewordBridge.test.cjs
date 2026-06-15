@@ -44,7 +44,7 @@ describe('wakeword_bridge', () => {
     jest.restoreAllMocks();
   });
 
-  const initBridge = ({ isPackaged = false, mockExistsSync = null } = {}) => {
+  const initBridge = ({ isPackaged = false, mockExistsSync = null, mainWindow: suppliedMainWindow = null } = {}) => {
     jest.resetModules();
     handlers = {};
     stdoutHandler = null;
@@ -105,7 +105,7 @@ describe('wakeword_bridge', () => {
       '../../frontend/src/main/wakeword/wakeword_bridge.cjs',
     ));
 
-    const mainWindow = {
+    const mainWindow = suppliedMainWindow || {
       webContents: {
         send: jest.fn(),
       },
@@ -181,6 +181,30 @@ describe('wakeword_bridge', () => {
       confidence: 0.91,
       score: 0.91,
     }));
+  });
+
+  test('does not forward detection to a destroyed main window', () => {
+    const destroyedMainWindow = {
+      isDestroyed: () => true,
+      webContents: {
+        send: jest.fn(),
+      },
+    };
+    const { onWakewordDetected } = initBridge({ mainWindow: destroyedMainWindow });
+    enableAndReady();
+
+    emitDetection({
+      detected: true,
+      model: 'hey_jarvis',
+      confidence: 0.91,
+      score: 0.91,
+    });
+
+    expect(onWakewordDetected).toHaveBeenCalledTimes(1);
+    expect(destroyedMainWindow.webContents.send).not.toHaveBeenCalledWith(
+      'wakeword-detected',
+      expect.anything(),
+    );
   });
 
   test('ignores detection when wakeword disabled', () => {
