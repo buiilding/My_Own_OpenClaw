@@ -78,6 +78,8 @@ Date: 2026-06-15
   completed CD-014.
 - `55edbd4e7 docs(browser): rename canonical schema references`
   completed CD-015.
+- `8f84ceae6 refactor(backend): require strict rehydrate tool linkage`
+  completed CD-016.
 
 ## Validation Log
 
