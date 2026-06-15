@@ -47,6 +47,7 @@ Date: 2026-06-15
 | CD-014 | Backend vision InternVL provider | InternVL class-level compatibility wrappers around helper-module runtime functions | `internvl.py` kept forwarding methods only to bind model/tokenizer state, while tests monkeypatched those wrappers instead of the helper state-machine contracts | Delete the forwarding methods, call helper functions directly from prediction paths, and update tests/docs to target `internvl_runtime_helpers.py` | implemented |
 | CD-015 | Browser tool docs | Browser schema/runtime docs still used compatibility filenames and labels after alias rejection became the active contract | Code/docs inspection showed `navigate` is canonical and browser removed-alias fields/actions are rejected by shared schema validation | Rename browser docs and links to current schema/runtime names, and describe browser-internal URL handling without compatibility-shim language | implemented |
 | CD-016 | Backend rehydrate linkage | Synthetic tool-call ids, synthetic tool-call rows for orphan outputs, and synthetic missing tool-output rows | Current SDK transcript projection carries structured tool payloads and tool-call ids; the repair path kept incomplete or old transcript shapes alive | Rename the linkage helper away from repair terminology, require real tool-call ids and matched outputs, and fail rehydrate on incomplete linkage | implemented |
+| CD-017 | Windie CLI docs command | `bin/windie docs open <topic>` compatibility alias | Current docs routing uses `docs search <query>` and shorthand `docs <query>`; only the command matrix and CLI help still advertised the old alias | Delete the alias branch and remove it from the first-class CLI command docs/help | implemented |
 
 ## Commit Ledger
 
@@ -232,6 +233,16 @@ CD-016 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-017 validation:
+
+- `bin/windie --help`: passed and no longer lists `windie docs open <topic>`.
+- `bin/windie docs search command matrix`: passed.
+- `bin/windie docs command matrix`: passed.
+- targeted `rg -n "docs open|windie docs open|Usage: windie docs .*open" scripts docs/cli docs/development docs/getting-started --glob '!docs/plans/**'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -296,3 +307,6 @@ CD-016 validation:
   transcripts with incomplete tool-call/tool-output linkage now fail rehydrate
   instead of getting synthetic backend history. Current transcript projection
   must persist complete linkage.
+- CD-017 has no storage migration impact. It removes a developer CLI alias from
+  help and command dispatch; callers should use `bin/windie docs search <query>`
+  or `bin/windie docs <query>`.

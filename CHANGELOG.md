@@ -61,6 +61,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/rehydrate: remove transcript linkage repair fallbacks that synthesized
   missing tool-call ids or tool-output rows so incomplete tool-call/tool-output
   linkage is rejected instead of invented during replay.
+- cli/docs: remove the `bin/windie docs open <topic>` compatibility alias from
+  the first-class docs command surface; use `bin/windie docs search <query>` or
+  `bin/windie docs <query>`.
 
 ### Added
 

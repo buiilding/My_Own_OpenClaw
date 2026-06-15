@@ -77,7 +77,6 @@ Tests and docs:
   windie docs check
   windie docs search <query>
   windie docs <query>
-  windie docs open <topic>
 
 Build and package:
   windie build frontend
@@ -1264,16 +1263,13 @@ function runDocs(args) {
     runSync(script('bin/docs-list'), [], { cwd: REPO_ROOT });
     return runForeground('git', ['diff', '--check'], { cwd: REPO_ROOT });
   }
-  if (action === 'open') {
-    return printDocsSearch(args.slice(1).join(' '), 'Usage: windie docs open <topic>');
-  }
   if (action === 'search') {
     return printDocsSearch(args.slice(1).join(' '), 'Usage: windie docs search <query>');
   }
   if (action) {
     return printDocsSearch(args.join(' '), 'Usage: windie docs <query>');
   }
-  throw new Error('Usage: windie docs list|check|search <query>|open <topic>|<query>');
+  throw new Error('Usage: windie docs list|check|search <query>|<query>');
 }
 
 function runBuild(args) {
