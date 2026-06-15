@@ -23,5 +23,5 @@ title: "Frontend Sidecar Services Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/python/wakeword_service.py`
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`

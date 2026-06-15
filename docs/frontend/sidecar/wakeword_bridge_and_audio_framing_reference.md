@@ -10,8 +10,8 @@ title: "Wakeword Bridge and Audio Framing Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`

@@ -84,7 +84,7 @@ Healthy signs:
 
 First checks:
 
-- `frontend/src/main/wakeword_bridge*.cjs`,
+- `frontend/src/main/wakeword/wakeword_bridge*.cjs`,
 - `frontend/src/main/python/wakeword_service.py`,
 - renderer wakeword controller state,
 - wakeword bridge/service tests.

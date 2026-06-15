@@ -180,9 +180,9 @@ Likely boundary: renderer microphone flow, Electron wakeword bridge, sidecar wak
 Inspect:
 
 - `frontend/src/renderer/features/voice`
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
-- `frontend/src/main/wakeword_supervisor.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_supervisor.cjs`
 - `frontend/src/main/python/wakeword_service.py`
 - `backend/src/api/routes/transcription/router.py`
 - `backend/src/api/services/transcription`

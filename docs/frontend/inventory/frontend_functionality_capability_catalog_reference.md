@@ -88,8 +88,8 @@ Primary files:
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 

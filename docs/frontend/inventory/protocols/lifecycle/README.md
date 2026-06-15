@@ -33,8 +33,8 @@ title: "Frontend Protocol Lifecycle Hub"
 - `frontend/src/main/surfaces/main_window_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_signal_runtime.cjs`
 - `frontend/src/main/surfaces/display_query_handler.cjs`
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/index.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcMainBridge.query.test.cjs`

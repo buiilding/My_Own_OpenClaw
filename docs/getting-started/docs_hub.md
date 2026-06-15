@@ -185,7 +185,7 @@ Likely code:
 
 - hosted backend node: `backend/src/main.py`, `backend/src/api/**`, `backend/src/agent/**`, `backend/src/tools/**`
 - Electron desktop nodes: `frontend/src/main/**`, `frontend/src/preload.js`, `frontend/src/renderer/**`
-- sidecar/wakeword nodes: `frontend/src/main/python/**`, `frontend/src/main/wakeword_bridge*.cjs`
+- sidecar/wakeword nodes: `frontend/src/main/python/**`, `frontend/src/main/wakeword/wakeword_bridge*.cjs`
 - VM worker node: `frontend/src/main/app/vm_worker_runtime.cjs`, `backend/src/api/routes/runs/**`, `backend/src/services/vm_run_control*`
 - Cloudflare/origin node: `scripts/cloudflared/**`, deployment operations docs
 
@@ -424,7 +424,7 @@ Read:
 Likely code:
 
 - `frontend/src/renderer/features/voice/**`
-- `frontend/src/main/wakeword_bridge*.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge*.cjs`
 - `frontend/src/main/python/wakeword_service.py`
 - `backend/src/api/processing/tts/**`
 - `backend/src/services/*tts*`

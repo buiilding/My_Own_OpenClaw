@@ -13,8 +13,8 @@ title: "Runtime Paths and Endpoints"
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/app/runtime_mode.cjs`

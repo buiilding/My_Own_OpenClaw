@@ -138,7 +138,7 @@ Memory storage path:
 
 Wakeword detection runs as a separate Python subprocess:
 - `frontend/src/main/python/wakeword_service.py`
-- Managed by `frontend/src/main/wakeword_bridge.cjs`
+- Managed by `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - In packaged apps, wakeword runtime model downloads are disabled; missing models are treated as packaging errors.
 - Bridge event handlers ignore stdout/stderr/exit events from stale process instances after restart, so old process callbacks cannot flip active service state.
 - Bridge clears the wakeword `stderr` parser buffer on stop/start so stale partial log lines cannot suppress the next process ready signal.

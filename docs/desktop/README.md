@@ -38,7 +38,7 @@ WindieOS is not only a chat UI. It is a set of desktop surfaces coordinated by E
 - Window visibility and surface routing: `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/surfaces/surface_runtime.cjs`
 - Overlay phase and top-most behavior: `frontend/src/main/overlay_*`, `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - Permission IPC/runtime: `frontend/src/main/permission_*`
-- Wakeword bridge: `frontend/src/main/wakeword_bridge*.cjs`
+- Wakeword bridge: `frontend/src/main/wakeword/wakeword_bridge*.cjs`
 
 ## Rule
 

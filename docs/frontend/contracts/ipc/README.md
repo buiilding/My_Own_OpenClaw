@@ -45,5 +45,5 @@ title: "Frontend Contracts IPC Docs Hub"
 - `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`

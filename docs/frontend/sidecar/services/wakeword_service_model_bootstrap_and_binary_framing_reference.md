@@ -11,8 +11,8 @@ title: "Wakeword Service Model Bootstrap and Binary Framing Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/wakeword_service.py`
-- `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/wakeword_bridge_runtime.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `docs/frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md`
 
