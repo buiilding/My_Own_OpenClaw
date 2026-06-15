@@ -54,3 +54,10 @@ title: "Frontend Main Docs Hub"
 - `frontend/src/main/test_shell.cjs`
 - `frontend/src/main/python/dev_seed_mock_memory.py`
 - `frontend/src/preload.js`
+
+## Evidence Notes
+
+- Main-process changes need proof at the IPC, SDK runtime, or native
+  BrowserWindow boundary that owns the behavior.
+- Avoid treating renderer logs as sufficient evidence for main-owned window,
+  permission, sidecar lifecycle, or IPC routing behavior.
