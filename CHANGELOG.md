@@ -393,6 +393,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/query: remove active references to the deleted `query_payload_builder.cjs`
+  helper and route query payload/enrichment docs to Electron main
+  `ipc_query_runtime.cjs` plus SDK `ContextEnrichmentPipeline.ts`.
 - tests/cli: drop copied docs-command assertions from the Windie CLI coverage
   while keeping the original docs tree and `AGENTS.md` intact.
 - frontend/main/sdk: rename query, stop, model-list, settings, and wakeword

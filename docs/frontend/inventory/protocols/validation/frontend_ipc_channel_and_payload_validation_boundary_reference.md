@@ -22,7 +22,7 @@ Validation boundary sources:
 - Preload IPC allowlists: `frontend/src/preload.js`
 - Renderer typed channel/bridge checks: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- Query content escaping and fallback handling: `frontend/src/main/query_payload_builder.cjs`
+- SDK query content escaping and fallback handling: `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
 - Local-backend RPC mapping utilities: `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 
 ## Channel Validation Layers
@@ -98,10 +98,10 @@ Role:
 
 ## Query Content Input Sanitization Boundary
 
-`query_payload_builder.cjs` input protection:
+`ContextEnrichmentPipeline.ts` input protection:
 
-- `escapeXml(...)` escapes `& < > " '`, applied to user query and system/memory text inserted into XML blocks.
-- fallback system-context XML emitted on system-state fetch failures.
+- `escapeXml(...)` escapes `& < > " '`, applied to user query, memory, and attachment text inserted into XML-style blocks.
+- memory lookup failures degrade to deterministic empty memory sections.
 - if full build fails, catch-all fallback still emits escaped user query.
 
 Role:
@@ -146,7 +146,7 @@ High-risk drift points to monitor:
 | renderer development-time channel assertions | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | fail-fast on typos/drift in dev while production defers to preload policy |
 | outbound websocket payload normalization | `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
 | handshake user-id sanitization | `frontend/src/main/ipc/ipc_runtime_helpers.cjs` (`generateUserId`) | avoids backend handshake rejects from invalid/unsafe user-id values |
-| query XML/context sanitization fallback | `frontend/src/main/query_payload_builder.cjs` | escapes XML-sensitive content and guarantees structured fallback blocks |
+| query XML/context sanitization fallback | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | escapes XML-sensitive content and guarantees structured fallback blocks |
 | local-backend mapper compatibility transforms | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |
 
 ## Recompute Validation Surface Commands

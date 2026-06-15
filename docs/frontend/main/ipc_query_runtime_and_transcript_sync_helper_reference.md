@@ -48,7 +48,7 @@ Responsibilities:
 
 - derive `contextType` (`initial` vs `sequential`) from `isFirstQuery`
 - derive effective `userId` (`currentUserId` fallback to generated id)
-- call `buildQueryPayloadContent(...)` for XML-enriched content assembly
+- call `buildQueryPayload(...)` for backend query payload filtering and required identity fields
 - inject `content` and optional `system_state_internal` into returned payload
 
 Returns:
@@ -110,14 +110,14 @@ Returns:
 
 1. `prepareRendererQueryPayload(...)` normalizes mutable relay payload.
 2. optimistic local-user message uses normalized conversation/attachment context.
-3. `buildQueryPayload(...)` injects context XML + runtime system state fields.
+3. `buildQueryPayload(...)` filters backend query fields and preserves required identity fields; SDK context enrichment renders model-facing XML-style content later.
 4. `ipc.cjs` replaces original payload object contents with normalized/built payload before send.
 
 ### Automated query path (`sendAutomatedQuery`)
 
 1. `prepareAutomatedQueryPayload(...)` validates/normalizes options.
 2. `ipc_automated_query_dispatcher.cjs` connects the backend, waits for
-   settings sync, and builds enriched outbound payload through
+   settings sync, and builds normalized outbound payload through
    `buildQueryPayload(...)`.
 3. attachment filenames remain top-level payload metadata; hidden `attachmentContext` stays prompt-only.
 4. the dispatcher attaches agent-definition context and sends the SDK runtime

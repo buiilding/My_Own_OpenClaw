@@ -19,7 +19,7 @@ Lifecycle contract sources:
 
 - Main websocket bridge/state machine: `frontend/src/main/ipc.cjs`
 - Settings-sync ACK gate helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- Query payload enrichment: `frontend/src/main/query_payload_builder.cjs`
+- Query payload enrichment: `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - Query send-failure event context: `frontend/src/main/ipc/ipc_query_events.cjs`
 - Main-process IPC registrar split: `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
@@ -151,11 +151,8 @@ State flow:
    - create `queryMessageId` and set phase `awaiting-first-chunk`.
    - resolve `conversation_ref` from payload or cached current conversation.
    - emit synthetic `local-user-message` via `from-backend` (optimistic UX event).
-   - choose context type:
-     - first query -> `initial`
-     - later queries -> `sequential`
-   - call `buildQueryPayloadContent(...)` to enrich payload with system-context XML + memory sections.
-   - attach `system_state_internal.screen_resolution` when available.
+   - normalize backend query fields and preserve required conversation/user identity.
+   - leave model-facing memory/attachment content rendering to SDK context enrichment.
 5. Send envelope through the SDK runtime query command router.
 6. If send fails for query, emit synthetic `error` event (`buildQuerySendFailure(...)`) and reset phase to `idle`.
 7. After successful first query send, flip `isFirstQuery = false`.

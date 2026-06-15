@@ -63,7 +63,7 @@ Primary files:
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/app/openai_codex_oauth.cjs`

@@ -42,7 +42,7 @@ chat component until the producer and relay contracts are identified.
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
 | Message button or keyboard submit behavior changes | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts` | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/MessageSendUiPolicy.test.ts`, `tests/frontend/ChatMessageSender.test.tsx` |
-| Query payload fields, screenshot refs, attachment names, workspace path, or memory toggle changes | `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/renderer/features/chat/utils/messageSender/*`, `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/ChatMessageSenderPayloads.test.ts`, `tests/frontend/QueryPayloadBuilder.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs` |
+| Query payload fields, screenshot refs, attachment names, workspace path, or memory toggle changes | `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/renderer/features/chat/utils/messageSender/*`, `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/ChatMessageSenderPayloads.test.ts`, `tests/frontend/IpcQueryRuntime.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs` |
 | Stop/cancel routing changes | `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/WindieSdkConversationRuntime.test.ts` |
 | SDK context enrichment or memory/attachment context changes | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `frontend/src/main/python/local_backend_memory_handlers.py`, `frontend/src/main/python/memory/*` | `tests/frontend/WindieSdkContextEnrichment.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/sidecar/test_local_backend.py`, `tests/sidecar/test_conversation_search_runtime.py`, `tests/sidecar/test_conversation_semanticization_runtime.py` |
 | First query settings are stale or not ACKed | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/renderer/app/providers/appConfigBackendSync.ts` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, backend settings handler tests |
@@ -166,13 +166,13 @@ Main relay invariants:
   retrieval flag, and normalizes attachment filenames.
 - `prepareRendererQuerySend(...)` sets response overlay phase to
   `awaiting-first-chunk`, records active display affinity, broadcasts
-  `local-user-message`, starts the event replay buffer, builds enriched content,
+  `local-user-message`, starts the event replay buffer, filters backend query fields,
   and returns the final websocket payload.
 - `buildQueryPayload(...)` requires a current authenticated user id. If the
   query send path can run before install auth, fix auth/connection ordering
   instead of inventing an anonymous fallback.
-- `buildQueryPayloadContent(...)` may call sidecar system-state and memory
-  helpers, but it degrades to escaped `<user_query>` content on failure.
+- SDK `ContextEnrichmentPipeline.ts` may call sidecar memory helpers and
+  renders escaped model-facing memory/attachment/query content.
 - On websocket send failure, main clears replay state and emits a synthetic
   renderer error through `buildQuerySendFailure(...)`.
 - Renderer SDK transports that call `conversation.send` through `windie:invoke`
@@ -277,7 +277,7 @@ Electron main query relay change:
 
 - `cd frontend && npm run test -- IpcMainBridge.query`
 - `cd frontend && npm run test -- IpcQueryRuntime`
-- `cd frontend && npm run test -- QueryPayloadBuilder`
+- `cd frontend && npm run test -- WindieSdkContextEnrichment`
 - `cd frontend && npm run test -- IpcOverlayPhaseState`
 
 Renderer stream state change:

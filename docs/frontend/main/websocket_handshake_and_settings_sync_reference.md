@@ -25,7 +25,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - `packages/windie-sdk-js/src/runtime/WindieClient.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/app/backend_endpoints.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
 
 ## Backend Endpoint Resolution
 

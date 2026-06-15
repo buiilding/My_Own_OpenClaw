@@ -66,7 +66,7 @@ Owns cross-cutting utilities used by relay hot paths:
 Owns query payload shaping helpers used by renderer query sends and automated VM query dispatch:
 
 - `prepareRendererQueryPayload` (attachment/memory toggle/conversation-ref normalization)
-- `buildQueryPayload` (context-type/user-id derivation + `buildQueryPayloadContent` composition)
+- `buildQueryPayload` (backend query field filtering + authenticated user/conversation identity)
 - `prepareAutomatedQueryPayload` (automated query option normalization + validation)
 
 ### `ipc_automated_query_dispatcher.cjs`

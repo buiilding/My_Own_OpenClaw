@@ -22,4 +22,4 @@ title: "Sidecar System-State Docs Hub"
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
-- `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`

@@ -77,7 +77,7 @@ sequenceDiagram
 | Step | Shape to preserve | Owner files | Check when debugging |
 | --- | --- | --- | --- |
 | Renderer send | `conversationRef`, SDK `query_message_id`, attachment refs, workspace binding | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/session`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts` | The user row should be recorded with the same conversation and websocket envelope id used by backend stream events. |
-| Main query prep | `conversation_ref`, `content`, `system_state_internal`, attachment filenames | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/query_payload_builder.cjs` | Main should not create a second conversation if renderer already provided one. |
+| Main query prep | `conversation_ref`, `content`, `system_state_internal`, attachment filenames | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | Main should not create a second conversation if renderer already provided one. |
 | Backend validation | required `conversation_ref`, optional screenshots, workspace, repo instructions | `backend/src/api/schemas/incoming.py`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | Reject empty refs at the boundary instead of allowing a fallback session. |
 | Session routing | `user_id` plus `conversation_ref` | `backend/src/agent/session`, `backend/src/api/services/query_execution.py` | Wrong-user and wrong-conversation bugs usually start here or in the renderer active-conversation gate. |
 

@@ -48,7 +48,7 @@ can actually see.
 | repo instructions | `agent_definition.agents_md` entries resolved by the client, or backend lookup fallback | `frontend/src/main/app/repo_instruction_runtime.cjs`, `backend/src/api/schemas/agent_definition.py`, `backend/src/llm/prompts/repo_instructions.py` | Do not reconstruct local `AGENTS.md` in renderer UI as if that were backend truth. |
 | client prompt layers | user-role messages wrapped in `<CLIENT_PROMPT_LAYER type="...">` after priority sort | `backend/src/llm/prompts/prompt_constructor.py`, session config runtime | Do not add a layer unless it needs priority, provenance, and transparency metadata. |
 | stored history | backend-rendered message history from `ConversationHistory.get_history()` | `backend/src/agent/session/state.py`, `backend/src/agent/history` | Visible transcript can differ, but backend history must remain provider-replay-safe. |
-| current user content | XML-like memory, attachment, system-state, and `<user_query>` sections inside the latest user message | `frontend/src/main/query_payload_builder.cjs`, backend query execution inputs | Hidden context should be intentional and visible through transparency metadata. |
+| current user content | XML-like memory, attachment, system-state, and `<user_query>` sections inside the latest user message | `frontend/src/main/ipc/ipc_query_runtime.cjs`, backend query execution inputs | Hidden context should be intentional and visible through transparency metadata. |
 
 ## Tool Visibility Rule
 

@@ -24,7 +24,7 @@ title: "Frontend Protocol Testing Hub"
 - `tests/frontend/IpcBridgeValidation.test.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
-- `tests/frontend/QueryPayloadBuilder.test.cjs`
+- `tests/frontend/IpcQueryRuntime.test.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
@@ -36,7 +36,7 @@ title: "Frontend Protocol Testing Hub"
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`

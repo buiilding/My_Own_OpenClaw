@@ -1,8 +1,8 @@
 ---
-summary: "Electron main query relay reference: windie renderer IPC handling, SDK desktop-agent sends, initial settings ACK gating, system/memory context payload assembly, and query failure event synthesis."
+summary: "Electron main query relay reference: windie renderer IPC handling, SDK desktop-agent sends, initial settings ACK gating, query payload normalization, SDK memory-context enrichment, and query failure event synthesis."
 read_when:
   - When changing query transport from renderer to the SDK desktop agent/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
-  - When debugging first-query context assembly, settings-sync gate timing, or local-user-message/error event behavior.
+  - When debugging first-query payload normalization, settings-sync gate timing, SDK memory-context enrichment, or local-user-message/error event behavior.
 title: "Query Payload and Relay Reference"
 ---
 
@@ -98,7 +98,7 @@ When the `conversation.send` command is invoked, main performs extra steps befor
 - delegated to `prepareRendererQueryPayload(...)` in `ipc_query_runtime.cjs`:
   - resolves `conversation_ref` from payload or current backend conversation state
   - injects resolved ref into payload when missing
-  - strips relay-only fields (`attachment_context`, `memory_retrieval_enabled`) from outbound payload
+  - preserves SDK enrichment fields (`attachment_context`, `memory_retrieval_enabled`) for the SDK handoff
   - normalizes `attachment_filenames` for local optimistic message metadata
 
 ### 3) SDK-owned user row/event projection
@@ -108,23 +108,22 @@ relay. The query path starts the turn replay buffer with the query message id,
 then the SDK emits the user row/conversation event that renderer surfaces use
 for display and transcript side effects.
 
-### 4) Context-enriched payload assembly
+### 4) Query payload normalization and SDK enrichment handoff
 
-Main delegates to `buildQueryPayload(...)` (`ipc_query_runtime.cjs`), which calls `buildQueryPayloadContent(...)` with:
+Main delegates to `buildQueryPayload(...)` (`ipc_query_runtime.cjs`) with:
 
 - raw query text
 - conversation ref
 - user ID
-- context type (`initial` for first query in connection, `sequential` afterward)
 - retrieval-injection toggle (`memory_retrieval_enabled`, default `true`) sourced from renderer local preference
 - optional hidden `attachment_context` generated from sender-side `read_file` calls for selected non-image files
-- local backend bridge methods (`getSystemState`, `searchMemory`)
 
 Output from `buildQueryPayload(...)`:
 
-- normalized payload containing `content` (XML-enriched user message)
-- optional `system_state_internal` (runtime-only state for backend normalization)
+- normalized payload filtered to the backend query contract
 - resolved `userId` used by automated query return path
+
+The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with memory and attachment context before the backend websocket send.
 
 ### 5) SDK agent send + failure fallback
 
@@ -132,9 +131,9 @@ Output from `buildQueryPayload(...)`:
 - on send failure, emits a normalized SDK conversation error event via `buildQuerySendFailure(...)`
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 
-## Query Payload Builder Internals
+## SDK Context Enrichment Internals
 
-`buildQueryPayloadContent(...)` composes:
+`ContextEnrichmentPipeline.ts` composes:
 
 1. optional episodic + semantic memory sections (or `None` placeholders) when retrieval injection is enabled
 2. optional `<attached_file_context>` section (hidden non-image file context from renderer-side `read_file`)
@@ -157,34 +156,22 @@ Memory section formatting contract (`ContextEnrichmentPipeline.ts`):
 - non-empty lists render as `- <entry>` bullet lines with XML escaping (`&`, `<`, `>`, `"`, `'`).
 - active conversation exclusion is requested at search time via `exclude_conversation_id` to avoid echoing current-turn transcript context.
 
-System-state field policy:
-
-- initial: `active_window`, `mouse_position`, `screen_resolution`
-- sequential: `active_window`, `mouse_position`, `screen_resolution`
-
-Runtime-only extraction:
-
-- only `screen_resolution` currently exported into `runtimeSystemState`
-- active window / mouse position are no longer serialized into model-facing query `content`
-- included as `system_state_internal` for backend runtime normalization, not user-facing prompt content
-
 Failure behavior:
 
-- system-state failure falls back to minimal `<active_window>Unknown</active_window>` context
 - memory lookup failure logs and emits empty memory sections
-- retrieval injection disabled skips memory lookup entirely and omits both memory XML sections
-- global builder exception returns fallback context + escaped user query
+- retrieval injection disabled skips memory lookup and renders only attachment context plus the escaped user query
+- enrichment failures degrade to escaped user content instead of blocking query send
 
 ## Local Backend Bridge Dependencies
 
-`local_backend_bridge.cjs` provides query-enrichment dependencies:
+The SDK local runtime provides query-enrichment dependencies:
 
-- `getSystemState(fields)` -> JSON-RPC `get_system_state`
-- `searchMemory(query, user_id, limit, memory_type, exclude_conversation_id)` -> mapped JSON-RPC `search_memory`
+- backend embeddings API -> query embedding for local memory search
+- `search_memory_by_embedding` sidecar RPC -> episodic/semantic memory snippets for prompt enrichment
 
 Mapping details for memory search payload are centralized in:
 
-- `local_backend_bridge_rpc_mappers.cjs` (`mapSearchMemoryPayload`)
+- `LocalSidecarRuntime.ts` and sidecar memory RPC handlers
 
 ## Connection Context and Overlay State
 
@@ -240,11 +227,11 @@ If first query lacks expected settings:
 2. verify `update-settings` ACK map resolved by message `id`
 3. inspect timeout logs for settings sync gate
 
-If query content misses memory/system context:
+If query content misses memory or attachment context:
 
-1. verify `buildQueryPayload(...)` path executes without fallback exception from `buildQueryPayloadContent(...)`
+1. verify `buildQueryPayload(...)` returns the expected backend query fields, then check SDK context enrichment diagnostics
 2. inspect local backend bridge readiness (`Local backend not ready` errors)
-3. verify memory search payload mapping includes expected conversation exclusion key
+3. verify SDK memory search traces include `search_memory_by_embedding` with the expected conversation exclusion key
 4. verify sidecar episodic grouping/pairing behavior from `memory.operations` when retrieval text is unexpectedly user-only
 
 If renderer shows user message but backend never streams:

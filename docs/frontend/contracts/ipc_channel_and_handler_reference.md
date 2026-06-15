@@ -185,7 +185,7 @@ Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `i
 2. for first query after connect, enforces one-time settings sync gate (`update-settings` ACK/timeout handling).
 3. runs overlay pre-capture hook for chatbox sender.
 4. starts the SDK replay buffer with the query message id; the SDK emits the renderer-visible user row/event.
-5. enriches payload `content` with XML system context + episodic/semantic memory snippets (`query_payload_builder.cjs`).
+5. normalizes backend query fields and conversation identity (`ipc_query_runtime.cjs`); SDK context enrichment later renders model-facing memory/attachment content.
 6. stores active sender display affinity in main process for follow-on screenshot tool fallback routing.
 7. injects runtime-only `system_state_internal` (screen resolution) when available.
 8. calls the SDK desktop agent to send the normalized backend message over websocket.

@@ -173,7 +173,7 @@ Key entry points:
   `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
 - Electron main: `frontend/src/main/index.cjs`, `frontend/src/main/ipc.cjs`,
   `frontend/src/main/ipc/ipc_query_runtime.cjs`,
-  `frontend/src/main/query_payload_builder.cjs`,
+  `frontend/src/main/ipc/ipc_query_runtime.cjs`,
   `frontend/src/main/sidecar/local_backend_bridge.cjs`,
   `frontend/src/main/surfaces/surface_runtime.cjs`.
 - Renderer: `frontend/src/renderer/app/`,

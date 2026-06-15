@@ -121,7 +121,7 @@ This section distinguishes current behavior from target behavior and known migra
    - Starts the turn replay buffer with the query message id; the SDK runtime
      emits `turn_started`, the renderer-visible `user_message` row, and any
      later `user_message_metadata` merge events.
-   - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
+   - Calls `buildQueryPayload(...)` to filter backend query fields and preserve required identity before SDK context enrichment renders model-facing memory/attachment content.
    - Resolves applicable local `AGENTS.md` files from the active workspace and forwards them as contextual prompt messages, which is required when the backend is hosted remotely and cannot read local repo paths.
    - Sends normalized `query` through the SDK runtime, which owns the hosted backend WebSocket.
 

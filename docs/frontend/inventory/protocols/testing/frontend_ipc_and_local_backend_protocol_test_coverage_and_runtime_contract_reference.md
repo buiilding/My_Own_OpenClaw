@@ -20,7 +20,8 @@ Primary runtime modules:
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
@@ -34,7 +35,8 @@ Primary protocol tests:
 - `tests/frontend/IpcBridgeValidation.test.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
-- `tests/frontend/QueryPayloadBuilder.test.cjs`
+- `tests/frontend/IpcQueryRuntime.test.cjs`
+- `tests/frontend/WindieSdkContextEnrichment.test.ts`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
@@ -56,7 +58,7 @@ Primary protocol tests:
 | query-send orchestration + fallback eventing | `windie:invoke` command `conversation.send` + helpers (`ipc.cjs`) | `IpcMainBridge.query.test.cjs` | overlay pre-capture hook runs only for chatbox-origin sends; disconnected send synthesizes renderer-visible `error` event |
 | settings ACK gate before query | settings sync logic (`ipc.cjs`) | settings-gate tests in `IpcMainBridge.query.test.cjs` | first query waits for initial `update-settings` ACK when cached config exists; pending renderer settings ACK blocks query send |
 | outbound payload normalization | `normalizeBackendPayload` + `ipc_backend_payload_contract.cjs` | backend websocket contract tests and screenshot-strip tests | known command payloads are filtered to backend contract keys; client-supplied `screenshot_url` is removed from outbound `query` payload while keeping `screenshot_ref` |
-| query-context enrichment + escaping | `buildQueryPayloadContent` (`query_payload_builder.cjs`) | `QueryPayloadBuilder.test.cjs` + xml/escape tests in `IpcMainBridge.query.test.cjs` | system context + memories merged into XML-like content; XML-sensitive values escaped; fallback context/memory blocks used on upstream failure |
+| query-context enrichment + escaping | SDK `ContextEnrichmentPipeline.ts` | `WindieSdkContextEnrichment.test.ts` + query relay tests | memories, attachment context, and user query render into XML-like content; XML-sensitive values are escaped; disabled or unavailable memory retrieval has explicit fallback behavior |
 | conversation-ref fallback lifecycle | `currentConversationRef` handling (`ipc.cjs`) | conversation-ref tests in `IpcMainBridge.query.test.cjs` | backend-streamed `conversation_ref` backfills local echo + outbound query; reconnect clears stale fallback before next turn |
 | SDK local-runtime readiness safety | runtime state/reset + readiness status (`local_backend_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | local-runtime provider failures resolve with standardized errors; stale status snapshots do not clobber current runtime state |
 | local backend RPC shape mapping | handler registration + mapper utilities (`local_backend_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
@@ -108,29 +110,29 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - query send when disconnected emits synthetic `from-backend` error with preserved turn context
 - outbound query payload keeps explicit or resolved `conversation_ref`
 - SDK local `user_message` projection uses the same resolved conversation ref as outbound message
-- query body includes system context + memory sections + user query block
-- XML-sensitive strings in query/system/memory fields are escaped
+- query body includes memory sections + user query block
+- XML-sensitive strings in query/memory fields are escaped
 - backend command payloads filtered to contract-backed allowlists before send
 - `screenshot_url` stripped before backend send
-- system-state and memory failures degrade to deterministic fallback context blocks
+- memory failures degrade to deterministic fallback content
 - initial settings sync and pending update-settings ACK both gate query send
 - transient query send failure does not poison initial-context lookup behavior for subsequent query
 - reconnect resets stale backend conversation fallback before next query
 
-## Query Payload Builder Contract
+## Query Payload and Enrichment Contract
 
-`tests/frontend/QueryPayloadBuilder.test.cjs` locks details in `buildQueryPayloadContent(...)`:
+`tests/frontend/IpcQueryRuntime.test.cjs` locks main-process query payload normalization:
 
-- query context requests `active_window`, `mouse_position`, and `screen_resolution`
-- `windows` is only requested by explicit callers that opt into the broader system-state capture
-- memory search receives `(text, userId, 5, null, conversationRef)` call contract
+- renderer payload fields are filtered to the backend query contract
+- conversation refs and authenticated user ids are required before send
+
+`tests/frontend/WindieSdkContextEnrichment.test.ts` locks SDK model-facing content rendering:
+- memory search uses backend embeddings and sidecar `search_memory_by_embedding` before backend query send
 - output content always includes:
-  - `<system_context> ... </system_context>`
   - `<episodic_memory> ... </episodic_memory>`
   - `<semantic_memory> ... </semantic_memory>`
   - `<user_query> ... </user_query>`
-- `runtimeSystemState` currently carries only `screen_resolution` when present
-- system state retrieval failures or null payloads fall back to `Unknown` active-window context
+- optional attachment context renders as `<attached_file_context> ... </attached_file_context>`
 - memory search failures fall back to `None` memory sections
 
 ## Local Backend Bridge Lifecycle and RPC Mapping Contract
@@ -235,7 +237,7 @@ Use this command to inspect protocol-test breadth:
 - `  'tests/frontend/IpcBridgeValidation.test.ts',`
 - `  'tests/frontend/IpcMainBridge.query.test.cjs',`
 - `  'tests/frontend/IpcMainBridge.lifecycle.test.cjs',`
-- `  'tests/frontend/QueryPayloadBuilder.test.cjs',`
+- `  'tests/frontend/IpcQueryRuntime.test.cjs',`
 - `  'tests/frontend/LocalBackendBridge.lifecycle.test.cjs',`
 - `  'tests/frontend/LocalBackendBridge.rpc.test.cjs',`
 - `  'tests/frontend/WakewordBridge.test.cjs',`

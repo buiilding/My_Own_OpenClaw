@@ -26,7 +26,7 @@ WindieOS is currently desktop-first and Electron-coupled:
 - Tool execution is delegated to the SDK local runtime and local Python sidecar via `frontend/src/main/sidecar/local_backend_bridge.cjs` and `frontend/src/main/python/local_backend.py`.
 - Wakeword is a dedicated Python subprocess bridge in `frontend/src/main/wakeword/wakeword_bridge.cjs`.
 - Tool schemas are backend-defined remote stubs and currently must match the sidecar-exposed set (see `tests/backend/test_remote_tool_contract.py`).
-- Query enrichment (system context + memory search XML composition) happens in Electron main (`frontend/src/main/query_payload_builder.cjs`) before `query` is sent.
+- Query payload normalization happens in Electron main (`frontend/src/main/ipc/ipc_query_runtime.cjs`); SDK context enrichment renders memory/attachment/user-query content before `query` is sent.
 
 Mobile blockers from this baseline:
 
@@ -208,8 +208,8 @@ Acceptance criteria:
 
 ## Required Cross-Cutting Refactors
 
-1. Move query enrichment ownership.
-- Current enrichment in `frontend/src/main/query_payload_builder.cjs` is desktop-main specific.
+1. Share query enrichment ownership.
+- Current model-facing enrichment is SDK-owned (`packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`) while Electron main still performs desktop-specific query payload normalization.
 - Mobile path should either:
   - move enrichment server-side, or
   - support a shared TypeScript enrichment module that can run in both desktop and mobile runtime.

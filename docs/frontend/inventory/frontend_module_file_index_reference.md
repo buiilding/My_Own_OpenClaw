@@ -29,7 +29,7 @@ Core runtime:
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/app/runtime_mode.cjs`
 - `frontend/src/main/app/vm_worker_runtime.cjs`
