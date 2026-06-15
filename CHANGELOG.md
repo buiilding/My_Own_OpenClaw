@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: keep the stopped current-turn conversation selected so Stop
+  clears the active run without visually returning the dashboard to new chat.
 - backend/core-api: delete the legacy stream-event alias normalizer and require
   query-stream extraction callers to emit canonical event literals such as
   `streaming-response` and `assistant-message-full`.

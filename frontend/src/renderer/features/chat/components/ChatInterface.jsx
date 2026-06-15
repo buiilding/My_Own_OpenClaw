@@ -387,6 +387,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       return;
     }
     const stoppedConversationRef = currentTurnProjection?.conversationRef || sessionInfo.conversationRef || null;
+    if (stoppedConversationRef) {
+      setChatActiveConversationRef(stoppedConversationRef);
+    }
     applyStopQueryUiState({
       setIsSending,
       setThinkingStatus,
@@ -407,6 +410,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     composerBusy,
     currentTurnProjection,
     sessionInfo.conversationRef,
+    setChatActiveConversationRef,
     setCurrentTurnProjection,
     setIsSending,
     setThinkingSourceEventType,

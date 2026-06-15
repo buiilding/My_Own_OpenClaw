@@ -1242,6 +1242,7 @@ describe('ChatInterface wiring', () => {
     lastInputProps.onStopResponse();
 
     expect(mockStopQuery).toHaveBeenCalledWith('conv_visible_turn', 'turn_visible');
+    expect(mockSetChatActiveConversationRef).toHaveBeenCalledWith('conv_visible_turn');
     expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv_visible_turn');
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_visible_turn');
     expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
