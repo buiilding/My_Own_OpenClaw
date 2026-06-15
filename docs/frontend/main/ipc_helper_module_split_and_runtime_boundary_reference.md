@@ -13,6 +13,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
 - `packages/windie-sdk-js/src/runtime/WindieClient.ts`
@@ -31,7 +32,6 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 - `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
-- `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
 
 ## Split Ownership Model
 

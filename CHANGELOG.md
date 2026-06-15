@@ -393,6 +393,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/ipc: remove the stale `ipc_sdk_command_forwarding.cjs` reference from
+  the main IPC helper split reference and route query sends to the current
+  `ipc_query_send_runtime.cjs` helper.
 - docs/query: remove active references to the deleted `query_payload_builder.cjs`
   helper and route query payload/enrichment docs to Electron main
   `ipc_query_runtime.cjs` plus SDK `ContextEnrichmentPipeline.ts`.
