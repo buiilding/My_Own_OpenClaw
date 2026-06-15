@@ -18,7 +18,6 @@ title: "Frontend Renderer Settings Docs Hub"
 - [Permission Onboarding Gate and Manifest Version Runtime Reference](../permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Renderer Settings Config Docs Hub](config/README.md)
 - [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
-- [Settings Section Display Selection and Config Toggle Reference (Legacy Link)](settings_section_display_selection_and_config_toggle_reference.md)
 
 ## Related Pages
 

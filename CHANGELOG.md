@@ -15,6 +15,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/prompts: remove the tuple-returning `PromptConstructor.build_prompt`
   compatibility wrapper so callers use the typed `ProviderPrompt` contract
   directly.
+- docs/frontend: delete the legacy settings display/config compatibility
+  entrypoint and route docs hubs to the current settings-section reference.
 
 ### Added
 

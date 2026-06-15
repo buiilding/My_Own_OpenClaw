@@ -41,6 +41,7 @@ Date: 2026-06-15
 | CD-008 | Backend stream event extraction | Core legacy stream-event alias table plus query extraction alias acceptance | Validation exposed that query extraction still imported the alias helper and accepted `chunk`/`assistant_message_full` spellings after CD-005 removed enum aliases | Delete the shared alias helper, make query extraction trim-only, and require canonical stream event literals | implemented |
 | CD-009 | SDK/backend contract tests | `test_sdk_runtime_backend_compatibility.py` and `compat` fixture IDs for current SDK/backend payload validation | File inspection showed the test validates current SDK-emitted payloads against backend ingress schemas, not backward compatibility behavior | Rename the test and synthetic IDs to `contract`, and update active docs that route this validation command | implemented |
 | CD-010 | Backend prompt construction | `PromptConstructor.build_prompt(...)` tuple-returning compatibility wrapper | Production grep showed only SDK prompt preview still used the tuple wrapper; tests could assert directly through `ProviderPrompt` | Move callers to `build_provider_prompt(...)`, delete the wrapper, and update prompt docs/tests to use the typed provider prompt contract | implemented |
+| CD-011 | Frontend settings docs | Legacy settings display/config compatibility entrypoint page | Repo search showed only docs hubs linked to the redirect-style page, while current detailed settings docs live under `settings/sections` and `settings/config` | Delete the compatibility entrypoint and route docs hubs to the current settings docs directly | implemented |
 
 ## Commit Ledger
 
@@ -160,6 +161,13 @@ CD-010 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-011 validation:
+
+- targeted `rg -n "settings_section_display_selection_and_config_toggle_reference|Settings Section Display Selection and Config Toggle Reference|Legacy entrypoint page kept for compatibility|This page is retained as a compatibility entrypoint" docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -206,3 +214,5 @@ CD-010 validation:
 - CD-010 has no persisted-data migration impact: backend prompt construction
   already used `build_provider_prompt(...)` for normal model invocation; SDK
   prompt preview now consumes the same typed provider prompt object.
+- CD-011 has no runtime migration impact: it deletes a docs-only compatibility
+  entrypoint after updating the docs hubs that linked to it.
