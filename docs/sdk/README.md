@@ -93,3 +93,10 @@ Python callers should use `WindieSdkClient.wake_up(...)` followed by
 `agent.run(...)` or `agent.stream(...)` for the same high-level query shape. The
 Python package is still transport-oriented, but it should not force common
 callers down to raw websocket `query(...)` plus manual receive loops.
+
+## Evidence Notes
+
+- SDK behavior should be proven at the public runtime API and projection
+  boundary before patching Electron-specific consumers.
+- When custom UIs drift from desktop behavior, compare SDK display/current-turn
+  projections rather than duplicating renderer heuristics.
