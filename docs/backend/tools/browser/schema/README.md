@@ -10,13 +10,13 @@ title: "Backend Browser Schema Docs Hub"
 
 ## Deep Pages
 
-- [Browser Control Unified Schema and Compatibility Field Matrix Reference](browser_control_unified_schema_and_compatibility_field_matrix_reference.md)
+- [Browser Control Unified Schema Reference](browser_control_unified_schema_reference.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
 
 ## Related Pages
 
 - [Backend Browser Tools Docs Hub](../README.md)
-- [Browser Remote Schema Surface and Compatibility Contract Reference](../browser_remote_schema_surface_and_compatibility_contract_reference.md)
+- [Browser Remote Schema Surface Reference](../browser_remote_schema_surface_reference.md)
 - [Frontend Sidecar Browser Docs Hub](../../../../frontend/sidecar/browser/README.md)
 
 ## Code Scope

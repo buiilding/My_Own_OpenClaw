@@ -6,7 +6,7 @@ read_when:
 title: "Browser Control Unified Schema Reference"
 ---
 
-# Browser Control Unified Schema and Compatibility Field Matrix Reference
+# Browser Control Unified Schema Reference
 
 ## Canonical Modules
 
@@ -108,4 +108,4 @@ The root object includes no removed alias fields or compatibility-only fields.
 
 - [Backend Browser Schema Docs Hub](README.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
-- [Browser Remote Schema Surface and Compatibility Contract Reference](../browser_remote_schema_surface_and_compatibility_contract_reference.md)
+- [Browser Remote Schema Surface Reference](../browser_remote_schema_surface_reference.md)

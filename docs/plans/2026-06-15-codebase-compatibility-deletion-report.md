@@ -45,6 +45,7 @@ Date: 2026-06-15
 | CD-012 | Backend API completion docs | Query execution helper doc filename/title still described compatibility event extraction | CD-008 made stream event extraction canonical-only; current helper doc now describes supported dict/object extraction and field resolution, not compatibility aliasing | Rename the doc and links to the current event-extraction contract terminology | implemented |
 | CD-013 | Backend API package-split docs | Artifacts, embeddings, semantic memory, and websocket package-split reference filenames still carried compatibility/monkeypatch wording | The docs content already describes current package route seams and owner modules; the stale compatibility wording existed in filenames and link labels only | Rename the docs to current package-split/export contract names and update internal docs links | implemented |
 | CD-014 | Backend vision InternVL provider | InternVL class-level compatibility wrappers around helper-module runtime functions | `internvl.py` kept forwarding methods only to bind model/tokenizer state, while tests monkeypatched those wrappers instead of the helper state-machine contracts | Delete the forwarding methods, call helper functions directly from prediction paths, and update tests/docs to target `internvl_runtime_helpers.py` | implemented |
+| CD-015 | Browser tool docs | Browser schema/runtime docs still used compatibility filenames and labels after alias rejection became the active contract | Code/docs inspection showed `navigate` is canonical and browser removed-alias fields/actions are rejected by shared schema validation | Rename browser docs and links to current schema/runtime names, and describe browser-internal URL handling without compatibility-shim language | implemented |
 
 ## Commit Ledger
 
@@ -206,6 +207,13 @@ CD-014 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-015 validation:
+
+- targeted `rg -n 'browser_remote_schema_surface_and_compatibility_contract_reference|browser_control_unified_schema_and_compatibility_field_matrix_reference|browser_action_compatibility_and_runtime_reference|Browser Remote Schema Surface and Compatibility Contract|Browser Control Unified Schema and Compatibility Field Matrix|Browser Action Compatibility and Runtime|Backend Browser Remote Schema Surface \\+ Compatibility|Backend Browser Control Unified Schema \\+ Compatibility|Sidecar Browser Action Compatibility|compatibility shims such as `navigate`' docs backend/src tests frontend/src --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -263,3 +271,6 @@ CD-014 validation:
 - CD-014 has no persisted-data or API migration impact: InternVL still runs the
   same chat/generate fallback helper state machine, but the provider no longer
   exposes class-level forwarding methods for those helper functions.
+- CD-015 has no runtime migration impact: it renames docs-only browser
+  references and updates links after the shared backend/sidecar browser
+  contract already rejected removed aliases.

@@ -118,7 +118,7 @@ Backend transport strips defaults/`None`; sidecar receives sparse payload and ma
 ## Related Pages
 
 - [Backend Browser Schema Docs Hub](README.md)
-- [Browser Control Unified Schema and Compatibility Field Matrix Reference](browser_control_unified_schema_and_compatibility_field_matrix_reference.md)
-- [Browser Remote Schema Surface and Compatibility Contract Reference](../browser_remote_schema_surface_and_compatibility_contract_reference.md)
+- [Browser Control Unified Schema Reference](browser_control_unified_schema_reference.md)
+- [Browser Remote Schema Surface Reference](../browser_remote_schema_surface_reference.md)
 - [Frontend Sidecar Browser Docs Hub](../../../../frontend/sidecar/browser/README.md)
 - [Frontend Sidecar Browser Contracts Docs Hub](../../../../frontend/sidecar/browser/contracts/README.md)

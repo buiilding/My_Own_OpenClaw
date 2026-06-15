@@ -197,7 +197,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Browser Contracts Docs Hub](sidecar/browser/contracts/README.md)
 - [Sidecar Browser Chrome Docs Hub](sidecar/browser/chrome/README.md)
 - [Browser Automation Stack](sidecar/browser_automation_stack.md)
-- [Browser Action Compatibility and Runtime Reference](sidecar/browser_action_compatibility_and_runtime_reference.md)
+- [Browser Action Runtime Reference](sidecar/browser_action_runtime_reference.md)
 - [Schema Registry and Action Validation Boundary Reference](sidecar/browser/contracts/schema_registry_and_action_validation_boundary_reference.md)
 - [Chrome Detection, Launcher, and CDP Session Reference](sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md)
 - [Local Backend JSON-RPC Reference](sidecar/local_backend_jsonrpc_reference.md)

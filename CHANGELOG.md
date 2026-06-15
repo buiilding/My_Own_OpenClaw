@@ -55,6 +55,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/vision: remove InternVL class-level compatibility wrappers around
   runtime helper functions so chat/generate fallback orchestration is tested and
   owned directly by `internvl_runtime_helpers.py`.
+- docs/browser: rename browser schema/runtime references away from compatibility
+  filenames and labels now that browser aliases are rejected by the shared
+  contract.
 
 ### Added
 

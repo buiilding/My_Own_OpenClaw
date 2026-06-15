@@ -3,10 +3,10 @@ summary: "Detailed browser tool action reference for canonical Browser Use CLI r
 read_when:
   - When changing browser action payload fields, action names, strict schema policy, or Browser Use engine normalization logic.
   - When debugging browser action failures caused by sidecar validation, Browser Use CLI execution, or timeout boundaries.
-title: "Browser Action Compatibility and Runtime Reference"
+title: "Browser Action Runtime Reference"
 ---
 
-# Browser Action Compatibility and Runtime Reference
+# Browser Action Runtime Reference
 
 ## Canonical Modules
 
@@ -41,7 +41,7 @@ Windie-owned helpers:
 - `connect`, `status`, `profiles`
 - deterministic `extract`, `find_text`, `find_elements`, `search_page`
 - browser-local `write_file`, `replace_file`, `read_file`, `read_long_content`
-- compatibility shims such as `navigate` for browser-internal URLs
+- browser-internal URL handling for canonical `navigate` payloads
 
 Browser Use CLI-backed actions:
 

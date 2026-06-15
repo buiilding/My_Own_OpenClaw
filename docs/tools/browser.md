@@ -52,5 +52,5 @@ Backend schema re-exports load the shared browser contract from its explicit
 - [Browser Action Surface](../browser/browser_action_surface.md)
 - [Browser Troubleshooting](../browser/browser_troubleshooting.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
-- [Backend Browser Remote Schema Surface + Compatibility Contract Reference](../backend/tools/browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)
+- [Backend Browser Remote Schema Surface Reference](../backend/tools/browser/browser_remote_schema_surface_reference.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](../backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)

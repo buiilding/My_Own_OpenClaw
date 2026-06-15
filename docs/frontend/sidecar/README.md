@@ -39,7 +39,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Sidecar Browser Chrome Docs Hub](browser/chrome/README.md)
 - [Sidecar Source Maps Docs Hub](source_maps/README.md)
 - [Browser Automation Stack](browser_automation_stack.md)
-- [Browser Action Compatibility and Runtime Reference](browser_action_compatibility_and_runtime_reference.md)
+- [Browser Action Runtime Reference](browser_action_runtime_reference.md)
 - [Schema Registry and Action Validation Boundary Reference](browser/contracts/schema_registry_and_action_validation_boundary_reference.md)
 - [Chrome Detection, Launcher, and CDP Session Reference](browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md)
 - [Python Sidecar Folder Topology and Package `__init__` Export Surface Reference](source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md)
