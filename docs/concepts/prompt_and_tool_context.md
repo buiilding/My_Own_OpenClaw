@@ -160,3 +160,10 @@ Question the design when:
 - [Tool Contracts](../tools/tool_contracts.md)
 - [Tool Policy Profiles and Capabilities](../tools/tool_policy_profiles_and_capabilities.md)
 - [Frontend Message Send Surface Policy and Screenshot Capture](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md)
+
+## Evidence Notes
+
+- Prompt-context changes need evidence from prompt construction, provider input,
+  and transparency output when those surfaces differ.
+- Tool-context changes need separate proof for model-visible schema exposure
+  and sidecar-executable argument preparation.
