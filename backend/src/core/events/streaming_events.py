@@ -45,9 +45,6 @@ def _normalize_event_value(value: Any) -> Any:
         return _normalize_event_value(model_dump())
     if is_dataclass(value) and not isinstance(value, type):
         return _normalize_event_value(asdict(value))
-    legacy_dict = getattr(value, "dict", None)
-    if callable(legacy_dict):
-        return _normalize_event_value(legacy_dict())
     return value
 
 

@@ -36,6 +36,7 @@ Date: 2026-06-15
 | CD-003 | Backend container | Handler registry source compatibility breadcrumb | `api_container.py` only retained a commented manual registration example for tests migrating away from manual registration; active docs now describe declarative bindings | Delete the stale comment so the current registry path is the only in-code guidance | implemented |
 | CD-004 | Backend session stream | Raw dict `llm-thought` event in no-model-selected branch | `AgentSession.process_query` otherwise yields typed stream events; `ResponseFormatter` ignores dict events and formatter specs are typed/canonical | Replace raw dict with `ThinkingEvent` and tighten the return annotation | implemented |
 | CD-005 | Backend stream event enum | Alias enum members `THINKING` and `CHUNK` | Repo search showed no production callers; the only test use should assert `STREAMING_RESPONSE`; legacy dict strings are still bounded to query extraction normalization | Remove enum aliases and update docs/tests to name canonical stream event members | implemented |
+| CD-006 | Backend stream event serialization | Pydantic v1-style `.dict()` fallback in event value normalization | Current backend schemas are Pydantic v2 models with `model_dump()`; recursive schema serialization tests cover `model_dump()` payloads | Remove `.dict()` fallback and document supported payload object shapes | implemented |
 
 ## Commit Ledger
 
@@ -96,6 +97,15 @@ CD-005 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-006 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_events.py tests/backend/test_response_formatter.py -q`:
+  passed, 40 tests.
+- targeted `rg "legacy_dict|\\.dict\\(\\)" backend/src/core/events/streaming_events.py tests/backend/test_events.py docs/backend/contracts/events/streaming_event_dataclass_and_enum_semantics_reference.md`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -126,3 +136,7 @@ CD-005 validation:
 - CD-005 has no transport migration impact: legacy dict event spellings remain
   normalized in API extraction helpers, while typed event producers now have
   only the canonical enum member names available.
+- CD-006 has no transport migration impact: event payloads that are already
+  plain dict/list/tuple values, dataclasses, Enums, or current Pydantic schema
+  objects still serialize recursively; only Pydantic v1-style `.dict()`-only
+  objects stop being coerced inside stream-event payloads.

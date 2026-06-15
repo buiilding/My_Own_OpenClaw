@@ -51,6 +51,10 @@ Enum values are mixed-format by design:
   `tool-call`, `token-count`, `tool-bundle`
 - plain: `error`, `content`
 
+Payload serialization supports nested dict/list/tuple values, dataclasses,
+Enums, and Pydantic v2-style objects that expose `model_dump()`. Do not add a
+new object shape unless it is covered by a focused `to_dict()` test.
+
 Important literals:
 
 - `FULL_RESPONSE = "full_response"` (internal/full-text event type)
