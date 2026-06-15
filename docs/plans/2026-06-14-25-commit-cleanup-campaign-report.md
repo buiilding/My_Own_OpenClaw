@@ -37,7 +37,7 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 22 / 25.
+Counted cleanup commits: 23 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -63,6 +63,7 @@ Counted cleanup commits: 22 / 25.
 | 20 | `f89761708` | P25-020 | `node -c packages/windie-sdk-js/cjs/runtime/WindieClient.js`; `bin/windie test frontend -- WindieSdkPackageBoundary WindieSdkClientExports`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Synced the checked-in CommonJS SDK runtime with the local-runtime option alias removal. |
 | 21 | `d0d9ed8eb` | P25-021 | `bin/windie test frontend -- WindieSdkConversationRuntime WindieSdkPackageBoundary ChatSurfaceController`; `tsc -p packages/windie-sdk-js/tsconfig.build.json --noEmit`; `node -c packages/windie-sdk-js/cjs/runtime/ConversationRuntime.js`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed the `ConversationSnapshot.liveTurnPresentation` alias. |
 | 22 | `21cee7732` | P25-022 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed stale active sidecar memory runtime docs, deleted the obsolete heuristic-title doc page, and routed test references to current files. |
+| 23 | `9581bd194` | P25-023 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active backend artifact-store docs to the current package module. |
 
 ## Validation Log
 
@@ -71,4 +72,4 @@ Counted cleanup commits: 22 / 25.
 
 ## Current Status
 
-P25-001 through P25-022 are committed. P25-023 is in progress.
+P25-001 through P25-023 are committed. P25-024 is in progress.

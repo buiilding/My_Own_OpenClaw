@@ -15,7 +15,6 @@ title: "Backend Tools Registry Docs Hub"
 ## Code Scope
 
 - `backend/src/tools/registry.py`
-- `backend/src/tools/computer/unified_schema.py`
 - `backend/src/tools/schema_registry.py`
 - `backend/src/tools/remote.py`
 - `backend/src/tools/remote_tools/base.py`

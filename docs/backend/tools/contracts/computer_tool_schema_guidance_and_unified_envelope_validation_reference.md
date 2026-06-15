@@ -1,17 +1,16 @@
 ---
-summary: "Deep contract reference for backend computer tool schemas: mouse/keyboard/scroll conditional validation, unified `computer_use` envelope requirements, parser mapping behavior, and metadata/coordinate-method enforcement boundaries."
+summary: "Deep contract reference for backend computer tool schemas: mouse/keyboard/scroll conditional validation, direct schema behavior, parser mapping behavior, and metadata/coordinate-method enforcement boundaries."
 read_when:
   - When changing `backend/src/tools/computer/schemas.py` field descriptions, conditional validators, or grounded computer-tool wording.
   - When debugging parser-time rejections for computer tools (`find_coordinates_by`, grounded field requirements, direct-tool mapping) across parser/remote-tool layers.
-title: "Computer Tool Schema Guidance and Unified Envelope Validation Reference"
+title: "Computer Tool Schema Guidance Reference"
 ---
 
-# Computer Tool Schema Guidance and Unified Envelope Validation Reference
+# Computer Tool Schema Guidance Reference
 
 ## Canonical Modules
 
 - `backend/src/tools/computer/schemas.py`
-- `backend/src/tools/computer/unified_schema.py`
 - `backend/src/tools/remote_tools/computer.py`
 - `backend/src/tools/registry.py`
 - `backend/src/llm/parser_types.py`

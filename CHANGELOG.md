@@ -1782,6 +1782,8 @@ All notable changes to WindieOS will be documented in this file.
   title helper docs, and local-backend bridge test files.
 - docs/backend: route artifact-store references to the current package module
   instead of the deleted single-file service path.
+- docs/backend-tools: replace the stale system-use wrapper contract page with
+  direct system tool schema and remote mapping guidance.
 - sdk/runtime: remove the `WindieClientOptions.localRuntime` alias so custom
   local runtimes are configured through the canonical `sidecar` option.
 - sdk/runtime: sync the checked-in CommonJS runtime output with the

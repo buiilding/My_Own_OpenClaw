@@ -129,5 +129,5 @@ No exceptions are raised by this helper for normal invalid input rejection paths
 
 - [Backend LLM Docs Hub](README.md)
 - [Parser Trust Boundary and Native Tool-Call Reference](parser_trust_boundary_and_native_tool_call_reference.md)
-- [System Use Unified Wrapper Schema and Explanation Resolution Reference](../tools/contracts/system_use_unified_wrapper_schema_and_explanation_resolution_reference.md)
+- [System Tool Direct Schema and Remote Mapping Contract Reference](../tools/contracts/system_tool_direct_schema_and_remote_mapping_contract_reference.md)
 - [Computer Tool Schema Guidance and Unified Envelope Validation Reference](../tools/contracts/computer_tool_schema_guidance_and_unified_envelope_validation_reference.md)
