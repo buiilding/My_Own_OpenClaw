@@ -51,3 +51,9 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 - [Process Health Checklist](../debug/process_health_checklist.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
 - [Operational Troubleshooting](../operations/operational_troubleshooting.md)
+
+## Evidence Notes
+
+- Classify the first failing boundary before changing recovery behavior.
+- Prefer direct logs, traces, route responses, or process health output from
+  the suspected owner over symptoms reported by a downstream UI.
