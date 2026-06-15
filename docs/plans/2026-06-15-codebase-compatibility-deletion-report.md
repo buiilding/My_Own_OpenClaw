@@ -91,6 +91,8 @@ Date: 2026-06-15
   completed CD-018.
 - `cfdec4b17 refactor(backend): stop repairing invalid tool result state`
   completed CD-019.
+- `9e55637d6 refactor(backend): require prepared prompt content`
+  completed CD-020 and CD-021.
 
 ## Validation Log
 
