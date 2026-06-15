@@ -45,3 +45,10 @@ WindieOS context is assembled from live UI state, stored transcript state, local
 - [Frontend Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
 - [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/embedding_and_semantic_memory_runtime_reference.md)
 - [Backend Artifact/Screenshot/System-State Flow Reference](../backend/services/artifact_screenshot_and_system_state_flow_reference.md)
+
+## Evidence Notes
+
+- Separate recall evidence from persistence evidence: a value appearing in a
+  prompt does not prove it was durably stored.
+- For memory regressions, inspect the write path, index/update path, retrieval
+  query, and prompt-injection path before changing ranking or summaries.
