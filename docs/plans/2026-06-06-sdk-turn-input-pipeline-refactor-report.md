@@ -130,6 +130,6 @@ turn lifecycle:
 
 ## Remaining Risks
 
-- Historical docs/plans and old stream-ingress compatibility tests still use
+- Historical docs/plans and previous stream-ingress tests still use
   "optimistic user row" terminology for prior architecture eras; active docs
   were updated to SDK user-row/resource wording.

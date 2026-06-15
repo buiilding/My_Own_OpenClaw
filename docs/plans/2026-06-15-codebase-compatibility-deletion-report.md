@@ -39,6 +39,7 @@ Date: 2026-06-15
 | CD-006 | Backend stream event serialization | Pydantic v1-style `.dict()` fallback in event value normalization | Current backend schemas are Pydantic v2 models with `model_dump()`; recursive schema serialization tests cover `model_dump()` payloads | Remove `.dict()` fallback and document supported payload object shapes | implemented |
 | CD-007 | Backend prompts | Preserved deprecated/legacy system prompt snapshots | `PromptManager` only default-loads `system_prompt.txt`; repo search showed snapshot references only in docs/tests preserving old prompt text | Delete snapshot files and remove docs/tests that treat old prompt text as active package content | implemented |
 | CD-008 | Backend stream event extraction | Core legacy stream-event alias table plus query extraction alias acceptance | Validation exposed that query extraction still imported the alias helper and accepted `chunk`/`assistant_message_full` spellings after CD-005 removed enum aliases | Delete the shared alias helper, make query extraction trim-only, and require canonical stream event literals | implemented |
+| CD-009 | SDK/backend contract tests | `test_sdk_runtime_backend_compatibility.py` and `compat` fixture IDs for current SDK/backend payload validation | File inspection showed the test validates current SDK-emitted payloads against backend ingress schemas, not backward compatibility behavior | Rename the test and synthetic IDs to `contract`, and update active docs that route this validation command | implemented |
 
 ## Commit Ledger
 
@@ -132,6 +133,15 @@ CD-008 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-009 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_contract.py -q`:
+  passed, 6 tests.
+- targeted `rg -n "test_sdk_runtime_backend_compatibility|SDK/backend compatibility|sdk-backend-compat|sdk-compat|conv-sdk-backend-compat|req-sdk-compat|bundle-sdk-compat|rev-compat|turn-compat|call-sdk-compat" tests/backend docs packages backend/src frontend/src --glob '!**/node_modules/**' --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -173,3 +183,5 @@ CD-008 validation:
   stream event literals such as `streaming-response` and
   `assistant-message-full`; producers still emitting old `chunk` or
   `assistant_message_full` spellings must switch to canonical names.
+- CD-009 has no runtime migration impact: it renames a backend test module,
+  validation command references, and synthetic fixture IDs only.

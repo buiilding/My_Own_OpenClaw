@@ -1,4 +1,4 @@
-"""Compatibility tests for SDK-emitted payloads consumed by backend schemas."""
+"""Contract tests for SDK-emitted payloads consumed by backend schemas."""
 
 from __future__ import annotations
 
@@ -26,9 +26,9 @@ def _sdk_build_prerequisite_skip_reason(
     package_dir: Path = SDK_PACKAGE_DIR,
 ) -> str | None:
     if shutil.which("node") is None:
-        return "node is required for SDK/backend compatibility tests"
+        return "node is required for SDK/backend contract tests"
     if shutil.which("npm") is None:
-        return "npm is required for SDK/backend compatibility tests"
+        return "npm is required for SDK/backend contract tests"
     if not (package_dir / "node_modules").is_dir():
         try:
             package_label = str(package_dir.relative_to(ROOT))
@@ -36,7 +36,7 @@ def _sdk_build_prerequisite_skip_reason(
             package_label = "packages/windie-sdk-js"
         return (
             f"{package_label} dependencies are not installed; "
-            "run npm install in that package to enable SDK/backend compatibility tests"
+            "run npm install in that package to enable SDK/backend contract tests"
         )
     return None
 
@@ -68,9 +68,9 @@ import {
 function event(type, payload = {}) {
   return createConversationEvent({
     type,
-    conversationRef: 'conv-sdk-backend-compat',
-    revisionId: 'rev-compat',
-    turnRef: 'turn-compat',
+    conversationRef: 'conv-sdk-backend-contract',
+    revisionId: 'rev-contract',
+    turnRef: 'turn-contract',
     source: 'sdk',
     payload,
   });
@@ -106,12 +106,12 @@ const coordinator = new ToolExecutionCoordinator({
 
 await coordinator.execute(event('tool_call', {
   toolName: 'read_file',
-  requestId: 'req-sdk-compat',
-  toolCallId: 'call-sdk-compat',
+  requestId: 'req-sdk-contract',
+  toolCallId: 'call-sdk-contract',
   args: { path: 'README.md' },
 }));
 await coordinator.execute(event('tool_bundle_call', {
-  bundleId: 'bundle-sdk-compat',
+  bundleId: 'bundle-sdk-contract',
   tools: [
     {
       name: 'read_file',
@@ -147,7 +147,7 @@ await coordinator.execute(event('tool_bundle_call', {
 const rehydrate = buildRehydrateSnapshot([
   event('user_message', { text: 'inspect files' }),
   event('tool_bundle_call', {
-    bundleId: 'bundle-sdk-compat',
+    bundleId: 'bundle-sdk-contract',
     tools: [
       {
         name: 'read_file',
@@ -180,7 +180,7 @@ const rehydrate = buildRehydrateSnapshot([
     ],
   }),
   event('tool_bundle_output', {
-    bundleId: 'bundle-sdk-compat',
+    bundleId: 'bundle-sdk-contract',
     stepResults: [
       {
         tool: 'read_file',
@@ -223,7 +223,7 @@ def test_sdk_tool_result_payload_matches_backend_ingress_schema():
 
     payload = ToolResultPayload.model_validate(payloads["toolResult"])
 
-    assert payload.request_id == "req-sdk-compat"
+    assert payload.request_id == "req-sdk-contract"
     assert payload.success is True
     assert payload.data is not None
     assert payload.data.output == "single tool result"
@@ -235,7 +235,7 @@ def test_sdk_tool_bundle_result_payload_matches_backend_ingress_schema():
 
     payload = ToolBundleResultPayload.model_validate(payloads["toolBundleResult"])
 
-    assert payload.bundle_id == "bundle-sdk-compat"
+    assert payload.bundle_id == "bundle-sdk-contract"
     assert payload.status == "success"
     assert [step.status for step in payload.step_results] == ["ok", "ok"]
     assert payload.step_results[0].model_dump()["toolCallId"] == "call-bundle-readme"
@@ -247,7 +247,7 @@ def test_sdk_rehydrate_projection_matches_backend_ingress_schema():
 
     payload = RehydrateConversationPayload.model_validate(payloads["rehydratePayload"])
 
-    assert payload.conversation_ref == "conv-sdk-backend-compat"
+    assert payload.conversation_ref == "conv-sdk-backend-contract"
     assert [message.role for message in payload.messages] == [
         "user",
         "assistant",
@@ -269,8 +269,8 @@ def test_sdk_rehydrate_projection_matches_backend_ingress_schema():
 def test_backend_query_payload_rejects_turn_ref_context_field():
     payload = {
         "text": "hello",
-        "conversation_ref": "conv-sdk-backend-compat",
-        "turn_ref": "turn-compat",
+        "conversation_ref": "conv-sdk-backend-contract",
+        "turn_ref": "turn-contract",
     }
 
     with pytest.raises(Exception) as exc_info:
@@ -288,7 +288,7 @@ def test_sdk_build_prerequisite_reason_when_npm_is_missing(monkeypatch):
     monkeypatch.setattr(shutil, "which", fake_which)
 
     assert _sdk_build_prerequisite_skip_reason() == (
-        "npm is required for SDK/backend compatibility tests"
+        "npm is required for SDK/backend contract tests"
     )
 
 
@@ -302,5 +302,5 @@ def test_sdk_build_prerequisite_reason_when_dependencies_are_missing(
 
     assert _sdk_build_prerequisite_skip_reason(package_dir) == (
         "packages/windie-sdk-js dependencies are not installed; "
-        "run npm install in that package to enable SDK/backend compatibility tests"
+        "run npm install in that package to enable SDK/backend contract tests"
     )

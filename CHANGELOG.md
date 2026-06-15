@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/core-api: delete the legacy stream-event alias normalizer and require
   query-stream extraction callers to emit canonical event literals such as
   `streaming-response` and `assistant-message-full`.
+- backend/tests: rename the SDK/backend wire validation from compatibility to
+  contract terminology so current ingress-schema coverage is not labeled as a
+  legacy compatibility path.
 
 ### Added
 

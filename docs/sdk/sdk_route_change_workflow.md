@@ -69,7 +69,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | Artifact source or overlay change | Backend SDK route tests plus artifact route/store tests |
 | OCR route behavior | SDK route tests plus focused OCR service/provider tests |
 | Vision route behavior | SDK route tests plus focused vision service/provider tests |
-| SDK/backend wire compatibility | `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_compatibility.py -q`; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
+| SDK/backend wire contract | `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_contract.py -q`; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
 | TypeScript client change | `cd frontend && npm run test -- WindieSdkClient WindieSdkClientExports` |
 | Python hosted client change | `./scripts/python-in-env sidecar pytest tests/sidecar/test_windie_sdk_client.py -q` |
 | Public route surface change | Docs-list plus focused Markdown link check for SDK/web/reference docs |

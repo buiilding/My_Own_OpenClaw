@@ -36,7 +36,7 @@ Success criteria covered:
 Verification:
 
 - `cd frontend && ELECTRON_RUN_AS_NODE=1 ../frontend/node_modules/electron/dist/electron.exe ./node_modules/jest/bin/jest.js DesktopBackendTransport DesktopLiveTurnRuntimeClient IpcQueryRuntime IpcMainBridge.query WindieSdkConversationRuntime WindieSdkMainRuntime --runInBand` - pass
-- `.\.venv-backend\Scripts\python.exe -m pytest tests\backend\test_api_handlers.py tests\backend\test_query_execution_service_helpers.py tests\backend\test_sdk_runtime_backend_compatibility.py tests\backend\test_websocket_message_handler.py -q` - pass
+- `.\.venv-backend\Scripts\python.exe -m pytest tests\backend\test_api_handlers.py tests\backend\test_query_execution_service_helpers.py tests\backend\test_sdk_runtime_backend_contract.py tests\backend\test_websocket_message_handler.py -q` - pass
 - `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
 - `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
 - `git diff --check` - pass
