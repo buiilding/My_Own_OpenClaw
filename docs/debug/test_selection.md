@@ -85,3 +85,8 @@ git diff --check
 ```
 
 Also run a local markdown link check for edited files when adding or moving docs sections. If docs describe code ownership, verify the referenced files exist with `rg --files` or `find` before committing.
+
+When the worktree already contains unrelated code changes, keep docs-only
+validation scoped to the files being committed. Use `git diff -- <docs-file>`
+to review the exact docs patch, then stage only those docs paths so unrelated
+runtime edits do not get bundled into documentation commits.
