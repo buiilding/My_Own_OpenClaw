@@ -101,12 +101,14 @@ Fast routing queries:
 
 - Prefer deletion-first cleanup over compatibility layers that keep duplicate
   authorities alive.
-- Prefer the smallest coherent refactor that fixes the ownership problem, but
-  do not pretend a narrow patch is sufficient when the actual architecture
-  requires a wider rewrite. If converging duplicated runtimes, stores, bridges,
-  or transport paths realistically needs cross-module or cross-runtime work,
-  state that scope plainly, name the boundaries that must move, and explain why
-  a smaller patch would preserve the wrong source of truth.
+- Prefer the cleanest ownership refactor that fixes the problem at its source.
+  Do not default to the narrowest patch when a broader change deletes code,
+  removes duplicate authorities, centralizes a contract, or makes the boundary
+  more foundational with less total complexity. If converging duplicated
+  runtimes, stores, bridges, or transport paths realistically needs cross-module
+  or cross-runtime work, state that scope plainly, name the boundaries that must
+  move, and explain why a smaller patch would preserve the wrong source of
+  truth.
 - Fix root causes, not symptoms, and do not layer workarounds on top of messy
   local design when a small refactor can remove the problem.
 - Prefer clear, deterministic execution paths over branch-heavy defensive code.
@@ -139,8 +141,11 @@ Fast routing queries:
   model settings, or overlay phase without retiring the older path, or keep
   Electron and SDK paths as parallel sources of truth for the same runtime
   behavior.
-- Escalate before widening scope if cleanup would cross subsystem boundaries,
-  change public contracts, or require a large multi-file rewrite.
+- Widen scope without hesitation when the wider change is still owned by the
+  same runtime boundary and reduces code, duplication, coupling, or future
+  compatibility burden. Escalate before widening only when cleanup would cross
+  subsystem ownership boundaries, change public contracts, or require a large
+  multi-file rewrite.
 
 ## Tool and Extension Contracts
 
@@ -348,7 +353,9 @@ Additional git notes:
 - Use HTTPS remotes; flip SSH to HTTPS before pull or push if needed.
 - Do not delete or rename unexpected files.
 - No repo-wide search-and-replace scripts.
-- Keep edits small and reviewable.
+- Keep commits reviewable, but do not keep implementation artificially narrow
+  when a broader same-boundary cleanup creates less code, stronger ownership,
+  and a more foundational path.
 - Avoid manual `git stash`.
 - If Git auto-stashes during pull or rebase, that is fine.
 - If the user types a command like "pull and push", that counts as consent for

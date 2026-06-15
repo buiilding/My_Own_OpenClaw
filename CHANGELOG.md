@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: clarify that implementation scope should widen within the same
+  owner boundary when the broader change deletes code, reduces duplication, or
+  creates a more foundational path.
 - frontend/main: guard wakeword status and detection event emission against
   destroyed BrowserWindow/webContents targets so late subprocess exit events do
   not crash Electron main.
