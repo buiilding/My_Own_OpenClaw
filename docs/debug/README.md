@@ -48,3 +48,10 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 - For overlay timing bugs, write down the phase sequence first. Mixing focus, capture, content protection, and visibility changes in one patch makes regressions hard to isolate.
 - For local tool bugs, verify the producer and execution boundary: backend schema/event, SDK main runtime router, Electron sidecar bridge, and sidecar executable result.
 - For hosted backend bugs, do not assume local Electron state is wrong until the websocket or HTTP payload is inspected.
+
+## Evidence Notes
+
+- A debug note should name the command, log, trace, database row, screenshot, or
+  runtime payload that would reproduce the symptom later.
+- If no existing diagnostic exposes the bug, add the missing owned diagnostic
+  instead of relying on one-off shell output.
