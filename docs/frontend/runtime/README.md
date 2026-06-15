@@ -36,3 +36,10 @@ title: "Frontend Runtime Docs Hub"
 - `frontend/src/main/vm_worker_runtime.cjs`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/core/feature_pack_installer.py`
+
+## Evidence Notes
+
+- Runtime bugs should include the command surface, transport event, and local
+  state transition that prove where ownership changed.
+- When a desktop control appears to work in backend logs but not visually, check
+  renderer terminalization against the active SDK projection.
