@@ -84,6 +84,14 @@ All notable changes to WindieOS will be documented in this file.
   `surface.visibility`, `frontend.interaction`, and `wakeword.lifecycle`
   timelines so structured desktop traces are inspectable with
   `bin/windie diagnostics paths/list` instead of default stdout noise.
+- docs/development: add agent routing quick cards, starting with backend API,
+  SDK route, tool-schema, filesystem/shell, browser automation,
+  overlay/chat-pill, screenshot/artifact, transcript/replay, memory,
+  provider/model, inference capability, websocket event, gateway connection,
+  config/settings, permission/local-authority, credential/token,
+  plugin/extension, MCP, VM-run, voice/wakeword, packaging/release,
+  renderer/dashboard, Electron IPC, sidecar process, observability/error, and
+  docs-only ownership.
 - backend/sdk/frontend: add revisioned runtime capability application for
   client tools, MCP/plugin tools, and prompt-layer skills, including
   `client_prompt_layers.validate/apply`, `capability_manifest.rebuild/send`,
@@ -246,6 +254,8 @@ All notable changes to WindieOS will be documented in this file.
   sync so dashboard toggles stay enabled after app restart.
 - frontend/mcp: refresh enabled MCP servers after startup config hydration so
   persisted MCPs are discovered and registered without a manual dashboard refresh.
+- cli/windows: run extensionless repo helper scripts through Git Bash so
+  `windie start dev` can launch Vite and Electron from PowerShell.
 - backend/sdk/frontend: allow `update-settings` to carry the full
   `agent_definition` so active sessions immediately apply runtime tools and
   skills without waiting for app restart, and fail stale local tool calls when

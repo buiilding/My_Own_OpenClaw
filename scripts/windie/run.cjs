@@ -3,25 +3,31 @@
  */
 
 const { spawn, spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const {
   appendLayerLogLine,
   appendLayerLogSessionBanner,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
-function commandForPlatform(command) {
+function commandForPlatform(command, args = []) {
   if (process.platform === 'win32') {
     if (command === 'npm') {
-      return 'npm.cmd';
+      return { command: 'npm.cmd', args };
     }
     if (command === 'powershell') {
-      return 'powershell.exe';
+      return { command: 'powershell.exe', args };
+    }
+    if (path.extname(command) === '' && fs.existsSync(command)) {
+      return { command: 'bash.exe', args: [command, ...args] };
     }
   }
-  return command;
+  return { command, args };
 }
 
 function runSync(command, args = [], options = {}) {
-  const result = spawnSync(commandForPlatform(command), args, {
+  const platformCommand = commandForPlatform(command, args);
+  const result = spawnSync(platformCommand.command, platformCommand.args, {
     cwd: options.cwd,
     env: options.env || process.env,
     stdio: options.stdio || 'inherit',
@@ -133,7 +139,8 @@ function runConcurrent(processes) {
         sessionLabel: `${item.label} child process log session`,
       });
     }
-    const child = spawn(commandForPlatform(item.command), item.args || [], {
+    const platformCommand = commandForPlatform(item.command, item.args || []);
+    const child = spawn(platformCommand.command, platformCommand.args, {
       cwd: item.cwd,
       env: item.env || process.env,
       stdio: ['inherit', 'pipe', 'pipe'],
