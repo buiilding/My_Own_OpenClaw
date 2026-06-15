@@ -79,6 +79,10 @@ When changing dashboard sections or settings:
 
 - Keep shell navigation and section-specific state separate.
 - Normalize section data in section helpers before rendering lists or cards.
+- Treat conversation-open state as transient dashboard orchestration state. The
+  chat component may render a loading projection for the selected conversation,
+  but durable conversation identity still comes from transcript/session sync and
+  chat-store workspace state after rows load.
 - Route provider/model setting changes through `AppConfigProvider` and settings sync helpers, not ad hoc IPC calls from leaf components.
 - Keep permission status UI driven by `permissionStore`, with platform probing owned by Electron main/sidecar platform code.
 - Add tests for empty/loading/error states and for any persisted setting or backend sync payload.
