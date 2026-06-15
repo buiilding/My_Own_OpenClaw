@@ -105,3 +105,10 @@ title: "Frontend Renderer Docs Hub"
 - `frontend/src/renderer/features/*`
 - `frontend/src/renderer/infrastructure/*`
 - `frontend/src/renderer/styles/*`
+
+## Evidence Notes
+
+- Renderer state bugs need selector/store evidence and visible component output
+  evidence; one without the other only proves half the path.
+- If a renderer component mirrors SDK state, prefer fixing the projection source
+  or selector boundary before adding local fallback state.
