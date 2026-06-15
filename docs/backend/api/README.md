@@ -73,3 +73,10 @@ title: "Backend API Docs Hub"
 - `backend/src/api/services/*`
 - `backend/src/api/processing/*`
 - `backend/src/api/transport/*`
+
+## Evidence Notes
+
+- API changes need request/response or websocket-envelope evidence at the route
+  boundary before handler internals are considered correct.
+- Keep schema validation, sanitized errors, and transport formatting in the same
+  review when a public payload shape changes.
