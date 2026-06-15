@@ -42,7 +42,8 @@ Date: 2026-06-15
   completed CD-001 and CD-002.
 - `24559adb9 refactor(backend): remove handler registry compatibility breadcrumb`
   completed CD-003.
-- CD-004 is implemented and validated locally; commit pending.
+- `ecbbe83fe refactor(backend): use typed no-model stream event`
+  completed CD-004.
 
 ## Validation Log
 
