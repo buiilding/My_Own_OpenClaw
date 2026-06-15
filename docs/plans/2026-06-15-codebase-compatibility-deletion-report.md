@@ -57,6 +57,8 @@ Date: 2026-06-15
   completed CD-007.
 - `97e3c2566 refactor(backend): require canonical stream event extraction`
   completed CD-008.
+- `db53ef63f test(backend): rename sdk backend contract test`
+  completed CD-009.
 
 ## Validation Log
 
