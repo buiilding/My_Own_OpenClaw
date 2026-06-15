@@ -33,25 +33,25 @@ from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage
-from backend.src.llm.prompts.prompt_metadata import (
-    PromptMetadata,
-    ProviderPrompt,
-    UserMessageMetadata,
-)
 from backend.src.llm.prompts.prompt_images import (
     PromptImageProjectionError,
     PromptImageProjector,
     policy_from_config,
 )
+from backend.src.llm.prompts.prompt_metadata import (
+    PromptMetadata,
+    ProviderPrompt,
+    UserMessageMetadata,
+)
 from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.llm.prompts.repo_instructions import (
     resolve_workspace_repo_instruction_messages,
 )
+from backend.src.services.artifacts import ArtifactStore
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.tool_specs import get_tool_spec_name
-from backend.src.services.artifacts import ArtifactStore
 
 # system_monitor removed - frontend handles system state
 
@@ -237,24 +237,6 @@ class PromptConstructor:
             messages=prompt_messages,
             tool_schemas=tool_schemas,
             metadata=metadata,
-        )
-
-    def build_prompt(
-        self,
-        stored_messages: Optional[Union[List[StoredMessage], Any]] = None,
-        include_tools: bool = True,
-    ) -> tuple[List[LLMMessage], List[Dict[str, Any]], PromptMetadata]:
-        """
-        Compatibility wrapper for callers that still expect prompt tuple output.
-        """
-        provider_prompt = self.build_provider_prompt(
-            stored_messages=stored_messages,
-            include_tools=include_tools,
-        )
-        return (
-            provider_prompt.messages,
-            provider_prompt.tool_schemas,
-            provider_prompt.metadata,
         )
 
     def _get_prompt_messages(
@@ -539,9 +521,10 @@ class PromptConstructor:
             }
             if isinstance(layer.get("revision"), str) and layer["revision"].strip():
                 item["revision"] = layer["revision"].strip()
-            if isinstance(layer.get("source_path"), str) and layer[
-                "source_path"
-            ].strip():
+            if (
+                isinstance(layer.get("source_path"), str)
+                and layer["source_path"].strip()
+            ):
                 item["source_path"] = layer["source_path"].strip()
             metadata.append(item)
         return metadata

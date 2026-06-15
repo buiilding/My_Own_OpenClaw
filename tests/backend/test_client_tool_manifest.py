@@ -9,8 +9,8 @@ from backend.src.tools.client_manifest import (
     MAX_SCHEMA_BYTES,
     validate_client_tool_manifest,
 )
-from backend.src.tools.remote_tool_catalog import build_remote_tool_catalog
 from backend.src.tools.registry import ToolRegistry
+from backend.src.tools.remote_tool_catalog import build_remote_tool_catalog
 
 
 def _schema(required=None):
@@ -453,11 +453,9 @@ def test_prompt_constructor_merges_client_tool_schemas_after_policy(monkeypatch)
         },
     ]
 
-    _messages, tool_schemas, _metadata = constructor.build_prompt(
-        [], include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt([], include_tools=True)
 
-    assert [schema["name"] for schema in tool_schemas] == ["my_tool"]
+    assert [schema["name"] for schema in provider_prompt.tool_schemas] == ["my_tool"]
 
 
 def test_prompt_constructor_policy_does_not_resurrect_disabled_client_tools(
@@ -486,11 +484,11 @@ def test_prompt_constructor_policy_does_not_resurrect_disabled_client_tools(
         },
     ]
 
-    _messages, tool_schemas, _metadata = constructor.build_prompt(
-        [], include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt([], include_tools=True)
 
-    assert [schema["name"] for schema in tool_schemas] == ["allowed_tool"]
+    assert [schema["name"] for schema in provider_prompt.tool_schemas] == [
+        "allowed_tool"
+    ]
 
 
 def test_prompt_constructor_client_schema_replaces_registry_schema(monkeypatch):
@@ -511,10 +509,9 @@ def test_prompt_constructor_client_schema_replaces_registry_schema(monkeypatch):
         },
     ]
 
-    _messages, tool_schemas, _metadata = constructor.build_prompt(
-        [], include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt([], include_tools=True)
 
+    tool_schemas = provider_prompt.tool_schemas
     assert len(tool_schemas) == 1
     assert tool_schemas[0]["name"] == "read_file"
     assert tool_schemas[0]["description"] == "Client-owned read file schema."
@@ -530,10 +527,10 @@ def test_prompt_constructor_adds_client_prompt_layers_in_priority_order():
         {"id": "first", "type": "agents_md", "priority": 40, "content": "first text"},
     ]
 
-    messages, _tool_schemas, metadata = constructor.build_prompt(
-        [], include_tools=False
-    )
+    provider_prompt = constructor.build_provider_prompt([], include_tools=False)
 
+    messages = provider_prompt.messages
+    metadata = provider_prompt.metadata
     assert messages[0] == {"role": "system", "content": "base"}
     assert messages[1]["content"].startswith("# Client prompt layer: first")
     assert messages[2]["content"].startswith("# Client prompt layer: later")

@@ -387,10 +387,11 @@ def build_prompt_preview(
     if isinstance(workspace_path, str) and workspace_path.strip():
         constructor.workspace_path = workspace_path.strip()
 
-    prompt_messages, _, _ = constructor.build_prompt(
+    provider_prompt = constructor.build_provider_prompt(
         preview_history,
         include_tools=False,
     )
+    prompt_messages = provider_prompt.messages
     canonical_tool_schemas, provider_tool_schemas = (
         constructor.get_tool_schema_surfaces(prompt_messages=prompt_messages)
         if include_tools

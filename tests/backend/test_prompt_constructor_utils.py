@@ -9,8 +9,8 @@ from PIL import Image
 from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.infrastructure.error_types import InputSizeLimitError
-from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.messages.structures import StoredMessage
+from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
@@ -153,14 +153,12 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(
-        None, include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=True)
 
-    assert [schema["name"] for schema in schemas] == ["read_file"]
+    assert [schema["name"] for schema in provider_prompt.tool_schemas] == ["read_file"]
 
 
-def test_build_prompt_stamps_client_prompt_layer_metadata_summary():
+def test_build_provider_prompt_stamps_client_prompt_layer_metadata_summary():
     constructor = _make_constructor()
     constructor.client_prompt_layers = [
         {
@@ -173,10 +171,10 @@ def test_build_prompt_stamps_client_prompt_layer_metadata_summary():
         }
     ]
 
-    prompt_messages, _schemas, metadata = constructor.build_prompt(
-        None, include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=True)
 
+    prompt_messages = provider_prompt.messages
+    metadata = provider_prompt.metadata
     assert "Lead with risks." in prompt_messages[1]["content"]
     assert metadata.client_prompt_layer_summary == {
         "count": 1,
@@ -219,10 +217,8 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(
-        None, include_tools=True
-    )
-    mouse_schema = schemas[0]
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=True)
+    mouse_schema = provider_prompt.tool_schemas[0]
 
     args_props = mouse_schema["parameters"]["properties"]
     method_schema = args_props["find_coordinates_by"]
@@ -237,7 +233,7 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
     assert "model_name" not in args_props
 
 
-def test_build_prompt_populates_user_message_metadata_from_history():
+def test_build_provider_prompt_populates_user_message_metadata_from_history():
     constructor = _make_constructor(
         [
             {
@@ -258,10 +254,11 @@ def test_build_prompt_populates_user_message_metadata_from_history():
         message_types=[MessageType.USER_QUERY],
     )
 
-    prompt_messages, tool_schemas, metadata = constructor.build_prompt(
-        history, include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt(history, include_tools=True)
 
+    prompt_messages = provider_prompt.messages
+    tool_schemas = provider_prompt.tool_schemas
+    metadata = provider_prompt.metadata
     assert prompt_messages == [
         {"role": MessageRole.SYSTEM.value, "content": "system"},
         *history.get_history(),
@@ -308,7 +305,7 @@ def test_build_provider_prompt_returns_aligned_provider_payload():
     assert provider_prompt.metadata.system_prompt == "rehydrated system"
 
 
-def test_build_prompt_sets_sequential_context_when_multiple_user_queries():
+def test_build_provider_prompt_sets_sequential_context_when_multiple_user_queries():
     constructor = _make_constructor()
     history = DummyHistory(
         history=[
@@ -319,28 +316,27 @@ def test_build_prompt_sets_sequential_context_when_multiple_user_queries():
         message_types=[MessageType.USER_QUERY, MessageType.USER_QUERY],
     )
 
-    _prompt_messages, _tool_schemas, metadata = constructor.build_prompt(
-        history, include_tools=False
-    )
+    provider_prompt = constructor.build_provider_prompt(history, include_tools=False)
 
+    metadata = provider_prompt.metadata
     assert metadata.user_message_metadata is not None
     assert metadata.user_message_metadata.context_type == "sequential"
     assert metadata.user_message_metadata.full_content == "<user_query>q2</user_query>"
 
 
-def test_build_prompt_returns_empty_history_and_no_user_metadata_without_store():
+def test_build_provider_prompt_returns_empty_history_and_no_user_metadata_without_store():
     constructor = _make_constructor()
 
-    prompt_messages, tool_schemas, metadata = constructor.build_prompt(
-        None, include_tools=False
-    )
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=False)
 
-    assert prompt_messages == [{"role": MessageRole.SYSTEM.value, "content": "system"}]
-    assert tool_schemas == []
-    assert metadata.user_message_metadata is None
+    assert provider_prompt.messages == [
+        {"role": MessageRole.SYSTEM.value, "content": "system"}
+    ]
+    assert provider_prompt.tool_schemas == []
+    assert provider_prompt.metadata.user_message_metadata is None
 
 
-def test_build_prompt_prepends_applicable_agents_md_context(tmp_path):
+def test_build_provider_prompt_prepends_applicable_agents_md_context(tmp_path):
     repo_root = tmp_path / "repo"
     nested_dir = repo_root / "apps" / "desktop"
     nested_dir.mkdir(parents=True)
@@ -361,11 +357,12 @@ def test_build_prompt_prepends_applicable_agents_md_context(tmp_path):
         message_types=[MessageType.USER_QUERY],
     )
 
-    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+    provider_prompt = constructor.build_provider_prompt(
         history,
         include_tools=False,
     )
 
+    prompt_messages = provider_prompt.messages
     assert [message["role"] for message in prompt_messages[:3]] == [
         "system",
         "user",
@@ -476,7 +473,7 @@ def test_get_prompt_token_count_includes_tool_schemas(monkeypatch):
     assert captured["tools"] == tool_schemas
 
 
-def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_lookup(
+def test_build_provider_prompt_prefers_injected_repo_instruction_messages_over_workspace_lookup(
     tmp_path,
 ):
     repo_root = tmp_path / "repo"
@@ -505,17 +502,18 @@ def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_
         message_types=[MessageType.USER_QUERY],
     )
 
-    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+    provider_prompt = constructor.build_provider_prompt(
         history,
         include_tools=False,
     )
 
+    prompt_messages = provider_prompt.messages
     assert prompt_messages[0] == {"role": MessageRole.SYSTEM.value, "content": "system"}
     assert prompt_messages[1] == constructor.repo_instruction_messages[0]
     assert prompt_messages[2] == history.get_history()[0]
 
 
-def test_build_prompt_rejects_oversized_stored_message_content():
+def test_build_provider_prompt_rejects_oversized_stored_message_content():
     metrics_service = MetricsService()
     constructor = _make_constructor(
         config=AppConfig(
@@ -534,14 +532,14 @@ def test_build_prompt_rejects_oversized_stored_message_content():
     )
 
     with pytest.raises(InputSizeLimitError) as exc_info:
-        constructor.build_prompt(history, include_tools=False)
+        constructor.build_provider_prompt(history, include_tools=False)
 
     assert exc_info.value.actual_size == 13
     stats = metrics_service.get_all_metrics()["prompt_constructor"]
     assert stats["size_limit_violations"] == 1
 
 
-def test_build_prompt_projects_artifact_image_refs_without_text_content_overflow():
+def test_build_provider_prompt_projects_artifact_image_refs_without_text_content_overflow():
     calls = []
 
     class _ArtifactStore:
@@ -572,12 +570,12 @@ def test_build_prompt_projects_artifact_image_refs_without_text_content_overflow
         image_owner_user_id="user-1",
     )
 
-    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+    provider_prompt = constructor.build_provider_prompt(
         [message],
         include_tools=False,
     )
 
-    content = prompt_messages[-1]["content"]
+    content = provider_prompt.messages[-1]["content"]
     assert calls == [("artifact-1", "user-1"), ("artifact-2", "user-1")]
     assert content[0] == {"type": "text", "text": "<user_query>look</user_query>"}
     assert [part["type"] for part in content[1:]] == ["image_url", "image_url"]
@@ -587,7 +585,7 @@ def test_build_prompt_projects_artifact_image_refs_without_text_content_overflow
     )
 
 
-def test_build_prompt_accepts_two_large_original_artifact_refs_after_projection():
+def test_build_provider_prompt_accepts_two_large_original_artifact_refs_after_projection():
     original_images = {
         "artifact-1": _image_base64(width=900, height=900, image_format="BMP"),
         "artifact-2": _image_base64(width=900, height=900, image_format="BMP"),
@@ -624,12 +622,12 @@ def test_build_prompt_accepts_two_large_original_artifact_refs_after_projection(
         image_refs=["artifact-1", "artifact-2"],
     )
 
-    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+    provider_prompt = constructor.build_provider_prompt(
         [message],
         include_tools=False,
     )
 
-    image_parts = prompt_messages[-1]["content"][1:]
+    image_parts = provider_prompt.messages[-1]["content"][1:]
     assert len(image_parts) == 2
     assert all(
         part["image_url"]["url"].startswith("data:image/jpeg;base64,")
@@ -641,7 +639,7 @@ def test_build_prompt_accepts_two_large_original_artifact_refs_after_projection(
     )
 
 
-def test_build_prompt_resizes_artifact_images_to_prompt_image_budget():
+def test_build_provider_prompt_resizes_artifact_images_to_prompt_image_budget():
     class _ArtifactStore:
         @classmethod
         def from_config(cls, _config):
@@ -670,19 +668,19 @@ def test_build_prompt_resizes_artifact_images_to_prompt_image_budget():
         image_refs=["large-artifact"],
     )
 
-    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+    provider_prompt = constructor.build_provider_prompt(
         [message],
         include_tools=False,
     )
 
-    data_url = prompt_messages[-1]["content"][1]["image_url"]["url"]
+    data_url = provider_prompt.messages[-1]["content"][1]["image_url"]["url"]
     image_bytes = _decoded_image_bytes(data_url)
     image = Image.open(io.BytesIO(image_bytes))
     assert len(image_bytes) <= max_image_bytes
     assert max(image.size) <= 1024
 
 
-def test_build_prompt_rejects_artifact_image_that_cannot_fit_budget():
+def test_build_provider_prompt_rejects_artifact_image_that_cannot_fit_budget():
     class _ArtifactStore:
         @classmethod
         def from_config(cls, _config):
@@ -710,13 +708,13 @@ def test_build_prompt_rejects_artifact_image_that_cannot_fit_budget():
     )
 
     with pytest.raises(InputSizeLimitError) as exc_info:
-        constructor.build_prompt([message], include_tools=False)
+        constructor.build_provider_prompt([message], include_tools=False)
 
     assert exc_info.value.metadata["check"] == "prompt_image_size"
     assert exc_info.value.metadata["image_ref"] == "too-small-budget"
 
 
-def test_build_prompt_rejects_oversized_aggregate_prompt():
+def test_build_provider_prompt_rejects_oversized_aggregate_prompt():
     constructor = _make_constructor(
         config=AppConfig(
             security_limits=SecurityLimits(
@@ -736,12 +734,12 @@ def test_build_prompt_rejects_oversized_aggregate_prompt():
     )
 
     with pytest.raises(InputSizeLimitError) as exc_info:
-        constructor.build_prompt(history, include_tools=False)
+        constructor.build_provider_prompt(history, include_tools=False)
 
     assert exc_info.value.max_size == 90
 
 
-def test_build_prompt_rejects_too_many_prompt_messages():
+def test_build_provider_prompt_rejects_too_many_prompt_messages():
     constructor = _make_constructor(
         config=AppConfig(
             security_limits=SecurityLimits(
@@ -761,13 +759,13 @@ def test_build_prompt_rejects_too_many_prompt_messages():
     )
 
     with pytest.raises(InputSizeLimitError) as exc_info:
-        constructor.build_prompt(history, include_tools=False)
+        constructor.build_provider_prompt(history, include_tools=False)
 
     assert exc_info.value.actual_size == 3
     assert exc_info.value.max_size == 1
 
 
-def test_build_prompt_rejects_oversized_agents_md_instruction(tmp_path):
+def test_build_provider_prompt_rejects_oversized_agents_md_instruction(tmp_path):
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
     (repo_root / ".git").mkdir()
@@ -785,12 +783,12 @@ def test_build_prompt_rejects_oversized_agents_md_instruction(tmp_path):
     constructor.workspace_path = str(repo_root)
 
     with pytest.raises(InputSizeLimitError) as exc_info:
-        constructor.build_prompt(None, include_tools=False)
+        constructor.build_provider_prompt(None, include_tools=False)
 
     assert exc_info.value.boundary_name == "prompt_constructor"
 
 
-def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
+def test_build_provider_prompt_allowlisting_mouse_control_yields_single_direct_schema():
     registry = ToolRegistry(
         config=AppConfig(tool_allowlist=["mouse_control"]), cache_manager=CacheManager()
     )
@@ -801,10 +799,9 @@ def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(
-        None, include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=True)
 
+    schemas = provider_prompt.tool_schemas
     assert [schema["name"] for schema in schemas] == ["mouse_control"]
     parameters = schemas[0]["parameters"]
     assert parameters["properties"]["action"]["enum"] == [
@@ -816,7 +813,7 @@ def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
     ]
 
 
-def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
+def test_build_provider_prompt_real_registry_prunes_live_model_facing_grounding_schema(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ):
@@ -842,10 +839,9 @@ def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(
-        None, include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=True)
 
+    schemas = provider_prompt.tool_schemas
     assert [schema["name"] for schema in schemas] == ["mouse_control", "scroll_control"]
 
     mouse_props = schemas[0]["parameters"]["properties"]
@@ -869,7 +865,7 @@ def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
     assert "source_description" not in scroll_props
 
 
-def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
+def test_build_provider_prompt_openai_projection_filters_grounded_tools_after_projection(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ):
@@ -905,11 +901,9 @@ def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(
-        None, include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=True)
 
-    schema_names = [schema["name"] for schema in schemas]
+    schema_names = [schema["name"] for schema in provider_prompt.tool_schemas]
     assert schema_names == [
         "mouse_control",
         "keyboard_control",
@@ -919,7 +913,7 @@ def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
     ]
 
 
-def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
+def test_build_provider_prompt_allowlisting_read_file_yields_single_direct_schema():
     registry = ToolRegistry(
         config=AppConfig(tool_allowlist=["read_file"]), cache_manager=CacheManager()
     )
@@ -930,16 +924,15 @@ def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(
-        None, include_tools=True
-    )
+    provider_prompt = constructor.build_provider_prompt(None, include_tools=True)
 
+    schemas = provider_prompt.tool_schemas
     assert [schema["name"] for schema in schemas] == ["read_file"]
     parameters = schemas[0]["parameters"]
     assert "file_path" in parameters["properties"]
 
 
-def test_build_prompt_keeps_direct_computer_tools_for_openai_even_with_image_history():
+def test_build_provider_prompt_keeps_direct_computer_tools_for_openai_even_with_image_history():
     config = AppConfig(
         model_provider="openai",
         tool_allowlist=[
@@ -979,12 +972,12 @@ def test_build_prompt_keeps_direct_computer_tools_for_openai_even_with_image_his
         message_types=[MessageType.USER_QUERY],
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+    provider_prompt = constructor.build_provider_prompt(
         history,
         include_tools=True,
     )
 
-    assert [schema["name"] for schema in schemas] == [
+    assert [schema["name"] for schema in provider_prompt.tool_schemas] == [
         "mouse_control",
         "keyboard_control",
         "screenshot",

@@ -40,6 +40,7 @@ Date: 2026-06-15
 | CD-007 | Backend prompts | Preserved deprecated/legacy system prompt snapshots | `PromptManager` only default-loads `system_prompt.txt`; repo search showed snapshot references only in docs/tests preserving old prompt text | Delete snapshot files and remove docs/tests that treat old prompt text as active package content | implemented |
 | CD-008 | Backend stream event extraction | Core legacy stream-event alias table plus query extraction alias acceptance | Validation exposed that query extraction still imported the alias helper and accepted `chunk`/`assistant_message_full` spellings after CD-005 removed enum aliases | Delete the shared alias helper, make query extraction trim-only, and require canonical stream event literals | implemented |
 | CD-009 | SDK/backend contract tests | `test_sdk_runtime_backend_compatibility.py` and `compat` fixture IDs for current SDK/backend payload validation | File inspection showed the test validates current SDK-emitted payloads against backend ingress schemas, not backward compatibility behavior | Rename the test and synthetic IDs to `contract`, and update active docs that route this validation command | implemented |
+| CD-010 | Backend prompt construction | `PromptConstructor.build_prompt(...)` tuple-returning compatibility wrapper | Production grep showed only SDK prompt preview still used the tuple wrapper; tests could assert directly through `ProviderPrompt` | Move callers to `build_provider_prompt(...)`, delete the wrapper, and update prompt docs/tests to use the typed provider prompt contract | implemented |
 
 ## Commit Ledger
 
@@ -144,6 +145,19 @@ CD-009 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-010 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py tests/backend/test_client_tool_manifest.py tests/backend/test_sdk_routes.py -q`:
+  passed, 102 tests.
+- targeted `rg -n "PromptConstructor\\.build_prompt|constructor\\.build_prompt|def build_prompt\\(|tuple-returning compatibility|Compatibility wrapper for callers" backend/src tests/backend docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no compatibility-wrapper matches; remaining `build_prompt_messages` references are separate current helpers.
+- `./scripts/python-in-env backend python -m black --check backend/src/api/routes/sdk/service.py backend/src/llm/prompts/prompt_constructor.py tests/backend/test_client_tool_manifest.py tests/backend/test_prompt_constructor_utils.py tests/backend/test_sdk_routes.py`:
+  passed.
+- `./scripts/python-in-env backend python -m isort --check-only backend/src/api/routes/sdk/service.py backend/src/llm/prompts/prompt_constructor.py tests/backend/test_client_tool_manifest.py tests/backend/test_prompt_constructor_utils.py tests/backend/test_sdk_routes.py`:
+  passed.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -187,3 +201,6 @@ CD-009 validation:
   `assistant_message_full` spellings must switch to canonical names.
 - CD-009 has no runtime migration impact: it renames a backend test module,
   validation command references, and synthetic fixture IDs only.
+- CD-010 has no persisted-data migration impact: backend prompt construction
+  already used `build_provider_prompt(...)` for normal model invocation; SDK
+  prompt preview now consumes the same typed provider prompt object.

@@ -1,7 +1,7 @@
 ---
 summary: "Prompt-constructor deep reference: tool-schema policy filtering, user-message metadata extraction, XML tag parsing limits, and first-turn transparency event emission flow."
 read_when:
-  - When changing `PromptConstructor.build_prompt(...)` output shape or trust-boundary extraction logic.
+  - When changing `PromptConstructor.build_provider_prompt(...)` output shape or trust-boundary extraction logic.
   - When debugging missing/incorrect `system-prompt`, `user-message-full`, or `tool-schemas` frontend transparency events.
 title: "Prompt Constructor and Transparency Metadata Reference"
 ---
@@ -33,9 +33,8 @@ one `ProviderPrompt` object:
   - `tool_schemas`
   - optional `user_message_metadata`
 
-`PromptConstructor.build_prompt(...)` remains a tuple-returning compatibility
-wrapper around the same provider prompt path. `PromptMetadata` and
-`ProviderPrompt` are typed dataclasses, replacing dict-shaped metadata plumbing.
+`PromptMetadata` and `ProviderPrompt` are typed dataclasses, replacing
+dict-shaped metadata plumbing.
 
 Session-scoped system prompt context:
 

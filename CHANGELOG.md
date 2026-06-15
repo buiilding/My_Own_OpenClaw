@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tests: rename the SDK/backend wire validation from compatibility to
   contract terminology so current ingress-schema coverage is not labeled as a
   legacy compatibility path.
+- backend/prompts: remove the tuple-returning `PromptConstructor.build_prompt`
+  compatibility wrapper so callers use the typed `ProviderPrompt` contract
+  directly.
 
 ### Added
 

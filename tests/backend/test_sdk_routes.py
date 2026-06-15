@@ -1623,7 +1623,8 @@ async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(
     )
 
     assert response.system_prompt
-    assert response.prompt_messages[0]["role"] == "user"
+    assert response.prompt_messages[0]["role"] == "system"
+    assert response.prompt_messages[1]["role"] == "user"
     assert response.user_message_full is not None
     assert response.user_message_full.metadata.original_query == "open file"
     assert response.user_message_full.metadata.active_window == "Terminal"
@@ -1771,7 +1772,7 @@ async def test_sdk_debug_prompt_preview_applies_agent_definition(
     assert all(
         schema.get("name") != "read_file" for schema in response.canonical_tool_schemas
     )
-    assert "Always be direct." in response.prompt_messages[0]["content"]
+    assert "Always be direct." in response.prompt_messages[1]["content"]
 
 
 @pytest.mark.asyncio

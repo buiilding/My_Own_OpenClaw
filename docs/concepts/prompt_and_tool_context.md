@@ -29,7 +29,6 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 
 `PromptConstructor.build_provider_prompt()` returns one provider prompt object
 whose messages, model-visible tool schemas, and prompt metadata stay aligned.
-`build_prompt()` is a tuple-returning compatibility wrapper over that same path.
 
 The model-visible message list is assembled in this order:
 

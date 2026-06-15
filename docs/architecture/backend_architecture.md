@@ -342,7 +342,6 @@ Constructs prompts for LLM interactions.
 
 **Key Methods**:
 - `build_provider_prompt()`: Build LLM messages + tool schemas + prompt metadata
-- `build_prompt()`: Compatibility wrapper for tuple-returning call sites
 - `_calculate_message_size()`: Enforce size limits
 
 ### Observability
