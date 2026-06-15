@@ -81,3 +81,10 @@ Runtime ownership cleanup is tracked in [Runtime Ownership Simplification Plan](
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Memory Hub](../memory/README.md)
+
+## Evidence Notes
+
+- For every state handoff, capture the producer payload and the consumer state
+  update before concluding which layer is stale.
+- Durable state changes need storage evidence; transient projection changes need
+  event or selector evidence from the active runtime.
