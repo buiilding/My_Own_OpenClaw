@@ -60,3 +60,10 @@ title: "Frontend Sidecar Docs Hub"
 - `frontend/src/main/sidecar/local_backend_bridge*.cjs`
 - `frontend/src/main/python/memory/*`
 - `frontend/src/main/python/tools/*`
+
+## Evidence Notes
+
+- Sidecar changes need executable-result evidence from the Python boundary, not
+  just confirmation that Electron dispatched a request.
+- Preserve raw sidecar payloads in diagnostics when result normalization or
+  MCP/tool wrapping is under investigation.
