@@ -39,7 +39,8 @@ Key files:
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/python/wakeword_service.py`
-- `backend/src/api/services/rehydrate_and_wakeword.py`
+- `backend/src/api/services/rehydrate_execution.py`
+- `backend/src/api/services/wakeword_execution.py`
 
 Read next:
 

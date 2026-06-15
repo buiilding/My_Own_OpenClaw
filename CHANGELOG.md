@@ -1784,6 +1784,8 @@ All notable changes to WindieOS will be documented in this file.
   instead of the deleted single-file service path.
 - docs/backend-tools: replace the stale system-use wrapper contract page with
   direct system tool schema and remote mapping guidance.
+- docs/channels: route tool-result and wakeword/rehydrate channel references
+  to current backend handler and service modules.
 - sdk/runtime: remove the `WindieClientOptions.localRuntime` alias so custom
   local runtimes are configured through the canonical `sidecar` option.
 - sdk/runtime: sync the checked-in CommonJS runtime output with the
