@@ -69,6 +69,8 @@ Date: 2026-06-15
   completed CD-011.
 - `ddd1d3059 docs(backend-api): rename query event extraction reference`
   completed CD-012.
+- `5563e3db2 docs(backend-api): rename package split references`
+  completed CD-013.
 
 ## Validation Log
 
