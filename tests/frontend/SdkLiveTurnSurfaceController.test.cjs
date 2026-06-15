@@ -1,6 +1,10 @@
 /** @jest-environment node */
 
 const {
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+} = require('../../frontend/src/main/surfaces/response_overlay_phase_handler.cjs');
+
+const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
   logSdkTypingTransition,
@@ -315,6 +319,29 @@ describe('sdk_live_turn_surface_controller', () => {
     });
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
+  });
+
+  test('ignores hidden SDK intent while renderer send preflight guard is active', () => {
+    const responseWindow = createWindow({ visible: true });
+    const deps = createDeps({
+      responseWindow,
+      getResponseOverlayVisible: jest.fn(() => true),
+      getResponseOverlayPhase: jest.fn(() => 'awaiting-first-chunk'),
+      getActiveResponseOverlayGuardRef: jest.fn(() => RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF),
+    });
+
+    const result = handleSdkLiveTurnSurfaceIntent(
+      createCurrentTurn({ mode: 'hidden', visible: false, turnRef: 'turn-1' }),
+      deps,
+    );
+
+    expect(result).toMatchObject({
+      success: true,
+      ignored: true,
+      reason: 'stale-hide',
+    });
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
+    expect(responseWindow.hide).not.toHaveBeenCalled();
   });
 
   test('hides overlay from matching SDK hidden intent', () => {

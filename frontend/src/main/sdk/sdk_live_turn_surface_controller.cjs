@@ -197,7 +197,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     syncContextLabelWindowVisibility = () => {},
     canShowFloatingResponseOverlay = () => true,
     surfaceState = null,
-    log = console.log,
   } = deps;
 
   const sdkSurfaceState = surfaceState || createSdkLiveTurnSurfaceState();

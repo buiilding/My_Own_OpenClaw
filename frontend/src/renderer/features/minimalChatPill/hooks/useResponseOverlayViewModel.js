@@ -12,11 +12,10 @@ import {
   useChatStore,
 } from '../../chat/stores/chatStore';
 import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
-import { RESPONSE_OVERLAY_PHASE } from '../../chat/utils/overlay/responseOverlayPhaseContract';
 import { OVERLAY_TURN_LIFECYCLE } from '../../chat/utils/overlay/overlayTurnLifecycleContract';
 import {
-  isCurrentTurnProjectionBusy,
-  mapCurrentTurnProjectionPhase,
+  resolveLiveTurnPresentationInput,
+  resolveSdkOverlayIntent,
 } from '../../chat/utils/state/liveTurnSurfaceState';
 import {
   buildCurrentTurnMessagesFromProjection,
@@ -27,79 +26,6 @@ import {
 } from '../../chat/utils/state/chatBoxResponseState';
 import { resolveChatPillViewIntent } from '../../chat/utils/chatPill/chatPillSessionFlow';
 import { logRendererLiveSurfaceTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
-
-function hasSdkLiveTurnPresentation(currentTurnProjection) {
-  const presentation = currentTurnProjection?.presentation;
-  return Boolean(
-    presentation
-      && typeof presentation === 'object'
-      && Array.isArray(presentation.entries)
-      && typeof presentation.typingVisible === 'boolean'
-      && typeof presentation.overlayVisible === 'boolean',
-  );
-}
-
-function isHiddenSdkPresentation(presentation) {
-  if (!presentation || typeof presentation !== 'object') {
-    return false;
-  }
-  const overlayIntent = presentation.overlayIntent;
-  const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
-  return (
-    presentation.isBusy !== true
-    && presentation.typingVisible !== true
-    && presentation.overlayVisible !== true
-    && presentation.hasVisibleContent !== true
-    && entries.length === 0
-    && (
-      !overlayIntent
-      || overlayIntent.mode === 'hidden'
-      || overlayIntent.visible === false
-    )
-  );
-}
-
-function shouldUseLocalSendLatch({
-  currentTurnProjection,
-  isSending,
-  useSdkLiveTurnPresentation,
-}) {
-  if (isSending !== true) {
-    return false;
-  }
-  if (!currentTurnProjection) {
-    return true;
-  }
-  if (useSdkLiveTurnPresentation) {
-    return isHiddenSdkPresentation(currentTurnProjection.presentation);
-  }
-  return (
-    currentTurnProjection.phase === 'complete'
-    || currentTurnProjection.phase === 'error'
-    || currentTurnProjection.phase === 'idle'
-  );
-}
-
-function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
-  const intent = presentation?.overlayIntent;
-  if (
-    intent
-    && typeof intent === 'object'
-    && (intent.mode === 'hidden' || intent.mode === 'awaiting' || intent.mode === 'response')
-  ) {
-    return intent;
-  }
-  const mode = presentation?.overlayVisible
-    ? 'response'
-    : (presentation?.typingVisible ? 'awaiting' : 'hidden');
-  return {
-    visible: mode !== 'hidden',
-    mode,
-    turnRef: currentTurnProjection?.turnRef ?? null,
-    conversationRef: currentTurnProjection?.conversationRef ?? '',
-    staleGuardRef: currentTurnProjection?.turnRef ?? null,
-  };
-}
 
 function normalizeSdkPresentationEntries(currentTurnProjection) {
   const presentation = currentTurnProjection?.presentation;
@@ -256,15 +182,13 @@ export function useResponseOverlayViewModel({
   const lastResolvedTraceSignatureRef = useRef(null);
   const lastTypingVisibleRef = useRef(null);
   const lastOverlayIntentModeRef = useRef(null);
-  const useSdkLiveTurnPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
-
-  const projectedPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
-    || RESPONSE_OVERLAY_PHASE.IDLE;
-  const useLocalSendLatch = shouldUseLocalSendLatch({
+  const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
     isSending,
-    useSdkLiveTurnPresentation,
+    messages,
   });
+  const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
+  const useLocalSendLatch = liveTurnPresentationInput.useLocalSendLatch;
   const currentTurnMessages = useMemo(
     () => (
       useLocalSendLatch
@@ -275,12 +199,8 @@ export function useResponseOverlayViewModel({
     ),
     [currentTurnProjection, messages, useLocalSendLatch, useSdkLiveTurnPresentation],
   );
-  const currentTurnPhase = useLocalSendLatch
-    ? RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
-    : projectedPhase;
-  const currentTurnIsSending = useLocalSendLatch
-    ? true
-    : isCurrentTurnProjectionBusy(currentTurnProjection?.phase);
+  const currentTurnPhase = liveTurnPresentationInput.phase;
+  const currentTurnIsSending = liveTurnPresentationInput.isSending;
 
   const responseOverlayEntries = useMemo(
     () => {

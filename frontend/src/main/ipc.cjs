@@ -1191,15 +1191,6 @@ async function ensureWindieLocalRuntime({ reason = 'local-runtime' } = {}) {
   }
 }
 
-async function restartWindieAgent(reason = 'restart') {
-  if (windieAgent) {
-    windieAgent.close?.();
-    windieAgent = null;
-  }
-  pendingWindieAgentStartPromise = null;
-  return ensureWindieAgent({ reason });
-}
-
 function isBackendRuntimeConnected() {
   return isConnected && Boolean(windieAgent?.isConnected());
 }

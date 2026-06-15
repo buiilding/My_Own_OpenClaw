@@ -17,10 +17,12 @@ describe('liveTurnSurfaceState', () => {
       isSending: false,
     });
 
-    expect(state).toEqual({
+    expect(state).toMatchObject({
       phase: 'complete',
       isSending: false,
       source: 'current-turn',
+      useLocalSendLatch: false,
+      useSdkLiveTurnPresentation: false,
     });
   });
 
@@ -39,10 +41,15 @@ describe('liveTurnSurfaceState', () => {
       ],
     });
 
-    expect(state).toEqual({
+    expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isSending: true,
-      source: 'send-latch',
+      isBusy: true,
+      showAwaiting: true,
+      source: 'send-preflight',
+      useLocalSendLatch: true,
+      useSdkLiveTurnPresentation: false,
+      turnRef: 'turn-2',
     });
   });
 
@@ -52,10 +59,160 @@ describe('liveTurnSurfaceState', () => {
       isSending: true,
     });
 
-    expect(state).toEqual({
+    expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isSending: true,
-      source: 'send-latch',
+      isBusy: true,
+      source: 'send-preflight',
+      useLocalSendLatch: true,
+      useSdkLiveTurnPresentation: false,
+    });
+  });
+
+  test('keeps send preflight when SDK presentation is hidden during handoff', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'awaiting',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        presentation: {
+          typingVisible: false,
+          overlayVisible: false,
+          isBusy: false,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: false,
+            mode: 'hidden',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      isSending: true,
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      isBusy: true,
+      source: 'send-preflight',
+      useLocalSendLatch: true,
+      useSdkLiveTurnPresentation: true,
+      showAwaiting: true,
+    });
+  });
+
+  test('keeps send preflight through unanchored hidden idle SDK projection', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'idle',
+        conversationRef: 'conv-1',
+        turnRef: 'startup-hidden',
+        presentation: {
+          typingVisible: false,
+          overlayVisible: false,
+          isBusy: false,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: false,
+            mode: 'hidden',
+            turnRef: 'startup-hidden',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'startup-hidden',
+          },
+        },
+      },
+      isSending: true,
+      messages: [],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      source: 'send-preflight',
+      useLocalSendLatch: true,
+      useSdkLiveTurnPresentation: true,
+    });
+  });
+
+  test('clears send preflight for hidden terminal SDK projection on the accepted turn', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'complete',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        presentation: {
+          typingVisible: false,
+          overlayVisible: false,
+          isBusy: false,
+          isTerminal: true,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: false,
+            mode: 'hidden',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      isSending: true,
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'complete',
+      isSending: false,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
+      useSdkLiveTurnPresentation: true,
+    });
+  });
+
+  test('lets SDK awaiting presentation supersede send preflight', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'awaiting',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        presentation: {
+          typingVisible: true,
+          overlayVisible: true,
+          isBusy: true,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: true,
+            mode: 'awaiting',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      isSending: true,
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
+      useSdkLiveTurnPresentation: true,
+      showAwaiting: true,
+      guardRef: 'turn-2',
     });
   });
 
@@ -67,7 +224,7 @@ describe('liveTurnSurfaceState', () => {
       isSending: false,
     });
 
-    expect(state).toEqual({
+    expect(state).toMatchObject({
       phase: 'idle',
       isSending: false,
       source: 'idle',

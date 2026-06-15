@@ -858,6 +858,9 @@ function createSurfaceRuntime({
         state.activeResponseOverlayCorrelationId = nextCorrelationId;
       },
       getActiveResponseOverlayGuardRef: () => state.activeResponseOverlayGuardRef,
+      setActiveResponseOverlayGuardRef: (nextGuardRef) => {
+        state.activeResponseOverlayGuardRef = nextGuardRef;
+      },
       canShowFloatingResponseOverlay,
       getChatboxHitTestActive: () => state.chatboxHitTestActive,
       setResponseOverlayVisibilityState,

@@ -6,34 +6,13 @@ import { useCallback } from 'react';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { runManualCompaction as runManualCompactionCommand } from '../utils/session/manualCompactionRuntime';
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
-import { resolveLiveTurnPresentationInput } from '../utils/state/liveTurnSurfaceState';
-
-function hasSdkLiveTurnPresentation(currentTurnProjection) {
-  const presentation = currentTurnProjection?.presentation;
-  return Boolean(
-    presentation
-      && typeof presentation === 'object'
-      && typeof presentation.typingVisible === 'boolean'
-      && typeof presentation.overlayVisible === 'boolean',
-  );
-}
+import {
+  resolveLiveTurnPresentationInput,
+  resolveSdkOverlayIntent,
+} from '../utils/state/liveTurnSurfaceState';
 
 function hasOwn(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);
-}
-
-function resolveSdkOverlayIntentMode(presentation) {
-  const mode = presentation?.overlayIntent?.mode;
-  if (mode === 'awaiting' || mode === 'response' || mode === 'hidden') {
-    return mode;
-  }
-  if (presentation?.overlayVisible === true) {
-    return 'response';
-  }
-  if (presentation?.typingVisible === true) {
-    return 'awaiting';
-  }
-  return 'hidden';
 }
 
 function resolveSdkAwaitingDotTargetMessageId(presentation, fallbackState) {
@@ -57,7 +36,7 @@ function buildSdkCurrentTurnPresentationState(currentTurnProjection, fallbackSta
   if (!presentation) {
     return null;
   }
-  const overlayIntentMode = resolveSdkOverlayIntentMode(presentation);
+  const overlayIntentMode = resolveSdkOverlayIntent(presentation, currentTurnProjection).mode;
   const awaitingVisible = overlayIntentMode === 'awaiting';
   const responseVisible = overlayIntentMode === 'response';
   return {
@@ -114,7 +93,10 @@ export function useChatSurfaceController({
     messages,
     allowedTypes,
   });
-  const resolvedCurrentTurnPresentationState = hasSdkLiveTurnPresentation(currentTurnProjection)
+  const resolvedCurrentTurnPresentationState = (
+    liveTurnPresentationInput.useSdkLiveTurnPresentation
+    && !liveTurnPresentationInput.useLocalSendLatch
+  )
     ? buildSdkCurrentTurnPresentationState(currentTurnProjection, currentTurnPresentationState)
     : currentTurnPresentationState;
   const isBusy = resolvedCurrentTurnPresentationState.isBusy === true;

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
 } = require('../../frontend/src/main/surfaces/response_overlay_phase_handler.cjs');
@@ -37,6 +38,8 @@ describe('response_overlay_phase_handler', () => {
         setFocusable: jest.fn(),
       },
       getChatboxHitTestActive: jest.fn(() => false),
+      getActiveResponseOverlayGuardRef: jest.fn(() => null),
+      setActiveResponseOverlayGuardRef: jest.fn(),
       ensureResponseOverlayFallbackBounds: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
       showResponseWindowInactive: jest.fn(),
@@ -118,22 +121,12 @@ describe('response_overlay_phase_handler', () => {
   });
 
   test('renderer send preflight can prime awaiting fallback before size intent arrives', () => {
-    const deps = createDeps();
-
-    handleResponseOverlayPhaseEvent({
-      phase: PHASE.AWAITING_FIRST_CHUNK,
-      source: 'renderer-send-preflight',
-    }, deps);
-
-    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
-    expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
-    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
-  });
-
-  test('renderer send preflight suppresses awaiting fallback when floating surface is not owner', () => {
+    let activeGuardRef = null;
     const deps = createDeps({
-      canShowFloatingResponseOverlay: jest.fn(() => false),
+      getActiveResponseOverlayGuardRef: jest.fn(() => activeGuardRef),
+      setActiveResponseOverlayGuardRef: jest.fn((nextGuardRef) => {
+        activeGuardRef = nextGuardRef;
+      }),
     });
 
     handleResponseOverlayPhaseEvent({
@@ -142,6 +135,49 @@ describe('response_overlay_phase_handler', () => {
     }, deps);
 
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
+    expect(deps.setActiveResponseOverlayGuardRef)
+      .toHaveBeenCalledWith(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF);
+    expect(activeGuardRef).toBe(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF);
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
+    expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
+    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+  });
+
+  test('idle phase clears preflight guard and hides overlay', () => {
+    let activeGuardRef = RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF;
+    const deps = createDeps({
+      getActiveResponseOverlayGuardRef: jest.fn(() => activeGuardRef),
+      setActiveResponseOverlayGuardRef: jest.fn((nextGuardRef) => {
+        activeGuardRef = nextGuardRef;
+      }),
+    });
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.IDLE }, deps);
+
+    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
+    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
+    expect(activeGuardRef).toBeNull();
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+  });
+
+  test('renderer send preflight suppresses awaiting fallback when floating surface is not owner', () => {
+    let activeGuardRef = RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF;
+    const deps = createDeps({
+      canShowFloatingResponseOverlay: jest.fn(() => false),
+      getActiveResponseOverlayGuardRef: jest.fn(() => activeGuardRef),
+      setActiveResponseOverlayGuardRef: jest.fn((nextGuardRef) => {
+        activeGuardRef = nextGuardRef;
+      }),
+    });
+
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.AWAITING_FIRST_CHUNK,
+      source: 'renderer-send-preflight',
+    }, deps);
+
+    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
+    expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();

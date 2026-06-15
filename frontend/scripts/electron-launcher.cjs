@@ -11,12 +11,6 @@ const {
   resolveLayerLogFile,
 } = require('../src/main/logging/layer_log_sink.cjs');
 
-const REPO_ROOT = path.resolve(
-  __dirname,
-  '..',
-  '..',
-);
-
 function parseOptions(argv) {
   return {
     dev: argv.includes('--dev'),

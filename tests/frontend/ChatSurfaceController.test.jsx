@@ -173,6 +173,65 @@ describe('useChatSurfaceController', () => {
     });
   });
 
+  test('keeps local send preflight busy when SDK presentation is hidden', () => {
+    const { result } = renderController({
+      presentationState: {
+        isBusy: true,
+        showChatboxAwaitingReply: true,
+        awaitingDotTargetMessageId: null,
+      },
+      props: {
+        isSending: true,
+        messages: [
+          { id: 'user-2', type: 'user', sender: 'user', text: 'second', turnRef: 'turn-2' },
+        ],
+        currentTurnProjection: {
+          phase: 'awaiting',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-2',
+          userMessageRowId: 'user-row-2',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            conversationRef: 'conv-1',
+            turnRef: 'turn-2',
+            phase: 'awaiting',
+            entries: [],
+            hasVisibleContent: false,
+            typingVisible: false,
+            overlayVisible: false,
+            isBusy: false,
+            isTerminal: false,
+            lastError: null,
+            overlayIntent: {
+              visible: false,
+              mode: 'hidden',
+              turnRef: 'turn-2',
+              conversationRef: 'conv-1',
+              staleGuardRef: 'turn-2',
+            },
+          },
+        },
+      },
+    });
+
+    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+    }));
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: true,
+      liveTurnPhase: 'awaiting-first-chunk',
+      liveTurnSource: 'send-preflight',
+    });
+    expect(result.current.currentTurnPresentationState).toMatchObject({
+      showChatboxAwaitingReply: true,
+    });
+  });
+
   test('runs pill and dashboard config toggles through one busy gate', () => {
     const { result, updateConfig, rerender } = renderController();
 

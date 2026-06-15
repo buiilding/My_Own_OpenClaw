@@ -17,11 +17,17 @@ const {
   appendSurfaceVisibilityDiagnostic,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
 
+const RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF = 'renderer-send-preflight';
+
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
     return null;
   }
   return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
+}
+
+function isResponseOverlayPreflightGuardRef(value) {
+  return value === RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF;
 }
 
 function applyResponseOverlayWindowMode(mode, deps = {}) {
@@ -36,6 +42,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     source = null,
     usePhaseVisibilityFallback = false,
     getActiveResponseOverlayGuardRef = () => null,
+    setActiveResponseOverlayGuardRef = () => {},
     canShowFloatingResponseOverlay = () => true,
   } = deps;
 
@@ -43,7 +50,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     const activeGuardRef = typeof getActiveResponseOverlayGuardRef === 'function'
       ? getActiveResponseOverlayGuardRef()
       : null;
-    if (activeGuardRef) {
+    if (activeGuardRef && !isResponseOverlayPreflightGuardRef(activeGuardRef)) {
       appendSurfaceVisibilityDiagnostic({
         action: 'ignore-hide-from-phase-for-guarded-sdk-overlay',
         mode,
@@ -67,6 +74,16 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
       return;
+    }
+    if (isResponseOverlayPreflightGuardRef(activeGuardRef)) {
+      setActiveResponseOverlayGuardRef(null);
+      logLiveSurfaceTrace('stale_guard.changed', {
+        source: 'phase-handler',
+        reason: 'clear-preflight-guard-for-phase-hide',
+        previousGuardRef: activeGuardRef,
+        nextGuardRef: null,
+        phase,
+      });
     }
     setResponseOverlayVisibilityState(false);
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
@@ -119,6 +136,19 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       return;
     }
     if (!canShowFloatingResponseOverlay()) {
+      const activeGuardRef = typeof getActiveResponseOverlayGuardRef === 'function'
+        ? getActiveResponseOverlayGuardRef()
+        : null;
+      if (isResponseOverlayPreflightGuardRef(activeGuardRef)) {
+        setActiveResponseOverlayGuardRef(null);
+        logLiveSurfaceTrace('stale_guard.changed', {
+          source: 'phase-handler',
+          reason: 'clear-preflight-guard-for-surface-owner',
+          previousGuardRef: activeGuardRef,
+          nextGuardRef: null,
+          phase,
+        });
+      }
       setResponseOverlayVisibilityState(false);
       if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
         responseWindow.hide();
@@ -156,6 +186,19 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     setResponseOverlayVisibilityState(true);
     if (!responseWindow || responseWindow.isDestroyed()) {
       return;
+    }
+    const activeGuardRef = typeof getActiveResponseOverlayGuardRef === 'function'
+      ? getActiveResponseOverlayGuardRef()
+      : null;
+    if (activeGuardRef !== RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF) {
+      setActiveResponseOverlayGuardRef(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF);
+      logLiveSurfaceTrace('stale_guard.changed', {
+        source: 'phase-handler',
+        reason: 'renderer-send-preflight',
+        previousGuardRef: activeGuardRef,
+        nextGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+        phase,
+      });
     }
     ensureResponseOverlayFallbackBounds();
     showResponseWindowWhenChatVisible();
@@ -256,6 +299,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     getActiveResponseOverlayCorrelationId = () => null,
     setActiveResponseOverlayCorrelationId = () => {},
     getActiveResponseOverlayGuardRef = () => null,
+    setActiveResponseOverlayGuardRef = () => {},
     canShowFloatingResponseOverlay = () => true,
   } = deps;
 
@@ -356,11 +400,14 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     usePhaseVisibilityFallback,
     getResponseOverlayPhase,
     getActiveResponseOverlayGuardRef,
+    setActiveResponseOverlayGuardRef,
     canShowFloatingResponseOverlay,
   });
 }
 
 module.exports = {
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
+  isResponseOverlayPreflightGuardRef,
 };
