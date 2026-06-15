@@ -47,7 +47,7 @@ Overlay/window control helpers:
 - `frontend/src/main/overlay_renderer_registration.cjs`
 - `frontend/src/main/overlay_signal_runtime.cjs`
 - `frontend/src/main/overlay_window_helpers_runtime.cjs`
-- `frontend/src/main/response_overlay_phase_handler.cjs`
+- `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`

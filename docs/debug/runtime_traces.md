@@ -336,8 +336,8 @@ Use this when the minimal pill, awaiting indicator, or response overlay flickers
 | Layer | Code root | What to inspect |
 | --- | --- | --- |
 | Phase contract | `frontend/src/shared/response_overlay_phase_contract.json` | Legal phase names and terminal states. |
-| Main phase IPC | `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs` | Phase writes and renderer notification. |
-| Main window policy | `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/display_affinity_runtime.cjs` | Visibility, capture, content protection, and display affinity. |
+| Main phase IPC | `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs` | Phase writes and renderer notification. |
+| Main window policy | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/display_affinity_runtime.cjs` | Visibility, capture, content protection, and display affinity. |
 | Renderer view model | `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js` | SDK current-turn projection, awaiting, streaming, complete, and error state transitions. |
 | Chat pill trace | `frontend/src/main/chat_pill_trace_runtime.cjs`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts` | Main and renderer state snapshots. |
 

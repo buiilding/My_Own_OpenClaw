@@ -26,7 +26,7 @@ title: "Frontend Protocol Lifecycle Hub"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
-- `frontend/src/main/response_overlay_phase_handler.cjs`
+- `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`

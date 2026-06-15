@@ -175,7 +175,7 @@ Key entry points:
   `frontend/src/main/ipc/ipc_query_runtime.cjs`,
   `frontend/src/main/query_payload_builder.cjs`,
   `frontend/src/main/sidecar/local_backend_bridge.cjs`,
-  `frontend/src/main/surface_runtime.cjs`.
+  `frontend/src/main/surfaces/surface_runtime.cjs`.
 - Renderer: `frontend/src/renderer/app/`,
   `frontend/src/renderer/features/chat/`,
   `frontend/src/renderer/features/dashboard/`,

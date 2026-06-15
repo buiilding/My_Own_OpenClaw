@@ -15,7 +15,7 @@ Canonical files:
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_process_bootstrap_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/surface_runtime.cjs`
+- `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/agent_stop_shortcut_runtime.cjs`
 - `frontend/src/main/vm_worker_runtime.cjs`

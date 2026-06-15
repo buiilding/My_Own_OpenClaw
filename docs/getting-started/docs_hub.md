@@ -402,7 +402,7 @@ Likely code:
 
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/overlay_*`
-- `frontend/src/main/response_overlay_phase_handler.cjs`
+- `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/**`
 - `frontend/src/renderer/app/ChatBox*.jsx`

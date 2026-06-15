@@ -52,12 +52,12 @@ rather than the React component that happens to render the symptom.
 | --- | --- | --- |
 | Add, remove, or rename an overlay phase | `frontend/src/shared/response_overlay_phase_contract.json`, `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js` | `tests/frontend/OverlayPhaseContractParity.test.js`, `tests/frontend/IpcOverlayPhaseContract.test.cjs`, `tests/frontend/ResponseOverlayPhaseContract.test.js` |
 | Phase event is ignored, malformed, or loses metadata | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/ResponseOverlayPhasePayload.test.js` |
-| Response overlay window shows/hides at wrong time | `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/response_overlay_visibility_policy.cjs`, `frontend/src/main/overlay_responsebox_handler.cjs` | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/ResponseOverlayVisibilityPolicy.test.cjs`, `tests/frontend/OverlayResponseboxHandler.test.cjs` |
-| Chat pill click-through or focusability is wrong | `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/tool_surface_lifecycle.cjs`, `frontend/src/main/overlay_chatbox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx` | `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/OverlayChatboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
-| Response overlay click-through or close/scroll hit-testing is wrong | `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/overlay_responsebox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx` | `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/OverlayResponseboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
+| Response overlay window shows/hides at wrong time | `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/response_overlay_visibility_policy.cjs`, `frontend/src/main/overlay_responsebox_handler.cjs` | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/ResponseOverlayVisibilityPolicy.test.cjs`, `tests/frontend/OverlayResponseboxHandler.test.cjs` |
+| Chat pill click-through or focusability is wrong | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/tool_surface_lifecycle.cjs`, `frontend/src/main/overlay_chatbox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx` | `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/OverlayChatboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
+| Response overlay click-through or close/scroll hit-testing is wrong | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/overlay_responsebox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx` | `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/OverlayResponseboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Awaiting indicator flickers or sticks | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`, `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js` | `tests/frontend/WindieSdkConversationRuntime.test.ts`, `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/LiveTurnSurfaceState.test.js`, `tests/frontend/ResponseOverlayLayoutMode.test.js` |
 | Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/screenshot_window_visibility/*`, `frontend/src/main/platform/content_protection/*`, renderer capture services for user-initiated attachments | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, platform policy tests |
-| Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/surface_runtime.cjs`, `frontend/src/main/tool_surface_lifecycle.cjs`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
+| Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/tool_surface_lifecycle.cjs`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Window bounds, frame size, or drag anchor jumps | `frontend/src/main/overlay_bounds.cjs`, `frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs`, `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`, `frontend/src/renderer/features/chat/utils/chatbox/chatboxPillLayout.js` | `tests/frontend/OverlayBounds.test.cjs`, `tests/frontend/OverlayFrameSize.test.js`, `tests/frontend/ChatBoxPillLayout.test.js` |
 
 ## Phase Pipeline
@@ -132,7 +132,7 @@ Producer rules:
 
 Read these files before changing window visibility or interactivity:
 
-- `frontend/src/main/response_overlay_phase_handler.cjs`
+- `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/response_overlay_visibility_policy.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
@@ -155,7 +155,7 @@ Main-process rules:
   overlay visibility.
 - Click-through, focusability, screenshot invisibility, and content protection
   do not belong in phase handling. Route those policies through
-  `tool_surface_lifecycle.cjs` and `surface_runtime.cjs` leases.
+  `tool_surface_lifecycle.cjs` and `surfaces/surface_runtime.cjs` leases.
 - Preserve debug trace fields when changing handler order so phase regressions
   can be reconstructed from logs.
 
@@ -189,7 +189,7 @@ Renderer rules:
 
 Read these files before changing screenshot or content-protection behavior:
 
-- `frontend/src/main/surface_runtime.cjs`
+- `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/tool_surface_lifecycle.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`

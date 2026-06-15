@@ -18,7 +18,7 @@ The response overlay displays live assistant output and transient tool/progress 
 - Window sync: `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
 - Scroll state: `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
 - Phase contracts: `frontend/src/shared/response_overlay_phase_contract.json`, `frontend/src/renderer/features/chat/utils/overlay/*`
-- Main handler: `frontend/src/main/response_overlay_phase_handler.cjs`
+- Main handler: `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 
 ## Runtime Model
 

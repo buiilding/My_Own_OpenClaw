@@ -97,6 +97,8 @@ All notable changes to WindieOS will be documented in this file.
   path and route SDK/main ownership docs to current agent and tool owners.
 - docs/renderer: remove active references to deleted `ChatBox` overlay
   component paths and old `view=chatbox*` routes.
+- docs/main: route active surface-runtime docs to the current
+  `frontend/src/main/surfaces` modules instead of deleted root-level paths.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation

@@ -77,7 +77,7 @@ Primary protocol tests:
 |---|---|---|
 | connection snapshot + handshake bootstrap (`get-client-user-id`, `ipc-status`) | `frontend/src/main/ipc.cjs` | `IpcMainBridge.lifecycle.test.cjs`, `AppConfigProvider.storageAndIpc.test.tsx` |
 | query send + settings ACK gate + synthetic local echo | `frontend/src/main/ipc.cjs` | `IpcMainBridge.query.test.cjs` |
-| overlay pre-capture + response-overlay phase transitions | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | `IpcMainBridge.query.test.cjs`, `IpcMainBridge.lifecycle.test.cjs`, `ResponseOverlayPhaseHandler.test.cjs` |
+| overlay pre-capture + response-overlay phase transitions | `frontend/src/main/ipc.cjs`, `frontend/src/main/surfaces/response_overlay_phase_handler.cjs` | `IpcMainBridge.query.test.cjs`, `IpcMainBridge.lifecycle.test.cjs`, `ResponseOverlayPhaseHandler.test.cjs` |
 | overlay IPC runtime channel ownership | `frontend/src/main/overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` |
 | window-control IPC runtime target routing + visibility handlers | `frontend/src/main/window_controls_ipc_runtime.cjs` | `WindowControlsIpcRuntime.test.cjs` |
 | display query payload mapping | `frontend/src/main/display_query_handler.cjs` | `DisplayQueryHandler.test.cjs` |

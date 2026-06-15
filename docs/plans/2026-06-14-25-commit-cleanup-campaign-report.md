@@ -37,7 +37,7 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 4 / 25.
+Counted cleanup commits: 5 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -45,6 +45,7 @@ Counted cleanup commits: 4 / 25.
 | 2 | `ce9385e86` | P25-002 | `./scripts/python-in-env backend python -c "import backend.src.core.types as t; assert 'JSONDict' not in t.__all__; assert 'StringDict' not in t.__all__; import backend.src.core.types.schemas"`; `./scripts/python-in-env backend pytest tests/backend/test_messages_and_converters.py -q`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed unused backend core type aliases. |
 | 3 | `bd2356e7b` | P25-005 | `node -c frontend/src/main/platform/screenshot_window_visibility/index.cjs`; `bin/windie test frontend -- LocalBackendBridgeWindowVisibility`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed no-op screenshot visibility platform modules. |
 | 4 | `703b2afad` | P25-003 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed active docs references to deleted SDK desktop-agent path and tests. |
+| 5 | `b5b7cd0e0` | P25-004 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed active docs references to deleted ChatBox overlay component paths and old chatbox routes. |
 
 ## Validation Log
 
@@ -53,4 +54,4 @@ Counted cleanup commits: 4 / 25.
 
 ## Current Status
 
-P25-001, P25-002, P25-003, and P25-005 are committed. P25-004 is in progress.
+P25-001 through P25-005 are committed. P25-006 is in progress.

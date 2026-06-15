@@ -171,7 +171,7 @@ Read:
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
-- `frontend/src/main/surface_runtime.cjs`
+- `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 
 Surface rules:

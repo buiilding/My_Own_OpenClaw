@@ -13,9 +13,9 @@ title: "Window and Overlay Lifecycle"
 Primary modules:
 
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/surface_runtime.cjs`
+- `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
-- `frontend/src/main/window_platform_policy.cjs`
+- `frontend/src/main/surfaces/window_platform_policy.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
@@ -46,16 +46,16 @@ Window set:
 
 Shared ownership model:
 
-- `surface_runtime.cjs` is the single main-process owner for `mainWindow`, `chatWindow`, `responseWindow`, `contextLabelWindow`, response-overlay visibility, and response phase.
+- `surfaces/surface_runtime.cjs` is the single main-process owner for `mainWindow`, `chatWindow`, `responseWindow`, `contextLabelWindow`, response-overlay visibility, and response phase.
 - it also owns the high-level surface state:
   - `primarySurface`: `onboarding|dashboard|chat`
   - `mainWindowMode`: `onboarding|dashboard`
 - high-level surface state advances only after the low-level show helper reports
   success, so failed chat/dashboard window transitions do not mark startup
   handling complete or report a surface switch that was not applied.
-- `window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy such as content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
+- `surfaces/window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy such as content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
 - `response_overlay_visibility_policy.cjs` is the shared pure policy layer for response-overlay phase -> window mode mapping and chat-pill response-shell restore eligibility.
-- `surface_runtime.cjs` stores chat-pill show/hide decisions under the
+- `surfaces/surface_runtime.cjs` stores chat-pill show/hide decisions under the
   `surface.visibility` app diagnostics path, including `reason`, `user_hidden`,
   focus, and final window visibility.
 - `chat_pill_trace_runtime.cjs` is the gated main-process trace helper for chat-pill / response-overlay transitions (`[ChatPillTrace][main]`).

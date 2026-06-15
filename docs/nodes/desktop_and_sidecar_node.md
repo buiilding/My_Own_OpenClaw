@@ -35,7 +35,7 @@ Start with these files when local orchestration changes:
 - `frontend/src/main/index.cjs`: composition root for app bootstrap.
 - `frontend/src/main/main_process_bootstrap_runtime.cjs`: bootstrap/runtime setup.
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`: Electron lifecycle policy.
-- `frontend/src/main/surface_runtime.cjs`: shared window/surface owner.
+- `frontend/src/main/surfaces/surface_runtime.cjs`: shared window/surface owner.
 - `frontend/src/main/ipc.cjs`: SDK-runtime adaptation, query dispatch, renderer fanout, session/config state.
 - `packages/windie-sdk-js/src/runtime/WindieAgent.ts` and `packages/windie-sdk-js/src/runtime/WindieClient.ts`: start the SDK agent runtime and supply Electron's SDK local-runtime client.
 - `frontend/src/main/ipc/**`: narrower IPC modules.
