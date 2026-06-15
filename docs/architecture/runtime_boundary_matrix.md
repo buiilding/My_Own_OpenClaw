@@ -39,3 +39,10 @@ Use this architecture-level matrix before searching broadly. It is intentionally
 - [Data Flow and State Ownership](data_flow_and_state_ownership.md)
 - [Change Ownership Decision Tree](change_ownership_decision_tree.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
+
+## Evidence Notes
+
+- Prove boundary ownership with the runtime that can observe or enforce the
+  invariant, not with a downstream consumer that only renders the result.
+- When two rows appear to own the same state, treat that as a design smell and
+  route the change through the owner matrix before adding another bridge.
