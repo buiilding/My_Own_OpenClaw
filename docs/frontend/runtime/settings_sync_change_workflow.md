@@ -90,7 +90,7 @@ Primary files:
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
 
 Validation:
 

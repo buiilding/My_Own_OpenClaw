@@ -20,7 +20,7 @@ WindieOS treats OpenAI as an online LLM provider with extra routing for native r
 | Chat tool compatibility | `backend/src/llm/providers/openai_tool_prep.py` |
 | Model catalog/capabilities | `backend/src/llm/models/models_config.py` |
 | Credential loading | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` |
-| OAuth helper | `frontend/src/main/openai_codex_oauth.cjs` |
+| OAuth helper | `frontend/src/main/app/openai_codex_oauth.cjs` |
 | Dashboard model/API key UI | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`, `ApiKeysSection.jsx` |
 
 ## Runtime Selection

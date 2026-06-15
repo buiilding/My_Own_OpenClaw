@@ -51,7 +51,7 @@ title: "Frontend Main Docs Hub"
 - `frontend/src/main/*.cjs`
 - `frontend/src/main/ipc/*.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
-- `frontend/src/main/test_shell.cjs`
+- `frontend/src/main/app/test_shell.cjs`
 - `frontend/src/main/python/dev_seed_mock_memory.py`
 - `frontend/src/preload.js`
 

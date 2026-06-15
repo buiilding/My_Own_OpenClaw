@@ -41,7 +41,7 @@ title: "Frontend Contracts IPC Docs Hub"
 - `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
-- `frontend/src/main/main_process_lifecycle_runtime.cjs`
+- `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`

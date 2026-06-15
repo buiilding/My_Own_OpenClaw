@@ -16,12 +16,12 @@ Use this hub before editing scripts, build config, backend auth/config, endpoint
 
 | Area | Primary owner | Code and config roots | Start docs |
 | --- | --- | --- | --- |
-| Runtime configuration | Backend config, Electron main endpoint resolution, renderer settings persistence, and sidecar env propagation | `backend/src/core/config`, `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js`, `frontend/src/main/python/windie/_backend_config.py` | [Configuration Change Workflow](configuration_change_workflow.md), [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
+| Runtime configuration | Backend config, Electron main endpoint resolution, renderer settings persistence, and sidecar env propagation | `backend/src/core/config`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js`, `frontend/src/main/python/windie/_backend_config.py` | [Configuration Change Workflow](configuration_change_workflow.md), [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
 | Gateway ingress | Hosted FastAPI app assembly, route registration, auth middleware, health checks, and edge troubleshooting | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth`, `scripts/cloudflared` | [Gateway Hub](../gateway/README.md), [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 | Runtime nodes | Hosted backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin process ownership | `backend/src`, `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `scripts/cloudflared` | [Runtime Nodes Hub](../nodes/README.md), [Runtime Node Matrix](../nodes/runtime_node_matrix.md) |
 | Hosted backend auth | Backend install-token service plus frontend token propagation | `backend/src/api/auth`, `backend/src/api/routes/websocket`, `frontend/src/main`, `frontend/src/renderer/infrastructure` | [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
-| VM run control | Runs API auth/caps plus Electron worker mode runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/vm_worker_runtime.cjs` | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
-| Deployment | Hosted backend origin, Cloudflare Tunnel, user services, default endpoint routing, push-to-host backend refresh | `scripts/cloudflared`, `scripts/deploy`, `.github/workflows/deploy-remote-backend.yml`, `backend/src/main.py`, `frontend/src/main/backend_endpoints.cjs` | [Deployment](deployment.md), [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md), [Remote Backend Auto Deploy](remote_backend_auto_deploy.md) |
+| VM run control | Runs API auth/caps plus Electron worker mode runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
+| Deployment | Hosted backend origin, Cloudflare Tunnel, user services, default endpoint routing, push-to-host backend refresh | `scripts/cloudflared`, `scripts/deploy`, `.github/workflows/deploy-remote-backend.yml`, `backend/src/main.py`, `frontend/src/main/app/backend_endpoints.cjs` | [Deployment](deployment.md), [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md), [Remote Backend Auto Deploy](remote_backend_auto_deploy.md) |
 | Packaging | Electron Builder, bundled Python runtime, release workflow | `frontend/package.json`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime`, `.github/workflows/desktop-release.yml` | [Release and Packaging Change Workflow](release_packaging_change_workflow.md), [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Release Guide](release.md) |
 | Local packaged reinstall | OS-specific uninstall, local state reset, runtime rebuild, launch smoke | `bin/windie reinstall mac`, `bin/windie reinstall linux`, `bin/windie reinstall win` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
 | Security | IPC isolation, API auth, tool execution policy, hosted-session risks | `frontend/src/preload.js`, `backend/src/api/auth`, `backend/src/core/security`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security](security.md), [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
@@ -39,7 +39,7 @@ Read:
 
 Likely code:
 
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
@@ -131,8 +131,8 @@ Likely code/config:
 
 - `backend/src/api/routes/runs/*`
 - `backend/src/services/vm_run_control.py`
-- `frontend/src/main/vm_worker_runtime.cjs`
-- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
 - `WINDIE_VM_*` and `WINDIE_RUNS_API_KEY` env vars
 
 Validation:

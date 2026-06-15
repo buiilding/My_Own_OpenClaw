@@ -144,7 +144,7 @@ Optional repo-aligned Conda environment names:
 
 ### 3.1 Python interpreter resolution used by Electron main
 
-`frontend/src/main/runtime_paths.cjs` resolves Python in this order:
+`frontend/src/main/app/runtime_paths.cjs` resolves Python in this order:
 
 Packaged app:
 

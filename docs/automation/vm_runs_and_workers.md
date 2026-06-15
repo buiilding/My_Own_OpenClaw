@@ -26,8 +26,8 @@ For a task-oriented edit checklist that routes symptoms and feature changes to o
 | Pending controls | `backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py` |
 | Bulk stop | `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py` |
 | Worker state payloads | `backend/src/services/vm_run_control_support/vm_run_control_worker_state.py` |
-| Electron worker loop | `frontend/src/main/vm_worker_runtime.cjs` |
-| VM mode flags | `frontend/src/main/runtime_mode.cjs` |
+| Electron worker loop | `frontend/src/main/app/vm_worker_runtime.cjs` |
+| VM mode flags | `frontend/src/main/app/runtime_mode.cjs` |
 
 ## Lifecycle
 
@@ -82,7 +82,7 @@ Active-run cap:
 
 ## Worker Polling and Assignment
 
-`frontend/src/main/vm_worker_runtime.cjs` starts the worker loop when VM worker mode is enabled.
+`frontend/src/main/app/vm_worker_runtime.cjs` starts the worker loop when VM worker mode is enabled.
 
 Worker mode flags:
 

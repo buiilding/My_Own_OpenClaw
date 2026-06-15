@@ -18,7 +18,7 @@ First classify the failure by runtime boundary. Many install failures look like 
 | frontend command cannot find packages | Node install | `cd frontend && npm install`; inspect `frontend/package.json` scripts |
 | Electron dev launches but cannot connect | endpoint selection or backend health | `BACKEND_HTTP_URL`, `BACKEND_WS_URL`, backend health route |
 | renderer loads but sidecar tools fail | Electron main sidecar bridge | sidecar readiness logs, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` |
-| packaged app cannot start sidecar | bundled runtime path or missing runtime deps | inspect `resources/python-runtime`, `frontend/src/main/runtime_paths.cjs`, packaged run log |
+| packaged app cannot start sidecar | bundled runtime path or missing runtime deps | inspect `resources/python-runtime`, `frontend/src/main/app/runtime_paths.cjs`, packaged run log |
 | local macOS reinstall waits on signing | wrong workflow for local loop | use reinstall helper; confirm release signing env is not driving local packaging |
 | Windows packaging fails extracting helpers | symlink/developer-mode issue | enable Developer Mode or run elevated shell; use Windows reinstall helper preflight |
 | Linux package installs but browser tools fail | missing OS dependency or AppImage gap | install `xdotool` for AppImage users; prefer DEB/RPM dependency metadata |

@@ -24,11 +24,11 @@ This matrix maps frontend capabilities to implementation files.
 | Capability | Primary files | Notes |
 | --- | --- | --- |
 | Electron app bootstrap + window creation | `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs` | Creates dashboard and overlay windows; wires runtime deps. |
-| App lifecycle and global shortcut policy | `frontend/src/main/main_process_lifecycle_runtime.cjs` | Startup/activate/quit behavior and wakeword hotkey toggling. |
+| App lifecycle and global shortcut policy | `frontend/src/main/app/main_process_lifecycle_runtime.cjs` | Startup/activate/quit behavior and wakeword hotkey toggling. |
 | Split main-process IPC registrars | `frontend/src/main/surfaces/{overlay_phase_ipc_runtime,window_controls_ipc_runtime}.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/main/surfaces/overlay_*_handler.cjs`, `frontend/src/main/surfaces/main_window_controls_handler.cjs` | Phase-owned overlay shell channels, dashboard/display controls, and permission/sudo handlers. |
 | Overlay visibility and side-channel signaling | `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/surfaces/response_overlay_phase_handler.cjs` | Broadcasts overlay visibility + wakeword toggle/STT triggers. |
 | Overlay bounds and top-most helper runtime | `frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs`, `frontend/src/main/surfaces/overlay_bounds.cjs` | Positioning, fallback bounds, always-on-top helpers, context-label sync. |
-| VM mode + worker bridge runtime | `frontend/src/main/runtime_mode.cjs`, `frontend/src/main/vm_worker_runtime.cjs` | Env-gated VM worker lifecycle, `/api/runs/*` heartbeat/dispatch/event relay, control command application. |
+| VM mode + worker bridge runtime | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/vm_worker_runtime.cjs` | Env-gated VM worker lifecycle, `/api/runs/*` heartbeat/dispatch/event relay, control command application. |
 | Main/chat visibility transitions | `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/surfaces/overlay_visibility_handler.cjs` | Focus/hide/show policy across chat, response overlay, and main window. |
 | Overlay query-capture blur prep | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/ipc.cjs` | Blurs WindieOS windows and waits briefly before capture without restoring another app to foreground. |
 
@@ -36,12 +36,12 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| Backend websocket handshake + relay | `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs`, `frontend/src/main/backend_endpoints.cjs` | SDK-managed `/ws` session and renderer-safe stream fan-out. |
+| Backend websocket handshake + relay | `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs`, `frontend/src/main/app/backend_endpoints.cjs` | SDK-managed `/ws` session and renderer-safe stream fan-out. |
 | First-query settings ACK gate | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc.cjs` | Runs timeout-bound settings ACK before first query send. |
 | IPC helper module split | `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
 | Query payload construction | `frontend/src/main/query_payload_builder.cjs` | Adds system/memory context and query metadata before send. |
 | Frontend config load/save | `frontend/src/main/ipc/ipc_frontend_config.cjs` | Disk + in-memory config snapshot ownership. |
-| OpenAI Codex OAuth IPC flow | `frontend/src/main/openai_codex_oauth.cjs`, `frontend/src/main/ipc.cjs` | PKCE login + local callback server and logout response envelopes for non-UI callers; renderer settings do not currently expose OAuth controls. |
+| OpenAI Codex OAuth IPC flow | `frontend/src/main/app/openai_codex_oauth.cjs`, `frontend/src/main/ipc.cjs` | PKCE login + local callback server and logout response envelopes for non-UI callers; renderer settings do not currently expose OAuth controls. |
 | Local sidecar daemon lifecycle | `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_supervisor.cjs`, `frontend/src/main/app/runtime_paths.cjs` | SDK-owned daemon startup/reuse, desktop launch options, readiness/status snapshots, and shutdown. |
 | Sidecar RPC request mapping | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` | SDK local runtime RPC routing, payload mapping, and host window/screenshot wrapper behavior. |
 | Wakeword subprocess bridge | `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | Binary framing for wakeword audio input/output messages, plus helper-owned stderr status parsing and payload normalization. |

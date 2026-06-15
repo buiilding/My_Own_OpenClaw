@@ -37,7 +37,7 @@ Healthy signs:
 First checks:
 
 - Electron stdout/stderr,
-- `frontend/src/main/backend_endpoints.cjs`,
+- `frontend/src/main/app/backend_endpoints.cjs`,
 - `frontend/src/main/ipc.cjs`,
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`,
 - debug flags in [Diagnostic Flags](diagnostic_flags.md).
@@ -104,7 +104,7 @@ First checks:
 - `WINDIE_VM_WORKER_MODE`,
 - workspace/worker/vm env ids,
 - runs API key,
-- `frontend/src/main/vm_worker_runtime.cjs`.
+- `frontend/src/main/app/vm_worker_runtime.cjs`.
 
 ## Cloudflare and Origin Services
 

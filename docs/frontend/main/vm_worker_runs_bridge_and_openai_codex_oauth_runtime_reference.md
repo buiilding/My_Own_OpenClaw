@@ -13,11 +13,11 @@ title: "VM Worker Runs Bridge and OpenAI Codex OAuth Runtime Reference"
 This page documents two Electron-main runtime slices:
 
 - VM worker orchestration bridge:
-  - `frontend/src/main/vm_worker_runtime.cjs`
-  - `frontend/src/main/runtime_mode.cjs`
+  - `frontend/src/main/app/vm_worker_runtime.cjs`
+  - `frontend/src/main/app/runtime_mode.cjs`
   - startup wiring in `frontend/src/main/index.cjs`
 - OpenAI Codex OAuth flow:
-  - `frontend/src/main/openai_codex_oauth.cjs`
+  - `frontend/src/main/app/openai_codex_oauth.cjs`
   - IPC handlers in `frontend/src/main/ipc.cjs`
 - Runtime contract tests:
   - `tests/frontend/VmWorkerRuntime.test.cjs`

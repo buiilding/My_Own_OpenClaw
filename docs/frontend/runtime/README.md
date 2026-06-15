@@ -32,8 +32,8 @@ title: "Frontend Runtime Docs Hub"
 - `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/agent_stop_shortcut_runtime.cjs`
-- `frontend/src/main/runtime_mode.cjs`
-- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/core/feature_pack_installer.py`
 

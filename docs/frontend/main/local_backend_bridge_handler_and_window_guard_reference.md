@@ -45,8 +45,8 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
-- `frontend/src/main/runtime_paths.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
 
 ## Related Contracts
 

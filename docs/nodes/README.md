@@ -105,8 +105,8 @@ Likely code:
 - `backend/src/api/routes/runs/**`
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_support/**`
-- `frontend/src/main/vm_worker_runtime.cjs`
-- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
 
 Validate backend run-control tests and frontend VM worker/runtime-mode tests.
 

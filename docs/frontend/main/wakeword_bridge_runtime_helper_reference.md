@@ -12,7 +12,7 @@ title: "Wakeword Bridge Runtime Helper Reference"
 
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
-- `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
 - `tests/frontend/WakewordBridgeRuntime.test.cjs`
 
 ## Runtime Split

@@ -19,7 +19,7 @@ Use this architecture-level matrix before searching broadly. It is intentionally
 | React renderer | dashboard, chat UI, response overlay UI, settings, permissions UI, voice controls, transcript projection, display-only tool state | `frontend/src/renderer` | [Frontend Architecture](frontend_architecture.md), [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 | Python sidecar | local tools, browser runtime, filesystem/shell/computer actions, local memory DB/FAISS, system state, hosted SDK helper clients | `frontend/src/main/python` | [Python Sidecar](python_sidecar.md), [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md) |
 | wakeword subprocess | wakeword model/runtime, audio frame handling, detection events | `frontend/src/main/wakeword_bridge*.cjs`, `frontend/src/main/python/wakeword_service.py` | [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
-| VM worker | hosted run heartbeat, assignment, dispatch, event relay, stop controls | `frontend/src/main/vm_worker_runtime.cjs`, `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py` | [Automation Hub](../automation/README.md) |
+| VM worker | hosted run heartbeat, assignment, dispatch, event relay, stop controls | `frontend/src/main/app/vm_worker_runtime.cjs`, `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py` | [Automation Hub](../automation/README.md) |
 | Cloudflare/origin | public HTTPS/WebSocket ingress to hosted backend origin | `scripts/cloudflared`, deployment/service config | [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
 
 ## Boundary Tests

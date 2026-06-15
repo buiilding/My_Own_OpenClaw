@@ -16,7 +16,7 @@ Primary modules:
 - `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/surfaces/main_window_runtime.cjs`
 - `frontend/src/main/surfaces/window_platform_policy.cjs`
-- `frontend/src/main/main_process_lifecycle_runtime.cjs`
+- `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`

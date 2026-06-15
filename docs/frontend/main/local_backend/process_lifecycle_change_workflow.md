@@ -41,7 +41,7 @@ readiness/status broadcasts.
 | Supervisor state | `frontend/src/main/sidecar/local_backend_supervisor.cjs` | Tracks renderer-visible daemon status, ready flag, generation, and last error. |
 | Launch options | `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs` | Resolves desktop daemon command/args/cwd/env/launch context before passing them to the SDK. |
 | Timeout policy | `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |
-| Launch target resolution | `frontend/src/main/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
+| Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
 | Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localBackendStatusStore.js` | Bootstraps current status and subscribes to `local-backend-status` events. |
 | Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-backend readiness. |

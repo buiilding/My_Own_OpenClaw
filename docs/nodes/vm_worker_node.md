@@ -18,8 +18,8 @@ For code-owner routing across route models, assignment helpers, event logs, cont
 
 Code roots:
 
-- `frontend/src/main/vm_worker_runtime.cjs`
-- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
 - `frontend/src/main/index.cjs`
 - `backend/src/api/routes/runs/**`
 - `backend/src/services/vm_run_control.py`

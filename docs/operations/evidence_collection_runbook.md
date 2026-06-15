@@ -40,7 +40,7 @@ Next action:
 | Cloudflare Tunnel | Hosted route status, tunnel service status, tunnel logs | `curl -fsSL https://api.windieos.com/api/embeddings/health`, `systemctl --user status windieos-cloudflared.service --no-pager`, `journalctl --user -u windieos-cloudflared.service -n 100 --no-pager` |
 | Backend route/auth | HTTP status, response body, headers present, install token source | `curl -i`, [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md) |
 | Main websocket | close code, first handshake payload shape, bearer token presence, backend logs | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
-| Electron main | endpoint candidates, token registration state, websocket state, sidecar readiness | Electron logs, `frontend/src/main/backend_endpoints.cjs`, `WINDIE_LOG_FILE=<path>` |
+| Electron main | endpoint candidates, token registration state, websocket state, sidecar readiness | Electron logs, `frontend/src/main/app/backend_endpoints.cjs`, `WINDIE_LOG_FILE=<path>` |
 | Renderer | visible state, active conversation/session, event type, tool runner state | focused frontend test or browser/devtools observation |
 | Sidecar | JSON-RPC method, stderr, tool result payload, remote client URL | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`, sidecar pytest target |
 | Packaged app | package type, runtime path, install location, local app state, packaged log | reinstall runbook, `~/windieos-packaged-run.log` on macOS helper path |

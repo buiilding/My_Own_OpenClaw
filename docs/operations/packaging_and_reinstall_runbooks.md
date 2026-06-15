@@ -37,7 +37,7 @@ Primary files:
 - `scripts/build-sidecar-runtime`
 - `frontend/src/main/python/requirements.runtime.txt`
 - `frontend/electron-builder.bundled-python.yml`
-- `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `packages/windie-sdk-js/cjs`
@@ -179,12 +179,12 @@ Do not change version numbers, tags, or publish artifacts without explicit appro
 | Symptom | Likely owner | First checks |
 | --- | --- | --- |
 | Packaged app cannot find `packages/windie-sdk-js/cjs` at launch | generated SDK CJS resources missing from Electron Builder config | inspect package contents under `resources/packages/windie-sdk-js/cjs` and `resources/node_modules/ws` |
-| Packaged app cannot start sidecar | runtime path or bundled Python missing | `frontend/src/main/runtime_paths.cjs`, package contents under `resources/python-runtime`, sidecar logs |
+| Packaged app cannot start sidecar | runtime path or bundled Python missing | `frontend/src/main/app/runtime_paths.cjs`, package contents under `resources/python-runtime`, sidecar logs |
 | macOS local build hangs on signing/notarization | wrong path: using release signing instead of local reinstall | confirm reinstall helper strips `APPLE_*` and `CSC_*`; use ad-hoc local path |
 | macOS app launches from copied install but not DMG | signing/hardened runtime/Gatekeeper path | `scripts/ci/smoke-macos-packages.sh`, [Release Guide](release.md) |
 | Windows packaging fails extracting signing helper | symlink/developer mode | run reinstall helper preflight, enable Developer Mode or use elevated shell |
 | Linux AppImage browser tools fail but DEB works | missing system package | verify `xdotool` installed for AppImage users |
-| Packaged app connects to wrong backend | endpoint env/default resolution | [Runtime Configuration Matrix](runtime_configuration_matrix.md), `frontend/src/main/backend_endpoints.cjs` |
+| Packaged app connects to wrong backend | endpoint env/default resolution | [Runtime Configuration Matrix](runtime_configuration_matrix.md), `frontend/src/main/app/backend_endpoints.cjs` |
 | Browser tool asks to install Chromium | no compatible system browser and no Playwright cache | [Browser Troubleshooting](../browser/browser_troubleshooting.md) |
 
 ## Validation Checklist

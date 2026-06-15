@@ -29,7 +29,7 @@ Primary files:
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/surfaces/main_window_runtime.cjs`
-- `frontend/src/main/main_process_lifecycle_runtime.cjs`
+- `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
@@ -45,8 +45,8 @@ Primary files:
 - `frontend/src/main/surfaces/main_window_controls_handler.cjs`
 - `frontend/src/main/surfaces/display_query_handler.cjs`
 - `frontend/src/main/surfaces/overlay_topmost_runtime.cjs`
-- `frontend/src/main/runtime_mode.cjs`
-- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
 
 Functionality:
 
@@ -73,12 +73,12 @@ Primary files:
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/openai_codex_oauth.cjs`
+- `frontend/src/main/app/openai_codex_oauth.cjs`
 
 Functionality:
 
@@ -101,7 +101,7 @@ Primary files:
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
 
 Functionality:
 
@@ -141,8 +141,8 @@ Functionality:
 
 Primary files:
 
-- `frontend/src/main/runtime_mode.cjs`
-- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
 - `frontend/src/main/index.cjs`
 
 Functionality:

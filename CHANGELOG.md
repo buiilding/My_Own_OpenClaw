@@ -105,6 +105,8 @@ All notable changes to WindieOS will be documented in this file.
   sudo docs to the moved `frontend/src/main/permissions` modules.
 - docs/main: route active overlay and window-surface docs to the moved
   `frontend/src/main/surfaces` modules.
+- docs/main: route active app-runtime docs to the moved
+  `frontend/src/main/app` modules.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation

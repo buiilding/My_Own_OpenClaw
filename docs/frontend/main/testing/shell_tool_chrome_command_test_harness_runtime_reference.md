@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for `test_shell.cjs`: manual shell-tool smoke harness, OS-specific Chrome command selection, background/foreground execution probes, and pass/fail summary semantics."
 read_when:
-  - When modifying manual shell-tool smoke tests in `frontend/src/main/test_shell.cjs`.
+  - When modifying manual shell-tool smoke tests in `frontend/src/main/app/test_shell.cjs`.
   - When investigating Chrome launch command compatibility differences across Windows/macOS/Linux.
 title: "Shell Tool Chrome Command Test Harness Runtime Reference"
 ---
@@ -10,7 +10,7 @@ title: "Shell Tool Chrome Command Test Harness Runtime Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/test_shell.cjs`
+- `frontend/src/main/app/test_shell.cjs`
 - `frontend/src/main/python/tools/system/shell_tool.py`
 - `frontend/src/main/python/tools/system/process_tool.py`
 

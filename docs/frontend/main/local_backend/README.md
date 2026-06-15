@@ -43,8 +43,8 @@ title: "Frontend Main Local-Backend Docs Hub"
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
-- `frontend/src/main/runtime_paths.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`

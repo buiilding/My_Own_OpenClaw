@@ -33,18 +33,18 @@ Keep these nodes separate when developing. They run on the user's machine, but e
 Start with these files when local orchestration changes:
 
 - `frontend/src/main/index.cjs`: composition root for app bootstrap.
-- `frontend/src/main/main_process_bootstrap_runtime.cjs`: bootstrap/runtime setup.
-- `frontend/src/main/main_process_lifecycle_runtime.cjs`: Electron lifecycle policy.
+- `frontend/src/main/app/main_process_bootstrap_runtime.cjs`: bootstrap/runtime setup.
+- `frontend/src/main/app/main_process_lifecycle_runtime.cjs`: Electron lifecycle policy.
 - `frontend/src/main/surfaces/surface_runtime.cjs`: shared window/surface owner.
 - `frontend/src/main/ipc.cjs`: SDK-runtime adaptation, query dispatch, renderer fanout, session/config state.
 - `packages/windie-sdk-js/src/runtime/WindieAgent.ts` and `packages/windie-sdk-js/src/runtime/WindieClient.ts`: start the SDK agent runtime and supply Electron's SDK local-runtime client.
 - `frontend/src/main/ipc/**`: narrower IPC modules.
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`: SDK local-runtime host/status bridge.
 - `frontend/src/main/sidecar/local_backend_bridge_*`: local-runtime request mapping, timeout, screenshot, bounds, and tool-argument helpers.
-- `frontend/src/main/backend_endpoints.cjs`: hosted backend endpoint selection.
+- `frontend/src/main/app/backend_endpoints.cjs`: hosted backend endpoint selection.
 - `frontend/src/main/permission_*`: OS permission probes and grant effects.
 - `frontend/src/main/wakeword_bridge*.cjs`: wakeword subprocess bridge.
-- `frontend/src/main/vm_worker_runtime.cjs`: optional VM worker node layered on main.
+- `frontend/src/main/app/vm_worker_runtime.cjs`: optional VM worker node layered on main.
 
 ## Renderer Code Roots
 

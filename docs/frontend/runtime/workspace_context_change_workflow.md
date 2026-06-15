@@ -39,7 +39,7 @@ execution, and backend prompt construction.
 | Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`, `frontend/src/main/permissions/permission_service_workspace.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
 | Per-conversation workspace binding is missing or stale | `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
 | Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/QueryPayloadBuilder.test.cjs` |
-| Electron main AGENTS.md injection changes | `frontend/src/main/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
+| Electron main AGENTS.md injection changes | `frontend/src/main/app/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
 | Backend query execution does not pass workspace into agent session | `backend/src/api/services/query_execution_support/query_execution_inputs.py`, `backend/src/api/services/query_execution.py`, `backend/src/agent/session/manager.py` | `tests/backend/test_query_execution_inputs.py`, `tests/backend/test_api_handlers.py`, `tests/backend/test_session_manager.py` |
 | Backend prompt misses AGENTS.md or uses stale repo instructions | `backend/src/llm/prompts/repo_instructions.py`, prompt constructor/manager modules | `tests/backend/test_repo_instructions.py`, `tests/backend/test_prompt_constructor_utils.py`, `tests/backend/test_prompt_manager.py` |
 | Rehydrated conversation resumes with wrong workspace | `backend/src/api/services/rehydrate_execution.py`, renderer rehydrate payload builders, conversation workspace binding helpers | backend rehydrate tests, frontend conversation replay/resume tests |
@@ -130,7 +130,7 @@ Read these files when `workspace_path` is missing on the backend:
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
-- `frontend/src/main/repo_instruction_runtime.cjs`
+- `frontend/src/main/app/repo_instruction_runtime.cjs`
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/services/rehydrate_execution.py`
@@ -150,7 +150,7 @@ Forwarding rules:
 
 Electron main path:
 
-- `frontend/src/main/repo_instruction_runtime.cjs`
+- `frontend/src/main/app/repo_instruction_runtime.cjs`
 - `tests/frontend/RepoInstructionRuntime.test.cjs`
 
 Backend path:

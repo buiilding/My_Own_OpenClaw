@@ -37,7 +37,7 @@ Use these overrides only through the config/settings path. Do not bypass the bac
 
 ## OAuth Entries
 
-The current OAuth config surface includes `openai_codex`. The main-process OAuth helper lives at `frontend/src/main/openai_codex_oauth.cjs`. Renderer controls may not expose every compatible backend setting, so verify current UI before documenting a user-visible OAuth flow.
+The current OAuth config surface includes `openai_codex`. The main-process OAuth helper lives at `frontend/src/main/app/openai_codex_oauth.cjs`. Renderer controls may not expose every compatible backend setting, so verify current UI before documenting a user-visible OAuth flow.
 
 ## Hosted Install Auth
 

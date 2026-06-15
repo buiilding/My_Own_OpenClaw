@@ -37,7 +37,7 @@ WindieOS should use OpenClaw-style node docs for discoverability, but the curren
 
 - If there is no code root, do not document a future node as an active runtime.
 - If a future node needs API examples, label them as proposed and keep them under `docs/planning/` unless the route exists.
-- If a node is implemented only as a mode of Electron main, document it as such. The current VM worker is `frontend/src/main/vm_worker_runtime.cjs`, not a standalone worker service.
+- If a node is implemented only as a mode of Electron main, document it as such. The current VM worker is `frontend/src/main/app/vm_worker_runtime.cjs`, not a standalone worker service.
 - If a feature needs persistence, scheduling, billing, or tenant isolation, do not hide it inside the desktop worker. Plan a backend control-plane node first.
 - Update this page when a planned node gets an implemented process, route, deployment target, or test suite.
 

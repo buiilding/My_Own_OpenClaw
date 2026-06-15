@@ -10,15 +10,15 @@ title: "Runtime Paths and Endpoints"
 
 ## Canonical Modules
 
-- `frontend/src/main/backend_endpoints.cjs`
-- `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/runtime_mode.cjs`
-- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
 
 ## Backend Endpoint Resolution
 

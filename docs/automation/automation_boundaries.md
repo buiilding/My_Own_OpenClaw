@@ -47,7 +47,7 @@ It is not appropriate for:
 | --- | --- | --- |
 | Add a field to run creation or run view | `backend/src/api/routes/runs/models.py`, route/service docs | renderer chat state |
 | Change assignment or active-run cap behavior | `VmRunControlService` and support helpers | Electron worker only |
-| Add a worker runtime env var | `frontend/src/main/vm_worker_runtime.cjs`, operations docs | backend `AppConfig` unless backend enforces it |
+| Add a worker runtime env var | `frontend/src/main/app/vm_worker_runtime.cjs`, operations docs | backend `AppConfig` unless backend enforces it |
 | Add a dashboard-visible event in the run timeline | worker event relay or service event append path | backend history storage |
 | Add cron scheduling | planning docs first, then a new scheduler/service if implemented | existing VM worker heartbeat loop |
 | Add webhook ingestion | planning/API design first | `POST /api/runs/` without an auth/source model |

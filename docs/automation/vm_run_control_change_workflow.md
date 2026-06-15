@@ -32,11 +32,11 @@ Current VM run control is not a cron scheduler, webhook engine, durable job queu
 | Change control action validation | Backend route helper | `backend/src/api/routes/runs/route_helpers.py` | [Runs API Runbook](runs_api_runbook.md) | `tests/backend/test_run_control_route_helpers.py` |
 | Change event polling projection | Backend route helper and event log | `backend/src/api/routes/runs/route_helpers.py`, `backend/src/services/vm_run_control_support/vm_run_control_event_log.py` | [VM Runs and Workers](vm_runs_and_workers.md) | `tests/backend/test_run_control_response_builders.py`, event-log tests |
 | Change active-run cap or status set | Backend service | `backend/src/services/vm_run_control.py`, `backend/src/services/vm_run_control_support/vm_run_control_transitions.py` | [Automation Boundaries](automation_boundaries.md), [Backend Service Change Workflow](../backend/services/backend_service_change_workflow.md) | `tests/backend/test_run_control_routes.py`, transition tests |
-| Change worker assignment or heartbeat behavior | Backend assignment helpers and Electron worker | `backend/src/services/vm_run_control_support/vm_run_control_assignment.py`, `backend/src/services/vm_run_control_support/vm_run_control_worker_state.py`, `frontend/src/main/vm_worker_runtime.cjs` | [VM Worker Node](../nodes/vm_worker_node.md) | `tests/backend/test_vm_run_control_assignment.py`, `tests/frontend/VmWorkerRuntime.test.cjs` |
-| Change dispatch acknowledgement | Backend service plus Electron worker | `backend/src/services/vm_run_control.py`, `frontend/src/main/vm_worker_runtime.cjs` | [VM Runs and Workers](vm_runs_and_workers.md) | route tests and `tests/frontend/VmWorkerRuntime.test.cjs` |
-| Change stream event ingest or terminal status mapping | Backend service and Electron relay | `backend/src/services/vm_run_control.py`, `frontend/src/main/vm_worker_runtime.cjs` | [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md) | event payload/log tests, frontend worker relay tests |
-| Change pending controls or stop-all | Backend pending-control/bulk-stop helpers and Electron worker | `backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py`, `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`, `frontend/src/main/vm_worker_runtime.cjs` | [Runs API Runbook](runs_api_runbook.md) | `tests/backend/test_vm_run_control_pending_controls.py`, `tests/backend/test_vm_run_control_bulk_stop.py`, frontend stop-control tests |
-| Change runs API auth or key lookup | Backend support and Electron worker env lookup | `backend/src/api/routes/runs/support.py`, `frontend/src/main/vm_worker_runtime.cjs` | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md), [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md) | route auth tests, frontend worker header tests |
+| Change worker assignment or heartbeat behavior | Backend assignment helpers and Electron worker | `backend/src/services/vm_run_control_support/vm_run_control_assignment.py`, `backend/src/services/vm_run_control_support/vm_run_control_worker_state.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [VM Worker Node](../nodes/vm_worker_node.md) | `tests/backend/test_vm_run_control_assignment.py`, `tests/frontend/VmWorkerRuntime.test.cjs` |
+| Change dispatch acknowledgement | Backend service plus Electron worker | `backend/src/services/vm_run_control.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [VM Runs and Workers](vm_runs_and_workers.md) | route tests and `tests/frontend/VmWorkerRuntime.test.cjs` |
+| Change stream event ingest or terminal status mapping | Backend service and Electron relay | `backend/src/services/vm_run_control.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md) | event payload/log tests, frontend worker relay tests |
+| Change pending controls or stop-all | Backend pending-control/bulk-stop helpers and Electron worker | `backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py`, `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [Runs API Runbook](runs_api_runbook.md) | `tests/backend/test_vm_run_control_pending_controls.py`, `tests/backend/test_vm_run_control_bulk_stop.py`, frontend stop-control tests |
+| Change runs API auth or key lookup | Backend support and Electron worker env lookup | `backend/src/api/routes/runs/support.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md), [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md) | route auth tests, frontend worker header tests |
 | Add durability, retries, cron, webhook, or scheduler behavior | New backend design, not the current worker loop | new storage/scheduler modules after planning | [Automation Boundaries](automation_boundaries.md), planning docs | migration, multi-process, retry, auth, and scheduler tests |
 
 ## Runtime Lifecycle With Edit Points
@@ -100,8 +100,8 @@ Owner files:
 - `backend/src/services/vm_run_control_support/vm_run_control_assignment.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_worker_state.py`
 - `backend/src/api/routes/runs/models.py`
-- `frontend/src/main/vm_worker_runtime.cjs`
-- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
 
 Backend assignment invariants:
 
@@ -139,7 +139,7 @@ If a run is created but never assigned, inspect in this order:
 
 Owner files:
 
-- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
 - `backend/src/api/routes/runs/router.py`
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_event_payloads.py`
@@ -164,7 +164,7 @@ If dispatch fails before ack, the worker posts an `error` event to the run timel
 
 Owner files:
 
-- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
 - `backend/src/api/routes/runs/models.py`
 - `backend/src/api/routes/runs/response_builders.py`
 - `backend/src/services/vm_run_control.py`
@@ -218,7 +218,7 @@ Owner files:
 - `backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_transitions.py`
-- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
 
 Supported actions:
 
@@ -256,7 +256,7 @@ Backend:
 
 Electron worker:
 
-- code root: `frontend/src/main/vm_worker_runtime.cjs`
+- code root: `frontend/src/main/app/vm_worker_runtime.cjs`
 - key lookup order: `WINDIE_VM_RUNS_API_KEY`, `WINDIE_RUNS_API_KEY`, `WINDIE_DEMO_API_KEY`
 - sends `x-windie-runs-key` when a key is available
 

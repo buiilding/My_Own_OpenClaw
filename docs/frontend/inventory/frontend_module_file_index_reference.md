@@ -26,14 +26,14 @@ Core runtime:
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/surfaces/main_window_runtime.cjs`
-- `frontend/src/main/main_process_lifecycle_runtime.cjs`
+- `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
-- `frontend/src/main/runtime_paths.cjs`
-- `frontend/src/main/runtime_mode.cjs`
-- `frontend/src/main/vm_worker_runtime.cjs`
-- `frontend/src/main/openai_codex_oauth.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
+- `frontend/src/main/app/runtime_mode.cjs`
+- `frontend/src/main/app/vm_worker_runtime.cjs`
+- `frontend/src/main/app/openai_codex_oauth.cjs`
 
 Overlay/window control helpers:
 
@@ -67,7 +67,7 @@ Bridge/support modules:
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/test_shell.cjs`
+- `frontend/src/main/app/test_shell.cjs`
 
 ## Renderer File Index
 

@@ -21,10 +21,10 @@ The core rule is: put the setting where it can be enforced, then propagate only 
 | make settings update rewire sessions correctly | backend session config service | `backend/src/agent/session/config_runtime.py`, `backend/src/agent/session/session_config_service.py`, `backend/src/api/handlers/settings.py` | [Backend Session Runtime and Config Rewire Reference](../backend/agent/session_runtime_and_config_rewire_reference.md) | `tests/backend/test_session_config_service.py`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_settings_payload_builder.py` |
 | change model picker or frontend settings toggle | renderer config/settings | `frontend/src/renderer/features/settings`, `frontend/src/renderer/app/providers`, `frontend/src/renderer/utils/configFilter.js`, `frontend/src/renderer/utils/configStorage.js` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md), [Frontend Config Sync Lifecycle](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md) | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
 | first query ignores latest settings | Electron main settings ACK gate | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_frontend_config.cjs` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/AppStatusProvider.test.tsx` |
-| endpoint defaults or hosted/local URL selection changed | Electron endpoint resolver and sidecar env propagation | `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/python/windie/_backend_config.py` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) | `tests/frontend/BackendEndpoints.test.cjs`, `tests/sidecar/test_backend_config.py` |
+| endpoint defaults or hosted/local URL selection changed | Electron endpoint resolver and sidecar env propagation | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/python/windie/_backend_config.py` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) | `tests/frontend/BackendEndpoints.test.cjs`, `tests/sidecar/test_backend_config.py` |
 | provider key, OAuth, or secret behavior changed | env var loader and credential boundary | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py`, provider runtime files, renderer provider settings only for user-entered overrides | [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md), [Provider Credentials](../providers/credentials.md) | backend config/provider tests plus frontend provider settings tests |
 | sidecar local tool runtime variable changed | SDK local-runtime launch env and sidecar runtime reader | `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`, `frontend/src/main/python/core`, `frontend/src/main/python/tools` | [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md) | `tests/sidecar/test_backend_config.py`, focused sidecar tool tests |
-| VM worker or runs API variable changed | backend runs API and Electron VM worker runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/vm_worker_runtime.cjs`, `frontend/src/main/runtime_mode.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) | backend runs tests, frontend VM worker tests |
+| VM worker or runs API variable changed | backend runs API and Electron VM worker runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/app/vm_worker_runtime.cjs`, `frontend/src/main/app/runtime_mode.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) | backend runs tests, frontend VM worker tests |
 | release, signing, package, or bundled runtime variable changed | release/packaging scripts | `.github/workflows`, `frontend/package.json`, `frontend/electron-builder.*`, `scripts/build-sidecar-runtime`, `bin/windie reinstall <platform>` | [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md), [Release Guide](release.md) | package build, smoke helper, target OS manual installed-app check |
 
 ## Ownership Rules
@@ -117,7 +117,7 @@ Endpoint changes are high blast-radius because renderer, Electron main, sidecar,
 
 Primary files:
 
-- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
@@ -159,7 +159,7 @@ Primary files:
 
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_supervisor.cjs`
-- `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
 - `frontend/src/main/python/core/env_flags.py`
 - `frontend/src/main/python/core/executors.py`
