@@ -71,14 +71,12 @@ Registration:
 
 Cancellation:
 
-- `stop-query` currently calls `SessionManager.cancel_active_query_task(user_id)` (global per-user cancel from handler path).
-- `StopQueryPayload.conversation_ref` exists in schema, but current handler implementation does not forward this field into cancellation filtering.
-- `SessionManager.cancel_active_query_task(...)` supports scoped cancellation when `conversation_ref` is provided.
-- current websocket stop handler uses the unscoped path, so runtime behavior today is all-live-task cancel for the user.
+- `stop-query` calls `SessionManager.cancel_active_query_task(user_id, conversation_ref=..., turn_ref=...)`.
+- `StopQueryPayload.conversation_ref` and `turn_ref` scope cancellation to the intended active turn when supplied.
 - manager returns last cancelled `(turn_ref, conversation_ref)` metadata tuple.
-- if nothing is currently cancelable, manager stores short-lived pending stop intent (scoped by conversation when provided) and consumes it on later query registration race.
+- if nothing is currently cancelable, manager stores short-lived pending stop intent (scoped by conversation and turn when provided) and consumes it on later query registration race.
 - pending stop intent grace window is `5.0s` (`_PENDING_STOP_GRACE_SECONDS`).
-- `StopQueryHandler` always emits `streaming-complete` so renderer exits active phase even if no live task exists.
+- `StopQueryHandler` emits `stop-query-ack` control traffic; SDK/current-turn projection exits active phase locally.
 
 Cleanup:
 

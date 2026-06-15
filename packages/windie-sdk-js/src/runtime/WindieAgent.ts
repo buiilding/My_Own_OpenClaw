@@ -79,6 +79,13 @@ export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text'
   model?: WindieModelSelection;
 };
 
+export type WindieAgentStopOptions = {
+  conversation_ref?: string | null;
+  conversationRef?: string | null;
+  turn_ref?: string | null;
+  turnRef?: string | null;
+};
+
 export type WindieAgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
   getKnownLocalRuntime?(): WindieLocalRuntimeClient | null;
@@ -304,8 +311,14 @@ export class WindieAgent {
     }
   }
 
-  async stop(conversationRef?: string | null): Promise<string> {
-    return this.session.stopQuery(conversationRef);
+  async stop(input?: string | WindieAgentStopOptions | null): Promise<string> {
+    if (input && typeof input === 'object') {
+      return this.session.stopQuery({
+        conversation_ref: input.conversation_ref ?? input.conversationRef ?? null,
+        turn_ref: input.turn_ref ?? input.turnRef ?? null,
+      });
+    }
+    return this.session.stopQuery({ conversation_ref: input ?? null });
   }
 
   async wakewordDetected(payload: JsonRecord = {}): Promise<string> {

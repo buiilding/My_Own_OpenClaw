@@ -33,6 +33,7 @@ Current constants:
 - `list-models`
 - `update-settings`
 - `wakeword-detected`
+- `compact-history`
 - `tool-result`
 - `tool-bundle-result`
 
@@ -59,6 +60,7 @@ Includes stream/runtime types such as:
 - `audio-chunk`
 - `wakeword-activated`
 - `wakeword-greeting`
+- `stop-query-ack`
 - `system-prompt`
 - `tool-schemas`
 - `token-count`
@@ -68,9 +70,11 @@ Includes stream/runtime types such as:
 - `settings-updated`
 - `models-listed`
 
-The settings/model ACK messages are emitted by non-query settings/model handlers
-via `send_success_response(...)`, but they are still part of the outgoing schema
-contract because renderer and SDK settings listeners consume them directly.
+The stop, settings, and model ACK messages are emitted by non-query handlers via
+`send_success_response(...)`, but they are still part of the outgoing schema
+contract because renderer and SDK consumers observe them as first-party
+websocket envelopes. `stop-query-ack` is control traffic; it is schema-backed
+but not a backend stream event for current-turn projection.
 
 ## Why the Outgoing Set Is Split
 
@@ -78,7 +82,7 @@ contract because renderer and SDK settings listeners consume them directly.
 
 Result:
 
-- settings/model ACK messages are valid transport envelopes and part of the outgoing schema contract table.
+- stop/settings/model ACK messages are valid transport envelopes and part of the outgoing schema contract table.
 
 Any truly ad hoc helper response type should either become a schema-backed
 outgoing contract or stay out of first-party renderer/SDK event consumers.
@@ -103,6 +107,10 @@ as local-only helper sentinels.
 - `models-listed` (`ListModelsHandler`)
 - `settings-updated` (`UpdateSettingsHandler`)
 
+`backend/src/api/handlers/stop_query.py` emits:
+
+- `stop-query-ack` (`StopQueryHandler`)
+
 Responses still use canonical envelope shape:
 
 - `{type, id, payload}` plus optional context fields
@@ -113,7 +121,7 @@ Responses still use canonical envelope shape:
 
 `tests/backend/test_transport_envelope.py` and `tests/backend/test_api_errors.py` verify:
 
-- ACK/control types like `settings-updated` and `settings-loaded` are supported by transport helpers and schema contracts
+- ACK/control types like `stop-query-ack`, `settings-updated`, and `settings-loaded` are supported by transport helpers and schema contracts
 - context fields attach only when truthy
 - helper send paths swallow expected closed-connection/runtime send failures
 

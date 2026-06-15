@@ -333,8 +333,8 @@ The route table is validated against incoming schema literals at startup.
 ## Important Handler Behaviors at API Surface
 
 - `query`: registers active task by turn_ref, executes stream pipeline, clears task in `finally`.
-- `stop-query`: cancels active query task and always emits `streaming-complete`.
-  - `StopQueryPayload.conversation_ref` exists in schema, but current handler path does not forward it and cancels per-user active tasks.
+- `stop-query`: cancels active query task and emits `stop-query-ack` control traffic.
+  - `StopQueryPayload.conversation_ref` and `turn_ref` scope cancellation to the intended active turn when supplied.
 - `update-settings`: only frontend-owned patch keys are applied to per-session config
   (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`,
   `speech_mode_enabled`, `wakeword_enabled`, `wakeword_stt_enabled`,

@@ -99,15 +99,15 @@ Active-query rejection behavior:
 
 Behavior:
 
-1. call `SessionManager.cancel_active_query_task(user_id)`
-   - current handler does not forward `StopQueryPayload.conversation_ref`, so cancel path is user-scoped (all live tasks) in websocket runtime
+1. call `SessionManager.cancel_active_query_task(user_id, conversation_ref=..., turn_ref=...)`
+   - `conversation_ref` and `turn_ref` scope cancellation to the intended active turn when supplied
 2. if task canceled, capture `(turn_ref, conversation_ref)` metadata
 3. if no task is currently registered, SessionManager stores a short-lived pending stop intent (race guard for query task registration)
-4. always emit terminal success envelope so renderer exits active streaming UI state
+4. emit a control acknowledgement; SDK/current-turn projection owns local terminalization
 
 Response type emitted by handler:
 
-- `streaming-complete` (even when no task was active)
+- `stop-query-ack` (even when no task was active)
 
 Cancellation source of truth:
 
@@ -170,7 +170,8 @@ If stop-query does not unblock UI:
 
 1. verify frontend sends `stop-query` on same `user_id`
 2. verify active task was registered in query handler path
-3. verify `streaming-complete` response reached renderer channel
+3. verify SDK/current-turn projection produced local stop terminalization
+4. verify backend emitted `stop-query-ack` without `event_id` or `sequence`
 
 If wakeword greets but no audio:
 

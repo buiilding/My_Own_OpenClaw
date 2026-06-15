@@ -6,10 +6,12 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.infrastructure.errors import send_error_response, send_success_response
+from backend.src.api.infrastructure.errors import (
+    send_error_response,
+    send_success_response,
+)
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.schemas import StopQueryMessage
-from backend.src.api.transport.envelope import StreamEventSequencer
 from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:
@@ -34,11 +36,17 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
     ) -> None:
         try:
             conversation_ref = message.payload.conversation_ref
+            turn_ref = message.payload.turn_ref
             canceled = self.session_manager.cancel_active_query_task(
                 user_id,
                 conversation_ref=conversation_ref,
+                turn_ref=turn_ref,
             )
             context: dict[str, Any] = {"user_id": user_id}
+            if conversation_ref:
+                context["conversation_ref"] = conversation_ref
+            if turn_ref:
+                context["turn_ref"] = turn_ref
 
             session = self.session_manager.get_session(
                 user_id,
@@ -49,37 +57,39 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
                 context["session_id"] = session_id
 
             if canceled is not None:
-                turn_ref, conversation_ref = canceled
-                if turn_ref:
-                    context["turn_ref"] = turn_ref
-                    context["stream_event_sequencer"] = StreamEventSequencer(
-                        turn_ref=turn_ref
-                    )
-                if conversation_ref:
-                    context["conversation_ref"] = conversation_ref
+                canceled_turn_ref, canceled_conversation_ref = canceled
+                if canceled_turn_ref:
+                    context["turn_ref"] = canceled_turn_ref
+                if canceled_conversation_ref:
+                    context["conversation_ref"] = canceled_conversation_ref
                 logger.info(
                     "[Stop Query] User requested stop; cancellation signaled "
+                    "(user_id=%s, turn_ref=%s, conversation_ref=%s, session_id=%s)",
+                    user_id,
+                    canceled_turn_ref,
+                    canceled_conversation_ref,
+                    context.get("session_id"),
+                )
+            else:
+                logger.info(
+                    "[Stop Query] User requested stop but no active query task was running "
                     "(user_id=%s, turn_ref=%s, conversation_ref=%s, session_id=%s)",
                     user_id,
                     turn_ref,
                     conversation_ref,
                     context.get("session_id"),
                 )
-            else:
-                logger.info(
-                    "[Stop Query] User requested stop but no active query task was running "
-                    "(user_id=%s, conversation_ref=%s, session_id=%s)",
-                    user_id,
-                    conversation_ref,
-                    context.get("session_id"),
-                )
 
-            # Always emit completion so frontend leaves active streaming state.
             await send_success_response(
                 websocket,
                 message.id,
-                OutgoingMessageType.STREAMING_COMPLETE,
-                {},
+                OutgoingMessageType.STOP_QUERY_ACK,
+                {
+                    "status": "stopped" if canceled is not None else "not-running",
+                    "canceled": canceled is not None,
+                    "conversation_ref": context.get("conversation_ref"),
+                    "turn_ref": context.get("turn_ref"),
+                },
                 context=context,
             )
         except Exception as exc:  # pragma: no cover - defensive error path

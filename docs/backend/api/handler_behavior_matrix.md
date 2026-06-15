@@ -35,9 +35,9 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 
 ### `StopQueryHandler`
 
-- cancels active query task for user if present
-- current websocket handler path is user-scoped cancel (payload `conversation_ref` is not forwarded to cancellation filter)
-- always emits streaming completion response so frontend exits active send/stream state
+- cancels matching active query task for user if present
+- scopes cancellation by payload `conversation_ref` and `turn_ref` when supplied
+- emits `stop-query-ack` control traffic; SDK/current-turn projection owns local stop terminalization
 - includes context metadata (`turn_ref`, `conversation_ref`, `session_id`) when available
 
 ### `RehydrateConversationHandler`

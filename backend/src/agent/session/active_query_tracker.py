@@ -18,6 +18,46 @@ ACTIVE_QUERY_STOP_CONSUMED = "stop-consumed"
 ACTIVE_QUERY_USER_LIMIT = "user-limit"
 ACTIVE_QUERY_GLOBAL_LIMIT = "global-limit"
 
+PendingStopKey = tuple[Optional[str], Optional[str]]
+
+
+def normalize_optional_turn_ref(turn_ref: Optional[str]) -> Optional[str]:
+    """Normalize optional turn refs to trimmed non-empty strings."""
+    if not isinstance(turn_ref, str):
+        return None
+    normalized = turn_ref.strip()
+    return normalized or None
+
+
+def _pending_stop_key(
+    conversation_ref: Optional[str],
+    turn_ref: Optional[str],
+) -> PendingStopKey:
+    return (
+        normalize_optional_conversation_ref(conversation_ref),
+        normalize_optional_turn_ref(turn_ref),
+    )
+
+
+def _pending_stop_candidates(
+    conversation_ref: Optional[str],
+    turn_ref: Optional[str],
+) -> list[PendingStopKey]:
+    normalized_conversation_ref, normalized_turn_ref = _pending_stop_key(
+        conversation_ref,
+        turn_ref,
+    )
+    candidates: list[PendingStopKey] = []
+    for candidate in (
+        (normalized_conversation_ref, normalized_turn_ref),
+        (normalized_conversation_ref, None),
+        (None, normalized_turn_ref),
+        (None, None),
+    ):
+        if candidate not in candidates:
+            candidates.append(candidate)
+    return candidates
+
 
 class ActiveQueryTracker:
     """Track live query tasks and pending stop requests by user/conversation."""
@@ -26,27 +66,25 @@ class ActiveQueryTracker:
         self.active_query_tasks: dict[
             str, dict[asyncio.Task[Any], tuple[str, Optional[str]]]
         ] = {}
-        self.pending_stop_requests: dict[str, dict[Optional[str], float]] = {}
+        self.pending_stop_requests: dict[str, dict[PendingStopKey, float]] = {}
         self._lock = threading.RLock()
 
     def register_pending_stop_request(
         self,
         user_id: str,
         conversation_ref: Optional[str] = None,
+        turn_ref: Optional[str] = None,
     ) -> None:
         with self._lock:
-            normalized_conversation_ref = normalize_optional_conversation_ref(
-                conversation_ref
-            )
+            key = _pending_stop_key(conversation_ref, turn_ref)
             user_pending = self.pending_stop_requests.setdefault(user_id, {})
-            user_pending[normalized_conversation_ref] = (
-                time.monotonic() + _PENDING_STOP_GRACE_SECONDS
-            )
+            user_pending[key] = time.monotonic() + _PENDING_STOP_GRACE_SECONDS
 
     def consume_pending_stop_request(
         self,
         user_id: str,
         conversation_ref: Optional[str] = None,
+        turn_ref: Optional[str] = None,
     ) -> bool:
         with self._lock:
             user_pending = self.pending_stop_requests.get(user_id)
@@ -54,14 +92,7 @@ class ActiveQueryTracker:
                 return False
 
             now = time.monotonic()
-            normalized_conversation_ref = normalize_optional_conversation_ref(
-                conversation_ref
-            )
-            candidate_keys = [normalized_conversation_ref]
-            if normalized_conversation_ref is not None:
-                candidate_keys.append(None)
-
-            for pending_key in candidate_keys:
+            for pending_key in _pending_stop_candidates(conversation_ref, turn_ref):
                 expires_at = user_pending.get(pending_key)
                 if expires_at is None:
                     continue
@@ -123,7 +154,11 @@ class ActiveQueryTracker:
             normalized_conversation_ref = normalize_optional_conversation_ref(
                 conversation_ref
             )
-            if self.consume_pending_stop_request(user_id, normalized_conversation_ref):
+            if self.consume_pending_stop_request(
+                user_id,
+                normalized_conversation_ref,
+                turn_ref,
+            ):
                 return ACTIVE_QUERY_STOP_CONSUMED
 
             user_tasks = self.active_query_tasks.setdefault(user_id, {})
@@ -152,18 +187,24 @@ class ActiveQueryTracker:
         self,
         user_id: str,
         conversation_ref: Optional[str] = None,
+        turn_ref: Optional[str] = None,
     ) -> Optional[tuple[str, Optional[str]]]:
         with self._lock:
             normalized_conversation_ref = normalize_optional_conversation_ref(
                 conversation_ref
             )
+            normalized_turn_ref = normalize_optional_turn_ref(turn_ref)
             user_tasks = self.active_query_tasks.get(user_id)
             if not user_tasks:
-                self.register_pending_stop_request(user_id, normalized_conversation_ref)
+                self.register_pending_stop_request(
+                    user_id,
+                    normalized_conversation_ref,
+                    normalized_turn_ref,
+                )
                 return None
 
             cancelled_entries: list[tuple[str, Optional[str]]] = []
-            for active_task, (turn_ref, task_conversation_ref) in list(
+            for active_task, (task_turn_ref, task_conversation_ref) in list(
                 user_tasks.items()
             ):
                 if active_task.done():
@@ -174,25 +215,41 @@ class ActiveQueryTracker:
                     and task_conversation_ref != normalized_conversation_ref
                 ):
                     continue
+                if (
+                    normalized_turn_ref is not None
+                    and task_turn_ref != normalized_turn_ref
+                ):
+                    continue
                 active_task.cancel()
                 user_tasks.pop(active_task, None)
-                cancelled_entries.append((turn_ref, task_conversation_ref))
+                cancelled_entries.append((task_turn_ref, task_conversation_ref))
 
             if not user_tasks:
                 self.active_query_tasks.pop(user_id, None)
 
             if not cancelled_entries:
-                self.register_pending_stop_request(user_id, normalized_conversation_ref)
+                self.register_pending_stop_request(
+                    user_id,
+                    normalized_conversation_ref,
+                    normalized_turn_ref,
+                )
                 return None
 
-            if normalized_conversation_ref is None:
-                self.pending_stop_requests.pop(user_id, None)
-            else:
-                pending = self.pending_stop_requests.get(user_id)
-                if pending is not None:
-                    pending.pop(normalized_conversation_ref, None)
-                    if not pending:
-                        self.pending_stop_requests.pop(user_id, None)
+            pending = self.pending_stop_requests.get(user_id)
+            if pending is not None:
+                for pending_key in _pending_stop_candidates(
+                    normalized_conversation_ref,
+                    normalized_turn_ref,
+                ):
+                    pending.pop(pending_key, None)
+                for cancelled_turn_ref, cancelled_conversation_ref in cancelled_entries:
+                    for pending_key in _pending_stop_candidates(
+                        cancelled_conversation_ref,
+                        cancelled_turn_ref,
+                    ):
+                        pending.pop(pending_key, None)
+                if not pending:
+                    self.pending_stop_requests.pop(user_id, None)
             return cancelled_entries[-1]
 
     def has_active_query_task(

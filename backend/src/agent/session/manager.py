@@ -264,6 +264,7 @@ class SessionManager(ConfigSubscriber):
         self,
         user_id: str,
         conversation_ref: Optional[str] = None,
+        turn_ref: Optional[str] = None,
     ) -> Optional[tuple[str, Optional[str]]]:
         """
         Cancel the currently active query task for a user.
@@ -272,7 +273,11 @@ class SessionManager(ConfigSubscriber):
             Tuple of ``(turn_ref, conversation_ref)`` when a live task was canceled;
             otherwise ``None``.
         """
-        return self._active_queries.cancel_active_query_task(user_id, conversation_ref)
+        return self._active_queries.cancel_active_query_task(
+            user_id,
+            conversation_ref=conversation_ref,
+            turn_ref=turn_ref,
+        )
 
     def has_active_query_task(
         self,

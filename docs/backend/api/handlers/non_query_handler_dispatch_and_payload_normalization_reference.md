@@ -50,12 +50,13 @@ Properties:
 
 `stop-query` behavior:
 
-- calls `session_manager.cancel_active_query_task(user_id)`
+- calls `session_manager.cancel_active_query_task(user_id, conversation_ref=..., turn_ref=...)`
 - derives optional context: `session_id`, `turn_ref`, `conversation_ref`
 - context helper trims optional `session_id`/`conversation_ref` and drops blank/non-string values
-- always emits `streaming-complete` success response, even when no active task exists
+- emits `stop-query-ack` as control traffic, without stream `event_id` or `sequence`
 
-Reason: frontend must always exit active streaming state when stop is requested.
+Reason: SDK/current-turn projection terminalizes Stop locally; backend cancellation ack
+must not synthesize a stream terminal event.
 
 ## `CompactHistoryHandler` Semantics
 
@@ -175,7 +176,7 @@ This split keeps envelope strict while preserving per-tool extensibility.
 
 `tests/backend/test_api_handlers.py` verifies:
 
-- stop-query emits `streaming-complete` with context refs and cancels task
+- stop-query emits ack-only control traffic with context refs and cancels the matching task
 - tool-result data model normalization keeps `system_state` and screenshot refs
 - non-computer tool results can omit `system_state`
 - bundle step outputs preserve nested/extra output fields

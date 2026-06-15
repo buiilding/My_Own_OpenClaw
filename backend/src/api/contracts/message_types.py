@@ -70,6 +70,7 @@ class OutgoingMessageType:
         StreamingEventType.CONTEXT_COMPACTION_FAILED.value
     )
     TRACE_EVENT: Final[str] = StreamingEventType.TRACE_EVENT.value
+    STOP_QUERY_ACK: Final[str] = "stop-query-ack"
     SETTINGS_LOADED: Final[str] = "settings-loaded"
     SETTINGS_UPDATED: Final[str] = "settings-updated"
     MODELS_LISTED: Final[str] = "models-listed"
@@ -88,6 +89,7 @@ OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.AUDIO_CHUNK,
     OutgoingMessageType.WAKEWORD_ACTIVATED,
     OutgoingMessageType.WAKEWORD_GREETING,
+    OutgoingMessageType.STOP_QUERY_ACK,
     OutgoingMessageType.SETTINGS_LOADED,
     OutgoingMessageType.SETTINGS_UPDATED,
     OutgoingMessageType.MODELS_LISTED,

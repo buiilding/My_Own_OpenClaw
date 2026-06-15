@@ -22,6 +22,11 @@ WindieOS streaming is the live contract between the hosted backend, SDK runtime,
 | config/model status | `models-listed`, `settings-updated` | app config/status providers |
 | audio side-channel | `audio-chunk` | dedicated audio parser/player, not the typed chat event union |
 
+Stop is control traffic, not an assistant stream event. The renderer/SDK
+terminalizes the current turn locally when Stop is requested; the backend
+`stop-query` handler only acknowledges cancellation with `stop-query-ack` and
+must not emit a synthetic `streaming-complete`.
+
 ## Event Path
 
 1. Backend agent/services emit typed internal events.

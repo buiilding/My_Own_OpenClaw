@@ -112,10 +112,10 @@ There are two parallel tracking layers:
 
 `StopQueryHandler` behavior:
 
-- calls `SessionManager.cancel_active_query_task(user_id)`
-- cancels every still-running tracked query task for the user
-- returns the last canceled `(turn_ref, conversation_ref)` pair for context
-- always emits `streaming-complete` so frontend exits active stream state even when nothing was running
+- calls `SessionManager.cancel_active_query_task(user_id, conversation_ref=..., turn_ref=...)`
+- cancels matching still-running tracked query tasks, scoped by turn when supplied
+- returns the last canceled `(turn_ref, conversation_ref)` pair for ack context
+- emits `stop-query-ack` control traffic without stream sequence fields
 
 ## Disconnect Cleanup Chain
 
@@ -180,7 +180,8 @@ If stop-query appears ignored:
 
 1. confirm query handler registered `current_task`
 2. confirm stop-query user_id matches active query user_id
-3. confirm frontend received `streaming-complete` fallback
+3. confirm SDK/current-turn projection terminalized locally
+4. confirm frontend received `stop-query-ack` without `event_id` or `sequence`
 
 If send path deadlocks/fails under load:
 

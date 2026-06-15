@@ -278,7 +278,10 @@ describe('frontend/backend websocket incoming contract', () => {
       const parsed = JSON.parse(message);
       assertPayloadMatchesContract(parsed.type, parsed.payload);
     });
-    expect(sentPayload(socket, 0)).toEqual({ conversation_ref: 'conv-1' });
+    expect(sentPayload(socket, 0)).toEqual({
+      conversation_ref: 'conv-1',
+      turn_ref: 'payload-extra',
+    });
     expect(sentPayload(socket, 1)).toEqual({
       conversation_ref: 'conv-1',
       messages: [],
@@ -416,6 +419,7 @@ describe('frontend/backend websocket incoming contract', () => {
     expect(() => assertPayloadMatchesContract('stop-query', {
       conversation_ref: 'conv-1',
       turn_ref: 'payload-extra',
+      renderer_only: true,
     })).toThrow();
   });
 });

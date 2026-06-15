@@ -124,11 +124,12 @@ Locked by:
 - `session_id` (if active session has one)
 - `turn_ref` + `conversation_ref` (when cancellation tuple exists)
 
-Then always emits `streaming-complete` with that context, even if no active task exists.
+Then emits `stop-query-ack` with that context, even if no active task exists.
+The ack is control traffic and does not include stream `event_id` or `sequence`.
 
 Locked by:
 
-- `tests/backend/test_api_handlers.py::test_stop_query_handler_cancels_active_query_and_emits_streaming_complete`
+- `tests/backend/test_api_handlers.py::test_stop_query_handler_cancels_active_query_and_emits_control_ack`
 - `tests/backend/test_session_manager.py::test_cancel_active_query_task_cancels_all_tasks_and_returns_last_metadata`
 
 ## Compact-History Context Semantics
@@ -172,7 +173,7 @@ When modifying this surface, keep aligned:
 | handshake user identity establishment | `backend/src/api/routes/websocket/connection.py` | accepted handshake `user_id` becomes authoritative identity for route context |
 | route-level user injection into incoming frames | `backend/src/api/routes/websocket/message_parse_runtime.py`, `message_handler.py` | per-message user identity is injected server-side before schema validation |
 | query turn correlation context assembly | query handler + query execution service | `user_id`/`session_id`/`conversation_ref`/`turn_ref` context stays stable across all stream events in a turn |
-| stop-query cancellation correlation propagation | `backend/src/agent/session/manager.py`, `backend/src/api/handlers/stop_query.py` | canceled task metadata feeds terminal `streaming-complete` context fields |
+| stop-query cancellation correlation propagation | `backend/src/agent/session/manager.py`, `backend/src/api/handlers/stop_query.py` | canceled task metadata feeds `stop-query-ack` control context fields |
 | generic envelope context attachment | `backend/src/api/transport/envelope.py`, `backend/src/api/infrastructure/errors.py` | context fields attach only when truthy and are shared across success/error helper paths |
 
 ## Related Pages

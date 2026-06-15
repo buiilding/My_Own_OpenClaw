@@ -144,8 +144,14 @@ class WindieAgent {
             }
         }
     }
-    async stop(conversationRef) {
-        return this.session.stopQuery(conversationRef);
+    async stop(input) {
+        if (input && typeof input === 'object') {
+            return this.session.stopQuery({
+                conversation_ref: input.conversation_ref ?? input.conversationRef ?? null,
+                turn_ref: input.turn_ref ?? input.turnRef ?? null,
+            });
+        }
+        return this.session.stopQuery({ conversation_ref: input ?? null });
     }
     async wakewordDetected(payload = {}) {
         return this.session.wakewordDetected(payload);

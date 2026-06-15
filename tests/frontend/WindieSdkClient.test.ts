@@ -1598,6 +1598,11 @@ describe('WindieSdkClient', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
+    await session.stopQuery({
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      renderer_only: true,
+    } as any);
     await session.updateSettings({
       selected_model_id: 'gpt-test',
       appearance_theme: 'graphite',
@@ -1628,6 +1633,13 @@ describe('WindieSdkClient', () => {
     });
 
     expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'stop-query',
+      payload: {
+        conversation_ref: 'conv-1',
+        turn_ref: 'turn-1',
+      },
+    });
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
       type: 'update-settings',
       payload: {
         selected_model_id: 'gpt-test',
@@ -1639,7 +1651,7 @@ describe('WindieSdkClient', () => {
         },
       },
     });
-    expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[2])).toMatchObject({
       type: 'rehydrate-conversation',
       payload: {
         conversation_ref: 'conv-1',
@@ -1647,7 +1659,7 @@ describe('WindieSdkClient', () => {
         rehydrate_mode: 'replace',
       },
     });
-    expect(JSON.parse(FakeWebSocket.instances[0].sent[2])).toMatchObject({
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[3])).toMatchObject({
       type: 'tool-result',
       payload: {
         request_id: 'req-1',

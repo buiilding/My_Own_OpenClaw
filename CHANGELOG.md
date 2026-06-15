@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
+  through Electron and SDK transport, cancels the matching active turn, and no
+  longer emits synthetic sequenced `streaming-complete` events.
 - docs/product: align the README, product overview, project overview, future
   framing, runtime definition, and landing-page copy around WindieOS as a
   hackable desktop runtime for personal AI agents that turns the desktop session

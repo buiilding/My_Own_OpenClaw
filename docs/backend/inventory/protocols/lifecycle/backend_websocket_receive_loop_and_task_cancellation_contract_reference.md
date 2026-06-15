@@ -148,8 +148,8 @@ Effect:
 
 `StopQueryHandler` protocol contract:
 
-- Calls `session_manager.cancel_active_query_task(user_id)`.
-- Always sends `streaming-complete` success envelope even when no active task existed.
+- Calls `session_manager.cancel_active_query_task(user_id, conversation_ref=..., turn_ref=...)`.
+- Always sends `stop-query-ack` control acknowledgement even when no active task existed.
 - Includes context fields when available: `user_id`, optional `session_id`, optional `turn_ref`, optional `conversation_ref`.
 
 Reason:
@@ -193,7 +193,7 @@ When changing lifecycle code, keep these aligned:
 - `DEFAULT_JSON_PARSE_OFFLOAD_BYTES` threshold assumptions in handshake and message parse paths.
 - Message-size/parse/schema error surfaces expected by frontend error handling.
 - Task-limit cap and cancel timeout semantics versus frontend retry/stop behavior.
-- `streaming-complete` stop-query guarantee.
+- `stop-query-ack` control acknowledgement and local SDK stop terminalization.
 - compact-history active-query guard and started/completed emission order.
 
 ## Lifecycle Control-Path Index

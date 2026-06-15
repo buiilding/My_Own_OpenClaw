@@ -118,9 +118,10 @@ class ManagedWindieAgentSession {
             workspace_path: payload.workspacePath ?? undefined,
         }, payload.turnRef ?? undefined);
     }
-    async stopQuery(conversationRef) {
+    async stopQuery(input = null) {
         return this.sendBackendMessage('stop-query', {
-            conversation_ref: conversationRef ?? null,
+            conversation_ref: input?.conversation_ref ?? input?.conversationRef ?? null,
+            turn_ref: input?.turn_ref ?? input?.turnRef ?? null,
         });
     }
     async updateSettings(config) {

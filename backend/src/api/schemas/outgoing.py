@@ -171,6 +171,20 @@ class SettingsLoadedMessage(BaseMessage):
     payload: SettingsLoadedPayload
 
 
+class StopQueryAckPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["stopped", "not-running"]
+    canceled: bool
+    conversation_ref: Optional[str] = None
+    turn_ref: Optional[str] = None
+
+
+class StopQueryAckMessage(BaseMessage):
+    type: Literal["stop-query-ack"]
+    payload: StopQueryAckPayload
+
+
 class SettingsUpdatedPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

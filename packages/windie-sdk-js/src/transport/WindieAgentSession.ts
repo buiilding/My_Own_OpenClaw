@@ -50,6 +50,13 @@ export type WindieAgentQueryInput = {
   turnRef?: string | null;
 };
 
+export type WindieAgentStopInput = {
+  conversation_ref?: string | null;
+  conversationRef?: string | null;
+  turn_ref?: string | null;
+  turnRef?: string | null;
+};
+
 type WindieAgentEventMap = {
   open: void;
   close: { code?: number; reason?: string; wasClean?: boolean };
@@ -71,7 +78,7 @@ export type WindieAgentSessionRuntime = {
     listener: WindieAgentListener<WindieAgentEventMap[TEvent]>,
   ): () => void;
   query(payload: WindieAgentQueryInput): Promise<string>;
-  stopQuery(conversationRef?: string | null): Promise<string>;
+  stopQuery(input?: WindieAgentStopInput | null): Promise<string>;
   updateSettings(config: JsonRecord): Promise<string>;
   listModels(): Promise<string>;
   rehydrateConversation(payload: JsonRecord): Promise<string>;
@@ -291,9 +298,10 @@ export class WindieAgentSession {
     }, payload.turnRef ?? undefined);
   }
 
-  async stopQuery(conversationRef?: string | null): Promise<string> {
+  async stopQuery(input: WindieAgentStopInput | null = null): Promise<string> {
     return this.sendBackendMessage('stop-query', {
-      conversation_ref: conversationRef ?? null,
+      conversation_ref: input?.conversation_ref ?? input?.conversationRef ?? null,
+      turn_ref: input?.turn_ref ?? input?.turnRef ?? null,
     });
   }
 
@@ -413,9 +421,12 @@ export function createWindieAgentBackendTransport(
     compactHistory: async payload => session.compactHistory(payload),
     wakewordDetected: async payload => session.wakewordDetected(payload),
     stop: async payload => {
-      await session.stopQuery(
-        typeof payload.conversation_ref === 'string' ? payload.conversation_ref : conversationRef,
-      );
+      await session.stopQuery({
+        conversation_ref: typeof payload.conversation_ref === 'string'
+          ? payload.conversation_ref
+          : conversationRef,
+        turn_ref: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
+      });
     },
     updateSettings: async payload => {
       await session.updateSettings(payload);

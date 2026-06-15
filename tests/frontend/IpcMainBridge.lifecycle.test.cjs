@@ -416,6 +416,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     const result = await invokeWindieCommand(handlers, 'conversation.stop', {
       conversation_ref: 'conv-typed-stop',
+      turn_ref: 'turn-typed-stop',
     });
 
     expect(result).toEqual({
@@ -429,6 +430,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(sentStopQuery.type).toBe('stop-query');
     expect(sentStopQuery.payload).toEqual({
       conversation_ref: 'conv-typed-stop',
+      turn_ref: 'turn-typed-stop',
     });
   });
 
@@ -484,6 +486,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(sentStopQuery.type).toBe('stop-query');
     expect(sentStopQuery.payload).toEqual({
       conversation_ref: 'conv-global-stop',
+      turn_ref: 'uuid-1',
     });
     expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(false);
   });

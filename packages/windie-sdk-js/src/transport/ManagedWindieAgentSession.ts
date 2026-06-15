@@ -14,6 +14,7 @@ import {
   type WebSocketConstructor,
   type WebSocketLike,
   type WindieAgentQueryInput,
+  type WindieAgentStopInput,
   type WindieAgentSessionRuntime,
 } from './WindieAgentSession.js';
 import {
@@ -195,9 +196,10 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
     }, payload.turnRef ?? undefined);
   }
 
-  async stopQuery(conversationRef?: string | null): Promise<string> {
+  async stopQuery(input: WindieAgentStopInput | null = null): Promise<string> {
     return this.sendBackendMessage('stop-query', {
-      conversation_ref: conversationRef ?? null,
+      conversation_ref: input?.conversation_ref ?? input?.conversationRef ?? null,
+      turn_ref: input?.turn_ref ?? input?.turnRef ?? null,
     });
   }
 

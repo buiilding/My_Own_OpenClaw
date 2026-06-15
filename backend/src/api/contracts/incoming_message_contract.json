@@ -31,7 +31,8 @@
     },
     "stop-query": {
       "keys": [
-        "conversation_ref"
+        "conversation_ref",
+        "turn_ref"
       ]
     },
     "rehydrate-conversation": {

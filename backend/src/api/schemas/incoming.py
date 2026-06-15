@@ -15,6 +15,14 @@ def _validate_conversation_ref(value: str) -> str:
     return normalized
 
 
+def _validate_turn_ref(value: str) -> str:
+    """Normalize and validate turn refs carried in payloads."""
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError("turn_ref cannot be empty or whitespace-only")
+    return normalized
+
+
 def _validate_correlation_ref(value: str, *, field_name: str) -> str:
     """Normalize and validate correlation ids carried in tool-result payloads."""
     normalized = value.strip()
@@ -96,6 +104,7 @@ class StopQueryPayload(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     conversation_ref: Optional[str] = None
+    turn_ref: Optional[str] = None
 
     @field_validator("conversation_ref")
     @classmethod
@@ -103,6 +112,13 @@ class StopQueryPayload(BaseModel):
         if value is None:
             return None
         return _validate_conversation_ref(value)
+
+    @field_validator("turn_ref")
+    @classmethod
+    def validate_turn_ref(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return _validate_turn_ref(value)
 
 
 class StopQueryMessage(BaseMessage):

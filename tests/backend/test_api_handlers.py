@@ -466,13 +466,16 @@ class DummySessionManager:
         self,
         user_id: str,
         conversation_ref: Optional[str] = None,
+        turn_ref: Optional[str] = None,
     ):
-        self.cancel_calls.append((user_id, conversation_ref))
+        self.cancel_calls.append((user_id, conversation_ref, turn_ref))
         registered = self.registered_query_tasks.get(user_id)
         if not registered:
             return None
         canceled = None
-        for task, (turn_ref, registered_conversation_ref) in list(registered.items()):
+        for task, (registered_turn_ref, registered_conversation_ref) in list(
+            registered.items()
+        ):
             if task.done():
                 registered.pop(task, None)
                 continue
@@ -481,9 +484,11 @@ class DummySessionManager:
                 and registered_conversation_ref != conversation_ref
             ):
                 continue
+            if turn_ref is not None and registered_turn_ref != turn_ref:
+                continue
             task.cancel()
             registered.pop(task, None)
-            canceled = (turn_ref, registered_conversation_ref)
+            canceled = (registered_turn_ref, registered_conversation_ref)
         if not registered:
             self.registered_query_tasks.pop(user_id, None)
         return canceled
@@ -1579,7 +1584,7 @@ async def test_query_handler_rejects_concurrent_query_when_user_cap_is_reached(
 
 
 @pytest.mark.asyncio
-async def test_stop_query_handler_cancels_active_query_and_emits_streaming_complete(
+async def test_stop_query_handler_cancels_active_query_and_emits_control_ack(
     caplog,
 ):
     websocket = FakeWebSocket()
@@ -1602,7 +1607,7 @@ async def test_stop_query_handler_cancels_active_query_and_emits_streaming_compl
         id="msg_stop_1",
         type="stop-query",
         user_id="user_1",
-        payload={},
+        payload={"conversation_ref": "conv_active_1", "turn_ref": "turn_active_1"},
     )
 
     await handler.handle(message, websocket, "user_1")
@@ -1610,15 +1615,23 @@ async def test_stop_query_handler_cancels_active_query_and_emits_streaming_compl
     assert pending_task.cancelled() or pending_task.cancelling() > 0
     assert websocket.sent
     response = websocket.sent[0]
-    assert response["type"] == "streaming-complete"
+    assert response["type"] == "stop-query-ack"
     assert response["id"] == "msg_stop_1"
     assert response["turn_ref"] == "turn_active_1"
-    assert response["event_id"] == "turn_active_1-evt-000001-streaming-complete"
-    assert response["sequence"] == 1
+    assert "event_id" not in response
+    assert "sequence" not in response
     assert response["conversation_ref"] == "conv_active_1"
     assert response["session_id"] == "session_active_1"
     assert response["user_id"] == "user_1"
-    assert response["payload"] == {}
+    assert response["payload"] == {
+        "status": "stopped",
+        "canceled": True,
+        "conversation_ref": "conv_active_1",
+        "turn_ref": "turn_active_1",
+    }
+    assert session_manager.cancel_calls == [
+        ("user_1", "conv_active_1", "turn_active_1")
+    ]
     assert any(
         "[Stop Query] User requested stop; cancellation signaled" in record.message
         and "user_id=user_1" in record.message
@@ -1628,6 +1641,55 @@ async def test_stop_query_handler_cancels_active_query_and_emits_streaming_compl
     pending_task.cancel()
     with suppress(asyncio.CancelledError):
         await pending_task
+
+
+@pytest.mark.asyncio
+async def test_stop_query_handler_cancels_only_matching_turn_ref():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = StopQueryHandler(session_manager)
+
+    loop = asyncio.get_running_loop()
+    task_a = loop.create_task(asyncio.sleep(3600))
+    task_b = loop.create_task(asyncio.sleep(3600))
+    session_manager.register_active_query_task(
+        "user_1",
+        task_a,
+        turn_ref="turn_active_1",
+        conversation_ref="conv_active_1",
+    )
+    session_manager.register_active_query_task(
+        "user_1",
+        task_b,
+        turn_ref="turn_active_2",
+        conversation_ref="conv_active_1",
+    )
+
+    message = StopQueryMessage(
+        id="msg_stop_exact",
+        type="stop-query",
+        user_id="user_1",
+        payload={"conversation_ref": "conv_active_1", "turn_ref": "turn_active_1"},
+    )
+
+    try:
+        await handler.handle(message, websocket, "user_1")
+        await asyncio.sleep(0)
+
+        assert task_a.cancelled() is True
+        assert task_b.cancelled() is False
+        response = websocket.sent[0]
+        assert response["type"] == "stop-query-ack"
+        assert response["payload"]["canceled"] is True
+        assert response["payload"]["turn_ref"] == "turn_active_1"
+        assert session_manager.registered_query_tasks["user_1"][task_b] == (
+            "turn_active_2",
+            "conv_active_1",
+        )
+    finally:
+        if not task_b.done():
+            task_b.cancel()
+        await asyncio.gather(task_a, task_b, return_exceptions=True)
 
 
 @pytest.mark.asyncio

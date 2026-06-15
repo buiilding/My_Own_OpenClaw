@@ -20,7 +20,7 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE = Object.freeze({
         'client_prompt_layers',
         'agent_definition',
     ]),
-    'stop-query': Object.freeze(['conversation_ref']),
+    'stop-query': Object.freeze(['conversation_ref', 'turn_ref']),
     'rehydrate-conversation': Object.freeze([
         'conversation_ref',
         'messages',
