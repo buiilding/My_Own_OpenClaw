@@ -61,6 +61,10 @@ The chat pill is the small always-available desktop command surface. It is rende
   send acceptance. The response overlay renderer may use only that
   `renderer-send-preflight` phase as a local pre-SDK typing fallback; SDK
   current-turn presentation replaces it when the runtime projection arrives.
+- Preflight typing is not durable chat state. It exists only to cover the gap
+  between user acceptance and SDK current-turn publication, and must be cleared
+  or superseded by SDK projection rather than stored as transcript, replay, or
+  backend stream state.
 - Stop from the pill must preserve the active SDK current-turn id when one is
   available. The renderer may still send a null turn id during the pre-stream
   send latch, but it must not discard an existing current-turn id. Stop must
