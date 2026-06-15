@@ -147,3 +147,10 @@ For tool execution changes:
 4. Sidecar tests cover executable behavior and `ToolResult` normalization.
 5. Bundle tests cover success, failure, timeout, and cleanup paths.
 6. Rehydrate/transcript tests cover any visible or model-facing row shape changes.
+
+## Evidence Notes
+
+- A tool turn is not verified until the request leaves backend orchestration,
+  executes or fails in the owning runtime, and re-enters backend history.
+- For bundles, capture both aggregate result evidence and per-child result
+  evidence so partial failures do not masquerade as success.
