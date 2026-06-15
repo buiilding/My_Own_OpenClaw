@@ -95,6 +95,9 @@ Contract ownership:
 - renderer owns only presentation mapping from `currentTurn` into compact overlay
   rows; it must not execute tools, write transcripts, or reinterpret backend
   stream semantics for the overlay.
+- the `renderer-send-preflight` awaiting latch is presentation-only. It may keep
+  the response overlay mounted through early SDK startup projections, but it
+  must not create message rows, transcript rows, or a second completion path.
 - renderer raw backend stream handlers are transcript/history side-effect paths.
   They must not suppress, replace, or duplicate live
   assistant/tool row construction and commit the projected turn into message
