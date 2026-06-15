@@ -84,6 +84,8 @@ Date: 2026-06-15
   completed CD-016.
 - `16dac8ab4 refactor(cli): remove docs open alias`
   completed CD-017.
+- `ded61fcf7 docs(troubleshooting): update rehydrate artifact guidance`
+  completed CD-018.
 
 ## Validation Log
 
