@@ -152,7 +152,8 @@ Main-process rules:
   chat-pill surface currently owns presentation. Guarded
   `renderer-send-preflight` records the awaiting phase and stale-response guard,
   but the first native show for typing must come from the renderer's measured
-  `set-responsebox-size` report.
+  `set-responsebox-size` report emitted immediately after the typing layout
+  commits.
 - Terminal/idle phases with a mismatched active response `correlation_id` must
   be ignored so late events from a previous response cannot mutate current
   overlay visibility.

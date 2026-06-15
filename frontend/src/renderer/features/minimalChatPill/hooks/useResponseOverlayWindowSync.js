@@ -2,7 +2,7 @@
  * Provides the use response overlay window sync module for the renderer UI.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { getRoundedFrameSize } from '../../chat/utils/overlay/overlayFrameSize';
 import {
@@ -218,7 +218,7 @@ export function useResponseOverlayWindowSync({
     reportOverlaySize,
   ]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let cancelled = false;
     let rafId = null;
     let retryTimerId = null;
@@ -231,6 +231,11 @@ export function useResponseOverlayWindowSync({
       });
       return undefined;
     }
+
+    void reportOverlaySize({
+      visible: true,
+      layoutMode: overlayLayoutMode,
+    });
 
     const scheduleSizeUpdate = () => {
       if (cancelled) {

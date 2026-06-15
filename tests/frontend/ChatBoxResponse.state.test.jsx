@@ -110,6 +110,24 @@ describe('ChatBoxResponse state behavior', () => {
     expect(useChatStore.getState().currentTurnProjection).toBeNull();
   });
 
+  test('reports preflight typing size immediately when renderer preflight arrives', () => {
+    render(<ChatBoxResponse />);
+
+    emitResponseOverlayPhasePayload({
+      phase: 'awaiting-first-chunk',
+      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'set-responsebox-size',
+      expect.objectContaining({
+        visible: true,
+        compact_hover: true,
+        stale_guard_ref: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      }),
+    );
+  });
+
   test('keeps preflight awaiting visible through hidden startup SDK projection', async () => {
     render(<ChatBoxResponse />);
 

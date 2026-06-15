@@ -84,9 +84,10 @@ The chat pill is the small always-available desktop command surface. It is rende
 - Electron main treats `renderer-send-preflight` as a temporary native response
   overlay guard, not as permission to show the native response window. The
   first native show for preflight typing comes from the renderer's measured
-  `set-responsebox-size` report so startup cannot expose a stale response frame
-  before the typing layout is ready. Stale SDK hidden intent must not hide the
-  guarded preflight before SDK awaiting/response intent replaces the guard.
+  `set-responsebox-size` report emitted immediately after the typing layout
+  commits, so startup cannot expose a stale response frame before the typing
+  layout is ready. Stale SDK hidden intent must not hide the guarded preflight
+  before SDK awaiting/response intent replaces the guard.
 - Preflight typing is not durable chat state. It exists only to cover the gap
   between user acceptance and SDK current-turn publication, and must be cleared
   or superseded by SDK projection rather than stored as transcript, replay, or
