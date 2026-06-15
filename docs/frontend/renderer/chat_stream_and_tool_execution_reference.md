@@ -118,6 +118,11 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 11. replace the temporary renderer row with SDK display rows from `windie:rows`
     once the matching SDK user row is projected
 
+The local send latch and temporary renderer row are latency cover only. They
+must be keyed to the outgoing turn and removed when the SDK row projection for
+that turn arrives; they are not a fallback transcript writer and must not
+survive as a duplicate user row after SDK projection catches up.
+
 Before final query dispatch, the hook may send immediate model/provider updates via `DesktopSettingsRuntimeClient.setModel(...)` when deferred-model selection changes are detected.
 
 Failure handling:
