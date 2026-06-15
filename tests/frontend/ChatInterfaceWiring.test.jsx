@@ -1194,6 +1194,16 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByText('Welcome to WindieOS Demo')).toBeInTheDocument();
   });
 
+  test('renders history loading state instead of welcome state while selected chat rows load', () => {
+    render(<ChatInterface loadingConversationRef="conv_existing" />);
+
+    expect(screen.getByTestId('chat-history-loading-state')).toBeInTheDocument();
+    expect(screen.getByText('Loading chat')).toBeInTheDocument();
+    expect(screen.queryByTestId('chat-empty-state')).not.toBeInTheDocument();
+    expect(screen.queryByText('Welcome to WindieOS Demo')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('message-input')).not.toBeInTheDocument();
+  });
+
   test('stop response handler sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
     setMockCurrentTurnProjection('streaming');

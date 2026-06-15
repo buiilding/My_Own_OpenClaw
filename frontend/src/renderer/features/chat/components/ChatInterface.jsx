@@ -69,7 +69,7 @@ function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   );
 }
 
-function ChatInterface({ focusComposerToken = 0 }) {
+function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }) {
   const vmModeEnabled = isVmModeEnabled();
 
   const {
@@ -236,6 +236,13 @@ function ChatInterface({ focusComposerToken = 0 }) {
     isBusy: composerBusy,
     currentTurnMessages,
   }), [composerBusy, currentTurnMessages, messages, showToolLogs]);
+  const activeConversationRef = sessionInfo.conversationRef || null;
+  const isLoadingSelectedConversation = (
+    typeof loadingConversationRef === 'string'
+    && loadingConversationRef.length > 0
+    && loadingConversationRef === activeConversationRef
+    && renderedMessages.length === 0
+  );
   const hasLiveProgressMessages = useMemo(
     () => hasCurrentTurnLiveProgressMessages(renderedMessages),
     [renderedMessages],
@@ -568,7 +575,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
           onClose={handleCloseFind}
         />
       ) : null}
-      {renderedMessages.length === 0 ? (
+      {isLoadingSelectedConversation ? (
+        <div className="chat-history-loading-state" data-testid="chat-history-loading-state">
+          <div className="chat-history-loading-spinner" aria-hidden="true" />
+          <div className="chat-history-loading-title">Loading chat</div>
+        </div>
+      ) : renderedMessages.length === 0 ? (
         <div className="chat-empty-state" data-testid="chat-empty-state">
           <h1 className="chat-empty-title">Welcome to WindieOS Demo</h1>
           <MessageInput

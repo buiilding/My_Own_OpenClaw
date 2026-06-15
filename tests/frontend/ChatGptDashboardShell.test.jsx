@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import DashboardShell from '../../frontend/src/renderer/features/dashboard/components/DashboardShell';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -107,11 +107,19 @@ const mockInvoke = jest.fn(async (...args) => {
   return { success: true, data: {} };
 });
 const mockUpdateTranscriptSession = jest.fn();
+const mockChatInterface = jest.fn((props) => (
+  <div
+    data-testid="chat-interface-stub"
+    data-loading-conversation-ref={props.loadingConversationRef || ''}
+  >
+    ChatInterfaceStub
+  </div>
+));
 let mockSessionInfo = { conversationRef: null, userId: null };
 
-jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', () => () => (
-  <div data-testid="chat-interface-stub">ChatInterfaceStub</div>
-));
+jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', () => (props) =>
+  mockChatInterface(props),
+);
 
 jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection', () => (props) => (
   <div data-testid="settings-section-stub">
@@ -226,6 +234,7 @@ describe('ChatGptDashboardShell', () => {
     mockListeners.clear();
     mockInvoke.mockClear();
     mockUpdateTranscriptSession.mockClear();
+    mockChatInterface.mockClear();
     mockClearAllConversationWorkspaceBindings.mockClear();
     mockClearConversationWorkspaceBinding.mockClear();
     mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
@@ -498,6 +507,54 @@ describe('ChatGptDashboardShell', () => {
       throw new Error('expected transcript session to switch to conv-history-1');
     }
     expect(useChatStore.getState().activeConversationRef).toBe('conv-history-1');
+  });
+
+  test('passes selected conversation loading state to chat interface while history rows load', async () => {
+    const nowIso = new Date().toISOString();
+    let resolveLoadDisplay;
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
+      if (channel === 'conversations.list') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-history-loading',
+                record_kind: 'chat_event',
+                last_timestamp: nowIso,
+                title: 'Slow chat history',
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'conversation.loadDisplay') {
+        return new Promise((resolve) => {
+          resolveLoadDisplay = resolve;
+        });
+      }
+      return { success: true, data: {} };
+    }));
+
+    await renderDashboardShell();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Slow chat history' }));
+    await waitFor(() => {
+      expect(screen.getByTestId('chat-interface-stub')).toHaveAttribute(
+        'data-loading-conversation-ref',
+        'conv-history-loading',
+      );
+    });
+
+    await act(async () => {
+      resolveLoadDisplay?.({ success: true, data: { events: [] } });
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('chat-interface-stub')).toHaveAttribute(
+        'data-loading-conversation-ref',
+        '',
+      );
+    });
   });
 
   test('loads recent local chats while transport is disconnected', async () => {

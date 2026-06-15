@@ -50,6 +50,7 @@ function useDashboardConversations({
   const [recentConversations, setRecentConversations] = useState([]);
   const [pinnedConversationRefs, setPinnedConversationRefs] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
+  const [openingConversationRef, setOpeningConversationRef] = useState(null);
   const [recentConversationsError, setRecentConversationsError] = useState('');
   const pendingTitlePollTimersRef = useRef(new Map());
   const recentConversationsRetryAttemptRef = useRef(0);
@@ -195,6 +196,7 @@ function useDashboardConversations({
     setRecentConversationsError('');
     const requestId = openConversationRequestIdRef.current + 1;
     openConversationRequestIdRef.current = requestId;
+    setOpeningConversationRef(conversationRef);
 
     try {
       const cachedWorkspace = typeof getChatWorkspaceState === 'function'
@@ -241,6 +243,10 @@ function useDashboardConversations({
     } catch (error) {
       if (openConversationRequestIdRef.current === requestId) {
         setRecentConversationsError(error?.message || 'Failed to open conversation');
+      }
+    } finally {
+      if (openConversationRequestIdRef.current === requestId) {
+        setOpeningConversationRef(null);
       }
     }
   }, [
@@ -513,6 +519,7 @@ function useDashboardConversations({
     recentConversations,
     pinnedConversationRefs,
     isLoadingRecentConversations,
+    openingConversationRef,
     recentConversationsError,
     loadRecentConversations,
     handleOpenConversation,

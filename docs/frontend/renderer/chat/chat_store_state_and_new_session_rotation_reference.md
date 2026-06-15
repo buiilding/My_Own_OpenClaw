@@ -117,14 +117,16 @@ So new-chat resets local store regardless, while active backend loop receives st
 
 `ChatGptDashboardShell.handleOpenConversation(...)` flow:
 
-1. load transcript rows for the target conversation
-2. recover the conversation's stored workspace binding from transcript/list metadata
-3. push that binding back into Electron's active workspace selection
-4. call `setActiveConversationRef(conversationRef)`
-5. call `updateTranscriptSession(conversationRef, sessionInfo.userId || null)`
-6. replace chat store messages with resumed transcript projection
-7. clear sending/thinking flags
-8. close dashboard overlays and keep chat surface active
+1. mark the target `conversationRef` as opening so an empty selected workspace
+   renders a loading state instead of the new-chat welcome state
+2. load transcript rows for the target conversation
+3. recover the conversation's stored workspace binding from transcript/list metadata
+4. push that binding back into Electron's active workspace selection
+5. call `setActiveConversationRef(conversationRef)`
+6. call `updateTranscriptSession(conversationRef, sessionInfo.userId || null)`
+7. replace chat store messages with resumed transcript projection
+8. clear sending/thinking flags
+9. clear the opening marker, close dashboard overlays, and keep chat surface active
 
 This path intentionally does not call `startNewChatSession`; it restores an existing conversation ref.
 

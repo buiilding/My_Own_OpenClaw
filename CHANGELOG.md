@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/dashboard: show a selected-chat loading state while conversation
+  history rows are loading so opening an existing chat no longer flashes the
+  new-chat welcome screen.
 - frontend/chat-pill: keep the response overlay preflight typing latch through
   hidden, non-busy SDK startup projections so first send does not show, hide,
   then show the typing indicator again.

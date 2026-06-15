@@ -743,6 +743,45 @@
   line-height: 1.2;
 }
 
+.chat-history-loading-state {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 16px 10vh;
+  color: var(--ui-text-secondary);
+}
+
+.chat-history-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-top-color: var(--windie-pale);
+  border-radius: 50%;
+  animation: chat-history-loading-spin 820ms linear infinite;
+}
+
+:root[data-windie-theme='light'] .chat-history-loading-spinner {
+  border-color: rgba(15, 23, 42, 0.14);
+  border-top-color: var(--windie-blue);
+}
+
+.chat-history-loading-title {
+  color: var(--ui-text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+@keyframes chat-history-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .message-list {
   flex: 1;
   min-height: 0;

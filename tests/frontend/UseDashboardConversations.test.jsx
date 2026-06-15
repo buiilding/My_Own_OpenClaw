@@ -346,6 +346,7 @@ describe('useDashboardConversations', () => {
       await Promise.resolve();
     });
 
+    expect(result.current.openingConversationRef).toBe('conv-open');
     expect(callOrder).toEqual([
       'select:conv-open',
       'clear:conv-open',
@@ -376,6 +377,7 @@ describe('useDashboardConversations', () => {
         }),
       ], 'conv-open');
     });
+    expect(result.current.openingConversationRef).toBeNull();
   });
 
   test('treats selecting the active conversation as an idempotent no-op', async () => {

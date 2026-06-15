@@ -108,6 +108,7 @@ function DashboardShell({
     isSearchingConversations,
     searchConversationsError,
     isLoadingRecentConversations,
+    openingConversationRef,
     recentConversationsError,
     loadRecentConversations,
     handleOpenConversation,
@@ -354,7 +355,11 @@ function DashboardShell({
             onChatsCleared={handleChatsCleared}
           />
         ) : (
-          <ChatInterface sidebarOpen={sidebarOpen} focusComposerToken={composerFocusToken} />
+          <ChatInterface
+            sidebarOpen={sidebarOpen}
+            focusComposerToken={composerFocusToken}
+            loadingConversationRef={openingConversationRef}
+          />
         )}
       </main>
 
