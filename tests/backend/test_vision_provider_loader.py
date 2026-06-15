@@ -5,16 +5,20 @@ import logging
 
 import pytest
 
-from backend.src.services.vision.providers.internvl import (
-    InternVLModel,
-    _build_instruction_log_metadata,
-    _is_cuda_kernel_image_error,
-    _is_meta_tensor_loading_error,
-    build_grounding_prompt,
-)
 from backend.src.services.vision.providers.base import (
     load_model_with_fallbacks,
     resolve_model_device,
+)
+from backend.src.services.vision.providers.internvl import InternVLModel
+from backend.src.services.vision.providers.internvl_runtime_helpers import (
+    build_grounding_prompt,
+    build_instruction_log_metadata,
+    disable_flash_attention_runtime,
+    is_cuda_kernel_image_error,
+    is_meta_tensor_loading_error,
+    resolve_model_dtype,
+    run_chat_with_fallbacks,
+    run_generate_fallback_with_chat_error,
 )
 
 
@@ -178,7 +182,7 @@ def test_resolve_model_device_falls_back_to_cpu_when_unavailable():
 def test_build_instruction_log_metadata_truncates_preview_and_hashes_text():
     instruction = "x" * 80
 
-    preview, digest = _build_instruction_log_metadata(instruction)
+    preview, digest = build_instruction_log_metadata(instruction)
 
     assert preview == "x" * 50
     assert digest == hashlib.sha256(instruction.encode()).hexdigest()[:8]
@@ -187,7 +191,7 @@ def test_build_instruction_log_metadata_truncates_preview_and_hashes_text():
 def test_build_instruction_log_metadata_keeps_short_preview():
     instruction = "click submit"
 
-    preview, digest = _build_instruction_log_metadata(instruction)
+    preview, digest = build_instruction_log_metadata(instruction)
 
     assert preview == instruction
     assert digest == hashlib.sha256(instruction.encode()).hexdigest()[:8]
@@ -203,41 +207,52 @@ def test_build_grounding_prompt_contains_instruction_ref():
 
 
 def test_is_meta_tensor_loading_error_detects_meta_tensor_messages():
-    assert _is_meta_tensor_loading_error(RuntimeError("Tensor.item() cannot be called on meta tensors"))
-    assert _is_meta_tensor_loading_error(RuntimeError("meta tensor construction path failed"))
-    assert _is_meta_tensor_loading_error(RuntimeError("ordinary error")) is False
+    assert is_meta_tensor_loading_error(
+        RuntimeError("Tensor.item() cannot be called on meta tensors")
+    )
+    assert is_meta_tensor_loading_error(
+        RuntimeError("meta tensor construction path failed")
+    )
+    assert is_meta_tensor_loading_error(RuntimeError("ordinary error")) is False
 
 
 def test_is_cuda_kernel_image_error_detects_known_messages():
-    assert _is_cuda_kernel_image_error(
-        RuntimeError("CUDA error: no kernel image is available for execution on the device")
+    assert is_cuda_kernel_image_error(
+        RuntimeError(
+            "CUDA error: no kernel image is available for execution on the device"
+        )
     )
-    assert _is_cuda_kernel_image_error(
+    assert is_cuda_kernel_image_error(
         RuntimeError("Search for `cudaErrorNoKernelImageForDevice` in docs")
     )
-    assert _is_cuda_kernel_image_error(RuntimeError("some other cuda error")) is False
+    assert is_cuda_kernel_image_error(RuntimeError("some other cuda error")) is False
 
 
 def test_internvl_resolve_model_dtype_prefers_cached_dtype():
-    model = InternVLModel.__new__(InternVLModel)
-    model._model_dtype = "cached-dtype"
-
-    dtype = model._resolve_model_dtype()
+    dtype = resolve_model_dtype(
+        cached_dtype="cached-dtype",
+        model=None,
+        torch_module=_FakeTorch(cuda_available=False),
+        logger_instance=_test_logger(),
+    )
 
     assert dtype == "cached-dtype"
 
 
 def test_internvl_resolve_model_dtype_uses_model_parameter_dtype():
-    model = InternVLModel.__new__(InternVLModel)
-    model._model_dtype = None
-    model.model = _ModelWithDTypeParams("param-dtype")
-
-    dtype = model._resolve_model_dtype()
+    dtype = resolve_model_dtype(
+        cached_dtype=None,
+        model=_ModelWithDTypeParams("param-dtype"),
+        torch_module=_FakeTorch(cuda_available=False),
+        logger_instance=_test_logger(),
+    )
 
     assert dtype == "param-dtype"
 
 
-def test_internvl_load_model_retries_without_low_cpu_mem_usage_on_meta_error(monkeypatch):
+def test_internvl_load_model_retries_without_low_cpu_mem_usage_on_meta_error(
+    monkeypatch,
+):
     model = InternVLModel.__new__(InternVLModel)
     model.model_name = "OpenGVLab/InternVL3_5-4B"
     model.trust_remote_code = True
@@ -286,97 +301,97 @@ def test_internvl_load_model_does_not_retry_non_meta_errors(monkeypatch):
 
 
 def test_disable_flash_attention_runtime_turns_off_flags():
-    model = InternVLModel.__new__(InternVLModel)
-    model.model = _DummyModelWithFlashFlags()
+    model = _DummyModelWithFlashFlags()
 
-    changed = model._disable_flash_attention_runtime()
-
-    assert changed is True
-    assert model.model.config.use_flash_attn is False
-    assert model.model.config.vision_config.use_flash_attn is False
-    assert [m.use_flash_attn for m in model.model.modules()] == [False, False, False]
-
-
-def test_internvl_generate_fallback_helper_returns_text(monkeypatch):
-    model = InternVLModel.__new__(InternVLModel)
-    monkeypatch.setattr(
-        model,
-        "_run_generate_fallback",
-        lambda **_kwargs: "generated text",
+    changed = disable_flash_attention_runtime(
+        model=model,
+        logger_instance=_test_logger(),
     )
 
-    result = model._run_generate_fallback_with_chat_error(
+    assert changed is True
+    assert model.config.use_flash_attn is False
+    assert model.config.vision_config.use_flash_attn is False
+    assert [m.use_flash_attn for m in model.modules()] == [False, False, False]
+
+
+def test_internvl_generate_fallback_helper_returns_text():
+    result = run_generate_fallback_with_chat_error(
+        run_generate_fallback_fn=lambda **_kwargs: "generated text",
         pixel_values=object(),
         question="q",
         num_patches_list=[1],
         model_device="cuda",
         chat_error=RuntimeError("chat failed"),
+        logger_instance=_test_logger(),
     )
 
     assert result == "generated text"
 
 
-def test_internvl_generate_fallback_helper_wraps_dual_failure(monkeypatch):
-    model = InternVLModel.__new__(InternVLModel)
+def test_internvl_generate_fallback_helper_wraps_dual_failure():
     chat_error = RuntimeError("chat failed")
 
     def raise_generate_error(**_kwargs):
         raise ValueError("generate failed")
 
-    monkeypatch.setattr(model, "_run_generate_fallback", raise_generate_error)
-
     with pytest.raises(RuntimeError, match="Vision model inference failed on CUDA"):
-        model._run_generate_fallback_with_chat_error(
+        run_generate_fallback_with_chat_error(
+            run_generate_fallback_fn=raise_generate_error,
             pixel_values=object(),
             question="q",
             num_patches_list=[1],
             model_device="cuda",
             chat_error=chat_error,
+            logger_instance=_test_logger(),
         )
 
 
-def test_internvl_chat_fallback_helper_returns_chat_output(monkeypatch):
-    model = InternVLModel.__new__(InternVLModel)
-    monkeypatch.setattr(model, "_run_chat_generation", lambda **_kwargs: "chat output")
-
-    output = model._run_chat_with_fallbacks(
+def test_internvl_chat_fallback_helper_returns_chat_output():
+    output = run_chat_with_fallbacks(
+        run_chat_generation_fn=lambda **_kwargs: "chat output",
+        disable_flash_attention_runtime_fn=lambda: False,
+        run_generate_fallback_with_chat_error_fn=lambda **_kwargs: "generated output",
+        is_cuda_kernel_image_error_fn=is_cuda_kernel_image_error,
         pixel_values=object(),
         question="q",
         num_patches_list=[1],
         generation_config={"max_new_tokens": 1},
         model_device="cuda",
+        logger_instance=_test_logger(),
     )
 
     assert output == "chat output"
 
 
-def test_internvl_chat_fallback_helper_uses_retry_after_cuda_kernel_error(monkeypatch):
-    model = InternVLModel.__new__(InternVLModel)
+def test_internvl_chat_fallback_helper_uses_retry_after_cuda_kernel_error():
     calls = {"count": 0}
 
     def _chat_impl(**_kwargs):
         calls["count"] += 1
         if calls["count"] == 1:
-            raise RuntimeError("no kernel image is available for execution on the device")
+            raise RuntimeError(
+                "no kernel image is available for execution on the device"
+            )
         return "retry output"
 
-    monkeypatch.setattr(model, "_run_chat_generation", _chat_impl)
-    monkeypatch.setattr(model, "_disable_flash_attention_runtime", lambda: True)
-
-    output = model._run_chat_with_fallbacks(
+    output = run_chat_with_fallbacks(
+        run_chat_generation_fn=_chat_impl,
+        disable_flash_attention_runtime_fn=lambda: True,
+        run_generate_fallback_with_chat_error_fn=lambda **_kwargs: "generated output",
+        is_cuda_kernel_image_error_fn=is_cuda_kernel_image_error,
         pixel_values=object(),
         question="q",
         num_patches_list=[1],
         generation_config={"max_new_tokens": 1},
         model_device="cuda",
+        logger_instance=_test_logger(),
     )
 
     assert output == "retry output"
     assert calls["count"] == 2
 
 
-def test_internvl_chat_fallback_helper_uses_generate_fallback_on_non_cuda_error(monkeypatch):
-    model = InternVLModel.__new__(InternVLModel)
+def test_internvl_chat_fallback_helper_uses_generate_fallback_on_non_cuda_error():
     captured = {}
 
     def _chat_impl(**_kwargs):
@@ -386,16 +401,17 @@ def test_internvl_chat_fallback_helper_uses_generate_fallback_on_non_cuda_error(
         captured.update(kwargs)
         return "generated output"
 
-    monkeypatch.setattr(model, "_run_chat_generation", _chat_impl)
-    monkeypatch.setattr(model, "_run_generate_fallback_with_chat_error", _fallback_impl)
-    monkeypatch.setattr(model, "_disable_flash_attention_runtime", lambda: False)
-
-    output = model._run_chat_with_fallbacks(
+    output = run_chat_with_fallbacks(
+        run_chat_generation_fn=_chat_impl,
+        disable_flash_attention_runtime_fn=lambda: False,
+        run_generate_fallback_with_chat_error_fn=_fallback_impl,
+        is_cuda_kernel_image_error_fn=is_cuda_kernel_image_error,
         pixel_values="pv",
         question="q",
         num_patches_list=[1],
         generation_config={"max_new_tokens": 1},
         model_device="cuda",
+        logger_instance=_test_logger(),
     )
 
     assert output == "generated output"
@@ -403,8 +419,7 @@ def test_internvl_chat_fallback_helper_uses_generate_fallback_on_non_cuda_error(
     assert captured["model_device"] == "cuda"
 
 
-def test_internvl_chat_fallback_helper_uses_retry_error_for_generate_fallback(monkeypatch):
-    model = InternVLModel.__new__(InternVLModel)
+def test_internvl_chat_fallback_helper_uses_retry_error_for_generate_fallback():
     calls = {"count": 0}
     captured = {}
 
@@ -418,16 +433,17 @@ def test_internvl_chat_fallback_helper_uses_retry_error_for_generate_fallback(mo
         captured.update(kwargs)
         return "generated output"
 
-    monkeypatch.setattr(model, "_run_chat_generation", _chat_impl)
-    monkeypatch.setattr(model, "_disable_flash_attention_runtime", lambda: True)
-    monkeypatch.setattr(model, "_run_generate_fallback_with_chat_error", _fallback_impl)
-
-    output = model._run_chat_with_fallbacks(
+    output = run_chat_with_fallbacks(
+        run_chat_generation_fn=_chat_impl,
+        disable_flash_attention_runtime_fn=lambda: True,
+        run_generate_fallback_with_chat_error_fn=_fallback_impl,
+        is_cuda_kernel_image_error_fn=is_cuda_kernel_image_error,
         pixel_values="pv",
         question="q",
         num_patches_list=[1],
         generation_config={"max_new_tokens": 1},
         model_device="cuda",
+        logger_instance=_test_logger(),
     )
 
     assert output == "generated output"
@@ -478,7 +494,10 @@ def test_loader_uses_cpu_fallback_when_direct_loading_fails():
         load_direct_model=load_direct,
     )
 
-    assert calls["direct"] == [(fake_torch.float16, "cuda"), (fake_torch.float32, "cpu")]
+    assert calls["direct"] == [
+        (fake_torch.float16, "cuda"),
+        (fake_torch.float32, "cpu"),
+    ]
     assert model == {
         "path": "cpu_fallback",
         "device": "cpu",

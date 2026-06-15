@@ -44,6 +44,7 @@ Date: 2026-06-15
 | CD-011 | Frontend settings docs | Legacy settings display/config compatibility entrypoint page | Repo search showed only docs hubs linked to the redirect-style page, while current detailed settings docs live under `settings/sections` and `settings/config` | Delete the compatibility entrypoint and route docs hubs to the current settings docs directly | implemented |
 | CD-012 | Backend API completion docs | Query execution helper doc filename/title still described compatibility event extraction | CD-008 made stream event extraction canonical-only; current helper doc now describes supported dict/object extraction and field resolution, not compatibility aliasing | Rename the doc and links to the current event-extraction contract terminology | implemented |
 | CD-013 | Backend API package-split docs | Artifacts, embeddings, semantic memory, and websocket package-split reference filenames still carried compatibility/monkeypatch wording | The docs content already describes current package route seams and owner modules; the stale compatibility wording existed in filenames and link labels only | Rename the docs to current package-split/export contract names and update internal docs links | implemented |
+| CD-014 | Backend vision InternVL provider | InternVL class-level compatibility wrappers around helper-module runtime functions | `internvl.py` kept forwarding methods only to bind model/tokenizer state, while tests monkeypatched those wrappers instead of the helper state-machine contracts | Delete the forwarding methods, call helper functions directly from prediction paths, and update tests/docs to target `internvl_runtime_helpers.py` | implemented |
 
 ## Commit Ledger
 
@@ -190,6 +191,19 @@ CD-013 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-014 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_vision_provider_loader.py tests/backend/test_vision_response_logging.py -q`:
+  passed, 25 tests.
+- `./scripts/python-in-env backend python -m black --check backend/src/services/vision/providers/internvl.py tests/backend/test_vision_provider_loader.py`:
+  passed.
+- `./scripts/python-in-env backend python -m isort --check-only backend/src/services/vision/providers/internvl.py tests/backend/test_vision_provider_loader.py`:
+  passed.
+- targeted `rg -n "def (_run_chat_with_fallbacks|_run_chat_generation|_run_generate_fallback|_run_generate_fallback_with_chat_error|_disable_flash_attention_runtime|_resolve_model_dtype|_prepare_question|_log_failure_context)|self\\.(_run_chat_with_fallbacks|_run_chat_generation|_run_generate_fallback|_run_generate_fallback_with_chat_error|_disable_flash_attention_runtime|_resolve_model_dtype|_prepare_question|_log_failure_context)|(_is_cuda_kernel_image_error|_is_meta_tensor_loading_error|_build_instruction_log_metadata)\\(|as (_is_cuda_kernel_image_error|_is_meta_tensor_loading_error|_build_instruction_log_metadata)|class methods as compatibility wrappers" backend/src tests docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no deleted wrapper symbols or compatibility-wrapper docs remain.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -244,3 +258,6 @@ CD-013 validation:
 - CD-013 has no runtime migration impact: it renames docs-only package-split
   references and updates internal docs links without changing API route exports,
   handlers, or tests.
+- CD-014 has no persisted-data or API migration impact: InternVL still runs the
+  same chat/generate fallback helper state machine, but the provider no longer
+  exposes class-level forwarding methods for those helper functions.

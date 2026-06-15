@@ -1,4 +1,5 @@
 """InternVL vision model provider."""
+
 import asyncio
 import base64
 import logging
@@ -12,18 +13,18 @@ from backend.src.services.vision.coordinates import (
     scale_norm_to_pixels,
 )
 from backend.src.services.vision.providers.base import (
-    BaseVisionModel,
     VISION_MODELS_AVAILABLE,
+    BaseVisionModel,
     load_model_with_fallbacks,
     resolve_model_device,
 )
 from backend.src.services.vision.providers.internvl_runtime_helpers import (
     build_grounding_prompt,
-    build_instruction_log_metadata as _build_instruction_log_metadata,
+    build_instruction_log_metadata,
     build_response_log_metadata,
     disable_flash_attention_runtime,
-    is_cuda_kernel_image_error as _is_cuda_kernel_image_error,
-    is_meta_tensor_loading_error as _is_meta_tensor_loading_error,
+    is_cuda_kernel_image_error,
+    is_meta_tensor_loading_error,
     log_failure_context,
     log_vision_response_metadata,
     prepare_question,
@@ -54,6 +55,8 @@ else:
     InterpolationMode = None
     AutoModel = None
     AutoTokenizer = None
+
+
 class InternVLModel(BaseVisionModel):
     """
     Generic Hugging Face vision-language model handler for InternVL models.
@@ -136,7 +139,7 @@ class InternVLModel(BaseVisionModel):
         try:
             model = AutoModel.from_pretrained(self.model_name, **kwargs)
         except Exception as error:
-            if _is_meta_tensor_loading_error(error) and kwargs.get("low_cpu_mem_usage"):
+            if is_meta_tensor_loading_error(error) and kwargs.get("low_cpu_mem_usage"):
                 retry_kwargs = dict(kwargs)
                 retry_kwargs["low_cpu_mem_usage"] = False
                 logger.warning(
@@ -252,11 +255,11 @@ class InternVLModel(BaseVisionModel):
         """
         Predict click coordinates using the InternVL model.
         Based on CoAct-1's InternVL grounding implementation.
-        
+
         PERFORMANCE: Offloads blocking CPU/GPU operations to thread pool to prevent
         event loop blocking. All synchronous operations (image decoding, PIL processing,
         model inference) are executed in a separate thread.
-        
+
         CONCURRENCY: Uses lock to serialize inference requests, preventing race conditions
         when multiple concurrent requests access the shared model instance.
         """
@@ -264,10 +267,7 @@ class InternVLModel(BaseVisionModel):
             loop = asyncio.get_running_loop()
             # Offload the synchronous, blocking work to a thread pool
             return await loop.run_in_executor(
-                None,
-                self._predict_sync,
-                image_b64,
-                instruction
+                None, self._predict_sync, image_b64, instruction
             )
 
     async def answer_question_about_image(
@@ -285,130 +285,6 @@ class InternVLModel(BaseVisionModel):
                 prompt,
             )
 
-    def _resolve_model_dtype(self):
-        """Resolve inference dtype from loader metadata or model parameters."""
-        return resolve_model_dtype(
-            cached_dtype=self._model_dtype,
-            model=getattr(self, "model", None),
-            torch_module=torch,
-            logger_instance=logger,
-        )
-
-    def _prepare_question(self, instruction: str) -> str:
-        """Build the InternVL chat question from the shared grounding prompt."""
-        return prepare_question(
-            instruction,
-            build_grounding_prompt_fn=build_grounding_prompt,
-        )
-
-    def _run_chat_generation(
-        self,
-        *,
-        pixel_values,
-        question: str,
-        num_patches_list,
-        generation_config,
-    ) -> str:
-        return run_chat_generation(
-            model=self.model,
-            tokenizer=self.tokenizer,
-            pixel_values=pixel_values,
-            question=question,
-            num_patches_list=num_patches_list,
-            generation_config=generation_config,
-            logger_instance=logger,
-        )
-
-    def _run_generate_fallback(
-        self, *, pixel_values, question: str, num_patches_list, model_device: Any
-    ) -> str:
-        return run_generate_fallback(
-            model=self.model,
-            tokenizer=self.tokenizer,
-            torch_module=torch,
-            pixel_values=pixel_values,
-            question=question,
-            num_patches_list=num_patches_list,
-            model_device=model_device,
-            logger_instance=logger,
-        )
-
-    def _run_generate_fallback_with_chat_error(
-        self,
-        *,
-        pixel_values,
-        question: str,
-        num_patches_list,
-        model_device: Any,
-        chat_error: Exception,
-    ) -> str:
-        """Run generate fallback and convert dual-failure into one wrapped RuntimeError."""
-        return run_generate_fallback_with_chat_error(
-            run_generate_fallback_fn=self._run_generate_fallback,
-            pixel_values=pixel_values,
-            question=question,
-            num_patches_list=num_patches_list,
-            model_device=model_device,
-            chat_error=chat_error,
-            logger_instance=logger,
-        )
-
-    def _run_chat_with_fallbacks(
-        self,
-        *,
-        pixel_values,
-        question: str,
-        num_patches_list,
-        generation_config,
-        model_device: Any,
-    ) -> str:
-        """Run chat generation with runtime flash-attn/CUDA fallback handling."""
-        return run_chat_with_fallbacks(
-            run_chat_generation_fn=self._run_chat_generation,
-            disable_flash_attention_runtime_fn=self._disable_flash_attention_runtime,
-            run_generate_fallback_with_chat_error_fn=self._run_generate_fallback_with_chat_error,
-            is_cuda_kernel_image_error_fn=_is_cuda_kernel_image_error,
-            pixel_values=pixel_values,
-            question=question,
-            num_patches_list=num_patches_list,
-            generation_config=generation_config,
-            model_device=model_device,
-            logger_instance=logger,
-        )
-
-    def _disable_flash_attention_runtime(self) -> bool:
-        """
-        Disable flash-attention switches on loaded modules for runtime fallback.
-
-        This handles environments where flash-attn imports but the packaged CUDA
-        kernels do not support the active GPU architecture.
-        """
-        return disable_flash_attention_runtime(
-            model=self.model,
-            logger_instance=logger,
-        )
-
-    def _log_failure_context(
-        self,
-        *,
-        error: Exception,
-        elapsed_seconds: float,
-        width: Optional[int],
-        height: Optional[int],
-        model_device: Optional[Any],
-    ) -> None:
-        log_failure_context(
-            error=error,
-            elapsed_seconds=elapsed_seconds,
-            width=width,
-            height=height,
-            model_device=model_device,
-            model=self.model,
-            torch_module=torch,
-            resolve_model_device_fn=resolve_model_device,
-            logger_instance=logger,
-        )
-
     def _predict_sync(
         self, image_b64: str, instruction: str
     ) -> Optional[Tuple[int, int]]:
@@ -425,10 +301,12 @@ class InternVLModel(BaseVisionModel):
         height: Optional[int] = None
         model_device: Optional[Any] = None
         try:
-            instruction_preview, instruction_hash = _build_instruction_log_metadata(
+            instruction_preview, instruction_hash = build_instruction_log_metadata(
                 instruction
             )
-            preview_suffix = "..." if len(instruction_preview) < len(instruction) else ""
+            preview_suffix = (
+                "..." if len(instruction_preview) < len(instruction) else ""
+            )
             model_device = resolve_model_device(self.model)
             logger.info(
                 f"Starting InternVL prediction for instruction (preview: {instruction_preview}{preview_suffix}, hash: {instruction_hash})"
@@ -442,7 +320,10 @@ class InternVLModel(BaseVisionModel):
             width, height = image.size
             logger.info(f"Image decoded: {width}x{height}, mode: {image.mode}")
 
-            question = self._prepare_question(instruction)
+            question = prepare_question(
+                instruction,
+                build_grounding_prompt_fn=build_grounding_prompt,
+            )
             logger.debug("Grounding prompt prepared (instruction sanitized in logs)")
             logger.debug(
                 "Prepared chat question with image placeholder (instruction hash=%s)",
@@ -459,7 +340,12 @@ class InternVLModel(BaseVisionModel):
                 logger.error("Failed to process image into pixel values")
                 return None
 
-            model_dtype = self._resolve_model_dtype()
+            model_dtype = resolve_model_dtype(
+                cached_dtype=self._model_dtype,
+                model=getattr(self, "model", None),
+                torch_module=torch,
+                logger_instance=logger,
+            )
             pixel_values = pixel_values.to(model_dtype).to(model_device)
 
             generation_config = {
@@ -468,12 +354,35 @@ class InternVLModel(BaseVisionModel):
                 "temperature": 0.0,
             }
             logger.info("Starting InternVL chat generation...")
-            output_text = self._run_chat_with_fallbacks(
+            output_text = run_chat_with_fallbacks(
+                run_chat_generation_fn=lambda **kwargs: run_chat_generation(
+                    model=self.model,
+                    tokenizer=self.tokenizer,
+                    logger_instance=logger,
+                    **kwargs,
+                ),
+                disable_flash_attention_runtime_fn=lambda: disable_flash_attention_runtime(
+                    model=self.model,
+                    logger_instance=logger,
+                ),
+                run_generate_fallback_with_chat_error_fn=lambda **kwargs: run_generate_fallback_with_chat_error(
+                    run_generate_fallback_fn=lambda **fallback_kwargs: run_generate_fallback(
+                        model=self.model,
+                        tokenizer=self.tokenizer,
+                        torch_module=torch,
+                        logger_instance=logger,
+                        **fallback_kwargs,
+                    ),
+                    logger_instance=logger,
+                    **kwargs,
+                ),
+                is_cuda_kernel_image_error_fn=is_cuda_kernel_image_error,
                 pixel_values=pixel_values,
                 question=question,
                 num_patches_list=num_patches_list,
                 generation_config=generation_config,
                 model_device=model_device,
+                logger_instance=logger,
             )
 
             if not output_text:
@@ -488,7 +397,9 @@ class InternVLModel(BaseVisionModel):
             point = extract_point_or_bbox_center(output_text)
             logger.info(f"Extracted point: {point}")
             if point is None:
-                response_length, response_hash = build_response_log_metadata(output_text)
+                response_length, response_hash = build_response_log_metadata(
+                    output_text
+                )
                 logger.error(
                     "Could not parse InternVL coordinates from model response "
                     "(length=%d, sha256=%s)",
@@ -508,12 +419,16 @@ class InternVLModel(BaseVisionModel):
 
         except Exception as error:
             vision_prediction_time = time.perf_counter() - vision_prediction_start
-            self._log_failure_context(
+            log_failure_context(
                 error=error,
                 elapsed_seconds=vision_prediction_time,
                 width=width,
                 height=height,
                 model_device=model_device,
+                model=self.model,
+                torch_module=torch,
+                resolve_model_device_fn=resolve_model_device,
+                logger_instance=logger,
             )
             return None
 
@@ -541,28 +456,60 @@ class InternVLModel(BaseVisionModel):
             if pixel_values is None:
                 return None
 
-            model_dtype = self._resolve_model_dtype()
+            model_dtype = resolve_model_dtype(
+                cached_dtype=self._model_dtype,
+                model=getattr(self, "model", None),
+                torch_module=torch,
+                logger_instance=logger,
+            )
             pixel_values = pixel_values.to(model_dtype).to(model_device)
             generation_config = {
                 "max_new_tokens": 256,
                 "do_sample": False,
                 "temperature": 0.0,
             }
-            output_text = self._run_chat_with_fallbacks(
+            output_text = run_chat_with_fallbacks(
+                run_chat_generation_fn=lambda **kwargs: run_chat_generation(
+                    model=self.model,
+                    tokenizer=self.tokenizer,
+                    logger_instance=logger,
+                    **kwargs,
+                ),
+                disable_flash_attention_runtime_fn=lambda: disable_flash_attention_runtime(
+                    model=self.model,
+                    logger_instance=logger,
+                ),
+                run_generate_fallback_with_chat_error_fn=lambda **kwargs: run_generate_fallback_with_chat_error(
+                    run_generate_fallback_fn=lambda **fallback_kwargs: run_generate_fallback(
+                        model=self.model,
+                        tokenizer=self.tokenizer,
+                        torch_module=torch,
+                        logger_instance=logger,
+                        **fallback_kwargs,
+                    ),
+                    logger_instance=logger,
+                    **kwargs,
+                ),
+                is_cuda_kernel_image_error_fn=is_cuda_kernel_image_error,
                 pixel_values=pixel_values,
                 question=prompt.strip(),
                 num_patches_list=num_patches_list,
                 generation_config=generation_config,
                 model_device=model_device,
+                logger_instance=logger,
             )
             normalized = str(output_text or "").strip()
             return normalized or None
         except Exception as error:
-            self._log_failure_context(
+            log_failure_context(
                 error=error,
                 elapsed_seconds=0.0,
                 width=width,
                 height=height,
                 model_device=model_device,
+                model=self.model,
+                torch_module=torch,
+                resolve_model_device_fn=resolve_model_device,
+                logger_instance=logger,
             )
             return None

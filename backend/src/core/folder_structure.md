@@ -288,10 +288,10 @@ WebSocket Response
 - InternVL model load now retries with `low_cpu_mem_usage=False` when
   transformers/meta initialization raises a meta-tensor scalar extraction error,
   improving startup resilience for custom InternVL checkpoints.
-- InternVL synchronous prediction flow is decomposed into focused helpers
-  (`_resolve_model_dtype`, `_run_chat_generation`, `_run_generate_fallback`,
-  `_log_failure_context`) to reduce method complexity while preserving
-  inference fallback behavior.
+- InternVL synchronous prediction flow delegates fallback orchestration to
+  `internvl_runtime_helpers.py` helpers (`resolve_model_dtype`,
+  `run_chat_generation`, `run_generate_fallback`, `log_failure_context`) while
+  `internvl.py` binds provider-local model/tokenizer state at the call site.
 - UI-Venus provider dependency imports are now guarded in
   `backend/src/services/vision/providers/ui_venus.py` so optional/broken
   acceleration wheels fail closed at provider load time instead of crashing

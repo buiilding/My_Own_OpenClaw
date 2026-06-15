@@ -34,6 +34,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/backend-api: rename package-split reference files for artifacts,
   embeddings, semantic memory, and websocket routes so current export and
   router contracts are not labeled as compatibility surfaces.
+- backend/vision: remove InternVL class-level compatibility wrappers around
+  runtime helper functions so chat/generate fallback orchestration is tested and
+  owned directly by `internvl_runtime_helpers.py`.
 
 ### Added
 
