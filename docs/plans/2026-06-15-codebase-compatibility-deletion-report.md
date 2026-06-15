@@ -34,20 +34,19 @@ Date: 2026-06-15
 | CD-001 | Frontend logging | Duplicate `frontend` branch in `resolveLayerLogFile(...)` | `envKeyForLayer('frontend')` already resolves `WINDIE_FRONTEND_LOG_FILE`, making the later `legacyConfigured` branch unreachable | Delete the duplicate branch; keep the current layer-owned env override | implemented |
 | CD-002 | Backend API events | Live `trace_event` stream event spelling in VM run control and transcription gateway | Outgoing trace event schema and `StreamingEventType.TRACE_EVENT` use `trace-event`; production grep found only these underscore emitters | Emit canonical `trace-event`, update focused tests, remove the underscore trace alias, and fix the transcription route dependency needed to validate the websocket path | implemented |
 | CD-003 | Backend container | Handler registry source compatibility breadcrumb | `api_container.py` only retained a commented manual registration example for tests migrating away from manual registration; active docs now describe declarative bindings | Delete the stale comment so the current registry path is the only in-code guidance | implemented |
+| CD-004 | Backend session stream | Raw dict `llm-thought` event in no-model-selected branch | `AgentSession.process_query` otherwise yields typed stream events; `ResponseFormatter` ignores dict events and formatter specs are typed/canonical | Replace raw dict with `ThinkingEvent` and tighten the return annotation | implemented |
 
 ## Commit Ledger
 
-No commits yet for this plan.
+- `dd62d7502 refactor(codebase): remove trace event and logging compatibility`
+  completed CD-001 and CD-002.
+- `24559adb9 refactor(backend): remove handler registry compatibility breadcrumb`
+  completed CD-003.
+- CD-004 is implemented and validated locally; commit pending.
 
 ## Validation Log
 
 - `bin/windie docs list`: passed during orientation.
-
-Pending validation for CD-001:
-
-- `bin/windie test frontend -- LayerLogSink ElectronLauncher WindieCli`
-- `bin/windie docs list`
-- `git diff --check`
 
 CD-001 validation:
 
@@ -76,6 +75,14 @@ CD-002 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-004 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_session_client_manifest_trace.py tests/backend/test_response_formatter.py -q`:
+  passed, 14 tests.
+- targeted `rg "yield \\{" backend/src/agent/session/session.py`: no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -100,3 +107,6 @@ CD-002 validation:
   packages under the shim.
 - CD-003 has no runtime migration impact: it removes only a stale source
   comment after declarative handler bindings became the active registry path.
+- CD-004 has no transport migration impact: the outgoing event type remains
+  `llm-thought`, but the backend session now emits it through the typed stream
+  event path instead of a raw dict.

@@ -47,7 +47,11 @@ from backend.src.agent.session.prompt_layers import (
 )
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
-from backend.src.core.events.streaming_events import TraceEvent
+from backend.src.core.events.streaming_events import (
+    AgentStreamingEvent,
+    ThinkingEvent,
+    TraceEvent,
+)
 from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.prompts.prompts import (
     PromptManager,
@@ -566,7 +570,7 @@ class AgentSession:
         client_prompt_layers: Optional[List[Dict[str, Any]]] = None,
         agent_definition: Optional[Any] = None,
         runtime_system_state: Optional[Dict[str, str]] = None,
-    ) -> AsyncGenerator[Dict[str, Any], None]:
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Processes a user query and yields status updates and response chunks.
 
@@ -869,10 +873,9 @@ class AgentSession:
                 )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
-                yield {
-                    "type": "llm-thought",
-                    "content": "No model selected. Please select a model in settings.",
-                }
+                yield ThinkingEvent(
+                    content="No model selected. Please select a model in settings."
+                )
                 return
 
             async for event in self.executor.process_query(

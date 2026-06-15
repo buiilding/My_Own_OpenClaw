@@ -7,7 +7,7 @@ import pytest
 from backend.src.agent.session.session import AgentSession
 from backend.src.api.schemas.agent_definition import AgentDefinition
 from backend.src.core.config.models import AppConfig
-from backend.src.core.events.streaming_events import TraceEvent
+from backend.src.core.events.streaming_events import ThinkingEvent, TraceEvent
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.infrastructure.cache import CacheManager
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
@@ -103,6 +103,18 @@ def _build_session(config: AppConfig | None = None) -> AgentSession:
     )
     session.executor = FakeExecutor()
     return session
+
+
+@pytest.mark.asyncio
+async def test_process_query_no_model_selected_uses_typed_thinking_event():
+    config = AppConfig(selected_model_id="")
+    session = _build_session(config)
+
+    events = [event async for event in session.process_query("hello")]
+
+    assert len(events) == 1
+    assert isinstance(events[0], ThinkingEvent)
+    assert events[0].content == "No model selected. Please select a model in settings."
 
 
 @pytest.mark.asyncio
