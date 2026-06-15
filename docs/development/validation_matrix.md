@@ -68,8 +68,8 @@ Sidecar:
 
 Frontend:
 
-- `tests/frontend/WindieSdkDesktopAgent.test.ts`
-- `tests/frontend/WindieSdkDesktopAgent.test.ts`
+- `tests/frontend/WindieSdkClient.test.ts`
+- `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/LocalBackendBridge.test.cjs`

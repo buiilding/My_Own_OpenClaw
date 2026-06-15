@@ -24,7 +24,7 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 - `tests/frontend/ArtifactUploader.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
 - `tests/frontend/ToolExecutionLogger.test.ts`
-- `tests/frontend/WindieSdkDesktopAgent.test.ts`
+- `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
 
 ## Screenshot Invocation and Display-Bounds Injection
@@ -193,7 +193,7 @@ Error logs still emit through `console.error`.
 - screenshot content-type extraction, artifact upload fallback, and screenshot-ref/url normalization
 - default versus `includeWindows` system-state field selection
 
-`tests/frontend/WindieSdkDesktopAgent.test.ts` verifies:
+`tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` verify:
 
 - envelope type + payload key contracts for single-tool and bundle sends
 - single computer-use tools merge one post-action screenshot into tool result data

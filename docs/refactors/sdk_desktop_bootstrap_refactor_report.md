@@ -77,7 +77,7 @@ effects, and renderer broadcasting.
 
 - `npm run build` in `packages/windie-sdk-js`
 - `node -c frontend/src/main/ipc.cjs`
-- `npm run test -- IpcMainSdkRuntimeBoundary ModularRefactorCompletionBoundary WindieSdkDesktopAgent IpcMainBridge.query IpcMainBridge.lifecycle WindieSdkClient --runInBand`
+- `npm run test -- IpcMainSdkRuntimeBoundary ModularRefactorCompletionBoundary WindieSdkClient WindieSdkConversationRuntime IpcMainBridge.query IpcMainBridge.lifecycle --runInBand`
 - `npm run typecheck` in `frontend`
 - `npm run lint` in `frontend`
 - `bin/windie docs list`
@@ -92,6 +92,7 @@ The follow-up clean-startup slice also validated:
 
 Some older troubleshooting and inventory docs still describe the historical
 main-process SDK host path. The canonical runtime docs and boundary tests now
-describe the new ownership. Future docs-only cleanup should replace historical
-references with `frontend/src/main/ipc.cjs` plus
-`packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`.
+describe the new ownership. Future docs-only cleanup should keep historical
+references isolated to completed reports and route active docs to
+`frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`,
+and `packages/windie-sdk-js/src/runtime/WindieClient.ts`.

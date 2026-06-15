@@ -134,7 +134,7 @@ flowchart LR
 | Sidecar shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
 | Sidecar registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
 | Electron bridge argument shaping, sudo mode, and local tool failures | `cd frontend && npm run test -- LocalBackendBridgeToolArgs LocalBackendBridge.lifecycle` |
-| SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkDesktopAgent ToolResult` |
+| SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- ChatStreamEventUtils ChatBoxResponse ChatStreamToolHandlers` |
 | Workspace default-folder behavior | Workspace tests plus the focused shell/read-file tests that exercise selected-workspace path resolution |
 | Docs-only changes | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |

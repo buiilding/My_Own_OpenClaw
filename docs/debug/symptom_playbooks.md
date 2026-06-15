@@ -17,7 +17,7 @@ Likely boundary: SDK desktop agent, Electron main query preparation, or hosted b
 Inspect:
 
 - `frontend/src/main/ipc.cjs`
-- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
+- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/task_manager.py`
@@ -70,7 +70,7 @@ Inspect:
 - `backend/src/tools/tool_catalog.py`
 - `backend/src/agent/tools`
 - `packages/windie-sdk-js/src/runtime`
-- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
+- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/registry.py`
@@ -85,7 +85,7 @@ Validate:
 
 ```bash
 bin/windie test backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
-bin/windie test frontend -- WindieSdkConversationRuntime.test.ts WindieSdkDesktopAgent.test.ts WindieSdkDesktopAgent.test.ts RendererToolResultBoundary.test.ts
+bin/windie test frontend -- WindieSdkConversationRuntime WindieSdkClient RendererToolResultBoundary ToolOutputContent
 bin/windie test sidecar tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
 ```
 

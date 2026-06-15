@@ -18,7 +18,7 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `tests/frontend/ToolExecutionInvoker.test.ts`
 - `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
-- `tests/frontend/WindieSdkDesktopAgent.test.ts`
+- `tests/frontend/WindieSdkClient.test.ts`
 
 ## Transcript Conversation Loader Contract
 
