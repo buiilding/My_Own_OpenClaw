@@ -37,7 +37,7 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 15 / 25.
+Counted cleanup commits: 16 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -56,6 +56,7 @@ Counted cleanup commits: 15 / 25.
 | 13 | `62cf39266` | P25-013 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active chat-pill trace docs to the moved debug module. |
 | 14 | `cfcc64c61` | P25-014 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed stale active query-builder docs and routed enrichment ownership to the SDK. |
 | 15 | `0cfb0c08c` | P25-015 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed stale SDK command-forwarding helper docs and routed query sends to the current helper. |
+| 16 | `30a0fd46b` | P25-016 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active platform permission docs to the current permission IPC runtime. |
 
 ## Validation Log
 
@@ -64,4 +65,4 @@ Counted cleanup commits: 15 / 25.
 
 ## Current Status
 
-P25-001 through P25-015 are committed. P25-016 is in progress.
+P25-001 through P25-016 are committed. P25-017 is in progress.

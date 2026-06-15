@@ -183,7 +183,8 @@ Common files:
 
 - `frontend/package.json`
 - `frontend/electron-builder.*`
-- `frontend/src/main/sidecar_process_runtime.cjs`
+- `frontend/src/main/app/runtime_paths.cjs`
+- `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`
 - `frontend/src/main/python/requirements.runtime.txt`
 - `scripts/build-sidecar-runtime`
 - `bin/windie reinstall mac`

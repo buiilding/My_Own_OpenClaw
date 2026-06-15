@@ -393,6 +393,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/platforms: route packaged sidecar workflow docs from deleted
+  `sidecar_process_runtime.cjs` to `runtime_paths.cjs` and
+  `sdk_sidecar_launch_options.cjs`.
 - docs/platforms: route permission workflow docs from deleted
   `ipc_permissions.cjs` to the current permission IPC runtime module.
 - docs/ipc: remove the stale `ipc_sdk_command_forwarding.cjs` reference from
