@@ -1775,6 +1775,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Removed
 
+- sdk/tools: delete the unused `ElectronToolEventRouter.ts` duplicate now that
+  local tool routing is owned by `ToolExecutionCoordinator.ts`.
 - chore(repo-cleanup): remove tracked audit scratch output under `.audit/plan1` and the empty `.cursorignore` file.
 - fix(frontend-models-oauth-ui): remove the nonfunctional OpenAI Codex OAuth controls from the models settings surface while preserving existing config compatibility.
 - chore(repo-public-cleanup): remove a root screenshot artifact and tracked `.codex` placeholder while ignoring `audit/plan1` for open-source preparation.
