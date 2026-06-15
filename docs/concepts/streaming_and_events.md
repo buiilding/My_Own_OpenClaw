@@ -85,3 +85,10 @@ The renderer renders display-only tool state and transcript projections. Do not 
 - [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
 - [Frontend Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
 - [Token Count Event and Usage Diagnostics Reference](../backend/runtime/token_count_event_and_usage_diagnostics_reference.md)
+
+## Evidence Notes
+
+- Preserve raw event order when diagnosing stream bugs; sorted or grouped logs
+  can hide the transition that caused stale UI state.
+- Verify both the event formatter and the renderer consumer when a field is
+  present in backend code but absent from the visible UI.
