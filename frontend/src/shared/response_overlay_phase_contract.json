@@ -14,5 +14,9 @@
     "max_attempts",
     "recovery_stage",
     "failure_reason"
-  ]
+  ],
+  "preflight": {
+    "source": "renderer-send-preflight",
+    "guard_ref": "renderer-send-preflight"
+  }
 }

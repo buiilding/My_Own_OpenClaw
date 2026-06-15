@@ -16,8 +16,10 @@ const {
 const {
   appendSurfaceVisibilityDiagnostic,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
-
-const RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF = 'renderer-send-preflight';
+const {
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+} = require('../ipc/ipc_overlay_phase_contract.cjs');
 
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
@@ -194,7 +196,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       setActiveResponseOverlayGuardRef(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF);
       logLiveSurfaceTrace('stale_guard.changed', {
         source: 'phase-handler',
-        reason: 'renderer-send-preflight',
+        reason: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
         previousGuardRef: activeGuardRef,
         nextGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
         phase,
@@ -277,7 +279,7 @@ function shouldApplyResponseOverlayPhaseEvent({
 
 function shouldUsePhaseVisibilityFallback(event = {}, nextPhase, RESPONSE_OVERLAY_PHASE = {}) {
   return (
-    event?.source === 'renderer-send-preflight'
+    event?.source === RESPONSE_OVERLAY_PREFLIGHT_SOURCE
     && nextPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
   );
 }
@@ -406,7 +408,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 }
 
 module.exports = {
-  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
   isResponseOverlayPreflightGuardRef,

@@ -61,6 +61,8 @@ The chat pill is the small always-available desktop command surface. It is rende
   send acceptance. The response overlay renderer may use only that
   `renderer-send-preflight` phase as a local pre-SDK typing fallback; SDK
   current-turn presentation replaces it when the runtime projection arrives.
+  The preflight source and guard identity are defined by the shared response
+  overlay phase contract and consumed by both renderer and Electron main.
 - The renderer resolves that preflight fallback through one shared live-turn
   surface resolver. A hidden or idle SDK presentation does not clear local
   preflight while `isSending=true`; active SDK awaiting/response or terminal

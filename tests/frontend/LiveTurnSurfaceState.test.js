@@ -4,6 +4,8 @@
 
 import {
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
+import {
   resolveLiveTurnPresentationInput,
 } from '../../frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState';
 

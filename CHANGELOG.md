@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/contracts: centralize response-overlay preflight source and guard
+  identity in the shared phase contract so renderer and Electron main cannot
+  drift on the local send typing handoff.
 - docs/agents: clarify that implementation scope should widen within the same
   owner boundary when the broader change deletes code, reduces duplication, or
   creates a more foundational path.

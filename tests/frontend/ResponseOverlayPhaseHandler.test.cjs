@@ -1,10 +1,13 @@
 /** @jest-environment node */
 
 const {
-  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
 } = require('../../frontend/src/main/surfaces/response_overlay_phase_handler.cjs');
+const {
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
 
 const PHASE = Object.freeze({
   IDLE: 'idle',
@@ -131,7 +134,7 @@ describe('response_overlay_phase_handler', () => {
 
     handleResponseOverlayPhaseEvent({
       phase: PHASE.AWAITING_FIRST_CHUNK,
-      source: 'renderer-send-preflight',
+      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
     }, deps);
 
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
@@ -173,7 +176,7 @@ describe('response_overlay_phase_handler', () => {
 
     handleResponseOverlayPhaseEvent({
       phase: PHASE.AWAITING_FIRST_CHUNK,
-      source: 'renderer-send-preflight',
+      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
     }, deps);
 
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);

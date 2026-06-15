@@ -8,6 +8,8 @@ import {
   normalizeResponseOverlayString,
   RESPONSE_OVERLAY_METADATA_KEYS,
   RESPONSE_OVERLAY_PHASE,
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
 } from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
 
 describe('responseOverlayPhaseContract', () => {
@@ -40,6 +42,11 @@ describe('responseOverlayPhaseContract', () => {
       'recovery_stage',
       'failure_reason',
     ]);
+  });
+
+  test('exports canonical preflight source and guard', () => {
+    expect(RESPONSE_OVERLAY_PREFLIGHT_SOURCE).toBe('renderer-send-preflight');
+    expect(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF).toBe('renderer-send-preflight');
   });
 
   test('normalizes phase strings and validates known phases', () => {

@@ -2,7 +2,10 @@
  * Provides the live turn surface state module for the renderer UI.
  */
 
-import { RESPONSE_OVERLAY_PHASE } from '../overlay/responseOverlayPhaseContract';
+import {
+  RESPONSE_OVERLAY_PHASE,
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+} from '../overlay/responseOverlayPhaseContract';
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   awaiting: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
@@ -26,8 +29,6 @@ const CURRENT_TURN_TERMINAL_PHASES = new Set([
   'error',
   'idle',
 ]);
-
-export const RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF = 'renderer-send-preflight';
 
 function normalizePhase(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;

@@ -8,6 +8,9 @@ const RESPONSE_OVERLAY_PHASES = new Set(responseOverlayPhaseContract.phases || [
 
 const RESPONSE_OVERLAY_METADATA_KEYS = [...(responseOverlayPhaseContract.metadata_keys || [])];
 
+const RESPONSE_OVERLAY_PREFLIGHT_SOURCE = responseOverlayPhaseContract.preflight?.source;
+const RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF = responseOverlayPhaseContract.preflight?.guard_ref;
+
 function createResponseOverlayPhaseEnum() {
   const phaseEnum = {};
   for (const phase of RESPONSE_OVERLAY_PHASES) {
@@ -36,6 +39,8 @@ module.exports = {
   createResponseOverlayPhaseEnum,
   RESPONSE_OVERLAY_METADATA_KEYS,
   RESPONSE_OVERLAY_PHASES,
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
   normalizeOverlayNumber,
   normalizeOverlayString,
 };

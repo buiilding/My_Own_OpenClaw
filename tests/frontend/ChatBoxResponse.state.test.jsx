@@ -22,6 +22,10 @@ import {
   setChatState,
   useChatStore,
 } from './ChatBoxResponse.testUtils';
+import {
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
 
 describe('ChatBoxResponse state behavior', () => {
   beforeEach(() => {
@@ -96,7 +100,7 @@ describe('ChatBoxResponse state behavior', () => {
 
     emitResponseOverlayPhasePayload({
       phase: 'awaiting-first-chunk',
-      source: 'renderer-send-preflight',
+      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
     });
 
     await waitFor(() => {
@@ -111,7 +115,7 @@ describe('ChatBoxResponse state behavior', () => {
 
     emitResponseOverlayPhasePayload({
       phase: 'awaiting-first-chunk',
-      source: 'renderer-send-preflight',
+      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
     });
 
     await waitFor(() => {
@@ -1039,7 +1043,7 @@ describe('ChatBoxResponse state behavior', () => {
         expect.objectContaining({
           visible: true,
           compact_hover: true,
-          stale_guard_ref: 'renderer-send-preflight',
+          stale_guard_ref: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
           turn_ref: 'turn-2',
         }),
       );

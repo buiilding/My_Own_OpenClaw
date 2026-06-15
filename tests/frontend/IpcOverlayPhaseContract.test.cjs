@@ -4,6 +4,8 @@ const {
   createResponseOverlayPhaseEnum,
   RESPONSE_OVERLAY_METADATA_KEYS,
   RESPONSE_OVERLAY_PHASES,
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
   normalizeOverlayNumber,
   normalizeOverlayString,
 } = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
@@ -21,6 +23,11 @@ describe('ipc_overlay_phase_contract', () => {
       'recovery_stage',
       'failure_reason',
     ]);
+  });
+
+  test('exports canonical preflight source and guard', () => {
+    expect(RESPONSE_OVERLAY_PREFLIGHT_SOURCE).toBe('renderer-send-preflight');
+    expect(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF).toBe('renderer-send-preflight');
   });
 
   test('builds canonical response overlay phase enum object', () => {

@@ -2,7 +2,7 @@
 
 const {
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
-} = require('../../frontend/src/main/surfaces/response_overlay_phase_handler.cjs');
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
 
 const {
   createSdkLiveTurnSurfaceState,

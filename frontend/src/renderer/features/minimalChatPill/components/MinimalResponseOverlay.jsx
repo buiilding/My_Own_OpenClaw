@@ -16,6 +16,7 @@ import {
   logRendererResponseSurfaceTrace,
 } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
+import { RESPONSE_OVERLAY_PREFLIGHT_SOURCE } from '../../chat/utils/overlay/responseOverlayPhaseContract';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const RESPONSE_FIXED_HEIGHT = RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
@@ -26,7 +27,7 @@ function isRendererSendPreflightAwaiting(payload) {
     payload
     && typeof payload === 'object'
     && payload.phase === 'awaiting-first-chunk'
-    && payload.source === 'renderer-send-preflight'
+    && payload.source === RESPONSE_OVERLAY_PREFLIGHT_SOURCE
   );
 }
 

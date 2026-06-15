@@ -5,6 +5,9 @@
 const {
   registerResponseOverlayHandlers,
 } = require('../../frontend/src/main/ipc/ipc_response_overlay_handlers.cjs');
+const {
+  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
 
 function createHarness(phase) {
   const handlers = {};
@@ -35,7 +38,7 @@ describe('ipc_response_overlay_handlers', () => {
 
     expect(setResponseOverlayPhase).toHaveBeenCalledWith(
       'awaiting-first-chunk',
-      'renderer-send-preflight',
+      RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
     );
   });
 
