@@ -54,6 +54,8 @@ Date: 2026-06-15
   completed CD-006.
 - `e3d35ca71 refactor(backend): remove legacy prompt snapshots`
   completed CD-007.
+- `97e3c2566 refactor(backend): require canonical stream event extraction`
+  completed CD-008.
 
 ## Validation Log
 
