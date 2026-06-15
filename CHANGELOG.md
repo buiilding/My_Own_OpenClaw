@@ -20,6 +20,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/backend-api: rename the query-execution helper reference away from
   compatibility event-extraction terminology now that stream event extraction
   requires canonical event types.
+- docs/backend-api: rename package-split reference files for artifacts,
+  embeddings, semantic memory, and websocket routes so current export and
+  router contracts are not labeled as compatibility surfaces.
 
 ### Added
 

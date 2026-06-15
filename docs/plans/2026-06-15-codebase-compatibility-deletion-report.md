@@ -43,6 +43,7 @@ Date: 2026-06-15
 | CD-010 | Backend prompt construction | `PromptConstructor.build_prompt(...)` tuple-returning compatibility wrapper | Production grep showed only SDK prompt preview still used the tuple wrapper; tests could assert directly through `ProviderPrompt` | Move callers to `build_provider_prompt(...)`, delete the wrapper, and update prompt docs/tests to use the typed provider prompt contract | implemented |
 | CD-011 | Frontend settings docs | Legacy settings display/config compatibility entrypoint page | Repo search showed only docs hubs linked to the redirect-style page, while current detailed settings docs live under `settings/sections` and `settings/config` | Delete the compatibility entrypoint and route docs hubs to the current settings docs directly | implemented |
 | CD-012 | Backend API completion docs | Query execution helper doc filename/title still described compatibility event extraction | CD-008 made stream event extraction canonical-only; current helper doc now describes supported dict/object extraction and field resolution, not compatibility aliasing | Rename the doc and links to the current event-extraction contract terminology | implemented |
+| CD-013 | Backend API package-split docs | Artifacts, embeddings, semantic memory, and websocket package-split reference filenames still carried compatibility/monkeypatch wording | The docs content already describes current package route seams and owner modules; the stale compatibility wording existed in filenames and link labels only | Rename the docs to current package-split/export contract names and update internal docs links | implemented |
 
 ## Commit Ledger
 
@@ -180,6 +181,13 @@ CD-012 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-013 validation:
+
+- targeted `rg -n "artifacts_route_package_split_and_compatibility_export_contract_reference|embeddings_route_package_split_and_compatibility_export_contract_reference|semantic_route_package_split_and_compatibility_export_contract_reference|websocket_route_package_router_split_and_monkeypatch_compat_reference|Embeddings Route Package Split and Compatibility Export Contract Reference" docs backend/src tests --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -231,3 +239,6 @@ CD-012 validation:
 - CD-012 has no runtime migration impact: it renames a docs-only reference page
   and updates internal docs links after the code path already required
   canonical event types.
+- CD-013 has no runtime migration impact: it renames docs-only package-split
+  references and updates internal docs links without changing API route exports,
+  handlers, or tests.

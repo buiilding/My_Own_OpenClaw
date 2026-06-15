@@ -111,4 +111,4 @@ Parser functions intentionally do not raise on mismatched text shape.
 - [Backend API Memory Docs Hub](README.md)
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
 - [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
-- [Semantic Route Package Split Reference](semantic_route_package_split_and_compatibility_export_contract_reference.md)
+- [Semantic Route Package Split Reference](semantic_route_package_split_reference.md)
