@@ -27,6 +27,8 @@ const CURRENT_TURN_TERMINAL_PHASES = new Set([
   'idle',
 ]);
 
+export const RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF = 'renderer-send-preflight';
+
 function normalizePhase(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -170,6 +172,8 @@ export function resolveLiveTurnPresentationInput({
     useSdkLiveTurnPresentation,
   });
   if (useLocalSendLatch) {
+    const turnRef = findLatestUserTurnRef(messages);
+    const conversationRef = currentTurnProjection?.conversationRef ?? null;
     return {
       phase: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
       isSending: true,
@@ -179,11 +183,17 @@ export function resolveLiveTurnPresentationInput({
       source: 'send-preflight',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation,
-      overlayIntent: null,
+      overlayIntent: {
+        visible: true,
+        mode: 'awaiting',
+        turnRef,
+        conversationRef,
+        staleGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      },
       entries: [],
-      turnRef: findLatestUserTurnRef(messages),
-      conversationRef: currentTurnProjection?.conversationRef ?? null,
-      guardRef: null,
+      turnRef,
+      conversationRef,
+      guardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
     };
   }
 

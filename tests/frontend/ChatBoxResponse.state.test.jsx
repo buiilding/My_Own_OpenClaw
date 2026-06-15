@@ -947,6 +947,112 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('new local send reports preflight guard instead of previous response guard', async () => {
+    const previousProjection = sdkPresentationProjection({
+      mode: 'response',
+      phase: 'complete',
+      turnRef: 'turn-1',
+      entries: [{
+        id: 'entry-previous-response',
+        type: 'llm-text',
+        text: 'previous complete response',
+        sourceEventType: 'assistant_message_full',
+        turnRef: 'turn-1',
+      }],
+    });
+    useChatStore.setState({
+      messages: [
+        { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
+        {
+          id: 'assistant-1',
+          text: 'previous complete response',
+          sender: 'assistant',
+          type: 'llm-text',
+          isComplete: true,
+          turnRef: 'turn-1',
+        },
+      ],
+      isSending: false,
+      currentTurnProjection: previousProjection,
+      latestCurrentTurnProjection: previousProjection,
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('previous complete response')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'set-responsebox-size',
+        expect.objectContaining({
+          visible: true,
+          stale_guard_ref: 'turn-1',
+        }),
+      );
+    });
+
+    mockInvoke.mockClear();
+    act(() => {
+      useChatStore.setState({
+        isSending: true,
+        messages: [
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
+          {
+            id: 'assistant-1',
+            text: 'previous complete response',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            turnRef: 'turn-1',
+          },
+          { id: 'user-2', text: 'again', sender: 'user', type: 'user', turnRef: 'turn-2' },
+        ],
+        currentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-1',
+          phase: 'complete',
+          assistantText: 'previous complete response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+        latestCurrentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-1',
+          phase: 'complete',
+          assistantText: 'previous complete response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('previous complete response')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'set-responsebox-size',
+        expect.objectContaining({
+          visible: true,
+          compact_hover: true,
+          stale_guard_ref: 'renderer-send-preflight',
+          turn_ref: 'turn-2',
+        }),
+      );
+    });
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => (
+        channel === 'set-responsebox-size'
+        && payload?.visible === true
+        && payload?.stale_guard_ref === 'turn-1'
+      ),
+    )).toBe(false);
+  });
+
   test('new local send shows awaiting before optimistic user row lands', async () => {
     setChatState([
       { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },

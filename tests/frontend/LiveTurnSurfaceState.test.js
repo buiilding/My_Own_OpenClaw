@@ -3,6 +3,7 @@
  */
 
 import {
+  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
   resolveLiveTurnPresentationInput,
 } from '../../frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState';
 
@@ -50,6 +51,14 @@ describe('liveTurnSurfaceState', () => {
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
       turnRef: 'turn-2',
+      guardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      overlayIntent: {
+        visible: true,
+        mode: 'awaiting',
+        turnRef: 'turn-2',
+        conversationRef: 'conv-1',
+        staleGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      },
     });
   });
 
@@ -66,6 +75,11 @@ describe('liveTurnSurfaceState', () => {
       source: 'send-preflight',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
+      guardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      overlayIntent: expect.objectContaining({
+        mode: 'awaiting',
+        staleGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      }),
     });
   });
 

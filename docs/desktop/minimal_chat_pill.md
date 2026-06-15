@@ -67,6 +67,10 @@ The chat pill is the small always-available desktop command surface. It is rende
   state after the local send latch clears supersedes it. This also covers the
   gap before the optimistic new user row lands, when the previous completed
   turn may still be the latest SDK projection.
+- Renderer response-overlay size reports during local preflight must carry the
+  `renderer-send-preflight` stale guard, not a previous SDK turn guard. That
+  keeps the native response window correlated to typing-only preflight until the
+  real SDK awaiting or response intent supersedes it.
 - Electron main treats `renderer-send-preflight` as a temporary native response
   overlay guard. Stale SDK hidden intent must not hide the fallback window
   before SDK awaiting/response intent replaces the guard.

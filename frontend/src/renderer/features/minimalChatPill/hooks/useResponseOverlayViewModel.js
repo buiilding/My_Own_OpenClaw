@@ -274,19 +274,27 @@ export function useResponseOverlayViewModel({
   });
 
   const resolvedCurrentTurnPresentationState = useMemo(
-    () => (
-      useSdkLiveTurnPresentation && !useLocalSendLatch
-        ? buildSdkCurrentTurnPresentationState({
+    () => {
+      if (useSdkLiveTurnPresentation && !useLocalSendLatch) {
+        return buildSdkCurrentTurnPresentationState({
           currentTurnProjection,
           responseOverlayEntries,
           dismissedResponseId,
-        })
-        : currentTurnPresentationState
-    ),
+        });
+      }
+      if (useLocalSendLatch) {
+        return {
+          ...currentTurnPresentationState,
+          overlayIntent: liveTurnPresentationInput.overlayIntent,
+        };
+      }
+      return currentTurnPresentationState;
+    },
     [
       currentTurnPresentationState,
       currentTurnProjection,
       dismissedResponseId,
+      liveTurnPresentationInput.overlayIntent,
       responseOverlayEntries,
       useLocalSendLatch,
       useSdkLiveTurnPresentation,
