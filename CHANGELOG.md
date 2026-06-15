@@ -393,6 +393,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/platforms: route permission workflow docs from deleted
+  `ipc_permissions.cjs` to the current permission IPC runtime module.
 - docs/ipc: remove the stale `ipc_sdk_command_forwarding.cjs` reference from
   the main IPC helper split reference and route query sends to the current
   `ipc_query_send_runtime.cjs` helper.

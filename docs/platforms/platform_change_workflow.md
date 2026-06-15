@@ -163,7 +163,7 @@ Common files:
 - `frontend/src/main/permissions/permission_service_screen_capture.cjs`
 - `frontend/src/main/permissions/permission_service_microphone.cjs`
 - `frontend/src/main/permissions/permission_service_browser.cjs`
-- `frontend/src/main/ipc/ipc_permissions.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/renderer/features/onboarding/**`
 - `frontend/src/renderer/features/permissions/**`
 
