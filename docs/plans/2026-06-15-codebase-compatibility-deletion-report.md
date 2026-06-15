@@ -97,6 +97,8 @@ Date: 2026-06-15
   completed CD-020 and CD-021.
 - `1a2bd4726 refactor(frontend): remove unused transcript memory helpers`
   completed CD-022.
+- `c35bc0000 refactor(frontend): remove broken shell smoke harness`
+  completed CD-023.
 
 ## Validation Log
 
