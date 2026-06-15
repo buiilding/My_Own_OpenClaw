@@ -37,7 +37,7 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 19 / 25.
+Counted cleanup commits: 20 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -60,6 +60,7 @@ Counted cleanup commits: 19 / 25.
 | 17 | `fd71c909a` | P25-017 | targeted `rg`; `bin/windie docs list`; `git diff --check` | Routed active platform packaging docs to current sidecar runtime path and launch-option owners. |
 | 18 | `a94de20b2` | P25-018 | `bin/windie test frontend -- WindieSdkConversationRuntime WindieSdkPackageBoundary`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed unused SDK Electron tool-event router duplicate. |
 | 19 | `58f77e395` | P25-019 | `bin/windie test frontend -- WindieSdkClient WindieSdkPackageBoundary`; `tsc -p packages/windie-sdk-js/tsconfig.build.json --noEmit`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed the `WindieClientOptions.localRuntime` alias from the SDK source and docs. |
+| 20 | `f89761708` | P25-020 | `node -c packages/windie-sdk-js/cjs/runtime/WindieClient.js`; `bin/windie test frontend -- WindieSdkPackageBoundary WindieSdkClientExports`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Synced the checked-in CommonJS SDK runtime with the local-runtime option alias removal. |
 
 ## Validation Log
 
@@ -68,4 +69,4 @@ Counted cleanup commits: 19 / 25.
 
 ## Current Status
 
-P25-001 through P25-019 are committed. P25-020 is in progress.
+P25-001 through P25-020 are committed. P25-021 is in progress.

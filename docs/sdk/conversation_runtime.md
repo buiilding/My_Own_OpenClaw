@@ -112,10 +112,8 @@ UI adapters:
   `hasVisibleContent`, `typingVisible`, `overlayVisible`, `isBusy`, and
   `isTerminal`
 
-Runtime snapshots also expose `snapshot.liveTurnPresentation` as an alias of
-`snapshot.currentTurn.presentation` for hosts that want the UI contract without
-re-reading the whole current-turn object. Electron main emits the projection to
-renderer surfaces as `conversation-runtime-updated`. Renderer overlays should
+Electron main emits the projection to renderer surfaces as
+`conversation-runtime-updated`. Renderer overlays should
 render `currentTurn.presentation.entries` instead of independently interpreting
 raw backend stream/tool events or synthesizing current-turn chat messages.
 Conversation-control compaction events are not current-turn events: they must

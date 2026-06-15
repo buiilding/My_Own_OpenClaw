@@ -1867,7 +1867,6 @@ class SdkConversationRuntime {
             displayRows: (0, conversationProjections_js_1.buildDisplayRows)(events),
             rehydrate: (0, conversationProjections_js_1.buildRehydrateSnapshot)(events),
             currentTurn,
-            liveTurnPresentation: currentTurn.presentation,
         };
     }
 }

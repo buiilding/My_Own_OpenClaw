@@ -13,7 +13,6 @@ import type {
   CurrentTurnProjection,
   DisplayConversation,
   JsonRecord,
-  LiveTurnPresentation,
   LocalToolExecutionLifecycle,
   LocalRuntime,
   MemoryStoreChangedPayload,
@@ -78,7 +77,6 @@ export type ConversationSnapshot = {
   displayRows: SdkDisplayRow[];
   rehydrate: RehydrateSnapshot;
   currentTurn: CurrentTurnProjection;
-  liveTurnPresentation: LiveTurnPresentation;
 };
 
 export type SendInput = {
@@ -2147,7 +2145,6 @@ export class SdkConversationRuntime {
       displayRows: buildDisplayRows(events),
       rehydrate: buildRehydrateSnapshot(events),
       currentTurn,
-      liveTurnPresentation: currentTurn.presentation,
     };
   }
 }
