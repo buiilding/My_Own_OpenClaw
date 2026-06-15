@@ -51,6 +51,8 @@ Date: 2026-06-15
   completed CD-005.
 - `0d916bc1d refactor(backend): remove event dict serialization fallback`
   completed CD-006.
+- `e3d35ca71 refactor(backend): remove legacy prompt snapshots`
+  completed CD-007.
 
 ## Validation Log
 
