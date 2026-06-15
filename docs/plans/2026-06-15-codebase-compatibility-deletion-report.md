@@ -81,6 +81,8 @@ Date: 2026-06-15
   completed CD-015.
 - `8f84ceae6 refactor(backend): require strict rehydrate tool linkage`
   completed CD-016.
+- `16dac8ab4 refactor(cli): remove docs open alias`
+  completed CD-017.
 
 ## Validation Log
 
