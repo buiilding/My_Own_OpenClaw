@@ -29,7 +29,7 @@ Do not route platform fixes through the hosted backend. The backend can own mode
 | Mouse, keyboard, scroll, screenshot, or window switching fails on one OS | Python sidecar computer tools and platform adapter | `frontend/src/main/python/tools/computer`, `frontend/src/main/python/core/platform` | [Window and Input Matrix](window_input_matrix.md), [Computer Tools](../tools/computer.md) | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_screenshot_tool.py`, `tests/sidecar/test_*_window_manager.py` |
 | Installed app cannot start sidecar or loses Python dependencies | Packaging scripts and sidecar runtime build | `scripts/build-sidecar-runtime`, `frontend/package.json`, `frontend/electron-builder.*`, `frontend/src/main/python/requirements.runtime.txt` | [Packaging Runtime Matrix](packaging_runtime_matrix.md), [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md) | `bin/windie build sidecar-runtime`, package smoke helper for the target OS |
 | Reinstall loop preserves stale permissions or app data | OS reinstall helper and reset docs | `bin/windie reinstall mac`, `bin/windie reinstall linux`, `bin/windie reinstall win` | [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) | target OS reinstall helper plus manual permission reset check |
-| Display selection, multi-monitor capture, or bounds are wrong | Electron display affinity and sidecar screenshot capture | `frontend/src/main/display_affinity_runtime.cjs`, `frontend/src/main/python/tools/computer/screenshot_tool.py` | [Window and Input Matrix](window_input_matrix.md), [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/sidecar/test_screenshot_tool.py` |
+| Display selection, multi-monitor capture, or bounds are wrong | Electron display affinity and sidecar screenshot capture | `frontend/src/main/surfaces/display_affinity_runtime.cjs`, `frontend/src/main/python/tools/computer/screenshot_tool.py` | [Window and Input Matrix](window_input_matrix.md), [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/sidecar/test_screenshot_tool.py` |
 
 ## Boundary Rules
 
@@ -66,7 +66,7 @@ Primary files:
 - `frontend/src/main/platform/content_protection/linux.cjs`
 - `frontend/src/main/platform/content_protection/supported.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
-- `frontend/src/main/display_affinity_runtime.cjs`
+- `frontend/src/main/surfaces/display_affinity_runtime.cjs`
 - `frontend/src/main/permission_service*.cjs`
 
 Use this owner for:

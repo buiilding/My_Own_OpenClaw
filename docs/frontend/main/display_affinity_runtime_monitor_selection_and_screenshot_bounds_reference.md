@@ -11,7 +11,7 @@ title: "Display-Affinity Monitor Selection and Screenshot Bounds Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/display_affinity_runtime.cjs`
+- `frontend/src/main/surfaces/display_affinity_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`

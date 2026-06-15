@@ -99,6 +99,8 @@ All notable changes to WindieOS will be documented in this file.
   component paths and old `view=chatbox*` routes.
 - docs/main: route active surface-runtime docs to the current
   `frontend/src/main/surfaces` modules instead of deleted root-level paths.
+- docs/main: route display-affinity docs to the moved
+  `frontend/src/main/surfaces/display_affinity_runtime.cjs` owner.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation
