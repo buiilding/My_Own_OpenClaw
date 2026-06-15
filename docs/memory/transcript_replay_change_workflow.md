@@ -52,12 +52,12 @@ flowchart LR
 | Tool call or tool output is missing, duplicated, or reordered after replay | Renderer transcript tool message state | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `structuredToolPayload.js`, replay tool helpers | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `ConversationReplayToolMessages.test.js`, backend linkage repair tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Pending transcript rows never flush | Renderer pending queues | `pending/pendingTranscriptMessages.ts`, `pending/transcriptPendingFlush.ts`, `desktopTranscriptProjectionRuntimeClient.ts` | `tests/frontend/TranscriptPendingQueue.test.ts`, `TranscriptPendingFlush.test.ts`, `TranscriptPendingMessages.test.ts` |
-| Dashboard conversation list is missing, stale, or ordered wrong | Sidecar conversation storage plus dashboard loader | `frontend/src/main/python/memory/conversation_list_runtime.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_conversation_list_runtime.py`, `tests/frontend/DashboardConversationLoad.test.js` |
+| Dashboard conversation list is missing, stale, or ordered wrong | Sidecar conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Dashboard resume displays wrong rows | SDK display projection and conversation load command | `desktopConversationContinuityService.ts`, `desktopConversationStore.ts`, SDK conversation store/runtime | `DesktopConversationContinuityService.test.ts`, `DesktopConversationStore.test.ts` |
 | Resume displays rows but backend answers without old context | Rehydrate payload and backend rehydrate service | `rehydratePayload.js`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `RehydratePayload.test.js`, backend rehydrate service/linkage tests |
 | Transparency/system-prompt rows replay incorrectly | Renderer transparency normalization and backend rehydrate transparency resolution | `transparencyNormalization.ts`, `backend/src/api/services/rehydrate_transparency_resolution.py` | `TranscriptTransparencyNormalization.test.ts`, `tests/backend/test_rehydrate_transparency_resolution.py` |
 | Conversation delete leaves rows, titles, or search results behind | Sidecar memory delete/cleanup plus renderer active-chat reset | `local_store.py`, conversation delete helpers, dashboard delete actions | `tests/sidecar/test_local_store_delete_cleanup.py`, conversation title/list tests, dashboard delete tests |
-| Search returns rows from the wrong conversation | Sidecar conversation search | `conversation_search_runtime.py`, `conversation_search_helpers.py`, `local_store.py` | `tests/sidecar/test_conversation_search*.py` |
+| Search returns rows from the wrong conversation | Sidecar conversation search | `conversation_search_helpers.py`, `local_store.py` | `tests/sidecar/test_conversation_search*.py` |
 
 ## Change Sequence
 
@@ -115,8 +115,8 @@ flowchart LR
 | Dashboard resume actions | `cd frontend && npm run test -- ConversationReplayActions DashboardConversationLoad LocalConversationStore` |
 | Rehydrate payload construction | `cd frontend && npm run test -- RehydratePayload ConversationReplayToolMessages` |
 | Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py tests/backend/test_rehydrate_transparency_resolution.py` |
-| Sidecar transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_list_runtime.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_conversation_titles.py tests/sidecar/test_local_store_delete_cleanup.py` |
-| Sidecar conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_runtime.py tests/sidecar/test_conversation_search_helpers.py` |
+| Sidecar transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
+| Sidecar conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_helpers.py` |
 | Docs-only transcript workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
 
 ## Debug Playbooks

@@ -120,7 +120,7 @@ Computer-control execution notes:
 Local memory is implemented in the sidecar:
 - SQLite + FAISS in `frontend/src/main/python/memory/local_store.py`
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
-- Async title generation in `frontend/src/main/python/memory/conversation_title_runtime.py`
+- Durable title state in `frontend/src/main/python/memory/conversation_title_store.py`
 - Uses backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` APIs
 - Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (normally injected by Electron main from the hosted endpoint resolver), then `BACKEND_HTTP_URL`, then default `https://api.windieos.com`
 - Sidecar backend-backed HTTP clients no longer auto-fall back to frontend-local `127.0.0.1`; remote memory/title/summarization calls stay pinned to the configured hosted endpoint unless an explicit `BACKEND_*` override is provided.
@@ -168,7 +168,7 @@ Wakeword detection runs as a separate Python subprocess:
   - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local sidecar imports)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Bridge regression coverage:
-  - `tests/frontend/LocalBackendBridge.test.cjs` validates stale readiness retry timers cannot override newer process readiness checks.
+  - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs` validates SDK local-runtime bootstrap and readiness/status transitions.
   - `tests/frontend/WakewordBridge.test.cjs` validates stale partial wakeword `stderr` buffers are cleared across stop/start restart.
 - Shell command sessions:
   - Use `open_app` for detached GUI launches that should survive sidecar/agent exit.

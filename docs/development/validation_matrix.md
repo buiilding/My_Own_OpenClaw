@@ -72,7 +72,7 @@ Frontend:
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
-- `tests/frontend/LocalBackendBridge.test.cjs`
+- `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
 - `tests/frontend/SettingsDisplayUtils.test.js`
 - `tests/frontend/ModelSelectionUtils.test.js`

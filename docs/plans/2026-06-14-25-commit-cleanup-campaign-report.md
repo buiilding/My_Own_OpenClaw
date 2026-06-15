@@ -37,7 +37,7 @@ Date: 2026-06-14
 
 ## Commit Ledger
 
-Counted cleanup commits: 20 / 25.
+Counted cleanup commits: 21 / 25.
 
 | # | Commit | Candidate | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -61,6 +61,7 @@ Counted cleanup commits: 20 / 25.
 | 18 | `a94de20b2` | P25-018 | `bin/windie test frontend -- WindieSdkConversationRuntime WindieSdkPackageBoundary`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed unused SDK Electron tool-event router duplicate. |
 | 19 | `58f77e395` | P25-019 | `bin/windie test frontend -- WindieSdkClient WindieSdkPackageBoundary`; `tsc -p packages/windie-sdk-js/tsconfig.build.json --noEmit`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed the `WindieClientOptions.localRuntime` alias from the SDK source and docs. |
 | 20 | `f89761708` | P25-020 | `node -c packages/windie-sdk-js/cjs/runtime/WindieClient.js`; `bin/windie test frontend -- WindieSdkPackageBoundary WindieSdkClientExports`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Synced the checked-in CommonJS SDK runtime with the local-runtime option alias removal. |
+| 21 | `d0d9ed8eb` | P25-021 | `bin/windie test frontend -- WindieSdkConversationRuntime WindieSdkPackageBoundary ChatSurfaceController`; `tsc -p packages/windie-sdk-js/tsconfig.build.json --noEmit`; `node -c packages/windie-sdk-js/cjs/runtime/ConversationRuntime.js`; targeted `rg`; `bin/windie docs list`; `git diff --check` | Removed the `ConversationSnapshot.liveTurnPresentation` alias. |
 
 ## Validation Log
 
@@ -69,4 +70,4 @@ Counted cleanup commits: 20 / 25.
 
 ## Current Status
 
-P25-001 through P25-020 are committed. P25-021 is in progress.
+P25-001 through P25-021 are committed. P25-022 is in progress.

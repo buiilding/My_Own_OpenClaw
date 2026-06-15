@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for transcript conversation-search helper utilities: query-term extraction, FTS query builder, snippet-window shaping, hit grouping/deduping, lexical-preferred best-hit selection, and safe timestamp parsing."
 read_when:
-  - When changing `conversation_search_helpers.py` helper behavior consumed by search-runtime and LocalMemoryStore ranking flows.
+  - When changing `conversation_search_helpers.py` helper behavior consumed by LocalMemoryStore ranking flows.
   - When debugging missing query terms, malformed snippets, duplicate-match counting, or timestamp parse drift in conversation search scoring.
 title: "Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contract Reference"
 ---
@@ -11,10 +11,8 @@ title: "Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contra
 ## Canonical Modules
 
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
-- `frontend/src/main/python/memory/conversation_search_runtime.py`
 - `frontend/src/main/python/memory/local_store.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
-- `tests/sidecar/test_conversation_search_runtime.py`
 - `tests/sidecar/test_conversation_search.py`
 
 ## Helper Surface
@@ -155,7 +153,7 @@ Used for recency scoring/sort tie-break safety across heterogeneous stored times
 - grouping dedupe by memory id and lexical-preferred best-hit selection
 - timestamp parse behavior for `Z` suffix and invalid values
 
-`tests/sidecar/test_conversation_search_runtime.py` validates integration usage:
+`tests/sidecar/test_conversation_search.py` validates integration usage:
 
 - helper-generated hits continue through lexical fallback/semantic filtering and summary merge paths
 

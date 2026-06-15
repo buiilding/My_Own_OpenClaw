@@ -17,7 +17,7 @@ The sidecar owns local memory persistence and search. Renderer and Electron main
 | JSON-RPC handlers | `frontend/src/main/python/local_backend_memory_handlers.py` |
 | Local store | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py` |
 | Memory operations | `frontend/src/main/python/memory/operations.py`, `record_kinds.py` |
-| Search/list/title runtime | `conversation_search_runtime.py`, `conversation_list_runtime.py`, `conversation_title_runtime.py` |
+| Search/list/title storage | `conversation_search_helpers.py`, `chat_event_store.py`, `conversation_title_store.py` |
 | Semanticization | `conversation_semanticization_runtime.py`, `conversation_window_runtime.py`, `summarizer.py`, `watermark_state.py` |
 | Indexing | `faiss_index.py`, `transcript_embedding_policy.py` |
 | Remote helpers | `frontend/src/main/python/core/remote_semantic_client.py` |
@@ -51,7 +51,7 @@ Do not use semanticization as the primary transcript persistence path. It is der
 ## Titles
 
 Conversation title storage, title-state reads, and conversation-list fallback
-belong in sidecar memory title runtime. Hosted title generation belongs to the
+belong in sidecar memory storage and JSON-RPC handlers. Hosted title generation belongs to the
 SDK/backend route path: after the first completed user plus assistant text
 exchange, the SDK may call the hosted title route and persist the generated
 title back through `update_conversation_title`.
@@ -66,6 +66,6 @@ not block transcript persistence or conversation listing.
 
 ```bash
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_memory_summarizer.py -q
-bin/windie test sidecar tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_list_runtime.py tests/sidecar/test_conversation_title_runtime.py -q
+bin/windie test sidecar tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py -q
 bin/windie test sidecar tests/sidecar/test_remote_semantic_client.py -q
 ```

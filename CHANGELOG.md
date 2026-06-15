@@ -1778,6 +1778,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/runtime: remove the `ConversationSnapshot.liveTurnPresentation`
   compatibility alias; live-turn UI state is read from
   `snapshot.currentTurn.presentation`.
+- docs/sidecar: remove stale references to deleted sidecar memory runtimes,
+  title helper docs, and local-backend bridge test files.
 - sdk/runtime: remove the `WindieClientOptions.localRuntime` alias so custom
   local runtimes are configured through the canonical `sidecar` option.
 - sdk/runtime: sync the checked-in CommonJS runtime output with the

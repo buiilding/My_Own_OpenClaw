@@ -62,14 +62,14 @@ bin/windie test frontend -- WindieSdkConversationRuntime.test.ts ConversationRep
 Inspect:
 
 - `frontend/src/main/python/memory/operations.py`
-- `frontend/src/main/python/memory/conversation_search_runtime.py`
+- `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/transcript_embedding_policy.py`
 
 Validate:
 
 ```bash
-bin/windie test sidecar tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_runtime.py -q
+bin/windie test sidecar tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_helpers.py -q
 ```
 
 ## Semantic Memory Is Missing
@@ -92,13 +92,13 @@ bin/windie test backend tests/backend/test_memory_routes.py tests/backend/test_s
 
 Inspect:
 
-- `frontend/src/main/python/memory/conversation_title_runtime.py`
-- `frontend/src/main/python/memory/conversation_title_helpers.py`
+- `frontend/src/main/python/memory/conversation_title_store.py`
+- `frontend/src/main/python/local_backend_memory_handlers.py`
 - backend semantic/title route tests under `tests/backend/test_memory_routes.py`
 
 Validate:
 
 ```bash
-bin/windie test sidecar tests/sidecar/test_conversation_title_runtime.py tests/sidecar/test_conversation_title_helpers.py -q
+bin/windie test sidecar tests/sidecar/test_local_backend.py tests/sidecar/test_chat_event_store.py -q
 bin/windie test backend tests/backend/test_memory_routes.py -q
 ```
