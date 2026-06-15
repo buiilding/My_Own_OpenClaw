@@ -21,7 +21,7 @@ Window and input behavior spans Electron main and the Python sidecar. Electron o
 | macOS window management | `frontend/src/main/python/core/platform/macos.py` |
 | Windows window management | `frontend/src/main/python/core/platform/windows.py` |
 | Linux window management | `frontend/src/main/python/core/platform/linux.py` |
-| input-control permission | `frontend/src/main/permission_service_input_control.cjs` |
+| input-control permission | `frontend/src/main/permissions/permission_service_input_control.cjs` |
 | computer tools | `frontend/src/main/python/tools/computer`, `docs/tools/computer.md` |
 
 ## Platform Dependencies

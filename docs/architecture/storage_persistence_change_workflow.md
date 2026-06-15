@@ -43,7 +43,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 | Backend caches | Backend core infrastructure | `backend/src/core/infrastructure/cache*.py` | `tests/backend/test_cache_layer.py`, `test_cache_entry.py` | [Backend Core Cache Hub](../backend/core/cache/README.md) |
 | VM run control registry | Backend runs service | `backend/src/services/vm_run_control.py`, `backend/src/api/routes/runs/**` | `tests/backend/test_run_control_routes.py` | [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
 | Browser-local files | Python sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | sidecar browser tool/action tests | [Browser Change Workflow](../browser/browser_change_workflow.md) |
-| Permission state | Electron main and renderer permission store | `frontend/src/main/permission_state_store.cjs`, `frontend/src/renderer/features/permissions/**` | frontend permission tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
+| Permission state | Electron main and renderer permission store | `frontend/src/main/permissions/permission_state_store.cjs`, `frontend/src/renderer/features/permissions/**` | frontend permission tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 
 ## Ownership Rules
 
@@ -119,7 +119,7 @@ Edit:
 
 - `frontend/src/main/ipc/ipc_install_auth_state.cjs` for `install-auth.json`.
 - `frontend/src/main/ipc.cjs` for config/auth IPC wiring.
-- `frontend/src/main/permission_state_store.cjs` for permission persistence.
+- `frontend/src/main/permissions/permission_state_store.cjs` for permission persistence.
 - reset/reinstall docs if user-data cleanup scope changes.
 
 Validate:

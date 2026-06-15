@@ -10,8 +10,8 @@ title: "Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Re
 
 ## Canonical Modules
 
-- `frontend/src/main/agent_sudo_access_handler.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/index.cjs`
 - `tests/frontend/AgentSudoAccessHandler.test.cjs`
 

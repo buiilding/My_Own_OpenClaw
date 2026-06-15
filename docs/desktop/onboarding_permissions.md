@@ -17,8 +17,8 @@ WindieOS onboarding is a first-run gate for required local capabilities. It is r
 - Permission UI: `frontend/src/renderer/features/permissions/components/*`
 - Permission utilities: `frontend/src/renderer/features/permissions/utils/*`
 - Manifest: `frontend/src/shared/permissions/permission_manifest.json`
-- Main IPC: `frontend/src/main/permission_ipc_runtime.cjs`
-- Main services: `frontend/src/main/permission_service*.cjs`
+- Main IPC: `frontend/src/main/permissions/permission_ipc_runtime.cjs`
+- Main services: `frontend/src/main/permissions/permission_service*.cjs`
 
 ## Behavior Rules
 

@@ -19,7 +19,7 @@ Primary entrypoint:
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 
 Responsibilities:
@@ -134,9 +134,9 @@ See [Wakeword Bridge Runtime Helper Reference](wakeword_bridge_runtime_helper_re
 
 Main modules:
 
-- `frontend/src/main/permission_service.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
-- `frontend/src/main/agent_sudo_access_handler.cjs`
+- `frontend/src/main/permissions/permission_service.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
 

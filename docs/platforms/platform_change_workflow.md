@@ -25,7 +25,7 @@ Do not route platform fixes through the hosted backend. The backend can own mode
 | WindieOS appears in screenshots | Electron main screenshot visibility and content protection | `frontend/src/main/platform/screenshot_window_visibility`, `frontend/src/main/platform/content_protection`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs` |
 | Linux chat pill flickers during capture | Renderer surface orchestrator plus main-process screenshot wrapper | `frontend/src/renderer/infrastructure/services/surfaceOrchestrator`, `frontend/src/main/platform/screenshot_window_visibility/index.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md), [Linux](linux.md) | `tests/frontend/SurfaceOrchestrator*.test.ts`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | macOS or Windows content protection remains active while idle | Electron main content-protection policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/platform/content_protection/*`, `frontend/src/main/surfaces/response_overlay_phase_handler.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
-| Permission row is wrong or grant opens the wrong OS pane | Electron permission service and renderer permission UI | `frontend/src/main/permission_service*.cjs`, `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions` | [Platform Permission Matrix](permission_matrix.md), [Onboarding and Permissions](../desktop/onboarding_permissions.md) | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
+| Permission row is wrong or grant opens the wrong OS pane | Electron permission service and renderer permission UI | `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions` | [Platform Permission Matrix](permission_matrix.md), [Onboarding and Permissions](../desktop/onboarding_permissions.md) | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
 | Mouse, keyboard, scroll, screenshot, or window switching fails on one OS | Python sidecar computer tools and platform adapter | `frontend/src/main/python/tools/computer`, `frontend/src/main/python/core/platform` | [Window and Input Matrix](window_input_matrix.md), [Computer Tools](../tools/computer.md) | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_screenshot_tool.py`, `tests/sidecar/test_*_window_manager.py` |
 | Installed app cannot start sidecar or loses Python dependencies | Packaging scripts and sidecar runtime build | `scripts/build-sidecar-runtime`, `frontend/package.json`, `frontend/electron-builder.*`, `frontend/src/main/python/requirements.runtime.txt` | [Packaging Runtime Matrix](packaging_runtime_matrix.md), [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md) | `bin/windie build sidecar-runtime`, package smoke helper for the target OS |
 | Reinstall loop preserves stale permissions or app data | OS reinstall helper and reset docs | `bin/windie reinstall mac`, `bin/windie reinstall linux`, `bin/windie reinstall win` | [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) | target OS reinstall helper plus manual permission reset check |
@@ -67,7 +67,7 @@ Primary files:
 - `frontend/src/main/platform/content_protection/supported.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
 - `frontend/src/main/surfaces/display_affinity_runtime.cjs`
-- `frontend/src/main/permission_service*.cjs`
+- `frontend/src/main/permissions/permission_service*.cjs`
 
 Use this owner for:
 
@@ -158,11 +158,11 @@ Permission changes cross Electron main and renderer, and sometimes sidecar verif
 
 Common files:
 
-- `frontend/src/main/permission_service_runtime.cjs`
-- `frontend/src/main/permission_service_input_control.cjs`
-- `frontend/src/main/permission_service_screen_capture.cjs`
-- `frontend/src/main/permission_service_microphone.cjs`
-- `frontend/src/main/permission_service_browser.cjs`
+- `frontend/src/main/permissions/permission_service_runtime.cjs`
+- `frontend/src/main/permissions/permission_service_input_control.cjs`
+- `frontend/src/main/permissions/permission_service_screen_capture.cjs`
+- `frontend/src/main/permissions/permission_service_microphone.cjs`
+- `frontend/src/main/permissions/permission_service_browser.cjs`
 - `frontend/src/main/ipc/ipc_permissions.cjs`
 - `frontend/src/renderer/features/onboarding/**`
 - `frontend/src/renderer/features/permissions/**`

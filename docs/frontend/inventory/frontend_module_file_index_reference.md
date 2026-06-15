@@ -40,7 +40,7 @@ Overlay/window control helpers:
 - `frontend/src/main/overlay_visibility_handler.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
 - `frontend/src/main/overlay_bounds.cjs`
@@ -60,7 +60,7 @@ Bridge/support modules:
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
-- `frontend/src/main/permission_service.cjs`
+- `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`

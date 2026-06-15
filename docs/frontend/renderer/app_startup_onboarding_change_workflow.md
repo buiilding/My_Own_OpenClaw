@@ -127,8 +127,8 @@ Read:
 
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
-- `frontend/src/main/permission_service*.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/permission_service*.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 
 Permission rules:
 

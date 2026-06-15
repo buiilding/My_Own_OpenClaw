@@ -14,7 +14,7 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
 - `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
-- `frontend/src/main/permission_service.cjs`
+- `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/index.cjs`
 - `tests/frontend/PermissionStorage.test.js`
 - `tests/frontend/PermissionService.test.cjs`

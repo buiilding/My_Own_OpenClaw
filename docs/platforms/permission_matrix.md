@@ -14,13 +14,13 @@ Permission behavior is owned by Electron main permission services and rendered a
 
 | Concern | Owner files |
 | --- | --- |
-| permission manifest filtering and onboarding visibility | `frontend/src/main/permission_service_runtime.cjs`, `frontend/src/shared/permissions/permission_manifest.json` |
-| screen capture probe/request | `frontend/src/main/permission_service_screen_capture.cjs` |
-| input control/accessibility probe/request | `frontend/src/main/permission_service_input_control.cjs` |
-| microphone probe/request | `frontend/src/main/permission_service_microphone.cjs` |
-| macOS System Events automation | `frontend/src/main/permission_service_automation.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py` |
-| browser automation checks | `frontend/src/main/permission_service_browser.cjs` |
-| workspace and shell permission state | `frontend/src/main/permission_service_workspace.cjs`, `frontend/src/main/permission_state_store.cjs` |
+| permission manifest filtering and onboarding visibility | `frontend/src/main/permissions/permission_service_runtime.cjs`, `frontend/src/shared/permissions/permission_manifest.json` |
+| screen capture probe/request | `frontend/src/main/permissions/permission_service_screen_capture.cjs` |
+| input control/accessibility probe/request | `frontend/src/main/permissions/permission_service_input_control.cjs` |
+| microphone probe/request | `frontend/src/main/permissions/permission_service_microphone.cjs` |
+| macOS System Events automation | `frontend/src/main/permissions/permission_service_automation.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py` |
+| browser automation checks | `frontend/src/main/permissions/permission_service_browser.cjs` |
+| workspace and shell permission state | `frontend/src/main/permissions/permission_service_workspace.cjs`, `frontend/src/main/permissions/permission_state_store.cjs` |
 | renderer presentation | `frontend/src/renderer/features/settings`, `frontend/src/renderer/features/onboarding` |
 
 ## Permission Behavior

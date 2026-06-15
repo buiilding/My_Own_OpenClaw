@@ -11,7 +11,7 @@ macOS behavior is shaped by TCC permissions, Screen Recording registration, micr
 
 ## Key Areas
 
-- Permission probes and requests: `frontend/src/main/permission_service*.cjs`
+- Permission probes and requests: `frontend/src/main/permissions/permission_service*.cjs`
 - macOS sidecar adapter: `frontend/src/main/python/core/platform/macos.py`
 - macOS automation permission helper: `frontend/src/main/python/core/platform/macos_automation_permission.py`
 - Local reinstall helper: `bin/windie reinstall mac`

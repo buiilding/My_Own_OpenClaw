@@ -10,15 +10,15 @@ title: "Permission Manifest, Probe, and IPC Request Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/permission_service.cjs`
-- `frontend/src/main/permission_service_runtime.cjs`
-- `frontend/src/main/permission_service_screen_capture.cjs`
-- `frontend/src/main/permission_service_input_control.cjs`
-- `frontend/src/main/permission_service_microphone.cjs`
-- `frontend/src/main/permission_service_automation.cjs`
-- `frontend/src/main/permission_service_workspace.cjs`
-- `frontend/src/main/permission_service_browser.cjs`
-- `frontend/src/main/permission_state_store.cjs`
+- `frontend/src/main/permissions/permission_service.cjs`
+- `frontend/src/main/permissions/permission_service_runtime.cjs`
+- `frontend/src/main/permissions/permission_service_screen_capture.cjs`
+- `frontend/src/main/permissions/permission_service_input_control.cjs`
+- `frontend/src/main/permissions/permission_service_microphone.cjs`
+- `frontend/src/main/permissions/permission_service_automation.cjs`
+- `frontend/src/main/permissions/permission_service_workspace.cjs`
+- `frontend/src/main/permissions/permission_service_browser.cjs`
+- `frontend/src/main/permissions/permission_state_store.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
 - `frontend/src/preload.js`

@@ -23,8 +23,8 @@ title: "IPC Channel and Handler Reference"
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/display_query_handler.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
-- `frontend/src/main/agent_sudo_access_handler.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`

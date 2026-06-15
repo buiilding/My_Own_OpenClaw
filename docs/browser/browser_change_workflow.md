@@ -34,7 +34,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | CDP launch, executable detection, or profile path | Sidecar Chrome launcher/detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `browser_use_engine.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_use_engine.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
 | Snapshot text and Browser Use element indexes | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `useBrowserSessionControl.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
-| Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permission_service_browser.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
+| Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permissions/permission_service_browser.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Browser file or download behavior | Sidecar browser file store and Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
 | Browser execution bridge timeout/result shape | SDK local-runtime bridge and sidecar browser execution | `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | SDK client/runtime tests, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 
@@ -226,8 +226,8 @@ Read:
 
 Edit:
 
-- `frontend/src/main/permission_service_browser.cjs` for feature-pack/readiness probes and install actions.
-- `frontend/src/main/permission_ipc_runtime.cjs` for permission IPC wiring.
+- `frontend/src/main/permissions/permission_service_browser.cjs` for feature-pack/readiness probes and install actions.
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs` for permission IPC wiring.
 - renderer onboarding/settings browser surfaces if visible state changes.
 - sidecar requirements/runtime docs if browser feature-pack markers or dependencies change.
 

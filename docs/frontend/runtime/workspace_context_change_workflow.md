@@ -36,7 +36,7 @@ execution, and backend prompt construction.
 
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
-| Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`, `frontend/src/main/permission_service_workspace.cjs`, `frontend/src/main/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
+| Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`, `frontend/src/main/permissions/permission_service_workspace.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
 | Per-conversation workspace binding is missing or stale | `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
 | Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/QueryPayloadBuilder.test.cjs` |
 | Electron main AGENTS.md injection changes | `frontend/src/main/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
@@ -87,8 +87,8 @@ Read these files for active workspace selection:
 
 - `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`
 - `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`
-- `frontend/src/main/permission_service_workspace.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/permission_service_workspace.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/index.cjs`
 
 Selection rules:

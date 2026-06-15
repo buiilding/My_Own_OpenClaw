@@ -16,12 +16,12 @@ Permissions are not just UI state. They control whether WindieOS can see the scr
 | Surface | Code roots | Owns |
 | --- | --- | --- |
 | Permission manifest | `frontend/src/shared/permissions/permission_manifest.json` | Which permissions exist, onboarding visibility, copy, and capability grouping. |
-| Main permission IPC | `frontend/src/main/permission_ipc_runtime.cjs` | Renderer invoke/send channel registration for list/check/request/probe operations. |
-| Permission services | `frontend/src/main/permission_service*.cjs` | OS-specific probes and request/open-settings behavior for screen, input, mic, browser, workspace, and automation. |
-| Permission state store | `frontend/src/main/permission_state_store.cjs` | Main-process cached permission state and notifications. |
+| Main permission IPC | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | Renderer invoke/send channel registration for list/check/request/probe operations. |
+| Permission services | `frontend/src/main/permissions/permission_service*.cjs` | OS-specific probes and request/open-settings behavior for screen, input, mic, browser, workspace, and automation. |
+| Permission state store | `frontend/src/main/permissions/permission_state_store.cjs` | Main-process cached permission state and notifications. |
 | Renderer onboarding/settings | `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions` | User-visible permission gates, status rows, request buttons, and control center. |
 | Sidecar platform/tools | `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools` | Runtime local execution that may fail when OS permission is missing. |
-| Sudo/elevated access | `frontend/src/main/agent_sudo_access_handler.cjs`, local bridge tool args | Optional local elevated tool access and noninteractive disable rules. |
+| Sudo/elevated access | `frontend/src/main/permissions/agent_sudo_access_handler.cjs`, local bridge tool args | Optional local elevated tool access and noninteractive disable rules. |
 
 ## Add or Change a Permission
 

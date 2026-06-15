@@ -62,7 +62,7 @@ Relevant files:
 
 - `frontend/src/main/python/core/feature_pack_installer.py`
 - `frontend/src/main/python/requirements.runtime.txt`
-- `frontend/src/main/permission_service_browser.cjs`
+- `frontend/src/main/permissions/permission_service_browser.cjs`
 
 The browser feature-pack marker modules are `browser_use`, `playwright`, and `markdownify`. Permission/onboarding flows can verify or install browser automation runtime support before a browser action runs.
 

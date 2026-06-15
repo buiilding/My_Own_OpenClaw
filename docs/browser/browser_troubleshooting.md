@@ -17,7 +17,7 @@ Inspect:
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
-- `frontend/src/main/permission_service_browser.cjs`
+- `frontend/src/main/permissions/permission_service_browser.cjs`
 
 Checks:
 

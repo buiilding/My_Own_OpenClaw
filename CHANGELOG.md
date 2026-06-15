@@ -101,6 +101,8 @@ All notable changes to WindieOS will be documented in this file.
   `frontend/src/main/surfaces` modules instead of deleted root-level paths.
 - docs/main: route display-affinity docs to the moved
   `frontend/src/main/surfaces/display_affinity_runtime.cjs` owner.
+- docs/permissions: route active permission IPC, service, state-store, and
+  sudo docs to the moved `frontend/src/main/permissions` modules.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation

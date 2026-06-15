@@ -26,7 +26,7 @@ Primary runtime modules:
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
-- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/display_query_handler.cjs`
 
 Primary protocol tests:
@@ -81,7 +81,7 @@ Primary protocol tests:
 | overlay IPC runtime channel ownership | `frontend/src/main/overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` |
 | window-control IPC runtime target routing + visibility handlers | `frontend/src/main/window_controls_ipc_runtime.cjs` | `WindowControlsIpcRuntime.test.cjs` |
 | display query payload mapping | `frontend/src/main/display_query_handler.cjs` | `DisplayQueryHandler.test.cjs` |
-| permission/sudo IPC runtime channel ownership | `frontend/src/main/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
+| permission/sudo IPC runtime channel ownership | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
 | local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/sidecar/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |

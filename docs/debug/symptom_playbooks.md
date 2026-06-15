@@ -153,11 +153,11 @@ Likely boundary: Electron permission service, OS probe, renderer onboarding stat
 Inspect:
 
 - `frontend/src/shared/permissions/permission_manifest.json`
-- `frontend/src/main/permission_service.cjs`
-- `frontend/src/main/permission_service_screen_capture.cjs`
-- `frontend/src/main/permission_service_input_control.cjs`
-- `frontend/src/main/permission_service_microphone.cjs`
-- `frontend/src/main/permission_service_browser.cjs`
+- `frontend/src/main/permissions/permission_service.cjs`
+- `frontend/src/main/permissions/permission_service_screen_capture.cjs`
+- `frontend/src/main/permissions/permission_service_input_control.cjs`
+- `frontend/src/main/permissions/permission_service_microphone.cjs`
+- `frontend/src/main/permissions/permission_service_browser.cjs`
 - `frontend/src/renderer/features/permissions`
 - `frontend/src/renderer/features/onboarding`
 
@@ -210,7 +210,7 @@ Inspect:
 - `backend/src/tools/remote.py`
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
-- `frontend/src/main/permission_service_browser.cjs`
+- `frontend/src/main/permissions/permission_service_browser.cjs`
 
 Docs:
 

@@ -25,7 +25,7 @@ WindieOS platform docs cover behavior that differs across macOS, Windows, and Li
 ## Shared Platform Code
 
 - Electron main platform/window policy: `frontend/src/main/surfaces/window_platform_policy.cjs`
-- Permission services: `frontend/src/main/permission_service*.cjs`
+- Permission services: `frontend/src/main/permissions/permission_service*.cjs`
 - Sidecar platform adapters: `frontend/src/main/python/core/platform/*`
 - Computer tools: `frontend/src/main/python/tools/computer/*`
 - Packaging scripts: `bin/windie reinstall <platform>.sh`, `bin/windie reinstall win`
