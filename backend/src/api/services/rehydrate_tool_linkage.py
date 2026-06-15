@@ -1,9 +1,9 @@
-"""Pending tool-call linkage repair helpers for rehydrate replay."""
+"""Pending tool-call linkage helpers for rehydrate replay."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 
 @dataclass(slots=True)
@@ -37,31 +37,10 @@ class RehydrateToolLinkageState:
             return None
         return self.pending_tool_call_ids.pop(0)
 
-    def build_missing_tool_output_entries(
-        self,
-        *,
-        timestamp: Optional[str],
-    ) -> List[Dict[str, object]]:
-        if not self.pending_tool_call_ids:
-            return []
-
-        repaired_entries: List[Dict[str, object]] = []
-        for tool_call_id in list(self.pending_tool_call_ids):
-            repaired_entries.append(
-                {
-                    "role": "tool",
-                    "content": (
-                        "Tool execution transcript missing during rehydrate. "
-                        "Treating the pending tool call as unresolved."
-                    ),
-                    "message_type": "tool-output",
-                    "tool_name": None,
-                    "correlation_id": tool_call_id,
-                    "timestamp": timestamp,
-                    "image_data": None,
-                    "tool_call_id": tool_call_id,
-                }
+    def require_no_pending_tool_calls(self) -> None:
+        if self.pending_tool_call_ids:
+            pending_ids = ", ".join(self.pending_tool_call_ids)
+            raise ValueError(
+                "Cannot rehydrate transcript with unanswered tool calls: "
+                f"{pending_ids}"
             )
-
-        self.pending_tool_call_ids = []
-        return repaired_entries

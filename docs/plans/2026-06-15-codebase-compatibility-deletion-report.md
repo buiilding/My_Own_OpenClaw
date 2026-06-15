@@ -46,6 +46,7 @@ Date: 2026-06-15
 | CD-013 | Backend API package-split docs | Artifacts, embeddings, semantic memory, and websocket package-split reference filenames still carried compatibility/monkeypatch wording | The docs content already describes current package route seams and owner modules; the stale compatibility wording existed in filenames and link labels only | Rename the docs to current package-split/export contract names and update internal docs links | implemented |
 | CD-014 | Backend vision InternVL provider | InternVL class-level compatibility wrappers around helper-module runtime functions | `internvl.py` kept forwarding methods only to bind model/tokenizer state, while tests monkeypatched those wrappers instead of the helper state-machine contracts | Delete the forwarding methods, call helper functions directly from prediction paths, and update tests/docs to target `internvl_runtime_helpers.py` | implemented |
 | CD-015 | Browser tool docs | Browser schema/runtime docs still used compatibility filenames and labels after alias rejection became the active contract | Code/docs inspection showed `navigate` is canonical and browser removed-alias fields/actions are rejected by shared schema validation | Rename browser docs and links to current schema/runtime names, and describe browser-internal URL handling without compatibility-shim language | implemented |
+| CD-016 | Backend rehydrate linkage | Synthetic tool-call ids, synthetic tool-call rows for orphan outputs, and synthetic missing tool-output rows | Current SDK transcript projection carries structured tool payloads and tool-call ids; the repair path kept incomplete or old transcript shapes alive | Rename the linkage helper away from repair terminology, require real tool-call ids and matched outputs, and fail rehydrate on incomplete linkage | implemented |
 
 ## Commit Ledger
 
@@ -216,6 +217,19 @@ CD-015 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-016 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py tests/backend/test_rehydrate_transparency_resolution.py -q`:
+  passed, 39 tests.
+- `./scripts/python-in-env backend python -m black --check backend/src/api/services/rehydrate_execution.py backend/src/api/services/rehydrate_entry_normalization.py backend/src/api/services/rehydrate_tool_linkage.py tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_linkage.py`:
+  passed.
+- `./scripts/python-in-env backend python -m isort --check-only backend/src/api/services/rehydrate_execution.py backend/src/api/services/rehydrate_entry_normalization.py backend/src/api/services/rehydrate_tool_linkage.py tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_linkage.py`:
+  passed.
+- targeted `rg -n "rehydrate_tool_linkage_repair|tool_linkage_repair|linkage repair|Linkage Repair|missing during rehydrate|inject synthetic|synthesizes missing|rehydrate_tool_call_[0-9]|fallback call id|synthetic assistant tool-call|synthesizes fallback call ids|synthesizes missing IDs" backend/src tests docs frontend/src --glob '!docs/plans/**'`:
+  no rehydrate repair matches remain; remaining provider docs describe unrelated provider-specific tool-call id aggregation.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -276,3 +290,7 @@ CD-015 validation:
 - CD-015 has no runtime migration impact: it renames docs-only browser
   references and updates links after the shared backend/sidecar browser
   contract already rejected removed aliases.
+- CD-016 has no database migration. It is a strictness change: persisted
+  transcripts with incomplete tool-call/tool-output linkage now fail rehydrate
+  instead of getting synthetic backend history. Current transcript projection
+  must persist complete linkage.

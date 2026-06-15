@@ -16,7 +16,7 @@ The backend owns active model-facing history and hosted semantic/embedding route
 | --- | --- |
 | Active conversation history | `backend/src/agent/history`, `backend/src/agent/llm/conversation_context.py` |
 | Rehydrate handler | `backend/src/api/handlers/rehydrate.py` |
-| Rehydrate services | `backend/src/api/services/rehydrate_entry_normalization.py`, `rehydrate_execution.py`, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage_repair.py`, `rehydrate_transparency_resolution.py` |
+| Rehydrate services | `backend/src/api/services/rehydrate_entry_normalization.py`, `rehydrate_execution.py`, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage.py`, `rehydrate_transparency_resolution.py` |
 | Memory routes | `backend/src/api/routes/memory` |
 | Embedding providers | `backend/src/embeddings`, `backend/src/core/inference/embedding_router.py` |
 | Memory container | `backend/src/core/container/memory_container.py` |
@@ -61,7 +61,6 @@ Provider availability and error normalization live in backend embedding/provider
 
 ```bash
 bin/windie test backend tests/backend/test_conversation_history.py tests/backend/test_rehydrate_execution_service.py -q
-bin/windie test backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py tests/backend/test_rehydrate_transparency_resolution.py -q
+bin/windie test backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py tests/backend/test_rehydrate_transparency_resolution.py -q
 bin/windie test backend tests/backend/test_memory_routes.py tests/backend/test_embeddings_service.py tests/backend/test_remote_embedding_provider.py tests/backend/test_semantic_parser_service.py -q
 ```
-

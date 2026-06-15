@@ -9,9 +9,7 @@ from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateEntryNormalizer,
 )
 from backend.src.api.services.rehydrate_execution import RehydrateExecutionService
-from backend.src.api.services.rehydrate_tool_linkage_repair import (
-    RehydrateToolLinkageState,
-)
+from backend.src.api.services.rehydrate_tool_linkage import RehydrateToolLinkageState
 
 
 class _FakeSession:
@@ -238,7 +236,7 @@ async def test_execute_continues_when_artifact_ref_load_fails():
     assert entries[0]["image_data"] is None
 
 
-def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
+def test_normalize_rehydrated_tool_output_rejects_orphan_tool_output():
     known_tool_call_ids = set()
     entry = SimpleNamespace(
         role="tool",
@@ -251,22 +249,16 @@ def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
         tool_calls=None,
     )
 
-    entries = _normalize_entry(
-        entry=entry,
-        index=7,
-        image_data=None,
-        known_tool_call_ids=known_tool_call_ids,
-        transparency=None,
-    )
+    with pytest.raises(ValueError, match="without a matching tool call"):
+        _normalize_entry(
+            entry=entry,
+            index=7,
+            image_data=None,
+            known_tool_call_ids=known_tool_call_ids,
+            transparency=None,
+        )
 
-    assert len(entries) == 2
-    synthetic_call, tool_output = entries
-    assert synthetic_call["role"] == "assistant"
-    assert synthetic_call["tool_calls"][0]["id"] == "rehydrate_tool_call_7"
-    assert synthetic_call["tool_calls"][0]["name"] == "replace"
-    assert tool_output["role"] == "tool"
-    assert tool_output["tool_call_id"] == "rehydrate_tool_call_7"
-    assert known_tool_call_ids == {"rehydrate_tool_call_7"}
+    assert known_tool_call_ids == set()
 
 
 def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_rows():
@@ -672,20 +664,42 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
     assert known_tool_call_ids == {"call-explicit"}
 
 
-def test_linkage_state_synthesizes_missing_tool_outputs():
+def test_normalize_rehydrated_tool_call_entry_rejects_missing_tool_call_id():
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="assistant",
+        content='{"name":"read_file","args":{"path":"/tmp/a.txt"}}',
+        message_type="tool-call",
+        tool_name=None,
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+    )
+
+    with pytest.raises(ValueError, match="without a tool call id"):
+        _normalize_entry(
+            entry=entry,
+            index=3,
+            image_data=None,
+            known_tool_call_ids=known_tool_call_ids,
+            pending_tool_call_ids=[],
+            transparency=None,
+        )
+
+    assert known_tool_call_ids == set()
+
+
+def test_linkage_state_rejects_pending_tool_calls():
     state = RehydrateToolLinkageState(
         known_tool_call_ids={"call-1", "call-2"},
         pending_tool_call_ids=["call-1", "call-2"],
     )
 
-    repaired_entries = state.build_missing_tool_output_entries(
-        timestamp="2026-02-26T00:00:05Z"
-    )
+    with pytest.raises(ValueError, match="unanswered tool calls: call-1, call-2"):
+        state.require_no_pending_tool_calls()
 
-    assert [entry["tool_call_id"] for entry in repaired_entries] == ["call-1", "call-2"]
-    assert all(entry["role"] == "tool" for entry in repaired_entries)
-    assert all(entry["message_type"] == "tool-output" for entry in repaired_entries)
-    assert state.pending_tool_call_ids == []
+    assert state.pending_tool_call_ids == ["call-1", "call-2"]
 
 
 @pytest.mark.asyncio
@@ -762,7 +776,7 @@ def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_c
 
 
 @pytest.mark.asyncio
-async def test_execute_appends_synthetic_tool_output_for_unanswered_tool_call():
+async def test_execute_rejects_unanswered_tool_call():
     manager = _FakeSessionManager()
     service = RehydrateExecutionService(manager)
     message = _build_message(
@@ -782,17 +796,16 @@ async def test_execute_appends_synthetic_tool_output_for_unanswered_tool_call():
         ]
     )
 
-    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
+    with pytest.raises(ValueError, match="unanswered tool calls: call-1"):
+        await service.execute(
+            message, "user-1", artifact_store_cls=_TrackingArtifactStore
+        )
 
-    _, entries = manager.session.calls[0]
-    assert [entry["role"] for entry in entries] == ["assistant", "tool"]
-    assert entries[0]["tool_calls"][0]["id"] == "call-1"
-    assert entries[1]["tool_call_id"] == "call-1"
-    assert "missing during rehydrate" in entries[1]["content"]
+    assert manager.session.calls == []
 
 
 @pytest.mark.asyncio
-async def test_execute_repairs_multi_tool_turn_with_one_missing_output():
+async def test_execute_rejects_multi_tool_turn_with_one_missing_output():
     manager = _FakeSessionManager()
     service = RehydrateExecutionService(manager)
     message = _build_message(
@@ -823,13 +836,12 @@ async def test_execute_repairs_multi_tool_turn_with_one_missing_output():
         ]
     )
 
-    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
+    with pytest.raises(ValueError, match="unanswered tool calls: call-2"):
+        await service.execute(
+            message, "user-1", artifact_store_cls=_TrackingArtifactStore
+        )
 
-    _, entries = manager.session.calls[0]
-    assert [entry["role"] for entry in entries] == ["assistant", "tool", "tool"]
-    assert entries[1]["tool_call_id"] == "call-1"
-    assert entries[2]["tool_call_id"] == "call-2"
-    assert "missing during rehydrate" in entries[2]["content"]
+    assert manager.session.calls == []
 
 
 def test_normalize_stored_message_type_collapses_context_summary_variants():

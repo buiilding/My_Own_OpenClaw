@@ -9,9 +9,7 @@ from backend.src.api.schemas import RehydrateConversationMessage
 from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateEntryNormalizer,
 )
-from backend.src.api.services.rehydrate_tool_linkage_repair import (
-    RehydrateToolLinkageState,
-)
+from backend.src.api.services.rehydrate_tool_linkage import RehydrateToolLinkageState
 from backend.src.api.services.rehydrate_transparency_resolution import (
     extract_system_prompt_from_transparency,
     normalize_transparency,
@@ -60,10 +58,8 @@ class RehydrateExecutionService:
         state = RehydrateToolLinkageState()
         hydrated_entries: List[Dict[str, Any]] = []
         rehydrated_system_prompt: Optional[str] = None
-        last_timestamp: Optional[str] = None
 
         for index, entry in enumerate(payload.messages):
-            last_timestamp = getattr(entry, "timestamp", None)
             transparency = normalize_transparency(getattr(entry, "transparency", None))
             if rehydrated_system_prompt is None:
                 rehydrated_system_prompt = extract_system_prompt_from_transparency(
@@ -88,9 +84,7 @@ class RehydrateExecutionService:
             )
             hydrated_entries.extend(normalized_entries)
 
-        hydrated_entries.extend(
-            state.build_missing_tool_output_entries(timestamp=last_timestamp)
-        )
+        state.require_no_pending_tool_calls()
 
         self._apply_rehydrated_system_prompt(
             session=session,

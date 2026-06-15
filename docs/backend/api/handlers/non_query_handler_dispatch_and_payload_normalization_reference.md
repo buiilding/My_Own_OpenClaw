@@ -138,7 +138,7 @@ Frontend-owned field set:
 - resolves image data from inline screenshot or `screenshot_ref`
 - converts tool-call style rows into assistant tool-call entries
 - ensures subsequent tool-output rows have `tool_call_id`
-- synthesizes fallback call ids when absent
+- rejects missing or unknown tool-call linkage instead of synthesizing ids
 - preserves assistant `tool_calls` lists when provided
 - invokes `session.rehydrate_conversation(conversation_ref, hydrated_entries)`
 

@@ -19,7 +19,7 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 | Conversation list/search is wrong | Sidecar local memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Replay displays wrong messages | SDK replay/display projection | `packages/windie-sdk-js/src/projections`, desktop conversation store adapter, replay hooks | SDK projection tests, rehydrate projection tests |
 | Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, SDK rehydrate tests |
-| Tool-call/tool-output linkage breaks after replay | SDK tool projection plus backend rehydrate repair | SDK tool projection files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage_repair.py` | SDK tool projection tests, backend rehydrate linkage tests |
+| Tool-call/tool-output linkage breaks after replay | SDK tool projection plus backend rehydrate linkage validation | SDK tool projection files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage.py` | SDK tool projection tests, backend rehydrate linkage tests |
 | Semantic memory is stale or noisy | Sidecar semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
 | Embedding/search fails but transcript should still save | SDK embedding orchestration plus sidecar local store | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `local_store.py`, `faiss_index.py` | SDK memory tests, `tests/sidecar/test_local_store_*.py` |
 | Backend model context is too long or compaction output is wrong | Backend active history/compaction | `backend/src/agent/compaction`, `backend/src/agent/history`, executor/interaction loop | `tests/backend/test_history_compaction_engine.py`, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
@@ -89,7 +89,7 @@ Likely code:
 Validation:
 
 - frontend replay and rehydrate payload tests,
-- backend rehydrate execution, normalization, transparency, and linkage repair tests.
+- backend rehydrate execution, normalization, transparency, and linkage validation tests.
 
 ### Change Sidecar Durable Memory
 

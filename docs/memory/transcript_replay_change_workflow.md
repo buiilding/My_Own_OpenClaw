@@ -49,7 +49,7 @@ flowchart LR
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
 | User or assistant row appears in UI but is missing after restart | Renderer projection runtime/pending queues | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `transcriptRecordWrite.ts`, `pending/*` | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, sidecar `store_chat_event` tests |
-| Tool call or tool output is missing, duplicated, or reordered after replay | Renderer transcript tool message state | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `structuredToolPayload.js`, replay tool helpers | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `ConversationReplayToolMessages.test.js`, backend linkage repair tests |
+| Tool call or tool output is missing, duplicated, or reordered after replay | Renderer transcript tool message state | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `structuredToolPayload.js`, replay tool helpers | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `ConversationReplayToolMessages.test.js`, backend linkage validation tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Pending transcript rows never flush | Renderer pending queues | `pending/pendingTranscriptMessages.ts`, `pending/transcriptPendingFlush.ts`, `desktopTranscriptProjectionRuntimeClient.ts` | `tests/frontend/TranscriptPendingQueue.test.ts`, `TranscriptPendingFlush.test.ts`, `TranscriptPendingMessages.test.ts` |
 | Dashboard conversation list is missing, stale, or ordered wrong | Sidecar conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
@@ -114,7 +114,7 @@ flowchart LR
 | Stored-row conversion to visible chat messages | `cd frontend && npm run test -- SdkDisplayChatMessageProjection DesktopConversationContinuityService DesktopConversationStore` |
 | Dashboard resume actions | `cd frontend && npm run test -- ConversationReplayActions DashboardConversationLoad LocalConversationStore` |
 | Rehydrate payload construction | `cd frontend && npm run test -- RehydratePayload ConversationReplayToolMessages` |
-| Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py tests/backend/test_rehydrate_transparency_resolution.py` |
+| Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py tests/backend/test_rehydrate_transparency_resolution.py` |
 | Sidecar transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
 | Sidecar conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_helpers.py` |
 | Docs-only transcript workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
@@ -135,7 +135,7 @@ flowchart LR
 1. Confirm tool-call and tool-output transcript rows were both persisted.
 2. Confirm tool call ids, request ids, correlation ids, and structured payloads were stored.
 3. Inspect replay tool-message reconstruction before changing backend rehydrate code.
-4. If the UI replay is correct but backend context is wrong, inspect backend rehydrate linkage repair.
+4. If the UI replay is correct but backend context is wrong, inspect backend rehydrate linkage validation.
 5. Add both a renderer replay test and a backend rehydrate linkage test when a row crosses both boundaries.
 
 ### Dashboard Resume Shows the Right Rows but Backend Forgets Context

@@ -58,6 +58,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/browser: rename browser schema/runtime references away from compatibility
   filenames and labels now that browser aliases are rejected by the shared
   contract.
+- backend/rehydrate: remove transcript linkage repair fallbacks that synthesized
+  missing tool-call ids or tool-output rows so incomplete tool-call/tool-output
+  linkage is rejected instead of invented during replay.
 
 ### Added
 

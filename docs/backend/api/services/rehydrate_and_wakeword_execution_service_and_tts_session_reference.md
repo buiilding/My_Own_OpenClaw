@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for non-query API services: transcript rehydrate normalization/linkage rebuilding, wakeword greeting activation sequence, and shared TTSSession setup/cleanup guarantees."
+summary: "Deep reference for non-query API services: transcript rehydrate normalization/linkage validation, wakeword greeting activation sequence, and shared TTSSession setup/cleanup guarantees."
 read_when:
   - When changing `RehydrateExecutionService`, `WakewordExecutionService`, or `TTSSession` lifecycle behavior.
   - When debugging resumed-conversation tool-call linkage, screenshot-ref hydrate behavior, or wakeword greeting audio completion timing.
@@ -12,7 +12,7 @@ title: "Rehydrate and Wakeword Execution Service and TTS Session Reference"
 
 - `backend/src/api/services/rehydrate_execution.py`
 - `backend/src/api/services/rehydrate_entry_normalization.py`
-- `backend/src/api/services/rehydrate_tool_linkage_repair.py`
+- `backend/src/api/services/rehydrate_tool_linkage.py`
 - `backend/src/api/services/wakeword_execution.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/rehydrate.py`
@@ -29,9 +29,8 @@ Flow:
 1. get/create session
 2. optionally build artifact store from backend config
 3. normalize each frontend transcript entry (shared normalizer)
-4. rebuild tool linkage with `RehydrateToolLinkageState`
-5. ask `RehydrateToolLinkageState` to synthesize fallback tool outputs for any
-   unanswered pending tool calls
+4. validate tool linkage with `RehydrateToolLinkageState`
+5. reject transcripts that leave unanswered pending tool calls
 6. call `session.rehydrate_conversation(conversation_ref, hydrated_entries)`
 
 ## Entry Normalization Model
@@ -49,31 +48,30 @@ Per-entry fields normalized:
 
 For tool-call-like rows:
 
-- generate/fallback call id (`rehydrate_tool_call_<index>`) when missing
+- require an explicit or parsed tool call id
 - parse JSON content for `name` and `args/arguments`
 - emit assistant entry with `tool_calls=[{id,name,arguments}]`
 - update `known_tool_call_ids` and `pending_tool_call_ids`
 
-### Tool-output linkage repair
+### Tool-output linkage validation
 
 For tool/tool-output rows:
 
-- choose call id from explicit tool_call_id, correlation_id, pending call id, or generated fallback
-- if call id not known yet, inject synthetic assistant tool-call row first
+- choose call id from explicit tool_call_id, correlation_id, or pending call id
+- reject tool outputs that cannot be linked to a known tool call
 - then append tool row with resolved `tool_call_id`
 - explicit tool output ids consume their matching pending tool-call id even if outputs arrive out of order
 
-### Missing tool-output repair
+### Missing tool-output rejection
 
 If rehydrate reaches the end of the transcript with unanswered pending tool calls:
 
-- synthesize `role=tool` fallback rows for each remaining pending `tool_call_id`
-- mark them as `tool-output`
-- preserve the final transcript timestamp for deterministic ordering
+- raise `ValueError`
+- do not write partial rehydrated history to the session
 
-This keeps strict providers from rejecting reopened chats that contain assistant tool-call turns without matching tool responses.
-
-This ensures provider-normalized history can maintain assistant-tool -> tool-output linkage.
+This removes the previous compatibility repair path. Current transcript
+projections must persist complete assistant-tool -> tool-output linkage instead
+of relying on backend rehydrate to invent missing rows or ids.
 
 ## Screenshot Resolution Behavior During Rehydrate
 
@@ -129,12 +127,12 @@ This provides consistent setup/teardown for both query and wakeword service flow
 - wakeword handler emits `wakeword-activated` then `wakeword-greeting`
 - rehydrate basic history rebuild and conversation_ref routing
 - missing screenshot-ref load continues without websocket errors
-- resumed transcript tool-call/tool-output linkage reconstruction yields assistant/tool alternating structure with matched ids
+- resumed transcript tool-call/tool-output linkage validation yields assistant/tool alternating structure with matched ids
 
 ## Drift Hotspots
 
-1. changing tool-call reconstruction fallback ids can break deterministic linkage for partial transcripts.
-2. removing synthetic assistant call insertion for unknown tool-output ids can orphan tool rows.
+1. allowing fallback tool-call ids can reintroduce provider-history rows that never existed in the transcript.
+2. accepting unknown tool-output ids can orphan tool rows.
 3. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
 4. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
 

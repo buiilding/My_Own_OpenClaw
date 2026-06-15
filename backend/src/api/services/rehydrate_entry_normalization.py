@@ -14,9 +14,7 @@ from backend.src.api.services.rehydrate_tool_call_normalization import (
     extract_tool_call_details,
     normalize_tool_calls,
 )
-from backend.src.api.services.rehydrate_tool_linkage_repair import (
-    RehydrateToolLinkageState,
-)
+from backend.src.api.services.rehydrate_tool_linkage import RehydrateToolLinkageState
 from backend.src.api.services.rehydrate_transparency_resolution import (
     normalize_optional_string as normalize_optional_string_helper,
 )
@@ -109,9 +107,12 @@ class RehydrateEntryNormalizer:
                         fallback_tool_name=normalized_tool_name,
                     )
                 )
-            call_id = (
-                message_tool_call_id or parsed_call_id or f"rehydrate_tool_call_{index}"
-            )
+            call_id = message_tool_call_id or parsed_call_id
+            if call_id is None:
+                raise ValueError(
+                    "Cannot rehydrate tool call without a tool call id "
+                    f"at message index {index}"
+                )
             state.register_tool_call_ids([call_id])
             return [
                 self.build_assistant_tool_call_entry(
@@ -136,29 +137,17 @@ class RehydrateEntryNormalizer:
             elif state.pending_tool_call_ids:
                 call_id = state.consume_tool_output_tool_call_id()
             if call_id is None:
-                call_id = f"rehydrate_tool_call_{index}"
+                raise ValueError(
+                    "Cannot rehydrate tool output without a matching tool call "
+                    f"at message index {index}"
+                )
 
             entries: List[Dict[str, Any]] = []
             if call_id not in state.known_tool_call_ids:
-                call_name, call_arguments, _, thought_signature = (
-                    extract_tool_call_details(
-                        content=content,
-                        fallback_tool_name=normalized_tool_name,
-                    )
+                raise ValueError(
+                    "Cannot rehydrate tool output for unknown tool call id "
+                    f"{call_id!r} at message index {index}"
                 )
-                entries.append(
-                    self.build_assistant_tool_call_entry(
-                        content="",
-                        call_id=call_id,
-                        call_name=call_name,
-                        call_arguments=call_arguments,
-                        thought_signature=thought_signature,
-                        message_type="tool-call",
-                        timestamp=entry.timestamp,
-                        image_data=None,
-                    )
-                )
-                state.known_tool_call_ids.add(call_id)
 
             entries.append(
                 {
