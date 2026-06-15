@@ -9,6 +9,7 @@ from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.infrastructure.errors import send_error_response, send_success_response
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.schemas import StopQueryMessage
+from backend.src.api.transport.envelope import StreamEventSequencer
 from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:
@@ -51,6 +52,9 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
                 turn_ref, conversation_ref = canceled
                 if turn_ref:
                     context["turn_ref"] = turn_ref
+                    context["stream_event_sequencer"] = StreamEventSequencer(
+                        turn_ref=turn_ref
+                    )
                 if conversation_ref:
                     context["conversation_ref"] = conversation_ref
                 logger.info(

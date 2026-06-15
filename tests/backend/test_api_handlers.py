@@ -1613,6 +1613,8 @@ async def test_stop_query_handler_cancels_active_query_and_emits_streaming_compl
     assert response["type"] == "streaming-complete"
     assert response["id"] == "msg_stop_1"
     assert response["turn_ref"] == "turn_active_1"
+    assert response["event_id"] == "turn_active_1-evt-000001-streaming-complete"
+    assert response["sequence"] == 1
     assert response["conversation_ref"] == "conv_active_1"
     assert response["session_id"] == "session_active_1"
     assert response["user_id"] == "user_1"

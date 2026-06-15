@@ -6,6 +6,13 @@ function resolveConversationRef(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
   }
+  const nestedPayload = payload.payload && typeof payload.payload === 'object' && !Array.isArray(payload.payload)
+    ? payload.payload
+    : null;
+  const nestedConversationRef = nestedPayload?.conversation_ref;
+  if (typeof nestedConversationRef === 'string' && nestedConversationRef.trim()) {
+    return nestedConversationRef.trim();
+  }
   return typeof payload.conversation_ref === 'string' && payload.conversation_ref.trim()
     ? payload.conversation_ref.trim()
     : null;

@@ -482,7 +482,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
     expect(sentStopQuery.type).toBe('stop-query');
-    expect(sentStopQuery.payload).toEqual(expect.any(Object));
+    expect(sentStopQuery.payload).toEqual({
+      conversation_ref: 'conv-global-stop',
+    });
     expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(false);
   });
 

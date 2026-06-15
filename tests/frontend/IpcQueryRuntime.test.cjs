@@ -8,6 +8,7 @@ const {
   prepareRendererQueryPayload,
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
 const {
+  resolveConversationRef,
   buildQueryInterrupted: buildQueryInterruptedEvent,
 } = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
 
@@ -156,5 +157,16 @@ describe('ipc_query_runtime', () => {
         accepted: true,
       },
     });
+  });
+
+  test('resolveConversationRef accepts direct and wrapped command payloads', () => {
+    expect(resolveConversationRef({
+      conversation_ref: ' conv-direct ',
+    })).toBe('conv-direct');
+    expect(resolveConversationRef({
+      payload: {
+        conversation_ref: ' conv-wrapped ',
+      },
+    })).toBe('conv-wrapped');
   });
 });
