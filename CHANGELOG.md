@@ -9,7 +9,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/product: align the README, product overview, project overview, future
   framing, runtime definition, and landing-page copy around WindieOS as a
   hackable desktop runtime for personal AI agents that turns the desktop session
-  into an AI workspace.
+  into an AI workspace, and rename simulation API titles away from the old
+  Desktop Assistant label.
 - frontend/chat: render SDK current-turn presentation through the shared chat
   message components in both the dashboard and minimal response overlay so live
   assistant, thinking, and tool content no longer depend on parallel overlay

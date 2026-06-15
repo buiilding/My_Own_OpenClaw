@@ -8,7 +8,10 @@ title: "Runtime Model"
 
 # Runtime Model
 
-WindieOS is a desktop AI operator with a hosted backend, an Electron desktop app, and a local Python sidecar. The runtime is intentionally split so model orchestration can stay server-owned while machine control stays local to the user's computer.
+WindieOS is a desktop runtime for personal AI agents, with a hosted backend, an
+Electron desktop app, and a local Python sidecar. The runtime is intentionally
+split so model orchestration can stay server-owned while machine control stays
+local to the user's computer.
 
 ## Runtime Parts
 

@@ -22,13 +22,13 @@ const HeroSection = () => {
           </h1>
           
           <p className="hero-subtitle animate-fade-in-up stagger-2">
-            Desktop assistant
+            Desktop runtime for personal AI agents
           </p>
           
           <p className="hero-description animate-fade-in-up stagger-3">
-            An OS-level AI assistant that sees your screen, understands context, 
-            and takes action. No IDE required—just natural language and vision-first 
-            interaction across your entire desktop.
+            WindieOS turns your desktop session into an AI workspace: screen,
+            windows, browser state, files, apps, shell, memory, permissions,
+            and your current workflow.
           </p>
           
           <div className="hero-actions animate-fade-in-up stagger-4">
@@ -49,7 +49,7 @@ const HeroSection = () => {
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <path d="M3 9h18M9 21V9"/>
               </svg>
-              <span>Vision-First</span>
+              <span>Desktop-Native</span>
             </div>
             <div className="hero-feature">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

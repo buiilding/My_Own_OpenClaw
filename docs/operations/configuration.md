@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-Desktop Assistant does **not** use a YAML config file. Configuration is split between:
+WindieOS does **not** use a YAML config file. Configuration is split between:
 
 - **Backend config**: Python `AppConfig` in `backend/src/core/config/app_config.py`.
 - **Frontend config**: A small JSON blob stored in Electron’s user data folder and mirrored in `localStorage`.

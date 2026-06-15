@@ -6,20 +6,20 @@ const HowItWorksSection = () => {
   const steps = [
     {
       number: '01',
-      title: 'Capture Context',
-      description: 'WindieOS takes a screenshot of your desktop or specific windows, using OCR and vision models to understand what\'s on screen—text, UI elements, and visual context.',
+      title: 'Start from the Desktop',
+      description: 'WindieOS begins from the live desktop session: screen state, windows, browser state, files, apps, shell, memory, permissions, and current workflow.',
       code: 'windie.capture_screen()'
     },
     {
       number: '02',
       title: 'Understand Intent',
-      description: 'Your natural language command is combined with the visual context. The LLM understands both what you said and what you\'re looking at.',
+      description: 'Your natural language command is combined with workspace context. The agent understands both what you said and what you are doing.',
       code: 'windie.ask("Click the Submit button")'
     },
     {
       number: '03',
-      title: 'Execute Actions',
-      description: 'The local sidecar executes tools—clicking, typing, navigating, or running commands. Actions happen on your machine, not in the cloud.',
+      title: 'Act with Permission',
+      description: 'The local sidecar executes tools: clicking, typing, navigating, editing files, or running commands. Sensitive actions stay visible and permissioned.',
       code: 'windie.tools.click(x=450, y=320)'
     },
     {
@@ -40,8 +40,8 @@ const HowItWorksSection = () => {
             <span className="gradient-text">Act.</span>
           </h2>
           <p className="text-large text-secondary max-w-2xl mx-auto">
-            WindieOS combines vision, language, and local execution to create 
-            a seamless AI assistant that works the way you do.
+            WindieOS combines desktop context, language, and local execution so
+            a personal agent can work inside the same environment you use.
           </p>
         </div>
         

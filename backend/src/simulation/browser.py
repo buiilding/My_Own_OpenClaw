@@ -21,7 +21,7 @@ app = create_simulation_app(
     client_name="MockLLMBrowserClient",
     startup_message="Initializing browser simulation backend (using MockLLMBrowserClient)...",
     shutdown_message="Shutting down browser simulation backend...",
-    title="Desktop Assistant (Browser Simulation)",
+    title="WindieOS (Browser Simulation)",
 )
 
 

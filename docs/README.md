@@ -1,12 +1,17 @@
 ---
-summary: "Desktop Assistant Documentation"
+summary: "WindieOS documentation entrypoint for product identity, architecture, runtime boundaries, development, operations, tools, and reference docs."
 read_when:
   - When browsing the repo entrypoint.
+title: "WindieOS Documentation"
 ---
 
-# Desktop Assistant Documentation
+# WindieOS Documentation
 
-Welcome to the comprehensive documentation for WindieOS. This documentation covers all aspects of the system, from high-level architecture to detailed implementation guides.
+Welcome to the WindieOS documentation. WindieOS is a hackable desktop runtime
+for personal AI agents, focused on making the user's live desktop session an
+AI workspace. These docs cover product identity, runtime boundaries, local
+authority, architecture, development, tools, operations, and reference
+contracts.
 
 ## 📚 Documentation Index
 

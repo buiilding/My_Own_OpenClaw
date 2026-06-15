@@ -41,13 +41,13 @@ What is replaced:
 
 - module: `backend.src.simulation.main`
 - client: `MockLLMClient`
-- title: `Desktop Assistant (Simulation)`
+- title: `WindieOS (Simulation)`
 
 ### Browser simulation
 
 - module: `backend.src.simulation.browser`
 - client: `MockLLMBrowserClient`
-- title: `Desktop Assistant (Browser Simulation)`
+- title: `WindieOS (Browser Simulation)`
 
 ### Computer alias entrypoint
 

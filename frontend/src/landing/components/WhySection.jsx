@@ -15,8 +15,8 @@ const WhySection = () => {
           <line x1="12" y1="17" x2="12" y2="21"/>
         </svg>
       ),
-      title: 'OS-Level Control',
-      description: 'Unlike IDE-limited assistants, WindieOS operates at the system level. Control any application, manage files, and automate workflows across your entire desktop environment.'
+      title: 'Desktop Session as Runtime',
+      description: 'WindieOS treats the live desktop session as the agent workspace: screen, windows, browser state, local files, apps, shell, memory, permissions, and current workflow.'
     },
     {
       icon: (
@@ -26,7 +26,7 @@ const WhySection = () => {
         </svg>
       ),
       title: 'Vision-First Interaction',
-      description: 'WindieOS sees what you see. Using screenshots and OCR/vision grounding, it understands your screen context to take precise actions without explicit coordinates or complex setup.'
+      description: 'WindieOS sees the workspace you are using. Screenshots, OCR, and vision grounding help it understand current UI context without forcing you to describe every button or page state.'
     },
     {
       icon: (
@@ -37,7 +37,7 @@ const WhySection = () => {
         </svg>
       ),
       title: 'Local Tool Execution',
-      description: 'A lightweight Python sidecar runs locally on your machine, executing tools and commands securely without sending sensitive data to external services.'
+      description: 'A lightweight Python sidecar runs locally on your machine, executing tools and commands through explicit contracts while keeping machine authority local.'
     },
     {
       icon: (
@@ -76,7 +76,7 @@ const WhySection = () => {
           badge="Why WindieOS"
           headingPrefix="Beyond the IDE."
           headingGradient="Beyond the browser."
-          description="Most AI assistants are trapped in a single application. WindieOS works across your entire operating system, understanding context from any app and taking action wherever needed."
+          description="Most AI assistants are trapped in a chat box. WindieOS is focused on making the user's personal computer agent-native, with visible desktop presence and local authority."
           wrapperClassName="section-header"
           descriptionClassName="text-large text-secondary max-w-2xl mx-auto"
         />

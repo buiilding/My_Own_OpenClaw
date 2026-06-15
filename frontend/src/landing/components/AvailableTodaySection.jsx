@@ -56,8 +56,9 @@ const AvailableTodaySection = () => {
             <span className="gradient-text"> use now.</span>
           </h2>
           <p className="text-large text-secondary max-w-2xl mx-auto">
-            WindieOS is fully functional today. Install it locally and start 
-            automating your desktop workflows immediately.
+            WindieOS is a working desktop runtime today. Install it locally and
+            give a personal agent screen, browser, shell, file, memory, and
+            permissioned desktop capabilities.
           </p>
         </div>
         

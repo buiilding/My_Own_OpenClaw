@@ -8,7 +8,9 @@ read_when:
 
 ## Overview
 
-This guide provides comprehensive information for developers working on Desktop Assistant. It covers codebase structure, development workflow, testing, and contribution guidelines.
+This guide provides comprehensive information for developers working on WindieOS.
+It covers codebase structure, development workflow, testing, and contribution
+guidelines.
 
 ## Codebase Structure
 

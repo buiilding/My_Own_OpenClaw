@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-Desktop Assistant uses a hosted backend control plane with:
+WindieOS uses a hosted backend control plane with:
 
 - WebSocket for real-time agent/session communication
 - HTTP for artifacts, SDK perception APIs, and memory services

@@ -1,26 +1,33 @@
 ---
-summary: "Desktop Assistant - Project Overview"
+summary: "High-level WindieOS project overview for the desktop runtime, local authority, memory, tools, and future control-plane direction."
 read_when:
   - When you need a high-level product overview.
+title: "WindieOS Project Overview"
 ---
 
-# Desktop Assistant - Project Overview
+# WindieOS Project Overview
 
 ## Vision
 
-Desktop Assistant is an AI-powered personal assistant for OS-level automation.
-It operates across the full desktop, not only inside a single IDE.
-The system is vision-first: it uses screenshots, OCR, and visual grounding to locate and act on UI elements.
+WindieOS is a desktop runtime for personal AI agents. It operates across the
+user's live desktop session, not only inside a single chat box, IDE, browser
+tab, or remote workspace.
+
+The system treats screen state, windows, browser sessions, local files, apps,
+shell, memory, permissions, and current workflow as first-class runtime context.
+Vision, OCR, and visual grounding help the agent understand the desktop it is
+working inside.
 
 Core differentiators:
-- Code editing and command execution across apps.
-- OS-level operation across the full desktop.
-- Local episodic + semantic memory with summarization.
-- Privacy-first data flow for memory and files.
+- Agent presence inside the user's personal computer session.
+- Visible, permissioned execution across apps, files, browser, and shell.
+- Local episodic and semantic memory for continuity.
+- Hackable runtime boundaries across desktop UI, SDK, sidecar, and backend.
 
 ## What It Does Today
 
-Desktop Assistant accepts natural-language requests and executes multi-step actions through tool orchestration.
+WindieOS accepts natural-language requests and executes multi-step actions
+through tool orchestration.
 
 Current focus areas:
 - Reliable desktop control through screenshot-based context.
@@ -111,9 +118,10 @@ Combines schema-validated built-in tools and extension points for custom tools.
 ### Model Layer
 Supports multiple LLM providers and configurable inference backends.
 
-## Project Status
+## Product Direction
 
-Current stage: functional AI assistant with core automation features.
+Current stage: functional hackable desktop runtime with core local-agent
+capabilities.
 
 Implemented areas:
 - Multi-provider LLM client and streaming response flow.
@@ -127,10 +135,15 @@ Active work:
 - Voice runtime polish.
 - Monitoring and execution observability improvements.
 - Performance profiling and tuning.
+- Desktop presence and live-turn presentation polish.
+
+Long-term direction: a personal agent control plane across devices, where each
+device can have a local agent responsible for its own context and resources.
+The current wedge remains the desktop runtime.
 
 ## Privacy and Security
 
-Desktop Assistant emphasizes local control of user data.
+WindieOS emphasizes local control of user data.
 
 - Memory, transcripts, and files remain local by default.
 - LLM providers receive only required inference payloads.

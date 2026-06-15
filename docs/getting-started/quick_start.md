@@ -263,4 +263,4 @@ Read the file README.md
 
 ---
 
-**Welcome to Desktop Assistant!** 🚀
+**Welcome to WindieOS.**

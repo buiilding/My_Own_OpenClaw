@@ -19,7 +19,7 @@ app = create_simulation_app(
     client_name="MockLLMClient",
     startup_message="Initializing simulation backend (using MockLLMClient)...",
     shutdown_message="Shutting down simulation backend...",
-    title="Desktop Assistant (Simulation)",
+    title="WindieOS (Simulation)",
 )
 
 if __name__ == "__main__":

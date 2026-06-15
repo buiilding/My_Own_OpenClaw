@@ -1,5 +1,5 @@
 ---
-summary: "High-level company future framing for WindieOS as a multi-agent messaging and control platform."
+summary: "High-level company future framing for WindieOS as a personal agent control plane across devices."
 read_when:
   - When aligning product strategy and company direction.
   - When explaining the future model to teammates or investors.
@@ -10,29 +10,31 @@ read_when:
 
 ## Core Future Framing
 
-WindieOS is evolving into an agent messaging and control platform.
+WindieOS is a hackable desktop runtime for personal AI agents today. The
+long-term company direction is a personal agent control plane across devices.
 
-The user has multiple active OS agents.
-Each remote agent runs in its own isolated VM.
-The user chats with agents directly, monitors progress, and takes control when needed.
+Each device can have a local agent responsible for its own context and
+resources: a MacBook agent, a Windows agent, a phone agent, a server agent, or a
+VM agent. Those agents should coordinate as peers, continue work across
+machines, and decide when the user actually needs to be interrupted.
 
-The local desktop can remain the primary personal agent.
-Remote VM agents extend capacity for parallel work.
+The current wedge remains the desktop runtime: a visible, permissioned workspace
+for a personal AI inside the user's computer session.
 
 ## Product Shape
 
-### 1) Agent Inbox Model
+### 1) Device Agent Model
 
-The primary surface becomes conversation-first:
-- one chat thread per agent
-- shared workspace-level visibility
-- clear thread state (running, blocked, awaiting decision, completed)
+- one local agent per important device or runtime environment
+- each agent owns its device context and resources
+- peer coordination is policy-gated, visible, and auditable
 
 ### 2) Agent Runtime Model
 
-- Local primary agent: operates on user-owned machine.
-- Remote worker agents: operate in isolated VMs.
-- Optional agent-to-agent collaboration: policy-gated and auditable.
+- Local desktop agent: operates on the user's personal computer session.
+- Server or VM agent: operates in an isolated remote environment.
+- Phone agent or mobile client: handles mobile context, supervision, and alerts
+  without pretending phone automation exists before it is built.
 
 ### 3) Human Control Model
 
@@ -48,7 +50,7 @@ Mobile is a control and messaging client for active agents.
 It is not a phone automation runtime.
 
 Mobile responsibilities:
-- chat with local/remote agents
+- chat with local or remote device agents
 - monitor progress and alerts
 - approve escalations
 - trigger pause/resume/cancel
