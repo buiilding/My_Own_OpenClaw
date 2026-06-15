@@ -48,6 +48,7 @@ Date: 2026-06-15
 | CD-015 | Browser tool docs | Browser schema/runtime docs still used compatibility filenames and labels after alias rejection became the active contract | Code/docs inspection showed `navigate` is canonical and browser removed-alias fields/actions are rejected by shared schema validation | Rename browser docs and links to current schema/runtime names, and describe browser-internal URL handling without compatibility-shim language | implemented |
 | CD-016 | Backend rehydrate linkage | Synthetic tool-call ids, synthetic tool-call rows for orphan outputs, and synthetic missing tool-output rows | Current SDK transcript projection carries structured tool payloads and tool-call ids; the repair path kept incomplete or old transcript shapes alive | Rename the linkage helper away from repair terminology, require real tool-call ids and matched outputs, and fail rehydrate on incomplete linkage | implemented |
 | CD-017 | Windie CLI docs command | `bin/windie docs open <topic>` compatibility alias | Current docs routing uses `docs search <query>` and shorthand `docs <query>`; only the command matrix and CLI help still advertised the old alias | Delete the alias branch and remove it from the first-class CLI command docs/help | implemented |
+| CD-018 | Troubleshooting docs | Missing screenshot artifact section still referred to a "fallback fix" in rehydrate execution | Current behavior is a documented text-only continuation path for missing artifacts, not an old fix users need to hunt for | Replace stale fallback-fix wording with current rehydrate artifact-handling language | implemented |
 
 ## Commit Ledger
 
@@ -245,6 +246,13 @@ CD-017 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-018 validation:
+
+- targeted `rg -n "fallback fix" docs/getting-started/troubleshooting.md`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -312,3 +320,5 @@ CD-017 validation:
 - CD-017 has no storage migration impact. It removes a developer CLI alias from
   help and command dispatch; callers should use `bin/windie docs search <query>`
   or `bin/windie docs <query>`.
+- CD-018 has no runtime or storage migration impact: it updates stale
+  troubleshooting wording only.

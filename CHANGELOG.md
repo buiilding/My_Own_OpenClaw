@@ -64,6 +64,8 @@ All notable changes to WindieOS will be documented in this file.
 - cli/docs: remove the `bin/windie docs open <topic>` compatibility alias from
   the first-class docs command surface; use `bin/windie docs search <query>` or
   `bin/windie docs <query>`.
+- docs/troubleshooting: replace stale rehydrate screenshot-artifact fallback-fix
+  wording with the current text-only missing-artifact behavior.
 
 ### Added
 

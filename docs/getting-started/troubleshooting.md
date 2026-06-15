@@ -363,7 +363,7 @@ read_when:
 - Conversation resume should continue instead of failing the whole restore.
 
 **If You Still See Hard Failures**:
-1. Ensure backend includes the fallback fix from `backend/src/api/services/rehydrate_execution.py`.
+1. Ensure backend includes current rehydrate artifact handling in `backend/src/api/services/rehydrate_execution.py`.
 2. Restart backend after pulling latest changes.
 
 #### Slow Memory Search
