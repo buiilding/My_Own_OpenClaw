@@ -58,3 +58,10 @@ When a security boundary changes, run the focused tests for that boundary:
 - permissions/platform: renderer onboarding, main permission service, platform-specific tests
 
 Always run `bin/windie docs list` after docs updates.
+
+## Evidence Notes
+
+- Security-sensitive changes need evidence at the trust boundary that rejects,
+  redacts, or authorizes the action.
+- Logs used as proof must be checked for credential leakage before being copied
+  into docs, tests, or reports.
