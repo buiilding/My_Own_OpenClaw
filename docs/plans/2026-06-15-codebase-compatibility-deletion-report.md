@@ -100,6 +100,8 @@ Date: 2026-06-15
   completed CD-022.
 - `c35bc0000 refactor(frontend): remove broken shell smoke harness`
   completed CD-023.
+- `b1fa3d4d6 refactor(frontend): remove orphan transcript projection writer`
+  completed CD-024.
 
 ## Validation Log
 
