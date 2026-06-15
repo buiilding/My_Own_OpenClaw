@@ -107,6 +107,8 @@ All notable changes to WindieOS will be documented in this file.
   `frontend/src/main/surfaces` modules.
 - docs/main: route active app-runtime docs to the moved
   `frontend/src/main/app` modules.
+- docs/sdk: route active main SDK-runtime docs to the moved
+  `frontend/src/main/sdk` modules.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation
