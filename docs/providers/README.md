@@ -70,3 +70,10 @@ Primary files:
 - [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
 - [Backend Provider Factory + Runtime Selection Reference](../backend/llm/provider_factory_and_runtime_selection_reference.md)
 - [LLM Integration](../architecture/llm_integration.md)
+
+## Evidence Notes
+
+- Provider changes need evidence from the selected provider runtime, normalized
+  response handling, and user-visible error surface when failures occur.
+- Do not infer provider policy from a UI label; inspect model catalog,
+  capability filtering, and request payload selection.
