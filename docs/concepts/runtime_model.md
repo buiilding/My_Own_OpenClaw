@@ -40,3 +40,10 @@ At a high level:
 6. The backend commits history and continues or completes the turn.
 
 Read [Agent Loop](agent_loop.md) for the full turn lifecycle.
+
+## Evidence Notes
+
+- Prove a runtime-model claim with current code or runtime output from the
+  layer named in the claim.
+- If a behavior crosses renderer, main, SDK, sidecar, and backend, inspect the
+  boundary payloads in order instead of inferring ownership from the final UI.
