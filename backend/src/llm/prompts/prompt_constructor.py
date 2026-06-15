@@ -750,36 +750,22 @@ class PromptConstructor:
 
     def format_user_message_content(
         self,
-        message_content: Optional[str],
-        query: str,
+        message_content: str,
         is_first_message: bool,
     ) -> str:
         """
         Format user message content.
 
-        This method handles the formatting logic for user messages, including:
-        - Fallback formatting when message_content is not provided
-
         Args:
             message_content: Backend-rendered model-visible user message content
-            query: The user's raw query text (for fallback formatting)
             is_first_message: Whether this is the first user message in the conversation
 
         Returns:
             Formatted message content ready to be added to history
         """
-        # Build base content
-        if message_content:
-            # Use already-rendered content from backend query input shaping or
-            # legacy clients.
-            final_content = message_content
-        else:
-            # Fallback: just the query (shouldn't happen in normal flow)
-            logger.warning("No message content provided by frontend, using query only")
-            from xml.sax.saxutils import escape
-
-            final_content = f"<user_query>\n{escape(str(query or ''))}\n</user_query>"
+        if not isinstance(message_content, str) or not message_content:
+            raise ValueError("message_content is required for user message formatting")
 
         # Tool schemas are passed via native API params, not embedded in user content.
         _ = is_first_message
-        return final_content
+        return message_content

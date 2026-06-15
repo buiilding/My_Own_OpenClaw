@@ -19,9 +19,9 @@ class _History:
 
 
 class _PromptBuilder:
-    def format_user_message_content(self, *, message_content, query, is_first_message):
+    def format_user_message_content(self, *, message_content, is_first_message):
         assert is_first_message is True
-        return message_content or f"<user_query>{query}</user_query>"
+        return message_content
 
 
 class _ScreenshotManager:

@@ -37,10 +37,15 @@ Shared path guarantees:
 `_set_current_system_state_if_available(...)` rules:
 
 1. if `tool_result.data` is non-dict: no update
-2. prefer `data.system_state_internal` when it is dict
-3. otherwise pass `data.system_state` through `session.set_current_system_state(...)`
+2. when `data.system_state_internal` is present and is a dict or explicit
+   `null`, use it as the authoritative session-state update
+3. when `data.system_state_internal` is present but invalid, ignore state
+   update instead of repairing from another field
+4. otherwise pass `data.system_state` through `session.set_current_system_state(...)`
 
-This gives backend-normalized internal state priority while keeping compatibility with legacy `system_state`.
+This gives backend-normalized internal state priority while keeping current
+public `system_state` tool-result payloads usable when no internal field is
+present.
 
 ## Screenshot Extraction and Artifact Ref Gate
 
@@ -105,7 +110,8 @@ This keeps screenshot extraction side-effect isolated from core result routing.
 
 - individual route with inline screenshot processes screenshot and resolves pending future
 - individual route with no screenshot still stores/resolves and leaves session state untouched
-- system-state update from `system_state` and priority override from `system_state_internal`
+- system-state update from `system_state`, priority override from
+  `system_state_internal`, and invalid-internal-state rejection
 - screenshot_ref decode path injects screenshot artifact and processes decoded data
 - bundle route stores/resolves bundled result and supports screenshot_ref decode path
 - shared `route_result(..., route_mode="bundle")` updates state and bundle storage path

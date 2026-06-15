@@ -1,13 +1,13 @@
 """AgentSession initialization helpers."""
+
 from typing import Optional
 
-from backend.src.agent.execution.executor import AgentExecutor
 from backend.src.agent.compaction.engine import CompactionEngine
 from backend.src.agent.session.runtime_state import SessionRuntimeState
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.agent.tools.waiting import ToolResultHandler
-from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.events.bus_events import InteractionCompleted
+from backend.src.core.infrastructure.bus import EventBus
 from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
@@ -51,6 +51,8 @@ def init_event_bus(session, event_bus: Optional[EventBus]) -> None:
 
 
 def init_executor(session, ocr_service) -> None:
+    from backend.src.agent.execution.executor import AgentExecutor
+
     session.executor = AgentExecutor(
         session=session,
         llm_client=session.llm_client,
@@ -78,10 +80,9 @@ def init_session_state(session) -> None:
 
 def init_tool_result_handler(session) -> None:
     """Initialize tool result routing and storage."""
-    from backend.src.agent.tools.preparation.screenshot import (
-        ScreenshotProcessor,
-    )
+    from backend.src.agent.tools.preparation.screenshot import ScreenshotProcessor
     from backend.src.agent.tools.waiting import ToolResultReceiver, ToolResultRouter
+
     if not hasattr(session, "runtime"):
         init_session_state(session)
 

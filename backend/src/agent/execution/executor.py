@@ -176,7 +176,6 @@ class AgentExecutor:
         is_first_message = self._is_first_user_message()
         final_content = self.prompt_builder.format_user_message_content(
             message_content=message_content,
-            query=query,
             is_first_message=is_first_message,
         )
         raw_user_query = self._resolve_raw_user_query(query, final_content)

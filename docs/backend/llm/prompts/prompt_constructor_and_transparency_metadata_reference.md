@@ -114,10 +114,10 @@ This avoids naive delimiter parsing bugs and constrains extraction work on large
 
 ## User Message Formatting
 
-`format_user_message_content(message_content, query, is_first_message)`:
+`format_user_message_content(message_content, is_first_message)`:
 
-- uses frontend-provided `message_content` when available
-- fallback path emits `<user_query>...</user_query>` wrapper around raw query
+- requires backend-prepared model-visible `message_content`
+- raises when the query ingress path fails to provide content
 - does not embed tool schemas into user content
 - `is_first_message` is intentionally ignored in current implementation
 

@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
+    resolve_inline_screenshot,
     resolve_query_runtime_system_state,
     resolve_query_screenshot_metadata,
-    resolve_inline_screenshot,
     resolve_screenshot_refs,
 )
 from backend.src.services.artifacts import ArtifactStore
@@ -24,7 +24,7 @@ class QueryExecutionInputs:
     image_data: Optional[Union[str, List[str]]]
     image_refs: Optional[List[str]]
     capture_meta: Optional[dict[str, Any]]
-    message_content: Optional[Any]
+    message_content: str
     conversation_ref: Optional[str]
     workspace_path: Optional[str]
     repo_instruction_messages: Optional[list[dict[str, str]]]

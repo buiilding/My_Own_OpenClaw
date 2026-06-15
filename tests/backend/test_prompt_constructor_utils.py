@@ -117,12 +117,10 @@ def test_format_user_message_content_adds_tool_schemas_only_for_first_message():
 
     first_content = constructor.format_user_message_content(
         message_content="<user_query>hello</user_query>",
-        query="hello",
         is_first_message=True,
     )
     later_content = constructor.format_user_message_content(
         message_content="<user_query>hello</user_query>",
-        query="hello",
         is_first_message=False,
     )
 
@@ -130,6 +128,16 @@ def test_format_user_message_content_adds_tool_schemas_only_for_first_message():
     assert later_content == "<user_query>hello</user_query>"
     assert "<tool_schemas>" not in first_content
     assert "<tool_schemas>" not in later_content
+
+
+def test_format_user_message_content_rejects_missing_prepared_content():
+    constructor = _make_constructor()
+
+    with pytest.raises(ValueError, match="message_content is required"):
+        constructor.format_user_message_content(
+            message_content="",
+            is_first_message=True,
+        )
 
 
 def test_format_user_message_content_respects_allowlist_for_tool_schemas():

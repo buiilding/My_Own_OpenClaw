@@ -30,6 +30,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: tag local send preflight response-overlay size reports with
   the preflight guard so the native overlay cannot reuse a previous response
   guard while showing the typing-only state.
+- frontend/main: defer native response-overlay show during local send preflight
+  until the renderer reports a measured typing frame, preventing first-send
+  startup flashes of stale response content.
 - frontend/chat: keep the stopped current-turn conversation selected so Stop
   clears the active run without visually returning the dashboard to new chat.
 - backend/frontend: emit sequenced Stop completion events and keep stop command
@@ -69,6 +72,11 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: remove the tool-result router repair path that fell back from
   invalid `system_state_internal` payloads to older `system_state` data; the
   internal field is now authoritative when present.
+- backend/prompts: remove the prompt-constructor raw-query fallback and require
+  query ingress to provide prepared model-visible `message_content`.
+- backend/session: lazy-load `AgentExecutor` during session executor
+  initialization so session imports no longer cycle through execution modules at
+  package import time.
 
 ### Added
 

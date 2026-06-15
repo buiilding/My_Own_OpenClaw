@@ -50,6 +50,8 @@ Date: 2026-06-15
 | CD-017 | Windie CLI docs command | `bin/windie docs open <topic>` compatibility alias | Current docs routing uses `docs search <query>` and shorthand `docs <query>`; only the command matrix and CLI help still advertised the old alias | Delete the alias branch and remove it from the first-class CLI command docs/help | implemented |
 | CD-018 | Troubleshooting docs | Missing screenshot artifact section still referred to a "fallback fix" in rehydrate execution | Current behavior is a documented text-only continuation path for missing artifacts, not an old fix users need to hunt for | Replace stale fallback-fix wording with current rehydrate artifact-handling language | implemented |
 | CD-019 | Backend tool-result router | Invalid `system_state_internal` payloads fell back to older `system_state` data | Current backend-owned runtime state uses `system_state_internal` as the explicit authoritative field when present; repairing invalid internal state from the older public result field preserved a duplicate source of truth | Treat `system_state_internal` as authoritative when present and ignore invalid internal state instead of falling back to `system_state` | implemented |
+| CD-020 | Backend prompt construction | `PromptConstructor.format_user_message_content(...)` still built a raw `<user_query>` fallback from `query` when prepared `message_content` was missing | Query ingress already normalizes missing payload content into a plain user-query wrapper; retaining the same fallback in prompt construction kept duplicate model-visible content assembly alive | Remove the constructor fallback and `query` parameter, require prepared `message_content`, and make query input typing reflect that content is always prepared before prompt construction | implemented |
+| CD-021 | Backend session initialization | `session.initializer` eagerly imported `AgentExecutor`, creating an execution/session import cycle during direct executor tests | The initializer only needs `AgentExecutor` inside `init_executor(...)`; module-level import couples session package import to execution graph assembly | Move the import inside `init_executor(...)` so session initialization stays lazy at the execution boundary | implemented |
 
 ## Commit Ledger
 
@@ -271,6 +273,32 @@ CD-019 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-020 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py tests/backend/test_agent_executor_completion_side_effects.py tests/backend/test_query_execution_inputs.py -q`:
+  passed, 33 tests.
+- `./scripts/python-in-env backend python -m black --check backend/src/llm/prompts/prompt_constructor.py backend/src/agent/execution/executor.py backend/src/api/services/query_execution_support/query_execution_inputs.py tests/backend/test_prompt_constructor_utils.py tests/backend/test_agent_executor_completion_side_effects.py`:
+  passed.
+- `./scripts/python-in-env backend python -m isort --check-only backend/src/llm/prompts/prompt_constructor.py backend/src/agent/execution/executor.py backend/src/api/services/query_execution_support/query_execution_inputs.py tests/backend/test_prompt_constructor_utils.py tests/backend/test_agent_executor_completion_side_effects.py`:
+  passed.
+- targeted `rg -n "No message content provided|legacy clients|Fallback formatting when message_content|format_user_message_content\\(message_content, query|query=\\\"hello\\\"" backend/src tests/backend docs/backend docs/architecture --glob '!docs/plans/**'`:
+  no matches.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
+CD-021 validation:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_agent_executor_completion_side_effects.py -q`:
+  passed.
+- `./scripts/python-in-env backend python -c "import backend.src.agent.session.session; from backend.src.agent.execution.executor import AgentExecutor; print(AgentExecutor.__name__)"`:
+  passed and printed `AgentExecutor`.
+- `./scripts/python-in-env backend python -m black --check backend/src/agent/session/initializer.py`:
+  passed.
+- `./scripts/python-in-env backend python -m isort --check-only backend/src/agent/session/initializer.py`:
+  passed.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -344,3 +372,8 @@ CD-019 validation:
   when a tool result includes `system_state_internal`, that field is the only
   source considered for session runtime state; current `system_state`-only tool
   results still update state when no internal field is present.
+- CD-020 has no storage migration impact. Query payloads that omit `content`
+  still receive the existing plain `<user_query>` wrapper in query ingress, but
+  prompt construction no longer owns a second raw-query fallback.
+- CD-021 has no runtime migration impact: it moves an import to the function
+  that constructs the executor and preserves executor initialization behavior.
