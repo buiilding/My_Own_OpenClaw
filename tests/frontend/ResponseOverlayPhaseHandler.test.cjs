@@ -123,7 +123,7 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
   });
 
-  test('renderer send preflight can prime awaiting fallback before size intent arrives', () => {
+  test('renderer send preflight arms guard and waits for renderer size intent', () => {
     let activeGuardRef = null;
     const deps = createDeps({
       getActiveResponseOverlayGuardRef: jest.fn(() => activeGuardRef),
@@ -141,9 +141,9 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setActiveResponseOverlayGuardRef)
       .toHaveBeenCalledWith(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF);
     expect(activeGuardRef).toBe(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF);
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
-    expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
-    expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalledWith(true);
+    expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
   });
 
   test('idle phase clears preflight guard and hides overlay', () => {

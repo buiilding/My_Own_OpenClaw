@@ -36,8 +36,6 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
   const {
     setResponseOverlayVisibilityState = () => {},
     responseWindow,
-    ensureResponseOverlayFallbackBounds = () => {},
-    showResponseWindowWhenChatVisible = () => {},
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
     phase = null,
@@ -185,10 +183,6 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       });
       return;
     }
-    setResponseOverlayVisibilityState(true);
-    if (!responseWindow || responseWindow.isDestroyed()) {
-      return;
-    }
     const activeGuardRef = typeof getActiveResponseOverlayGuardRef === 'function'
       ? getActiveResponseOverlayGuardRef()
       : null;
@@ -202,17 +196,15 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         phase,
       });
     }
-    ensureResponseOverlayFallbackBounds();
-    showResponseWindowWhenChatVisible();
-    logLiveSurfaceTrace('response_overlay.window.show', {
+    logLiveSurfaceTrace('response_overlay.window.show_deferred', {
       source: 'phase-handler',
-      reason: 'phase-fallback',
+      reason: 'renderer-preflight-size-report-required',
       phase,
       overlayMode: mode,
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
     });
     appendSurfaceVisibilityDiagnostic({
-      action: 'show-from-phase',
+      action: 'defer-preflight-show-to-size-report',
       mode,
       phase,
       source,
@@ -220,7 +212,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     });
     logChatPillMainTrace({
       source: 'phase-handler',
-      action: 'show-response-window',
+      action: 'defer-response-window-to-size-report',
       phase,
       responseWindow,
     }, deps);
@@ -293,8 +285,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     setResponseOverlayVisibilityState = () => {},
     responseWindow,
     chatWindow,
-    ensureResponseOverlayFallbackBounds = () => {},
-    showResponseWindowWhenChatVisible = () => {},
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
     getResponseOverlayPhase = () => null,
@@ -393,8 +383,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     setResponseOverlayVisibilityState,
     responseWindow,
     chatWindow,
-    ensureResponseOverlayFallbackBounds,
-    showResponseWindowWhenChatVisible,
     showResponseWindowInactive,
     syncContextLabelWindowVisibility,
     phase: nextPhase,
