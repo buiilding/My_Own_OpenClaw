@@ -593,3 +593,10 @@ or route backend tool results after migration. The desktop runtime should expose
 a small first-party service surface backed by `ConversationContinuityService`
 instead of letting dashboard hooks, chat hooks, and storage adapters each own a
 piece of resume semantics.
+
+## Evidence Notes
+
+- Conversation-runtime fixes should include the store event, projection output,
+  and UI adapter input that prove the normalized path is coherent.
+- If a desktop workaround bypasses SDK projections, document the deletion path
+  or route the behavior back into the runtime contract.
