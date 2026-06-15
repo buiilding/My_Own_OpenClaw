@@ -324,8 +324,8 @@ Renderer display contract:
 
 - render active `tool-call`, `tool-output`, and `tool-progress` rows from the SDK `currentTurn.toolEvents` projection
 - preserve backend identifiers in structured payloads for replay and debugging
-- write visible transcript rows through `chatStreamTranscriptPersistence.ts`,
-  which delegates to `DesktopTranscriptProjectionRuntimeClient`
+- write durable visible transcript state through SDK conversation events and the
+  desktop conversation store path
 - keep skipped or display-only execution metadata out of model-facing history
 
 Execution contract:

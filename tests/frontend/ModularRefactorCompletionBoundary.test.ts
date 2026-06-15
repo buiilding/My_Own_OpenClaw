@@ -49,7 +49,6 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain("invokeWindieCommand('conversation.stop'");
     expect(source).not.toContain('createConversationRuntime');
     expect(source).not.toContain('DesktopSettingsRuntimeClient');
-    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
     expect(source).not.toContain('DesktopBackendCommandRuntimeClient');
     expect(source).not.toContain('infrastructure/api/client');
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
@@ -144,11 +143,8 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/feature_module_matrix.md',
       'docs/frontend/renderer/renderer_runtime.md',
       'docs/frontend/renderer/transcript/README.md',
-      'docs/frontend/renderer/transcript/queue/README.md',
-      'docs/frontend/renderer/transcript/queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md',
-      'docs/frontend/renderer/transcript/queue/pending_transcript_messages_orchestrator_flush_order_and_retry_contract_reference.md',
       'docs/frontend/renderer/transcript/contracts/README.md',
-      'docs/frontend/renderer/transcript/contracts/transcript_entry_and_pending_message_type_contract_reference.md',
+      'docs/frontend/renderer/transcript/contracts/transcript_entry_type_contract_reference.md',
       'docs/frontend/renderer/transcript/contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md',
       'docs/frontend/inventory/protocols/state/frontend_protocol_session_and_conversation_state_propagation_reference.md',
       'docs/frontend/inventory/protocols/state/README.md',

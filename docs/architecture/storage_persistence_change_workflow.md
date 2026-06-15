@@ -29,7 +29,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 
 | Storage surface | Primary owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
-| Visible transcript rows, retry queues, and conversation continuity orchestration | SDK transcript projection/runtime | `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `frontend/src/renderer/infrastructure/transcript/**` | `tests/frontend/ConversationContinuityService.test.ts`, `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, `TranscriptStorage*.test.ts` | [Transcript and Replay](../memory/transcript_and_replay.md) |
+| Visible transcript rows and conversation continuity orchestration | SDK transcript projection/runtime | `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`, `frontend/src/renderer/infrastructure/transcript/**` | `tests/frontend/ConversationContinuityService.test.ts`, `tests/frontend/DesktopConversationContinuityService.test.ts`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/SdkDisplayChatMessageProjection.test.ts`, `TranscriptStorage*.test.ts` | [Transcript and Replay](../memory/transcript_and_replay.md) |
 | Transcript session identity cache | Renderer transcript session runtime plus Electron sync | `sessionInfoStorage.ts`, `transcriptSessionRuntime.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | `tests/frontend/TranscriptSessionState.test.ts`, `IpcTranscriptSessionSync.test.cjs` | [Session and Transcript Reference](../reference/session_and_transcript_reference.md) |
 | Frontend user settings | Renderer config storage and Electron config file | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc.cjs` | `tests/frontend/configStorage.test.js`, `AppConfigPersistence.test.js`, `AppConfigProvider.storageAndIpc.test.tsx` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) |
 | Install auth state file | Electron main | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | install-auth/frontend IPC tests | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) |
@@ -69,10 +69,8 @@ Edit:
 
 - `ConversationContinuityService.ts` for SDK-owned display/rehydrate/delete orchestration over a `ConversationStore`.
 - `desktopConversationContinuityService.ts` for Electron's sidecar-backed continuity service instance.
-- `desktopTranscriptProjectionRuntimeClient.ts` for SDK projection write API behavior.
 - `desktopConversationStore.ts` for desktop projection conversion and SDK store write enrichment.
-- `transcriptEntryPersistence.ts` and `transcriptRecordWrite.ts` for persisted row shape and IPC payloads.
-- `pending/*` for retry/FIFO behavior.
+- `sdkDisplayChatMessageProjection.ts` for stored event to renderer row projection.
 - `sessionInfoStorage.ts` only for transcript session identity storage.
 - SDK projection/rehydrate helpers if stored events are replayed into backend history.
 
@@ -281,7 +279,7 @@ Validate:
 
 | Changed storage boundary | Minimum focused validation |
 | --- | --- |
-| SDK transcript writes/session storage | `bin/windie test frontend -- DesktopTranscriptProjectionRuntimeClient TranscriptStorage TranscriptPending TranscriptSession` |
+| SDK transcript writes/session storage | `bin/windie test frontend -- DesktopConversationContinuityService DesktopConversationStore SdkDisplayChatMessageProjection TranscriptStorage TranscriptSession` |
 | Frontend config persistence | `bin/windie test frontend -- configStorage AppConfigPersistence AppConfigProvider` |
 | Electron install auth state | focused frontend install-auth/IPC tests plus backend auth tests if contract changes |
 | Sidecar SQLite/memory schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py` |

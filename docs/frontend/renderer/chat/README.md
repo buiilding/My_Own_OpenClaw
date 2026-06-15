@@ -80,7 +80,8 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
-- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`

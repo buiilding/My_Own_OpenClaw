@@ -11,14 +11,13 @@ title: "Transcript Transparency Normalization and Snapshot Pruning Contract Refe
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/transparencyNormalization.ts`
-- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `tests/frontend/TranscriptTransparencyNormalization.test.ts`
 
 ## Ownership Boundary
 
-`normalizeTransparencyData(...)` is the canonical boundary for cleaning optional transcript transparency snapshots before they are queued or persisted by the desktop transcript projection runtime.
+`normalizeTransparencyData(...)` is the canonical boundary for cleaning optional transcript transparency snapshots before SDK-backed display and persistence projection.
 
 It is shape-preserving for valid fields and fail-closed for empty/invalid payloads.
 
@@ -92,7 +91,7 @@ Result:
 
 ## Related Pages
 
-- [Transcript Entry and Pending Message Type Contract Reference](transcript_entry_and_pending_message_type_contract_reference.md)
+- [Transcript Type Contract Reference](transcript_entry_type_contract_reference.md)
 - [Transcript Session Sync Payload Normalization and Alias Contract Reference](transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
-- [Transcript Writer Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
+- [Frontend Renderer Transcript Docs Hub](../README.md)
 - [Incoming Text Normalization Contract Reference](../../infrastructure/incoming_text_normalization_mojibake_and_lone_surrogate_contract_reference.md)

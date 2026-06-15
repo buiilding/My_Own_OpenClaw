@@ -31,7 +31,7 @@ title: "Frontend Protocol State Hub"
 - `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`

@@ -107,6 +107,6 @@ The transcript session runtime merges these via session-state update rules, pres
 
 ## Related Pages
 
-- [Transcript Entry and Pending Message Type Contract Reference](transcript_entry_and_pending_message_type_contract_reference.md)
-- [Transcript Projection Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
+- [Transcript Type Contract Reference](transcript_entry_type_contract_reference.md)
+- [Frontend Renderer Transcript Docs Hub](../README.md)
 - [Transcript Session and Rehydrate Reference](../../transcript_session_and_rehydrate_reference.md)

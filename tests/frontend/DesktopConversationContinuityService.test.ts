@@ -2,14 +2,7 @@
  * Covers desktop conversation continuity service. behavior in the frontend test suite.
  */
 
-const mockCreateSeededConversationStore = jest.fn();
 const mockGetActiveConversationRef = jest.fn(() => null);
-
-jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
-  DesktopTranscriptProjectionRuntimeClient: {
-    createSeededConversationStore: (...args: unknown[]) => mockCreateSeededConversationStore(...args),
-  },
-}));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
@@ -17,33 +10,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-function createSeededStore(events: Array<Record<string, unknown>>) {
-  let currentEvents = events;
-  return {
-    appendEvent: jest.fn(async (event) => {
-      currentEvents = [...currentEvents, event];
-    }),
-    appendEvents: jest.fn(),
-    rewriteConversation: jest.fn(async (rewrite) => {
-      currentEvents = rewrite.preservedEvents;
-    }),
-    replaceCompactedReplay: jest.fn(),
-    loadEvents: jest.fn(async () => currentEvents),
-    loadForDisplay: jest.fn(),
-    loadDisplayRows: jest.fn(async () => []),
-    loadForRehydrate: jest.fn(async () => ({
-      conversationRef: 'conv-replay',
-      revisionId: 'rev-replay',
-      messages: [],
-    })),
-    listMetadata: jest.fn(),
-    getRevision: jest.fn(),
-  };
-}
-
 describe('DesktopConversationContinuityService', () => {
   beforeEach(() => {
-    mockCreateSeededConversationStore.mockReset();
     mockGetActiveConversationRef.mockReset();
     mockGetActiveConversationRef.mockReturnValue(null);
   });

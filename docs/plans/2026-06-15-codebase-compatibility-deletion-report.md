@@ -54,6 +54,7 @@ Date: 2026-06-15
 | CD-021 | Backend session initialization | `session.initializer` eagerly imported `AgentExecutor`, creating an execution/session import cycle during direct executor tests | The initializer only needs `AgentExecutor` inside `init_executor(...)`; module-level import couples session package import to execution graph assembly | Move the import inside `init_executor(...)` so session initialization stays lazy at the execution boundary | implemented |
 | CD-022 | Renderer dashboard/transcript utilities | `episodicMemoryUtils.js` and `storedTranscriptChatMessageState.js` preserved unused transcript-memory parsing and rehydrate mapping helpers, including `User:`/`Assistant:` display splitting | Production callers now open conversations through SDK `chat_events`, SDK display projection, and the desktop continuity service; search found these exports were referenced only by their tests and stale docs | Delete the unused helpers and tests, and point docs at SDK projection/command-runtime owners | implemented |
 | CD-023 | Frontend main shell harness | `frontend/src/main/app/test_shell.cjs` and `npm run test:shell` preserved a manual Chrome/shell smoke harness whose npm entry pointed at a non-existent path | Knip reported the harness as an unused file; docs said it was manual and stale, while current shell/process behavior is covered by sidecar and bridge tests | Delete the broken harness, remove the npm script, and route docs to current sidecar shell validation instead of the harness page | implemented |
+| CD-024 | Renderer transcript projection | `desktopTranscriptProjectionRuntimeClient.ts`, `transcriptRecordWrite.ts`, `transcriptEntryPersistence.ts`, `infrastructure/transcript/pending/*`, and their pending/entry type exports preserved a renderer-owned queue/write path | Knip reported the projection runtime and entry persistence as unused files; source search found the writer/queues referenced only by their tests and stale docs, while current display/replay uses SDK `chat_events`, `DesktopConversationContinuityService`, `DesktopConversationLibraryClient`, `desktopConversationStore.ts`, and `sdkDisplayChatMessageProjection.ts` | Delete the orphan runtime, pending queues, type exports, tests, and queue docs; update current docs to route transcript/replay work to SDK continuity/store/display projection owners | implemented |
 
 ## Commit Ledger
 
@@ -331,6 +332,20 @@ CD-023 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-024 validation:
+
+- targeted `rg -n "DesktopTranscriptProjectionRuntimeClient|desktopTranscriptProjectionRuntimeClient|transcriptEntryPersistence|transcriptRecordWrite|pendingTranscriptMessages|pendingUserQueue|pendingAssistantQueue|pendingToolQueue|transcriptPendingFlush|TranscriptPending|TranscriptRecordWrite|transcript_writer_queue_flush|pending_transcript_queue|pending_transcript_messages|renderer/transcript/queue|PendingUserMessage|PendingToolMessage|PendingAssistantMessage|transcript_entry_and_pending_message|export type TranscriptEntry|export type TranscriptStructuredToolPayload" frontend/src tests/frontend docs --glob '!frontend/node_modules/**' --glob '!docs/plans/**'`:
+  no matches.
+- `bin/windie test frontend -- DesktopConversationContinuityService DesktopConversationStore SdkDisplayChatMessageProjection TranscriptStorage TranscriptSessionState RendererChatRuntimeBoundary ModularRefactorCompletionBoundary TranscriptTransparencyNormalization`:
+  passed, 10 suites and 88 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  unused dependency/export/type findings, but it no longer reports unused files
+  for `desktopTranscriptProjectionRuntimeClient.ts` or
+  `transcriptEntryPersistence.ts`, and the transcript pending/entry type exports
+  removed in this slice no longer appear in the unused exported type list.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -417,3 +432,8 @@ CD-023 validation:
 - CD-023 has no runtime migration impact. It deletes an unused manual test
   harness and broken npm script; shell/process runtime behavior remains owned by
   the Python sidecar system tools and their sidecar/frontend bridge tests.
+- CD-024 has no storage migration impact. It deletes an orphan renderer-side
+  projection writer and in-memory retry queues that were no longer production
+  imports; current durable transcript state remains owned by SDK conversation
+  events, the desktop conversation store, the desktop continuity/library
+  clients, and sidecar `chat_events`.

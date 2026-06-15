@@ -466,10 +466,9 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   `newRevisionId` as conversation revision metadata, so sidecar metadata and
   `getRevision()` report the replacement revision even if the preserved rows
   still carry older event revisions or the rewrite removes every row.
-- desktop visible transcript appends route through
-  `DesktopTranscriptProjectionRuntimeClient` and the desktop conversation store
-  factory, so queued user/assistant/tool writes no longer own direct row IPC or
-  replay append mutation.
+- desktop visible transcript state routes through SDK conversation events and
+  the desktop conversation store factory, so renderer feature code no longer
+  owns direct row IPC, replay append mutation, or retry queues.
 - desktop chat feature code uses the transcript-session runtime facade for
   active conversation/user identity, while user, assistant, and tool transcript
   writes go through focused chat-feature persistence helpers into the SDK-backed
@@ -478,8 +477,7 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   transcript-session runtime facade, so feature/provider code does not import
   transcript infrastructure directly for conversation/user identity updates.
 - desktop dashboard conversation list/load/delete/search commands use
-  `DesktopConversationLibraryClient`, which delegates to
-  `DesktopTranscriptProjectionRuntimeClient` before reaching the SDK store
+  `DesktopConversationLibraryClient`, which delegates directly to the SDK store
   factory.
 - desktop chat and dashboard local snapshot loading also go through
   `DesktopConversationContinuityService` or `DesktopConversationLibraryClient`,

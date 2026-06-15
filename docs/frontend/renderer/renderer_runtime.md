@@ -114,7 +114,7 @@ Core modules:
 - `app/runtime/desktopBackendTransport.ts`: typed backend command surface
 - `infrastructure/ipc/bridge.ts`: typed IPC wrapper over preload API
 - `infrastructure/services/*`: tool execution/capture/payload services
-- `app/runtime/desktopTranscriptProjectionRuntimeClient.ts` + `infrastructure/transcript/*`: transcript projection queues and session storage
+- `app/runtime/desktopConversationContinuityService.ts`, `app/runtime/desktopConversationLibraryClient.ts`, and `infrastructure/transcript/*`: SDK-backed transcript display projection, conversation store access, and session storage
 - `infrastructure/audio/PlayerService.ts`: streaming audio playback queue
 
 ## Transcript and Session Metadata

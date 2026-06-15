@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: remove the broken manual shell-tool Chrome smoke harness and
   its stale `test:shell` npm entry; sidecar shell behavior is covered by
   sidecar and bridge tests.
+- frontend/renderer: delete the orphan transcript projection runtime and
+  pending retry queues; visible transcript state now routes through SDK
+  conversation storage, continuity, and display projection.
 
 ### Added
 

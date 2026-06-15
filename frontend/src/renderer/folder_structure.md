@@ -206,13 +206,9 @@ frontend/src/renderer/
 │   │       ├── ToolExecutionLogger.ts   # Timing/log helpers used by capture services
 │   │       └── ToolScreenshotDebugTrace.ts # Gated screenshot/artifact debug trace helpers
 │   │
-│   └── transcript/                       # Transcript persistence helpers
-│       ├── pending/                     # Pending transcript queue helpers
-│       │   ├── pendingAssistantQueue.ts # pendingAssistantQueue - Queue container for assistant messages awaiting session info
-│       │   ├── pendingToolQueue.ts      # pendingToolQueue - Queue container for tool messages awaiting session info
-│       │   ├── pendingTranscriptMessages.ts # pendingTranscriptMessages - Flush orchestration + retry queue facade
-│       │   ├── pendingUserQueue.ts      # pendingUserQueue - Queue container for user messages awaiting session info
-│       │   └── transcriptPendingFlush.ts # transcriptPendingFlush - FIFO flush/requeue helper
+│   └── transcript/                       # SDK-backed transcript projection helpers
+│       ├── desktopConversationStore.ts  # desktopConversationStore - Desktop adapter around SDK sidecar conversation storage
+│       ├── sdkDisplayChatMessageProjection.ts # sdkDisplayChatMessageProjection - SDK display rows to renderer chat messages
 │       ├── sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
 │       ├── sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
 │       ├── transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by desktop runtime clients

@@ -56,8 +56,6 @@ describe('renderer chat runtime boundary', () => {
 
     expect(hookSource).not.toContain('recordUserTranscriptMessage');
     expect(hookSource).not.toContain('recordUserMessage');
-    expect(hookSource).not.toContain('DesktopTranscriptProjectionRuntimeClient');
-    expect(helperSource).not.toContain('DesktopTranscriptProjectionRuntimeClient');
     expect(helperSource).not.toContain('recordUserTranscriptMessage');
     expect(helperSource).not.toContain('recordTranscriptUserMessage');
   });
@@ -109,8 +107,7 @@ describe('renderer chat runtime boundary', () => {
       const file = path.join(chatRoot, relativePath);
       const source = await fs.readFile(file, 'utf8');
       if (
-        source.includes('DesktopTranscriptProjectionRuntimeClient')
-        || source.includes('recordAssistantMessage')
+        source.includes('recordAssistantMessage')
         || source.includes('recordToolMessage')
         || source.includes('infrastructure/transcript/TranscriptWriter')
       ) {
@@ -393,7 +390,6 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain("unwrapToolBackendEvent<ToolCallEvent>");
     expect(source).toContain("event.type !== 'tool_call'");
     expect(source).not.toContain('recordToolTranscriptMessage');
-    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
   test('chat stream tool-output handling consumes SDK tool-output events without persistence', async () => {
@@ -406,7 +402,6 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain("unwrapToolBackendEvent<ToolOutputEvent>");
     expect(source).toContain("event.type !== 'tool_output'");
     expect(source).not.toContain('recordToolOutputTranscriptMessage');
-    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
   test('chat stream tool-bundle handling consumes SDK tool-bundle events without persistence', async () => {
@@ -420,7 +415,6 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain("event.type !== 'tool_bundle_call'");
     expect(source).toContain("event.type !== 'tool_bundle_output'");
     expect(source).not.toContain('recordToolTranscriptMessage');
-    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
   test('conversation replay prepares with continuity and dispatches with live-turn send', async () => {
@@ -548,7 +542,6 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('rehydrateFromStore(');
     expect(source).not.toContain('StaticRehydrateConversationStore');
     expect(source).not.toContain('RehydrateConversationEntry');
-    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
     expect(source).not.toContain('createSeededConversationRuntime');
     expect(source).not.toContain('editAndResend(input');
     expect(source).not.toContain('retryTurn(input');
@@ -560,7 +553,6 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('updateTranscriptSession(');
     expect(source).not.toContain('rewriteTranscriptProjection(input');
     expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
-    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
   test('manual compaction uses the continuity runtime facade', async () => {

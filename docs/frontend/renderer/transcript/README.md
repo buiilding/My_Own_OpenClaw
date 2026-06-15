@@ -1,8 +1,8 @@
 ---
-summary: "Frontend renderer transcript docs sub-hub for desktop transcript projection queue/flush behavior, session identity state updates, and session-event persistence contracts."
+summary: "Frontend renderer transcript docs sub-hub for SDK-backed desktop conversation storage, display projection, session identity state updates, and session-event contracts."
 read_when:
-  - When changing `frontend/src/renderer/infrastructure/transcript/*` modules or transcript write/retry behavior.
-  - When debugging queued transcript rows, session identity drift, or `transcript-session-update` event delivery.
+  - When changing `frontend/src/renderer/infrastructure/transcript/*` modules or SDK display/rehydrate behavior.
+  - When debugging visible transcript projection, session identity drift, or `transcript-session-update` event delivery.
 title: "Frontend Renderer Transcript Docs Hub"
 ---
 
@@ -11,30 +11,23 @@ title: "Frontend Renderer Transcript Docs Hub"
 ## Deep Pages
 
 - [Transcript Replay Change Workflow](../../../memory/transcript_replay_change_workflow.md)
-- [Transcript Projection Queue Flush and Session Event Reference](transcript_writer_queue_flush_and_session_event_reference.md)
-- [Transcript Queue Docs Hub](queue/README.md)
-- [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
 - [Transcript Contracts Docs Hub](contracts/README.md)
-- [Transcript Entry and Pending Message Type Contract Reference](contracts/transcript_entry_and_pending_message_type_contract_reference.md)
+- [Transcript Type Contract Reference](contracts/transcript_entry_type_contract_reference.md)
 
 ## Code Scope
 
-- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
+- `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
+- `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
-- `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
-- `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
-- `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
-- `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
-- `tests/frontend/TranscriptPendingQueue.test.ts`
-- `tests/frontend/TranscriptPendingFlush.test.ts`
-- `tests/frontend/TranscriptPendingMessages.test.ts`
+- `tests/frontend/DesktopConversationContinuityService.test.ts`
+- `tests/frontend/DesktopConversationStore.test.ts`
+- `tests/frontend/SdkDisplayChatMessageProjection.test.ts`
 - `tests/frontend/RendererAppRuntimeBoundary.test.ts`
-- `tests/frontend/TranscriptPendingMessages.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/TranscriptStorage.test.ts`

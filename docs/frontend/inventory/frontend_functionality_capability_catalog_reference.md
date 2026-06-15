@@ -163,7 +163,8 @@ Primary files:
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/components/*`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
-- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 
