@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/plans: add a WindieOS performance tracking plan covering runtime-owned
+  spans, initial SLIs, CLI aggregation, baselines, and hosted dashboard
+  sequencing.
 - codebase/docs: add concise top-of-file descriptions across backend,
   frontend, SDK, example, and test code files so file purpose is visible before
   reading implementation details.
