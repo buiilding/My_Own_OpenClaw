@@ -41,6 +41,12 @@ teardown both when console writes throw synchronously and when stdout/stderr
 emit asynchronous stream errors. The layer-owned `.windie/logs/main.log` write
 remains the durable record.
 
+Treat `.windie/logs/frontend.log` as an aggregate launcher stream, not as the
+owner for every frontend-layer event. Prefer the layer-owned files and app
+diagnostic paths when proving what a runtime emitted; the aggregate stream is
+useful for quick startup context, but it should not be parsed to reassign events
+to renderer, main, sidecar, or SDK owners.
+
 Useful commands:
 
 ```bash
