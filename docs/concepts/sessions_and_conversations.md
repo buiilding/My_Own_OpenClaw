@@ -68,3 +68,10 @@ Replay displays stored transcript rows in the UI. Rehydrate converts stored tran
 - [Frontend Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
 - [IPC Query Runtime and Transcript Sync Helper Reference](../frontend/main/ipc_query_runtime_and_transcript_sync_helper_reference.md)
 - [VM Worker Node](../nodes/vm_worker_node.md)
+
+## Evidence Notes
+
+- When debugging wrong-conversation behavior, record the selected conversation,
+  current-turn conversation, backend session key, and persisted transcript key.
+- Treat a matching title or visible message text as weak evidence until the
+  conversation identifier path is verified.
