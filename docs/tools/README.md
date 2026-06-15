@@ -70,3 +70,10 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 - [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md)
 - [Backend Tools Docs Hub](../backend/tools/README.md)
 - [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
+
+## Evidence Notes
+
+- Tool visibility, dispatch, execution, and result return are separate evidence
+  points; prove the failing point before editing schemas.
+- For local tools, keep backend model-facing schema evidence distinct from
+  sidecar executable manifest evidence.
