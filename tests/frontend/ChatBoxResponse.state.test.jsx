@@ -392,7 +392,7 @@ describe('ChatBoxResponse state behavior', () => {
     await waitFor(() => {
       expect(screen.getByText('partial answer')).toBeInTheDocument();
     });
-    expect(screen.getByText('Click the submit button')).toBeInTheDocument();
+    expect(screen.getByText(/Click the submit button/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
@@ -418,7 +418,7 @@ describe('ChatBoxResponse state behavior', () => {
     emitOverlayPhase('tool-call');
 
     await waitFor(() => {
-      expect(screen.getByText('Open the Settings app')).toBeInTheDocument();
+      expect(screen.getByText(/Open the Settings app/)).toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
@@ -447,7 +447,7 @@ describe('ChatBoxResponse state behavior', () => {
     emitOverlayPhase('tool-call');
 
     await waitFor(() => {
-      expect(screen.getByText('Verify the currently focused workspace')).toBeInTheDocument();
+      expect(screen.getByText(/Verify the currently focused workspace/)).toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
@@ -612,12 +612,12 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('sanitizes prebuilt markdown HTML at the response overlay render boundary', async () => {
+  test('renders assistant text through the shared markdown message component', async () => {
     setChatState([
       { id: 'user-1', text: 'question', sender: 'user' },
       {
         id: 'assistant-1',
-        text: '<img src=x onerror="window.__xss=1"><a href="javascript:alert(1)" onclick="window.__xss=1">unsafe</a><svg onload="window.__xss=1"><circle /></svg>',
+        text: 'shared **markdown**',
         sender: 'assistant',
         type: 'llm-text',
         isComplete: true,
@@ -627,15 +627,11 @@ describe('ChatBoxResponse state behavior', () => {
     const { container } = render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByText('unsafe')).toBeInTheDocument();
+      expect(screen.getByText('shared **markdown**')).toBeInTheDocument();
     });
 
-    const responseHtml = container.querySelector('.chatbox-response-markdown')?.innerHTML || '';
-    expect(responseHtml).not.toContain('onerror');
-    expect(responseHtml).not.toContain('onclick');
-    expect(responseHtml).not.toContain('javascript:');
-    expect(container.querySelector('img')).toBeNull();
-    expect(container.querySelector('svg')).toBeNull();
+    expect(container.querySelector('.message-content-markdown')).not.toBeNull();
+    expect(container.querySelector('.chatbox-response-markdown')).toBeNull();
   });
 
   test('keeps awaiting indicator stable while thinking text exists', async () => {

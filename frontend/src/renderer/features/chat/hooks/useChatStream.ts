@@ -164,11 +164,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     ) {
       return false;
     }
-    const isCompactionEvent = event.type === 'compaction_started'
-      || event.type === 'compaction_applied'
-      || event.type === 'compaction_skipped'
-      || event.type === 'compaction_failed';
-    if (!isCompactionEvent && shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {
+    if (shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {
       return true;
     }
     if (event.type === 'user_message') {

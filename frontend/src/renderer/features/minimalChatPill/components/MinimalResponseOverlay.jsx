@@ -2,14 +2,15 @@
  * Provides the minimal response overlay module for the renderer UI.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../../chat/stores/chatStore';
 import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewModel';
 import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowSync';
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
-import { sanitizeMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectLiveTurnSurfaceState } from '../../chat/utils/chatSelectors';
+import MessageItem from '../../chat/components/message/MessageItem';
+import { resolveConversationToolSchemas } from '../../chat/utils/message/messageTransparency';
 import {
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
@@ -28,34 +29,6 @@ function isRendererSendPreflightAwaiting(payload) {
     && typeof payload === 'object'
     && payload.phase === 'awaiting-first-chunk'
     && payload.source === RESPONSE_OVERLAY_PREFLIGHT_SOURCE
-  );
-}
-
-function renderResponseEntry(entry, markdownHtml) {
-  if (!entry) {
-    return null;
-  }
-
-  if (
-    entry.type === 'thinking'
-    || entry.type === 'tool-explanation'
-    || entry.type === 'tool-call'
-    || entry.type === 'tool-progress'
-    || entry.type === 'tool-output'
-    || entry.type === 'search-source'
-  ) {
-    return <div className="chatbox-response-text chatbox-response-plain">{entry.text}</div>;
-  }
-
-  if (entry.type === 'error') {
-    return <div className="chatbox-response-text chatbox-response-plain chatbox-response-error">{entry.text}</div>;
-  }
-
-  return (
-    <div
-      className="chatbox-response-text chatbox-response-markdown"
-      dangerouslySetInnerHTML={{ __html: sanitizeMarkdownHtml(markdownHtml) }}
-    />
   );
 }
 
@@ -90,10 +63,8 @@ function MinimalResponseOverlay() {
     latestSourceTaggedResponseEntry,
     responseEntrySignature,
     responseIsCloseable,
-    renderedResponseEntries,
     overlayIntent,
     thinkingText,
-    sourceTagForResponse,
     handleCloseResponse,
     latestResponseOverlayEntryId,
     showResponse,
@@ -115,6 +86,10 @@ function MinimalResponseOverlay() {
     showResponse,
     responseEntrySignature,
   });
+  const conversationToolSchemas = useMemo(
+    () => resolveConversationToolSchemas(messages),
+    [messages],
+  );
 
   useResponseOverlayWindowSync({
     shellRef,
@@ -327,19 +302,16 @@ function MinimalResponseOverlay() {
               ×
             </button>
             <div className="chatbox-response-body">
-              {sourceTagForResponse ? (
-                <div className="chatbox-source-badge" title={`source_event=${latestSourceTaggedResponseEntry?.sourceEventType || 'unknown'}`}>
-                  {sourceTagForResponse}
-                </div>
-              ) : null}
               <div className="chatbox-response-transcript">
-                {renderedResponseEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className={`chatbox-response-entry chatbox-response-entry-${entry.type}`}
-                  >
-                    {renderResponseEntry(entry, entry.markdownHtml)}
-                  </div>
+                {responseOverlayEntries.map((message) => (
+                  <MessageItem
+                    key={message.id}
+                    message={message}
+                    conversationToolSchemas={conversationToolSchemas}
+                    enableAssistantActions={false}
+                    enableUserActions={false}
+                    disableAssistantActions
+                  />
                 ))}
               </div>
             </div>

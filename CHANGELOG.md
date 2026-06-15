@@ -6,6 +6,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/product: align the README, product overview, project overview, future
+  framing, runtime definition, and landing-page copy around WindieOS as a
+  hackable desktop runtime for personal AI agents that turns the desktop session
+  into an AI workspace.
+- frontend/chat: render SDK current-turn presentation through the shared chat
+  message components in both the dashboard and minimal response overlay so live
+  assistant, thinking, and tool content no longer depend on parallel overlay
+  markup.
+- frontend/chat: apply stale-turn guards to SDK compaction lifecycle events so
+  old-turn compaction failures cannot overwrite the current turn thinking
+  status.
 - frontend/contracts: centralize response-overlay preflight source and guard
   identity in the shared phase contract so renderer and Electron main cannot
   drift on the local send typing handoff.

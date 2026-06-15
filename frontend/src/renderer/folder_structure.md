@@ -108,7 +108,7 @@ frontend/src/renderer/
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       │   └── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
 │   │       ├── state/                   # state - Chat loop/surface/query-stop projection helpers
-│   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability, thinking text normalization, source-tag projection
+│   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability and thinking text normalization
 │   │       │   ├── chatBoxState.js      # chatBoxState - Minimal pill drag-block targets + visual anchor height helpers
 │   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
 │   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/minimal-pill surface projection helpers
@@ -121,6 +121,7 @@ frontend/src/renderer/
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
+│   │       │   ├── liveTurnPresentationMessages.js # liveTurnPresentationMessages - SDK current-turn presentation entries projected into chat messages
 │   │       │   ├── messageInput.js      # messageInput - Input normalization helper before send dispatch
 │   │       │   ├── messageListClasses.js # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       │   ├── messageListState.js  # messageListState - Message edit/scroll/runtime state helpers

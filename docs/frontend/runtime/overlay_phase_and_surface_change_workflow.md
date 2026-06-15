@@ -179,6 +179,11 @@ Renderer rules:
 - Derive visible layout from SDK `currentTurnProjection.presentation`. Do not
   add timers or renderer phase listeners that compete with SDK current-turn
   state.
+- Project SDK current-turn presentation entries into the shared chat message
+  model and render them with the same message components used by the dashboard.
+  The minimal response overlay may apply compact shell styling, scrolling, hit
+  testing, and size reporting, but it must not keep a separate markdown,
+  thinking, tool-call, tool-output, or source-badge content renderer.
 - Keep `awaiting-typing` and `response` frame sizes stable. Avoid per-token
   resize churn.
 - Keep awaiting-to-response transitions non-animated in the minimal pill loop.

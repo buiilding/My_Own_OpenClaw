@@ -235,7 +235,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     showToolLogs,
     isBusy: composerBusy,
     currentTurnMessages,
-  }), [composerBusy, currentTurnMessages, messages, showToolLogs]);
+    currentTurnProjection,
+    activeConversationRef: sessionInfo.conversationRef || null,
+  }), [composerBusy, currentTurnMessages, currentTurnProjection, messages, sessionInfo.conversationRef, showToolLogs]);
   const activeConversationRef = sessionInfo.conversationRef || null;
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'

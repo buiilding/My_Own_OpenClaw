@@ -3,6 +3,7 @@
  */
 
 import { collectToolExplanationTexts } from './toolExplanationMessages';
+import { buildCurrentTurnMessagesFromPresentation } from './liveTurnPresentationMessages';
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -22,6 +23,10 @@ function normalizeText(value) {
   }
   const trimmed = value.trim();
   return trimmed.length > 0 ? value : null;
+}
+
+function normalizeRef(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 function buildToolExplanationMessage(message, explanation, explanationIndex) {
@@ -141,6 +146,22 @@ function isTextlessCurrentTurnThinkingMessage(message) {
   );
 }
 
+function isVisibleCurrentTurnMessage(message) {
+  return (
+    message?.sourceChannel === 'windie:current-turn'
+    && message?.sender === 'assistant'
+    && (
+      normalizeText(message.text)
+      || normalizeText(message.thinkingText)
+      || message.type === 'tool-output'
+      || message.type === 'tool-call'
+      || message.type === 'search-source'
+      || message.type === 'tool-explanation'
+      || message.type === 'error'
+    )
+  );
+}
+
 function hasMaterializedAssistantTextForTurn(messages, turnRef) {
   if (!turnRef) {
     return false;
@@ -165,42 +186,135 @@ function belongsToLatestUserTurn(messages, message) {
   return latestUserTurnRef === message.turnRef;
 }
 
-function selectCurrentTurnThinkingMessages(messages, currentTurnMessages) {
+function sameTurnRef(left, right) {
+  const leftTurnRef = normalizeRef(left);
+  const rightTurnRef = normalizeRef(right);
+  return Boolean(leftTurnRef && rightTurnRef && leftTurnRef === rightTurnRef);
+}
+
+function messageTypesMatch(left, right) {
+  return (left || 'llm-text') === (right || 'llm-text');
+}
+
+function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
+  const liveId = normalizeRef(liveMessage?.id);
+  const liveText = normalizeText(liveMessage?.text);
+  const liveThinkingText = normalizeText(liveMessage?.thinkingText);
+  return messages.some((message) => {
+    if (!message || message.sourceChannel === 'windie:current-turn') {
+      return false;
+    }
+    if (liveId && message.id === liveId) {
+      return true;
+    }
+    if (!sameTurnRef(message.turnRef, liveMessage?.turnRef)) {
+      return false;
+    }
+    if (liveMessage?.type === 'llm-text' || !liveMessage?.type) {
+      if (message.sender !== 'assistant' || !messageTypesMatch(message.type, liveMessage?.type)) {
+        return false;
+      }
+      const materializedText = normalizeText(message.text);
+      if (liveText && materializedText && materializedText.startsWith(liveText)) {
+        return true;
+      }
+      const materializedThinking = normalizeText(message.thinkingText);
+      return Boolean(liveThinkingText && materializedThinking === liveThinkingText);
+    }
+    if (!messageTypesMatch(message.type, liveMessage?.type)) {
+      return false;
+    }
+    if (liveMessage?.correlationId && message.correlationId === liveMessage.correlationId) {
+      return true;
+    }
+    const materializedText = normalizeText(message.text);
+    return Boolean(liveText && materializedText && materializedText === liveText);
+  });
+}
+
+function resolveCurrentTurnMessages({
+  currentTurnMessages = [],
+  currentTurnProjection = null,
+}) {
+  const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
+  if (presentationMessages.length > 0) {
+    return presentationMessages;
+  }
+  return Array.isArray(currentTurnMessages) ? currentTurnMessages : [];
+}
+
+function selectVisibleCurrentTurnMessages({
+  messages,
+  currentTurnMessages,
+  currentTurnProjection,
+  activeConversationRef,
+}) {
   if (!Array.isArray(currentTurnMessages) || currentTurnMessages.length === 0) {
     return [];
   }
-  const existingIds = new Set(
-    messages
-      .map((message) => (typeof message?.id === 'string' ? message.id : null))
-      .filter(Boolean),
-  );
+  const projectionConversationRef = normalizeRef(currentTurnProjection?.conversationRef);
+  const normalizedActiveConversationRef = normalizeRef(activeConversationRef);
+  if (
+    projectionConversationRef
+    && normalizedActiveConversationRef
+    && projectionConversationRef !== normalizedActiveConversationRef
+  ) {
+    return [];
+  }
   return currentTurnMessages.filter((message) => (
-    isTextlessCurrentTurnThinkingMessage(message)
-    && !existingIds.has(message.id)
+    isVisibleCurrentTurnMessage(message)
     && belongsToLatestUserTurn(messages, message)
-    && !hasMaterializedAssistantTextForTurn(messages, message.turnRef)
+    && !(
+      isTextlessCurrentTurnThinkingMessage(message)
+      && hasMaterializedAssistantTextForTurn(messages, message.turnRef)
+    )
+    && !hasMaterializedDuplicateForLiveMessage(messages, message)
   ));
+}
+
+function resolveLiveMessageInsertIndex(messages, liveMessages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return 0;
+  }
+  const liveTurnRef = normalizeRef(liveMessages[0]?.turnRef);
+  if (liveTurnRef) {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (normalizeRef(messages[index]?.turnRef) === liveTurnRef) {
+        return index + 1;
+      }
+    }
+  }
+  const lastUserIndex = findLastUserIndex(messages);
+  return lastUserIndex >= 0 ? lastUserIndex + 1 : messages.length;
 }
 
 export function buildThreadPresentationMessages(
   messages,
   {
     currentTurnMessages = [],
+    currentTurnProjection = null,
+    activeConversationRef = null,
   } = {},
 ) {
   const baseMessages = Array.isArray(messages) ? messages : [];
-  const thinkingMessages = selectCurrentTurnThinkingMessages(baseMessages, currentTurnMessages);
-  if (thinkingMessages.length === 0) {
+  const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
+    currentTurnMessages,
+    currentTurnProjection,
+  });
+  const liveMessages = selectVisibleCurrentTurnMessages({
+    messages: baseMessages,
+    currentTurnMessages: resolvedCurrentTurnMessages,
+    currentTurnProjection,
+    activeConversationRef,
+  });
+  if (liveMessages.length === 0) {
     return baseMessages;
   }
 
-  const lastUserIndex = findLastUserIndex(baseMessages);
-  if (lastUserIndex < 0) {
-    return [...baseMessages, ...thinkingMessages];
-  }
+  const insertIndex = resolveLiveMessageInsertIndex(baseMessages, liveMessages);
   return [
-    ...baseMessages.slice(0, lastUserIndex + 1),
-    ...thinkingMessages,
-    ...baseMessages.slice(lastUserIndex + 1),
+    ...baseMessages.slice(0, insertIndex),
+    ...liveMessages,
+    ...baseMessages.slice(insertIndex),
   ];
 }

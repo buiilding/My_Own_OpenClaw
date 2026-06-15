@@ -42,7 +42,7 @@ describe('messagePresentationPipeline', () => {
     expect(rendered).toBe(messages);
   });
 
-  test('buildThreadPresentationMessages ignores current-turn transcript rows', () => {
+  test('buildThreadPresentationMessages inserts current-turn tool rows after the active user', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
     ];
@@ -58,10 +58,13 @@ describe('messagePresentationPipeline', () => {
 
     expect(buildThreadPresentationMessages(messages, {
       currentTurnMessages,
-    })).toBe(messages);
+    })).toEqual([
+      messages[0],
+      currentTurnMessages[0],
+    ]);
   });
 
-  test('buildThreadPresentationMessages inserts current-turn thinking without reserving the assistant answer row', () => {
+  test('buildThreadPresentationMessages inserts current-turn thinking after durable same-turn rows', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
       {
@@ -89,9 +92,125 @@ describe('messagePresentationPipeline', () => {
       currentTurnMessages,
     })).toEqual([
       messages[0],
-      currentTurnMessages[0],
       messages[1],
+      currentTurnMessages[0],
     ]);
+  });
+
+  test('buildThreadPresentationMessages renders SDK presentation entries as live chat rows', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'Projected answer',
+      reasoningText: 'Thinking about files.',
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [
+          {
+            id: 'conv-1:turn-1:thinking',
+            type: 'thinking',
+            text: 'Thinking about files.',
+            sourceEventType: 'reasoning_delta',
+            sourceChannel: 'windie:current-turn',
+            turnRef: 'turn-1',
+          },
+          {
+            id: 'conv-1:turn-1:assistant',
+            type: 'llm-text',
+            text: 'Projected answer',
+            sourceEventType: 'assistant_delta',
+            sourceChannel: 'windie:current-turn',
+            turnRef: 'turn-1',
+          },
+        ],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:thinking',
+        sender: 'assistant',
+        text: '',
+        thinkingText: 'Thinking about files.',
+      }),
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        text: 'Projected answer',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages ignores current-turn entries for another conversation', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-other',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'Wrong chat',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'conv-other:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Wrong chat',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    })).toBe(messages);
+  });
+
+  test('buildThreadPresentationMessages suppresses live assistant text once materialized', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'Projected answer with more detail.',
+        type: 'llm-text',
+        turnRef: 'turn-1',
+      },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'Projected answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Projected answer',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    })).toBe(messages);
   });
 
   test('buildThreadPresentationMessages drops current-turn thinking once assistant text is materialized', () => {

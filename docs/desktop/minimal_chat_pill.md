@@ -48,10 +48,18 @@ The chat pill is the small always-available desktop command surface. It is rende
 - SDK current-turn presentation owns whether the pill shows typing or response
   content. The response overlay phase stays synchronized as BrowserWindow shell
   policy, not as a second source of content state.
+- SDK current-turn presentation is also the live content source for the
+  dashboard. The dashboard and floating response overlay both project SDK
+  presentation entries into normal chat messages and render them through the
+  shared chat message components. The response overlay may be smaller and
+  windowed, but it must not maintain a parallel markdown, thinking, tool-call,
+  or source-badge renderer.
 - The floating response overlay is gated by Electron main surface ownership. It
   may show only while the chat pill is the primary visible surface; dashboard
   and onboarding ownership suppress the overlay and typing shell while preserving
-  SDK current-turn state for inline dashboard rendering.
+  SDK current-turn state for inline dashboard rendering. Opening the dashboard
+  during an active loop should therefore hide the native overlay shell while the
+  same live content continues streaming inline in the dashboard.
 - After the user accepts a send from the pill, the pill must immediately latch
   the local busy/Stop state and clear stale current-turn presentation before the
   shared async send preparation resolves the active conversation. The shared

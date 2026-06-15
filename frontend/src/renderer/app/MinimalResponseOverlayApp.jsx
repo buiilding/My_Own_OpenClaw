@@ -7,6 +7,7 @@ import { AppProvider } from './providers/AppProvider';
 import { ChatProvider } from './providers/ChatProvider';
 import MinimalResponseOverlay from '../features/minimalChatPill/components/MinimalResponseOverlay';
 import '../styles/theme.css';
+import '../styles/ChatInterface.css';
 import '../styles/ChatBox.css';
 import '../styles/ChatBoxResponseOverlay.css';
 import '../styles/accessibility.css';
