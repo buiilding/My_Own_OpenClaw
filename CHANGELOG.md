@@ -80,6 +80,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: delete unused dashboard episodic-memory parsing and stored
   transcript chat-message compatibility helpers; conversation resume now uses
   SDK display projection instead.
+- frontend/main: remove the broken manual shell-tool Chrome smoke harness and
+  its stale `test:shell` npm entry; sidecar shell behavior is covered by
+  sidecar and bridge tests.
 
 ### Added
 

@@ -53,6 +53,7 @@ Date: 2026-06-15
 | CD-020 | Backend prompt construction | `PromptConstructor.format_user_message_content(...)` still built a raw `<user_query>` fallback from `query` when prepared `message_content` was missing | Query ingress already normalizes missing payload content into a plain user-query wrapper; retaining the same fallback in prompt construction kept duplicate model-visible content assembly alive | Remove the constructor fallback and `query` parameter, require prepared `message_content`, and make query input typing reflect that content is always prepared before prompt construction | implemented |
 | CD-021 | Backend session initialization | `session.initializer` eagerly imported `AgentExecutor`, creating an execution/session import cycle during direct executor tests | The initializer only needs `AgentExecutor` inside `init_executor(...)`; module-level import couples session package import to execution graph assembly | Move the import inside `init_executor(...)` so session initialization stays lazy at the execution boundary | implemented |
 | CD-022 | Renderer dashboard/transcript utilities | `episodicMemoryUtils.js` and `storedTranscriptChatMessageState.js` preserved unused transcript-memory parsing and rehydrate mapping helpers, including `User:`/`Assistant:` display splitting | Production callers now open conversations through SDK `chat_events`, SDK display projection, and the desktop continuity service; search found these exports were referenced only by their tests and stale docs | Delete the unused helpers and tests, and point docs at SDK projection/command-runtime owners | implemented |
+| CD-023 | Frontend main shell harness | `frontend/src/main/app/test_shell.cjs` and `npm run test:shell` preserved a manual Chrome/shell smoke harness whose npm entry pointed at a non-existent path | Knip reported the harness as an unused file; docs said it was manual and stale, while current shell/process behavior is covered by sidecar and bridge tests | Delete the broken harness, remove the npm script, and route docs to current sidecar shell validation instead of the harness page | implemented |
 
 ## Commit Ledger
 
@@ -316,6 +317,18 @@ CD-022 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-023 validation:
+
+- `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py -q`:
+  passed, 46 tests.
+- targeted `rg -n "test_shell\\.cjs|test:shell|shell_tool_chrome_command_test_harness" frontend/package.json frontend/src docs tests --glob '!frontend/node_modules/**' --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no matches.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  unused-file/dependency/export findings, but the unused-file list dropped from
+  3 to 2 and no longer includes `src/main/app/test_shell.cjs`.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -399,3 +412,6 @@ CD-022 validation:
   conversation resume, display projection, and backend rehydrate continue to
   route through `DesktopMemoryRuntimeClient`, SDK `chat_events`, SDK display
   projection, and the desktop continuity service.
+- CD-023 has no runtime migration impact. It deletes an unused manual test
+  harness and broken npm script; shell/process runtime behavior remains owned by
+  the Python sidecar system tools and their sidecar/frontend bridge tests.

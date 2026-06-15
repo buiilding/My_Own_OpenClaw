@@ -39,7 +39,6 @@
     "test:ghost-cursor": "node ./scripts/electron-launcher.cjs --debug-ghost-overlay",
     "test": "node ./scripts/jest-runner.cjs",
     "test:ci": "node ./scripts/jest-runner.cjs --runInBand",
-    "test:shell": "node src/main/test_shell.cjs",
     "release:check": "npm run typecheck && npm run lint && npm run test:ci"
   },
   "dependencies": {

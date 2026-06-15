@@ -67,7 +67,6 @@ Bridge/support modules:
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/app/test_shell.cjs`
 
 ## Renderer File Index
 

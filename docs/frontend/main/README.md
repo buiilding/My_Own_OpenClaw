@@ -42,7 +42,6 @@ title: "Frontend Main Docs Hub"
 - [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](local_backend/tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Overlay Query-Capture Blur and Settle Reference](overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Linux Screenshot Window Visibility Runtime Dispatch Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
-- [Shell Tool Chrome Command Test Harness Runtime Reference](testing/shell_tool_chrome_command_test_harness_runtime_reference.md)
 - [Mock Memory Seed Script and NPM Entrypoints Reference](testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
 - [Permission Manifest, Probe, and IPC Request Contract Reference](permission_manifest_probe_and_request_ipc_reference.md)
 
@@ -51,7 +50,6 @@ title: "Frontend Main Docs Hub"
 - `frontend/src/main/*.cjs`
 - `frontend/src/main/ipc/*.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
-- `frontend/src/main/app/test_shell.cjs`
 - `frontend/src/main/python/dev_seed_mock_memory.py`
 - `frontend/src/preload.js`
 
