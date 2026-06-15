@@ -43,3 +43,10 @@ The WindieOS agent loop is backend-owned, but it depends on frontend and sidecar
 - [Backend Interaction Loop + Tool-Turn Orchestration Reference](../backend/agent/interaction_loop_and_tool_turn_orchestration_reference.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
 - [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
+
+## Evidence Notes
+
+- A turn is not proven complete until the backend terminal event and the
+  renderer projection agree on the same conversation and turn identifiers.
+- For tool loops, keep request ids, bundle ids, and tool-call ids visible in the
+  evidence so cancellation and stale-result bugs can be routed correctly.
