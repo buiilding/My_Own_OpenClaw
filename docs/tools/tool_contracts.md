@@ -130,3 +130,10 @@ For a step-by-step change route across these owners, use [Tool Schema and Policy
 - Sidecar registry/tool tests cover executable behavior.
 - Cross-layer parity tests cover expected backend-exposed sidecar tool names.
 - Bundle paths cover atomic success, partial failure, timeout, and cleanup.
+
+## Evidence Notes
+
+- Contract updates must preserve raw tool or MCP payloads when wrappers add
+  WindieOS-native metadata.
+- Do not use renderer display rows as proof that model-facing schema, prepared
+  arguments, and sidecar execution contracts all agree.
