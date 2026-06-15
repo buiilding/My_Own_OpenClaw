@@ -75,6 +75,8 @@ Date: 2026-06-15
   completed CD-013.
 - `f6cc05187 refactor(backend-vision): remove internvl helper wrappers`
   completed CD-014.
+- `55edbd4e7 docs(browser): rename canonical schema references`
+  completed CD-015.
 
 ## Validation Log
 
