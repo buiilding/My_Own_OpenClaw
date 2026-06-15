@@ -245,3 +245,10 @@ This hub documents WindieOS frontend implementation details across Electron main
 5. Renderer stream hook updates chat state and transcript.
 6. SDK runtime routes tool events to the sidecar daemon and posts tool results back to backend.
 7. Renderer receives SDK-owned tool events as display-only chat/transcript events.
+
+## Evidence Notes
+
+- Frontend fixes should identify whether the evidence comes from Electron main,
+  SDK runtime, renderer state, or sidecar output.
+- For stale UI, verify the active selector inputs before patching the rendered
+  component that displays the stale state.
