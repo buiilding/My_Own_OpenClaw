@@ -77,6 +77,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/session: lazy-load `AgentExecutor` during session executor
   initialization so session imports no longer cycle through execution modules at
   package import time.
+- frontend/renderer: delete unused dashboard episodic-memory parsing and stored
+  transcript chat-message compatibility helpers; conversation resume now uses
+  SDK display projection instead.
 
 ### Added
 

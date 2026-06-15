@@ -52,6 +52,7 @@ Date: 2026-06-15
 | CD-019 | Backend tool-result router | Invalid `system_state_internal` payloads fell back to older `system_state` data | Current backend-owned runtime state uses `system_state_internal` as the explicit authoritative field when present; repairing invalid internal state from the older public result field preserved a duplicate source of truth | Treat `system_state_internal` as authoritative when present and ignore invalid internal state instead of falling back to `system_state` | implemented |
 | CD-020 | Backend prompt construction | `PromptConstructor.format_user_message_content(...)` still built a raw `<user_query>` fallback from `query` when prepared `message_content` was missing | Query ingress already normalizes missing payload content into a plain user-query wrapper; retaining the same fallback in prompt construction kept duplicate model-visible content assembly alive | Remove the constructor fallback and `query` parameter, require prepared `message_content`, and make query input typing reflect that content is always prepared before prompt construction | implemented |
 | CD-021 | Backend session initialization | `session.initializer` eagerly imported `AgentExecutor`, creating an execution/session import cycle during direct executor tests | The initializer only needs `AgentExecutor` inside `init_executor(...)`; module-level import couples session package import to execution graph assembly | Move the import inside `init_executor(...)` so session initialization stays lazy at the execution boundary | implemented |
+| CD-022 | Renderer dashboard/transcript utilities | `episodicMemoryUtils.js` and `storedTranscriptChatMessageState.js` preserved unused transcript-memory parsing and rehydrate mapping helpers, including `User:`/`Assistant:` display splitting | Production callers now open conversations through SDK `chat_events`, SDK display projection, and the desktop continuity service; search found these exports were referenced only by their tests and stale docs | Delete the unused helpers and tests, and point docs at SDK projection/command-runtime owners | implemented |
 
 ## Commit Ledger
 
@@ -301,6 +302,18 @@ CD-021 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-022 validation:
+
+- targeted `rg -n "episodicMemoryUtils|parseMemoriesToMessages|toRehydrateMessagePayload|storedTranscriptChatMessageState|buildStoredTranscriptChatMessages|EpisodicMemoryUtils|StoredTranscriptChatMessageState" frontend/src tests/frontend docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**'`:
+  no matches.
+- `bin/windie test frontend -- MemorySection ChatGptDashboardShell`: passed,
+  3 suites and 42 tests. React act warnings were emitted by existing dashboard
+  test async state updates.
+- `bin/windie test frontend -- SdkDisplayChatMessageProjection ConversationContinuityService DesktopConversationContinuityService`:
+  passed, 3 suites and 20 tests.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -379,3 +392,8 @@ CD-021 validation:
   prompt construction no longer owns a second raw-query fallback.
 - CD-021 has no runtime migration impact: it moves an import to the function
   that constructs the executor and preserves executor initialization behavior.
+- CD-022 has no storage migration impact. It deletes renderer-only utilities
+  that were no longer imported by production code; current memory listing,
+  conversation resume, display projection, and backend rehydrate continue to
+  route through `DesktopMemoryRuntimeClient`, SDK `chat_events`, SDK display
+  projection, and the desktop continuity service.

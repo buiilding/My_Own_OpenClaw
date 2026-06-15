@@ -19,7 +19,6 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
-- `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
@@ -52,9 +51,9 @@ title: "Dashboard Memory Management and Resume Reference"
 
 Runtime methods used by this surface:
 
-- `DesktopMemoryRuntimeClient.listEpisodicMemories(userId, 200)`
-- `DesktopMemoryRuntimeClient.listSemanticMemories(userId, 200)`
-- `DesktopMemoryRuntimeClient.deleteMemoryItem({ userId, memoryId, kind })`
+- `DesktopMemoryRuntimeClient.listEpisodicMemories(200)`
+- `DesktopMemoryRuntimeClient.listSemanticMemories(200)`
+- `DesktopMemoryRuntimeClient.deleteMemoryItem({ memoryId, kind })`
 
 The runtime client owns the sidecar-shaped IPC channel names and result
 normalization. Dashboard feature code must not import memory IPC constants.
@@ -84,15 +83,13 @@ IPC methods used by this surface:
 
 ## Shared Session Identity Contract
 
-`useTranscriptSessionInfo()` provides runtime user id and active conversation ref.
-
-Fallback user behavior:
-
-- when session user id is missing, dashboard paths use `DEFAULT_USER_ID`.
+`useTranscriptSessionInfo()` provides runtime user id and active conversation
+ref for dashboard conversation surfaces. Memory list/delete commands go through
+`DesktopMemoryRuntimeClient`, which delegates active user resolution to the
+command runtime instead of a renderer-owned default user constant.
 
 Identity is used by:
 
-- memory modal list/delete calls
 - sidebar recent-list/search calls
 - resume/rehydrate update path (`updateTranscriptSession` + `setActiveConversationRef`)
 
@@ -102,7 +99,6 @@ Identity is used by:
 
 `DesktopMemoryRuntimeClient.listEpisodicMemories(...)` payload:
 
-- `userId`
 - `limit: 200`
 
 Normalization:
@@ -116,7 +112,6 @@ Normalization:
 
 `DesktopMemoryRuntimeClient.listSemanticMemories(...)` payload:
 
-- `userId`
 - `limit: 200`
 
 Normalization:

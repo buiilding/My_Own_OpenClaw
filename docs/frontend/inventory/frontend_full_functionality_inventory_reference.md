@@ -235,7 +235,7 @@ Primary files:
   - `ModelsSection.jsx`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js`, `ApiKeysSection.jsx`
   - `SettingsSection.jsx`, `UsageSection.jsx`
 - Utilities/hooks:
-  - `utils/episodicMemoryUtils.js`, `utils/modelSelectionUtils.js`
+  - `utils/modelSelectionUtils.js`
   - `hooks/useTranscriptSessionInfo.js`, `hooks/useDashboardConversations.js`
   - `utils/conversationGroups.js`
 

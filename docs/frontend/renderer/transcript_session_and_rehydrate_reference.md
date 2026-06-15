@@ -31,7 +31,6 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
 - `frontend/src/renderer/infrastructure/transcript/rehydrateMessageState.js`
 - `frontend/src/renderer/infrastructure/transcript/storedTranscriptMemoryState.js`
-- `frontend/src/renderer/infrastructure/transcript/storedTranscriptChatMessageState.js`
 - `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
@@ -40,7 +39,6 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
-- `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
@@ -323,7 +321,8 @@ If pending rows never drain:
 
 If resumed conversation loses screenshot/tool linkage:
 
-1. inspect rehydrate payload mapping (`toRehydrateMessagePayload`)
+1. inspect SDK display and rehydrate projection mapping
+   (`sdkDisplayChatMessageProjection.ts` and the desktop continuity service)
 2. verify screenshot ref propagation
 3. verify `correlation_id` + `tool_name` survive list/get round-trip
 

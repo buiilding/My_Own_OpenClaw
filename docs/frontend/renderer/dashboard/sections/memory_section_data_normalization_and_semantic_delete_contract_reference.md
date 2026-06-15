@@ -14,7 +14,6 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
-- `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `tests/frontend/MemorySection.test.jsx`
 
@@ -36,17 +35,18 @@ State buckets:
 
 ## Session/User Contract
 
-User id for memory calls is derived from transcript session:
+User id for memory calls is resolved by the command runtime:
 
-- `sessionInfo.userId` from `useTranscriptSessionInfo()`
-- fallback `DEFAULT_USER_ID` when missing
+- conversation surfaces read `sessionInfo.userId` from `useTranscriptSessionInfo()`
+- memory list/delete calls go through `DesktopMemoryRuntimeClient` without a
+  renderer-owned default user id
 
 ## Fetch and Normalize Contract
 
 Initial load runs both calls in parallel:
 
-- `DesktopMemoryRuntimeClient.listEpisodicMemories(userId, 200)`
-- `DesktopMemoryRuntimeClient.listSemanticMemories(userId, 200)`
+- `DesktopMemoryRuntimeClient.listEpisodicMemories(200)`
+- `DesktopMemoryRuntimeClient.listSemanticMemories(200)`
 
 Normalization modules:
 

@@ -153,7 +153,6 @@ frontend/src/renderer/
 │   │
 │   │   └── utils/                       # Dashboard helpers
 │   │       ├── conversationGroups.js    # conversationGroups - Time-bucket grouping and search metadata normalization helpers
-│   │       ├── episodicMemoryUtils.js   # episodicMemoryUtils - Transcript-memory parsing + rehydrate payload mapping helpers
 │   │       └── modelSelectionUtils.js   # modelSelectionUtils - Selection reconciliation and config payload shaping helpers
 │   │
 │   ├── settings/                         # Settings feature module
