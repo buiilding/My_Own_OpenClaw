@@ -45,6 +45,8 @@ Date: 2026-06-15
   completed CD-003.
 - `ecbbe83fe refactor(backend): use typed no-model stream event`
   completed CD-004.
+- `8f07ec5d1 refactor(backend): remove stream event enum aliases`
+  completed CD-005.
 
 ## Validation Log
 
