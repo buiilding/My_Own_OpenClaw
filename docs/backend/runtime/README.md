@@ -34,3 +34,10 @@ title: "Backend Runtime Docs Hub"
 - `backend/src/services/vm_run_control.py`
 - `backend/src/llm/providers/openai.py`
 - `backend/src/llm/providers/openai_responses_runtime.py`
+
+## Evidence Notes
+
+- Runtime changes should name the owning session, query, compaction, or VM-run
+  state container before editing orchestration code.
+- Cancellation, retry, and completion bugs require evidence for both task state
+  and emitted lifecycle events.
