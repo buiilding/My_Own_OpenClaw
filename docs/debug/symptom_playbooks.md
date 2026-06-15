@@ -131,8 +131,8 @@ Inspect:
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 
 Docs:
 

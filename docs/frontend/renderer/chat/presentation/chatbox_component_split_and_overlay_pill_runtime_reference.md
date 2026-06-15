@@ -15,7 +15,7 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
-- `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`

@@ -1,5 +1,5 @@
 ---
-summary: "Overlay and wakeword control IPC reference: visibility/phase/toggle channels, main-process emit points, and renderer consumers for chatbox + config state."
+summary: "Overlay and wakeword control IPC reference: visibility/phase/toggle channels, main-process emit points, and renderer consumers for minimal pill + config state."
 read_when:
   - When changing chat overlay visibility behavior, wakeword suppression rules, or overlay phase broadcasting.
   - When debugging `wakeword-toggle` or `response-overlay-*` channel drift between main and renderer.
@@ -14,8 +14,8 @@ title: "Overlay and Wakeword Control Channel Reference"
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
 

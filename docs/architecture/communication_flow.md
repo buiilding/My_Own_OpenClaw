@@ -251,7 +251,7 @@ assigns `message_index` as local append order for display and replay.
 - Response: `models-listed`
 - Notes:
   - Sent only by the main dashboard renderer (`view` query param absent).
-  - Chat overlay renderers (`view=chatbox`, `view=chatbox-response`) do not request models.
+  - Chat overlay renderers (`view=minimal-chat-pill`, `view=minimal-response-overlay`) do not request models.
   - Renderer startup guards this request to one-shot per renderer lifecycle to avoid duplicate local-provider probes in React StrictMode.
   - If the dashboard asks for models before the backend WebSocket is fully open, Electron main queues that request and the SDK runtime flushes it after connect/handshake so selector state does not fall back to raw model ids during startup races.
 

@@ -95,6 +95,8 @@ All notable changes to WindieOS will be documented in this file.
   pass-through runtime and delete the platform-specific no-op wrappers.
 - docs/sdk: remove active references to the deleted `WindieDesktopAgent.ts`
   path and route SDK/main ownership docs to current agent and tool owners.
+- docs/renderer: remove active references to deleted `ChatBox` overlay
+  component paths and old `view=chatbox*` routes.
 - frontend/sdk: normalize malformed SDK live-turn response overlay layout
   heights before resolving native response-window bounds.
 - frontend/dashboard: show a selected-chat loading state while conversation
