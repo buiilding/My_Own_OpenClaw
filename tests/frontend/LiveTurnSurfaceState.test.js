@@ -141,7 +141,7 @@ describe('liveTurnSurfaceState', () => {
     });
   });
 
-  test('keeps send preflight over terminal projection while send latch is active', () => {
+  test('uses terminal SDK projection for the stopped current turn even when send latch is stale', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'complete',
@@ -170,10 +170,11 @@ describe('liveTurnSurfaceState', () => {
     });
 
     expect(state).toMatchObject({
-      phase: 'awaiting-first-chunk',
-      isSending: true,
-      source: 'send-preflight',
-      useLocalSendLatch: true,
+      phase: 'complete',
+      isSending: false,
+      isBusy: false,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
       useSdkLiveTurnPresentation: true,
     });
   });

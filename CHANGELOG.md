@@ -117,6 +117,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/chat: let stopped terminal SDK current-turn projections clear stale
+  composer busy state so dashboard and minimal chat pill Stop buttons visually
+  return to Send after cancellation.
 - backend/transcription: bind the websocket route to the session manager through
   an explicit FastAPI dependency so the route no longer treats
   `session_manager` as a query parameter during tests or startup.

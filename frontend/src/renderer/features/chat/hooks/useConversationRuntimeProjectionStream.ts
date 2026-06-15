@@ -397,34 +397,35 @@ export function useConversationRuntimeProjectionStream(): void {
         }
       }
 
-      if (currentTurn.phase === 'complete' && previousCursor.phase !== 'complete') {
+      if (currentTurn.phase === 'complete') {
         setIsSending(false, conversationRef);
         setThinkingStatus(null, conversationRef);
         setThinkingSourceEventType(null, conversationRef);
-        recordTrackingEventRuntime(
-          updateStreamTracking,
-          'streaming-complete',
-          currentTurn.turnRef,
-          { phase: 'complete' },
-          conversationRef,
-        );
-      } else if (
-        currentTurn.phase === 'error'
-        && (previousCursor.phase !== 'error' || previousCursor.lastError !== currentTurn.lastError)
-      ) {
+        if (previousCursor.phase !== 'complete') {
+          recordTrackingEventRuntime(
+            updateStreamTracking,
+            'streaming-complete',
+            currentTurn.turnRef,
+            { phase: 'complete' },
+            conversationRef,
+          );
+        }
+      } else if (currentTurn.phase === 'error') {
         const errorText = typeof currentTurn.lastError === 'string' && currentTurn.lastError.trim()
           ? currentTurn.lastError
           : 'Unknown runtime error';
         setIsSending(false, conversationRef);
         setThinkingStatus('', conversationRef);
         setThinkingSourceEventType(null, conversationRef);
-        recordTrackingEventRuntime(
-          updateStreamTracking,
-          'error',
-          currentTurn.turnRef,
-          { phase: 'error', errorText },
-          conversationRef,
-        );
+        if (previousCursor.phase !== 'error' || previousCursor.lastError !== currentTurn.lastError) {
+          recordTrackingEventRuntime(
+            updateStreamTracking,
+            'error',
+            currentTurn.turnRef,
+            { phase: 'error', errorText },
+            conversationRef,
+          );
+        }
       }
 
       projectionCursorsRef.current.set(cursorKey, {

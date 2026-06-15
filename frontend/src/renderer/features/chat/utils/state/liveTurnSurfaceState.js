@@ -114,6 +114,7 @@ export function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
 function shouldUseSendPreflight({
   currentTurnProjection,
   isSending,
+  messages,
   useSdkLiveTurnPresentation,
 }) {
   if (isSending !== true) {
@@ -132,6 +133,21 @@ function shouldUseSendPreflight({
     useSdkLiveTurnPresentation
     && isHiddenSdkLiveTurnPresentation(currentTurnProjection.presentation)
   ) {
+    const projectionPhase = normalizePhase(currentTurnProjection?.phase);
+    const projectionTurnRef = normalizeTurnRef(currentTurnProjection?.turnRef);
+    const latestUserTurnRef = findLatestUserTurnRef(messages);
+    const isTerminalProjection = (
+      CURRENT_TURN_TERMINAL_PHASES.has(projectionPhase)
+      || currentTurnProjection.presentation?.isTerminal === true
+    );
+    if (
+      isTerminalProjection
+      && projectionTurnRef
+      && latestUserTurnRef
+      && projectionTurnRef === latestUserTurnRef
+    ) {
+      return false;
+    }
     return true;
   }
   const projectionPhase = normalizePhase(currentTurnProjection?.phase);
@@ -150,6 +166,7 @@ export function resolveLiveTurnPresentationInput({
   const useLocalSendLatch = shouldUseSendPreflight({
     currentTurnProjection,
     isSending,
+    messages,
     useSdkLiveTurnPresentation,
   });
   if (useLocalSendLatch) {

@@ -842,6 +842,56 @@ describe('useChatStream state + stream handling', () => {
     }));
   });
 
+  test('replayed SDK projected completion clears stale composer busy state', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+    const projectedCompletion = {
+      conversationRef: 'conv-test',
+      currentTurn: {
+        conversationRef: 'conv-test',
+        turnRef: 'turn-stop',
+        phase: 'complete',
+        assistantText: 'stopped',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+    };
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'user-turn-stop',
+            text: 'stop this',
+            sender: 'user',
+            turnRef: 'turn-stop',
+          },
+        ],
+      });
+      emitConversationRuntimeUpdated(projectedCompletion);
+    });
+
+    act(() => {
+      useChatStore.setState({
+        isSending: true,
+        thinkingStatus: 'thinking',
+        thinkingSourceEventType: 'llm-thought',
+      });
+      emitConversationRuntimeUpdated(projectedCompletion);
+    });
+
+    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+      isSending: false,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    }));
+    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-stop',
+      phase: 'complete',
+      lastEventType: 'streaming-complete',
+    }));
+  });
+
   test('streaming-complete clears busy state without a terminal current-turn projection', () => {
     const { emitBackendEvent } = registerBackendListener();
 
