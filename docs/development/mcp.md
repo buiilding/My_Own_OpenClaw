@@ -145,6 +145,11 @@ native image field, `data.output` must elide the image bytes so base64 does not
 pollute model/display text. The raw MCP object must also remain available as
 `data.mcp_result` for inspection and debugging.
 
+When debugging an MCP-backed tool result, inspect both fields. `data.output`
+proves what the model-facing history saw, while `data.mcp_result` proves what
+the MCP server actually returned before WindieOS added native display fields or
+elided image bytes from model text.
+
 Image content is additive: when an MCP result includes an image item, promote
 that image into WindieOS native image fields such as `data.screenshot` and
 `data.screenshot_content_type`, while keeping the original MCP image item in
