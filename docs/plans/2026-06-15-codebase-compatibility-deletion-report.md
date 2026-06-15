@@ -103,6 +103,8 @@ Date: 2026-06-15
   completed CD-023.
 - `b1fa3d4d6 refactor(frontend): remove orphan transcript projection writer`
   completed CD-024.
+- `c145c0afc refactor(frontend): remove transcript projection store helpers`
+  completed CD-025.
 
 ## Validation Log
 
