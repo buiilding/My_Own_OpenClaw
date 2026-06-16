@@ -213,8 +213,6 @@ frontend/src/renderer/
 │   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
 │   ├── DashboardShell.css               # Dashboard shell + modal panel styles
 │   ├── ErrorBoundary.css                # ErrorBoundary fallback UI styling
-│   ├── PermissionOnboarding.css         # Permission onboarding/control-center styles
-│   ├── SettingsPanel.css                # Dashboard section styles (cards, toggles, model list)
 │   ├── ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
 │   ├── VoiceStatus.css                  # Voice status badge and state styles
 │   └── theme.css                        # Shared CSS variables/theme tokens

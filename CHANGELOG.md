@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the unimported legacy `PermissionOnboarding.css`
+  and `SettingsPanel.css` stylesheets now that onboarding uses
+  `FrontendOnboarding.css` and dashboard settings use clone/dashboard styles.
 - frontend/renderer: delete the unused `ArtifactUploader` renderer upload
   module, remove its orphan screenshot debug helper, and keep artifact URL
   coverage on `BackendEndpointStore`.
