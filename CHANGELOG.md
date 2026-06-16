@@ -19,6 +19,9 @@ All notable changes to WindieOS will be documented in this file.
   fields from tool-output model/display text projection.
 - backend/llm: remove the choice-level completion `text` compatibility fallback
   so provider completion parsing uses the canonical message payload only.
+- cli/endpoints: remove the remaining packaged hosted-default endpoint alias
+  checks from `bin/windie status`; status now uses the Electron main endpoint
+  resolver and canonical `WINDIE_DEFAULT_BACKEND_*` defaults only.
 - frontend/voice: remove the legacy ScriptProcessor audio capture fallback so
   voice and wakeword capture use the AudioWorklet processor path only.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,

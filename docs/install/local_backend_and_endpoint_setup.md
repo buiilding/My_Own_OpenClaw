@@ -22,8 +22,7 @@ Electron main resolves backend endpoints in this order:
 1. `BACKEND_HTTP_URL` and `BACKEND_WS_URL`
 2. `BACKEND_HOST` and `BACKEND_PORT`
 3. `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL`
-4. packaged default override variables
-5. hosted default
+4. hosted default
 
 The sidecar receives the resolved HTTP URL as `WINDIE_BACKEND_HTTP_URL`. If renderer websocket traffic reaches one backend while sidecar memory/API calls reach another, debug Electron main env injection before changing sidecar clients.
 

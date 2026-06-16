@@ -64,6 +64,7 @@ describe('backend_endpoints hosted defaults', () => {
       'docs/help/doctor_checklist.md',
       'docs/operations/runtime_configuration_matrix.md',
       'docs/operations/configuration.md',
+      'docs/operations/sidecar_runtime_packaging.md',
       'docs/getting-started/installation.md',
       'docs/install/local_backend_and_endpoint_setup.md',
     ];

@@ -6,6 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const { capture } = require('./run.cjs');
 const { FRONTEND_DIR, REPO_ROOT, repoPath } = require('./paths.cjs');
+const {
+  resolveBackendEndpoints,
+} = require('../../frontend/src/main/app/backend_endpoints.cjs');
 
 function exists(relativePath) {
   return fs.existsSync(repoPath(relativePath));
@@ -47,20 +50,7 @@ function getFrontendScripts() {
 }
 
 function getEndpointSnapshot(env = process.env) {
-  const host = env.BACKEND_HOST || '127.0.0.1';
-  const port = env.BACKEND_PORT || '8765';
-  const httpUrl =
-    env.BACKEND_HTTP_URL ||
-    (env.BACKEND_HOST || env.BACKEND_PORT ? `http://${host}:${port}` : null) ||
-    env.WINDIE_DEFAULT_BACKEND_HTTP_URL ||
-    env.WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL ||
-    'https://api.windieos.com';
-  const wsUrl =
-    env.BACKEND_WS_URL ||
-    (env.BACKEND_HOST || env.BACKEND_PORT ? `ws://${host}:${port}/ws` : null) ||
-    env.WINDIE_DEFAULT_BACKEND_WS_URL ||
-    env.WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL ||
-    'wss://api.windieos.com/ws';
+  const { httpUrl, wsUrl } = resolveBackendEndpoints(env);
   return { httpUrl, wsUrl };
 }
 

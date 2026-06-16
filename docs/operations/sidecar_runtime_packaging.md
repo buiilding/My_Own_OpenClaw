@@ -97,11 +97,11 @@ export BACKEND_HTTP_URL="https://your-api.example.com"
 export BACKEND_WS_URL="wss://your-api.example.com/ws"
 ```
 
-Packaged-default override vars (used only when `BACKEND_*` is unset):
+Hosted-default override vars (used only when `BACKEND_*` is unset):
 
 ```bash
-export WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL="https://your-api.example.com"
-export WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL="wss://your-api.example.com/ws"
+export WINDIE_DEFAULT_BACKEND_HTTP_URL="https://your-api.example.com"
+export WINDIE_DEFAULT_BACKEND_WS_URL="wss://your-api.example.com/ws"
 ```
 
 ## Optional Overrides

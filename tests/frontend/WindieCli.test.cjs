@@ -17,6 +17,9 @@ const {
   resolveFrontendLogFile,
   resolveWindieLogFile,
 } = require('../../scripts/windie/commands.cjs');
+const {
+  getEndpointSnapshot,
+} = require('../../scripts/windie/status.cjs');
 const frontendDevUrl = process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
 
 function runCli(args, env = {}) {
@@ -54,6 +57,16 @@ describe('windie CLI', () => {
     expect(parsed.detail.repoRoot).toBe(repoRoot);
     expect(parsed.checks.map((check) => check.name)).toContain('repo root');
     expect(parsed.detail.endpoint.httpUrl).toBeTruthy();
+  });
+
+  test('status endpoint snapshot ignores removed packaged default env aliases', () => {
+    expect(getEndpointSnapshot({
+      WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL: 'https://packaged.example.com',
+      WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL: 'wss://packaged.example.com/ws',
+    })).toEqual({
+      httpUrl: 'https://api.windieos.com',
+      wsUrl: 'wss://api.windieos.com/ws',
+    });
   });
 
   test('routes lifecycle commands to existing scripts', () => {

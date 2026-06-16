@@ -22,8 +22,7 @@ Electron main owns endpoint selection:
 1. `BACKEND_HTTP_URL` and `BACKEND_WS_URL`
 2. `BACKEND_HOST` and `BACKEND_PORT`
 3. `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL`
-4. packaged default override variables when applicable
-5. hosted default
+4. hosted default
 
 The sidecar should receive `WINDIE_BACKEND_HTTP_URL` from Electron main. If sidecar memory/API calls hit a different backend than renderer websocket traffic, inspect main-process env injection before editing sidecar clients.
 
