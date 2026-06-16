@@ -9,10 +9,8 @@ const {
   appendLayerLogSessionBanner,
   appendRendererVerboseLogLine,
   appendRendererVerboseLogSessionBanner,
-  ensureLogFile,
   installConsoleLayerLog,
   resolveLayerLogFile,
-  resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
 describe('layer_log_sink', () => {
@@ -25,24 +23,17 @@ describe('layer_log_sink', () => {
     expect(resolveLayerLogFile('vite', { WINDIE_VITE_LOG_FILE: 'logs/vite.log' }))
       .toBe(path.join(repoRoot, 'logs', 'vite.log'));
     expect(resolveLayerLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '0' })).toBeNull();
-    expect(resolveRendererVerboseLogFile({})).toBe(path.join(repoRoot, '.windie', 'logs', 'renderer.verbose.log'));
-    expect(resolveRendererVerboseLogFile({ WINDIE_RENDERER_VERBOSE_LOG_FILE: '/tmp/renderer.verbose.log' }))
-      .toBe('/tmp/renderer.verbose.log');
-    expect(resolveRendererVerboseLogFile({ WINDIE_RENDERER_VERBOSE_LOG_FILE: '0' })).toBeNull();
   });
 
-  test('ensures and appends layer-owned lines', () => {
+  test('appends layer-owned lines', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-layer-log-'));
     const logFile = path.join(tempDir, 'main.log');
 
-    ensureLogFile(logFile, {
-      initialLines: ['initial', ''],
-    });
     appendLayerLogLine('main', 'plain main message', {
       env: { WINDIE_MAIN_LOG_FILE: logFile },
     });
 
-    expect(fs.readFileSync(logFile, 'utf8')).toContain('initial\n[Main] plain main message\n');
+    expect(fs.readFileSync(logFile, 'utf8')).toContain('[Main] plain main message\n');
   });
 
   test('appends layer session banners', () => {
@@ -76,6 +67,19 @@ describe('layer_log_sink', () => {
     const log = fs.readFileSync(logFile, 'utf8');
     expect(log).toContain('[WindieOS] main renderer verbose console log session 2026-06-14T00:00:00.000Z');
     expect(log).toContain('[Renderer][main][console:0] [vite] connected.');
+  });
+
+  test('skips renderer verbose log lines when disabled', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-renderer-verbose-disabled-'));
+    const logFile = path.join(tempDir, 'renderer.verbose.log');
+
+    expect(appendRendererVerboseLogLine('hidden', {
+      env: {
+        WINDIE_RENDERER_VERBOSE_LOG_FILE: '0',
+        WINDIE_RENDERER_LOG_FILE: logFile,
+      },
+    })).toBe(false);
+    expect(fs.existsSync(logFile)).toBe(false);
   });
 
   test('installs console logging without changing console output behavior', () => {

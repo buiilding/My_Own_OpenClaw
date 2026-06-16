@@ -20,6 +20,8 @@ All notable changes to WindieOS will be documented in this file.
   typed channel constants module.
 - frontend/renderer: keep SDK display-row annotation merging private to the
   conversation runtime projection hook and test it through the hook listener.
+- frontend/main: keep layer-log file initialization and renderer verbose path
+  resolution helpers private to the layer log sink.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
