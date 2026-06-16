@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
   exports after SDK current-turn projection became the assistant text owner.
 - frontend/chat: delete the unused persisted-thinking-status normalizer and
   helper-only test after reasoning text moved to SDK current-turn projection.
+- frontend/chat: delete the orphan chat-stream transcript transparency helper
+  after SDK projections and backend rehydrate took over transparency replay.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.
