@@ -93,8 +93,10 @@ Unknown events return `None`.
 
 `ToolBundleEventFormatter`:
 
-- dict path defaults `bundle_id=""`, `tools=[]` when keys absent
-- preserves explicit `tools=None` on dict input
+- skips payloads without a non-empty `bundle_id`
+- skips payloads whose `tools` value is not a list
+- skips payloads whose tool items are not dicts with non-empty `name` and dict
+  `args`
 
 ## Logging and Debug Signals
 

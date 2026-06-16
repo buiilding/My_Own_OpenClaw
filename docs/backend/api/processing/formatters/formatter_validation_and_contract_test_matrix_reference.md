@@ -119,4 +119,4 @@ When changing strict/skip behavior:
 - [Token Count and Tool Schemas Formatter Schema-Alignment and Strict-Validation Reference](signals/token_count_and_tool_schemas_formatter_schema_alignment_and_strict_validation_reference.md)
 - [Formatter Action Docs Hub](actions/README.md)
 - [Tool Call and Tool Output Formatter Validation and Metadata-Passthrough Reference](actions/tool_call_and_tool_output_formatter_validation_and_metadata_passthrough_reference.md)
-- [Tool Bundle Formatter Typed/Dict Parity and Default-Payload Contract Reference](actions/tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
+- [Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference](actions/tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)

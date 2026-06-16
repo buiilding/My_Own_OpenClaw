@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
   branch so `builtins` is the only SDK built-in tool selection contract.
 - sidecar/tools: remove the `replace` tool's custom top-level edit-field
   rejection branch and rely on the canonical `replacements[]` parser.
+- backend/api: remove legacy `tool-bundle` formatter compatibility for missing,
+  null, and non-list `tools` payloads so formatter output matches the canonical
+  websocket schema.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,

@@ -21,7 +21,7 @@ title: "Backend API Processing Formatters Docs Hub"
 - [Context Compaction Event Formatter Required-Fields and Optional-Payload Contract Reference](signals/context_compaction_event_formatter_required_fields_and_optional_payload_contract_reference.md)
 - [Formatter Action Docs Hub](actions/README.md)
 - [Tool Call and Tool Output Formatter Validation and Metadata-Passthrough Reference](actions/tool_call_and_tool_output_formatter_validation_and_metadata_passthrough_reference.md)
-- [Tool Bundle Formatter Typed/Dict Parity and Default-Payload Contract Reference](actions/tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
+- [Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference](actions/tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
 - [Formatter Registry Docs Hub](registry/README.md)
 - [Response Formatter Registry Lifecycle, Lazy Specs, and Context Attachment Reference](registry/response_formatter_registry_lifecycle_lazy_specs_and_context_attachment_reference.md)
 

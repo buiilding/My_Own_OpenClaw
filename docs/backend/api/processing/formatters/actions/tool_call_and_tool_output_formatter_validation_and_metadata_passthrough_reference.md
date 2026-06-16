@@ -111,5 +111,5 @@ Formatter behavior must remain aligned with these permissive payload envelopes.
 ## Related Pages
 
 - [Backend API Formatter Action Docs Hub](README.md)
-- [Tool Bundle Formatter Typed/Dict Parity and Default-Payload Contract Reference](tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
+- [Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference](tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
 - [Result Transformer and Tool Result Formatting Contract Reference](../../../../tools/processing/result_transformer_and_tool_result_formatting_contract_reference.md)
