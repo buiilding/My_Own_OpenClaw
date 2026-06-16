@@ -208,6 +208,18 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes stop button queries to the ChatInterface control reference', () => {
+    expect(findDocs('stop button')[0].path).toBe(
+      path.join(
+        'docs',
+        'frontend',
+        'renderer',
+        'chat',
+        'chat_interface_header_controls_model_selection_and_compaction_rehydrate_reference.md',
+      ),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

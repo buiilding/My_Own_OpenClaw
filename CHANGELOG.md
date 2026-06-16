@@ -101,6 +101,8 @@ All notable changes to WindieOS will be documented in this file.
   before broad docs hubs and deep platform references.
 - docs/frontend: route settings model-selection searches to the model settings
   workflow before chat-header deep references.
+- docs/frontend: route stop-button searches to the ChatInterface control
+  reference before audio-playback stop semantics.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

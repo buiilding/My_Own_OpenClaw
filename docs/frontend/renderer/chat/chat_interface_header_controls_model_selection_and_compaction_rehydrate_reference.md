@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `ChatInterface` runtime behavior: header control wiring, provider/model selection reconciliation, stop-query handling, and manual compaction pre-rehydrate flow."
+summary: "Deep reference for `ChatInterface` runtime behavior: stop button state, header control wiring, provider/model selection reconciliation, stop-query handling, and manual compaction pre-rehydrate flow."
 read_when:
   - When changing `ChatInterface.jsx` or `ChatInterfaceHeaderControls.jsx` control behavior.
   - When debugging stop button state, provider/model dropdown updates, compaction pre-rehydrate flow, or dashboard main-window send-surface behavior.
