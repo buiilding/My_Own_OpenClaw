@@ -79,6 +79,9 @@ Load semantics (`loadConfigFromStorage`):
 - missing key -> fresh default object
 - parsed object -> known frontend fields merged over defaults
 - invalid JSON / non-object payload -> clear keys + return defaults
+- stored `selected_model_id` values are trimmed and preserved as-is; model
+  catalog reconciliation happens in the renderer model-selection UI instead of
+  in storage migration code
 - deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
 - legacy localStorage provider secrets are normalized to empty strings on read
 

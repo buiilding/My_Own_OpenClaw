@@ -78,11 +78,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   appearance_theme: DEFAULT_APPEARANCE_THEME,
 };
 
-const LEGACY_MODEL_ID_MIGRATIONS = Object.freeze({
-  'gpt-5': 'gpt-5.4@@gpt-5-4-none-thinking',
-  'gpt-5@@gpt-5-nonthinking': 'gpt-5.4@@gpt-5-4-none-thinking',
-});
-
 function normalizeProviderApiKeys(overrides = null) {
   const source = toPlainRecord(overrides);
 
@@ -198,7 +193,7 @@ function normalizeSelectedModelId(overrides = {}) {
     return DEFAULT_FRONTEND_CONFIG.selected_model_id;
   }
 
-  return LEGACY_MODEL_ID_MIGRATIONS[selectedModelId] || selectedModelId;
+  return selectedModelId;
 }
 
 function buildFrontendConfig(overrides = {}) {

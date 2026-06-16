@@ -33,6 +33,8 @@ All notable changes to WindieOS will be documented in this file.
   their unused production export surface.
 - sidecar/memory: remove legacy chat-history table migration and compatibility
   views so history storage uses canonical `conversation_events` tables only.
+- frontend/config: remove the hardcoded legacy OpenAI selected-model id
+  migration from renderer localStorage loading.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,

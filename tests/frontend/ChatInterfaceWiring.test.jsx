@@ -815,7 +815,7 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
-  test('renders curated model display label when selected_model_id is a legacy runtime id', () => {
+  test('renders curated model display label when selected_model_id is a runtime id', () => {
     mockConfig = {
       interaction_mode: 'chat',
       model_mode: 'online',
@@ -843,12 +843,12 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5.4');
   });
 
-  test('renders GPT-5.4 instead of stale unavailable legacy OpenAI ids when curated options exist', () => {
+  test('renders the first curated model instead of stale unavailable selected ids', () => {
     mockConfig = {
       interaction_mode: 'chat',
       model_mode: 'online',
       model_provider: 'openai',
-      selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+      selected_model_id: 'stale-unavailable-model',
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -876,7 +876,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.4');
-    expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5@@gpt-5-nonthinking');
+    expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('stale-unavailable-model');
   });
 
   test('deduplicates model dropdown entries to one base model and shows reasoning mode selector when supported', () => {

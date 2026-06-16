@@ -99,17 +99,17 @@ describe('chatModelOptions', () => {
     const options = buildChatModelOptions({
       availableModelPool: [],
       configuredProvider: 'openai',
-      configuredModelId: 'gpt-5@@gpt-5-nonthinking',
+      configuredModelId: 'unavailable-model',
     });
 
     expect(options).toEqual([
       {
-        id: 'gpt-5@@gpt-5-nonthinking',
+        id: 'unavailable-model',
         runtimeModelId: '',
         provider: 'openai',
-        label: 'gpt-5@@gpt-5-nonthinking',
+        label: 'unavailable-model',
         supportsThinking: false,
-        defaultModelId: 'gpt-5@@gpt-5-nonthinking',
+        defaultModelId: 'unavailable-model',
         defaultReasoningMode: null,
         reasoningModeOptions: [],
       },
