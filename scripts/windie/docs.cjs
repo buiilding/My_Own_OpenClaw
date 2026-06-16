@@ -202,8 +202,16 @@ function scoreDoc(doc, query) {
     score += 8;
   }
 
+  if (terms.length === 1 && isHubDoc(doc, fields)) {
+    score += 8;
+  }
+
   if (isHistoricalDocPath(doc.path) && !isHistoricalQuery(terms)) {
     score -= 60;
+  }
+
+  if (isDecisionRecordPath(doc.path) && !isDecisionRecordQuery(terms)) {
+    score -= 20;
   }
 
   return score;
@@ -213,8 +221,22 @@ function isHistoricalDocPath(docPath) {
   return /(^|\/)(plans|planning|refactors)\//.test(String(docPath || ''));
 }
 
+function isDecisionRecordPath(docPath) {
+  return /(^|\/)adr\//.test(String(docPath || ''));
+}
+
+function isHubDoc(doc, fields) {
+  return String(doc.path || '').endsWith('/README.md') && (
+    fields.title.includes('hub') || fields.summary.includes('hub') || fields.headings.includes('hub')
+  );
+}
+
 function isHistoricalQuery(terms) {
   return terms.some((term) => ['plan', 'plans', 'planning', 'refactor', 'refactors', 'report'].includes(term));
+}
+
+function isDecisionRecordQuery(terms) {
+  return terms.some((term) => ['adr', 'decision', 'decisions', 'record', 'records'].includes(term));
 }
 
 const DEFAULT_DOC_SEARCH_LIMIT = 10;

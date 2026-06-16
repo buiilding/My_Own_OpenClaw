@@ -76,4 +76,22 @@ describe('windie docs index', () => {
       title: 'Agent Runtime Ownership and Change Routing',
     });
   });
+
+  test('prioritizes current extension hub over ADRs for generic extension queries', () => {
+    const matches = findDocs('extension');
+
+    expect(matches[0]).toMatchObject({
+      path: path.join('docs', 'plugins', 'README.md'),
+      title: 'Plugins and Extensions Hub',
+    });
+  });
+
+  test('keeps ADRs discoverable for decision-record queries', () => {
+    const matches = findDocs('adr browser extension auto attach');
+
+    expect(matches[0]).toMatchObject({
+      path: path.join('docs', 'adr', '004-browser-extension-auto-attach.md'),
+      title: 'ADR 004: Browser Extension Auto-Attach Boundary',
+    });
+  });
 });
