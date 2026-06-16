@@ -1,9 +1,7 @@
 """
 Security Executor for Tool Execution.
 
-This module provides the security executor that handles tool execution with
-sandboxing, isolation, and security boundaries. Currently implements a basic
-executor, but can be extended for process/container isolation.
+This module provides the security executor registry for tool execution.
 """
 
 from abc import ABC, abstractmethod
@@ -41,26 +39,6 @@ class DirectToolExecutor(ToolExecutor):
 
     async def execute(self, tool: "Tool", args: Any, context: ToolContext) -> Any:
         return await tool.run(args, context)
-
-
-class ProcessSandboxedExecutor(ToolExecutor):
-    """
-    Executes tools in a separate process for isolation.
-    Limitations:
-    - Context and Args must be picklable.
-    - Tool must be importable.
-    - Side effects on global state (if any) won't persist.
-    """
-
-    async def execute(self, tool: "Tool", args: Any, context: ToolContext) -> Any:
-        # SECURITY: Do not silently fall back to insecure execution
-        # Raise error to prevent usage in insecure contexts
-        raise NotImplementedError(
-            f"ProcessSandboxedExecutor is not fully implemented. "
-            f"Cannot execute {tool.name} in sandbox. "
-            f"Use DirectToolExecutor if sandboxing is not required, "
-            f"or implement process isolation before using this executor."
-        )
 
 
 _global_executor: ToolExecutor = DirectToolExecutor()

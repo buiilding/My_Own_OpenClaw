@@ -107,7 +107,6 @@ Query surface:
 
 - `ToolExecutor` abstract async interface
 - `DirectToolExecutor` (default, in-process)
-- `ProcessSandboxedExecutor` placeholder that raises `NotImplementedError`
 
 Runtime registry:
 
@@ -117,7 +116,8 @@ Runtime registry:
 
 Important:
 
-- sandboxed executor does not silently degrade to direct execution; explicit failure prevents accidental insecure assumptions
+- no sandboxed executor is currently exposed; add a concrete isolated executor
+  only with an implemented isolation strategy and tests
 
 ## Current Integration Reality
 
@@ -129,7 +129,7 @@ Partially wired/deferred:
 
 - `SecurityPolicy` permission/path/resource checks
 - `ToolExecutionAudit` runtime logging integration at dispatch boundaries
-- `ProcessSandboxedExecutor` real isolation implementation
+- real isolated executor implementation
 
 Remote tools default `required_permissions = set()` in `remote_tools/base.py`.
 Sensitive filesystem and shell/process stubs override that default with explicit
@@ -142,7 +142,7 @@ enforcement can distinguish declared capability from an actual grant.
 2. Grant authorized permissions explicitly for each tool/deployment boundary.
 3. Enforce `check_permission` and `check_path_access` at dispatch boundary.
 4. Log `ToolExecutionAudit` on both success and failure paths.
-5. Decide and implement concrete sandbox strategy for `ProcessSandboxedExecutor`.
+5. Decide and implement a concrete sandbox strategy before exposing a sandboxed executor.
 6. Add tests for deny-by-default, blocked-path/tool behavior, and audit sanitization cycle/depth edge cases.
 
 ## Related Pages

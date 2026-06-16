@@ -85,6 +85,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: remove unused fallback source-key array support from local
   backend RPC payload mappers; sidecar invoke payloads now use canonical
   renderer field names only.
+- backend/security: remove the unused `ProcessSandboxedExecutor` placeholder
+  export so the security executor surface exposes only implemented execution
+  paths.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

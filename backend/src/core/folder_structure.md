@@ -87,7 +87,7 @@ backend/src/core/
 ├── security/                          # Security and trust boundary enforcement
 │   ├── __init__.py                    # Package exports
 │   ├── policy.py                      # SecurityPolicy - permission checking, resource limits, audit logging
-│   └── executor.py                    # ToolExecutor - abstract base class and implementations (DirectToolExecutor, ProcessSandboxedExecutor) for tool execution
+│   └── executor.py                    # ToolExecutor - abstract base class, DirectToolExecutor, and runtime executor registry
 │
 ├── observability/                     # Observability and metrics
 │   ├── __init__.py                    # Package exports

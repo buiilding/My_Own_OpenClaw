@@ -98,15 +98,16 @@ execution.
 
 - `ToolExecutor` abstract interface
 - `DirectToolExecutor` (default, in-process)
-- `ProcessSandboxedExecutor` (intentionally not implemented, raises `NotImplementedError`)
 - thread-safe global executor registry (`get_tool_executor`, `set_tool_executor`)
 
-Current default execution path is direct executor semantics; sandboxed executor must be implemented before use.
+Current default execution path is direct executor semantics. There is no
+sandbox executor in the runtime; add a concrete isolated executor only when the
+process/container strategy is implemented and tested.
 
 ## Integration Status Summary
 
 - Active and wired: `tools/tool_policy.py` filtering and method validation.
-- Defined but mostly unhooked in standard tool-orchestration flow: `core/security/policy.py` permission/resource/audit checks and `core/security/executor.py` sandbox abstraction.
+- Defined but mostly unhooked in standard tool-orchestration flow: `core/security/policy.py` permission/resource/audit checks and the `core/security/executor.py` registry abstraction.
 
 ## Enablement Checklist (When Hardening Further)
 
@@ -114,7 +115,7 @@ Current default execution path is direct executor semantics; sandboxed executor 
 2. Populate explicit `granted_permissions` for authorized tools/deployments.
 3. Add SecurityPolicy checks at concrete execution boundaries (tool dispatch and/or sidecar bridge send path).
 4. Attach audit logging on both success and failure tool-result paths.
-5. Implement sandboxed executor isolation strategy before selecting `ProcessSandboxedExecutor`.
+5. Implement and test a concrete isolated executor before selecting a sandboxed execution mode.
 6. Add tests that assert deny-by-default, blocked paths/tools, and audit truncation behavior.
 
 ## Related Pages
