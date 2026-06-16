@@ -1,8 +1,9 @@
 ---
-summary: "Backend core interface docs sub-hub for embedding provider abstract contract, vision service protocol boundary, and concrete wiring call-sites in factories/preparation helpers."
+summary: "Backend core interface docs sub-hub for ToolResult, embedding provider abstract contract, vision service protocol boundary, removed core ToolInterface/Kind/ToolContext exports, and concrete wiring call-sites in factories/preparation helpers."
 read_when:
   - When changing contracts under `backend/src/core/interfaces/*`.
   - When changing embedder/vision dependency wiring between container factories and tool preparation runtime.
+  - When debugging removed core tool protocol exports such as `Kind`, `ToolContext`, or `ToolInterface`.
 title: "Backend Core Interfaces Docs Hub"
 ---
 
@@ -12,6 +13,19 @@ title: "Backend Core Interfaces Docs Hub"
 
 - [Embedding Provider Async Contract and Container Wiring Reference](embedding_provider_async_contract_and_container_wiring_reference.md)
 - [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)
+
+## Core Tool Result Boundary
+
+`backend/src/core/interfaces/tool.py` currently exports only `ToolResult`.
+
+Removed legacy core tool protocol exports:
+
+- `Kind`
+- `ToolContext`
+- `ToolInterface`
+
+Runtime tool authoring and execution context contracts live under
+`backend/src/sdk/tool.py` and `backend/src/sdk/context.py`.
 
 ## Related Pages
 
@@ -23,6 +37,7 @@ title: "Backend Core Interfaces Docs Hub"
 ## Code Scope
 
 - `backend/src/core/interfaces/embedding.py`
+- `backend/src/core/interfaces/tool.py`
 - `backend/src/core/interfaces/vision.py`
 - `backend/src/core/container/factories.py`
 - `backend/src/embeddings/embeddings.py`

@@ -1,8 +1,9 @@
 ---
-summary: "Backend SDK contract reference for Tool base-class requirements, local-ref schema inlining/normalization behavior, ToolContext structure, and ContextFactory service-injection semantics."
+summary: "Backend SDK contract reference for Tool base-class requirements, local-ref schema inlining/normalization behavior, ToolContext structure, ContextFactory service-injection semantics, and the removed core ToolInterface/Kind/ToolContext protocol boundary."
 read_when:
   - When adding/changing SDK tool classes, argument models, or JSON schema output behavior.
   - When changing tool execution context shape, service injection defaults, or schema registry validation.
+  - When resolving stale references to removed `backend.src.core.interfaces.tool` exports such as `Kind`, `ToolContext`, or `ToolInterface`.
 title: "Tool Context and Schema Contract Reference"
 ---
 
@@ -148,6 +149,16 @@ Current SDK tool runtime path uses `backend/src/sdk/context.py` +
 `backend/src/sdk/tool.py` for `ToolContext` and tool implementation contracts.
 Do not reintroduce a parallel core tool-context protocol when wiring new SDK
 tools.
+
+Removed core exports:
+
+- `Kind`
+- `ToolContext`
+- `ToolInterface`
+
+Stale imports or searches for those names should move to the SDK contract:
+`Tool` in `backend/src/sdk/tool.py` and `ToolContext` in
+`backend/src/sdk/context.py`.
 
 ## Test-Backed Invariants
 

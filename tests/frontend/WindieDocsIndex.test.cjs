@@ -36,6 +36,33 @@ describe('windie docs index', () => {
     }
   });
 
+  test('routes removed core tool protocol queries to core and SDK docs', () => {
+    const corePath = path.join('docs', 'backend', 'core', 'interfaces', 'README.md');
+    const sdkPath = path.join(
+      'docs',
+      'backend',
+      'sdk',
+      'tool_context_and_schema_contract_reference.md',
+    );
+
+    expect(findDocs('Tool interface TypeVar removed')[0].path).toBe(corePath);
+    expect(findDocs('ToolInterface removed core tool protocol')[0].path).toBe(
+      corePath,
+    );
+    expect(findDocs('Tool abstract base protocol removed')[0].path).toBe(
+      sdkPath,
+    );
+    expect(findDocs('Kind ToolContext ToolInterface exports removed')[0].path).toBe(
+      corePath,
+    );
+  });
+
+  test('routes backend core interface tool-result queries to core docs', () => {
+    expect(findDocs('backend core interfaces tool class removed')[0].path).toBe(
+      path.join('docs', 'backend', 'core', 'interfaces', 'README.md'),
+    );
+  });
+
   test('uses headings so MCP result contract queries find the MCP runtime first', () => {
     const matches = findDocs('mcp tool result');
 

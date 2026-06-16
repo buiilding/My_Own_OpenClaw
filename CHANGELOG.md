@@ -60,6 +60,8 @@ All notable changes to WindieOS will be documented in this file.
   SDK-owned tool execution lifecycle.
 - docs/sdk: route removed top-level `client_tool_manifest` handshake fallback
   searches to the agent definition contract.
+- docs/backend: route removed legacy core tool protocol searches to the SDK
+  tool context contract and current core `ToolResult` boundary.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
