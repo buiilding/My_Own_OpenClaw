@@ -6,6 +6,7 @@ const fs = require('fs');
 const net = require('net');
 const os = require('os');
 const path = require('path');
+const { findCommits } = require('./commits.cjs');
 const { findDocs } = require('./docs.cjs');
 const { printCheckList, printJson, printSection } = require('./output.cjs');
 const { FRONTEND_DIR, REPO_ROOT, repoPath } = require('./paths.cjs');
@@ -77,6 +78,7 @@ Tests and docs:
   windie docs check
   windie docs search <query>
   windie docs <query>
+  windie commits search <query> [--limit <n>] [--json]
 
 Build and package:
   windie build frontend
@@ -1272,6 +1274,65 @@ function runDocs(args) {
   throw new Error('Usage: windie docs list|check|search <query>|<query>');
 }
 
+function commitSearchArgs(args) {
+  const queryParts = [];
+  let limit = null;
+  let json = false;
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === '--json') {
+      json = true;
+      continue;
+    }
+    if (arg === '--limit') {
+      if (!args[index + 1] || args[index + 1].startsWith('--')) {
+        throw new Error('--limit requires a value.');
+      }
+      limit = args[index + 1];
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith('--')) {
+      throw new Error(`Unknown commits search option: ${arg}`);
+    }
+    queryParts.push(arg);
+  }
+  return { query: queryParts.join(' ').trim(), limit, json };
+}
+
+function printCommitSearchText(result) {
+  if (!result.matches.length) {
+    console.log(`No commits match found for: ${result.query}`);
+    return;
+  }
+  for (const commit of result.matches) {
+    console.log(`${commit.shortHash} ${commit.date} ${commit.subject}`);
+    console.log(`  ${commit.author}`);
+    if (commit.paths.length > 0) {
+      const shownPaths = commit.paths.slice(0, 6).join(', ');
+      const suffix = commit.paths.length > 6 ? `, +${commit.paths.length - 6} more` : '';
+      console.log(`  ${shownPaths}${suffix}`);
+    }
+  }
+}
+
+function runCommits(args) {
+  const action = args[0];
+  if (action !== 'search') {
+    throw new Error('Usage: windie commits search <query> [--limit <n>] [--json]');
+  }
+  const { query, limit, json } = commitSearchArgs(args.slice(1));
+  if (!query) {
+    throw new Error('Usage: windie commits search <query> [--limit <n>] [--json]');
+  }
+  const result = findCommits(query, { limit });
+  if (json) {
+    printJson(result);
+    return;
+  }
+  printCommitSearchText(result);
+}
+
 function runBuild(args) {
   const target = args[0];
   if (target === 'frontend') {
@@ -1537,6 +1598,8 @@ async function dispatch(argv) {
       return runTest(args);
     case 'docs':
       return runDocs(args);
+    case 'commits':
+      return runCommits(args);
     case 'build':
       return runBuild(args);
     case 'package':

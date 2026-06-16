@@ -43,6 +43,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('windie logs main');
     expect(result.stdout).toContain('windie logs renderer [--verbose]');
     expect(result.stdout).toContain('windie logs sidecar');
+    expect(result.stdout).toContain('windie commits search <query> [--limit <n>] [--json]');
   });
 
   test('returns machine-readable status', () => {
@@ -132,6 +133,45 @@ describe('windie CLI', () => {
       args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'test:ci', '--', 'WindieCli'],
       cwd: repoRoot,
     });
+  });
+
+  test('searches recent commits with a limit', () => {
+    const result = runCli(['commits', 'search', 'docs search', '--limit', '2']);
+
+    expect(result.status).toBe(0);
+    const commitLines = result.stdout
+      .split(/\r?\n/)
+      .filter((line) => /^[0-9a-f]{7,12}\s+\d{4}-\d{2}-\d{2}\s+/.test(line));
+    expect(commitLines.length).toBeGreaterThan(0);
+    expect(commitLines.length).toBeLessThanOrEqual(2);
+  });
+
+  test('prints commit search results as json', () => {
+    const result = runCli(['commits', 'search', 'docs search', '--limit', '1', '--json']);
+
+    expect(result.status).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed).toMatchObject({
+      query: 'docs search',
+      limit: 1,
+    });
+    expect(parsed.scanned).toBeGreaterThan(0);
+    expect(parsed.matches.length).toBeLessThanOrEqual(1);
+    expect(parsed.matches[0]).toEqual(expect.objectContaining({
+      hash: expect.any(String),
+      shortHash: expect.any(String),
+      date: expect.any(String),
+      subject: expect.any(String),
+      paths: expect.any(Array),
+      score: expect.any(Number),
+    }));
+  });
+
+  test('rejects commit search limit without a value', () => {
+    const result = runCli(['commits', 'search', 'docs search', '--limit']);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('--limit requires a value.');
   });
 
   test('resolves frontend log tail arguments', () => {

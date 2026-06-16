@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli: add `bin/windie commits search <query>` with `--limit` and `--json`
+  support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
   and current-doc matches so feature queries land on grounded owner docs before
   broad catalog or historical refactor pages.
