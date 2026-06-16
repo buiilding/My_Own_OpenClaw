@@ -74,6 +74,7 @@ Date: 2026-06-15
 | CD-041 | Renderer chat-stream tool formatting helpers | `formatToolCallPayload(...)`, `formatToolBundlePayload(...)`, `formatToolOutputText(...)`, and `resolveModelFacingToolCall(...)` remained exported from `chatStreamFormatting.ts` after tool display moved to transcript message-state builders; deleting them exposed `buildNormalizedToolCall(...)` as an internal-only normalizer | Knip reported the helper exports unused; repo search showed only `ChatStreamFormatting.test.ts` and stale docs referenced them, while production imports only `buildThinkingStatus(...)` from the module and uses the higher-level message-state builders for tool rows | Delete the unused tool-formatting exports and tests, make `buildNormalizedToolCall(...)` private, and update docs to route tool-call/bundle/output display to the active message-state projection builders | implemented |
 | CD-042 | Renderer chat-stream screenshot attachment wrapper | `buildScreenshotAttachments(...)` was exported from `chatStreamEventUtils.ts` even though production imports only the single `buildScreenshotAttachment(...)` helper from that module | Knip reported the list-wrapper export unused; repo search showed it was imported only by `ChatStreamEventUtils.test.ts`, while list attachment normalization is owned by `screenshotMessageState` | Delete the unused wrapper export and wrapper-only test while keeping the active single-attachment helper | implemented |
 | CD-043 | Renderer chat-stream streaming message helpers | `resolveStreamingResponseAction(...)` and `findStreamingCompleteAssistantMessage(...)` remained exported from `chatStreamMessageUpdates.ts` after assistant text append/new behavior moved to SDK current-turn projection and active stream handlers | Knip reported both exports unused; repo search showed only `ChatStreamMessageUpdates.test.ts` and stale docs referenced them, while production imports the selector and payload update builders from the module | Delete the unused helper exports and helper-only tests; update docs to route assistant text projection debugging to SDK current-turn projection and live stream handlers | implemented |
+| CD-044 | Renderer chat-stream thinking status normalizer | `normalizePersistedThinkingStatus(...)` and `COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS` remained exported from `chatStreamThinkingStatus.ts` after reasoning text moved to SDK current-turn projection | Knip reported both exports unused; repo search showed they were imported only by `ChatStreamThinkingStatusUtils.test.ts` and stale docs, while production imports only the live thinking/compaction status constants | Delete the unused normalizer, the obsolete no-changes status, and the helper-only test; update docs to route final reasoning text to SDK current-turn projection | pending implementation commit |
 
 ## Commit Ledger
 
@@ -159,6 +160,7 @@ Date: 2026-06-15
   completed CD-042.
 - `3a2af2087 refactor(frontend): remove stream message helper exports`
   completed CD-043.
+- pending implementation commit will complete CD-044.
 
 ## Validation Log
 
@@ -699,6 +701,21 @@ CD-043 validation:
   required; this deletes only unused renderer helper exports while preserving
   active selector and payload-update helpers plus SDK-owned assistant text
   projection.
+
+CD-044 validation:
+
+- targeted `rg -n "COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS|normalizePersistedThinkingStatus|ChatStreamThinkingStatusUtils" frontend/src tests/frontend docs packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no renderer helper export, import, test, or docs references remain.
+- `bin/windie test frontend -- ChatStreamCompactionHandlers ManualCompactionRuntime ChatStreamThinkingStatus ChatStreamMessageUpdates`:
+  passed, 6 suites and 77 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 186 to
+  184 and the CD-044 helper exports no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes only unused renderer helper exports and helper-only
+  tests while preserving live thinking and compaction status constants.
 
 ## Inspection Notes
 

@@ -90,10 +90,15 @@ Resulting policy:
 - otherwise thinking state starts empty and waits for SDK `currentTurn.reasoningText`
   projection updates derived from backend `llm-thought` chunks
 
-Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
+Thinking status constants from `chatStreamThinkingStatus.ts`:
 
-- `GENERIC_THINKING_STATUS` and `COMPACTION_THINKING_STATUS` are never persisted into final assistant message `thinkingText`
-- blank/non-string statuses are normalized to `null`
+- `GENERIC_THINKING_STATUS` is the temporary placeholder for models that report
+  thinking support without a text stream.
+- `COMPACTION_THINKING_STATUS`, `COMPACTION_COMPLETED_THINKING_STATUS`, and
+  `COMPACTION_FAILED_THINKING_STATUS` are live UI lifecycle labels for manual
+  and stream-driven compaction paths.
+- Final assistant thinking text comes from SDK current-turn reasoning
+  projection, not from persisted placeholder status normalization.
 
 ## Message Send Lifecycle (`useChatMessageSender`)
 
