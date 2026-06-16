@@ -312,6 +312,14 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes SDK tool output content fallback queries to conversation runtime', () => {
+    const expectedPath = path.join('docs', 'sdk', 'conversation_runtime.md');
+
+    expect(findDocs('tool output content fallback')[0].path).toBe(expectedPath);
+    expect(findDocs('assistant-shaped content')[0].path).toBe(expectedPath);
+    expect(findDocs('final_response fallback tool output')[0].path).toBe(expectedPath);
+  });
+
   test('routes renderer screenshot metadata queries to the screenshot state reference', () => {
     const expectedPath = path.join(
       'docs',

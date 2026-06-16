@@ -1,9 +1,9 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, display/rehydrate projections, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, display/rehydrate projections, tool output content fallback behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
   - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
   - When debugging edit/resend resource preservation, retry resource preservation, missing screenshot refs, or attachment metadata lost across revisions.
-  - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, or custom UI/CLI conversation behavior.
+  - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool output content fallback behavior, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
 title: "SDK Conversation Runtime"
 ---
 
@@ -580,6 +580,19 @@ acknowledgement `tool-output` events for sidecar results: the SDK appends the
 local raw output row, sends `tool-result` or `tool-bundle-result` to backend,
 and backend ingests that result for model/history continuation without echoing a
 second UI row.
+
+### Tool Output Content Fallback
+
+Tool output content projection is intentionally narrow. `readToolOutputContent`
+and display/model projections treat only canonical `output`, `message`, or
+`error` fields on the payload or nested `result` object as model-facing tool
+text. Assistant-shaped fields such as `content`, `text`, `finalResponse`, and
+`final_response` are not fallback tool-output text. When no canonical field is
+present, the SDK keeps the structured payload visible by JSON-stringifying it
+for display/projection, but `hasModelContent` stays false so callers do not
+mistake an assistant-stream payload shape for tool result text. Fix producers to
+emit `output`, `message`, or `error`; do not re-add assistant-shaped content or
+final-response fallback fields in SDK projection code.
 
 Rehydrate projections preserve provider-safe tool history for both single calls
 and bundles. A `tool_call` projection must carry the original `tool_calls` and
