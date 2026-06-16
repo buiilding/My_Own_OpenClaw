@@ -12,7 +12,7 @@ import {
 import { createTranscriptSessionState } from './sessionInfoState';
 import type { SessionInfo } from './types';
 
-export type TranscriptSessionResolveOptions = {
+type TranscriptSessionResolveOptions = {
   conversationRef?: string | null;
   userId?: string | null;
 };

@@ -2,10 +2,7 @@
  * Coordinates the desktop transcript session runtime for the renderer UI.
  */
 
-import {
-  createTranscriptSessionRuntime,
-  type TranscriptSessionResolveOptions,
-} from '../../infrastructure/transcript/transcriptSessionRuntime';
+import { createTranscriptSessionRuntime } from '../../infrastructure/transcript/transcriptSessionRuntime';
 
 type SessionRuntimeUpdateListener = () => void;
 
@@ -27,5 +24,3 @@ export function subscribeDesktopTranscriptSessionRuntimeUpdates(
     sessionRuntimeUpdateListeners.delete(listener);
   };
 }
-
-export type { TranscriptSessionResolveOptions };
