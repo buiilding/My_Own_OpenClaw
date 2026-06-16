@@ -1,10 +1,7 @@
 /** @jest-environment node */
 
 const {
-  formatFrontendInteractionSummary,
   handleRendererLog,
-  normalizeFrontendInteractionEntry,
-  shouldIncludeMessageText,
 } = require('../../frontend/src/main/ipc/ipc_diagnostics_runtime.cjs');
 
 describe('ipc_diagnostics_runtime', () => {
@@ -44,15 +41,25 @@ describe('ipc_diagnostics_runtime', () => {
   });
 
   test('formats frontend interaction entries as compact terminal summaries', () => {
-    expect(formatFrontendInteractionSummary({
-      action: 'button_clicked',
-      event: 'click',
-      view: 'minimal-chat-pill',
-      target: {
-        label: 'Open config',
-        tagName: 'button',
+    const writeRendererLogLine = jest.fn();
+
+    expect(handleRendererLog({
+      source: 'frontend-interaction',
+      entry: {
+        action: 'button_clicked',
+        event: 'click',
+        view: 'minimal-chat-pill',
+        target: {
+          label: 'Open config',
+          tagName: 'button',
+        },
       },
-    })).toBe('action=button_clicked event=click view=minimal-chat-pill label="Open config" target=button');
+    }, { writeRendererLogLine, appendFrontendInteractionDiagnostic: jest.fn() })).toBe(true);
+
+    expect(writeRendererLogLine).toHaveBeenCalledWith(
+      'renderer',
+      '[Renderer][interaction] action=button_clicked event=click view=minimal-chat-pill label="Open config" target=button',
+    );
   });
 
   test('routes generic renderer logs through the renderer layer sink', () => {
@@ -70,18 +77,25 @@ describe('ipc_diagnostics_runtime', () => {
   });
 
   test('allows message text only when diagnostics opt in and build is non-production', () => {
-    expect(shouldIncludeMessageText({ allowMessageText: true, isDev: true })).toBe(true);
-    expect(shouldIncludeMessageText({ allowMessageText: true, isDev: false })).toBe(false);
-    expect(shouldIncludeMessageText({ allowMessageText: false, isDev: true })).toBe(false);
+    const appendFrontendInteractionDiagnostic = jest.fn();
 
-    expect(normalizeFrontendInteractionEntry({
-      action: 'message_sent',
-      event: 'send-message',
-      messageText: 'diagnostic text',
+    expect(handleRendererLog({
+      source: 'frontend-interaction',
+      entry: {
+        action: 'message_sent',
+        event: 'send-message',
+        messageText: 'diagnostic text',
+      },
     }, {
-      allowMessageText: true,
-      isDev: true,
-    })).toEqual(expect.objectContaining({
+      appendFrontendInteractionDiagnostic,
+      diagnosticsOptions: {
+        allowMessageText: true,
+        isDev: true,
+      },
+      writeRendererLogLine: jest.fn(),
+    })).toBe(true);
+
+    expect(appendFrontendInteractionDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       messageText: 'diagnostic text',
       messageTextRedacted: false,
     }));

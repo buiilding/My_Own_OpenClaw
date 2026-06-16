@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep renderer diagnostics normalization and summary helpers
+  private to the `handleRendererLog(...)` runtime boundary.
 - frontend/main: delete the unused conversation-event broadcast wrapper while
   keeping backend-to-conversation event normalization as the public API.
 - frontend/main: keep clipboard image size limits and trusted-artifact URL

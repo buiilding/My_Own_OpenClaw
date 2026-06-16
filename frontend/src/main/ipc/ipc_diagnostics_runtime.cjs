@@ -108,8 +108,5 @@ function handleRendererLog(payload = {}, {
 }
 
 module.exports = {
-  formatFrontendInteractionSummary,
   handleRendererLog,
-  normalizeFrontendInteractionEntry,
-  shouldIncludeMessageText,
 };
