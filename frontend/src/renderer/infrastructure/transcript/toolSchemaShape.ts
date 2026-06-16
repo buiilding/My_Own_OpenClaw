@@ -47,7 +47,7 @@ function normalizeFunctionToolSchema(toolSchema: Record<string, unknown>): ToolS
   return normalized;
 }
 
-export function isSupportedToolSchema(value: unknown): value is ToolSchema {
+function isSupportedToolSchema(value: unknown): value is ToolSchema {
   if (!isObjectRecord(value)) {
     return false;
   }
@@ -67,7 +67,7 @@ export function isSupportedToolSchema(value: unknown): value is ToolSchema {
   return hasNamedParameters(value) || hasNamedParameters(value.function);
 }
 
-export function normalizeToolSchema(value: unknown): ToolSchema | null {
+function normalizeToolSchema(value: unknown): ToolSchema | null {
   if (!isSupportedToolSchema(value) || !isObjectRecord(value)) {
     return null;
   }
@@ -79,7 +79,7 @@ export function normalizeToolSchema(value: unknown): ToolSchema | null {
   return normalizeFunctionToolSchema(value);
 }
 
-export function isSupportedToolSchemaList(value: unknown): value is ToolSchema[] {
+function isSupportedToolSchemaList(value: unknown): value is ToolSchema[] {
   return Array.isArray(value) && value.every((item) => isSupportedToolSchema(item));
 }
 
