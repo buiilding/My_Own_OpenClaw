@@ -1,9 +1,10 @@
 ---
-summary: "Reference for the history.db conversation_display_messages read model and the boundary between durable transcript storage, SDK display projection, and memory stores."
+summary: "Reference for the history.db conversation_display_messages read model, current conversation_events-backed visible chat inspection, and the boundary between durable transcript storage, SDK display projection, removed legacy chat-history compatibility views, and memory stores."
 read_when:
   - When inspecting visible chat rows in history/history.db.
   - When building or debugging a UI that lists or opens stored chats.
   - When deciding whether conversation history belongs in history.db, episodic memory, or semantic memory.
+  - When resolving stale searches that claim `conversation_display_messages` was removed or confuse it with removed legacy chat-history compatibility views.
 title: "History DB UI Read Model Reference"
 ---
 
@@ -18,6 +19,11 @@ the sidebar or opened chat transcript.
 
 The sidecar history schema exposes `conversation_display_messages` as a SQLite
 view over `conversation_events`.
+
+`conversation_display_messages` is still the supported visible-chat inspection
+view. Removed legacy chat-history table migrations and compatibility views must
+not be confused with this current read model: current storage is
+`conversation_events`, and the display view is derived from that table.
 
 The view includes only:
 

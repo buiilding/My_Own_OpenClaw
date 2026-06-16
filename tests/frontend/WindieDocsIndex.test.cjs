@@ -262,6 +262,24 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes history read-model queries to the history DB UI reference', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'sidecar',
+      'memory',
+      'storage',
+      'history_db_ui_read_model_reference.md',
+    );
+
+    expect(findDocs('conversation_display_messages compatibility view removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('history db conversation_display_messages read model')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes agent-definition tool manifest handshake queries to SDK docs', () => {
     const expectedPath = path.join('docs', 'sdk', 'agent_definition.md');
 
