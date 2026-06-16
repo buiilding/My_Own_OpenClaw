@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/projection: delete the orphan standalone current-turn projection source
+  and generated CJS file; live turn projection is owned by
+  `conversationProjections`.
 - frontend/main: remove unused tool-manifest name-list exports so the Electron
   manifest module only exposes the manifest builder consumed by MCP/client setup.
 - frontend/renderer: delete the unimported legacy `PermissionOnboarding.css`
