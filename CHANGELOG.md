@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: keep effective appearance theme resolution private to the
+  appearance-theme application runtime.
 - frontend/main: keep the wakeword bridge window-sendability predicate private
   behind wakeword event/status emission helpers.
 - frontend/main: keep chat-pill visibility reasons and visibility-decision

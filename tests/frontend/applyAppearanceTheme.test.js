@@ -4,7 +4,6 @@
 
 import {
   applyAppearanceTheme,
-  resolveEffectiveAppearanceTheme,
 } from '../../frontend/src/renderer/app/applyAppearanceTheme';
 
 function createMediaQueryList(matches = false) {
@@ -30,19 +29,29 @@ function createMediaQueryList(matches = false) {
 
 describe('applyAppearanceTheme', () => {
   test('resolves explicit theme modes without querying the OS preference', () => {
+    const lightTarget = document.createElement('html');
+    const darkTarget = document.createElement('html');
     const matchMedia = jest.fn(() => createMediaQueryList(true));
 
-    expect(resolveEffectiveAppearanceTheme('light', matchMedia)).toBe('light');
-    expect(resolveEffectiveAppearanceTheme('dark', matchMedia)).toBe('dark');
+    applyAppearanceTheme({ appearance_mode: 'light' }, lightTarget, matchMedia);
+    applyAppearanceTheme({ appearance_mode: 'dark' }, darkTarget, matchMedia);
+
+    expect(lightTarget.dataset.windieTheme).toBe('light');
+    expect(darkTarget.dataset.windieTheme).toBe('dark');
     expect(matchMedia).not.toHaveBeenCalled();
   });
 
   test('uses system color-scheme media for system mode', () => {
+    const lightTarget = document.createElement('html');
+    const darkTarget = document.createElement('html');
     const lightMedia = createMediaQueryList(true);
     const darkMedia = createMediaQueryList(false);
 
-    expect(resolveEffectiveAppearanceTheme('system', () => lightMedia)).toBe('light');
-    expect(resolveEffectiveAppearanceTheme('system', () => darkMedia)).toBe('dark');
+    applyAppearanceTheme({ appearance_mode: 'system' }, lightTarget, () => lightMedia);
+    applyAppearanceTheme({ appearance_mode: 'system' }, darkTarget, () => darkMedia);
+
+    expect(lightTarget.dataset.windieTheme).toBe('light');
+    expect(darkTarget.dataset.windieTheme).toBe('dark');
   });
 
   test('applies explicit light mode attributes and theme variables', () => {

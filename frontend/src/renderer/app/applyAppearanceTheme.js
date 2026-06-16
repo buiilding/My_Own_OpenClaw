@@ -23,7 +23,7 @@ function resolveSystemTheme(matchMediaImpl) {
   }
 }
 
-export function resolveEffectiveAppearanceTheme(mode, matchMediaImpl = globalThis.window?.matchMedia) {
+function resolveEffectiveAppearanceTheme(mode, matchMediaImpl = globalThis.window?.matchMedia) {
   const normalizedMode = normalizeAppearanceMode(mode);
   return normalizedMode === 'system' ? resolveSystemTheme(matchMediaImpl) : normalizedMode;
 }
