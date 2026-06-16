@@ -1,7 +1,8 @@
 ---
-summary: "Final WindieClient runtime contract for SDK callers, Electron main, hosted backend websocket ownership, local sidecar daemon registration, and tool-result routing."
+summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, local sidecar daemon registration, and tool-result routing."
 read_when:
-  - When changing `WindieClient.wakeUp`, backend websocket ownership, or local sidecar daemon integration.
+  - When changing `WindieClient.wakeUp`, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
+  - When debugging whether a query should use the hosted backend websocket, the local sidecar daemon, or both.
   - When adding SDK, CLI, Electron, plugin, MCP, or module-tool entrypoints.
 title: "WindieClient Runtime Contract"
 ---
@@ -26,6 +27,20 @@ TS Windie SDK runtime
                               |-- plugin tools
                               |-- MCP tools
 ```
+
+Query routing boundary:
+
+- Hosted query turns use the backend websocket opened by the SDK runtime.
+- Local desktop authority is delegated to the SDK local runtime and sidecar
+  daemon for executable tools, local memory, screenshots, shell/filesystem,
+  browser, computer-use, and sidecar status calls.
+- `WindieClient.wakeUp(...)` is the path that combines both: it connects the
+  hosted backend conversation session, starts or reuses the local runtime when
+  needed, contributes the client tool manifest, and returns local tool results
+  to the backend agent loop.
+- `WindieClient.localRuntime(...)` is local-only. It can execute sidecar tools
+  and inspect status without creating a hosted backend websocket, agent
+  conversation, or model turn.
 
 Ownership rules:
 

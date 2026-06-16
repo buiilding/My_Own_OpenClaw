@@ -58,6 +58,8 @@ All notable changes to WindieOS will be documented in this file.
   message id only, without user-message ordinal fallback.
 - docs/operations: route broad packaging and reinstall searches to the
   cross-platform package/reinstall runbook before platform-specific notes.
+- docs/sdk: route local-vs-hosted query routing searches to the WindieClient
+  runtime contract and document the `wakeUp` versus local-runtime split.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

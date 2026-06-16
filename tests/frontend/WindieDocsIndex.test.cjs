@@ -118,6 +118,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes local hosted query routing to the SDK runtime contract', () => {
+    expect(findDocs('local hosted query routing')[0].path).toBe(
+      path.join('docs', 'sdk', 'windie_client_runtime.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),
