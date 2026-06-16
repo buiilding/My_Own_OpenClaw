@@ -2529,6 +2529,46 @@ describe('Windie SDK conversation runtime core', () => {
     expect(buildDisplayConversation([missingReplacement as ConversationEvent]).messages).toEqual([]);
   });
 
+  test('backend compaction normalization ignores camelCase generation aliases', () => {
+    const previousDebugCompactionStdout = process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+    process.env.WINDIE_DEBUG_COMPACTION_STDOUT = '1';
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'context-compaction-completed',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-compact',
+      payload: {
+        generationId: 'gen-camel',
+        skippedReason: 'camel-skip',
+        replacement_history_entries: [
+          { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+        ],
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'compaction_applied',
+      payload: expect.objectContaining({
+        compactionRef: 'turn-compact',
+        generationId: null,
+        skippedReason: null,
+      }),
+    });
+    expect(logSpy).toHaveBeenCalledWith(
+      '[Windie SDK][Compaction] backend event normalized',
+      expect.objectContaining({
+        generationId: null,
+        skippedReason: null,
+      }),
+    );
+    logSpy.mockRestore();
+    if (previousDebugCompactionStdout === undefined) {
+      delete process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+    } else {
+      process.env.WINDIE_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
+    }
+  });
+
   test('manual compaction operation events are accepted outside the active turn and persist replay', async () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const transport = createControllableBackendTransport();

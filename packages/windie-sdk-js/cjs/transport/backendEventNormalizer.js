@@ -203,8 +203,8 @@ function logCompactionNormalization(event, base, normalizedType, payload) {
         eventId: base.eventId,
         backendEventId: typeof event.event_id === 'string' ? event.event_id : null,
         backendSequence: backendSequenceOf(event),
-        generationId: stringField(payload, 'generation_id', 'generationId'),
-        skippedReason: stringField(payload, 'skipped_reason', 'skippedReason'),
+        generationId: stringField(payload, 'generation_id'),
+        skippedReason: stringField(payload, 'skipped_reason'),
         replacementHistoryEntryCount: replacementHistoryEntries?.length ?? null,
         beforeTokens: numberField(payload, 'before_tokens'),
         afterTokens: numberField(payload, 'after_tokens'),
@@ -484,7 +484,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             payload: {
                 ...payload,
                 operationRef: base.turnRef,
-                compactionRef: stringField(payload, 'generation_id', 'generationId') ?? base.turnRef,
+                compactionRef: stringField(payload, 'generation_id') ?? base.turnRef,
                 reason: typeof payload.reason === 'string' ? payload.reason : null,
                 ...backendMetadata,
             },
@@ -544,7 +544,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             payload: {
                 ...payload,
                 operationRef: base.turnRef,
-                compactionRef: stringField(payload, 'generation_id', 'generationId') ?? base.turnRef,
+                compactionRef: stringField(payload, 'generation_id') ?? base.turnRef,
                 error: typeof payload.error === 'string' ? payload.error : null,
                 ...backendMetadata,
             },
