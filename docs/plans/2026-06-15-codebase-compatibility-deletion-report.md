@@ -70,6 +70,7 @@ Date: 2026-06-15
 | CD-037 | Renderer tool-call metadata helper export | `normalizeToolCallDisplayMetadata(...)` was exported from `toolCallMessageState.js` even though tool-call metadata shaping is only used inside the same module by tool-call and bundle message builders | Knip reported the export unused; repo search showed no imports outside `toolCallMessageState.js`, while production consumes the higher-level message-state builders | Make the metadata normalizer private and keep existing tool-call/bundle message-state behavior unchanged | implemented |
 | CD-038 | Renderer tool-schema shape helper exports | `isSupportedToolSchema(...)`, `normalizeToolSchema(...)`, and `isSupportedToolSchemaList(...)` were exported from `toolSchemaShape.ts` even though renderer production code imports only `normalizeToolSchemaList(...)` | Knip reported the helper exports unused; repo search showed the predicates/single-item normalizer are called only inside `toolSchemaShape.ts`, while chat-stream and message transparency consumers use the list normalizer | Make the predicate and single-schema helpers private, leaving `normalizeToolSchemaList(...)` as the module's public production API | implemented |
 | CD-039 | Renderer screenshot message helper exports | `looksLikeInlineImageData(...)`, `parseInlineScreenshotPayload(...)`, and `resolveStoredTranscriptScreenshotValue(...)` remained exported from `screenshotMessageState.js` after screenshot rendering/replay moved to attachment-state APIs | Knip reported the exports unused; repo search showed inline parsing helpers are used only internally and `resolveStoredTranscriptScreenshotValue(...)` was imported only by its own test | Make inline parsing helpers private; delete the obsolete stored-transcript screenshot value helper and move the useful artifact-url assertion onto `resolveReplayScreenshotState(...)` | implemented |
+| CD-040 | Renderer SDK display chat projection | `buildChatMessagesFromDisplayConversation(...)` was exported from the renderer projection module even though production imports only `buildChatMessagesFromSdkDisplayRows(...)` | Knip reported the display-conversation projector export unused; repo search showed the export was imported only by `SdkDisplayChatMessageProjection.test.ts`, while dashboard and chat runtime consumers project SDK display rows directly | Delete the public display-conversation projector surface, keep a private single-message projector inside the row path, and retarget tests to the active SDK display-row API | pending implementation commit |
 
 ## Commit Ledger
 
@@ -147,6 +148,7 @@ Date: 2026-06-15
   completed CD-038.
 - `71986997e refactor(frontend): keep screenshot parsing helpers private`
   completed CD-039.
+- pending implementation commit will complete CD-040.
 
 ## Validation Log
 
@@ -624,6 +626,21 @@ CD-039 validation:
   required; this removes only unused renderer screenshot helper exports, while
   active screenshot replay, attachment-state, and artifact-ref behavior stays on
   the production resolver APIs.
+
+CD-040 validation:
+
+- targeted `rg -n "buildChatMessagesFromDisplayConversation" frontend/src tests/frontend docs packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no production or test references remain.
+- `bin/windie test frontend -- SdkDisplayChatMessageProjection DesktopConversationStore DesktopConversationContinuityService WindieSdkConversationRuntime`:
+  passed, 4 suites and 149 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 194 to
+  193 and the CD-040 projector export no longer appears.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes only an unused renderer export and leaves the active
+  SDK display-row projection path used by dashboard and chat runtime consumers.
 
 ## Inspection Notes
 

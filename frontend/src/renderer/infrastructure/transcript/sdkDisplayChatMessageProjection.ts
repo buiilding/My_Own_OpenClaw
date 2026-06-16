@@ -5,7 +5,6 @@
 import type { ChatMessage } from '../../features/chat/stores/chatStore';
 import {
   type SdkDisplayRow,
-  type DisplayConversation,
   type DisplayMessage,
 } from '../api/windieSdkClient';
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
@@ -225,27 +224,23 @@ function buildToolProgressMessage(message: DisplayMessage): ChatMessage {
   };
 }
 
-export function buildChatMessagesFromDisplayConversation(
-  display: DisplayConversation,
-): ChatMessage[] {
-  return display.messages.flatMap((message) => {
-    if (message.sender === 'user') {
-      return [buildUserChatMessage(message)];
-    }
-    if (message.messageType === 'tool_call' || message.messageType === 'tool_bundle_call') {
-      return [buildToolCallMessage(message)];
-    }
-    if (message.messageType === 'tool_output' || message.messageType === 'tool_bundle_output') {
-      return [buildToolOutputMessage(message)];
-    }
-    if (message.messageType === 'tool_progress') {
-      return [buildToolProgressMessage(message)];
-    }
-    if (message.sender === 'assistant') {
-      return [buildAssistantChatMessage(message)];
-    }
-    return [];
-  });
+function buildChatMessagesFromDisplayMessage(message: DisplayMessage): ChatMessage[] {
+  if (message.sender === 'user') {
+    return [buildUserChatMessage(message)];
+  }
+  if (message.messageType === 'tool_call' || message.messageType === 'tool_bundle_call') {
+    return [buildToolCallMessage(message)];
+  }
+  if (message.messageType === 'tool_output' || message.messageType === 'tool_bundle_output') {
+    return [buildToolOutputMessage(message)];
+  }
+  if (message.messageType === 'tool_progress') {
+    return [buildToolProgressMessage(message)];
+  }
+  if (message.sender === 'assistant') {
+    return [buildAssistantChatMessage(message)];
+  }
+  return [];
 }
 
 function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | null {
@@ -390,11 +385,6 @@ export function buildChatMessagesFromSdkDisplayRows(rows: SdkDisplayRow[]): Chat
     if (!message) {
       return [];
     }
-    return buildChatMessagesFromDisplayConversation({
-      conversationRef: row.conversationRef,
-      revisionId: typeof row.metadata?.revisionId === 'string' ? row.metadata.revisionId : '',
-      compaction: { status: 'idle' },
-      messages: [message],
-    });
+    return buildChatMessagesFromDisplayMessage(message);
   });
 }

@@ -3,77 +3,77 @@
  */
 
 import {
-  buildChatMessagesFromDisplayConversation,
   buildChatMessagesFromSdkDisplayRows,
 } from '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection';
-import type { DisplayConversation } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
 describe('sdkDisplayChatMessageProjection', () => {
   test('projects SDK display messages into existing chat message shapes', () => {
-    const display: DisplayConversation = {
-      conversationRef: 'conv-sdk',
-      revisionId: 'rev-1',
-      compaction: { status: 'idle' },
-      messages: [
-        {
-          id: 'msg-user',
-          conversationRef: 'conv-sdk',
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'open package json',
+        metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
-          sender: 'user',
-          text: 'open package json',
-          messageType: 'user_message',
         },
-        {
-          id: 'msg-tool-call',
-          conversationRef: 'conv-sdk',
+      },
+      {
+        id: 'msg-tool-call',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          id: 'call-1',
+          name: 'read_file',
+          arguments: { path: 'package.json' },
+        },
+        metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:01.000Z',
-          sender: 'tool',
-          text: 'read_file',
-          messageType: 'tool_call',
           toolName: 'read_file',
           requestId: 'req-1',
           toolCallId: 'call-1',
-          metadata: {
+          raw: {
             args: { path: 'package.json' },
-            structuredPayload: {
-              tool_calls: [{
-                id: 'call-1',
-                name: 'read_file',
-                arguments: { path: 'package.json' },
-              }],
-            },
           },
         },
-        {
-          id: 'msg-tool-output',
-          conversationRef: 'conv-sdk',
+      },
+      {
+        id: 'msg-tool-output',
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'package contents',
+        metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:02.000Z',
-          sender: 'tool',
-          text: 'package contents',
-          messageType: 'tool_output',
           toolName: 'read_file',
           requestId: 'req-1',
           toolCallId: 'call-1',
-          metadata: {
+          raw: {
             success: true,
           },
         },
-        {
-          id: 'msg-assistant',
-          conversationRef: 'conv-sdk',
+      },
+      {
+        id: 'msg-assistant',
+        conversationRef: 'conv-sdk',
+        index: 3,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'package json is loaded',
+        metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:03.000Z',
-          sender: 'assistant',
-          text: 'package json is loaded',
-          messageType: 'assistant_message',
         },
-      ],
-    };
-
-    expect(buildChatMessagesFromDisplayConversation(display)).toEqual([
+      },
+    ])).toEqual([
       expect.objectContaining({
         id: 'msg-user',
         sender: 'user',
@@ -107,28 +107,26 @@ describe('sdkDisplayChatMessageProjection', () => {
   });
 
   test('normalizes persisted screenshot artifact refs without treating them as inline image bytes', () => {
-    const display: DisplayConversation = {
-      conversationRef: 'conv-shot',
-      revisionId: 'rev-1',
-      compaction: { status: 'idle' },
-      messages: [
-        {
-          id: 'msg-user-shot',
-          conversationRef: 'conv-shot',
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-shot',
+        conversationRef: 'conv-shot',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'look here',
+        metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
-          sender: 'user',
-          text: 'look here',
-          messageType: 'user_message',
-          metadata: {
+          raw: {
             screenshotRef: 'artifact-user-1',
             screenshot: 'artifact-user-1',
           },
         },
-      ],
-    };
+      },
+    ]);
 
-    expect(buildChatMessagesFromDisplayConversation(display)).toEqual([
+    expect(messages).toEqual([
       expect.objectContaining({
         id: 'msg-user-shot',
         sender: 'user',
@@ -136,31 +134,27 @@ describe('sdkDisplayChatMessageProjection', () => {
         screenshotUrl: expect.stringContaining('/api/artifacts/artifact-user-1'),
       }),
     ]);
-    expect(buildChatMessagesFromDisplayConversation(display)[0]).not.toHaveProperty('screenshot');
+    expect(messages[0]).not.toHaveProperty('screenshot');
   });
 
   test('projects multi-image user screenshot refs into renderer screenshot attachments', () => {
-    const display: DisplayConversation = {
-      conversationRef: 'conv-multi-shot',
-      revisionId: 'rev-1',
-      compaction: { status: 'idle' },
-      messages: [
-        {
-          id: 'msg-user-multi-shot',
-          conversationRef: 'conv-multi-shot',
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-multi-shot',
+        conversationRef: 'conv-multi-shot',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'look at both',
+        metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
-          sender: 'user',
-          text: 'look at both',
-          messageType: 'user_message',
-          metadata: {
+          raw: {
             screenshot_refs: ['artifact-user-1', 'artifact-user-2'],
           },
         },
-      ],
-    };
-
-    expect(buildChatMessagesFromDisplayConversation(display)).toEqual([
+      },
+    ])).toEqual([
       expect.objectContaining({
         id: 'msg-user-multi-shot',
         sender: 'user',
