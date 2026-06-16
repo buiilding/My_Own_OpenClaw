@@ -96,8 +96,10 @@ describe('ipc.cjs conversation runtime registry', () => {
     };
     const wakeUp = jest.fn(async () => agent);
     const WindieClient = jest.fn().mockImplementation(() => ({ wakeUp }));
+    const sdkActual = jest.requireActual('../../packages/windie-sdk-js/cjs/index.js');
 
     jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
+      ...sdkActual,
       WindieClient,
     }));
 

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: route the strict `windie:invoke` allowlist through the SDK
+  runtime command contract.
 - frontend/renderer: remove the renderer-only tool correlation alias and route
   chat stream correlation through the SDK package export.
 - backend/core: require `ConfigurationService.update_config()` for container
