@@ -1,8 +1,9 @@
 ---
-summary: "Runtime trace guide for stream events, chat pill phases, tool screenshots, overlay windows, sidecar JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and windieUserDataRoot."
+summary: "Runtime trace guide for stream events, chat pill phases, renderer trace platform labeling after deprecated navigator.platform removal, tool screenshots, overlay windows, sidecar JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and windieUserDataRoot."
 read_when:
   - When debugging event ordering across backend, Electron main, renderer, or sidecar.
   - When changing stream handling, overlay phases, screenshot capture, tool execution, or websocket routing.
+  - When stale code, tests, or docs mention `navigator.platform` in renderer trace logging; renderer trace labels use `navigator.userAgentData.platform` with user-agent fallback.
   - When resolving app diagnostics inspection helper references such as `queryDiagnosticEvents`, `inspectDiagnosticTrace`, `listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, or `windieUserDataRoot`.
 title: "Runtime Traces"
 ---
@@ -377,6 +378,12 @@ intent was active, response-window visibility, guard refs, and whether a generic
 restore was suppressed.
 `[ChatPillTrace][main]` and `[ChatPillTrace][renderer]` require the debug flag
 above and include deeper phase/window snapshots.
+
+Renderer trace platform labels are diagnostic metadata only. The renderer trace
+helper no longer reads deprecated `navigator.platform`; it prefers
+`navigator.userAgentData.platform` and falls back to `navigator.userAgent` when
+user-agent data is not available. Stale deprecation-audit searches for
+`navigator.platform` in `chatStreamDebugTrace.ts` should route here.
 
 `ipc.bridge` is the compact Electron main bridge timeline. It stores milestones
 for frontend query send, backend connection state, the first backend event

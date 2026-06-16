@@ -465,6 +465,22 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes renderer deprecated browser API queries to current owner docs', () => {
+    expect(findDocs('navigator.platform deprecated renderer trace')[0].path).toBe(
+      path.join('docs', 'debug', 'runtime_traces.md'),
+    );
+    expect(findDocs('document.createElement deprecated markdown DOMParser')[0].path).toBe(
+      path.join(
+        'docs',
+        'frontend',
+        'renderer',
+        'chat',
+        'payloads',
+        'tool_call_output_and_transparency_section_rendering_reference.md',
+      ),
+    );
+  });
+
   test('routes prompt compilation queries to prompt context docs', () => {
     expect(findDocs('prompt compilation')[0].path).toBe(
       path.join('docs', 'concepts', 'prompt_and_tool_context.md'),

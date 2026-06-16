@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, removed sanitizeMarkdownHtml standalone markdown sanitizer wrapper behavior, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, transparency section configuration/validation, and current normalizeToolSchemaList behavior after the removed isSupportedToolSchemaList helper."
+summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, removed sanitizeMarkdownHtml standalone markdown sanitizer wrapper behavior, DOMParser/createHTMLDocument markdown text extraction after deprecated document.createElement removal, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, transparency section configuration/validation, and current normalizeToolSchemaList behavior after the removed isSupportedToolSchemaList helper."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
   - When changing renderer markdown sanitization, markdown rendering, math rendering, or thread-find highlight behavior.
+  - When stale code, tests, or docs mention deprecated `document.createElement` usage in renderer markdown HTML container construction; markdown text extraction now prefers `DOMParser` with `createHTMLDocument` fallback.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
   - When stale code, tests, or docs mention `isSupportedToolSchemaList` or removed renderer tool-schema list helper exports.
   - When resolving stale references to the removed `sanitizeMarkdownHtml` wrapper, markdown sanitizer wrapper, or standalone sanitized-HTML wrapper.
@@ -96,6 +97,14 @@ Provider-agnostic math normalization:
 
 - normalize escaped math delimiters and convert `\\(...\\)` / `\\[...\\]` into `$...$` / `$$...$$`
 - skip fenced code blocks so TeX examples remain literal inside markdown code fences
+
+Thread-find and text extraction helpers parse already-sanitized HTML through
+`createHtmlContainer(...)` in `frontend/src/renderer/infrastructure/markdown.ts`.
+The current path prefers `DOMParser.parseFromString(...)` and falls back to
+`document.implementation.createHTMLDocument(...)` when `DOMParser` is missing.
+The old direct `document.createElement("div")` container construction was
+removed for the deprecation audit; stale searches for that API should route to
+this renderer markdown contract.
 
 Structured JSON support:
 
