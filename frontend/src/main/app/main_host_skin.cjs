@@ -4,6 +4,12 @@
 
 const productName = 'WindieOS';
 
+const identity = Object.freeze({
+  appName: productName,
+  sdkAgentName: productName,
+  trayTooltip: productName,
+});
+
 const browserAutomation = Object.freeze({
   localBackendNotReady: `${productName} local backend is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
@@ -76,6 +82,7 @@ const queryEvents = Object.freeze({
 
 const mainHostSkin = Object.freeze({
   productName,
+  identity,
   queryEvents,
   permissions: Object.freeze({
     browserAutomation,

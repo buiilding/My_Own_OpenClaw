@@ -123,6 +123,7 @@ function createWindowBootstrapRuntime(deps) {
       Menu: deps.Menu,
       showMainWindow: deps.showMainWindow,
       app: deps.app,
+      mainHostSkin: deps.mainHostSkin,
     });
   }
 

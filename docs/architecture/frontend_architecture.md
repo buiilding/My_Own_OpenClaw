@@ -283,6 +283,8 @@ Primary modules:
     instead of being embedded in `main/index.cjs` or permission service modules.
   - Query send/disconnect fallback messages should also read from this boundary
     when main builds renderer-facing query error events.
+  - Product identity such as SDK agent name and tray tooltip should read from
+    this boundary instead of being embedded in host/runtime modules.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.

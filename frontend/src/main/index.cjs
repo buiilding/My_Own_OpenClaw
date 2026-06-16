@@ -269,6 +269,7 @@ const {
   vmWorkerMode: VM_WORKER_MODE_ENABLED,
   enableOsToolGhostDebug: ENABLE_OS_TOOL_GHOST_DEBUG,
   responseWindowDebugView: RESPONSE_WINDOW_DEBUG_VIEW,
+  mainHostSkin,
   initializeIpc,
   setAgentLoopStopShortcutEnabled: agentStopShortcutRuntime.setEnabled,
   initializeWakewordBridge,

@@ -500,6 +500,7 @@ function createTray({
   app,
   resolveTrayIconPath = resolveAppIconPathRuntime,
   warn = console.warn,
+  mainHostSkin = {},
 }) {
   const icon = resolveTrayIconNativeImage({
     iconPath: resolveTrayIconPath(),
@@ -523,7 +524,7 @@ function createTray({
     },
   ]);
 
-  tray.setToolTip('WindieOS');
+  tray.setToolTip(mainHostSkin?.identity?.trayTooltip || 'Desktop agent');
   tray.setContextMenu(contextMenu);
   tray.on('double-click', () => {
     showMainWindow({ focus: true, reason: 'tray-double-click' });

@@ -771,12 +771,18 @@ describe('main_window_runtime createTray', () => {
     };
   }
 
-  test('loads tray icon from resolved path and sets WindieOS tooltip', () => {
+  test('loads tray icon from resolved path and sets configured tooltip', () => {
     const { nativeImage } = require('electron');
     const icon = { isEmpty: () => false };
     nativeImage.createFromPath.mockReturnValueOnce(icon);
 
-    const { deps, tray } = createTrayDeps();
+    const { deps, tray } = createTrayDeps({
+      mainHostSkin: {
+        identity: {
+          trayTooltip: 'WindieOS',
+        },
+      },
+    });
     createTray(deps);
 
     expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/windieos.png');

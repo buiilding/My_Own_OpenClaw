@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest commit for this plan: `a5a38a0e7` (`refactor(frontend): skin os permission service copy`)
+- Latest commit for this plan: `14451e1e0` (`refactor(frontend): skin query event fallback copy`)
 
 ## Inspection Log
 
@@ -88,6 +88,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: direct event-builder fallbacks use generic app wording when no skin copy is injected.
 - Change: main host skin boundary test now covers query event builders.
 
+### 2026-06-16 Main Host Identity Skin Slice
+
+- Finding: SDK wake-up agent name and tray tooltip still embedded WindieOS identity directly in main host modules.
+- Decision: add host identity copy to `mainHostSkin` and thread it through existing main/bootstrap dependencies.
+- Change: SDK `wakeUp` agent name now reads `mainHostSkin.identity.sdkAgentName`.
+- Change: tray tooltip now reads `mainHostSkin.identity.trayTooltip` with a generic fallback in the window runtime.
+- Deliberate deferral: MCP runtime still has a default `WindieOS` client name; move that in a later extension-runtime slice because it has separate caller/config implications.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -97,6 +105,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Browser and macOS automation permission services consume injected host skin copy.
 - [x] Remaining OS permission services consume injected host skin copy.
 - [x] Query failure/interruption event builders consume injected host skin copy.
+- [x] SDK agent name and tray tooltip read product identity from the host skin.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -125,10 +134,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "WindieOS|WindieOS browser|enable WindieOS|Select workspace folder for WindieOS" frontend/src/main/permissions frontend/src/main/app/main_host_skin.cjs tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/PermissionService.test.cjs` found expected skin/test fixture matches only.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/ChatMessageSender.test.tsx` passed.
 - `rg -n "WindieOS isn't connected|WindieOS lost connection|Your message wasn't sent because WindieOS" frontend/src/main/ipc frontend/src/main/app/main_host_skin.cjs tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/IpcQueryRuntime.test.cjs` found expected test fixture matches only.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs` passed.
+- `rg -n "name: 'WindieOS'|tray\\.setToolTip\\('WindieOS'\\)|setToolTip\\('WindieOS'\\)|sdkAgentName|trayTooltip" frontend/src/main tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs tests/frontend/MainWindowRuntime.test.cjs` found expected skin/test matches plus the deferred MCP default.
 
 ## Remaining Findings
 
 - Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
 - Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
 - Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
-- Main process composition root, permission services, and query event builders now read related product copy from a host skin. Remaining main-boundary candidates include wakeword/sidecar reinstall messages, SDK agent startup naming, logging prefixes, browser onboarding explanation copy, and other product-specific host defaults that may belong in a broader main host config.
+- Main process composition root, permission services, query event builders, SDK agent name, and tray tooltip now read related product copy from a host skin. Remaining main-boundary candidates include MCP client identity, wakeword/sidecar reinstall messages, logging prefixes, browser onboarding explanation copy, and other product-specific host defaults that may belong in a broader main host config.

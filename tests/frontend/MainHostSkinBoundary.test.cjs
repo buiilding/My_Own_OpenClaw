@@ -21,6 +21,9 @@ describe('main host skin/config boundary', () => {
     const skinSource = fs.readFileSync(skinPath, 'utf8');
 
     expect(skinSource).toContain("const productName = 'WindieOS'");
+    expect(skinSource).toContain('identity');
+    expect(skinSource).toContain('sdkAgentName');
+    expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('browserAutomation');
     expect(skinSource).toContain('macAutomation');
     expect(skinSource).toContain('localBackendNotReady');

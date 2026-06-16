@@ -1135,7 +1135,7 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
   const client = getWindieClient();
   const agent = await client.wakeUp({
     installAuth: buildDesktopInstallAuth(),
-    name: 'WindieOS',
+    name: mainHostSkin.identity.sdkAgentName,
     workspacePath: resolvedWorkspacePath,
     builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
     mcps: process.env.NODE_ENV === 'test'
