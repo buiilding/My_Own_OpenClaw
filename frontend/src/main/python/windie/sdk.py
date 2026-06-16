@@ -838,14 +838,14 @@ class WindieSdkAgentSession:
             if event_type == "tool-call":
                 yield {
                     "type": "tool_call",
-                    "tool_name": payload.get("tool_name") or payload.get("toolName"),
+                    "tool_name": payload.get("tool_name"),
                     "event": raw_event,
                 }
                 continue
             if event_type == "tool-output":
                 yield {
                     "type": "tool_output",
-                    "tool_name": payload.get("tool_name") or payload.get("toolName"),
+                    "tool_name": payload.get("tool_name"),
                     "event": raw_event,
                 }
                 continue
@@ -951,21 +951,13 @@ class WindieSdkAgentSession:
         )
         if metadata.get("skip_frontend_execution") is True:
             return
-        tool_name = _clean_string(payload.get("tool_name")) or _clean_string(
-            payload.get("toolName")
-        )
+        tool_name = _clean_string(payload.get("tool_name"))
         request_id = (
             _clean_string(payload.get("request_id"))
-            or _clean_string(payload.get("requestId"))
             or _clean_string(payload.get("correlation_id"))
-            or _clean_string(payload.get("correlationId"))
         )
-        tool_call_id = _clean_string(payload.get("tool_call_id")) or _clean_string(
-            payload.get("toolCallId")
-        )
-        correlation_id = _clean_string(payload.get("correlation_id")) or _clean_string(
-            payload.get("correlationId")
-        )
+        tool_call_id = _clean_string(payload.get("tool_call_id"))
+        correlation_id = _clean_string(payload.get("correlation_id"))
         if not tool_name or not request_id:
             return
         parameters = (
@@ -1007,9 +999,7 @@ class WindieSdkAgentSession:
         )
         if metadata.get("skip_frontend_execution") is True:
             return
-        bundle_id = _clean_string(payload.get("bundle_id")) or _clean_string(
-            payload.get("bundleId")
-        )
+        bundle_id = _clean_string(payload.get("bundle_id"))
         steps = payload.get("tools") if isinstance(payload.get("tools"), list) else []
         if not bundle_id or not steps:
             return
@@ -1017,15 +1007,11 @@ class WindieSdkAgentSession:
         for step in steps:
             if not isinstance(step, dict):
                 continue
-            tool_name = _clean_string(step.get("name")) or _clean_string(
-                step.get("toolName")
-            )
+            tool_name = _clean_string(step.get("name"))
             if not tool_name:
                 continue
             args = step.get("args") if isinstance(step.get("args"), dict) else {}
-            tool_call_id = _clean_string(step.get("tool_call_id")) or _clean_string(
-                step.get("toolCallId")
-            )
+            tool_call_id = _clean_string(step.get("tool_call_id"))
             try:
                 result = await self.local_runtime.execute_tool(
                     tool_name=tool_name,

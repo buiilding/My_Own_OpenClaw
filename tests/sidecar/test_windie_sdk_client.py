@@ -625,6 +625,46 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
 
 
 @pytest.mark.asyncio
+async def test_python_agent_session_ignores_camel_case_tool_call_payload():
+    sidecar = FakeSidecarRuntime()
+    websocket = FakeWebSocket(
+        messages=[
+            {
+                "type": "tool-call",
+                "payload": {
+                    "requestId": "req-1",
+                    "toolCallId": "call-1",
+                    "correlationId": "corr-1",
+                    "toolName": "save_note",
+                    "parameters": {"text": "hello"},
+                },
+            }
+        ]
+    )
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        sidecar=sidecar,
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ]
+    )
+
+    event = await agent.receive_json()
+
+    assert event["type"] == "tool-call"
+    assert sidecar.executions == []
+    assert all(message.get("type") != "tool-result" for message in websocket.sent)
+
+
+@pytest.mark.asyncio
 async def test_python_agent_tool_result_strips_invalid_capture_meta():
     class PartialCaptureSidecar(FakeSidecarRuntime):
         async def execute_tool(self, *, tool_name, args, **metadata):
@@ -765,7 +805,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
                     "tools": [
                         {
                             "name": "save_note",
-                            "toolCallId": "call-save-note",
+                            "tool_call_id": "call-save-note",
                             "args": {"text": "first"},
                         }
                     ],
@@ -809,6 +849,51 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
     assert websocket.sent[-1]["payload"]["step_results"][0]["output"] == {
         "output": "save_note:first"
     }
+
+
+@pytest.mark.asyncio
+async def test_python_agent_session_ignores_camel_case_tool_bundle_payload():
+    sidecar = FakeSidecarRuntime()
+    websocket = FakeWebSocket(
+        messages=[
+            {
+                "type": "tool-bundle",
+                "payload": {
+                    "bundleId": "bundle-1",
+                    "tools": [
+                        {
+                            "toolName": "save_note",
+                            "toolCallId": "call-save-note",
+                            "args": {"text": "first"},
+                        }
+                    ],
+                },
+            }
+        ]
+    )
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        sidecar=sidecar,
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ]
+    )
+
+    event = await agent.receive_json()
+
+    assert event["type"] == "tool-bundle"
+    assert sidecar.executions == []
+    assert all(
+        message.get("type") != "tool-bundle-result" for message in websocket.sent
+    )
 
 
 @pytest.mark.asyncio
