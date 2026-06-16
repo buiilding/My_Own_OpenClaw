@@ -21,6 +21,9 @@ Primary files:
 
 Allowlisted examples:
 
+- `renderer-log`
+- `live-surface-trace`
+- `transcript-session-sync`
 - `move-chatbox-to`
 - `wakeword-audio-chunk`
 - `wakeword-enable`
@@ -34,18 +37,24 @@ Key examples:
 - `read-attachment-file`
 - `run-browser-action`
 - `upload-artifact`
+- `fetch-artifact-image`
 - SDK-shaped `windie:invoke` commands for conversation, settings, model,
   wakeword, memory, and conversation-library runtime actions
 - `get-system-state`
-- internal local-backend channels for chat-event store adapters and sidecar
-  memory implementation details
+- image clipboard/context-menu channels
 - config load/save
+- extension, MCP, and OpenAI Codex OAuth channels
 - window management and display queries
 - `get-displays` payload includes `{ id, label, isPrimary, bounds, scaleFactor }` from main-process display mapper
   - details: [Display Query Handler Display Inventory Payload Contract Reference](../main/display_query_handler_display_inventory_payload_contract_reference.md)
 - permission onboarding channels
-  - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
+  - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`, `set-active-workspace`
 - `show-main-window` supports optional `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`
+
+Internal local-backend mapper names for chat-event store adapters and sidecar
+memory implementation details are not direct renderer preload invoke channels.
+Renderer feature code should use `windie:invoke` SDK commands for user-facing
+conversation and memory actions.
 
 ### `on` channels
 
@@ -54,13 +63,24 @@ Inbound event streams:
 - `windie:rows`
 - `windie:status`
 - `windie:conversation-event`
+- `windie:memory-store-changed`
+- `windie:conversation-metadata-invalidated`
 - `windie:current-turn`
+- `transcript-session-sync`
 - `ipc-status`
+- `local-backend-status`
 - `wakeword-status`
 - `wakeword-detected`
 - `wakeword-toggle`
+- `wakeword-stt-trigger`
+- `chatbox-focus`
+- `workspace-access-updated`
 - `main-window-open-target`
 - `response-overlay-phase`
+- `backend-settings-event`
+- `agent-capability-event`
+- `audio-chunk`
+- `response-overlay-visibility`
 
 ## SDK Conversation Event Contract in Renderer
 
@@ -137,8 +157,8 @@ Behavioral contract:
 
 When changing any channel/event:
 
-1. Update preload allowlist.
-2. Update renderer channel constants and use sites.
+1. Update `frontend/src/shared/ipcChannels.json`.
+2. Update renderer expected channel registry validation and use sites.
 3. Update main-process sender/handler implementation.
 4. Update backend event types and stream handlers if applicable.
 5. Update docs + tests.

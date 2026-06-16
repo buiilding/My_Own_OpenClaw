@@ -41,6 +41,16 @@ Result: unknown channel usage is rejected before Electron main dispatch.
 
 ## Renderer -> Main One-way Channels (`send`)
 
+### `renderer-log` / `live-surface-trace` / `transcript-session-sync`
+
+Owner: `ipc.cjs`
+
+Behavior:
+
+- forwards renderer log and live-surface trace payloads into main logging
+- syncs transcript session/conversation/user identity from renderer to main
+  runtime state
+
 ### `move-chatbox-to`
 
 Owner: `overlay_phase_ipc_runtime.cjs` (registered via `index.cjs`)
@@ -76,14 +86,28 @@ Behavior:
 - `save-frontend-config` -> redacted frontend-config atomic temp-write + rename persistence
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
+- `fetch-artifact-image` -> authenticated artifact image fetch
+- `copy-image-to-clipboard` -> trusted image clipboard copy
+- `show-image-context-menu` -> trusted image context menu actions
+- `list-agent-extensions` -> public extension metadata plus MCP registry snapshot
+- `list-mcp-servers` / `set-mcp-server-enabled` / `refresh-mcp-servers` ->
+  MCP registry and enablement controls
+- `openai-codex-oauth-login` / `openai-codex-oauth-logout` -> OpenAI Codex
+  OAuth helper flow
 
 ## Phase-owned overlay channels (`overlay_phase_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-chatbox-visual-anchor-height` -> chat-pill anchor height updates for deterministic response overlay re-anchoring
+- `set-chatbox-hit-test-active`
+- `set-responsebox-hit-test-active`
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
+- `prime-response-overlay-awaiting` -> response overlay preflight phase update
 - `show-chatbox`
+- `activate-chatbox-text-entry`
 - `hide-chatbox`
+- `handoff-surface-for-computer-use`
 - `prepare-surface-for-screenshot` -> bounded pre-capture wait + optional chat hide + settle delay; returns timing metrics
+- `restore-surface-after-screenshot`
 
 ## Window control channels (`window_controls_ipc_runtime.cjs`, wired by `index.cjs`)
 
@@ -103,6 +127,7 @@ Behavior:
 - `check-permission`
 - `run-permission-probe`
 - `request-permission`
+- `set-active-workspace`
 
 There is no renderer-callable `set-agent-sudo-access` channel. Linux
 `run_shell_command` sudo behavior is owned by the sidecar shell tool, which
@@ -124,16 +149,24 @@ memory user actions instead of these sidecar names.
 - `read-attachment-file`
 - `run-browser-action`
 - `get-system-state`
-- `search-chat-conversations`
-- mapped JSON-RPC channels:
+
+Mapped JSON-RPC bridge handler channels in
+`local_backend_bridge_rpc_mappers.cjs`:
+
 - `list-chat-conversations`
+- `search-chat-conversations`
 - `list-episodic-memories`
 - `get-chat-events`
+- `get-chat-conversation-revision`
 - `list-semantic-memories`
 - `delete-episodic-memory`
 - `delete-chat-conversation`
 - `delete-semantic-memory`
+- `clear-local-memory`
+- `clear-chat-history`
 - `store-chat-event`
+- `replace-chat-conversation`
+- `rewrite-chat-conversation-after-event`
 
 Local tool runtime nuances:
 
@@ -149,9 +182,16 @@ Local tool runtime nuances:
 - `windie:rows`: SDK display rows for renderer chat UI
 - `windie:status`: SDK desktop agent status snapshots
 - `windie:conversation-event`: SDK-normalized conversation events for transcript/session side effects
+- `windie:memory-store-changed`: memory-store invalidation events
+- `windie:conversation-metadata-invalidated`: sidebar/list metadata invalidation
 - `windie:current-turn`: SDK current-turn projection for live assistant/tool UI
+- `transcript-session-sync`: normalized transcript session sync snapshots
 - `ipc-status`: websocket connection + endpoint status payload
+- `local-backend-status`: local SDK sidecar process/readiness status
 - `response-overlay-phase`: phase transitions (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`)
+- `backend-settings-event`: model/settings ACK and settings-error events
+- `agent-capability-event`: client tool manifest and remote tool catalog events
+- `audio-chunk`: TTS/audio side-channel payloads
 
 ### Wakeword/UI events
 
@@ -160,7 +200,9 @@ Local tool runtime nuances:
 - `wakeword-toggle`
 - `wakeword-stt-trigger`
 - `chatbox-focus`
+- `workspace-access-updated`
 - `main-window-open-target`
+- `response-overlay-visibility`
 - `log` (diagnostic)
 
 ## Permission Runtime Channel Contract
@@ -202,8 +244,8 @@ Incoming websocket messages are owned by the SDK desktop agent. Electron main fo
 
 Keep these in sync whenever adding a channel:
 
-1. `preload.js` allowlist arrays
-2. `channels.ts` constants
+1. `frontend/src/shared/ipcChannels.json`
+2. `channels.ts` expected shared-registry validation
 3. `ipc.cjs` / `index.cjs` / `local_backend_bridge.cjs` / `wakeword_bridge.cjs` handler registration + `wakeword_bridge_runtime.cjs` helper ownership
 4. renderer call sites (`IpcBridge.send|invoke|on`)
 

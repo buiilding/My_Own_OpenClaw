@@ -39,11 +39,17 @@ All methods are channel-allowlisted in preload before hitting `ipcRenderer`.
 
 Allowed channels (from shared `SEND_CHANNELS` registry):
 
-- `to-backend`
+- `renderer-log`
+- `live-surface-trace`
+- `transcript-session-sync`
 - `move-chatbox-to`
 - `wakeword-audio-chunk`
 - `wakeword-enable`
 - `wakeword-disable`
+
+Historical note: `to-backend` is not a current preload send channel. Renderer
+backend commands enter Electron main through `window.windie.invoke(...)`, which
+uses the `windie:invoke` invoke channel.
 
 For invalid channels:
 
@@ -56,38 +62,54 @@ Allowed channels (from shared `INVOKE_CHANNELS` registry):
 - `capture-screenshot-attachment`
 - `read-attachment-file`
 - `run-browser-action`
+- `windie:invoke` for SDK-shaped commands such as `conversation.send`,
+  `conversation.stop`, `settings.update`, `models.list`, `wakeword.detected`,
+  `conversations.list`, `conversations.search`, `conversation.load`,
+  `conversations.delete`, `memories.list`, `memories.delete`, and
+  `memories.clearAll`
 - `upload-artifact`
 - `fetch-artifact-image`
 - `get-system-state`
-- `windie:invoke` for SDK-shaped commands such as `conversations.list`,
-  `conversations.search`, `conversation.load`, `conversations.delete`,
-  `memories.list`, `memories.delete`, and `memories.clearAll`
-- `set-chatbox-visual-anchor-height`
 - `get-client-user-id`
+- `copy-image-to-clipboard`
+- `show-image-context-menu`
+- `set-chatbox-visual-anchor-height`
+- `set-chatbox-hit-test-active`
+- `set-responsebox-hit-test-active`
+- `set-responsebox-size`
+- `prime-response-overlay-awaiting`
+- `show-main-window`
 - `get-main-window-visibility`
+- `show-chatbox`
+- `activate-chatbox-text-entry`
+- `hide-chatbox`
 - `handoff-surface-for-computer-use`
 - `prepare-surface-for-screenshot`
-
-Memory list/delete/clear and chat clear are not direct preload invoke channels.
-Renderer memory UI uses SDK-shaped `window.windie.invoke("memories.*", payload)`
-and `window.windie.invoke("conversations.clearAll", payload)` commands, and
-Electron main maps those commands to public SDK agent APIs.
 - `restore-surface-after-screenshot`
-- `set-responsebox-size`
-- `show-main-window`
-- `show-chatbox`
-- `hide-chatbox`
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
+- `list-agent-extensions`
+- `list-mcp-servers`
+- `set-mcp-server-enabled`
+- `refresh-mcp-servers`
+- `openai-codex-oauth-login`
+- `openai-codex-oauth-logout`
 - `list-permissions`
 - `check-permissions`
 - `check-permission`
 - `run-permission-probe`
 - `request-permission`
+- `set-active-workspace`
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
+- `get-local-backend-status`
+
+Memory list/delete/clear and chat clear are not direct preload invoke channels.
+Renderer memory UI uses SDK-shaped `window.windie.invoke("memories.*", payload)`
+and `window.windie.invoke("conversations.clearAll", payload)` commands, and
+Electron main maps those commands to public SDK agent APIs.
 
 For invalid channels:
 
@@ -102,17 +124,32 @@ Legacy note:
 
 Allowed channels (from shared `ON_CHANNELS` registry):
 
-- `from-backend`
+- `windie:rows`
+- `windie:status`
+- `windie:conversation-event`
+- `windie:memory-store-changed`
+- `windie:conversation-metadata-invalidated`
+- `windie:current-turn`
+- `transcript-session-sync`
 - `ipc-status`
+- `local-backend-status`
 - `log`
 - `wakeword-detected`
 - `wakeword-status`
 - `wakeword-toggle`
 - `wakeword-stt-trigger`
 - `chatbox-focus`
+- `workspace-access-updated`
 - `main-window-open-target`
 - `response-overlay-phase`
+- `backend-settings-event`
+- `agent-capability-event`
+- `audio-chunk`
 - `response-overlay-visibility`
+
+Historical note: `from-backend` is not a current preload listener channel.
+Main routes SDK conversation projections and typed backend events through the
+specific channels above.
 
 `on(...)` semantics:
 
@@ -157,13 +194,22 @@ Allowlisted preload channels must have matching main-process ownership in `front
 
 Current high-value mappings:
 
-- `send('to-backend')` -> `ipcMain.on('to-backend', ...)`
-- `invoke('load-frontend-config')` -> `ipcMain.handle('load-frontend-config', ...)`
-- `invoke('save-frontend-config')` -> `ipcMain.handle('save-frontend-config', ...)`
-- `invoke('get-client-user-id')` -> `ipcMain.handle('get-client-user-id', ...)`
-- `invoke('upload-artifact')` -> `ipcMain.handle('upload-artifact', ...)`
-- `invoke('list-permissions'|'check-permissions'|'run-permission-probe'|'request-permission')` -> `ipcMain.handle(...)` in `index.cjs` backed by `permission_service.cjs`
-- `on('from-backend')` -> main bridge broadcasts backend events to renderer windows
+- `send('renderer-log')` / `send('live-surface-trace')` -> main logging and
+  trace handlers in `ipc.cjs`
+- `send('transcript-session-sync')` -> transcript session sync handler in
+  `ipc.cjs`
+- `invoke('windie:invoke')` -> SDK-shaped command router in `ipc.cjs`
+- `invoke('load-frontend-config')` / `invoke('save-frontend-config')` ->
+  frontend config handlers
+- `invoke('get-client-user-id')` -> connection/user/session snapshot handler
+- `invoke('upload-artifact')` / `invoke('fetch-artifact-image')` -> artifact
+  handlers
+- `invoke('list-permissions'|'check-permissions'|'run-permission-probe'|'request-permission')`
+  -> permission handlers in `permission_ipc_runtime.cjs`
+- `on('windie:rows'|'windie:status'|'windie:conversation-event'|'windie:current-turn')`
+  -> SDK projection/event broadcasts
+- `on('backend-settings-event'|'agent-capability-event'|'audio-chunk')` ->
+  typed backend event fan-out
 - `on('ipc-status')` -> main bridge broadcasts connection-state payload
 
 Contract drift usually appears when one layer is changed without the others.

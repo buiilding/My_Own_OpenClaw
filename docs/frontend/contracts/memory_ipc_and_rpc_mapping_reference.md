@@ -1,7 +1,7 @@
 ---
-summary: "Renderer/main/sidecar memory and chat-event IPC contract reference: invoke-channel payload shapes, JSON-RPC method mappings, response envelopes, and storage ownership."
+summary: "Renderer/main/sidecar memory and chat-event contract reference: SDK-shaped renderer commands, internal local-backend JSON-RPC bridge handler mappings, response envelopes, and storage ownership."
 read_when:
-  - When changing memory-related IPC invoke payloads or sidecar JSON-RPC method contracts.
+  - When changing memory-related SDK renderer commands, local-backend bridge handler payloads, or sidecar JSON-RPC method contracts.
   - When debugging dashboard memory list/delete failures, chat history persistence issues, or embedding memory search mismatches.
 title: "Memory IPC and RPC Mapping Reference"
 ---
@@ -21,15 +21,23 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/main/python/memory/chat_event_store.py`
 - `frontend/src/main/python/memory/local_store.py`
 
-## Active Local-Runtime Channels
+## Active Local-Runtime Bridge Handlers
 
-Chat-event storage and continuity local-runtime channels:
+These names are internal Electron-main to sidecar bridge handler names, not
+direct renderer preload `invoke` channels. Renderer feature code enters through
+SDK-shaped `window.windie.invoke(...)` commands.
+
+Chat-event storage and continuity local-runtime bridge handlers:
 
 - `store-chat-event`
 - `list-chat-conversations`
 - `search-chat-conversations`
 - `get-chat-events`
+- `get-chat-conversation-revision`
 - `delete-chat-conversation`
+- `replace-chat-conversation`
+- `rewrite-chat-conversation-after-event`
+- `clear-chat-history`
 
 Memory storage and retrieval:
 

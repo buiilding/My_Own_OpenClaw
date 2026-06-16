@@ -29,6 +29,9 @@ All notable changes to WindieOS will be documented in this file.
   allowlist docs, and backend event fan-out docs to match the current
   `windie:invoke`, `windie:*`, `backend-settings-event`, and JSON-RPC mapper
   behavior.
+- docs/frontend: align the preload bridge, IPC handler, compact IPC contract,
+  and memory IPC mapping references with the shared channel registry and
+  current internal local-backend bridge handlers.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

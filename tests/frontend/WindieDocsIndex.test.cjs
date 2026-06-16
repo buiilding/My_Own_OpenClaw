@@ -170,6 +170,33 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes preload allowlist queries to the preload bridge reference', () => {
+    expect(findDocs('preload channel allowlist renderer bridge windie invoke')[0].path).toBe(
+      path.join(
+        'docs',
+        'frontend',
+        'preload',
+        'preload_channel_allowlist_and_renderer_bridge_reference.md',
+      ),
+    );
+  });
+
+  test('routes IPC handler mapper queries to the IPC channel reference', () => {
+    expect(
+      findDocs('ipc channel handler mapped JSON-RPC clear chat history revision')[0].path,
+    ).toBe(
+      path.join('docs', 'frontend', 'contracts', 'ipc_channel_and_handler_reference.md'),
+    );
+  });
+
+  test('routes memory bridge mapping queries to the memory IPC reference', () => {
+    expect(
+      findDocs('memory ipc rpc mapping clear chat history replace conversation revision')[0].path,
+    ).toBe(
+      path.join('docs', 'frontend', 'contracts', 'memory_ipc_and_rpc_mapping_reference.md'),
+    );
+  });
+
   test('routes package and reinstall queries to the cross-platform runbook', () => {
     expect(findDocs('packaging reinstall')[0].path).toBe(
       path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),
