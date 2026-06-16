@@ -197,6 +197,44 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes typed response formatter dispatch queries to backend formatter docs', () => {
+    const registryPath = path.join(
+      'docs',
+      'backend',
+      'api',
+      'processing',
+      'formatters',
+      'registry',
+      'response_formatter_registry_lifecycle_lazy_specs_and_context_attachment_reference.md',
+    );
+    const dispatchPath = path.join(
+      'docs',
+      'backend',
+      'api',
+      'processing',
+      'formatter_dispatch_and_schema_alignment_reference.md',
+    );
+    const runtimePath = path.join(
+      'docs',
+      'backend',
+      'runtime',
+      'query_execution_and_stream_pipeline_reference.md',
+    );
+
+    expect(findDocs('response formatter event type dispatch map removed')[0].path).toBe(
+      registryPath,
+    );
+    expect(
+      findDocs('response formatter registry typed only event type uniqueness set')[0].path,
+    ).toBe(registryPath);
+    expect(findDocs('formatter dict dispatch compatibility removed')[0].path).toBe(
+      dispatchPath,
+    );
+    expect(
+      findDocs('query execution stream pipeline typed response formatter dispatch')[0].path,
+    ).toBe(runtimePath);
+  });
+
   test('routes preload allowlist queries to the preload bridge reference', () => {
     expect(findDocs('preload channel allowlist renderer bridge windie invoke')[0].path).toBe(
       path.join(

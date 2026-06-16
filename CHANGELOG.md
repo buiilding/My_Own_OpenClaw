@@ -62,6 +62,8 @@ All notable changes to WindieOS will be documented in this file.
   searches to the agent definition contract.
 - docs/backend: route removed legacy core tool protocol searches to the SDK
   tool context contract and current core `ToolResult` boundary.
+- docs/backend: route stale response-formatter dict-dispatch and event-type-map
+  searches to the typed formatter dispatch and registry docs.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
