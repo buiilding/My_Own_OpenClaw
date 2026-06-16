@@ -121,7 +121,7 @@ Date: 2026-06-15
 | CD-088 | Electron chat-pill visibility intent path exports | `chat_pill_visibility_intent_store.cjs` exported the persisted filename constant and path resolver even though production uses only the read/write intent store operations | Knip reported both exports unused; repo search showed only `ChatPillVisibilityIntentStore.test.cjs` imported the resolver directly while `index.cjs` imports the store operations | Remove the path helper exports and assert default user-data path behavior through `writeChatPillVisibilityIntent(...)` | `e40ce6bed` |
 | CD-089 | Electron main-window close/content-protection helper exports | `main_window_runtime.cjs` exported dashboard collapse/hide helpers and an unused content-protection wrapper even though production routes close behavior through `createMainWindow(...)` and content protection through `window_platform_policy`/surface runtime | Knip reported all three exports unused; repo search showed only `MainWindowRuntime.test.cjs` imported them directly, while the content-protection wrapper had no production caller | Delete the unused content-protection wrapper, keep close helpers private, and assert close/collapse behavior through the main-window factory close handler | `b63032dda` |
 | CD-090 | Electron response-overlay preflight guard predicate export | `response_overlay_phase_handler.cjs` exported `isResponseOverlayPreflightGuardRef(...)` even though production uses the predicate only inside the phase handler | Knip reported the export unused; repo search showed no test, production, docs, or script imports outside same-module calls | Remove the predicate export and keep preflight guard behavior covered through `handleResponseOverlayPhaseEvent(...)` tests | `826f82e50` |
-| CD-091 | Electron surface-runtime chat-pill visibility helper exports | `surface_runtime.cjs` exported chat-pill show/hide reason constants plus visibility decision formatter/logger helpers even though production uses them only inside the surface runtime | Knip reported all four exports unused; repo search showed only private same-module references after removing the exports | Remove the helper exports and keep visibility persistence, suppression, diagnostics, and trace behavior routed through `createSurfaceRuntime(...)` | pending commit |
+| CD-091 | Electron surface-runtime chat-pill visibility helper exports | `surface_runtime.cjs` exported chat-pill show/hide reason constants plus visibility decision formatter/logger helpers even though production uses them only inside the surface runtime | Knip reported all four exports unused; repo search showed only private same-module references after removing the exports | Remove the helper exports and keep visibility persistence, suppression, diagnostics, and trace behavior routed through `createSurfaceRuntime(...)` | `7224d9f26` |
 
 ## Commit Ledger
 
@@ -301,7 +301,8 @@ Date: 2026-06-15
   completed CD-089.
 - `826f82e50 refactor(frontend): keep preflight guard predicate private`
   completed CD-090.
-- Pending implementation commit completes CD-091.
+- `7224d9f26 refactor(frontend): keep chat pill visibility helpers private`
+  completed CD-091.
 
 ## Validation Log
 
