@@ -1,12 +1,12 @@
 ---
-summary: "Backend LLM provider base runtime reference: request param validation, message/tool schema normalization, stream event extraction, removed choice text completion fallback behavior, canonical message.content completion parsing, and usage/cache diagnostics semantics."
+summary: "Backend LLM provider base runtime reference: request param validation, message/tool schema normalization, stream event extraction, removed provider tool-call id synthesis behavior, fail-closed missing tool_call_id semantics, removed choice text completion fallback behavior, canonical message.content completion parsing, and usage/cache diagnostics semantics."
 read_when:
   - When changing `LLMProvider`/`OnlineLLMProvider` method contracts in `backend/src/llm/providers/base.py` and `online.py`.
-  - When debugging malformed tool-calls, stream delta parsing, choice-level completion text fallback behavior, OpenAI choice text fallback payloads, or cache diagnostics values on streamed turns.
-title: "Base Request, Stream, and Normalization Reference"
+  - When debugging malformed tool-calls, provider tool call id synthesis removal, missing provider tool_call_id fail-closed behavior, OpenAI Responses tool call id requirements, stream delta parsing, choice-level completion text fallback behavior, OpenAI choice text fallback payloads, or cache diagnostics values on streamed turns.
+title: "Base Provider Tool-Call ID and Normalization Reference"
 ---
 
-# Base Request, Stream, and Normalization Reference
+# Base Provider Tool-Call ID and Normalization Reference
 
 ## Canonical Modules
 
@@ -167,6 +167,9 @@ Completion response normalization (`_extract_completion_response(...)`):
   - Anthropic-style `content` blocks with `type=tool_use`,
 - requires each provider tool call to include a non-empty id because
   `tool_call_id` is the join key for later `role=tool` messages,
+- does not synthesize provider tool-call ids; missing ids from non-stream,
+  streamed, or OpenAI Responses provider payloads fail closed instead of
+  inventing join keys,
 - collapses exact duplicate tool-call representations when a provider exposes
   the same call in multiple fields, then rejects any remaining duplicate
   normalized tool-call IDs in one assistant response,

@@ -715,6 +715,23 @@ describe('windie docs index', () => {
     expect(findDocs('completion fallback choice text')[0].path).toBe(expectedPath);
   });
 
+  test('routes provider tool-call id fail-closed queries to provider parsing docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'llm',
+      'providers',
+      'base_request_stream_and_normalization_reference.md',
+    );
+
+    expect(findDocs('provider tool call id synthesis removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('OpenAI Responses tool call id required')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes ToolCallSchema wrapper-removal queries to parser extraction docs', () => {
     const expectedPath = path.join(
       'docs',
