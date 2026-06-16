@@ -108,7 +108,7 @@ class ScreenshotManager:
             screenshot_id: Unique ID for this screenshot (for race condition prevention)
             request_id: Request ID for logging purposes
         """
-        ocr_service = getattr(session, "ocr_router", session.ocr_service)
+        ocr_service = getattr(session, "ocr_router", None)
         ocr_state = session.get_ocr_runtime_state()
         if not ocr_service or not ocr_service.enabled:
             # OCR disabled: keep event set so tools don't block unnecessarily.

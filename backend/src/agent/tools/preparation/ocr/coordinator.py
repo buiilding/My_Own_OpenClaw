@@ -109,8 +109,6 @@ class OcrCoordinator:
             ocr_exec_start = time.perf_counter()
 
             ocr_service = getattr(session, "ocr_router", None)
-            if ocr_service is None:
-                ocr_service = getattr(session, "ocr_service", None)
             if not ocr_service or not ocr_service.enabled:
                 error_message = "OCR service is not available or enabled"
                 if ocr_service and callable(

@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - frontend/renderer: remove the renderer-only tool correlation alias and route
   chat stream correlation through the SDK package export.
+- backend/tools: require the session `ocr_router` path for screenshot OCR
+  preparation and remove the old `ocr_service` fallback.
 - backend/api: remove formatter dict-event input compatibility and require typed
   streaming event attribute extraction.
 - docs/backend: update formatter references for typed event attribute extraction

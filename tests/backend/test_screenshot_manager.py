@@ -16,8 +16,8 @@ class DummyOcrService:
 
 
 class DummySession:
-    def __init__(self, ocr_service):
-        self.ocr_service = ocr_service
+    def __init__(self, ocr_router):
+        self.ocr_router = ocr_router
         self.ocr_completion_event = asyncio.Event()
         self.ocr_completion_event.set()
         self._current_screenshot_id = None
@@ -97,7 +97,7 @@ class _DummyOcrRuntimeState:
 @pytest.mark.asyncio
 async def test_ensure_screenshot_raises_when_missing():
     manager = ScreenshotManager()
-    session = DummySession(ocr_service=None)
+    session = DummySession(ocr_router=None)
 
     with pytest.raises(ValueError, match="No active screenshot available"):
         await manager.ensure_screenshot(session)
@@ -106,7 +106,7 @@ async def test_ensure_screenshot_raises_when_missing():
 @pytest.mark.asyncio
 async def test_ensure_screenshot_passes_when_current_screenshot_exists():
     manager = ScreenshotManager()
-    session = DummySession(ocr_service=None)
+    session = DummySession(ocr_router=None)
     session.set_current_screenshot("shot-1", "image-data")
 
     await manager.ensure_screenshot(session)
@@ -115,7 +115,7 @@ async def test_ensure_screenshot_passes_when_current_screenshot_exists():
 @pytest.mark.asyncio
 async def test_process_screenshot_skips_ocr_when_disabled(monkeypatch):
     manager = ScreenshotManager()
-    session = DummySession(ocr_service=DummyOcrService(enabled=False))
+    session = DummySession(ocr_router=DummyOcrService(enabled=False))
     created_tasks = []
 
     monkeypatch.setattr(asyncio, "create_task", lambda coro: created_tasks.append(coro))
@@ -130,7 +130,7 @@ async def test_process_screenshot_skips_ocr_when_disabled(monkeypatch):
 @pytest.mark.asyncio
 async def test_process_screenshot_stores_id_and_data():
     manager = ScreenshotManager()
-    session = DummySession(ocr_service=DummyOcrService(enabled=False))
+    session = DummySession(ocr_router=DummyOcrService(enabled=False))
 
     screenshot_id = await manager.process_screenshot(session, "img-data", "req-2")
 
@@ -145,7 +145,7 @@ async def test_process_screenshot_stores_id_and_data():
 @pytest.mark.asyncio
 async def test_process_screenshot_delegates_capture_meta_to_session_storage():
     manager = ScreenshotManager()
-    session = DummySession(ocr_service=DummyOcrService(enabled=False))
+    session = DummySession(ocr_router=DummyOcrService(enabled=False))
     capture_meta = {"source_w": 100, "source_h": 50}
 
     await manager.process_screenshot(
@@ -171,7 +171,7 @@ def test_generate_screenshot_id_deterministic_for_same_input():
 @pytest.mark.asyncio
 async def test_process_screenshot_triggers_ocr_and_stores_results():
     manager = ScreenshotManager()
-    session = DummySession(ocr_service=DummyOcrService(enabled=True))
+    session = DummySession(ocr_router=DummyOcrService(enabled=True))
 
     await manager.process_screenshot(session, "img-ocr", "req-3")
 
@@ -191,7 +191,7 @@ async def test_process_screenshot_ignores_outdated_ocr_results():
             return [{"text": data}]
 
     manager = ScreenshotManager()
-    session = DummySession(ocr_service=SlowOcrService(enabled=True))
+    session = DummySession(ocr_router=SlowOcrService(enabled=True))
 
     first_id = await manager.process_screenshot(session, "first-image", "req-a")
     second_id = await manager.process_screenshot(session, "second-image", "req-b")
@@ -225,7 +225,7 @@ async def test_process_screenshot_keeps_event_unset_until_active_ocr_finishes():
 
     manager = ScreenshotManager()
     ocr_service = DeferredOcrService()
-    session = DummySession(ocr_service=ocr_service)
+    session = DummySession(ocr_router=ocr_service)
 
     await manager.process_screenshot(session, "first-image", "req-a")
     first_started = await asyncio.wait_for(ocr_service.started.get(), timeout=1.0)

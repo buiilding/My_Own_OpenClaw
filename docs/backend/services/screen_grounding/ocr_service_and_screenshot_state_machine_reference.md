@@ -115,7 +115,7 @@ Test-backed behavior:
 3. waits up to 5.0s with `asyncio.wait_for(asyncio.shield(task), timeout=5.0)`
 4. if timed out or the proactive task fails, falls back to on-demand OCR execution
 5. rejects cached OCR reuse when screenshot ID changed
-6. executes `ocr_service.perform_ocr(...)` when cache is absent/stale
+6. executes `ocr_router.perform_ocr(...)` when cache is absent/stale
 7. stores fresh OCR results back into session current OCR slot
 
 Failure semantics:
@@ -129,7 +129,7 @@ Failure semantics:
 
 Coverage note:
 
-- `OcrCoordinator` currently has no direct unit-test module; behavior is indirectly exercised through screenshot/state and coordinate-path tests
+- `OcrCoordinator` direct behavior is covered by `tests/backend/test_ocr_coordinator.py`
 
 ## OcrService Engine Lifecycle and Fallbacks
 
