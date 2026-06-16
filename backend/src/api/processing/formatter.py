@@ -25,19 +25,19 @@ class ResponseFormatter:
 
     def __init__(self):
         """Initialize the formatter with a registry of event formatters."""
-        self._formatters: Dict[str, EventFormatter] = {}
+        self._event_types: set[str] = set()
         self._typed_formatters: Dict[type, EventFormatter] = {}
         self._register_formatters()
 
     def _register_formatters(self) -> None:
-        """Register typed and dict formatter dispatch tables from one source."""
+        """Register typed formatter dispatch and validate event type uniqueness."""
         for event_cls, event_type, formatter_cls in get_formatter_specs():
-            if event_type in self._formatters:
+            if event_type in self._event_types:
                 raise ValueError(f"Duplicate formatter registration for type: {event_type}")
             if event_cls in self._typed_formatters:
                 raise ValueError(f"Duplicate formatter registration for class: {event_cls}")
             formatter = formatter_cls()
-            self._formatters[event_type] = formatter
+            self._event_types.add(event_type)
             self._typed_formatters[event_cls] = formatter
 
     def format(

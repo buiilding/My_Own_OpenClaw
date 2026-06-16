@@ -111,6 +111,8 @@ All notable changes to WindieOS will be documented in this file.
   only backend tool-context contract.
 - docs/backend: remove stale response-formatter dict-dispatch compatibility
   wording; response formatting now documents typed event dispatch only.
+- backend/api: replace the unused response-formatter event-type dispatch map
+  with an event-type uniqueness set now that runtime formatting is typed-only.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

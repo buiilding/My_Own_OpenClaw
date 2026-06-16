@@ -27,11 +27,12 @@ title: "Formatter Dispatch and Schema Alignment Reference"
 - lazy formatter/event imports prevent cycle through `api.processing.__init__`
 - `@lru_cache(maxsize=1)` stabilizes table construction cost
 
-`ResponseFormatter._register_formatters()` builds two O(1) dispatch maps:
+`ResponseFormatter._register_formatters()` builds one dispatch map plus one
+event-type guard set:
 
 - `_typed_formatters`: `type(event) -> formatter`
-- `_formatters`: `event_type -> formatter` registry mirror for duplicate-type
-  validation and drift checks
+- `_event_types`: accepted stream event type literals for duplicate-type
+  validation and registry drift checks
 
 Fail-fast guards:
 

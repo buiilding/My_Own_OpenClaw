@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for formatter registration source-of-truth, lazy/cached spec loading, typed-vs-dict dispatch precedence, and transport context field attachment semantics."
+summary: "Deep reference for formatter registration source-of-truth, lazy/cached spec loading, typed dispatch, event-type uniqueness guards, and transport context field attachment semantics."
 read_when:
   - When adding a new stream event formatter or changing event-to-outgoing message type mapping.
   - When triaging missing formatter routes, duplicate registration exceptions, or absent `session_id`/`turn_ref` in stream envelopes.
@@ -52,7 +52,7 @@ Operational nuance:
 
 `ResponseFormatter.__init__()` sequence:
 
-1. initialize empty `_formatters: Dict[str, EventFormatter]`
+1. initialize empty `_event_types: set[str]`
 2. initialize empty `_typed_formatters: Dict[type, EventFormatter]`
 3. `_register_formatters()` iterates spec tuples and instantiates formatter classes
 
@@ -75,7 +75,7 @@ Important precision detail:
 - typed dispatch uses exact class identity (`type(event)`), not `isinstance` polymorphism
 - subclassed events require explicit spec entries if class differs
 
-`_formatters` remains a registry mirror for formatter-spec drift checks and event-type uniqueness; runtime dispatch uses typed event classes only.
+`_event_types` remains a registry mirror for formatter-spec drift checks and event-type uniqueness; runtime dispatch uses typed event classes only.
 
 ## Context Attachment Boundary
 

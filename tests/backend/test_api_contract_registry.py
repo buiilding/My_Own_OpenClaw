@@ -69,7 +69,7 @@ def test_formatter_specs_align_with_response_formatter_dispatch() -> None:
 
     assert len(spec_event_classes) == len(set(spec_event_classes))
     assert len(spec_stream_event_types) == len(set(spec_stream_event_types))
-    assert set(spec_stream_event_types) == set(formatter._formatters.keys())
+    assert set(spec_stream_event_types) == formatter._event_types
     assert set(spec_event_classes) == set(formatter._typed_formatters.keys())
     assert set(spec_outgoing_types).issubset(get_outgoing_schema_message_types())
 
