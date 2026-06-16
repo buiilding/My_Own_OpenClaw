@@ -163,8 +163,8 @@ function logStoredCompactionEvent(event, params, response) {
         producerEventId: normalizeString(params.producer_event_id),
         producerSequence: typeof params.producer_sequence === 'number' ? params.producer_sequence : null,
         messageIndex: responseMessageIndex(response),
-        generationId: normalizeString(payload.generationId) ?? normalizeString(payload.generation_id),
-        skippedReason: normalizeString(payload.skippedReason) ?? normalizeString(payload.skipped_reason),
+        generationId: normalizeString(payload.generationId),
+        skippedReason: normalizeString(payload.skippedReason),
         hasCompactionCheckpoint: Boolean(params.compaction_checkpoint),
     });
 }

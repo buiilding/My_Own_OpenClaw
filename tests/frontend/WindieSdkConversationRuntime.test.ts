@@ -1505,6 +1505,32 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('in-memory store ignores direct snake_case SDK compaction replay payloads', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvent(event('user_message', { text: 'hello' }));
+    await store.appendEvent(event('compaction_applied', {
+      generation_id: 'gen-legacy',
+      source_revision_id: 'rev-legacy',
+      replacement_history_entries: [
+        { role: 'assistant', content: 'legacy summary' },
+      ],
+      entry_count: 1,
+      complete: true,
+      active: true,
+    }));
+
+    await expect(store.loadCompactedReplay('conv-sdk-runtime')).resolves.toBeNull();
+    await expect(store.loadForRehydrate('conv-sdk-runtime')).resolves.toMatchObject({
+      conversationRef: 'conv-sdk-runtime',
+      messages: [
+        expect.objectContaining({
+          role: 'user',
+          content: 'hello',
+        }),
+      ],
+    });
+  });
+
   test('in-memory store preserves append order for events with the same timestamp', async () => {
     const store = new InMemoryConversationStore();
     const timestamp = new Date().toISOString();

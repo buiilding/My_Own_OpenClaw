@@ -37,6 +37,8 @@ All notable changes to WindieOS will be documented in this file.
   and compaction generation accepts from the backend event normalizer.
 - sdk/typescript: require SDK-shaped tool-call and tool-bundle payloads at the
   local tool execution coordinator boundary.
+- sdk/typescript: require SDK-shaped compacted replay event payloads before
+  activating store rehydrate snapshots.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and
