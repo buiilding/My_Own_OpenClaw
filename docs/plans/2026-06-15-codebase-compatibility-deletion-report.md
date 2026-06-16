@@ -110,6 +110,7 @@ Date: 2026-06-15
 | CD-077 | Electron runtime helper user/payload exports | `ipc_runtime_helpers.cjs` still exported `generateUserId(...)` and `normalizeBackendPayload(...)` after install auth and SDK managed agent sessions became the active identity/websocket payload owners | Knip reported both exports unused; repo search found no production imports, and the only direct payload-normalizer use was a websocket contract test that should exercise the SDK managed agent session default filter instead | Delete the stale helper functions and retarget contract tests/docs to the SDK managed agent session plus current Electron direct-payload filters | `f739e3df3` |
 | CD-078 | Electron settings sync helper exports | `ipc_settings_sync_runtime.cjs` exported `buildBackendSettingsPayload(...)` and `createSettingsSyncRuntime(...)` even though production imports only `createIpcSettingsSyncRuntime(...)` | Knip reported both exports unused; repo search found `buildBackendSettingsPayload(...)` only inside the same module plus tests, and `createSettingsSyncRuntime(...)` only in the helper-specific test | Remove the helper exports and wrapper, keep backend settings filtering private inside `sendSettingsUpdate(...)`, and assert filtering through the production runtime factory | `11d7649a1` |
 | CD-079 | Electron tool-surface lifecycle helper export | `tool_surface_lifecycle.cjs` exported `normalizeToolName(...)` even though production imports only `createElectronToolSurfaceLifecycle(...)` to install the SDK local-tool lifecycle hook | Knip reported the export unused; repo search found no external imports, and same-module use only normalizes local tool names before choosing pointer/screenshot leases | Remove the helper export and keep tool-name normalization private to the lifecycle hook implementation | `0edefaf36` |
+| CD-080 | Electron global stop shortcut helper exports | `agent_stop_shortcut_runtime.cjs` exported `ACTIVE_AGENT_LOOP_STOP_PHASES`, `getSupportedGlobalAgentStopShortcuts(...)`, and `normalizeGlobalAgentStopAccelerator(...)` even though production imports only the runtime initializer, phase predicate, and public accelerator resolver | Knip reported all three exports unused; repo search showed only `AgentStopShortcutRuntime.test.cjs` imported the catalog and normalizer helpers directly while production observes shortcut options through runtime status | Remove the helper exports, keep phase/catalog/accelerator normalization private, and assert shortcut catalog/normalization through public runtime status and resolver APIs | pending |
 
 ## Commit Ledger
 
@@ -1403,6 +1404,25 @@ CD-079 validation:
   installs the same `createElectronToolSurfaceLifecycle(...)` hook and still
   begins pointer-control leases for `mouse_control`/`scroll_control` and
   screenshot-capture leases for `screenshot`.
+
+CD-080 validation:
+
+- targeted `rg -n "ACTIVE_AGENT_LOOP_STOP_PHASES|getSupportedGlobalAgentStopShortcuts|normalizeGlobalAgentStopAccelerator" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/.vite/**'`:
+  no external imports remain; matches are private same-module helper use inside
+  `agent_stop_shortcut_runtime.cjs`.
+- `bin/windie test frontend -- AgentStopShortcutRuntime IpcMainBridge.lifecycle IpcStartupState SettingsSection AgentStopShortcut`:
+  passed; 5 suites and 96 tests. Jest printed the existing open-handle warning
+  after completion but exited successfully.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 100 to 97 after
+  removing the global stop shortcut helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, settings, IPC, or persisted-data
+  migration is required. `initializeAgentStopShortcutRuntime(...)` still
+  projects the same `supportedAccelerators`, fallback registration behavior, and
+  phase gating, while the public accelerator resolver remains available for
+  main bootstrap callers.
 
 ## Inspection Notes
 

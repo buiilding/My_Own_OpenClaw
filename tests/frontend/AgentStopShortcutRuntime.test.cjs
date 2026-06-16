@@ -1,10 +1,8 @@
 /** @jest-environment node */
 
 const {
-  getSupportedGlobalAgentStopShortcuts,
   initializeAgentStopShortcutRuntime,
   isAgentLoopStopShortcutPhase,
-  normalizeGlobalAgentStopAccelerator,
   resolveGlobalAgentStopAccelerator,
 } = require('../../frontend/src/main/sdk/agent_stop_shortcut_runtime.cjs');
 
@@ -93,9 +91,10 @@ describe('agent_stop_shortcut_runtime', () => {
     const runtime = initializeAgentStopShortcutRuntime({ globalShortcut, warn });
 
     runtime.setEnabled(true);
+    const supportedAccelerators = runtime.getStatus().supportedAccelerators;
 
     expect(warn).toHaveBeenCalledWith(
-      `[Main] Failed to register global stop shortcut. Tried: ${getSupportedGlobalAgentStopShortcuts(process.platform).map((shortcut) => shortcut.accelerator).join(', ')}`,
+      `[Main] Failed to register global stop shortcut. Tried: ${supportedAccelerators.join(', ')}`,
     );
     expect(runtime.isRegistered()).toBe(false);
     expect(runtime.getStatus()).toEqual(expect.objectContaining({
@@ -215,15 +214,23 @@ describe('agent_stop_shortcut_runtime', () => {
   });
 
   test('normalizes unsupported accelerators back to the platform default', () => {
-    expect(normalizeGlobalAgentStopAccelerator('CommandOrControl+Shift+Escape', 'win32'))
+    expect(resolveGlobalAgentStopAccelerator('win32', 'CommandOrControl+Shift+Escape'))
       .toBe('CommandOrControl+Alt+.');
   });
 
-  test('exposes platform-specific supported shortcut options', () => {
-    expect(getSupportedGlobalAgentStopShortcuts('darwin')).toEqual([
-      { accelerator: 'CommandOrControl+Shift+Escape', label: 'Command + Shift + Esc' },
-      { accelerator: 'CommandOrControl+Alt+.', label: 'Command + Option + .' },
-      { accelerator: 'CommandOrControl+Shift+.', label: 'Command + Shift + .' },
+  test('projects platform-specific supported shortcut accelerators in status', () => {
+    const runtime = initializeAgentStopShortcutRuntime({
+      globalShortcut: {
+        register: jest.fn(() => true),
+        unregister: jest.fn(),
+      },
+      platform: 'darwin',
+    });
+
+    expect(runtime.getStatus().supportedAccelerators).toEqual([
+      'CommandOrControl+Shift+Escape',
+      'CommandOrControl+Alt+.',
+      'CommandOrControl+Shift+.',
     ]);
   });
 });

@@ -244,10 +244,7 @@ function initializeAgentStopShortcutRuntime(deps = {}) {
 }
 
 module.exports = {
-  ACTIVE_AGENT_LOOP_STOP_PHASES,
-  getSupportedGlobalAgentStopShortcuts,
   initializeAgentStopShortcutRuntime,
   isAgentLoopStopShortcutPhase,
-  normalizeGlobalAgentStopAccelerator,
   resolveGlobalAgentStopAccelerator,
 };
