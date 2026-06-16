@@ -78,7 +78,7 @@ Date: 2026-06-15
 | CD-045 | Renderer chat-stream transparency helper module | `chatStreamTransparency.ts` and `buildAssistantTranscriptTransparency(...)` remained after transcript transparency replay moved to SDK projections and backend rehydrate transparency resolution | Knip reported the export unused; repo search showed the module was imported only by `ChatStreamTransparency.test.ts`, while remaining docs still routed transparency debugging through the orphan renderer helper | Delete the orphan helper module and test; update docs to route transparency replay issues to SDK projection and backend rehydrate transparency owners | `d445d30e2` |
 | CD-046 | Renderer transcript transparency type alias | `TranscriptTransparencyData` remained exported from renderer transcript `types.ts` after the renderer transparency helper was deleted and transparency replay moved to SDK/backend owners | Knip reported the type export unused; repo search showed no code imports and only stale transcript docs referenced the contract | Delete the stale type alias and its unused `ToolSchema` import; update transcript docs to keep `SessionInfo` as the active renderer transcript type contract | `1fd49e2a1` |
 | CD-047 | Transcript session options type export | `desktopTranscriptSessionRuntime.ts` re-exported `TranscriptSessionResolveOptions` from the infrastructure transcript runtime, and the infrastructure runtime exported the same options type even though it is used only inside that module | Knip reported the facade type export unused, then exposed the underlying infrastructure type export as unused after the facade re-export was removed; repo search showed no imports of either exported type | Remove the unused type import/re-export from the desktop facade and make the infrastructure options type private to the runtime implementation | `dd2f4d593` |
-| CD-048 | Stream tracking reducer state type export | `desktopChatStreamTrackingRuntime.ts` exported a local `StreamTracking` reducer state type even though the chat store owns the public stream-tracking state interface and callers import only event/options/phase types from the reducer module | Knip reported the reducer `StreamTracking` export unused; repo search showed no imports from the reducer module, while tests and store consumers use `features/chat/stores/chatStore` for the public shape | Make the reducer's local state type private while preserving the exported tracking event/options/phase types used by stream handlers | pending implementation commit |
+| CD-048 | Stream tracking reducer state type export | `desktopChatStreamTrackingRuntime.ts` exported a local `StreamTracking` reducer state type even though the chat store owns the public stream-tracking state interface and callers import only event/options/phase types from the reducer module | Knip reported the reducer `StreamTracking` export unused; repo search showed no imports from the reducer module, while tests and store consumers use `features/chat/stores/chatStore` for the public shape | Make the reducer's local state type private while preserving the exported tracking event/options/phase types used by stream handlers | `12341f690` |
 
 ## Commit Ledger
 
@@ -172,7 +172,8 @@ Date: 2026-06-15
   completed CD-046.
 - `dd2f4d593 refactor(frontend): remove transcript session type exports`
   completed CD-047.
-- pending implementation commit will complete CD-048.
+- `12341f690 refactor(frontend): keep stream tracking shape private`
+  completed CD-048.
 
 ## Validation Log
 
