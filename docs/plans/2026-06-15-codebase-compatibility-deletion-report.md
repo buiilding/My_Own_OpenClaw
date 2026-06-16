@@ -121,7 +121,8 @@ Date: 2026-06-15
   completed CD-029.
 - `34e4a309c refactor(frontend): remove unused screenshot source helpers`
   completed CD-030.
-- pending commit for CD-031.
+- `7f4ad40e5 refactor(frontend): keep screenshot cache internal`
+  completed CD-031.
 
 ## Validation Log
 
