@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: remove the old screenshot-field artifact-ref inference
   path so remote screenshots use explicit `screenshotRef`/`screenshotUrl`
   metadata only.
+- frontend/renderer: remove camelCase query-payload aliases from the desktop
+  backend transport so typed SDK dispatch uses the canonical snake_case command
+  contract.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,
   per-platform renderer hide/restore helpers, renderer computer-use catalog,
   stale system-state capture helper, and capture-only logging utilities; keep

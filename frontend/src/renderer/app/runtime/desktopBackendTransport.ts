@@ -35,31 +35,16 @@ async function sendQuery(
 ): Promise<string | null> {
   const result = await invokeWindieCommand<Record<string, unknown> | null>('conversation.send', {
     text: optionalString(payload.text) ?? '',
-    conversation_ref: optionalString(payload.conversation_ref)
-      ?? optionalString(payload.conversationRef)
-      ?? '',
+    conversation_ref: optionalString(payload.conversation_ref) ?? '',
     query_message_id: messageId,
-    screenshot_ref: optionalString(payload.screenshot_ref)
-      ?? optionalString(payload.screenshotRef)
-      ?? null,
+    screenshot_ref: optionalString(payload.screenshot_ref) ?? null,
     screenshot: optionalString(payload.screenshot) ?? null,
-    screenshot_url: optionalString(payload.screenshot_url)
-      ?? optionalString(payload.screenshotUrl)
-      ?? null,
-    screenshot_refs: optionalStringArray(payload.screenshot_refs)
-      ?? optionalStringArray(payload.screenshotRefs)
-      ?? null,
-    capture_meta: payload.capture_meta ?? payload.captureMeta ?? null,
-    attachment_context: optionalString(payload.attachment_context)
-      ?? optionalString(payload.attachmentContext)
-      ?? null,
-    attachment_filenames: optionalStringArray(payload.attachment_filenames)
-      ?? optionalStringArray(payload.attachmentFilenames)
-      ?? null,
-    workspace_path: optionalString(payload.workspace_path)
-      ?? optionalString(payload.workspacePath)
-      ?? workspacePath
-      ?? null,
+    screenshot_url: optionalString(payload.screenshot_url) ?? null,
+    screenshot_refs: optionalStringArray(payload.screenshot_refs) ?? null,
+    capture_meta: payload.capture_meta ?? null,
+    attachment_context: optionalString(payload.attachment_context) ?? null,
+    attachment_filenames: optionalStringArray(payload.attachment_filenames) ?? null,
+    workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
     memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
   });
   if (result && typeof result === 'object' && result.ok === false) {
@@ -88,24 +73,17 @@ function optionalRecordArray(value: unknown): Record<string, unknown>[] {
 
 async function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
   await invokeWindieCommand('conversation.rehydrate', {
-    conversation_ref: optionalString(payload.conversation_ref)
-      ?? optionalString(payload.conversationRef)
-      ?? '',
+    conversation_ref: optionalString(payload.conversation_ref) ?? '',
     messages: optionalRecordArray(payload.messages),
     rehydrate_mode: 'replace',
-    workspace_path: optionalString(payload.workspace_path)
-      ?? optionalString(payload.workspacePath)
-      ?? workspacePath
-      ?? null,
+    workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
   });
 }
 
 async function sendCompactHistory(payload: Record<string, unknown>): Promise<void> {
   await invokeWindieCommand('conversation.compact', {
     force: payload.force !== false,
-    conversation_ref: optionalString(payload.conversation_ref)
-      ?? optionalString(payload.conversationRef)
-      ?? null,
+    conversation_ref: optionalString(payload.conversation_ref) ?? null,
   });
 }
 
@@ -137,15 +115,15 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     },
     compactHistory: async (payload) => {
       await sendCompactHistory(payload);
-      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
+      return optionalString(payload.turn_ref) ?? undefined;
     },
     wakewordDetected: async (payload) => {
       await sendWakewordDetected(payload);
-      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
+      return optionalString(payload.turn_ref) ?? undefined;
     },
     updateSettings: async (payload) => {
       await sendUpdateSettings(payload);
-      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
+      return optionalString(payload.turn_ref) ?? undefined;
     },
     listModels: async () => {
       await sendListModels();
@@ -154,7 +132,7 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     stop: async (payload) => {
       await sendStopQuery(
         optionalString(payload.conversation_ref),
-        optionalString(payload.turn_ref) ?? optionalString(payload.turnRef),
+        optionalString(payload.turn_ref),
       );
     },
     subscribe: () => () => undefined,

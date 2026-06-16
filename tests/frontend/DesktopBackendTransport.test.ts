@@ -58,6 +58,37 @@ describe('desktopBackendTransport', () => {
     expect(mockInvokeWindieCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
+  test('does not map removed camelCase query payload aliases', async () => {
+    mockInvokeWindieCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-1',
+    });
+
+    const transport = createDesktopBackendTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: '',
+      conversationRef: 'conv-camel',
+      screenshotRef: 'shot-camel',
+      screenshotUrl: 'https://cdn.example/shot.png',
+      screenshotRefs: ['shot-camel'],
+      attachmentContext: 'context',
+      attachmentFilenames: ['shot.png'],
+      workspacePath: '/repo',
+    })).resolves.toBe('msg-1');
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      text: 'hello',
+      conversation_ref: '',
+      screenshot_ref: null,
+      screenshot_url: null,
+      screenshot_refs: null,
+      attachment_context: null,
+      attachment_filenames: null,
+      workspace_path: null,
+    }));
+  });
+
   test('routes runtime commands through SDK-shaped command invoke', async () => {
     mockInvokeWindieCommand.mockResolvedValue({});
     const transport = createDesktopBackendTransport('/repo');
