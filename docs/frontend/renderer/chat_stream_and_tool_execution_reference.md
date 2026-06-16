@@ -1,9 +1,10 @@
 ---
-summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, backend stream event handling, removed chatStreamTransparency helper behavior, thinking status ownership, and SDK-projected tool display semantics."
+summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, backend stream event handling, removed chatStreamTransparency helper behavior, thinking status ownership, SDK-projected tool display semantics, and private mergeRendererAnnotations runtime-projection annotation merge behavior."
 read_when:
   - When changing renderer chat hooks, stream event handling, or projected tool display callbacks.
   - When debugging stale-turn tool cancellation, transcript writes, or streaming state drift.
   - When resolving stale references to removed `chatStreamTransparency.ts`, `ChatStreamTransparency.test.ts`, or `ChatStreamThinkingStatusUtils.test.ts` helper/test paths.
+  - When stale code, tests, or docs mention exported `mergeRendererAnnotations` or direct renderer annotation-merge helpers; the merge is an internal `useConversationRuntimeProjectionStream` detail.
 title: "Chat Stream and Tool Execution Reference"
 ---
 
@@ -100,6 +101,21 @@ Thinking status constants from `chatStreamThinkingStatus.ts`:
   and stream-driven compaction paths.
 - Final assistant thinking text comes from SDK current-turn reasoning
   projection, not from persisted placeholder status normalization.
+
+## Runtime Projection Annotation Merge
+
+`useConversationRuntimeProjectionStream` listens to SDK `windie:current-turn` and
+`windie:rows` projections, then maps SDK display rows through
+`buildChatMessagesFromSdkDisplayRows(...)`.
+
+Renderer-only annotations such as prompt transparency, tool schemas, full message
+details, feedback, and token counts are merged back into matching SDK-projected
+messages inside the hook. Pending optimistic user rows from the local composer
+remain visible until the SDK display rows include the same turn.
+
+`mergeRendererAnnotations` is intentionally private. Stale searches for the
+removed export should route here; tests should drive the public hook listener
+and SDK row projection behavior instead of importing the helper directly.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 

@@ -431,6 +431,22 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes renderer projection annotation merge queries to chat stream docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'chat_stream_and_tool_execution_reference.md',
+    );
+
+    expect(findDocs('mergeRendererAnnotations removed export')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('projection annotation merge private optimistic user rows')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes prompt compilation queries to prompt context docs', () => {
     expect(findDocs('prompt compilation')[0].path).toBe(
       path.join('docs', 'concepts', 'prompt_and_tool_context.md'),
