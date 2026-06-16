@@ -63,7 +63,7 @@ function stringField(record, ...keys) {
     return null;
 }
 function toolCorrelationIdFromPayload(payload) {
-    return stringField(payload, 'correlation_id', 'correlationId', 'request_id', 'requestId');
+    return stringField(payload, 'correlation_id', 'request_id');
 }
 function revisionIdFor(event, fallbackRevisionId) {
     const payload = payloadOf(event);

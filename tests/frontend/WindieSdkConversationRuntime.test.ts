@@ -1818,6 +1818,31 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend web search progress ignores camelCase correlation aliases', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'web-search-progress',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-search',
+      payload: {
+        text: 'Searching example.com',
+        requestId: 'req-camel-search',
+        correlationId: 'corr-camel-search',
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'tool_progress',
+      payload: expect.objectContaining({
+        requestId: null,
+        correlationId: null,
+        structuredPayload: expect.objectContaining({
+          requestId: 'req-camel-search',
+          correlationId: 'corr-camel-search',
+        }),
+      }),
+    });
+  });
+
   test('native web search progress is rehydrated as one synthetic web_search tool pair', () => {
     const firstProgress = event('tool_progress', {
       text: 'Searching web',

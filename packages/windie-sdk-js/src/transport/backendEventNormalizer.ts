@@ -76,7 +76,7 @@ function stringField(record: JsonRecord, ...keys: string[]): string | null {
 }
 
 function toolCorrelationIdFromPayload(payload: JsonRecord): string | null {
-  return stringField(payload, 'correlation_id', 'correlationId', 'request_id', 'requestId');
+  return stringField(payload, 'correlation_id', 'request_id');
 }
 
 function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {

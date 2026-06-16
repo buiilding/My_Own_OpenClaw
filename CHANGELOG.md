@@ -31,6 +31,8 @@ All notable changes to WindieOS will be documented in this file.
   TypeScript and Python SDK auto-sidecar discovery readers.
 - sdk/python: remove camelCase backend tool-call and tool-bundle payload accepts
   from Python SDK local tool execution.
+- sdk/typescript: remove camelCase backend tool correlation accepts from the
+  backend event normalizer.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and
