@@ -305,4 +305,10 @@ describe('windie docs index', () => {
       path.join('docs', 'development', 'extensions.md'),
     );
   });
+
+  test('routes edit resend resource preservation queries to SDK conversation runtime', () => {
+    expect(findDocs('edit resend resource preservation')[0].path).toBe(
+      path.join('docs', 'sdk', 'conversation_runtime.md'),
+    );
+  });
 });

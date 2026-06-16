@@ -116,6 +116,8 @@ All notable changes to WindieOS will be documented in this file.
   boundary before lower-level tool-result receiver or transformer internals.
 - docs/development: route plugin-tool-registration searches to the extension
   convention before sidecar-daemon or architecture internals.
+- docs/sdk: route edit/resend resource-preservation searches to the SDK
+  conversation runtime before broad query-send relay docs.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

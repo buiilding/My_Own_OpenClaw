@@ -1,7 +1,8 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, display/rehydrate projections, compaction lifecycle handling, edit/retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, display/rehydrate projections, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
   - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
+  - When debugging edit/resend resource preservation, retry resource preservation, missing screenshot refs, or attachment metadata lost across revisions.
   - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, or custom UI/CLI conversation behavior.
 title: "SDK Conversation Runtime"
 ---
@@ -449,7 +450,7 @@ events. Rehydrate projection keeps only complete tool-call/tool-output pairs;
 dangling calls, orphan outputs, or incomplete bundle pairs stay available to
 display/debug projections but are not sent back to backend provider history.
 
-## Revision Rule
+## Revision and Resource Preservation Rule
 
 Edit/resend and retry are revision operations:
 
