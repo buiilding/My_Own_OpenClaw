@@ -19,6 +19,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: remove camelCase MCP registration and execute-tool payload
   accepts from the sidecar daemon; sidecar HTTP now requires the documented
   snake_case request fields.
+- frontend/sidecar: remove camelCase MCP execution metadata accepts from the
+  sidecar daemon diagnostics context builder.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and

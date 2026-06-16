@@ -326,25 +326,13 @@ def append_mcp_diagnostic_event(
 def build_mcp_execution_context(payload: dict[str, Any]) -> dict[str, Any]:
     request_id = (
         normalize_string(payload.get("request_id"))
-        or normalize_string(payload.get("requestId"))
         or normalize_string(payload.get("correlation_id"))
-        or normalize_string(payload.get("correlationId"))
     )
-    tool_call_id = normalize_string(payload.get("tool_call_id")) or normalize_string(
-        payload.get("toolCallId")
-    )
-    correlation_id = normalize_string(
-        payload.get("correlation_id")
-    ) or normalize_string(payload.get("correlationId"))
-    bundle_id = normalize_string(payload.get("bundle_id")) or normalize_string(
-        payload.get("bundleId")
-    )
-    turn_ref = normalize_string(payload.get("turn_ref")) or normalize_string(
-        payload.get("turnRef")
-    )
-    conversation_ref = normalize_string(
-        payload.get("conversation_ref")
-    ) or normalize_string(payload.get("conversationRef"))
+    tool_call_id = normalize_string(payload.get("tool_call_id"))
+    correlation_id = normalize_string(payload.get("correlation_id"))
+    bundle_id = normalize_string(payload.get("bundle_id"))
+    turn_ref = normalize_string(payload.get("turn_ref"))
+    conversation_ref = normalize_string(payload.get("conversation_ref"))
     data: dict[str, Any] = {}
     if tool_call_id:
         data["toolCallId"] = tool_call_id

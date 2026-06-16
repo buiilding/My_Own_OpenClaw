@@ -15,6 +15,7 @@ from sidecar_daemon import (  # noqa: E402
     McpServerSpec,
     McpStdioClient,
     SidecarDaemon,
+    build_mcp_execution_context,
     resolve_mcp_command_for_spawn,
     write_discovery_file,
 )
@@ -184,6 +185,47 @@ def test_mcp_server_spec_rejects_name_only_identifier_and_ignores_camel_aliases(
     assert spec.tool_prefix is None
     assert spec.mcp_id is None
     assert spec.extension_id is None
+
+
+def test_mcp_execution_context_uses_canonical_snake_case_metadata():
+    context = build_mcp_execution_context(
+        {
+            "request_id": "req-1",
+            "tool_call_id": "call-1",
+            "correlation_id": "corr-1",
+            "bundle_id": "bundle-1",
+            "turn_ref": "turn-1",
+            "conversation_ref": "conv-1",
+        }
+    )
+
+    assert context["trace_id"].startswith("mcp-execution-")
+    assert context["request_id"] == "req-1"
+    assert context["conversation_ref"] == "conv-1"
+    assert context["data"] == {
+        "toolCallId": "call-1",
+        "correlationId": "corr-1",
+        "bundleId": "bundle-1",
+        "turnRef": "turn-1",
+    }
+
+
+def test_mcp_execution_context_ignores_camel_case_metadata_aliases():
+    context = build_mcp_execution_context(
+        {
+            "requestId": "req-1",
+            "toolCallId": "call-1",
+            "correlationId": "corr-1",
+            "bundleId": "bundle-1",
+            "turnRef": "turn-1",
+            "conversationRef": "conv-1",
+        }
+    )
+
+    assert context["request_id"] == ""
+    assert context["conversation_ref"] == ""
+    assert context["data"] == {}
+    assert context["trace_id"].startswith("mcp-execution-")
 
 
 @pytest.mark.asyncio
