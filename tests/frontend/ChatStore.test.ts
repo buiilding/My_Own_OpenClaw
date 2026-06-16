@@ -375,4 +375,83 @@ describe('chatStore', () => {
     expect(useChatStore.getState().pendingTurn).toBeNull();
     expect(useChatStore.getState().isSending).toBe(false);
   });
+
+  test('acceptStoppedTurn clears matching pending turn and local busy state immediately', () => {
+    useChatStore.getState().acceptPendingTurn({
+      conversationRef: 'conv-stop-pending',
+      turnRef: 'turn-stop-pending',
+      userMessageId: 'user-stop-pending',
+      text: 'stop pending',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    });
+    useChatStore.getState().setThinkingStatus('thinking', 'conv-stop-pending');
+    useChatStore.getState().setThinkingSourceEventType('assistant', 'conv-stop-pending');
+
+    useChatStore.getState().acceptStoppedTurn({
+      conversationRef: 'conv-stop-pending',
+      turnRef: 'turn-stop-pending',
+      stoppedAt: '2026-06-16T00:00:01.000Z',
+    });
+
+    const state = useChatStore.getState();
+    expect(state.pendingTurn).toBeNull();
+    expect(state.isSending).toBe(false);
+    expect(state.thinkingStatus).toBeNull();
+    expect(state.thinkingSourceEventType).toBeNull();
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      phase: 'complete',
+      completedAt: '2026-06-16T00:00:01.000Z',
+      lastEventType: 'stop-query',
+    }));
+  });
+
+  test('acceptStoppedTurn terminalizes SDK current-turn and preserves visible partial content', () => {
+    const currentTurnProjection = {
+      conversationRef: 'conv-stop-sdk',
+      turnRef: 'turn-stop-sdk',
+      phase: 'streaming',
+      assistantText: 'partial',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        phase: 'streaming',
+        typingVisible: false,
+        overlayVisible: true,
+        isBusy: true,
+        isTerminal: false,
+        hasVisibleContent: true,
+        entries: [{ id: 'entry-partial', text: 'partial' }],
+        overlayIntent: {
+          visible: true,
+          mode: 'response',
+          turnRef: 'turn-stop-sdk',
+          conversationRef: 'conv-stop-sdk',
+        },
+      },
+    };
+    useChatStore.getState().setActiveConversationRef('conv-stop-sdk');
+    useChatStore.getState().setCurrentTurnProjection(currentTurnProjection, 'conv-stop-sdk');
+
+    useChatStore.getState().acceptStoppedTurn({
+      conversationRef: 'conv-stop-sdk',
+      turnRef: 'turn-stop-sdk',
+      currentTurnProjection,
+    });
+
+    expect(useChatStore.getState().currentTurnProjection).toEqual(expect.objectContaining({
+      phase: 'complete',
+      presentation: expect.objectContaining({
+        isBusy: false,
+        isTerminal: true,
+        overlayVisible: true,
+        entries: [{ id: 'entry-partial', text: 'partial' }],
+        overlayIntent: expect.objectContaining({
+          visible: true,
+          mode: 'response',
+        }),
+      }),
+    }));
+  });
 });

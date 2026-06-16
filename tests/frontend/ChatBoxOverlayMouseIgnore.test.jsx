@@ -32,6 +32,8 @@ const mockSetThinkingSourceEventType = jest.fn();
 const mockSetIsSending = jest.fn();
 const mockSetCurrentTurnProjection = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
+const mockAcceptStoppedTurn = jest.fn();
+const mockSetActiveConversationRef = jest.fn();
 const originalFileReader = global.FileReader;
 const originalResizeObserver = global.ResizeObserver;
 const originalRequestAnimationFrame = window.requestAnimationFrame;
@@ -116,6 +118,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   SEND_CHANNELS: {
     MOVE_CHATBOX_TO: 'move-chatbox-to',
+    WINDIE_PENDING_TURN: 'windie:pending-turn',
   },
   INVOKE_CHANNELS: {
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
@@ -141,6 +144,8 @@ const mockChatState = {
   setIsSending: (...args) => mockSetIsSending(...args),
   setCurrentTurnProjection: (...args) => mockSetCurrentTurnProjection(...args),
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
+  acceptStoppedTurn: (...args) => mockAcceptStoppedTurn(...args),
+  setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   streamTracking: { phase: 'idle' },
   currentTurnProjection: null,
   pendingTurn: null,
@@ -228,6 +233,8 @@ describe('ChatBox overlay mouse ignore', () => {
     mockSetIsSending.mockClear();
     mockSetCurrentTurnProjection.mockClear();
     mockUpdateStreamTracking.mockClear();
+    mockAcceptStoppedTurn.mockClear();
+    mockSetActiveConversationRef.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
     mockConfig = {
@@ -241,6 +248,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.currentTurnProjection = null;
+    mockChatState.pendingTurn = null;
     resizeObserverInstances.length = 0;
     requestAnimationFrameCallbacks.clear();
     nextAnimationFrameId = 1;
@@ -512,11 +520,13 @@ describe('ChatBox overlay mouse ignore', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
     });
     expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay', 'turn-active');
-    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-overlay');
-    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
-      expect.objectContaining({ phase: 'complete' }),
-      'conv-overlay',
-    );
+    expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-active',
+      currentTurnProjection: mockChatState.currentTurnProjection,
+    });
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
   });
 
   test('stop targets the current-turn conversation when pill session ref is stale', async () => {
@@ -533,12 +543,14 @@ describe('ChatBox overlay mouse ignore', () => {
     });
 
     expect(mockStopQuery).toHaveBeenCalledWith('conv-visible-turn', 'turn-visible');
-    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-visible-turn');
-    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
-      expect.objectContaining({ phase: 'complete' }),
-      'conv-visible-turn',
-    );
-    expect(mockUpdateStreamTracking.mock.calls.at(-1)?.[1]).toBe('conv-visible-turn');
+    expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-visible-turn',
+      turnRef: 'turn-visible',
+      currentTurnProjection: mockChatState.currentTurnProjection,
+    });
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
+    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('does not render compaction control when dev UI flag is disabled', () => {
@@ -860,18 +872,27 @@ describe('ChatBox overlay mouse ignore', () => {
       fireEvent.click(stopButton);
     });
     expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay', 'turn-active');
-    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-overlay');
-    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(
-      expect.objectContaining({ phase: 'complete' }),
-      'conv-overlay',
-    );
-    expect(mockUpdateStreamTracking).toHaveBeenCalled();
-    expect(mockUpdateStreamTracking.mock.calls.at(-1)?.[1]).toBe('conv-overlay');
+    expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-active',
+      currentTurnProjection: mockChatState.currentTurnProjection,
+    });
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
+    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('renders stop button when isSending is true before first stream event', async () => {
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = true;
+    mockChatState.pendingTurn = {
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-pending',
+      userMessageId: 'user-pending',
+      text: 'pending',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
     render(<MinimalChatPill />);
 
     expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
@@ -880,10 +901,14 @@ describe('ChatBox overlay mouse ignore', () => {
     await act(async () => {
       fireEvent.click(stopButton);
     });
-    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay', null);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false, 'conv-overlay');
-    expect(mockUpdateStreamTracking).toHaveBeenCalled();
-    expect(mockUpdateStreamTracking.mock.calls.at(-1)?.[1]).toBe('conv-overlay');
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay', 'turn-pending');
+    expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-pending',
+      currentTurnProjection: null,
+    });
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('does not start wakeword STT voice mode when setting is disabled', () => {

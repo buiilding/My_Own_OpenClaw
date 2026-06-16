@@ -7,7 +7,6 @@ import { useChatStore } from '../../chat/stores/chatStore';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
-import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatboxDragWindowBindings,
@@ -45,7 +44,7 @@ import {
   StopIcon,
 } from './PillIcons';
 import AttachmentPreviewRow from './AttachmentPreviewRow';
-import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
+import { useStopTurnHandler } from '../../chat/hooks/useStopTurnHandler';
 
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
@@ -59,11 +58,8 @@ function MinimalChatPill() {
   ));
   const pendingTurn = useChatStore((state) => state.pendingTurn);
   const sessionInfo = useRendererConversationSessionInfo();
-  const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
-  const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
-  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
@@ -572,37 +568,13 @@ function MinimalChatPill() {
   const handleToggleSpeechMode = useCallback(() => {
     chatSurface.toggleSpeechMode();
   }, [chatSurface]);
-
-  const handleStopQuery = useCallback(() => {
-    if (!loopInteractionLocked) {
-      return;
-    }
-    const stoppedConversationRef = currentTurnProjection?.conversationRef || sessionInfo?.conversationRef || null;
-    applyStopQueryUiState({
-      setIsSending,
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      setCurrentTurnProjection,
-      currentTurnProjection,
-      conversationRef: stoppedConversationRef,
-      updateStreamTracking,
-    });
-    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(
-      stoppedConversationRef,
-      currentTurnProjection?.turnRef || null,
-    )).catch((error) => {
-      console.warn('[MinimalChatPill] Failed to stop query:', error);
-    });
-  }, [
-    loopInteractionLocked,
+  const { handleStopTurn } = useStopTurnHandler({
+    enabled: loopInteractionLocked,
     currentTurnProjection,
-    sessionInfo?.conversationRef,
-    setCurrentTurnProjection,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    updateStreamTracking,
-  ]);
+    pendingTurn,
+    sessionConversationRef: sessionInfo?.conversationRef || null,
+    warningContext: 'MinimalChatPill',
+  });
 
   const handleDevAutoCompaction = useCallback(() => {
     void chatSurface.runManualCompaction();
@@ -778,7 +750,7 @@ function MinimalChatPill() {
                 aria-label={loopInteractionLocked ? 'Stop response' : 'Send message'}
                 title={loopInteractionLocked ? 'Stop response' : 'Send message'}
                 disabled={!loopInteractionLocked && !inputValue.trim() && !hasAttachments}
-                onClick={loopInteractionLocked ? handleStopQuery : undefined}
+                onClick={loopInteractionLocked ? handleStopTurn : undefined}
               >
                 {loopInteractionLocked ? <StopIcon /> : <SendIcon />}
               </button>

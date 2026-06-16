@@ -18,6 +18,10 @@ import {
   resolveWorkspaceKey,
 } from './chatWorkspaceState';
 import type { ChatWorkspaceState } from './chatWorkspaceState';
+import {
+  buildStopQueryTrackingPatch,
+  buildStoppedCurrentTurnProjection,
+} from '../utils/state/stopQueryState';
 
 /**
  * Message type definition
@@ -213,6 +217,14 @@ interface ChatState {
   clearPendingTurn: (
     input?: { conversationRef?: string | null; turnRef?: string | null } | null,
   ) => void;
+  acceptStoppedTurn: (
+    input?: {
+      conversationRef?: string | null;
+      turnRef?: string | null;
+      currentTurnProjection?: SdkCurrentTurnProjection | null;
+      stoppedAt?: string | null;
+    } | null,
+  ) => void;
   applyPendingTurnBroadcast: (
     payload: unknown,
   ) => void;
@@ -394,6 +406,23 @@ function shouldCurrentTurnClearPendingTurn(
     || presentation?.typingVisible === true
     || presentation?.hasVisibleContent === true
     || entries.length > 0
+  );
+}
+
+function doesCurrentTurnProjectionMatch(
+  currentTurnProjection: SdkCurrentTurnProjection | null,
+  input?: { conversationRef?: string | null; turnRef?: string | null } | null,
+): boolean {
+  if (!currentTurnProjection || !input) {
+    return false;
+  }
+  const conversationRef = normalizeConversationRef(input.conversationRef);
+  const turnRef = normalizeTurnRef(input.turnRef);
+  const projectionConversationRef = normalizeConversationRef(currentTurnProjection.conversationRef);
+  const projectionTurnRef = normalizeTurnRef(currentTurnProjection.turnRef);
+  return (
+    (!conversationRef || projectionConversationRef === conversationRef)
+    && (!turnRef || projectionTurnRef === turnRef)
   );
 }
 
@@ -740,6 +769,54 @@ export const useChatStore = create<ChatState>((set, get) => ({
         isSending: false,
       };
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+    }),
+
+  acceptStoppedTurn: (input = null) =>
+    set((state) => {
+      const inputProjection = input?.currentTurnProjection ?? null;
+      const conversationRef = (
+        normalizeConversationRef(input?.conversationRef)
+        || normalizeConversationRef(inputProjection?.conversationRef)
+      );
+      const turnRef = (
+        normalizeTurnRef(input?.turnRef)
+        || normalizeTurnRef(inputProjection?.turnRef)
+      );
+      const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, workspaceRef);
+      const stoppedAt = typeof input?.stoppedAt === 'string' && input.stoppedAt.trim()
+        ? input.stoppedAt
+        : new Date().toISOString();
+      const target = { conversationRef, turnRef };
+      const workspaceProjection = currentWorkspace.currentTurnProjection;
+      const projectionToStop = doesCurrentTurnProjectionMatch(workspaceProjection, target)
+        ? workspaceProjection
+        : inputProjection;
+      const nextCurrentTurnProjection = projectionToStop
+        ? buildStoppedCurrentTurnProjection(projectionToStop)
+        : workspaceProjection;
+      const nextPendingTurn = doesPendingTurnMatch(currentWorkspace.pendingTurn, target)
+        ? null
+        : currentWorkspace.pendingTurn;
+      const nextStreamTracking = {
+        ...currentWorkspace.streamTracking,
+        ...buildStopQueryTrackingPatch(stoppedAt),
+      };
+      const nextWorkspace = {
+        ...currentWorkspace,
+        isSending: false,
+        thinkingStatus: null,
+        thinkingSourceEventType: null,
+        pendingTurn: nextPendingTurn,
+        currentTurnProjection: nextCurrentTurnProjection,
+        streamTracking: nextStreamTracking,
+      };
+      const latestProjection = doesCurrentTurnProjectionMatch(state.latestCurrentTurnProjection, target)
+        ? buildStoppedCurrentTurnProjection(state.latestCurrentTurnProjection)
+        : state.latestCurrentTurnProjection;
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
+        latestCurrentTurnProjection: latestProjection,
+      });
     }),
 
   applyPendingTurnBroadcast: (payload) =>

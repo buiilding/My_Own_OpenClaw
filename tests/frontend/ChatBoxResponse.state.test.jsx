@@ -116,6 +116,32 @@ describe('ChatBoxResponse state behavior', () => {
     expect(useChatStore.getState().currentTurnProjection).toBeNull();
   });
 
+  test('hides pending-turn awaiting indicator after pending stop is accepted', async () => {
+    render(<ChatBoxResponse />);
+
+    act(() => {
+      useChatStore.getState().acceptPendingTurn(pendingTurn());
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+
+    act(() => {
+      useChatStore.getState().acceptStoppedTurn({
+        conversationRef: 'conv-test',
+        turnRef: 'turn-pending',
+        stoppedAt: '2026-06-16T00:00:01.000Z',
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    });
+    expect(useChatStore.getState().pendingTurn).toBeNull();
+    expect(useChatStore.getState().isSending).toBe(false);
+  });
+
   test('reports pending-turn typing size immediately', () => {
     render(<ChatBoxResponse />);
 

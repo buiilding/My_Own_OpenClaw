@@ -2,7 +2,7 @@
 summary: "Deep reference for chat store and session-rotation behavior: per-conversation workspace state, active-workspace projection, stream-tracking reset rules, new-chat lifecycle, and conversation-ref synchronization paths."
 read_when:
   - When changing `chatStore`, `startNewChatSession`, or conversation-resume/new-chat state transitions.
-  - When debugging stale stream phases, unexpected `isSending` state, or conversation-ref mismatch after new/continued sessions.
+  - When debugging stale stream phases, unexpected `isSending` state, pending-turn stop behavior, or conversation-ref mismatch after new/continued sessions.
 title: "Chat Store State and New Session Rotation Reference"
 ---
 
@@ -29,12 +29,15 @@ Primary projected state slices (active workspace projection):
 - `thinkingStatus`
 - `tokenCounts`
 - `streamTracking`
+- `currentTurnProjection`
+- `pendingTurn`
 
 Conversation workspace state:
 
 - `activeConversationRef`
 - `workspaces: Record<workspaceRef, ChatWorkspaceState>`
 - `turnConversationRefs: Record<turnRef, conversationRef>`
+- `latestCurrentTurnProjection`
 
 All mutating actions accept optional `conversationRef` and write into that workspace. The projected top-level fields above always mirror the currently active workspace so existing selectors/components stay stable.
 
@@ -62,6 +65,18 @@ Message attachment fields used by current send/runtime paths include:
   `conversation_ref` is absent
 - `setIsSending`, `setThinkingStatus`, `setTokenCounts` no-op when value/reference unchanged
 - `updateStreamTracking` always applies updater output
+- `setCurrentTurnProjection` updates the target workspace and clears a matching
+  `pendingTurn` only after the SDK current-turn projection for that
+  conversation/turn arrives
+- `acceptPendingTurn` stores the renderer-local pending turn before the SDK
+  current-turn projection opens, so dashboard/pill surfaces can show awaiting
+  state and stop can target the real outgoing `turnRef`
+- `clearPendingTurn` clears only a pending turn matching the provided
+  `conversationRef`/`turnRef`; missing filters clear the active pending turn
+- `acceptStoppedTurn` immediately clears local busy/thinking state, clears a
+  matching pending turn, patches stream tracking to terminal `complete`, and
+  terminalizes the matching SDK current-turn projection while preserving any
+  already visible assistant content
 - `clearMessages` clears messages and resets `streamTracking` to initial idle shape
 - `setActiveConversationRef` switches the projected top-level state to that workspace snapshot
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` maintain turn->conversation routing for events that omit `conversation_ref`
@@ -148,6 +163,7 @@ Chat store reset and transcript-session ref updates are separate concerns; new-c
 - same-reference no-op behavior for `setMessages` and scalar setters
 - `clearMessages` leaves empty messages and reset state
 - stream tracking updater semantics
+- pending-turn acceptance/clearing and stopped-turn terminalization semantics
 
 `tests/frontend/ChatMessageSender.test.tsx` indirectly verifies conversation-ref reuse and generation behavior around send-path creation.
 
@@ -157,6 +173,9 @@ Chat store reset and transcript-session ref updates are separate concerns; new-c
 2. changing no-op guards can increase render churn in streaming-heavy paths.
 3. changing conversation ref format/prefix can break downstream expectations for `conv_` ids.
 4. diverging dashboard resume ref updates from transcript session updates can desync UI and transcript writes.
+5. clearing pending turns without matching `conversationRef`/`turnRef` can hide
+   the awaiting state for a newer turn or send a turnless stop for a pending
+   query.
 
 ## Related Pages
 

@@ -25,7 +25,9 @@ the SDK-shaped query runtime:
    selected accelerator into `agent_stop_shortcut_runtime.cjs`.
 5. Electron main registers the accelerator only while an agent loop is active.
    When pressed, the runtime calls the current stop handler, which routes
-   through the active conversation/turn stop-query path.
+   through the active conversation/turn stop-query path. The handler targets
+   the latest SDK current turn first, a renderer pending turn second, and the
+   active conversation only as an idle fallback.
 
 Focused chat and dashboard windows still support plain `Esc`; the global
 shortcut exists for stop-from-anywhere behavior while another app has focus.

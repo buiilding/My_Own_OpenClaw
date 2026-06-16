@@ -219,11 +219,13 @@ agent functions:
 - SDK query command send
 - send-failure recovery
 - stop-query phase completion
+- global stop target resolution: latest SDK current turn first, latest pending
+  turn second, active conversation fallback last
 - pending-turn relay: renderer sends `windie:pending-turn` with
   `{ type: "pending", pendingTurn }`; main stores the latest normalized
   pending turn, broadcasts it to sibling renderers, replays it to late windows,
-  and clears it on explicit `{ type: "clear" }` or matching SDK current-turn
-  projection
+  and clears it on explicit `{ type: "clear" }`, matching SDK current-turn
+  projection, or stop of the matching pending turn
 
 Removed preflight invoke path:
 

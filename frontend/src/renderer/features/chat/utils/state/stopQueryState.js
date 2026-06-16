@@ -2,7 +2,18 @@
  * Provides the stop query state module for the renderer UI.
  */
 
-function buildStopQueryTrackingPatch(stoppedAt) {
+const STOPPABLE_CURRENT_TURN_PHASES = new Set([
+  'awaiting',
+  'streaming',
+  'tool_call',
+  'tool_output',
+]);
+
+function normalizeRef(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+export function buildStopQueryTrackingPatch(stoppedAt) {
   return {
     phase: 'complete',
     completedAt: stoppedAt,
@@ -18,7 +29,7 @@ function hasVisibleCurrentTurnContent(presentation) {
   );
 }
 
-function buildStoppedCurrentTurnProjection(currentTurnProjection) {
+export function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
     return null;
   }
@@ -49,6 +60,60 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
         mode: hasVisibleContent ? 'response' : 'hidden',
       },
     },
+  };
+}
+
+function isStoppableCurrentTurnProjection(currentTurnProjection) {
+  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
+    return false;
+  }
+  const phase = normalizeRef(currentTurnProjection.phase);
+  return (
+    STOPPABLE_CURRENT_TURN_PHASES.has(phase)
+    || currentTurnProjection.presentation?.isBusy === true
+  );
+}
+
+function isPendingTurn(value) {
+  return Boolean(
+    value
+      && typeof value === 'object'
+      && normalizeRef(value.conversationRef)
+      && normalizeRef(value.turnRef)
+  );
+}
+
+export function resolveStopTurnTarget({
+  currentTurnProjection = null,
+  pendingTurn = null,
+  conversationRef = null,
+} = {}) {
+  if (isStoppableCurrentTurnProjection(currentTurnProjection)) {
+    const resolvedConversationRef = normalizeRef(currentTurnProjection.conversationRef) || normalizeRef(conversationRef);
+    const resolvedTurnRef = normalizeRef(currentTurnProjection.turnRef);
+    return {
+      source: 'sdk-current-turn',
+      conversationRef: resolvedConversationRef,
+      turnRef: resolvedTurnRef,
+      canStop: Boolean(resolvedConversationRef),
+    };
+  }
+
+  if (isPendingTurn(pendingTurn)) {
+    return {
+      source: 'pending-turn',
+      conversationRef: normalizeRef(pendingTurn.conversationRef),
+      turnRef: normalizeRef(pendingTurn.turnRef),
+      canStop: true,
+    };
+  }
+
+  const fallbackConversationRef = normalizeRef(conversationRef);
+  return {
+    source: 'idle',
+    conversationRef: fallbackConversationRef,
+    turnRef: null,
+    canStop: false,
   };
 }
 

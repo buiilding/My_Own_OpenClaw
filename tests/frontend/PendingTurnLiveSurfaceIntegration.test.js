@@ -2,6 +2,7 @@
  * Covers pending-turn live surface integration for renderer sends.
  */
 
+import { waitFor } from '@testing-library/react';
 import {
   prepareDesktopChatSend,
 } from '../../frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation';
@@ -146,14 +147,15 @@ describe('pending-turn live surface integration', () => {
       },
     });
 
-    await Promise.resolve();
+    await waitFor(() => {
+      expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
+        conversationRef: 'conv_msg-1',
+        turnRef: 'msg-1',
+        text: 'Live now',
+      }));
+    });
 
     let state = useChatStore.getState();
-    expect(state.pendingTurn).toEqual(expect.objectContaining({
-      conversationRef: 'conv_msg-1',
-      turnRef: 'msg-1',
-      text: 'Live now',
-    }));
     expect(state.messages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',

@@ -564,6 +564,68 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(false);
   });
 
+  test('global stop shortcut prioritizes current turn over pending turn', async () => {
+    const { handlers, ws, backendBridge, mainWindow, ipc } = await setupOpenedIpc();
+    primeQueryContext(backendBridge);
+
+    await sendQuery(handlers, {
+      text: 'query before global stop',
+      conversation_ref: 'conv-global-current',
+    }, mainWindow.webContents);
+    handlers['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-global-pending',
+        turnRef: 'turn-global-pending',
+        userMessageId: 'user-global-pending',
+        text: 'pending stop',
+        timestamp: '2026-06-16T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+    });
+
+    const stopTriggered = await ipc.triggerStopQueryFromMain();
+    expect(stopTriggered).toBe(true);
+
+    const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(sentStopQuery.type).toBe('stop-query');
+    expect(sentStopQuery.payload).toEqual({
+      conversation_ref: 'conv-global-current',
+      turn_ref: 'uuid-1',
+    });
+  });
+
+  test('global stop shortcut stops pending turn and broadcasts pending clear', async () => {
+    const { handlers, ws, mainWindow, ipc } = await setupOpenedIpc();
+    const pendingTurn = {
+      conversationRef: 'conv-global-pending',
+      turnRef: 'turn-global-pending',
+      userMessageId: 'user-global-pending',
+      text: 'pending stop',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
+    handlers['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn,
+    });
+
+    const stopTriggered = await ipc.triggerStopQueryFromMain();
+    expect(stopTriggered).toBe(true);
+
+    const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(sentStopQuery.type).toBe('stop-query');
+    expect(sentStopQuery.payload).toEqual({
+      conversation_ref: 'conv-global-pending',
+      turn_ref: 'turn-global-pending',
+    });
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'clear',
+      conversationRef: 'conv-global-pending',
+      turnRef: 'turn-global-pending',
+    });
+  });
+
   test('uses BACKEND_HOST and BACKEND_PORT for websocket + http endpoint metadata', async () => {
     process.env.BACKEND_HOST = '10.0.0.42';
     process.env.BACKEND_PORT = '9001';

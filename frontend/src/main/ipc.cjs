@@ -832,7 +832,11 @@ function createDirectWakeUpAgentAdapter({
       broadcastToRenderers('windie:rows', snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
       if (pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)) {
-        latestPendingTurn = null;
+        clearLatestPendingTurn({
+          conversationRef: latestPendingTurn.conversationRef,
+          turnRef: latestPendingTurn.turnRef,
+          broadcast: true,
+        });
       }
       logLiveSurfaceTrace('sdk.current_turn.received', {
         ...summarizeCurrentTurn(snapshot.currentTurn),
@@ -1328,6 +1332,40 @@ function pendingTurnMatchesCurrentTurn(pendingTurn, currentTurn) {
   );
 }
 
+function pendingTurnMatchesTarget(pendingTurn, input = {}) {
+  if (!pendingTurn) {
+    return false;
+  }
+  const conversationRef = normalizeOptionalString(input.conversationRef)
+    || normalizeOptionalString(input.conversation_ref);
+  const turnRef = normalizeOptionalString(input.turnRef)
+    || normalizeOptionalString(input.turn_ref);
+  return (
+    (!conversationRef || pendingTurn.conversationRef === conversationRef)
+    && (!turnRef || pendingTurn.turnRef === turnRef)
+  );
+}
+
+function clearLatestPendingTurn(input = {}) {
+  const pendingTurn = latestPendingTurn;
+  if (!pendingTurn || !pendingTurnMatchesTarget(pendingTurn, input)) {
+    return false;
+  }
+  latestPendingTurn = null;
+  if (input.broadcast === true) {
+    broadcastToRenderers('windie:pending-turn', {
+      type: 'clear',
+      conversationRef: normalizeOptionalString(input.conversationRef)
+        || normalizeOptionalString(input.conversation_ref)
+        || pendingTurn.conversationRef,
+      turnRef: normalizeOptionalString(input.turnRef)
+        || normalizeOptionalString(input.turn_ref)
+        || pendingTurn.turnRef,
+    });
+  }
+  return true;
+}
+
 function broadcastToRenderers(channel, payload, sourceWebContents = null) {
   broadcastToRenderersRuntime({
     rendererWindows,
@@ -1674,13 +1712,7 @@ function initializeIpc(win, options = {}) {
       const turnRef = typeof source.turnRef === 'string' && source.turnRef.trim()
         ? source.turnRef.trim()
         : null;
-      if (
-        latestPendingTurn
-        && (!conversationRef || latestPendingTurn.conversationRef === conversationRef)
-        && (!turnRef || latestPendingTurn.turnRef === turnRef)
-      ) {
-        latestPendingTurn = null;
-      }
+      clearLatestPendingTurn({ conversationRef, turnRef });
       broadcastToRenderers('windie:pending-turn', {
         type: 'clear',
         conversationRef,
@@ -1821,8 +1853,14 @@ async function stopQueryThroughSdkAgent(payload = {}) {
   const stopTurnRef = payload && typeof payload.turn_ref === 'string'
     ? payload.turn_ref
     : (payload && typeof payload.turnRef === 'string' ? payload.turnRef : null);
+  const stopConversationRef = resolveConversationRefFromPayload(payload);
+  clearLatestPendingTurn({
+    conversationRef: stopConversationRef,
+    turnRef: stopTurnRef,
+    broadcast: true,
+  });
   await windieAgent.stop({
-    conversation_ref: resolveConversationRefFromPayload(payload),
+    conversation_ref: stopConversationRef,
     turn_ref: stopTurnRef,
   });
   return true;
@@ -1898,12 +1936,60 @@ async function appendMainProcessTraceEvent(input = {}) {
   return { stored: true, traceId: payload.traceId, spanId: payload.spanId };
 }
 
-async function triggerStopQueryFromMain() {
-  const stopped = await stopQueryThroughSdkAgent(
-    currentConversationRef
-      ? { conversation_ref: currentConversationRef }
-      : {},
+const STOPPABLE_CURRENT_TURN_PHASES = new Set([
+  'awaiting',
+  'streaming',
+  'tool_call',
+  'tool_output',
+]);
+
+function isStoppableCurrentTurnProjection(currentTurnProjection) {
+  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
+    return false;
+  }
+  const phase = normalizeOptionalString(currentTurnProjection.phase);
+  return (
+    STOPPABLE_CURRENT_TURN_PHASES.has(phase)
+    || currentTurnProjection.presentation?.isBusy === true
   );
+}
+
+function resolveMainStopTarget() {
+  if (isStoppableCurrentTurnProjection(latestCurrentTurnProjection)) {
+    const conversationRef = normalizeOptionalString(latestCurrentTurnProjection.conversationRef)
+      || currentConversationRef;
+    return {
+      source: 'sdk-current-turn',
+      conversationRef,
+      turnRef: normalizeOptionalString(latestCurrentTurnProjection.turnRef),
+      canStop: Boolean(conversationRef),
+    };
+  }
+  if (latestPendingTurn) {
+    return {
+      source: 'pending-turn',
+      conversationRef: latestPendingTurn.conversationRef,
+      turnRef: latestPendingTurn.turnRef,
+      canStop: true,
+    };
+  }
+  return {
+    source: 'idle',
+    conversationRef: currentConversationRef,
+    turnRef: null,
+    canStop: Boolean(currentConversationRef),
+  };
+}
+
+async function triggerStopQueryFromMain() {
+  const stopTarget = resolveMainStopTarget();
+  if (!stopTarget.canStop) {
+    return false;
+  }
+  const stopped = await stopQueryThroughSdkAgent({
+    conversation_ref: stopTarget.conversationRef,
+    turn_ref: stopTarget.turnRef,
+  });
   if (!stopped) {
     return false;
   }

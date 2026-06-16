@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: route dashboard, pill, Esc, and global stop through a shared
+  live-turn target that clears pending turns with their real turn refs.
+- frontend/docs: route stop/cancel docs through the shared stop-turn hook,
+  pending-turn target resolution, and chat-store stopped-turn state.
 - frontend/chat: extract SDK current-turn projection side effects from the
   projection subscription hook into a focused renderer adapter.
 - tooling/commits: require `scripts/committer` bodies to use the AGENTS.md

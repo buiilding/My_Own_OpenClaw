@@ -35,8 +35,8 @@ import {
 } from '../utils/chatModelOptions';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
-import { applyStopQueryUiState } from '../utils/state/stopQueryState';
 import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
+import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
@@ -51,7 +51,6 @@ import {
 import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
-import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
@@ -91,8 +90,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
-  const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
-  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config, updateConfig, availableModels } = useAppConfigContext();
   const sessionInfo = useRendererConversationSessionInfo();
   const [activeWorkspace, setActiveWorkspace] = useState(() => ({
@@ -385,45 +382,16 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
   }, []);
-
-  const handleStopQuery = useCallback(() => {
-    if (!composerBusy) {
-      return;
-    }
-    const stoppedConversationRef = currentTurnProjection?.conversationRef || sessionInfo.conversationRef || null;
-    if (stoppedConversationRef) {
-      setChatActiveConversationRef(stoppedConversationRef);
-    }
-    applyStopQueryUiState({
-      setIsSending,
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      setCurrentTurnProjection,
-      currentTurnProjection,
-      conversationRef: stoppedConversationRef,
-      updateStreamTracking,
-    });
-    stopPlayback();
-    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(
-      stoppedConversationRef,
-      currentTurnProjection?.turnRef || null,
-    )).catch((error) => {
-      console.warn('[ChatInterface] Failed to stop query:', error);
-    });
-  }, [
-    composerBusy,
+  const { handleStopTurn } = useStopTurnHandler({
+    enabled: composerBusy,
     currentTurnProjection,
-    sessionInfo.conversationRef,
-    setChatActiveConversationRef,
-    setCurrentTurnProjection,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
+    pendingTurn,
+    sessionConversationRef: sessionInfo.conversationRef,
     stopPlayback,
-    updateStreamTracking,
-  ]);
+    warningContext: 'ChatInterface',
+  });
 
-  useChatInterfaceStopShortcut(canStop, handleStopQuery);
+  useChatInterfaceStopShortcut(canStop, handleStopTurn);
 
   const handleNewChat = useCallback(() => {
     startWorkspaceBoundNewChat(activeWorkspaceRef.current);
@@ -594,7 +562,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
-            onStopResponse={handleStopQuery}
+            onStopResponse={handleStopTurn}
             isCentered
             focusRequestToken={focusComposerToken}
           />
@@ -622,7 +590,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
-            onStopResponse={handleStopQuery}
+            onStopResponse={handleStopTurn}
             focusRequestToken={focusComposerToken}
           />
         </>
