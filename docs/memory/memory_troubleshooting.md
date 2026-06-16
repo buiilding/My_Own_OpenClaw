@@ -38,7 +38,7 @@ Validate:
 
 ```bash
 cd frontend
-bin/windie test frontend -- ConversationReplayState.test.ts ConversationReplayActions.test.jsx ConversationReplayToolMessages.test.js RehydratePayload.test.js
+bin/windie test frontend -- WindieSdkConversationRuntime ConversationReplayActions ConversationReplayToolMessages
 ```
 
 ## Tool Rows Lose Linkage After Rehydrate

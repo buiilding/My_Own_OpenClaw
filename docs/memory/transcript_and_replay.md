@@ -1,7 +1,7 @@
 ---
-summary: "Renderer transcript and replay guide covering SDK-backed conversation events, session identity, local snapshots, canonical conversation storage, and rehydrate payloads."
+summary: "Renderer transcript and replay guide covering SDK-backed conversation events, session identity, local snapshots, canonical conversation storage, and rehydrate projections."
 read_when:
-  - When changing SDK display projections, canonical conversation events, local snapshots, or rehydrate payload construction.
+  - When changing SDK display/rehydrate projections, canonical conversation events, or local snapshots.
   - When debugging visible chat rows that do not persist or replay correctly.
 title: "Transcript and Replay"
 ---
@@ -22,7 +22,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts` |
 | SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
-| Local snapshots/replay | SDK conversation store/projection, `rehydratePayload.js`, backend rehydrate services |
+| Local snapshots/replay | SDK conversation store/projection and backend rehydrate services |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
 | Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `useTranscriptSessionInfo.js` |
 
@@ -80,7 +80,8 @@ Key files:
 
 - Desktop conversation store adapter: `desktopConversationStore.ts`,
 - SDK display projection: `sdkDisplayChatMessageProjection.ts`,
-- backend rehydrate payload builder: `rehydratePayload.js`,
+- backend rehydrate snapshot projection: `packages/windie-sdk-js/src/projections/conversationProjections.ts`,
+- backend rehydrate dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
 - tool-message reconstruction: `conversationReplayToolMessages.js`,
 - backend rehydrate services: `backend/src/api/services/rehydrate_*`.
 

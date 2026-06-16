@@ -2,15 +2,19 @@
  * Provides the tool call message state module for the renderer UI.
  */
 
-import {
-  normalizeOptionalString,
-} from './rehydratePayload';
-
 function cloneObject(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return null;
   }
   return { ...value };
+}
+
+function normalizeOptionalString(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
 }
 
 function cloneArguments(value) {

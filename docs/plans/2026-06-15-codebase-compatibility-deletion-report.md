@@ -65,6 +65,7 @@ Date: 2026-06-15
 | CD-032 | Renderer response-overlay phase payload parser | `responseOverlayPhasePayload.js` preserved a renderer parser for generic overlay phase IPC payloads, plus parser-only metadata/normalizer exports in `responseOverlayPhaseContract.js`, after React chat surfaces stopped subscribing to phase IPC for runtime state | Knip reported the parser and parser-dependent exports unused; repo search showed the parser file was imported only by its own test, while docs still incorrectly called it canonical | Delete the orphan parser, parser-only contract exports, and parser-only tests; update overlay docs to route phase payload validation to Electron main phase state/events and shared phase-contract parity | implemented |
 | CD-033 | Renderer manual compaction helper | `waitForNextPaint(...)` stayed exported from `manualCompactionRuntime.js` even though only `runManualCompaction(...)` is imported by production and tests | Knip reported the helper export unused; repo search showed it is called only inside the manual compaction runtime, while docs still describe the paint wait as current runtime behavior | Make the helper private while preserving the pre-compaction paint wait inside `runManualCompaction(...)` | implemented |
 | CD-034 | Renderer transcript payload helpers | `transcriptMessagePayload.js` preserved role/type/rehydrate helpers that no production code imported after transcript replay/display moved to SDK-backed renderer transcript infrastructure; its only live production export was `normalizeProvider(...)` for chat model options, and deleting it orphaned `rehydrateMessageState.js` plus `structuredToolPayload.js` | Knip reported the transcript helpers unused; repo search showed the rehydrate helpers were test/docs-only, while `normalizeProvider(...)` belongs with chat model option grouping/filtering | Move provider normalization into `chatModelOptions.js`; delete the stale transcript payload module, orphaned rehydrate/structured payload helpers, tests, and deep docs page; update docs to route transcript work to renderer transcript infrastructure | implemented |
+| CD-035 | Renderer rehydrate payload helper file | `rehydratePayload.js` no longer built backend rehydrate payloads after SDK `buildRehydrateSnapshot(...)` and `ConversationContinuityService` became the active replay/rehydrate owner; production imported it only for a generic string normalizer used by tool-call display state | Knip reported every rehydrate helper export unused; repo search showed the helper file was kept alive only by `toolCallMessageState.js` importing `normalizeOptionalString(...)`, while its tests/docs still described it as the rehydrate payload builder | Move the string normalizer into `toolCallMessageState.js`; delete the obsolete helper file and test; update transcript/replay docs to route rehydrate payload construction to SDK projections and backend rehydrate services | implemented |
 
 ## Commit Ledger
 
@@ -132,6 +133,7 @@ Date: 2026-06-15
   completed CD-033.
 - `bc4f62813 refactor(frontend): remove transcript payload helpers`
   completed CD-034.
+- pending commit for CD-035.
 
 ## Validation Log
 
@@ -525,6 +527,22 @@ CD-034 validation:
   required; this removes dead renderer transcript helper modules after active
   transcript replay/display moved to SDK-backed transcript infrastructure, while
   provider normalization remains in the chat model option path.
+
+CD-035 validation:
+
+- targeted `rg -n "rehydratePayload\\.js|RehydratePayload\\.test|resolveRehydrateContent|buildRehydrateToolCall|parseToolCallPayload|normalizeTranscriptTransparency|buildTranscriptTransparencyFromChatMessage|from './rehydratePayload'|from \"./rehydratePayload\"" docs frontend/src tests/frontend packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no stale helper-file, deleted-test, deleted-export, or import matches remain.
+- `bin/windie test frontend -- ToolCallMessageState WindieSdkConversationRuntime ConversationContinuityService ConversationReplayToolMessages MessageScreenshots`:
+  passed, 6 suites and 161 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 207 to
+  202 and the CD-035 deleted helper file/symbols no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; backend rehydrate payload construction already lives in SDK
+  conversation projections and backend rehydrate services, and this slice only
+  removes a stale renderer helper/test plus misleading docs.
 
 ## Inspection Notes
 

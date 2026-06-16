@@ -23,8 +23,7 @@ flowchart LR
     D --> E["sidecar chat_events rows"]
     E --> F["dashboard conversation list/search"]
     E --> G["SDK display/rehydrate projections"]
-    G --> H["rehydratePayload.js"]
-    H --> I["backend RehydrateExecutionService"]
+    G --> I["backend RehydrateExecutionService"]
     I --> J["backend conversation-scoped history"]
 ```
 
@@ -47,7 +46,7 @@ flowchart LR
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Dashboard conversation list is missing, stale, or ordered wrong | Sidecar conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Dashboard resume displays wrong rows | SDK display projection and conversation load command | `desktopConversationContinuityService.ts`, `desktopConversationStore.ts`, SDK conversation store/runtime | `DesktopConversationContinuityService.test.ts`, `DesktopConversationStore.test.ts` |
-| Resume displays rows but backend answers without old context | Rehydrate payload and backend rehydrate service | `rehydratePayload.js`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `RehydratePayload.test.js`, backend rehydrate service/linkage tests |
+| Resume displays rows but backend answers without old context | SDK rehydrate projection and backend rehydrate service | `packages/windie-sdk-js/src/projections/conversationProjections.ts`, `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `WindieSdkConversationRuntime.test.ts`, `ConversationContinuityService.test.ts`, backend rehydrate service/linkage tests |
 | Transparency/system-prompt rows replay incorrectly | Renderer transparency normalization and backend rehydrate transparency resolution | `transparencyNormalization.ts`, `backend/src/api/services/rehydrate_transparency_resolution.py` | `TranscriptTransparencyNormalization.test.ts`, `tests/backend/test_rehydrate_transparency_resolution.py` |
 | Conversation delete leaves rows, titles, or search results behind | Sidecar memory delete/cleanup plus renderer active-chat reset | `local_store.py`, conversation delete helpers, dashboard delete actions | `tests/sidecar/test_local_store_delete_cleanup.py`, conversation title/list tests, dashboard delete tests |
 | Search returns rows from the wrong conversation | Sidecar conversation search | `conversation_search_helpers.py`, `local_store.py` | `tests/sidecar/test_conversation_search*.py` |
@@ -76,7 +75,7 @@ flowchart LR
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
 
 5. Preserve rehydrate shape.
-   - `rehydratePayload.js` should emit backend-compatible entries from stored transcript rows.
+   - SDK `buildRehydrateSnapshot(...)` should emit backend-compatible entries from stored conversation events.
    - Backend rehydrate should normalize message roles, structured tool payloads, transparency rows, screenshot refs, and tool-call/tool-output linkage.
    - Provider-strict history should be repaired at the backend rehydrate layer, not by hiding rows in the dashboard.
 
@@ -95,7 +94,7 @@ flowchart LR
 | Stored-row conversion to visible chat messages | `bin/windie test frontend -- SdkDisplayChatMessageProjection DesktopConversationContinuityService DesktopConversationStore` |
 | Transcript session identity or sync payloads | `bin/windie test frontend -- TranscriptSessionState TranscriptSessionSyncPayload IpcTranscriptSessionSync` |
 | Dashboard resume actions | `bin/windie test frontend -- ConversationReplayActions DashboardConversationLoad LocalConversationStore` |
-| Rehydrate payload construction | `bin/windie test frontend -- RehydratePayload ConversationReplayToolMessages` |
+| Rehydrate payload construction | `bin/windie test frontend -- WindieSdkConversationRuntime ConversationContinuityService ConversationReplayToolMessages` |
 | Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py tests/backend/test_rehydrate_transparency_resolution.py` |
 | Sidecar transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
 | Sidecar conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_helpers.py` |
@@ -122,7 +121,7 @@ flowchart LR
 ### Dashboard Resume Shows the Right Rows but Backend Forgets Context
 
 1. Confirm SDK display projections render the intended rows.
-2. Confirm `rehydratePayload.js` includes those rows in backend-compatible order.
+2. Confirm SDK `buildRehydrateSnapshot(...)` includes those rows in backend-compatible order.
 3. Confirm the rehydrate request uses the selected `conversation_ref`.
 4. Confirm backend `RehydrateExecutionService` installs history into the conversation-scoped session.
 5. Confirm the next query uses the same `conversation_ref`.

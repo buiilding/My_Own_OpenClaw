@@ -45,7 +45,7 @@ flowchart LR
 | Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `WindieSdkContextEnrichment.test.ts` |
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
-| Replayed message loses images | Message screenshot resolver and transcript replay | `messageScreenshots.js`, `useResolvedMessageScreenshots.js`, transcript replay state | `MessageScreenshots.test.js`, `MessageContent.test.jsx`, `RehydratePayload.test.js`, transcript tests |
+| Replayed message loses images | Message screenshot resolver and transcript replay | `messageScreenshots.js`, `useResolvedMessageScreenshots.js`, transcript replay state | `MessageScreenshots.test.js`, `MessageContent.test.jsx`, SDK rehydrate projection tests, transcript tests |
 | Artifact image fails once and never recovers | IPC-backed artifact screenshot cache | `useResolvedMessageScreenshots.js` | `MessageContent.test.jsx` retry-after-failure coverage |
 | Copy image to clipboard fails | Electron clipboard image IPC | `frontend/src/main/ipc/ipc_clipboard_image.cjs` | `IpcClipboardImageHandler.test.cjs` |
 
@@ -115,7 +115,7 @@ Clipboard image IPC trust boundary:
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
 | Backend screenshot/query input resolution | `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py` |
 | Artifact route/store behavior | `./scripts/python-in-env backend pytest tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py` |
-| Replay/message image rendering | `cd frontend && npm run test -- MessageScreenshots RehydratePayload` |
+| Replay/message image rendering | `bin/windie test frontend -- MessageScreenshots WindieSdkConversationRuntime` |
 | Clipboard copy IPC | `cd frontend && npm run test -- IpcClipboardImageHandler` |
 | Docs-only attachment workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
 

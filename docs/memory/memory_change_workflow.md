@@ -82,7 +82,8 @@ Likely code:
 
 - `packages/windie-sdk-js/src/projections`
 - desktop conversation store adapter
-- `rehydratePayload.js`
+- `packages/windie-sdk-js/src/projections/conversationProjections.ts`
+- `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`
 - `backend/src/api/handlers/rehydrate.py`
 - `backend/src/api/services/rehydrate_*`
 

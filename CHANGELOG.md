@@ -17,6 +17,8 @@ All notable changes to WindieOS will be documented in this file.
   compaction runtime instead of exporting it as unused public utility surface.
 - frontend/chat: delete stale transcript rehydrate payload helper modules
   after moving provider normalization into chat model option ownership.
+- frontend/chat: remove the obsolete renderer `rehydratePayload.js` helper and
+  route rehydrate docs/tests to SDK conversation projections.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.
