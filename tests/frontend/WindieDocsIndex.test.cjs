@@ -442,6 +442,12 @@ describe('windie docs index', () => {
     ).toBe(path.join('docs', 'backend', 'agent', 'session_runtime_and_config_rewire_reference.md'));
   });
 
+  test('routes removed ContextFactory OCR service alias queries to tool context docs', () => {
+    expect(
+      findDocs('ContextFactory set_ocr_service removed ocr_router tool context service keys')[0].path,
+    ).toBe(path.join('docs', 'backend', 'sdk', 'tool_context_and_schema_contract_reference.md'));
+  });
+
   test('routes removed Kimi provider alias queries to Kimi provider docs', () => {
     expect(findDocs('kimi_code provider alias rejected')[0].path).toBe(
       path.join('docs', 'providers', 'kimi_coding.md'),
