@@ -211,5 +211,4 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
 
 module.exports = {
   materializeScreenshotAttachment,
-  resolveOwnedScreenshotTempDir,
 };

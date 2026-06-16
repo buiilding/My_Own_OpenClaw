@@ -13,9 +13,14 @@ const {
   resolveNextSdkRuntimeRequest,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/localBackendBridgeHarness.cjs');
-const {
-  resolveOwnedScreenshotTempDir,
-} = require('../../frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs');
+
+function createOwnedScreenshotTempPath(label) {
+  return path.join(
+    os.tmpdir(),
+    'windieos-screenshots',
+    `windie-shot-${Date.now()}-${label}.jpg`,
+  );
+}
 
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
@@ -220,9 +225,8 @@ describe('local_backend_bridge RPC handlers', () => {
     });
     markReady();
 
-    const tempDir = resolveOwnedScreenshotTempDir();
-    await fsPromises.mkdir(tempDir, { recursive: true, mode: 0o700 });
-    const screenshotPath = path.join(tempDir, `windie-shot-${Date.now()}-capture.jpg`);
+    const screenshotPath = createOwnedScreenshotTempPath('capture');
+    await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
     await fsPromises.writeFile(screenshotPath, Buffer.from('fake-jpeg-bytes'));
 
     const originalFetch = global.fetch;
@@ -579,9 +583,8 @@ describe('local_backend_bridge RPC handlers', () => {
     });
     markReady();
 
-    const tempDir = resolveOwnedScreenshotTempDir();
-    await fsPromises.mkdir(tempDir, { recursive: true, mode: 0o700 });
-    const screenshotPath = path.join(tempDir, `windie-shot-${Date.now()}-inline.jpg`);
+    const screenshotPath = createOwnedScreenshotTempPath('inline');
+    await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
     await fsPromises.writeFile(screenshotPath, Buffer.from('fake-jpeg-inline'));
 
     const originalFetch = global.fetch;
