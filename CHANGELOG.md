@@ -68,6 +68,8 @@ All notable changes to WindieOS will be documented in this file.
   local memory guide before dashboard display references.
 - docs/development: route MCP server config searches to the MCP runtime guide
   before generic routing quick cards.
+- docs/backend: route OCR/vision searches to the coordinate runtime overview
+  before broad inference capability workflow docs.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

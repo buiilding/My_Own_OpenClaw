@@ -148,6 +148,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes OCR vision queries to the runtime overview', () => {
+    expect(findDocs('OCR vision')[0].path).toBe(
+      path.join('docs', 'backend', 'services', 'ocr_and_vision_coordinate_runtime_reference.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

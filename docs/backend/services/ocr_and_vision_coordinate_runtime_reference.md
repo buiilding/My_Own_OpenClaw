@@ -1,7 +1,7 @@
 ---
-summary: "Backend OCR/vision coordinate runtime overview with links to focused screen-grounding deep references."
+summary: "Backend OCR vision coordinate runtime overview with OCR/vision service modules, provider routing, coordinate preparation, and links to focused screen-grounding deep references."
 read_when:
-  - When changing backend screen-grounding behavior and deciding between OCR-state or vision-provider deep docs.
+  - When changing backend OCR vision or screen-grounding behavior and deciding between OCR-state or vision-provider deep docs.
   - When tracing coordinate preparation failures across OCR lifecycle, model inference, and scaling/parser boundaries.
 title: "OCR and Vision Coordinate Runtime Overview"
 ---
