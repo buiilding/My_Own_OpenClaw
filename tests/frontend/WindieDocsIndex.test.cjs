@@ -285,6 +285,31 @@ describe('windie docs index', () => {
     expect(
       findDocs('query execution stream pipeline typed response formatter dispatch')[0].path,
     ).toBe(runtimePath);
+    expect(
+      findDocs('EventFormatter _get_event_dict dict input StreamingEvent.to_dict formatter conversion removed')[0].path,
+    ).toBe(
+      path.join(
+        'docs',
+        'backend',
+        'api',
+        'processing',
+        'formatters',
+        'base_formatter_guard_utilities_and_skip_semantics_reference.md',
+      ),
+    );
+    expect(
+      findDocs('tool bundle formatter typed dict parity removed StreamingEvent.to_dict')[0].path,
+    ).toBe(
+      path.join(
+        'docs',
+        'backend',
+        'api',
+        'processing',
+        'formatters',
+        'actions',
+        'tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md',
+      ),
+    );
   });
 
   test('routes preload allowlist queries to the preload bridge reference', () => {
