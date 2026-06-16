@@ -109,15 +109,17 @@ def test_validate_settings_update_filters_unknown_and_validates_types():
         "history_compaction_enabled": True,
         "history_compaction_trigger_tokens": 99999,
         "history_compaction_strategy": "inline",
+        "history_compaction_openai_remote_enabled": True,
         "unknown_field": "drop-me",
     }
     validated = validate_settings_update(payload)
     assert "unknown_field" not in validated
+    assert "history_compaction_strategy" not in validated
+    assert "history_compaction_openai_remote_enabled" not in validated
     assert validated["llm_timeout"] == 1.5
     assert validated["memory_enabled"] is True
     assert validated["history_compaction_enabled"] is True
     assert validated["history_compaction_trigger_tokens"] == 99999
-    assert validated["history_compaction_strategy"] == "inline"
 
 
 def test_validate_settings_update_allows_null_compaction_trigger_tokens():

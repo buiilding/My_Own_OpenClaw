@@ -64,7 +64,7 @@ class CompactionEngine:
             pending_user_content=pending_user_content,
         )
         trigger_tokens = self._resolve_trigger_tokens(model=model)
-        strategy_name = self._resolve_strategy_name()
+        strategy_name = self._inline_strategy.strategy_name
         user_turn_index = self._current_user_turn_index()
         decision_source = self._decision_token_source(
             local_before_tokens, before_tokens
@@ -435,10 +435,6 @@ class CompactionEngine:
         if manual:
             return bool(cfg.history_compaction_manual_enabled)
         return bool(cfg.history_compaction_enabled)
-
-    def _resolve_strategy_name(self) -> str:
-        # OpenAI remote strategy is intentionally phase-gated; fallback inline for now.
-        return self._inline_strategy.strategy_name
 
     def _resolve_trigger_tokens(self, *, model: str) -> int:
         configured_trigger = self._session.cfg.history_compaction_trigger_tokens

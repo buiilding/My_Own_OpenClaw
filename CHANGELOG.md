@@ -80,6 +80,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/providers: remove old Kimi `kimi_code` / `kimi-code` provider and
   model-prefix aliases; Kimi now uses only `kimi_coding` config fields and the
   `kimi-coding` runtime provider key.
+- backend/agent: remove unused history compaction remote strategy config fields;
+  backend compaction now exposes the active inline strategy only.
 - backend/agent: remove duplicate screenshot capture metadata normalization
   from `ScreenshotManager`; active screenshot state owns metadata normalization.
 - docs/frontend: route removed renderer backend-event contract and chat

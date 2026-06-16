@@ -34,12 +34,10 @@ APP_CONFIG = AppConfig(
     interaction_mode="agent",
     history_compaction_enabled=True,
     history_compaction_manual_enabled=True,
-    history_compaction_openai_remote_enabled=False,
     history_compaction_trigger_tokens=None,
     history_compaction_target_tokens=60000,
     history_compaction_keep_recent_user_messages=6,
     history_compaction_summary_max_tokens=1200,
-    history_compaction_strategy="auto",
     history_compaction_prompt=None,
     # Vision Model Settings (UI grounding / Venus)
     vision_backend="local",

@@ -23,12 +23,10 @@ class SessionRuntimeConfigView:
     interaction_mode: str
     history_compaction_enabled: bool
     history_compaction_manual_enabled: bool
-    history_compaction_openai_remote_enabled: bool
     history_compaction_trigger_tokens: Optional[int]
     history_compaction_target_tokens: int
     history_compaction_keep_recent_user_messages: int
     history_compaction_summary_max_tokens: int
-    history_compaction_strategy: str
     history_compaction_prompt: Optional[str]
     include_query_screenshot: bool
 
@@ -81,12 +79,10 @@ def session_runtime_config(config: AppConfig) -> SessionRuntimeConfigView:
         interaction_mode=config.interaction_mode,
         history_compaction_enabled=config.history_compaction_enabled,
         history_compaction_manual_enabled=config.history_compaction_manual_enabled,
-        history_compaction_openai_remote_enabled=config.history_compaction_openai_remote_enabled,
         history_compaction_trigger_tokens=config.history_compaction_trigger_tokens,
         history_compaction_target_tokens=config.history_compaction_target_tokens,
         history_compaction_keep_recent_user_messages=config.history_compaction_keep_recent_user_messages,
         history_compaction_summary_max_tokens=config.history_compaction_summary_max_tokens,
-        history_compaction_strategy=config.history_compaction_strategy,
         history_compaction_prompt=config.history_compaction_prompt,
         include_query_screenshot=config.include_query_screenshot,
     )

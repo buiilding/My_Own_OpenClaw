@@ -47,7 +47,7 @@ Computed values:
 - `before_tokens`: prompt-builder token count, raised to the last provider-reported prompt-token high-water mark when provider usage is available
 - `projected_tokens`: `before_tokens + estimate(pending_user_content)`
 - `trigger_tokens`: resolved from config/model window
-- `strategy_name`: currently always inline fallback
+- `strategy_name`: always `inline`
 - `user_turn_index`: count of `MessageType.USER_QUERY` in current stored history
 
 Skip reasons returned via `CompactionDecision.skip_reason`:
@@ -140,9 +140,8 @@ This keeps the prompt from staying oversized after a nominally successful compac
 
 ## Strategy and Prompt Contract
 
-Only `InlineSummaryCompactionStrategy` is active today.
-
-`history_compaction_strategy` / `history_compaction_openai_remote_enabled` are currently phase-gated for remote compaction; engine resolves strategy name to `inline`.
+Only `InlineSummaryCompactionStrategy` is active. There is no backend config
+selector for remote compaction.
 
 Prompt rendering path:
 

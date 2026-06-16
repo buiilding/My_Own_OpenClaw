@@ -46,7 +46,6 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "browser_automation_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_manual_enabled": SettingsUpdateRule((bool,)),
-    "history_compaction_openai_remote_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_trigger_tokens": SettingsUpdateRule((int,), allow_none=True),
     "history_compaction_target_tokens": SettingsUpdateRule((int,), allow_none=True),
     "history_compaction_keep_recent_user_messages": SettingsUpdateRule(
@@ -55,7 +54,6 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "history_compaction_summary_max_tokens": SettingsUpdateRule(
         (int,), allow_none=True
     ),
-    "history_compaction_strategy": SettingsUpdateRule((str,)),
     "history_compaction_prompt": SettingsUpdateRule((str,), allow_none=True),
     "embedding_max_concurrent_requests": SettingsUpdateRule((int,), allow_none=True),
     "embedding_queue_timeout_seconds": SettingsUpdateRule(

@@ -328,12 +328,10 @@ class AppConfig(BaseModel):
     )
     history_compaction_enabled: bool = True
     history_compaction_manual_enabled: bool = True
-    history_compaction_openai_remote_enabled: bool = False
     history_compaction_trigger_tokens: Optional[int] = Field(default=None, ge=2048)
     history_compaction_target_tokens: int = Field(default=60000, ge=1024)
     history_compaction_keep_recent_user_messages: int = Field(default=6, ge=1)
     history_compaction_summary_max_tokens: int = Field(default=1200, ge=128)
-    history_compaction_strategy: Literal["auto", "inline", "openai-remote"] = "auto"
     history_compaction_prompt: Optional[str] = None
 
     # Tool Execution Settings
