@@ -13,7 +13,6 @@ export type BackendEventType =
   | 'tool-call'
   | 'tool-output'
   | 'tool-bundle'
-  | 'tool-bundle-output'
   | 'web-search-progress'
   | 'audio-chunk'
   | 'wakeword-activated'
@@ -86,7 +85,6 @@ export type BackendEvent =
     }>;
     metadata?: Record<string, unknown>;
   }>
-  | BackendEventBase<'tool-bundle-output', Record<string, unknown>>
   | BackendEventBase<'web-search-progress', Record<string, unknown>>
   | BackendEventBase<'audio-chunk', { audio?: string; sample_rate?: number }>
   | BackendEventBase<'wakeword-activated', Record<string, unknown>>
@@ -114,7 +112,6 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'tool-call',
   'tool-output',
   'tool-bundle',
-  'tool-bundle-output',
   'web-search-progress',
   'audio-chunk',
   'wakeword-activated',

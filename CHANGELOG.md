@@ -103,6 +103,8 @@ All notable changes to WindieOS will be documented in this file.
   workflow before chat-header deep references.
 - docs/frontend: route stop-button searches to the ChatInterface control
   reference before audio-playback stop semantics.
+- docs/browser: route browser-session-readiness searches to the browser change
+  workflow before sidecar lifecycle internals.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

@@ -220,6 +220,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes browser session readiness queries to the browser workflow', () => {
+    expect(findDocs('browser session readiness')[0].path).toBe(
+      path.join('docs', 'browser', 'browser_change_workflow.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

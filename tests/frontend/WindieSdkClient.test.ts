@@ -1727,6 +1727,10 @@ describe('WindieSdkClient', () => {
       type: 'models-listed',
       payload: [{ id: 'gpt-5.4@@gpt-5-4-none-thinking' }],
     })).toBe(true);
+    expect(isBackendEvent({
+      type: 'tool-bundle-output',
+      payload: { bundle_id: 'bundle-1' },
+    })).toBe(false);
   });
 
   test('wakeUp applies an initial model selection after handshake', async () => {
