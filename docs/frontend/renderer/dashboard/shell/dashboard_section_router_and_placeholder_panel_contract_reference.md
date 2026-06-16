@@ -63,7 +63,7 @@ Collapsed rail behavior:
 
 Recent chat list behavior:
 
-- source channel: SDK conversation library, backed by sidecar `chat_events`.
+- source channel: SDK conversation library, backed by sidecar `conversation_events`.
 - load path runs on mount and when session user id changes.
 - list is filtered to rows with `conversation_id`.
 - sort order is descending by `last_timestamp`.
@@ -116,7 +116,7 @@ Search modal behavior:
 Conversation-open lifecycle (`useDashboardConversations`):
 
 1. resolve `conversation_ref` from selected row.
-2. load the canonical SDK conversation event log from `chat_events`.
+2. load the canonical SDK conversation event log from `conversation_events`.
 3. project SDK display messages for the renderer.
 4. mark backend inference state unknown so the continuity runtime can lazily rehydrate from the SDK snapshot.
 5. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.

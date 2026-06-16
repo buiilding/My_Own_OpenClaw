@@ -93,12 +93,9 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
     chat_events_deleted = 0
     conversation_revisions_deleted = 0
     conversation_titles_deleted = 0
-    history_db_path = getattr(store, "history_db_path", store.episodic_db_path)
+    history_db_path = store.history_db_path
 
-    await init_chat_event_schema(
-        history_db_path,
-        legacy_db_path=store.episodic_db_path,
-    )
+    await init_chat_event_schema(history_db_path)
     async with aiosqlite.connect(history_db_path) as conn:
         cursor = await conn.cursor()
         await cursor.execute(

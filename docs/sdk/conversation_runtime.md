@@ -290,9 +290,10 @@ continuity service.
 ## History DB Read Model Boundary
 
 Electron sidecar-backed stores persist normalized conversation events in
-`history/history.db`. That database exposes `conversation_display_messages` as a
-diagnostic and prototyping read model for visible chat rows, but first-party UI
-code should still call SDK/store display APIs instead of reading SQLite directly.
+`history/history.db` under `conversation_events`. That database exposes
+`conversation_display_messages` as a diagnostic and prototyping read model for
+visible chat rows, but first-party UI code should still call SDK/store display
+APIs instead of reading SQLite directly.
 The SDK owns display projection semantics; the SQLite view owns only a durable,
 ordered subset of user messages, assistant messages, and terminal turn errors.
 

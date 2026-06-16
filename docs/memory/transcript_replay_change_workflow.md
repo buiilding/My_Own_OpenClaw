@@ -11,7 +11,7 @@ title: "Transcript Replay Change Workflow"
 
 Use this workflow for the visible-chat projection path. WindieOS transcript replay is related to memory, but it is not the same thing as semantic memory or backend active model history.
 
-The core rule is: sidecar `chat_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
+The core rule is: sidecar `conversation_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
 
 ## Runtime Path
 
@@ -20,7 +20,7 @@ flowchart LR
     A["SDK conversation event"] --> B["desktop conversation store factory"]
     B --> C["Electron main memory RPC mapper"]
     C --> D["sidecar chat event handler"]
-    D --> E["sidecar chat_events rows"]
+    D --> E["sidecar conversation_events rows"]
     E --> F["dashboard conversation list/search"]
     E --> G["SDK display/rehydrate projections"]
     G --> I["backend RehydrateExecutionService"]

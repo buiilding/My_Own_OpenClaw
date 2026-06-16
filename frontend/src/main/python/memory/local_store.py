@@ -303,10 +303,7 @@ class LocalMemoryStore:
         for memory_type, init_fn in self._MEMORY_SCHEMA_INIT.items():
             attrs = self._get_memory_attrs(memory_type)
             await init_fn(getattr(self, attrs.db_path))
-        await init_chat_event_schema(
-            self.history_db_path,
-            legacy_db_path=self.episodic_db_path,
-        )
+        await init_chat_event_schema(self.history_db_path)
 
     async def _load_vector_mappings(self) -> None:
         """Load vector ID to memory ID mappings from both databases."""

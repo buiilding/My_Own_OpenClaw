@@ -106,9 +106,11 @@ Mapped bridge handlers:
 
 ## Memory and Chat Semantics
 
-`chat_events` is the durable chat log. It stores visible user, assistant, tool-call, tool-output, compaction, metadata, and attachment events. Conversation listing/search/replay reads from this table.
+`conversation_events` is the durable chat log. It stores visible user,
+assistant, tool-call, tool-output, compaction, metadata, and attachment events.
+Conversation listing/search/replay reads from this table.
 
-`chat_conversation_revisions` stores the current SDK conversation revision for
+`conversation_revisions` stores the current SDK conversation revision for
 sidecar-backed conversations. `replace_chat_conversation` updates it atomically
 with the replacement event rows, and `get_chat_conversation_revision` reads it
 before falling back to the latest event revision. This keeps edit/resend and

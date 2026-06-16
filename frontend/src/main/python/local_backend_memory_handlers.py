@@ -63,20 +63,13 @@ class LocalBackendMemoryHandlersMixin:
     """Memory RPC handlers shared by the local backend service."""
 
     def _conversation_history_db_path(self) -> str:
-        history_db_path = getattr(self.memory_store, "history_db_path", None)
-        if history_db_path:
-            return history_db_path
-        return getattr(self.memory_store, "episodic_db_path")
+        return self.memory_store.history_db_path
 
     def _conversation_list_diagnostics_status(self) -> Dict[str, Any]:
         history_db_path = getattr(self.memory_store, "history_db_path", None)
-        episodic_db_path = getattr(self.memory_store, "episodic_db_path", None)
         canonical_exists = bool(history_db_path and Path(history_db_path).exists())
-        legacy_exists = bool(episodic_db_path and Path(episodic_db_path).exists())
         return {
             "canonicalHistoryDbExists": canonical_exists,
-            "legacyEpisodicDbExists": legacy_exists,
-            "storeKind": "history" if history_db_path else "legacy",
         }
 
     @staticmethod

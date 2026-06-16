@@ -97,7 +97,7 @@ $mem = Join-Path $env:APPDATA "windieos\\memory"; Remove-Item -Force `
 - Delegates bulk destructive reset flows to `memory/admin.py`
 - Delegates empty-index artifact cleanup to `memory/index_artifact_cleanup.py`
 - Stores caller-provided SDK embeddings and searches local FAISS/SQLite indexes
-- Chat history is not stored as memory rows. The sidecar stores visible chat replay in `chat_events`.
+- Chat history is not stored as memory rows. The sidecar stores visible chat replay in `conversation_events`.
 - Episodic memory rows are durable memory facts/interaction pairs, not the visible chat log.
 - The SDK calls backend `/api/embeddings/` for retrieval and completed-turn
   memory writes, then passes embeddings to the sidecar.
@@ -198,7 +198,7 @@ renderer-facing payload shapes.
   through SDK memory APIs. Renderer receives `{ memories, count }`, not the
   sidecar JSON-RPC envelope.
 - `conversation.load` loads chat history display and backend rehydrate
-  snapshots through SDK projections over canonical `chat_events`.
+  snapshots through SDK projections over canonical `conversation_events`.
 - `conversations.list` and `conversations.search` list/search chat metadata
   through SDK conversation store APIs.
 
@@ -208,15 +208,15 @@ or `get_chat_events` for user-facing memory or chat concepts.
 
 Current title behavior for chats:
 - A new chat can appear in `Your chats` after the first chat event is stored.
-- List/search reads derive the display title from the first user message or latest content in `chat_events`.
+- List/search reads derive the display title from the first user message or latest content in `conversation_events`.
 - Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into “request never hit FastAPI” versus “origin app received and failed the request.”
 
 ## Chat Transcript vs SDK Event State
 
 WindieOS now persists one first-class SDK conversation representation for chat history outside memory rows:
 
-- `chat_events`: normalized SDK event log used for desktop display, conversation lists, backend rehydrate, edit/resend, retry, and compaction lifecycle.
-- `chat_events.attachments`: JSON image attachment records for user-message screenshots and tool-output screenshot artifacts, kept separate from memory/vector rows while the original SDK event payload remains available for replay.
+- `conversation_events`: normalized SDK event log used for desktop display, conversation lists, backend rehydrate, edit/resend, retry, and compaction lifecycle.
+- `conversation_events.attachments`: JSON image attachment records for user-message screenshots and tool-output screenshot artifacts, kept separate from memory/vector rows while the original SDK event payload remains available for replay.
 - `record_kind='interaction'` remains the episodic memory source for completed user+assistant pairs.
 - Legacy transcript memory rows are not an active storage path.
 
@@ -267,7 +267,7 @@ Prompt-time memory injection is not a raw database dump.
 ## Completed Turn Persistence Contract
 
 - A completed `user -> assistant` turn should persist two different artifacts:
-  - chat-event rows in `chat_events` for visible chat history
+  - chat-event rows in `conversation_events` for visible chat history
   - one completed-turn interaction memory row (`record_kind='interaction'`) for the Episodic Memory view and semantic summarizer input
 - The interaction row is triggered by the SDK after terminal assistant
   completion. Backend inference no longer emits or owns a `memory-store` event.

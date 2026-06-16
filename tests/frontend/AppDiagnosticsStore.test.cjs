@@ -128,7 +128,6 @@ describe('app diagnostics store', () => {
       durationMs: 12,
       data: {
         canonicalHistoryDbExists: false,
-        legacyEpisodicDbExists: true,
         resultCount: 0,
         workspacePath: '/do/not/store',
         title: 'do not store',
@@ -154,7 +153,6 @@ describe('app diagnostics store', () => {
       durationMs: 12,
       data: expect.objectContaining({
         canonicalHistoryDbExists: false,
-        legacyEpisodicDbExists: true,
         resultCount: 0,
         durationMs: 12,
       }),

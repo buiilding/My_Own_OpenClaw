@@ -38,6 +38,7 @@ def _build_store(tmp_path: Path) -> LocalMemoryStore:
 
     store.episodic_db_path = tmp_path / "episodic.db"
     store.semantic_db_path = tmp_path / "semantic.db"
+    store.history_db_path = tmp_path / "history" / "history.db"
     store.episodic_index_path = tmp_path / "episodic.faiss.index"
     store.semantic_index_path = tmp_path / "semantic.faiss.index"
 
@@ -80,18 +81,6 @@ def _create_episodic_memories_table(db_path: Path) -> None:
                 record_kind TEXT
             )
             """)
-        conn.execute("""
-            CREATE TABLE conversation_titles (
-                user_id TEXT NOT NULL,
-                conversation_id TEXT NOT NULL,
-                title TEXT NOT NULL,
-                source TEXT NOT NULL DEFAULT 'heuristic',
-                is_locked INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, conversation_id)
-            )
-            """)
         conn.commit()
 
 
@@ -107,18 +96,6 @@ def _create_bulk_clear_episodic_memories_table(db_path: Path) -> None:
                 record_kind TEXT,
                 role TEXT,
                 message_type TEXT
-            )
-            """)
-        conn.execute("""
-            CREATE TABLE conversation_titles (
-                user_id TEXT NOT NULL,
-                conversation_id TEXT NOT NULL,
-                title TEXT NOT NULL,
-                source TEXT NOT NULL DEFAULT 'heuristic',
-                is_locked INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, conversation_id)
             )
             """)
         conn.commit()
@@ -466,7 +443,8 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
 ):
     store = _build_store(tmp_path)
     _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
-    await init_chat_event_schema(str(store.episodic_db_path))
+    store.history_db_path.parent.mkdir(parents=True, exist_ok=True)
+    await init_chat_event_schema(str(store.history_db_path))
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         conn.executemany(
@@ -488,6 +466,9 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
                 ),
             ],
         )
+        conn.commit()
+
+    with sqlite3.connect(store.history_db_path) as conn:
         conn.execute(
             """
             INSERT INTO conversation_titles (
@@ -506,7 +487,7 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
         )
         conn.commit()
     await append_chat_event(
-        db_path=str(store.episodic_db_path),
+        db_path=str(store.history_db_path),
         user_id="user-1",
         conversation_id="conv-1",
         event_type="user_message",
@@ -565,11 +546,12 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
         remaining_rows = conn.execute(
             "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
         ).fetchall()
+    with sqlite3.connect(store.history_db_path) as conn:
         remaining_titles = conn.execute(
             "SELECT COUNT(*) FROM conversation_titles"
         ).fetchone()[0]
         remaining_revisions = conn.execute(
-            "SELECT COUNT(*) FROM chat_conversation_revisions"
+            "SELECT COUNT(*) FROM conversation_revisions"
         ).fetchone()[0]
     assert remaining_rows == [("interaction-1", "interaction", 0)]
     assert remaining_titles == 0

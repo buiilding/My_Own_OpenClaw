@@ -865,13 +865,9 @@ async def test_handle_list_chat_conversations_returns_sanitized_diagnostics(tmp_
     backend = LocalBackend()
     memory_store = DummyMemoryStore()
     canonical_db = tmp_path / "history" / "history.db"
-    legacy_db = tmp_path / "memory" / "episodic.db"
     canonical_db.parent.mkdir(parents=True)
-    legacy_db.parent.mkdir(parents=True)
     canonical_db.write_text("")
-    legacy_db.write_text("")
     memory_store.history_db_path = str(canonical_db)
-    memory_store.episodic_db_path = str(legacy_db)
     backend.memory_store = memory_store
 
     result = await backend._handle_list_chat_conversations(
@@ -890,18 +886,13 @@ async def test_handle_list_chat_conversations_returns_sanitized_diagnostics(tmp_
     ]
     assert events[0]["data"] == {
         "canonicalHistoryDbExists": True,
-        "legacyEpisodicDbExists": True,
-        "storeKind": "history",
     }
     assert events[1]["data"] == {
         "canonicalHistoryDbExists": True,
-        "legacyEpisodicDbExists": True,
-        "storeKind": "history",
         "limit": 5,
         "resultCount": 1,
     }
     assert "history.db" not in str(events)
-    assert "episodic.db" not in str(events)
 
 
 @pytest.mark.asyncio
@@ -1573,7 +1564,7 @@ async def test_handle_get_chat_conversation_revision_returns_store_revision():
 async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
-    backend.memory_store.episodic_db_path = "/tmp/test-title.sqlite3"
+    backend.memory_store.history_db_path = "/tmp/test-title-history.sqlite3"
     emitted = []
     calls = []
 
@@ -1604,7 +1595,7 @@ async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
     }
     assert calls == [
         {
-            "db_path": "/tmp/test-title.sqlite3",
+            "db_path": "/tmp/test-title-history.sqlite3",
             "user_id": "user-1",
             "conversation_id": "conv-title",
             "title": "New Title",
@@ -1626,7 +1617,7 @@ async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
 async def test_handle_get_conversation_title_state_returns_store_state(monkeypatch):
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
-    backend.memory_store.episodic_db_path = "/tmp/test-title.sqlite3"
+    backend.memory_store.history_db_path = "/tmp/test-title-history.sqlite3"
     calls = []
 
     async def fake_get_conversation_title_state(**kwargs):
@@ -1659,7 +1650,7 @@ async def test_handle_get_conversation_title_state_returns_store_state(monkeypat
     }
     assert calls == [
         {
-            "db_path": "/tmp/test-title.sqlite3",
+            "db_path": "/tmp/test-title-history.sqlite3",
             "user_id": "user-1",
             "conversation_id": "conv-title",
         }

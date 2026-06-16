@@ -1,7 +1,7 @@
 """Covers chat event store behavior in the sidecar test suite."""
 
-from pathlib import Path
 import sqlite3
+from pathlib import Path
 
 import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
@@ -18,174 +18,6 @@ from memory.chat_event_store import (  # noqa: E402
     rewrite_chat_conversation_after_event,
 )
 from memory.sqlite_store import init_episodic_schema  # noqa: E402
-
-
-def _create_legacy_chat_history_db(db_path: Path) -> None:
-    with sqlite3.connect(db_path) as conn:
-        conn.execute("""
-            CREATE TABLE chat_events (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                conversation_id TEXT,
-                event_type TEXT NOT NULL,
-                role TEXT,
-                content TEXT,
-                timestamp TEXT NOT NULL,
-                message_index INTEGER NOT NULL,
-                revision_id TEXT,
-                turn_ref TEXT,
-                tool_name TEXT,
-                correlation_id TEXT,
-                workspace_path TEXT,
-                workspace_name TEXT,
-                producer TEXT NOT NULL DEFAULT 'sdk',
-                producer_event_id TEXT,
-                producer_sequence INTEGER,
-                metadata TEXT,
-                attachments TEXT,
-                event_payload TEXT NOT NULL,
-                compaction_checkpoint TEXT
-            )
-            """)
-        conn.execute("""
-            CREATE TABLE chat_conversation_revisions (
-                user_id TEXT NOT NULL,
-                conversation_id TEXT NOT NULL,
-                revision_id TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, conversation_id)
-            )
-            """)
-        conn.execute("""
-            CREATE TABLE conversation_titles (
-                user_id TEXT NOT NULL,
-                conversation_id TEXT NOT NULL,
-                title TEXT NOT NULL,
-                source TEXT NOT NULL DEFAULT 'heuristic',
-                is_locked INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, conversation_id)
-            )
-            """)
-        conn.execute(
-            """
-            INSERT INTO chat_events (
-                id, user_id, conversation_id, event_type, role, content, timestamp,
-                message_index, revision_id, turn_ref, tool_name, correlation_id,
-                workspace_path, workspace_name, producer, producer_event_id,
-                producer_sequence, metadata, attachments, event_payload,
-                compaction_checkpoint
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                "evt-legacy",
-                "user-1",
-                "conv-legacy",
-                "user_message",
-                "user",
-                "legacy hello",
-                "2026-05-17T12:00:00+00:00",
-                1,
-                "rev-legacy",
-                "turn-legacy",
-                None,
-                None,
-                "/work/WindieOS",
-                "WindieOS",
-                "sdk",
-                None,
-                None,
-                "{}",
-                "[]",
-                '{"eventId":"evt-legacy","type":"user_message","conversationRef":"conv-legacy","revisionId":"rev-legacy","timestamp":"2026-05-17T12:00:00+00:00","source":"sdk","payload":{"text":"legacy hello"}}',
-                None,
-            ),
-        )
-        conn.execute(
-            """
-            INSERT INTO chat_conversation_revisions
-            (user_id, conversation_id, revision_id, updated_at)
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                "user-1",
-                "conv-legacy",
-                "rev-legacy",
-                "2026-05-17T12:00:00+00:00",
-            ),
-        )
-        conn.execute(
-            """
-            INSERT INTO conversation_titles
-            (user_id, conversation_id, title, source, is_locked, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                "user-1",
-                "conv-legacy",
-                "Legacy Title",
-                "model",
-                0,
-                "2026-05-17T12:00:00+00:00",
-                "2026-05-17T12:00:00+00:00",
-            ),
-        )
-        conn.commit()
-
-
-def _create_old_legacy_chat_history_db(db_path: Path) -> None:
-    with sqlite3.connect(db_path) as conn:
-        conn.execute("""
-            CREATE TABLE chat_events (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                conversation_id TEXT,
-                event_type TEXT NOT NULL,
-                role TEXT,
-                content TEXT,
-                timestamp TEXT NOT NULL,
-                message_index INTEGER NOT NULL,
-                revision_id TEXT,
-                turn_ref TEXT,
-                tool_name TEXT,
-                correlation_id TEXT,
-                workspace_path TEXT,
-                workspace_name TEXT,
-                metadata TEXT,
-                event_payload TEXT NOT NULL
-            )
-            """)
-        conn.execute(
-            """
-            INSERT INTO chat_events (
-                id, user_id, conversation_id, event_type, role, content, timestamp,
-                message_index, revision_id, turn_ref, tool_name, correlation_id,
-                workspace_path, workspace_name, metadata, event_payload
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                "evt-old-legacy",
-                "user-1",
-                "conv-old-legacy",
-                "user_message",
-                "user",
-                "old legacy hello",
-                "2026-05-16T12:00:00+00:00",
-                1,
-                "rev-old-legacy",
-                "turn-old-legacy",
-                None,
-                None,
-                None,
-                None,
-                "{}",
-                '{"eventId":"evt-old-legacy","type":"user_message","conversationRef":"conv-old-legacy","revisionId":"rev-old-legacy","timestamp":"2026-05-16T12:00:00+00:00","source":"sdk","payload":{"text":"old legacy hello"}}',
-            ),
-        )
-        conn.commit()
 
 
 @pytest.mark.asyncio
@@ -205,9 +37,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
                     'conversations',
                     'conversation_turns',
                     'conversation_titles',
-                    'conversation_display_messages',
-                    'chat_events',
-                    'chat_conversation_revisions'
+                    'conversation_display_messages'
                 )
                 """
             ).fetchall()
@@ -219,8 +49,6 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
     assert objects["conversation_turns"] == "table"
     assert objects["conversation_titles"] == "table"
     assert objects["conversation_display_messages"] == "view"
-    assert objects["chat_events"] == "view"
-    assert objects["chat_conversation_revisions"] == "view"
 
 
 @pytest.mark.asyncio
@@ -349,70 +177,6 @@ async def test_chat_event_store_display_messages_view_filters_visible_rows(tmp_p
         ("evt-assistant", "assistant", "assistant_message", "hi there", 3),
         ("evt-error", "error", "turn_error", "model failed", 4),
     ]
-
-
-@pytest.mark.asyncio
-async def test_chat_event_store_migrates_legacy_history_rows(tmp_path: Path):
-    legacy_db_path = tmp_path / "episodic.db"
-    history_db_path = tmp_path / "history.db"
-    _create_legacy_chat_history_db(legacy_db_path)
-
-    await init_chat_event_schema(
-        str(history_db_path),
-        legacy_db_path=str(legacy_db_path),
-    )
-
-    rows = await get_chat_events(
-        db_path=str(history_db_path),
-        user_id="user-1",
-        conversation_id="conv-legacy",
-        limit=10,
-    )
-    conversations = await list_chat_conversations(
-        db_path=str(history_db_path),
-        user_id="user-1",
-        limit=10,
-    )
-    revision = await get_chat_conversation_revision(
-        db_path=str(history_db_path),
-        user_id="user-1",
-        conversation_id="conv-legacy",
-    )
-
-    assert [row["id"] for row in rows] == ["evt-legacy"]
-    assert conversations[0]["title"] == "Legacy Title"
-    assert conversations[0]["workspace_path"] == "/work/WindieOS"
-    assert revision["revision_id"] == "rev-legacy"
-
-    with sqlite3.connect(history_db_path) as conn:
-        assert conn.execute("SELECT COUNT(*) FROM conversation_events").fetchone()[0] == 1
-        assert conn.execute("SELECT COUNT(*) FROM conversation_revisions").fetchone()[0] == 1
-        assert conn.execute("SELECT COUNT(*) FROM conversation_titles").fetchone()[0] == 1
-
-
-@pytest.mark.asyncio
-async def test_chat_event_store_migrates_older_legacy_event_rows(tmp_path: Path):
-    legacy_db_path = tmp_path / "old_episodic.db"
-    history_db_path = tmp_path / "history.db"
-    _create_old_legacy_chat_history_db(legacy_db_path)
-
-    await init_chat_event_schema(
-        str(history_db_path),
-        legacy_db_path=str(legacy_db_path),
-    )
-
-    rows = await get_chat_events(
-        db_path=str(history_db_path),
-        user_id="user-1",
-        conversation_id="conv-old-legacy",
-        limit=10,
-    )
-
-    assert len(rows) == 1
-    assert rows[0]["id"] == "evt-old-legacy"
-    assert rows[0]["producer"] == "sdk"
-    assert rows[0]["attachments"] == []
-    assert "compaction_checkpoint" not in rows[0]
 
 
 @pytest.mark.asyncio

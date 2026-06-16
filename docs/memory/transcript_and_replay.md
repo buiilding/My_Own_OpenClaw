@@ -8,7 +8,7 @@ title: "Transcript and Replay"
 
 # Transcript and Replay
 
-Renderer transcript rows are visible projections. Canonical client-runtime state is stored in the sidecar `chat_events` table and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
+Renderer transcript rows are visible projections. Canonical client-runtime state is stored in the sidecar `conversation_events` table and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
 
 For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK store/display projections, sidecar event storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
 
@@ -28,7 +28,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 
 ## Write Flow
 
-Live sends, assistant turns, tool rows, compaction events, and replay rewrites are stored as SDK conversation events through the desktop conversation store factory and sidecar `chat_events` storage. Renderer chat handlers project those SDK events for live display; durable replay and dashboard state are rebuilt from the canonical event log.
+Live sends, assistant turns, tool rows, compaction events, and replay rewrites are stored as SDK conversation events through the desktop conversation store factory and sidecar `conversation_events` storage. Renderer chat handlers project those SDK events for live display; durable replay and dashboard state are rebuilt from the canonical event log.
 
 Transcript session identity includes:
 
@@ -43,7 +43,7 @@ SDK projections convert stored conversation events back into chat messages for r
 
 SDK-owned conversation state uses a dedicated sidecar chat-event table:
 
-- `chat_events`: normalized SDK event log for runtime/load/rehydrate/display
+- `conversation_events`: normalized SDK event log for runtime/load/rehydrate/display
 - `attachments`: normalized image attachment records extracted from user-message screenshots, screenshot refs/URLs, artifact refs, and tool-output screenshot payloads
 - compaction replay generations: complete `compaction_applied` events with replacement-history entries
 

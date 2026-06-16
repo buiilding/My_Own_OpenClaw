@@ -20,7 +20,7 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 
 ## Transcript Conversation Loader Contract
 
-`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full canonical `chat_events` rows from local DB IPC.
+`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full canonical `conversation_events` rows from local DB IPC.
 
 Input normalization:
 

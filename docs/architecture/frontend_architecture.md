@@ -136,7 +136,7 @@ Electron main owns only the IPC hop and strict command allowlist. The handler
 calls public `WindieAgent` / `ConversationRuntime` methods on the live SDK
 runtime. Renderer code must not call sidecar RPC names such as
 `clear-chat-history`, `clear-local-memory`, `list-chat-conversations`,
-`chat_events`, or `chat_conversation_revisions` for user-facing SDK concepts.
+`conversation_events`, or `conversation_revisions` for user-facing SDK concepts.
 Those names may still exist below the SDK boundary as local-runtime/store
 implementation details.
 

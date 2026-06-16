@@ -31,6 +31,8 @@ All notable changes to WindieOS will be documented in this file.
   replay cuts canonical conversation events by message id only.
 - frontend/main: keep app diagnostics inspection helpers private by deleting
   their unused production export surface.
+- sidecar/memory: remove legacy chat-history table migration and compatibility
+  views so history storage uses canonical `conversation_events` tables only.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
@@ -70,6 +72,8 @@ All notable changes to WindieOS will be documented in this file.
   before generic routing quick cards.
 - docs/backend: route OCR/vision searches to the coordinate runtime overview
   before broad inference capability workflow docs.
+- docs/tools: route browser-use tool searches to the browser tool guide before
+  sidecar implementation deep references.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

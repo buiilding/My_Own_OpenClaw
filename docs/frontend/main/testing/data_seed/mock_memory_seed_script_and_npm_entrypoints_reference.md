@@ -19,7 +19,7 @@ title: "Mock Memory Seed Script and NPM Entrypoints Reference"
 
 It writes three data surfaces:
 
-- chat conversations in `chat_events`
+- chat conversations in `conversation_events`
 - episodic memory rows in `episodic.db`
 - semantic memory rows in `semantic.db`
 
@@ -59,7 +59,7 @@ DB files touched:
 `_ensure_episodic_schema(...)` ensures:
 
 - `memories` table for episodic memory rows
-- `chat_events` table for visible chat replay
+- `conversation_events` table for visible chat replay
 - `conversation_titles` table for compatibility with chat-history reset paths
 - compatibility columns via `ALTER TABLE` when absent
 - core indices for user/timestamp/conversation/message lookup
@@ -70,7 +70,7 @@ DB files touched:
 
 Before inserting, `_clear_existing_mock_data(...)` removes existing mock rows for each target user:
 
-- `chat_events` rows with `conversation_id LIKE 'conv_mock_%'`
+- `conversation_events` rows with `conversation_id LIKE 'conv_mock_%'`
 - matching `conversation_titles` rows
 - episodic rows tagged with metadata source `mock_seed_dashboard`
 - semantic rows tagged with metadata source `mock_seed_dashboard`

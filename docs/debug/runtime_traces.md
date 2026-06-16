@@ -218,7 +218,7 @@ Rows are sanitized app/runtime events with `traceId`, `spanId`, `path`,
 `stage`, `status`, `runtime`, `requestId`, timestamps, duration, and allowlisted
 metadata. They may include booleans and counts such as `hasUserId`, `limit`,
 `resultCount`, `backendConnected`, `sidecarReady`,
-`canonicalHistoryDbExists`, `legacyEpisodicDbExists`, and `storeKind`.
+and `canonicalHistoryDbExists`.
 
 `browser.session_control` rows may include local-backend readiness booleans,
 status strings, browser action names, wake success/failure booleans, tab counts,

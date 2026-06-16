@@ -89,7 +89,7 @@ adapts desktop metadata and attachment enrichment into that SDK store.
 
 Storage split:
 
-- `chat_events` stores canonical SDK conversation events for the runtime,
+- `conversation_events` stores canonical SDK conversation events for the runtime,
   including `conversationRef`, `turnRef`, `revisionId`, request/bundle/tool-call
   ids, and structured payloads.
 - `transcript` remains a visible projection/memory-era storage path and is not
@@ -164,7 +164,7 @@ rehydrating the new backend session.
 
 Dashboard startup and open-chat loading also use the SDK store adapter:
 
-- recent chats are listed through store metadata from `chat_events` rows
+- recent chats are listed through store metadata from `conversation_events` rows
   and explicit pagination options
 - dashboard chat deletion goes through the SDK store path so visible transcript
   rows, chat-event rows, metadata, title/search rows, attachments, and working

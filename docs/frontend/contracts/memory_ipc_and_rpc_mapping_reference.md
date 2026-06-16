@@ -41,7 +41,7 @@ Memory storage and retrieval:
   runtime and Electron main local-backend bridge.
 - Chat clear uses SDK-shaped `conversations.clearAll`.
 
-Chat history is stored in `chat_events`, not as memory rows. Memory rows are for episodic interaction memory and semantic memory.
+Chat history is stored in `conversation_events`, not as memory rows. Memory rows are for episodic interaction memory and semantic memory.
 
 ## Channel to JSON-RPC Method Map
 
@@ -85,7 +85,7 @@ Renderer camelCase to sidecar snake_case conversions include:
 
 ## Storage Ownership
 
-- `chat_events`: visible chat replay, conversation list/search, rehydrate snapshots, edit/resend continuity, attachments, and compaction checkpoints.
+- `conversation_events`: visible chat replay, conversation list/search, rehydrate snapshots, edit/resend continuity, attachments, and compaction checkpoints.
 - `episodic.db` memory rows with `record_kind='interaction'`: completed user+assistant memory pairs used by the Episodic Memory view and semantic summarizer.
 - `semantic.db` memory rows: extracted durable facts and summaries.
 
@@ -110,20 +110,20 @@ The main-process bridge forwards mapped responses to the renderer unchanged.
 
 ### `store_chat_event`
 
-- appends or replaces an event in `chat_events`
+- appends or replaces an event in `conversation_events`
 - stores metadata, attachments, full event payload, and optional compaction checkpoint
 - assigns `message_index` when omitted
 
 ### `replace_chat_conversation`
 
-- atomically replaces all `chat_events` rows for one user conversation
+- atomically replaces all `conversation_events` rows for one user conversation
 - accepts the same event fields as `store_chat_event`, batched in `events`
 - uses the provided `message_index` values to preserve replacement order
 - rolls back the delete if any replacement event cannot be inserted
 
 ### `list_chat_conversations`
 
-- groups `chat_events` by `conversation_id`
+- groups `conversation_events` by `conversation_id`
 - returns newest-first conversation summaries with title derived from the first user message or latest content
 - returns `record_kind='chat_event'`
 
@@ -134,7 +134,7 @@ The main-process bridge forwards mapped responses to the renderer unchanged.
 
 ### `delete_chat_conversation`
 
-- deletes `chat_events` for one conversation
+- deletes `conversation_events` for one conversation
 - does not delete episodic or semantic memory rows
 
 ### `store_memory_by_embedding`
@@ -158,7 +158,7 @@ If chats do not reload:
 2. inspect Electron main `windie:invoke` command handling
 3. if the SDK command reaches local persistence but data is missing, inspect
    mapper output in `local_backend_bridge_rpc_mappers.cjs`
-4. verify sidecar memory store is initialized and `chat_events` rows exist
+4. verify sidecar memory store is initialized and `conversation_events` rows exist
 
 If memory injection is empty:
 

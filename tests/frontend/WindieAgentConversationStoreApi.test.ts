@@ -255,8 +255,6 @@ describe('SidecarConversationStore event payload write params', () => {
               status: 'succeeded',
               data: {
                 canonicalHistoryDbExists: true,
-                legacyEpisodicDbExists: true,
-                storeKind: 'history',
               },
             },
           ],
@@ -320,8 +318,6 @@ describe('SidecarConversationStore event payload write params', () => {
         runtime: 'sidecar',
         data: {
           canonicalHistoryDbExists: true,
-          legacyEpisodicDbExists: true,
-          storeKind: 'history',
         },
       }),
       expect.objectContaining({

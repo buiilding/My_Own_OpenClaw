@@ -513,7 +513,7 @@ describe('conversation replay database integration', () => {
     history.close();
   });
 
-  test('edit and resend cuts stored chat_events, rehydrates backend history, and dispatches the edited turn', async () => {
+  test('edit and resend cuts stored conversation events, rehydrates backend history, and dispatches the edited turn', async () => {
     const { result } = renderReplayHook(BASE_MESSAGES);
 
     await act(async () => {

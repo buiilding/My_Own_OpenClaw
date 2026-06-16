@@ -31,31 +31,6 @@ CONVERSATIONS_TABLE = "conversations"
 CONVERSATION_TURNS_TABLE = "conversation_turns"
 CONVERSATION_TITLES_TABLE = "conversation_titles"
 CONVERSATION_DISPLAY_MESSAGES_VIEW = "conversation_display_messages"
-LEGACY_EVENTS_TABLE = "chat_events"
-LEGACY_REVISIONS_TABLE = "chat_conversation_revisions"
-EVENT_COPY_COLUMNS = (
-    "id",
-    "user_id",
-    "conversation_id",
-    "event_type",
-    "role",
-    "content",
-    "timestamp",
-    "message_index",
-    "revision_id",
-    "turn_ref",
-    "tool_name",
-    "correlation_id",
-    "workspace_path",
-    "workspace_name",
-    "producer",
-    "producer_event_id",
-    "producer_sequence",
-    "metadata",
-    "attachments",
-    "event_payload",
-    "compaction_checkpoint",
-)
 
 
 def _normalize_timestamp(timestamp: Optional[str]) -> str:
@@ -158,7 +133,7 @@ def _resolve_producer_fields(
     return producer, normalized_producer_event_id, producer_sequence
 
 
-async def init_chat_event_schema(db_path: str, legacy_db_path: Optional[str] = None) -> None:
+async def init_chat_event_schema(db_path: str) -> None:
     if aiosqlite is None:
         raise ImportError(
             "aiosqlite is not installed. Install with: pip install aiosqlite"
@@ -294,12 +269,8 @@ async def init_chat_event_schema(db_path: str, legacy_db_path: Optional[str] = N
             CREATE INDEX IF NOT EXISTS idx_conversation_titles_updated_at
             ON conversation_titles(updated_at)
             """)
-        await _migrate_legacy_tables(cursor)
         await _create_read_model_views(cursor)
-        await _create_compatibility_views(cursor)
         await conn.commit()
-    if legacy_db_path and legacy_db_path != db_path:
-        await _migrate_legacy_history_database(db_path=db_path, legacy_db_path=legacy_db_path)
 
 
 async def _ensure_event_column(
@@ -312,91 +283,6 @@ async def _ensure_event_column(
         await cursor.execute(
             f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
         )
-
-
-async def _sqlite_object_type(cursor: Any, name: str) -> Optional[str]:
-    await cursor.execute(
-        """
-        SELECT type
-        FROM sqlite_master
-        WHERE name = ?
-        LIMIT 1
-        """,
-        (name,),
-    )
-    row = await cursor.fetchone()
-    return row[0] if row else None
-
-
-async def _table_columns(cursor: Any, table_ref: str) -> set[str]:
-    if "." in table_ref:
-        database_name, table_name = table_ref.split(".", 1)
-        await cursor.execute(f"PRAGMA {database_name}.table_info({table_name})")
-    else:
-        await cursor.execute(f"PRAGMA table_info({table_ref})")
-    return {row[1] for row in await cursor.fetchall()}
-
-
-def _legacy_event_select_expression(column: str, existing_columns: set[str]) -> str:
-    if column in existing_columns:
-        if column == "producer":
-            return "COALESCE(producer, 'sdk')"
-        if column == "attachments":
-            return "COALESCE(attachments, '[]')"
-        if column == "event_payload":
-            return "COALESCE(event_payload, '{}')"
-        return column
-    defaults = {
-        "producer": "'sdk'",
-        "producer_event_id": "NULL",
-        "producer_sequence": "NULL",
-        "attachments": "'[]'",
-        "compaction_checkpoint": "NULL",
-    }
-    return defaults.get(column, "NULL")
-
-
-async def _copy_legacy_event_rows(cursor: Any, source_table_ref: str) -> None:
-    existing_columns = await _table_columns(cursor, source_table_ref)
-    insert_columns = ", ".join(EVENT_COPY_COLUMNS)
-    select_columns = ", ".join(
-        _legacy_event_select_expression(column, existing_columns)
-        for column in EVENT_COPY_COLUMNS
-    )
-    await cursor.execute(f"""
-        INSERT OR IGNORE INTO {CONVERSATION_EVENTS_TABLE}
-        ({insert_columns})
-        SELECT {select_columns}
-        FROM {source_table_ref}
-        """)
-
-
-async def _migrate_legacy_tables(cursor: Any) -> None:
-    if await _sqlite_object_type(cursor, LEGACY_EVENTS_TABLE) == "table":
-        await _copy_legacy_event_rows(cursor, LEGACY_EVENTS_TABLE)
-    if await _sqlite_object_type(cursor, LEGACY_REVISIONS_TABLE) == "table":
-        await cursor.execute(f"""
-            INSERT OR REPLACE INTO {CONVERSATION_REVISIONS_TABLE}
-            (user_id, conversation_id, revision_id, updated_at)
-            SELECT user_id, conversation_id, revision_id, updated_at
-            FROM {LEGACY_REVISIONS_TABLE}
-            """)
-    await _rebuild_materialized_conversation_indexes(cursor)
-
-
-async def _create_compatibility_views(cursor: Any) -> None:
-    if await _sqlite_object_type(cursor, LEGACY_EVENTS_TABLE) is None:
-        await cursor.execute(f"""
-            CREATE VIEW {LEGACY_EVENTS_TABLE} AS
-            SELECT *
-            FROM {CONVERSATION_EVENTS_TABLE}
-            """)
-    if await _sqlite_object_type(cursor, LEGACY_REVISIONS_TABLE) is None:
-        await cursor.execute(f"""
-            CREATE VIEW {LEGACY_REVISIONS_TABLE} AS
-            SELECT *
-            FROM {CONVERSATION_REVISIONS_TABLE}
-            """)
 
 
 async def _create_read_model_views(cursor: Any) -> None:
@@ -431,50 +317,6 @@ async def _create_read_model_views(cursor: Any) -> None:
           AND content IS NOT NULL
           AND content != ''
         """)
-
-
-async def _legacy_attached_table_exists(cursor: Any, table_name: str) -> bool:
-    await cursor.execute(
-        """
-        SELECT name
-        FROM legacy.sqlite_master
-        WHERE type = 'table' AND name = ?
-        LIMIT 1
-        """,
-        (table_name,),
-    )
-    return await cursor.fetchone() is not None
-
-
-async def _migrate_legacy_history_database(*, db_path: str, legacy_db_path: str) -> None:
-    async with aiosqlite.connect(db_path) as conn:
-        cursor = await conn.cursor()
-        await cursor.execute("ATTACH DATABASE ? AS legacy", (legacy_db_path,))
-        try:
-            if await _legacy_attached_table_exists(cursor, LEGACY_EVENTS_TABLE):
-                await _copy_legacy_event_rows(cursor, f"legacy.{LEGACY_EVENTS_TABLE}")
-            if await _legacy_attached_table_exists(cursor, LEGACY_REVISIONS_TABLE):
-                await cursor.execute(f"""
-                    INSERT OR REPLACE INTO {CONVERSATION_REVISIONS_TABLE}
-                    (user_id, conversation_id, revision_id, updated_at)
-                    SELECT user_id, conversation_id, revision_id, updated_at
-                    FROM legacy.{LEGACY_REVISIONS_TABLE}
-                    """)
-            if await _legacy_attached_table_exists(cursor, CONVERSATION_TITLES_TABLE):
-                await cursor.execute(f"""
-                    INSERT OR REPLACE INTO {CONVERSATION_TITLES_TABLE}
-                    (user_id, conversation_id, title, source, is_locked, created_at, updated_at)
-                    SELECT user_id, conversation_id, title, source, is_locked, created_at, updated_at
-                    FROM legacy.{CONVERSATION_TITLES_TABLE}
-                    """)
-            await _rebuild_materialized_conversation_indexes(cursor)
-            await conn.commit()
-        except Exception:
-            await conn.rollback()
-            raise
-        finally:
-            await cursor.execute("DETACH DATABASE legacy")
-
 
 async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
     await cursor.execute(f"DELETE FROM {CONVERSATIONS_TABLE}")
