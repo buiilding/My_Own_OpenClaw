@@ -16,9 +16,10 @@ const {
   getInstallAuthStatePath,
   loadInstallAuthStateFromDisk,
   saveInstallAuthStateToDisk,
-  shouldApplyPosixFileModes,
   validateInstallAuthStateWithBackend,
 } = require('../../frontend/src/main/ipc/ipc_install_auth_state.cjs');
+
+const shouldCheckPosixFileModes = process.platform !== 'win32';
 
 function modeOf(targetPath) {
   return fs.statSync(targetPath).mode & 0o777;
@@ -55,7 +56,7 @@ describe('ipc_install_auth_state persistence', () => {
       installId: 'install_123',
     });
 
-    if (shouldApplyPosixFileModes()) {
+    if (shouldCheckPosixFileModes) {
       expect(modeOf(filePath)).toBe(0o600);
       expect(modeOf(userDataPath)).toBe(0o700);
     }
@@ -72,7 +73,7 @@ describe('ipc_install_auth_state persistence', () => {
       }),
       'utf-8',
     );
-    if (shouldApplyPosixFileModes()) {
+    if (shouldCheckPosixFileModes) {
       await fs.promises.chmod(filePath, 0o644);
       await fs.promises.chmod(userDataPath, 0o755);
     }
@@ -84,7 +85,7 @@ describe('ipc_install_auth_state persistence', () => {
       userId: 'user_123',
       installId: 'install_123',
     });
-    if (shouldApplyPosixFileModes()) {
+    if (shouldCheckPosixFileModes) {
       expect(modeOf(filePath)).toBe(0o600);
       expect(modeOf(userDataPath)).toBe(0o700);
     }

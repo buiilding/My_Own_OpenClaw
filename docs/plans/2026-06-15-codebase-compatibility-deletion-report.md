@@ -105,6 +105,7 @@ Date: 2026-06-15
 | CD-072 | Electron conversation-event broadcast wrapper | `ipc_conversation_event_broadcast.cjs` exported `broadcastConversationEvent(...)` even though production imports only `buildConversationEventFromBackendEvent(...)` and active callers own renderer broadcasting themselves | Knip reported the wrapper export unused; repo search found no production, test, docs, or script call sites outside the module definition | Delete the wrapper export and keep backend-to-conversation event normalization as the module's public API | `0567dd6ca` |
 | CD-073 | Electron renderer diagnostics helper exports | `ipc_diagnostics_runtime.cjs` exported frontend interaction summary, normalization, and message-text gating helpers even though production imports only `handleRendererLog(...)` | Knip reported all three helper exports unused; repo search showed only the diagnostics unit test imported them directly while runtime callers route through `handleRendererLog(...)` | Remove the helper exports, keep diagnostics normalization private, and assert summary/redaction behavior through the public renderer-log handler | `b1dd73c80` |
 | CD-074 | Electron image context menu helper exports | `ipc_image_context_menu.cjs` exported `buildImageContextMenu(...)` and `showImageContextMenu(...)` even though production imports only `registerImageContextMenuHandler(...)` for the `show-image-context-menu` IPC channel | Knip reported both helper exports unused; repo search showed only the context-menu unit test imported them directly while the app registers the IPC handler | Remove the helper exports, keep menu construction/private popup execution inside the handler module, and assert copy/error behavior through the registered IPC handler | `372f368b6` |
+| CD-075 | Electron install-auth helper exports | `ipc_install_auth_state.cjs` exported install-auth path hardening, payload normalization, and POSIX-mode gating helpers even though production imports only persistence, registration, path, and backend validation APIs | Knip reported all three helper exports unused; repo search showed only the install-auth test imported the mode predicate directly while normalization and hardening are exercised through load/save/validate flows | Remove the helper exports, keep token normalization and file-mode hardening private, and assert persisted token behavior through the public install-auth APIs | pending |
 
 ## Commit Ledger
 
@@ -1290,6 +1291,26 @@ CD-074 validation:
   persisted-data migration is required. The `show-image-context-menu` IPC
   handler remains the public Electron main boundary and still performs the same
   menu creation, popup, trusted image validation, and clipboard-copy behavior.
+
+CD-075 validation:
+
+- targeted `rg -n "hardenInstallAuthStatePath|normalizeInstallAuthState|shouldApplyPosixFileModes" frontend/src/main tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private same-module references remain inside
+  `ipc_install_auth_state.cjs`.
+- `bin/windie test frontend -- IpcInstallAuthState IpcPersistenceConcurrency BackendConnection`:
+  passed on rerun; 2 suites and 6 tests. The first combined attempt failed once
+  in the existing persistence concurrency last-writer assertion, while
+  `IpcPersistenceConcurrency` passed in isolation and the combined rerun passed.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 110 to 107 after
+  removing the install-auth helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, auth-token shape, IPC payload, file-mode,
+  or persisted-data migration is required. Install-auth state still normalizes
+  `installToken`, `userId`, and `installId`, validates cached tokens through the
+  backend identity endpoint, writes `install-auth.json` atomically, and hardens
+  owner-only POSIX modes through the public load/save paths.
 
 ## Inspection Notes
 

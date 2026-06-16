@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep install-auth normalization and POSIX hardening helpers
+  private to the install-auth persistence and validation runtime.
 - frontend/main: keep image context menu construction and popup helpers private
   to the `show-image-context-menu` IPC handler.
 - frontend/main: keep renderer diagnostics normalization and summary helpers

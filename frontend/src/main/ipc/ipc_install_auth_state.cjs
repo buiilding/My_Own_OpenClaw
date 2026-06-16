@@ -238,11 +238,8 @@ async function registerInstallWithBackend({
 module.exports = {
   clearInstallAuthStateFromDisk,
   getInstallAuthStatePath,
-  hardenInstallAuthStatePath,
   loadInstallAuthStateFromDisk,
-  normalizeInstallAuthState,
   registerInstallWithBackend,
   saveInstallAuthStateToDisk,
-  shouldApplyPosixFileModes,
   validateInstallAuthStateWithBackend,
 };
