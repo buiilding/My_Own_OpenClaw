@@ -1,27 +1,45 @@
 /** @jest-environment node */
 
 const {
-  buildImageContextMenu,
-  showImageContextMenu,
   registerImageContextMenuHandler,
 } = require('../../frontend/src/main/ipc/ipc_image_context_menu.cjs');
 
 describe('ipc image context menu handler', () => {
-  test('builds a native menu with a single copy-image item', () => {
+  function registerHandler(options) {
+    const invokeHandlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        invokeHandlers[channel] = handler;
+      }),
+    };
+    registerImageContextMenuHandler({
+      ipcMain,
+      ...options,
+    });
+    return {
+      ipcMain,
+      handler: invokeHandlers['show-image-context-menu'],
+    };
+  }
+
+  test('builds a native menu with a single copy-image item', async () => {
     const popup = jest.fn();
     const builtMenu = { popup };
     const Menu = {
       buildFromTemplate: jest.fn(() => builtMenu),
     };
-    const onCopy = jest.fn();
-
-    const menu = buildImageContextMenu({
-      src: 'https://cdn.example/screenshot.png',
+    const { handler } = registerHandler({
       Menu,
-      onCopy,
+      BrowserWindow: null,
+      clipboard: null,
+      nativeImage: null,
     });
 
-    expect(menu).toBe(builtMenu);
+    const result = await handler({ sender: {} }, {
+      src: 'https://cdn.example/screenshot.png',
+    });
+
+    expect(result).toEqual({ success: true });
     expect(Menu.buildFromTemplate).toHaveBeenCalledWith([
       expect.objectContaining({
         label: 'Copy image',
@@ -54,14 +72,15 @@ describe('ipc image context menu handler', () => {
       createFromBuffer: jest.fn(),
     };
     const sender = {};
-
-    const result = await showImageContextMenu({
-      event: { sender },
-      src: 'data:image/png;base64,abc123',
+    const { handler } = registerHandler({
       Menu,
       BrowserWindow,
       clipboard,
       nativeImage,
+    });
+
+    const result = await handler({ sender }, {
+      src: 'data:image/png;base64,abc123',
     });
 
     expect(result).toEqual({ success: true });
@@ -84,10 +103,7 @@ describe('ipc image context menu handler', () => {
       }),
     };
     const fetchImpl = jest.fn();
-
-    const result = await showImageContextMenu({
-      event: { sender: {} },
-      src: 'https://cdn.example/screenshot.png',
+    const { handler } = registerHandler({
       Menu,
       BrowserWindow: {
         fromWebContents: jest.fn(() => null),
@@ -101,30 +117,26 @@ describe('ipc image context menu handler', () => {
       trustedImageOrigins: ['https://api.windieos.com'],
     });
 
+    const result = await handler({ sender: {} }, {
+      src: 'https://cdn.example/screenshot.png',
+    });
+
     expect(result).toEqual({ success: true });
     await expect(templateEntries[0].click()).rejects.toThrow('not a trusted Windie artifact image');
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   test('registers a safe IPC handler that returns structured failures', async () => {
-    const invokeHandlers = {};
-    const ipcMain = {
-      handle: jest.fn((channel, handler) => {
-        invokeHandlers[channel] = handler;
-      }),
-    };
-
-    registerImageContextMenuHandler({
-      ipcMain,
+    const { handler } = registerHandler({
       Menu: null,
       BrowserWindow: null,
       clipboard: null,
       nativeImage: null,
     });
 
-    expect(typeof invokeHandlers['show-image-context-menu']).toBe('function');
+    expect(typeof handler).toBe('function');
 
-    const result = await invokeHandlers['show-image-context-menu'](null, {
+    const result = await handler(null, {
       src: 'https://cdn.example/screenshot.png',
     });
 

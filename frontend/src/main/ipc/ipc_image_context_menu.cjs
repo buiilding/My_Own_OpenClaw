@@ -99,7 +99,5 @@ function registerImageContextMenuHandler({
 }
 
 module.exports = {
-  buildImageContextMenu,
-  showImageContextMenu,
   registerImageContextMenuHandler,
 };
