@@ -22,10 +22,6 @@ function buildArtifactCacheKey(attachment) {
   return inferArtifactRefFromUrl(attachment.screenshotUrl);
 }
 
-export function clearResolvedArtifactImageCache() {
-  artifactImagePromiseCache.clear();
-}
-
 async function resolveArtifactAttachmentSrc(attachment) {
   const cacheKey = buildArtifactCacheKey(attachment);
   if (!cacheKey) {

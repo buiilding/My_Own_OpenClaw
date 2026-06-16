@@ -7,7 +7,6 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import MessageContent from '../../frontend/src/renderer/features/chat/components/MessageContent';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { clearResolvedArtifactImageCache } from '../../frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots';
 
 jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => ({
   toSanitizedMarkdownHtml: jest.fn((text) => text),
@@ -29,7 +28,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
 
 describe('MessageContent', () => {
   beforeEach(() => {
-    clearResolvedArtifactImageCache();
     IpcBridge.invoke.mockClear();
     IpcBridge.invoke.mockImplementation(async (channel) => {
       if (channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE) {
