@@ -29,11 +29,8 @@ function stringField(payload, ...keys) {
 function resultRecord(payload) {
     return recordFromUnknown(payload.result);
 }
-function fallbackText(payload) {
-    return stringField(payload, ...OUTPUT_FALLBACK_KEYS);
-}
 function jsonFallback(payload) {
-    return fallbackText(payload) ?? JSON.stringify(payload);
+    return JSON.stringify(payload);
 }
 function readToolOutputContent(payload) {
     const result = resultRecord(payload);

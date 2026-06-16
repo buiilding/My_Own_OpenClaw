@@ -35,12 +35,8 @@ function resultRecord(payload: JsonRecord): JsonRecord | null {
   return recordFromUnknown(payload.result);
 }
 
-function fallbackText(payload: JsonRecord): string | null {
-  return stringField(payload, ...OUTPUT_FALLBACK_KEYS);
-}
-
 function jsonFallback(payload: JsonRecord): string {
-  return fallbackText(payload) ?? JSON.stringify(payload);
+  return JSON.stringify(payload);
 }
 
 export function readToolOutputContent(payload: JsonRecord): ToolOutputContent {
