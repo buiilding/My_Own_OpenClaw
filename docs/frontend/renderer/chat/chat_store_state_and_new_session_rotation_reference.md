@@ -75,11 +75,9 @@ No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 - `messages`, `isSending`, `thinkingStatus`, `tokenCounts`
 - derived `streamPhase` from `streamTracking.phase`
 
-`selectChatBoxState` exposes only active-workspace overlay-needed fields:
-
-- `messages`, `isSending`, `thinkingStatus`
-
-This keeps overlay and full interface subscriptions scoped to their rendering needs.
+Minimal chat pill and response overlay state now route through the live-turn
+presentation/view-model helpers instead of a separate chat-box selector. The
+dashboard selector remains scoped to fields rendered by the full interface.
 
 ## New Chat Session Lifecycle
 

@@ -4,7 +4,7 @@
 
 type VoiceTraceDetails = Record<string, unknown>;
 
-export function isVoiceDebugTraceEnabled(): boolean {
+function isVoiceDebugTraceEnabled(): boolean {
   if (typeof window === 'undefined') {
     return false;
   }

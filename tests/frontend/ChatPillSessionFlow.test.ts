@@ -3,7 +3,6 @@
  */
 
 import {
-  CHAT_PILL_SURFACE_REASON,
   resolveChatPillSendLifecycle,
   resolveChatPillViewIntent,
 } from '../../frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow';
@@ -16,7 +15,7 @@ describe('chatPillSessionFlow', () => {
     })).toMatchObject({
       shouldCaptureQueryScreenshot: true,
       shouldReturnToChatboxOnSend: false,
-      surfaceReason: CHAT_PILL_SURFACE_REASON.QUERY_SEND_WITH_CAPTURE,
+      surfaceReason: 'query_send_with_capture',
     });
   });
 
@@ -28,7 +27,7 @@ describe('chatPillSessionFlow', () => {
       senderSurface: 'overlay-chatbox',
       shouldCaptureQueryScreenshot: false,
       shouldReturnToChatboxOnSend: false,
-      surfaceReason: CHAT_PILL_SURFACE_REASON.QUERY_SEND_WITHOUT_CAPTURE,
+      surfaceReason: 'query_send_without_capture',
       sendUiBehavior: {
         returnToChatboxPolicy: 'never',
         shouldReturnToChatboxOnSend: false,
@@ -71,7 +70,7 @@ describe('chatPillSessionFlow', () => {
     })).toMatchObject({
       shouldCaptureQueryScreenshot: false,
       shouldReturnToChatboxOnSend: false,
-      surfaceReason: CHAT_PILL_SURFACE_REASON.QUERY_SEND_WITHOUT_CAPTURE,
+      surfaceReason: 'query_send_without_capture',
     });
   });
 

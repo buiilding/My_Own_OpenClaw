@@ -10,7 +10,7 @@ import {
 import { resolveResponseOverlayViewContract } from '../overlay/responseOverlayViewContract';
 import type { ChatMessage } from '../../stores/chatStore';
 
-export const CHAT_PILL_SURFACE_REASON = Object.freeze({
+const CHAT_PILL_SURFACE_REASON = Object.freeze({
   QUERY_SEND_WITH_CAPTURE: 'query_send_with_capture',
   QUERY_SEND_WITHOUT_CAPTURE: 'query_send_without_capture',
   TOOL_INTERACTIVE: 'tool_interactive',

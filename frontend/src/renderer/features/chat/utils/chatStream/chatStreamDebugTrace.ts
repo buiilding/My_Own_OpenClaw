@@ -5,19 +5,19 @@
 import { useChatStore } from '../../stores/chatStore';
 import { IpcBridge, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 
-export function getRendererSearch(): string {
+function getRendererSearch(): string {
   if (typeof window === 'undefined') {
     return '';
   }
   return typeof window.location?.search === 'string' ? window.location.search : '';
 }
 
-export function isRendererStreamTraceEnabled(): boolean {
+function isRendererStreamTraceEnabled(): boolean {
   const search = getRendererSearch();
   return search.includes('debug_stream=1') || search.includes('debug_chat_pill=1');
 }
 
-export function isRendererLiveSurfaceTraceEnabled(): boolean {
+function isRendererLiveSurfaceTraceEnabled(): boolean {
   const search = getRendererSearch();
   return (
     search.includes('debug_live_surface=1')
@@ -27,7 +27,7 @@ export function isRendererLiveSurfaceTraceEnabled(): boolean {
   );
 }
 
-export function getRendererTraceView(): string {
+function getRendererTraceView(): string {
   if (typeof window === 'undefined') {
     return 'unknown';
   }
@@ -35,7 +35,7 @@ export function getRendererTraceView(): string {
   return params.get('view') || 'main';
 }
 
-export function summarizeWorkspaceForTrace(conversationRef: string | null) {
+function summarizeWorkspaceForTrace(conversationRef: string | null) {
   const store = useChatStore.getState();
   const workspace = store.getWorkspaceState(conversationRef);
   const lastMessage = workspace.messages[workspace.messages.length - 1] || null;
@@ -54,33 +54,6 @@ export function summarizeWorkspaceForTrace(conversationRef: string | null) {
       sourceEventType: lastMessage.sourceEventType || null,
     } : null,
   };
-}
-
-export function logRendererStreamTrace(
-  stage: 'before' | 'after',
-  {
-    eventType,
-    turnRef,
-    conversationRef,
-    sdkEventType,
-  }: {
-    eventType: string;
-    turnRef?: string | null;
-    conversationRef: string | null;
-    sdkEventType?: string | null;
-  },
-): void {
-  if (!isRendererStreamTraceEnabled()) {
-    return;
-  }
-  console.log(`[StreamTrace][renderer][${stage}]`, {
-    view: getRendererTraceView(),
-    eventType,
-    turnRef: turnRef || null,
-    conversationRef,
-    sdkEventType: sdkEventType || null,
-    ...summarizeWorkspaceForTrace(conversationRef),
-  });
 }
 
 export function logRendererResponseSurfaceTrace(data: Record<string, unknown>): void {

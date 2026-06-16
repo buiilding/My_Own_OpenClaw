@@ -18,17 +18,6 @@ export function selectChatInterfaceState(state) {
   };
 }
 
-export function selectChatBoxState(state) {
-  const activeWorkspace = selectActiveWorkspaceState(state);
-  return {
-    messages: activeWorkspace.messages,
-    isSending: activeWorkspace.isSending,
-    thinkingStatus: activeWorkspace.thinkingStatus,
-    thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
-    currentTurnProjection: activeWorkspace.currentTurnProjection,
-  };
-}
-
 export function selectLiveTurnSurfaceState(state) {
   const activeWorkspace = selectActiveWorkspaceState(state);
   return {

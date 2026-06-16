@@ -59,6 +59,7 @@ Date: 2026-06-15
 | CD-026 | Renderer current-turn presentation | `chatBoxResponseState.js` and `messagePresentationPipeline.js` still exposed `buildCurrentTurnResponseOverlayEntries(...)` scanner helpers after response overlay rendering moved to direct SDK/current-turn presentation messages; deleting the scanner also orphaned `toolExplanationMessages.js` | Knip reported the wrapper and then the pipeline export unused; production overlay code now filters current-turn projection/presentation entries directly, while the scanner and explanation helper were covered only by stale tests/docs | Delete the wrapper, the unused pipeline scanner, the orphaned explanation helper, and scanner-only test assertions; keep current-turn projection and live-progress detection on their active paths | implemented |
 | CD-027 | Renderer loop UI state | `streamPhaseState.js` still exported active-loop, terminal, first-chunk, and stop-control predicates after loop UI state kept only the overlay-awaiting predicate | Knip reported the unused predicate exports, and repo search showed only their own test imported them; production imports only `isOverlayAwaitingReplyPhase(...)` from this module | Delete the unused predicates and their tests; keep the awaiting-reply predicate used by `chatLoopUiState.js` | implemented |
 | CD-028 | Renderer module export surface | `useMainWindowControls.js`, `useMessageListAutoScroll.js`, and `toolSchemaPropType.js` still carried default exports while all consumers use named imports | Knip reported the default exports unused, and repo search showed no default-import consumers | Delete the unused default exports and keep the named exports that production imports | implemented |
+| CD-029 | Renderer selector and trace helpers | `selectChatBoxState(...)`, `logRendererStreamTrace(...)`, debug trace predicates, and `CHAT_PILL_SURFACE_REASON` remained exported after their production consumers moved to current live-turn/view-model paths or internal calls | Knip reported the exports unused; repo search showed `selectChatBoxState(...)` and `logRendererStreamTrace(...)` had no production consumers, while the remaining trace predicates/constants are internal implementation details | Delete the dead selector and stream trace function; make the still-used trace predicates and chat-pill reason constant private to their modules | implemented |
 
 ## Commit Ledger
 
@@ -114,6 +115,7 @@ Date: 2026-06-15
   completed CD-027.
 - `2960e0378 refactor(frontend): remove unused renderer default exports`
   completed CD-028.
+- pending commit for CD-029.
 
 ## Validation Log
 
@@ -408,6 +410,26 @@ CD-028 validation:
   dependency/export/type findings, but unused export count dropped from 227 to
   224 and the CD-028 default exports no longer appear.
 - `git diff --check`: passed.
+
+CD-029 validation:
+
+- targeted `rg -n "selectChatBoxState|logRendererStreamTrace|isVoiceDebugTraceEnabled|export function getRendererSearch|export function isRendererStreamTraceEnabled|export function isRendererLiveSurfaceTraceEnabled|export function getRendererTraceView|export function summarizeWorkspaceForTrace|export const CHAT_PILL_SURFACE_REASON" frontend/src tests/frontend docs --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no production or test matches for deleted public surfaces; remaining
+  `selectChatBoxState` hits are historical plan/report notes, and
+  `isVoiceDebugTraceEnabled` is now private to `voiceDebugTrace.ts`.
+- `bin/windie test frontend -- ChatSelectors ChatPillSessionFlow ChatStreamDebugTrace MinimalChatPill ResponseOverlayWindowSync Voice`:
+  passed, 9 suites and 60 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 224 to
+  215 and the CD-029 selector/trace exports no longer appear.
+- `npm run typecheck` in `frontend`: still exits 2 because of existing
+  unrelated stop-payload type errors in `desktopBackendTransport.ts` and
+  `WindieAgent.ts`; no CD-029 file is reported.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this slice deletes dead renderer selector and trace public surfaces
+  while preserving the active production trace entrypoints.
 
 ## Inspection Notes
 
