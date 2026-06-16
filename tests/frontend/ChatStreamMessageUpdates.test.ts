@@ -9,8 +9,6 @@ import {
   findLastAssistantLlmTextMessageId,
   findFirstMessageIdBySender,
   findLastMessageIdBySender,
-  findStreamingCompleteAssistantMessage,
-  resolveStreamingResponseAction,
 } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates';
 
 describe('chatStreamMessageUpdates', () => {
@@ -31,58 +29,6 @@ describe('chatStreamMessageUpdates', () => {
     expect(findLastMessageIdBySender(messages, 'assistant', 'turn-3')).toBeNull();
     expect(findLastAssistantLlmTextMessageId(messages, 'turn-2')).toBe('a3');
     expect(findFirstMessageIdBySender([], 'assistant')).toBeNull();
-  });
-
-  test('resolveStreamingResponseAction appends when last assistant llm-text is incomplete', () => {
-    expect(resolveStreamingResponseAction(messages, ' +chunk')).toEqual({
-      type: 'append',
-      messageId: 'a3',
-      nextText: 'three +chunk',
-    });
-  });
-
-  test('resolveStreamingResponseAction creates new message action when append conditions fail', () => {
-    expect(
-      resolveStreamingResponseAction(
-        [{ id: 'a1', sender: 'assistant', text: 'done', type: 'llm-text', isComplete: true } as any],
-        'fresh',
-      ),
-    ).toEqual({
-      type: 'new',
-      text: 'fresh',
-    });
-
-    expect(resolveStreamingResponseAction([], undefined)).toEqual({
-      type: 'new',
-      text: '',
-      turnRef: undefined,
-    });
-
-    expect(resolveStreamingResponseAction(messages, 'fresh', 'turn-9')).toEqual({
-      type: 'new',
-      text: 'fresh',
-      turnRef: 'turn-9',
-    });
-
-    expect(resolveStreamingResponseAction([
-      { id: 'a1', sender: 'assistant', text: 'preface', type: 'llm-text', isComplete: false, turnRef: 'turn-1' },
-      { id: 't1', sender: 'assistant', text: '{}', type: 'tool-output', turnRef: 'turn-1' },
-    ] as any, 'final', 'turn-1')).toEqual({
-      type: 'new',
-      text: 'final',
-      turnRef: 'turn-1',
-    });
-  });
-
-  test('findStreamingCompleteAssistantMessage returns last assistant llm-text candidate', () => {
-    expect(findStreamingCompleteAssistantMessage(messages)?.id).toBe('a3');
-    expect(findStreamingCompleteAssistantMessage(messages, 'turn-1')?.id).toBe('a1');
-    expect(findStreamingCompleteAssistantMessage(messages, 'turn-missing')).toBeNull();
-    expect(
-      findStreamingCompleteAssistantMessage([
-        { id: 't1', sender: 'assistant', text: 'tool', type: 'tool-output' },
-      ] as any),
-    ).toBeNull();
   });
 
   test('payload update builders normalize missing or non-string content', () => {
@@ -127,10 +73,9 @@ describe('chatStreamMessageUpdates', () => {
   });
 
   test('normalizes mojibake and lone surrogates in streaming and payload updates', () => {
-    expect(resolveStreamingResponseAction([], 'bad\udc9d')).toEqual({
-      type: 'new',
-      text: 'bad�',
-      turnRef: undefined,
+    expect(buildUserMessageFullUpdate({ content: 'bad\udc9d' })).toEqual({
+      content: 'bad�',
+      metadata: undefined,
     });
 
     expect(buildSystemPromptUpdate({
@@ -149,10 +94,9 @@ describe('chatStreamMessageUpdates', () => {
   });
 
   test('preserves valid emoji surrogate pairs while replacing lone surrogates', () => {
-    expect(resolveStreamingResponseAction([], 'Hey! 👋')).toEqual({
-      type: 'new',
-      text: 'Hey! 👋',
-      turnRef: undefined,
+    expect(buildUserMessageFullUpdate({ content: 'Hey! 👋' })).toEqual({
+      content: 'Hey! 👋',
+      metadata: undefined,
     });
 
     expect(buildAssistantMessageFullUpdate({

@@ -34,6 +34,8 @@ All notable changes to WindieOS will be documented in this file.
   message-state projection builders.
 - frontend/chat: remove the unused chat-stream screenshot attachment list
   wrapper while keeping the active single-attachment helper.
+- frontend/chat: remove unused streaming append/complete message-update helper
+  exports after SDK current-turn projection became the assistant text owner.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.

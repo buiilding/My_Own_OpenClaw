@@ -67,15 +67,11 @@ Core behavior:
 Message targeting:
 
 - `findLastMessageIdBySender` and `findLastAssistantLlmTextMessageId` support optional turn scoping.
-- `findStreamingCompleteAssistantMessage` is strict when `turnRef` is provided:
-  - only same-turn assistant `llm-text` messages are eligible
-  - no cross-turn fallback when scoped lookup misses
-  - global last assistant fallback is used only when no `turnRef` is provided
-
-Streaming append/new split:
-
-- `resolveStreamingResponseAction` appends only when last message is incomplete assistant `llm-text` in same turn.
-- otherwise returns `"new"` action with normalized chunk text.
+- `useStreamMessageUpdaters` resolves message ids from live workspace state at
+  update time so metadata updates do not rely on stale render snapshots.
+- Assistant streaming text append/new behavior is owned by SDK current-turn
+  projection and `useConversationRuntimeProjectionStream`, not by standalone
+  chat-stream message-update helpers.
 
 Metadata normalization:
 
@@ -102,7 +98,7 @@ Metadata normalization:
 
 ## Drift Hotspots
 
-1. changing `resolveStreamingResponseAction` append criteria can duplicate or fragment assistant rows.
+1. changing SDK current-turn assistant-text projection can duplicate or fragment assistant rows.
 2. removing 5000-char thought cap can increase memory churn on long `llm-thought` streams.
 3. changing correlation-id precedence can break tool call/output pairing in transcript and UI detail panes.
 4. removing tool-schema shape validation can leak incompatible schema payloads into renderer message metadata.

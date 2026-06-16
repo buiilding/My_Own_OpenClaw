@@ -277,8 +277,9 @@ Message targeting utilities:
 
 - `findLastMessageIdBySender`
 - `findLastAssistantLlmTextMessageId`
-- `findStreamingCompleteAssistantMessage`
-- `resolveStreamingResponseAction`
+- `findFirstMessageIdBySender`
+- `useStreamMessageUpdaters` resolves current message ids at update time for
+  full-message and metadata update handlers.
 
 Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 
@@ -347,7 +348,7 @@ chat-stream transcript handlers and transcript projection.
 
 If stream UI duplicates assistant rows:
 
-1. verify `resolveStreamingResponseAction` append-vs-new conditions
+1. verify SDK current-turn assistant-text projection and active-turn stream handlers
 2. verify `turn_ref` consistency in backend events
 3. verify `isComplete` flag set on streaming-complete
 

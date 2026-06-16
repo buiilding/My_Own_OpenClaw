@@ -73,6 +73,7 @@ Date: 2026-06-15
 | CD-040 | Renderer SDK display chat projection | `buildChatMessagesFromDisplayConversation(...)` was exported from the renderer projection module even though production imports only `buildChatMessagesFromSdkDisplayRows(...)` | Knip reported the display-conversation projector export unused; repo search showed the export was imported only by `SdkDisplayChatMessageProjection.test.ts`, while dashboard and chat runtime consumers project SDK display rows directly | Delete the public display-conversation projector surface, keep a private single-message projector inside the row path, and retarget tests to the active SDK display-row API | implemented |
 | CD-041 | Renderer chat-stream tool formatting helpers | `formatToolCallPayload(...)`, `formatToolBundlePayload(...)`, `formatToolOutputText(...)`, and `resolveModelFacingToolCall(...)` remained exported from `chatStreamFormatting.ts` after tool display moved to transcript message-state builders; deleting them exposed `buildNormalizedToolCall(...)` as an internal-only normalizer | Knip reported the helper exports unused; repo search showed only `ChatStreamFormatting.test.ts` and stale docs referenced them, while production imports only `buildThinkingStatus(...)` from the module and uses the higher-level message-state builders for tool rows | Delete the unused tool-formatting exports and tests, make `buildNormalizedToolCall(...)` private, and update docs to route tool-call/bundle/output display to the active message-state projection builders | implemented |
 | CD-042 | Renderer chat-stream screenshot attachment wrapper | `buildScreenshotAttachments(...)` was exported from `chatStreamEventUtils.ts` even though production imports only the single `buildScreenshotAttachment(...)` helper from that module | Knip reported the list-wrapper export unused; repo search showed it was imported only by `ChatStreamEventUtils.test.ts`, while list attachment normalization is owned by `screenshotMessageState` | Delete the unused wrapper export and wrapper-only test while keeping the active single-attachment helper | implemented |
+| CD-043 | Renderer chat-stream streaming message helpers | `resolveStreamingResponseAction(...)` and `findStreamingCompleteAssistantMessage(...)` remained exported from `chatStreamMessageUpdates.ts` after assistant text append/new behavior moved to SDK current-turn projection and active stream handlers | Knip reported both exports unused; repo search showed only `ChatStreamMessageUpdates.test.ts` and stale docs referenced them, while production imports the selector and payload update builders from the module | Delete the unused helper exports and helper-only tests; update docs to route assistant text projection debugging to SDK current-turn projection and live stream handlers | pending implementation commit |
 
 ## Commit Ledger
 
@@ -156,6 +157,7 @@ Date: 2026-06-15
   completed CD-041.
 - `6e74fe8c8 refactor(frontend): remove screenshot list wrapper export`
   completed CD-042.
+- pending implementation commit will complete CD-043.
 
 ## Validation Log
 
@@ -680,6 +682,22 @@ CD-042 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this deletes only an unused renderer wrapper export while preserving
   active single screenshot attachment projection and shared list normalization.
+
+CD-043 validation:
+
+- targeted `rg -n "findStreamingCompleteAssistantMessage|resolveStreamingResponseAction" frontend/src tests/frontend docs packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no renderer helper export, import, test, or docs references remain.
+- `bin/windie test frontend -- ChatStreamMessageUpdates StreamMessageUpdaters ChatStreamThinkingStatus ChatStreamTransparency`:
+  passed, 6 suites and 79 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 188 to
+  186 and the CD-043 helper exports no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this deletes only unused renderer helper exports while preserving
+  active selector and payload-update helpers plus SDK-owned assistant text
+  projection.
 
 ## Inspection Notes
 
