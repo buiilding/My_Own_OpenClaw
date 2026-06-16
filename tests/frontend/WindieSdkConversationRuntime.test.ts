@@ -759,7 +759,7 @@ describe('Windie SDK conversation runtime core', () => {
       event('tool_output', {
         toolName: 'read_file',
         requestId: 'req-read',
-        text: 'README contents',
+        output: 'README contents',
         success: true,
       }),
       event('assistant_delta', { text: 'Done' }),
@@ -848,7 +848,7 @@ describe('Windie SDK conversation runtime core', () => {
       event('tool_output', {
         toolName: 'read_file',
         requestId: 'req-read',
-        text: 'README contents',
+        output: 'README contents',
         success: true,
       }),
       event('assistant_delta', { text: 'Done.' }),
@@ -1025,7 +1025,7 @@ describe('Windie SDK conversation runtime core', () => {
         },
       }),
       event('tool_output', {
-        text: 'README contents',
+        output: 'README contents',
         toolName: 'read_file',
         requestId: 'req-read',
         toolCallId: 'call-read',
@@ -1261,7 +1261,7 @@ describe('Windie SDK conversation runtime core', () => {
         toolCallId: 'call-complete',
       }),
       event('tool_output', {
-        text: 'complete result',
+        output: 'complete result',
         toolName: 'read_file',
         requestId: 'req-complete',
         toolCallId: 'call-complete',
@@ -1272,7 +1272,7 @@ describe('Windie SDK conversation runtime core', () => {
         toolCallId: 'call-dangling',
       }),
       event('tool_output', {
-        text: 'orphan output',
+        output: 'orphan output',
         toolName: 'read_file',
         requestId: 'req-dangling-output',
         toolCallId: 'call-orphan',
@@ -1301,7 +1301,7 @@ describe('Windie SDK conversation runtime core', () => {
         toolCallId: 'call-read',
       }),
       event('tool_output', {
-        text: 'result by provider id only',
+        output: 'result by provider id only',
         toolName: 'read_file',
         toolCallId: 'call-read',
       }),
@@ -1310,7 +1310,7 @@ describe('Windie SDK conversation runtime core', () => {
         requestId: 'req-second',
       }),
       event('tool_output', {
-        text: 'result by wait id only',
+        output: 'result by wait id only',
         toolName: 'read_file',
         requestId: 'req-second',
       }),
@@ -1352,7 +1352,7 @@ describe('Windie SDK conversation runtime core', () => {
       requestId: 'req-read',
       toolCallId: 'call-read',
       correlationId: 'corr-read',
-      text: 'result',
+      output: 'result',
     });
     expect(toolOutputStreamKey(toolOutput)).toBe('tool-call:call-read');
     expect(toolOutputStreamKeys(toolOutput)).toEqual([
@@ -1550,7 +1550,7 @@ describe('Windie SDK conversation runtime core', () => {
       revisionId: 'rev-1',
       eventId: 'evt-appended-second',
       timestamp: '2026-05-15T12:00:00.000Z',
-      payload: { toolName: 'read_file', requestId: 'req-1', text: 'result' },
+      payload: { toolName: 'read_file', requestId: 'req-1', output: 'result' },
     });
 
     await store.appendEvents([first, second]);

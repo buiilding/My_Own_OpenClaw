@@ -15,6 +15,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: remove camelCase query-payload aliases from the desktop
   backend transport so typed SDK dispatch uses the canonical snake_case command
   contract.
+- sdk/projection: remove assistant-shaped `content` and final-response fallback
+  fields from tool-output model/display text projection.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,
   per-platform renderer hide/restore helpers, renderer computer-use catalog,
   stale system-state capture helper, and capture-only logging utilities; keep

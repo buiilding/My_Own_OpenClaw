@@ -103,7 +103,8 @@ function rawToolOutputTextFromPayload(payload: JsonRecord): string {
     ?? stringField(payload, 'output')
     ?? stringField(result, 'message')
     ?? stringField(payload, 'message')
-    ?? stringField(payload, 'text', 'content', 'error')
+    ?? stringField(result, 'error')
+    ?? stringField(payload, 'error')
     ?? JSON.stringify(payload);
 }
 

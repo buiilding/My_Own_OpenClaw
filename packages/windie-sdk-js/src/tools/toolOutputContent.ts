@@ -35,19 +35,18 @@ function resultRecord(payload: JsonRecord): JsonRecord | null {
   return recordFromUnknown(payload.result);
 }
 
-function fallbackText(payload: JsonRecord): string {
-  return stringField(payload, 'text', 'content', 'finalResponse', 'final_response', 'error') ?? '';
+function fallbackText(payload: JsonRecord): string | null {
+  return stringField(payload, ...OUTPUT_FALLBACK_KEYS);
 }
 
 function jsonFallback(payload: JsonRecord): string {
-  return fallbackText(payload) || JSON.stringify(payload);
+  return fallbackText(payload) ?? JSON.stringify(payload);
 }
 
 export function readToolOutputContent(payload: JsonRecord): ToolOutputContent {
   const result = resultRecord(payload);
   const output = stringField(payload, ...OUTPUT_FALLBACK_KEYS)
-    ?? stringField(result, ...OUTPUT_FALLBACK_KEYS)
-    ?? fallbackText(payload);
+    ?? stringField(result, ...OUTPUT_FALLBACK_KEYS);
   const modelContent = output ?? jsonFallback(payload);
   return {
     displayContent: modelContent,
