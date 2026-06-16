@@ -22,6 +22,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: route screen recording, Accessibility/input control,
   microphone, and workspace picker permission-service copy through injected
   main host skin config with generic service fallbacks.
+- frontend/main: route query send/disconnect fallback messages through main
+  host skin config while keeping query event builders generic.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

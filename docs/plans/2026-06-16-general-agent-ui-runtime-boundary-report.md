@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest commit for this plan: `cb131f22f` (`refactor(frontend): inject host skin into permission services`)
+- Latest commit for this plan: `a5a38a0e7` (`refactor(frontend): skin os permission service copy`)
 
 ## Inspection Log
 
@@ -80,6 +80,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: Accessibility/input control remediation, microphone OS privacy remediation, and workspace picker title now resolve from the main host skin on the app path.
 - Change: main host skin boundary test now covers these remaining permission service modules.
 
+### 2026-06-16 Main Query Event Skin Slice
+
+- Finding: `ipc_query_events.cjs` builds generic query failure/interruption events but embedded WindieOS disconnect copy directly.
+- Decision: keep the event builders generic by accepting optional copy and let `ipc.cjs` supply `mainHostSkin.queryEvents` on the app path.
+- Change: query send failure and backend disconnect interruption messages now resolve from the main host skin in `ipc.cjs`.
+- Change: direct event-builder fallbacks use generic app wording when no skin copy is injected.
+- Change: main host skin boundary test now covers query event builders.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -88,6 +96,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Main host permission copy reads from the main skin/config boundary.
 - [x] Browser and macOS automation permission services consume injected host skin copy.
 - [x] Remaining OS permission services consume injected host skin copy.
+- [x] Query failure/interruption event builders consume injected host skin copy.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -114,10 +123,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/PermissionService.test.cjs ../tests/frontend/PermissionIpcRuntime.test.cjs` passed.
 - `git diff --check` passed.
 - `rg -n "WindieOS|WindieOS browser|enable WindieOS|Select workspace folder for WindieOS" frontend/src/main/permissions frontend/src/main/app/main_host_skin.cjs tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/PermissionService.test.cjs` found expected skin/test fixture matches only.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/ChatMessageSender.test.tsx` passed.
+- `rg -n "WindieOS isn't connected|WindieOS lost connection|Your message wasn't sent because WindieOS" frontend/src/main/ipc frontend/src/main/app/main_host_skin.cjs tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/IpcQueryRuntime.test.cjs` found expected test fixture matches only.
 
 ## Remaining Findings
 
 - Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
 - Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
 - Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
-- Main process composition root and permission services now read related product copy from a host skin. Remaining main-boundary candidates include wakeword/sidecar reinstall messages, SDK agent startup naming, logging prefixes, browser onboarding explanation copy, and other product-specific host defaults that may belong in a broader main host config.
+- Main process composition root, permission services, and query event builders now read related product copy from a host skin. Remaining main-boundary candidates include wakeword/sidecar reinstall messages, SDK agent startup naming, logging prefixes, browser onboarding explanation copy, and other product-specific host defaults that may belong in a broader main host config.

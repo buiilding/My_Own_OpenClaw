@@ -8,6 +8,7 @@ const path = require('path');
 const mainRoot = path.resolve(__dirname, '../../frontend/src/main');
 const indexPath = path.join(mainRoot, 'index.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
+const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
 const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_screen_capture.cjs');
@@ -32,6 +33,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('accessibilityRemediation');
     expect(skinSource).toContain('osPrivacyRemediation');
     expect(skinSource).toContain('folderPickerTitle');
+    expect(skinSource).toContain('queryEvents');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {
@@ -69,4 +71,13 @@ describe('main host skin/config boundary', () => {
     }
   });
 
+  test('query event builders keep product copy in the host skin', () => {
+    const source = fs.readFileSync(ipcQueryEventsPath, 'utf8');
+
+    expect(source).toContain('copy.sendFailure');
+    expect(source).toContain('copy.interruptedAfterAccept');
+    expect(source).not.toContain('WindieOS');
+    expect(source).not.toContain("WindieOS isn't connected");
+    expect(source).not.toContain('WindieOS lost connection');
+  });
 });

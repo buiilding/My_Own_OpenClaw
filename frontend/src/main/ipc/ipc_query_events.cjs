@@ -45,6 +45,7 @@ function buildQuerySendFailure({
   currentSessionId,
   currentServerUserId,
   currentUserId,
+  copy = {},
 }) {
   const queryContext = buildQueryContextFields({
     queryMessageId,
@@ -62,7 +63,10 @@ function buildQuerySendFailure({
     sequence: 1,
     ...queryContext,
     payload: {
-      message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
+      message: (
+        copy.sendFailure
+        || "Your message wasn't sent because the app isn't connected right now. Try again when the backend reconnects."
+      ),
     },
   };
 }
@@ -74,6 +78,7 @@ function buildQueryInterrupted({
   currentServerUserId,
   currentUserId,
   accepted = false,
+  copy = {},
 }) {
   const queryContext = buildQueryContextFields({
     queryMessageId,
@@ -85,8 +90,14 @@ function buildQueryInterrupted({
   });
 
   const message = accepted
-    ? 'WindieOS lost connection before the response finished. Retry this message after reconnecting.'
-    : 'WindieOS lost connection before confirming the message was received. Retry this message after reconnecting.';
+    ? (
+      copy.interruptedAfterAccept
+      || 'The app lost connection before the response finished. Retry this message after reconnecting.'
+    )
+    : (
+      copy.interruptedBeforeAccept
+      || 'The app lost connection before confirming the message was received. Retry this message after reconnecting.'
+    );
 
   return {
     type: 'error',

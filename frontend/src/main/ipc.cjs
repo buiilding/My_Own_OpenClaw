@@ -17,6 +17,7 @@ const {
   resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
 } = require('./app/backend_endpoints.cjs');
+const { mainHostSkin } = require('./app/main_host_skin.cjs');
 const {
   createBackendEndpointState,
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
@@ -1469,6 +1470,7 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
       currentServerUserId,
       currentUserId,
       accepted: activeQueryContext.accepted,
+      copy: mainHostSkin.queryEvents,
     });
     log(
       `Active query interrupted by backend disconnect `
@@ -1785,7 +1787,10 @@ function initializeIpc(win, options = {}) {
       ipcEventReplayState,
       buildQueryPayload,
       broadcastQuerySendFailureRuntime,
-      buildQuerySendFailure,
+      buildQuerySendFailure: (input) => buildQuerySendFailure({
+        ...input,
+        copy: mainHostSkin.queryEvents,
+      }),
       traceFrontendQuery: (input) => electronMainTraceLogger.traceFrontendQuery(input),
     },
   });

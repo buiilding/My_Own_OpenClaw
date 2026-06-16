@@ -10,6 +10,9 @@ const {
   resolveConversationRef,
   buildQueryInterrupted: buildQueryInterruptedEvent,
 } = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('ipc_query_runtime', () => {
   test('buildBackendQueryPayload keeps the exact backend query contract keys', () => {
@@ -137,6 +140,7 @@ describe('ipc_query_runtime', () => {
       currentServerUserId: 'server-user-1',
       currentUserId: 'client-user-1',
       accepted: true,
+      copy: mainHostSkin.queryEvents,
     })).toEqual({
       type: 'error',
       id: 'turn-1',

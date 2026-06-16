@@ -68,8 +68,15 @@ const workspace = Object.freeze({
   folderPickerTitle: `Select workspace folder for ${productName}`,
 });
 
+const queryEvents = Object.freeze({
+  sendFailure: `Your message wasn't sent because ${productName} isn't connected right now. Try again when the backend reconnects.`,
+  interruptedAfterAccept: `${productName} lost connection before the response finished. Retry this message after reconnecting.`,
+  interruptedBeforeAccept: `${productName} lost connection before confirming the message was received. Retry this message after reconnecting.`,
+});
+
 const mainHostSkin = Object.freeze({
   productName,
+  queryEvents,
   permissions: Object.freeze({
     browserAutomation,
     macAutomation,

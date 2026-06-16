@@ -281,6 +281,8 @@ Primary modules:
     control, microphone, and workspace picker fallback, dialog, remediation, and
     permission-service messages should read from this skin/config boundary
     instead of being embedded in `main/index.cjs` or permission service modules.
+  - Query send/disconnect fallback messages should also read from this boundary
+    when main builds renderer-facing query error events.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.
