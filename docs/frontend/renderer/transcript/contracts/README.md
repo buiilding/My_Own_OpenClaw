@@ -1,8 +1,8 @@
 ---
-summary: "Frontend renderer transcript contract docs sub-hub for shared type aliases used by SDK-backed transcript session, display, and transparency projection."
+summary: "Frontend renderer transcript contract docs sub-hub for shared type aliases used by SDK-backed transcript session and display projection."
 read_when:
   - When changing transcript type definitions in `frontend/src/renderer/infrastructure/transcript/types.ts`.
-  - When debugging compile/runtime drift between SDK display projection, session identity, and transparency fields.
+  - When debugging compile/runtime drift between SDK display projection and session identity.
 title: "Frontend Renderer Transcript Contracts Docs Hub"
 ---
 

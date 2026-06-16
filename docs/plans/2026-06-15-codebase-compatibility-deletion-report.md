@@ -76,6 +76,7 @@ Date: 2026-06-15
 | CD-043 | Renderer chat-stream streaming message helpers | `resolveStreamingResponseAction(...)` and `findStreamingCompleteAssistantMessage(...)` remained exported from `chatStreamMessageUpdates.ts` after assistant text append/new behavior moved to SDK current-turn projection and active stream handlers | Knip reported both exports unused; repo search showed only `ChatStreamMessageUpdates.test.ts` and stale docs referenced them, while production imports the selector and payload update builders from the module | Delete the unused helper exports and helper-only tests; update docs to route assistant text projection debugging to SDK current-turn projection and live stream handlers | implemented |
 | CD-044 | Renderer chat-stream thinking status normalizer | `normalizePersistedThinkingStatus(...)` and `COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS` remained exported from `chatStreamThinkingStatus.ts` after reasoning text moved to SDK current-turn projection | Knip reported both exports unused; repo search showed they were imported only by `ChatStreamThinkingStatusUtils.test.ts` and stale docs, while production imports only the live thinking/compaction status constants | Delete the unused normalizer, the obsolete no-changes status, and the helper-only test; update docs to route final reasoning text to SDK current-turn projection | implemented |
 | CD-045 | Renderer chat-stream transparency helper module | `chatStreamTransparency.ts` and `buildAssistantTranscriptTransparency(...)` remained after transcript transparency replay moved to SDK projections and backend rehydrate transparency resolution | Knip reported the export unused; repo search showed the module was imported only by `ChatStreamTransparency.test.ts`, while remaining docs still routed transparency debugging through the orphan renderer helper | Delete the orphan helper module and test; update docs to route transparency replay issues to SDK projection and backend rehydrate transparency owners | `d445d30e2` |
+| CD-046 | Renderer transcript transparency type alias | `TranscriptTransparencyData` remained exported from renderer transcript `types.ts` after the renderer transparency helper was deleted and transparency replay moved to SDK/backend owners | Knip reported the type export unused; repo search showed no code imports and only stale transcript docs referenced the contract | Delete the stale type alias and its unused `ToolSchema` import; update transcript docs to keep `SessionInfo` as the active renderer transcript type contract | pending implementation commit |
 
 ## Commit Ledger
 
@@ -165,6 +166,7 @@ Date: 2026-06-15
   completed CD-044.
 - `d445d30e2 refactor(frontend): remove chat stream transparency helper`
   completed CD-045.
+- pending implementation commit will complete CD-046.
 
 ## Validation Log
 
@@ -737,6 +739,21 @@ CD-045 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this removes only an orphan renderer helper module and test while
   preserving SDK display projection and backend rehydrate transparency owners.
+
+CD-046 validation:
+
+- targeted `rg -n "TranscriptTransparencyData|transcript transparency type|transparency payload contracts|renderer-captured transparency" frontend/src tests/frontend docs packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no matches outside this report.
+- `bin/windie test frontend -- TranscriptSessionState TranscriptStorage TranscriptSessionSyncPayload SdkDisplayChatMessageProjection`:
+  passed; 6 suites and 35 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings; unused exported types dropped from 59 to 58
+  after deleting `TranscriptTransparencyData`.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes only an unused renderer type alias while preserving the
+  active `SessionInfo` session identity contract.
 
 ## Inspection Notes
 

@@ -40,6 +40,8 @@ All notable changes to WindieOS will be documented in this file.
   helper-only test after reasoning text moved to SDK current-turn projection.
 - frontend/chat: delete the orphan chat-stream transcript transparency helper
   after SDK projections and backend rehydrate took over transparency replay.
+- frontend/transcript: delete the stale renderer transcript transparency type
+  after transparency payload ownership moved to SDK/backend replay paths.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.

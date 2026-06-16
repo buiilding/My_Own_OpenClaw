@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for transcript type aliases: SessionInfo identity shape and transparency payload contracts."
+summary: "Deep reference for transcript type aliases: SessionInfo identity shape."
 read_when:
-  - When changing session identity or transcript transparency fields in `types.ts`.
-  - When debugging type mismatches between SDK display projection, transparency mapping, and storage schema expectations.
+  - When changing session identity fields in `types.ts`.
+  - When debugging type mismatches between transcript session state and storage schema expectations.
 title: "Transcript Type Contract Reference"
 ---
 
@@ -23,17 +23,6 @@ Fields:
 
 This is the minimal identity tuple used by transcript session and SDK-backed store calls.
 
-## `TranscriptTransparencyData` Contract
-
-Optional transparency snapshot payload used on persisted transcript rows:
-
-- `systemPrompt?: string | null`
-- `toolSchemas?: unknown[] | null`
-- `fullUserMessage?: { content?: string | null; metadata?: Record<string, unknown> | null } | null`
-- `fullAssistantMessage?: { content?: string | null } | null`
-
-Type alias is shape-only and intentionally permissive for renderer-captured transparency snapshots.
-
 ## Persisted Row Contract
 
 Persisted transcript rows are shaped by SDK conversation-store and display
@@ -48,8 +37,7 @@ They do not implement validation logic themselves; runtime filtering/normalizati
 ## Drift Hotspots
 
 1. Renaming identity fields in `types.ts` without synchronized session storage and sync-payload mapping breaks active conversation selection.
-2. Tightening transparency fields can force broad store/projection refactors and invalidate existing data paths.
-3. Drifting transparency object shape between producer hooks and projection mapping can silently drop prompt/tool-schema context in persisted rows.
+2. Reintroducing renderer-local persisted row aliases can split ownership from SDK conversation-store and display projection modules.
 
 ## Related Pages
 
