@@ -43,7 +43,7 @@ In `backend/src/core/services/agent_factory.py`:
   - `llm_client_factory`
   - `tool_orchestrator`
   - `event_bus`
-  - `ocr_service`
+  - `ocr_router`
   - `user_id`
 - injects custom `system_prompt` into `sub_session.prompt_builder.system_prompt`
 
@@ -54,7 +54,7 @@ In `backend/src/sdk/agents/session_builder.py`:
 - creates `RestrictedToolRegistry`
 - creates sub-session id: `{parent_session_id}_sub_{uuid8}`
 - overrides model id with `override_model_id(parent_session.cfg, model_id)`
-- reuses parent `llm_client`, `tool_orchestrator`, `event_bus`, `ocr_service`
+- reuses parent `llm_client`, `tool_orchestrator`, `event_bus`, `ocr_router`
 - creates child session via `parent_session.__class__(...)`
 - sets `sub_session.prompt_builder.system_prompt`
 

@@ -13,8 +13,8 @@ from backend.src.core.config import AppConfig
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
+    from backend.src.core.inference.ocr_router import OcrRouter
     from backend.src.tools.registry import ToolRegistry
-    from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class AgentSessionFactory:
         self,
         config: AppConfig,
         tool_registry: "ToolRegistry",
-        ocr_service: Optional["OcrService"],
+        ocr_router: Optional["OcrRouter"],
         llm_client_factory: Any,  # Callable that returns LLMClient
         tool_orchestrator_factory: Any,  # Callable that returns ToolOrchestrator
         event_bus: Any,  # EventBus instance
@@ -43,7 +43,7 @@ class AgentSessionFactory:
         Args:
             config: Application configuration
             tool_registry: Tool registry instance
-            ocr_service: OCR service instance (may be None)
+            ocr_router: OCR router instance (may be None)
             llm_client_factory: Factory function that creates LLMClient instances
             tool_orchestrator_factory: Factory function that creates ToolOrchestrator instances
             event_bus: EventBus instance for event communication
@@ -51,7 +51,7 @@ class AgentSessionFactory:
         """
         self.config = config
         self.tool_registry = tool_registry
-        self.ocr_service = ocr_service
+        self.ocr_router = ocr_router
         self.llm_client_factory = llm_client_factory
         self.tool_orchestrator_factory = tool_orchestrator_factory
         self.event_bus = event_bus
@@ -106,7 +106,7 @@ class AgentSessionFactory:
         session = AgentSession(
             cfg=session_config,
             tool_registry=self.tool_registry,
-            ocr_service=self.ocr_service,
+            ocr_router=self.ocr_router,
             llm_client=llm_client,
             llm_client_factory=self.llm_client_factory,
             tool_orchestrator=tool_orchestrator,

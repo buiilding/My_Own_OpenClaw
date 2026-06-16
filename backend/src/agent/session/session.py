@@ -63,9 +63,9 @@ from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
     from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
+    from backend.src.core.inference.ocr_router import OcrRouter
     from backend.src.core.infrastructure.bus import EventBus
     from backend.src.core.interfaces.tool import ToolResult
-    from backend.src.services.ocr.ocr_service import OcrService
     from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 logger = logging.getLogger(__name__)
@@ -132,7 +132,7 @@ class AgentSession:
         self,
         cfg: AppConfig,
         tool_registry: ToolRegistry,
-        ocr_service: Optional["OcrService"],
+        ocr_router: Optional["OcrRouter"],
         metrics_service: Any,
         llm_client: Optional[LLMClient] = None,
         llm_client_factory: Optional[Callable[[AppConfig], LLMClient]] = None,
@@ -147,7 +147,7 @@ class AgentSession:
         Args:
             cfg: Application configuration object
             tool_registry: Registry containing all available tools
-            ocr_service: OCR service instance (optional)
+            ocr_router: OCR router instance (optional)
             llm_client: LLM client instance (auto-created if None)
             llm_client_factory: Optional factory for creating LLM clients (used on updates)
             tool_orchestrator: Tool orchestration instance (auto-created if None)
@@ -166,8 +166,7 @@ class AgentSession:
         init_compaction_engine(self)
         init_identity(self, user_id, session_id)
         init_event_bus(self, event_bus)
-        self.ocr_router = ocr_service
-        self.ocr_service = ocr_service
+        self.ocr_router = ocr_router
         init_executor(self)
         init_session_state(self)
 

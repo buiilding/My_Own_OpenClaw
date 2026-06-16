@@ -73,7 +73,7 @@ async def test_update_config_uses_llm_factory():
     session = AgentSession(
         cfg=config,
         tool_registry=registry,
-        ocr_service=None,
+        ocr_router=None,
         llm_client_factory=factory,
         event_bus=event_bus,
         metrics_service=MetricsService(),

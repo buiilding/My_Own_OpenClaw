@@ -79,14 +79,14 @@ class AgentFactory:
         # 2. Generate a sub-session ID
         sub_session_id = f"{parent_session.session_id}_{name}_{str(uuid.uuid4())[:8]}"
 
-        # 3. Share OCR service from parent session
-        ocr_service = parent_session.ocr_service
+        # 3. Share OCR router from parent session
+        ocr_router = parent_session.ocr_router
 
         # 4. Create AgentSession
         sub_session = AgentSession(
             cfg=parent_session.cfg,
             tool_registry=restricted_registry, # type: ignore
-            ocr_service=ocr_service,
+            ocr_router=ocr_router,
             llm_client=parent_session.llm_client,
             llm_client_factory=parent_session.llm_client_factory,
             tool_orchestrator=parent_session.tool_orchestrator,
