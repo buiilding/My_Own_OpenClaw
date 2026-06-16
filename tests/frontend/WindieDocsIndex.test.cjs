@@ -157,4 +157,10 @@ describe('windie docs index', () => {
       path.join('docs', 'tools', 'web_search.md'),
     );
   });
+
+  test('routes replay ordinal fallback queries to transcript replay docs', () => {
+    expect(findDocs('replay ordinal fallback')[0].path).toBe(
+      path.join('docs', 'memory', 'transcript_replay_change_workflow.md'),
+    );
+  });
 });

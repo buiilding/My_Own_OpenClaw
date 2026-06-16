@@ -474,6 +474,14 @@ Renderer replay payloads are preserve-by-default: absent or null attachment
 fields must not erase prior resolved resources without an explicit removal
 operation.
 
+Edit/resend identifies the target user turn by canonical event or payload
+message id. Retry with an explicit `messageId` first resolves that canonical
+event, then walks backward to the preceding user turn. The SDK no longer accepts
+a user-message ordinal fallback and no longer silently retries the latest user
+turn when an explicit retry id is missing from the event ledger. Renderer-only
+transcript ids must be normalized to canonical SDK event ids before they reach
+`editAndResend` or `retryTurn`.
+
 Desktop edit/resend and try-again seed the current visible projection into the
 desktop conversation store adapter, then call `SdkConversationRuntime.editAndResend`
 or `SdkConversationRuntime.retryTurn`. The renderer hook may identify which

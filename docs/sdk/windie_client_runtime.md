@@ -341,6 +341,11 @@ const uploaded = await agent.uploadArtifact(file);
 const artifactUrl = agent.artifactUrl(uploaded.artifact_id);
 ```
 
+`conversation.editAndResend({ messageId, ... })` and explicit
+`conversation.retryTurn({ messageId })` use canonical SDK event or payload
+message ids only. They do not accept renderer-only transcript ids or
+user-message ordinal fallbacks.
+
 `wakeUp` performs this sequence:
 
 1. Resolve the hosted backend URL.
