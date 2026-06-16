@@ -254,6 +254,23 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes private IPC registry validator queries to the preload parity reference', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'contracts',
+      'ipc',
+      'preload_allowlist_and_channel_constant_parity_reference.md',
+    );
+
+    expect(findDocs('validateIpcHandlerRegistration removed export')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('EXPECTED_SHARED_CHANNEL_REGISTRY private renderer IPC validator')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes memory bridge mapping queries to the memory IPC reference', () => {
     expect(
       findDocs('memory ipc rpc mapping clear chat history replace conversation revision')[0].path,

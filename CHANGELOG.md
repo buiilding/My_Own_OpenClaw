@@ -100,6 +100,8 @@ All notable changes to WindieOS will be documented in this file.
   searches to the frontend config storage reference.
 - docs/frontend: clarify `conversation_display_messages` as the current
   history DB read model and route removed-view searches there.
+- docs/frontend: route removed renderer IPC validator export searches to the
+  preload allowlist and channel-constant parity reference.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability

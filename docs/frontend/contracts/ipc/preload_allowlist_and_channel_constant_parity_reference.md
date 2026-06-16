@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for frontend IPC channel parity across preload allowlists, renderer typed constants, and runtime validation behavior."
+summary: "Deep reference for frontend IPC channel parity across preload allowlists, renderer typed constants, module-load registry validation behavior, and removed/private renderer IPC validator exports such as validateIpcHandlerRegistration and EXPECTED_SHARED_CHANNEL_REGISTRY."
 read_when:
   - When changing `frontend/src/preload.js` or `frontend/src/renderer/infrastructure/ipc/channels.ts`.
   - When debugging `Invalid invoke channel` errors or silent send/on no-op behavior.
+  - When stale code, tests, or docs mention exported renderer IPC validator helpers such as `validateIpcHandlerRegistration`, `validateSharedChannelRegistry`, or `EXPECTED_SHARED_CHANNEL_REGISTRY`.
 title: "Preload Allowlist and Channel-Constant Parity Reference"
 ---
 
@@ -28,6 +29,15 @@ Electron main injects the serialized shared registry through `webPreferences.add
 
 In production, preload is authoritative because `IpcBridge` validation is gated by `NODE_ENV === "development"`.
 The renderer registry validation still runs at module load in every mode so a missing or renamed shared JSON entry fails before callers can observe `undefined` channel constants.
+
+The registry expectation and validation helpers in
+`frontend/src/renderer/infrastructure/ipc/channels.ts` are private module-load
+invariants. They are intentionally not renderer API exports:
+`validateIpcHandlerRegistration`, `validateSharedChannelRegistry`,
+`EXPECTED_IPC_HANDLER_REGISTRY`, and `EXPECTED_SHARED_CHANNEL_REGISTRY` should
+route here as stale helper/export searches, while renderer callers should import
+only `SEND_CHANNELS`, `INVOKE_CHANNELS`, `ON_CHANNELS`, and their channel-name
+types.
 
 ## Channel Families
 
