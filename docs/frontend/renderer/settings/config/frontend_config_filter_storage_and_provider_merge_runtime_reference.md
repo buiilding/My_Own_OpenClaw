@@ -1,9 +1,10 @@
 ---
-summary: "Deep reference for frontend config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config-version behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
+summary: "Deep reference for frontend config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config-version behavior, removed legacy OpenAI selected_model_id migration behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
 read_when:
   - When changing frontend-owned config keys (`configFilter`) or local fallback defaults (`configStorage`).
   - When debugging why settings updates are skipped, cross-window storage sync applies unexpectedly, or disk config merges differ from memory state.
   - When resolving stale references to `desktop-assistant-config-version`, `saveConfigToStorage` version arguments, or `Date.now()` storage-version writes.
+  - When resolving stale references to removed legacy model id migration behavior, hardcoded OpenAI selected-model ids, `LEGACY_MODEL_ID_MIGRATIONS`, or renderer localStorage selected_model_id rewrites.
 title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 ---
 
@@ -90,6 +91,9 @@ Load semantics (`loadConfigFromStorage`):
 - stored `selected_model_id` values are trimmed and preserved as-is; model
   catalog reconciliation happens in the renderer model-selection UI instead of
   in storage migration code
+- the old hardcoded OpenAI selected-model migration map
+  (`LEGACY_MODEL_ID_MIGRATIONS`) was removed; config storage does not rewrite
+  stale `gpt-5` ids to newer catalog ids during localStorage load
 - deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
 - legacy localStorage provider secrets are normalized to empty strings on read
 

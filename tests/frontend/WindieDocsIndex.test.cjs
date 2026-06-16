@@ -541,6 +541,12 @@ describe('windie docs index', () => {
     expect(findDocs('saveConfigToStorage version Date.now removed')[0].path).toBe(
       expectedPath,
     );
+    expect(findDocs('legacy model id migration removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('renderer localStorage selected model id migration')[0].path).toBe(
+      expectedPath,
+    );
   });
 
   test('routes stop button queries to the ChatInterface control reference', () => {

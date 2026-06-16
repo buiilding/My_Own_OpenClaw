@@ -94,6 +94,8 @@ All notable changes to WindieOS will be documented in this file.
   enrichment helpers so renderer persistence stays a direct SDK command bridge.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
+- docs/frontend: route removed legacy selected-model localStorage migration
+  searches to the frontend config storage reference.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
