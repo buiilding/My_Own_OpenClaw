@@ -17,6 +17,7 @@ import {
 import { logUserSentMessage } from '../../../../infrastructure/interaction/frontendInteractionLogger';
 import type { ChatSendSurface } from '../../policies/messageSendUiPolicy';
 import {
+  ensureConversationRefForSend,
   resolveRendererConversationSessionSnapshot,
 } from '../../session/conversationSessionRuntime';
 import { useChatStore } from '../../stores/chatStore';
@@ -140,17 +141,25 @@ async function ensureConversationWorkspaceBinding(conversationRef: string): Prom
   }
 }
 
-function resolveImmediateConversationRef(
+async function resolveImmediateConversationRef(
   setChatActiveConversationRef: (conversationRef: string | null) => void,
-): string {
+): Promise<string> {
+  const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
+  const transcriptConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
+  const storeConversationRef = useChatStore.getState().activeConversationRef;
   const sessionSnapshot = resolveRendererConversationSessionSnapshot({
-    transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef(),
-    storeConversationRef: useChatStore.getState().activeConversationRef,
-    userId: DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo().userId,
+    transcriptConversationRef,
+    storeConversationRef,
+    userId: sessionInfo.userId,
   });
-  const conversationRef = sessionSnapshot.conversationRef || createConversationRef();
-  DesktopTranscriptSessionRuntimeClient.setActiveConversationRef(conversationRef);
-  setChatActiveConversationRef(conversationRef);
+  const conversationRef = await ensureConversationRefForSend({
+    transcriptConversationRef,
+    storeConversationRef,
+    setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
+    setChatConversationRef: setChatActiveConversationRef,
+    hydrateMainSessionSnapshot: async () => ({ conversationRef: null, userId: sessionSnapshot.userId }),
+    createConversationRef,
+  });
   DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(
     conversationRef,
     sessionSnapshot.userId,
@@ -229,7 +238,9 @@ export async function prepareDesktopChatSend({
   const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
-  const conversationRef = resolveImmediateConversationRef(dependencies.setChatActiveConversationRef);
+  const conversationRef = await resolveImmediateConversationRef(
+    dependencies.setChatActiveConversationRef,
+  );
   acceptPendingTurn({
     attachmentFilenames,
     conversationRef,

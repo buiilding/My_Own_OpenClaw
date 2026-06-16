@@ -279,12 +279,17 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useConversationRuntimeProjectionStream.ts'),
       'utf8',
     );
+    const projectionSideEffectsSource = await fs.readFile(
+      path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
+      'utf8',
+    );
 
     expect(streamSource).not.toContain('assistant_delta');
     expect(streamSource).not.toContain('reasoning_delta');
     expect(projectionSource).toContain('SdkCurrentTurnProjection');
-    expect(projectionSource).toContain('setThinkingStatus');
-    expect(projectionSource).toContain('streaming-response');
+    expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
+    expect(projectionSideEffectsSource).toContain('setThinkingStatus');
+    expect(projectionSideEffectsSource).toContain('streaming-response');
   });
 
   test('chat stream consumes main-owned SDK conversation events instead of raw backend events', async () => {
@@ -373,11 +378,16 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useConversationRuntimeProjectionStream.ts'),
       'utf8',
     );
+    const projectionSideEffectsSource = await fs.readFile(
+      path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
+      'utf8',
+    );
 
     expect(streamSource).not.toContain("event.type !== 'tool_progress'");
     expect(streamSource).not.toContain("event.type === 'tool_progress'");
-    expect(projectionSource).toContain("toolEvent.kind === 'tool_progress'");
-    expect(projectionSource).toContain('web-search-progress');
+    expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
+    expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_progress'");
+    expect(projectionSideEffectsSource).toContain('web-search-progress');
   });
 
   test('chat stream tool-call handling consumes SDK tool-call events without persistence', async () => {

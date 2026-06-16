@@ -697,8 +697,9 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello again');
 
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv_existing');
+    expect(mockSetActiveConversationRef).not.toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_existing', null);
+    expect(useChatStore.getState().activeConversationRef).toBe('conv_existing');
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_existing');
   });

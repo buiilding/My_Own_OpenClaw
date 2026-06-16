@@ -151,9 +151,9 @@ revive the retired direct runtime IPC channel family.
 3. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`) and forwards SDK outputs on `windie:rows`, `windie:conversation-event`, `windie:current-turn`, and `windie:status`.
 4. Renderer dashboard and response-overlay live assistant/tool rows render from
    the SDK `currentTurn` projection and its `presentation` contract. Renderer
-   `useConversationRuntimeProjectionStream` also derives live thinking text,
-   first assistant chunk tracking, tool phase tracking, terminal complete/error
-   phase tracking, and send-latch clears from that projection. Renderer
+   `useConversationRuntimeProjectionStream` subscribes to that projection and
+   delegates renderer send-latch, thinking, stream-tracking, tool phase, and
+   terminal side effects to `currentTurnProjectionSideEffects.ts`. Renderer
    `useChatStream` consumes SDK-normalized `windie:conversation-event` payloads
    for scoped transcript/session side effects and metadata; production live row
    shaping and active assistant/reasoning/tool/terminal phase state do not fall
