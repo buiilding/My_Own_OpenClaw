@@ -118,7 +118,8 @@ Date: 2026-06-15
   completed CD-028.
 - `20b3adce1 refactor(frontend): remove renderer selector trace exports`
   completed CD-029.
-- pending commit for CD-030.
+- `34e4a309c refactor(frontend): remove unused screenshot source helpers`
+  completed CD-030.
 
 ## Validation Log
 
