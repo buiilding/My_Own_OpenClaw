@@ -2,21 +2,8 @@
 
 ## Product Contract
 
-WindieOS is a hackable desktop runtime for personal AI agents. It turns the
-user's live desktop session into an AI workspace: screen state, windows, browser
-sessions, local files, apps, shell, memory, permissions, and current workflow are
-first-class runtime context.
-
-The product center is the personal computer, not a chat box, coding agent,
-browser agent, or generic assistant gateway. The minimal chat pill matters
-because it gives the agent visible desktop presence: the agent can observe the
-workspace, act through the same apps the user uses, ask permission before
-sensitive actions, and work beside the user inside the machine.
-
-Today the wedge is the desktop runtime. The long-term direction is a personal
-agent control plane across devices, but current docs and code should not present
-multi-device coordination as already built unless the implementation supports
-that claim.
+WindieOS is a desktop AI operator. The user gives a goal in natural language;
+WindieOS selects and runs tools to achieve it safely and reliably.
 
 The product spans Electron UX, the Windie SDK runtime, a Python sidecar for
 local authority, and a Python FastAPI backend for hosted or self-hosted agent
