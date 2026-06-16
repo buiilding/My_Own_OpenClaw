@@ -115,7 +115,7 @@ Date: 2026-06-15
 | CD-082 | Electron permission verifier helper exports | Focused permission service modules exported verifier helpers such as `verifyScreenCaptureCapability(...)`, `verifyBrowserAutomationCapability(...)`, and `normalizePlatformScope(...)` even though callers use `permission_service.cjs` probe/request entrypoints and pass verifier callbacks through `deps` | Knip reported seven permission verifier/runtime exports unused; repo search found remaining occurrences are private same-module calls or dependency-injection callback names, not module imports | Remove the helper exports while preserving verifier callback injection and public probe/request behavior through the permission service runtime | `fd1c9c454` |
 | CD-083 | Electron SDK live-turn typing logger export | `sdk_live_turn_surface_controller.cjs` exported `logSdkTypingTransition(...)` even though production calls it only inside `handleSdkLiveTurnSurfaceIntent(...)` | Knip reported the export unused; repo search showed only `SdkLiveTurnSurfaceController.test.cjs` imported the helper directly while production imports the live-turn surface state/handler APIs | Remove the helper export and assert typing trace de-duplication through the public live-turn surface handler | `04b9cf9b3` |
 | CD-084 | Electron local-backend bridge utility exports | `local_backend_bridge_timeout_policy.cjs` exported execute-tool timeout tier constants and `local_backend_bridge_utils.cjs` exported `toErrorResponse(...)` even though production uses `resolveExecuteToolTimeoutMs(...)` and direct error mapping at call sites | Knip reported all three exports unused; repo search found the timeout constants are private resolver inputs and `toErrorResponse(...)` had no call sites | Remove the dead error-response helper and keep execute-tool timeout constants private to the timeout resolver | `e4dfd5246` |
-| CD-085 | Electron SDK sidecar launch helper exports | `sdk_sidecar_launch_options.cjs` exported daemon discovery/context/env/log helper constants and functions even though production imports only `createDesktopAutoSidecarLaunchPlan(...)` | Knip reported five launch helper exports unused; repo search showed only `SdkSidecarLaunchOptions.test.cjs` imported those helpers directly while Electron main receives launch env/context/log callbacks from the plan object | Remove the helper exports and retarget tests to assert source identity and sidecar log routing through the public desktop auto-sidecar launch plan | pending |
+| CD-085 | Electron SDK sidecar launch helper exports | `sdk_sidecar_launch_options.cjs` exported daemon discovery/context/env/log helper constants and functions even though production imports only `createDesktopAutoSidecarLaunchPlan(...)` | Knip reported five launch helper exports unused; repo search showed only `SdkSidecarLaunchOptions.test.cjs` imported those helpers directly while Electron main receives launch env/context/log callbacks from the plan object | Remove the helper exports and retarget tests to assert source identity and sidecar log routing through the public desktop auto-sidecar launch plan | `1e45f3336` |
 
 ## Commit Ledger
 
@@ -283,6 +283,8 @@ Date: 2026-06-15
   completed CD-083.
 - `e4dfd5246 refactor(frontend): trim local backend utility exports`
   completed CD-084.
+- `1e45f3336 refactor(frontend): keep sidecar launch helpers private`
+  completed CD-085.
 
 ## Validation Log
 
