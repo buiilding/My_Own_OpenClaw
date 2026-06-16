@@ -466,6 +466,6 @@ Canonical current behavior that replaced older module splits:
 - Memory panel consolidated into `MemorySection` + `MemoryItem`; old `EpisodicMemorySection`/`SemanticMemorySection` split is retired.
 - Tool ghost lifecycle moved away from old `useToolGhostLifecycle.js` + `toolGhostPreview.js` utility ownership.
 - Dashboard utility storage/settings helper split changed; provider/model/memory helpers now live in section-local data/helper files.
-- Stream updater logic now centralized in `useStreamMessageUpdaters.ts` and transcript payload formatting in `transcriptMessagePayload.js`.
+- Stream updater logic now centralized in `useStreamMessageUpdaters.ts`; transcript replay, display projection, and stored message shape logic live under renderer transcript infrastructure.
 
 Use inventory docs as source of truth before touching older deep references.

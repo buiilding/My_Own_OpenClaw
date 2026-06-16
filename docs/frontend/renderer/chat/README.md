@@ -22,7 +22,6 @@ title: "Frontend Renderer Chat Docs Hub"
 - [Stream Message Updater Selector Contract Reference](stream/stream_message_updater_selector_contract_reference.md)
 - [Renderer Chat Payload Docs Hub](payloads/README.md)
 - [Tool Call/Output and Transparency Section Rendering Reference](payloads/tool_call_output_and_transparency_section_rendering_reference.md)
-- [Transcript Message Payload Role, Type, and Rehydrate Shape Reference](payloads/transcript_message_payload_role_type_and_rehydrate_shape_reference.md)
 - [Renderer Chat Presentation Docs Hub](presentation/README.md)
 - [Chatbox Component Split and Overlay Pill Runtime Reference](presentation/chatbox_component_split_and_overlay_pill_runtime_reference.md)
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
@@ -65,7 +64,6 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
-- `frontend/src/renderer/features/chat/utils/session/transcriptMessagePayload.js`
 - `frontend/src/renderer/features/chat/utils/message/messageTransparency.js`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/chat/utils/session/conversationRef.ts`
@@ -92,4 +90,3 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListClasses.test.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
-- `tests/frontend/TranscriptMessagePayload.test.js`

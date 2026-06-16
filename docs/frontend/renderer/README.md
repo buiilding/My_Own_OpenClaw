@@ -51,7 +51,6 @@ title: "Frontend Renderer Docs Hub"
 - [Stream Message Updater Selector Contract Reference](chat/stream/stream_message_updater_selector_contract_reference.md)
 - [Renderer Chat Payload Docs Hub](chat/payloads/README.md)
 - [Tool Call/Output and Transparency Section Rendering Reference](chat/payloads/tool_call_output_and_transparency_section_rendering_reference.md)
-- [Transcript Message Payload Role, Type, and Rehydrate Shape Reference](chat/payloads/transcript_message_payload_role_type_and_rehydrate_shape_reference.md)
 - [Renderer Chat Presentation Docs Hub](chat/presentation/README.md)
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](chat/presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
 - [MessageInput Clipboard Image and Voice Submit Reference](chat/presentation/message_input_clipboard_image_and_voice_submit_reference.md)

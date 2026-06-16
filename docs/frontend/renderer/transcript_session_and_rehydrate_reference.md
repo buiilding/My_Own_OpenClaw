@@ -22,7 +22,8 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
-- `frontend/src/renderer/infrastructure/transcript/rehydrateMessageState.js`
+- `frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts`
+- `frontend/src/renderer/infrastructure/transcript/rehydratePayload.js`
 - `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`

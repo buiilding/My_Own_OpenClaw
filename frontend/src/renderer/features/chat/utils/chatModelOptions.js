@@ -2,7 +2,6 @@
  * Provides the chat model options module for the renderer UI.
  */
 
-import { normalizeProvider } from './session/transcriptMessagePayload';
 import { getCurrentModels } from '../../dashboard/utils/modelSelectionUtils';
 
 const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];
@@ -16,6 +15,12 @@ const REASONING_MODE_LABELS = Object.freeze({
 
 function normalizeString(value) {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeProvider(provider) {
+  return provider === undefined || provider === null
+    ? ''
+    : String(provider).trim().toLowerCase();
 }
 
 function normalizeDisplayName(model, modelId) {

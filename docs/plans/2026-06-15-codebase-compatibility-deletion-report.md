@@ -64,6 +64,7 @@ Date: 2026-06-15
 | CD-031 | Renderer resolved screenshot cache | `clearResolvedArtifactImageCache(...)` exported a cache reset solely for tests while production screenshot artifact resolution should own its cache internally | Knip reported the export unused; repo search showed only `MessageContent.test.jsx` imported it, and the tests already use unique artifact refs for cache-sensitive cases | Delete the test-only cache reset export and let tests exercise artifact resolution through normal component rendering | implemented |
 | CD-032 | Renderer response-overlay phase payload parser | `responseOverlayPhasePayload.js` preserved a renderer parser for generic overlay phase IPC payloads, plus parser-only metadata/normalizer exports in `responseOverlayPhaseContract.js`, after React chat surfaces stopped subscribing to phase IPC for runtime state | Knip reported the parser and parser-dependent exports unused; repo search showed the parser file was imported only by its own test, while docs still incorrectly called it canonical | Delete the orphan parser, parser-only contract exports, and parser-only tests; update overlay docs to route phase payload validation to Electron main phase state/events and shared phase-contract parity | implemented |
 | CD-033 | Renderer manual compaction helper | `waitForNextPaint(...)` stayed exported from `manualCompactionRuntime.js` even though only `runManualCompaction(...)` is imported by production and tests | Knip reported the helper export unused; repo search showed it is called only inside the manual compaction runtime, while docs still describe the paint wait as current runtime behavior | Make the helper private while preserving the pre-compaction paint wait inside `runManualCompaction(...)` | implemented |
+| CD-034 | Renderer transcript payload helpers | `transcriptMessagePayload.js` preserved role/type/rehydrate helpers that no production code imported after transcript replay/display moved to SDK-backed renderer transcript infrastructure; its only live production export was `normalizeProvider(...)` for chat model options, and deleting it orphaned `rehydrateMessageState.js` plus `structuredToolPayload.js` | Knip reported the transcript helpers unused; repo search showed the rehydrate helpers were test/docs-only, while `normalizeProvider(...)` belongs with chat model option grouping/filtering | Move provider normalization into `chatModelOptions.js`; delete the stale transcript payload module, orphaned rehydrate/structured payload helpers, tests, and deep docs page; update docs to route transcript work to renderer transcript infrastructure | implemented |
 
 ## Commit Ledger
 
@@ -129,6 +130,7 @@ Date: 2026-06-15
   completed CD-032.
 - `961ca09e9 refactor(frontend): keep compaction paint helper private`
   completed CD-033.
+- pending commit for CD-034.
 
 ## Validation Log
 
@@ -506,6 +508,22 @@ CD-033 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this removes an unused renderer export and preserves the
   pre-compaction paint delay inside the active command path.
+
+CD-034 validation:
+
+- targeted `rg -n "transcript_message_payload_role_type_and_rehydrate_shape_reference|transcriptMessagePayload|TranscriptMessagePayload|resolveTranscriptRole|resolveTranscriptMessageType|toRehydratePayload|rehydrateMessageState|structuredToolPayload|buildRehydrateMessagePayload|buildStoredTranscriptToolMessageState|normalizeStructuredToolPayload" docs frontend/src tests/frontend --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md'`:
+  no production, test, or current-doc matches remain.
+- `bin/windie test frontend -- ChatModelOptions ModularRefactorCompletionBoundary DesktopConversationStore SdkDisplayChatMessageProjection RehydratePayload ToolCallMessageState ToolOutputMessageState`:
+  passed, 7 suites and 38 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 210 to
+  207 and the CD-034 deleted helper files/symbols no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes dead renderer transcript helper modules after active
+  transcript replay/display moved to SDK-backed transcript infrastructure, while
+  provider normalization remains in the chat model option path.
 
 ## Inspection Notes
 

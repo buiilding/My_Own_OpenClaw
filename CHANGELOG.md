@@ -15,6 +15,8 @@ All notable changes to WindieOS will be documented in this file.
   validation docs to main/shared contracts.
 - frontend/chat: keep the manual-compaction paint-delay helper private to the
   compaction runtime instead of exporting it as unused public utility surface.
+- frontend/chat: delete stale transcript rehydrate payload helper modules
+  after moving provider normalization into chat model option ownership.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.

@@ -22,7 +22,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts` |
 | SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
-| Local snapshots/replay | `conversationLocalSnapshotLoader.ts`, `rehydratePayload.js`, `rehydrateMessageState.js` |
+| Local snapshots/replay | SDK conversation store/projection, `rehydratePayload.js`, backend rehydrate services |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
 | Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `useTranscriptSessionInfo.js` |
 

@@ -134,7 +134,6 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md',
       'docs/frontend/contracts/backend_event_consumer_matrix_reference.md',
       'docs/frontend/renderer/chat/chat_store_state_and_new_session_rotation_reference.md',
-      'docs/frontend/renderer/chat/payloads/transcript_message_payload_role_type_and_rehydrate_shape_reference.md',
       'docs/frontend/renderer/dashboard/dashboard_change_workflow.md',
       'docs/frontend/renderer/dashboard/shell/dashboard_section_router_and_placeholder_panel_contract_reference.md',
       'docs/frontend/renderer/dashboard/shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md',

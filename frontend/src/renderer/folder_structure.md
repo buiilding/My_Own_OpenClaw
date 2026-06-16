@@ -106,7 +106,6 @@ frontend/src/renderer/
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
 │   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
-│   │       │   └── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
 │   │       ├── state/                   # state - Chat loop/surface/query-stop projection helpers
 │   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability and thinking text normalization
 │   │       │   ├── chatBoxState.js      # chatBoxState - Minimal pill drag-block targets + visual anchor height helpers
