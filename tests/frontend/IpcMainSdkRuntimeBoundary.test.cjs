@@ -67,12 +67,18 @@ describe('main ipc sdk runtime boundary', () => {
   });
 
   test('electron main exposes SDK-shaped user commands through a strict invoke allowlist', async () => {
-    const source = await fs.readFile(
+    const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
       'utf8',
     );
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs'),
+      'utf8',
+    );
 
-    expect(source).toContain("ipcMain.handle('windie:invoke'");
+    expect(mainSource).toContain("ipcMain.handle('windie:invoke'");
+    expect(mainSource).toContain('handleWindieSdkInvoke(event, payload');
+    expect(mainSource).not.toContain('function buildWindieSdkCommandHandlers');
     expect(source).toContain('buildWindieSdkCommandHandlers');
     expect(source).toContain('SDK_RUNTIME_COMMANDS');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MEMORIES_LIST]');
@@ -96,17 +102,17 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agent.deleteMemory(');
     expect(source).toContain('agent.clearMemories(');
     expect(source).toContain('agent.clearConversations(');
-    expect(source).toContain('handle.runtime.prepareEditAndResend(');
-    expect(source).toContain('handle.runtime.prepareRetryTurn(');
+    expect(source).toContain('runtimeRegistry.prepareEditAndResend(');
+    expect(source).toContain('runtimeRegistry.prepareRetryTurn(');
     expect(source).not.toContain('agent.prepareEditAndResend(');
     expect(source).not.toContain('agent.prepareRetryTurn(');
     expect(source).toContain('requireCommandUserId');
     expect(source).toContain('requireAuthenticatedCommandUserId');
     expect(source).toContain("userId === 'default_user'");
-    expect(source).not.toContain('handleWindieSdkInvoke(event, payload, { method');
+    expect(mainSource).not.toContain('handleWindieSdkInvoke(event, payload, { method');
 
     const memoryHandlers = source.match(/MEMORIES_LIST[\s\S]*?CONVERSATIONS_LIST/)?.[0] || '';
-    expect(memoryHandlers).toContain('requireAuthenticatedCommandUserId();');
+    expect(memoryHandlers).toContain('requireAuthenticatedCommandUserId(deps.getState().currentUserId);');
     expect(memoryHandlers).not.toContain('userId: requireAuthenticatedCommandUserId()');
     expect(memoryHandlers).not.toContain('requireCommandUserId(payload)');
   });

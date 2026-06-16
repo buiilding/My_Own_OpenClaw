@@ -29,6 +29,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
+- `frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -207,9 +208,11 @@ Owns frontend-config IPC handler registration:
 
 ### SDK-Shaped Conversation Commands
 
-`ipc.cjs` owns the strict `windie:invoke` command allowlist and routes
-conversation commands such as `conversation.send` and `conversation.stop` into
-the live SDK runtime:
+`ipc_windie_sdk_command_handlers.cjs` owns the strict `windie:invoke` command
+allowlist and routes conversation commands such as `conversation.send` and
+`conversation.stop` into the live SDK runtime. `ipc.cjs` registers the IPC
+handler and injects Electron-main state, settings gates, diagnostics, and SDK
+agent functions:
 
 - backend connection gating
 - initial settings sync waiting

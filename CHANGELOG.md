@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: extract the SDK-shaped `windie:invoke` command allowlist into
+  a focused IPC helper with Electron-main dependencies injected from `ipc.cjs`.
 - docs/frontend: clarify that renderer facades and Electron main share
   `SDK_RUNTIME_COMMANDS` as the `windie:invoke` command source of truth.
 - docs/backend: route stale `AgentSession` OCR constructor searches to the
