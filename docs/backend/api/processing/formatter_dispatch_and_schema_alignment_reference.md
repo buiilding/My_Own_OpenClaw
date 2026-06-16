@@ -3,6 +3,7 @@ summary: "Deep reference for backend API formatter registration/dispatch, per-ev
 read_when:
   - When adding/changing agent streaming events or formatter classes.
   - When debugging websocket payload fields that fail renderer type-guards or Pydantic schema validation.
+  - When resolving stale response formatter dict-dispatch, event-type map, or compatibility-fallback references after the typed-only formatter path.
 title: "Formatter Dispatch and Schema Alignment Reference"
 ---
 
