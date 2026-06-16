@@ -1,8 +1,9 @@
 ---
-summary: "Electron main process runtime: window orchestration, SDK runtime bridge, SDK local-runtime bridge, and IPC contracts."
+summary: "Electron main process runtime: window orchestration, SDK runtime bridge, SDK local-runtime bridge, IPC contracts, and the `desktop_agent_definition_inputs.cjs` collector that feeds the SDK `buildAgentDefinition` builder."
 read_when:
   - When changing renderer/main IPC channels or backend bridge logic.
   - When debugging window overlays, wakeword bridge, SDK runtime connectivity, or backend connectivity.
+  - When changing `frontend/src/main/agent/desktop_agent_definition_inputs.cjs`, Electron-injected AGENTS.md layers, extension prompt layers, workspace path facts, or OS facts before SDK agent-definition construction.
 title: "Electron Main and IPC"
 ---
 
@@ -57,6 +58,7 @@ Main modules:
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/agent/desktop_agent_definition_inputs.cjs`
 
 Responsibilities:
 
@@ -79,6 +81,10 @@ Split boundary:
 - `ipc.cjs` owns renderer-facing lifecycle orchestration and IPC handler registration.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.
+- `desktop_agent_definition_inputs.cjs` owns Electron-only collection of custom
+  instructions, extension prompt layers, AGENTS.md layers, workspace path, and
+  OS facts. The SDK package owns the final `agent_definition` object shape and
+  capability metadata stamping.
 - See [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md) for per-module contract details.
 
 ## Query Payload Enrichment

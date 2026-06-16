@@ -142,14 +142,15 @@ const {
 } = require('./ipc/ipc_transcript_session_sync.cjs');
 const {
   isAgentLoopStopShortcutPhase,
-} = require('./sdk/agent_stop_shortcut_runtime.cjs');
+} = require('./shortcuts/agent_stop_shortcut_runtime.cjs');
 const {
-  buildAgentDefinition,
-} = require('./sdk/agent_definition.cjs');
+  buildDesktopAgentDefinitionInputs,
+} = require('./agent/desktop_agent_definition_inputs.cjs');
 const {
   createDesktopAutoSidecarLaunchPlan,
 } = require('./sidecar/sdk_sidecar_launch_options.cjs');
 const {
+  buildAgentDefinition,
   WindieClient,
   TraceRecorder,
   createConversationEvent,
@@ -2397,14 +2398,14 @@ function attachAgentDefinitionContext(payload) {
   const agentsMd = workspacePath
     ? resolveWorkspaceRepoInstructionPromptLayers(workspacePath)
     : [];
-  const generatedAgentDefinition = buildAgentDefinition({
+  const generatedAgentDefinition = buildAgentDefinition(buildDesktopAgentDefinitionInputs({
     includeToolManifest: false,
     customInstructions,
     promptLayers: loadExtensionSkillPromptLayers(),
     agentsMd,
     workspacePath,
     operatingSystem: resolveFrontendOperatingSystem(process.platform),
-  });
+  }));
   const suppliedAgentDefinition = isPlainObject(payload.agent_definition)
     ? payload.agent_definition
     : null;

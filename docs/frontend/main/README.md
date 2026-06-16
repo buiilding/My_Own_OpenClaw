@@ -47,8 +47,10 @@ title: "Frontend Main Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/*.cjs`
+- `frontend/src/main/agent/*.cjs`
 - `frontend/src/main/ipc/*.cjs`
-- `frontend/src/main/sdk/agent_stop_shortcut_runtime.cjs`
+- `frontend/src/main/shortcuts/agent_stop_shortcut_runtime.cjs`
+- `frontend/src/main/surfaces/*.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
 - `frontend/src/main/python/dev_seed_mock_memory.py`
 - `frontend/src/preload.js`

@@ -4,7 +4,7 @@ const {
   initializeAgentStopShortcutRuntime,
   isAgentLoopStopShortcutPhase,
   resolveGlobalAgentStopAccelerator,
-} = require('../../frontend/src/main/sdk/agent_stop_shortcut_runtime.cjs');
+} = require('../../frontend/src/main/shortcuts/agent_stop_shortcut_runtime.cjs');
 
 describe('agent_stop_shortcut_runtime', () => {
   test('recognizes active loop phases that should enable the global stop shortcut', () => {

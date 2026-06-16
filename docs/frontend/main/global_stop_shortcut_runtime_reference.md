@@ -32,7 +32,7 @@ shortcut exists for stop-from-anywhere behavior while another app has focus.
 
 ## Main Runtime Rules
 
-`frontend/src/main/sdk/agent_stop_shortcut_runtime.cjs` owns native registration:
+`frontend/src/main/shortcuts/agent_stop_shortcut_runtime.cjs` owns native registration:
 
 - active phases that enable registration:
   - `awaiting-first-chunk`

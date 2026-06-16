@@ -373,6 +373,12 @@ describe('windie docs index', () => {
     expect(findDocs('AgentCapabilityHandshake test removed')[0].path).toBe(
       expectedPath,
     );
+    expect(findDocs('buildAgentDefinition SDK builder capability metadata')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('packages/windie-sdk-js/src/runtime/AgentDefinition.ts')[0].path).toBe(
+      expectedPath,
+    );
   });
 
   test('routes package and reinstall queries to the cross-platform runbook', () => {
@@ -839,6 +845,12 @@ describe('windie docs index', () => {
   test('routes global stop shortcut queries to the shortcut runtime reference', () => {
     expect(findDocs('global stop shortcut')[0].path).toBe(
       path.join('docs', 'frontend', 'main', 'global_stop_shortcut_runtime_reference.md'),
+    );
+  });
+
+  test('routes Electron agent-definition input collector queries to main IPC docs', () => {
+    expect(findDocs('frontend/src/main/agent/desktop_agent_definition_inputs.cjs')[0].path).toBe(
+      path.join('docs', 'frontend', 'main', 'electron_main_and_ipc.md'),
     );
   });
 

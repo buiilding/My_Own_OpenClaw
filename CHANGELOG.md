@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
   snake_case backend tool-call and tool-bundle payload fields only.
 - docs/sdk: clarify that TypeScript local tool execution requires SDK-shaped
   tool-call and tool-bundle events after backend event normalization.
+- frontend/main: move Electron host bindings out of the old main `sdk` folder
+  and route data-only agent definition construction through the TypeScript SDK.
 - frontend/chat: replace response-overlay send priming with pending-turn IPC
   broadcast and replay before SDK current-turn handoff.
 - docs/providers: clarify that Kimi accepts `kimi-coding`/`kimi_coding`
@@ -827,8 +829,10 @@ All notable changes to WindieOS will be documented in this file.
   `frontend/src/main/surfaces` modules.
 - docs/main: route active app-runtime docs to the moved
   `frontend/src/main/app` modules.
-- docs/sdk: route active main SDK-runtime docs to the moved
-  `frontend/src/main/sdk` modules.
+- docs/sdk: route active main SDK-runtime docs to the owning Electron main
+  surface and shortcut modules.
+- docs/sdk: route SDK `buildAgentDefinition` and Electron
+  `desktop_agent_definition_inputs.cjs` searches to the owning contract docs.
 - docs/wakeword: route active wakeword bridge docs to the moved
   `frontend/src/main/wakeword` modules.
 - docs/debug: route chat-pill trace docs to the moved

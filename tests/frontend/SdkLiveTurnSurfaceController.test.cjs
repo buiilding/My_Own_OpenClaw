@@ -8,7 +8,7 @@ const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
   resolveOverlayIntent,
-} = require('../../frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs');
+} = require('../../frontend/src/main/surfaces/live_turn_surface_controller.cjs');
 
 function createWindow({ visible = false } = {}) {
   let isVisible = visible;
@@ -147,7 +147,7 @@ describe('sdk_live_turn_surface_controller', () => {
       );
       const {
         handleSdkLiveTurnSurfaceIntent: handleWithMalformedLayout,
-      } = require('../../frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs');
+      } = require('../../frontend/src/main/surfaces/live_turn_surface_controller.cjs');
       const awaitingDeps = createDeps();
       const responseDeps = createDeps();
 

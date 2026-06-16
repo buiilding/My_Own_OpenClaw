@@ -7,6 +7,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import {
+  buildAgentDefinition,
   createWindieAgentBackendTransport,
   createWindieAgentSession,
   createConversationEvent,
@@ -135,6 +136,87 @@ describe('WindieSdkClient', () => {
   beforeEach(() => {
     FakeWebSocket.reset();
     mockFetch.mockReset();
+  });
+
+  test('builds data-only agent definitions with capability metadata', () => {
+    const definition = buildAgentDefinition({
+      id: 'desktop-agent',
+      name: 'Desktop Agent',
+      systemPrompt: 'Follow the desktop contract.',
+      clientToolManifest: {
+        version: 1,
+        tools: [{ name: 'screenshot', schema: { type: 'object' } }],
+      },
+      availableTools: ['screenshot', 'screenshot', ' '],
+      enabledRemoteTools: ['web_search'],
+      disabledTools: ['shell'],
+      disabledCapabilities: ['vision'],
+      customInstructions: 'Use local context.',
+      promptLayers: [
+        { type: 'skill', priority: '40', content: 'Layer one.' },
+        { id: 'empty-layer', content: ' ' },
+      ],
+      skills: [{ id: 'skill-1', type: 'skill', priority: 20, content: 'Skill prompt.' }],
+      agentsMd: [{ id: 'repo', type: 'agents_md', priority: 10, content: 'Repo rules.' }],
+      plugins: [{
+        id: 'plugin-1',
+        prompt_layers: [{ id: 'plugin-layer', type: 'plugin', content: 'Plugin prompt.' }],
+      }],
+      workspacePath: '/tmp/windie-project',
+      operatingSystem: 'macOS',
+    });
+
+    expect(definition).toMatchObject({
+      version: 1,
+      id: 'desktop-agent',
+      name: 'Desktop Agent',
+      mode: 'default_plus_overrides',
+      system_prompt: {
+        mode: 'replace',
+        content: 'Follow the desktop contract.',
+      },
+      tools: {
+        mode: 'explicit',
+        available_tools: ['screenshot'],
+        enabled_remote_tools: ['web_search'],
+        disabled_tools: ['shell'],
+        disabled_capabilities: ['vision'],
+        client_manifest: {
+          version: 1,
+          tools: [expect.objectContaining({ name: 'screenshot' })],
+        },
+      },
+      prompt_layers: [
+        {
+          id: 'custom-instructions',
+          type: 'custom_instructions',
+          priority: 60,
+          content: 'Use local context.',
+        },
+        {
+          id: 'client-layer-1',
+          type: 'skill',
+          priority: 40,
+          content: 'Layer one.',
+        },
+      ],
+      agents_md: [expect.objectContaining({ id: 'repo' })],
+      skills: [expect.objectContaining({ id: 'skill-1' })],
+      runtime: {
+        operating_system: 'macOS',
+        workspace_path: '/tmp/windie-project',
+      },
+      metadata: {
+        client_capability_revision: expect.stringMatching(/^cap_/),
+        client_capability: expect.objectContaining({
+          tool_count: 1,
+          prompt_layer_count: 5,
+          skill_count: 1,
+          plugin_count: 1,
+        }),
+      },
+    });
+    expect(definition).not.toHaveProperty('contributionsDir');
   });
 
   test('builds introspection requests against the existing sdk routes', async () => {

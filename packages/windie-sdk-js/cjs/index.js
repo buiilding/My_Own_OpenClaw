@@ -32,6 +32,7 @@ __exportStar(require("./runtime/TraceRecorder.js"), exports);
 __exportStar(require("./runtime/TurnInputPipeline.js"), exports);
 __exportStar(require("./runtime/DefaultTurnResourceResolvers.js"), exports);
 __exportStar(require("./runtime/ConversationContinuityService.js"), exports);
+__exportStar(require("./runtime/AgentDefinition.js"), exports);
 __exportStar(require("./runtime/AgentStreamEvents.js"), exports);
 __exportStar(require("./runtime/WindieChatSession.js"), exports);
 __exportStar(require("./runtime/WindieAgent.js"), exports);

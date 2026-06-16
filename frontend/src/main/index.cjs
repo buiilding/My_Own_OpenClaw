@@ -83,20 +83,20 @@ const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./app/runtime_mode.c
 const {
   initializeAgentStopShortcutRuntime,
   resolveGlobalAgentStopAccelerator,
-} = require('./sdk/agent_stop_shortcut_runtime.cjs');
+} = require('./shortcuts/agent_stop_shortcut_runtime.cjs');
 const { createWindowPlatformPolicy } = require('./surfaces/window_platform_policy.cjs');
 const { createSurfaceRuntime } = require('./surfaces/surface_runtime.cjs');
 const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
   resolveOverlayIntent,
-} = require('./sdk/sdk_live_turn_surface_controller.cjs');
+} = require('./surfaces/live_turn_surface_controller.cjs');
 const {
   appendSurfaceVisibilityDiagnostic,
 } = require('./diagnostics/app_diagnostics_runtime.cjs');
 const {
   createElectronToolSurfaceLifecycle,
-} = require('./sdk/tool_surface_lifecycle.cjs');
+} = require('./surfaces/tool_surface_lifecycle.cjs');
 const {
   readChatPillVisibilityIntent,
   writeChatPillVisibilityIntent,
