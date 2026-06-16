@@ -91,7 +91,7 @@ Date: 2026-06-15
 | CD-058 | Electron repo-instruction message/helper exports | `repo_instruction_runtime.cjs` exported the old AGENTS.md message wrapper/resolver, prompt-layer builder, and workspace normalizer even though production imports only `resolveWorkspaceRepoInstructionPromptLayers(...)` | Knip reported those four helper exports unused; repo search showed only tests imported the old message path while production sends `agent_definition.agents_md` prompt layers through Electron main | Delete the legacy message wrapper/resolver, keep builders and normalizer private, and update docs/tests to the prompt-layer owner | `e934747cd` |
 | CD-059 | Electron runtime-path Python executable export | `runtime_paths.cjs` exported `resolvePythonExecutablePath(...)` even though production callers import only `resolveSidecarLaunchTarget(...)` and executable selection is an implementation detail of that launch-target resolver | Knip reported the lower-level export unused; repo search showed no external imports and runtime-path tests already cover executable resolution through sidecar launch targets | Remove the lower-level export and update runtime-path docs to describe Python executable lookup as internal launch-target behavior | `906522e8e` |
 | CD-060 | Electron live-surface trace helper exports | `live_surface_trace_runtime.cjs` exported the env-gate predicate and renderer payload normalizer even though production imports only trace logging, renderer forwarding, and summarizer APIs | Knip reported those two helper exports unused; repo search showed only the unit test imported them directly while production exercises them internally through `logLiveSurfaceTrace(...)` and `handleRendererLiveSurfaceTrace(...)` | Remove the helper exports and retarget tests to the production trace APIs | `62a69489a` |
-| CD-061 | Electron app diagnostics generic helper exports | `app_diagnostics_runtime.cjs` exported `appendAppRuntimeDiagnostic(...)` and `compactData(...)` even though production callers import the path-specific diagnostic appenders | Knip reported both helper exports unused; repo search showed the generic appender and compaction helper are only used inside the diagnostics runtime implementation | Remove the generic helper exports and leave only path-specific diagnostic appenders public | pending implementation commit |
+| CD-061 | Electron app diagnostics generic helper exports | `app_diagnostics_runtime.cjs` exported `appendAppRuntimeDiagnostic(...)` and `compactData(...)` even though production callers import the path-specific diagnostic appenders | Knip reported both helper exports unused; repo search showed the generic appender and compaction helper are only used inside the diagnostics runtime implementation | Remove the generic helper exports and leave only path-specific diagnostic appenders public | `4fae12f53` |
 
 ## Commit Ledger
 
@@ -211,7 +211,8 @@ Date: 2026-06-15
   completed CD-059.
 - `62a69489a refactor(frontend): keep live surface trace helpers private`
   completed CD-060.
-- pending implementation commit for CD-061.
+- `4fae12f53 refactor(frontend): keep app diagnostic helpers private`
+  completed CD-061.
 
 ## Validation Log
 
