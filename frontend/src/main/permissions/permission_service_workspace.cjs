@@ -261,6 +261,4 @@ module.exports = {
   probeShellExecution,
   requestFilesystemWorkspaceAccessPermission,
   requestShellExecutionPermission,
-  verifyShellExecutionCapability,
-  verifyWorkspaceAccessCapability,
 };

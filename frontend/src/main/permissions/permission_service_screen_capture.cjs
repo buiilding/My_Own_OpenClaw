@@ -198,5 +198,4 @@ async function requestScreenCapturePermission(permission, deps = {}) {
 module.exports = {
   probeScreenCapture,
   requestScreenCapturePermission,
-  verifyScreenCaptureCapability,
 };

@@ -313,5 +313,4 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
 module.exports = {
   probeBrowserAutomation,
   requestBrowserAutomationPermission,
-  verifyBrowserAutomationCapability,
 };

@@ -216,5 +216,4 @@ async function requestMicrophonePermission(permission, deps = {}, services = {})
 module.exports = {
   probeMicrophone,
   requestMicrophonePermission,
-  verifyMicrophoneCapability,
 };

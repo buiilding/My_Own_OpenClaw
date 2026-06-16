@@ -342,7 +342,6 @@ module.exports = {
   getStoredPermissionEntry,
   isAuthPromptCanceled,
   listPermissionDefinitions,
-  normalizePlatformScope,
   openExternal,
   openLinuxPermissionCenter,
   parseAllowedValue,

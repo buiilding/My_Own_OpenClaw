@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep desktop permission verifier helpers private to their
+  focused permission services while preserving verifier callback injection.
 - frontend/main: delete the orphan layer-log line-stream helper and keep
   logging constants, layer normalization, and console stream guards private.
 - frontend/main: keep global stop shortcut phase, catalog, and accelerator

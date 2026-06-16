@@ -152,5 +152,4 @@ async function requestInputControlPermission(permission, deps = {}, services = {
 module.exports = {
   probeInputControl,
   requestInputControlPermission,
-  verifyInputControlCapability,
 };
