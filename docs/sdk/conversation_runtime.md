@@ -1,11 +1,11 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display/rehydrate projections, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display/rehydrate projections, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
   - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
   - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
   - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
   - When debugging edit/resend resource preservation, retry resource preservation, missing screenshot refs, or attachment metadata lost across revisions.
-  - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool output content fallback behavior, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
+  - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool output content fallback behavior, removed `fallbackText` helper references, `normalizeToolOutputContent` searches, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
 title: "SDK Conversation Runtime"
 ---
 
@@ -629,6 +629,14 @@ for display/projection, but `hasModelContent` stays false so callers do not
 mistake an assistant-stream payload shape for tool result text. Fix producers to
 emit `output`, `message`, or `error`; do not re-add assistant-shaped content or
 final-response fallback fields in SDK projection code.
+
+The removed `fallbackText(...)` helper must not be reintroduced. It re-read the
+same top-level `output`, `message`, and `error` fields after
+`readToolOutputContent(...)` had already checked them, so it could not produce
+additional model-facing content. Searches for `normalizeToolOutputContent`,
+removed top-level tool-output fallback helpers, or missing canonical
+tool-output text should route here: current behavior falls straight through to
+structured JSON display with `hasModelContent: false`.
 
 Rehydrate projections preserve provider-safe tool history for both single calls
 and bundles. A `tool_call` projection must carry the original `tool_calls` and

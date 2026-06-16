@@ -746,6 +746,12 @@ describe('windie docs index', () => {
     expect(findDocs('tool output content fallback')[0].path).toBe(expectedPath);
     expect(findDocs('assistant-shaped content')[0].path).toBe(expectedPath);
     expect(findDocs('final_response fallback tool output')[0].path).toBe(expectedPath);
+    expect(findDocs('fallbackText removed top-level tool output fallback')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('normalizeToolOutputContent fallback removed')[0].path).toBe(
+      expectedPath,
+    );
   });
 
   test('routes renderer screenshot metadata queries to the screenshot state reference', () => {

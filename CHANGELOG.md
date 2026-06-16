@@ -79,6 +79,8 @@ All notable changes to WindieOS will be documented in this file.
 - cli/debug: restore diagnostics and renderer verbose log inspection helpers
   consumed by `bin/windie diagnostics ...` and
   `bin/windie logs renderer --verbose`.
+- docs/sdk: route removed `fallbackText` and top-level tool-output fallback
+  searches to the SDK conversation runtime contract.
 - sdk/tools: remove the unreachable top-level tool-output fallback helper after
   canonical `output`/`message`/`error` fields have already been checked.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
