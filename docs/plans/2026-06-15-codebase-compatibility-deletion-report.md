@@ -101,7 +101,7 @@ Date: 2026-06-15
 | CD-068 | Electron backend event channel helper exports | `ipc_backend_event_channels.cjs` exported the backend-event channel map and channel resolver even though production imports only `broadcastTypedBackendEvent(...)` | Knip reported both exports unused; repo search showed only the channel unit test imported the helper resolver directly, while `ipc_runtime_helpers.cjs` uses the broadcaster | Remove the helper exports, keep channel routing private, and assert routing through the production broadcaster | `f4c491106` |
 | CD-069 | Electron backend payload allowlist export | `ipc_backend_payload_contract.cjs` exported `BACKEND_PAYLOAD_KEYS_BY_TYPE` even though production imports only `filterBackendPayload(...)` for outbound websocket payload normalization | Knip reported the allowlist export unused; repo search showed only a frontend/backend contract test imported it directly, while production payload normalization uses the filter API | Remove the allowlist export, keep the allowlist private, and assert backend contract parity by filtering synthetic payloads through `filterBackendPayload(...)` | `cc8dc6925` |
 | CD-070 | Electron IPC channel registry constant exports | `ipc_channel_registry_runtime.cjs` exported the shared IPC channel registry and preload argument prefix even though production imports only `buildPreloadIpcChannelsArgument(...)` | Knip reported both constant exports unused; repo search showed main window runtimes use only the argument builder and preload owns its own local prefix parser | Remove the constant exports and keep the registry/prefix private to the preload channel argument builder | `a5deefb3a` |
-| CD-071 | Electron clipboard image helper exports | `ipc_clipboard_image.cjs` exported image size-limit constants and the trusted artifact URL validator even though production imports only `copyImageToClipboard(...)` and `registerClipboardImageHandler(...)` | Knip reported all three exports unused; repo search showed tests already cover validator behavior through the high-level copy path and no external caller imports the helpers | Remove the helper exports and keep size limits plus remote URL validation private to the clipboard image copy implementation | pending |
+| CD-071 | Electron clipboard image helper exports | `ipc_clipboard_image.cjs` exported image size-limit constants and the trusted artifact URL validator even though production imports only `copyImageToClipboard(...)` and `registerClipboardImageHandler(...)` | Knip reported all three exports unused; repo search showed tests already cover validator behavior through the high-level copy path and no external caller imports the helpers | Remove the helper exports and keep size limits plus remote URL validation private to the clipboard image copy implementation | `8bf31abb6` |
 
 ## Commit Ledger
 
@@ -241,6 +241,8 @@ Date: 2026-06-15
   completed CD-069.
 - `a5deefb3a refactor(frontend): keep ipc channel registry constants private`
   completed CD-070.
+- `8bf31abb6 refactor(frontend): keep clipboard image helpers private`
+  completed CD-071.
 
 ## Validation Log
 
