@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
   from Python SDK local tool execution.
 - sdk/typescript: remove camelCase backend event identity, tool correlation,
   and compaction generation accepts from the backend event normalizer.
+- sdk/typescript: require SDK-shaped tool-call and tool-bundle payloads at the
+  local tool execution coordinator boundary.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and

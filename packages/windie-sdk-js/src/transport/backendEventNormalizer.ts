@@ -79,6 +79,33 @@ function toolCorrelationIdFromPayload(payload: JsonRecord): string | null {
   return stringField(payload, 'correlation_id', 'request_id');
 }
 
+function normalizeToolBundleTools(tools: unknown): JsonRecord[] {
+  if (!Array.isArray(tools)) {
+    return [];
+  }
+  return tools.flatMap((tool) => {
+    if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
+      return [];
+    }
+    const record = tool as JsonRecord;
+    const name = typeof record.name === 'string' ? record.name : null;
+    if (!name) {
+      return [];
+    }
+    const args = record.args && typeof record.args === 'object' && !Array.isArray(record.args)
+      ? record.args as JsonRecord
+      : {};
+    const toolCallId = typeof record.tool_call_id === 'string'
+      ? record.tool_call_id
+      : resolveModelFacingToolCallId(record);
+    return [{
+      name,
+      args,
+      ...(toolCallId ? { toolCallId } : {}),
+    }];
+  });
+}
+
 function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {
   const payload = payloadOf(event);
   if (typeof payload.revision_id === 'string' && payload.revision_id.trim()) {
@@ -529,7 +556,7 @@ export function normalizeBackendEventToConversationEvent(
         bundleId: typeof payload.bundle_id === 'string' ? payload.bundle_id : null,
         correlationId: typeof payload.bundle_id === 'string' ? payload.bundle_id : null,
         userId: typeof event.user_id === 'string' ? event.user_id : null,
-        tools: Array.isArray(payload.tools) ? payload.tools : [],
+        tools: normalizeToolBundleTools(payload.tools),
         structuredPayload: payload,
         ...backendMetadata,
       },

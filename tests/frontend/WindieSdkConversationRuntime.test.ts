@@ -2291,6 +2291,7 @@ describe('Windie SDK conversation runtime core', () => {
         tools: [
           {
             name: 'read_file',
+            tool_call_id: 'call-read-file',
             args: { file_path: '/tmp/a' },
           },
         ],
@@ -2306,8 +2307,16 @@ describe('Windie SDK conversation runtime core', () => {
         tools: [
           expect.objectContaining({
             name: 'read_file',
+            toolCallId: 'call-read-file',
           }),
         ],
+        structuredPayload: expect.objectContaining({
+          tools: [
+            expect.objectContaining({
+              tool_call_id: 'call-read-file',
+            }),
+          ],
+        }),
       }),
     });
   });
@@ -2830,6 +2839,50 @@ describe('Windie SDK conversation runtime core', () => {
     expect(executeTool).not.toHaveBeenCalled();
     expect(sendToolResult).not.toHaveBeenCalled();
     expect(await store.loadEvents('conv-sdk-runtime')).toEqual([]);
+  });
+
+  test('tool coordinator rejects direct snake_case SDK tool event payloads', async () => {
+    const executeTool = jest.fn(async () => ({
+      success: true,
+      data: {
+        output: 'should not run',
+      },
+    }));
+    const coordinator = new ToolExecutionCoordinator({
+      localRuntime: {
+        executeTool,
+      },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    expect(coordinator.canClaim(event('tool_call', {
+      tool_name: 'read_file',
+      request_id: 'req-snake',
+      args: { path: 'README.md' },
+    }))).toEqual({
+      claimed: false,
+      reason: 'missing-tool-name-or-request-id',
+    });
+    expect(coordinator.canClaim(event('tool_bundle_call', {
+      bundle_id: 'bundle-snake',
+      tools: [
+        { name: 'read_file', args: { path: 'README.md' } },
+      ],
+    }))).toEqual({
+      claimed: false,
+      reason: 'missing-bundle-id-or-tools',
+    });
+
+    await expect(coordinator.execute(event('tool_call', {
+      tool_name: 'read_file',
+      request_id: 'req-snake',
+      args: { path: 'README.md' },
+    }))).resolves.toEqual({
+      claimed: false,
+      reason: 'missing-tool-name-or-request-id',
+    });
+    expect(executeTool).not.toHaveBeenCalled();
   });
 
   test('tool coordinator wraps single local execution with lifecycle release on success and failure', async () => {

@@ -187,9 +187,7 @@ function mergePostActionScreenshot(data, screenshotData, sourceToolName) {
 }
 function localToolCallFromEvent(event) {
     const payload = event.payload;
-    const toolName = typeof payload.toolName === 'string'
-        ? payload.toolName
-        : (typeof payload.tool_name === 'string' ? payload.tool_name : '');
+    const toolName = typeof payload.toolName === 'string' ? payload.toolName : '';
     if (!toolName) {
         return null;
     }
@@ -198,15 +196,11 @@ function localToolCallFromEvent(event) {
         args: payload.args && typeof payload.args === 'object' && !Array.isArray(payload.args)
             ? payload.args
             : {},
-        requestId: typeof payload.requestId === 'string'
-            ? payload.requestId
-            : (typeof payload.request_id === 'string' ? payload.request_id : null),
-        bundleId: typeof payload.bundleId === 'string'
-            ? payload.bundleId
-            : (typeof payload.bundle_id === 'string' ? payload.bundle_id : null),
-        toolCallId: stringPayloadField(payload, 'toolCallId', 'tool_call_id')
+        requestId: typeof payload.requestId === 'string' ? payload.requestId : null,
+        bundleId: typeof payload.bundleId === 'string' ? payload.bundleId : null,
+        toolCallId: stringPayloadField(payload, 'toolCallId')
             ?? (0, toolCorrelationIds_js_1.resolveModelFacingToolCallId)(payload),
-        correlationId: stringPayloadField(payload, 'correlationId', 'correlation_id'),
+        correlationId: stringPayloadField(payload, 'correlationId'),
         turnRef: event.turnRef,
         conversationRef: event.conversationRef,
     };
@@ -483,9 +477,7 @@ class ToolExecutionCoordinator {
             }
         }
         if (event.type === 'tool_bundle_call') {
-            const bundleId = typeof event.payload.bundleId === 'string'
-                ? event.payload.bundleId
-                : (typeof event.payload.bundle_id === 'string' ? event.payload.bundle_id : '');
+            const bundleId = typeof event.payload.bundleId === 'string' ? event.payload.bundleId : '';
             if (!bundleId || !Array.isArray(event.payload.tools)) {
                 return { claimed: false, reason: 'missing-bundle-id-or-tools' };
             }
@@ -634,9 +626,7 @@ class ToolExecutionCoordinator {
         }
         const payload = event.payload;
         const startedAt = Date.now();
-        const bundleId = typeof payload.bundleId === 'string'
-            ? payload.bundleId
-            : (typeof payload.bundle_id === 'string' ? payload.bundle_id : '');
+        const bundleId = typeof payload.bundleId === 'string' ? payload.bundleId : '';
         const tools = Array.isArray(payload.tools) ? payload.tools : [];
         const stepResults = [];
         const executedSteps = [];
@@ -668,7 +658,7 @@ class ToolExecutionCoordinator {
                 if (!toolName) {
                     continue;
                 }
-                const toolCallId = stringPayloadField(record, 'toolCallId', 'tool_call_id')
+                const toolCallId = stringPayloadField(record, 'toolCallId')
                     ?? (0, toolCorrelationIds_js_1.resolveModelFacingToolCallId)(record);
                 let result;
                 try {
