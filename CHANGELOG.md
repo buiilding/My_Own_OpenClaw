@@ -64,6 +64,8 @@ All notable changes to WindieOS will be documented in this file.
   `ToolSelection` value-object path after dev TOML selection loading was removed.
 - docs/search: route removed sudo auth-mode and renderer capture-helper
   searches to the current filesystem/shell and capture payload owner docs.
+- docs/sdk: route removed renderer transcript and rehydrate helper searches to
+  the SDK conversation runtime owner.
 - frontend/renderer: stop writing the unused config-version localStorage key;
   renderer settings persistence now stores only the sanitized config payload.
 - backend/simulation: delete the `backend.src.simulation.computer` alias

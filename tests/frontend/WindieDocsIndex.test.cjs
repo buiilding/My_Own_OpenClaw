@@ -557,6 +557,33 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed renderer transcript helper queries to SDK conversation runtime', () => {
+    const expectedPath = path.join('docs', 'sdk', 'conversation_runtime.md');
+
+    expect(findDocs('transcriptMessagePayload.js removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('structuredToolPayload.js removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('rehydrateMessageState.js removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('rehydratePayload.js removed')[0].path).toBe(expectedPath);
+    expect(findDocs('transparencyNormalization removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('storedTranscriptSdkProjection removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('desktopTranscriptProjectionRuntimeClient removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('pendingTranscriptMessages removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes frontend tool manifest builder queries to tool contracts', () => {
     const expectedPath = path.join('docs', 'tools', 'tool_contracts.md');
 
