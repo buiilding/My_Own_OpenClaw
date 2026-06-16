@@ -114,6 +114,7 @@ Date: 2026-06-15
 | CD-081 | Electron layer-log helper exports | `layer_log_sink.cjs` exported logging constants, `normalizeLayer(...)`, `installConsoleStreamErrorGuards(...)`, and an unused `attachLineStream(...)` helper even though production callers use the higher-level layer log APIs; `ensureLogFile(...)` and `resolveRendererVerboseLogFile(...)` must remain public because `bin/windie` imports them | Knip reported the helper exports unused from the frontend package; repo-wide search found no external consumers for the constants, normalizer, guard installer, or line-stream helper, while CLI search confirmed the two false-positive exports are still used by `scripts/windie/commands.cjs` | Delete the orphan line-stream helper, remove the internal helper exports, keep stream guard behavior private behind `installConsoleLayerLog(...)`, and preserve CLI-facing log path exports | `f4762cf31` |
 | CD-082 | Electron permission verifier helper exports | Focused permission service modules exported verifier helpers such as `verifyScreenCaptureCapability(...)`, `verifyBrowserAutomationCapability(...)`, and `normalizePlatformScope(...)` even though callers use `permission_service.cjs` probe/request entrypoints and pass verifier callbacks through `deps` | Knip reported seven permission verifier/runtime exports unused; repo search found remaining occurrences are private same-module calls or dependency-injection callback names, not module imports | Remove the helper exports while preserving verifier callback injection and public probe/request behavior through the permission service runtime | `fd1c9c454` |
 | CD-083 | Electron SDK live-turn typing logger export | `sdk_live_turn_surface_controller.cjs` exported `logSdkTypingTransition(...)` even though production calls it only inside `handleSdkLiveTurnSurfaceIntent(...)` | Knip reported the export unused; repo search showed only `SdkLiveTurnSurfaceController.test.cjs` imported the helper directly while production imports the live-turn surface state/handler APIs | Remove the helper export and assert typing trace de-duplication through the public live-turn surface handler | `04b9cf9b3` |
+| CD-084 | Electron local-backend bridge utility exports | `local_backend_bridge_timeout_policy.cjs` exported execute-tool timeout tier constants and `local_backend_bridge_utils.cjs` exported `toErrorResponse(...)` even though production uses `resolveExecuteToolTimeoutMs(...)` and direct error mapping at call sites | Knip reported all three exports unused; repo search found the timeout constants are private resolver inputs and `toErrorResponse(...)` had no call sites | Remove the dead error-response helper and keep execute-tool timeout constants private to the timeout resolver | pending |
 
 ## Commit Ledger
 
@@ -1480,6 +1481,20 @@ CD-083 validation:
 - Migration note: no runtime, storage, settings, IPC, or persisted-data
   migration is required. SDK live-turn surface sync still logs typing
   transitions through `handleSdkLiveTurnSurfaceIntent(...)`.
+
+CD-084 validation:
+
+- targeted `rg -n "DEFAULT_EXECUTE_TOOL_TIMEOUT_MS|BROWSER_EXECUTE_TOOL_TIMEOUT_MS|toErrorResponse" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private timeout constant definition/use remains.
+- `bin/windie test frontend -- LocalBackendBridge LocalBackendBridge.rpc LocalBackendBridge.lifecycle LocalBackendBridgeExecuteTool SdkSidecarLaunchOptions`:
+  passed; 8 suites and 67 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 83 to 80 after
+  removing local-backend bridge utility exports.
+- Migration note: no runtime, storage, settings, IPC, websocket, JSON-RPC, or
+  persisted-data migration is required. Local backend request timeouts still
+  route through `resolveExecuteToolTimeoutMs(...)`, and bridge error responses
+  remain owned by their call sites.
 
 ## Inspection Notes
 

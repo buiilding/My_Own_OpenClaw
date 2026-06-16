@@ -14,7 +14,5 @@ function resolveExecuteToolTimeoutMs(toolName) {
 
 module.exports = {
   DEFAULT_REQUEST_TIMEOUT_MS,
-  DEFAULT_EXECUTE_TOOL_TIMEOUT_MS,
-  BROWSER_EXECUTE_TOOL_TIMEOUT_MS,
   resolveExecuteToolTimeoutMs,
 };
