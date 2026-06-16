@@ -45,6 +45,12 @@ describe('windie docs index', () => {
     });
   });
 
+  test('routes MCP server config queries to the MCP runtime guide', () => {
+    expect(findDocs('MCP server config')[0].path).toBe(
+      path.join('docs', 'development', 'mcp.md'),
+    );
+  });
+
   test('keeps current workflow docs ahead of historical plans for feature queries', () => {
     const paths = findDocs('workspace context')
       .slice(0, 3)

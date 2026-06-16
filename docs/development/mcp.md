@@ -1,7 +1,7 @@
 ---
-summary: "Developer guide for connecting Model Context Protocol servers to WindieOS agents, including MCP discovery, enablement, execution, and raw tool-result preservation."
+summary: "Developer guide for MCP server config and connecting Model Context Protocol servers to WindieOS agents, including MCP discovery, enablement, execution, and raw tool-result preservation."
 read_when:
-  - When adding MCP servers, MCP-backed tools, or MCP diagnostics to WindieOS.
+  - When adding MCP server config, MCP servers, MCP-backed tools, or MCP diagnostics to WindieOS.
   - When debugging MCP tool result output, raw MCP result preservation, `data.output`, or `data.mcp_result`.
   - When deciding whether an external integration should be a sidecar plugin, skill, MCP server, or backend remote tool.
 title: "MCP Runtime"

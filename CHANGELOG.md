@@ -66,6 +66,8 @@ All notable changes to WindieOS will be documented in this file.
   runtime node docs.
 - docs/memory: route sidecar episodic/semantic memory searches to the sidecar
   local memory guide before dashboard display references.
+- docs/development: route MCP server config searches to the MCP runtime guide
+  before generic routing quick cards.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
