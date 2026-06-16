@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep MCP control config normalization, enablement diagnostics,
+  and cache-clearing helpers private while exposing only the high-level MCP
+  list, refresh, spec, and enablement operations.
 - frontend/main: keep app-diagnostics store schema, sanitizer, and internal path
   definition constants private while preserving the CLI-facing diagnostics
   query/list/inspect exports.

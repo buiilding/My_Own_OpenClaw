@@ -7,7 +7,6 @@ const path = require('path');
 const {
   listMcpServersForConfig,
   refreshMcpServersForConfig,
-  setMcpServerEnabledInConfig,
   updateMcpServerEnablementForConfig,
 } = require('../../frontend/src/main/extensions/mcp_control.cjs');
 const {
@@ -81,7 +80,7 @@ describe('MCP control runtime', () => {
 
   test('classifies missing CUA Driver binary without exposing fallback tools', async () => {
     const contributionRoot = writeCuaMcpRegistry();
-    const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
+    const config = { agent_enabled_mcp_servers: ['mcp:cua-driver'] };
     const registry = await refreshMcpServersForConfig({
       config,
       contributionsDir: contributionRoot,
@@ -141,7 +140,7 @@ describe('MCP control runtime', () => {
 
   test('refreshes enabled MCPs through sidecar when local runtime is available', async () => {
     const contributionRoot = writeCuaMcpRegistry();
-    const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
+    const config = { agent_enabled_mcp_servers: ['mcp:cua-driver'] };
     const registerMcp = jest.fn(async () => ({
       success: true,
       registered_tools: [{
@@ -197,7 +196,7 @@ describe('MCP control runtime', () => {
       statuses: [],
     }));
     const listTools = jest.fn(async () => ({ version: 1, tools: [] }));
-    const config = setMcpServerEnabledInConfig({}, 'mcp:cua-driver', true);
+    const config = { agent_enabled_mcp_servers: ['mcp:cua-driver'] };
 
     const result = await updateMcpServerEnablementForConfig({
       config,
