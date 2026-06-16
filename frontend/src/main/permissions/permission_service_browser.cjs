@@ -7,6 +7,24 @@ const {
   buildProbeResult,
 } = require('./permission_service_runtime.cjs');
 
+function getBrowserAutomationCopy(deps = {}) {
+  const copy = deps.mainHostSkin?.permissions?.browserAutomation || {};
+  return {
+    installDialogTitle: copy.installDialogTitle || 'Install Browser Runtime',
+    installDialogConfirmLabel: copy.installDialogConfirmLabel || 'Install Chromium',
+    installDialogCancelLabel: copy.installDialogCancelLabel || 'Cancel',
+    installDialogMessage: copy.installDialogMessage || 'This app needs Chrome or Chromium for browser automation.',
+    installDialogDetail: (
+      copy.installDialogDetail
+      || 'This app will use an installed Chrome or Chromium browser when one is available. If none is found, it can install Chromium now using Playwright.'
+    ),
+    openProfileAction: copy.openProfileAction || 'Open the browser and sign in with the profile this app should use for browser help.',
+    openFailure: copy.openFailure || 'Failed to open the browser.',
+    openRetryFailure: copy.openRetryFailure || 'The browser could not be opened yet. Retry Open browser.',
+    readyProfile: copy.readyProfile || 'Browser is ready. Sign in with the profile this app should use for browser help.',
+  };
+}
+
 function getBrowserAutomationPreference(deps = {}) {
   if (typeof deps.getBrowserAutomationPreference === 'function') {
     try {
@@ -96,6 +114,7 @@ async function requestBrowserRuntimeInstall(deps = {}) {
 
 async function requestBrowserInstallConsent(deps = {}) {
   const dialog = deps.dialog;
+  const copy = getBrowserAutomationCopy(deps);
   if (!dialog || typeof dialog.showMessageBox !== 'function') {
     return {
       granted: false,
@@ -107,16 +126,13 @@ async function requestBrowserInstallConsent(deps = {}) {
   try {
     const response = await dialog.showMessageBox({
       type: 'question',
-      buttons: ['Install Chromium', 'Cancel'],
+      buttons: [copy.installDialogConfirmLabel, copy.installDialogCancelLabel],
       defaultId: 0,
       cancelId: 1,
       noLink: true,
-      title: 'Install Browser Runtime',
-      message: 'WindieOS needs Chrome or Chromium for browser automation.',
-      detail: (
-        'WindieOS will use an installed Chrome or Chromium browser when one is available. '
-        + 'If none is found, it can install Chromium now using Playwright.'
-      ),
+      title: copy.installDialogTitle,
+      message: copy.installDialogMessage,
+      detail: copy.installDialogDetail,
     });
     const accepted = response?.response === 0;
     return {
@@ -136,6 +152,7 @@ async function requestBrowserInstallConsent(deps = {}) {
 async function probeBrowserAutomation(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
+  const copy = getBrowserAutomationCopy(deps);
   const preferenceEnabled = getBrowserAutomationPreference(deps);
   const capability = await verifyBrowserAutomationCapability(deps);
 
@@ -143,7 +160,7 @@ async function probeBrowserAutomation(permission, deps = {}) {
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.NEEDS_ACTION,
-      'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
+      copy.openProfileAction,
       {
         platform,
         browser_automation_enabled: preferenceEnabled,
@@ -180,6 +197,7 @@ async function probeBrowserAutomation(permission, deps = {}) {
 async function requestBrowserAutomationPermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
+  const copy = getBrowserAutomationCopy(deps);
   const currentPreferenceEnabled = getBrowserAutomationPreference(deps);
   let capability = await verifyBrowserAutomationCapability(deps);
   let requestedPreferenceEnabled = currentPreferenceEnabled;
@@ -207,13 +225,13 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
       }
       return {
         success: result === true,
-        reason: result === true ? '' : 'Failed to open the WindieOS browser.',
+        reason: result === true ? '' : copy.openFailure,
         details: {},
       };
     } catch (error) {
       return {
         success: false,
-        reason: error?.message || 'Failed to open the WindieOS browser.',
+        reason: error?.message || copy.openFailure,
         details: {
           error: String(error?.message || error),
         },
@@ -228,7 +246,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
       return buildProbeResult(
         permissionId,
         PERMISSION_STATUS.NEEDS_ACTION,
-        warmup.reason || 'WindieOS could not open the browser yet. Retry Open browser.',
+        warmup.reason || copy.openRetryFailure,
         {
           platform,
           browser_automation_enabled: requestedPreferenceEnabled,
@@ -242,7 +260,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.GRANTED,
-      'WindieOS browser is ready. Sign in with the profile WindieOS should use for browser help.',
+      copy.readyProfile,
       {
         platform,
         browser_automation_enabled: requestedPreferenceEnabled,

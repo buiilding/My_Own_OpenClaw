@@ -17,6 +17,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: route browser and macOS automation permission copy through the
   WindieOS main host skin config so the Electron composition root stays focused
   on host adapters.
+- frontend/main: route browser and macOS automation permission-service product
+  copy through injected main host skin config with generic service fallbacks.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

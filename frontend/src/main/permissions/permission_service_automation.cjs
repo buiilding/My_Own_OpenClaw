@@ -7,6 +7,20 @@ const {
   buildProbeResult,
 } = require('./permission_service_runtime.cjs');
 
+function getMacAutomationCopy(deps = {}) {
+  const copy = deps.mainHostSkin?.permissions?.macAutomation || {};
+  return {
+    probeRemediation: (
+      copy.probeRemediation
+      || 'Click Grant to show the macOS Automation prompt, then allow this app to control System Events. If you already denied it, reopen System Settings -> Privacy & Security -> Automation and enable this app under System Events.'
+    ),
+    requestRemediation: (
+      copy.requestRemediation
+      || 'Approve the macOS Automation prompt for this app. If the prompt no longer appears, open System Settings -> Privacy & Security -> Automation and enable this app under System Events.'
+    ),
+  };
+}
+
 async function verifyMacOsSystemEventsAutomationPermission(deps = {}) {
   if (typeof deps.probeMacOsSystemEventsAutomationPermission !== 'function') {
     return {
@@ -76,6 +90,7 @@ async function requestMacOsSystemEventsAutomationPermission(deps = {}) {
 async function probeSystemEventsAutomation(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
+  const copy = getMacAutomationCopy(deps);
 
   if (platform !== 'darwin') {
     return buildProbeResult(permissionId, PERMISSION_STATUS.UNSUPPORTED, 'System Events automation applies only to macOS.', {
@@ -99,10 +114,7 @@ async function probeSystemEventsAutomation(permission, deps = {}) {
     {
       platform,
       verification: capability.details,
-      remediation: (
-        'Click Grant to show the macOS Automation prompt, then allow WindieOS to control System Events. '
-        + 'If you already denied it, reopen System Settings -> Privacy & Security -> Automation and enable WindieOS under System Events.'
-      ),
+      remediation: copy.probeRemediation,
     },
   );
 }
@@ -110,6 +122,7 @@ async function probeSystemEventsAutomation(permission, deps = {}) {
 async function requestSystemEventsAutomationPermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
+  const copy = getMacAutomationCopy(deps);
 
   if (platform !== 'darwin') {
     return buildProbeResult(permissionId, PERMISSION_STATUS.UNSUPPORTED, 'System Events automation applies only to macOS.', {
@@ -133,10 +146,7 @@ async function requestSystemEventsAutomationPermission(permission, deps = {}) {
     {
       platform,
       verification: requestResult.details,
-      remediation: (
-        'Approve the macOS Automation prompt for WindieOS. If the prompt no longer appears, '
-        + 'open System Settings -> Privacy & Security -> Automation and enable WindieOS under System Events.'
-      ),
+      remediation: copy.requestRemediation,
     },
   );
 }

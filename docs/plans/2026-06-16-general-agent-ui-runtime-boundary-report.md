@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest commit for this plan: `daca18a70` (`refactor(frontend): skin onboarding and chat copy`)
+- Latest commit for this plan: `a5fd92a96` (`refactor(frontend): skin main permission host copy`)
 
 ## Inspection Log
 
@@ -62,12 +62,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: macOS System Events Automation probe and request fallback messages now come from the main host skin.
 - Change: added a main host skin boundary test to prevent these product strings from returning to `main/index.cjs`.
 
+### 2026-06-16 Main Permission Service Skin Slice
+
+- Concurrent-work recovery: a sidecar shell-command `ToolResult` refactor landed separately while this slice was in progress and was treated as unrelated context.
+- Finding: browser automation and macOS System Events Automation permission service modules still embedded WindieOS dialog, remediation, browser-open, and ready-state copy.
+- Decision: pass `mainHostSkin` through the permission IPC dependency boundary and let permission services consume injected skin copy with generic fallback text.
+- Change: browser automation install dialog, profile-open prompt, browser-open fallback, retry fallback, and ready-state message now resolve from the main host skin on the app path.
+- Change: macOS Automation probe/request remediation text now resolves from the main host skin on the app path.
+- Change: main host skin boundary test now covers the browser and automation permission service modules so WindieOS copy stays in the skin.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
 - [x] Settings components read product copy from the skin module.
 - [x] Boundary test covers the skin module and representative settings consumers.
 - [x] Main host permission copy reads from the main skin/config boundary.
+- [x] Browser and macOS automation permission services consume injected host skin copy.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -88,10 +98,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/PermissionIpcRuntime.test.cjs` passed.
 - `git diff --check` passed.
 - `rg -n "WindieOS local backend|Click Grant to install Chromium|Reinstall WindieOS|Failed to open the WindieOS browser|WindieOS could not verify macOS Automation|WindieOS could not request macOS Automation" frontend/src/main/index.cjs frontend/src/main/app/main_host_skin.cjs tests/frontend/MainHostSkinBoundary.test.cjs` found expected skin/test matches only.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/PermissionService.test.cjs ../tests/frontend/PermissionIpcRuntime.test.cjs` passed.
+- `git diff --check` passed.
+- `rg -n "WindieOS|WindieOS browser|enable WindieOS under System Events" frontend/src/main/permissions/permission_service_browser.cjs frontend/src/main/permissions/permission_service_automation.cjs frontend/src/main/app/main_host_skin.cjs tests/frontend/MainHostSkinBoundary.test.cjs` found expected skin/test matches only.
 
 ## Remaining Findings
 
 - Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
 - Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
 - Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
-- Main process composition root now reads browser/macOS automation permission copy from a host skin. Remaining main-boundary candidates include SDK agent startup naming and other product-specific host defaults that may belong in a broader main host config.
+- Main process composition root and browser/macOS automation permission services now read related product copy from a host skin. Remaining main-boundary candidates include screen/microphone/workspace permission copy, wakeword/sidecar reinstall messages, SDK agent startup naming, and other product-specific host defaults that may belong in a broader main host config.

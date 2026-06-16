@@ -277,7 +277,9 @@ Primary modules:
   - Preserves sender-display affinity through composition when chat surfaces open the dashboard.
 - `main/main_host_skin.cjs`:
   - WindieOS-specific host copy for generic Electron agent-host adapters.
-  - Browser automation and macOS automation fallback messages should read from this skin/config boundary instead of being embedded in `main/index.cjs`.
+  - Browser automation and macOS automation fallback, dialog, remediation, and
+    permission-service messages should read from this skin/config boundary
+    instead of being embedded in `main/index.cjs` or permission service modules.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.
