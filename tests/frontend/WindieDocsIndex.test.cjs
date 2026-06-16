@@ -576,12 +576,24 @@ describe('windie docs index', () => {
     expect(findDocs('storedTranscriptSdkProjection removed')[0].path).toBe(
       expectedPath,
     );
+    expect(findDocs('storedTranscriptMemoryState removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('storedTranscriptChatMessageState removed')[0].path).toBe(
+      expectedPath,
+    );
     expect(findDocs('desktopTranscriptProjectionRuntimeClient removed')[0].path).toBe(
       expectedPath,
     );
     expect(findDocs('pendingTranscriptMessages removed')[0].path).toBe(
       expectedPath,
     );
+    expect(findDocs('pendingAssistantQueue removed')[0].path).toBe(expectedPath);
+    expect(findDocs('pendingUserQueue removed')[0].path).toBe(expectedPath);
+    expect(findDocs('TranscriptPendingFlush.test.ts removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('transcriptRecordWrite removed')[0].path).toBe(expectedPath);
   });
 
   test('routes frontend tool manifest builder queries to tool contracts', () => {
@@ -676,6 +688,20 @@ describe('windie docs index', () => {
     );
     expect(findDocs('ChatStreamThinkingStatusUtils.test.ts removed')[0].path).toBe(
       streamPath,
+    );
+  });
+
+  test('routes removed dashboard memory helper queries to dashboard memory docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'dashboard_memory_management_and_resume_reference.md',
+    );
+
+    expect(findDocs('episodicMemoryUtils.js removed')[0].path).toBe(expectedPath);
+    expect(findDocs('EpisodicMemoryUtils.test.js removed')[0].path).toBe(
+      expectedPath,
     );
   });
 

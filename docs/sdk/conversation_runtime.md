@@ -3,7 +3,7 @@ summary: "SDK conversation runtime contract for normalized conversation events, 
 read_when:
   - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
   - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
-  - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `desktopTranscriptProjectionRuntimeClient.ts`, or `pendingTranscriptMessages.ts`.
+  - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
   - When debugging edit/resend resource preservation, retry resource preservation, missing screenshot refs, or attachment metadata lost across revisions.
   - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool output content fallback behavior, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
 title: "SDK Conversation Runtime"
@@ -150,8 +150,12 @@ pending-write helper files were removed from the active runtime path. Stale
 searches for `transcriptMessagePayload.js`, `structuredToolPayload.js`,
 `rehydrateMessageState.js`, `rehydratePayload.js`,
 `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`,
-`desktopTranscriptProjectionRuntimeClient.ts`, or `pendingTranscriptMessages.ts`
-should route here.
+`storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`,
+`desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`,
+`pendingAssistantQueue.ts`, `pendingToolQueue.ts`, `pendingUserQueue.ts`,
+`transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`,
+`transcriptEntryPersistence.ts`, or `transcriptRecordWrite.ts` should route
+here.
 
 Current ownership:
 

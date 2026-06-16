@@ -1,8 +1,9 @@
 ---
-summary: "Renderer dashboard memory/resume reference: MemorySection episodic/semantic data flows, sidebar/search conversation restore path, and transcript-session synchronization rules."
+summary: "Renderer dashboard memory/resume reference: MemorySection episodic/semantic data flows, removed episodicMemoryUtils helper behavior, sidebar/search conversation restore path, and transcript-session synchronization rules."
 read_when:
   - When changing dashboard memory UI behavior, memory IPC payloads, or conversation resume/rehydrate flow.
   - When debugging missing memory rows, failed chat resume, or stale active conversation highlighting.
+  - When resolving stale references to removed `episodicMemoryUtils.js` or `EpisodicMemoryUtils.test.js` dashboard helper paths.
 title: "Dashboard Memory Management and Resume Reference"
 ---
 
@@ -107,6 +108,13 @@ Normalization:
 - date string from timestamp
 - token estimate from word count
 - metadata source fallback
+
+Removed helper note:
+
+- `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js` and
+  `EpisodicMemoryUtils.test.js` were removed. Episodic memory display
+  normalization now lives with the MemorySection data flow and runtime client
+  path described here, not in a separate dashboard utility.
 
 ### Semantic list
 
