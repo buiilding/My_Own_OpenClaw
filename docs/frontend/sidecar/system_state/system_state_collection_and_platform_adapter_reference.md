@@ -4,7 +4,7 @@ read_when:
   - When adding/removing system-state fields or changing per-field fallback/default values.
   - When debugging active-window/mouse/screen/windows/stats drift across sidecar, main-process bridge, and renderer consumers.
   - When resolving removed `local_backend_bridge.getSystemState` or `getSystemState` export references.
-title: "System-State Collection and Platform Adapter Reference"
+title: "System-State Collection and Removed getSystemState Bridge Export Reference"
 ---
 
 # System-State Collection and Platform Adapter Reference
