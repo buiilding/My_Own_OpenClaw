@@ -351,6 +351,19 @@ describe('windie docs index', () => {
     expect(findDocs('completion fallback choice text')[0].path).toBe(expectedPath);
   });
 
+  test('routes ToolCallSchema wrapper-removal queries to parser extraction docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'llm',
+      'tool_call_schema_extraction_reference.md',
+    );
+
+    expect(findDocs('ToolCallSchema unified wrapper normalization')[0].path).toBe(expectedPath);
+    expect(findDocs('parser path unified wrapper')[0].path).toBe(expectedPath);
+    expect(findDocs('metadata promotion boundary ToolCallSchema')[0].path).toBe(expectedPath);
+  });
+
   test('routes plugin tool registration queries to the extension convention', () => {
     expect(findDocs('plugin tool registration')[0].path).toBe(
       path.join('docs', 'development', 'extensions.md'),

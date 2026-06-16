@@ -1,5 +1,5 @@
 ---
-summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, unified computer/system normalization contracts, request-id sourcing, payload model_dump behavior, and cross-layer dispatch implications."
+summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, explicit unified-wrapper remote stubs, concrete direct-tool dispatch, request-id sourcing, payload model_dump behavior, and cross-layer dispatch implications."
 read_when:
   - When modifying remote stub classes, especially unified `computer_use`/`system_use` routing, request-id generation, or payload serialization rules.
   - When changing remote unified-wrapper dispatch or concrete subtool payload serialization.

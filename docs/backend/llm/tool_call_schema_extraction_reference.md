@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for `ToolCallSchema` extraction behavior in `parser_types.py`: strict standard-format parsing, direct argument preservation, and deep-copy immutability guarantees."
+summary: "Deep reference for `ToolCallSchema` extraction behavior in `parser_types.py`: strict standard-format parsing, removed unified wrapper normalization, direct argument preservation, metadata promotion rejection, and deep-copy immutability guarantees."
 read_when:
   - When changing `backend/src/llm/parser_types.py` tool-call extraction behavior.
-  - When debugging parser-path differences between standard `functionCall` payloads and provider-native tool calls.
+  - When debugging parser-path differences between standard `functionCall` payloads, removed unified wrapper normalization, `computer_use`/`system_use` wrapper rejection, and provider-native tool calls.
 title: "ToolCallSchema Extraction Reference"
 ---
 
@@ -40,6 +40,21 @@ Key points:
 
 Wrapper payloads such as top-level `metadata` + `action`, `computer_use`, or
 `system_use` envelopes are rejected by this parser path.
+
+## Removed Unified Wrapper Normalization
+
+`ToolCallSchema.extract_tool_call(...)` does not map unified wrapper names into
+concrete tools:
+
+- `computer_use` is not normalized to `mouse_control`, `keyboard_control`,
+  `screenshot`, `scroll_control`, `switch_window`, or `wait`
+- `system_use` is not normalized to `run_shell_command`, `replace`,
+  `read_file`, `get_system_stats`, or `get_open_windows`
+- nested `arguments` objects are not unwrapped
+- `args.explanation` is not promoted into concrete tool arguments
+
+If a model emits a parser-path tool call, it must use the concrete tool name and
+the exact executable args shape directly inside `functionCall.args`.
 
 ## Standard Extraction Contract
 
