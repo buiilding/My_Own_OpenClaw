@@ -1,8 +1,8 @@
 ---
-summary: "WindieOS logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, sidecar stderr, renderer console traces, and packaged app log controls."
+summary: "WindieOS logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, frontend interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
 read_when:
   - When a runtime exits silently or logs are too noisy to isolate a bug.
-  - When changing logging setup, launch scripts, sidecar stderr handling, or debug trace output.
+  - When changing logging setup, launch scripts, frontend interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
 title: "Logging"
 ---
 
@@ -125,6 +125,19 @@ bin/windie diagnostics list --path frontend.interaction --limit 50
 Rows include action, event, view, target tag/type/role, and safe counts. They do
 not store raw labels or message text because those can contain chat titles or
 user content.
+
+Renderer interaction logging is intentionally narrow. Feature code should use
+only the public interaction logger surface:
+
+- `installFrontendInteractionLogger()` installs the document-level click/change
+  listener from the renderer app entrypoint.
+- `logUserSentMessage(...)` records the explicit send-message breadcrumb used by
+  the chat send path.
+
+Target description, entry construction, summary formatting, and generic
+interaction dispatch stay private to `frontendInteractionLogger.js`. Electron
+main owns the final diagnostic normalization and stdout summary formatting after
+the renderer sends the `frontend-interaction` payload through `renderer-log`.
 
 | Trace | Code root | Enablement |
 | --- | --- | --- |
