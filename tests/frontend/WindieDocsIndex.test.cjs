@@ -853,6 +853,23 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes provider response parsing relay queries to provider docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'llm',
+      'providers',
+      'base_request_stream_and_normalization_reference.md',
+    );
+
+    expect(
+      findDocs('response_parsing thinking_extraction import relay removed')[0].path,
+    ).toBe(expectedPath);
+    expect(
+      findDocs('base_payload_helpers thinking extraction provider payload helper')[0].path,
+    ).toBe(expectedPath);
+  });
+
   test('routes ToolCallSchema wrapper-removal queries to parser extraction docs', () => {
     const expectedPath = path.join(
       'docs',

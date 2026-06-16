@@ -1,13 +1,17 @@
 ---
-summary: "Backend SDK contract reference for Tool base-class requirements, local-ref schema inlining/normalization behavior, ToolContext structure, ContextFactory service-injection semantics, and the removed core ToolInterface/Kind/ToolContext protocol boundary."
+summary: "Backend SDK contract reference for Tool base-class requirements, removed Tool abstract base protocol behavior, local-ref schema inlining/normalization behavior, ToolContext structure, ContextFactory service-injection semantics, and the removed core ToolInterface/Kind/ToolContext protocol boundary."
 read_when:
   - When adding/changing SDK tool classes, argument models, or JSON schema output behavior.
   - When changing tool execution context shape, service injection defaults, or schema registry validation.
-  - When resolving stale references to removed `backend.src.core.interfaces.tool` exports such as `Kind`, `ToolContext`, or `ToolInterface`.
+  - When resolving stale references to the removed Tool abstract base protocol or removed `backend.src.core.interfaces.tool` exports such as `Kind`, `ToolContext`, or `ToolInterface`.
 title: "Tool Context and Schema Contract Reference"
 ---
 
 # Tool Context and Schema Contract Reference
+
+Search route note: stale queries for `Tool abstract base protocol removed`,
+`Kind ToolContext ToolInterface exports removed`, or the removed
+`backend.src.core.interfaces.tool` protocol boundary belong here.
 
 ## Canonical Modules
 

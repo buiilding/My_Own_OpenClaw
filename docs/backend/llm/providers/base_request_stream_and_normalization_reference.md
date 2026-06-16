@@ -1,8 +1,8 @@
 ---
-summary: "Backend LLM provider base runtime reference: request param validation, message/tool schema normalization, stream event extraction, removed provider tool-call id synthesis behavior, fail-closed missing tool_call_id semantics, removed choice text completion fallback behavior, canonical message.content completion parsing, and usage/cache diagnostics semantics."
+summary: "Backend LLM provider base runtime reference: request param validation, message/tool schema normalization, stream event extraction, removed response_parsing thinking_extraction import relay behavior, removed provider tool-call id synthesis behavior, fail-closed missing tool_call_id semantics, removed choice text completion fallback behavior, canonical message.content completion parsing, and usage/cache diagnostics semantics."
 read_when:
   - When changing `LLMProvider`/`OnlineLLMProvider` method contracts in `backend/src/llm/providers/base.py` and `online.py`.
-  - When debugging malformed tool-calls, provider tool call id synthesis removal, missing provider tool_call_id fail-closed behavior, OpenAI Responses tool call id requirements, stream delta parsing, choice-level completion text fallback behavior, OpenAI choice text fallback payloads, or cache diagnostics values on streamed turns.
+  - When debugging malformed tool-calls, provider tool call id synthesis removal, missing provider tool_call_id fail-closed behavior, OpenAI Responses tool call id requirements, stream delta parsing, the removed `response_parsing` thinking-extraction import relay, choice-level completion text fallback behavior, OpenAI choice text fallback payloads, or cache diagnostics values on streamed turns.
 title: "Base Provider Tool-Call ID and Normalization Reference"
 ---
 
@@ -41,8 +41,17 @@ Provider utility helpers now centralize shared logic:
 - `response_parsing.py`: stream delta extraction, completion payload parsing, and tool-call argument normalization.
 - `thinking_extraction.py`: reasoning/thinking delta parsing, including structured content blocks and `<thinking>` tags.
 - `usage_diagnostics.py`: usage payload normalization/collection and stream cache diagnostics derivation.
-- `base_payload_helpers.py`: provider helper method surface for request normalization and response parsing, delegating to extracted modules.
+- `base_payload_helpers.py`: provider helper method surface for request normalization, response parsing, and thinking extraction, delegating directly to the extracted owner modules.
 - `stream_event_pipeline.py`: stream-mode request flagging and shared text/thinking event emission loops.
+
+Import boundary note:
+
+- `response_parsing.py` no longer re-exports or relays
+  `extract_thinking_content(...)` / `extract_tagged_thinking_from_content(...)`.
+- thinking helpers are imported from `thinking_extraction.py` by consumers such
+  as `base_payload_helpers.py`.
+- stale searches for `response_parsing` thinking-extraction relay imports should
+  route here.
 
 ## Request Param Validation and Construction (`LLMProvider._build_request_params`)
 

@@ -110,6 +110,9 @@ All notable changes to WindieOS will be documented in this file.
   runtime contract.
 - docs/development: route extension package plugin/MCP/skills searches to the
   extension convention instead of built-in sidecar tool docs.
+- docs/backend: route provider response-parsing relay searches to the LLM
+  provider normalization reference while keeping removed Tool protocol queries
+  on the SDK schema contract.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
 - docs/frontend: route removed legacy selected-model localStorage migration
