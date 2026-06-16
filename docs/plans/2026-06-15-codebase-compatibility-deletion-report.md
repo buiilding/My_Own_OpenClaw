@@ -106,7 +106,7 @@ Date: 2026-06-15
 | CD-073 | Electron renderer diagnostics helper exports | `ipc_diagnostics_runtime.cjs` exported frontend interaction summary, normalization, and message-text gating helpers even though production imports only `handleRendererLog(...)` | Knip reported all three helper exports unused; repo search showed only the diagnostics unit test imported them directly while runtime callers route through `handleRendererLog(...)` | Remove the helper exports, keep diagnostics normalization private, and assert summary/redaction behavior through the public renderer-log handler | `b1dd73c80` |
 | CD-074 | Electron image context menu helper exports | `ipc_image_context_menu.cjs` exported `buildImageContextMenu(...)` and `showImageContextMenu(...)` even though production imports only `registerImageContextMenuHandler(...)` for the `show-image-context-menu` IPC channel | Knip reported both helper exports unused; repo search showed only the context-menu unit test imported them directly while the app registers the IPC handler | Remove the helper exports, keep menu construction/private popup execution inside the handler module, and assert copy/error behavior through the registered IPC handler | `372f368b6` |
 | CD-075 | Electron install-auth helper exports | `ipc_install_auth_state.cjs` exported install-auth path hardening, payload normalization, and POSIX-mode gating helpers even though production imports only persistence, registration, path, and backend validation APIs | Knip reported all three helper exports unused; repo search showed only the install-auth test imported the mode predicate directly while normalization and hardening are exercised through load/save/validate flows | Remove the helper exports, keep token normalization and file-mode hardening private, and assert persisted token behavior through the public install-auth APIs | `89cf80745` |
-| CD-076 | Electron query payload helper exports | `ipc_query_runtime.cjs` exported the backend query payload key allowlist and query-message-id normalizer even though production imports the public query payload builders and renderer/automated query preparers | Knip reported both helper exports unused; repo search showed only the query unit test imported the allowlist directly while message-id normalization is exercised through `prepareRendererQueryPayload(...)` | Remove the helper exports, keep the allowlist and id normalizer private, and assert backend query contract filtering through `buildBackendQueryPayload(...)` | pending |
+| CD-076 | Electron query payload helper exports | `ipc_query_runtime.cjs` exported the backend query payload key allowlist and query-message-id normalizer even though production imports the public query payload builders and renderer/automated query preparers | Knip reported both helper exports unused; repo search showed only the query unit test imported the allowlist directly while message-id normalization is exercised through `prepareRendererQueryPayload(...)` | Remove the helper exports, keep the allowlist and id normalizer private, and assert backend query contract filtering through `buildBackendQueryPayload(...)` | `e7cc3d4f2` |
 
 ## Commit Ledger
 
@@ -256,6 +256,8 @@ Date: 2026-06-15
   completed CD-074.
 - `89cf80745 refactor(frontend): keep install auth helpers private`
   completed CD-075.
+- `e7cc3d4f2 refactor(frontend): keep query payload helpers private`
+  completed CD-076.
 
 ## Validation Log
 
