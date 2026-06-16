@@ -196,7 +196,7 @@ For plugin, skill, or MCP contract changes, run:
 
 ```bash
 cd frontend
-npm test -- --runTestsByPath ../tests/frontend/ExtensionManifest.test.cjs ../tests/frontend/AgentCapabilityHandshake.test.cjs ../tests/frontend/McpRuntime.test.cjs --runInBand
+npm test -- --runTestsByPath ../tests/frontend/ExtensionManifest.test.cjs ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/WindieSdkClient.test.ts --runInBand
 cd ..
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_manifest.py tests/sidecar/test_sidecar_daemon.py tests/sidecar/test_repo_agent_example.py -q
 ```

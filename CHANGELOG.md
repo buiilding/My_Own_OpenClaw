@@ -33,6 +33,8 @@ All notable changes to WindieOS will be documented in this file.
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`
   export so system-state access stays on the `get-system-state` IPC handler.
+- frontend/main: delete the unused agent capability handshake builder and its
+  test now that client capability metadata is built through agent definitions.
 - frontend/voice: remove the legacy ScriptProcessor audio capture fallback so
   voice and wakeword capture use the AudioWorklet processor path only.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,
