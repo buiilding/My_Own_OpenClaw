@@ -29,6 +29,9 @@ All notable changes to WindieOS will be documented in this file.
   obsolete stored-transcript screenshot value export.
 - frontend/chat: remove the test-only renderer display-conversation projector
   export so chat UI projection stays routed through SDK display rows.
+- frontend/chat: delete unused chat-stream tool formatting exports, keep the
+  tool-call normalizer private, and route tool display docs to the active
+  message-state projection builders.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.

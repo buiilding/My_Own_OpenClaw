@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for chat stream utility modules: tracking reducer semantics, thinking/tool payload formatting, screenshot/correlation extraction, and message-target resolution rules."
+summary: "Deep reference for chat stream utility modules: tracking reducer semantics, thinking text accumulation, screenshot/correlation extraction, and message-target resolution rules."
 read_when:
   - When changing `desktopChatStreamTrackingRuntime`, `chatStreamFormatting`, `chatStreamEventUtils`, or `chatStreamMessageUpdates`.
   - When debugging chunk-append duplication, tool-output correlation IDs, or stream terminal-state timestamps.
@@ -41,29 +41,12 @@ Core behavior:
 
 `turnRef ?? current.activeTurnRef` is used as the resolved active turn source, so late events without turn IDs still stay attached to current turn context.
 
-## Formatting Utilities (`chatStreamFormatting.ts`)
-
-### Thinking status accumulation
+## Thinking Formatting (`chatStreamFormatting.ts`)
 
 - `buildThinkingStatus` appends chunks and caps final string length at 5000 chars (tail-preserving truncation).
-
-### Tool call/bundle transparency payloads
-
-- `formatToolCallPayload` serializes model-facing call payload as pretty JSON.
-- `resolveModelFacingToolCall` chooses metadata model payload first; falls back to execution payload fields:
-- `id` from `metadata.model_facing_tool_call.id`
-- `name` from model-facing payload else `tool_name`
-- `arguments` from model-facing args else execution parameters
-- `formatToolBundlePayload` maps each tool step to model-facing shape when present; else falls back to tool args.
-
-### Tool output text priority
-
-- `formatToolOutputText` precedence:
-1. non-empty `payload.output`
-2. `Error: ${payload.error}`
-3. `"No output"`
-
-This keeps renderer text aligned with model-facing output when both output and error fields exist.
+- Tool-call, bundle-call, and tool-output display text is projected through the
+  tool message-state builders used by chat-stream handlers and SDK display-row
+  projection, not through separate chat-stream formatting exports.
 
 ## Event Utility Contracts (`chatStreamEventUtils.ts`)
 

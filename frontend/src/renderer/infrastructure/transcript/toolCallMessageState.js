@@ -57,7 +57,7 @@ function resolveThoughtSignature(rawToolCall, metadata) {
   );
 }
 
-export function buildNormalizedToolCall({
+function buildNormalizedToolCall({
   rawToolCall,
   fallbackToolName = null,
   fallbackToolCallId = null,

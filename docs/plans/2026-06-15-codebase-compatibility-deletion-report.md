@@ -71,6 +71,7 @@ Date: 2026-06-15
 | CD-038 | Renderer tool-schema shape helper exports | `isSupportedToolSchema(...)`, `normalizeToolSchema(...)`, and `isSupportedToolSchemaList(...)` were exported from `toolSchemaShape.ts` even though renderer production code imports only `normalizeToolSchemaList(...)` | Knip reported the helper exports unused; repo search showed the predicates/single-item normalizer are called only inside `toolSchemaShape.ts`, while chat-stream and message transparency consumers use the list normalizer | Make the predicate and single-schema helpers private, leaving `normalizeToolSchemaList(...)` as the module's public production API | implemented |
 | CD-039 | Renderer screenshot message helper exports | `looksLikeInlineImageData(...)`, `parseInlineScreenshotPayload(...)`, and `resolveStoredTranscriptScreenshotValue(...)` remained exported from `screenshotMessageState.js` after screenshot rendering/replay moved to attachment-state APIs | Knip reported the exports unused; repo search showed inline parsing helpers are used only internally and `resolveStoredTranscriptScreenshotValue(...)` was imported only by its own test | Make inline parsing helpers private; delete the obsolete stored-transcript screenshot value helper and move the useful artifact-url assertion onto `resolveReplayScreenshotState(...)` | implemented |
 | CD-040 | Renderer SDK display chat projection | `buildChatMessagesFromDisplayConversation(...)` was exported from the renderer projection module even though production imports only `buildChatMessagesFromSdkDisplayRows(...)` | Knip reported the display-conversation projector export unused; repo search showed the export was imported only by `SdkDisplayChatMessageProjection.test.ts`, while dashboard and chat runtime consumers project SDK display rows directly | Delete the public display-conversation projector surface, keep a private single-message projector inside the row path, and retarget tests to the active SDK display-row API | implemented |
+| CD-041 | Renderer chat-stream tool formatting helpers | `formatToolCallPayload(...)`, `formatToolBundlePayload(...)`, `formatToolOutputText(...)`, and `resolveModelFacingToolCall(...)` remained exported from `chatStreamFormatting.ts` after tool display moved to transcript message-state builders; deleting them exposed `buildNormalizedToolCall(...)` as an internal-only normalizer | Knip reported the helper exports unused; repo search showed only `ChatStreamFormatting.test.ts` and stale docs referenced them, while production imports only `buildThinkingStatus(...)` from the module and uses the higher-level message-state builders for tool rows | Delete the unused tool-formatting exports and tests, make `buildNormalizedToolCall(...)` private, and update docs to route tool-call/bundle/output display to the active message-state projection builders | pending implementation commit |
 
 ## Commit Ledger
 
@@ -150,6 +151,7 @@ Date: 2026-06-15
   completed CD-039.
 - `90738eeb3 refactor(frontend): remove display conversation projector export`
   completed CD-040.
+- pending implementation commit will complete CD-041.
 
 ## Validation Log
 
@@ -642,6 +644,23 @@ CD-040 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this removes only an unused renderer export and leaves the active
   SDK display-row projection path used by dashboard and chat runtime consumers.
+
+CD-041 validation:
+
+- targeted `rg -n "formatToolCallPayload|formatToolBundlePayload|formatToolOutputText|\\bresolveModelFacingToolCall\\b|export function buildNormalizedToolCall|import .*buildNormalizedToolCall" frontend/src tests/frontend docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no renderer helper export, import, test, or docs references remain.
+- `bin/windie test frontend -- ChatStreamFormatting ToolCallMessageState ToolOutputMessageState ChatStreamTransparency MessagePresentationPipeline`:
+  passed, 5 suites and 25 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 193 to
+  189 after removing the four chat-stream formatting exports and making the
+  follow-on tool-call normalizer private.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this deletes only unused renderer helper exports while keeping
+  active tool-call, tool-bundle, and tool-output message projection in the
+  transcript message-state builders.
 
 ## Inspection Notes
 
