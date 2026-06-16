@@ -145,4 +145,10 @@ describe('windie docs index', () => {
       path.join('docs', 'frontend', 'contracts', 'ipc_channel_and_handler_reference.md'),
     );
   });
+
+  test('routes global stop shortcut queries to the shortcut runtime reference', () => {
+    expect(findDocs('global stop shortcut')[0].path).toBe(
+      path.join('docs', 'frontend', 'main', 'global_stop_shortcut_runtime_reference.md'),
+    );
+  });
 });

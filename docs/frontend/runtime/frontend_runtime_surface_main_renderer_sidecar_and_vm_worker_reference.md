@@ -59,6 +59,9 @@ Settings sync boundary:
 
 ## Global Stop Shortcut Runtime
 
+For the detailed settings, config, registration, fallback, and validation path,
+start with [Global Stop Shortcut Runtime Reference](../main/global_stop_shortcut_runtime_reference.md).
+
 `agent_stop_shortcut_runtime.cjs` is a dedicated runtime for loop-stop hotkeys:
 
 - per-platform accelerator catalog from `shared/agent_stop_shortcut_catalog.json`

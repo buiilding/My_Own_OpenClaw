@@ -2,7 +2,7 @@
 summary: "Frontend renderer settings docs sub-hub for clone-style settings sections, frontend config ownership/persistence boundaries, and AppConfig update payload routing."
 read_when:
   - When changing settings controls in `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`.
-  - When debugging wakeword/wakeword-STT behavior, retired agent-sudo settings references, frontend config filtering/persistence, or settings update payload shape from settings UI.
+  - When debugging wakeword/wakeword-STT behavior, global stop shortcut settings, retired agent-sudo settings references, frontend config filtering/persistence, or settings update payload shape from settings UI.
 title: "Frontend Renderer Settings Docs Hub"
 ---
 
@@ -25,6 +25,7 @@ title: "Frontend Renderer Settings Docs Hub"
 - [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md)
 - [Settings Surface Change Workflow](settings_surface_change_workflow.md)
 - [Config Sync and Settings Lifecycle Reference](../../runtime/config_sync_and_settings_lifecycle_reference.md)
+- [Global Stop Shortcut Runtime Reference](../../main/global_stop_shortcut_runtime_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](../providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Renderer Permissions Docs Hub](../permissions/README.md)
 - [Settings and Model ACK Event Routing Reference](../../contracts/events/settings_and_model_ack_event_routing_reference.md)

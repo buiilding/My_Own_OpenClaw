@@ -46,6 +46,8 @@ All notable changes to WindieOS will be documented in this file.
   sidecar-owned `pkexec` prompting without a frontend-selected sudo auth mode.
 - docs/frontend: remove retired agent-sudo setting and IPC ownership references
   from current renderer, IPC, inventory, and local-backend docs.
+- docs/frontend: add a dedicated global stop shortcut runtime reference and
+  route Settings searches to the main-owned accelerator registration path.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

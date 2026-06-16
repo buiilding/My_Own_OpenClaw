@@ -47,6 +47,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Desktop Surfaces](../desktop/README.md) - dashboard, chat pill, response overlay, voice, permissions, onboarding, screenshots, and artifacts.
 - [Frontend Architecture](../architecture/frontend_architecture.md) - current Electron/React/sidecar topology.
 - [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md) - Electron main ownership.
+- [Global Stop Shortcut Runtime Reference](../frontend/main/global_stop_shortcut_runtime_reference.md) - configurable stop-from-anywhere accelerator, registration fallback, and settings persistence.
 - [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) - chat/dashboard/settings renderer state.
 - [IPC Change Workflow](../frontend/ipc_change_workflow.md) - preload/main/renderer IPC changes.
 - [Workspace Context Change Workflow](../frontend/runtime/workspace_context_change_workflow.md) - workspace path and AGENTS.md prompt context.
