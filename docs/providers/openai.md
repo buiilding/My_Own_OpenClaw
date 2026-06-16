@@ -59,6 +59,12 @@ Do not add a second OpenAI key-loading path in provider code. Keep credentials c
 
 OpenAI chat requests pass tools through `make_openai_chat_tools_compatible` before shared request execution. Responses requests are prepared through the Responses payload helpers, which accept both Windie flat function specs and OpenAI chat-shaped `{"type":"function","function":{...}}` specs before emitting Responses `function` tools.
 
+Responses history input is stricter than the tool-schema adapter: assistant
+`tool_calls` must already be provider-normalized to
+`{"id": "...", "type": "function", "function": {"name": "...", "arguments": "..."}}`.
+Internal WindieOS `{id,name,arguments}` tool-call rows are normalized at the
+provider message boundary before `openai_responses_input.py` builds the request.
+
 For streamed Responses requests, do not treat `response.completed` or `response.incomplete` as the only authoritative source of assistant output. The stream adapter must also accumulate `response.output_item.added`, `response.function_call_arguments.delta`, `response.function_call_arguments.done`, and `response.output_item.done` so message output and function calls survive when OpenAI ends the stream without a final response envelope. The final envelope is still preferred when present because it carries usage and terminal status.
 
 If a Responses stream closes without a final envelope, parsed output events, or structured upstream failure details, emit a provider stream error instead of synthesizing an empty assistant completion. This keeps incomplete upstream failures out of assistant history while still allowing parsed output fallbacks when OpenAI omits the final response envelope.

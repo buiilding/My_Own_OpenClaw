@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/openai: document that Responses history input consumes provider-normalized
+  assistant tool calls only.
 - backend/openai: require provider-normalized assistant tool calls before
   building OpenAI Responses input items.
 - frontend/sidecar: regenerate the built-in browser tool manifest so
