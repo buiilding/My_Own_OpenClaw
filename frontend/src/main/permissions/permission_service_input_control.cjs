@@ -11,6 +11,13 @@ const {
   runFirstSuccessfulCommand,
 } = require('./permission_service_runtime.cjs');
 
+function getInputControlCopy(deps = {}) {
+  const copy = deps.mainHostSkin?.permissions?.inputControl || {};
+  return {
+    accessibilityRemediation: copy.accessibilityRemediation || 'Open System Settings -> Privacy & Security -> Accessibility and enable this app.',
+  };
+}
+
 async function verifyInputControlCapability(deps = {}) {
   if (typeof deps.verifyInputControlCapability === 'function') {
     const result = await deps.verifyInputControlCapability(deps);
@@ -58,6 +65,7 @@ async function probeInputControl(permission, deps = {}) {
   const platform = deps.platform || process.platform;
   const systemPreferences = deps.systemPreferences;
   const permissionId = permission.permission_id;
+  const copy = getInputControlCopy(deps);
 
   if (platform === 'darwin') {
     const trusted = Boolean(
@@ -73,7 +81,7 @@ async function probeInputControl(permission, deps = {}) {
 
     return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Grant Accessibility access in System Settings > Privacy & Security.', {
       trusted,
-      remediation: 'Open System Settings -> Privacy & Security -> Accessibility and enable WindieOS.',
+      remediation: copy.accessibilityRemediation,
     });
   }
 

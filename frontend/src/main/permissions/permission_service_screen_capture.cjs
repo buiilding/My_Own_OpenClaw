@@ -8,6 +8,22 @@ const {
   getMediaAccessStatus,
 } = require('./permission_service_runtime.cjs');
 
+function getScreenCaptureCopy(deps = {}) {
+  const copy = deps.mainHostSkin?.permissions?.screenCapture || {};
+  return {
+    systemSettingsRemediation: copy.systemSettingsRemediation || 'Open System Settings -> Privacy & Security -> Screen Recording and enable this app.',
+    waitingForGrant: copy.waitingForGrant || 'Waiting for Screen Recording access. Enable this app in System Settings if the macOS prompt does not complete the grant.',
+    registrationRemediation: (
+      copy.registrationRemediation
+      || 'This app first attempted a real desktop-capture request so macOS can register it in Screen Recording. Approve the native macOS prompt first; if the grant still does not land, then open System Settings -> Privacy & Security -> Screen Recording and enable this app.'
+    ),
+    verificationRemediation: (
+      copy.verificationRemediation
+      || 'Open System Settings -> Privacy & Security -> Screen Recording, enable this app, then allow the verification screenshot prompt so future auto-screenshots do not re-prompt.'
+    ),
+  };
+}
+
 async function requestDesktopCapturePrompt(deps = {}) {
   const desktopCapturer = deps.desktopCapturer;
   if (!desktopCapturer || typeof desktopCapturer.getSources !== 'function') {
@@ -82,6 +98,7 @@ async function verifyScreenCaptureCapability(deps = {}) {
 async function probeScreenCapture(permission, deps = {}) {
   const platform = deps.platform || process.platform;
   const permissionId = permission.permission_id;
+  const copy = getScreenCaptureCopy(deps);
 
   if (platform === 'darwin') {
     const mediaStatus = getMediaAccessStatus('screen', deps);
@@ -92,7 +109,7 @@ async function probeScreenCapture(permission, deps = {}) {
     }
     return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Grant Screen Recording in System Settings > Privacy & Security.', {
       media_status: mediaStatus,
-      remediation: 'Open System Settings -> Privacy & Security -> Screen Recording and enable WindieOS.',
+      remediation: copy.systemSettingsRemediation,
     });
   }
 
@@ -116,6 +133,7 @@ async function probeScreenCapture(permission, deps = {}) {
 async function requestScreenCapturePermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
+  const copy = getScreenCaptureCopy(deps);
 
   if (platform === 'darwin') {
     const mediaStatus = getMediaAccessStatus('screen', deps);
@@ -125,16 +143,13 @@ async function requestScreenCapturePermission(permission, deps = {}) {
       return buildProbeResult(
         permissionId,
         PERMISSION_STATUS.NEEDS_ACTION,
-        'Waiting for Screen Recording access. Enable WindieOS in System Settings if the macOS prompt does not complete the grant.',
+        copy.waitingForGrant,
         {
           platform,
           media_status: refreshedMediaStatus,
           prior_media_status: mediaStatus,
           capture_registration_attempt: captureRegistrationAttempt,
-          remediation: (
-            'WindieOS first attempted a real desktop-capture request so macOS can register it in Screen Recording. '
-            + 'Approve the native macOS prompt first; if the grant still does not land, then open System Settings -> Privacy & Security -> Screen Recording and enable WindieOS.'
-          ),
+          remediation: copy.registrationRemediation,
         },
       );
     }
@@ -166,10 +181,7 @@ async function requestScreenCapturePermission(permission, deps = {}) {
         media_status: mediaStatus,
         permission_prompt_window_focus: promptWindowFocus,
         capability_check: capability,
-        remediation: (
-          'Open System Settings -> Privacy & Security -> Screen Recording, enable WindieOS, '
-          + 'then allow the verification screenshot prompt so future auto-screenshots do not re-prompt.'
-        ),
+        remediation: copy.verificationRemediation,
       },
     );
   }

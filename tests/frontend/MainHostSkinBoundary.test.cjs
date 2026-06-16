@@ -10,6 +10,10 @@ const indexPath = path.join(mainRoot, 'index.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
+const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_screen_capture.cjs');
+const inputControlPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_input_control.cjs');
+const microphonePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_microphone.cjs');
+const workspacePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_workspace.cjs');
 
 describe('main host skin/config boundary', () => {
   test('WindieOS host permission copy lives in the main host skin', () => {
@@ -24,6 +28,10 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('openProfileAction');
     expect(skinSource).toContain('probeFailure');
     expect(skinSource).toContain('probeRemediation');
+    expect(skinSource).toContain('screenCapture');
+    expect(skinSource).toContain('accessibilityRemediation');
+    expect(skinSource).toContain('osPrivacyRemediation');
+    expect(skinSource).toContain('folderPickerTitle');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {
@@ -46,6 +54,10 @@ describe('main host skin/config boundary', () => {
     const sources = [
       fs.readFileSync(browserPermissionServicePath, 'utf8'),
       fs.readFileSync(automationPermissionServicePath, 'utf8'),
+      fs.readFileSync(screenCapturePermissionServicePath, 'utf8'),
+      fs.readFileSync(inputControlPermissionServicePath, 'utf8'),
+      fs.readFileSync(microphonePermissionServicePath, 'utf8'),
+      fs.readFileSync(workspacePermissionServicePath, 'utf8'),
     ];
 
     for (const source of sources) {
@@ -53,6 +65,7 @@ describe('main host skin/config boundary', () => {
       expect(source).not.toContain('WindieOS');
       expect(source).not.toContain('WindieOS browser');
       expect(source).not.toContain('enable WindieOS under System Events');
+      expect(source).not.toContain('Select workspace folder for WindieOS');
     }
   });
 

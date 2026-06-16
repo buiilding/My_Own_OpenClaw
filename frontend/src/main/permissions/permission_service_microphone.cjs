@@ -13,6 +13,13 @@ const {
   runFirstSuccessfulCommand,
 } = require('./permission_service_runtime.cjs');
 
+function getMicrophoneCopy(deps = {}) {
+  const copy = deps.mainHostSkin?.permissions?.microphone || {};
+  return {
+    osPrivacyRemediation: copy.osPrivacyRemediation || 'Enable microphone access for this app in OS privacy settings.',
+  };
+}
+
 async function verifyMicrophoneCapability(deps = {}) {
   if (typeof deps.verifyMicrophoneCapability === 'function') {
     const result = await deps.verifyMicrophoneCapability(deps);
@@ -68,6 +75,7 @@ async function probeMicrophone(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
   const mediaStatus = getMediaAccessStatus('microphone', deps);
+  const copy = getMicrophoneCopy(deps);
 
   if (mediaStatus === 'granted') {
     return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Microphone access is granted.', {
@@ -76,7 +84,7 @@ async function probeMicrophone(permission, deps = {}) {
   }
 
   if (mediaStatus === 'denied' || mediaStatus === 'restricted') {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Enable microphone access for WindieOS in OS privacy settings.', {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, copy.osPrivacyRemediation, {
       media_status: mediaStatus,
     });
   }

@@ -13,6 +13,13 @@ const {
   setStoredPermissionEntry,
 } = require('./permission_service_runtime.cjs');
 
+function getWorkspaceCopy(deps = {}) {
+  const copy = deps.mainHostSkin?.permissions?.workspace || {};
+  return {
+    folderPickerTitle: copy.folderPickerTitle || 'Select workspace folder',
+  };
+}
+
 async function verifyWorkspaceAccessCapability(permissionId, deps = {}) {
   const storedEntry = await getStoredPermissionEntry(permissionId, deps);
   const selectedPaths = Array.isArray(storedEntry?.selected_paths) ? storedEntry.selected_paths : [];
@@ -154,6 +161,7 @@ async function requestFilesystemWorkspaceAccessPermission(permission, deps = {},
   const permissionId = permission.permission_id;
   const dialog = deps.dialog;
   const platform = deps.platform || process.platform;
+  const copy = getWorkspaceCopy(deps);
   const rerunProbe = typeof services.rerunProbe === 'function'
     ? services.rerunProbe
     : async () => probeFilesystemWorkspaceAccess(permission, deps);
@@ -166,7 +174,7 @@ async function requestFilesystemWorkspaceAccessPermission(permission, deps = {},
 
   try {
     const result = await dialog.showOpenDialog({
-      title: 'Select workspace folder for WindieOS',
+      title: copy.folderPickerTitle,
       buttonLabel: 'Give folder context',
       properties: ['openDirectory', 'createDirectory'],
     });

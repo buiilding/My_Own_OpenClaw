@@ -43,11 +43,40 @@ const macAutomation = Object.freeze({
   ),
 });
 
+const screenCapture = Object.freeze({
+  systemSettingsRemediation: `Open System Settings -> Privacy & Security -> Screen Recording and enable ${productName}.`,
+  waitingForGrant: `Waiting for Screen Recording access. Enable ${productName} in System Settings if the macOS prompt does not complete the grant.`,
+  registrationRemediation: (
+    `${productName} first attempted a real desktop-capture request so macOS can register it in Screen Recording. `
+    + `Approve the native macOS prompt first; if the grant still does not land, then open System Settings -> Privacy & Security -> Screen Recording and enable ${productName}.`
+  ),
+  verificationRemediation: (
+    `Open System Settings -> Privacy & Security -> Screen Recording, enable ${productName}, `
+    + 'then allow the verification screenshot prompt so future auto-screenshots do not re-prompt.'
+  ),
+});
+
+const inputControl = Object.freeze({
+  accessibilityRemediation: `Open System Settings -> Privacy & Security -> Accessibility and enable ${productName}.`,
+});
+
+const microphone = Object.freeze({
+  osPrivacyRemediation: `Enable microphone access for ${productName} in OS privacy settings.`,
+});
+
+const workspace = Object.freeze({
+  folderPickerTitle: `Select workspace folder for ${productName}`,
+});
+
 const mainHostSkin = Object.freeze({
   productName,
   permissions: Object.freeze({
     browserAutomation,
     macAutomation,
+    screenCapture,
+    inputControl,
+    microphone,
+    workspace,
   }),
 });
 

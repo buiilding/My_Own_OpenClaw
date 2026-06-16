@@ -5,6 +5,9 @@ const {
   requestPermission,
   runPermissionProbe,
 } = require('../../frontend/src/main/permissions/permission_service.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 function createMockPermissionStateStore() {
   const state = new Map();
@@ -346,6 +349,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('filesystem_workspace_access', {
       platform: 'linux',
+      mainHostSkin,
       permissionStateStore,
       fs: {
         existsSync: jest.fn(() => true),
