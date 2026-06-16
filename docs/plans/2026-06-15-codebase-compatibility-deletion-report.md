@@ -93,7 +93,7 @@ Date: 2026-06-15
 | CD-060 | Electron live-surface trace helper exports | `live_surface_trace_runtime.cjs` exported the env-gate predicate and renderer payload normalizer even though production imports only trace logging, renderer forwarding, and summarizer APIs | Knip reported those two helper exports unused; repo search showed only the unit test imported them directly while production exercises them internally through `logLiveSurfaceTrace(...)` and `handleRendererLiveSurfaceTrace(...)` | Remove the helper exports and retarget tests to the production trace APIs | `62a69489a` |
 | CD-061 | Electron app diagnostics generic helper exports | `app_diagnostics_runtime.cjs` exported `appendAppRuntimeDiagnostic(...)` and `compactData(...)` even though production callers import the path-specific diagnostic appenders | Knip reported both helper exports unused; repo search showed the generic appender and compaction helper are only used inside the diagnostics runtime implementation | Remove the generic helper exports and leave only path-specific diagnostic appenders public | `4fae12f53` |
 | CD-062 | Electron app diagnostics store internal exports | `app_diagnostics_store.cjs` exported internal path-definition/schema/sanitizer helpers and test-only MCP/conversation path constants alongside the real store/CLI APIs | Knip reported twelve store exports unused from the frontend package view; repo search showed five are used by the root `bin/windie diagnostics` command, while seven were internal or test-only | Remove only the internal/test-only store exports and preserve the CLI-facing diagnostics query/list/inspect/database exports | `a8f5eae63` |
-| CD-063 | Electron MCP control helper exports | `mcp_control.cjs` exported config-normalization, config-mutation, enablement-diagnostics, and cache-clearing helpers even though production imports only the high-level MCP list/spec/refresh/update operations plus the config key | Knip reported those five helper exports unused; repo search showed only tests imported the config mutator directly to build enabled config fixtures | Remove helper exports, keep the helpers private, and make tests use literal config state while validating the production MCP control APIs | pending implementation commit |
+| CD-063 | Electron MCP control helper exports | `mcp_control.cjs` exported config-normalization, config-mutation, enablement-diagnostics, and cache-clearing helpers even though production imports only the high-level MCP list/spec/refresh/update operations plus the config key | Knip reported those five helper exports unused; repo search showed only tests imported the config mutator directly to build enabled config fixtures | Remove helper exports, keep the helpers private, and make tests use literal config state while validating the production MCP control APIs | `cbb64120a` |
 
 ## Commit Ledger
 
@@ -217,7 +217,8 @@ Date: 2026-06-15
   completed CD-061.
 - `a8f5eae63 refactor(frontend): keep diagnostics store internals private`
   completed CD-062.
-- pending implementation commit for CD-063.
+- `cbb64120a refactor(frontend): keep mcp control helpers private`
+  completed CD-063.
 
 ## Validation Log
 
