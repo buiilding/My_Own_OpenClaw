@@ -128,5 +128,5 @@ If Linux screenshots include overlays:
 
 1. verify screenshot calls go through `capture-screenshot-attachment` or SDK/main local tool execution with tool name `screenshot`
 2. verify SDK/main computer-use surface prep ran before sidecar execution
-3. verify renderer capture prep/hide flow is not reintroduced for local-backend screenshots
+3. verify renderer hide/restore flow is not reintroduced for local-backend screenshots
 4. verify no legacy wrapper-level hide/restore assumptions remain in local debugging instrumentation

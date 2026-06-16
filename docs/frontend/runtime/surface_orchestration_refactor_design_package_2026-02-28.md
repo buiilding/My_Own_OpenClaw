@@ -1,17 +1,46 @@
 ---
-summary: "No-code design package for frontend surface lifecycle orchestration refactor: state machine, ownership boundaries, touchpoint inventory, invariants, and phased migration plan."
+summary: "Historical frontend surface lifecycle orchestration refactor package. Superseded by current Electron-main screenshot lease ownership, SDK/main local-tool capture policy, and deleted renderer `SurfaceOrchestrator`, `SystemStateCapture`, `ToolComputerUseCatalog`, and `ToolExecutionLogger` services."
 read_when:
-  - When refactoring tool execution surface lifecycle across renderer/main/sidecar.
-  - When changing focus, click-through, overlay visibility, stop semantics, or screenshot timing.
-title: "Surface Orchestration Refactor Design Package (2026-02-28)"
+  - When an old plan, search, or stack trace mentions `SurfaceOrchestrator`, `prepareExternalFocusForCapture`, `SystemStateCapture`, `ToolComputerUseCatalog`, `ToolExecutionLogger`, renderer surface lifecycle orchestration, renderer capture prep, or deleted renderer surface services.
+  - When comparing the earlier no-code design package with the current Electron-main/SDK ownership boundaries.
+title: "Historical Surface Orchestration Refactor Design Package (2026-02-28)"
 ---
 
-# Surface Orchestration Refactor Design Package (2026-02-28)
+# Historical Surface Orchestration Refactor Design Package (2026-02-28)
+
+## Current Status
+
+This page is historical context, not the current implementation plan.
+
+Current code does not keep a renderer `SurfaceOrchestrator`, renderer
+`SystemStateCapture`, renderer `ToolComputerUseCatalog`, or renderer
+`toolExecution/ToolExecutionLogger` service. The renderer infrastructure service
+surface now consists of artifact URL/content-type helpers such as
+`BackendEndpointStore.ts` and `ArtifactImageUtils.ts`.
+
+Current ownership:
+
+- Electron main `surface_runtime.cjs` owns SDK-local screenshot-capture leases:
+  Linux hide/restore and macOS/Windows content-protection toggles.
+- SDK/main owns local tool execution routing and post-action screenshot capture.
+- Renderer chat and attachment code owns display state, optimistic rows, and
+  resource requests; it does not own native window hide/restore or computer-use
+  surface mode policy.
+- `frontend/src/main/platform/screenshot_window_visibility/index.cjs` remains a
+  pass-through task wrapper.
+
+Use [Overlay Phase and Surface Change Workflow](overlay_phase_and_surface_change_workflow.md),
+[Message Send Surface Policy and Screenshot Capture Reference](../renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md),
+and [Screenshot and Overlay Policy](../../platforms/screenshot_overlay_policy.md)
+for current changes.
+
+## Historical Proposal
 
 ## Goals
 
 - Preserve current behavior while reducing cross-file coupling for tool execution surface control.
-- Introduce single source of truth for renderer-side surface lifecycle transitions.
+- Earlier proposal: introduce a single source of truth for renderer-side surface
+  lifecycle transitions. This is not the current implementation direction.
 - Make race conditions diagnosable via deterministic correlation-id transition logs.
 - Keep dev/prod behavior gates explicit and testable.
 
@@ -41,9 +70,12 @@ Primary transitions:
 - non-`idle` -> `error` on non-ignored `error`
 - any -> `idle` on websocket reconnect/close reset
 
-### B) Surface execution phase machine (renderer orchestrator driven)
+### B) Historical Surface Execution Phase Machine
 
-States:
+The original proposal described a renderer-orchestrator state machine. Current
+code does not implement this as a renderer `SurfaceOrchestrator`.
+
+Historical states:
 
 - `idle`
 - `preparing_interactive_focus`
@@ -71,9 +103,12 @@ Correlation key:
 
 - every transition carries deterministic `correlationId` (`request_id`, `bundle_id`, or event fallback id).
 
-## Ownership Map (Renderer/Main/Sidecar)
+## Superseded Ownership Map (Renderer/Main/Sidecar)
 
-Renderer (`frontend/src/renderer`):
+This section records the earlier proposed ownership split. It is superseded by
+the current status above.
+
+Historical renderer proposal (`frontend/src/renderer`):
 
 - owns tool/stream state and UI state transitions.
 - owns surface intent resolution (`none|interactive|capture`) from tool metadata.
@@ -116,9 +151,10 @@ Sidecar touchpoints:
 - `main/python/tools/computer/screenshot_tool.py` and system-state providers via `get-system-state`
 - no surface policy code expected here (contract boundary only)
 
-## Target Architecture
+## Superseded Target Architecture
 
-Renderer introduces `SurfaceOrchestrator` (single source of truth):
+The original target was for renderer to introduce `SurfaceOrchestrator` as a
+single source of truth:
 
 - typed transition API (`beginToolExecution`, `beginCapture`, `markExecutionStart`, `markExecutionDone`, `failPreparation`, `restore`).
 - unified token/reference tracking for overlapping operations.
@@ -139,7 +175,7 @@ Main/sidecar boundary:
 - sidecar remains tool executor/capture producer.
 - renderer orchestrator is policy owner.
 
-## Explicit Invariants
+## Historical Invariants
 
 Focus invariants:
 
@@ -170,7 +206,7 @@ Screenshot timing invariants:
 - show-after-capture must happen after capture completes/fails and after final overlapping capture token releases.
 - capture wait delay and timing fields must be logged with the same correlation id as transition logs.
 
-## Migration Plan
+## Historical Migration Plan
 
 Phase 0 (no-code spec + inventory):
 
@@ -181,6 +217,12 @@ Phase 1 (orchestrator extraction, no behavior change):
 - add `SurfaceOrchestrator` module with typed APIs and log envelope.
 - keep existing IPC primitives and constants unchanged.
 - mirror existing retry values and timing constants.
+
+Current outcome:
+
+- renderer `SurfaceOrchestrator` and related renderer services were removed
+  rather than retained as the long-term owner.
+- screenshot capture policy remained with Electron main and SDK/main.
 
 Phase 2 (consumer migration):
 
