@@ -201,8 +201,5 @@ module.exports = {
   attachRendererConsoleLogging,
   createLazyRendererViewLoader,
   createOverlayBrowserWindow,
-  formatRendererConsoleLogLine,
-  isWarningOrErrorConsoleLevel,
   loadRendererView,
-  normalizeConsoleMessagePayload,
 };

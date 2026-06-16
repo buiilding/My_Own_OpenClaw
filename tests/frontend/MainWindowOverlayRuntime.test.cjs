@@ -4,9 +4,7 @@ const {
   attachRendererConsoleLogging,
   createLazyRendererViewLoader,
   createOverlayBrowserWindow,
-  isWarningOrErrorConsoleLevel,
   loadRendererView,
-  normalizeConsoleMessagePayload,
 } = require('../../frontend/src/main/surfaces/main_window_overlay_runtime.cjs');
 
 describe('main_window_overlay_runtime', () => {
@@ -120,24 +118,39 @@ describe('main_window_overlay_runtime', () => {
     expect(writeLayerLogLine).not.toHaveBeenCalled();
   });
 
-  test('classifies renderer console warnings and errors for default logs', () => {
-    expect(isWarningOrErrorConsoleLevel(0)).toBe(false);
-    expect(isWarningOrErrorConsoleLevel(1)).toBe(false);
-    expect(isWarningOrErrorConsoleLevel(2)).toBe(true);
-    expect(isWarningOrErrorConsoleLevel('warn')).toBe(true);
-    expect(isWarningOrErrorConsoleLevel('error')).toBe(true);
-  });
+  test('routes newer Electron console-message details payloads through renderer logs', () => {
+    const handlers = {};
+    const webContents = {
+      on: jest.fn((event, handler) => {
+        handlers[event] = handler;
+      }),
+    };
+    const writeLayerLogLine = jest.fn();
+    const writeVerboseLogLine = jest.fn();
 
-  test('normalizes newer Electron console-message details payloads', () => {
-    expect(normalizeConsoleMessagePayload([
-      {},
-      { level: 'error', message: 'failed', lineNumber: 9, sourceId: 'renderer.js' },
-    ])).toEqual({
+    attachRendererConsoleLogging({
+      targetWindow: { webContents },
+      view: 'main',
+      writeLayerLogLine,
+      writeSessionBanner: jest.fn(),
+      writeVerboseLogLine,
+      writeVerboseSessionBanner: jest.fn(),
+    });
+
+    handlers['console-message']({}, {
       level: 'error',
       message: 'failed',
-      line: 9,
+      lineNumber: 9,
       sourceId: 'renderer.js',
     });
+
+    expect(writeVerboseLogLine).toHaveBeenCalledWith(
+      '[Renderer][main][console:error] failed renderer.js:9',
+    );
+    expect(writeLayerLogLine).toHaveBeenCalledWith(
+      'renderer',
+      '[Renderer][main][console:error] failed renderer.js:9',
+    );
   });
 
   test('createOverlayBrowserWindow omits toolbar type on linux overlays', () => {
