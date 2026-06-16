@@ -344,6 +344,20 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed app diagnostics inspection helper queries to runtime traces', () => {
+    const expectedPath = path.join('docs', 'debug', 'runtime_traces.md');
+
+    expect(findDocs('queryDiagnosticEvents removed app diagnostics export')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('inspectDiagnosticTrace removed diagnosticsDatabasePath')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('listDiagnosticPathDefinitions removed app diagnostics paths')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes sidecar episodic semantic memory queries to local memory docs', () => {
     expect(findDocs('sidecar episodic semantic memory')[0].path).toBe(
       path.join('docs', 'memory', 'sidecar_local_memory.md'),

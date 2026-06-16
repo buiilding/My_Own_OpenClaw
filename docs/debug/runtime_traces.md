@@ -1,8 +1,9 @@
 ---
-summary: "Runtime trace guide for stream events, chat pill phases, tool screenshots, overlay windows, sidecar JSON-RPC, and backend websocket events."
+summary: "Runtime trace guide for stream events, chat pill phases, tool screenshots, overlay windows, sidecar JSON-RPC, backend websocket events, persistent app diagnostics, and removed app diagnostics inspection helper exports."
 read_when:
   - When debugging event ordering across backend, Electron main, renderer, or sidecar.
   - When changing stream handling, overlay phases, screenshot capture, tool execution, or websocket routing.
+  - When resolving removed app diagnostics inspection helper references such as `queryDiagnosticEvents`, `inspectDiagnosticTrace`, `listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, or `windieUserDataRoot`.
 title: "Runtime Traces"
 ---
 
@@ -260,6 +261,14 @@ Inspect the latest rows with:
 ```bash
 bin/windie diagnostics list --path conversation.metadata.list --limit 50
 ```
+
+The Electron main app diagnostics store no longer exports inspection helpers
+such as `queryDiagnosticEvents`, `inspectDiagnosticTrace`,
+`listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, or
+`windieUserDataRoot`. Runtime code should emit diagnostics through exported path
+constants plus `appendDiagnosticEvent(...)`; inspection is owned by
+`bin/windie diagnostics ...` commands or direct test-owned SQLite reads against
+the configured diagnostics database.
 
 For browser header readiness:
 

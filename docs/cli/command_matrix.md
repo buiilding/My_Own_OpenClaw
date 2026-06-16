@@ -1,8 +1,8 @@
 ---
-summary: "Command matrix for the first-class WindieOS CLI surface, including diagnostics, durable traces, conversation inspection, docs search, `commits search` git commit-history lookup, validation, packaging, backend, endpoint, and self-host commands."
+summary: "Command matrix for the first-class WindieOS CLI surface, including `bin/windie diagnostics inspect`, diagnostics list/paths, durable traces, conversation inspection, docs search, `commits search` git commit-history lookup, validation, packaging, backend, endpoint, and self-host commands."
 read_when:
   - When looking for Windie command help, `bin/windie --help`, or the current command surface.
-  - When choosing the correct WindieOS command for local development, diagnostics, trace inspection, conversation messages, docs work, tests, packaging, `bin/windie commits search`, commit-history lookup, or hosted tunnel setup.
+  - When choosing the correct WindieOS command for local development, diagnostics inspect, diagnostics list, trace inspection, conversation messages, docs work, tests, packaging, `bin/windie commits search`, commit-history lookup, or hosted tunnel setup.
   - When changing `bin/windie`, command docs, scripts wrapped by the CLI, diagnostics commands, trace commands, conversation commands, commits search behavior, or package command behavior.
 title: "Command Matrix"
 ---

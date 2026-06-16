@@ -73,6 +73,11 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: route stale renderer tool-surface lifecycle and removed
   surface-service searches to the historical surface orchestration removal
   reference instead of the current tool-ghost lifecycle docs.
+- docs/debug: route removed app diagnostics inspection-helper searches to the
+  runtime traces guide and document `bin/windie diagnostics ...` as the current
+  inspection path.
+- sdk/tools: remove the unreachable top-level tool-output fallback helper after
+  canonical `output`/`message`/`error` fields have already been checked.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
