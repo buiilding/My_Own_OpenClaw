@@ -28,14 +28,17 @@ Without recovery, loop behavior would:
 
 Recovery converts these errors into synthetic tool protocol events plus history context so model can retry with corrected call syntax.
 
-Primary data source for recovery is structured `ErrorEvent.metadata` propagated from `LLMAPIError.metadata`; string parsing remains only as a compatibility fallback for legacy/mock error events that do not carry metadata.
+Recovery requires structured `ErrorEvent.metadata` propagated from
+`LLMAPIError.metadata`. Error text is still used for the user-facing diagnostic
+message, but missing `llm_tool_call_parse_failed` metadata is non-recoverable.
 
 ## Recovery Decision Gate
 
 After LLM stream finishes in `run_loop()`:
 
-- if `ErrorEvent` content exists, loop checks `_is_recoverable_llm_tool_call_error(error_text)`
+- if `ErrorEvent` content exists, loop checks `_is_recoverable_llm_tool_call_error(error_text, metadata)`
 - recoverable requires both:
+  - `metadata.llm_tool_call_parse_failed is True`
   - tool context in text (`tool`)
   - format context (`argument` or `tool_call` variants)
 - and any configured marker from `_RECOVERABLE_TOOL_CALL_ERROR_MARKERS`, including:
@@ -73,7 +76,8 @@ Upstream source:
 
 - streaming/native provider normalization attaches these fields to `LLMAPIError.metadata`
 - `LLMStreamProcessor` preserves that metadata on consumed `ErrorEvent`
-- `InteractionLoop` reads metadata first and only falls back to error-text extraction when metadata is absent
+- `InteractionLoop` reads metadata only; legacy/mock error strings without
+  structured metadata are not recoverable
 
 `ToolCallEvent` fields:
 
@@ -93,12 +97,9 @@ Upstream source:
 
 ## ID and Name Extraction
 
-Regex extractors:
-
-- `_LLM_TOOL_ERROR_ID_PATTERN`: matches `id=` or `tool_call_id=` forms
-- `_LLM_TOOL_ERROR_NAME_PATTERN`: matches `name=` or `tool_name=` forms
-
-If id extraction fails, fallback id is generated and used as both protocol request id and history-staging key.
+If metadata omits `llm_tool_call_id`, a fallback id is generated and used as
+both protocol request id and history-staging key. If metadata omits
+`llm_tool_name`, the synthetic call uses `invalid_tool_call`.
 
 ## Synthetic Tool-Output Message Format
 
@@ -118,15 +119,9 @@ Error preview normalization:
 
 ### Raw tool-call preview, raw-arguments preview, and target-file extraction
 
-`extract_raw_tool_call_preview_from_error(...)` reads the provider error suffix after marker:
-
-- `Raw tool call preview:`
-
-When present, recovery metadata carries that preview so frontend transparency can show the raw model-emitted call instead of a synthesized fallback object.
-
-`extract_raw_arguments_preview_from_error(...)` reads the provider error suffix after marker:
-
-- `Raw arguments preview:`
+Provider normalization writes `llm_tool_call_raw_tool_call_preview` and
+`llm_tool_call_raw_arguments_preview` into metadata when the malformed provider
+payload exposes those previews.
 
 `_extract_target_file_path(...)` then attempts file-target extraction from that preview:
 

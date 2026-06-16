@@ -14,6 +14,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: remove raw backend `local-user-message` conversation
   promotion from the session projection helper; SDK `user_message` remains the
   only local-user promotion event.
+- backend/agent: require structured provider metadata for recoverable malformed
+  tool-call errors instead of parsing legacy/mock error strings for ids,
+  names, or raw argument previews.
 - docs/frontend: route removed renderer backend-event contract and chat
   conversation-gate searches to the current SDK event normalizer and renderer
   conversation-event ingress docs.

@@ -241,6 +241,29 @@ async def test_interaction_loop_emits_fallback_when_final_response_empty_after_t
     assert session.history.assistant_messages[-1][0] == assistant_full_events[0].content
 
 
+def test_recoverable_tool_call_error_requires_provider_metadata():
+    error_msg = (
+        "Invalid response from stream: failed to parse streamed tool-call arguments "
+        "for id=call_bad name=replace"
+    )
+
+    assert (
+        InteractionLoop._is_recoverable_llm_tool_call_error(
+            error_msg,
+            {"llm_tool_call_parse_failed": True},
+        )
+        is True
+    )
+    assert InteractionLoop._is_recoverable_llm_tool_call_error(error_msg, None) is False
+    assert (
+        InteractionLoop._is_recoverable_llm_tool_call_error(
+            error_msg,
+            {"llm_tool_call_parse_failed": False},
+        )
+        is False
+    )
+
+
 class _ErrorOnlyLLMHandler:
     def __init__(self):
         self.calls = 0
@@ -261,6 +284,7 @@ class _ErrorOnlyLLMHandler:
                     "failed to parse streamed tool-call arguments for id=tool_bad name=replace."
                 ),
                 metadata={
+                    "llm_tool_call_parse_failed": True,
                     "llm_tool_call_id": "tool_bad",
                     "llm_tool_name": "replace",
                     "llm_tool_call_raw_tool_call_preview": (

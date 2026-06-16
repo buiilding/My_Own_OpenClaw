@@ -13,13 +13,8 @@ from uuid import uuid4
 
 from backend.src.agent.execution.tool_call_bridge import (
     build_recoverable_tool_output_message,
-    extract_raw_arguments_preview_from_error,
-    extract_raw_tool_call_preview_from_error,
     extract_history_tool_call_ids,
-    extract_tool_call_parse_error_from_error,
-    extract_tool_call_id_from_error,
     extract_tool_call_ids,
-    extract_tool_name_from_error,
     is_recoverable_llm_tool_call_error,
     to_history_tool_calls,
     to_parsed_response,
@@ -349,7 +344,10 @@ class InteractionLoop:
                         "message": "Provider stream failed.",
                     },
                 )
-                if self._is_recoverable_llm_tool_call_error(llm_error_event_content):
+                if self._is_recoverable_llm_tool_call_error(
+                    llm_error_event_content,
+                    llm_error_event_metadata,
+                ):
                     logger.info(
                         "Recoverable LLM tool-call format error detected; "
                         "emitting synthetic tool output and continuing turn: %s",
@@ -713,31 +711,16 @@ class InteractionLoop:
         tool-shaped feedback so it can retry with corrected arguments.
         """
         structured_metadata = dict(metadata) if isinstance(metadata, dict) else {}
-        tool_name = self._extract_tool_name_from_metadata_or_error(
-            structured_metadata,
-            error_msg,
-        )
-        tool_call_id = self._extract_tool_call_id_from_metadata_or_error(
-            structured_metadata,
-            error_msg,
-        )
+        tool_name = self._extract_tool_name_from_metadata(structured_metadata)
+        tool_call_id = self._extract_tool_call_id_from_metadata(structured_metadata)
         raw_tool_call_preview = (
-            self._extract_raw_tool_call_preview_from_metadata_or_error(
-                structured_metadata,
-                error_msg,
-            )
+            self._extract_raw_tool_call_preview_from_metadata(structured_metadata)
         )
         raw_arguments_preview = (
-            self._extract_raw_arguments_preview_from_metadata_or_error(
-                structured_metadata,
-                error_msg,
-            )
+            self._extract_raw_arguments_preview_from_metadata(structured_metadata)
         )
         parse_error_summary = (
-            self._extract_tool_call_parse_error_from_metadata_or_error(
-                structured_metadata,
-                error_msg,
-            )
+            self._extract_tool_call_parse_error_from_metadata(structured_metadata)
         )
         if not tool_call_id:
             tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"
@@ -871,74 +854,52 @@ class InteractionLoop:
         return finish_reason in {"incomplete", "length"}
 
     @staticmethod
-    def _is_recoverable_llm_tool_call_error(error_msg: str) -> bool:
+    def _is_recoverable_llm_tool_call_error(
+        error_msg: str,
+        metadata: Dict[str, Any] | None = None,
+    ) -> bool:
         """Return True for recoverable model-generated tool-call format errors."""
+        if not isinstance(metadata, dict):
+            return False
+        if metadata.get("llm_tool_call_parse_failed") is not True:
+            return False
         return is_recoverable_llm_tool_call_error(error_msg)
 
     @staticmethod
-    def _extract_tool_name_from_error(error_msg: str) -> str:
-        """Best-effort extraction of tool name from provider error text."""
-        return extract_tool_name_from_error(error_msg)
-
-    @staticmethod
-    def _extract_tool_call_id_from_error(error_msg: str) -> str:
-        """Best-effort extraction of tool call id from provider error text."""
-        return extract_tool_call_id_from_error(error_msg)
-
-    @staticmethod
-    def _extract_tool_call_id_from_metadata_or_error(
+    def _extract_tool_call_id_from_metadata(
         metadata: Dict[str, Any],
-        error_msg: str,
     ) -> str:
         value = metadata.get("llm_tool_call_id")
         if isinstance(value, str) and value.strip():
             return value.strip()
-        return extract_tool_call_id_from_error(error_msg)
+        return ""
 
     @staticmethod
-    def _extract_raw_arguments_preview_from_error(error_msg: str) -> str:
-        """Best-effort extraction of raw streamed tool arguments preview."""
-        return extract_raw_arguments_preview_from_error(error_msg)
-
-    @staticmethod
-    def _extract_raw_arguments_preview_from_metadata_or_error(
+    def _extract_raw_arguments_preview_from_metadata(
         metadata: Dict[str, Any],
-        error_msg: str,
     ) -> str:
         value = metadata.get("llm_tool_call_raw_arguments_preview")
         if isinstance(value, str) and value.strip():
             return value.strip()
-        return extract_raw_arguments_preview_from_error(error_msg)
+        return ""
 
     @staticmethod
-    def _extract_raw_tool_call_preview_from_error(error_msg: str) -> str:
-        """Best-effort extraction of raw streamed tool-call preview."""
-        return extract_raw_tool_call_preview_from_error(error_msg)
-
-    @staticmethod
-    def _extract_raw_tool_call_preview_from_metadata_or_error(
+    def _extract_raw_tool_call_preview_from_metadata(
         metadata: Dict[str, Any],
-        error_msg: str,
     ) -> str:
         value = metadata.get("llm_tool_call_raw_tool_call_preview")
         if isinstance(value, str) and value.strip():
             return value.strip()
-        return extract_raw_tool_call_preview_from_error(error_msg)
+        return ""
 
     @staticmethod
-    def _extract_tool_call_parse_error_from_error(error_msg: str) -> str:
-        """Best-effort extraction of parse-error summary from provider error text."""
-        return extract_tool_call_parse_error_from_error(error_msg)
-
-    @staticmethod
-    def _extract_tool_call_parse_error_from_metadata_or_error(
+    def _extract_tool_call_parse_error_from_metadata(
         metadata: Dict[str, Any],
-        error_msg: str,
     ) -> str:
         value = metadata.get("llm_tool_call_parse_error")
         if isinstance(value, str) and value.strip():
             return value.strip()
-        return extract_tool_call_parse_error_from_error(error_msg)
+        return ""
 
     @staticmethod
     def _build_recoverable_tool_output_message(
@@ -962,11 +923,10 @@ class InteractionLoop:
         return preview
 
     @staticmethod
-    def _extract_tool_name_from_metadata_or_error(
+    def _extract_tool_name_from_metadata(
         metadata: Dict[str, Any],
-        error_msg: str,
     ) -> str:
         value = metadata.get("llm_tool_name")
         if isinstance(value, str) and value.strip():
             return value.strip()
-        return extract_tool_name_from_error(error_msg)
+        return "invalid_tool_call"
