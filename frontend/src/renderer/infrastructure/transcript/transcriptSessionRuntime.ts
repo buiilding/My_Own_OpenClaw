@@ -17,13 +17,7 @@ type TranscriptSessionResolveOptions = {
   userId?: string | null;
 };
 
-type TranscriptSessionRuntimeOptions = {
-  onSessionUpdated?: () => void;
-};
-
-export function createTranscriptSessionRuntime({
-  onSessionUpdated,
-}: TranscriptSessionRuntimeOptions = {}) {
+export function createTranscriptSessionRuntime() {
   const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
   let transcriptSessionSyncSubscribed = false;
 
@@ -69,7 +63,6 @@ export function createTranscriptSessionRuntime({
     if (syncToMainProcess) {
       syncSessionInfoToMainProcess(nextInfo);
     }
-    onSessionUpdated?.();
     return nextInfo;
   };
 
