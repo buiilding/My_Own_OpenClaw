@@ -32,7 +32,6 @@ function createHarness(overrides = {}) {
       conversationRef,
     })),
     buildQueryPayloadContext: jest.fn(),
-    getSystemState: jest.fn(),
     attachAgentDefinitionContext: jest.fn((payload) => ({
       ...payload,
       agent_definition: { mode: 'test' },

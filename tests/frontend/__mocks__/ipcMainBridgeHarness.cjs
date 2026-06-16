@@ -98,7 +98,6 @@ jest.mock('fs', () => ({
 
 jest.mock('../../../frontend/src/main/sidecar/local_backend_bridge.cjs', () => ({
   executeToolForBackend: jest.fn(),
-  getSystemState: jest.fn(),
 }));
 
 const { createBridgeSuiteLifecycle } = require('./bridgeSuiteLifecycle.cjs');
@@ -114,14 +113,9 @@ const {
   originalEnv: ORIGINAL_ENV,
 });
 
-const DEFAULT_SYSTEM_STATE = {
-  active_window: 'App',
-  mouse_position: '0,0',
-};
-
 let lastIpc = null;
 
-function primeQueryContext(backendBridge, options = {}) {
+function primeQueryContext(backendBridge) {
   backendBridge.executeToolForBackend.mockResolvedValue({
     success: true,
     data: {
@@ -129,12 +123,6 @@ function primeQueryContext(backendBridge, options = {}) {
       output: 'tool ok',
     },
   });
-
-  if (options.systemStateError) {
-    backendBridge.getSystemState.mockRejectedValue(options.systemStateError);
-  } else {
-    backendBridge.getSystemState.mockResolvedValue(options.systemState ?? DEFAULT_SYSTEM_STATE);
-  }
 
 }
 

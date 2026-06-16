@@ -551,10 +551,6 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   }
 }
 
-async function getSystemState(fields = null) {
-  return getSystemStateFromBackend(fields);
-}
-
 async function getLocalBackendStatus() {
   const result = await sendRequestOrError('get_status');
   if (result && result.success === false) {
@@ -640,7 +636,6 @@ async function warmBrowserAutomation() {
 module.exports = {
   initializeLocalBackendBridge,
   stopLocalBackend,
-  getSystemState,
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
   executeToolForBackend: async (payload) => runtimeExecuteTool(payload),
   getLocalBackendStatus,

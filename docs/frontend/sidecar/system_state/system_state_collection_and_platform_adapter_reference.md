@@ -150,10 +150,6 @@ Current runtime note:
 - `ChatBoxContextLabel` is a no-op renderer component in current frontend runtime.
 - no active renderer polling path currently requests `active_window` for context-label rendering.
 
-### Main-process direct consumers
-
-`local_backend_bridge.getSystemState(fields)` allows explicit field arrays for other callers.
-
 ## Failure and Fallback Behavior Across Layers
 
 - sidecar field probe failure -> per-field defaults in response object

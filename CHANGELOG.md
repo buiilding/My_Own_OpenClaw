@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
   through `search_memory_by_embedding` only.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
+- frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`
+  export so system-state access stays on the `get-system-state` IPC handler.
 - frontend/voice: remove the legacy ScriptProcessor audio capture fallback so
   voice and wakeword capture use the AudioWorklet processor path only.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,

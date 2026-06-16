@@ -42,7 +42,6 @@ function buildDeps(overrides = {}) {
       queryUsedInitialContext: false,
     })),
     buildQueryPayloadContext: jest.fn(),
-    getSystemState: jest.fn(),
     ...overrides,
   };
 }
