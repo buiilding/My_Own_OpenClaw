@@ -222,6 +222,6 @@ Validate:
 
 ```bash
 bin/windie test backend tests/backend/test_browser_remote_tool.py -q
-bin/windie test sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_browser_runtime_architecture.py -q
+bin/windie test sidecar tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py -q
 bin/windie test frontend -- ChatBrowserSessionControl.test.jsx PermissionService.test.cjs
 ```

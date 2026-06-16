@@ -37,7 +37,8 @@ Primary test sources:
 - `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 - `tests/frontend/TranscriptSessionState.test.ts`
-- `tests/frontend/DesktopTranscriptSessionRuntime.test.ts`
+- `tests/frontend/TranscriptSessionSyncPayload.test.ts`
+- `tests/frontend/IpcTranscriptSessionSync.test.cjs`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 
@@ -210,7 +211,8 @@ SDK transcript session runtime behavior:
 Locked by:
 
 - `tests/frontend/TranscriptSessionState.test.ts`
-- `tests/frontend/DesktopTranscriptSessionRuntime.test.ts`
+- `tests/frontend/TranscriptSessionSyncPayload.test.ts`
+- `tests/frontend/IpcTranscriptSessionSync.test.cjs`
 
 ## Frontend Config -> Sidecar Tool Arg State Propagation
 

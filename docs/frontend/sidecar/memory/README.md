@@ -36,8 +36,8 @@ title: "Frontend Sidecar Memory Docs Hub"
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `tests/sidecar/test_memory_summarizer.py`
-- `tests/sidecar/test_conversation_search.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
+- `tests/sidecar/test_chat_event_store.py`
 - `tests/sidecar/test_chat_event_store.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
 - `tests/sidecar/test_local_backend.py`

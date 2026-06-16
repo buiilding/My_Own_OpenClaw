@@ -76,11 +76,12 @@ receives no client manifest for that handshake.
 ## Removed Agent Capability Handshake Builder
 
 The old Electron-side `frontend/src/main/sdk/agent_capability_handshake.cjs`
-builder and `tests/frontend/AgentCapabilityHandshake.test.cjs` were deleted.
+builder and `AgentCapabilityHandshake.test.cjs` were deleted.
 Client capability metadata now comes from the SDK-authored agent definition and
 its client tool manifest, not a parallel main-process handshake helper. Add or
 debug handshake behavior through `agent_definition.tools.client_manifest`,
-`packages/windie-sdk-js/src/runtime/WindieClient.ts`, and the backend agent
+`packages/windie-sdk-js/src/runtime/WindieClient.ts`, current
+`tests/frontend/WindieSdkClient.test.ts` coverage, and the backend agent
 definition validation path.
 
 ## Fields

@@ -69,7 +69,7 @@ Inspect:
 Validate:
 
 ```bash
-bin/windie test sidecar tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_search_helpers.py -q
+bin/windie test sidecar tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py -q
 ```
 
 ## Semantic Memory Is Missing

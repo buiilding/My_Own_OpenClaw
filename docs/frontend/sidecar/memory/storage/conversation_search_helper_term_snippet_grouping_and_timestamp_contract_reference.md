@@ -13,7 +13,6 @@ title: "Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contra
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/local_store.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
-- `tests/sidecar/test_conversation_search.py`
 
 ## Helper Surface
 
@@ -152,10 +151,6 @@ Used for recency scoring/sort tie-break safety across heterogeneous stored times
 - long-snippet hit focus + ellipsis wrapping
 - grouping dedupe by memory id and lexical-preferred best-hit selection
 - timestamp parse behavior for `Z` suffix and invalid values
-
-`tests/sidecar/test_conversation_search.py` validates integration usage:
-
-- helper-generated hits continue through lexical fallback/semantic filtering and summary merge paths
 
 ## Drift Hotspots
 

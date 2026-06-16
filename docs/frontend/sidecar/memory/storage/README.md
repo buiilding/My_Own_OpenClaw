@@ -34,8 +34,8 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `frontend/src/main/python/memory/watermark_state.py`
 - `frontend/src/main/python/memory/operations.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
-- `tests/sidecar/test_conversation_search.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
+- `tests/sidecar/test_chat_event_store.py`
 - `tests/sidecar/test_conversation_semanticization_runtime.py`
 - `tests/sidecar/test_conversation_window_runtime.py`
 - `tests/sidecar/test_memory_summarizer.py`

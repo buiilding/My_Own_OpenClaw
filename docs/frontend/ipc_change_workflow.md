@@ -171,7 +171,7 @@ Before committing:
 | --- | --- |
 | Preload allowlist and registry parity | `tests/frontend/PreloadIpcChannels.test.cjs`, `tests/frontend/IpcBridge.test.ts`, `tests/frontend/IpcBridgeValidation.test.ts` |
 | Main query/backend relay | `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcQueryRuntime.test.cjs` |
-| Settings, transcript, memory, artifacts | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcTranscriptSessionSync.test.cjs`, `tests/frontend/IpcMemoryStorePersistence.test.cjs`, `tests/frontend/IpcArtifactFetch.test.cjs` |
+| Settings, transcript, memory, artifacts | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcTranscriptSessionSync.test.cjs`, `tests/frontend/DesktopMemoryRuntimeClient.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs` |
 | Overlay and window channels | `tests/frontend/IpcOverlayPhase*.test.cjs`, `tests/frontend/Overlay*.test.cjs`, `tests/frontend/MainWindow*.test.cjs` |
 | Local backend bridge | `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py` |
 | Permissions/workspace/sudo | `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs`, `tests/frontend/permissionStore.test.js`, related sidecar permission tests |

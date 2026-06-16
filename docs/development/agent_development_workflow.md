@@ -91,8 +91,8 @@ Widen only when the boundary requires it, for example a tool schema change that 
 
 Choose the narrowest meaningful command first, then widen if the change has broad impact:
 
-- backend: `./scripts/python-in-env backend python -m pytest tests/backend/path_or_test.py`
-- sidecar: `./scripts/python-in-env sidecar python -m pytest tests/sidecar/path_or_test.py`
+- backend: `./scripts/python-in-env backend python -m pytest <backend-test-or-path>`
+- sidecar: `./scripts/python-in-env sidecar python -m pytest <sidecar-test-or-path>`
 - frontend: `bin/windie test frontend -- path/to/test`
 - docs: `bin/windie docs list`
 
