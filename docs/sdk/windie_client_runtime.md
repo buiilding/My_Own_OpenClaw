@@ -576,9 +576,15 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
 - the Electron main-process SDK tool router accepts canonical SDK identity fields
   (`requestId`, `toolCallId`, `correlationId`, `bundleId`) before emitting
   backend wire payloads.
-- the Python SDK websocket session also forwards request, provider, correlation,
-  and bundle identities into local runtime `execute_tool(...)` calls so sidecar
-  execution can preserve SDK-owned tool routing state.
+- the Python SDK websocket session treats backend `tool-call` and `tool-bundle`
+  payloads as backend-wire snake_case. It reads `tool_name`, `request_id`,
+  `correlation_id`, `tool_call_id`, `bundle_id`, and bundle step `name` /
+  `tool_call_id`; stale camelCase payload keys such as `toolName`, `requestId`,
+  `correlationId`, `toolCallId`, or `bundleId` are not local-execution inputs.
+  When canonical fields are present, the Python session forwards request,
+  provider, correlation, and bundle identities into local runtime
+  `execute_tool(...)` calls so sidecar execution can preserve SDK-owned tool
+  routing state.
 - the Python SDK websocket session sends attachment bodies through backend-owned
   `query_context.attachment_context`, keeps attachment filenames out of backend
   query payloads, filters `update-settings` patches to backend-accepted keys, and
