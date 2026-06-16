@@ -127,11 +127,10 @@ Return normalization:
 
 ## Payload Mapper Runtime Contract
 
-`createPayloadMapper(fieldMap)` compile step supports three mapping types:
+`createPayloadMapper(fieldMap)` compile step supports two mapping types:
 
 1. direct string source key
-2. fallback source-key array (first defined key wins)
-3. function mapper `(payload) => value`
+2. function mapper `(payload) => value`
 
 `getPayloadObject(payload)` hardening:
 

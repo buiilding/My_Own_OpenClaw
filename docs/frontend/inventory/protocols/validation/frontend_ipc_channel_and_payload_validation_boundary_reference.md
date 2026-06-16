@@ -115,7 +115,6 @@ Role:
 - non-object payload coerced to `{}` by `getPayloadObject(...)`.
 - mapper supports:
   - direct source key mapping,
-  - fallback key arrays (camelCase vs snake_case compatibility),
   - function-based field transforms.
 
 Examples:
@@ -135,7 +134,7 @@ High-risk drift points to monitor:
 - `IpcBridge` dev-time validation drift masking production no-op behavior.
 - outbound normalization rules diverging from backend schema updates.
 - user-id sanitization assumptions diverging from backend validation rules.
-- mapper key fallback paths lost during refactors, breaking backward-compatible payload shapes.
+- mapper source keys drifting from canonical renderer payload shapes.
 
 ## Validation Control-Path Index
 
@@ -146,7 +145,7 @@ High-risk drift points to monitor:
 | outbound websocket payload normalization | `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
 | handshake user-id identity | `frontend/src/main/ipc/ipc_install_auth_state.cjs` + `WindieClient.wakeUp(...)` | sends authenticated install identity instead of synthetic OS username fallback |
 | query XML/context sanitization fallback | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | escapes XML-sensitive content and guarantees structured fallback blocks |
-| local-backend mapper compatibility transforms | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |
+| local-backend mapper transforms | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs` | canonical renderer field mapping and safe default object coercion |
 
 ## Recompute Validation Surface Commands
 

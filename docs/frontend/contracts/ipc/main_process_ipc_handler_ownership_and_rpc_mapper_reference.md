@@ -266,8 +266,7 @@ If renderer `invoke` resolves with "not handled"/unexpected response:
 If sidecar memory operations return wrong filters:
 
 1. verify mapper source keys (`userId`, `conversationId`, `recordKind`, etc.)
-2. verify fallback key behavior (`excludeConversationId` vs `exclude_conversation_id`)
-3. inspect JSON-RPC method name in compiled definitions
+2. inspect JSON-RPC method name in compiled definitions
 
 ## Related Pages
 

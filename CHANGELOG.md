@@ -78,6 +78,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/websocket: remove the top-level `client_tool_manifest` handshake
   fallback; client-local tool schemas now enter only through
   `agent_definition.tools.client_manifest`.
+- frontend/main: remove unused fallback source-key array support from local
+  backend RPC payload mappers; sidecar invoke payloads now use canonical
+  renderer field names only.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

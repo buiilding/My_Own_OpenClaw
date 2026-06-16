@@ -85,12 +85,8 @@ function createPayloadMapper(fieldMap) {
         mapping,
       };
     }
-    if (Array.isArray(mapping)) {
-      return {
-        targetKey,
-        mapperType: 'fallback',
-        sourceKeys: mapping,
-      };
+    if (typeof mapping !== 'string') {
+      throw new TypeError(`Unsupported RPC payload mapping for ${targetKey}`);
     }
     return {
       targetKey,
@@ -106,17 +102,6 @@ function createPayloadMapper(fieldMap) {
     for (const compiled of compiledMappings) {
       if (compiled.mapperType === 'function') {
         mapped[compiled.targetKey] = compiled.mapping(source);
-        continue;
-      }
-      if (compiled.mapperType === 'fallback') {
-        let resolved;
-        for (const sourceKey of compiled.sourceKeys) {
-          if (source[sourceKey] !== undefined) {
-            resolved = source[sourceKey];
-            break;
-          }
-        }
-        mapped[compiled.targetKey] = resolved;
         continue;
       }
       mapped[compiled.targetKey] = source[compiled.sourceKey];

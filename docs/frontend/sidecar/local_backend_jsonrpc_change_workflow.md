@@ -108,7 +108,6 @@ Use this path when renderer does not need a general IPC channel, but Electron ma
 `createPayloadMapper(fieldMap)` supports:
 
 - direct source keys: `{ user_id: "userId" }`
-- fallback key arrays: `{ exclude_conversation_id: ["excludeConversationId", "exclude_conversation_id"] }`
 - function mappers: `{ conversation_id: ({ conversationId }) => conversationId ?? null }`
 
 Preserve these mapper guarantees:

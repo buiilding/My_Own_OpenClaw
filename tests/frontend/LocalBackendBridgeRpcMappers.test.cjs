@@ -32,4 +32,15 @@ describe('local_backend_bridge_rpc_mappers', () => {
       expect(bridgeSource).not.toContain(alias);
     }
   });
+
+  test('payload mapper does not support fallback source-key arrays', () => {
+    const mapperPath = path.join(
+      __dirname,
+      '../../frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs',
+    );
+    const mapperSource = fs.readFileSync(mapperPath, 'utf8');
+
+    expect(mapperSource).not.toContain("mapperType: 'fallback'");
+    expect(mapperSource).not.toContain('sourceKeys');
+  });
 });
