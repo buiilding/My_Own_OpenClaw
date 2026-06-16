@@ -44,8 +44,8 @@ the owner map before changing code.
 | Sidebar open/collapse, navigation buttons, active panel highlighting | `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`, `components/sidebar/*`, `DashboardShell.jsx` | `tests/frontend/DashboardSidebar.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx` |
 | Main-window target opens wrong dashboard panel | `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`, `frontend/src/main/*open*`, `frontend/src/main/ipc*` | `tests/frontend/ChatGptDashboardShell.test.jsx`, main-window open-target tests if present |
 | Recent chats do not load, retry, group, or show titles | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `utils/dashboardConversationLoad.js`, `utils/conversationGroups.js`, transcript local store | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationGroups.test.js`, `tests/frontend/DashboardSidebar.test.jsx` |
-| Search modal behavior changes | `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`, `useDashboardConversations.js`, `localConversationStore.ts` | `tests/frontend/DashboardSidebar.test.jsx`, conversation search tests, focused modal tests when added |
-| Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `conversationLocalSnapshotLoader.ts`, `conversationSessionRuntime.ts`, `conversationInferenceSessionRuntime.ts`, `conversationWorkspaceBinding.js` | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationInferenceSessionRuntime.test.ts` |
+| Search modal behavior changes | `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`, `useDashboardConversations.js`, `desktopConversationLibraryClient.js`, `desktopConversationStore.ts` | `tests/frontend/DashboardSidebar.test.jsx`, conversation search tests, focused modal tests when added |
+| Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `desktopConversationStore.ts`, `conversationSessionRuntime.ts`, `conversationInferenceSessionRuntime.ts`, `conversationWorkspaceBinding.js` | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationInferenceSessionRuntime.test.ts` |
 | Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktop conversation store factory`, `resetActiveChatSession`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/desktop conversation store factory.test.ts`, `tests/frontend/LocalConversationStore.test.js` |
 | Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, memory IPC contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory IPC/sidecar tests |
 | Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `modelSelectionUtils.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
@@ -118,9 +118,8 @@ Read these files for recent chats, search, open, rename, pin, or delete work:
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/dashboardConversationLoad.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
-- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
-- `frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`

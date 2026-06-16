@@ -1,8 +1,9 @@
 ---
-summary: "Renderer infrastructure reference for paginated transcript conversation loading and local display-bounds retrieval used by screenshot tool invocation/capture paths."
+summary: "Renderer infrastructure reference for SDK-backed desktop conversation loading and Electron-main display-bounds injection after removed localConversationStore, displaySelection, and ToolExecutionInvoker renderer helpers."
 read_when:
-  - When changing `localConversationStore.ts` pagination behavior for `get-chat-events`.
-  - When changing `displaySelection.ts` storage/parse validation or screenshot `display_bounds` injection behavior.
+  - When searching for removed `localConversationStore.ts`, `displaySelection.ts`, or `ToolExecutionInvoker.ts` renderer helpers.
+  - When changing SDK-backed desktop conversation loading through `desktopConversationStore.ts` or `desktopConversationLibraryClient.js`.
+  - When changing Electron-main screenshot `display_bounds` injection behavior.
 title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 ---
 
@@ -10,89 +11,109 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
-- `frontend/src/renderer/utils/displaySelection.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts`
+- `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
+- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `tests/frontend/ToolExecutionInvoker.test.ts`
-- `tests/frontend/WindieSdkClient.test.ts`
+- `tests/frontend/DesktopConversationStore.test.ts`
+- `tests/frontend/DesktopConversationLibraryClient.test.ts`
+- `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
+- `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
+- `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
+
+## Removed Renderer Helpers Route
+
+`localConversationStore.ts`, `displaySelection.ts`, and `ToolExecutionInvoker.ts`
+are no longer current renderer owners:
+
+- conversation loading/listing/searching routes through SDK-shaped
+  `invokeWindieCommand(...)` facades and the desktop `ConversationStore`
+  adapter
+- display-bounds selection and injection happen in Electron main before sidecar
+  screenshot execution
+- local tool execution and post-action screenshot policy live in the SDK
+  `ToolExecutionCoordinator`, not a renderer invoker service
 
 ## Transcript Conversation Loader Contract
 
-`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full canonical `conversation_events` rows from local DB IPC.
+`createDesktopConversationStore(userId)` is the renderer-side adapter for SDK
+conversation storage commands.
 
-Input normalization:
+Command mapping:
 
-- `userId` and `conversationRef` are trimmed strings
-- blank/missing normalized values return `[]` immediately
+- `appendEvent`/`appendEvents` -> `conversation.appendEvent`
+- `rewriteConversation` -> `conversation.rewrite`
+- `replaceCompactedReplay` -> `conversation.replaceCompactedReplay`
+- `loadEvents` -> `conversation.load`
+- `loadForDisplay` and `loadDisplayRows` -> `conversation.loadDisplay`
+- `loadForRehydrate` -> `conversation.loadRehydrate`
+- `listMetadata` -> `conversations.list`
+- `searchMetadata` -> `conversations.search`
+- `deleteConversation` -> `conversations.delete`
+- `clearConversations` -> `conversations.clearAll`
+- `getRevision` -> `conversation.getRevision`
+
+`desktopConversationLibraryClient.js` is the narrower dashboard/list facade. It
+uses `conversations.list`, `conversations.search`, `conversations.delete`, and
+`conversation.loadDisplay`; it does not load full event or rehydrate snapshots.
 
 Defaults:
 
-- `pageSize = 1000`
-- `maxPages = 250`
-- `recordKind = "chat_event"`
-
-When callers provide a non-empty `recordKind`, list/search/load IPC payloads
-preserve that value instead of forcing `chat_event`.
-
-Pagination behavior:
-
-1. invoke `GET_CHAT_EVENTS` with `{ userId, conversationId, limit, recordKind, afterMessageIndex }`
-2. append `result.data.events` to accumulator
-3. stop when:
-   - page returns empty list
-   - returned page has fewer rows than `pageSize`
-   - `message_index` cannot be resolved from last row
-   - resolved next index equals current cursor (loop guard)
-4. otherwise continue with `afterMessageIndex = lastMessageIndex`
+- missing display loads return an empty `DisplayConversation`
+- missing rehydrate loads return an empty `RehydrateSnapshot`
+- malformed list/search responses normalize to `[]`
 
 Error behavior:
 
-- IPC failure/`success=false` throws `Error(result.error || "Failed to load conversation")`
-
-Index parsing helper (`resolveMemoryMessageIndex`):
-
-- accepts finite numeric `message_index`
-- accepts numeric strings via base-10 parse
-- otherwise returns `null`
+- lower-level `invokeWindieCommand(...)` failures propagate to the caller; the
+  store adapter does not invent fallback transcript rows
 
 ## Runtime Call Sites
 
 Primary consumers:
 
 - dashboard open-conversation flow (`useDashboardConversations.handleOpenConversation`)
-- manual compaction pre-rehydrate flow (`ChatInterface.handleRunAutoCompaction`), including local failed-status cleanup if setup or compact dispatch fails before backend events arrive
+- manual compaction pre-rehydrate flow (`ChatInterface.handleRunAutoCompaction`)
+- SDK `ConversationContinuityService` replay/rewrite/rehydrate orchestration
 
 Shared intent:
 
-- always rehydrate backend from the same full local transcript view before stateful operations (open/compaction)
+- keep renderer feature code on SDK-shaped conversation store commands instead
+  of direct legacy `GET_CHAT_EVENTS` IPC calls
 
-## Display-Bounds Storage Contract
+## Display-Bounds Injection Contract
 
-`getStoredDisplayBounds()` reads local key:
+`resolveScreenshotToolDisplayBounds(...)` computes default screenshot bounds in
+Electron main from the active surface display affinity.
 
-- `desktop-assistant-display-bounds`
+`resolveToolArgs(toolName, args, { displayBounds })` behavior:
 
-Parse/validation (`parseDisplayBounds`):
+- non-object args normalize to `{}`
+- non-screenshot tools pass cloned args unchanged
+- `screenshot` args keep an explicit valid `display_bounds`
+- `screenshot` args receive the default display bounds only when no valid
+  explicit `display_bounds` exists
 
-- JSON must parse to object
-- required fields: `x`, `y`, `width`, `height` (finite numbers)
-- `width` and `height` must be `> 0`
-- invalid payload returns `null`
+Validation:
 
-Storage access behavior:
-
-- localStorage read failures are caught
-- parse/storage failures log warning and return `null` (fail-open, no throw)
+- `display_bounds.x/y/width/height` must be finite numbers
+- width and height must be positive
+- values are rounded before sidecar execution
+- optional `monitor_id` and nested `desktop_virtual_bounds` are preserved only
+  when valid
 
 ## Screenshot Injection Semantics
 
-`ToolExecutionInvoker.invokeTool(...)`:
+Electron main sidecar execution:
 
-- injects `display_bounds` only for `toolName === "screenshot"`
-- normalizes screenshot args to object before merge
-- non-screenshot tools pass args unchanged
+- prepares the active desktop surface before computer-use sidecar execution
+- resolves screenshot display bounds from the active surface/display affinity
+- injects bounds through `local_backend_bridge_tool_args.cjs`
+- sends normalized args to the Python sidecar
 
 SDK/main screenshot paths:
 
@@ -106,10 +127,14 @@ Contract effect:
 
 ## Drift Hotspots
 
-1. Removing loop guards in transcript pagination can create long-running/duplicate page fetches.
-2. Changing default `pageSize`/`maxPages` without matching dashboard expectations can truncate conversation rehydrate input.
-3. Relaxing bounds validation can propagate invalid geometry into screenshot tool args.
-4. Injecting `display_bounds` for non-screenshot tools risks schema/runtime mismatch in unrelated tool paths.
+1. Reintroducing direct renderer calls to legacy chat-event IPC channels bypasses
+   SDK conversation projection.
+2. Loading dashboard display rows through full rehydrate/event snapshots makes
+   the conversation library facade too broad.
+3. Relaxing bounds validation can propagate invalid geometry into screenshot
+   tool args.
+4. Injecting `display_bounds` for non-screenshot tools risks schema/runtime
+   mismatch in unrelated tool paths.
 
 ## Related Pages
 

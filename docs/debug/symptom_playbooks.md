@@ -46,7 +46,7 @@ Inspect:
 - `backend/src/llm/models/models_config.py`
 - `backend/src/llm/models/model_service.py`
 - `backend/src/core/config/loader.py`
-- `frontend/src/renderer/features/dashboard/components/ModelsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 
 Docs:
 
@@ -128,9 +128,9 @@ Inspect:
 - `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 

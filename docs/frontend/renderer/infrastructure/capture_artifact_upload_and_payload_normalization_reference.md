@@ -1,10 +1,10 @@
 ---
-summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/formatter helpers, `BackendEndpointStore` artifact URL handling through `setBackendHttpUrl` and `buildArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `BackendEndpointStore` artifact URL handling through `setBackendHttpUrl` and `buildArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
   - When changing renderer artifact URL base sync, `BackendEndpointStore`, `setBackendHttpUrl`, `buildArtifactUrl`, or backend endpoint propagation into artifact display URLs.
-  - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`) before backend relay.
-  - When searching for removed or deleted renderer capture/upload/formatter helpers such as `ArtifactUploader`, `ToolScreenshotDebugTrace`, `ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, or `MessageFormatter`.
+  - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`, `capture_meta`) before backend relay.
+  - When searching for removed or deleted renderer capture/upload/formatter helpers such as `ArtifactUploader`, `ToolScreenshotDebugTrace`, `ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, `MessageFormatter`, `ToolExecutionPayloads.ts`, or `ToolExecutionBackendPayload.ts`.
 title: "Capture, Artifact URL, and Payload Normalization Reference"
 ---
 
@@ -133,28 +133,29 @@ Current ownership:
   construct model-facing result payloads or upload screenshot artifacts before
   dispatch.
 
-## Backend Payload Normalization (`ToolExecutionPayloads`)
+## Removed ToolExecutionPayloads Route
 
-`buildToolResultPayloadData(...)` does the core backend-bound cleanup:
+`frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts` and
+`ToolExecutionBackendPayload.ts` are no longer current renderer services.
+Backend-bound tool result shaping is split across:
 
-- strips inline binary/raw fields:
-  - `screenshot`, `image_data`
-- strips inbound transport fields before rebuild:
-  - `screenshot_ref`, `system_state`
-- always injects canonical `output` (formatted tool output)
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` for local tool
+  execution, post-action capture, screenshot artifact materialization, and
+  `tool-result`/`tool-bundle-result` envelopes
+- `packages/windie-sdk-js/src/transport/backendPayloadContract.ts` for
+  backend-bound payload field filtering and capture metadata normalization
+- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` for
+  Electron main sidecar execution and result normalization
 
-Optional inclusion gates:
+Current payload cleanup rules:
 
-- `includeScreenshot` + resolved screenshot ref -> includes `screenshot_ref`
-- `includeSystemState` -> includes normalized required state:
-  - `active_window`
-  - `mouse_position`
-  - missing values default to `Unknown`
-
-Internal extension field:
-
-- when available, `screen_resolution` is preserved only in `system_state_internal`
-- this keeps backend coordinate normalization data without widening public `system_state` contract
+- raw screenshot data is materialized to artifact refs where possible before
+  backend relay
+- `capture_meta` is preserved when it is object-shaped
+- `system_state_internal` remains separate from public `system_state`
+- single-tool results use `type: "tool-result"`
+- bundle results use `type: "tool-bundle-result"` with per-step outputs and
+  top-level screenshot/capture metadata when available
 
 ## Bundle Result Normalization Helpers
 

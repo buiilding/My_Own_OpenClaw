@@ -12,8 +12,8 @@ title: "Memory IPC and RPC Mapping Reference"
 
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`

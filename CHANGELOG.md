@@ -8,6 +8,9 @@ All notable changes to WindieOS will be documented in this file.
 
 - sdk/package: clean generated `dist` and `cjs` outputs before building so
   removed SDK modules cannot survive in publishable package artifacts.
+- docs/frontend: route removed renderer infrastructure helpers and tool-result
+  payload services to the current SDK conversation store, Electron display
+  bounds bridge, and SDK tool execution coordinator docs.
 - frontend/renderer: remove raw backend `local-user-message` conversation
   promotion from the session projection helper; SDK `user_message` remains the
   only local-user promotion event.

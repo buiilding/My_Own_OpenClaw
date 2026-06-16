@@ -35,7 +35,7 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 | artifact URL points at wrong backend | renderer artifact URL builder and main endpoint status | `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/ipc_artifact_fetch.cjs` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Configuration Change Workflow](../operations/configuration_change_workflow.md) | `tests/frontend/BackendEndpointStore.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs`, endpoint tests |
 | backend upload/fetch route fails | backend artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | [Backend Artifact Service Docs Hub](../backend/services/artifacts/README.md) | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
 | query payload lacks image context | renderer sender and backend query input resolver | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/utils/messageSender`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/backend/test_query_execution_inputs.py` |
-| tool-result screenshot is stripped or not stored | SDK/main result envelope and backend tool-result router | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `backend/src/agent/tools/waiting/router.py` | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | SDK/main result-envelope tests, backend tool-result tests |
+| tool-result screenshot is stripped or not stored | SDK/main result envelope and backend tool-result router | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `backend/src/agent/tools/waiting/router.py` | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | SDK/main result-envelope tests, backend tool-result tests |
 | replayed chat image is missing | renderer transcript/replay and message image resolver | `frontend/src/renderer/infrastructure/transcript`, `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`, sidecar transcript store | [Memory Change Workflow](../memory/memory_change_workflow.md), [Transcript and Replay](../memory/transcript_and_replay.md) | frontend transcript/message screenshot tests, sidecar transcript tests |
 | SDK or web client cannot fetch artifact | hosted artifact routes and SDK client wrappers | `backend/src/api/routes/artifacts`, `backend/src/sdk`, `frontend/src/renderer/infrastructure/api` | [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md), [Web Client Integration](../web/web_client_integration.md) | backend artifact route tests, SDK client tests |
 
@@ -149,8 +149,8 @@ Use this path when backend-bound payloads change.
 Primary files:
 
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionBackendPayload.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
+- `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`
 - `backend/src/agent/tools/waiting/router.py`
 - `backend/src/agent/tools/processing/**`
@@ -158,8 +158,8 @@ Primary files:
 Validation:
 
 - `tests/frontend/ChatMessageSender.test.tsx`
-- `tests/frontend/ToolExecutionPayloads.test.ts`
-- `tests/frontend/ToolExecutionBackendPayload.test.ts`
+- `tests/frontend/WindieSdkConversationRuntime.test.ts`
+- `tests/frontend/FrontendBackendWebsocketContract.test.cjs`
 - `tests/backend/test_query_execution_inputs.py`
 - backend tool-result router/receiver/storage tests.
 

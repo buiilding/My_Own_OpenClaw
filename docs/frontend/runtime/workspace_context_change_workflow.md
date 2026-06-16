@@ -117,7 +117,7 @@ Read these files when a resumed conversation uses the wrong workspace:
 - `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
-- `frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader.ts`
+- `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
 
 Binding rules:

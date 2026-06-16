@@ -1226,4 +1226,62 @@ describe('windie docs index', () => {
       expectedPath,
     );
   });
+
+  test('routes removed renderer transcript and display helper queries to infrastructure docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'infrastructure',
+      'conversation_transcript_loader_and_display_bounds_storage_reference.md',
+    );
+
+    expect(findDocs('localConversationStore.ts removed')[0].path).toBe(expectedPath);
+    expect(findDocs('displaySelection.ts removed display bounds')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('ToolExecutionInvoker.ts removed screenshot display_bounds')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
+  test('routes removed renderer tool payload builders to capture docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'infrastructure',
+      'capture_artifact_upload_and_payload_normalization_reference.md',
+    );
+
+    expect(findDocs('ToolExecutionPayloads.ts removed')[0].path).toBe(expectedPath);
+    expect(findDocs('ToolExecutionBackendPayload.ts removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
+  test('routes relocated renderer surface file queries to current docs', () => {
+    const overlayPath = path.join('docs', 'desktop', 'response_overlay.md');
+    const modelsSectionPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'dashboard',
+      'sections',
+      'models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md',
+    );
+    const errorPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'styles',
+      'README.md',
+    );
+
+    expect(findDocs('useResponseOverlayViewModel.js minimalChatPill')[0].path).toBe(
+      overlayPath,
+    );
+    expect(findDocs('ModelsSection.jsx dashboard sections')[0].path).toBe(modelsSectionPath);
+    expect(findDocs('ErrorBoundary.css renderer styles')[0].path).toBe(errorPath);
+  });
 });

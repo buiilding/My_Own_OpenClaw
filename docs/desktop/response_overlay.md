@@ -1,8 +1,9 @@
 ---
-summary: "Response overlay guide covering SDK current-turn display, awaiting shell, tool ghost preview, close behavior, and window synchronization."
+summary: "Response overlay guide covering SDK current-turn display, awaiting shell, tool ghost preview, close behavior, window synchronization, and the minimalChatPill useResponseOverlayViewModel owner."
 read_when:
   - When changing response overlay rendering, SDK current-turn projection, tool ghost previews, or close/visibility policy.
   - When debugging dashboard/pill/response overlay state drift.
+  - When changing or searching for `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`.
 title: "Response Overlay"
 ---
 
