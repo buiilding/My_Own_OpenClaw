@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: remove the retired passwordless sudo setting, IPC handler,
   backend config field, and native sudo-routing branch so Linux sudo commands
   always use the sidecar OS-auth prompt path.
+- frontend/sdk: remove the legacy edit/retry user-message ordinal fallback so
+  replay cuts canonical conversation events by message id only.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,

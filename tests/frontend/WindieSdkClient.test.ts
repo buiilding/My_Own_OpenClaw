@@ -4259,7 +4259,8 @@ describe('WindieSdkClient', () => {
         ],
       },
     });
-    await expect(conversation.load()).resolves.toMatchObject({
+    const loadedConversation = await conversation.load();
+    expect(loadedConversation).toMatchObject({
       state: {
         phase: 'streaming',
       },
@@ -4272,6 +4273,8 @@ describe('WindieSdkClient', () => {
         ],
       },
     });
+    const originalUserMessageId = loadedConversation.display.messages.find(message => message.sender === 'user')?.id;
+    expect(originalUserMessageId).toEqual(expect.any(String));
     await expect(agent.listConversations()).resolves.toEqual([
       expect.objectContaining({
         conversationRef: 'conv-runtime-public',
@@ -4309,8 +4312,7 @@ describe('WindieSdkClient', () => {
     socket.clearSent();
     await expect(agent.prepareEditAndResend({
       conversationRef: 'conv-runtime-public',
-      messageId: 'missing-user-message-id',
-      userMessageOrdinal: 0,
+      messageId: originalUserMessageId as string,
       text: 'edited runtime',
       payload: {
         screenshot_ref: 'artifact-edit',

@@ -95,7 +95,6 @@ export type TurnResult = {
 
 export type EditAndResendInput = {
   messageId: string;
-  userMessageOrdinal?: number;
   text: string;
   turnRef?: string;
   payload?: JsonRecord;
@@ -104,7 +103,6 @@ export type EditAndResendInput = {
 
 export type RetryTurnInput = {
   messageId?: string;
-  userMessageOrdinal?: number;
   turnRef?: string;
   payload?: JsonRecord;
   model?: WindieModelSelection;
@@ -196,26 +194,6 @@ function eventMatchesId(event: ConversationEvent, messageId: string): boolean {
     || event.payload.id === messageId
     || event.payload.messageId === messageId
     || event.payload.message_id === messageId;
-}
-
-function findUserEventIndexByOrdinal(
-  events: ConversationEvent[],
-  userMessageOrdinal: number | undefined,
-): number {
-  if (!Number.isInteger(userMessageOrdinal) || (userMessageOrdinal ?? -1) < 0) {
-    return -1;
-  }
-  let currentOrdinal = -1;
-  for (let index = 0; index < events.length; index += 1) {
-    if (events[index]?.type !== 'user_message') {
-      continue;
-    }
-    currentOrdinal += 1;
-    if (currentOrdinal === userMessageOrdinal) {
-      return index;
-    }
-  }
-  return -1;
 }
 
 function resolvedUserTurnPayload(events: ConversationEvent[], userIndex: number): JsonRecord {
@@ -881,12 +859,9 @@ export class SdkConversationRuntime {
       throw new Error('editAndResend requires non-empty text');
     }
     const events = await this.options.store.loadEvents(this.options.conversationRef);
-    let userIndex = events.findIndex(event => (
+    const userIndex = events.findIndex(event => (
       event.type === 'user_message' && eventMatchesId(event, input.messageId)
     ));
-    if (userIndex < 0) {
-      userIndex = findUserEventIndexByOrdinal(events, input.userMessageOrdinal);
-    }
     if (userIndex < 0) {
       throw new Error(`Cannot edit missing user message: ${input.messageId}`);
     }
@@ -921,10 +896,10 @@ export class SdkConversationRuntime {
     const targetIndex = input.messageId
       ? events.findIndex(event => eventMatchesId(event, input.messageId))
       : events.length - 1;
-    const ordinalUserIndex = findUserEventIndexByOrdinal(events, input.userMessageOrdinal);
-    const searchStart = targetIndex >= 0
-      ? targetIndex
-      : (ordinalUserIndex >= 0 ? ordinalUserIndex : events.length - 1);
+    if (input.messageId && targetIndex < 0) {
+      throw new Error(`Cannot retry missing message: ${input.messageId}`);
+    }
+    const searchStart = targetIndex >= 0 ? targetIndex : events.length - 1;
     let userIndex = -1;
     for (let index = searchStart; index >= 0; index -= 1) {
       if (events[index]?.type === 'user_message') {

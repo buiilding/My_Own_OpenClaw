@@ -1902,16 +1902,6 @@ function requireCommandString(payload = {}, key, label) {
   return value;
 }
 
-function optionalCommandNonNegativeInteger(payload = {}, keys = []) {
-  for (const key of keys) {
-    const value = payload[key];
-    if (typeof value === 'number' && Number.isInteger(value) && value >= 0) {
-      return value;
-    }
-  }
-  return undefined;
-}
-
 function normalizeAppDiagnosticContext(payload = {}) {
   const diagnostics = isPlainObject(payload._diagnostics) ? payload._diagnostics : {};
   return {
@@ -2210,7 +2200,6 @@ function buildWindieSdkCommandHandlers({
       const prepared = await runtimeRegistry.prepareEditAndResend({
         conversationRef,
         messageId: requireCommandString(payload, 'messageId', 'message id'),
-        userMessageOrdinal: optionalCommandNonNegativeInteger(payload, ['userMessageOrdinal', 'user_message_ordinal']),
         text: requireCommandString(payload, 'text', 'replacement text'),
         turnRef: normalizeOptionalString(payload.turnRef || payload.turn_ref) || undefined,
         payload: cloneJsonObject(payload.payload),
@@ -2235,7 +2224,6 @@ function buildWindieSdkCommandHandlers({
       const prepared = await runtimeRegistry.prepareRetryTurn({
         conversationRef,
         ...(messageId ? { messageId } : {}),
-        userMessageOrdinal: optionalCommandNonNegativeInteger(payload, ['userMessageOrdinal', 'user_message_ordinal']),
         turnRef: normalizeOptionalString(payload.turnRef || payload.turn_ref) || undefined,
         payload: cloneJsonObject(payload.payload),
         model: isPlainObject(payload.model) ? payload.model : undefined,

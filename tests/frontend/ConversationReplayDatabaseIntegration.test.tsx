@@ -225,6 +225,33 @@ try:
                     "count": len(rows),
                 },
             }))
+        elif method == "conversation.append_event":
+            next_index_row = conn.execute(
+                """
+                SELECT COALESCE(MAX(message_index), 0) + 1 AS next_index
+                FROM conversation_events
+                WHERE user_id = ? AND conversation_id = ?
+                """,
+                (
+                    params.get("user_id"),
+                    params.get("conversation_id"),
+                ),
+            ).fetchone()
+            insert_event(
+                conn,
+                str(params.get("user_id")),
+                params["event_payload"],
+                int(next_index_row["next_index"] or 1),
+            )
+            conn.commit()
+            print(json.dumps({
+                "success": True,
+                "data": {
+                    "inserted_count": 1,
+                    "conversation_id": params.get("conversation_id"),
+                    "record_kind": "chat_event",
+                },
+            }))
         elif method == "conversation.rewrite_after_event":
             cutoff_index = 0
             cut_after_event_id = params.get("cut_after_event_id")
@@ -347,15 +374,15 @@ class SqliteConversationHistory {
 }
 
 const BASE_MESSAGES = [
-  { id: 'renderer-user-1', sender: 'user', text: 'first question' },
-  { id: 'renderer-assistant-1', sender: 'assistant', text: 'first answer' },
+  { id: 'stored-user-1', sender: 'user', text: 'first question' },
+  { id: 'stored-assistant-1', sender: 'assistant', text: 'first answer' },
   {
-    id: 'renderer-user-2',
+    id: 'stored-user-2',
     sender: 'user',
     text: 'second question',
     screenshotRef: 'artifact-old',
   },
-  { id: 'renderer-assistant-2', sender: 'assistant', text: 'second answer' },
+  { id: 'stored-assistant-2', sender: 'assistant', text: 'second answer' },
 ];
 
 function renderReplayHook(messages: Array<Record<string, unknown>>) {
@@ -466,9 +493,6 @@ describe('conversation replay database integration', () => {
         await runtime.load();
         return runtime.prepareEditAndResend({
           messageId: String(payload.messageId),
-          userMessageOrdinal: typeof payload.userMessageOrdinal === 'number'
-            ? payload.userMessageOrdinal
-            : undefined,
           text: String(payload.text),
           payload: (payload.payload ?? {}) as JsonRecord,
           model: (payload.model ?? null) as never,
@@ -494,7 +518,7 @@ describe('conversation replay database integration', () => {
 
     await act(async () => {
       await expect(result.current.handleEditFromUser(
-        'renderer-user-2',
+        'stored-user-2',
         'edited second question',
       )).resolves.toBe(true);
     });
@@ -506,8 +530,7 @@ describe('conversation replay database integration', () => {
     expect(invokeWindieCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
-      messageId: 'renderer-user-2',
-      userMessageOrdinal: 1,
+      messageId: 'stored-user-2',
       text: 'edited second question',
     }));
     expect(backendRehydrates).toEqual([
@@ -532,17 +555,18 @@ describe('conversation replay database integration', () => {
     ]);
 
     const storedRows = history.rows('conv-replay-db');
-    expect(storedRows.map(row => row.id)).toEqual([
+    const conversationRows = storedRows.filter(row => row.event_type !== 'trace_event');
+    expect(conversationRows.map(row => row.id)).toEqual([
       'stored-user-1',
       'stored-assistant-1',
       expect.stringMatching(/conversation_rewritten$/),
     ]);
-    expect(storedRows.map(row => row.event_type)).toEqual([
+    expect(conversationRows.map(row => row.event_type)).toEqual([
       'user_message',
       'assistant_message',
       'conversation_rewritten',
     ]);
-    expect(storedRows.map(row => row.message_index)).toEqual([1, 2, 3]);
+    expect(conversationRows.map(row => row.message_index)).toEqual([1, 2, 3]);
     expect(storedRows.some(row => row.id === 'stored-user-2')).toBe(false);
     expect(storedRows.some(row => row.id === 'stored-assistant-2')).toBe(false);
   });
@@ -552,7 +576,7 @@ describe('conversation replay database integration', () => {
 
     await act(async () => {
       await expect(result.current.handleEditFromUser(
-        'renderer-user-1',
+        'stored-user-1',
         'edited first question',
       )).resolves.toBe(true);
     });
@@ -560,8 +584,7 @@ describe('conversation replay database integration', () => {
     expect(invokeWindieCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
-      messageId: 'renderer-user-1',
-      userMessageOrdinal: 0,
+      messageId: 'stored-user-1',
       text: 'edited first question',
     }));
     expect(backendRehydrates).toEqual([
@@ -580,13 +603,14 @@ describe('conversation replay database integration', () => {
     ]);
 
     const storedRows = history.rows('conv-replay-db');
-    expect(storedRows.map(row => row.id)).toEqual([
+    const conversationRows = storedRows.filter(row => row.event_type !== 'trace_event');
+    expect(conversationRows.map(row => row.id)).toEqual([
       expect.stringMatching(/conversation_rewritten$/),
     ]);
-    expect(storedRows.map(row => row.event_type)).toEqual([
+    expect(conversationRows.map(row => row.event_type)).toEqual([
       'conversation_rewritten',
     ]);
-    expect(storedRows.map(row => row.message_index)).toEqual([1]);
+    expect(conversationRows.map(row => row.message_index)).toEqual([1]);
   });
 
   test('reports preparation failure when renderer message identity cannot map to a stored user_message', async () => {
@@ -646,7 +670,7 @@ describe('conversation replay database integration', () => {
 
     await act(async () => {
       await expect(result.current.handleEditFromUser(
-        'renderer-user-2',
+        'stored-user-2',
         'edited second question',
       )).resolves.toBe(false);
     });
@@ -672,7 +696,7 @@ describe('conversation replay database integration', () => {
 
     await act(async () => {
       await expect(result.current.handleEditFromUser(
-        'renderer-user-2',
+        'stored-user-2',
         'edited second question',
       )).resolves.toBe(false);
     });
@@ -698,7 +722,7 @@ describe('conversation replay database integration', () => {
 
     await act(async () => {
       await expect(result.current.handleEditFromUser(
-        'renderer-user-2',
+        'stored-user-2',
         'edited second question',
       )).resolves.toBe(false);
     });
@@ -709,7 +733,10 @@ describe('conversation replay database integration', () => {
     );
     expect(backendRehydrates).toHaveLength(1);
     expect(sentQueries).toEqual([]);
-    expect(history.rows('conv-replay-db').map(row => row.id)).toEqual([
+    const conversationRows = history
+      .rows('conv-replay-db')
+      .filter(row => row.event_type !== 'trace_event');
+    expect(conversationRows.map(row => row.id)).toEqual([
       'stored-user-1',
       'stored-assistant-1',
       expect.stringMatching(/conversation_rewritten$/),

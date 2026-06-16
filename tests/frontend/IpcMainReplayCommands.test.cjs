@@ -86,7 +86,6 @@ describe('ipc.cjs replay command handling', () => {
         conversationRef: 'conv-ipc-replay',
         workspace_path: '/tmp/windie-workspace',
         messageId: 'renderer-user-2',
-        userMessageOrdinal: 1,
         text: 'edited second question',
         turnRef: 'turn-edited',
         payload: {
@@ -129,7 +128,6 @@ describe('ipc.cjs replay command handling', () => {
     }));
     expect(sdk.runtime.prepareEditAndResend).toHaveBeenCalledWith({
       messageId: 'renderer-user-2',
-      userMessageOrdinal: 1,
       text: 'edited second question',
       turnRef: 'turn-edited',
       payload: {
@@ -188,7 +186,6 @@ describe('ipc.cjs replay command handling', () => {
         conversationRef: 'conv-ipc-retry',
         workspacePath: '/tmp/windie-retry-workspace',
         messageId: 'assistant-retry',
-        user_message_ordinal: 0,
         turn_ref: 'turn-retry',
         payload: {
           retry_reason: 'user-requested',
@@ -214,7 +211,6 @@ describe('ipc.cjs replay command handling', () => {
     }));
     expect(sdk.runtime.prepareRetryTurn).toHaveBeenCalledWith({
       messageId: 'assistant-retry',
-      userMessageOrdinal: 0,
       turnRef: 'turn-retry',
       payload: {
         retry_reason: 'user-requested',

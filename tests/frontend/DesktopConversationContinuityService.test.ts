@@ -62,7 +62,6 @@ describe('DesktopConversationContinuityService', () => {
           userId: 'user-1',
           conversationRef: 'conv-replay',
           messageId: 'user-1',
-          userMessageOrdinal: undefined,
           text: 'edited question',
           payload: {
             screenshot_ref: 'artifact-1',
@@ -133,7 +132,6 @@ describe('DesktopConversationContinuityService', () => {
           userId: 'user-1',
           conversationRef: 'conv-retry',
           messageId: 'assistant-1',
-          userMessageOrdinal: undefined,
           payload: {
             screenshot_ref: null,
           },

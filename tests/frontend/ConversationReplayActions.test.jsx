@@ -145,7 +145,6 @@ describe('useConversationReplayActions', () => {
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'assistant-1',
-      userMessageOrdinal: 0,
       text: 'first question',
       model: {
         modelProvider: 'anthropic',
@@ -197,7 +196,6 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      userMessageOrdinal: 0,
       payload: {
         screenshot: inlineScreenshot,
       },
@@ -208,7 +206,7 @@ describe('useConversationReplayActions', () => {
     }));
   });
 
-  test('edit replay passes user ordinal for renderer-only message ids', async () => {
+  test('edit replay sends the selected user message id', async () => {
     const messages = [
       {
         id: 'renderer-user-1',
@@ -246,9 +244,9 @@ describe('useConversationReplayActions', () => {
 
     expect(mockPrepareEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
       messageId: 'renderer-user-2',
-      userMessageOrdinal: 1,
       text: 'edited second question',
     }));
+    expect(mockPrepareEditAndResend.mock.calls[0][0]).not.toHaveProperty('userMessageOrdinal');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       text: 'edited second question',
     }));
@@ -283,7 +281,6 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      userMessageOrdinal: 0,
       payload: {
         screenshot_ref: 'artifact-99',
         screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-99',

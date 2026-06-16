@@ -58,11 +58,9 @@ rows after the cutoff and inserts the rewrite marker in one SQLite transaction.
 This keeps prior history in SQLite instead of copying a shortened transcript
 back through the renderer-to-sidecar request path.
 
-Live sends should use one stable turn/message id across the pending renderer row
-and the SDK query turn. Replay first matches canonical sidecar events by
-event/payload id. For rows created before that id contract existed, the renderer
-also sends the clicked user-message ordinal so the SDK can cut the matching
-canonical user event without depending on a renderer-only UUID.
+Live sends use one stable turn/message id across the pending renderer row and
+the SDK query turn. Replay matches canonical sidecar events by event/payload id;
+renderer-only transcript IDs are not a replay contract.
 
 After a compact edit/resend or retry cut, the replay dispatch must persist the
 replacement user turn before sending the query. Otherwise the next assistant
