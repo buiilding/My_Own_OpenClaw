@@ -84,7 +84,10 @@ If packaged apps connect to the wrong backend, inspect:
 - `BACKEND_PORT`
 - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
 - `WINDIE_DEFAULT_BACKEND_WS_URL`
-- packaged default endpoint docs
+
+Do not use removed packaged-only aliases such as
+`WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL` or
+`WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`; Electron main ignores them.
 
 ## Route Registration
 

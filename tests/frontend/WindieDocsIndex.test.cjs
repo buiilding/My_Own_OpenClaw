@@ -115,6 +115,13 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed packaged endpoint alias queries to endpoint runtime docs', () => {
+    const expectedPath = path.join('docs', 'frontend', 'main', 'runtime_paths_and_endpoints.md');
+
+    expect(findDocs('removed packaged backend endpoint aliases')[0].path).toBe(expectedPath);
+    expect(findDocs('WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL')[0].path).toBe(expectedPath);
+  });
+
   test('routes package and reinstall queries to the cross-platform runbook', () => {
     expect(findDocs('packaging reinstall')[0].path).toBe(
       path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),

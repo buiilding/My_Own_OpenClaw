@@ -1,7 +1,7 @@
 ---
-summary: "Electron main runtime path and endpoint resolution: backend ws/http URL derivation, packaged-sidecar python path lookup, and frontend config persistence location."
+summary: "Electron main runtime path and endpoint resolution: backend ws/http URL derivation, removed packaged endpoint alias behavior, packaged-sidecar python path lookup, and frontend config persistence location."
 read_when:
-  - When changing backend endpoint env vars or ws/http URL derivation.
+  - When changing backend endpoint env vars, removed packaged endpoint aliases, or ws/http URL derivation.
   - When debugging packaged-build Python script/runtime resolution or frontend config disk location.
 title: "Runtime Paths and Endpoints"
 ---
@@ -32,6 +32,13 @@ Supported env vars (priority order):
 - hosted-default override pair:
   - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
   - `WINDIE_DEFAULT_BACKEND_WS_URL`
+
+Removed packaged endpoint aliases:
+
+- `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL` is not read.
+- `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL` is not read.
+- Packaged and source runs share the same hosted-default override names:
+  `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL`.
 
 Defaults when explicit `BACKEND_*` is unset:
 

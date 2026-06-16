@@ -159,6 +159,8 @@ All notable changes to WindieOS will be documented in this file.
   searches to the voice utility reference.
 - docs/frontend: remove stale voice auto-send wording from renderer flow docs
   and align comments/tests with the composer-first utterance-end contract.
+- docs/frontend: document that removed packaged backend endpoint aliases are
+  ignored and route those searches to the Electron endpoint runtime reference.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
