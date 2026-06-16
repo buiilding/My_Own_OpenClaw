@@ -522,4 +522,11 @@ describe('windie docs index', () => {
     );
     expect(findDocs('ChatGptDashboardShell css removed')[0].path).toBe(expectedPath);
   });
+
+  test('routes SDK websocket typing queries to the WindieClient runtime contract', () => {
+    const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
+
+    expect(findDocs('SDK websocket ws ambient declaration')[0].path).toBe(expectedPath);
+    expect(findDocs('WebSocketLike WebSocketConstructor ws package')[0].path).toBe(expectedPath);
+  });
 });

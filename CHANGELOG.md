@@ -48,6 +48,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: align dashboard shell/style references with the current
   `DashboardShell.css`, `CloneMemoryModels.css`, `CloneSettings.css`, and
   `FrontendOnboarding.css` ownership after stale renderer styles were removed.
+- docs/sdk: route SDK websocket typing and removed `ws.d.ts` ambient
+  declaration queries to the WindieClient runtime contract.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

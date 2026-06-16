@@ -1,8 +1,9 @@
 ---
-summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, and tool-result routing."
+summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, and tool-result routing."
 read_when:
   - When changing `WindieClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
   - When debugging whether a query should use the hosted backend websocket, the local sidecar daemon, or both.
+  - When changing SDK websocket implementation selection, `WebSocketLike`/`WebSocketConstructor` types, the `ws` package dependency, or stale references to the removed `src/types/ws.d.ts` ambient declaration.
   - When debugging stale `builtinTools` wakeUp option calls, the removed builtinTools wake guard, or current `builtins` agent setup.
   - When adding SDK, CLI, Electron, plugin, MCP, or module-tool entrypoints.
 title: "WindieClient Runtime Contract"
@@ -52,6 +53,13 @@ Ownership rules:
   and the conversation transport adapter used by `ConversationRuntime`. That
   adapter exposes query, rehydrate, stop, tool-result, settings-update, and
   list-models websocket commands as one typed backend boundary.
+- the SDK transport module owns the websocket type surface. `WindieAgentSession.ts`
+  defines the public `WebSocketLike` and `WebSocketConstructor` structural
+  types used by `WindieClient`, `ManagedWindieAgentSession`, and
+  `BackendSocketFactory`. The package still depends on runtime `ws` for Node
+  sockets, but it no longer carries a local `src/types/ws.d.ts` ambient
+  declaration; TypeScript declaration output comes from the SDK-owned
+  websocket-like interfaces.
 - Electron main exposes only non-tool typed websocket commands to app callers;
   backend tool-result sends are internal to SDK tool coordination after a
   claimed backend tool event.
