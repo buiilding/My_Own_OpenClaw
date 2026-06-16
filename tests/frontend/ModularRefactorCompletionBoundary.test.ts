@@ -144,7 +144,6 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/transcript/README.md',
       'docs/frontend/renderer/transcript/contracts/README.md',
       'docs/frontend/renderer/transcript/contracts/transcript_entry_type_contract_reference.md',
-      'docs/frontend/renderer/transcript/contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md',
       'docs/frontend/inventory/protocols/state/frontend_protocol_session_and_conversation_state_propagation_reference.md',
       'docs/frontend/inventory/protocols/state/README.md',
       'docs/frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md',

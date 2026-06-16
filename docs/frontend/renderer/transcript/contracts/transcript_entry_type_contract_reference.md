@@ -55,4 +55,3 @@ They do not implement validation logic themselves; runtime filtering/normalizati
 
 - [Frontend Renderer Transcript Contracts Docs Hub](README.md)
 - [Transcript Session Sync Payload Normalization and Alias Contract Reference](transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
-- [Transcript Transparency Normalization and Snapshot Pruning Contract Reference](transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md)

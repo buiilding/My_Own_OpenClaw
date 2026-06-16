@@ -66,6 +66,7 @@ Date: 2026-06-15
 | CD-033 | Renderer manual compaction helper | `waitForNextPaint(...)` stayed exported from `manualCompactionRuntime.js` even though only `runManualCompaction(...)` is imported by production and tests | Knip reported the helper export unused; repo search showed it is called only inside the manual compaction runtime, while docs still describe the paint wait as current runtime behavior | Make the helper private while preserving the pre-compaction paint wait inside `runManualCompaction(...)` | implemented |
 | CD-034 | Renderer transcript payload helpers | `transcriptMessagePayload.js` preserved role/type/rehydrate helpers that no production code imported after transcript replay/display moved to SDK-backed renderer transcript infrastructure; its only live production export was `normalizeProvider(...)` for chat model options, and deleting it orphaned `rehydrateMessageState.js` plus `structuredToolPayload.js` | Knip reported the transcript helpers unused; repo search showed the rehydrate helpers were test/docs-only, while `normalizeProvider(...)` belongs with chat model option grouping/filtering | Move provider normalization into `chatModelOptions.js`; delete the stale transcript payload module, orphaned rehydrate/structured payload helpers, tests, and deep docs page; update docs to route transcript work to renderer transcript infrastructure | implemented |
 | CD-035 | Renderer rehydrate payload helper file | `rehydratePayload.js` no longer built backend rehydrate payloads after SDK `buildRehydrateSnapshot(...)` and `ConversationContinuityService` became the active replay/rehydrate owner; production imported it only for a generic string normalizer used by tool-call display state | Knip reported every rehydrate helper export unused; repo search showed the helper file was kept alive only by `toolCallMessageState.js` importing `normalizeOptionalString(...)`, while its tests/docs still described it as the rehydrate payload builder | Move the string normalizer into `toolCallMessageState.js`; delete the obsolete helper file and test; update transcript/replay docs to route rehydrate payload construction to SDK projections and backend rehydrate services | implemented |
+| CD-036 | Renderer transparency normalization helper | `transparencyNormalization.ts` stayed as a test-only renderer contract after transcript replay/rehydrate moved to chat-stream transparency capture, SDK projections, and backend rehydrate transparency resolution | Knip reported `normalizeTransparencyData(...)` unused; repo search showed only its test and stale deep docs referenced the module, with no production imports | Delete the orphan helper, test, and contract page; update transcript/incoming-text docs to route transparency behavior to active chat-stream, SDK projection, and backend rehydrate surfaces | implemented |
 
 ## Commit Ledger
 
@@ -135,6 +136,7 @@ Date: 2026-06-15
   completed CD-034.
 - `38ced9039 refactor(frontend): remove renderer rehydrate payload helper`
   completed CD-035.
+- pending commit for CD-036.
 
 ## Validation Log
 
@@ -544,6 +546,23 @@ CD-035 validation:
   required; backend rehydrate payload construction already lives in SDK
   conversation projections and backend rehydrate services, and this slice only
   removes a stale renderer helper/test plus misleading docs.
+
+CD-036 validation:
+
+- targeted `rg -n "transcript_transparency_normalization_and_snapshot_pruning_contract_reference|Transcript Transparency Normalization|transparencyNormalization|TranscriptTransparencyNormalization|normalizeTransparencyData" docs frontend/src tests/frontend packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no stale helper-file, deleted-test, deleted-doc, or deleted-export matches
+  remain.
+- `bin/windie test frontend -- IncomingTextNormalization TranscriptSessionSyncPayload ChatStreamTransparency WindieSdkConversationRuntime ModularRefactorCompletionBoundary`:
+  passed, 5 suites and 150 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 202 to
+  201 and the CD-036 deleted helper file/symbols no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this deletes only a renderer helper and docs page with no production
+  imports, while active transparency capture/projection remains covered by
+  chat-stream, SDK projection, and backend rehydrate tests.
 
 ## Inspection Notes
 

@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for renderer incoming text normalization: mojibake repair, lone-surrogate replacement, and optional-trim/null helpers shared by chat stream and transcript session/transparency parsing."
+summary: "Deep reference for renderer incoming text normalization: mojibake repair, lone-surrogate replacement, and optional-trim/null helpers shared by chat stream and transcript session parsing."
 read_when:
-  - When changing renderer text sanitization behavior for streamed assistant content or transcript persistence.
+  - When changing renderer text sanitization behavior for streamed assistant content or transcript session parsing.
   - When debugging mojibake artifacts, invalid surrogate crashes, or unexpected empty-text drops.
 title: "Incoming Text Normalization Contract Reference"
 ---
@@ -13,19 +13,17 @@ title: "Incoming Text Normalization Contract Reference"
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
-- `frontend/src/renderer/infrastructure/transcript/transparencyNormalization.ts`
 - `tests/frontend/IncomingTextNormalization.test.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
-- `tests/frontend/TranscriptTransparencyNormalization.test.ts`
 
 ## Purpose
 
 The normalization helper centralizes incoming text cleanup for stream and transcript metadata paths:
 
 - backend stream/update payload text before renderer message updates
-- transcript session-sync payload parsing and transparency snapshot normalization
+- transcript session-sync payload parsing
 
-This prevents normalization drift between stream rendering and transcript metadata/session identity parsing.
+This prevents normalization drift between stream rendering and transcript session identity parsing.
 
 ## Core APIs
 
@@ -89,16 +87,6 @@ This avoids invalid UTF-16 payload propagation while preserving valid non-BMP ch
 
 Whitespace-only values collapse to `null`; omitted keys remain `undefined` for partial-update semantics.
 
-### Transcript transparency normalization
-
-`transparencyNormalization.ts` uses `normalizeOptionalIncomingText(...)` for:
-
-- `systemPrompt`
-- `fullUserMessage.content`
-- `fullAssistantMessage.content`
-
-This keeps prompt/transparency snapshots trimmed and safe before `store-chat-event` persistence.
-
 ## Test-Backed Invariants
 
 `tests/frontend/IncomingTextNormalization.test.ts` verifies:
@@ -113,7 +101,7 @@ This keeps prompt/transparency snapshots trimmed and safe before `store-chat-eve
 
 1. Changing replacement ordering may alter output for overlapping mojibake patterns.
 2. Removing lone-surrogate replacement can reintroduce invalid UTF encoding errors in downstream persistence/transport paths.
-3. Diverging stream vs session-sync/transparency normalization paths can cause conversation-id drift or dropped transparency fields.
+3. Diverging stream vs session-sync normalization paths can cause conversation-id drift.
 
 ## Related Docs
 
