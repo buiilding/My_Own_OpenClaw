@@ -84,7 +84,7 @@ title: "Frontend Renderer Docs Hub"
 - [Renderer Provider Shortcut Docs Hub](providers/shortcuts/README.md)
 - [Shift+Tab Mode Toggle and Editable Target Guard Reference](providers/shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
-- [Response Overlay Phase and Tool-Ghost Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Response Overlay Phase Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Renderer Overlay Tool Ghost Docs Hub](overlays/tool_ghost/README.md)
 - [Tool Ghost Preview Payload Parsing and Target Mapping Reference](overlays/tool_ghost/tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
 - [Renderer Tool-Ghost Lifecycle Docs Hub](overlays/tool_ghost/lifecycle/README.md)

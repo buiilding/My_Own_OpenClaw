@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: SDK current-turn visibility, awaiting vs response states, closeability rules, and deterministic fixed-frame sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, renderer-send-preflight awaiting latch, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
   - When changing `MinimalResponseOverlay.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
-  - When debugging missing response panes, stale awaiting indicators, or incorrect response overlay resize behavior.
+  - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local send-preflight flicker, or incorrect response overlay resize behavior.
 title: "Response Overlay Phase Runtime Reference"
 ---
 

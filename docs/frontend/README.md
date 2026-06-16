@@ -141,7 +141,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Renderer Provider Components Docs Hub](renderer/providers/components/README.md)
 - [Error Boundary Fallback and Component-Tree Crash Isolation Contract Reference](renderer/providers/components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
-- [Response Overlay Phase and Tool-Ghost Runtime Reference](renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Response Overlay Phase Runtime Reference](renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Renderer Overlay Tool Ghost Docs Hub](renderer/overlays/tool_ghost/README.md)
 - [Tool Ghost Preview Payload Parsing and Target Mapping Reference](renderer/overlays/tool_ghost/tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
 - [Renderer Tool-Ghost Lifecycle Docs Hub](renderer/overlays/tool_ghost/lifecycle/README.md)

@@ -24,6 +24,9 @@ All notable changes to WindieOS will be documented in this file.
   chatbox helper split after deleting drag-block target helpers.
 - frontend/renderer docs: describe the chat pill drag threshold as private
   movement behavior instead of a shared helper contract.
+- frontend/renderer docs: route response-overlay docs search toward SDK
+  current-turn presentation, renderer-send-preflight handoff, and fixed-frame
+  size IPC instead of stale tool-ghost wording.
 - frontend/renderer: keep the minimal chat pill drag-start threshold private to
   the drag target resolver.
 - frontend/renderer: keep dashboard memory timestamp formatting private to
