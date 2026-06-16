@@ -104,7 +104,7 @@ Date: 2026-06-15
 | CD-071 | Electron clipboard image helper exports | `ipc_clipboard_image.cjs` exported image size-limit constants and the trusted artifact URL validator even though production imports only `copyImageToClipboard(...)` and `registerClipboardImageHandler(...)` | Knip reported all three exports unused; repo search showed tests already cover validator behavior through the high-level copy path and no external caller imports the helpers | Remove the helper exports and keep size limits plus remote URL validation private to the clipboard image copy implementation | `8bf31abb6` |
 | CD-072 | Electron conversation-event broadcast wrapper | `ipc_conversation_event_broadcast.cjs` exported `broadcastConversationEvent(...)` even though production imports only `buildConversationEventFromBackendEvent(...)` and active callers own renderer broadcasting themselves | Knip reported the wrapper export unused; repo search found no production, test, docs, or script call sites outside the module definition | Delete the wrapper export and keep backend-to-conversation event normalization as the module's public API | `0567dd6ca` |
 | CD-073 | Electron renderer diagnostics helper exports | `ipc_diagnostics_runtime.cjs` exported frontend interaction summary, normalization, and message-text gating helpers even though production imports only `handleRendererLog(...)` | Knip reported all three helper exports unused; repo search showed only the diagnostics unit test imported them directly while runtime callers route through `handleRendererLog(...)` | Remove the helper exports, keep diagnostics normalization private, and assert summary/redaction behavior through the public renderer-log handler | `b1dd73c80` |
-| CD-074 | Electron image context menu helper exports | `ipc_image_context_menu.cjs` exported `buildImageContextMenu(...)` and `showImageContextMenu(...)` even though production imports only `registerImageContextMenuHandler(...)` for the `show-image-context-menu` IPC channel | Knip reported both helper exports unused; repo search showed only the context-menu unit test imported them directly while the app registers the IPC handler | Remove the helper exports, keep menu construction/private popup execution inside the handler module, and assert copy/error behavior through the registered IPC handler | pending |
+| CD-074 | Electron image context menu helper exports | `ipc_image_context_menu.cjs` exported `buildImageContextMenu(...)` and `showImageContextMenu(...)` even though production imports only `registerImageContextMenuHandler(...)` for the `show-image-context-menu` IPC channel | Knip reported both helper exports unused; repo search showed only the context-menu unit test imported them directly while the app registers the IPC handler | Remove the helper exports, keep menu construction/private popup execution inside the handler module, and assert copy/error behavior through the registered IPC handler | `372f368b6` |
 
 ## Commit Ledger
 
@@ -250,6 +250,8 @@ Date: 2026-06-15
   completed CD-072.
 - `b1dd73c80 refactor(frontend): keep renderer diagnostics helpers private`
   completed CD-073.
+- `372f368b6 refactor(frontend): keep image context menu helpers private`
+  completed CD-074.
 
 ## Validation Log
 
