@@ -197,6 +197,20 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes agent-definition tool manifest handshake queries to SDK docs', () => {
+    const expectedPath = path.join('docs', 'sdk', 'agent_definition.md');
+
+    expect(findDocs('agent capability handshake client tool manifest')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('client tool manifest agent definition handshake')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('frontend tool schemas planned post handshake')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes package and reinstall queries to the cross-platform runbook', () => {
     expect(findDocs('packaging reinstall')[0].path).toBe(
       path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),

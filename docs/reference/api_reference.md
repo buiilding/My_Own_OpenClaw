@@ -1155,70 +1155,48 @@ Used when switching or resuming conversations from episodic memory.
 - Success: no dedicated success event (rehydrate is applied silently).
 - Failure: standard `error` event.
 
-### Frontend Tool Schemas Message (Planned)
+### Client Tool Manifest Handshake
 
-Send frontend runtime tool schemas after handshake so backend can build prompt/tool validation from the active client catalog.
+Frontend runtime tool schemas are sent during websocket handshake inside
+`agent_definition.tools.client_manifest`. The backend validates the manifest,
+stores accepted/rejected diagnostics on the session, applies tool policy and
+provider projection, and emits the public validation result as
+`client-tool-manifest`.
 
-**Type**: `frontend-tool-schemas`
+Current SDK/Electron clients should not send a post-handshake
+`frontend-tool-schemas` message. The backend still accepts top-level
+`client_tool_manifest` on the handshake only as a compatibility fallback for
+older clients.
 
-**Payload**:
+**Handshake excerpt**:
 ```json
 {
-  "schema_version": "2026-02-07",
-  "catalog_revision": 1,
-  "client_build": "frontend@1.3.0",
-  "tools": [
-    {
-      "name": "read_file",
-      "description": "Read a UTF-8 text file from disk",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "path": { "type": "string" }
-        },
-        "required": ["path"]
-      },
-      "execution": {
-        "surface": "frontend-sidecar",
-        "enabled": true
+  "type": "handshake",
+  "user_id": "user-123",
+  "agent_definition": {
+    "version": 1,
+    "tools": {
+      "mode": "default_plus_client",
+      "client_manifest": {
+        "version": 1,
+        "tools": [
+          {
+            "name": "read_file",
+            "description": "Read a UTF-8 text file from disk",
+            "execution_target": "sidecar",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "path": { "type": "string" }
+              },
+              "required": ["path"]
+            },
+            "argument_resolution": "passthrough"
+          }
+        ]
       }
     }
-  ]
-}
-```
-
-**Response**: `frontend-tool-schemas-accepted`
-
-**Status**: Planned. Not implemented yet.
-
-**Example**:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174024",
-  "type": "frontend-tool-schemas",
-  "payload": {
-    "schema_version": "2026-02-07",
-    "catalog_revision": 1,
-    "client_build": "frontend@1.3.0",
-    "tools": [
-      {
-        "name": "read_file",
-        "description": "Read a UTF-8 text file from disk",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": { "type": "string" }
-          },
-          "required": ["path"]
-        },
-        "execution": {
-          "surface": "frontend-sidecar",
-          "enabled": true
-        }
-      }
-    ]
-  },
-  "timestamp": "2025-01-20T10:00:00Z"
+  }
 }
 ```
 
@@ -2137,44 +2115,30 @@ Notes:
 }
 ```
 
-### Frontend Tool Schemas Accepted Message (Planned)
+### Client Tool Manifest Event
 
-Acknowledgment after backend validates and stores a frontend-sent tool catalog for the current session.
+The backend emits `client-tool-manifest` after validating the handshake
+manifest. Renderer clients receive it through the typed `agent-capability-event`
+channel.
 
-**Type**: `frontend-tool-schemas-accepted`
+**Type**: `client-tool-manifest`
 
 **Payload**:
 ```json
 {
-  "catalog_revision": 1,
-  "accepted_tools": ["read_file"],
-  "rejected_tools": [
+  "accepted": [
+    {
+      "name": "read_file",
+      "description": "Read a UTF-8 text file from disk",
+      "execution_target": "sidecar"
+    }
+  ],
+  "rejected": [
     {
       "name": "danger_tool",
-      "reason": "policy_denied"
+      "reason": "reserved backend tool names cannot be overridden"
     }
   ]
-}
-```
-
-**Status**: Planned. Not implemented yet.
-
-**Example**:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174025",
-  "type": "frontend-tool-schemas-accepted",
-  "payload": {
-    "catalog_revision": 1,
-    "accepted_tools": ["read_file"],
-    "rejected_tools": [
-      {
-        "name": "danger_tool",
-        "reason": "policy_denied"
-      }
-    ]
-  },
-  "timestamp": "2025-01-20T10:00:00Z"
 }
 ```
 
@@ -2219,22 +2183,32 @@ real `user_id` from the token and does not trust a mismatched claimed
 ```json
 {
   "type": "handshake",
-  "user_id": "user-123"
+  "user_id": "user-123",
+  "agent_definition": {
+    "version": 1,
+    "tools": {
+      "mode": "default_plus_client",
+      "client_manifest": {
+        "version": 1,
+        "tools": []
+      }
+    }
+  }
 }
 ```
 
-### Post-Handshake Tool Catalog Sync (Planned)
+If the client has local tool schemas, it sends them in
+`agent_definition.tools.client_manifest` on this handshake. The backend
+validates that manifest during handshake setup and emits a
+`client-tool-manifest` event with accepted/rejected diagnostics. There is no
+current post-handshake `frontend-tool-schemas` sync message.
 
-After handshake, client may send `frontend-tool-schemas` before first `query`. During migration:
-- If schema sync is supported, backend responds with `frontend-tool-schemas-accepted` and uses the accepted catalog for that session.
-- If schema sync is not supported, clients continue using legacy flow (backend-owned remote schema catalog).
-
-Planned sequence:
+Current sequence:
 1. Connect WebSocket
-2. Send `handshake`
-3. Send `frontend-tool-schemas` (planned)
-4. Receive `frontend-tool-schemas-accepted` (planned)
-5. Send `query`
+2. Send `handshake` with optional `agent_definition`
+3. Receive optional `client-tool-manifest` / `remote-tool-catalog` startup
+   events
+4. Send `query`
 
 ### Reconnection
 

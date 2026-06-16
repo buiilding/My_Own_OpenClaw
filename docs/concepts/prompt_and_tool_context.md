@@ -140,7 +140,7 @@ Question the design when:
 | Symptom | Start here |
 | --- | --- |
 | model did not see repo instructions | Electron repo instruction runtime and backend prompt constructor fallback discovery |
-| tool missing from prompt | backend tool policy, provider health gates, available-tool handshake, provider projection |
+| tool missing from prompt | backend tool policy, provider health gates, `agent_definition.tools` availability, provider projection |
 | tool visible but sidecar cannot execute it | backend-sidecar parity tests and sidecar exposed-tool registry |
 | transparency panel missing tool schemas | backend prompt metadata event emission and frontend transparency handlers |
 | screenshot shown in UI but not useful to model | artifact upload refs, query payload screenshot context, backend artifact fetch path |

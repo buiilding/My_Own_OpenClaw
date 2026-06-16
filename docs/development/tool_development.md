@@ -51,8 +51,10 @@ SDK path below for backend-owned remote tools or built-in WindieOS tools.
 Current runtime note:
 
 - the live backend and sidecar registries expose direct tool names only
-- the frontend sends `client_tool_manifest` during handshake so client-local
-  tool schemas can be extended without editing backend schema code
+- the SDK/Electron frontend sends `agent_definition.tools.client_manifest`
+  during websocket handshake so client-local tool schemas can be extended
+  without editing backend schema code. The backend still accepts a top-level
+  `client_tool_manifest` only as a compatibility fallback.
 - sidecar plugin tools put model-facing JSON Schema files under
   `plugins/<id>/schemas/` and reference them as `schema` from
   `plugins/<id>/plugin.json`

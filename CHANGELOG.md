@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: align the preload bridge, IPC handler, compact IPC contract,
   and memory IPC mapping references with the shared channel registry and
   current internal local-backend bridge handlers.
+- docs/tools: align tool-manifest and agent-definition docs with the current
+  websocket handshake path and route removed post-handshake schema-sync queries
+  to the SDK agent definition contract.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

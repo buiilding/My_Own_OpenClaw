@@ -15,13 +15,13 @@ Tool visibility is not just the static catalog. Backend `ToolPolicy` narrows too
 | Input | Owner | Effect |
 | --- | --- | --- |
 | interaction mode | backend session config | Can apply a broad allowlist for chat/agent behavior |
-| `agent_tool_profile` | backend config/session/client capability | Selects a named profile such as `coding`, `browser`, `computer`, or `full` |
-| `agent_available_tools` | websocket/client capability | Intersects model-visible tools with what the client can execute |
+| `agent_tool_profile` | backend config/session/agent definition policy | Selects a named profile such as `coding`, `browser`, `computer`, or `full` |
+| `agent_available_tools` | websocket `agent_definition` or compatibility capability fields | Intersects model-visible tools with what the client can execute |
 | `agent_disabled_tools` | config/session policy | Removes specific direct tools |
 | `agent_disabled_capabilities` | config/session policy | Removes capability families such as `browser`, `web_search`, `ocr`, or `vision` |
 | `agent_provider_unavailable_capabilities` | provider health policy | Removes capabilities known unavailable before prompt construction |
 | `agent_coordinate_methods` | config/session policy | Narrows mouse/scroll coordinate methods |
-| `agent_available_coordinate_methods` | specialized websocket/client capability | Optional narrowing input for clients that truly lack a coordinate method; Electron does not send it |
+| `agent_available_coordinate_methods` | specialized websocket `agent_definition` or compatibility capability fields | Optional narrowing input for clients that truly lack a coordinate method; Electron does not send it |
 | dev tool selection | local development config | Optional local structural pruning layer |
 | provider projection | backend provider layer | May add or adapt provider-native declarations after canonical filtering |
 
@@ -121,7 +121,10 @@ Use this order:
 2. Confirm the tool is model-visible in the catalog.
 3. Check `ToolPolicy.filter_tool_names()` for disabled tools and interaction allowlist.
 4. Check `agent_tool_profile`.
-5. Check `agent_available_tools` from the websocket handshake.
+5. Check `agent_available_tools` derived from websocket
+   `agent_definition.tools` and the accepted client manifest. For older
+   clients, the backend may also derive it from top-level handshake
+   compatibility fields.
 6. Check disabled capabilities and provider-unavailable capabilities.
 7. Check dev tool selection.
 8. Check provider projection if the provider adds native declarations.
@@ -153,5 +156,5 @@ Sidecar:
 
 Frontend:
 
-- websocket handshake/client-capability tests
+- websocket `agent_definition`/SDK runtime tests
 - SDK/local-runtime tool projection tests when renderer-visible behavior changes

@@ -1,8 +1,9 @@
 ---
-summary: "First-class agent definition contract for clients that initialize WindieOS agents without the Electron frontend."
+summary: "First-class agent definition contract for clients that initialize WindieOS agents without the Electron frontend, including the current replacement for the old planned post-handshake `frontend-tool-schemas` flow."
 read_when:
   - When building a custom WindieOS UI, TUI, CLI, or hosted client.
   - When changing websocket handshake, prompt layers, client tool manifests, skills, AGENTS.md forwarding, or plugin metadata.
+  - When searching for planned post-handshake frontend tool schemas or agent capability handshake behavior.
 ---
 
 # Agent Definition Contract
@@ -57,6 +58,14 @@ The same object may also be included on a `query` payload for clients that need
 to update agent context for a specific turn. Query-level updates may omit
 `tools.client_manifest`; when omitted, the backend preserves the tool manifest
 accepted during handshake.
+
+## No Post-Handshake Tool Schema Sync
+
+Current SDK/Electron clients do not send a separate `frontend-tool-schemas`
+message after handshake. The old planned post-handshake frontend tool schema
+sync is superseded by `agent_definition.tools.client_manifest` on the
+websocket handshake. The backend still accepts top-level `client_tool_manifest`
+only as a compatibility fallback for older clients.
 
 ## Fields
 
