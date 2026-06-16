@@ -222,7 +222,7 @@ describe('windie docs index', () => {
     );
 
     expect(findDocs('response formatter event type dispatch map removed')[0].path).toBe(
-      registryPath,
+      dispatchPath,
     );
     expect(
       findDocs('response formatter registry typed only event type uniqueness set')[0].path,
