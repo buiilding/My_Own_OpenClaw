@@ -63,7 +63,7 @@ fall back to the active chat, because `conversationRef` owns chat identity.
 
 ## Migration Debt Rules
 
-Runtime ownership cleanup is tracked in [Runtime Ownership Simplification Plan](../refactors/runtime_ownership_simplification_plan.md). Current docs should not imply migration debt is gone until the owning search/test proves it.
+Runtime ownership cleanup is tracked through [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) plus the owner-specific workflow docs. Current docs should not imply migration debt is gone until the owning search/test proves it.
 
 | Duplicate path | Current owner | Deletion condition | Test target |
 | --- | --- | --- | --- |

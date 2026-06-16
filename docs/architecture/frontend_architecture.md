@@ -92,7 +92,7 @@ Current runtime behavior also relies on these explicit seams:
 
 ## Runtime Ownership Migration Status
 
-This section distinguishes current behavior from target behavior and known migration debt. Treat [Runtime Ownership Simplification Plan](../refactors/runtime_ownership_simplification_plan.md) and the real-time report as the deletion checklist.
+This section distinguishes current behavior from target behavior and known migration debt. Use [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) and the owner-specific workflow docs as the current deletion checklist; the older refactor-plan directory has been removed from active docs navigation.
 
 | Area | Current behavior | Target behavior | Remaining debt / deletion condition | Test target |
 | --- | --- | --- | --- | --- |
