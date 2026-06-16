@@ -25,15 +25,6 @@ class ScreenshotManager:
     Responsibility: Screenshot availability for coordinate resolution.
     """
 
-    def __init__(self, timeout: float = 30.0):
-        """
-        Initialize the screenshot manager.
-
-        Args:
-            timeout: Reserved for future use
-        """
-        self.timeout = timeout
-
     async def ensure_screenshot(self, session: "AgentSession") -> None:
         """
         Ensure an active screenshot is available in session.
