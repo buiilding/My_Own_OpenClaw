@@ -937,6 +937,9 @@ describe('windie docs index', () => {
     expect(findDocs('MessageScreenshotSrc.test.js removed')[0].path).toBe(
       payloadPath,
     );
+    expect(findDocs('sanitizeMarkdownHtml markdown sanitizer wrapper removed')[0].path).toBe(
+      payloadPath,
+    );
     expect(findDocs('chatStreamTransparency removed')[0].path).toBe(streamPath);
     expect(findDocs('ChatStreamTransparency.test.ts removed')[0].path).toBe(
       streamPath,

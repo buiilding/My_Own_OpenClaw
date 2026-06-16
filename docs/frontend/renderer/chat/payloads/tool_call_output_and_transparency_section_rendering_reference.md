@@ -1,9 +1,10 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
+summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, removed sanitizeMarkdownHtml standalone markdown sanitizer wrapper behavior, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
   - When changing renderer markdown sanitization, markdown rendering, math rendering, or thread-find highlight behavior.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
+  - When resolving stale references to the removed `sanitizeMarkdownHtml` wrapper, markdown sanitizer wrapper, or standalone sanitized-HTML wrapper.
   - When resolving stale references to removed `toolExplanationMessages.js` or `MessageScreenshotSrc.test.js` helper paths.
 title: "Tool Call/Output and Transparency Section Rendering Reference"
 ---
@@ -74,6 +75,8 @@ Assistant markdown rendering now follows a single contract:
   callers use `toSanitizedMarkdownHtml(...)` for markdown parse/sanitize and
   `highlightSanitizedHtml(...)` for thread-find markup over already-sanitized
   output. There is no separate public sanitized-HTML wrapper for arbitrary HTML.
+  The old `sanitizeMarkdownHtml(...)` wrapper was deleted because it bypassed
+  the markdown rendering contract and had no production consumers.
 
 Contract fields:
 

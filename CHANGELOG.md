@@ -81,6 +81,8 @@ All notable changes to WindieOS will be documented in this file.
   `bin/windie logs renderer --verbose`.
 - docs/sdk: route removed `fallbackText` and top-level tool-output fallback
   searches to the SDK conversation runtime contract.
+- docs/frontend: route removed markdown sanitizer wrapper searches to the
+  renderer chat payload markdown rendering reference.
 - sdk/tools: remove the unreachable top-level tool-output fallback helper after
   canonical `output`/`message`/`error` fields have already been checked.
 - backend/llm: remove provider tool-call id synthesis so non-stream, streamed,
