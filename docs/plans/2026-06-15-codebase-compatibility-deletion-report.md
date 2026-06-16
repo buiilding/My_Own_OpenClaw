@@ -98,6 +98,7 @@ Date: 2026-06-15
 | CD-065 | Electron client tool manifest helper export | `tool_manifest.cjs` exported `buildBuiltinClientToolManifest(...)` even though the generated built-in manifest loader is used only inside the client manifest merger and public callers use `buildClientToolManifest(...)` or tool-name lists | Knip reported the helper export unused; repo search showed no production, test, docs, or script imports outside the module itself, while handshake and MCP projection consumers use the higher-level manifest APIs | Remove the lower-level helper export and keep built-in manifest filtering private to the manifest merger | `6da1f3164` |
 | CD-066 | Electron artifact fetch helper exports | `ipc_artifact_fetch.cjs` exported URL construction and artifact-id inference helpers even though production imports only `fetchArtifactImage(...)` for protected artifact image reads | Knip reported both helper exports unused; repo search showed only the helper-only artifact fetch test imported them directly, while `ipc.cjs` and artifact handlers call the high-level fetch function | Remove the helper exports, keep URL construction and ID inference private, and cover both behaviors through the public artifact fetch path | `aa7973141` |
 | CD-067 | Electron assistant backend trace helper path | `ipc_assistant_trace.cjs` still exported a standalone `[AssistantTrace][backend]` helper path plus direct summary/predicate helpers even though production uses `createElectronMainTraceLogger(...)` for backend event diagnostics | Knip reported the helper exports unused; repo search showed only `AssistantTrace.test.cjs` imported them directly, while `ipc.cjs` imports only the Electron main and current-turn trace logger factories | Delete the unused standalone assistant-backend trace path and keep settings summary private under the active Electron main trace logger | `c8ebcfd31` |
+| CD-068 | Electron backend event channel helper exports | `ipc_backend_event_channels.cjs` exported the backend-event channel map and channel resolver even though production imports only `broadcastTypedBackendEvent(...)` | Knip reported both exports unused; repo search showed only the channel unit test imported the helper resolver directly, while `ipc_runtime_helpers.cjs` uses the broadcaster | Remove the helper exports, keep channel routing private, and assert routing through the production broadcaster | pending |
 
 ## Commit Ledger
 
@@ -1149,6 +1150,22 @@ CD-067 validation:
   required. Electron backend event diagnostics still flow through
   `createElectronMainTraceLogger(...)`; only the unused standalone
   `[AssistantTrace][backend]` helper output path was removed.
+
+CD-068 validation:
+
+- targeted `rg -n "BACKEND_EVENT_RENDERER_CHANNELS|getRendererChannelsForBackendEvent" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private same-module references remain inside
+  `ipc_backend_event_channels.cjs`.
+- `bin/windie test frontend -- IpcBackendEventChannels`: passed; 1 suite and 4
+  tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 124 to 122 after
+  removing backend event channel helper exports.
+- `bin/windie docs list`: passed.
+- Migration note: no storage, transport, or persisted-data migration is
+  required. Backend event renderer routing and event payloads are unchanged;
+  tests now exercise the production broadcaster rather than the private channel
+  resolver.
 
 ## Inspection Notes
 

@@ -28,7 +28,5 @@ function broadcastTypedBackendEvent(event, broadcastToRenderers) {
 }
 
 module.exports = {
-  BACKEND_EVENT_RENDERER_CHANNELS,
   broadcastTypedBackendEvent,
-  getRendererChannelsForBackendEvent,
 };

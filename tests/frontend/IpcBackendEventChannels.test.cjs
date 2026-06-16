@@ -4,38 +4,36 @@
 
 const {
   broadcastTypedBackendEvent,
-  getRendererChannelsForBackendEvent,
 } = require('../../frontend/src/main/ipc/ipc_backend_event_channels.cjs');
+
+function expectBroadcastChannels(event, channels) {
+  const broadcastToRenderers = jest.fn();
+
+  broadcastTypedBackendEvent(event, broadcastToRenderers);
+
+  expect(broadcastToRenderers.mock.calls.map(([channel]) => channel)).toEqual(channels);
+  for (const channel of channels) {
+    expect(broadcastToRenderers).toHaveBeenCalledWith(channel, event);
+  }
+}
 
 describe('ipc backend event typed renderer channels', () => {
   test('routes settings and model control events to settings channel', () => {
-    expect(getRendererChannelsForBackendEvent({ type: 'models-listed' })).toEqual([
-      'backend-settings-event',
-    ]);
-    expect(getRendererChannelsForBackendEvent({ type: 'settings-updated' })).toEqual([
-      'backend-settings-event',
-    ]);
-    expect(getRendererChannelsForBackendEvent({ type: 'error' })).toEqual([
-      'backend-settings-event',
-    ]);
+    expectBroadcastChannels({ type: 'models-listed' }, ['backend-settings-event']);
+    expectBroadcastChannels({ type: 'settings-updated' }, ['backend-settings-event']);
+    expectBroadcastChannels({ type: 'error' }, ['backend-settings-event']);
   });
 
   test('routes agent capability and audio side-channel events to named channels', () => {
-    expect(getRendererChannelsForBackendEvent({ type: 'client-tool-manifest' })).toEqual([
-      'agent-capability-event',
-    ]);
-    expect(getRendererChannelsForBackendEvent({ type: 'remote-tool-catalog' })).toEqual([
-      'agent-capability-event',
-    ]);
-    expect(getRendererChannelsForBackendEvent({ type: 'audio-chunk' })).toEqual([
-      'audio-chunk',
-    ]);
+    expectBroadcastChannels({ type: 'client-tool-manifest' }, ['agent-capability-event']);
+    expectBroadcastChannels({ type: 'remote-tool-catalog' }, ['agent-capability-event']);
+    expectBroadcastChannels({ type: 'audio-chunk' }, ['audio-chunk']);
   });
 
   test('ignores chat stream events so SDK projection remains the live-state path', () => {
-    expect(getRendererChannelsForBackendEvent({ type: 'streaming-response' })).toEqual([]);
-    expect(getRendererChannelsForBackendEvent({ type: 'tool-call' })).toEqual([]);
-    expect(getRendererChannelsForBackendEvent({ type: 'streaming-complete' })).toEqual([]);
+    expectBroadcastChannels({ type: 'streaming-response' }, []);
+    expectBroadcastChannels({ type: 'tool-call' }, []);
+    expectBroadcastChannels({ type: 'streaming-complete' }, []);
   });
 
   test('broadcasts each typed channel with the original payload', () => {

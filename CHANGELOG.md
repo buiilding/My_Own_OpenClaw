@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep backend-event renderer channel mapping private to the
+  typed backend event broadcaster.
 - frontend/main: delete the unused standalone assistant-backend trace helper
   path so backend event diagnostics route through the Electron main trace
   logger.
