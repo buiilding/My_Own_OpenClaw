@@ -1026,9 +1026,5 @@ function logChatPillVisibilityDecision(event = {}, deps = {}) {
 }
 
 module.exports = {
-  CHAT_PILL_HIDE_REASON,
-  CHAT_PILL_SHOW_REASON,
-  formatChatPillVisibilityDecision,
-  logChatPillVisibilityDecision,
   createSurfaceRuntime,
 };
