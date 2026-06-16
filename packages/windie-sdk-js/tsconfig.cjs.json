@@ -8,6 +8,8 @@
     "outDir": "cjs",
     "rootDir": "src",
     "strict": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "skipLibCheck": true,
     "esModuleInterop": true
   },
