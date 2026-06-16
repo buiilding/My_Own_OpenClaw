@@ -8,7 +8,6 @@ import {
 } from '../../frontend/src/renderer/utils/configStorage.js';
 
 const CONFIG_KEY = 'desktop-assistant-config';
-const VERSION_KEY = 'desktop-assistant-config-version';
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
@@ -260,7 +259,7 @@ describe('configStorage', () => {
           profile_id: 'openai-codex:default',
         },
       },
-    }, 123);
+    });
 
     expect(ok).toBe(true);
     const stored = JSON.parse(localStorage.getItem(CONFIG_KEY));
@@ -285,7 +284,6 @@ describe('configStorage', () => {
     const result = loadConfigFromStorage();
     expect(result).toEqual(DEFAULT_FRONTEND_CONFIG);
     expect(localStorage.getItem(CONFIG_KEY)).toBeNull();
-    expect(localStorage.getItem(VERSION_KEY)).toBeNull();
   });
 
   test('loadConfigFromStorage clears non-object payloads', () => {
@@ -296,7 +294,6 @@ describe('configStorage', () => {
 
     expect(result).toEqual(DEFAULT_FRONTEND_CONFIG);
     expect(localStorage.getItem(CONFIG_KEY)).toBeNull();
-    expect(localStorage.getItem(VERSION_KEY)).toBeNull();
     warnSpy.mockRestore();
   });
 
@@ -307,37 +304,20 @@ describe('configStorage', () => {
     warnSpy.mockRestore();
   });
 
-  test('saveConfigToStorage persists config and version', () => {
-    const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG, 123);
+  test('saveConfigToStorage persists config', () => {
+    const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG);
     expect(ok).toBe(true);
     expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_FRONTEND_CONFIG);
-    expect(localStorage.getItem(VERSION_KEY)).toBe('123');
   });
 
   test('saveConfigToStorage drops backend-owned speech provider values', () => {
     const ok = saveConfigToStorage({
       ...DEFAULT_FRONTEND_CONFIG,
       speech_provider: 'local',
-    }, 123);
+    });
 
     expect(ok).toBe(true);
     expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_FRONTEND_CONFIG);
-  });
-
-  test('saveConfigToStorage uses Date.now when version omitted', () => {
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(456);
-    const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG);
-    expect(ok).toBe(true);
-    expect(localStorage.getItem(VERSION_KEY)).toBe('456');
-    nowSpy.mockRestore();
-  });
-
-  test('saveConfigToStorage uses Date.now when version is null', () => {
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(789);
-    const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG, null);
-    expect(ok).toBe(true);
-    expect(localStorage.getItem(VERSION_KEY)).toBe('789');
-    nowSpy.mockRestore();
   });
 
   test('saveConfigToStorage returns false when storage write throws', () => {
@@ -346,7 +326,7 @@ describe('configStorage', () => {
       throw new Error('set-failed');
     });
 
-    expect(saveConfigToStorage(DEFAULT_FRONTEND_CONFIG, 111)).toBe(false);
+    expect(saveConfigToStorage(DEFAULT_FRONTEND_CONFIG)).toBe(false);
     setItemSpy.mockRestore();
     errorSpy.mockRestore();
   });

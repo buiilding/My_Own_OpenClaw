@@ -107,7 +107,7 @@ export function AppConfigProvider({ children }) {
     const persistenceConfig = buildFrontendConfigPersistencePayload(nextConfig);
 
     if (persistToStorage) {
-      saveConfigToStorage(persistenceConfig, Date.now());
+      saveConfigToStorage(persistenceConfig);
     }
     if (persistToDisk) {
       IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, persistenceConfig).catch((error) => {

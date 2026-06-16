@@ -53,8 +53,6 @@ from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.tool_specs import get_tool_spec_name
 
-# system_monitor removed - frontend handles system state
-
 logger = logging.getLogger(__name__)
 
 

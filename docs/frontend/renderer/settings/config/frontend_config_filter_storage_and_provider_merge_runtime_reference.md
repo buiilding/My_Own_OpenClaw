@@ -53,7 +53,6 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 Storage keys:
 
 - `desktop-assistant-config`
-- `desktop-assistant-config-version`
 
 Default config surface:
 

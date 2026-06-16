@@ -62,6 +62,8 @@ All notable changes to WindieOS will be documented in this file.
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
   `ToolSelection` value-object path after dev TOML selection loading was removed.
+- frontend/renderer: stop writing the unused config-version localStorage key;
+  renderer settings persistence now stores only the sanitized config payload.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

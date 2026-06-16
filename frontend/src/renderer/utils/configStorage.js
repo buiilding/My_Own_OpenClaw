@@ -14,7 +14,6 @@ import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/s
  */
 
 const CONFIG_STORAGE_KEY = 'desktop-assistant-config';
-const CONFIG_VERSION_KEY = 'desktop-assistant-config-version';
 
 const DEFAULT_PROVIDER_API_KEYS = {
   openai: { enabled: false, api_key: '' },
@@ -261,7 +260,6 @@ function toPlainRecord(value) {
 
 function clearStoredConfigUnsafe() {
   localStorage.removeItem(CONFIG_STORAGE_KEY);
-  localStorage.removeItem(CONFIG_VERSION_KEY);
 }
 
 /**
@@ -298,9 +296,8 @@ export function loadConfigFromStorage() {
  * Save configuration to localStorage.
  * 
  * @param {Object} config - Configuration object to save
- * @param {number} [version] - Optional version timestamp (defaults to Date.now())
  */
-export function saveConfigToStorage(config, version = null) {
+export function saveConfigToStorage(config) {
   try {
     if (!config || typeof config !== 'object' || Array.isArray(config)) {
       console.warn('[ConfigStorage] Attempted to save invalid config:', config);
@@ -308,10 +305,8 @@ export function saveConfigToStorage(config, version = null) {
     }
 
     const normalizedConfig = stripProviderSecretsForConfigPersistence(config);
-    const configVersion = version !== null ? version : Date.now();
 
     localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(normalizedConfig));
-    localStorage.setItem(CONFIG_VERSION_KEY, configVersion.toString());
 
     return true;
   } catch (error) {
