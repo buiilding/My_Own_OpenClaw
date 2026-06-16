@@ -2,7 +2,7 @@
 summary: "Renderer and Electron main desktop backend transport command contract for DesktopBackendTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
 read_when:
   - When changing `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
-  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, Electron main `buildWindieSdkCommandHandlers`, or shared SDK-shaped command names.
+  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, Electron main `handleWindieSdkInvoke`, its internal `buildWindieSdkCommandHandlers` table, or shared SDK-shaped command names.
   - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
 title: "Desktop Backend Transport Command Contract Reference"
 ---
@@ -50,10 +50,11 @@ library, transcript, memory, and diagnostics commands such as
 `conversations.list`, `conversation.loadDisplay`, `memories.list`,
 `memories.delete`, `conversations.clearAll`, and `diagnostics.append`.
 
-Electron main's `buildWindieSdkCommandHandlers(...)` uses those same
-`SDK_RUNTIME_COMMANDS` members as computed handler keys. The string values
-remain the wire contract on `windie:invoke`, but the source of truth for adding
-or renaming a supported SDK-shaped command is
+Electron main exports `handleWindieSdkInvoke(...)` as the `windie:invoke`
+boundary. Its internal command table uses those same `SDK_RUNTIME_COMMANDS`
+members as computed handler keys. The string values remain the wire contract on
+`windie:invoke`, but the source of truth for adding or renaming a supported
+SDK-shaped command is
 `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`.
 
 It does not talk to the backend websocket directly and does not execute tools.

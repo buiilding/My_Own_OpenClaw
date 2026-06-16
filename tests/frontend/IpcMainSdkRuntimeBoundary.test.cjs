@@ -110,6 +110,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('requireAuthenticatedCommandUserId');
     expect(source).toContain("userId === 'default_user'");
     expect(mainSource).not.toContain('handleWindieSdkInvoke(event, payload, { method');
+    const sdkCommandModule = require('../../frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs');
+    expect(sdkCommandModule.buildWindieSdkCommandHandlers).toBeUndefined();
+    expect(typeof sdkCommandModule.handleWindieSdkInvoke).toBe('function');
 
     const memoryHandlers = source.match(/MEMORIES_LIST[\s\S]*?CONVERSATIONS_LIST/)?.[0] || '';
     expect(memoryHandlers).toContain('requireAuthenticatedCommandUserId(deps.getState().currentUserId);');

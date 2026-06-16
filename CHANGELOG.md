@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/runtime: keep SDK invoke command-table and response-overlay
+  preflight-source details private to their owning adapters.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/docs: route stop/cancel docs through the shared stop-turn hook,

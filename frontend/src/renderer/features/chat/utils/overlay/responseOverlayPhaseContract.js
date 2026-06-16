@@ -8,7 +8,6 @@ const RESPONSE_OVERLAY_PHASES = Object.freeze(
   [...(responseOverlayPhaseContract?.phases || [])],
 );
 
-export const RESPONSE_OVERLAY_PREFLIGHT_SOURCE = responseOverlayPhaseContract?.preflight?.source;
 export const RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF = responseOverlayPhaseContract?.preflight?.guard_ref;
 
 export const RESPONSE_OVERLAY_PHASE = Object.freeze(Object.fromEntries(

@@ -445,6 +445,5 @@ async function handleWindieSdkInvoke(event, input = {}, dependencies = {}) {
 }
 
 module.exports = {
-  buildWindieSdkCommandHandlers,
   handleWindieSdkInvoke,
 };

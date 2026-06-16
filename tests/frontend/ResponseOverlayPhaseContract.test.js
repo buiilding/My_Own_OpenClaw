@@ -5,8 +5,8 @@
 import {
   RESPONSE_OVERLAY_PHASE,
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
-  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
 } from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
+import responseOverlayPhaseContract from '../../frontend/src/shared/response_overlay_phase_contract.json';
 
 describe('responseOverlayPhaseContract', () => {
   test('exports canonical phase list and enum object', () => {
@@ -30,8 +30,8 @@ describe('responseOverlayPhaseContract', () => {
     });
   });
 
-  test('exports canonical preflight source and guard', () => {
-    expect(RESPONSE_OVERLAY_PREFLIGHT_SOURCE).toBe('renderer-send-preflight');
+  test('keeps canonical preflight source and renderer guard', () => {
+    expect(responseOverlayPhaseContract.preflight.source).toBe('renderer-send-preflight');
     expect(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF).toBe('renderer-send-preflight');
   });
 });
