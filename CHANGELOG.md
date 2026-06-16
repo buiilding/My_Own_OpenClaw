@@ -21,6 +21,8 @@ All notable changes to WindieOS will be documented in this file.
   route rehydrate docs/tests to SDK conversation projections.
 - frontend/chat: delete the orphan renderer transparency normalization helper
   and stale contract page after SDK/backend projections took over rehydrate context.
+- frontend/chat: keep the tool-call display metadata normalizer private to the
+  message-state module instead of exporting unused helper surface.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.

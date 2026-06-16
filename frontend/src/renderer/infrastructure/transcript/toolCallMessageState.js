@@ -36,7 +36,7 @@ function sanitizeFallbackArgumentsForDisplay(argumentsValue, metadata) {
   return Object.keys(clonedArguments).length > 0 ? clonedArguments : null;
 }
 
-export function normalizeToolCallDisplayMetadata(metadata) {
+function normalizeToolCallDisplayMetadata(metadata) {
   const normalized = cloneObject(metadata);
   if (!normalized) {
     return undefined;
