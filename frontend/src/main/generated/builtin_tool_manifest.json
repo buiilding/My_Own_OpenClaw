@@ -1501,7 +1501,7 @@
             "minimum": 1,
             "type": "integer"
           },
-          "new_str": {
+          "new_string": {
             "description": "Replacement text.",
             "type": "string"
           },
@@ -1516,7 +1516,7 @@
             "minimum": 0,
             "type": "integer"
           },
-          "old_str": {
+          "old_string": {
             "description": "Text to replace.",
             "type": "string"
           },
@@ -1868,7 +1868,7 @@
             "minimum": 1,
             "type": "integer"
           },
-          "new_str": {
+          "new_string": {
             "description": "Replacement text.",
             "type": "string"
           },
@@ -1883,7 +1883,7 @@
             "minimum": 0,
             "type": "integer"
           },
-          "old_str": {
+          "old_string": {
             "description": "Text to replace.",
             "type": "string"
           },

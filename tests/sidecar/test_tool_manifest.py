@@ -98,6 +98,18 @@ def test_generated_builtin_manifest_matches_sidecar_source():
     assert generated == expected
 
 
+def test_generated_builtin_manifest_uses_canonical_browser_replace_fields():
+    generated = json.loads(GENERATED_MANIFEST_PATH.read_text(encoding="utf-8"))
+    browser_tool = next(tool for tool in generated["tools"] if tool["name"] == "browser")
+
+    for schema_key in ("schema", "executable_schema"):
+        properties = browser_tool[schema_key]["properties"]
+        assert "old_string" in properties
+        assert "new_string" in properties
+        assert "old_str" not in properties
+        assert "new_str" not in properties
+
+
 def test_registry_loads_plugin_entrypoint_and_manifest(
     tmp_path: Path,
     monkeypatch,
