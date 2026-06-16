@@ -15,7 +15,7 @@ const {
   normalizeBackendPayload,
 } = require('../../frontend/src/main/ipc/ipc_runtime_helpers.cjs');
 const {
-  BACKEND_PAYLOAD_KEYS_BY_TYPE,
+  filterBackendPayload,
 } = require('../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs');
 
 class FakeSocket extends EventEmitter {
@@ -112,6 +112,76 @@ function expectedPayloadKeysByType() {
   );
 }
 
+function samplePayloadValue(type, key) {
+  if (key === 'messages' || key === 'repo_instruction_messages' || key === 'client_prompt_layers' || key === 'screenshot_refs' || key === 'step_results') {
+    return [];
+  }
+  if (key === 'force' || key === 'success') {
+    return true;
+  }
+  if (key === 'data' || key === 'system_state_internal' || key === 'agent_definition') {
+    return {};
+  }
+  if (key === 'tools') {
+    return {
+      mode: 'replace_client_manifest',
+      client_manifest: { version: 1, tools: [] },
+      renderer_only: true,
+    };
+  }
+  if (key === 'provider_api_keys') {
+    return {
+      openai: {
+        enabled: true,
+        api_key: 'sk-test',
+        renderer_only: true,
+      },
+      future_provider: {
+        enabled: true,
+        api_key: 'future',
+      },
+    };
+  }
+  if (key === 'provider_oauth') {
+    return {
+      openai_codex: {
+        connected: true,
+        access_token: 'access',
+        refresh_token: 'refresh',
+        expires_at: 123,
+        profile_id: 'profile-1',
+        renderer_only: true,
+      },
+      future_oauth: {
+        connected: true,
+      },
+    };
+  }
+  if (key === 'capture_meta') {
+    return {
+      source_w: 100,
+      source_h: 80,
+      crop_x: 0,
+      crop_y: 0,
+      crop_w: 100,
+      crop_h: 80,
+      timestamp: 123,
+      capture_engine: 'test',
+    };
+  }
+  return `${type}:${key}`;
+}
+
+function samplePayloadWithAllContractKeys(type) {
+  const payload = {
+    renderer_only_extra: true,
+  };
+  for (const key of incomingContract.payloads[type].keys) {
+    payload[key] = samplePayloadValue(type, key);
+  }
+  return payload;
+}
+
 function extractSdkBackendPayloadKeysByType() {
   const source = fs.readFileSync(
     path.join(__dirname, '../../packages/windie-sdk-js/src/transport/backendPayloadContract.ts'),
@@ -152,8 +222,14 @@ describe('frontend/backend websocket incoming contract', () => {
     ))).toBe('incoming_message_contract.json');
   });
 
-  test('frontend outbound payload allowlist matches backend incoming contract keys', () => {
-    expect(BACKEND_PAYLOAD_KEYS_BY_TYPE).toEqual(expectedPayloadKeysByType());
+  test('frontend outbound payload filter matches backend incoming contract keys', () => {
+    for (const [type, payloadContract] of Object.entries(incomingContract.payloads)) {
+      const filtered = filterBackendPayload(type, samplePayloadWithAllContractKeys(type));
+
+      expect(Object.keys(filtered)).toEqual(payloadContract.keys);
+      expect(filtered).not.toHaveProperty('renderer_only_extra');
+      assertPayloadMatchesContract(type, filtered);
+    }
   });
 
   test('sdk outbound payload allowlist matches backend incoming contract keys', () => {

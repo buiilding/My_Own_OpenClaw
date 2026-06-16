@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep backend payload allowlist tables private to
+  `filterBackendPayload(...)` while preserving backend contract parity tests.
 - frontend/main: keep backend-event renderer channel mapping private to the
   typed backend event broadcaster.
 - frontend/main: delete the unused standalone assistant-backend trace helper

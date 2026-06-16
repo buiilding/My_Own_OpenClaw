@@ -286,6 +286,5 @@ function filterBackendPayload(type, payload) {
 }
 
 module.exports = {
-  BACKEND_PAYLOAD_KEYS_BY_TYPE,
   filterBackendPayload,
 };

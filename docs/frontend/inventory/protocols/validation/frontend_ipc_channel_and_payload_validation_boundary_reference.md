@@ -72,8 +72,8 @@ Role:
 `normalizeBackendPayload(type, payload)` in `ipc_runtime_helpers.cjs`:
 
 - non-object payload -> `{}`.
-- filters known command payloads through `BACKEND_PAYLOAD_KEYS_BY_TYPE` from
-  `ipc_backend_payload_contract.cjs`.
+- filters known command payloads through the private allowlist owned by
+  `filterBackendPayload(...)` in `ipc_backend_payload_contract.cjs`.
 - additionally strips display-only `screenshot_url` for:
   - `query`
   - `tool-bundle-result`

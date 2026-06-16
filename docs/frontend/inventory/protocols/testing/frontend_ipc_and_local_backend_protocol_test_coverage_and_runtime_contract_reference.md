@@ -223,8 +223,8 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 Useful expansions if protocol surface changes:
 
 - direct assertion for `SETTINGS_SYNC_TIMEOUT_MS` timeout fallback path in `ipc.cjs`
-- explicit tests for new backend command types in the
-  `BACKEND_PAYLOAD_KEYS_BY_TYPE` parity fixture
+- explicit tests for new backend command types through the
+  `filterBackendPayload(...)` parity coverage
 - explicit tests for wakeword error payload mapping on spawn `ENOENT` and non-zero exit codes in this suite
 
 ## Recompute Protocol Test Surface Commands

@@ -99,6 +99,7 @@ Date: 2026-06-15
 | CD-066 | Electron artifact fetch helper exports | `ipc_artifact_fetch.cjs` exported URL construction and artifact-id inference helpers even though production imports only `fetchArtifactImage(...)` for protected artifact image reads | Knip reported both helper exports unused; repo search showed only the helper-only artifact fetch test imported them directly, while `ipc.cjs` and artifact handlers call the high-level fetch function | Remove the helper exports, keep URL construction and ID inference private, and cover both behaviors through the public artifact fetch path | `aa7973141` |
 | CD-067 | Electron assistant backend trace helper path | `ipc_assistant_trace.cjs` still exported a standalone `[AssistantTrace][backend]` helper path plus direct summary/predicate helpers even though production uses `createElectronMainTraceLogger(...)` for backend event diagnostics | Knip reported the helper exports unused; repo search showed only `AssistantTrace.test.cjs` imported them directly, while `ipc.cjs` imports only the Electron main and current-turn trace logger factories | Delete the unused standalone assistant-backend trace path and keep settings summary private under the active Electron main trace logger | `c8ebcfd31` |
 | CD-068 | Electron backend event channel helper exports | `ipc_backend_event_channels.cjs` exported the backend-event channel map and channel resolver even though production imports only `broadcastTypedBackendEvent(...)` | Knip reported both exports unused; repo search showed only the channel unit test imported the helper resolver directly, while `ipc_runtime_helpers.cjs` uses the broadcaster | Remove the helper exports, keep channel routing private, and assert routing through the production broadcaster | `f4c491106` |
+| CD-069 | Electron backend payload allowlist export | `ipc_backend_payload_contract.cjs` exported `BACKEND_PAYLOAD_KEYS_BY_TYPE` even though production imports only `filterBackendPayload(...)` for outbound websocket payload normalization | Knip reported the allowlist export unused; repo search showed only a frontend/backend contract test imported it directly, while production payload normalization uses the filter API | Remove the allowlist export, keep the allowlist private, and assert backend contract parity by filtering synthetic payloads through `filterBackendPayload(...)` | pending |
 
 ## Commit Ledger
 
@@ -1168,6 +1169,26 @@ CD-068 validation:
   required. Backend event renderer routing and event payloads are unchanged;
   tests now exercise the production broadcaster rather than the private channel
   resolver.
+
+CD-069 validation:
+
+- targeted `rg -n "BACKEND_PAYLOAD_KEYS_BY_TYPE" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  the frontend allowlist is private inside `ipc_backend_payload_contract.cjs`;
+  the remaining test hit parses the SDK source allowlist for cross-runtime
+  parity.
+- `bin/windie test frontend -- FrontendBackendWebsocketContract`: passed all 9
+  tests, but the Jest wrapper remained open due to an existing open-handle
+  warning; the process was interrupted after the pass output.
+- `npm run test:ci -- --forceExit FrontendBackendWebsocketContract`: passed; 1
+  suite and 9 tests with clean command exit.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 122 to 121 after
+  removing the backend payload allowlist export.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no storage, transport, or persisted-data migration is
+  required. Outbound websocket payload filtering is unchanged; only the
+  implementation allowlist stopped being a public Electron main export.
 
 ## Inspection Notes
 
