@@ -209,6 +209,12 @@ describe('windie docs index', () => {
     expect(findDocs('frontend tool schemas planned post handshake')[0].path).toBe(
       expectedPath,
     );
+    expect(findDocs('agent_capability_handshake.cjs removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('AgentCapabilityHandshake test removed')[0].path).toBe(
+      expectedPath,
+    );
   });
 
   test('routes package and reinstall queries to the cross-platform runbook', () => {

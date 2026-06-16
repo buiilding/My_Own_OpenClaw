@@ -3,7 +3,7 @@ summary: "First-class agent definition contract for clients that initialize Wind
 read_when:
   - When building a custom WindieOS UI, TUI, CLI, or hosted client.
   - When changing websocket handshake, prompt layers, client tool manifests, skills, AGENTS.md forwarding, or plugin metadata.
-  - When searching for planned post-handshake frontend tool schemas or agent capability handshake behavior.
+  - When searching for planned post-handshake frontend tool schemas, agent capability handshake behavior, the removed `agent_capability_handshake.cjs` builder, or the removed `AgentCapabilityHandshake.test.cjs`.
 ---
 
 # Agent Definition Contract
@@ -66,6 +66,16 @@ message after handshake. The old planned post-handshake frontend tool schema
 sync is superseded by `agent_definition.tools.client_manifest` on the
 websocket handshake. The backend still accepts top-level `client_tool_manifest`
 only as a compatibility fallback for older clients.
+
+## Removed Agent Capability Handshake Builder
+
+The old Electron-side `frontend/src/main/sdk/agent_capability_handshake.cjs`
+builder and `tests/frontend/AgentCapabilityHandshake.test.cjs` were deleted.
+Client capability metadata now comes from the SDK-authored agent definition and
+its client tool manifest, not a parallel main-process handshake helper. Add or
+debug handshake behavior through `agent_definition.tools.client_manifest`,
+`packages/windie-sdk-js/src/runtime/WindieClient.ts`, and the backend agent
+definition validation path.
 
 ## Fields
 

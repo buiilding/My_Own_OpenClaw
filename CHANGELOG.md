@@ -54,6 +54,8 @@ All notable changes to WindieOS will be documented in this file.
   SDK conversation runtime and document `conversationProjections` as the owner.
 - docs/tools: route Electron tool-manifest builder and removed name-list export
   searches to the tool contract map.
+- docs/sdk: route removed agent capability handshake builder and test searches
+  to the agent definition contract.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`
