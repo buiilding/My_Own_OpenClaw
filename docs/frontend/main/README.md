@@ -30,7 +30,7 @@ title: "Frontend Main Docs Hub"
 - [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md)
 - [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md)
 - [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md)
-- [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
+- [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Main Local-Backend Docs Hub](local_backend/README.md)
 - [Local-Backend Process Lifecycle Change Workflow](local_backend/process_lifecycle_change_workflow.md)
 - [Main Testing Docs Hub](testing/README.md)

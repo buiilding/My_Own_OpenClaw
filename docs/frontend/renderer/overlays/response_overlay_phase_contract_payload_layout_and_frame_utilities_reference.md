@@ -153,6 +153,5 @@ Purpose:
 ## Related Pages
 
 - [Frontend Renderer Overlay Docs Hub](README.md)
-- [Overlay Phase Listener and Sync-Store Contract Reference](overlay_phase_listener_and_sync_external_store_contract_reference.md)
 - [Response Overlay Phase Runtime Reference](response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Chatbox Component Split and Overlay Pill Runtime Reference](../chat/presentation/chatbox_component_split_and_overlay_pill_runtime_reference.md)

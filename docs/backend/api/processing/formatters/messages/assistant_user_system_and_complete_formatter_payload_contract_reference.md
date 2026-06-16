@@ -113,5 +113,5 @@ No formatter-unit tests in this file currently target user/system full-message f
 ## Related Pages
 
 - [Backend API Formatter Message Docs Hub](README.md)
-- [Error and Memory-Store Formatter Guard and Schema-Mapping Reference](error_and_memory_store_formatter_guard_and_schema_mapping_reference.md)
+- [Error Formatter Guard and Schema-Mapping Reference](error_formatter_guard_and_schema_mapping_reference.md)
 - [Formatter Validation and Contract-Test Matrix Reference](../formatter_validation_and_contract_test_matrix_reference.md)

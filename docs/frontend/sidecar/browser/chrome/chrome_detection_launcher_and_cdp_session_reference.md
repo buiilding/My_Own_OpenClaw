@@ -167,5 +167,5 @@ If connect/launch fails:
 ## Related Pages
 
 - [Frontend Sidecar Browser Chrome Docs Hub](README.md)
-- [Browser Controller Lifecycle, Snapshot, and Action Runtime Reference](browser_controller_lifecycle_snapshot_and_action_runtime_reference.md)
-- [Enhanced CDP DOM Snapshot Pipeline Runtime Reference](enhanced_cdp_dom_snapshot_pipeline_runtime_reference.md)
+- [Browser Runtime Deterministic Extraction Contract Reference](../browser_runtime_deterministic_extraction_contract_reference.md)
+- [Browser Automation Stack](../../browser_automation_stack.md)

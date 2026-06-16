@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/navigation: replace broken formatter, memory IPC, overlay, and browser
+  runtime links with current maintained references.
 - docs/reference: qualify inventory, hub, and IPC source references with current
   repo paths so docs search returns copy-pastable routing targets.
 - docs/routing: refresh operations, platform, and code-change routing entries
