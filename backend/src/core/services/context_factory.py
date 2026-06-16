@@ -54,7 +54,6 @@ class ContextFactory:
         self.session_ref = session_ref
         self.agent_factory = agent_factory
         self.vision_service: Optional[Any] = None
-        self.ocr_service: Optional[Any] = None
         self.vision_router: Optional[Any] = None
         self.ocr_router: Optional[Any] = None
         self._base_services: Dict[str, Any] = {"config": self.config}
@@ -64,8 +63,6 @@ class ContextFactory:
             self._base_services["agent_factory"] = self.agent_factory
         if self.vision_service:
             self._base_services["vision_service"] = self.vision_service
-        if self.ocr_service:
-            self._base_services["ocr_service"] = self.ocr_service
 
     def set_tool_registry(self, tool_registry: "ToolRegistry") -> None:
         """
@@ -98,21 +95,18 @@ class ContextFactory:
             self._base_services["vision_service"] = vision_service
             self._base_services["vision_router"] = vision_service
 
-    def set_ocr_service(self, ocr_service: Optional[Any]) -> None:
+    def set_ocr_router(self, ocr_router: Optional[Any]) -> None:
         """
-        Set the OCR service (for pre-initialized RapidOCR engine).
+        Set the OCR router used by tool preparation.
 
         Args:
-            ocr_service: OcrService instance or None
+            ocr_router: OCR router instance or None
         """
-        self.ocr_service = ocr_service
-        self.ocr_router = ocr_service
-        if ocr_service is None:
-            self._base_services.pop("ocr_service", None)
+        self.ocr_router = ocr_router
+        if ocr_router is None:
             self._base_services.pop("ocr_router", None)
         else:
-            self._base_services["ocr_service"] = ocr_service
-            self._base_services["ocr_router"] = ocr_service
+            self._base_services["ocr_router"] = ocr_router
 
     def create_tool_context(
         self,

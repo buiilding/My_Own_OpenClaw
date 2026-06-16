@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: publish OCR tool-context services through `ocr_router` only and
+  remove the `ContextFactory` `ocr_service` alias.
+- docs/backend: route removed `ContextFactory.set_ocr_service` searches to the
+  tool-context `ocr_router` service-key contract.
 - frontend/main: extract the SDK-shaped `windie:invoke` command allowlist into
   a focused IPC helper with Electron-main dependencies injected from `ipc.cjs`.
 - docs/frontend: clarify that renderer facades and Electron main share

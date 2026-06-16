@@ -114,7 +114,7 @@ def test_reinitialize_ocr_provider_rebinds_router_and_context(monkeypatch) -> No
         ),
         ocr_provider=None,
         context_factory=SimpleNamespace(
-            set_ocr_service=lambda service: captured.setdefault("service", service)
+            set_ocr_router=lambda router: captured.setdefault("service", router)
         ),
     )
 

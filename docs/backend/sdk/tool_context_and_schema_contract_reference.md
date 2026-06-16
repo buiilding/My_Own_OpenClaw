@@ -1,9 +1,10 @@
 ---
-summary: "Backend SDK contract reference for Tool base-class requirements, removed Tool abstract base protocol behavior, local-ref schema inlining/normalization behavior, ToolContext structure, ContextFactory service-injection semantics, and the removed core ToolInterface/Kind/ToolContext protocol boundary."
+summary: "Backend SDK contract reference for Tool base-class requirements, removed Tool abstract base protocol behavior, local-ref schema inlining/normalization behavior, ToolContext structure, ContextFactory service-injection semantics, ContextFactory set_ocr_service removal, set_ocr_router ocr_router tool context service keys, and the removed core ToolInterface/Kind/ToolContext protocol boundary."
 read_when:
   - When adding/changing SDK tool classes, argument models, or JSON schema output behavior.
   - When changing tool execution context shape, service injection defaults, or schema registry validation.
   - When resolving stale references to the removed Tool abstract base protocol or removed `backend.src.core.interfaces.tool` exports such as `Kind`, `ToolContext`, or `ToolInterface`.
+  - When resolving stale `ContextFactory.set_ocr_service(...)`, `ocr_service` tool-context alias, or OCR router service-key references.
 title: "Tool Context and Schema Contract Reference"
 ---
 
@@ -133,7 +134,7 @@ Container object passed to tool `run(...)`:
 
 Service merge order:
 
-1. base services (`config`, optionally `tool_registry`, `agent_factory`, `vision_service`, `vision_router`, `ocr_service`, `ocr_router`)
+1. base services (`config`, optionally `tool_registry`, `agent_factory`, `vision_service`, `vision_router`, `ocr_router`)
 2. session service (`services["session"]`) when `session_ref` exists
 3. `additional_services` (last-write wins)
 
@@ -142,11 +143,23 @@ Other behavior:
 - default workspace root is `os.getcwd()` if not passed
 - `SessionContext.created_at` uses `time.time()`
 - `SessionContext.metadata` copies snapshot of `session_ref.metadata` at creation time
-- service toggles `set_vision_service(None)` and `set_ocr_service(None)` remove
-  both service and router keys
-- `set_ocr_service(...)` is still the tool-context setter name, but
-  `AgentSession` construction uses `ocr_router`; do not treat the
-  tool-context service key as a session constructor dependency
+- service toggles `set_vision_service(None)` and `set_ocr_router(None)` remove
+  the corresponding injected service keys
+- OCR is exposed to tools through `ocr_router`; `ContextFactory` no longer
+  publishes an `ocr_service` alias.
+
+### Removed `ContextFactory.set_ocr_service(...)` Alias
+
+Stale `ContextFactory set_ocr_service removed ocr_router tool context service
+keys` searches belong here. The current context injection path is:
+
+1. container startup/config update calls `context_factory.set_ocr_router(...)`
+2. `ContextFactory` stores `self.ocr_router`
+3. tool contexts receive `services["ocr_router"]`
+
+There is no `services["ocr_service"]` alias in new tool contexts. Use
+`ocr_router` for OCR provider/router access and keep `AgentSession` construction
+on the separate `ocr_router` constructor dependency.
 
 ## Core Tool Result Boundary
 

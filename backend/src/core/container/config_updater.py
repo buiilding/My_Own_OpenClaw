@@ -134,7 +134,7 @@ class ContainerConfigUpdater:
             self.container.ocr_router.set_provider(ocr_provider)
             self.container.ocr_provider = ocr_provider
         if getattr(self.container, "context_factory", None) is not None:
-            self.container.context_factory.set_ocr_service(self.container.ocr_router)
+            self.container.context_factory.set_ocr_router(self.container.ocr_router)
 
     def _reinitialize_vision_provider(self, config: AppConfig) -> None:
         core_vision_service_provider = self.container._di_container.core.vision_service

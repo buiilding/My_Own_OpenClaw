@@ -82,10 +82,8 @@ The current session-construction path is:
 4. `AgentFactory.create_agent(...)` and `sdk/agents/session_builder.build_session(...)`
    copy `parent_session.ocr_router` into child sessions.
 
-The `ContextFactory.set_ocr_service(...)` service-key helper is separate from
-the session constructor contract. It may still publish tool-context
-`ocr_service` and `ocr_router` service keys, but it is not the dependency shape
-for creating `AgentSession`.
+Tool context injection uses the same `ocr_router` name; do not reintroduce a
+separate `ocr_service` service key when touching OCR wiring.
 
 Agent definition updates layer onto existing session prompt context. When an
 agent definition changes workspace, client prompt layers, tool manifest, or

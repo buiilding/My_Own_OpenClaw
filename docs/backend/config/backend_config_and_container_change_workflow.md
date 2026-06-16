@@ -178,7 +178,7 @@ Container wiring changes are higher risk because they alter startup, API handler
 
 - Confirm `ContainerConfigUpdater` reinitialized the provider/router.
 - Confirm router circuit-breaker thresholds were reconfigured.
-- Confirm `context_factory.set_ocr_service(...)` or `set_vision_service(...)` ran when tool preparation depends on the service.
+- Confirm `context_factory.set_ocr_router(...)` or `set_vision_service(...)` ran when tool preparation depends on the service.
 - Confirm provider-health tests cover unavailable or disabled modes.
 
 ## Validation Matrix

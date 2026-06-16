@@ -20,6 +20,7 @@ def test_context_factory_builds_tool_context_with_services():
     factory = ContextFactory(config=config, tool_registry=dummy_registry)
     factory.set_agent_factory("agent-factory")
     factory.set_vision_service("vision-service")
+    factory.set_ocr_router("ocr-router")
 
     context = factory.create_tool_context(
         user_id="user-1",
@@ -40,6 +41,8 @@ def test_context_factory_builds_tool_context_with_services():
     assert services["agent_factory"] == "agent-factory"
     assert services["vision_service"] == "vision-service"
     assert services["vision_router"] == "vision-service"
+    assert services["ocr_router"] == "ocr-router"
+    assert "ocr_service" not in services
     assert services["extra"] == 123
 
 
@@ -110,9 +113,9 @@ def test_context_factory_can_remove_optional_services():
     config = AppConfig()
     factory = ContextFactory(config=config)
     factory.set_vision_service("vision")
-    factory.set_ocr_service("ocr")
+    factory.set_ocr_router("ocr")
     factory.set_vision_service(None)
-    factory.set_ocr_service(None)
+    factory.set_ocr_router(None)
 
     context = factory.create_tool_context(user_id="u1", session_id="s1")
 

@@ -73,7 +73,7 @@ class ContainerInitializer:
                 initialize=ContainerInitializer._run_ocr_service_step,
                 enabled=lambda initializer: initializer._should_initialize_ocr_service(),
                 on_disabled=lambda initializer: initializer._disable_ocr_router(),
-                publish_to_context_factory=ContainerInitializer._publish_ocr_service,
+                publish_to_context_factory=ContainerInitializer._publish_ocr_router,
             ),
             StartupStep(name="embedding_router", initialize=ContainerInitializer._run_embedder_step),
         ]
@@ -206,9 +206,9 @@ class ContainerInitializer:
             logger.error(f"Failed to initialize OCR service: {e}", exc_info=True)
 
     def _disable_ocr_router(self) -> None:
-        ocr_service = getattr(self.container, "ocr_router", None)
-        if ocr_service is not None and hasattr(ocr_service, "enabled"):
-            ocr_service.enabled = False
+        ocr_router = getattr(self.container, "ocr_router", None)
+        if ocr_router is not None and hasattr(ocr_router, "enabled"):
+            ocr_router.enabled = False
 
     def _publish_vision_service(self) -> None:
         context_factory = getattr(self.container, "context_factory", None)
@@ -216,8 +216,8 @@ class ContainerInitializer:
         if context_factory is not None and vision_service is not None:
             context_factory.set_vision_service(vision_service)
 
-    def _publish_ocr_service(self) -> None:
+    def _publish_ocr_router(self) -> None:
         context_factory = getattr(self.container, "context_factory", None)
-        ocr_service = getattr(self.container, "ocr_router", None)
-        if context_factory is not None and ocr_service is not None:
-            context_factory.set_ocr_service(ocr_service)
+        ocr_router = getattr(self.container, "ocr_router", None)
+        if context_factory is not None and ocr_router is not None:
+            context_factory.set_ocr_router(ocr_router)
