@@ -54,7 +54,7 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-export const desktopConversationContinuityService = new ConversationContinuityService({
+const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
 });

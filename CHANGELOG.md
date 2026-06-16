@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: keep the desktop conversation continuity SDK instance
+  private behind the `DesktopConversationContinuityService` facade.
 - frontend/renderer: keep the raw backend-event stale-turn guard private behind
   the SDK-shaped conversation-event stale-turn guard.
 - frontend/renderer: keep provider-secret config redaction private to renderer
