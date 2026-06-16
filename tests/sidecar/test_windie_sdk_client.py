@@ -19,6 +19,7 @@ ensure_frontend_python_path()
 from core import windie_sdk_client as windie_sdk_client_module  # noqa: E402
 from core import WindieSdkClient as ExportedWindieSdkClient  # noqa: E402
 from core.windie_sdk_client import WindieSdkClient  # noqa: E402
+from windie import sdk as windie_sdk_module  # noqa: E402
 
 
 class FakeFormData:
@@ -47,6 +48,18 @@ class DummyArtifactSession:
 
     async def close(self):
         return None
+
+
+def test_python_sdk_discovery_requires_canonical_base_url():
+    assert windie_sdk_module._normalize_discovery(
+        {"base_url": " http://127.0.0.1:43123 ", "token": " token "}
+    ) == {
+        "base_url": "http://127.0.0.1:43123",
+        "token": "token",
+    }
+    assert windie_sdk_module._normalize_discovery(
+        {"baseUrl": "http://127.0.0.1:43123", "token": "token"}
+    ) is None
 
 
 class FakeWsMessage:

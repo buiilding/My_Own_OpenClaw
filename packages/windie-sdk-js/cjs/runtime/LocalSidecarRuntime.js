@@ -346,7 +346,7 @@ function normalizeDiscovery(raw) {
         return null;
     }
     const payload = raw;
-    const baseUrl = normalizeDaemonBaseUrl(payload.base_url ?? payload.baseUrl);
+    const baseUrl = normalizeDaemonBaseUrl(payload.base_url);
     const token = typeof payload.token === 'string' ? payload.token.trim() : '';
     if (!baseUrl || !token) {
         return null;

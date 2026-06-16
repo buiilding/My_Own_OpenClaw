@@ -501,7 +501,7 @@ function normalizeDiscovery(raw: unknown): SidecarDaemonDiscovery | null {
     return null;
   }
   const payload = raw as JsonRecord;
-  const baseUrl = normalizeDaemonBaseUrl(payload.base_url ?? payload.baseUrl);
+  const baseUrl = normalizeDaemonBaseUrl(payload.base_url);
   const token = typeof payload.token === 'string' ? payload.token.trim() : '';
   if (!baseUrl || !token) {
     return null;

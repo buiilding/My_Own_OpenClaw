@@ -632,7 +632,7 @@ class SidecarDaemonHttpClient:
 def _normalize_discovery(raw: Any) -> Optional[dict[str, str]]:
     if not isinstance(raw, dict):
         return None
-    base_url = _clean_string(raw.get("base_url")) or _clean_string(raw.get("baseUrl"))
+    base_url = _clean_string(raw.get("base_url"))
     token = _clean_string(raw.get("token"))
     if not base_url or not token:
         return None

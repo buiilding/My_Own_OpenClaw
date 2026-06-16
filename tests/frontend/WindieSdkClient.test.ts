@@ -2550,6 +2550,67 @@ describe('WindieSdkClient', () => {
     expect(headers.get('x-windie-sidecar-token')).toBe('provider-token');
   });
 
+  test('createWindieLocalRuntimeProvider ignores camelCase discovery metadata', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-discovery-alias-'));
+    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const launcherScript = path.join(tempDir, 'launcher.cjs');
+    await fsPromises.writeFile(
+      discoveryFile,
+      JSON.stringify({
+        baseUrl: 'http://127.0.0.1:43133',
+        token: 'alias-token',
+      }),
+      'utf8',
+    );
+    await fsPromises.writeFile(
+      launcherScript,
+      [
+        "const fs = require('node:fs');",
+        "const discoveryIndex = process.argv.indexOf('--discovery-file');",
+        'if (discoveryIndex < 0) process.exit(3);',
+        "fs.writeFileSync(process.argv[discoveryIndex + 1], JSON.stringify({ base_url: 'http://127.0.0.1:43134', token: 'fresh-token' }));",
+        'setTimeout(() => {}, 30000);',
+      ].join('\n'),
+      'utf8',
+    );
+    mockFetch.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === 'http://127.0.0.1:43133/status') {
+        return jsonResponse({ status: 'ok' }) as any;
+      }
+      if (url === 'http://127.0.0.1:43134/status') {
+        return jsonResponse({ status: 'ok' }) as any;
+      }
+      if (url === 'http://127.0.0.1:43134/shutdown') {
+        return jsonResponse({ success: true }) as any;
+      }
+      return jsonResponse({ ok: true }) as any;
+    });
+
+    const provider = createWindieLocalRuntimeProvider({
+      command: process.execPath,
+      args: [launcherScript],
+      discoveryFile,
+      fetchImpl: mockFetch,
+      pollIntervalMs: 1,
+      reuseExisting: true,
+      startTimeoutMs: 2000,
+    });
+    const runtime = await provider({
+      wakeUp: { tools: [] },
+      needsLocalRuntime: true,
+    });
+
+    expect(mockFetch.mock.calls.some(([url]) => String(url) === 'http://127.0.0.1:43133/status')).toBe(false);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://127.0.0.1:43134/status',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
+    await runtime?.shutdown?.();
+  });
+
   test('createWindieLocalRuntimeProvider ignores non-loopback discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-loopback-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
