@@ -124,6 +124,9 @@ All notable changes to WindieOS will be documented in this file.
   convention before sidecar-daemon or architecture internals.
 - docs/sdk: route edit/resend resource-preservation searches to the SDK
   conversation runtime before broad query-send relay docs.
+- docs/frontend: add a renderer screenshot-state projection reference and route
+  screenshot artifact-inference searches to the explicit
+  `screenshotRef`/`screenshotUrl` metadata contract.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

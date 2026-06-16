@@ -10,6 +10,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 
 ## Deep Pages
 
+- [Screenshot Message State and SDK Projection Reference](screenshot_message_state_and_sdk_projection_reference.md)
 - [Transcript Replay Change Workflow](../../../memory/transcript_replay_change_workflow.md)
 - [Transcript Contracts Docs Hub](contracts/README.md)
 - [Transcript Type Contract Reference](contracts/transcript_entry_type_contract_reference.md)

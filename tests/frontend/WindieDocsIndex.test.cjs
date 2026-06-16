@@ -311,4 +311,18 @@ describe('windie docs index', () => {
       path.join('docs', 'sdk', 'conversation_runtime.md'),
     );
   });
+
+  test('routes renderer screenshot metadata queries to the screenshot state reference', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'transcript',
+      'screenshot_message_state_and_sdk_projection_reference.md',
+    );
+
+    expect(findDocs('screenshot artifact inference')[0].path).toBe(expectedPath);
+    expect(findDocs('screenshotRef screenshotUrl')[0].path).toBe(expectedPath);
+    expect(findDocs('sdk display screenshot projection')[0].path).toBe(expectedPath);
+  });
 });

@@ -190,5 +190,6 @@ If resumed conversation loses screenshot/tool linkage:
 ## Related Pages
 
 - [Frontend Renderer Transcript Docs Hub](transcript/README.md)
+- [Screenshot Message State and SDK Projection Reference](transcript/screenshot_message_state_and_sdk_projection_reference.md)
 - [Transcript Session Sync Payload Normalization and Alias Contract Reference](transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
