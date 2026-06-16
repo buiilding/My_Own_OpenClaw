@@ -1,7 +1,8 @@
 ---
-summary: "Detailed browser tool action reference for canonical Browser Use CLI routing, strict schema policy, and error/timeout semantics across renderer-main-sidecar."
+summary: "Detailed browser tool action reference for canonical Browser Use CLI routing, strict schema policy, browser `replace_file` old_str/new_str rejection, and error/timeout semantics across renderer-main-sidecar."
 read_when:
   - When changing browser action payload fields, action names, strict schema policy, or Browser Use engine normalization logic.
+  - When debugging browser `replace_file` payloads, canonical `old_string` / `new_string` fields, or rejected `old_str` / `new_str` aliases.
   - When debugging browser action failures caused by sidecar validation, Browser Use CLI execution, or timeout boundaries.
 title: "Browser Action Runtime Reference"
 ---

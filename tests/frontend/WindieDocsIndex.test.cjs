@@ -830,6 +830,19 @@ describe('windie docs index', () => {
     expect(findDocs('canonical replacements edit mode')[0].path).toBe(expectedPath);
   });
 
+  test('routes browser replace_file schema queries to browser action docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'sidecar',
+      'browser_action_runtime_reference.md',
+    );
+
+    expect(findDocs('browser replace_file old_str new_str old_string new_string invalid')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes retired sudo setting queries to current owner docs', () => {
     expect(findDocs('agent sudo access')[0].path).toBe(
       path.join('docs', 'frontend', 'renderer', 'settings', 'settings_surface_change_workflow.md'),

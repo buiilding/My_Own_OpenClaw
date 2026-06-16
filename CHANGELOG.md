@@ -39,6 +39,8 @@ All notable changes to WindieOS will be documented in this file.
   sidecar daemon diagnostics context builder.
 - frontend/sidecar: replace browser `replace_file` `old_str`/`new_str`
   compatibility fields with canonical `old_string`/`new_string`.
+- docs/browser: route browser `replace_file` `old_str`/`new_str` schema
+  searches to the browser action runtime reference.
 - frontend/sidecar: remove wakeword `wakeword_models` constructor compatibility;
   wakeword startup now requires path-based `wakeword_model_paths`
   initialization.
