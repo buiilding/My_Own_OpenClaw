@@ -85,7 +85,7 @@ Date: 2026-06-15
 | CD-052 | Prepared desktop chat turn type export | `desktopChatSendPreparation.ts` exported `PreparedDesktopChatTurn` even though the shape is only used by prepare/build/dispatch functions inside the same module | Knip reported the type export unused; repo search showed callers import functions from the module and docs reference the concept, but no code imports the type | Make the prepared turn shape private to the send-preparation module while preserving the exported preparation and dispatch functions | `0663f822c` |
 | CD-053 | Tool-output transcript model context re-export | `toolOutputMessages.ts` re-exported `TranscriptModelContext` even though the canonical type remains owned by `transcriptModelContext.ts` and chat-stream consumers use `chatStreamTypes.ts` | Knip reported the re-export unused; repo search showed no imports from `toolOutputMessages.ts` while the module still uses the type internally | Delete the unused type re-export and preserve the internal type import for tool-output envelope construction | `caa8819bd` |
 | CD-054 | Renderer infrastructure API barrel | `frontend/src/renderer/infrastructure/api/index.ts` re-exported the SDK client surface, but production and real tests import `windieSdkClient.ts` directly | Knip reported every barrel value/type export unused; import search showed only `WindieSdkClientExports.test.ts` imported the barrel, and active docs still described the barrel as stable | Delete the unused barrel and barrel-only test; update active SDK/API docs to route TypeScript client work to `windieSdkClient.ts` | `4b92d39d8` |
-| CD-055 | Final renderer infrastructure helper type exports | `MessageFormatter.ts` exported `BundledToolResult` and `ScreenshotAttachmentPipeline.ts` exported `ScreenshotAttachment` even though both shapes are only used by their own service function signatures | Knip reported both as the final unused exported types; repo search showed no external imports of either type while callers consume service functions directly | Make both helper shapes private to their service modules and preserve formatter/screenshot pipeline behavior | pending implementation commit |
+| CD-055 | Final renderer infrastructure helper type exports | `MessageFormatter.ts` exported `BundledToolResult` and `ScreenshotAttachmentPipeline.ts` exported `ScreenshotAttachment` even though both shapes are only used by their own service function signatures | Knip reported both as the final unused exported types; repo search showed no external imports of either type while callers consume service functions directly | Make both helper shapes private to their service modules and preserve formatter/screenshot pipeline behavior | `e04bfc335` |
 
 ## Commit Ledger
 
@@ -193,7 +193,8 @@ Date: 2026-06-15
   completed CD-053.
 - `4b92d39d8 refactor(frontend): remove unused renderer api barrel`
   completed CD-054.
-- pending implementation commit will complete CD-055.
+- `e04bfc335 refactor(frontend): keep final helper types private`
+  completed CD-055.
 
 ## Validation Log
 
