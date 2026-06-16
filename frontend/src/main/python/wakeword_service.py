@@ -251,29 +251,27 @@ def resolve_audio_feature_model_args(
     return model_args
 
 
-def create_model(model_cls: Any, model_name: str, model_path: Optional[str]) -> Tuple[Any, str]:
+def create_model(model_cls: Any, model_path: Optional[str]) -> Tuple[Any, str]:
     init_params = inspect.signature(model_cls.__init__).parameters
     supports_variadic_kwargs = any(
         param.kind == inspect.Parameter.VAR_KEYWORD for param in init_params.values()
     )
     supports_model_paths = "wakeword_model_paths" in init_params or supports_variadic_kwargs
-    supports_explicit_model_names = "wakeword_models" in init_params
-    supports_model_names = supports_explicit_model_names or supports_variadic_kwargs
     supports_framework = "inference_framework" in init_params or supports_variadic_kwargs
+
+    if not supports_model_paths:
+        raise TypeError(
+            "wakeword model class must accept wakeword_model_paths or variadic keyword arguments"
+        )
+    if not model_path:
+        raise ValueError("wakeword model path is required to initialize wakeword_model_paths")
 
     def _build_model_args(framework: str) -> Dict[str, Any]:
         resolved_model_path = resolve_model_path_for_framework(model_path, framework)
-        model_args: Dict[str, Any] = {}
-        if resolved_model_path and supports_model_paths:
-            model_args["wakeword_model_paths"] = [resolved_model_path]
-        elif supports_model_names:
-            model_args["wakeword_models"] = [model_name]
+        if not resolved_model_path:
+            raise ValueError("wakeword model path is required to initialize wakeword_model_paths")
 
-        if (not resolved_model_path and supports_model_names) or (
-            supports_explicit_model_names and "wakeword_models" not in model_args
-        ):
-            model_args["wakeword_models"] = [model_name]
-
+        model_args: Dict[str, Any] = {"wakeword_model_paths": [resolved_model_path]}
         model_args.update(
             resolve_audio_feature_model_args(
                 init_params,
@@ -296,16 +294,7 @@ def create_model(model_cls: Any, model_name: str, model_path: Optional[str]) -> 
                 return model_cls(**_build_model_args("onnx"), inference_framework="onnx"), "onnx"
         return model_cls(**_build_model_args("onnx")), "onnx"
 
-    if model_path and supports_model_paths:
-        return _build_model_with_framework_fallback()
-
-    if supports_model_names:
-        return _build_model_with_framework_fallback()
-
-    raise TypeError(
-        "wakeword model class must accept wakeword_model_paths, wakeword_models, "
-        "or variadic keyword arguments"
-    )
+    return _build_model_with_framework_fallback()
 
 
 def extract_detection(predictions: Any, preferred_model: str) -> Tuple[str, float]:
@@ -386,7 +375,7 @@ def run_service() -> int:
     )
 
     try:
-        model, inference_type = create_model(model_cls, model_name, model_path)
+        model, inference_type = create_model(model_cls, model_path)
     except Exception as exc:
         _emit_status("error", f"Failed to initialize wakeword model: {exc}")
         return 1

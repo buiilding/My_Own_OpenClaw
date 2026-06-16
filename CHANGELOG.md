@@ -33,6 +33,9 @@ All notable changes to WindieOS will be documented in this file.
   sidecar daemon diagnostics context builder.
 - frontend/sidecar: replace browser `replace_file` `old_str`/`new_str`
   compatibility fields with canonical `old_string`/`new_string`.
+- frontend/sidecar: remove wakeword `wakeword_models` constructor compatibility;
+  wakeword startup now requires path-based `wakeword_model_paths`
+  initialization.
 - sdk/sidecar: remove `baseUrl` discovery-file compatibility from the
   TypeScript and Python SDK auto-sidecar discovery readers.
 - sdk/python: remove camelCase backend tool-call and tool-bundle payload accepts

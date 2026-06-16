@@ -15,7 +15,7 @@ class _NewApiModel:
         self.wakeword_model_paths = wakeword_model_paths
 
 
-class _OldApiModel:
+class _ModelNameOnlyModel:
     def __init__(self, wakeword_models=None, inference_framework=None):
         if inference_framework == "tflite":
             raise RuntimeError("tflite unavailable")
@@ -28,7 +28,7 @@ class _PredictModel:
         return {"hey_jarvis": 0.73}
 
 
-class _CompatVariadicModel:
+class _VariadicPathModel:
     def __init__(self, *args, **kwargs):
         if kwargs.get("inference_framework") == "tflite":
             raise RuntimeError("tflite unavailable")
@@ -83,7 +83,6 @@ def test_resolve_wakeword_model_directory_uses_windieos_root(monkeypatch, tmp_pa
 def test_create_model_supports_new_openwakeword_signature():
     model, inference = wakeword_service.create_model(
         _NewApiModel,
-        "hey_jarvis",
         "/tmp/hey_jarvis.onnx",
     )
 
@@ -92,17 +91,16 @@ def test_create_model_supports_new_openwakeword_signature():
     assert inference == "onnx"
 
 
-def test_create_model_old_signature_falls_back_to_onnx():
-    model, inference = wakeword_service.create_model(
-        _OldApiModel,
-        "hey_jarvis",
-        None,
-    )
-
-    assert isinstance(model, _OldApiModel)
-    assert model.wakeword_models == ["hey_jarvis"]
-    assert model.inference_framework == "onnx"
-    assert inference == "onnx"
+def test_create_model_rejects_model_name_only_constructor():
+    try:
+        wakeword_service.create_model(
+            _ModelNameOnlyModel,
+            "/tmp/hey_jarvis.onnx",
+        )
+    except TypeError as exc:
+        assert "wakeword_model_paths" in str(exc)
+    else:
+        raise AssertionError("expected model-name-only wakeword constructor to fail")
 
 
 def test_create_model_variadic_signature_uses_cached_auxiliary_models_for_onnx_fallback(tmp_path):
@@ -124,8 +122,7 @@ def test_create_model_variadic_signature_uses_cached_auxiliary_models_for_onnx_f
         file_path.write_bytes(b"ok")
 
     model, inference = wakeword_service.create_model(
-        _CompatVariadicModel,
-        "hey_jarvis",
+        _VariadicPathModel,
         str(tflite_model),
     )
 
@@ -141,7 +138,6 @@ def test_create_model_rejects_unknown_constructor_signature():
     try:
         wakeword_service.create_model(
             _UnsupportedModel,
-            "hey_jarvis",
             None,
         )
     except TypeError as exc:

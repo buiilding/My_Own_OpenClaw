@@ -34,7 +34,7 @@ Startup pipeline:
 1. `resolve_wakeword_model()` reads openWakeWord metadata (`models` or `MODELS`) and resolves the preferred model id/path.
 2. `ensure_models_available()` first checks packaged model path, then checks user cache path (`WINDIE_WAKEWORD_MODEL_DIR` or WindieOS user-data dir).
 3. if model is missing, `download_models(['hey_jarvis'], target_directory=<user-cache>)` is used when supported by the installed openWakeWord version.
-4. runtime resolves a concrete model file path from the writable cache and initializes `Model` with explicit `wakeword_model_paths` when constructor signature supports it (including `**kwargs` signatures).
+4. runtime resolves a concrete model file path from the writable cache and initializes `Model` with explicit `wakeword_model_paths`; model-name-only constructor fallback is not supported.
    When cached models are used, auxiliary feature-model paths (`melspectrogram`, `embedding_model`) are resolved from the same cache directory so ONNX fallback does not drift back to broken package-relative defaults.
 5. inference framework tries `tflite` first, falls back to `onnx` on failure
 
@@ -121,11 +121,13 @@ Renderer wakeword hook adds cooldown/threshold gate on top of service output.
 
 ## Test Coverage Note
 
-There are no direct unit tests for `wakeword_service.py` in current test suite.
+`tests/sidecar/test_wakeword_service.py` covers direct service helpers for:
 
-Risk:
-
-- protocol or startup regressions are primarily caught via integrated bridge/runtime behavior rather than service-level tests.
+- model metadata resolution
+- writable model cache lookup/download behavior
+- path-based `create_model()` initialization and ONNX fallback
+- rejection of unsupported and model-name-only constructors
+- audio chunk detection payloads
 
 ## Drift Hotspots
 
