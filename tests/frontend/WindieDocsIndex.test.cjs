@@ -553,4 +553,11 @@ describe('windie docs index', () => {
       expectedPath,
     );
   });
+
+  test('routes removed Electron tool router queries to tool execution lifecycle docs', () => {
+    const expectedPath = path.join('docs', 'tools', 'tool_execution_lifecycle.md');
+
+    expect(findDocs('stale cjs tool event router artifact')[0].path).toBe(expectedPath);
+    expect(findDocs('Electron tool event router cjs removed')[0].path).toBe(expectedPath);
+  });
 });

@@ -3,12 +3,21 @@ summary: "End-to-end WindieOS tool execution lifecycle from backend schema expos
 read_when:
   - When changing tool-call dispatch, bundle execution, request ids, tool-result payloads, screenshots, or model-facing history.
   - When debugging a tool that was called by the model but did not execute or did not re-enter backend history correctly.
+  - When resolving stale references to the removed `packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js` artifact or Electron tool event router behavior.
 title: "Tool Execution Lifecycle"
 ---
 
 # Tool Execution Lifecycle
 
 WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the sidecar owns executable desktop actions.
+
+The SDK tool execution source of truth is
+`packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, called from the
+SDK agent/conversation runtime. The generated CommonJS package output is built
+from TypeScript; the removed
+`packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js` artifact is not a
+current boundary and should not be reintroduced as a parallel Electron tool
+event router.
 
 ## Lifecycle
 

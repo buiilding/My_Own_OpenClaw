@@ -56,6 +56,8 @@ All notable changes to WindieOS will be documented in this file.
   searches to the tool contract map.
 - docs/sdk: route removed agent capability handshake builder and test searches
   to the agent definition contract.
+- docs/tools: route removed Electron tool event router artifact searches to the
+  SDK-owned tool execution lifecycle.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`
