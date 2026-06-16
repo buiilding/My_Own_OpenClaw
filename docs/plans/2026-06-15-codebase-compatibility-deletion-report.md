@@ -118,7 +118,7 @@ Date: 2026-06-15
 | CD-085 | Electron SDK sidecar launch helper exports | `sdk_sidecar_launch_options.cjs` exported daemon discovery/context/env/log helper constants and functions even though production imports only `createDesktopAutoSidecarLaunchPlan(...)` | Knip reported five launch helper exports unused; repo search showed only `SdkSidecarLaunchOptions.test.cjs` imported those helpers directly while Electron main receives launch env/context/log callbacks from the plan object | Remove the helper exports and retarget tests to assert source identity and sidecar log routing through the public desktop auto-sidecar launch plan | `1e45f3336` |
 | CD-086 | Electron local-backend screenshot temp-dir helper export | `local_backend_bridge_screenshot_attachment.cjs` exported `resolveOwnedScreenshotTempDir(...)` even though production uses it only internally to validate owned `screenshot_path` attachments | Knip reported the export unused; repo search showed only `LocalBackendBridge.rpc.test.cjs` imported it directly to construct fixture screenshot paths | Remove the helper export and keep screenshot temp-path ownership tested through the documented `${os.tmpdir()}/windieos-screenshots/windie-shot-*` materialization contract | `38916c7fb` |
 | CD-087 | Electron overlay renderer-console helper exports | `main_window_overlay_runtime.cjs` exported console payload normalization, formatter, and severity classifier helpers even though production uses them only inside the renderer `console-message` hook | Knip reported all three exports unused; repo search showed only `MainWindowOverlayRuntime.test.cjs` imported them directly while Electron main callers use `attachRendererConsoleLogging(...)` | Remove the helper exports and assert old/new Electron console payload handling through the public renderer-console attachment path | `940a5b1d0` |
-| CD-088 | Electron chat-pill visibility intent path exports | `chat_pill_visibility_intent_store.cjs` exported the persisted filename constant and path resolver even though production uses only the read/write intent store operations | Knip reported both exports unused; repo search showed only `ChatPillVisibilityIntentStore.test.cjs` imported the resolver directly while `index.cjs` imports the store operations | Remove the path helper exports and assert default user-data path behavior through `writeChatPillVisibilityIntent(...)` | pending commit |
+| CD-088 | Electron chat-pill visibility intent path exports | `chat_pill_visibility_intent_store.cjs` exported the persisted filename constant and path resolver even though production uses only the read/write intent store operations | Knip reported both exports unused; repo search showed only `ChatPillVisibilityIntentStore.test.cjs` imported the resolver directly while `index.cjs` imports the store operations | Remove the path helper exports and assert default user-data path behavior through `writeChatPillVisibilityIntent(...)` | `e40ce6bed` |
 
 ## Commit Ledger
 
@@ -292,7 +292,8 @@ Date: 2026-06-15
   completed CD-086.
 - `940a5b1d0 refactor(frontend): keep renderer console helpers private`
   completed CD-087.
-- Pending implementation commit completes CD-088.
+- `e40ce6bed refactor(frontend): keep chat pill intent path private`
+  completed CD-088.
 
 ## Validation Log
 
