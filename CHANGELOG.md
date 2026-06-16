@@ -112,6 +112,8 @@ All notable changes to WindieOS will be documented in this file.
   workflow before sidecar lifecycle internals.
 - docs/frontend: route workspace-folder-permission searches to the workspace
   context workflow before deep permission manifest references.
+- docs/backend: route tool-result-history searches to the history commit
+  boundary before lower-level tool-result receiver or transformer internals.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

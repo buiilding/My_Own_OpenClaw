@@ -1,12 +1,13 @@
 ---
-summary: "Deep reference for backend tool-result persistence layering: pure transform, narrow commit adapter, bundle-vs-individual history paths, and cleanup guarantees around request-id/result-storage lifecycle."
+summary: "Deep reference for backend tool result history persistence layering: pure transform, narrow commit adapter, bundle-vs-individual history rows, and cleanup guarantees around request-id/result-storage lifecycle."
 read_when:
   - When changing `ToolResultProcessor`/`ResultTransformer`/`HistoryCommitter` responsibilities.
+  - When debugging tool result history rows, missing tool-output history commits, or bundle history row duplication.
   - When debugging tool-result memory leaks, missing history rows after bundle execution, or incorrect cleanup of resolved request IDs.
-title: "History Committer and Result-Processor Boundary Reference"
+title: "Tool Result History Committer and Result-Processor Boundary Reference"
 ---
 
-# History Committer and Result-Processor Boundary Reference
+# Tool Result History Committer and Result-Processor Boundary Reference
 
 ## Canonical Modules
 

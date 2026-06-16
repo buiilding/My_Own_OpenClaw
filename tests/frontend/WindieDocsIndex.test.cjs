@@ -286,4 +286,17 @@ describe('windie docs index', () => {
       path.join('docs', 'memory', 'transcript_replay_change_workflow.md'),
     );
   });
+
+  test('routes tool result history queries to the history commit boundary', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'agent',
+      'history',
+      'history_committer_and_result_processor_boundary_reference.md',
+    );
+
+    expect(findDocs('tool result history')[0].path).toBe(expectedPath);
+    expect(findDocs('tool result history rows')[0].path).toBe(expectedPath);
+  });
 });
