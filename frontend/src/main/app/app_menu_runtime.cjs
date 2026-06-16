@@ -151,10 +151,6 @@ function installApplicationMenu({
 }
 
 module.exports = {
-  WORKSPACE_ACCESS_PERMISSION_ID,
-  buildApplicationMenuTemplate,
   extractWorkspaceSelection,
-  getLastPathSegment,
   installApplicationMenu,
-  requestWorkspaceFolderSelection,
 };

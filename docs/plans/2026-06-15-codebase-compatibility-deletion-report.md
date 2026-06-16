@@ -87,6 +87,7 @@ Date: 2026-06-15
 | CD-054 | Renderer infrastructure API barrel | `frontend/src/renderer/infrastructure/api/index.ts` re-exported the SDK client surface, but production and real tests import `windieSdkClient.ts` directly | Knip reported every barrel value/type export unused; import search showed only `WindieSdkClientExports.test.ts` imported the barrel, and active docs still described the barrel as stable | Delete the unused barrel and barrel-only test; update active SDK/API docs to route TypeScript client work to `windieSdkClient.ts` | `4b92d39d8` |
 | CD-055 | Final renderer infrastructure helper type exports | `MessageFormatter.ts` exported `BundledToolResult` and `ScreenshotAttachmentPipeline.ts` exported `ScreenshotAttachment` even though both shapes are only used by their own service function signatures | Knip reported both as the final unused exported types; repo search showed no external imports of either type while callers consume service functions directly | Make both helper shapes private to their service modules and preserve formatter/screenshot pipeline behavior | `e04bfc335` |
 | CD-056 | Renderer formatter and screenshot pipeline modules | `MessageFormatter.ts`, `ScreenshotAttachmentPipeline.ts`, `CapturePayloadUtils.ts`, screenshot-only surface lifecycle APIs, and their tests remained after renderer sends stopped capturing/uploading query screenshots and SDK/main took over screenshot resource resolution | Knip reported the formatter and screenshot pipeline functions as unused; repo search showed production kept only stale type imports, docs, and tests; removing the modules exposed `CapturePayloadUtils.ts`, screenshot lifecycle exports, and screenshot-only timing/reason helpers as unused fallout | Delete the dead renderer formatter/screenshot pipeline modules and tests; inline the remaining query capture metadata/system-state shapes into active owners; update docs to route query screenshot capture and materialization through SDK/main | `3dbfaff7b` |
+| CD-057 | Electron app-menu helper exports | `app_menu_runtime.cjs` exported the workspace permission id, menu-template builder, path segment helper, and workspace permission request helper even though production imports only the app-menu installer and workspace selection extractor | Knip reported those four helper exports unused; repo search showed only tests imported the menu-template builder directly while the other helpers were internal implementation details | Remove the test-only/internal helper exports and assert menu template behavior through `installApplicationMenu(...)` instead | pending implementation commit |
 
 ## Commit Ledger
 
@@ -198,6 +199,7 @@ Date: 2026-06-15
   completed CD-055.
 - `3dbfaff7b refactor(frontend): delete renderer screenshot formatter path`
   completed CD-056.
+- pending implementation commit will complete CD-057.
 
 ## Validation Log
 
@@ -942,6 +944,20 @@ CD-056 validation:
   required. Renderer query sends already submit SDK resources; this deletion
   removes the unused pre-SDK renderer screenshot/formatter path and updates
   docs to the SDK/main screenshot materialization owner.
+
+CD-057 validation:
+
+- targeted `rg -n "WORKSPACE_ACCESS_PERMISSION_ID|buildApplicationMenuTemplate|getLastPathSegment|requestWorkspaceFolderSelection|app_menu_runtime" frontend/src tests docs --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only internal implementation references remain for the private helpers; tests
+  import the production `installApplicationMenu` and `extractWorkspaceSelection`
+  exports.
+- `bin/windie test frontend -- AppMenuRuntime`: passed; 1 suite and 3 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 167 to 163.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this narrows a CommonJS test-only export surface while preserving
+  the Electron app menu installer behavior.
 
 ## Inspection Notes
 

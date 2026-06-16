@@ -1,19 +1,24 @@
 /** @jest-environment node */
 
 const {
-  buildApplicationMenuTemplate,
   extractWorkspaceSelection,
   installApplicationMenu,
 } = require('../../frontend/src/main/app/app_menu_runtime.cjs');
 
 describe('app_menu_runtime', () => {
   test('builds a File menu with Set active workspace first', () => {
-    const template = buildApplicationMenuTemplate({
+    const Menu = {
+      buildFromTemplate: jest.fn((template) => ({ template })),
+      setApplicationMenu: jest.fn(),
+    };
+
+    const installed = installApplicationMenu({
+      Menu,
       platform: 'darwin',
       onSetActiveWorkspace: jest.fn(),
     });
 
-    const fileMenu = template.find((entry) => entry && entry.label === 'File');
+    const fileMenu = installed.template.find((entry) => entry && entry.label === 'File');
     expect(fileMenu).toBeTruthy();
     expect(fileMenu.submenu[0]).toMatchObject({
       label: 'Set active workspace…',
