@@ -139,7 +139,8 @@ Date: 2026-06-15
   completed CD-035.
 - `b36ad10c0 refactor(frontend): remove transparency normalizer helper`
   completed CD-036.
-- pending commit for CD-037.
+- `5dd7c6351 refactor(frontend): keep tool call metadata helper private`
+  completed CD-037.
 
 ## Validation Log
 
