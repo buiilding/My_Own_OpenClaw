@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - sdk/frontend: expose SDK-shaped runtime command names from the TypeScript SDK
   and route renderer runtime facades through that shared command contract.
+- docs/frontend: route `SDK_RUNTIME_COMMANDS` searches to the renderer desktop
+  backend transport command contract.
 - frontend/renderer: remove the renderer-only tool correlation alias and route
   chat stream correlation through the SDK package export.
 - backend/tools: require the session `ocr_router` path for screenshot OCR

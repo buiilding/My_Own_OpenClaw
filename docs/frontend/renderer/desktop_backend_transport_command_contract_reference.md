@@ -1,8 +1,9 @@
 ---
-summary: "Renderer desktop backend transport command contract for DesktopBackendTransport, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
+summary: "Renderer desktop backend transport command contract for DesktopBackendTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
 read_when:
   - When changing `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
-  - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, or typed SDK dispatch from the renderer.
+  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, or shared SDK-shaped command names.
+  - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch from the renderer.
 title: "Desktop Backend Transport Command Contract Reference"
 ---
 
@@ -13,6 +14,7 @@ title: "Desktop Backend Transport Command Contract Reference"
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/windieCommandInvokeClient.ts`
+- `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
@@ -27,7 +29,12 @@ title: "Desktop Backend Transport Command Contract Reference"
 conversation runtime calls into the main-process `windie:invoke` command
 surface.
 
-The adapter calls:
+Renderer runtime facades import command names from the SDK package
+`SDK_RUNTIME_COMMANDS` export. The SDK package owns the string constants so
+first-party renderer facades and non-renderer SDK customers use one command
+vocabulary instead of duplicating literals in each facade.
+
+`desktopBackendTransport.ts` calls:
 
 - `conversation.send`
 - `conversation.stop`
@@ -36,6 +43,11 @@ The adapter calls:
 - `wakeword.detected`
 - `settings.update`
 - `models.list`
+
+Other desktop renderer facades use the same SDK export for conversation
+library, transcript, memory, and diagnostics commands such as
+`conversations.list`, `conversation.loadDisplay`, `memories.list`,
+`memories.delete`, `conversations.clearAll`, and `diagnostics.append`.
 
 It does not talk to the backend websocket directly and does not execute tools.
 Electron main remains responsible for settings gates, query enrichment,

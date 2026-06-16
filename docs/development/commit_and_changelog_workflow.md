@@ -45,33 +45,52 @@ Keep the entry concise:
 Use:
 
 ```bash
-./scripts/committer "docs(scope): concise subject" --body "Issue: documentation was missing the new behavior.
+./scripts/committer "docs(scope): concise subject" --body "Context: documentation was missing the current agent workflow rule.
 
-Fix: added the missing docs and changelog entry.
+Ownership: the development workflow doc owns detailed commit guidance, while AGENTS.md owns the top-level agent operating rule this doc mirrors.
 
-Previous behavior: agents had no repo-local guidance for this workflow.
+Change: updated the commit-body guidance and changelog entry.
 
-Behavior after fix: agents can find and follow the documented workflow." -- CHANGELOG.md docs/...
+Before: docs search returned the older issue/fix-only body shape.
+
+After: docs search returns the contextual body shape expected by AGENTS.md.
+
+Proof: inspected AGENTS.md and checked the focused docs diff.
+
+Notes: no migration required." -- CHANGELOG.md docs/...
 ```
 
-The helper requires at least one non-empty `--body` value. The body must describe:
+The helper requires at least one non-empty `--body` value. Commit bodies should
+be contextual enough to make `git log` useful months later. The body should
+describe:
 
-- the issue being fixed or changed
-- the fix and what improvements it makes
+- what changed
+- why the owning runtime, layer, or boundary owns the change
 - the previous behavior
-- the behavior after the fix
+- the new behavior or path
+- validation performed, or why validation was intentionally limited
+- migration, compatibility, security, risk, or follow-up notes when relevant
 
 For code:
 
 ```bash
-./scripts/committer "fix(scope): concise subject" --body "Issue: describe the bug.
+./scripts/committer "fix(scope): concise subject" --body "Context: describe the bug, missing capability, or cleanup pressure.
 
-Fix: describe the implementation and improvement.
+Ownership: describe why this runtime, layer, or boundary owns the fix.
 
-Previous behavior: describe what happened before.
+Change: describe the implementation and behavior change in plain language.
 
-Behavior after fix: describe what happens now." -- changed/files
+Before: describe what happened before.
+
+After: describe what happens now.
+
+Proof: list focused tests, lint, diagnostics, or manual checks.
+
+Notes: include migration, compatibility, security, risk, or follow-up notes only when relevant." -- changed/files
 ```
+
+Avoid bodies that repeat the subject, summarize files one by one, or describe
+only what changed without explaining why the change belongs in that layer.
 
 The helper stages only listed paths. Check `git status --short --branch` before and after committing.
 
