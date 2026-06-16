@@ -137,7 +137,7 @@ describe('conversationSessionRuntime', () => {
     expect(setChatConversationRef).toHaveBeenCalledWith('conv-next');
   });
 
-  test('applyEventChatConversationProjection keeps legacy local-user-message promotion during migration', () => {
+  test('applyEventChatConversationProjection blocks raw backend local-user-message promotion', () => {
     const setChatConversationRef = jest.fn();
 
     expect(applyEventChatConversationProjection({
@@ -146,9 +146,9 @@ describe('conversationSessionRuntime', () => {
       resolvedConversationRef: ' conv-next ',
       activeConversationRef: 'conv-current',
       setChatConversationRef,
-    })).toBe('conv-next');
+    })).toBeNull();
 
-    expect(setChatConversationRef).toHaveBeenCalledWith('conv-next');
+    expect(setChatConversationRef).not.toHaveBeenCalled();
   });
 
   test('applyEventChatConversationProjection blocks non-local events from stealing active chat focus', () => {

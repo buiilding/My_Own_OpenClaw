@@ -223,7 +223,7 @@ export function applyEventChatConversationProjection({
     return normalizedResolvedConversationRef;
   }
 
-  const isUserSelectionEvent = eventType === 'local-user-message' || eventType === 'user_message';
+  const isUserSelectionEvent = eventType === 'user_message';
   if (!isUserSelectionEvent && normalizedActiveConversationRef) {
     return null;
   }

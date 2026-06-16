@@ -8,6 +8,9 @@ All notable changes to WindieOS will be documented in this file.
 
 - sdk/package: clean generated `dist` and `cjs` outputs before building so
   removed SDK modules cannot survive in publishable package artifacts.
+- frontend/renderer: remove raw backend `local-user-message` conversation
+  promotion from the session projection helper; SDK `user_message` remains the
+  only local-user promotion event.
 - docs/frontend: route removed renderer backend-event contract and chat
   conversation-gate searches to the current SDK event normalizer and renderer
   conversation-event ingress docs.
