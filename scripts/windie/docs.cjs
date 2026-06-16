@@ -113,7 +113,9 @@ function scoreDoc(doc, terms) {
   return score;
 }
 
-function findDocs(topic, limit = 5) {
+const DEFAULT_DOC_SEARCH_LIMIT = 10;
+
+function findDocs(topic, limit = DEFAULT_DOC_SEARCH_LIMIT) {
   const terms = String(topic || '')
     .toLowerCase()
     .split(/[^a-z0-9_-]+/)

@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
 const path = require('path');
-const { loadDocsIndex } = require('../../scripts/windie/docs.cjs');
+const { findDocs, loadDocsIndex } = require('../../scripts/windie/docs.cjs');
 
 const repoRoot = path.resolve(__dirname, '../..');
 
@@ -15,5 +15,9 @@ describe('windie docs index', () => {
       path: path.join('docs', 'README.md'),
     });
     expect(path.join(repoRoot, readme.path)).toBe(path.join(repoRoot, 'docs', 'README.md'));
+  });
+
+  test('returns the top ten docs matches by default', () => {
+    expect(findDocs('runtime')).toHaveLength(10);
   });
 });
