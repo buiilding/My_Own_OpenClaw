@@ -114,7 +114,7 @@ Do not "fix" wrong-user websocket bugs by trusting renderer state harder. The ba
 ### Provider credential resolution
 
 1. `AppConfig` defines environment-backed provider key fields and frontend-managed provider override containers.
-2. Config loading normalizes provider aliases and resolves explicit frontend overrides when enabled.
+2. Config loading normalizes current provider aliases and resolves explicit frontend overrides when enabled.
 3. OAuth-aware entries, such as `openai_codex`, are resolved only for provider paths that support them.
 4. Provider constructors receive resolved credential/config values.
 5. Provider health/model availability reflects missing or invalid credentials.
@@ -230,7 +230,9 @@ Validate:
 
 - missing keys produce safe unavailable-provider behavior.
 - enabled overrides beat env only where designed.
-- aliases such as `gemini` and `kimi-code` still normalize correctly.
+- supported aliases such as `gemini` -> `google` still normalize correctly, and
+  removed aliases such as `kimi-code` / `kimi_code` remain rejected for Kimi
+  provider selection and credential lookup.
 - model list and provider health reflect the new credential gate.
 
 ### Change frontend-managed provider keys

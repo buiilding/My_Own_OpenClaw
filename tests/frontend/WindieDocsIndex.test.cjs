@@ -405,6 +405,12 @@ describe('windie docs index', () => {
     ).toBe(expectedPath);
   });
 
+  test('routes removed Kimi provider alias queries to Kimi provider docs', () => {
+    expect(findDocs('kimi_code provider alias rejected')[0].path).toBe(
+      path.join('docs', 'providers', 'kimi_coding.md'),
+    );
+  });
+
   test('routes local hosted query routing to the SDK runtime contract', () => {
     expect(findDocs('local hosted query routing')[0].path).toBe(
       path.join('docs', 'sdk', 'windie_client_runtime.md'),
