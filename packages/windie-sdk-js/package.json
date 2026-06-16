@@ -29,9 +29,10 @@
     "cjs"
   ],
   "scripts": {
-    "build": "npm run build:esm && npm run build:cjs",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.build.json",
     "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/write-cjs-package.mjs",
+    "clean": "node scripts/clean-build-output.mjs",
     "prepack": "npm run build"
   },
   "dependencies": {

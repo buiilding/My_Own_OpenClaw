@@ -41,6 +41,9 @@ npm install
 npm run build
 ```
 
+The package build removes the previous `dist` and `cjs` outputs before
+compiling so deleted SDK source files cannot survive in publishable artifacts.
+
 Repo examples import the local SDK build through
 `examples/_shared/local_sdk_loader.mjs`. That loader resolves `ws` and `tsc`
 from `packages/windie-sdk-js/node_modules`, so runnable examples validate the

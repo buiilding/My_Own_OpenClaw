@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/package: clean generated `dist` and `cjs` outputs before building so
+  removed SDK modules cannot survive in publishable package artifacts.
 - docs/frontend: route removed renderer backend-event contract and chat
   conversation-gate searches to the current SDK event normalizer and renderer
   conversation-event ingress docs.

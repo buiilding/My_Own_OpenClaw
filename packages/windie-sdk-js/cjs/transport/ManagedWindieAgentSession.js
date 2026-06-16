@@ -22,7 +22,6 @@ function resolveEndpointWsUrl(endpoint) {
 }
 class ManagedWindieAgentSession {
     constructor(options) {
-        this.options = options;
         this.listeners = new Map();
         this.activeEndpointIndex = 0;
         this.endpoints = normalizeEndpoints(options);
