@@ -45,48 +45,60 @@ Keep the entry concise:
 Use:
 
 ```bash
-./scripts/committer "docs(scope): concise subject" --body "Context: documentation was missing the current agent workflow rule.
+./scripts/committer "docs(scope): concise subject" --body "What changed:
+Updated the commit workflow docs and changelog entry for the agent instruction rule.
 
-Ownership: the development workflow doc owns detailed commit guidance, while AGENTS.md owns the top-level agent operating rule this doc mirrors.
+Owning layer:
+The development workflow docs own detailed commit guidance, while AGENTS.md owns the top-level agent operating rule this doc mirrors.
 
-Change: updated the commit-body guidance and changelog entry.
+Previous behavior:
+Docs search returned an older body shape that did not match the current AGENTS.md completion-artifacts rule.
 
-Before: docs search returned the older issue/fix-only body shape.
+New path:
+Docs search returns the same required section structure that the committer helper enforces.
 
-After: docs search returns the contextual body shape expected by AGENTS.md.
+Validation:
+Ran the focused docs diff and committer helper tests.
 
-Proof: inspected AGENTS.md and checked the focused docs diff.
-
-Notes: no migration required." -- CHANGELOG.md docs/...
+Migration/security:
+No migration required. No security-sensitive boundary changed." -- CHANGELOG.md docs/...
 ```
 
-The helper requires at least one non-empty `--body` value. Commit bodies should
-be contextual enough to make `git log` useful months later. The body should
-describe:
+The helper requires at least one non-empty `--body` value and rejects commits
+whose combined body does not use this exact section order:
 
-- what changed
-- why the owning runtime, layer, or boundary owns the change
-- the previous behavior
-- the new behavior or path
-- validation performed, or why validation was intentionally limited
-- migration, compatibility, security, risk, or follow-up notes when relevant
+- `What changed:`
+- `Owning layer:`
+- `Previous behavior:`
+- `New path:`
+- `Validation:`
+- `Migration/security:`
+
+Each section must include non-placeholder content. Keep `Migration/security:`
+present even when there is no migration or security-sensitive boundary; use an
+explicit note such as "No migration required. No security-sensitive boundary
+changed."
 
 For code:
 
 ```bash
-./scripts/committer "fix(scope): concise subject" --body "Context: describe the bug, missing capability, or cleanup pressure.
+./scripts/committer "fix(scope): concise subject" --body "What changed:
+Describe the implementation and behavior change in plain language.
 
-Ownership: describe why this runtime, layer, or boundary owns the fix.
+Owning layer:
+Describe why this runtime, layer, or boundary owns the fix.
 
-Change: describe the implementation and behavior change in plain language.
+Previous behavior:
+Describe what happened before.
 
-Before: describe what happened before.
+New path:
+Describe what happens now or which path owns the behavior.
 
-After: describe what happens now.
+Validation:
+List focused tests, lint, diagnostics, or manual checks.
 
-Proof: list focused tests, lint, diagnostics, or manual checks.
-
-Notes: include migration, compatibility, security, risk, or follow-up notes only when relevant." -- changed/files
+Migration/security:
+Include migration, compatibility, security, risk, or follow-up notes; when none apply, say so explicitly." -- changed/files
 ```
 
 Avoid bodies that repeat the subject, summarize files one by one, or describe

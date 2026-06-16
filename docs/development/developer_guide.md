@@ -140,7 +140,7 @@ frontend/src/
 
 - `bin/windie docs list`: Lists docs and front-matter metadata.
 - `bin/windie test all`: Runs backend, sidecar, and frontend tests.
-- `scripts/committer "<subject>" --body "<body>" -- <files...>`: Scoped commits using the shared `committer` helper. The body is required and must describe the issue, fix, previous behavior, and behavior after the fix.
+- `scripts/committer "<subject>" --body "<body>" -- <files...>`: Scoped commits using the shared `committer` helper. The body is required and must use the enforced `What changed`, `Owning layer`, `Previous behavior`, `New path`, `Validation`, and `Migration/security` sections.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
 - `cd frontend && npm run typecheck`: Runs TS gate (`tsc --noEmit -p tsconfig.eslint.json`).
 - `cd frontend && npm run lint`: Lints `js/jsx/cjs/ts/tsx`.

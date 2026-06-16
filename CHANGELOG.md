@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tooling/commits: require `scripts/committer` bodies to use the AGENTS.md
+  section format before staging files.
 - backend/tools: publish OCR tool-context services through `ocr_router` only and
   remove the `ContextFactory` `ocr_service` alias.
 - docs/backend: route removed `ContextFactory.set_ocr_service` searches to the

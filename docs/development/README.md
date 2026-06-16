@@ -72,7 +72,7 @@ There is no current repo-root `scripts/check` or `scripts/check-loc.py` in this 
 3. Keep backend model-facing schemas and sidecar runtime argument handling aligned.
 4. Add tests at the boundary that failed or changed.
 5. Update docs and changelog with behavior/API/contract changes.
-6. Commit completed work with `./scripts/committer`, including the required body with the issue, fix, previous behavior, and behavior after the fix.
+6. Commit completed work with `./scripts/committer`, including the required body sections for what changed, owning layer, previous behavior, new path, validation, and migration/security notes.
 
 ## Execution Workflows
 
