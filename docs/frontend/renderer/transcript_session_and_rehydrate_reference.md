@@ -1,9 +1,10 @@
 ---
-summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, direct desktopConversationStore command bridge behavior, removed createConversationEvent import/use in the desktop store, removed desktop store write enrichment helpers, IPC storage contract, and dashboard conversation resume/rehydrate flow."
+summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, direct desktopConversationStore command bridge behavior, removed createConversationEvent import/use in the desktop store, removed ConversationReplayState.test.ts state path, removed desktop store write enrichment helpers, IPC storage contract, and dashboard conversation resume/rehydrate flow."
 read_when:
   - When changing transcript session identity wiring, SDK display projection, desktopConversationStore command bridge behavior, or sidecar conversation-store payload shape.
   - When changing or searching for `desktopConversationLibraryClient.js`, conversation list/load/delete/search behavior, dashboard resume, or SDK-backed conversation library access.
   - When resolving stale references to removed desktop conversation-store write enrichment helpers, the removed `createConversationEvent` desktopConversationStore import, workspace metadata enrichment, broad screenshot attachment aliases, or renderer persistence reshaping.
+  - When resolving stale references to removed `ConversationReplayState.test.ts`; replay state is now SDK conversation events plus current replay action, database integration, and tool-message projection tests.
   - When debugging missing transcript rows, dashboard resume, or rehydrate mismatches.
   - When changing try-again/edit+resend replay sequencing in `useConversationReplayActions.js`.
 title: "Transcript Session and Rehydrate Reference"

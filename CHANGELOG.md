@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: refresh stale frontend validation/test references so removed
+  helper queries route to current screenshot, tool metadata, display-bounds,
+  transcript replay, and SDK tool-runtime docs.
 - sdk/package: clean generated `dist` and `cjs` outputs before building so
   removed SDK modules cannot survive in publishable package artifacts.
 - docs/frontend: route removed renderer infrastructure helpers and tool-result

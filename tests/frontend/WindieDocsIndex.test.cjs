@@ -1120,6 +1120,11 @@ describe('windie docs index', () => {
       'renderer',
       'chat_stream_and_tool_execution_reference.md',
     );
+    const sdkPath = path.join(
+      'docs',
+      'sdk',
+      'conversation_runtime.md',
+    );
 
     expect(findDocs('responseOverlayPhasePayload.js removed')[0].path).toBe(
       overlayPath,
@@ -1131,6 +1136,9 @@ describe('windie docs index', () => {
     expect(findDocs('MessageScreenshotSrc.test.js removed')[0].path).toBe(
       payloadPath,
     );
+    expect(findDocs('MessageToolMetadata.test.js removed')[0].path).toBe(
+      payloadPath,
+    );
     expect(findDocs('sanitizeMarkdownHtml markdown sanitizer wrapper removed')[0].path).toBe(
       payloadPath,
     );
@@ -1140,6 +1148,39 @@ describe('windie docs index', () => {
     );
     expect(findDocs('ChatStreamThinkingStatusUtils.test.ts removed')[0].path).toBe(
       streamPath,
+    );
+    expect(findDocs('ToolRunnerHook.callbacks.test.ts removed')[0].path).toBe(
+      sdkPath,
+    );
+    expect(findDocs('ToolRunnerHook.turnGuards.test.ts removed')[0].path).toBe(
+      sdkPath,
+    );
+  });
+
+  test('routes removed dashboard display helper queries to infrastructure docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'infrastructure',
+      'conversation_transcript_loader_and_display_bounds_storage_reference.md',
+    );
+
+    expect(findDocs('SettingsDisplayUtils.test.js removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
+  test('routes removed replay state test queries to transcript rehydrate docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'transcript_session_and_rehydrate_reference.md',
+    );
+
+    expect(findDocs('ConversationReplayState.test.ts removed')[0].path).toBe(
+      expectedPath,
     );
   });
 

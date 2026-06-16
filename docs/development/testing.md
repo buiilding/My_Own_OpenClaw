@@ -68,11 +68,11 @@ npm run audit:knip
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx`.
 - Message row class composition (sender/type/streaming/screenshot) is covered directly by `tests/frontend/MessageListClasses.test.js`.
-- Screenshot URL/data-URL resolution behavior is covered directly by `tests/frontend/MessageScreenshotSrc.test.js`.
-- Tool-output execution metadata formatting behavior is covered directly by `tests/frontend/MessageToolMetadata.test.js`.
+- Screenshot URL/data-URL resolution behavior is covered directly by `tests/frontend/MessageScreenshots.test.js`.
+- Tool-output source and token metadata formatting behavior is covered directly by `tests/frontend/MessageSourceBadge.test.jsx` and `tests/frontend/MessageTokenUsage.test.js`.
 - Chat message sender helper behavior is covered directly by `tests/frontend/ChatMessageSenderUtils.test.ts`.
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
 - Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.
 - Tool message/mapping helper behavior is covered directly by chat stream and SDK projection tests.
 - Dashboard model selection/filter/reconciliation helpers are covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
-- Dashboard display selection/speech-toggle helper behavior is covered directly by `tests/frontend/SettingsDisplayUtils.test.js`.
+- Dashboard model card, provider, and selection helper behavior is covered directly by `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelCardData.test.js`, and `tests/frontend/ModelSelectionUtils.test.js`.

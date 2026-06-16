@@ -18,6 +18,7 @@ title: "Models Section Selection Reconciliation and Dashboard Storage Contract R
 - `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
 - `tests/frontend/ModelsSection.test.jsx`
+- `tests/frontend/ModelCardData.test.js`
 
 ## ModelsSection Runtime Contract
 

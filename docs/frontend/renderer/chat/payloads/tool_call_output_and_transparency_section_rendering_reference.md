@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, removed sanitizeMarkdownHtml standalone markdown sanitizer wrapper behavior, DOMParser/createHTMLDocument markdown text extraction after deprecated document.createElement removal, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, transparency section configuration/validation, and current normalizeToolSchemaList behavior after the removed isSupportedToolSchemaList helper."
+summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, removed sanitizeMarkdownHtml standalone markdown sanitizer wrapper behavior, DOMParser/createHTMLDocument markdown text extraction after deprecated document.createElement removal, tool-call/tool-output card rendering, removed toolExplanationMessages and MessageToolMetadata.test.js helper behavior, screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, transparency section configuration/validation, and current normalizeToolSchemaList behavior after the removed isSupportedToolSchemaList helper."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
   - When changing renderer markdown sanitization, markdown rendering, math rendering, or thread-find highlight behavior.
@@ -7,7 +7,7 @@ read_when:
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
   - When stale code, tests, or docs mention `isSupportedToolSchemaList` or removed renderer tool-schema list helper exports.
   - When resolving stale references to the removed `sanitizeMarkdownHtml` wrapper, markdown sanitizer wrapper, or standalone sanitized-HTML wrapper.
-  - When resolving stale references to removed `toolExplanationMessages.js` or `MessageScreenshotSrc.test.js` helper paths.
+  - When resolving stale references to removed `toolExplanationMessages.js`, `MessageToolMetadata.test.js`, or `MessageScreenshotSrc.test.js` helper paths.
 title: "Tool Call/Output and Transparency Section Rendering Reference"
 ---
 
@@ -131,7 +131,7 @@ Screenshot source is resolved through screenshot utility:
 - prefers explicit `screenshotUrl`
 - falls back to inline base64 (`message.screenshot`) with content type default handling
 
-### Removed Tool Explanation and Screenshot Helper Paths
+### Removed Tool Explanation, Metadata, and Screenshot Helper Paths
 
 The old renderer `toolExplanationMessages.js` helper is no longer an active
 message-scanning path. Tool explanations are rendered by the current
@@ -141,6 +141,12 @@ message-scanning path. Tool explanations are rendered by the current
 - completed hidden-tool-log summaries use `tool-actions-summary`
 - explanation extraction reads canonical model/tool payload fields from the
   active message shape
+
+The old `MessageToolMetadata.test.js` suite covered a standalone
+`messageToolMetadata` formatter. That helper path is gone; current tool-output
+source, channel, and token badges are covered through `MessageSourceBadge` and
+`MessageTokenUsage`, while detailed tool-call/tool-output card content is owned
+by the message content components listed above.
 
 The old standalone screenshot-source test path `MessageScreenshotSrc.test.js`
 was also removed. Screenshot source selection is covered through

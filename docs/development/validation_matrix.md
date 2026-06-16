@@ -74,7 +74,8 @@ Frontend:
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
-- `tests/frontend/SettingsDisplayUtils.test.js`
+- `tests/frontend/ModelsSection.test.jsx`
+- `tests/frontend/ModelCardData.test.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
 
 ## Release and Packaging Validation

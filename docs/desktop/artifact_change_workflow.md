@@ -85,7 +85,6 @@ Validation:
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/MessageScreenshots.test.js`
-- `tests/frontend/MessageScreenshotSrc.test.js`
 
 Rules:
 

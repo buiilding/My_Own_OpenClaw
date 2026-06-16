@@ -1,7 +1,7 @@
 ---
-summary: "Renderer infrastructure reference for SDK-backed desktop conversation loading and Electron-main display-bounds injection after removed localConversationStore, displaySelection, and ToolExecutionInvoker renderer helpers."
+summary: "Renderer infrastructure reference for SDK-backed desktop conversation loading and Electron-main display-bounds injection after removed localConversationStore, displaySelection, SettingsDisplayUtils.test.js, and ToolExecutionInvoker renderer helpers."
 read_when:
-  - When searching for removed `localConversationStore.ts`, `displaySelection.ts`, or `ToolExecutionInvoker.ts` renderer helpers.
+  - When searching for removed `localConversationStore.ts`, `displaySelection.ts`, `SettingsDisplayUtils.test.js`, or `ToolExecutionInvoker.ts` renderer helpers.
   - When changing SDK-backed desktop conversation loading through `desktopConversationStore.ts` or `desktopConversationLibraryClient.js`.
   - When changing Electron-main screenshot `display_bounds` injection behavior.
 title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
@@ -27,7 +27,7 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 
 ## Removed Renderer Helpers Route
 
-`localConversationStore.ts`, `displaySelection.ts`, and `ToolExecutionInvoker.ts`
+`localConversationStore.ts`, `displaySelection.ts`, `SettingsDisplayUtils.test.js`, and `ToolExecutionInvoker.ts`
 are no longer current renderer owners:
 
 - conversation loading/listing/searching routes through SDK-shaped
@@ -35,6 +35,9 @@ are no longer current renderer owners:
   adapter
 - display-bounds selection and injection happen in Electron main before sidecar
   screenshot execution
+- speech-mode config updates are covered by chat surface, AppConfigProvider,
+  config storage/filter, and settings-management tests instead of a standalone
+  settings-display utility suite
 - local tool execution and post-action screenshot policy live in the SDK
   `ToolExecutionCoordinator`, not a renderer invoker service
 

@@ -1,9 +1,10 @@
 ---
-summary: "End-to-end WindieOS tool execution lifecycle from backend schema exposure through SDK-runtime dispatch, sidecar execution, result ingress, history, and loop continuation."
+summary: "End-to-end WindieOS tool execution lifecycle from backend schema exposure through SDK-runtime dispatch, sidecar execution, result ingress, history, loop continuation, and removed ToolRunnerHook callback/turn-guard test routing."
 read_when:
   - When changing tool-call dispatch, bundle execution, request ids, tool-result payloads, screenshots, or model-facing history.
   - When debugging a tool that was called by the model but did not execute or did not re-enter backend history correctly.
   - When resolving stale references to the removed `packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js` artifact or Electron tool event router behavior.
+  - When resolving stale references to removed `ToolRunnerHook.callbacks.test.ts` or `ToolRunnerHook.turnGuards.test.ts`; current local-tool result routing lives in SDK `ToolExecutionCoordinator` plus renderer projection tests.
 title: "Tool Execution Lifecycle"
 ---
 
