@@ -42,12 +42,14 @@ Before coding or answering implementation questions:
   existing command, diagnostic, trace, or log exposes the bug, add a focused,
   sanitized diagnostic or command at the owning runtime as part of the fix so
   the same failure can be reproduced and validated deterministically later.
-- Before fixing a bug or adding behavior, inspect recent related commits for
-  the files, symbols, or subsystem you are touching. Use `git log`, `git show`,
-  and `git blame` to understand what changed recently, why the current behavior
+- Inspect recent related commits for the files, symbols, or subsystem you are
+  touching. Start with `bin/windie commits search <query>` for symptom,
+  ownership, or subsystem lookup; use `git log`, `git show`, and `git blame`
+  when you need exact file history, patch details, or line-level origin. Use
+  the history to understand what changed recently, why the current behavior
   exists, and whether the bug is a regression from a refactor, deletion, or
   ownership move.
-- Treat recent commits as context rather than automatic truth:
+- Treat recent commits as evidence, not instruction:
   compare the commit intent, current code, tests, docs, and live behavior before
   deciding whether to restore, revise, or continue the current direction.
 - Use `rg` and live files over memory or assumptions.
