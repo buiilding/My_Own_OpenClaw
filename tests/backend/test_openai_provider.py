@@ -1493,8 +1493,11 @@ def test_build_openai_responses_input_preserves_tool_output_images():
             "tool_calls": [
                 {
                     "id": "call-shot",
-                    "name": "screenshot",
-                    "arguments": {"explanation": "Inspect screen"},
+                    "type": "function",
+                    "function": {
+                        "name": "screenshot",
+                        "arguments": '{"explanation":"Inspect screen"}',
+                    },
                 }
             ],
         },
@@ -1594,7 +1597,79 @@ def test_build_openai_responses_input_skips_assistant_messages_with_only_unsuppo
     ]
 
 
-def test_build_openai_responses_input_preserves_legacy_computer_named_calls_as_function_calls():
+def test_build_openai_responses_input_requires_normalized_assistant_tool_calls():
+    with pytest.raises(
+        ValueError,
+        match="requires provider-normalized assistant tool_calls",
+    ):
+        build_openai_responses_input(
+            [
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "id": "comp_1",
+                            "name": "computer",
+                            "arguments": {
+                                "actions": [{"type": "click", "x": 100, "y": 200}],
+                            },
+                        }
+                    ],
+                }
+            ]
+        )
+
+    with pytest.raises(
+        ValueError,
+        match="function.name must be non-empty string",
+    ):
+        build_openai_responses_input(
+            [
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "id": "comp_1",
+                            "type": "function",
+                            "function": {
+                                "name": "",
+                                "arguments": "{}",
+                            },
+                        }
+                    ],
+                }
+            ]
+        )
+
+    with pytest.raises(
+        ValueError,
+        match="function.arguments must be string",
+    ):
+        build_openai_responses_input(
+            [
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "id": "comp_1",
+                            "type": "function",
+                            "function": {
+                                "name": "computer",
+                                "arguments": {
+                                    "actions": [{"type": "click", "x": 100, "y": 200}],
+                                },
+                            },
+                        }
+                    ],
+                }
+            ]
+        )
+
+
+def test_build_openai_responses_input_preserves_normalized_computer_calls_as_function_calls():
     messages = [
         {"role": "system", "content": "You are helpful."},
         {"role": "user", "content": "Open the app."},
@@ -1604,9 +1679,10 @@ def test_build_openai_responses_input_preserves_legacy_computer_named_calls_as_f
             "tool_calls": [
                 {
                     "id": "comp_1",
-                    "name": "computer",
-                    "arguments": {
-                        "actions": [{"type": "click", "x": 100, "y": 200}],
+                    "type": "function",
+                    "function": {
+                        "name": "computer",
+                        "arguments": '{"actions":[{"type":"click","x":100,"y":200}]}',
                     },
                 }
             ],
@@ -1640,7 +1716,7 @@ def test_build_openai_responses_input_preserves_legacy_computer_named_calls_as_f
             "type": "function_call",
             "call_id": "comp_1",
             "name": "computer",
-            "arguments": '{"actions": [{"type": "click", "x": 100, "y": 200}]}',
+            "arguments": '{"actions":[{"type":"click","x":100,"y":200}]}',
             "status": "completed",
         },
         {
@@ -1771,7 +1847,7 @@ def test_normalize_openai_responses_payload_rejects_missing_tool_call_id():
                     {
                         "type": "function_call",
                         "name": "read_file",
-                        "arguments": "{\"path\":\"/tmp/demo.txt\"}",
+                        "arguments": '{"path":"/tmp/demo.txt"}',
                     }
                 ],
                 "status": "requires_action",

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/openai: require provider-normalized assistant tool calls before
+  building OpenAI Responses input items.
 - frontend/sidecar: regenerate the built-in browser tool manifest so
   Electron advertises canonical replace_file old_string/new_string fields.
 - frontend/chat: remove the old stop-query UI mutator now that stopped-turn

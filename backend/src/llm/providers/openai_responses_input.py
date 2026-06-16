@@ -157,25 +157,28 @@ def _validate_openai_responses_input_items(input_items: List[Dict[str, Any]]) ->
 
 def _normalize_assistant_tool_call_input(tool_call: Dict[str, Any]) -> Dict[str, Any]:
     function_payload = tool_call.get("function")
-    if isinstance(function_payload, dict):
-        name = function_payload.get("name")
-        arguments = function_payload.get("arguments")
-    else:
-        name = tool_call.get("name")
-        arguments = tool_call.get("arguments")
+    if not isinstance(function_payload, dict):
+        raise ValueError(
+            "OpenAI Responses input requires provider-normalized assistant "
+            "tool_calls with function payloads"
+        )
 
-    if isinstance(arguments, dict):
-        arguments_payload = json.dumps(arguments, ensure_ascii=False)
-    elif isinstance(arguments, str):
-        arguments_payload = arguments
-    else:
-        arguments_payload = json.dumps({}, ensure_ascii=False)
+    name = function_payload.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError(
+            "OpenAI Responses assistant tool_call function.name must be non-empty string"
+        )
+    arguments = function_payload.get("arguments")
+    if not isinstance(arguments, str):
+        raise ValueError(
+            "OpenAI Responses assistant tool_call function.arguments must be string"
+        )
 
     return {
         "type": "function_call",
         "call_id": str(tool_call.get("id") or ""),
-        "name": str(name or ""),
-        "arguments": arguments_payload,
+        "name": name,
+        "arguments": arguments,
         "status": "completed",
     }
 
