@@ -1,7 +1,7 @@
 ---
-summary: "WindieOS logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, frontend interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
+summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, frontend interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
 read_when:
-  - When a runtime exits silently or logs are too noisy to isolate a bug.
+  - When desktop logs, layer logs, or runtime logs are missing, too noisy, or needed to isolate a bug.
   - When changing logging setup, launch scripts, frontend interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
 title: "Logging"
 ---

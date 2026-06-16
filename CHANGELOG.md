@@ -62,6 +62,8 @@ All notable changes to WindieOS will be documented in this file.
   runtime contract and document the `wakeUp` versus local-runtime split.
 - docs/security: route install-auth searches to the credential workflow before
   broad storage or provider-credential docs.
+- docs/debug: route desktop-log searches to the logging guide before generic
+  runtime node docs.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

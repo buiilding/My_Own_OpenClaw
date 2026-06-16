@@ -130,6 +130,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes desktop logs queries to the logging guide', () => {
+    expect(findDocs('desktop logs')[0].path).toBe(
+      path.join('docs', 'debug', 'logging.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),
