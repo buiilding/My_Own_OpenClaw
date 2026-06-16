@@ -104,6 +104,8 @@ All notable changes to WindieOS will be documented in this file.
   preload allowlist and channel-constant parity reference.
 - docs/frontend: route removed renderer workspace helper export searches to
   the workspace context workflow.
+- docs/frontend: route removed renderer projection annotation merge helper
+  searches to the chat stream runtime reference.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
