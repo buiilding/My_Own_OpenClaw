@@ -6,9 +6,6 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/agents: update the repo-level Product Contract to define WindieOS as a
-  hackable desktop runtime for personal AI agents, with the desktop session as
-  the current wedge and multi-device control plane as future direction.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
   and current-doc matches so feature queries land on grounded owner docs before
   broad catalog or historical refactor pages.
