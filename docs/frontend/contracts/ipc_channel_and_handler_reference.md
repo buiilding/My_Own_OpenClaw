@@ -1,8 +1,9 @@
 ---
-summary: "Renderer-main IPC reference: preload allowlists, typed channel constants, Electron main handler ownership, and SDK-runtime relay channel behavior."
+summary: "Renderer-main IPC reference: preload allowlists, typed channel constants, Electron main handler ownership, retired permission sudo IPC routing, and SDK-runtime relay channel behavior."
 read_when:
   - When adding or changing Electron IPC channels, including permission onboarding and focused settings channels.
   - When debugging renderer-main contract mismatches or unhandled invoke/send events.
+  - When searching for retired permission sudo IPC behavior or removed sudo permission channels.
 title: "IPC Channel and Handler Reference"
 ---
 

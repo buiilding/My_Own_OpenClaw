@@ -383,6 +383,18 @@ describe('windie docs index', () => {
     expect(paths).toContain(path.join('docs', 'tools', 'filesystem_shell.md'));
   });
 
+  test('routes removed sudo auth-mode compatibility queries to filesystem shell docs', () => {
+    const expectedPath = path.join('docs', 'tools', 'filesystem_shell.md');
+
+    expect(findDocs('agent_sudo_access_handler removed')[0].path).toBe(expectedPath);
+    expect(findDocs('AgentSudoAccessHandler.test.cjs removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('sudo auth mode compatibility path removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes replace legacy field guard queries to sidecar filesystem docs', () => {
     const expectedPath = path.join(
       'docs',
@@ -574,5 +586,27 @@ describe('windie docs index', () => {
     expect(findDocs('backend dev tool_selection toml removed')[0].path).toBe(
       expectedPath,
     );
+  });
+
+  test('routes removed renderer capture helper queries to capture payload docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'infrastructure',
+      'capture_artifact_upload_and_payload_normalization_reference.md',
+    );
+
+    expect(findDocs('ArtifactUploader renderer upload deleted')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('ToolScreenshotDebugTrace renderer deleted')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('ScreenshotAttachmentPipeline deleted')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('CapturePayloadUtils deleted')[0].path).toBe(expectedPath);
+    expect(findDocs('MessageFormatter deleted')[0].path).toBe(expectedPath);
   });
 });

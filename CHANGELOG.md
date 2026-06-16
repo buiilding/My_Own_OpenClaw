@@ -62,6 +62,8 @@ All notable changes to WindieOS will be documented in this file.
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
   `ToolSelection` value-object path after dev TOML selection loading was removed.
+- docs/search: route removed sudo auth-mode and renderer capture-helper
+  searches to the current filesystem/shell and capture payload owner docs.
 - frontend/renderer: stop writing the unused config-version localStorage key;
   renderer settings persistence now stores only the sanitized config payload.
 - backend/simulation: delete the `backend.src.simulation.computer` alias

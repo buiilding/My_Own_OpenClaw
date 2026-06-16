@@ -1,9 +1,10 @@
 ---
-summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, `BackendEndpointStore` artifact URL handling through `setBackendHttpUrl` and `buildArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/formatter helpers, `BackendEndpointStore` artifact URL handling through `setBackendHttpUrl` and `buildArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
   - When changing renderer artifact URL base sync, `BackendEndpointStore`, `setBackendHttpUrl`, `buildArtifactUrl`, or backend endpoint propagation into artifact display URLs.
   - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`) before backend relay.
+  - When searching for removed or deleted renderer capture/upload/formatter helpers such as `ArtifactUploader`, `ToolScreenshotDebugTrace`, `ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, or `MessageFormatter`.
 title: "Capture, Artifact URL, and Payload Normalization Reference"
 ---
 
@@ -106,6 +107,31 @@ artifact refs.
 - everything else -> `image/jpeg` + `.jpg`
 
 SDK/main screenshot materialization maps raw screenshot format/compression fields into standardized content types and normalizes `screenshot` / `screenshot_ref` / `screenshot_url` onto one attachment contract before backend relay.
+
+## Removed/Deleted Renderer Capture and Upload Helpers
+
+The renderer no longer owns screenshot artifact upload, screenshot attachment
+materialization, or model-facing tool-result formatting. Removed helper names
+such as `ArtifactUploader`, `ToolScreenshotDebugTrace`,
+`ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, and renderer
+`MessageFormatter` should route to this reference.
+
+Stale searches for deleted renderer helpers such as `ArtifactUploader` renderer
+upload, `ToolScreenshotDebugTrace` renderer debug trace,
+`ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, or `MessageFormatter`
+should land here before historical design docs.
+
+Current ownership:
+
+- SDK/main owns query screenshot resource resolution, post-action screenshot
+  capture, artifact materialization, and backend-bound screenshot refs.
+- Electron main owns sidecar screenshot invocation, selected-display bounds
+  injection, and local bridge result normalization.
+- Renderer infrastructure owns artifact URL display helpers only
+  (`BackendEndpointStore` and `ArtifactImageUtils`).
+- Renderer chat presentation consumes projected SDK/backend events; it does not
+  construct model-facing result payloads or upload screenshot artifacts before
+  dispatch.
 
 ## Backend Payload Normalization (`ToolExecutionPayloads`)
 

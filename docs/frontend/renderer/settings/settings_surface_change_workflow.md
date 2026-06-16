@@ -1,9 +1,10 @@
 ---
-summary: "Workflow for changing WindieOS dashboard settings surfaces across tab routing, config patches, permission actions, workspace selection, browser automation, memory resets, Electron IPC, backend settings sync, and tests."
+summary: "Workflow for changing WindieOS dashboard settings surfaces across tab routing, config patches, retired agent sudo access settings, permission actions, workspace selection, browser automation, memory resets, Electron IPC, backend settings sync, and tests."
 read_when:
   - When adding, removing, renaming, or debugging a dashboard settings tab or control.
   - When a setting persists locally but does not affect runtime behavior, reappears after reload, fails backend sync, triggers the wrong permission action, or calls the wrong memory/workspace/browser IPC path.
   - When deciding whether a settings change belongs to renderer settings UI, AppConfig persistence, Electron main IPC/config, backend update-settings validation, permission services, sidecar memory actions, or workspace access.
+  - When searching for the retired agent sudo access setting or removed dashboard sudo access control.
 title: "Settings Surface Change Workflow"
 ---
 
@@ -12,6 +13,14 @@ title: "Settings Surface Change Workflow"
 Use this workflow for user-facing settings controls in the desktop dashboard. It complements [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md): that workflow owns config propagation, while this one starts from the settings UI surface and routes each tab/control to the right runtime.
 
 The main rule is: a settings control should have exactly one semantic owner. Some controls write `AppConfig`, some invoke Electron permission or admin actions, some read workspace state, and some are only presentation. Do not make every control an `onConfigChange` patch just because it lives in Settings.
+
+## Retired Agent Sudo Access Setting
+
+The dashboard no longer has an agent sudo access setting or General tab sudo
+auth mode control. Broad searches for retired `agent sudo access` UI should
+route here because this workflow owns settings-surface removal and tab/control
+routing. Shell execution behavior after that removal is documented in
+[Filesystem and Shell Tools](../../../tools/filesystem_shell.md).
 
 ## Runtime Path
 

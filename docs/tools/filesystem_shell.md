@@ -1,8 +1,9 @@
 ---
-summary: "Filesystem and shell tool guide covering read/replace, shell commands, process sessions, Linux sudo pkexec prompting, path resolution, and output formatting."
+summary: "Filesystem and shell tool guide covering read/replace, shell commands, process sessions, Linux sudo pkexec prompting, removed sudo auth-mode compatibility paths, path resolution, and output formatting."
 read_when:
   - When changing file editing, shell/process execution, output truncation, or sidecar path handling.
   - When debugging `run_shell_command` sudo behavior, Linux pkexec prompting, shell working directories, or process sessions.
+  - When searching for `agent_sudo_access_handler removed`, `AgentSudoAccessHandler.test.cjs removed`, or removed sudo auth-mode bridge/config behavior.
   - When debugging local filesystem or terminal tool behavior.
 title: "Filesystem and Shell Tools"
 ---
@@ -42,6 +43,22 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
   prompts or inherited pipes after the wrapper shell exits.
 - Use background sessions only when command output needs polling or the process must outlive the immediate request.
 - Use `process` for high-volume or long-running command output.
+
+## Removed Sudo Compatibility Path
+
+The old Electron sudo compatibility path was deleted. There is no
+`agent_sudo_access_handler`, `AgentSudoAccessHandler.test.cjs`, backend
+`system_use_shell_auth_mode` message field, renderer sudo auth mode setting, or
+local-backend bridge argument that selects a separate shell authentication mode.
+The exact stale query `agent_sudo_access_handler removed` belongs here because
+the replacement runtime behavior is sidecar shell execution with Linux `pkexec`
+prompt routing.
+
+Current behavior is simpler: local `run_shell_command` executes in the sidecar,
+and on Linux a leading `sudo ...` command is rewritten to `pkexec bash -lc ...`
+so the OS owns the authentication prompt. Searches for removed sudo auth mode
+compatibility behavior should route to this page and the sidecar shell runtime
+reference below.
 
 ## Deep Docs
 
