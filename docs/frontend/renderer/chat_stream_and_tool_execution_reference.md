@@ -1,8 +1,9 @@
 ---
-summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, backend stream event handling, and SDK-projected tool display semantics."
+summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, backend stream event handling, removed chatStreamTransparency helper behavior, thinking status ownership, and SDK-projected tool display semantics."
 read_when:
   - When changing renderer chat hooks, stream event handling, or projected tool display callbacks.
   - When debugging stale-turn tool cancellation, transcript writes, or streaming state drift.
+  - When resolving stale references to removed `chatStreamTransparency.ts`, `ChatStreamTransparency.test.ts`, or `ChatStreamThinkingStatusUtils.test.ts` helper/test paths.
 title: "Chat Stream and Tool Execution Reference"
 ---
 
@@ -99,6 +100,18 @@ Thinking status constants from `chatStreamThinkingStatus.ts`:
   and stream-driven compaction paths.
 - Final assistant thinking text comes from SDK current-turn reasoning
   projection, not from persisted placeholder status normalization.
+
+### Removed Chat Stream Transparency and Thinking Helper Paths
+
+The old `chatStreamTransparency.ts` helper and
+`ChatStreamTransparency.test.ts` were removed from the active stream path.
+Transparency events now arrive as SDK-normalized conversation events and are
+handled through the centralized ingress/runtime path documented below.
+
+The old standalone `ChatStreamThinkingStatusUtils.test.ts` path was also
+removed. Thinking placeholders and compaction status labels are owned by
+`chatStreamThinkingStatus.ts`, while live assistant reasoning text comes from
+SDK `currentTurn.reasoningText`.
 
 ## Message Send Lifecycle (`useChatMessageSender`)
 

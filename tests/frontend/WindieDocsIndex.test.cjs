@@ -637,6 +637,48 @@ describe('windie docs index', () => {
     expect(findDocs('MessageFormatter deleted')[0].path).toBe(expectedPath);
   });
 
+  test('routes removed renderer overlay and chat helper queries to current owner docs', () => {
+    const overlayPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'overlays',
+      'response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md',
+    );
+    const payloadPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'chat',
+      'payloads',
+      'tool_call_output_and_transparency_section_rendering_reference.md',
+    );
+    const streamPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'chat_stream_and_tool_execution_reference.md',
+    );
+
+    expect(findDocs('responseOverlayPhasePayload.js removed')[0].path).toBe(
+      overlayPath,
+    );
+    expect(findDocs('ResponseOverlayPhasePayload.test.js removed')[0].path).toBe(
+      overlayPath,
+    );
+    expect(findDocs('toolExplanationMessages.js removed')[0].path).toBe(payloadPath);
+    expect(findDocs('MessageScreenshotSrc.test.js removed')[0].path).toBe(
+      payloadPath,
+    );
+    expect(findDocs('chatStreamTransparency removed')[0].path).toBe(streamPath);
+    expect(findDocs('ChatStreamTransparency.test.ts removed')[0].path).toBe(
+      streamPath,
+    );
+    expect(findDocs('ChatStreamThinkingStatusUtils.test.ts removed')[0].path).toBe(
+      streamPath,
+    );
+  });
+
   test('routes removed simulation computer alias queries to simulation entrypoint docs', () => {
     const expectedPath = path.join(
       'docs',

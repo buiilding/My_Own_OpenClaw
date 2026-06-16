@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, layout-mode resolution, and frame-size measurement semantics."
+summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, removed responseOverlayPhasePayload parser behavior, layout-mode resolution, and frame-size measurement semantics."
 read_when:
   - When changing files under `frontend/src/renderer/features/chat/utils/overlay/*`.
   - When debugging overlay phase payload drops, renderer/main phase-contract drift, or response overlay sizing regressions.
+  - When resolving stale references to removed `responseOverlayPhasePayload.js` or `ResponseOverlayPhasePayload.test.js` files.
 title: "Response Overlay Utility Contract Reference"
 ---
 
@@ -52,6 +53,19 @@ Payload validation for native phase events belongs to Electron main phase
 state/events plus the shared JSON-backed contract. Renderer utility tests should
 cover phase identity parity, lifecycle mapping, layout modes, and frame-size
 measurement, not a second renderer payload parser.
+
+### Removed Renderer Phase Payload Parser
+
+The renderer-local `responseOverlayPhasePayload.js` parser and
+`ResponseOverlayPhasePayload.test.js` were removed. Current overlay phase
+payload behavior is owned by:
+
+- shared JSON contracts for phase and metadata keys
+- renderer/main parity adapters
+- Electron main phase state/events for native window/layout signaling
+- SDK `currentTurnProjection` for chat runtime state
+
+Searches for the removed parser or test should route here.
 
 ## Turn Lifecycle Contract
 

@@ -1,9 +1,10 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, tool-call/tool-output card rendering, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
+summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
   - When changing renderer markdown sanitization, markdown rendering, math rendering, or thread-find highlight behavior.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
+  - When resolving stale references to removed `toolExplanationMessages.js` or `MessageScreenshotSrc.test.js` helper paths.
 title: "Tool Call/Output and Transparency Section Rendering Reference"
 ---
 
@@ -116,6 +117,22 @@ Screenshot source is resolved through screenshot utility:
 
 - prefers explicit `screenshotUrl`
 - falls back to inline base64 (`message.screenshot`) with content type default handling
+
+### Removed Tool Explanation and Screenshot Helper Paths
+
+The old renderer `toolExplanationMessages.js` helper is no longer an active
+message-scanning path. Tool explanations are rendered by the current
+`MessageContent` routing and tool message components:
+
+- live hidden-tool-log explanation rows use `tool-explanation`
+- completed hidden-tool-log summaries use `tool-actions-summary`
+- explanation extraction reads canonical model/tool payload fields from the
+  active message shape
+
+The old standalone screenshot-source test path `MessageScreenshotSrc.test.js`
+was also removed. Screenshot source selection is covered through
+`messageScreenshots.js`, message rendering, and attachment/artifact tests. Stale
+searches for either removed helper should route here.
 
 ## Tool Call Card Contract
 
