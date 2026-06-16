@@ -59,8 +59,6 @@ function writeChatPillVisibilityIntent(intent = {}, deps = {}) {
 }
 
 module.exports = {
-  CHAT_PILL_VISIBILITY_INTENT_FILENAME,
   readChatPillVisibilityIntent,
-  resolveChatPillVisibilityIntentPath,
   writeChatPillVisibilityIntent,
 };

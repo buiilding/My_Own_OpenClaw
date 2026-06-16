@@ -4,7 +4,6 @@ const path = require('path');
 
 const {
   readChatPillVisibilityIntent,
-  resolveChatPillVisibilityIntentPath,
   writeChatPillVisibilityIntent,
 } = require('../../frontend/src/main/surfaces/chat_pill_visibility_intent_store.cjs');
 
@@ -19,10 +18,22 @@ function createFsMock({ exists = false, contents = '' } = {}) {
 }
 
 describe('chat_pill_visibility_intent_store', () => {
-  test('resolves the state file under userData', () => {
-    expect(resolveChatPillVisibilityIntentPath({
-      userDataPath: '/tmp/windie-user-data',
-    })).toBe(path.join('/tmp/windie-user-data', 'chat-pill-visibility-intent.json'));
+  test('writes the default state file under userData', () => {
+    const fs = createFsMock();
+    const userDataPath = '/tmp/windie-user-data';
+    const statePath = path.join(userDataPath, 'chat-pill-visibility-intent.json');
+
+    expect(writeChatPillVisibilityIntent({
+      userHidden: false,
+    }, {
+      userDataPath,
+      fs,
+    })).toBe(true);
+
+    expect(fs.mkdirSync).toHaveBeenCalledWith(userDataPath, { recursive: true });
+    const [tempPath] = fs.writeFileSync.mock.calls[0];
+    expect(tempPath).toMatch(/\/tmp\/windie-user-data\/chat-pill-visibility-intent\.json\.\d+\.\d+\.\d+\.tmp$/);
+    expect(fs.renameSync).toHaveBeenCalledWith(tempPath, statePath);
   });
 
   test('defaults to visible intent when no state file exists', () => {

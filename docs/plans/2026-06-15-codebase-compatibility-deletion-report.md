@@ -118,6 +118,7 @@ Date: 2026-06-15
 | CD-085 | Electron SDK sidecar launch helper exports | `sdk_sidecar_launch_options.cjs` exported daemon discovery/context/env/log helper constants and functions even though production imports only `createDesktopAutoSidecarLaunchPlan(...)` | Knip reported five launch helper exports unused; repo search showed only `SdkSidecarLaunchOptions.test.cjs` imported those helpers directly while Electron main receives launch env/context/log callbacks from the plan object | Remove the helper exports and retarget tests to assert source identity and sidecar log routing through the public desktop auto-sidecar launch plan | `1e45f3336` |
 | CD-086 | Electron local-backend screenshot temp-dir helper export | `local_backend_bridge_screenshot_attachment.cjs` exported `resolveOwnedScreenshotTempDir(...)` even though production uses it only internally to validate owned `screenshot_path` attachments | Knip reported the export unused; repo search showed only `LocalBackendBridge.rpc.test.cjs` imported it directly to construct fixture screenshot paths | Remove the helper export and keep screenshot temp-path ownership tested through the documented `${os.tmpdir()}/windieos-screenshots/windie-shot-*` materialization contract | `38916c7fb` |
 | CD-087 | Electron overlay renderer-console helper exports | `main_window_overlay_runtime.cjs` exported console payload normalization, formatter, and severity classifier helpers even though production uses them only inside the renderer `console-message` hook | Knip reported all three exports unused; repo search showed only `MainWindowOverlayRuntime.test.cjs` imported them directly while Electron main callers use `attachRendererConsoleLogging(...)` | Remove the helper exports and assert old/new Electron console payload handling through the public renderer-console attachment path | `940a5b1d0` |
+| CD-088 | Electron chat-pill visibility intent path exports | `chat_pill_visibility_intent_store.cjs` exported the persisted filename constant and path resolver even though production uses only the read/write intent store operations | Knip reported both exports unused; repo search showed only `ChatPillVisibilityIntentStore.test.cjs` imported the resolver directly while `index.cjs` imports the store operations | Remove the path helper exports and assert default user-data path behavior through `writeChatPillVisibilityIntent(...)` | pending commit |
 
 ## Commit Ledger
 
@@ -291,6 +292,7 @@ Date: 2026-06-15
   completed CD-086.
 - `940a5b1d0 refactor(frontend): keep renderer console helpers private`
   completed CD-087.
+- Pending implementation commit completes CD-088.
 
 ## Validation Log
 
@@ -1552,6 +1554,23 @@ CD-087 validation:
   persisted-data migration is required. Electron main still attaches the same
   renderer `console-message` hook, writes every line to the verbose renderer
   log, and forwards warning/error severities to the default renderer layer log.
+
+CD-088 validation:
+
+- targeted `rg -n "CHAT_PILL_VISIBILITY_INTENT_FILENAME|resolveChatPillVisibilityIntentPath" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private same-module helper definitions and uses remain.
+- `bin/windie test frontend -- ChatPillVisibilityIntentStore SurfaceRuntime MainProcessBootstrapRuntime`:
+  passed; 3 suites and 33 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 71 to 69 after
+  removing chat-pill visibility intent path helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, settings, IPC, websocket, or
+  persisted-data migration is required. The persisted filename remains
+  `chat-pill-visibility-intent.json`; Electron main still reads and writes the
+  same user-hidden intent JSON under app `userData` unless tests inject an
+  explicit `statePath`.
 
 ## Inspection Notes
 

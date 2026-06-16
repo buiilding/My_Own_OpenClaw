@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep chat-pill visibility intent filename/path resolution
+  private to the persisted intent store read/write operations.
 - frontend/main: keep renderer console formatting, payload normalization, and
   severity classification private to the overlay runtime console-message hook.
 - frontend/main: keep the local-backend screenshot temp-directory resolver
