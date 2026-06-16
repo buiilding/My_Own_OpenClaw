@@ -44,11 +44,11 @@ describe('permission onboarding storage', () => {
     });
   });
 
-  test('drops legacy planned-system-access consent field when reloading stored state', () => {
+  test('drops unknown fields when reloading stored state', () => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
       manifest_version: 'v2',
       completed: true,
-      planned_system_access_consent: true,
+      unknown_field: true,
       completed_at: '2026-03-04T00:00:00.000Z',
     }));
 

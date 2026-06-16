@@ -248,7 +248,7 @@ frontend/src/renderer/
 3. PERMISSION BOOTSTRAP
    └─> features/permissions/stores/permissionStore.js
        ├─> invoke LIST_PERMISSIONS (main permission service snapshot + probes)
-       ├─> evaluate required-now gate + planned-system-access consent
+       ├─> evaluate required-now gate against persisted onboarding completion
        └─> route to onboarding wizard if gate not satisfied
            ↓
 4. CONTEXT INITIALIZATION

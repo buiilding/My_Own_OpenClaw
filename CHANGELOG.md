@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
   views so history storage uses canonical `conversation_events` tables only.
 - frontend/config: remove the hardcoded legacy OpenAI selected-model id
   migration from renderer localStorage loading.
+- frontend/permissions: remove stale planned-system-access wording from
+  permission storage tests and renderer folder-structure docs.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
