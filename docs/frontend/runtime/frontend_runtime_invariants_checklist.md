@@ -51,7 +51,7 @@ When behavior changes in these areas, add or update tests in the same PR:
   - `tests/frontend/ToolRunnerHook.callbacks.test.ts`
   - `tests/frontend/ToolRunnerHook.turnGuards.test.ts`
 - capture hide/restore overlap and platform policy:
-  - `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`
+  - `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`
 - main-process overlay phase to visibility/interactivity policy:
   - `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`
   - `tests/frontend/IpcMainBridge*.test.cjs`

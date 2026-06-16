@@ -3,9 +3,17 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
-import type { SystemState } from './MessageFormatter';
 import { prepareExternalFocusForCapture } from './SurfaceOrchestrator';
 import { logSystemStateCaptureTiming } from './toolExecution/ToolExecutionLogger';
+
+type SystemState = {
+  active_window?: string;
+  mouse_position?: string;
+  screen_resolution?: string;
+  time?: string;
+  clipboard?: string;
+  windows?: string[];
+};
 
 type CaptureSystemStateOptions = {
   waitSeconds?: number;

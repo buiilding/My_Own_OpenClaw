@@ -86,6 +86,7 @@ Date: 2026-06-15
 | CD-053 | Tool-output transcript model context re-export | `toolOutputMessages.ts` re-exported `TranscriptModelContext` even though the canonical type remains owned by `transcriptModelContext.ts` and chat-stream consumers use `chatStreamTypes.ts` | Knip reported the re-export unused; repo search showed no imports from `toolOutputMessages.ts` while the module still uses the type internally | Delete the unused type re-export and preserve the internal type import for tool-output envelope construction | `caa8819bd` |
 | CD-054 | Renderer infrastructure API barrel | `frontend/src/renderer/infrastructure/api/index.ts` re-exported the SDK client surface, but production and real tests import `windieSdkClient.ts` directly | Knip reported every barrel value/type export unused; import search showed only `WindieSdkClientExports.test.ts` imported the barrel, and active docs still described the barrel as stable | Delete the unused barrel and barrel-only test; update active SDK/API docs to route TypeScript client work to `windieSdkClient.ts` | `4b92d39d8` |
 | CD-055 | Final renderer infrastructure helper type exports | `MessageFormatter.ts` exported `BundledToolResult` and `ScreenshotAttachmentPipeline.ts` exported `ScreenshotAttachment` even though both shapes are only used by their own service function signatures | Knip reported both as the final unused exported types; repo search showed no external imports of either type while callers consume service functions directly | Make both helper shapes private to their service modules and preserve formatter/screenshot pipeline behavior | `e04bfc335` |
+| CD-056 | Renderer formatter and screenshot pipeline modules | `MessageFormatter.ts`, `ScreenshotAttachmentPipeline.ts`, `CapturePayloadUtils.ts`, screenshot-only surface lifecycle APIs, and their tests remained after renderer sends stopped capturing/uploading query screenshots and SDK/main took over screenshot resource resolution | Knip reported the formatter and screenshot pipeline functions as unused; repo search showed production kept only stale type imports, docs, and tests; removing the modules exposed `CapturePayloadUtils.ts`, screenshot lifecycle exports, and screenshot-only timing/reason helpers as unused fallout | Delete the dead renderer formatter/screenshot pipeline modules and tests; inline the remaining query capture metadata/system-state shapes into active owners; update docs to route query screenshot capture and materialization through SDK/main | pending implementation commit |
 
 ## Commit Ledger
 
@@ -195,6 +196,7 @@ Date: 2026-06-15
   completed CD-054.
 - `e04bfc335 refactor(frontend): keep final helper types private`
   completed CD-055.
+- pending implementation commit will complete CD-056.
 
 ## Validation Log
 
@@ -923,6 +925,22 @@ CD-055 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this removes only unused TypeScript type exports and preserves
   formatter/screenshot service behavior.
+
+CD-056 validation:
+
+- targeted `rg -n "MessageFormatter|ScreenshotAttachmentPipeline|captureScreenshotAttachment|formatToolOutputMessage|formatBundledToolOutputMessage|CapturePayloadUtils|prepareScreenshotCaptureVisibility|restoreScreenshotCaptureVisibility|CaptureVisibilityPreparation|logScreenshotCaptureTiming|SurfaceOrchestratorCaptureLifecycle|activeScreenshotCapture|pendingScreenshotCapture" frontend/src tests docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!CHANGELOG.md'`:
+  no matches outside this report.
+- `bin/windie test frontend -- ChatMessageSender SystemStateCapture ArtifactUploader QueryScreenshotPipeline WindieSdkConversationRuntime LocalBackendBridgeExtensionRuntime LocalBackendBridgeWindowVisibility SurfaceOrchestratorSurfaceVisibility SurfaceOrchestratorReasons ToolExecutionLogger`:
+  passed; 11 suites and 186 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 176 to 167, and the
+  transient unused file/type findings exposed by the deletion were removed.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required. Renderer query sends already submit SDK resources; this deletion
+  removes the unused pre-SDK renderer screenshot/formatter path and updates
+  docs to the SDK/main screenshot materialization owner.
 
 ## Inspection Notes
 

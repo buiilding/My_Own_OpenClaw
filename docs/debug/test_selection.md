@@ -42,7 +42,7 @@ cd frontend && npm run lint
 | SDK conversation runtime and stop flow | `bin/windie test frontend -- WindieSdkConversationRuntime.test.ts DesktopBackendTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js StopQueryState.test.js` |
 | Renderer dashboard/settings | `bin/windie test frontend -- ChatGptDashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
 | Permissions/onboarding | `bin/windie test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx FrontendOnboardingSlideshow.test.jsx` |
-| Artifacts/screenshots | `bin/windie test frontend -- ArtifactUploader.test.ts ScreenshotAttachmentPipeline.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts` |
+| Artifacts/screenshots | `bin/windie test frontend -- ArtifactUploader.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts LocalBackendBridgeExtensionRuntime.test.cjs` |
 | Voice/wakeword | `bin/windie test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
 | Sidecar protocol/tools | `bin/windie test sidecar -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
 | Sidecar filesystem/shell | `bin/windie test sidecar -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |

@@ -98,7 +98,7 @@ Sidecar (`frontend/src/main/python`):
 Renderer touchpoints:
 
 - `features/chat/utils/toolRunner/toolRunnerSurface.ts` (surface mode resolution + tokenized prep/restore)
-- `infrastructure/services/{ScreenshotAttachmentPipeline,SystemStateCapture}.ts` (current split capture services that replaced mixed capture orchestration)
+- `infrastructure/services/SystemStateCapture.ts` plus SDK/main screenshot resource resolution (current split capture ownership that replaced mixed renderer orchestration)
 - `features/chat/hooks/useChatStream.ts` and `useChatStreamToolHandlers.ts` (phase updates and tool message rows)
 - `types/backendEvents.ts` (event contract types)
 

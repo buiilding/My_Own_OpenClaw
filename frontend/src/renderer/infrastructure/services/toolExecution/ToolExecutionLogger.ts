@@ -30,38 +30,6 @@ function shortCorrelationId(correlationId?: string): string {
   return correlationId ? correlationId.substring(0, 15) : 'unknown';
 }
 
-export function logScreenshotCaptureTiming(params: {
-  correlationId?: string | null;
-  waitTime: number;
-  preparationTime: number;
-  hideInvokeTime: number;
-  settleTime: number;
-  focusPrepTime: number;
-  screenshotInvokeTime: number;
-  restoreVisibilityTime: number;
-  totalTime: number;
-}): void {
-  const {
-    correlationId,
-    waitTime,
-    preparationTime,
-    hideInvokeTime,
-    settleTime,
-    focusPrepTime,
-    screenshotInvokeTime,
-    restoreVisibilityTime,
-    totalTime,
-  } = params;
-  logInfo(
-    `[Timing] Screenshot capture completed ` +
-    `(wait: ${waitTime.toFixed(3)}s, prep: ${preparationTime.toFixed(3)}s, ` +
-    `hide IPC: ${hideInvokeTime.toFixed(3)}s, settle: ${settleTime.toFixed(3)}s, ` +
-    `focus: ${focusPrepTime.toFixed(3)}s, screenshot IPC: ${screenshotInvokeTime.toFixed(3)}s, ` +
-    `restore: ${restoreVisibilityTime.toFixed(3)}s, total: ${totalTime.toFixed(3)}s) ` +
-    `(capture_id=${shortCorrelationId(correlationId || undefined)})`,
-  );
-}
-
 export function logSystemStateCaptureTiming(params: {
   correlationId?: string | null;
   waitTime: number;

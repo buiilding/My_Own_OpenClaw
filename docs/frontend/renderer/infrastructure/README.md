@@ -25,7 +25,6 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/utils/displaySelection.ts`
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`
-- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
 - `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
@@ -34,6 +33,5 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/mode.ts`
 - `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `tests/frontend/ToolComputerUseCatalog.test.ts`
-- `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
 - `tests/frontend/SystemStateCapture.test.ts`
 - `tests/frontend/PlayerService.test.ts`

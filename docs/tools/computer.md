@@ -35,7 +35,7 @@ Computer tools are local-execution tools. The backend owns the model-facing inte
 - Backend coordinate prep: `backend/src/agent/tools/preparation/*`
 - Backend grounding contracts: `backend/src/tools/computer/*`
 - OCR/vision services: `backend/src/services/screen_grounding/*`
-- Renderer screenshot attachment path: `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
+- Query screenshot resource resolver: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - Main overlay capture guards: `frontend/src/main/overlays/*`
 - Sidecar computer tools: `frontend/src/main/python/tools/computer/*`
 

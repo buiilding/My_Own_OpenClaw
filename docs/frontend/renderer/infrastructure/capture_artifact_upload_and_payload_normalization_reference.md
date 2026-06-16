@@ -10,16 +10,17 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
+- `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
-- `frontend/src/renderer/infrastructure/services/MessageFormatter.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
-- `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
+- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/SystemStateCapture.test.ts`
 - `tests/frontend/ArtifactUploader.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
@@ -62,21 +63,22 @@ Wait-delay resolution:
 - fallback default: `2s`
 - bundle capture waits once, using the maximum resolved wait among successful capture-worthy steps
 
-## Screenshot and System-State Capture Execution Paths
+## Query Screenshot and System-State Capture Execution Paths
 
-Shared behavior:
+Renderer send behavior:
+
+- `desktopChatSendPreparation.ts` emits a `query_screenshot_request` SDK resource
+  when overlay/config policy asks for a query screenshot
+- renderer does not capture, upload, or materialize that screenshot before the
+  SDK turn exists
+- SDK/main resource resolution performs the capture, artifact materialization,
+  and backend-compatible `screenshot_ref`/`screenshot_refs`/`capture_meta`
+  assembly
+
+System-state behavior:
 
 - optional wait (seconds -> milliseconds) before capture
-- wraps screenshot activity in window event markers:
-  - `windie:screenshot-capture {active:true|false, activeCount}`
-  - overlapping captures emit `active:false` only after the last capture has restored visibility
-
-`captureScreenshotAttachment(...)`:
-
-- optional screenshot call uses explanation:
-  - `Initial user message screenshot`
-- injects stored `display_bounds` when present
-- preserves inline screenshot fallback when artifact upload is unavailable
+- prepares external focus before invoking main for system state
 
 `captureSystemState(...)`:
 
@@ -87,7 +89,7 @@ Shared behavior:
 Failure policy:
 
 - invoke errors are logged
-- returns `null`/empty attachment instead of throwing
+- renderer system-state capture returns `null` instead of throwing
 - screenshot visibility restore errors are logged, but active capture events and
   timing cleanup still run so listeners cannot remain stuck in active state
 
@@ -113,7 +115,7 @@ Failure policy:
 - any `png` variant -> `image/png` + `.png`
 - everything else -> `image/jpeg` + `.jpg`
 
-`ScreenshotAttachmentPipeline` also maps raw screenshot format/compression fields into standardized content types and normalizes `screenshot` / `screenshot_ref` / `screenshot_url` onto one attachment contract.
+SDK/main screenshot materialization maps raw screenshot format/compression fields into standardized content types and normalizes `screenshot` / `screenshot_ref` / `screenshot_url` onto one attachment contract before backend relay.
 
 ## Backend Payload Normalization (`ToolExecutionPayloads`)
 
@@ -165,16 +167,15 @@ Correlation contract is inherited from `ToolResultEnvelope`:
 - single tool -> `payload.request_id`
 - bundle -> `payload.bundle_id`
 
-## Message Formatter Contracts
+## Tool Output Text Contracts
 
-`formatToolOutputMessage(...)` and `formatBundledToolOutputMessage(...)`:
+SDK/main result envelopes preserve tool text in the canonical `output` field
+before backend relay:
 
-- include textual output extraction fallback ordering
-- append status lines (`successful` / `failed`)
-- append lightweight XML system context block when enabled
-- append screen-state hint line when screenshot data is present
-
-Output string from formatter is the source of truth written into `output`.
+- single tool results normalize `data.output` from the sidecar/native result
+- bundle results preserve each step's output and top-level screenshot metadata
+- backend history stores the normalized result payload instead of relying on a
+  renderer formatter layer
 
 ## Logging Gate
 
@@ -187,10 +188,10 @@ Error logs still emit through `console.error`.
 
 ## Test-Backed Invariants
 
-`tests/frontend/ScreenshotAttachmentPipeline.test.ts` and `tests/frontend/SystemStateCapture.test.ts` verify:
+`tests/frontend/ChatMessageSender.test.tsx` and `tests/frontend/SystemStateCapture.test.ts` verify:
 
-- wait delays, display-bounds propagation, and graceful error fallback
-- screenshot content-type extraction, artifact upload fallback, and screenshot-ref/url normalization
+- query screenshot requests are sent as SDK resources, not renderer captures
+- wait delays and graceful system-state error fallback
 - default versus `includeWindows` system-state field selection
 
 `tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` verify:
@@ -214,5 +215,5 @@ Error logs still emit through `console.error`.
 
 1. Passing raw `screenshot`/`image_data` through to backend can inflate payloads and break contract assumptions.
 2. Removing `Unknown` fallback normalization for system-state keys can break backend schema expectations.
-3. Changing first-message capture field set may remove context required by downstream summarization and transparency UI.
+3. Reintroducing renderer-side query screenshot capture can duplicate SDK/main resource ownership.
 4. Dropping `screen_resolution` internal propagation can silently degrade backend coordinate normalization on HiDPI displays.

@@ -61,7 +61,7 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
 │  │  SDK Runtime / Electron Main               │  │
 │  │  - ToolExecutionCoordinator                │  │
 │  │  - Local runtime adapter                   │  │
-│  │  - MessageFormatter / projections          │  │
+│  │  - Result envelopes / projections          │  │
 │  └───────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
 ```

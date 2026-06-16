@@ -8,8 +8,6 @@ type SurfaceOrchestratorState = {
   nextSurfaceToken: number;
   activeSurfaceTokens: Set<number>;
   pendingHiddenSurfaceRestore: HiddenSurface | null;
-  activeScreenshotCaptureCount: number;
-  pendingScreenshotCaptureRestore: boolean;
   transitionLogSequence: number;
   nextSyntheticCorrelationId: number;
 };
@@ -18,8 +16,6 @@ const state: SurfaceOrchestratorState = {
   nextSurfaceToken: 1,
   activeSurfaceTokens: new Set<number>(),
   pendingHiddenSurfaceRestore: null,
-  activeScreenshotCaptureCount: 0,
-  pendingScreenshotCaptureRestore: false,
   transitionLogSequence: 0,
   nextSyntheticCorrelationId: 1,
 };
@@ -72,26 +68,4 @@ export function getPendingHiddenSurfaceRestore(): HiddenSurface | null {
 
 export function isPendingHiddenSurfaceRestore(): boolean {
   return state.pendingHiddenSurfaceRestore !== null;
-}
-
-export function incrementActiveScreenshotCaptureCount(): number {
-  state.activeScreenshotCaptureCount += 1;
-  return state.activeScreenshotCaptureCount;
-}
-
-export function decrementActiveScreenshotCaptureCount(): number {
-  state.activeScreenshotCaptureCount = Math.max(0, state.activeScreenshotCaptureCount - 1);
-  return state.activeScreenshotCaptureCount;
-}
-
-export function getActiveScreenshotCaptureCount(): number {
-  return state.activeScreenshotCaptureCount;
-}
-
-export function setPendingScreenshotCaptureRestore(pending: boolean): void {
-  state.pendingScreenshotCaptureRestore = pending;
-}
-
-export function isPendingScreenshotCaptureRestore(): boolean {
-  return state.pendingScreenshotCaptureRestore;
 }

@@ -7,9 +7,26 @@ import {
   type WindieModelSelection,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
+
+type CaptureMeta = {
+  source_w?: number;
+  source_h?: number;
+  crop_x?: number;
+  crop_y?: number;
+  crop_w?: number;
+  crop_h?: number;
+  desktop_virtual_bounds?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+  monitor_id?: string | null;
+  timestamp?: number;
+  capture_engine?: string | null;
+};
 
 type SendConversationQueryInput = {
   text: string;

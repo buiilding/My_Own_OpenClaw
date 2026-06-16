@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/runtime: delete the unused renderer message formatter, renderer
+  screenshot attachment pipeline, capture-payload helpers, and screenshot-only
+  surface lifecycle tests after query screenshots moved to SDK/main resource
+  resolution.
 - docs/agents: soften directive wording toward prefer, avoid, guide, and
   explicit-approval language while preserving the same workflow boundaries.
 - docs/agents: clarify that implementation, reasoning, runtime, and architecture

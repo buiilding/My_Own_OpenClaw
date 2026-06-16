@@ -2,8 +2,6 @@
  * Provides the surface orchestrator module for the renderer UI.
  */
 
-export type { CaptureVisibilityPreparation } from './surfaceOrchestrator/types';
-
 export {
   ensureToolExecutionSurface,
   prepareToolExecutionSurface,
@@ -12,8 +10,6 @@ export {
 
 export {
   prepareExternalFocusForCapture,
-  prepareScreenshotCaptureVisibility,
-  restoreScreenshotCaptureVisibility,
 } from './surfaceOrchestrator/captureLifecycle';
 
 export {

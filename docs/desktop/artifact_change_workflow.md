@@ -13,7 +13,7 @@ Use this workflow before changing screenshot artifacts or attachments. Artifacts
 
 For composer-specific attachment behavior, start with [Chat Attachment Change Workflow](../frontend/renderer/chat/chat_attachment_change_workflow.md). Use this page when the change crosses artifact upload/fetch, backend artifact storage, query artifact resolution, tool-result screenshots, replay, SDK, or web clients.
 
-The normal attachment path is:
+The normal pasted/selected image attachment path is:
 
 1. renderer collects pasted images, selected files, or screenshot capture.
 2. renderer uploads image base64 through artifact IPC/API.
@@ -31,7 +31,7 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 | Symptom or request | First owner | Source roots | Start docs | Tests |
 | --- | --- | --- | --- | --- |
 | pasted/selected image preview is wrong | renderer message input and attachment presentation | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`, `frontend/src/renderer/features/chat/utils/composerAttachmentPresentation.js` | [Message Send Surface Policy and Screenshot Capture Reference](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md) | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/FileAttachmentUtils.test.js` |
-| screenshot capture does not upload or loses ref | renderer screenshot pipeline and artifact uploader | `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`, `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`, `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts` | [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md) | `tests/frontend/ScreenshotAttachmentPipeline.test.ts`, `tests/frontend/ArtifactUploader.test.ts`, `tests/frontend/ArtifactImageUtils.test.ts` |
+| query screenshot capture does not upload or loses ref | renderer send resource request, SDK resource resolver, and main screenshot artifact bridge | `frontend/src/renderer/features/chat/utils/messageSender`, `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`, `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs` | [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` |
 | artifact URL points at wrong backend | renderer artifact URL builder and main endpoint status | `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/ipc_artifact_fetch.cjs` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Configuration Change Workflow](../operations/configuration_change_workflow.md) | `tests/frontend/ArtifactUploader.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs`, endpoint tests |
 | backend upload/fetch route fails | backend artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | [Backend Artifact Service Docs Hub](../backend/services/artifacts/README.md) | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
 | query payload lacks image context | renderer sender and backend query input resolver | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/utils/messageSender`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/backend/test_query_execution_inputs.py` |
@@ -41,7 +41,8 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 
 ## Ownership Rules
 
-- Renderer owns image selection, local preview, screenshot capture request, artifact upload call, display URL construction, and optimistic message state.
+- Renderer owns image selection, local preview, query screenshot resource requests, display URL construction, and optimistic message state.
+- SDK/main own query screenshot capture, artifact materialization, and post-action screenshot result merging.
 - Electron main owns local IPC bridges for artifact upload/fetch and backend endpoint propagation.
 - Backend artifact routes own upload/fetch HTTP contracts, auth, content type, size limits, and error mapping.
 - Backend artifact store owns id validation, streaming writes, base64 lookup, and filesystem layout.
@@ -74,15 +75,15 @@ Primary files:
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/**`
 - `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
-- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
+- `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 
 Validation:
 
 - `tests/frontend/MessageInput.test.jsx`
 - `tests/frontend/FileAttachmentUtils.test.js`
 - `tests/frontend/ChatMessageSender.test.tsx`
-- `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
+- `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/MessageScreenshots.test.js`
 - `tests/frontend/MessageScreenshotSrc.test.js`
 
@@ -90,7 +91,7 @@ Rules:
 
 - Preview state can use blob/data URLs, but durable state should prefer artifact refs.
 - Multi-image UI must keep per-image filename/content type where available.
-- Optimistic user rows should render attachments even when upload fails and inline fallback is used.
+- Renderer send should submit typed SDK resources instead of pre-uploading query screenshots.
 - The first artifact ref remains the compatibility `screenshot_ref`.
 
 ## Electron IPC and Endpoint Changes

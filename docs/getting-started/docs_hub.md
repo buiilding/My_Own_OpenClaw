@@ -340,7 +340,7 @@ Read:
 
 Likely code:
 
-- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
+- `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/main/overlays/*`
 - `frontend/src/main/python/tools/computer/*`
 - `backend/src/services/screen_grounding/**`

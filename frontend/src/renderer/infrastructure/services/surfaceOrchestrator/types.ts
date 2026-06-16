@@ -51,12 +51,4 @@ export type SurfaceRestoreResult = {
   restoreInvokeTime: number;
 };
 
-export type CaptureVisibilityPreparation = {
-  prepared: boolean;
-  captureId: string;
-  restoreSurfaceAfterCapture?: boolean;
-  hiddenSurface?: HiddenSurface;
-  timing?: SurfaceCollapseTiming;
-};
-
 export const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';

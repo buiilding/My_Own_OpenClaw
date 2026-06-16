@@ -81,12 +81,12 @@ Surface/capture orchestration is split:
   hiding, and display bounds for desktop-local tool execution.
 - Electron main owns computer-use surface prep for SDK/main tool execution,
   including dashboard-to-minimal-pill handoff before sidecar execution.
-- Renderer capture services are retained for user-initiated screenshot attachment and display/artifact helpers.
+- Renderer send prepares typed screenshot resource requests; SDK/main owns
+  screenshot capture and artifact materialization before backend dispatch.
 - Backend result payload construction for local tool results belongs to SDK/main, not renderer services.
 
 Retained renderer infrastructure:
 
-- `ScreenshotAttachmentPipeline.ts`
 - `SystemStateCapture.ts`
 - `ArtifactUploader.ts`
 - `ToolExecutionLogger.ts`

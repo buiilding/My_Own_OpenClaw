@@ -126,7 +126,7 @@ This is not the primary open-source SDK contract. The default client contract is
 - **Context**: Split contexts for performance (AppConfigContext, AppStatusContext, ChatProvider)
 - **State Management**: Zustand store for chat state, Context API for app config
 - **Hooks**: Feature-specific hooks (useChatStream, useChatMessageSender)
-- **Infrastructure**: SDK runtime facades, projection builders, MessageFormatter, IpcBridge
+- **Infrastructure**: SDK runtime facades, projection builders, artifact helpers, IpcBridge
 - **API Client**: Typed API client for backend communication
 
 #### Main Process (Node.js)
@@ -279,7 +279,7 @@ Screenshots are captured strategically at key points to provide visual context f
     ↓
 13. Sidecar captures system state
     ↓
-14. MessageFormatter formats result
+14. SDK/main result envelope normalizes output
     ↓
 15. Result sent back to backend via WebSocket
     ↓

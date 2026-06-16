@@ -92,9 +92,7 @@ compaction behind its loop lock.
 
 ### Screenshot Preview Lane and Visual Anchor
 
-- screenshot button captures via `captureScreenshotAttachment({ waitSeconds: 0 })`
-- captured image is normalized into preview row entries using
-  `createClipboardScreenshotImage(...)`
+- screenshot button toggles query screenshot resource capture for the next send
 - preview lane state (`with-preview`) is driven only by image count
 - visual-anchor IPC sync:
   - preview off -> `height: 64`

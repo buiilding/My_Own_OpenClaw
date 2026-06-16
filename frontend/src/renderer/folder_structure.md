@@ -198,8 +198,6 @@ frontend/src/renderer/
 │   ├── services/                         # Business logic services
 │   │   ├── ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
 │   │   ├── ArtifactUploader.ts          # ArtifactUploader - Uploads screenshot artifacts and builds artifact URLs
-│   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting model-facing tool output text
-│   │   ├── ScreenshotAttachmentPipeline.ts # ScreenshotAttachmentPipeline - canonical screenshot capture/materialization/ref fallback service
 │   │   ├── SystemStateCapture.ts        # SystemStateCapture - explicit system-state capture service
 │   │   └── toolExecution/               # toolExecution - capture/debug helpers retained after SDK-owned tool routing migration
 │   │       ├── ToolExecutionLogger.ts   # Timing/log helpers used by capture services
@@ -284,7 +282,7 @@ frontend/src/renderer/
        ├─> Create user message (immediate UI display)
        ├─> Add to chatStore
        ├─> Main-window sender path: send query directly (no screenshot capture, no window handoff)
-       ├─> Overlay sender path: optional captureScreenshotAttachment() screenshot capture
+       ├─> Overlay sender path: optional query_screenshot_request SDK resource
        └─> DesktopLiveTurnRuntimeClient.sendQuery() - Send through the renderer runtime facade
            ↓
 3. SDK RUNTIME TRANSPORT
@@ -465,7 +463,7 @@ frontend/src/renderer/
 
 6. **Type-Safe IPC**: Typed IPC bridge with channel validation (development only, preload.js validates in production)
 
-7. **Pure Services**: Infrastructure services (MessageFormatter, PlayerService, capture/artifact helpers) have no React dependencies
+7. **Pure Services**: Infrastructure services (PlayerService, system-state capture, artifact helpers) have no React dependencies
 
 8. **Callback Pattern**: Services accept callbacks for UI updates and backend communication (dependency injection)
 
