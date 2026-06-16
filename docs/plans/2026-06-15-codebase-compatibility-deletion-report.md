@@ -75,7 +75,7 @@ Date: 2026-06-15
 | CD-042 | Renderer chat-stream screenshot attachment wrapper | `buildScreenshotAttachments(...)` was exported from `chatStreamEventUtils.ts` even though production imports only the single `buildScreenshotAttachment(...)` helper from that module | Knip reported the list-wrapper export unused; repo search showed it was imported only by `ChatStreamEventUtils.test.ts`, while list attachment normalization is owned by `screenshotMessageState` | Delete the unused wrapper export and wrapper-only test while keeping the active single-attachment helper | implemented |
 | CD-043 | Renderer chat-stream streaming message helpers | `resolveStreamingResponseAction(...)` and `findStreamingCompleteAssistantMessage(...)` remained exported from `chatStreamMessageUpdates.ts` after assistant text append/new behavior moved to SDK current-turn projection and active stream handlers | Knip reported both exports unused; repo search showed only `ChatStreamMessageUpdates.test.ts` and stale docs referenced them, while production imports the selector and payload update builders from the module | Delete the unused helper exports and helper-only tests; update docs to route assistant text projection debugging to SDK current-turn projection and live stream handlers | implemented |
 | CD-044 | Renderer chat-stream thinking status normalizer | `normalizePersistedThinkingStatus(...)` and `COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS` remained exported from `chatStreamThinkingStatus.ts` after reasoning text moved to SDK current-turn projection | Knip reported both exports unused; repo search showed they were imported only by `ChatStreamThinkingStatusUtils.test.ts` and stale docs, while production imports only the live thinking/compaction status constants | Delete the unused normalizer, the obsolete no-changes status, and the helper-only test; update docs to route final reasoning text to SDK current-turn projection | implemented |
-| CD-045 | Renderer chat-stream transparency helper module | `chatStreamTransparency.ts` and `buildAssistantTranscriptTransparency(...)` remained after transcript transparency replay moved to SDK projections and backend rehydrate transparency resolution | Knip reported the export unused; repo search showed the module was imported only by `ChatStreamTransparency.test.ts`, while remaining docs still routed transparency debugging through the orphan renderer helper | Delete the orphan helper module and test; update docs to route transparency replay issues to SDK projection and backend rehydrate transparency owners | pending implementation commit |
+| CD-045 | Renderer chat-stream transparency helper module | `chatStreamTransparency.ts` and `buildAssistantTranscriptTransparency(...)` remained after transcript transparency replay moved to SDK projections and backend rehydrate transparency resolution | Knip reported the export unused; repo search showed the module was imported only by `ChatStreamTransparency.test.ts`, while remaining docs still routed transparency debugging through the orphan renderer helper | Delete the orphan helper module and test; update docs to route transparency replay issues to SDK projection and backend rehydrate transparency owners | `d445d30e2` |
 
 ## Commit Ledger
 
@@ -163,7 +163,8 @@ Date: 2026-06-15
   completed CD-043.
 - `6349b8f2d refactor(frontend): remove thinking status normalizer export`
   completed CD-044.
-- pending implementation commit will complete CD-045.
+- `d445d30e2 refactor(frontend): remove chat stream transparency helper`
+  completed CD-045.
 
 ## Validation Log
 
