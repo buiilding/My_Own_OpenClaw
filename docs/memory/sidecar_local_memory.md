@@ -1,14 +1,16 @@
 ---
-summary: "Sidecar local memory guide covering LocalBackend memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
+summary: "Sidecar local memory guide covering episodic and semantic memory, LocalBackend memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
 read_when:
-  - When changing local memory JSON-RPC handlers, memory search/list/delete, semantic summarization, title generation, or sidecar memory storage.
+  - When changing sidecar episodic or semantic memory, local memory JSON-RPC handlers, memory search/list/delete, semantic summarization, title generation, or sidecar memory storage.
   - When debugging local memory search, dashboard memory sections, conversation titles, or semantic memory generation.
 title: "Sidecar Local Memory"
 ---
 
 # Sidecar Local Memory
 
-The sidecar owns local memory persistence and search. Renderer and Electron main call it through local-backend JSON-RPC; backend code must not import sidecar memory code.
+The sidecar owns local episodic and semantic memory persistence and search.
+Renderer and Electron main call it through local-backend JSON-RPC; backend code
+must not import sidecar memory code.
 
 ## Code Ownership
 

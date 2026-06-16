@@ -136,6 +136,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes sidecar episodic semantic memory queries to local memory docs', () => {
+    expect(findDocs('sidecar episodic semantic memory')[0].path).toBe(
+      path.join('docs', 'memory', 'sidecar_local_memory.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

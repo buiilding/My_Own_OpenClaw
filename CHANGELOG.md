@@ -64,6 +64,8 @@ All notable changes to WindieOS will be documented in this file.
   broad storage or provider-credential docs.
 - docs/debug: route desktop-log searches to the logging guide before generic
   runtime node docs.
+- docs/memory: route sidecar episodic/semantic memory searches to the sidecar
+  local memory guide before dashboard display references.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
