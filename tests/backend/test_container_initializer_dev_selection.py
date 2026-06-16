@@ -49,48 +49,48 @@ def _build_ocr_initializer(*, ready=True, enabled=True):
 
 
 @pytest.mark.asyncio
-async def test_initialize_vision_service_skipped_when_disabled(monkeypatch: pytest.MonkeyPatch):
+async def test_vision_startup_step_skipped_when_disabled(monkeypatch: pytest.MonkeyPatch):
     vision_service = DummyVisionService()
     container = SimpleNamespace(vision_router=vision_service)
     initializer = ContainerInitializer(container)
     monkeypatch.setattr(initializer, "_should_initialize_vision_service", lambda: False)
 
-    await initializer._initialize_vision_service()
+    await initializer._run_startup_step("vision_router")
 
     assert vision_service.calls == 0
 
 
 @pytest.mark.asyncio
-async def test_initialize_ocr_service_skipped_and_disabled_when_disabled(monkeypatch: pytest.MonkeyPatch):
+async def test_ocr_startup_step_skipped_and_disabled_when_disabled(monkeypatch: pytest.MonkeyPatch):
     initializer, ocr_service = _build_ocr_initializer()
     monkeypatch.setattr(initializer, "_should_initialize_ocr_service", lambda: False)
 
-    await initializer._initialize_ocr_service()
+    await initializer._run_startup_step("ocr_router")
 
     assert ocr_service.calls == 0
     assert ocr_service.enabled is False
 
 
 @pytest.mark.asyncio
-async def test_initialize_ocr_service_runs_when_enabled(monkeypatch: pytest.MonkeyPatch):
+async def test_ocr_startup_step_runs_when_enabled(monkeypatch: pytest.MonkeyPatch):
     initializer, ocr_service = _build_ocr_initializer()
     monkeypatch.setattr(initializer, "_should_initialize_ocr_service", lambda: True)
 
-    await initializer._initialize_ocr_service()
+    await initializer._run_startup_step("ocr_router")
 
     assert ocr_service.calls == 1
     assert ocr_service.enabled is True
 
 
 @pytest.mark.asyncio
-async def test_initialize_ocr_service_warns_when_engine_not_ready(
+async def test_ocr_startup_step_warns_when_engine_not_ready(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ):
     initializer, ocr_service = _build_ocr_initializer(ready=False, enabled=True)
     monkeypatch.setattr(initializer, "_should_initialize_ocr_service", lambda: True)
 
     with caplog.at_level("WARNING"):
-        await initializer._initialize_ocr_service()
+        await initializer._run_startup_step("ocr_router")
 
     assert ocr_service.calls == 1
     assert "OCR service initialization completed but engine is not ready" in caplog.text

@@ -69,6 +69,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/simulation: delete the `backend.src.simulation.computer` alias
   entrypoint so default simulation launches only through the package runner or
   `backend.src.simulation.main`.
+- backend/bootstrap: delete pass-through `ContainerInitializer` service-wrapper
+  methods so startup behavior is owned by the ordered startup-step runner.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

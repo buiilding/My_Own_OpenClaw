@@ -128,7 +128,7 @@ Initializer structure:
 
 - startup behavior is declared as ordered `StartupStep` entries in `backend/src/core/container/initializer.py`
 - each step owns its own initialization logic and can optionally publish initialized services into the context factory
-- `ContainerInitializer` still exposes per-service wrapper methods for compatibility/tests, but the orchestration path is now the declarative step list
+- `ContainerInitializer` exposes the ordered startup-step runner as the single orchestration path
 
 Policy source:
 

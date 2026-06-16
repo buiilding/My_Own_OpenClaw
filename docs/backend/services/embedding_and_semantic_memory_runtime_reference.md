@@ -46,7 +46,7 @@ DI ownership:
 
 Runtime startup:
 
-- `ContainerInitializer._initialize_embedder()` eagerly calls `await embedder.initialize()` when available
+- `ContainerInitializer` runs the `embedding_router` startup step, which eagerly calls `await embedder.initialize()` when available
 - model loading therefore happens during backend startup (not first request)
 
 Config updates:

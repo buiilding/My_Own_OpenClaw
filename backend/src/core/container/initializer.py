@@ -100,9 +100,6 @@ class ContainerInitializer:
         """Return whether OCR startup initialization should run."""
         return self._tool_policy.should_initialize_ocr()
 
-    async def _initialize_config_service(self) -> None:
-        await self._run_startup_step("config_service")
-
     async def _run_config_service_step(self) -> None:
         """
         Initialize the configuration service by loading configuration.
@@ -123,9 +120,6 @@ class ContainerInitializer:
 
         except Exception as e:
             logger.error(f"Failed to initialize configuration service: {e}", exc_info=True)
-
-    async def _initialize_vision_service(self) -> None:
-        await self._run_startup_step("vision_router")
 
     async def _run_vision_service_step(self) -> None:
         """
@@ -157,9 +151,6 @@ class ContainerInitializer:
         except Exception as e:
             logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
 
-    async def _initialize_embedder(self) -> None:
-        await self._run_startup_step("embedding_router")
-
     async def _run_embedder_step(self) -> None:
         """
         Initialize the embedder to pre-load the SentenceTransformer model.
@@ -190,9 +181,6 @@ class ContainerInitializer:
         except Exception as e:
             logger.error(f"Failed to initialize embedder: {e}", exc_info=True)
 
-    async def _initialize_ocr_service(self) -> None:
-        await self._run_startup_step("ocr_router")
-
     async def _run_ocr_service_step(self) -> None:
         """
         Initialize the OCR service to pre-load the RapidOCR engine.
@@ -221,7 +209,6 @@ class ContainerInitializer:
         ocr_service = getattr(self.container, "ocr_router", None)
         if ocr_service is not None and hasattr(ocr_service, "enabled"):
             ocr_service.enabled = False
-
 
     def _publish_vision_service(self) -> None:
         context_factory = getattr(self.container, "context_factory", None)

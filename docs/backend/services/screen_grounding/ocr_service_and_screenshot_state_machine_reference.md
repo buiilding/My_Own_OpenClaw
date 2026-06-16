@@ -24,8 +24,8 @@ title: "OCR Service and Screenshot State-Machine Reference"
 
 ## Startup Gating and Service Enablement
 
-`ContainerInitializer._initialize_ocr_service()` startup path now initializes the
-configured OCR provider through `OcrRouter`, not the concrete OCR model directly.
+`ContainerInitializer` runs the `ocr_router` startup step against the configured
+OCR provider through `OcrRouter`, not the concrete OCR model directly.
 For `ocr_backend="local"`, the router delegates to the RapidOCR adapter. For
 `ocr_backend="remote-http"`, it probes the remote service health endpoint. For
 `ocr_backend="disabled"` or missing remote URL, no OCR provider is exposed.
