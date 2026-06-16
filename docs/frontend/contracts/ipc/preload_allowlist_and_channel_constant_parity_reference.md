@@ -129,7 +129,7 @@ If callers skip cleanup, listeners accumulate and duplicate event handling.
 
 1. new channel added to `ipcChannels.json` without a matching main handler
 2. docs drift from the shared registry after channel additions/removals
-3. updating `ipcChannels.json` without updating `EXPECTED_SHARED_CHANNEL_REGISTRY`
+3. updating `ipcChannels.json` without updating the expected registry in `channels.ts`
 4. relying on `IpcBridge` validation in production (it is not active there)
 
 ## Debug Checklist

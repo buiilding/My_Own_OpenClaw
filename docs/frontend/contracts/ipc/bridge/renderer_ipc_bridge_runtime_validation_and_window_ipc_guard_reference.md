@@ -132,7 +132,7 @@ If cleanup ignored:
 When changing bridge/runtime validation:
 
 1. keep compile-time channel unions aligned with `channels.ts`
-2. keep `EXPECTED_SHARED_CHANNEL_REGISTRY` and `ipcChannels.json` synchronized
+2. keep the expected registry in `channels.ts` and `ipcChannels.json` synchronized
 3. keep dev/prod validation behavior explicit and documented
 4. preserve preload as authoritative allowlist boundary
 5. verify missing-`window.ipc` error remains actionable

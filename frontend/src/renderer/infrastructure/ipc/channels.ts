@@ -5,7 +5,7 @@
 
 import sharedIpcChannels from '../../../shared/ipcChannels.json';
 
-export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
+const EXPECTED_SHARED_CHANNEL_REGISTRY = {
   SEND_CHANNELS: {
     RENDERER_LOG: 'renderer-log',
     LIVE_SURFACE_TRACE: 'live-surface-trace',
@@ -116,7 +116,7 @@ function validateChannelFamily<TExpected extends Record<string, string>>(
   }
 }
 
-export function validateSharedChannelRegistry(value: unknown): SharedChannelRegistry {
+function validateSharedChannelRegistry(value: unknown): SharedChannelRegistry {
   if (!isRecord(value)) {
     throw new Error('Invalid IPC channel registry: root must be an object');
   }
