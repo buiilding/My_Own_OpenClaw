@@ -190,7 +190,6 @@ function createMainWindow({
   ensureLocalRuntime = null,
   permissionStatePath = null,
   initializeMainProcessIpc,
-  getLatestFrontendConfig,
   getWindows,
   getMainWindowMode = () => 'dashboard',
   setMainWindow,

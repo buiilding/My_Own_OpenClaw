@@ -79,10 +79,6 @@ function normalizeToolSchema(value: unknown): ToolSchema | null {
   return normalizeFunctionToolSchema(value);
 }
 
-function isSupportedToolSchemaList(value: unknown): value is ToolSchema[] {
-  return Array.isArray(value) && value.every((item) => isSupportedToolSchema(item));
-}
-
 export function normalizeToolSchemaList(value: unknown): ToolSchema[] | undefined {
   if (!Array.isArray(value)) {
     return undefined;

@@ -92,6 +92,8 @@ All notable changes to WindieOS will be documented in this file.
   base LLM provider parsing contract.
 - frontend/renderer: delete the unused desktop conversation-store write
   enrichment helpers so renderer persistence stays a direct SDK command bridge.
+- frontend: remove unused lint-detected symbols from main-window bootstrap,
+  desktop conversation storage, and transcript tool-schema normalization.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
 - docs/frontend: route removed legacy selected-model localStorage migration

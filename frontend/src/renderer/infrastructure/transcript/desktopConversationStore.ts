@@ -4,7 +4,6 @@
 
 import {
   buildTraceTimeline,
-  createConversationEvent,
   type CompactedReplaySnapshot,
   type ConversationMetadata,
   type ConversationRewritePlan,
