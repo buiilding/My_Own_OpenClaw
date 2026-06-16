@@ -17,6 +17,7 @@ WindieOS tools are split between frontend/sidecar-owned local schemas and execut
 - [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to schema owners, sidecar executors, use cases, policy gates, and tests.
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through SDK/main dispatch, sidecar execution, result ingress, history, and loop continuation.
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) explains profiles, available/disabled tools, disabled capabilities, coordinate method gates, browser gating, and web-search exposure.
+- [Web Search Tool](web_search.md) covers backend-owned `web_search`, OpenAI native search, Gemini native grounding, Brave fallback, visibility policy, and result validation.
 - [Tool Troubleshooting](tool_troubleshooting.md) routes visibility, schema, dispatch, sidecar, result, artifact, and replay failures to the right owner.
 - [Computer Tools](computer.md) covers mouse, keyboard, screenshot, scroll, window switching, and local OS control.
 - [Browser Tool](browser.md) covers the dedicated Windie browser runtime, browser action schemas, snapshots, and backend-sidecar parity.
@@ -65,6 +66,7 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 - [Tool Catalog Matrix](tool_catalog_matrix.md)
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md)
+- [Web Search Tool](web_search.md)
 - [Tool Troubleshooting](tool_troubleshooting.md)
 - [Browser Change Workflow](../browser/browser_change_workflow.md)
 - [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md)

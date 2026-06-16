@@ -68,6 +68,8 @@ Check:
 ### Web Search
 
 `web_search` is backend/provider-owned and is not a sidecar executable tool.
+For the detailed execution-mode and result contract, start with
+[Web Search Tool](web_search.md).
 
 Exposure requires at least one valid route:
 

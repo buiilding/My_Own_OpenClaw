@@ -151,4 +151,10 @@ describe('windie docs index', () => {
       path.join('docs', 'frontend', 'main', 'global_stop_shortcut_runtime_reference.md'),
     );
   });
+
+  test('routes web search tool queries to the backend-owned tool guide', () => {
+    expect(findDocs('web search tool')[0].path).toBe(
+      path.join('docs', 'tools', 'web_search.md'),
+    );
+  });
 });
