@@ -1179,4 +1179,51 @@ describe('windie docs index', () => {
       expectedPath,
     );
   });
+
+  test('routes removed renderer backend event contract queries to SDK event docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'contracts',
+      'schema_generation_and_event_guard_reference.md',
+    );
+
+    expect(findDocs('frontend renderer backendEvents.ts removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('renderer backend event contract moved to sdk')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
+  test('routes deleted chat conversation gate queries to current ingress docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'chat',
+      'stream',
+      'conversation_gate_and_active_turn_filtering_reference.md',
+    );
+
+    expect(findDocs('desktopChatStreamConversationGateRuntime removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('DesktopChatStreamConversationGateRuntime.test.ts removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
+  test('routes desktop conversation library client queries to transcript docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'transcript_session_and_rehydrate_reference.md',
+    );
+
+    expect(findDocs('desktopConversationLibraryClient.js list load delete search')[0].path).toBe(
+      expectedPath,
+    );
+  });
 });

@@ -13,7 +13,7 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
-- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 
 ## Hook Ownership Boundary

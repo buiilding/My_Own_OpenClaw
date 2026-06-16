@@ -21,7 +21,7 @@ title: "Frontend Events Tool Runtime Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`

@@ -15,7 +15,7 @@ title: "Query Send-Failure Synthesis Reference"
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 
 ## Ownership Boundary

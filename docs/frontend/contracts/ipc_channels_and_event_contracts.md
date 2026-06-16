@@ -13,7 +13,7 @@ Primary files:
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 
 ## IPC Surface from Renderer
 

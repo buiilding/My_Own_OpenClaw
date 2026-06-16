@@ -17,7 +17,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | Concern | Files |
 | --- | --- |
 | Conversation continuity and replay commands | `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts` |
-| Conversation list/load/delete/search commands | `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts` |
+| Conversation list/load/delete/search commands | `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js` |
 | Transcript session facade | `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`, `desktopTranscriptSessionRuntime.ts` |
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts` |

@@ -14,7 +14,7 @@ title: "Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`

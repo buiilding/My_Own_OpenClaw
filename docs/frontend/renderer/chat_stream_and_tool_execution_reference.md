@@ -24,7 +24,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
-- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
@@ -32,10 +32,10 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
-- `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
 - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 
 ## Provider Topology and Ownership
 
@@ -322,7 +322,7 @@ Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 - stores a typed transcript `structured_payload` for tool rows (single call, bundle call, and tool output details) so past-chat rendering can restore tool-call cards and tool-output details from structured data, and backend rehydrate can prefer the same payload over reparsing display JSON
 - resolves tool-output correlation id fallback via `resolveToolOutputCorrelationId(...)`
 - normalizes screenshot attachment from `payload.screenshot_ref`
-- routes transcript `tool-output` writes through `toolOutputTranscriptPersistence.ts` so backend-stream and frontend-executed tool outputs share one output-detail persistence contract
+- routes transcript `tool-output` writes through `ConversationRuntime.ts` so backend-stream and frontend-executed tool outputs share one output-detail persistence contract
 
 Model metadata contract:
 

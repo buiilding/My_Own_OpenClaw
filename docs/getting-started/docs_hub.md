@@ -272,7 +272,7 @@ Likely code:
 - `backend/src/api/handlers/*`
 - `backend/src/core/container/incoming_routing.py`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 
 Validate with schema, handler-routing, formatter, and renderer event-consumption tests.
 

@@ -12,14 +12,13 @@ title: "Stream Event State Machine"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
-- `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
@@ -27,62 +26,64 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 
 ## Inbound Event Surface
 
-Handled backend event types:
+Renderer chat now consumes SDK `ConversationEvent` objects from
+`windie:conversation-event`. Those events are projected from backend websocket
+events by the SDK backend-event normalizer before they reach `useChatStream`.
 
-- `local-user-message`
-- `llm-thought`
-- `streaming-response`
-- `streaming-complete`
-- `context-compaction-started`
-- `context-compaction-completed`
-- `context-compaction-failed`
-- `tool-call`
-- `tool-output`
-- `tool-bundle`
-- `system-prompt`
-- `user-message-full`
-- `assistant-message-full`
-- `tool-schemas`
-- `token-count`
-- `error`
+Handled conversation event types:
+
+- `user_message`
+- `assistant_message`
+- `turn_completed`
+- `turn_error`
+- `tool_call`
+- `tool_output`
+- `tool_bundle_call`
+- `tool_bundle_output`
+- `compaction_started`
+- `compaction_applied`
+- `compaction_skipped`
+- `compaction_failed`
+- `system_prompt`
+- `user_message_metadata`
+- `tool_schemas_metadata`
+- `usage_updated`
 
 ## Event Ingress and Conversation Routing
 
 `desktopChatStreamIngressRuntime` listener flow:
 
-1. validate payload with `isBackendEvent(...)`
-2. resolve target conversation ref through `desktopChatStreamEventRuntime.resolveTargetConversationRef(...)`
-3. normalize the backend payload into a SDK conversation event
-4. call `ingestBackendEvent(...)` to:
+1. receive the SDK `ConversationEvent` from `windie:conversation-event`
+2. reject missing or malformed conversation identity
+3. call `handleConversationEventIngress(...)` to:
   - sync active conversation projection when event has explicit conversation identity
   - register `turn_ref -> conversation_ref` mapping
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
   - dispatch to SDK-normalized handlers through the chat hook callback
-5. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
+4. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
 
 Conversation resolution order:
 
-1. explicit `event.conversation_ref`
-2. `local-user-message` payload `conversation_ref`
-3. `turn_ref` workspace mapping
-4. quarantine when neither identity source resolves
+1. explicit SDK `event.conversationRef`
+2. quarantine when no conversation identity exists
 
 This is workspace routing, not active-chat filtering. Background conversations keep receiving their own events.
 
 ## Turn-Scoped Stale Event Guard
 
-All chat-stream handlers except `local-user-message` run through
-`useTurnScopedBackendEventHandler(...)` with one shared guard contract:
+All chat-stream handlers except `user_message` call
+`shouldIgnoreConversationEventForStaleTurn(...)` before mutating workspace UI
+state. The guard is implemented by `desktopChatStreamEventRuntime.ts` and the
+pure turn comparison in `desktopChatStreamTurnGuardRuntime.ts`:
 
-- compare incoming `event.turn_ref` with workspace `streamTracking.activeTurnRef`
+- compare incoming SDK `event.turnRef` with workspace `streamTracking.activeTurnRef`
 - drop when values differ
-- keep the wrapper callback identity stable across rerenders while reading the latest
-  handler implementation, so model-metadata changes do not force backend listener
-  resubscription
+- preserve first-packet and terminal-handoff exceptions so a newly sending turn
+  can re-anchor after optimistic local bookkeeping lags
 
 Guard exception:
 
@@ -93,7 +94,7 @@ Guard exception:
 
 Handler-level skip:
 
-- `local-user-message` uses `skipStaleTurnGate=true` because it seeds turn state.
+- `user_message` bypasses stale-turn filtering because it seeds turn state.
 
 Extra error gate:
 

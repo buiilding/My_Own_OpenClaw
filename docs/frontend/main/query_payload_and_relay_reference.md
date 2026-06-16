@@ -24,7 +24,7 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
-- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 
 ## Relay Entry: `ipcMain.handle('windie:invoke', ...)`

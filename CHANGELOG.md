@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route removed renderer backend-event contract and chat
+  conversation-gate searches to the current SDK event normalizer and renderer
+  conversation-event ingress docs.
 - sdk/package: delete the unused local `ws` ambient declaration; the SDK build
   resolves websocket typing without it and exposes Windie's websocket-like types.
 - sdk/projection: delete the orphan standalone current-turn projection source

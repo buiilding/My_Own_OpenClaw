@@ -22,7 +22,7 @@ title: "Frontend Contracts Events Docs Hub"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`

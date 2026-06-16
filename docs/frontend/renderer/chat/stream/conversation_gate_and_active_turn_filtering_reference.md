@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for `desktopChatStreamConversationGateRuntime`: conversation/session identity resolution helpers and workspace routing behavior for multi-conversation streaming."
+summary: "Deep reference for SDK conversation-event ingress, conversation/session identity routing, and active-turn filtering for multi-conversation streaming."
 read_when:
   - When changing cross-conversation event handling in `useChatStream`.
-  - When debugging dropped backend events during chatbox/main-window handoff.
+  - When debugging dropped conversation events during chatbox/main-window handoff, stale-turn filtering, or background conversation routing.
+  - When searching for removed `desktopChatStreamConversationGateRuntime.ts` or `DesktopChatStreamConversationGateRuntime.test.ts`; current routing is `desktopChatStreamIngressRuntime.ts` plus `desktopChatStreamEventRuntime.ts`.
 title: "Conversation Gate and Conversation Isolation Reference"
 ---
 
@@ -10,42 +11,55 @@ title: "Conversation Gate and Conversation Isolation Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts`
+- `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 
 ## Ownership Boundary
 
-`desktopChatStreamConversationGateRuntime` resolves conversation identity from first-class backend event state: explicit `conversation_ref`, local-user payload `conversation_ref`, or an SDK-recorded `turn_ref -> conversationRef` mapping. Runtime event acceptance/filtering now lives in `useChatStream` workspace routing logic.
+`desktopChatStreamIngressRuntime` accepts SDK `ConversationEvent` objects from
+`windie:conversation-event`. Backend websocket events are already normalized by
+the SDK before the renderer listener runs, so the renderer owns conversation
+projection, transcript-session binding, and handler dispatch for a resolved
+`event.conversationRef`.
 
 It does not:
 
-- validate backend event shape (handled by `isBackendEvent`)
+- validate raw backend websocket event shape (handled by the SDK backend-event
+  guard and normalizer)
 - write transcript rows
 - mutate chat store state
 
 ## Conversation Ref Resolution Contract
 
-`resolveEventConversationRef(event)` precedence:
-
-1. top-level `event.conversation_ref` when non-empty string
-2. fallback for `local-user-message`: `event.payload.conversation_ref`
-3. otherwise `null`
+`handleConversationEventIngress(event, deps)` requires a non-empty SDK
+`event.conversationRef`.
 
 This keeps first-class identity strict:
 
-- local-user-message payloads that carry conversation identity inside payload fields
-- events without explicit conversation identity or a registered turn mapping are unresolved and quarantined
+- SDK conversation events without explicit conversation identity are rejected
+  before UI projection or transcript-session sync
+- user-message events with conversation identity can promote the active
+  conversation projection
+- non-user background events are dispatched to their conversation workspace
+  without stealing the active conversation
 
 ## Routing Decision Matrix
 
-`useChatStream` resolves target workspace per event with this precedence:
+`useChatStream` routes SDK conversation events with this sequence:
 
-1. `resolveEventConversationRef(event)` from top-level `conversation_ref` or local-user payload `conversation_ref`
-2. `chatStore.resolveConversationRefForTurn(event.turn_ref)` when conversation ref is omitted
-3. quarantine when neither identity source resolves
+1. `handleConversationEventIngress` rejects missing `conversationRef`
+2. `applyEventChatConversationProjection` promotes explicit user-message
+   conversation refs and preserves the current active conversation for late
+   non-user events
+3. `registerTurnConversationRef(event.turnRef, conversationRef)` records the
+   turn mapping when present
+4. `dispatchConversationEvent(event, conversationRef)` sends the event to the
+   typed chat-stream handler for that workspace
 
 Result:
 
@@ -57,10 +71,11 @@ Result:
 
 Event flow inside backend listener:
 
-1. drop invalid payloads (`!isBackendEvent`)
-2. resolve target conversation workspace with conversation-ref + turn-ref fallback
-3. sync active chat projection only when event includes explicit conversation identity and active projection is empty or event is `local-user-message`
-4. register `turn_ref -> conversation_ref` mapping when both are available
+1. receive the SDK `ConversationEvent` on `windie:conversation-event`
+2. reject events without `conversationRef`
+3. sync active chat projection only when session rules allow the event to own
+   the visible conversation
+4. register `turnRef -> conversationRef` mapping when both are available
 5. update transcript session user binding for the resolved conversation
 6. dispatch to SDK-normalized handlers
 
@@ -68,32 +83,36 @@ Because routing is per-workspace, background conversation events do not leak int
 
 ## Active-Turn Filter Boundary
 
-`desktopChatStreamConversationGateRuntime` does not enforce stale-turn filtering.
+`desktopChatStreamIngressRuntime` does not enforce stale-turn filtering.
 
-`useChatStream` applies the active-turn mismatch guard before most handlers:
+`useChatStream` applies `shouldIgnoreConversationEventForStaleTurn(...)` before
+most handlers. The predicate delegates to `desktopChatStreamEventRuntime.ts`,
+`desktopChatStreamTurnGuardRuntime.ts`, and terminal-handoff predicates:
 
-- guard condition: event has `turn_ref` and workspace has active turn and those values differ
+- guard condition: event has `turnRef` and workspace has active turn and those values differ
 - guarded handlers: all streamed assistant/tool/system/transparency/token/memory/error handlers
-- unguarded handler: `local-user-message` (used to seed/reset per-turn state)
+- unguarded handler: `user_message` (used to seed/reset per-turn state)
 
-This split keeps identity routing in one helper and turn-phase acceptance in the stream hook.
+This split keeps conversation routing in ingress and turn-phase acceptance in
+the stream event runtime.
 
 ## Test-Backed Invariants
 
-`tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts` verifies:
+`tests/frontend/DesktopChatStreamIngressRuntime.test.ts` verifies:
 
-- top-level `conversation_ref` precedence
-- `local-user-message` payload fallback resolution
-- unresolved backend events are quarantined before UI projection or transcript sync
+- explicit user-message conversation refs promote the active conversation
+- late non-user background events do not steal the active conversation
+- missing conversation identity or rejected dispatch returns false
 
 `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx` verifies end-to-end listener behavior:
 
-- events with omitted conversation refs process only through turn mapping; otherwise they are quarantined
+- background conversation events route to their own workspace
+- local-user events promote the active conversation when transcript sync is disabled
 
 ## Drift Hotspots
 
-1. removing turn-ref workspace mapping reintroduces ambiguous routing for events without `conversation_ref`.
-2. removing local-user-message payload resolution breaks local echo identity.
+1. accepting SDK conversation events without `conversationRef` reintroduces ambiguous routing.
+2. removing turn-ref workspace mapping breaks later turn-scoped state checks.
 3. force-switching transcript active conversation from background events causes visible chat jumps while another chat is open.
 
 ## Related Pages

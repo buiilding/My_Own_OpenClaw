@@ -59,7 +59,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
-- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
@@ -79,7 +79,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
-- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`

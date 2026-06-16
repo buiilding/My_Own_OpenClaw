@@ -117,7 +117,7 @@ Infrastructure:
 
 Types and general utilities:
 
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/utils/{configFilter,configStorage,displaySelection}.*`
 
 ## Sidecar Python File Index

@@ -10,7 +10,7 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`

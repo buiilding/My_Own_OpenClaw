@@ -48,7 +48,7 @@ chat component until the producer and relay contracts are identified.
 | First query settings are stale or not ACKed | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/renderer/app/providers/appConfigBackendSync.ts` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, backend settings handler tests |
 | Optimistic user message appears twice, missing, or has wrong metadata | `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_event_replay_state.cjs`, `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | `tests/frontend/IpcQueryRuntime.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/DesktopChatStreamEventRuntime.test.ts` |
 | Stuck awaiting, wrong overlay phase, or response overlay does not clear | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`, `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/StreamPhaseState.test.js` |
-| Stream events mutate the wrong conversation or old turn | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/*`, `frontend/src/renderer/features/chat/utils/chatStream/*`, `frontend/src/renderer/features/chat/stores/chatStore.ts` | `tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts`, `tests/frontend/DesktopChatStreamTurnGuardRuntime.test.ts`, `tests/frontend/DesktopChatStreamTerminalHandoffRuntime.test.ts` |
+| Stream events mutate the wrong conversation or old turn | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/*`, `frontend/src/renderer/features/chat/utils/chatStream/*`, `frontend/src/renderer/features/chat/stores/chatStore.ts` | `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`, `tests/frontend/DesktopChatStreamTurnGuardRuntime.test.ts`, `tests/frontend/DesktopChatStreamTerminalHandoffRuntime.test.ts` |
 | Backend receives query but emits missing or malformed stream events | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py`, `backend/src/api/processing/*`, `backend/src/api/routes/websocket/*` | `tests/backend/test_query_execution_*`, `tests/backend/test_stream_pipeline.py`, `tests/backend/test_websocket_message_handler.py` |
 | Send fails while disconnected or websocket is not ready | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts` | `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/StopQueryState.test.js`, websocket reconnect tests |
 
@@ -214,7 +214,7 @@ wrong:
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
-- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 
 Renderer stream invariants:
 

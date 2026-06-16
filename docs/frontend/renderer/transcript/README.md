@@ -18,7 +18,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
-- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`

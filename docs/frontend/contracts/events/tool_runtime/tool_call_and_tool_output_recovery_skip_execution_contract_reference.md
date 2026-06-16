@@ -10,7 +10,7 @@ title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`

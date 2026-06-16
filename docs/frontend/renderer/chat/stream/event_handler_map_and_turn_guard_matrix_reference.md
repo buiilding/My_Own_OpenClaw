@@ -12,9 +12,9 @@ title: "Stream Dispatch and Turn Guard Matrix Reference"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
-- `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
-- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 
@@ -91,7 +91,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 
 ## Side-Effect Ownership After Dispatch
 
-- `useChatStreamToolHandlers`: persists tool-call/tool-output/tool-bundle transcript rows only, and routes `tool-output` transcript rows through the shared `toolOutputTranscriptPersistence.ts` helper
+- `useChatStreamToolHandlers`: persists tool-call/tool-output/tool-bundle transcript rows only, and routes `tool-output` transcript rows through the shared `ConversationRuntime.ts` helper
 - `useChatStreamTerminalHandlers`:
   - SDK `usage_updated`: workspace token counter update
   - SDK `turn_error`: materialized assistant error row + transcript error row unless suppressed

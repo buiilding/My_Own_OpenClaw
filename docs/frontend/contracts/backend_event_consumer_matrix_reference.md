@@ -11,7 +11,7 @@ title: "Backend Event Consumer Matrix Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/types/backendEvents.ts`
+- `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
