@@ -127,7 +127,8 @@ Date: 2026-06-15
   completed CD-031.
 - `9bc4b70d8 refactor(frontend): remove overlay phase payload parser`
   completed CD-032.
-- pending commit for CD-033.
+- `961ca09e9 refactor(frontend): keep compaction paint helper private`
+  completed CD-033.
 
 ## Validation Log
 
