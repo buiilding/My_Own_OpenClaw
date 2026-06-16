@@ -1,8 +1,8 @@
 ---
-summary: "Command matrix for the first-class WindieOS CLI surface."
+summary: "Command matrix for the first-class WindieOS CLI surface, including docs search, `commits search` git commit-history lookup, validation, packaging, backend, endpoint, and self-host commands."
 read_when:
-  - When choosing the correct WindieOS command for local development, docs work, tests, packaging, commits, or hosted tunnel setup.
-  - When changing `bin/windie`, command docs, scripts wrapped by the CLI, or package command behavior.
+  - When choosing the correct WindieOS command for local development, docs work, tests, packaging, `bin/windie commits search`, commit-history lookup, or hosted tunnel setup.
+  - When changing `bin/windie`, command docs, scripts wrapped by the CLI, commits search behavior, commit-history search behavior, or package command behavior.
 title: "Command Matrix"
 ---
 
@@ -56,6 +56,8 @@ adapters; document them only when changing the adapter itself.
 | `bin/windie docs check` | Run docs listing plus whitespace checks. |
 | `bin/windie docs search <query>` | Search local docs and print the top ten matches, ranking exact phrase, all-term, title/path, summary, `read_when`, and heading matches above broad partial matches. |
 | `bin/windie docs <query>` | Shorthand local docs search with the same ranking behavior. |
+| `bin/windie commits search <query>` | Search recent git commits and print the top ten matches by subject, body, author, hash, date, and changed paths. |
+| `bin/windie commits search <query> --limit 20 --json` | Return up to twenty commit matches as structured JSON. |
 
 ## Build, Package, and Reinstall
 

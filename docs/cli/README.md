@@ -1,8 +1,8 @@
 ---
-summary: "Command hub for the first-class WindieOS CLI surface, validation commands, packaging commands, backend operations, and self-host commands."
+summary: "Command hub for the first-class WindieOS CLI surface, validation commands, docs search, `commits search` git commit-history lookup, packaging commands, backend operations, and self-host commands."
 read_when:
   - When looking for WindieOS command-line entrypoints.
-  - When changing Windie CLI commands, command docs, package commands, docs tooling, or self-host behavior.
+  - When changing Windie CLI commands, command docs, docs tooling, `bin/windie commits search`, commit-history search, package commands, or self-host behavior.
 title: "Commands and Scripts"
 ---
 
@@ -38,6 +38,8 @@ surface.
 | `bin/windie docs check` | Run docs listing plus whitespace checks. |
 | `bin/windie docs search <query>` | Search local docs by path, title, summary, `read_when` hints, and headings; exact phrase and all-term matches rank highest. |
 | `bin/windie docs <query>` | Shorthand local docs search. |
+| `bin/windie commits search <query>` | Search recent git commits by subject, body, author, hash, date, and changed paths. |
+| `bin/windie commits search <query> --limit 20 --json` | Return a bounded machine-readable commit-search result set. |
 | `bin/windie build frontend` | Build the frontend bundle. |
 | `bin/windie build sidecar-runtime` | Build the bundled Python sidecar runtime. |
 | `bin/windie package mac` | Package macOS artifacts. |
