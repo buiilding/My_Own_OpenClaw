@@ -55,16 +55,6 @@ function buildClientToolManifest(options = {}) {
   };
 }
 
-function getBuiltinClientToolNames(options = {}) {
-  return buildBuiltinClientToolManifest(options).tools.map((tool) => tool.name);
-}
-
-function getClientToolNames(options = {}) {
-  return buildClientToolManifest(options).tools.map((tool) => tool.name);
-}
-
 module.exports = {
   buildClientToolManifest,
-  getClientToolNames,
-  getBuiltinClientToolNames,
 };
