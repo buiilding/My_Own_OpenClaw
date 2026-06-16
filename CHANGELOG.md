@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - cli: return the top ten matches from `bin/windie docs search` and the
   shorthand `bin/windie docs <query>`.
+- frontend/renderer: keep dashboard memory timestamp formatting private to
+  memory item normalization.
 - frontend/renderer: delete the unused desktop transcript-session runtime
   listener hook and keep session updates on the persisted browser event path.
 - frontend/renderer: keep the desktop conversation continuity SDK instance

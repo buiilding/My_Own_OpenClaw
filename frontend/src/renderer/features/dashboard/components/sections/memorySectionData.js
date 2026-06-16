@@ -63,7 +63,7 @@ function parseSemanticContent(content) {
   };
 }
 
-export function formatDateLabel(timestamp) {
+function formatDateLabel(timestamp) {
   if (!timestamp) {
     return 'Unknown time';
   }

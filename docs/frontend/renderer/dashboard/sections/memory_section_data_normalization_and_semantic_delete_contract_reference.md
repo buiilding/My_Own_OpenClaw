@@ -57,7 +57,7 @@ Normalization modules:
 ### Episodic normalization
 
 - title uses first non-empty content line (prefixes like `user:` / `assistant:` stripped)
-- date uses locale-formatted timestamp (`formatDateLabel`)
+- date uses locale-formatted timestamp during normalization
 - tokens estimate uses word count
 - backend ids retained in `backendMemoryId`
 
