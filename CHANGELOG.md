@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the built-in client tool manifest builder private to the
+  manifest merger so callers use the production client manifest APIs.
 - frontend/main: delete the retired Electron-side MCP tool execution registry,
   direct `executeMcpTool` path, and MCP result serialization helpers so MCP
   execution remains owned by the sidecar local runtime.

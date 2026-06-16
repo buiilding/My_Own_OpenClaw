@@ -95,6 +95,7 @@ Date: 2026-06-15
 | CD-062 | Electron app diagnostics store internal exports | `app_diagnostics_store.cjs` exported internal path-definition/schema/sanitizer helpers and test-only MCP/conversation path constants alongside the real store/CLI APIs | Knip reported twelve store exports unused from the frontend package view; repo search showed five are used by the root `bin/windie diagnostics` command, while seven were internal or test-only | Remove only the internal/test-only store exports and preserve the CLI-facing diagnostics query/list/inspect/database exports | `a8f5eae63` |
 | CD-063 | Electron MCP control helper exports | `mcp_control.cjs` exported config-normalization, config-mutation, enablement-diagnostics, and cache-clearing helpers even though production imports only the high-level MCP list/spec/refresh/update operations plus the config key | Knip reported those five helper exports unused; repo search showed only tests imported the config mutator directly to build enabled config fixtures | Remove helper exports, keep the helpers private, and make tests use literal config state while validating the production MCP control APIs | `cbb64120a` |
 | CD-064 | Electron MCP runtime execution registry | `mcp_runtime.cjs` still exported and implemented the old Electron-side MCP execution registry, `executeMcpTool(...)`, discovered-tool lookup, and MCP result serialization/image promotion helpers after production MCP execution moved to the sidecar local runtime | Knip reported the execution helpers unused; the sidecar-owned MCP report says Electron main no longer calls `executeMcpTool` for production local tool execution, and repo search found no production consumers | Delete the retired Electron direct-execution path and keep `mcp_runtime.cjs` scoped to manifest discovery/projection fallback plus cache/tool-name helpers used by MCP control and handshake | `156d42ebb` |
+| CD-065 | Electron client tool manifest helper export | `tool_manifest.cjs` exported `buildBuiltinClientToolManifest(...)` even though the generated built-in manifest loader is used only inside the client manifest merger and public callers use `buildClientToolManifest(...)` or tool-name lists | Knip reported the helper export unused; repo search showed no production, test, docs, or script imports outside the module itself, while handshake and MCP projection consumers use the higher-level manifest APIs | Remove the lower-level helper export and keep built-in manifest filtering private to the manifest merger | pending |
 
 ## Commit Ledger
 
@@ -1090,6 +1091,26 @@ CD-064 validation:
   required. This removes the retired Electron direct MCP execution surface;
   sidecar-owned MCP `/execute-tool` execution and raw MCP result preservation
   remain the active runtime contract.
+
+CD-065 validation:
+
+- targeted `rg -n "buildBuiltinClientToolManifest|tool_manifest|createBuiltinToolManifest|BUILTIN_CLIENT_TOOLS" .`:
+  no callers import `buildBuiltinClientToolManifest(...)` outside
+  `tool_manifest.cjs`; production handshake and MCP manifest projection consume
+  the higher-level client manifest APIs.
+- `bin/windie test frontend -- ExtensionManifest AgentCapabilityHandshake McpControl`:
+  passed; 3 suites and 19 tests. This covered the exploratory CommonJS export
+  narrowing before that part was reverted because Knip classified several
+  test-only extension registry exports as unused.
+- `bin/windie test frontend -- AgentCapabilityHandshake McpRuntime`: passed; 2
+  suites and 18 tests after keeping only the tool-manifest export deletion.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 131 to 130 after
+  removing the built-in manifest helper export.
+- `bin/windie docs list`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required. The client tool manifest shape and handshake path are unchanged;
+  only the lower-level generated built-in manifest helper stopped being public.
 
 ## Inspection Notes
 

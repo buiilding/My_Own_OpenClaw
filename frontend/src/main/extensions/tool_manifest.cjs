@@ -64,7 +64,6 @@ function getClientToolNames(options = {}) {
 }
 
 module.exports = {
-  buildBuiltinClientToolManifest,
   buildClientToolManifest,
   getClientToolNames,
   getBuiltinClientToolNames,
