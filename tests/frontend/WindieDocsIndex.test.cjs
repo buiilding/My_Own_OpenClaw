@@ -447,6 +447,24 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes renderer tool-schema list helper queries to transparency docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'chat',
+      'payloads',
+      'tool_call_output_and_transparency_section_rendering_reference.md',
+    );
+
+    expect(findDocs('isSupportedToolSchemaList removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('normalizeToolSchemaList flat function schema transparency')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes prompt compilation queries to prompt context docs', () => {
     expect(findDocs('prompt compilation')[0].path).toBe(
       path.join('docs', 'concepts', 'prompt_and_tool_context.md'),

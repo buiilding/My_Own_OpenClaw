@@ -1,9 +1,10 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, removed sanitizeMarkdownHtml standalone markdown sanitizer wrapper behavior, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
+summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, removed sanitizeMarkdownHtml standalone markdown sanitizer wrapper behavior, tool-call/tool-output card rendering, removed toolExplanationMessages and screenshot-source helper behavior, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, transparency section configuration/validation, and current normalizeToolSchemaList behavior after the removed isSupportedToolSchemaList helper."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
   - When changing renderer markdown sanitization, markdown rendering, math rendering, or thread-find highlight behavior.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
+  - When stale code, tests, or docs mention `isSupportedToolSchemaList` or removed renderer tool-schema list helper exports.
   - When resolving stale references to the removed `sanitizeMarkdownHtml` wrapper, markdown sanitizer wrapper, or standalone sanitized-HTML wrapper.
   - When resolving stale references to removed `toolExplanationMessages.js` or `MessageScreenshotSrc.test.js` helper paths.
 title: "Tool Call/Output and Transparency Section Rendering Reference"
@@ -184,6 +185,24 @@ Conversation-level behavior:
 - `MessageList` derives the latest canonical tool-schema payload across the active conversation
 - later user rows can render that conversation-level tool-schema transparency even when the schema event was attached to an earlier turn
 - assistant rows do not inherit conversation-level tool-schema sections
+
+Tool schema list normalization is centralized in
+`frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts`.
+`normalizeToolSchemaList(value)` is the public helper used by chat stream message
+updates and transparency rendering. It accepts only arrays where every entry is
+supported:
+
+- `type: "computer"` schemas pass through as renderer display schemas
+- canonical function schemas with `function.name` and `function.parameters`
+  pass through after normalization
+- flat function-shaped entries with top-level `name` and `parameters` normalize
+  into canonical `{type: "function", function: {...}}`
+- non-arrays, unsupported tool types, or partially malformed arrays return
+  `undefined`
+
+The old `isSupportedToolSchemaList` helper is removed and should not be used as
+a public renderer API. Tests should cover `normalizeToolSchemaList` through chat
+stream metadata updates or transparency section rendering.
 
 ## Transparency Section Rendering Rules
 
