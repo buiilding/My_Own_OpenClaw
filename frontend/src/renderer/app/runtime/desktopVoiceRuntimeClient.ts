@@ -12,7 +12,7 @@ const SET_LANGUAGE_PAYLOAD = JSON.stringify({
 });
 const START_OVER_PAYLOAD = JSON.stringify({ type: 'start_over' });
 
-export type DesktopTranscriptionGatewayEvent =
+type DesktopTranscriptionGatewayEvent =
   | { type: 'status'; clientId: string | null }
   | { type: 'realtime'; text: string; isFinal: boolean }
   | { type: 'utterance_end' }
