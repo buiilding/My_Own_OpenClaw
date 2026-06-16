@@ -65,4 +65,4 @@ below.
 - [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md)
 - [Frontend Sidecar Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md)
 - [Frontend Sidecar Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md)
-- [Frontend Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Frontend Sidecar Tool Registry Exposed Schema and Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)

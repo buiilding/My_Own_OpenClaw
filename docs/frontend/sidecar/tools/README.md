@@ -19,7 +19,7 @@ title: "Frontend Sidecar Tools Docs Hub"
 - [Shell Output Formatting and Response Payload Contract Reference](system/shell_output_formatting_and_response_payload_contract_reference.md)
 - [Filesystem Read and Replace Runtime Reference](filesystem_read_replace_runtime_reference.md)
 - [Browser Runtime Contract And Browser Use Engine Reference](browser_runtime_contract_and_windie_runtime_reference.md)
-- [Tool Registry Exposed Schema and Result Normalization Reference](registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Tool Registry Exposed Schema and Result Contract Reference](registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - [Wait, Window, and Stats Runtime Reference](system/wait_window_stats_runtime_reference.md)
 - [Read-File Window Pagination, Binary Guard, and Truncation Contract Reference](filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md)

@@ -312,7 +312,7 @@ Read:
 - [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
 - [Windie Client Runtime](../sdk/windie_client_runtime.md)
-- [Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Sidecar Tool Registry Exposed Schema and Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md)
 
 Likely code:

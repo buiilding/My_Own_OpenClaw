@@ -3,10 +3,10 @@ summary: "Deep reference for sidecar ToolRegistry internals: exposed-tool parity
 read_when:
   - When adding/removing sidecar tools or changing backend remote schema exposure lists.
   - When debugging invalid tool return formats or unexpected `Tool not found` failures.
-title: "Tool Registry Exposed Schema and Result Normalization Reference"
+title: "Tool Registry Exposed Schema and Result Contract Reference"
 ---
 
-# Tool Registry Exposed Schema and Result Normalization Reference
+# Tool Registry Exposed Schema and Result Contract Reference
 
 This page documents behavior in:
 

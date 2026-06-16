@@ -222,4 +222,4 @@ Field-level shared-schema guard:
 - [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
-- [Frontend Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../../../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Frontend Sidecar Tool Registry Exposed Schema and Result Contract Reference](../../../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)

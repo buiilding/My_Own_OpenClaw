@@ -103,5 +103,5 @@ success/failure/timeout.
 ## Related Pages
 
 - [Shell and Process Session Runtime Reference](../shell_and_process_session_runtime_reference.md)
-- [Tool Registry Exposed Schema and Result Normalization Reference](../registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Tool Registry Exposed Schema and Result Contract Reference](../registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Frontend Sidecar System Tools Docs Hub](README.md)

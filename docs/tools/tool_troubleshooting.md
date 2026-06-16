@@ -66,12 +66,12 @@ Questions to answer:
 3. Did SDK/main construct the sidecar payload with the expected args?
 4. Did Electron main route JSON-RPC to the sidecar?
 5. Did sidecar registry import the tool module lazily without import error?
-6. Did the executable tool return `ToolResult` or a legacy dict that normalizes successfully?
+6. Did the executable tool return a native `ToolResult`?
 
 Read:
 
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
-- [Sidecar Registry and Result Normalization](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Sidecar Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 
 ## Result and History Failures
 

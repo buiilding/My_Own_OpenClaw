@@ -10,7 +10,7 @@ title: "Frontend Sidecar Tool Registry Docs Hub"
 
 ## Deep Pages
 
-- [Tool Registry Exposed Schema and Result Normalization Reference](tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Tool Registry Exposed Schema and Result Contract Reference](tool_registry_exposed_schema_and_result_contract_reference.md)
 
 ## Related Pages
 

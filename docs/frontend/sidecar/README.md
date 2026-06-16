@@ -25,7 +25,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Sidecar Tool Registry Docs Hub](tools/registry/README.md)
 - [Sidecar Computer Tools Docs Hub](tools/computer/README.md)
 - [Sidecar System Tools Docs Hub](tools/system/README.md)
-- [Tool Registry Exposed Schema and Result Normalization Reference](tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Tool Registry Exposed Schema and Result Contract Reference](tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - [Wait, Window, and Stats Runtime Reference](tools/system/wait_window_stats_runtime_reference.md)
 - [Sidecar Memory Docs Hub](memory/README.md)

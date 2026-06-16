@@ -24,7 +24,7 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 | Electron websocket send/reconnect failure | Electron main IPC bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | `tests/frontend/IpcMainBridge*.test.cjs` | [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md) |
 | Preload IPC validation errors | Preload bridge and renderer IPC wrapper | `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/**` | `tests/frontend/IpcBridgeValidation.test.ts` | [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Local backend JSON-RPC/process failure | Electron local backend bridge | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`, sidecar process launch helpers | `tests/frontend/LocalBackendBridge*.test.cjs` | [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md) |
-| Sidecar tool result failures | Python sidecar tool registry/tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `tests/sidecar/test_tool_result.py`, tool-specific sidecar tests | [Tool Registry Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
+| Sidecar tool result failures | Python sidecar tool registry/tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `tests/sidecar/test_tool_result.py`, tool-specific sidecar tests | [Tool Registry Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | SDK/main tool-dispatch failure and display projection | SDK tool coordinator plus renderer projection | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts` | SDK tool/runtime tests, `ChatStreamToolHandlers.test.ts` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Renderer component crash boundary | Renderer components | `frontend/src/renderer/components/ErrorBoundary.jsx`, `frontend/src/renderer/styles/ErrorBoundary.css` | focused renderer component tests if behavior changes | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Provider/inference error mapping | Backend provider/inference layer | `backend/src/llm/providers/error_mapping.py`, `backend/src/core/inference/errors.py`, provider modules | provider/inference backend tests | [Provider Change Workflow](../providers/provider_change_workflow.md) |
@@ -35,7 +35,7 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 - Backend should not expose stack traces or provider secrets over websocket/HTTP responses.
 - Route validation errors should be actionable; unexpected internal errors should be sanitized.
 - Electron bridge failures should preserve enough context for renderer recovery without pretending the backend or sidecar is healthy.
-- Sidecar tools should return `ToolResult(success=False, error=..., data={...})` or equivalent normalized failures, not arbitrary exception objects.
+- Sidecar tools should return `ToolResult(success=False, error=..., data={...})`, not arbitrary exception objects or mapping-shaped compatibility payloads.
 - Renderer error UI should render canonical failure payloads and avoid swallowing producer evidence needed for debugging.
 - Retry behavior must have a clear owner and termination condition.
 
@@ -78,7 +78,7 @@ Sidecar tool execution should converge to `ToolResult`:
 
 - missing tool -> `Tool not found: <name>`
 - non-dict args -> `Tool args must be an object`
-- legacy dict failures are normalized by `ToolRegistry`
+- non-`ToolResult` returns fail as `Tool returned invalid result format`
 - unexpected exceptions are caught and wrapped as tool execution failures
 
 Tool implementations should include structured `data.error_code` when a caller can programmatically recover.
@@ -133,20 +133,20 @@ Validate:
 Read:
 
 - [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md)
-- [Tool Registry Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Tool Registry Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
 Edit:
 
 - concrete sidecar tool for domain-specific error codes and messages.
 - `tools/result.py` only if the shared ToolResult contract changes.
-- `tools/registry.py` only if normalization rules change.
+- `tools/registry.py` only if result contract enforcement changes.
 - Electron/renderer result handling only if bridge envelope changes.
 
 Validate:
 
 - missing tool, non-dict args, schema validation, expected runtime failure, and unexpected exception paths.
-- legacy dict failures still normalize correctly if supported.
+- non-`ToolResult` returns fail closed with the invalid-format error.
 - backend receives a failure result that can unblock pending tool waits.
 
 ### Change Electron bridge or process failure behavior
@@ -253,6 +253,6 @@ Before committing an error/failure change:
 - [Failure Domain Map](../architecture/failure_domain_map.md)
 - [Handler Registry and Error Envelope Reference](../backend/api/handler_registry_and_error_envelope_reference.md)
 - [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
-- [Tool Registry Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Tool Registry Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Observability Change Workflow](observability_change_workflow.md)
 - [Test Selection](test_selection.md)

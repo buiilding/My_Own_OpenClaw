@@ -183,7 +183,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
 - [Sidecar Shell and Process Session Runtime Reference](sidecar/tools/shell_and_process_session_runtime_reference.md)
 - [Sidecar Filesystem Read and Replace Runtime Reference](sidecar/tools/filesystem_read_replace_runtime_reference.md)
-- [Sidecar Tool Registry Exposed Schema and Result Normalization Reference](sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Sidecar Tool Registry Exposed Schema and Result Contract Reference](sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - [Sidecar Wait, Window, and Stats Runtime Reference](sidecar/tools/system/wait_window_stats_runtime_reference.md)
 - [Memory Pipeline and Summarization](sidecar/memory_pipeline_and_summarization.md)

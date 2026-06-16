@@ -25,7 +25,7 @@ Core modules:
 
 Detailed registry behavior:
 
-- [Tool Registry Exposed Schema and Result Normalization Reference](tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Tool Registry Exposed Schema and Result Contract Reference](tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 
 ## Tool Families
 
@@ -125,7 +125,7 @@ Built-in manifest entries intentionally separate schema roles:
 Do not treat `schema` in the generated built-in manifest as proof that the
 sidecar directly accepts every field in that schema.
 
-## Result Normalization Rules
+## Result Contract Rules
 
 Registry output handling requires native `ToolResult`.
 
