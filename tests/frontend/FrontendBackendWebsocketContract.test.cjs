@@ -6,21 +6,20 @@ const path = require('path');
 
 const incomingContract = require('../../backend/src/api/contracts/incoming_message_contract.json');
 const {
-  createManagedBackendSession,
-} = require('../../packages/windie-sdk-js/cjs/transport/ManagedBackendSession.js');
+  createManagedWindieAgentSession,
+} = require('../../packages/windie-sdk-js/cjs/transport/ManagedWindieAgentSession.js');
 const {
   buildBackendQueryPayload,
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
-const {
-  normalizeBackendPayload,
-} = require('../../frontend/src/main/ipc/ipc_runtime_helpers.cjs');
 const {
   filterBackendPayload,
 } = require('../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs');
 
 class FakeSocket extends EventEmitter {
-  constructor() {
+  constructor(url = 'ws://backend.test/ws', options = {}) {
     super();
+    this.url = url;
+    this.options = options;
     this.readyState = 0;
     this.sent = [];
   }
@@ -83,16 +82,24 @@ function assertPayloadMatchesContract(type, payload) {
 }
 
 async function createOpenSession() {
-  const socket = new FakeSocket();
-  const session = createManagedBackendSession({
-    createSocket: () => socket,
+  const sockets = [];
+  class FakeWebSocket extends FakeSocket {
+    constructor(url, options) {
+      super(url, options);
+      sockets.push(this);
+    }
+  }
+
+  const session = createManagedWindieAgentSession({
+    backendUrl: 'http://backend.test',
+    wsUrl: 'ws://backend.test/ws',
+    WebSocketImpl: FakeWebSocket,
     createMessageId: () => 'msg-1',
-    getUserId: () => 'user-1',
-    buildHandshake: () => ({ type: 'handshake', user_id: 'user-1' }),
-    normalizePayload: normalizeBackendPayload,
+    userId: 'user-1',
   });
 
-  const connected = session.ensureConnected({ timeoutMs: 100 });
+  const connected = session.waitForOpen();
+  const socket = sockets[0];
   socket.open();
   await connected;
   socket.sent = [];
@@ -258,22 +265,22 @@ describe('frontend/backend websocket incoming contract', () => {
     assertPayloadMatchesContract('query', payload);
   });
 
-  test('managed backend session sends exact command payloads for control families', async () => {
+  test('managed agent session sends exact command payloads for control families', async () => {
     const { session, socket } = await createOpenSession();
 
-    session.sendStopQuery({ conversation_ref: 'conv-1' });
-    session.sendRehydrateConversation({
+    await session.stopQuery({ conversation_ref: 'conv-1' });
+    await session.rehydrateConversation({
       conversation_ref: 'conv-1',
       messages: [{ role: 'user', content: 'hello' }],
       rehydrate_mode: 'replace',
     });
-    session.sendUpdateSettings({
+    await session.updateSettings({
       model_provider: 'openai',
       selected_model_id: 'gpt-test',
     });
-    session.sendListModels({});
-    session.sendWakewordDetected({});
-    session.sendCompactHistory({
+    await session.listModels();
+    await session.wakewordDetected();
+    await session.compactHistory({
       force: true,
       conversation_ref: 'conv-1',
     });
@@ -293,21 +300,21 @@ describe('frontend/backend websocket incoming contract', () => {
     });
   });
 
-  test('managed backend session strips extra top-level fields before websocket send', async () => {
+  test('managed agent session strips extra top-level fields before websocket send', async () => {
     const { session, socket } = await createOpenSession();
 
-    session.sendStopQuery({
+    await session.stopQuery({
       conversation_ref: 'conv-1',
       turn_ref: 'payload-extra',
     });
-    session.sendRehydrateConversation({
+    await session.rehydrateConversation({
       conversation_ref: 'conv-1',
       messages: [],
       rehydrate_mode: 'replace',
       agent_definition: { query_only: true },
       turn_ref: 'payload-extra',
     });
-    session.sendUpdateSettings({
+    await session.updateSettings({
       selected_model_id: 'gpt-test',
       tools: {
         mode: 'replace_client_manifest',
@@ -338,13 +345,11 @@ describe('frontend/backend websocket incoming contract', () => {
       global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
       appearance_theme: 'graphite',
     });
-    session.sendListModels({
-      client_version: 'renderer-extra',
-    });
-    session.sendWakewordDetected({
+    await session.listModels();
+    await session.wakewordDetected({
       turn_ref: 'payload-extra',
     });
-    session.sendCompactHistory({
+    await session.compactHistory({
       force: false,
       conversation_ref: 'conv-1',
       turn_ref: 'payload-extra',
@@ -391,18 +396,17 @@ describe('frontend/backend websocket incoming contract', () => {
     });
   });
 
-  test('managed backend session sends exact tool-result and bundle-result top-level payloads', async () => {
+  test('managed agent session sends exact tool-result and bundle-result top-level payloads', async () => {
     const { session, socket } = await createOpenSession();
 
-    session.sendToolResult({
+    await session.sendToolResultPayload({
       request_id: 'req-1',
       success: true,
       data: {
-        output: 'done',
         output: 'tool-specific extra field is allowed in data',
       },
     });
-    session.sendToolBundleResult({
+    await session.sendToolBundleResultPayload({
       bundle_id: 'bundle-1',
       status: 'success',
       screenshot_url: 'renderer-only-url',
@@ -422,10 +426,10 @@ describe('frontend/backend websocket incoming contract', () => {
     expect(bundleResultPayload).not.toHaveProperty('screenshot_url');
   });
 
-  test('managed backend session strips invalid strict capture metadata', async () => {
+  test('managed agent session strips invalid strict capture metadata', async () => {
     const { session, socket } = await createOpenSession();
 
-    session.sendToolResult({
+    await session.sendToolResultPayload({
       request_id: 'req-1',
       success: true,
       data: {
@@ -436,7 +440,7 @@ describe('frontend/backend websocket incoming contract', () => {
         screenshot_content_type: 'image/jpeg',
       },
     });
-    session.sendToolBundleResult({
+    await session.sendToolBundleResultPayload({
       bundle_id: 'bundle-1',
       status: 'success',
       capture_meta: {

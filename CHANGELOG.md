@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: delete unused Electron runtime helper exports for synthetic
+  user-id generation and backend payload normalization, and validate websocket
+  payload filtering through the SDK managed agent session path.
 - frontend/main: keep backend query payload key lists and query message-id
   normalization private to the query payload runtime.
 - frontend/main: keep install-auth normalization and POSIX hardening helpers

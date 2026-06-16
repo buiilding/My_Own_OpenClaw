@@ -50,10 +50,6 @@ Helper modules hold isolated runtime responsibilities.
 Owns cross-cutting utilities used by relay hot paths:
 
 - `resolveRendererViewFromWebContents` and `runBeforeOverlayQueryCapture`
-- `generateUserId` username sanitize + UUID fallback
-- `normalizeBackendPayload` outbound backend-command cleanup through
-  `ipc_backend_payload_contract.cjs` allowlists, plus display-only
-  `screenshot_url` stripping for query/tool bundle result
 - `uploadArtifact` HTTP form upload helper
 - `processBackendMessageData` inbound event normalization:
   - session/user/conversation state updates
@@ -287,8 +283,9 @@ generic `to-backend` router or direct chat query IPC handlers.
 
 1. Duplicating overlay phase updates in `ipc.cjs` and `processBackendMessageData` can create inconsistent phase fan-out.
 2. Bypassing `ipc_query_broadcast.cjs` for synthetic events can break sender-window exclusion behavior.
-3. Changing `normalizeBackendPayload` allowlists without the generated backend
-   contract check can leak unsupported payload keys or drop valid command fields.
+3. Changing SDK or Electron `filterBackendPayload(...)` allowlists without the
+   generated backend contract check can leak unsupported payload keys or drop
+   valid command fields.
 4. Mutating query-context envelope shape in broadcasters without matching `ipc_query_events.cjs` updates can desync renderer expectations.
 5. Changing replay turn gating (`appendForActiveTurn`) can replay stale-turn packets into newly registered windows.
 6. Duplicating transcript-session normalization logic outside `ipc_transcript_session_sync.cjs` can desync alias/null handling between channels.

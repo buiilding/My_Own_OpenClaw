@@ -185,10 +185,11 @@ SDK runtime backend send helpers:
 - expose a typed `sendStopQueryToBackend(...)` adapter for VM/bootstrap stop
   controls instead of a generic backend-message escape hatch
 
-`normalizeBackendPayload(...)` filters every known backend command payload
-through the generated-contract allowlist in `ipc_backend_payload_contract.cjs`.
-It also removes display-only `screenshot_url` fields for `query` and
-`tool-bundle-result`.
+Outbound websocket payload filtering is owned by the SDK managed agent session
+through its default `filterBackendPayload(...)` normalizer. Electron main keeps
+its own `ipc_backend_payload_contract.cjs` filter for direct main-process
+payloads such as settings sync, while query sends shape backend payload fields
+through `ipc_query_runtime.cjs` before entering the SDK command path.
 
 ## Query Send Failure Synthesis
 

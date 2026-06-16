@@ -159,9 +159,10 @@ State flow:
 
 ## Outbound Payload Normalization Contract
 
-`normalizeBackendPayload(...)` filters known command payloads through
-contract-backed allowlists, then strips display-only `screenshot_url` from
-`query` and `tool-bundle-result`.
+The SDK managed agent session filters known command payloads through
+contract-backed allowlists before websocket send. Electron main direct payloads
+use `ipc_backend_payload_contract.cjs`, and query sends use
+`ipc_query_runtime.cjs` for query-specific backend field shaping.
 
 Purpose: keep websocket payload aligned to backend schema-supported fields.
 

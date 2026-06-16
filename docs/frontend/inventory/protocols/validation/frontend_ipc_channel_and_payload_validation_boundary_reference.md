@@ -69,14 +69,15 @@ Role:
 
 ## Outbound Backend Payload Normalization
 
-`normalizeBackendPayload(type, payload)` in `ipc_runtime_helpers.cjs`:
+Outbound backend payload filters:
 
-- non-object payload -> `{}`.
-- filters known command payloads through the private allowlist owned by
-  `filterBackendPayload(...)` in `ipc_backend_payload_contract.cjs`.
-- additionally strips display-only `screenshot_url` for:
-  - `query`
-  - `tool-bundle-result`
+- SDK managed agent sessions default to
+  `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`
+  `filterBackendPayload(...)`.
+- Electron main direct payloads use
+  `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`
+  `filterBackendPayload(...)`.
+- Query payloads are shaped before send by `ipc_query_runtime.cjs`.
 
 Reason:
 
@@ -85,16 +86,16 @@ Reason:
 
 ## User ID Validation/Sanitization Boundary
 
-`generateUserId()` in `ipc.cjs`:
+Electron main resolves install auth state before starting the SDK runtime:
 
-- prefers OS username when available and not `default_user`.
-- sanitizes username to `[a-zA-Z0-9_-]` (non-matching chars replaced with `_`).
-- truncates to max `128` chars.
-- fallback: `user_<uuid-with-underscores>`.
+- `ipc_install_auth_state.cjs` validates persisted install identity shape.
+- `WindieClient.wakeUp(...)` builds the authenticated SDK handshake from the
+  resolved install auth user id.
 
 Role:
 
-- proactively satisfy backend `validate_user_id` contract and reduce handshake rejects.
+- keep backend handshakes on authenticated install identity instead of a
+  synthetic OS-username fallback.
 
 ## Query Content Input Sanitization Boundary
 
@@ -144,8 +145,8 @@ High-risk drift points to monitor:
 |---|---|---|
 | preload channel allowlist gate | `frontend/src/preload.js` | unallowlisted channels never cross renderer->main boundary |
 | renderer development-time channel assertions | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | fail-fast on typos/drift in dev while production defers to preload policy |
-| outbound websocket payload normalization | `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
-| handshake user-id sanitization | `frontend/src/main/ipc/ipc_runtime_helpers.cjs` (`generateUserId`) | avoids backend handshake rejects from invalid/unsafe user-id values |
+| outbound websocket payload normalization | `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
+| handshake user-id identity | `frontend/src/main/ipc/ipc_install_auth_state.cjs` + `WindieClient.wakeUp(...)` | sends authenticated install identity instead of synthetic OS username fallback |
 | query XML/context sanitization fallback | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | escapes XML-sensitive content and guarantees structured fallback blocks |
 | local-backend mapper compatibility transforms | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |
 

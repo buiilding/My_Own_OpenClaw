@@ -8,9 +8,6 @@ const {
 const {
   broadcastTypedBackendEvent,
 } = require('./ipc_backend_event_channels.cjs');
-const {
-  filterBackendPayload,
-} = require('./ipc_backend_payload_contract.cjs');
 
 function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
@@ -89,45 +86,6 @@ async function runBeforeOverlayQueryCapture({
   } catch (error) {
     log(`Overlay pre-capture hook failed: ${error.message}`);
   }
-}
-
-/**
- * Generate a valid user_id from system username or fallback to UUID-based ID.
- * Backend rejects 'default_user', empty, or whitespace-only values.
- */
-function generateUserId({
-  osUserInfo,
-  uuidGenerator,
-  log,
-}) {
-  try {
-    const username = osUserInfo()?.username;
-    if (username && username.trim() && username !== 'default_user') {
-      // Sanitize username to match backend validation pattern (alphanumeric, underscore, hyphen)
-      return username.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 128);
-    }
-  } catch (error) {
-    log(`Failed to get system username: ${error.message}`);
-  }
-  // Fallback: generate UUID-based user_id (backend accepts alphanumeric, underscore, hyphen)
-  return `user_${uuidGenerator().replace(/-/g, '_')}`;
-}
-
-/**
- * Normalize outbound payloads to backend-supported schema fields.
- */
-function normalizeBackendPayload(type, payload) {
-  const normalized = filterBackendPayload(type, payload);
-
-  if (type === 'query' || type === 'tool-bundle-result') {
-    delete normalized.screenshot_url;
-    delete normalized.screenshot_urls;
-  }
-  if (type === 'query') {
-    delete normalized.memory_retrieval_enabled;
-  }
-
-  return normalized;
 }
 
 async function uploadArtifact({ base64, contentType, filename, backendHttpUrl, headers = {} }) {
@@ -238,8 +196,6 @@ function processBackendMessageData(data, {
 }
 
 module.exports = {
-  generateUserId,
-  normalizeBackendPayload,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
   uploadArtifact,
