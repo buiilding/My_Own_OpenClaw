@@ -4,8 +4,8 @@ TTS synthesis worker thread.
 
 from __future__ import annotations
 
-import queue
 import threading
+from queue import Queue
 from typing import Callable, Optional
 
 
@@ -17,7 +17,7 @@ class TtsWorker:
     def __init__(
         self,
         *,
-        input_queue: "queue.Queue[Optional[str]]",
+        input_queue: Queue[Optional[str]],
         on_synthesize: Callable[[str], None],
         on_complete: Callable[[], None],
         logger,

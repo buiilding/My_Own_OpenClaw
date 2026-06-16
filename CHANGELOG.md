@@ -98,6 +98,8 @@ All notable changes to WindieOS will be documented in this file.
   stream attachment extraction, managed agent sessions, and package exports.
 - frontend/renderer: remove deprecated browser API usage from chat stream trace
   platform labeling and markdown HTML container construction.
+- backend/sidecar: remove unused imports from remote system tools, TTS helpers,
+  and sidecar filesystem/system tool modules.
 - docs/frontend: route deprecated renderer browser API searches to the runtime
   trace and markdown rendering owner docs.
 - docs/frontend: route removed desktop conversation-store write-enrichment

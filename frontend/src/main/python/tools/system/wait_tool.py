@@ -2,7 +2,6 @@
 Wait Tool - Python implementation.
 """
 
-import asyncio
 import logging
 from typing import Dict, Any
 

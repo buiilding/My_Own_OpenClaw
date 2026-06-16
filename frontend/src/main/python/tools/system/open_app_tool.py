@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import os
 import platform
 import shlex
 import subprocess

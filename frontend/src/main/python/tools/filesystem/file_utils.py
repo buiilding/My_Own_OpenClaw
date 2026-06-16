@@ -2,7 +2,6 @@
 File utility functions for binary detection and file type checking.
 """
 
-import os
 import logging
 from pathlib import Path
 from typing import Optional

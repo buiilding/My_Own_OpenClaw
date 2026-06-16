@@ -4,10 +4,7 @@ Remote system-domain tool stubs.
 
 from __future__ import annotations
 
-from typing import Any
-
 from backend.src.core.security.policy import Permission
-from backend.src.core.utils.string_normalization import normalize_non_empty_string
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
