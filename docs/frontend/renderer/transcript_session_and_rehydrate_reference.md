@@ -1,8 +1,8 @@
 ---
-summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, direct desktopConversationStore command bridge behavior, removed desktop store write enrichment helpers, IPC storage contract, and dashboard conversation resume/rehydrate flow."
+summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, direct desktopConversationStore command bridge behavior, removed createConversationEvent import/use in the desktop store, removed desktop store write enrichment helpers, IPC storage contract, and dashboard conversation resume/rehydrate flow."
 read_when:
   - When changing transcript session identity wiring, SDK display projection, desktopConversationStore command bridge behavior, or sidecar conversation-store payload shape.
-  - When resolving stale references to removed desktop conversation-store write enrichment helpers, workspace metadata enrichment, broad screenshot attachment aliases, or renderer persistence reshaping.
+  - When resolving stale references to removed desktop conversation-store write enrichment helpers, the removed `createConversationEvent` desktopConversationStore import, workspace metadata enrichment, broad screenshot attachment aliases, or renderer persistence reshaping.
   - When debugging missing transcript rows, dashboard resume, or rehydrate mismatches.
   - When changing try-again/edit+resend replay sequencing in `useConversationReplayActions.js`.
 title: "Transcript Session and Rehydrate Reference"
@@ -89,6 +89,11 @@ sidecar-backed conversation-store owner. The desktop conversation store factory
 is now only a renderer command bridge: it forwards canonical SDK events and
 load/list/rewrite commands to Electron main without reshaping event metadata or
 attachments.
+
+`desktopConversationStore.ts` does not create conversation events. The stale
+`createConversationEvent` import was removed from that renderer store path; any
+event construction belongs before the store boundary, and the store forwards the
+canonical `ConversationEvent` it receives to `conversation.appendEvent`.
 
 Storage split:
 

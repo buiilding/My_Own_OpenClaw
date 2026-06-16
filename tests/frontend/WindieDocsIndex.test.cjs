@@ -481,6 +481,20 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed frontend dead-symbol queries to current owner docs', () => {
+    expect(findDocs('getLatestFrontendConfig createMainWindow removed')[0].path).toBe(
+      path.join(
+        'docs',
+        'frontend',
+        'main',
+        'main_window_runtime_factory_and_overlay_bootstrap_reference.md',
+      ),
+    );
+    expect(findDocs('createConversationEvent desktopConversationStore removed')[0].path).toBe(
+      path.join('docs', 'frontend', 'renderer', 'transcript_session_and_rehydrate_reference.md'),
+    );
+  });
+
   test('routes prompt compilation queries to prompt context docs', () => {
     expect(findDocs('prompt compilation')[0].path).toBe(
       path.join('docs', 'concepts', 'prompt_and_tool_context.md'),

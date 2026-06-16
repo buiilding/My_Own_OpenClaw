@@ -102,6 +102,8 @@ All notable changes to WindieOS will be documented in this file.
   and sidecar filesystem/system tool modules.
 - docs/frontend: route deprecated renderer browser API searches to the runtime
   trace and markdown rendering owner docs.
+- docs/frontend: route removed frontend dead-symbol searches to main-window
+  bootstrap and transcript-store owner docs.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
 - docs/frontend: route removed legacy selected-model localStorage migration
