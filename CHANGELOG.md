@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/reference: qualify inventory, hub, and IPC source references with current
+  repo paths so docs search returns copy-pastable routing targets.
 - docs/routing: refresh operations, platform, and code-change routing entries
   that pointed at removed endpoint-test and renderer API-client paths.
 - docs/backend: refresh tool-preparation, formatter, logging, OCR/vision, and

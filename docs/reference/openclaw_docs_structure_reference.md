@@ -102,13 +102,13 @@ Added/expanded in WindieOS:
 - `planning/`: current-vs-future boundary, roadmap status matrix, promotion checklist, initiative index, and future-facing plan docs.
 - `adr/`: architecture decision records for durable cross-runtime decisions, including browser extension auto-attach and frontend tool schema source-of-truth proposals.
 - Sub-hubs added for layered navigation:
-- `backend/bootstrap/README.md`, `backend/api/README.md`, `backend/contracts/README.md`, `backend/tools/README.md`
-- `frontend/main/README.md`, `frontend/renderer/README.md`, `frontend/contracts/README.md`, `frontend/sidecar/README.md`
+- `docs/backend/bootstrap/README.md`, `docs/backend/api/README.md`, `docs/backend/contracts/README.md`, `docs/backend/tools/README.md`
+- `docs/frontend/main/README.md`, `docs/frontend/renderer/README.md`, `docs/frontend/contracts/README.md`, `docs/frontend/sidecar/README.md`
 - Inventory and playbook references that route common implementation tasks to exact files:
-- `backend/inventory/domains/backend_change_path_playbook_reference.md`
-- `frontend/inventory/domains/frontend_change_path_playbook_reference.md`
-- `backend/inventory/backend_capability_to_file_matrix_reference.md`
-- `frontend/inventory/frontend_capability_to_file_matrix_reference.md`
+- `docs/backend/inventory/domains/backend_change_path_playbook_reference.md`
+- `docs/frontend/inventory/domains/frontend_change_path_playbook_reference.md`
+- `docs/backend/inventory/backend_capability_to_file_matrix_reference.md`
+- `docs/frontend/inventory/frontend_capability_to_file_matrix_reference.md`
 
 ## WindieOS Section Policy (Proposed)
 
