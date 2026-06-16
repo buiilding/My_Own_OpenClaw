@@ -142,7 +142,8 @@ Date: 2026-06-15
   completed CD-036.
 - `5dd7c6351 refactor(frontend): keep tool call metadata helper private`
   completed CD-037.
-- pending commit for CD-038.
+- `5aef56987 refactor(frontend): keep tool schema helpers private`
+  completed CD-038.
 
 ## Validation Log
 
