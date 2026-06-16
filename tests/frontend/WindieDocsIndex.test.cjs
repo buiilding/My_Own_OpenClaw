@@ -206,6 +206,12 @@ describe('windie docs index', () => {
     expect(findDocs('client tool manifest agent definition handshake')[0].path).toBe(
       expectedPath,
     );
+    expect(findDocs('client_tool_manifest handshake fallback removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('top-level client_tool_manifest removed')[0].path).toBe(
+      expectedPath,
+    );
     expect(findDocs('frontend tool schemas planned post handshake')[0].path).toBe(
       expectedPath,
     );

@@ -1,9 +1,9 @@
 ---
-summary: "First-class agent definition contract for clients that initialize WindieOS agents without the Electron frontend, including the current replacement for the old planned post-handshake `frontend-tool-schemas` flow."
+summary: "First-class agent definition contract for clients that initialize WindieOS agents without the Electron frontend, including the current replacement for the old planned post-handshake `frontend-tool-schemas` flow and the removed top-level `client_tool_manifest` handshake fallback."
 read_when:
   - When building a custom WindieOS UI, TUI, CLI, or hosted client.
   - When changing websocket handshake, prompt layers, client tool manifests, skills, AGENTS.md forwarding, or plugin metadata.
-  - When searching for planned post-handshake frontend tool schemas, agent capability handshake behavior, the removed `agent_capability_handshake.cjs` builder, or the removed `AgentCapabilityHandshake.test.cjs`.
+  - When searching for planned post-handshake frontend tool schemas, removed top-level `client_tool_manifest` handshake fallback behavior, agent capability handshake behavior, the removed `agent_capability_handshake.cjs` builder, or the removed `AgentCapabilityHandshake.test.cjs`.
 ---
 
 # Agent Definition Contract
@@ -65,6 +65,13 @@ Current SDK/Electron clients do not send a separate `frontend-tool-schemas`
 message after handshake. The old planned post-handshake frontend tool schema
 sync is owned by `agent_definition.tools.client_manifest` on the websocket
 handshake.
+
+## No Top-Level Client Tool Manifest Fallback
+
+The websocket handshake no longer accepts a top-level `client_tool_manifest`
+field. Client-local tool schemas must be nested under
+`agent_definition.tools.client_manifest`; otherwise backend manifest validation
+receives no client manifest for that handshake.
 
 ## Removed Agent Capability Handshake Builder
 

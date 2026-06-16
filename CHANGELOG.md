@@ -58,6 +58,8 @@ All notable changes to WindieOS will be documented in this file.
   to the agent definition contract.
 - docs/tools: route removed Electron tool event router artifact searches to the
   SDK-owned tool execution lifecycle.
+- docs/sdk: route removed top-level `client_tool_manifest` handshake fallback
+  searches to the agent definition contract.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability
