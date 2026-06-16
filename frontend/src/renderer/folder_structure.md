@@ -58,7 +58,7 @@ frontend/src/renderer/
 │   │   │   ├── useResponseOverlayViewModel.js # SDK current-turn response view model
 │   │   │   └── useResponseOverlayWindowSync.js # Response overlay size/visibility IPC sync
 │   │   └── utils/
-│   │       └── minimalChatPillLayout.js  # Minimal pill layout and drag-block helpers
+│   │       └── minimalChatPillLayout.js  # Minimal pill layout, drag-state, and movement-threshold helpers
 │   │
 │   ├── chat/                            # Chat/dashboard transcript feature module
 │   │   ├── components/                  # Chat UI components
@@ -108,7 +108,7 @@ frontend/src/renderer/
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       ├── state/                   # state - Chat loop/surface/query-stop projection helpers
 │   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability and thinking text normalization
-│   │       │   ├── chatBoxState.js      # chatBoxState - Minimal pill drag-block targets + visual anchor height helpers
+│   │       │   ├── chatBoxState.js      # chatBoxState - Visual anchor height helpers for compact/preview chatbox shells
 │   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
 │   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/minimal-pill surface projection helpers
 │   │       │   ├── stopQueryState.js    # stopQueryState - Stop-query UI patch helper for stream tracking + thinking reset
