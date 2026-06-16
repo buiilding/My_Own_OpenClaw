@@ -69,6 +69,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/simulation: delete the `backend.src.simulation.computer` alias
   entrypoint so default simulation launches only through the package runner or
   `backend.src.simulation.main`.
+- docs/backend: route removed simulation computer alias searches to the current
+  package-runner and main-module entrypoint reference.
 - backend/bootstrap: delete pass-through `ContainerInitializer` service-wrapper
   methods so startup behavior is owned by the ordered startup-step runner.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and

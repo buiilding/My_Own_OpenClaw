@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for simulation entrypoint launch paths: package `-m` runner and main-module shared app factory behavior."
+summary: "Deep reference for simulation entrypoint launch paths: package `-m` runner, removed simulation computer alias, and main-module shared app factory behavior."
 read_when:
   - When changing simulation startup scripts.
   - When debugging reload/access-log flag differences across simulation launch commands.
+  - When searching for removed `backend.src.simulation.computer`, simulation computer alias, deleted backend simulation computer module, or old computer simulation module launch behavior.
 title: "Package Runner and Main Module Uvicorn Bootstrap Contract Reference"
 ---
 
@@ -13,6 +14,13 @@ title: "Package Runner and Main Module Uvicorn Bootstrap Contract Reference"
 - `backend/src/simulation/__main__.py`
 - `backend/src/simulation/main.py`
 - `backend/src/simulation/app_factory.py`
+
+## Removed Simulation Computer Alias
+
+- `backend/src/simulation/computer.py` and `backend.src.simulation.computer`
+  are no longer launch aliases.
+- Searches for a deleted backend simulation computer module belong here; use the
+  package runner or `backend.src.simulation.main` instead.
 
 ## Package Runner Contract (`python -m backend.src.simulation`)
 

@@ -609,4 +609,27 @@ describe('windie docs index', () => {
     expect(findDocs('CapturePayloadUtils deleted')[0].path).toBe(expectedPath);
     expect(findDocs('MessageFormatter deleted')[0].path).toBe(expectedPath);
   });
+
+  test('routes removed simulation computer alias queries to simulation entrypoint docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'simulation',
+      'entrypoints',
+      'package_runner_and_main_module_uvicorn_bootstrap_contract_reference.md',
+    );
+
+    expect(findDocs('backend.src.simulation.computer removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('simulation computer alias removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('backend simulation computer module deleted')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('python -m backend.src.simulation.computer')[0].path).toBe(
+      expectedPath,
+    );
+  });
 });
