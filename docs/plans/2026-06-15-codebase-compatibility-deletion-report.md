@@ -81,7 +81,7 @@ Date: 2026-06-15
 | CD-048 | Stream tracking reducer state type export | `desktopChatStreamTrackingRuntime.ts` exported a local `StreamTracking` reducer state type even though the chat store owns the public stream-tracking state interface and callers import only event/options/phase types from the reducer module | Knip reported the reducer `StreamTracking` export unused; repo search showed no imports from the reducer module, while tests and store consumers use `features/chat/stores/chatStore` for the public shape | Make the reducer's local state type private while preserving the exported tracking event/options/phase types used by stream handlers | `12341f690` |
 | CD-049 | Desktop voice transcription gateway event type export | `desktopVoiceRuntimeClient.ts` exported `DesktopTranscriptionGatewayEvent` even though the union is only used as the return type for the module's own gateway message normalizer | Knip reported the event union export unused; repo search showed no external imports while voice UI callers consume the `DesktopVoiceRuntimeClient` methods directly | Make the gateway event union private to the desktop voice runtime client and preserve normalized gateway message behavior | `aa74f8074` |
 | CD-050 | Conversation session snapshot type export | `conversationSessionRuntime.ts` exported `MainSessionSnapshot` even though callers use the runtime functions and do not import the snapshot type directly | Knip reported the snapshot type export unused; repo search showed the type is referenced only inside `conversationSessionRuntime.ts` while tests import runtime functions/constants | Make `MainSessionSnapshot` private to the conversation session runtime while preserving the public runtime functions and `EMPTY_MAIN_SESSION_SNAPSHOT` value | `0d18f130f` |
-| CD-051 | Response overlay dismissal input type export | `chatStore.ts` exported `ResponseOverlayDismissalInput` even though dismissal callers pass plain object literals to the store methods and dismissal-key helper without importing the interface | Knip reported the interface export unused; repo search showed it is referenced only inside the chat store module while response overlay callers consume store methods | Make the dismissal input interface private to the chat store while preserving the public dismissal methods and key builder | pending implementation commit |
+| CD-051 | Response overlay dismissal input type export | `chatStore.ts` exported `ResponseOverlayDismissalInput` even though dismissal callers pass plain object literals to the store methods and dismissal-key helper without importing the interface | Knip reported the interface export unused; repo search showed it is referenced only inside the chat store module while response overlay callers consume store methods | Make the dismissal input interface private to the chat store while preserving the public dismissal methods and key builder | `7aaec4655` |
 
 ## Commit Ledger
 
@@ -181,7 +181,8 @@ Date: 2026-06-15
   completed CD-049.
 - `0d18f130f refactor(frontend): keep session snapshot type private`
   completed CD-050.
-- pending implementation commit will complete CD-051.
+- `7aaec4655 refactor(frontend): keep overlay dismissal input private`
+  completed CD-051.
 
 ## Validation Log
 
