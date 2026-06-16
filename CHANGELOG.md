@@ -60,6 +60,8 @@ All notable changes to WindieOS will be documented in this file.
   private to the persisted intent store read/write operations.
 - frontend/main: keep renderer console formatting, payload normalization, and
   severity classification private to the overlay runtime console-message hook.
+- frontend/renderer: delete the unused standalone sanitized-HTML wrapper and
+  keep markdown rendering on the sanitized markdown pipeline.
 - frontend/main: keep the local-backend screenshot temp-directory resolver
   private to screenshot attachment materialization.
 - frontend/main: keep SDK sidecar daemon launch env/context/log helpers private
