@@ -14,6 +14,8 @@ All notable changes to WindieOS will be documented in this file.
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
 - cli: return the top ten matches from `bin/windie docs search` and the
   shorthand `bin/windie docs <query>`.
+- frontend/renderer: keep live-turn surface phase and presentation guards
+  private to the live-turn presentation input resolver.
 - frontend/renderer: delete unused chat box drag-block and clipboard screenshot
   payload helpers while keeping visual-anchor helpers as the public API.
 - frontend/renderer: keep the minimal chat pill drag-start threshold private to

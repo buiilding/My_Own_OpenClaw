@@ -55,15 +55,15 @@ function findLatestUserTurnRef(messages) {
   return null;
 }
 
-export function mapCurrentTurnProjectionPhase(phase) {
+function mapCurrentTurnProjectionPhase(phase) {
   return CURRENT_TURN_PHASE_TO_SURFACE_PHASE[normalizePhase(phase)] ?? null;
 }
 
-export function isCurrentTurnProjectionBusy(phase) {
+function isCurrentTurnProjectionBusy(phase) {
   return CURRENT_TURN_BUSY_PHASES.has(normalizePhase(phase));
 }
 
-export function hasSdkLiveTurnPresentation(currentTurnProjection) {
+function hasSdkLiveTurnPresentation(currentTurnProjection) {
   const presentation = currentTurnProjection?.presentation;
   return Boolean(
     presentation
@@ -73,7 +73,7 @@ export function hasSdkLiveTurnPresentation(currentTurnProjection) {
   );
 }
 
-export function isHiddenSdkLiveTurnPresentation(presentation) {
+function isHiddenSdkLiveTurnPresentation(presentation) {
   if (!presentation || typeof presentation !== 'object') {
     return false;
   }
