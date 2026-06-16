@@ -22,6 +22,8 @@ describe('renderer skin/config boundary', () => {
     expect(skinSource).toContain("const browserName = 'Windie Browser'");
     expect(skinSource).toContain('remoteTools');
     expect(skinSource).toContain('memoryPanel');
+    expect(skinSource).toContain('onboarding');
+    expect(skinSource).toContain('chat');
     expect(skinSource).toContain('web_search');
     expect(skinSource).toContain('run_shell_command');
     expect(skinSource).toContain('requireUserMessage');
@@ -55,6 +57,26 @@ describe('renderer skin/config boundary', () => {
     expect(source).not.toContain('WindieOS builds understanding');
     expect(source).not.toContain('Memories will appear as you interact with WindieOS');
     expect(source).not.toContain('Search memories...');
+  });
+
+  test('onboarding and chat consumers read product copy from the skin', () => {
+    const consumers = [
+      'features/onboarding/components/FrontendOnboardingSlideshow.jsx',
+      'features/chat/hooks/useChatMessageSender.ts',
+      'features/chat/hooks/useConversationReplayActions.js',
+      'features/chat/components/ChatInterface.jsx',
+      'app/runtime/desktopLiveTurnRuntimeClient.ts',
+    ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
+
+    for (const source of consumers) {
+      expect(source).toContain('windieDesktopSkin');
+      expect(source).not.toContain('WindieOS onboarding');
+      expect(source).not.toContain('Start WindieOS');
+      expect(source).not.toContain('Welcome to WindieOS Demo');
+      expect(source).not.toContain("WindieOS isn't connected");
+      expect(source).not.toContain('WindieOS could not prepare');
+      expect(source).not.toContain('WindieOS runtime');
+    }
   });
 
   test('settings components do not expose sidecar execution targets as user-facing labels', () => {

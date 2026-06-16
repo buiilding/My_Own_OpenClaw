@@ -10,6 +10,7 @@ import {
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
+import { windieDesktopSkin } from '../skin/windieDesktopSkin';
 
 type CaptureMeta = {
   source_w?: number;
@@ -70,7 +71,7 @@ function throwIfFailedIpcResult(result: unknown): void {
   }
   const message = 'error' in result && typeof result.error === 'string' && result.error.trim()
     ? result.error.trim()
-    : 'Failed to send command to WindieOS runtime';
+    : windieDesktopSkin.runtime.sendCommandFailure;
   throw new Error(message);
 }
 

@@ -6,6 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
+import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
 import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
@@ -20,6 +21,8 @@ import {
   prepareDesktopChatSend,
 } from '../utils/messageSender/desktopChatSendPreparation';
 import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+
+const chatSkin = windieDesktopSkin.chat;
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -49,7 +52,7 @@ export function useChatMessageSender(
   const appendSendFailureMessage = useCallback((conversationRef?: string | null) => {
     addMessage({
       id: crypto.randomUUID(),
-      text: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
+      text: chatSkin.sendFailureMessage,
       sender: 'assistant',
       type: 'error',
       sourceEventType: 'renderer-compose',

@@ -18,6 +18,7 @@ import {
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
+import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
@@ -60,6 +61,8 @@ import {
 } from '../utils/state/chatBoxResponseState';
 import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
+
+const chatSkin = windieDesktopSkin.chat;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (
@@ -558,7 +561,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         </div>
       ) : renderedMessages.length === 0 ? (
         <div className="chat-empty-state" data-testid="chat-empty-state">
-          <h1 className="chat-empty-title">Welcome to WindieOS Demo</h1>
+          <h1 className="chat-empty-title">{chatSkin.emptyTitle}</h1>
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}

@@ -3,6 +3,7 @@
  */
 
 import { useCallback } from 'react';
+import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
 import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
@@ -24,8 +25,7 @@ import { createConversationRef } from '../utils/session/conversationRef';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';
 
-const REPLAY_PREPARATION_FAILURE_MESSAGE = 'Your message was not resent because WindieOS could not prepare the conversation replay. Try reopening the chat and sending again.';
-const REPLAY_SEND_FAILURE_MESSAGE = "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.";
+const chatSkin = windieDesktopSkin.chat;
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({
@@ -202,7 +202,9 @@ async function executeReplayAction({
       const replayStep = error?.__windieReplayStep === 'send' ? 'send' : 'prepare';
       addMessage({
         id: crypto.randomUUID(),
-        text: replayStep === 'send' ? REPLAY_SEND_FAILURE_MESSAGE : REPLAY_PREPARATION_FAILURE_MESSAGE,
+        text: replayStep === 'send'
+          ? chatSkin.sendFailureMessage
+          : chatSkin.replayPreparationFailureMessage,
         sender: 'assistant',
         type: 'error',
         sourceEventType: 'renderer-replay',

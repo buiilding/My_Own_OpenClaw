@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
 import MainWindowControls from '../../../components/MainWindowControls';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { getAgentStopShortcutLabel } from '../../../infrastructure/shortcuts/agentStopShortcut';
@@ -12,6 +13,8 @@ import { useOnboardingPermissionActions } from '../hooks/useOnboardingPermission
 import { buildOnboardingSlideState } from '../utils/onboardingSlides';
 import PermissionOnboardingSlide from './PermissionOnboardingSlide';
 import StopShortcutOnboardingSlide from './StopShortcutOnboardingSlide';
+
+const onboardingSkin = windieDesktopSkin.onboarding;
 
 function FrontendOnboardingSlideshow({
   onComplete,
@@ -88,7 +91,7 @@ function FrontendOnboardingSlideshow({
           'frontend-onboarding-card',
           isPermissionSlide ? 'frontend-onboarding-card-permissions' : '',
         ].join(' ').trim()}
-        aria-label="WindieOS onboarding"
+        aria-label={onboardingSkin.dialogLabel}
         role="dialog"
         aria-modal="true"
       >
@@ -118,7 +121,7 @@ function FrontendOnboardingSlideshow({
             ) : null}
             {isPermissionSlide && permissionSlides.length === 0 ? (
               <p className="frontend-onboarding-permission-error">
-                WindieOS could not find any onboarding permissions for this platform.
+                {onboardingSkin.missingPermissionsMessage}
               </p>
             ) : null}
             {error ? (
@@ -126,12 +129,12 @@ function FrontendOnboardingSlideshow({
             ) : null}
             {isLastSlide && !canStartWindieOs ? (
               <p className="frontend-onboarding-permission-error">
-                WindieOS is still loading permission status. Wait a moment and try again.
+                {onboardingSkin.loadingPermissionsMessage}
               </p>
             ) : null}
             {isLastSlide && missingRequiredPermissions.length > 0 ? (
               <p className="frontend-onboarding-permission-error">
-                Some permissions are still missing. You can continue now and grant them later in Settings.
+                {onboardingSkin.missingRequiredPermissionsMessage}
               </p>
             ) : null}
           </div>
@@ -155,7 +158,7 @@ function FrontendOnboardingSlideshow({
               onClick={handleComplete}
               disabled={!canStartWindieOs}
             >
-              Start WindieOS
+              {onboardingSkin.startLabel}
             </button>
           ) : (
             <button

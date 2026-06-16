@@ -141,6 +141,21 @@ export const windieDesktopSkin = Object.freeze({
     emptySearchSubtitle: 'Try a different search term',
     emptyDefaultSubtitle: `Memories will appear as you interact with ${productName}`,
   }),
+  onboarding: Object.freeze({
+    dialogLabel: `${productName} onboarding`,
+    missingPermissionsMessage: `${productName} could not find any onboarding permissions for this platform.`,
+    loadingPermissionsMessage: `${productName} is still loading permission status. Wait a moment and try again.`,
+    missingRequiredPermissionsMessage: 'Some permissions are still missing. You can continue now and grant them later in Settings.',
+    startLabel: `Start ${productName}`,
+  }),
+  chat: Object.freeze({
+    emptyTitle: `Welcome to ${productName} Demo`,
+    sendFailureMessage: `Your message wasn't sent because ${productName} isn't connected right now. Try again when the backend reconnects.`,
+    replayPreparationFailureMessage: `Your message was not resent because ${productName} could not prepare the conversation replay. Try reopening the chat and sending again.`,
+  }),
+  runtime: Object.freeze({
+    sendCommandFailure: `Failed to send command to ${productName} runtime`,
+  }),
 });
 
 export function formatToolAcceptanceRuntimeSummary(acceptedTool) {
