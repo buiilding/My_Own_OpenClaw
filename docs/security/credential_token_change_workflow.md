@@ -1,12 +1,12 @@
 ---
-summary: "Workflow for changing WindieOS install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging boundaries."
+summary: "Workflow for changing WindieOS install auth, install tokens, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging boundaries."
 read_when:
   - When changing install registration, REST bearer auth, websocket auth, runs API keys, provider API keys, OAuth state, sidecar remote-client auth, or credential persistence.
   - When debugging 401 responses, websocket 1008 closes, missing provider credentials, saved keys that backend ignores, VM worker auth failures, or possible secret leakage in logs/tests.
-title: "Credential and Token Change Workflow"
+title: "Install Auth and Credential Token Change Workflow"
 ---
 
-# Credential and Token Change Workflow
+# Install Auth and Credential Token Change Workflow
 
 Use this workflow before editing any code that accepts, stores, forwards, derives, logs, or validates credentials. WindieOS has several credential classes with different owners. Treat the credential class as the first design decision; do not route a bug through the nearest failing client if the enforcing boundary lives elsewhere.
 

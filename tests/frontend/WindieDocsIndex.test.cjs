@@ -124,6 +124,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes install auth queries to the credential workflow', () => {
+    expect(findDocs('install auth')[0].path).toBe(
+      path.join('docs', 'security', 'credential_token_change_workflow.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),
