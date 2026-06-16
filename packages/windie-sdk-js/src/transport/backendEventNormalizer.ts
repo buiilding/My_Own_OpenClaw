@@ -30,7 +30,7 @@ function conversationRefOf(event: BackendEvent): string | null {
 
 function scopedErrorTurnRef(event: BackendEvent, fallbackTurnRef?: string): string | null {
   const payload = payloadOf(event);
-  const payloadTurnRef = stringField(payload, 'turn_ref', 'turnRef');
+  const payloadTurnRef = stringField(payload, 'turn_ref');
   if (payloadTurnRef?.trim()) {
     return payloadTurnRef.trim();
   }
@@ -83,9 +83,6 @@ function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string
   const payload = payloadOf(event);
   if (typeof payload.revision_id === 'string' && payload.revision_id.trim()) {
     return payload.revision_id.trim();
-  }
-  if (typeof payload.revisionId === 'string' && payload.revisionId.trim()) {
-    return payload.revisionId.trim();
   }
   return fallbackRevisionId || createRuntimeId('rev');
 }

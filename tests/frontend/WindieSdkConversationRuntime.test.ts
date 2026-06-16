@@ -1683,6 +1683,37 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend event identity ignores camelCase payload aliases', () => {
+    const normalized = normalizeBackendEventToConversationEventRaw({
+      type: 'streaming-response',
+      conversation_ref: 'conv-sdk-runtime',
+      event_id: 'evt-camel-identity',
+      sequence: 1,
+      payload: {
+        text: 'chunk',
+        turnRef: 'turn-payload-camel',
+        revisionId: 'rev-payload-camel',
+      },
+    } as BackendEvent, {
+      fallbackRevisionId: 'rev-fallback',
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'assistant_delta',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: null,
+      revisionId: 'rev-fallback',
+      payload: expect.objectContaining({
+        rawEvent: expect.objectContaining({
+          payload: expect.objectContaining({
+            turnRef: 'turn-payload-camel',
+            revisionId: 'rev-payload-camel',
+          }),
+        }),
+      }),
+    });
+  });
+
   test('active backend error envelope can use message id as turn scope', () => {
     const normalized = normalizeBackendEventToConversationEventRaw({
       id: 'turn-active-error',
