@@ -550,8 +550,10 @@ async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: P
     (plugin_dir / "tool.py").write_text(
         "\n".join(
             [
+                "from tools.result import ToolResult",
+                "",
                 "def save(text: str):",
-                "    return {'success': True, 'data': {'output': 'plugin:' + text}}",
+                "    return ToolResult.success_result({'output': 'plugin:' + text})",
             ]
         ),
         encoding="utf-8",

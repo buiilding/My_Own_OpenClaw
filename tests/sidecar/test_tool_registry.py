@@ -76,44 +76,23 @@ async def test_execute_tool_rejects_non_dict_args():
 
 
 @pytest.mark.asyncio
-async def test_execute_tool_handles_dict_results_and_errors():
-    registry = ToolRegistry()
-
-    registry.tools["read_file"] = lambda _args: {"success": True, "data": {"ok": True}}
-    result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
-    assert result.success is True
-    assert result.data == {"ok": True, "output": ""}
-
-    registry.tools["read_file"] = lambda _args: {"success": False, "error": "bad"}
-    result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
-    assert result.success is False
-    assert result.error == "bad"
-
-    registry.tools["read_file"] = lambda _args: {
-        "success": False,
-        "data": {
-            "error": 'Usage: scripts/committer "<message>" <file> [file ...]',
-            "exit_code": 1,
-            "output": "",
-        },
-    }
-    result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
-    assert result.success is False
-    assert result.error == 'Usage: scripts/committer "<message>" <file> [file ...]'
-    assert result.data == {
-        "error": 'Usage: scripts/committer "<message>" <file> [file ...]',
-        "exit_code": 1,
-        "output": "",
-    }
-
-
-@pytest.mark.asyncio
 async def test_execute_tool_handles_invalid_result_format():
     registry = ToolRegistry()
     registry.tools["read_file"] = lambda _args: "nope"
     result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result.success is False
     assert "invalid result format" in (result.error or "").lower()
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_rejects_mapping_result_format():
+    registry = ToolRegistry()
+    registry.tools["read_file"] = lambda _args: {"success": True, "data": {"ok": True}}
+
+    result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
+
+    assert result.success is False
+    assert result.error == "Tool returned invalid result format"
 
 
 @pytest.mark.asyncio

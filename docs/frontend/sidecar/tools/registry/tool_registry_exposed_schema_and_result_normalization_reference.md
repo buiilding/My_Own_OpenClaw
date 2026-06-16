@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar ToolRegistry internals: exposed-tool parity contract, import-time registration behavior, execute_tool dispatch path, and mapping-shaped result normalization semantics."
+summary: "Deep reference for sidecar ToolRegistry internals: exposed-tool parity contract, import-time registration behavior, execute_tool dispatch path, and native ToolResult enforcement."
 read_when:
   - When adding/removing sidecar tools or changing backend remote schema exposure lists.
-  - When debugging mixed tool return formats, nested error payload extraction, or unexpected `Tool not found` failures.
+  - When debugging invalid tool return formats or unexpected `Tool not found` failures.
 title: "Tool Registry Exposed Schema and Result Normalization Reference"
 ---
 
@@ -57,7 +57,7 @@ Runtime flow:
 4. callable dispatch:
    - coroutine function -> `await tool(args)`
    - sync function -> `tool(args)`
-5. output normalized into `ToolResult`.
+5. output must be a native `ToolResult`.
 6. local backend returns `ToolResult.to_dict()` over JSON-RPC.
 
 Missing tool behavior:
@@ -68,7 +68,7 @@ Exception behavior:
 
 - unexpected exceptions are caught and returned as `Tool execution failed: <error>`
 
-## Result Normalization Rules
+## Result Rules
 
 ### Native `ToolResult`
 
@@ -78,38 +78,9 @@ Exception behavior:
   `run_shell_command`, and `process` return this shape directly; first-party
   tools should prefer this contract when touched
 
-### Legacy dict success path
-
-When dict result has `success != False`:
-
-- registry wraps `result.get("data", result)` into `ToolResult.success_result(...)`
-- `ToolResult.success_result(...)` preserves structured data and ensures
-  `data.output` exists. It only falls back from `message` or `error`; individual
-  tools own any richer model-facing text and must write it to `output`.
-
-### Legacy dict failure path
-
-When dict result has `success is False`, registry uses `_extract_failure_payload(...)`.
-
-Error-message extraction precedence for legacy failure dictionaries:
-
-1. top-level `error` string
-2. top-level `data` string
-3. nested dict fields in order:
-   - `error`
-   - `output`
-   - `message`
-4. nested `exit_code` integer -> `Tool execution failed with exit code <n>`
-5. fallback -> `Tool execution failed`
-
-Returned failure payload:
-
-- message from precedence list above
-- `data` field preserved when nested payload is dict
-
 ### Invalid result type
 
-- any non-dict, non-`ToolResult` response becomes `Tool returned invalid result format`
+- any non-`ToolResult` response becomes `Tool returned invalid result format`
 
 ## Exposed-Tools Contract and Tests
 
@@ -119,8 +90,7 @@ Returned failure payload:
 - missing tool lookup returns canonical error
 - non-dict args are rejected before tool callable executes
 - tool args are passed through without schema-driven registry validation beyond the object check
-- mapping-shaped success/failure normalization behaves as expected
-- nested mapping errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`
+- mapping-shaped tool results are rejected instead of normalized
 - exceptions are captured and wrapped
 
 ## Schema File Boundary

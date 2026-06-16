@@ -75,8 +75,7 @@ Returns a native `ToolResult` with:
 Warnings append to `message` while preserving base status text.
 
 Failed foreground commands preserve structured stdout/stderr/exit-code data and
-set the native `ToolResult.error` message explicitly instead of relying on
-registry legacy mapping extraction.
+set the native `ToolResult.error` message explicitly.
 
 ## ToolRegistry/Backend Contract Impact
 

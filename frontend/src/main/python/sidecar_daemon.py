@@ -23,6 +23,7 @@ from typing import Any
 from aiohttp import web
 
 from local_backend import LocalBackend
+from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -1260,10 +1261,9 @@ class SidecarDaemon:
                         data=diagnostic_data({"elapsedMs": elapsed_ms}),
                         error=f"MCP tool {tool_name} returned error",
                     )
-                    return {
-                        "success": False,
-                        "error": output or f"MCP tool {tool_name} failed",
-                    }
+                    return ToolResult.error_result(
+                        output or f"MCP tool {tool_name} failed"
+                    )
                 append_mcp_diagnostic_event(
                     trace_id=trace_id,
                     path=MCP_EXECUTION_DIAGNOSTICS_PATH,
@@ -1278,10 +1278,7 @@ class SidecarDaemon:
                     "[MCP]",
                     f"tool_call_succeeded server={mcp_server.id} tool={tool_name} elapsed_ms={elapsed_ms}",
                 )
-                return {
-                    "success": True,
-                    "data": build_mcp_tool_data(result),
-                }
+                return ToolResult.success_result(build_mcp_tool_data(result))
 
             registered.append(
                 self.backend.tool_registry.register_runtime_tool(

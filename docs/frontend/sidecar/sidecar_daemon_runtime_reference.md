@@ -103,6 +103,8 @@ Request:
 
 The sidecar imports `module:function`, wraps either raw `args` handlers or keyword handlers, stores the schema in the dynamic manifest, and executes the tool through the same `ToolRegistry.execute_tool` path as built-ins.
 
+Module entrypoints must return native `tools.result.ToolResult` values.
+
 ## Plugin Registration
 
 `POST /plugins/register` accepts a local sidecar plugin path. The path can
@@ -115,6 +117,8 @@ Plugin tools use the sidecar plugin manifest contract:
 - `description`
 - `entrypoint`
 - `schema`
+
+Plugin entrypoints must return native `tools.result.ToolResult` values.
 
 ## MCP Registration
 

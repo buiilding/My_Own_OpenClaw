@@ -1,8 +1,8 @@
 ---
-summary: "Frontend sidecar tool-registry docs sub-hub for exposed-tool parity, lazy import registration behavior, and result normalization contracts."
+summary: "Frontend sidecar tool-registry docs sub-hub for exposed-tool parity, lazy import registration behavior, and native ToolResult contracts."
 read_when:
-  - When changing sidecar tool registration/exposure lists or execution normalization logic.
-  - When debugging `Tool not found`, mapping-shaped result error extraction, or backend-schema parity drift.
+  - When changing sidecar tool registration/exposure lists or execution result handling.
+  - When debugging `Tool not found`, invalid tool return formats, or backend-schema parity drift.
 title: "Frontend Sidecar Tool Registry Docs Hub"
 ---
 

@@ -60,6 +60,8 @@ Current runtime note:
 - sidecar plugin tools put executable Python under
   `plugins/<id>/python/` and reference it as
   `entrypoint: "python/file.py:function"` from `plugin.json`
+- sidecar plugin and module entrypoints must return native
+  `tools.result.ToolResult` values
 - ordinary extensions do not edit the built-in sidecar registry or executable
   manifest modules
 - repo-local `model-facing/tool_schema.txt` still documents unified `computer_use` and `system_use` envelopes, but those wrapper names are not current backend or sidecar registry entries
@@ -182,6 +184,7 @@ For built-ins, update `frontend/src/main/python/tools/registry.py`:
 For plugin tools, do not edit built-in registry files. Add `schema` and the
 Python `entrypoint` to `plugins/<id>/plugin.json`; Electron main
 forwards the schema manifest and the sidecar loads the executable entrypoint.
+The entrypoint must return a native `tools.result.ToolResult`.
 The plugin package must include:
 
 ```text

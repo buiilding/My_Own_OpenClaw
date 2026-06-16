@@ -351,33 +351,6 @@ class ToolRegistry:
 
         return _lazy_tool
 
-    @staticmethod
-    def _extract_failure_payload(
-        result: Dict[str, Any],
-    ) -> tuple[str, Dict[str, Any] | None]:
-        """Extract the most useful failure message from mapping-shaped tool results."""
-        data = result.get("data")
-        payload_data = data if isinstance(data, dict) else None
-
-        top_level_error = result.get("error")
-        if isinstance(top_level_error, str) and top_level_error.strip():
-            return top_level_error.strip(), payload_data
-
-        if isinstance(data, str) and data.strip():
-            return data.strip(), payload_data
-
-        if payload_data:
-            for key in ("error", "output", "message"):
-                value = payload_data.get(key)
-                if isinstance(value, str) and value.strip():
-                    return value.strip(), payload_data
-
-            exit_code = payload_data.get("exit_code")
-            if isinstance(exit_code, int):
-                return f"Tool execution failed with exit code {exit_code}", payload_data
-
-        return "Tool execution failed", payload_data
-
     async def execute_tool(self, tool_name: str, args: Dict[str, Any]) -> ToolResult:
         """
         Execute a tool.
@@ -404,20 +377,9 @@ class ToolRegistry:
             else:
                 result = tool(tool_args)
 
-            # Convert result to ToolResult if needed
             if isinstance(result, ToolResult):
                 return result
-            elif isinstance(result, dict):
-                # Normalize mapping-shaped tool results into the runtime contract.
-                if result.get("success") is False:
-                    error_message, failure_data = self._extract_failure_payload(result)
-                    return ToolResult(
-                        success=False, error=error_message, data=failure_data
-                    )
-                else:
-                    return ToolResult.success_result(result.get("data", result))
-            else:
-                return ToolResult.error_result("Tool returned invalid result format")
+            return ToolResult.error_result("Tool returned invalid result format")
         except Exception as e:
             logger.error(f"Tool execution failed: {e}", exc_info=True)
             return ToolResult.error_result(f"Tool execution failed: {str(e)}")

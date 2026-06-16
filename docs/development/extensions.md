@@ -107,6 +107,7 @@ Rules:
 - `argument_resolution` is usually `passthrough`; use `backend_grounding` only
   when the backend prepares executable sidecar arguments.
 - Plugin tools always execute in the Python sidecar.
+- Plugin entrypoints must return native `tools.result.ToolResult` values.
 - Do not put a `tools/` folder under plugins; schema files live under
   `schemas/`.
 

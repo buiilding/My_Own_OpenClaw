@@ -20,7 +20,7 @@ Core modules:
 2. `LocalBackend._handle_execute_tool` delegates to `ToolRegistry.execute_tool`.
 3. Registry resolves tool callable by name.
 4. Tool runs sync or async.
-5. Output normalized to `ToolResult` shape.
+5. Output must be a native `ToolResult`.
 6. Main process maps result back to renderer/backend payload flow.
 
 Detailed registry behavior:
@@ -127,11 +127,9 @@ sidecar directly accepts every field in that schema.
 
 ## Result Normalization Rules
 
-Registry output normalization handles:
+Registry output handling requires native `ToolResult`.
 
-- native `ToolResult`
-- legacy mapping-shaped payloads (`success`, `data`, `error`) while remaining
-  first-party tools are migrated
-- fallback error extraction from nested payload fields
-
-First-party tools should return `ToolResult` directly when touched.
+- `ToolResult` instances pass through directly.
+- Non-`ToolResult` responses fail with `Tool returned invalid result format`.
+- Built-in, module, plugin, MCP, and runtime tools should return `ToolResult`
+  directly.

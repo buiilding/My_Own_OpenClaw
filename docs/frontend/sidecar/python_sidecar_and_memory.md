@@ -62,7 +62,7 @@ Tool families:
 
 Registry behavior:
 
-- normalizes mapping-shaped results into canonical `ToolResult`
+- requires executable tools to return canonical `ToolResult`
 - warns when backend-exposed tool names are missing in sidecar runtime
 - handles sync and async tool implementations
 
