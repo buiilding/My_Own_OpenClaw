@@ -39,6 +39,8 @@ All notable changes to WindieOS will be documented in this file.
   local tool execution coordinator boundary.
 - sdk/typescript: require SDK-shaped compacted replay event payloads before
   activating store rehydrate snapshots.
+- sdk/typescript: remove backend snake_case compaction metadata aliases from
+  display compaction projection state.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and

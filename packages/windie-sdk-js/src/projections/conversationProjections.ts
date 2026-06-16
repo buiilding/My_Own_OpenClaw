@@ -1601,15 +1601,15 @@ export function buildCompactionState(events: ConversationEvent[]): CompactionSta
   if (compactionEvent.type === 'compaction_skipped') {
     return {
       status: 'skipped',
-      skippedReason: stringField(compactionEvent.payload, 'skippedReason', 'skipped_reason'),
+      skippedReason: stringField(compactionEvent.payload, 'skippedReason'),
       debug: compactionEvent.payload,
     };
   }
   if (compactionEvent.type === 'compaction_applied') {
     return {
       status: 'applied',
-      generationId: stringField(compactionEvent.payload, 'generationId', 'generation_id'),
-      summaryPreview: stringField(compactionEvent.payload, 'summaryPreview', 'summary_preview'),
+      generationId: stringField(compactionEvent.payload, 'generationId'),
+      summaryPreview: stringField(compactionEvent.payload, 'summaryPreview'),
       debug: compactionEvent.payload,
     };
   }

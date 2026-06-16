@@ -200,6 +200,27 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('compaction projection ignores direct snake_case SDK payload metadata', () => {
+    expect(buildDisplayConversation([
+      event('compaction_skipped', { skipped_reason: 'legacy-skip' }),
+    ]).compaction).toMatchObject({
+      status: 'skipped',
+      skippedReason: null,
+      debug: expect.objectContaining({ skipped_reason: 'legacy-skip' }),
+    });
+    expect(buildDisplayConversation([
+      event('compaction_applied', {
+        generation_id: 'legacy-generation',
+        summary_preview: 'legacy summary',
+      }),
+    ]).compaction).toMatchObject({
+      status: 'applied',
+      generationId: null,
+      summaryPreview: null,
+      debug: expect.objectContaining({ generation_id: 'legacy-generation' }),
+    });
+  });
+
   test('SDK display rows preserve append order for tool call and output rows', () => {
     const events = [
       event('user_message', { text: 'inspect files' }),

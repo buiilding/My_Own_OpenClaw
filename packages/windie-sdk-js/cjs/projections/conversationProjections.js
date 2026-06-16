@@ -1403,15 +1403,15 @@ function buildCompactionState(events) {
     if (compactionEvent.type === 'compaction_skipped') {
         return {
             status: 'skipped',
-            skippedReason: (0, toolOutputContent_js_1.stringField)(compactionEvent.payload, 'skippedReason', 'skipped_reason'),
+            skippedReason: (0, toolOutputContent_js_1.stringField)(compactionEvent.payload, 'skippedReason'),
             debug: compactionEvent.payload,
         };
     }
     if (compactionEvent.type === 'compaction_applied') {
         return {
             status: 'applied',
-            generationId: (0, toolOutputContent_js_1.stringField)(compactionEvent.payload, 'generationId', 'generation_id'),
-            summaryPreview: (0, toolOutputContent_js_1.stringField)(compactionEvent.payload, 'summaryPreview', 'summary_preview'),
+            generationId: (0, toolOutputContent_js_1.stringField)(compactionEvent.payload, 'generationId'),
+            summaryPreview: (0, toolOutputContent_js_1.stringField)(compactionEvent.payload, 'summaryPreview'),
             debug: compactionEvent.payload,
         };
     }
