@@ -31,6 +31,8 @@ All notable changes to WindieOS will be documented in this file.
   broad catalog or historical refactor pages.
 - cli/docs: boost adjacent query-term matches and add routing hints for
   docs-search grounding and runtime-ownership cleanup queries.
+- cli/docs: keep generic feature searches on current docs before ADR pages
+  while preserving ADR routing for decision-record queries.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
