@@ -44,6 +44,8 @@ All notable changes to WindieOS will be documented in this file.
   after transparency payload ownership moved to SDK/backend replay paths.
 - frontend/transcript: remove the unused desktop transcript session options type
   export while keeping the options shape private to the runtime implementation.
+- frontend/chat: make the stream tracking reducer state shape private after the
+  chat store became the public owner of stream-tracking state.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.

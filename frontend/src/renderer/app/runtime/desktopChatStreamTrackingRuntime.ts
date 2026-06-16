@@ -12,7 +12,7 @@ export type StreamPhase = 'idle'
   | 'complete'
   | 'error';
 
-export type StreamTracking = {
+type StreamTracking = {
   activeTurnRef: string | null;
   phase: StreamPhase;
   startedAt: string | null;
