@@ -9,7 +9,7 @@ type TranscriptSessionUpdater = (
   userId?: string | null,
 ) => void;
 
-export type MainSessionSnapshot = {
+type MainSessionSnapshot = {
   conversationRef: string | null;
   userId: string | null;
 };

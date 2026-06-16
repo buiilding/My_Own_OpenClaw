@@ -48,6 +48,8 @@ All notable changes to WindieOS will be documented in this file.
   chat store became the public owner of stream-tracking state.
 - frontend/voice: make the transcription gateway event union private to the
   desktop voice runtime client.
+- frontend/chat: make the main session snapshot shape private to the
+  conversation session runtime.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.

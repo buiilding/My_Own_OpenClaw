@@ -80,6 +80,7 @@ Date: 2026-06-15
 | CD-047 | Transcript session options type export | `desktopTranscriptSessionRuntime.ts` re-exported `TranscriptSessionResolveOptions` from the infrastructure transcript runtime, and the infrastructure runtime exported the same options type even though it is used only inside that module | Knip reported the facade type export unused, then exposed the underlying infrastructure type export as unused after the facade re-export was removed; repo search showed no imports of either exported type | Remove the unused type import/re-export from the desktop facade and make the infrastructure options type private to the runtime implementation | `dd2f4d593` |
 | CD-048 | Stream tracking reducer state type export | `desktopChatStreamTrackingRuntime.ts` exported a local `StreamTracking` reducer state type even though the chat store owns the public stream-tracking state interface and callers import only event/options/phase types from the reducer module | Knip reported the reducer `StreamTracking` export unused; repo search showed no imports from the reducer module, while tests and store consumers use `features/chat/stores/chatStore` for the public shape | Make the reducer's local state type private while preserving the exported tracking event/options/phase types used by stream handlers | `12341f690` |
 | CD-049 | Desktop voice transcription gateway event type export | `desktopVoiceRuntimeClient.ts` exported `DesktopTranscriptionGatewayEvent` even though the union is only used as the return type for the module's own gateway message normalizer | Knip reported the event union export unused; repo search showed no external imports while voice UI callers consume the `DesktopVoiceRuntimeClient` methods directly | Make the gateway event union private to the desktop voice runtime client and preserve normalized gateway message behavior | `aa74f8074` |
+| CD-050 | Conversation session snapshot type export | `conversationSessionRuntime.ts` exported `MainSessionSnapshot` even though callers use the runtime functions and do not import the snapshot type directly | Knip reported the snapshot type export unused; repo search showed the type is referenced only inside `conversationSessionRuntime.ts` while tests import runtime functions/constants | Make `MainSessionSnapshot` private to the conversation session runtime while preserving the public runtime functions and `EMPTY_MAIN_SESSION_SNAPSHOT` value | pending implementation commit |
 
 ## Commit Ledger
 
@@ -177,6 +178,7 @@ Date: 2026-06-15
   completed CD-048.
 - `aa74f8074 refactor(frontend): keep voice gateway event type private`
   completed CD-049.
+- pending implementation commit will complete CD-050.
 
 ## Validation Log
 
@@ -809,6 +811,21 @@ CD-049 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this removes only an unused TypeScript type export and preserves
   voice gateway normalization behavior.
+
+CD-050 validation:
+
+- targeted `rg -n "export type MainSessionSnapshot|import type \\{[^}]*MainSessionSnapshot" frontend/src tests/frontend docs packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no matches outside this report.
+- `bin/windie test frontend -- ConversationSessionRuntime ChatSessionBootstrap ChatMessageSender ConversationReplayActions`:
+  passed; 6 suites and 72 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings; unused exported types dropped from 55 to 54
+  after making `MainSessionSnapshot` private.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes only an unused TypeScript type export and preserves
+  conversation session runtime behavior.
 
 ## Inspection Notes
 
