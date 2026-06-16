@@ -115,7 +115,8 @@ Date: 2026-06-15
   completed CD-027.
 - `2960e0378 refactor(frontend): remove unused renderer default exports`
   completed CD-028.
-- pending commit for CD-029.
+- `20b3adce1 refactor(frontend): remove renderer selector trace exports`
+  completed CD-029.
 
 ## Validation Log
 
