@@ -11,9 +11,8 @@ from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
 class ScreenshotState:
     """
     Manages screenshot and OCR state for a session.
-    
-    SIMPLIFIED: Only keeps current screenshot and OCR results.
-    Previous screenshots are obsolete for desktop automation.
+
+    Stores only the current screenshot and OCR results.
     """
     
     class OcrRuntimeState:
@@ -125,10 +124,7 @@ class ScreenshotState:
         capture_meta: Optional[dict] = None,
     ) -> None:
         """
-        Set the current screenshot, discarding any previous screenshot.
-        
-        SIMPLIFIED: Only current screenshot is kept. Previous screenshots are obsolete
-        for desktop automation (can't interact with past state).
+        Set the current screenshot, replacing any previous screenshot.
         
         Args:
             screenshot_id: Unique ID for the screenshot

@@ -10,9 +10,6 @@ import hashlib
 import logging
 from typing import TYPE_CHECKING, Any, Optional
 
-from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
-    normalize_capture_meta,
-)
 from backend.src.agent.tools.shared.logging_utils import short_id
 
 if TYPE_CHECKING:
@@ -62,10 +59,7 @@ class ScreenshotManager:
         capture_meta: Optional[dict] = None,
     ) -> str:
         """
-        Process a screenshot: store it as current (discarding old), and trigger OCR.
-
-        SIMPLIFIED: Only current screenshot is kept. Previous screenshots are obsolete
-        for desktop automation (can't interact with past state).
+        Process a screenshot: store it as current and trigger OCR.
 
         This is the single source of truth for screenshot processing. All screenshots
         (from user messages or tool results) go through this method.
@@ -79,16 +73,10 @@ class ScreenshotManager:
             screenshot_id: Unique ID for the screenshot
         """
         normalized_screenshot_id = self._generate_screenshot_id(screenshot_data)
-        normalized_capture_meta = normalize_capture_meta(
-            capture_meta,
-            screenshot_id=normalized_screenshot_id,
-            fallback_screenshot_b64=screenshot_data,
-        )
-        # SIMPLIFIED: Just set as current (discards old automatically)
         session.set_current_screenshot(
             normalized_screenshot_id,
             screenshot_data,
-            capture_meta=normalized_capture_meta,
+            capture_meta=capture_meta,
         )
         logger.debug(
             "Stored screenshot %s as current (request %s)",
@@ -119,7 +107,7 @@ class ScreenshotManager:
         This is a non-blocking operation that runs OCR in the background.
         Tools that need OCR results will wait for ocr_completion_event.
 
-        SIMPLIFIED: OCR results are stored for current screenshot only.
+        OCR results are stored for the current screenshot only.
         If a new screenshot arrives while OCR is processing, the old OCR task
         will complete but its results will be ignored (screenshot_id won't match).
 

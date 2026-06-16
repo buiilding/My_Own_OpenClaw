@@ -51,6 +51,10 @@ Otherwise it raises `ValueError("No active screenshot available for coordinate r
 3. trigger `_maybe_trigger_ocr(...)`
 4. return screenshot id
 
+`ScreenshotManager` does not normalize capture metadata before storage.
+`ScreenshotState.set_current_screenshot(...)` owns that normalization so the
+active screenshot state has one metadata storage boundary.
+
 The same entry point is reused for:
 
 - query/user screenshot preparation paths

@@ -20,6 +20,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/agent: require structured provider metadata for recoverable malformed
   tool-call errors instead of parsing legacy/mock error strings for ids,
   names, or raw argument previews.
+- backend/agent: remove duplicate screenshot capture metadata normalization
+  from `ScreenshotManager`; active screenshot state owns metadata normalization.
 - docs/frontend: route removed renderer backend-event contract and chat
   conversation-gate searches to the current SDK event normalizer and renderer
   conversation-event ingress docs.

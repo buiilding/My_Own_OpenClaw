@@ -142,6 +142,22 @@ async def test_process_screenshot_stores_id_and_data():
         assert session._current_capture_meta["screenshot_id"] == screenshot_id
 
 
+@pytest.mark.asyncio
+async def test_process_screenshot_delegates_capture_meta_to_session_storage():
+    manager = ScreenshotManager()
+    session = DummySession(ocr_service=DummyOcrService(enabled=False))
+    capture_meta = {"source_w": 100, "source_h": 50}
+
+    await manager.process_screenshot(
+        session,
+        "img-data",
+        "req-meta",
+        capture_meta=capture_meta,
+    )
+
+    assert session._current_capture_meta is capture_meta
+
+
 def test_generate_screenshot_id_deterministic_for_same_input():
     manager = ScreenshotManager()
     a = manager._generate_screenshot_id("same-screenshot")
