@@ -71,7 +71,8 @@ Main-process handler registration is split by responsibility:
 Notable behavior:
 
 - SDK-owned renderer commands are routed through `windie:invoke` with a strict
-  command allowlist. Current command names include `conversation.send`,
+  command allowlist keyed by the SDK `SDK_RUNTIME_COMMANDS` export. Current
+  command names include `conversation.send`,
   `conversation.stop`, `conversation.rehydrate`, `conversation.compact`,
   `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`,
   `settings.update`, `models.list`, `wakeword.detected`,

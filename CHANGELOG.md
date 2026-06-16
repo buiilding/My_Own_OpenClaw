@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: clarify that renderer facades and Electron main share
+  `SDK_RUNTIME_COMMANDS` as the `windie:invoke` command source of truth.
 - frontend/main: route the strict `windie:invoke` allowlist through the SDK
   runtime command contract.
 - frontend/renderer: remove the renderer-only tool correlation alias and route

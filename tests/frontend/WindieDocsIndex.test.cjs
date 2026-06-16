@@ -1092,6 +1092,9 @@ describe('windie docs index', () => {
     expect(
       findDocs('SDK_RUNTIME_COMMANDS conversation.send conversations.list memories.list diagnostics.append')[0].path,
     ).toBe(expectedPath);
+    expect(
+      findDocs('main ipc buildWindieSdkCommandHandlers SDK_RUNTIME_COMMANDS conversation.send')[0].path,
+    ).toBe(expectedPath);
   });
 
   test('routes dashboard stylesheet queries to the current renderer style contract', () => {

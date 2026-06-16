@@ -1,9 +1,9 @@
 ---
-summary: "Renderer desktop backend transport command contract for DesktopBackendTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
+summary: "Renderer and Electron main desktop backend transport command contract for DesktopBackendTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
 read_when:
   - When changing `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
-  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, or shared SDK-shaped command names.
-  - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch from the renderer.
+  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, Electron main `buildWindieSdkCommandHandlers`, or shared SDK-shaped command names.
+  - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
 title: "Desktop Backend Transport Command Contract Reference"
 ---
 
@@ -29,10 +29,11 @@ title: "Desktop Backend Transport Command Contract Reference"
 conversation runtime calls into the main-process `windie:invoke` command
 surface.
 
-Renderer runtime facades import command names from the SDK package
-`SDK_RUNTIME_COMMANDS` export. The SDK package owns the string constants so
-first-party renderer facades and non-renderer SDK customers use one command
-vocabulary instead of duplicating literals in each facade.
+Renderer runtime facades and Electron main import command names from the SDK
+package `SDK_RUNTIME_COMMANDS` export. The SDK package owns the string
+constants so first-party renderer facades, main-process handler keys, and
+non-renderer SDK customers use one command vocabulary instead of duplicating
+literals in each facade or IPC handler map.
 
 `desktopBackendTransport.ts` calls:
 
@@ -48,6 +49,12 @@ Other desktop renderer facades use the same SDK export for conversation
 library, transcript, memory, and diagnostics commands such as
 `conversations.list`, `conversation.loadDisplay`, `memories.list`,
 `memories.delete`, `conversations.clearAll`, and `diagnostics.append`.
+
+Electron main's `buildWindieSdkCommandHandlers(...)` uses those same
+`SDK_RUNTIME_COMMANDS` members as computed handler keys. The string values
+remain the wire contract on `windie:invoke`, but the source of truth for adding
+or renaming a supported SDK-shaped command is
+`packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`.
 
 It does not talk to the backend websocket directly and does not execute tools.
 Electron main remains responsible for settings gates, query enrichment,
