@@ -1,8 +1,9 @@
 ---
-summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, local sidecar daemon registration, and tool-result routing."
+summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, and tool-result routing."
 read_when:
-  - When changing `WindieClient.wakeUp`, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
+  - When changing `WindieClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
   - When debugging whether a query should use the hosted backend websocket, the local sidecar daemon, or both.
+  - When debugging stale `builtinTools` wakeUp option calls, the removed builtinTools wake guard, or current `builtins` agent setup.
   - When adding SDK, CLI, Electron, plugin, MCP, or module-tool entrypoints.
 title: "WindieClient Runtime Contract"
 ---
@@ -262,6 +263,13 @@ const agent = await client.wakeUp({
   mcps: [],
   plugins: []
 });
+
+`builtins` is the only SDK wake-up option for selecting WindieOS built-in tool
+groups. Valid current shapes are `"default"`, `"none"`, or an array such as
+`["filesystem", "shell"]`. The old `builtinTools` option is removed and no
+longer has a dedicated wake guard or compatibility error branch in
+`WindieClient.wakeUp(...)`; callers must move to `builtins` instead of expecting
+the SDK runtime to special-case stale `builtinTools` input.
 
 await agent.ask("Read the repo instructions and summarize the tests.");
 

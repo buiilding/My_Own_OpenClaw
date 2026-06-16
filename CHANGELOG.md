@@ -143,6 +143,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: document the sidecar `replace` canonical `replacements[]`
   payload path and route legacy field guard searches to the filesystem runtime
   reference.
+- docs/sdk: document the current `builtins` wake-up option and route removed
+  `builtinTools` guard searches to the WindieClient runtime contract.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

@@ -130,6 +130,14 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes SDK builtins wake option queries to the WindieClient runtime contract', () => {
+    const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
+
+    expect(findDocs('builtinTools wake guard')[0].path).toBe(expectedPath);
+    expect(findDocs('SDK builtins wakeUp option')[0].path).toBe(expectedPath);
+    expect(findDocs('builtinTools removed')[0].path).toBe(expectedPath);
+  });
+
   test('routes install auth queries to the credential workflow', () => {
     expect(findDocs('install auth')[0].path).toBe(
       path.join('docs', 'security', 'credential_token_change_workflow.md'),
