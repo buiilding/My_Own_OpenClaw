@@ -11,14 +11,16 @@ import {
 describe('voice audio cleanup utils', () => {
   test('cleanupAudioCaptureNodes disconnects nodes, clears refs, and stops tracks', () => {
     const stopTrack = jest.fn();
-    const scriptDisconnect = jest.fn();
+    const processorDisconnect = jest.fn();
     const sourceDisconnect = jest.fn();
+    const onmessage = jest.fn();
+    const port: { onmessage: ((event: MessageEvent<Float32Array>) => void) | null } = { onmessage };
 
-    const scriptNodeRef = {
+    const processorNodeRef = {
       current: {
-        disconnect: scriptDisconnect,
-        onaudioprocess: () => undefined,
-      } as unknown as ScriptProcessorNode,
+        disconnect: processorDisconnect,
+        port,
+      } as unknown as AudioWorkletNode,
     };
     const sourceNodeRef = {
       current: {
@@ -31,12 +33,14 @@ describe('voice audio cleanup utils', () => {
       } as unknown as MediaStream,
     };
 
-    cleanupAudioCaptureNodes(scriptNodeRef, sourceNodeRef, mediaStreamRef);
+    cleanupAudioCaptureNodes(processorNodeRef, sourceNodeRef, mediaStreamRef);
 
-    expect(scriptDisconnect).toHaveBeenCalledTimes(1);
+    expect(processorDisconnect).toHaveBeenCalledTimes(1);
+    expect(onmessage).not.toHaveBeenCalled();
+    expect(port.onmessage).toBeNull();
     expect(sourceDisconnect).toHaveBeenCalledTimes(1);
     expect(stopTrack).toHaveBeenCalledTimes(1);
-    expect(scriptNodeRef.current).toBeNull();
+    expect(processorNodeRef.current).toBeNull();
     expect(sourceNodeRef.current).toBeNull();
     expect(mediaStreamRef.current).toBeNull();
   });

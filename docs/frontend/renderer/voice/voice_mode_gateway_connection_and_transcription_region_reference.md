@@ -79,9 +79,8 @@ Capture configuration:
 Node graph:
 
 1. `MediaStreamAudioSourceNode`
-2. `AudioWorkletNode` capture processor (`windieos-capture-processor`) when supported
-3. fallback to `ScriptProcessorNode` (buffer size `4096`) when worklet is unavailable
-4. destination connection to keep processing loop active
+2. `AudioWorkletNode` capture processor (`windieos-capture-processor`)
+3. destination connection to keep processing loop active
 
 Per audio callback:
 
@@ -108,8 +107,8 @@ Shutdown path (`stopAudioCapture` + `disconnectWebSocket`):
 
 - invalidate any pending capture start before it can mark recording active
 - clear reconnect timer
-- disconnect script/source nodes
-- null `onaudioprocess`
+- disconnect processor/source nodes
+- null `AudioWorkletNode.port.onmessage`
 - stop media tracks
 - close and null audio context
 - close websocket and clear client id/connected state

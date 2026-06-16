@@ -17,6 +17,8 @@ All notable changes to WindieOS will be documented in this file.
   contract.
 - sdk/projection: remove assistant-shaped `content` and final-response fallback
   fields from tool-output model/display text projection.
+- frontend/voice: remove the legacy ScriptProcessor audio capture fallback so
+  voice and wakeword capture use the AudioWorklet processor path only.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,
   per-platform renderer hide/restore helpers, renderer computer-use catalog,
   stale system-state capture helper, and capture-only logging utilities; keep
@@ -134,6 +136,8 @@ All notable changes to WindieOS will be documented in this file.
   command surface.
 - docs/sdk: document canonical tool-output content projection and route
   assistant-shaped content/final-response fallback searches to the SDK runtime.
+- docs/frontend: document AudioWorklet-only voice capture and route removed
+  ScriptProcessor-fallback searches to the voice utility reference.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

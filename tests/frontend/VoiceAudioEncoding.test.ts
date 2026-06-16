@@ -5,7 +5,7 @@
 import {
   buildGatewayAudioMessage,
   float32ToPcm16,
-  normalizeScriptProcessorChunkSize,
+  normalizeAudioCaptureChunkSize,
 } from '../../frontend/src/renderer/features/voice/utils/audioEncoding';
 
 describe('voice audio encoding utilities', () => {
@@ -24,10 +24,10 @@ describe('voice audio encoding utilities', () => {
     ]);
   });
 
-  test('normalizeScriptProcessorChunkSize selects closest valid size', () => {
-    expect(normalizeScriptProcessorChunkSize(1000)).toBe(1024);
-    expect(normalizeScriptProcessorChunkSize(17000)).toBe(16384);
-    expect(normalizeScriptProcessorChunkSize(1290)).toBe(1280);
+  test('normalizeAudioCaptureChunkSize selects closest valid size', () => {
+    expect(normalizeAudioCaptureChunkSize(1000)).toBe(1024);
+    expect(normalizeAudioCaptureChunkSize(17000)).toBe(16384);
+    expect(normalizeAudioCaptureChunkSize(1290)).toBe(1280);
   });
 
   test('buildGatewayAudioMessage frames metadata prefix then audio payload', () => {

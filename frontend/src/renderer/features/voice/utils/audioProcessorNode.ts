@@ -2,8 +2,6 @@
  * Provides the audio processor node module for the renderer UI.
  */
 
-import type { LegacyAudioProcessorNode } from './audioCaptureCleanup';
-
 const CAPTURE_WORKLET_NAME = 'windieos-capture-processor';
 const workletLoadedContexts = new WeakSet<AudioContext>();
 
@@ -51,12 +49,6 @@ type AudioProcessorFactoryParams = {
   onChunk: (chunk: Float32Array) => void;
 };
 
-type LegacyScriptProcessorFactory = (
-  bufferSize: number,
-  numberOfInputChannels: number,
-  numberOfOutputChannels: number,
-) => AudioNode;
-
 function ensureWorkletSourceUrl(): string {
   if (workletSourceUrl) {
     return workletSourceUrl;
@@ -66,16 +58,16 @@ function ensureWorkletSourceUrl(): string {
   return workletSourceUrl;
 }
 
-async function tryCreateWorkletNode(
+async function createWorkletNode(
   params: AudioProcessorFactoryParams,
-): Promise<LegacyAudioProcessorNode | null> {
+): Promise<AudioWorkletNode> {
   const { audioContext, sourceNode, chunkSize, onChunk } = params;
   if (
     typeof AudioWorkletNode !== 'function'
     || !audioContext.audioWorklet
     || typeof audioContext.audioWorklet.addModule !== 'function'
   ) {
-    return null;
+    throw new Error('AudioWorklet capture processor is unavailable');
   }
 
   try {
@@ -102,36 +94,15 @@ async function tryCreateWorkletNode(
 
     sourceNode.connect(node);
     node.connect(audioContext.destination);
-    return node as unknown as LegacyAudioProcessorNode;
+    return node;
   } catch (error) {
-    console.warn('[Voice] AudioWorklet unavailable; using ScriptProcessor fallback', error);
-    return null;
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`AudioWorklet capture processor failed to initialize: ${message}`);
   }
-}
-
-function createScriptProcessorNode(params: AudioProcessorFactoryParams): LegacyAudioProcessorNode {
-  const { audioContext, sourceNode, chunkSize, onChunk } = params;
-  const createScriptProcessor = (
-    audioContext as unknown as { createScriptProcessor?: LegacyScriptProcessorFactory }
-  ).createScriptProcessor;
-  if (typeof createScriptProcessor !== 'function') {
-    throw new Error('ScriptProcessor fallback is unavailable');
-  }
-  const scriptNode = createScriptProcessor.call(audioContext, chunkSize, 1, 1) as LegacyAudioProcessorNode;
-  scriptNode.onaudioprocess = (event) => {
-    onChunk(event.inputBuffer.getChannelData(0));
-  };
-  sourceNode.connect(scriptNode);
-  scriptNode.connect(audioContext.destination);
-  return scriptNode;
 }
 
 export async function createAudioCaptureProcessorNode(
   params: AudioProcessorFactoryParams,
-): Promise<LegacyAudioProcessorNode> {
-  const workletNode = await tryCreateWorkletNode(params);
-  if (workletNode) {
-    return workletNode;
-  }
-  return createScriptProcessorNode(params);
+): Promise<AudioWorkletNode> {
+  return createWorkletNode(params);
 }

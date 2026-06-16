@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, chunk-size normalization, AudioWorklet/script fallback capture processing, and safe audio-node/context teardown behavior."
+summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, chunk-size normalization, AudioWorklet capture processing, processorNodeRef cleanup, and safe audio-node/context teardown behavior."
 read_when:
   - When changing voice/wakeword audio chunk conversion or gateway framing payload shape.
-  - When debugging mic-resource leaks, repeated AudioContext-close warnings, or wakeword chunk-size warnings/normalization behavior.
+  - When debugging mic-resource leaks, repeated AudioContext-close warnings, AudioWorklet capture processor unavailable errors, processorNodeRef cleanup, or wakeword chunk-size warnings/normalization behavior.
 title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 ---
 
@@ -45,9 +45,9 @@ Caching detail:
 - metadata prefix bytes are memoized by `sampleRate` (`metadataPrefixCache`)
 - repeated chunks at same sample rate avoid repeated JSON serialization and prefix reconstruction
 
-## Script-Processor Chunk Normalization
+## Capture Chunk Normalization
 
-`normalizeScriptProcessorChunkSize(size)` chooses nearest value from:
+`normalizeAudioCaptureChunkSize(size)` chooses nearest value from:
 
 - `256, 512, 1024, 1280, 2048, 4096, 8192, 16384`
 
@@ -56,20 +56,23 @@ Wakeword hook behavior:
 - raw configured chunk size is normalized once per render
 - warning emitted when requested size differs from normalized value
 
-This keeps ScriptProcessor setup on a supported/stable set while preserving closest user intent.
+The normalized chunk size is passed to the AudioWorklet capture processor so
+wakeword framing stays on a supported/stable set while preserving closest user
+intent.
 
 ## Capture Processor Selection
 
 `createAudioCaptureProcessorNode(...)` behavior:
 
-- prefers `AudioWorkletNode` capture processor (`windieos-capture-processor`) when available
+- requires an `AudioWorkletNode` capture processor (`windieos-capture-processor`)
 - worklet path batches render quanta into configured chunk-size frames before posting to main thread
-- falls back to legacy `createScriptProcessor(...)` callback path when worklet module init is unavailable/fails
+- rejects with `AudioWorklet capture processor is unavailable` when AudioWorklet APIs are missing
+- rejects with `AudioWorklet capture processor failed to initialize: ...` when module setup or node construction fails
 
 Design goal:
 
-- keep modern browser audio path as default
-- preserve backwards compatibility on runtimes where worklets are unavailable
+- keep renderer voice capture on the modern worklet path only
+- fail visibly when the required worklet path is unavailable
 
 ## Shared Mutable Refs (`useAudioCaptureRefs`)
 
@@ -78,7 +81,7 @@ Design goal:
 - `mediaStreamRef`
 - `audioContextRef`
 - `sourceNodeRef`
-- `scriptNodeRef`
+- `processorNodeRef`
 
 Also provides explicit setter helpers to keep assignment patterns consistent.
 
@@ -86,8 +89,8 @@ Also provides explicit setter helpers to keep assignment patterns consistent.
 
 `cleanupAudioCaptureNodes(...)` always:
 
-- disconnects script node
-- nulls `onaudioprocess`
+- disconnects the AudioWorklet processor node
+- nulls `processorNodeRef.current.port.onmessage`
 - disconnects source node
 - stops all media stream tracks
 - nulls all corresponding refs
@@ -126,7 +129,7 @@ These helpers keep hook logic declarative and testable.
 
 1. changing gateway frame order or endianness breaks backend transcription gateway decode and provider adapters downstream.
 2. removing sample-rate prefix cache increases per-chunk allocation pressure.
-3. skipping `onaudioprocess = null` during cleanup can keep callbacks firing on stale nodes.
+3. skipping `processorNodeRef.current.port.onmessage = null` during cleanup can keep callbacks firing on stale nodes.
 4. treating all AudioContext close errors as fatal can create false-negative error telemetry on normal teardown races.
 
 ## Related Pages

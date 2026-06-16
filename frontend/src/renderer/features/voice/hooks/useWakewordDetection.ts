@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audioEncoding';
+import { float32ToPcm16, normalizeAudioCaptureChunkSize } from '../utils/audioEncoding';
 import {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,
@@ -59,7 +59,7 @@ export function useWakewordDetection(
   } = options;
 
   // Ensure chunkSize is a valid power of 2
-  const chunkSize = normalizeScriptProcessorChunkSize(rawChunkSize);
+  const chunkSize = normalizeAudioCaptureChunkSize(rawChunkSize);
 
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,11 +68,11 @@ export function useWakewordDetection(
     mediaStreamRef,
     audioContextRef,
     sourceNodeRef,
-    scriptNodeRef,
+    processorNodeRef,
     setMediaStreamRef,
     setAudioContextRef,
     setSourceNodeRef,
-    setScriptNodeRef,
+    setProcessorNodeRef,
   } = useAudioCaptureRefs();
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
@@ -185,7 +185,7 @@ export function useWakewordDetection(
       const sourceNode = audioContext.createMediaStreamSource(stream);
       setSourceNodeRef(sourceNode);
 
-      const scriptNode = await createAudioCaptureProcessorNode({
+      const processorNode = await createAudioCaptureProcessorNode({
         audioContext,
         sourceNode,
         chunkSize,
@@ -199,19 +199,14 @@ export function useWakewordDetection(
       });
 
       if (generation !== captureGenerationRef.current) {
-        scriptNode.disconnect();
-        if (scriptNode.port) {
-          scriptNode.port.onmessage = null;
-        }
-        if (scriptNode.onaudioprocess) {
-          scriptNode.onaudioprocess = null;
-        }
+        processorNode.disconnect();
+        processorNode.port.onmessage = null;
         stream.getTracks().forEach(track => track.stop());
         await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
         return;
       }
 
-      setScriptNodeRef(scriptNode);
+      setProcessorNodeRef(processorNode);
 
       isCapturingRef.current = true;
       localCaptureErrorRef.current = false;
@@ -249,7 +244,7 @@ export function useWakewordDetection(
     sampleRate,
     setAudioContextRef,
     setMediaStreamRef,
-    setScriptNodeRef,
+    setProcessorNodeRef,
     setSourceNodeRef,
     sendAudioChunk,
   ]);
@@ -260,7 +255,7 @@ export function useWakewordDetection(
     isStartingCaptureRef.current = false;
     const hadResources = Boolean(
       isCapturingRef.current
-      || scriptNodeRef.current
+      || processorNodeRef.current
       || sourceNodeRef.current
       || mediaStreamRef.current
       || audioContextRef.current
@@ -268,7 +263,7 @@ export function useWakewordDetection(
 
     isCapturingRef.current = false;
 
-    cleanupAudioCaptureNodes(scriptNodeRef, sourceNodeRef, mediaStreamRef);
+    cleanupAudioCaptureNodes(processorNodeRef, sourceNodeRef, mediaStreamRef);
 
     const audioContext = takeAudioContext(audioContextRef);
     await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
@@ -280,7 +275,7 @@ export function useWakewordDetection(
     audioContextRef,
     logUnexpectedAudioContextCloseError,
     mediaStreamRef,
-    scriptNodeRef,
+    processorNodeRef,
     sourceNodeRef,
   ]);
 
@@ -310,7 +305,7 @@ export function useWakewordDetection(
       setError(null);
       const hasCaptureResources = Boolean(
         isCapturingRef.current
-        || scriptNodeRef.current
+        || processorNodeRef.current
         || sourceNodeRef.current
         || mediaStreamRef.current
         || audioContextRef.current
@@ -336,7 +331,7 @@ export function useWakewordDetection(
     mediaStreamRef,
     requestWakewordDisable,
     requestWakewordEnable,
-    scriptNodeRef,
+    processorNodeRef,
     sourceNodeRef,
     startAudioCapture,
     stopAudioCapture,

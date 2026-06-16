@@ -352,22 +352,29 @@ describe('useWakewordDetection', () => {
       connect: jest.fn(),
       disconnect: jest.fn(),
     };
-    const scriptNode = {
+    const processorNode = {
       connect: jest.fn(),
       disconnect: jest.fn(),
-      onaudioprocess: null as ((event: AudioProcessingEvent) => void) | null,
+      port: { onmessage: null as ((event: MessageEvent<Float32Array>) => void) | null },
     };
+    class MockAudioWorkletNode {
+      connect = processorNode.connect;
+      disconnect = processorNode.disconnect;
+      port = processorNode.port;
+    }
     const closeMock = jest.fn(async () => undefined);
     const fakeAudioContext = {
       state: 'running',
       destination: {},
       createMediaStreamSource: jest.fn(() => sourceNode),
-      createScriptProcessor: jest.fn(() => scriptNode),
+      audioWorklet: { addModule: jest.fn(async () => undefined) },
       close: closeMock,
     };
 
     const originalAudioContext = (window as any).AudioContext;
     const originalWebkitAudioContext = (window as any).webkitAudioContext;
+    const originalAudioWorkletNode = (globalThis as any).AudioWorkletNode;
+    const originalCreateObjectURL = (URL as any).createObjectURL;
 
     await withMockedMediaDevices(
       { getUserMedia: jest.fn(async () => stream) } as unknown as MediaDevices,
@@ -375,6 +382,8 @@ describe('useWakewordDetection', () => {
         try {
           (window as any).AudioContext = jest.fn(() => fakeAudioContext);
           (window as any).webkitAudioContext = undefined;
+          (globalThis as any).AudioWorkletNode = MockAudioWorkletNode;
+          (URL as any).createObjectURL = jest.fn(() => 'blob:windieos-audio-worklet');
 
           const { rerender, unmount } = await renderEnabledHookAndEmitReady();
 
@@ -389,6 +398,8 @@ describe('useWakewordDetection', () => {
         } finally {
           (window as any).AudioContext = originalAudioContext;
           (window as any).webkitAudioContext = originalWebkitAudioContext;
+          (globalThis as any).AudioWorkletNode = originalAudioWorkletNode;
+          (URL as any).createObjectURL = originalCreateObjectURL;
         }
       },
     );

@@ -49,11 +49,11 @@ export function useVoiceMode(
     mediaStreamRef,
     audioContextRef,
     sourceNodeRef,
-    scriptNodeRef,
+    processorNodeRef,
     setMediaStreamRef,
     setAudioContextRef,
     setSourceNodeRef,
-    setScriptNodeRef,
+    setProcessorNodeRef,
   } = useAudioCaptureRefs();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
@@ -255,7 +255,7 @@ export function useVoiceMode(
       const sourceNode = audioContext.createMediaStreamSource(stream);
       setSourceNodeRef(sourceNode);
 
-      const scriptNode = await createAudioCaptureProcessorNode({
+      const processorNode = await createAudioCaptureProcessorNode({
         audioContext,
         sourceNode,
         chunkSize: 4096,
@@ -276,19 +276,14 @@ export function useVoiceMode(
       });
 
       if (generation !== captureGenerationRef.current || !enabledRef.current) {
-        scriptNode.disconnect();
-        if (scriptNode.port) {
-          scriptNode.port.onmessage = null;
-        }
-        if (scriptNode.onaudioprocess) {
-          scriptNode.onaudioprocess = null;
-        }
+        processorNode.disconnect();
+        processorNode.port.onmessage = null;
         stream.getTracks().forEach((track) => track.stop());
         await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
         return;
       }
 
-      setScriptNodeRef(scriptNode);
+      setProcessorNodeRef(processorNode);
 
       isRecordingRef.current = true;
       setIsRecording(true);
@@ -311,7 +306,7 @@ export function useVoiceMode(
     logUnexpectedAudioContextCloseError,
     setAudioContextRef,
     setMediaStreamRef,
-    setScriptNodeRef,
+    setProcessorNodeRef,
     setSourceNodeRef,
   ]);
 
@@ -321,7 +316,7 @@ export function useVoiceMode(
     isStartingCaptureRef.current = false;
     const hadResources = Boolean(
       isRecordingRef.current
-      || scriptNodeRef.current
+      || processorNodeRef.current
       || sourceNodeRef.current
       || mediaStreamRef.current
       || audioContextRef.current
@@ -330,7 +325,7 @@ export function useVoiceMode(
     isRecordingRef.current = false;
     setIsRecording(false);
 
-    cleanupAudioCaptureNodes(scriptNodeRef, sourceNodeRef, mediaStreamRef);
+    cleanupAudioCaptureNodes(processorNodeRef, sourceNodeRef, mediaStreamRef);
 
     const audioContext = takeAudioContext(audioContextRef);
     if (audioContext) {
@@ -344,7 +339,7 @@ export function useVoiceMode(
     audioContextRef,
     logUnexpectedAudioContextCloseError,
     mediaStreamRef,
-    scriptNodeRef,
+    processorNodeRef,
     sourceNodeRef,
   ]);
 

@@ -123,7 +123,7 @@ Capture defaults:
 - chunk size normalized from user option (default input `1024`)
 - mono channel + echo/noise/auto-gain constraints
 
-Per capture callback (`AudioWorkletNode` preferred, `ScriptProcessorNode` fallback):
+Per capture callback (`AudioWorkletNode`):
 
 1. read Float32 channel data
 2. convert to PCM16 via `float32ToPcm16`
@@ -131,7 +131,7 @@ Per capture callback (`AudioWorkletNode` preferred, `ScriptProcessorNode` fallba
 
 Chunk normalization:
 
-- `normalizeScriptProcessorChunkSize` chooses nearest supported size
+- `normalizeAudioCaptureChunkSize` chooses nearest supported size
 - warning emitted when requested size differs
 
 ## Detection Filtering Policy

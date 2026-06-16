@@ -2,7 +2,7 @@
  * Provides the audio encoding module for the renderer UI.
  */
 
-const VALID_SCRIPT_PROCESSOR_CHUNK_SIZES = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];
+const VALID_AUDIO_CAPTURE_CHUNK_SIZES = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];
 const metadataPrefixCache = new Map<number, Uint8Array>();
 
 function encodeAscii(value: string): Uint8Array {
@@ -22,8 +22,8 @@ export function float32ToPcm16(float32Array: Float32Array): Int16Array {
   return int16Array;
 }
 
-export function normalizeScriptProcessorChunkSize(size: number): number {
-  return VALID_SCRIPT_PROCESSOR_CHUNK_SIZES.reduce((previous, current) =>
+export function normalizeAudioCaptureChunkSize(size: number): number {
+  return VALID_AUDIO_CAPTURE_CHUNK_SIZES.reduce((previous, current) =>
     Math.abs(current - size) < Math.abs(previous - size) ? current : previous,
   );
 }

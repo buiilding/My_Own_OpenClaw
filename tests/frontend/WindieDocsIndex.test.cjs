@@ -202,6 +202,21 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes voice audio capture processor queries to the voice utility reference', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'voice',
+      'utils',
+      'audio_encoding_chunk_normalization_and_capture_cleanup_reference.md',
+    );
+
+    expect(findDocs('AudioWorklet required capture processor')[0].path).toBe(expectedPath);
+    expect(findDocs('AudioWorklet capture processor unavailable')[0].path).toBe(expectedPath);
+    expect(findDocs('processorNodeRef cleanup')[0].path).toBe(expectedPath);
+  });
+
   test('routes settings model selection queries to the model settings workflow', () => {
     expect(findDocs('settings model selection')[0].path).toBe(
       path.join('docs', 'frontend', 'renderer', 'settings', 'model_settings_change_workflow.md'),

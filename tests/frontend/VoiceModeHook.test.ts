@@ -153,7 +153,7 @@ describe('useVoiceMode', () => {
       setMediaStreamRef: result.current.setMediaStreamRef,
       setAudioContextRef: result.current.setAudioContextRef,
       setSourceNodeRef: result.current.setSourceNodeRef,
-      setScriptNodeRef: result.current.setScriptNodeRef,
+      setProcessorNodeRef: result.current.setProcessorNodeRef,
     };
 
     rerender();
@@ -161,7 +161,7 @@ describe('useVoiceMode', () => {
     expect(result.current.setMediaStreamRef).toBe(firstSetters.setMediaStreamRef);
     expect(result.current.setAudioContextRef).toBe(firstSetters.setAudioContextRef);
     expect(result.current.setSourceNodeRef).toBe(firstSetters.setSourceNodeRef);
-    expect(result.current.setScriptNodeRef).toBe(firstSetters.setScriptNodeRef);
+    expect(result.current.setProcessorNodeRef).toBe(firstSetters.setProcessorNodeRef);
   });
 
   test('sends start_over after utterance-end when websocket is open', () => {

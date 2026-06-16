@@ -21,38 +21,22 @@ describe('voice audio processor node', () => {
     jest.restoreAllMocks();
   });
 
-  test('uses ScriptProcessor fallback when AudioWorklet is unavailable', async () => {
+  test('rejects when AudioWorklet is unavailable', async () => {
     (globalThis as any).AudioWorkletNode = undefined;
 
-    const onChunk = jest.fn();
-    const scriptNode = {
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      onaudioprocess: null as ((event: { inputBuffer: { getChannelData: () => Float32Array } }) => void) | null,
-    };
     const sourceNode = { connect: jest.fn() };
     const audioContext = {
       destination: {},
-      createScriptProcessor: jest.fn(() => scriptNode),
       audioWorklet: undefined,
     };
 
-    const processorNode = await createAudioCaptureProcessorNode({
+    await expect(createAudioCaptureProcessorNode({
       audioContext: audioContext as unknown as AudioContext,
       sourceNode: sourceNode as unknown as MediaStreamAudioSourceNode,
       chunkSize: 1024,
-      onChunk,
-    });
-
-    expect(audioContext.createScriptProcessor).toHaveBeenCalledWith(1024, 1, 1);
-    expect(sourceNode.connect).toHaveBeenCalledWith(scriptNode);
-    expect(scriptNode.connect).toHaveBeenCalledWith(audioContext.destination);
-    expect(processorNode).toBe(scriptNode);
-
-    scriptNode.onaudioprocess?.({
-      inputBuffer: { getChannelData: () => new Float32Array([0.1, -0.2]) },
-    });
-    expect(onChunk).toHaveBeenCalledWith(new Float32Array([0.1, -0.2]));
+      onChunk: jest.fn(),
+    })).rejects.toThrow('AudioWorklet capture processor is unavailable');
+    expect(sourceNode.connect).not.toHaveBeenCalled();
   });
 
   test('uses AudioWorklet path when available and forwards worklet chunks', async () => {

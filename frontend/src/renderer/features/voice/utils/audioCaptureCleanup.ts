@@ -4,18 +4,7 @@
 
 import type { MutableRefObject } from 'react';
 
-export type LegacyAudioProcessEvent = {
-  inputBuffer: AudioBuffer;
-};
-
-export type LegacyAudioProcessorNode = AudioNode & {
-  onaudioprocess?: ((event: LegacyAudioProcessEvent) => void) | null;
-  port?: {
-    onmessage: ((event: MessageEvent<Float32Array>) => void) | null;
-  };
-};
-
-type ScriptNodeRef = MutableRefObject<LegacyAudioProcessorNode | null>;
+type ProcessorNodeRef = MutableRefObject<AudioWorkletNode | null>;
 type SourceNodeRef = MutableRefObject<MediaStreamAudioSourceNode | null>;
 type MediaStreamRef = MutableRefObject<MediaStream | null>;
 type AudioContextRef = MutableRefObject<AudioContext | null>;
@@ -28,17 +17,14 @@ function isAlreadyClosedAudioContextError(error: unknown): boolean {
 }
 
 export function cleanupAudioCaptureNodes(
-  scriptNodeRef: ScriptNodeRef,
+  processorNodeRef: ProcessorNodeRef,
   sourceNodeRef: SourceNodeRef,
   mediaStreamRef: MediaStreamRef,
 ): void {
-  if (scriptNodeRef.current) {
-    scriptNodeRef.current.disconnect();
-    scriptNodeRef.current.onaudioprocess = null;
-    if (scriptNodeRef.current.port) {
-      scriptNodeRef.current.port.onmessage = null;
-    }
-    scriptNodeRef.current = null;
+  if (processorNodeRef.current) {
+    processorNodeRef.current.disconnect();
+    processorNodeRef.current.port.onmessage = null;
+    processorNodeRef.current = null;
   }
 
   if (sourceNodeRef.current) {
