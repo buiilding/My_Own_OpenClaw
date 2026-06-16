@@ -1,10 +1,11 @@
 ---
-summary: "Canonical WindieOS extension contribution package layout for plugin tool registration, repo-level sidecar plugins, prompt skills, MCP server specs, and sidecar-tool extension boundaries."
+summary: "Canonical WindieOS extension contribution package layout for plugin tool registration, repo-level sidecar plugins, prompt skills, MCP server specs, ignored legacy extensions container behavior, and sidecar-tool extension boundaries."
 read_when:
   - When adding reusable client-side plugins, skills, or MCP integrations.
   - When registering plugin tools through `plugins/<id>/plugin.json`, schemas, and sidecar Python entrypoints.
   - When changing extension-owned tool schemas, sidecar execution, prompt layers, or MCP discovery.
   - When searching for extension package, plugin, MCP, skills, or sidecar tools contribution layout; this doc owns extension contribution roots, not built-in sidecar tool behavior.
+  - When stale docs, local folders, or prompts mention `extensions/<id>/extension.json`, `plugin/index.cjs`, or an `extensions/` container; the active loader ignores that legacy shape.
 ---
 
 # Extension Convention
@@ -26,14 +27,16 @@ mcps/
     mcp.json
 ```
 
-There is no `extensions/` container, no `extensions/<id>/extension.json`
-package shape, and no Electron-main plugin tool execution surface. Plugin tools
-are sidecar tools: Electron main reads `plugin.json` for the model-facing client
-manifest, and the Python sidecar loads the same `plugin.json` to execute the
-declared Python entrypoints. Use this page for extension package, plugin, MCP,
-skills, and sidecar-tool contribution layout. Use the frontend sidecar tools
-docs for built-in computer/system/filesystem/shell/browser tool runtime
-behavior.
+The active loader does not read an `extensions/<id>/extension.json` package
+shape, `plugin/index.cjs`, or an Electron-main plugin tool execution surface.
+Some local checkouts may still contain an empty legacy `extensions/` directory;
+it is not the contribution root and is not tracked as the current authoring
+surface. Plugin tools are sidecar tools: Electron main reads `plugin.json` for
+the model-facing client manifest, and the Python sidecar loads the same
+`plugin.json` to execute the declared Python entrypoints. Use this page for
+extension package, plugin, MCP, skills, and sidecar-tool contribution layout.
+Use the frontend sidecar tools docs for built-in
+computer/system/filesystem/shell/browser tool runtime behavior.
 
 ## Choose The Surface
 

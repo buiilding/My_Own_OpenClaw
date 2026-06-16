@@ -890,6 +890,9 @@ describe('windie docs index', () => {
     expect(findDocs('extension package plugin mcp skills sidecar tools')[0].path).toBe(
       path.join('docs', 'development', 'extensions.md'),
     );
+    expect(findDocs('extensions container extension.json plugin index cjs')[0].path).toBe(
+      path.join('docs', 'development', 'extensions.md'),
+    );
   });
 
   test('routes edit resend resource preservation queries to SDK conversation runtime', () => {
