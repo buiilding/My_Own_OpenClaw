@@ -608,6 +608,22 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes private workspace helper queries to the workspace workflow', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'runtime',
+      'workspace_context_change_workflow.md',
+    );
+
+    expect(findDocs('normalizeWorkspaceAccessPayload removed export')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('WORKSPACE_ACCESS_PERMISSION_ID private workspaceAccess helper')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

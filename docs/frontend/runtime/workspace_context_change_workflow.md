@@ -1,9 +1,10 @@
 ---
-summary: "Workflow for changing workspace folder permission, active workspace selection, conversation workspace binding, workspace_path query forwarding, AGENTS.md repo instruction injection, and backend prompt context."
+summary: "Workflow for changing workspace folder permission, active workspace selection, renderer workspaceAccess public API, private workspace helper exports such as normalizeWorkspaceAccessPayload/normalizeActiveWorkspace, conversation workspace binding, workspace_path query forwarding, AGENTS.md repo instruction injection, and backend prompt context."
 read_when:
   - When changing workspace folder permission, active workspace selection, workspace access permission, conversation workspace binding, workspace_path query payloads, or repo instruction injection.
   - When debugging missing AGENTS.md instructions, wrong workspace on resumed conversations, file/shell tools using the wrong folder, or backend prompts not reflecting the active workspace.
   - When changing dashboard workspace settings, query send workspace forwarding, rehydrate workspace behavior, or backend prompt construction from workspace context.
+  - When stale code, tests, or docs mention removed/exported renderer workspace helpers such as `normalizeWorkspaceAccessPayload`, `normalizeActiveWorkspace`, `extractWorkspaceStatus`, or `WORKSPACE_ACCESS_PERMISSION_ID`.
 title: "Workspace Context Change Workflow"
 ---
 
@@ -100,6 +101,14 @@ Selection rules:
   stored permission entry from the workspace selection flow. It must not grant
   access to a renderer-supplied path.
 - The displayed workspace name is derived from the final path segment.
+
+`workspaceAccess.js` keeps the permission id and payload-shaping helpers private.
+Renderer callers should use only the public async selection API:
+`fetchActiveWorkspaceSelection()`, `requestActiveWorkspaceSelection()`, and
+`setActiveWorkspaceSelection(workspacePath)`. Stale searches for exported helper
+names such as `normalizeWorkspaceAccessPayload`, `normalizeActiveWorkspace`,
+`extractWorkspaceStatus`, or `WORKSPACE_ACCESS_PERMISSION_ID` should route to
+this workflow and not to generic package export docs.
 
 ### 3. Inspect conversation workspace binding
 
