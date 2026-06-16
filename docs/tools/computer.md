@@ -1,7 +1,7 @@
 ---
-summary: "Computer-use tool guide for mouse, keyboard, screenshot, scroll, window switching, system state, and platform-specific capture behavior."
+summary: "Computer-use screenshot and desktop-control tool guide for mouse, keyboard, screenshot, scroll, window switching, system state, and platform-specific capture behavior."
 read_when:
-  - When changing desktop control tools, screenshots, OCR/prediction coordinate grounding, or platform capture behavior.
+  - When changing computer-use screenshot behavior, desktop control tools, screenshots, OCR/prediction coordinate grounding, or platform capture behavior.
   - When debugging mouse, keyboard, screenshot, scroll, or window actions.
 title: "Computer Tools"
 ---

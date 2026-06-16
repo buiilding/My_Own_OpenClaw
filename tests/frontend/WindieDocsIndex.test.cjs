@@ -196,6 +196,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes computer-use screenshot queries to the computer tool guide', () => {
+    expect(findDocs('computer use screenshot')[0].path).toBe(
+      path.join('docs', 'tools', 'computer.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

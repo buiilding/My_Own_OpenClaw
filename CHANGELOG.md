@@ -94,6 +94,8 @@ All notable changes to WindieOS will be documented in this file.
   workflow before Electron-main bridge references.
 - docs/channels: route transcription-stream searches to the voice/audio channel
   guide before generic backend API route workflow docs.
+- docs/tools: route computer-use screenshot searches to the computer tool guide
+  before broad docs hubs and deep platform references.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
