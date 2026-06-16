@@ -138,6 +138,9 @@ All notable changes to WindieOS will be documented in this file.
   assistant-shaped content/final-response fallback searches to the SDK runtime.
 - docs/frontend: document AudioWorklet-only voice capture and route removed
   ScriptProcessor-fallback searches to the voice utility reference.
+- docs/frontend: document the sidecar `replace` canonical `replacements[]`
+  payload path and route legacy field guard searches to the filesystem runtime
+  reference.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

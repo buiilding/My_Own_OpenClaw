@@ -272,6 +272,20 @@ describe('windie docs index', () => {
     expect(paths).toContain(path.join('docs', 'tools', 'filesystem_shell.md'));
   });
 
+  test('routes replace legacy field guard queries to sidecar filesystem docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'sidecar',
+      'tools',
+      'filesystem_read_replace_runtime_reference.md',
+    );
+
+    expect(findDocs('replace legacy field guard')[0].path).toBe(expectedPath);
+    expect(findDocs('replace old_string new_string top-level')[0].path).toBe(expectedPath);
+    expect(findDocs('canonical replacements edit mode')[0].path).toBe(expectedPath);
+  });
+
   test('routes retired sudo setting queries to current owner docs', () => {
     expect(findDocs('agent sudo access')[0].path).toBe(
       path.join('docs', 'frontend', 'renderer', 'settings', 'settings_surface_change_workflow.md'),

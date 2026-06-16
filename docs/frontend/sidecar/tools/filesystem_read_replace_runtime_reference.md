@@ -1,8 +1,8 @@
 ---
-summary: "Sidecar filesystem tool reference for `read_file` and `replace`: path/encoding guards, windowed read contracts, lenient-vs-strict replacement matching, and patch-chunk application semantics."
+summary: "Sidecar filesystem tool reference for `read_file` and `replace`: path/encoding guards, windowed read contracts, replace legacy field guard removal, canonical replacements[] edit mode, lenient-vs-strict replacement matching, and patch-chunk application semantics."
 read_when:
   - When changing sidecar filesystem tool behavior, especially read pagination or replace matching rules.
-  - When debugging replace ambiguity failures, patch-chunk context misses, or read-file truncation messages.
+  - When debugging replace legacy field guard behavior, top-level old_string/new_string payloads, replace ambiguity failures, patch-chunk context misses, or read-file truncation messages.
 title: "Filesystem Read and Replace Runtime Reference"
 ---
 
@@ -89,6 +89,17 @@ Modes:
   list for a single edit)
 - `patch_chunks[]` ordered line-based update mode (cannot be combined with
   `replacements[]`)
+
+Canonical edit payload:
+
+- `replace` requires exactly one current edit mode: `replacements[]` or
+  `patch_chunks[]`
+- `old_string`, `new_string`, `replace_all`, `before_context`,
+  `after_context`, `occurrence_index`, and `require_eof` belong inside each
+  `replacements[]` item
+- removed top-level edit fields no longer have a custom legacy field guard;
+  payloads that omit `replacements[]` and `patch_chunks[]` fail through the
+  canonical parser/validator path
 
 Path + creation policy:
 
