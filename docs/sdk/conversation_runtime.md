@@ -1,11 +1,11 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display/rehydrate projections, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display/rehydrate projections, toolPairKeys pairing after the removed toolPairKey helper, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
   - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
   - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
   - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
   - When debugging edit/resend resource preservation, retry resource preservation, missing screenshot refs, or attachment metadata lost across revisions.
-  - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool output content fallback behavior, removed `fallbackText` helper references, `normalizeToolOutputContent` searches, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
+  - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool-pair matching, removed `toolPairKey` helper references, tool output content fallback behavior, removed `fallbackText` helper references, `normalizeToolOutputContent` searches, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
 title: "SDK Conversation Runtime"
 ---
 
@@ -616,6 +616,14 @@ acknowledgement `tool-output` events for sidecar results: the SDK appends the
 local raw output row, sends `tool-result` or `tool-bundle-result` to backend,
 and backend ingests that result for model/history continuation without echoing a
 second UI row.
+
+Tool call/output pairing uses the private `toolPairKeys(event)` helper in
+`conversationProjections.ts`. It returns every usable pairing key for single
+tool and bundle events, rather than reducing the event to one preferred key.
+The old single-key `toolPairKey(...)` helper was removed; stale references to it
+should route here. Do not reintroduce a single-key pairing path, because stored
+legacy rows may need any of `requestId`, `bundleId`, `correlationId`, or
+`toolCallId` to match a call with its output.
 
 ### Tool Output Content Fallback
 

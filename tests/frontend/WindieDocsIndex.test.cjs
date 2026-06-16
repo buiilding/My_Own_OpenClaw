@@ -862,6 +862,15 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes SDK tool-pair helper queries to conversation runtime', () => {
+    const expectedPath = path.join('docs', 'sdk', 'conversation_runtime.md');
+
+    expect(findDocs('toolPairKey removed')[0].path).toBe(expectedPath);
+    expect(findDocs('toolPairKeys requestId bundleId correlationId toolCallId')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes renderer screenshot metadata queries to the screenshot state reference', () => {
     const expectedPath = path.join(
       'docs',
