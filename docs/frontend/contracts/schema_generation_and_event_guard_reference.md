@@ -105,19 +105,22 @@ This yields dual-layer safety:
 
 `ipc.cjs` bridge behavior:
 
-- accepts `to-backend` payloads with string `type`
-- handles `update-settings` as a dedicated path with ACK tracking/timeouts
-- `query` and `wakeword-detected` are gated through initial settings sync logic
+- accepts SDK command envelopes on `windie:invoke`
+- routes `settings.update` through ACK tracking/timeouts
+- `conversation.send` and `wakeword.detected` are gated through initial
+  settings sync logic
 - normalizes outbound payloads:
   - filters known backend command payloads through contract-backed allowlists
   - strips display-only `screenshot_url` for `query` and `tool-bundle-result`
-- rebroadcasts backend websocket payloads to renderer over `from-backend`
+- routes backend websocket events to typed renderer channels such as
+  `windie:conversation-event`, `backend-settings-event`,
+  `agent-capability-event`, and `audio-chunk`
 
 ## Drift Boundaries to Watch
 
 1. `schema.json` / generated `schema.ts` updated, but runtime guards (`backendEvents.ts`, preload, `ipc.cjs`) not updated.
 2. backend starts emitting a new event type not included in `BACKEND_EVENT_TYPES`.
-3. channel constants updated in renderer but missing in preload allowlist.
+3. shared channel registry updated without matching preload/main/runtime tests.
 4. main process forwards payload shape changes that consumer handlers do not expect.
 
 ## Regeneration and Sync Checklist
@@ -127,7 +130,8 @@ When changing contract fields:
 1. update `frontend/schema.json`
 2. regenerate `frontend/src/types/schema.ts` (using `json-schema-to-typescript` flow)
 3. update `backendEvents.ts` union + payload typing if runtime event shape changed
-4. update `channels.ts` and `preload.js` allowlists together
+4. update `ipcChannels.json` and `channels.ts` expected-registry validation
+   together
 5. update `ipc.cjs` normalization/dispatch rules for new message types
 6. update contracts docs and consumer matrix docs
 

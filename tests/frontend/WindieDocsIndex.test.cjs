@@ -129,6 +129,47 @@ describe('windie docs index', () => {
     expect(findDocs('search_memory text-query RPC removed')[0].path).toBe(expectedPath);
   });
 
+  test('routes frontend protocol channel count queries to the IPC matrix', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'inventory',
+      'protocols',
+      'frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md',
+    );
+
+    expect(
+      findDocs('frontend protocol channel counts windie invoke get local backend status')[0].path,
+    ).toBe(expectedPath);
+    expect(findDocs('renderer invoke channels compiled rpc mapper definitions')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
+  test('routes removed raw backend IPC channel queries to typed event fan-out docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'contracts',
+      'events',
+      'from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md',
+    );
+
+    expect(findDocs('to-backend from-backend preload channels removed')[0].path).toBe(expectedPath);
+  });
+
+  test('routes settings ACK event queries to settings event routing docs', () => {
+    expect(findDocs('backend settings event models listed settings updated')[0].path).toBe(
+      path.join(
+        'docs',
+        'frontend',
+        'contracts',
+        'events',
+        'settings_and_model_ack_event_routing_reference.md',
+      ),
+    );
+  });
+
   test('routes package and reinstall queries to the cross-platform runbook', () => {
     expect(findDocs('packaging reinstall')[0].path).toBe(
       path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),

@@ -25,6 +25,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: remove the legacy `search-memory` IPC and `search_memory`
   text-query JSON-RPC path so local memory retrieval uses SDK-owned embeddings
   through `search_memory_by_embedding` only.
+- docs/frontend: refresh the IPC/local-backend protocol matrix, preload channel
+  allowlist docs, and backend event fan-out docs to match the current
+  `windie:invoke`, `windie:*`, `backend-settings-event`, and JSON-RPC mapper
+  behavior.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

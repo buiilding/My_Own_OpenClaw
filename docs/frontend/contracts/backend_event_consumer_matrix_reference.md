@@ -1,8 +1,9 @@
 ---
-summary: "Frontend backend-event consumer matrix for `from-backend` messages: typed chat stream events, config/status handlers, audio chunk playback, and event-type drift hotspots."
+summary: "Frontend backend-event consumer matrix for current typed renderer channels after the generic `from-backend` removal: SDK conversation events, settings/capability control events, audio chunk playback, and event-type drift hotspots."
 read_when:
   - When adding/changing backend outbound websocket event types.
   - When debugging why a backend event appears on wire but is ignored or partially handled in renderer.
+  - When searching for removed `from-backend` or `to-backend` channel behavior.
 title: "Backend Event Consumer Matrix Reference"
 ---
 
@@ -20,11 +21,22 @@ title: "Backend Event Consumer Matrix Reference"
 
 ## Event Ingress Source
 
-Main process rebroadcasts backend websocket payloads to renderer on:
+Main process no longer rebroadcasts every backend websocket payload on one
+generic `from-backend` renderer channel. Current fan-out uses specific
+renderer channels:
 
-- `from-backend`
+- `windie:conversation-event` for SDK conversation runtime events consumed by
+  chat/transcript/session paths
+- `windie:rows`, `windie:status`, and `windie:current-turn` for SDK projection
+  snapshots
+- `backend-settings-event` for model/settings ACK and settings-error control
+  events
+- `agent-capability-event` for tool-manifest and remote-catalog events
+- `audio-chunk` for text-to-speech audio chunks
 
-Renderer has multiple independent listeners on this channel (chat stream, config handlers, audio chunk playback, status tracking).
+Historical note: raw renderer `to-backend` sends and generic `from-backend`
+listeners are removed from the preload allowlist. Renderer sends enter main
+through `window.windie.invoke(...)`.
 
 ## Typed Event Union (`backendEvents.ts`)
 
@@ -57,7 +69,8 @@ Type guard:
 
 ### Chat stream consumer (`useChatStream`)
 
-Consumes typed events via `isBackendEvent`, SDK normalization, and explicit renderer consumers.
+Consumes typed events from `windie:conversation-event` via `isBackendEvent`,
+SDK normalization, and explicit renderer consumers.
 
 Core effects:
 
@@ -70,7 +83,7 @@ Core effects:
 
 ### Audio consumer (`ChatInterface`)
 
-Consumes untyped audio event shape:
+Consumes untyped audio event shape on `audio-chunk`:
 
 - `audio-chunk` (parsed by `extractAudioChunkPayload`)
 
@@ -84,7 +97,7 @@ Note:
 
 ### Config/model consumer (`appConfigEvents`)
 
-Consumes:
+Consumes `backend-settings-event` payloads:
 
 - `models-listed`
 
@@ -94,7 +107,7 @@ Effects:
 
 ### Save-status consumer (`AppStatusProvider`)
 
-Consumes:
+Consumes `backend-settings-event` payloads:
 
 - `settings-updated`
 - `error` containing settings-update failure text
@@ -102,6 +115,17 @@ Consumes:
 Effects:
 
 - transitions save status (`saving -> success/error -> idle`)
+
+### Agent capability consumer (`AgentSettingsTab`)
+
+Consumes `agent-capability-event` payloads:
+
+- `client-tool-manifest`
+- `remote-tool-catalog`
+
+Effects:
+
+- updates tool and capability settings surfaces from backend catalog state
 
 ## Context Field Semantics on Events
 
@@ -125,16 +149,20 @@ Potential contract drifts that cause silent drops:
 
 1. backend emits new event type not added to `backendEvents.ts` set
 2. backend renames payload keys without updating event-specific handlers
-3. event intended for config/status path but only wired in chat stream path (or vice versa)
+3. event intended for config/status/capability path but only wired in chat
+   stream path (or vice versa)
 4. audio events changed without updating `extractAudioChunkPayload`
 
 ## Debug Checklist
 
 If event appears in DevTools but UI ignores it:
 
-1. verify event type is in `BACKEND_EVENT_TYPES` (or dedicated non-typed parser path)
-2. verify at least one consumer listener handles that type
-3. verify payload key names match handler expectations
+1. verify the main-process fan-out routes the event type to the expected
+   renderer channel
+2. verify event type is in `BACKEND_EVENT_TYPES` when consumed by
+   `windie:conversation-event`, or has a dedicated non-typed parser path
+3. verify at least one consumer listener handles that type
+4. verify payload key names match handler expectations
 
 If settings save status never resolves:
 

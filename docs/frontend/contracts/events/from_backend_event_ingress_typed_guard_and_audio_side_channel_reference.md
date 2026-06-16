@@ -1,12 +1,13 @@
 ---
-summary: "Deep reference for frontend `from-backend` event ingress: main-process rebroadcast path, renderer typed event guard behavior, and `audio-chunk` side-channel parsing."
+summary: "Deep reference for current typed backend event fan-out after the generic `from-backend` channel removal: SDK conversation events, settings/capability control channels, renderer typed event guards, and `audio-chunk` side-channel parsing."
 read_when:
   - When adding/changing backend event types consumed by renderer hooks.
   - When debugging why a backend event reaches renderer IPC but is ignored.
-title: "From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference"
+  - When searching for removed `from-backend` or `to-backend` preload behavior.
+title: "Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference"
 ---
 
-# From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference
+# Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference
 
 ## Canonical Modules
 
@@ -20,16 +21,31 @@ title: "From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Referenc
 
 ## Ingress Path
 
-Backend websocket events flow:
+Current backend websocket and SDK runtime events no longer flow through a
+generic renderer `from-backend` channel. Main process fans events out to
+specific renderer channels:
 
 1. backend sends JSON over websocket to Electron main (`ipc.cjs`)
 2. main parses event, updates connection/session/conversation trackers
-3. main rebroadcasts event to renderer windows on `from-backend`
-4. renderer listeners independently consume and filter event types
+3. typed backend control events are routed through
+   `ipc_backend_event_channels.cjs`
+4. SDK conversation runtime events and projections are emitted on `windie:*`
+   channels
+5. renderer listeners independently consume and filter event types
 
-Channel constant source:
+Current channel constants:
 
-- `ON_CHANNELS.FROM_BACKEND = "from-backend"`
+- `ON_CHANNELS.WINDIE_CONVERSATION_EVENT = "windie:conversation-event"`
+- `ON_CHANNELS.WINDIE_ROWS = "windie:rows"`
+- `ON_CHANNELS.WINDIE_STATUS = "windie:status"`
+- `ON_CHANNELS.WINDIE_CURRENT_TURN = "windie:current-turn"`
+- `ON_CHANNELS.BACKEND_SETTINGS_EVENT = "backend-settings-event"`
+- `ON_CHANNELS.AGENT_CAPABILITY_EVENT = "agent-capability-event"`
+- `ON_CHANNELS.AUDIO_CHUNK = "audio-chunk"`
+
+Historical note: `from-backend` and raw renderer `to-backend` are removed from
+the preload allowlist. Renderer sends should use `window.windie.invoke(...)`;
+renderer receives should use the typed channels above.
 
 ## Typed Event Guard Boundary
 
@@ -62,19 +78,23 @@ Current accepted typed event types:
 
 Events outside this set are ignored by typed consumers. Known event types are also rejected when optional base context fields are not strings, or when a present `payload` is not an object or contains known fields with values outside the typed event contract.
 
-Notable control ACK events outside typed union:
+Notable control ACK/capability events outside typed union:
 
 - `models-listed`
 - `settings-updated`
-- `settings-loaded`
+- `client-tool-manifest`
+- `remote-tool-catalog`
 
-These are handled by provider-level non-typed listeners.
+These are handled by provider-level non-typed listeners on
+`backend-settings-event` or `agent-capability-event`.
+`settings-loaded` remains a backend/SDK event type but is not currently routed
+by `ipc_backend_event_channels.cjs` to a renderer provider channel.
 
 ## Multi-Consumer Listener Contract
 
-`from-backend` has multiple listeners with different filters:
+Renderer event channels have separate listeners with different filters:
 
-- `useChatStream`:
+- `windie:conversation-event` -> `useChatStream`:
   - requires `isBackendEvent(...)`
   - applies conversation filtering (`shouldIgnoreEventForActiveConversation`)
   - updates stream tracking, chat messages, transcript writes
@@ -82,11 +102,15 @@ These are handled by provider-level non-typed listeners.
   - receives normalized backend tool events from the SDK transport
   - handles only executable `tool-call` and `tool-bundle` waits
   - enforces stale-turn cancellation guards
-- `ChatInterface` audio path:
+- `backend-settings-event` -> app config/status providers:
+  - consumes `models-listed`, `settings-updated`, and settings-update errors
+- `agent-capability-event` -> agent settings/capability surfaces:
+  - consumes client tool manifest and remote tool catalog updates
+- `audio-chunk` -> `ChatInterface` audio path:
   - does not use `isBackendEvent(...)`
   - uses `extractAudioChunkPayload(...)` parser
 
-No single global consumer owns all `from-backend` types.
+No single global consumer owns all backend event types.
 
 ## Audio Side-Channel Contract
 
@@ -98,7 +122,9 @@ No single global consumer owns all `from-backend` types.
   - `payload.audio` string
   - `payload.sample_rate` number
 
-If shape mismatches, parser returns `null` and audio is skipped.
+If shape mismatches, parser returns `null` and audio is skipped. The audio
+listener subscribes to `ON_CHANNELS.AUDIO_CHUNK`, not to the removed
+`from-backend` channel.
 
 ## Main-Process Overlay-Phase Coupling
 
@@ -134,24 +160,29 @@ Missing `conversation_ref` or `turn_ref` can degrade filtering precision.
 
 ## Drift Hotspots
 
-1. backend emits new type but `BACKEND_EVENT_TYPES` not updated
-2. payload keys changed but per-event handlers still read old keys
-3. `audio-chunk` shape changes without updating `extractAudioChunkPayload`
-4. overlay-phase mapping in `ipc.cjs` diverges from event semantics
+1. backend emits new event type but `ipc_backend_event_channels.cjs` does not
+   route it to a renderer channel
+2. event is routed to `windie:conversation-event` but `BACKEND_EVENT_TYPES` is
+   not updated
+3. payload keys changed but per-event handlers still read old keys
+4. `audio-chunk` shape changes without updating `extractAudioChunkPayload`
+5. overlay-phase mapping in `ipc.cjs` diverges from event semantics
 
 ## Debug Checklist
 
 If event appears in main logs but UI ignores it:
 
 1. check `isBackendEvent(...)` membership
-2. check conversation filter in `useChatStream`
-3. check tool stale-turn guard in SDK runtime state
-4. check whether event is audio side-channel and needs parser path
+2. check whether `ipc_backend_event_channels.cjs` routes the type to
+   `backend-settings-event`, `agent-capability-event`, or `audio-chunk`
+3. check conversation filter in `useChatStream`
+4. check tool stale-turn guard in SDK runtime state
+5. check whether event is audio side-channel and needs parser path
 
 If audio drops but text stream works:
 
 1. validate `audio-chunk` payload field names/types
-2. verify renderer audio listener still subscribes to `from-backend`
+2. verify renderer audio listener subscribes to `audio-chunk`
 3. verify parser returns non-null payload objects
 
 ## Related Pages

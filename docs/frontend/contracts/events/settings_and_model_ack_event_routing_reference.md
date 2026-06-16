@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for frontend handling of non-typed control ACK events on `from-backend`: `models-listed`, `settings-updated`, and settings-error status transitions."
+summary: "Deep reference for frontend handling of non-typed settings/model control ACK events on `backend-settings-event`: `models-listed`, `settings-updated`, and settings-error status transitions."
 read_when:
   - When changing model-list/settings sync flows between renderer providers and backend handlers.
   - When debugging save-status state not transitioning or model list updates not appearing.
@@ -21,11 +21,16 @@ title: "Settings and Model ACK Event Routing Reference"
 
 ## Event Family Boundary
 
-These control ACK events are rebroadcast on `from-backend` but are not part of `backendEvents.ts` typed union:
+These control ACK events are routed to renderer on `backend-settings-event` by
+`ipc_backend_event_channels.cjs`; they are not part of the renderer
+`backendEvents.ts` typed chat union:
 
 - `models-listed`
 - `settings-updated`
-- `settings-loaded` (used in transport/contracts; not currently routed in appConfigEvents)
+- `error` when it carries settings-update failure text
+
+`settings-loaded` remains a backend/SDK event type but is not currently routed
+to `AppConfigProvider` by `ipc_backend_event_channels.cjs`.
 
 They are consumed by app/provider-specific listeners, not typed stream hooks.
 
@@ -33,12 +38,16 @@ They are consumed by app/provider-specific listeners, not typed stream hooks.
 
 Flow:
 
-1. renderer requests models (`DesktopSettingsRuntimeClient.listModels()` -> `to-backend`)
-2. backend `ListModelsHandler` responds with `type: "models-listed"`
-3. main `ipc.cjs` rebroadcasts event on `from-backend`
-4. `AppConfigProvider` listener calls `routeConfigBackendEvent(...)`
-5. `routeConfigBackendEvent` dispatches `models-listed` to `handleModelsListed(...)`
-6. `useSettingsManagement` updates `availableModels` via payload passthrough
+1. renderer requests models through `DesktopSettingsRuntimeClient.listModels()`
+2. `desktopBackendTransport.ts` sends `window.windie.invoke("models.list")`
+3. Electron main `ipc.cjs` routes the command to the SDK agent model-list path
+4. backend `ListModelsHandler` responds with `type: "models-listed"`
+5. `ipc_backend_event_channels.cjs` routes the event to
+   `backend-settings-event`
+6. `AppConfigProvider` listener calls `routeConfigBackendEvent(...)`
+7. `routeConfigBackendEvent` dispatches `models-listed` to
+   `handleModelsListed(...)`
+8. `useSettingsManagement` updates `availableModels` via payload passthrough
 
 Important:
 
@@ -47,7 +56,8 @@ Important:
 
 ## Settings Save Status Flow (`settings-updated` and error)
 
-`AppStatusProvider` listens on `from-backend` and updates `saveStatus`:
+`AppStatusProvider` listens on `backend-settings-event` and updates
+`saveStatus`:
 
 - `settings-updated` -> `success` -> auto-reset to `idle` after 3s
 - `error` containing text `Failed to update settings` -> `error` -> auto-reset to `idle` after 3s
@@ -80,20 +90,22 @@ If backend error text changes, both save-status failure detection and chat-error
 - sets backend HTTP URL for renderer artifact URL composition
 - may trigger `DesktopSettingsRuntimeClient.updateSettings(currentConfig)` when backend connection is active
 
-This path is separate from `from-backend` ACK/control events but interacts with settings lifecycle timing.
+This path is separate from settings/model ACK events but interacts with settings
+lifecycle timing.
 
 ## Debug Checklist
 
 If model list never updates:
 
-1. verify `list-models` request is sent from the main dashboard provider on startup; it should not wait for an already-connected `ipc-status` snapshot
+1. verify the dashboard provider calls `DesktopSettingsRuntimeClient.requestDashboardStartupModelList()` and the `models.list` command reaches main through `windie:invoke`
 2. verify backend emits `models-listed`
 3. verify `routeConfigBackendEvent(...)` receives event and `handleModelsListed` runs
 
 If save status remains `saving`:
 
 1. verify backend emits `settings-updated` or error event
-2. verify event arrives on `from-backend`
+2. verify `ipc_backend_event_channels.cjs` routes the event to
+   `backend-settings-event`
 3. verify error text still matches expected substring when failure path is intended
 4. check 10s fallback timeout behavior in `setSaving()`
 

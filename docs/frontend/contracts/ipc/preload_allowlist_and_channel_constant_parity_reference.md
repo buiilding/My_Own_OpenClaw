@@ -35,11 +35,17 @@ The renderer registry validation still runs at module load in every mode so a mi
 
 Shared names from `ipcChannels.json`, consumed by preload + `SEND_CHANNELS`:
 
-- `to-backend`
+- `renderer-log`
+- `live-surface-trace`
+- `transcript-session-sync`
 - `move-chatbox-to`
 - `wakeword-audio-chunk`
 - `wakeword-enable`
 - `wakeword-disable`
+
+Historical note: `to-backend` is not a current send channel. Renderer backend
+commands use `window.windie.invoke(...)`, which enters main through
+`windie:invoke`.
 
 Invalid behavior:
 
@@ -52,31 +58,46 @@ Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 - `capture-screenshot-attachment`
 - `read-attachment-file`
 - `run-browser-action`
+- `windie:invoke` for SDK-shaped conversation, settings/model, memory, and
+  local-runtime commands
 - `upload-artifact`
 - `fetch-artifact-image`
 - `get-system-state`
-- `windie:invoke` for SDK-shaped conversation and memory commands
-- `set-chatbox-visual-anchor-height`
 - `get-client-user-id`
+- `copy-image-to-clipboard`
+- `show-image-context-menu`
+- `set-chatbox-visual-anchor-height`
+- `set-chatbox-hit-test-active`
+- `set-responsebox-hit-test-active`
+- `set-responsebox-size`
+- `prime-response-overlay-awaiting`
+- `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `get-main-window-visibility`
+- `show-chatbox`
+- `activate-chatbox-text-entry`
+- `hide-chatbox`
 - `handoff-surface-for-computer-use`
 - `prepare-surface-for-screenshot`
 - `restore-surface-after-screenshot`
-- `set-responsebox-size`
-- `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
-- `show-chatbox`
-- `hide-chatbox`
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
+- `list-agent-extensions`
+- `list-mcp-servers`
+- `set-mcp-server-enabled`
+- `refresh-mcp-servers`
+- `openai-codex-oauth-login`
+- `openai-codex-oauth-logout`
 - `list-permissions`
 - `check-permissions`
 - `check-permission`
 - `run-permission-probe`
 - `request-permission`
+- `set-active-workspace`
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
+- `get-local-backend-status`
 
 Memory list/delete/clear and chat clear are intentionally absent from direct
 `window.ipc.invoke` preload channels. Renderer memory UI uses SDK-shaped
@@ -91,17 +112,32 @@ Invalid behavior:
 
 Shared names from `ipcChannels.json`, consumed by preload + `ON_CHANNELS`:
 
-- `from-backend`
+- `windie:rows`
+- `windie:status`
+- `windie:conversation-event`
+- `windie:memory-store-changed`
+- `windie:conversation-metadata-invalidated`
+- `windie:current-turn`
+- `transcript-session-sync`
 - `ipc-status`
+- `local-backend-status`
 - `log`
 - `wakeword-detected`
 - `wakeword-status`
 - `wakeword-toggle`
 - `wakeword-stt-trigger`
 - `chatbox-focus`
+- `workspace-access-updated`
 - `main-window-open-target`
 - `response-overlay-phase`
+- `backend-settings-event`
+- `agent-capability-event`
+- `audio-chunk`
 - `response-overlay-visibility`
+
+Historical note: `from-backend` is not a current listener channel. Main routes
+SDK conversation projections and typed backend events through the specific
+channels above.
 
 Invalid behavior:
 

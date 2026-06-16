@@ -1,7 +1,7 @@
 ---
-summary: "Frontend contracts events docs sub-hub for `from-backend` ingress typing boundaries, audio side-channel parsing, and synthetic renderer-facing query events."
+summary: "Frontend contracts events docs sub-hub for typed backend event fan-out, SDK conversation event guards, audio side-channel parsing, and synthetic renderer-facing query events after the generic `from-backend` removal."
 read_when:
-  - When changing renderer `from-backend` listeners or backend-event type guards.
+  - When changing renderer typed backend event listeners or backend-event type guards.
   - When changing main-process local query event synthesis (`local-user-message`, send-failure `error`).
 title: "Frontend Contracts Events Docs Hub"
 ---
@@ -10,7 +10,7 @@ title: "Frontend Contracts Events Docs Hub"
 
 ## Deep Pages
 
-- [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
+- [Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference](from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
 - [Local User Message and Query Send-Failure Synthesis Reference](local_user_message_and_query_send_failure_synthesis_reference.md)
 - [Settings and Model ACK Event Routing Reference](settings_and_model_ack_event_routing_reference.md)
 - [Frontend Backend Event Schema Docs Hub](schema/README.md)

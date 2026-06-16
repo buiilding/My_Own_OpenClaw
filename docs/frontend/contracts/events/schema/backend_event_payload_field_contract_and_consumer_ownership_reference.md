@@ -144,13 +144,13 @@ Used by:
 
 ## Non-Typed Backend Event Consumers
 
-Not all `from-backend` events use `isBackendEvent`.
+Not all renderer-facing backend events use `isBackendEvent`.
 
 Important untyped paths:
 
-- `audio-chunk`: parsed by `extractAudioChunkPayload(...)`
-- `models-listed`: consumed by `routeConfigBackendEvent(...)`
-- `settings-updated`: consumed by `AppStatusProvider` listener
+- `audio-chunk`: routed to `audio-chunk` and parsed by `extractAudioChunkPayload(...)`
+- `models-listed`: routed to `backend-settings-event` and consumed by `routeConfigBackendEvent(...)`
+- `settings-updated`: routed to `backend-settings-event` and consumed by `AppStatusProvider` listener
 
 This means adding events to backend wire protocol may require both:
 

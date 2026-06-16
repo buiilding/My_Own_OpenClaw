@@ -105,7 +105,10 @@ For each inbound backend frame:
   - `tool-output` -> `awaiting-first-chunk`
   - `streaming-complete` -> `complete`
   - `error` (while non-idle) -> `error`
-- Re-broadcast raw event via `from-backend`
+- Route events to renderer-specific channels: SDK conversation projections on
+  `windie:*`, settings/model events on `backend-settings-event`, capability
+  events on `agent-capability-event`, audio on `audio-chunk`, and overlay phase
+  updates on `response-overlay-phase`
 
 ### Close/Error
 
@@ -138,21 +141,25 @@ State flow:
 
 ## Query Send Lifecycle
 
-`ipcMain.on('to-backend', ...)` behavior:
+`ipcMain.handle('windie:invoke', ...)` behavior for query/settings/model
+commands:
 
-1. Validate message shape (`type` string + object payload).
-2. Fast path: `update-settings` messages call `sendSettingsUpdate(...)` and return.
-3. For `query`/`wakeword-detected`:
-   - await settings gate + pending ACK promise.
-4. For `query` specifically:
+1. Validate SDK command envelope from `window.windie.invoke(command, payload)`.
+2. Route `settings.update` and `models.list` commands through the SDK agent
+   settings/model paths.
+3. For `conversation.send` and `wakeword.detected`:
+   - await settings gate + pending ACK promise when required.
+4. For `conversation.send` specifically:
    - optional chatbox pre-capture hook (`onBeforeOverlayQueryCapture`) for overlay focus safety.
    - create `queryMessageId` and set phase `awaiting-first-chunk`.
    - resolve `conversation_ref` from payload or cached current conversation.
-   - emit synthetic `local-user-message` via `from-backend` (optimistic UX event).
+   - preserve optimistic renderer user rows until the SDK conversation runtime
+     projects the matching user message.
    - normalize backend query fields and preserve required conversation/user identity.
    - leave model-facing memory/attachment content rendering to SDK context enrichment.
 5. Send envelope through the SDK runtime query command router.
-6. If send fails for query, emit synthetic `error` event (`buildQuerySendFailure(...)`) and reset phase to `idle`.
+6. If send fails for query, broadcast SDK/runtime failure projections and reset
+   phase to `idle`.
 7. After successful first query send, flip `isFirstQuery = false`.
 
 ## Outbound Payload Normalization Contract

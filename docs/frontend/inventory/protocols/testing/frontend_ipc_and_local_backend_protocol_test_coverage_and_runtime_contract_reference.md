@@ -105,7 +105,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 `tests/frontend/IpcMainBridge.query.test.cjs` verifies the query branch in `ipc.cjs`:
 
 - overlay pre-capture callback executes only for renderer URLs with `?view=minimal-chat-pill`
-- query send when disconnected emits synthetic `from-backend` error with preserved turn context
+- query send when disconnected emits SDK/runtime failure projections with preserved turn context
 - outbound query payload keeps explicit or resolved `conversation_ref`
 - SDK local `user_message` projection uses the same resolved conversation ref as outbound message
 - query body includes memory sections + user query block
