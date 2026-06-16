@@ -200,7 +200,7 @@ frontend/src/renderer/
 │   │   ├── BackendEndpointStore.ts      # BackendEndpointStore - Renderer backend URL state and artifact URL builder
 │   │
 │   └── transcript/                       # SDK-backed transcript projection helpers
-│       ├── desktopConversationStore.ts  # desktopConversationStore - Desktop adapter around SDK sidecar conversation storage
+│       ├── desktopConversationStore.ts  # desktopConversationStore - Direct SDK conversation command bridge
 │       ├── sdkDisplayChatMessageProjection.ts # sdkDisplayChatMessageProjection - SDK display rows to renderer chat messages
 │       ├── sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
 │       ├── sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter

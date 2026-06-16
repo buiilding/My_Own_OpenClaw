@@ -1,7 +1,8 @@
 ---
-summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, IPC storage contract, and dashboard conversation resume/rehydrate flow."
+summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, direct desktopConversationStore command bridge behavior, removed desktop store write enrichment helpers, IPC storage contract, and dashboard conversation resume/rehydrate flow."
 read_when:
-  - When changing transcript session identity wiring, SDK display projection, or sidecar conversation-store payload shape.
+  - When changing transcript session identity wiring, SDK display projection, desktopConversationStore command bridge behavior, or sidecar conversation-store payload shape.
+  - When resolving stale references to removed desktop conversation-store write enrichment helpers, workspace metadata enrichment, broad screenshot attachment aliases, or renderer persistence reshaping.
   - When debugging missing transcript rows, dashboard resume, or rehydrate mismatches.
   - When changing try-again/edit+resend replay sequencing in `useConversationReplayActions.js`.
 title: "Transcript Session and Rehydrate Reference"
@@ -104,6 +105,14 @@ storage belong to the SDK `SidecarConversationStore` plus the sidecar write/read
 RPCs. Display and backend rehydrate snapshots come from the SDK projection path,
 and backend resume is triggered by the SDK continuity service rather than by
 dashboard or chat feature code.
+
+The removed renderer write-enrichment helpers must not be reintroduced. The
+desktop store no longer normalizes workspace metadata, tool ids, or broad
+screenshot attachment aliases before appending events. It sends canonical SDK
+events through `conversation.appendEvent`, `conversation.rewrite`,
+`conversation.replaceCompactedReplay`, `conversation.load*`, and
+`conversations.*` commands; enrichment belongs behind those SDK/local-runtime
+store commands.
 
 Direct `store-chat-event` calls and replay append mutation are not renderer
 feature-code surfaces; sidecar chat-event RPC names remain inside SDK

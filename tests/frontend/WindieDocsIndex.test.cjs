@@ -868,6 +868,22 @@ describe('windie docs index', () => {
     expect(findDocs('transcriptRecordWrite removed')[0].path).toBe(expectedPath);
   });
 
+  test('routes desktop conversation-store write enrichment queries to transcript docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'transcript_session_and_rehydrate_reference.md',
+    );
+
+    expect(findDocs('desktopConversationStore write enrichment removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('desktop store write enrichment direct SDK command bridge')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes frontend tool manifest builder queries to tool contracts', () => {
     const expectedPath = path.join('docs', 'tools', 'tool_contracts.md');
 
