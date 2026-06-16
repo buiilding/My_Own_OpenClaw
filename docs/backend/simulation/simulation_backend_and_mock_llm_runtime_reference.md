@@ -15,7 +15,6 @@ title: "Simulation Backend and Mock LLM Runtime Reference"
 - `backend/src/simulation/__main__.py`
 - `backend/src/simulation/main.py`
 - `backend/src/simulation/browser.py`
-- `backend/src/simulation/computer.py`
 - `backend/src/simulation/base_mock_llm_client.py`
 - `backend/src/simulation/mock_llm_client.py`
 - `backend/src/simulation/mock_llm_browser_client.py`
@@ -48,12 +47,6 @@ What is replaced:
 - module: `backend.src.simulation.browser`
 - client: `MockLLMBrowserClient`
 - title: `WindieOS (Browser Simulation)`
-
-### Computer alias entrypoint
-
-- module: `backend.src.simulation.computer`
-- alias to default simulation app (`main:app`)
-- uses explicit `uvicorn.run(...)` helper wrapper
 
 ### Package runner
 
@@ -197,4 +190,4 @@ If final completion text appears to vanish:
 
 - [Backend Simulation Docs Hub](README.md)
 - [Backend Simulation Entrypoints Docs Hub](entrypoints/README.md)
-- [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)
+- [Package Runner and Main Module Uvicorn Bootstrap Contract Reference](entrypoints/package_runner_and_main_module_uvicorn_bootstrap_contract_reference.md)

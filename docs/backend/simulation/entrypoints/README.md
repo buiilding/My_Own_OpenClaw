@@ -1,7 +1,7 @@
 ---
-summary: "Backend simulation entrypoint docs sub-hub for package/module launch aliases, direct uvicorn bootstraps, and reload/access-log profile differences."
+summary: "Backend simulation entrypoint docs sub-hub for package/module launch paths and reload/access-log profile differences."
 read_when:
-  - When changing simulation launch modules (`__main__`, `computer.py`, `main.py`) or runner flags.
+  - When changing simulation launch modules (`__main__`, `main.py`) or runner flags.
   - When debugging inconsistent simulation startup behavior between package-runner and explicit module entrypoints.
 title: "Backend Simulation Entrypoints Docs Hub"
 ---
@@ -10,7 +10,7 @@ title: "Backend Simulation Entrypoints Docs Hub"
 
 ## Deep Pages
 
-- [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)
+- [Package Runner and Main Module Uvicorn Bootstrap Contract Reference](package_runner_and_main_module_uvicorn_bootstrap_contract_reference.md)
 
 ## Related Pages
 
@@ -21,6 +21,5 @@ title: "Backend Simulation Entrypoints Docs Hub"
 
 - `backend/src/simulation/__main__.py`
 - `backend/src/simulation/main.py`
-- `backend/src/simulation/computer.py`
 - `backend/src/simulation/app_factory.py`
 - `backend/src/core/bootstrap/entrypoint.py`

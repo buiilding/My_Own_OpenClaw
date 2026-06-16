@@ -22,7 +22,7 @@ Based on current source tree under `backend/src`:
 | `tools` | 40 |
 | `llm` | 39 |
 | `services` | 29 |
-| `simulation` | 10 |
+| `simulation` | 9 |
 | `sdk` | 6 |
 | `embeddings` | 8 |
 | **Total** | **429** |
@@ -140,7 +140,7 @@ SDK:
 
 Simulation:
 
-- `backend/src/simulation/{__main__,main,app_factory,lifespan_factory,mock_llm_client,mock_llm_browser_client,base_mock_llm_client,browser,computer}.py`
+- `backend/src/simulation/{__main__,main,app_factory,lifespan_factory,mock_llm_client,mock_llm_browser_client,base_mock_llm_client,browser}.py`
 
 Embeddings:
 

@@ -1,18 +1,17 @@
 ---
-summary: "Deep reference for simulation entrypoint launch paths: package `-m` runner, main-module shared app factory path, and computer alias direct uvicorn wrapper behavior."
+summary: "Deep reference for simulation entrypoint launch paths: package `-m` runner and main-module shared app factory behavior."
 read_when:
-  - When changing simulation startup scripts and deciding between shared `run_simulation_app` versus direct `uvicorn.run` launchers.
+  - When changing simulation startup scripts.
   - When debugging reload/access-log flag differences across simulation launch commands.
-title: "Package Runner and Module Alias Uvicorn Bootstrap Contract Reference"
+title: "Package Runner and Main Module Uvicorn Bootstrap Contract Reference"
 ---
 
-# Package Runner and Module Alias Uvicorn Bootstrap Contract Reference
+# Package Runner and Main Module Uvicorn Bootstrap Contract Reference
 
 ## Canonical Modules
 
 - `backend/src/simulation/__main__.py`
 - `backend/src/simulation/main.py`
-- `backend/src/simulation/computer.py`
 - `backend/src/simulation/app_factory.py`
 
 ## Package Runner Contract (`python -m backend.src.simulation`)
@@ -34,20 +33,11 @@ title: "Package Runner and Module Alias Uvicorn Bootstrap Contract Reference"
   - `reload=True`
   - `reload_dirs=["backend/src"]`
 
-## Computer Alias Contract (`python -m backend.src.simulation.computer`)
-
-`backend/src/simulation/computer.py`:
-
-- imports `app` from `simulation.main` as alias entrypoint
-- wraps explicit `uvicorn.run` in `run()` helper
-- sets `reload=True` and `reload_dirs=["backend/src"]`
-- uses same `WINDIEOS_LOG_PROFILE` access-log gate as package runner
-
 ## Launch-Path Differences to Keep in Mind
 
 - `__main__.py` path currently has no reload configuration
-- `main.py` and `computer.py` paths enable reload for development
-- all paths target the same app module (`backend.src.simulation.main:app`) and same default host/port
+- `main.py` enables reload for development
+- both paths target the same app module (`backend.src.simulation.main:app`) and same default host/port
 
 ## Drift Hotspots
 

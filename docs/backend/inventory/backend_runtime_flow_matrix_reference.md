@@ -13,7 +13,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 ## Coverage Snapshot (2026-02-27)
 
 - Total backend python files: `429`
-- Domain counts: `agent=83`, `api=119`, `core=93`, `tools=40`, `llm=39`, `services=29`, `simulation=10`, `sdk=6`, `embeddings=8`
+- Domain counts: `agent=83`, `api=119`, `core=93`, `tools=40`, `llm=39`, `services=29`, `simulation=9`, `sdk=6`, `embeddings=8`
 
 ## Core Runtime Flows
 

@@ -23,4 +23,3 @@ title: "Backend Core Logging Docs Hub"
 - `backend/src/core/bootstrap/entrypoint.py`
 - `backend/src/main.py`
 - `backend/src/simulation/__main__.py`
-- `backend/src/simulation/computer.py`

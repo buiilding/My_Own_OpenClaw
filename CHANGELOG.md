@@ -64,6 +64,9 @@ All notable changes to WindieOS will be documented in this file.
   `ToolSelection` value-object path after dev TOML selection loading was removed.
 - frontend/renderer: stop writing the unused config-version localStorage key;
   renderer settings persistence now stores only the sanitized config payload.
+- backend/simulation: delete the `backend.src.simulation.computer` alias
+  entrypoint so default simulation launches only through the package runner or
+  `backend.src.simulation.main`.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`
