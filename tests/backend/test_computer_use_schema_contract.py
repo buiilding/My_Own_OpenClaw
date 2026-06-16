@@ -6,6 +6,10 @@ from pydantic import ValidationError
 
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
+from backend.src.tools.computer.grounding_contract import (
+    DragDestinationGroundingArgsMixin,
+    SourceGroundingArgsMixin,
+)
 from backend.src.tools.computer.schemas import (
     MouseControlArgs,
     ScreenshotToolArgs,
@@ -151,6 +155,26 @@ def test_screenshot_schema_rejects_unknown_legacy_fields():
 
     assert errors
     assert any("Additional properties are not allowed" in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    ("model", "payload"),
+    [
+        (
+            SourceGroundingArgsMixin,
+            {"x": 1, "y": 2, "legacy_coordinate": "ignored-before"},
+        ),
+        (
+            DragDestinationGroundingArgsMixin,
+            {"drag_to_x": 1, "drag_to_y": 2, "legacy_coordinate": "ignored-before"},
+        ),
+    ],
+)
+def test_grounding_mixins_reject_unknown_legacy_fields(model, payload):
+    with pytest.raises(ValidationError):
+        model.model_validate(payload)
+
+    assert model.model_json_schema()["additionalProperties"] is False
 
 
 def test_provider_projection_is_noop_for_openai_computer_tools():

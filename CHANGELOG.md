@@ -100,6 +100,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: preserve top-level `additionalProperties` in backend tool
   specs and make the screenshot direct-tool schema reject unknown legacy fields
   instead of ignoring them.
+- backend/tools: make shared computer grounding argument mixins reject unknown
+  legacy coordinate fields instead of ignoring them.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

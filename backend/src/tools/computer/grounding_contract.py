@@ -32,7 +32,7 @@ def supports_drag_destination_grounding(tool_name: str) -> bool:
 class SourceGroundingArgsMixin(BaseModel):
     """Reusable grounded source-target fields for computer-use tools."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid", protected_namespaces=())
 
     find_coordinates_by: CoordinateFindingMethod = Field(
         CoordinateFindingMethod.MANUAL,
@@ -73,7 +73,7 @@ class SourceGroundingArgsMixin(BaseModel):
 class DragDestinationGroundingArgsMixin(BaseModel):
     """Reusable drag destination fields for grounded drag actions."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid", protected_namespaces=())
 
     drag_to_x: Optional[int] = Field(
         None,

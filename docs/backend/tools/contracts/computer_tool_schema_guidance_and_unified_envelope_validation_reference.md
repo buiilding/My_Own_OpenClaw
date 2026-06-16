@@ -36,6 +36,8 @@ For the computer schema sources touched in `backend/src/tools/computer/schemas.p
 
 `MouseControlArgs` (`extra='forbid'`) enforces coordinate-method-specific requirements:
 
+- shared source and drag-destination grounding mixins also use `extra='forbid'`
+  so schema composition cannot silently accept legacy coordinate fields
 - `find_coordinates_by='manual'`:
   - requires `x` and `y`
   - omitted `find_coordinates_by` is treated as the same default manual mode by both runtime validation and exported JSON Schema
@@ -138,7 +140,7 @@ Focused backend tests now lock the structural pruning contract plus the stable d
 
 1. Reintroducing tool-selection prose rewrites would create a second schema-authoring layer and reintroduce drift.
 2. Adding cross-tool operational advice back into individual tool descriptions makes pruning harder and encourages stale references.
-3. Removing `extra='forbid'` on core computer schemas can silently accept unsupported fields and hide malformed payloads.
+3. Removing `extra='forbid'` on core computer schemas or their shared grounding mixins can silently accept unsupported fields and hide malformed payloads.
 4. Adding strict backend keyboard action validators without aligned sidecar/runtime and parser test updates can introduce cross-layer behavior drift.
 
 ## Related Docs
