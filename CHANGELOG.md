@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: simplify the agent routing guide while preserving ownership,
+  validation, tool-contract, and git workflow rules.
 - frontend/chat: remove unused public message screenshot source helpers while
   keeping production attachment normalization and static screenshot resolution.
 - frontend/chat: keep the resolved screenshot artifact cache internal instead
