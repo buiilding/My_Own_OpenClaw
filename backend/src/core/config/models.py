@@ -120,8 +120,6 @@ class LLMProviders(BaseModel):
     def get_provider_config(self, provider_name: str):
         """Gets the configuration for a specific provider."""
         normalized = provider_name.lower().replace("-", "_")
-        if normalized == "kimi_code":
-            normalized = "kimi_coding"
         if not hasattr(self, normalized):
             raise ValueError(f"Unknown provider: {provider_name}")
         return getattr(self, normalized)
@@ -147,10 +145,8 @@ class ProviderApiKeys(BaseModel):
     def get_provider_override(
         self, provider_name: str
     ) -> Optional[ProviderApiKeyOverride]:
-        """Resolve provider override config with provider alias normalization."""
+        """Resolve provider override config from current provider keys."""
         normalized = provider_name.lower().replace("-", "_")
-        if normalized == "kimi_code":
-            normalized = "kimi_coding"
         if normalized == "gemini":
             normalized = "google"
         if not hasattr(self, normalized):

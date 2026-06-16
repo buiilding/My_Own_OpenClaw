@@ -33,7 +33,7 @@ Runtime path:
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `model_mode` | `"local" \| "online"` | `"online"` | Local mode skips API key loading. |
-| `model_provider` | `str` | `"openai"` | Normalized (`-` -> `_`); `kimi_code` maps to `kimi_coding`. |
+| `model_provider` | `str` | `"openai"` | Normalized (`-` -> `_`) for config lookup. Kimi uses `kimi_coding` / `kimi-coding`; old `kimi_code` / `kimi-code` provider aliases are rejected. |
 | `selected_model_id` | `str` | `"gpt-5.4@@gpt-5-4-none-thinking"` | Combined with provider into `llm_model` property when online mode. |
 | `llm_timeout` | `int` | `300` | Provider completion timeout. |
 | `query_timeout` | `int` | `600` | Query-level timeout budget. |

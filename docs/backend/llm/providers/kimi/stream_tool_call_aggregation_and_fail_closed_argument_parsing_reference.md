@@ -36,11 +36,11 @@ Kimi-specific request behavior:
 
 - `kimi-for-coding` -> `k2p5`
 - `kimi-coding/<id>` -> `<id>`
-- `kimi-code/<id>` -> `<id>`
 - `anthropic/<id>` -> `<id>`
 - any other value passes through
 
-This keeps transport model IDs aligned to Kimi endpoint expectations while allowing compatibility aliases in user config.
+This keeps transport model IDs aligned to Kimi endpoint expectations. User
+config and provider selection must use `kimi-coding` / `kimi_coding`.
 
 ## Delta Aggregation Sources
 

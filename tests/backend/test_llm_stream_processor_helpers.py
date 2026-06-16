@@ -80,11 +80,20 @@ def test_resolve_prompt_cache_key_for_provider_prefers_conversation_ref():
     assert key == "conv-123"
 
     fallback_key = resolve_prompt_cache_key_for_provider(
-        provider_name="kimi_code",
+        provider_name="kimi_coding",
         active_conversation_ref="",
         session_id="sess-123",
     )
     assert fallback_key == "sess-123"
+
+    assert (
+        resolve_prompt_cache_key_for_provider(
+            provider_name="kimi_code",
+            active_conversation_ref="conv",
+            session_id="sess",
+        )
+        is None
+    )
 
     assert (
         resolve_prompt_cache_key_for_provider(

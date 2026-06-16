@@ -39,8 +39,6 @@ class KimiCodingProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):
             return "k2p5"
         if model_id.startswith("kimi-coding/"):
             return model_id.split("/", 1)[1]
-        if model_id.startswith("kimi-code/"):
-            return model_id.split("/", 1)[1]
         if model_id.startswith("anthropic/"):
             return model_id.split("/", 1)[1]
         return model_id

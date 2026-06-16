@@ -1,5 +1,7 @@
 """Covers provider factory helpers behavior in the backend test suite."""
 
+import pytest
+
 import backend.src.llm.providers as providers_module
 from backend.src.core.config.models import (
     AppConfig,
@@ -41,9 +43,11 @@ def test_normalize_base_url_strips_whitespace_and_trailing_slash():
     assert providers_module._normalize_base_url("/", "http://default") == "http://default"
 
 
-def test_normalize_provider_name_handles_aliases_and_spacing():
-    assert providers_module._normalize_provider_name(" KIMI_CODE ") == "kimi-coding"
-    assert providers_module._normalize_provider_name("kimi code") == "kimi-coding"
+def test_normalize_provider_name_accepts_current_kimi_forms_only():
+    assert providers_module._normalize_provider_name(" kimi-coding ") == "kimi-coding"
+    assert providers_module._normalize_provider_name("kimi_coding") == "kimi-coding"
+    assert providers_module._normalize_provider_name(" KIMI_CODE ") == "kimi_code"
+    assert providers_module._normalize_provider_name("kimi code") == "kimi-code"
     assert providers_module._normalize_provider_name("OpenAI") == "openai"
 
 
@@ -131,7 +135,7 @@ def test_create_provider_factory_cache_key_normalizes_kimi_v1_suffix(monkeypatch
     assert first_factory["kimi-coding"].kwargs["base_url"] == "https://api.kimi.com/coding"
 
 
-def test_get_provider_accepts_kimi_alias(monkeypatch):
+def test_get_provider_accepts_current_kimi_provider_key(monkeypatch):
     kimi_provider = object()
     monkeypatch.setattr(
         providers_module,
@@ -139,6 +143,18 @@ def test_get_provider_accepts_kimi_alias(monkeypatch):
         lambda _cfg: {"kimi-coding": kimi_provider},
     )
 
-    provider = providers_module.get_provider(AppConfig(), "kimi_code")
+    provider = providers_module.get_provider(AppConfig(), "kimi-coding")
 
     assert provider is kimi_provider
+
+
+def test_get_provider_rejects_old_kimi_code_alias(monkeypatch):
+    kimi_provider = object()
+    monkeypatch.setattr(
+        providers_module,
+        "create_provider_factory",
+        lambda _cfg: {"kimi-coding": kimi_provider},
+    )
+
+    with pytest.raises(ValueError, match="kimi_code"):
+        providers_module.get_provider(AppConfig(), "kimi_code")

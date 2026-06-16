@@ -118,7 +118,6 @@ Provider factory also canonicalizes Kimi URL key (`/v1` stripped) to avoid cache
 
 - `kimi-for-coding` -> `k2p5`
 - `kimi-coding/<id>` -> `<id>`
-- `kimi-code/<id>` -> `<id>`
 - `anthropic/<id>` -> `<id>`
 - otherwise passthrough
 
@@ -198,12 +197,13 @@ Detailed local-provider runtime behavior:
 - [Local Provider HTTP Client Docs Hub](local/http_client/README.md)
 - [Shared Async Client Lifecycle and Finalizer Cleanup Runtime Reference](local/http_client/shared_async_client_lifecycle_and_finalizer_cleanup_runtime_reference.md)
 
-## Provider Factory and Alias Normalization
+## Provider Factory and Key Normalization
 
 Provider factory normalization from `providers/__init__.py`:
 
-- provider aliases:
-  - `kimi-code`, `kimi_code`, `kimi-coding`, `kimi_coding` -> `kimi-coding`
+- provider keys:
+  - `kimi-coding`, `kimi_coding` -> `kimi-coding`
+  - old `kimi-code` / `kimi_code` provider aliases are rejected
 - trailing slash stripped from provider URLs for stable cache keys.
 - timeout conversion:
   - defaults invalid values,

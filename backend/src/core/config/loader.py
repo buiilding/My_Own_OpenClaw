@@ -86,8 +86,6 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
 
     provider_name = cfg.model_provider
     normalized_provider = provider_name.lower().replace("-", "_")
-    if normalized_provider == "kimi_code":
-        normalized_provider = "kimi_coding"
     if normalized_provider == "gemini":
         normalized_provider = "google"
     logger.info(

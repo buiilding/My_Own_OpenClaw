@@ -28,7 +28,7 @@ def _normalize_base_url(base_url: Optional[str], default: str) -> str:
 
 def _normalize_provider_name(provider_name: str) -> str:
     normalized = provider_name.lower().strip().replace(" ", "-")
-    if normalized in ("kimi-code", "kimi_code", "kimi-coding", "kimi_coding"):
+    if normalized in ("kimi-coding", "kimi_coding"):
         return "kimi-coding"
     return normalized
 
@@ -63,7 +63,7 @@ def _canonicalize_provider_urls(cfg: AppConfig) -> Tuple[str, str, str, str]:
     Extract and canonicalize provider base URLs from config.
     
     Returns:
-        Tuple of (ollama_url, lmstudio_url, openrouter_url, kimi_code_url) with defaults applied
+        Tuple of (ollama_url, lmstudio_url, openrouter_url, kimi_coding_url) with defaults applied
     """
     providers = cfg.llm_providers
 
@@ -79,16 +79,16 @@ def _canonicalize_provider_urls(cfg: AppConfig) -> Tuple[str, str, str, str]:
         providers.openrouter.base_url if providers and providers.openrouter else None,
         "https://openrouter.ai/api/v1",
     )
-    kimi_code_url = _normalize_base_url(
+    kimi_coding_url = _normalize_base_url(
         providers.kimi_coding.base_url if providers and providers.kimi_coding else None,
         "https://api.kimi.com/coding/v1",
     )
     # Kimi provider accepts both .../coding and .../coding/v1; canonicalize to one
     # to avoid duplicated provider-factory cache entries for equivalent configs.
-    if kimi_code_url.endswith("/v1"):
-        kimi_code_url = kimi_code_url[: -len("/v1")]
+    if kimi_coding_url.endswith("/v1"):
+        kimi_coding_url = kimi_coding_url[: -len("/v1")]
     
-    return (ollama_url, lmstudio_url, openrouter_url, kimi_code_url)
+    return (ollama_url, lmstudio_url, openrouter_url, kimi_coding_url)
 
 
 def _register_provider(
@@ -113,7 +113,7 @@ def _create_cached_provider_factory(
     ollama_url: str,
     lmstudio_url: str,
     openrouter_url: str,
-    kimi_code_url: str,
+    kimi_coding_url: str,
 ) -> Dict[str, LLMProvider]:
     """
     Internal cached factory that creates provider instances.
@@ -190,7 +190,7 @@ def _create_cached_provider_factory(
             label="Kimi Coding",
             provider_cls=KimiCodingProvider,
             api_key=api_key,
-            base_url=kimi_code_url,
+            base_url=kimi_coding_url,
             timeout=timeout,
         )
 
@@ -234,7 +234,7 @@ def create_provider_factory(
     from the global config structure (Law of Demeter compliance).
     """
     # Extract and canonicalize provider URLs
-    ollama_url, lmstudio_url, openrouter_url, kimi_code_url = _canonicalize_provider_urls(cfg)
+    ollama_url, lmstudio_url, openrouter_url, kimi_coding_url = _canonicalize_provider_urls(cfg)
     
     # Convert timeout to string for cache key consistency (handles None/edge cases)
     timeout_str = str(cfg.llm_timeout) if cfg.llm_timeout is not None else "60.0"
@@ -246,7 +246,7 @@ def create_provider_factory(
         ollama_url=ollama_url,
         lmstudio_url=lmstudio_url,
         openrouter_url=openrouter_url,
-        kimi_code_url=kimi_code_url,
+        kimi_coding_url=kimi_coding_url,
     )
 
 

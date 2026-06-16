@@ -29,7 +29,7 @@ Embedding vendor mode also defaults to `OPENAI_API_KEY`.
 
 ## Frontend-Managed Provider Overrides
 
-`ProviderApiKeys` in `backend/src/core/config/models.py` defines frontend-managed key overrides. Provider aliases are normalized, including `gemini` to `google` and `kimi-code` to `kimi_coding`.
+`ProviderApiKeys` in `backend/src/core/config/models.py` defines frontend-managed key overrides. Provider aliases normalize `gemini` to `google`. Kimi key overrides use the canonical config field `kimi_coding`; old `kimi-code`/`kimi_code` aliases are not accepted for credential lookup.
 
 Use these overrides only through the config/settings path. Do not bypass the backend config service.
 

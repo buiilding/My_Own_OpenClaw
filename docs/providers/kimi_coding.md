@@ -1,8 +1,9 @@
 ---
-summary: "Kimi Coding provider guide for WindieOS covering Anthropic-compatible routing, base URL normalization, streaming tool-call aggregation, aliases, and tests."
+summary: "Kimi Coding provider guide for WindieOS covering Anthropic-compatible routing, base URL normalization, streaming tool-call aggregation, provider-name forms, and tests."
 read_when:
-  - When changing Kimi Coding provider behavior, model aliases, base URL normalization, streaming tool-call parsing, or credentials.
+  - When changing Kimi Coding provider behavior, model prefixes, provider-name forms, base URL normalization, streaming tool-call parsing, or credentials.
   - When debugging Kimi tool calls, thinking streams, or provider factory registration.
+  - When resolving old `kimi_code` / `kimi-code` provider alias rejected errors in config, credential override, provider factory, or prompt-cache-key routing.
 title: "Kimi Coding Provider"
 ---
 
@@ -15,8 +16,8 @@ WindieOS treats Kimi Coding as an Anthropic-compatible online provider with Kimi
 | Concern | Files |
 | --- | --- |
 | Provider class | `backend/src/llm/providers/kimi_coding.py` |
-| Provider factory aliases | `backend/src/llm/providers/__init__.py` |
-| Config aliases and env fallback | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py` |
+| Provider factory routing | `backend/src/llm/providers/__init__.py` |
+| Config provider fields and env fallback | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py` |
 | Model catalog/variants | `backend/src/llm/models/models_config.py` |
 | Streamed tool-call aggregation | `backend/src/llm/providers/streaming_tool_call_aggregation.py` |
 
@@ -27,20 +28,22 @@ WindieOS treats Kimi Coding as an Anthropic-compatible online provider with Kimi
 - defaults to `https://api.kimi.com/coding`,
 - strips a trailing `/v1` from configured base URLs,
 - maps `kimi-for-coding` to runtime model id `k2p5`,
-- strips `kimi-coding/`, `kimi-code/`, and `anthropic/` prefixes before sending the model id,
+- strips `kimi-coding/` and `anthropic/` prefixes before sending the model id,
 - sets `custom_llm_provider = "anthropic"`,
 - supports streaming tool turns through `StreamingToolCallAggregationMixin`.
 
-## Names And Aliases
+## Names And Prefixes
 
-Provider-name aliases are normalized in the factory:
+Current provider names:
 
-- `kimi-code`
-- `kimi_code`
 - `kimi-coding`
 - `kimi_coding`
 
-Config models use `kimi_coding`; backend provider keys use `kimi-coding`.
+The old provider/config aliases `kimi-code` and `kimi_code` are not accepted by
+config lookup, API-key override lookup, provider factory selection, Kimi
+prompt-cache-key steering, or model-id prefix normalization.
+
+Config models use `kimi_coding`; runtime provider keys use `kimi-coding`.
 
 Credential loading checks:
 
@@ -52,7 +55,8 @@ Credential loading checks:
 When changing Kimi behavior:
 
 - Keep base URL canonicalization in both config/factory and provider constructor aligned.
-- Keep provider key aliases compatible across config, model catalog, and factory lookup.
+- Keep provider names aligned across config, credentials, model catalog, prompt
+  cache steering, and factory lookup.
 - Preserve `custom_llm_provider = "anthropic"` unless the upstream runtime changes.
 - Add tests for stream tool-call parsing when changing payload handling.
 

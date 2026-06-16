@@ -75,8 +75,6 @@ def resolve_prompt_cache_key_for_provider(
     Uses active conversation identity when available and falls back to session id.
     """
     normalized_provider_name = str(provider_name or "").strip().lower().replace("_", "-")
-    if normalized_provider_name in ("kimi-code", "kimi-coding"):
-        normalized_provider_name = "kimi-coding"
     if normalized_provider_name != "kimi-coding":
         return None
 

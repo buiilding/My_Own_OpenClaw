@@ -127,6 +127,15 @@ def _build_block_tool_use_chunk(
     return {"choices": [choice]}
 
 
+def test_get_full_model_string_accepts_current_kimi_prefixes_only():
+    provider = KimiCodingProvider(api_key="test-key")
+
+    assert provider._get_full_model_string("kimi-for-coding") == "k2p5"
+    assert provider._get_full_model_string("kimi-coding/k2p5") == "k2p5"
+    assert provider._get_full_model_string("anthropic/claude-sonnet") == "claude-sonnet"
+    assert provider._get_full_model_string("kimi-code/k2p5") == "kimi-code/k2p5"
+
+
 def test_kimi_provider_supports_streaming_tool_turns():
     provider = KimiCodingProvider(api_key="test-key")
     assert provider.supports_streaming_tool_turns("k2p5") is True

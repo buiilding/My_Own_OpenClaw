@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
   snake_case backend tool-call and tool-bundle payload fields only.
 - docs/sdk: clarify that TypeScript local tool execution requires SDK-shaped
   tool-call and tool-bundle events after backend event normalization.
+- docs/providers: clarify that Kimi accepts `kimi-coding`/`kimi_coding`
+  provider names while old `kimi-code`/`kimi_code` aliases are rejected.
 - docs/navigation: replace broken formatter, memory IPC, overlay, and browser
   runtime links with current maintained references.
 - docs/testing: add a docs-index guard for broken relative markdown links in
@@ -73,6 +75,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/agent: require structured provider metadata for recoverable malformed
   tool-call errors instead of parsing legacy/mock error strings for ids,
   names, or raw argument previews.
+- backend/providers: remove old Kimi `kimi_code` / `kimi-code` provider and
+  model-prefix aliases; Kimi now uses only `kimi_coding` config fields and the
+  `kimi-coding` runtime provider key.
 - backend/agent: remove duplicate screenshot capture metadata normalization
   from `ScreenshotManager`; active screenshot state owns metadata normalization.
 - docs/frontend: route removed renderer backend-event contract and chat

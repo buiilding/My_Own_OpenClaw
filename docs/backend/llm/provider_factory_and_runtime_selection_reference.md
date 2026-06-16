@@ -40,7 +40,9 @@ Cache key inputs are primitives only:
 
 Normalization behaviors:
 
-- provider name aliases (`kimi-code`, `kimi_code`, etc.) collapse to `kimi-coding`
+- Kimi provider names `kimi-coding` and `kimi_coding` collapse to
+  `kimi-coding`; old `kimi-code` / `kimi_code` provider aliases are not
+  accepted
 - base URLs trimmed and trailing slash normalized
 - Kimi URL canonicalized to avoid duplicated cache keys for equivalent `/coding` vs `/coding/v1`
 - timeout converted safely with finite/range checks (min floor, max cap)

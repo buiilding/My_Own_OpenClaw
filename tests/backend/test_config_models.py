@@ -144,13 +144,18 @@ class TestLLMProviders:
 
     def test_get_provider_config_with_dashes(self):
         providers = LLMProviders()
-        config = providers.get_provider_config("kimi-code")
+        config = providers.get_provider_config("kimi-coding")
         assert isinstance(config, KimiCodingConfig)
 
     def test_get_provider_config_kimi_coding(self):
         providers = LLMProviders()
         config = providers.get_provider_config("kimi_coding")
         assert isinstance(config, KimiCodingConfig)
+
+    def test_get_provider_config_rejects_old_kimi_code_alias(self):
+        providers = LLMProviders()
+        with pytest.raises(ValueError, match="Unknown provider: kimi_code"):
+            providers.get_provider_config("kimi_code")
 
     def test_get_provider_config_unknown(self):
         providers = LLMProviders()
