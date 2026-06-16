@@ -130,7 +130,8 @@ Date: 2026-06-15
   completed CD-032.
 - `961ca09e9 refactor(frontend): keep compaction paint helper private`
   completed CD-033.
-- pending commit for CD-034.
+- `bc4f62813 refactor(frontend): remove transcript payload helpers`
+  completed CD-034.
 
 ## Validation Log
 
