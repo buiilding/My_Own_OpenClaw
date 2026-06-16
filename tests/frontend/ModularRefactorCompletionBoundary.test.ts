@@ -45,8 +45,8 @@ describe('modular sdk refactor completion boundary', () => {
   test('renderer live-turn runtime stays on sdk command dispatch', async () => {
     const source = await read('frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts');
 
-    expect(source).toContain("invokeWindieCommand('conversation.send'");
-    expect(source).toContain("invokeWindieCommand('conversation.stop'");
+    expect(source).toContain('invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
+    expect(source).toContain('invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(source).not.toContain('createConversationRuntime');
     expect(source).not.toContain('DesktopSettingsRuntimeClient');
     expect(source).not.toContain('DesktopBackendCommandRuntimeClient');

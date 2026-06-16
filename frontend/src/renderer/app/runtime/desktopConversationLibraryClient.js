@@ -5,6 +5,7 @@
 import {
   DesktopConversationContinuityService,
 } from './desktopConversationContinuityService';
+import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/windieSdkClient';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH = 'conversation.metadata.list';
@@ -58,7 +59,7 @@ function emitConversationListDiagnostic(context, event) {
       }
       : null,
   };
-  void Promise.resolve(invokeWindieCommand('diagnostics.append', payload)).catch(() => undefined);
+  void Promise.resolve(invokeWindieCommand(SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND, payload)).catch(() => undefined);
 }
 
 function metadataToDashboardConversation(metadata) {
@@ -106,7 +107,7 @@ export const DesktopConversationLibraryClient = {
       },
     });
     try {
-      const metadata = await invokeWindieCommand('conversations.list', {
+      const metadata = await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST, {
         userId,
         limit: options?.limit,
         _diagnostics: diagnostics,
@@ -161,7 +162,7 @@ export const DesktopConversationLibraryClient = {
   },
 
   async loadForDisplay(userId, conversationRef) {
-    const snapshot = await invokeWindieCommand('conversation.loadDisplay', {
+    const snapshot = await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
       userId,
       conversationRef,
     });
@@ -169,7 +170,7 @@ export const DesktopConversationLibraryClient = {
   },
 
   async loadDisplayRows(userId, conversationRef) {
-    const snapshot = await invokeWindieCommand('conversation.loadDisplay', {
+    const snapshot = await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
       userId,
       conversationRef,
     });
@@ -179,14 +180,14 @@ export const DesktopConversationLibraryClient = {
   },
 
   async deleteConversation(userId, conversationRef) {
-    await invokeWindieCommand('conversations.delete', {
+    await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE, {
       userId,
       conversationRef,
     });
   },
 
   async searchConversations(input) {
-    const metadata = await invokeWindieCommand('conversations.search', {
+    const metadata = await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH, {
       userId: input.userId,
       query: input.query,
       limit: input.limit,

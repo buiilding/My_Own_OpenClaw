@@ -7,6 +7,7 @@ import {
   WindieSdkClient,
   InMemoryConversationStore,
   SdkConversationRuntime,
+  SDK_RUNTIME_COMMANDS,
   ToolExecutionCoordinator,
   buildDisplayConversation,
   createConversationRuntime,
@@ -24,6 +25,7 @@ describe('@windie/sdk package boundary', () => {
     expect(WindieSdkClient).toBeDefined();
     expect(InMemoryConversationStore).toBeDefined();
     expect(SdkConversationRuntime).toBeDefined();
+    expect(SDK_RUNTIME_COMMANDS).toBeDefined();
     expect(createConversationRuntime).toBeDefined();
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(buildDisplayConversation).toBeDefined();
@@ -71,5 +73,19 @@ describe('@windie/sdk package boundary', () => {
         model_facing_tool_call: { id: ' model-facing-call-1 ' },
       },
     })).toBe('model-facing-call-1');
+  });
+
+  test('exports SDK-shaped host command names', () => {
+    expect(SDK_RUNTIME_COMMANDS).toEqual(expect.objectContaining({
+      CONVERSATION_SEND: 'conversation.send',
+      CONVERSATION_STOP: 'conversation.stop',
+      CONVERSATION_REHYDRATE: 'conversation.rehydrate',
+      CONVERSATIONS_LIST: 'conversations.list',
+      MEMORIES_LIST: 'memories.list',
+      SETTINGS_UPDATE: 'settings.update',
+      MODELS_LIST: 'models.list',
+      WAKEWORD_DETECTED: 'wakeword.detected',
+      DIAGNOSTICS_APPEND: 'diagnostics.append',
+    }));
   });
 });

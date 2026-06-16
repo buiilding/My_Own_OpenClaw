@@ -1,5 +1,5 @@
 ---
-summary: "Filesystem and shell tool guide covering read/replace, shell commands, process sessions, Linux sudo pkexec prompting, removed sudo auth-mode compatibility paths, path resolution, and output formatting."
+summary: "Filesystem and shell tool guide covering read/replace, shell commands, process sessions, Linux sudo pkexec prompting, removed sudo auth-mode behavior, path resolution, and output formatting."
 read_when:
   - When changing file editing, shell/process execution, output truncation, or sidecar path handling.
   - When debugging `run_shell_command` sudo behavior, Linux pkexec prompting, shell working directories, or process sessions.
@@ -44,9 +44,9 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
 - Use background sessions only when command output needs polling or the process must outlive the immediate request.
 - Use `process` for high-volume or long-running command output.
 
-## Removed Sudo Compatibility Path
+## Removed Sudo Auth Mode
 
-The old Electron sudo compatibility path was deleted. There is no
+The old Electron sudo auth-mode bridge was deleted. There is no
 `agent_sudo_access_handler`, `AgentSudoAccessHandler.test.cjs`, backend
 `system_use_shell_auth_mode` message field, renderer sudo auth mode setting, or
 local-backend bridge argument that selects a separate shell authentication mode.
@@ -57,8 +57,8 @@ prompt routing.
 Current behavior is simpler: local `run_shell_command` executes in the sidecar,
 and on Linux a leading `sudo ...` command is rewritten to `pkexec bash -lc ...`
 so the OS owns the authentication prompt. Searches for removed sudo auth mode
-compatibility behavior should route to this page and the sidecar shell runtime
-reference below.
+behavior should route to this page and the sidecar shell runtime reference
+below.
 
 ## Deep Docs
 

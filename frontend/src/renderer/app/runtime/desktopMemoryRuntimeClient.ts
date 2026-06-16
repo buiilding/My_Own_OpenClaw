@@ -3,6 +3,7 @@
  */
 
 import { invokeWindieCommand } from './windieCommandInvokeClient';
+import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/windieSdkClient';
 
 type MemoryKind = 'episodic' | 'semantic';
 
@@ -11,7 +12,7 @@ type MemoryListData = {
 };
 
 async function listMemories(type: MemoryKind, limit: number): Promise<unknown[]> {
-  const data = await invokeWindieCommand<MemoryListData>('memories.list', {
+  const data = await invokeWindieCommand<MemoryListData>(SDK_RUNTIME_COMMANDS.MEMORIES_LIST, {
     type,
     limit,
   });
@@ -31,7 +32,7 @@ export const DesktopMemoryRuntimeClient = {
     memoryId: string;
     kind: MemoryKind;
   }): Promise<void> {
-    const data = await invokeWindieCommand<{ deleted?: boolean }>('memories.delete', {
+    const data = await invokeWindieCommand<{ deleted?: boolean }>(SDK_RUNTIME_COMMANDS.MEMORIES_DELETE, {
       type: input.kind,
       memoryId: input.memoryId,
     });
@@ -41,10 +42,10 @@ export const DesktopMemoryRuntimeClient = {
   },
 
   async clearLocalMemory(): Promise<unknown> {
-    return invokeWindieCommand('memories.clearAll', {});
+    return invokeWindieCommand(SDK_RUNTIME_COMMANDS.MEMORIES_CLEAR_ALL, {});
   },
 
   async clearChatHistory(userId: string): Promise<unknown> {
-    return invokeWindieCommand('conversations.clearAll', { userId });
+    return invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL, { userId });
   },
 };

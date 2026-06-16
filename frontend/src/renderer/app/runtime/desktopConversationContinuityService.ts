@@ -4,6 +4,7 @@
 
 import {
   ConversationContinuityService,
+  SDK_RUNTIME_COMMANDS,
   type JsonRecord,
   type WindieModelSelection,
   type ListConversationOptions,
@@ -75,17 +76,20 @@ function metadataToDashboardConversation(metadata: ConversationMetadata) {
 
 export const DesktopConversationContinuityService = {
   listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-    return invokeWindieCommand('conversations.list', {
+    return invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST, {
       userId,
       limit: options?.limit,
     });
   },
 
   async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    const snapshot = await invokeWindieCommand<{ display?: DisplayConversation }>('conversation.loadDisplay', {
-      userId,
-      conversationRef,
-    });
+    const snapshot = await invokeWindieCommand<{ display?: DisplayConversation }>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
+      {
+        userId,
+        conversationRef,
+      },
+    );
     return snapshot?.display ?? {
       conversationRef,
       revisionId: '',
@@ -95,10 +99,13 @@ export const DesktopConversationContinuityService = {
   },
 
   async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    const snapshot = await invokeWindieCommand<{ displayRows?: SdkDisplayRow[] }>('conversation.loadDisplay', {
-      userId,
-      conversationRef,
-    });
+    const snapshot = await invokeWindieCommand<{ displayRows?: SdkDisplayRow[] }>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
+      {
+        userId,
+        conversationRef,
+      },
+    );
     return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
   },
 
@@ -111,15 +118,18 @@ export const DesktopConversationContinuityService = {
   },
 
   async prepareEditAndResend(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const prepared = await invokeWindieCommand<PreparedReplayTurn>('conversation.prepareEditAndResend', {
-      userId: input.userId,
-      conversationRef: input.conversationRef,
-      messageId: input.messageId,
-      text: input.text ?? '',
-      payload: input.payload,
-      model: input.model ?? undefined,
-      workspace_path: input.workspacePath ?? null,
-    });
+    const prepared = await invokeWindieCommand<PreparedReplayTurn>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        messageId: input.messageId,
+        text: input.text ?? '',
+        payload: input.payload,
+        model: input.model ?? undefined,
+        workspace_path: input.workspacePath ?? null,
+      },
+    );
     return {
       conversationRef: input.conversationRef,
       text: prepared.text,
@@ -131,14 +141,17 @@ export const DesktopConversationContinuityService = {
   },
 
   async prepareRetryTurn(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const prepared = await invokeWindieCommand<PreparedReplayTurn>('conversation.prepareRetryTurn', {
-      userId: input.userId,
-      conversationRef: input.conversationRef,
-      messageId: input.messageId,
-      payload: input.payload,
-      model: input.model ?? undefined,
-      workspace_path: input.workspacePath ?? null,
-    });
+    const prepared = await invokeWindieCommand<PreparedReplayTurn>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        messageId: input.messageId,
+        payload: input.payload,
+        model: input.model ?? undefined,
+        workspace_path: input.workspacePath ?? null,
+      },
+    );
     return {
       conversationRef: input.conversationRef,
       text: prepared.text,
@@ -155,7 +168,7 @@ export const DesktopConversationContinuityService = {
     if (!resolvedConversationRef) {
       return;
     }
-    await invokeWindieCommand('conversation.compact', {
+    await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
       force,
       conversation_ref: resolvedConversationRef,
     });
@@ -169,14 +182,14 @@ export const DesktopConversationContinuityService = {
   },
 
   deleteConversation(userId: string, conversationRef: string) {
-    return invokeWindieCommand('conversations.delete', {
+    return invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE, {
       userId,
       conversationRef,
     });
   },
 
   async searchConversations(input: SearchConversationsInput) {
-    const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.search', {
+    const metadata = await invokeWindieCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH, {
       userId: input.userId,
       query: input.query,
       limit: input.limit,

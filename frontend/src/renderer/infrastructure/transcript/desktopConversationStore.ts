@@ -4,6 +4,7 @@
 
 import {
   buildTraceTimeline,
+  SDK_RUNTIME_COMMANDS,
   type CompactedReplaySnapshot,
   type ConversationMetadata,
   type ConversationRewritePlan,
@@ -29,7 +30,7 @@ export function createDesktopConversationStore(
 ): ConversationStore {
   return {
     async appendEvent(event: ConversationEvent): Promise<void> {
-      await invokeWindieCommand('conversation.appendEvent', {
+      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_APPEND_EVENT, {
         userId,
         conversationRef: event.conversationRef,
         event,
@@ -41,14 +42,14 @@ export function createDesktopConversationStore(
       }
     },
     async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-      await invokeWindieCommand('conversation.rewrite', {
+      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REWRITE, {
         userId,
         conversationRef: plan.conversationRef,
         plan,
       });
     },
     async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
-      await invokeWindieCommand('conversation.replaceCompactedReplay', {
+      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY, {
         userId,
         conversationRef: snapshot.conversationRef,
         snapshot,
@@ -57,7 +58,7 @@ export function createDesktopConversationStore(
     async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
       const snapshot = await invokeWindieCommand<{
         state?: { events?: ConversationEvent[] };
-      }>('conversation.load', {
+      }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD, {
         userId,
         conversationRef,
       });
@@ -66,7 +67,7 @@ export function createDesktopConversationStore(
     async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
       const snapshot = await invokeWindieCommand<{
         display?: DisplayConversation;
-      }>('conversation.loadDisplay', {
+      }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
         userId,
         conversationRef,
       });
@@ -80,7 +81,7 @@ export function createDesktopConversationStore(
     async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
       const snapshot = await invokeWindieCommand<{
         displayRows?: SdkDisplayRow[];
-      }>('conversation.loadDisplay', {
+      }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
         userId,
         conversationRef,
       });
@@ -89,7 +90,7 @@ export function createDesktopConversationStore(
     async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
       const snapshot = await invokeWindieCommand<{
         rehydrate?: RehydrateSnapshot;
-      }>('conversation.loadRehydrate', {
+      }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_REHYDRATE, {
         userId,
         conversationRef,
       });
@@ -100,14 +101,14 @@ export function createDesktopConversationStore(
       };
     },
     async listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-      const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.list', {
+      const metadata = await invokeWindieCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST, {
         userId,
         limit: options?.limit,
       });
       return Array.isArray(metadata) ? metadata : [];
     },
     async searchMetadata(options: SearchConversationOptions): Promise<ConversationMetadata[]> {
-      const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.search', {
+      const metadata = await invokeWindieCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH, {
         userId,
         query: options.query,
         limit: options.limit,
@@ -115,18 +116,18 @@ export function createDesktopConversationStore(
       return Array.isArray(metadata) ? metadata : [];
     },
     async deleteConversation(conversationRef: string): Promise<void> {
-      await invokeWindieCommand('conversations.delete', {
+      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE, {
         userId,
         conversationRef,
       });
     },
     async clearConversations(): Promise<void> {
-      await invokeWindieCommand('conversations.clearAll', {
+      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL, {
         userId,
       });
     },
     async getRevision(conversationRef: string) {
-      return invokeWindieCommand('conversation.getRevision', {
+      return invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_GET_REVISION, {
         userId,
         conversationRef,
       });

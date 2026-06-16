@@ -3,6 +3,7 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
+import { SDK_RUNTIME_COMMANDS } from '../api/windieSdkClient';
 import {
   getLocalBackendStatusSnapshot,
   subscribeLocalBackendStatusStore,
@@ -143,7 +144,7 @@ function emitBrowserSessionDiagnostic({
   };
   void Promise.resolve(
     IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_INVOKE, {
-      command: 'diagnostics.append',
+      command: SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND,
       payload,
     }),
   ).catch(() => undefined);

@@ -17,6 +17,7 @@ export * from './runtime/TurnInputPipeline.js';
 export * from './runtime/DefaultTurnResourceResolvers.js';
 export * from './runtime/ConversationContinuityService.js';
 export * from './runtime/AgentDefinition.js';
+export * from './runtime/SdkRuntimeCommands.js';
 export * from './runtime/AgentStreamEvents.js';
 export * from './runtime/WindieChatSession.js';
 export * from './runtime/WindieAgent.js';

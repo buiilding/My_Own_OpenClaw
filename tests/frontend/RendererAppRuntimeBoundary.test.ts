@@ -43,10 +43,10 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(source).toContain('invokeWindieCommand');
-    expect(source).toContain("'conversations.list'");
-    expect(source).toContain("'conversations.search'");
-    expect(source).toContain("'conversations.delete'");
-    expect(source).toContain("'conversation.loadDisplay'");
+    expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST');
+    expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH');
+    expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE');
+    expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY');
     expect(source).not.toContain("'conversation.load'");
     expect(source).not.toContain("'conversation.loadRehydrate'");
     expect(source).not.toContain('DesktopConversationStoreAdapter');
@@ -65,19 +65,19 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(liveTurnSource).toContain('invokeWindieCommand');
-    expect(liveTurnSource).toContain("'conversation.send'");
-    expect(liveTurnSource).toContain("'conversation.stop'");
+    expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
+    expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(liveTurnSource).not.toContain('WINDIE_SEND');
     expect(liveTurnSource).not.toContain('WINDIE_STOP');
 
     expect(backendTransportSource).toContain('invokeWindieCommand');
-    expect(backendTransportSource).toContain("'conversation.send'");
-    expect(backendTransportSource).toContain("'conversation.stop'");
-    expect(backendTransportSource).toContain("'conversation.rehydrate'");
-    expect(backendTransportSource).toContain("'conversation.compact'");
-    expect(backendTransportSource).toContain("'settings.update'");
-    expect(backendTransportSource).toContain("'models.list'");
-    expect(backendTransportSource).toContain("'wakeword.detected'");
+    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
+    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
+    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE');
+    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT');
+    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
+    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
+    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
     expect(backendTransportSource).not.toContain('WINDIE_SEND');
     expect(backendTransportSource).not.toContain('WINDIE_STOP');
     expect(backendTransportSource).not.toContain('WINDIE_REHYDRATE');

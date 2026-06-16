@@ -1,0 +1,33 @@
+/**
+ * Defines SDK-shaped host command names used by UI and desktop runtimes.
+ */
+
+export const SDK_RUNTIME_COMMANDS = {
+  CONVERSATION_SEND: 'conversation.send',
+  CONVERSATION_STOP: 'conversation.stop',
+  CONVERSATION_REHYDRATE: 'conversation.rehydrate',
+  CONVERSATION_COMPACT: 'conversation.compact',
+  CONVERSATION_LOAD: 'conversation.load',
+  CONVERSATION_LOAD_DISPLAY: 'conversation.loadDisplay',
+  CONVERSATION_LOAD_REHYDRATE: 'conversation.loadRehydrate',
+  CONVERSATION_APPEND_EVENT: 'conversation.appendEvent',
+  CONVERSATION_REWRITE: 'conversation.rewrite',
+  CONVERSATION_REPLACE_COMPACTED_REPLAY: 'conversation.replaceCompactedReplay',
+  CONVERSATION_GET_REVISION: 'conversation.getRevision',
+  CONVERSATION_PREPARE_EDIT_AND_RESEND: 'conversation.prepareEditAndResend',
+  CONVERSATION_PREPARE_RETRY_TURN: 'conversation.prepareRetryTurn',
+  CONVERSATIONS_LIST: 'conversations.list',
+  CONVERSATIONS_SEARCH: 'conversations.search',
+  CONVERSATIONS_DELETE: 'conversations.delete',
+  CONVERSATIONS_CLEAR_ALL: 'conversations.clearAll',
+  MEMORIES_LIST: 'memories.list',
+  MEMORIES_DELETE: 'memories.delete',
+  MEMORIES_CLEAR_ALL: 'memories.clearAll',
+  SETTINGS_UPDATE: 'settings.update',
+  MODELS_LIST: 'models.list',
+  WAKEWORD_DETECTED: 'wakeword.detected',
+  DIAGNOSTICS_APPEND: 'diagnostics.append',
+} as const;
+
+export type SdkRuntimeCommand =
+  typeof SDK_RUNTIME_COMMANDS[keyof typeof SDK_RUNTIME_COMMANDS];

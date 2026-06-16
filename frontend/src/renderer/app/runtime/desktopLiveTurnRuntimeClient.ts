@@ -3,6 +3,7 @@
  */
 
 import {
+  SDK_RUNTIME_COMMANDS,
   type TurnInputResource,
   type WindieModelSelection,
 } from '../../infrastructure/api/windieSdkClient';
@@ -82,7 +83,7 @@ function throwIfFailedIpcResult(result: unknown): void {
 export const DesktopLiveTurnRuntimeClient = {
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
     const turnRef = optionalString(input.turnRef) ?? undefined;
-    const result = await invokeWindieCommand('conversation.send', {
+    const result = await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND, {
       text: input.text,
       conversation_ref: optionalString(input.conversationRef) ?? '',
       query_message_id: turnRef ?? null,
@@ -114,7 +115,7 @@ export const DesktopLiveTurnRuntimeClient = {
       return;
     }
     const resolvedTurnRef = optionalString(turnRef);
-    await invokeWindieCommand('conversation.stop', {
+    await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
       conversation_ref: resolvedConversationRef,
       turn_ref: resolvedTurnRef,
     });

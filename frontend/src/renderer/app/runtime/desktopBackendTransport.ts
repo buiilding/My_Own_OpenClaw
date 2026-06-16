@@ -2,7 +2,10 @@
  * Provides the desktop backend transport module for the renderer UI.
  */
 
-import type { BackendTransport } from '../../infrastructure/api/windieSdkClient';
+import {
+  SDK_RUNTIME_COMMANDS,
+  type BackendTransport,
+} from '../../infrastructure/api/windieSdkClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
@@ -22,7 +25,7 @@ function optionalStringArray(value: unknown): string[] | null {
 }
 
 async function sendStopQuery(conversationRef: string | null, turnRef: string | null): Promise<void> {
-  await invokeWindieCommand('conversation.stop', {
+  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
     conversation_ref: conversationRef,
     turn_ref: turnRef,
   });
@@ -33,20 +36,23 @@ async function sendQuery(
   workspacePath: string | null,
   messageId: string | null,
 ): Promise<string | null> {
-  const result = await invokeWindieCommand<Record<string, unknown> | null>('conversation.send', {
-    text: optionalString(payload.text) ?? '',
-    conversation_ref: optionalString(payload.conversation_ref) ?? '',
-    query_message_id: messageId,
-    screenshot_ref: optionalString(payload.screenshot_ref) ?? null,
-    screenshot: optionalString(payload.screenshot) ?? null,
-    screenshot_url: optionalString(payload.screenshot_url) ?? null,
-    screenshot_refs: optionalStringArray(payload.screenshot_refs) ?? null,
-    capture_meta: payload.capture_meta ?? null,
-    attachment_context: optionalString(payload.attachment_context) ?? null,
-    attachment_filenames: optionalStringArray(payload.attachment_filenames) ?? null,
-    workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
-    memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
-  });
+  const result = await invokeWindieCommand<Record<string, unknown> | null>(
+    SDK_RUNTIME_COMMANDS.CONVERSATION_SEND,
+    {
+      text: optionalString(payload.text) ?? '',
+      conversation_ref: optionalString(payload.conversation_ref) ?? '',
+      query_message_id: messageId,
+      screenshot_ref: optionalString(payload.screenshot_ref) ?? null,
+      screenshot: optionalString(payload.screenshot) ?? null,
+      screenshot_url: optionalString(payload.screenshot_url) ?? null,
+      screenshot_refs: optionalStringArray(payload.screenshot_refs) ?? null,
+      capture_meta: payload.capture_meta ?? null,
+      attachment_context: optionalString(payload.attachment_context) ?? null,
+      attachment_filenames: optionalStringArray(payload.attachment_filenames) ?? null,
+      workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
+      memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
+    },
+  );
   if (result && typeof result === 'object' && result.ok === false) {
     const message = typeof result.error === 'string' && result.error.trim().length > 0
       ? result.error
@@ -72,7 +78,7 @@ function optionalRecordArray(value: unknown): Record<string, unknown>[] {
 }
 
 async function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
-  await invokeWindieCommand('conversation.rehydrate', {
+  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE, {
     conversation_ref: optionalString(payload.conversation_ref) ?? '',
     messages: optionalRecordArray(payload.messages),
     rehydrate_mode: 'replace',
@@ -81,22 +87,22 @@ async function sendRehydrateConversation(payload: Record<string, unknown>, works
 }
 
 async function sendCompactHistory(payload: Record<string, unknown>): Promise<void> {
-  await invokeWindieCommand('conversation.compact', {
+  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
     force: payload.force !== false,
     conversation_ref: optionalString(payload.conversation_ref) ?? null,
   });
 }
 
 async function sendWakewordDetected(payload: Record<string, unknown>): Promise<void> {
-  await invokeWindieCommand('wakeword.detected', payload);
+  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED, payload);
 }
 
 async function sendUpdateSettings(payload: Record<string, unknown>): Promise<void> {
-  await invokeWindieCommand('settings.update', payload);
+  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE, payload);
 }
 
 async function sendListModels(): Promise<void> {
-  await invokeWindieCommand('models.list');
+  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.MODELS_LIST);
 }
 
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
