@@ -4,7 +4,7 @@
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 
-export const WORKSPACE_ACCESS_PERMISSION_ID = 'filesystem_workspace_access';
+const WORKSPACE_ACCESS_PERMISSION_ID = 'filesystem_workspace_access';
 
 function getLastPathSegment(pathValue = '') {
   if (typeof pathValue !== 'string') {
@@ -18,7 +18,7 @@ function getLastPathSegment(pathValue = '') {
   return segments.length > 0 ? segments[segments.length - 1] : trimmed;
 }
 
-export function normalizeActiveWorkspace(statusPayload = null) {
+function normalizeActiveWorkspace(statusPayload = null) {
   const selectedPaths = Array.isArray(statusPayload?.details?.selected_paths)
     ? statusPayload.details.selected_paths.filter((value) => typeof value === 'string' && value.trim())
     : [];
@@ -38,7 +38,7 @@ export function normalizeActiveWorkspace(statusPayload = null) {
   };
 }
 
-export function extractWorkspaceStatus(result = null) {
+function extractWorkspaceStatus(result = null) {
   return result?.data?.status && typeof result.data.status === 'object'
     ? result.data.status
     : null;

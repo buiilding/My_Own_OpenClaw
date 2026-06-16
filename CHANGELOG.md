@@ -14,6 +14,8 @@ All notable changes to WindieOS will be documented in this file.
   stale system-state capture helper, and capture-only logging utilities; keep
   screenshot and system-state capture owned by SDK/main, Electron main, and the
   sidecar.
+- frontend/renderer: keep workspace permission constants and response
+  normalization helpers private to the renderer workspace access module.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
