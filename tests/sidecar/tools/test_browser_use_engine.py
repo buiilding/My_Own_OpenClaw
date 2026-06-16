@@ -357,6 +357,30 @@ async def test_navigate_does_not_promote_browser_use_message_to_output() -> None
 
 
 @pytest.mark.asyncio
+async def test_replace_file_uses_canonical_string_fields(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("WINDIE_BROWSER_FILES_DIR", str(tmp_path))
+    target = tmp_path / "notes.txt"
+    target.write_text("before before", encoding="utf-8")
+    runtime = BrowserUseEngineRuntime()
+
+    result = await runtime.execute(
+        _args(
+            {
+                "action": "replace_file",
+                "file_name": "notes.txt",
+                "old_string": "before",
+                "new_string": "after",
+            }
+        )
+    )
+
+    assert result["replacements"] == 2
+    assert target.read_text(encoding="utf-8") == "after after"
+
+
+@pytest.mark.asyncio
 async def test_navigate_browser_internal_url_uses_python_goto_to_preserve_scheme() -> (
     None
 ):

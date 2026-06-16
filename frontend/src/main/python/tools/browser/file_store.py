@@ -64,10 +64,10 @@ def write_text(
     return resolved, len(payload)
 
 
-def replace_text(path: str, old_str: str, new_str: str) -> tuple[Path, int]:
+def replace_text(path: str, old_string: str, new_string: str) -> tuple[Path, int]:
     resolved, content = read_text(path)
-    replacements = content.count(old_str)
+    replacements = content.count(old_string)
     if replacements == 0:
         raise ValueError("Target string not found in file.")
-    resolved.write_text(content.replace(old_str, new_str), encoding="utf-8")
+    resolved.write_text(content.replace(old_string, new_string), encoding="utf-8")
     return resolved, replacements

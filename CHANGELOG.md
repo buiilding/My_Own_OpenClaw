@@ -31,6 +31,8 @@ All notable changes to WindieOS will be documented in this file.
   snake_case request fields.
 - frontend/sidecar: remove camelCase MCP execution metadata accepts from the
   sidecar daemon diagnostics context builder.
+- frontend/sidecar: replace browser `replace_file` `old_str`/`new_str`
+  compatibility fields with canonical `old_string`/`new_string`.
 - sdk/sidecar: remove `baseUrl` discovery-file compatibility from the
   TypeScript and Python SDK auto-sidecar discovery readers.
 - sdk/python: remove camelCase backend tool-call and tool-bundle payload accepts

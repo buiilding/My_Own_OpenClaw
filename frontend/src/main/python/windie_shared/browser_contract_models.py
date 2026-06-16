@@ -491,8 +491,8 @@ class BrowserReplaceFileArgs(BrowserActionArgsBase):
         ..., description="Replace text inside a browser-side file."
     )
     file_name: str = Field(..., description="Browser-side file name.", min_length=1)
-    old_str: str = Field(..., description="Text to replace.")
-    new_str: str = Field(..., description="Replacement text.")
+    old_string: str = Field(..., description="Text to replace.")
+    new_string: str = Field(..., description="Replacement text.")
 
 
 class BrowserReadFileArgs(BrowserActionArgsBase):

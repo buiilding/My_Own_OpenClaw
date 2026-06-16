@@ -14,6 +14,7 @@ from windie_shared.browser_contract import (
     BrowserFindTextArgs,
     BrowserInputArgs,
     BrowserNavigateArgs,
+    BrowserReplaceFileArgs,
     BrowserScrollArgs,
     BrowserSnapshotArgs,
     BrowserSwitchArgs,
@@ -301,6 +302,38 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
     with pytest.raises(ValidationError):
         BrowserSwitchArgs(action="switch", tab_index=-1, explanation=EXPLANATION)
+
+
+def test_replace_file_uses_canonical_string_fields_only() -> None:
+    args = BrowserReplaceFileArgs(
+        action="replace_file",
+        file_name="notes.txt",
+        old_string="old",
+        new_string="new",
+        explanation=EXPLANATION,
+    )
+    assert args.old_string == "old"
+    assert args.new_string == "new"
+
+    with pytest.raises(ValidationError):
+        BrowserReplaceFileArgs(
+            action="replace_file",
+            file_name="notes.txt",
+            old_str="old",
+            new_str="new",
+            explanation=EXPLANATION,
+        )
+
+    with pytest.raises(ValidationError):
+        BrowserControlArgs.model_validate(
+            {
+                "action": "replace_file",
+                "file_name": "notes.txt",
+                "old_str": "old",
+                "new_str": "new",
+                "explanation": EXPLANATION,
+            }
+        )
 
 
 def test_element_actions_reject_legacy_ref_alias() -> None:

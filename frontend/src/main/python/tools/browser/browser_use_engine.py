@@ -1023,7 +1023,7 @@ class BrowserUseEngineRuntime:
 
     async def _handle_replace_file(self, args: Any) -> dict[str, Any]:
         resolved, replacements = replace_text(
-            args.file_name, args.old_str, args.new_str
+            args.file_name, args.old_string, args.new_string
         )
         return {
             "path": str(resolved),

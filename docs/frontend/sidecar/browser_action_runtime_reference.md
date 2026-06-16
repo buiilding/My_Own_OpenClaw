@@ -70,6 +70,12 @@ Browser Use CLI-backed actions:
 - indexes must come from the latest `snapshot.output`; `find_elements` returns
   non-actionable CSS-query `ordinal` values
 
+### `replace_file`
+
+- uses browser-local file paths under the browser file root
+- requires `old_string` and `new_string`; `old_str` and `new_str` are not valid
+  browser action fields
+
 ## Error and Timeout Surface
 
 - `INVALID_ARGUMENT`: payload validation or unsupported argument shape
