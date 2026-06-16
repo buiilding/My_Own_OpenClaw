@@ -57,6 +57,7 @@ Date: 2026-06-15
 | CD-024 | Renderer transcript projection | `desktopTranscriptProjectionRuntimeClient.ts`, `transcriptRecordWrite.ts`, `transcriptEntryPersistence.ts`, `infrastructure/transcript/pending/*`, and their pending/entry type exports preserved a renderer-owned queue/write path | Knip reported the projection runtime and entry persistence as unused files; source search found the writer/queues referenced only by their tests and stale docs, while current display/replay uses SDK `chat_events`, `DesktopConversationContinuityService`, `DesktopConversationLibraryClient`, `desktopConversationStore.ts`, and `sdkDisplayChatMessageProjection.ts` | Delete the orphan runtime, pending queues, type exports, tests, and queue docs; update current docs to route transcript/replay work to SDK continuity/store/display projection owners | implemented |
 | CD-025 | Renderer desktop conversation store | Store-side transcript projection append/rewrite helpers, projection conversion types, and stored-transcript bridge utilities survived after deleting the renderer projection writer | Repo search showed `appendTranscriptProjectionEntry`, `rewriteTranscriptProjection`, projection conversion types, `CHAT_EVENT_RECORD_KIND`, `storedTranscriptSdkProjection.ts`, and `storedTranscriptMemoryState.js` were referenced only by tests and the store module itself | Delete the store-side projection helper exports, conversion functions, stored-transcript bridge utilities, dead constant, and tests that covered only that deleted surface | implemented |
 | CD-026 | Renderer current-turn presentation | `chatBoxResponseState.js` and `messagePresentationPipeline.js` still exposed `buildCurrentTurnResponseOverlayEntries(...)` scanner helpers after response overlay rendering moved to direct SDK/current-turn presentation messages; deleting the scanner also orphaned `toolExplanationMessages.js` | Knip reported the wrapper and then the pipeline export unused; production overlay code now filters current-turn projection/presentation entries directly, while the scanner and explanation helper were covered only by stale tests/docs | Delete the wrapper, the unused pipeline scanner, the orphaned explanation helper, and scanner-only test assertions; keep current-turn projection and live-progress detection on their active paths | implemented |
+| CD-027 | Renderer loop UI state | `streamPhaseState.js` still exported active-loop, terminal, first-chunk, and stop-control predicates after loop UI state kept only the overlay-awaiting predicate | Knip reported the unused predicate exports, and repo search showed only their own test imported them; production imports only `isOverlayAwaitingReplyPhase(...)` from this module | Delete the unused predicates and their tests; keep the awaiting-reply predicate used by `chatLoopUiState.js` | implemented |
 
 ## Commit Ledger
 
@@ -108,6 +109,7 @@ Date: 2026-06-15
   completed CD-025.
 - `4040e429e refactor(frontend): remove response overlay scanner helpers`
   completed CD-026.
+- pending commit for CD-027.
 
 ## Validation Log
 
@@ -380,6 +382,18 @@ CD-026 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-027 validation:
+
+- targeted `rg -n "isLoopActivePhase|isTerminalStreamPhase|isAwaitingFirstChunkPhase|isStopControlAvailablePhase|ACTIVE_LOOP_PHASES|TERMINAL_STREAM_PHASES" frontend/src tests/frontend docs --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no matches.
+- `bin/windie test frontend -- StreamPhaseState ChatLoopUiState`: passed,
+  3 suites and 15 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 231 to
+  227 and the CD-027 stream phase predicate exports no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -479,3 +493,6 @@ CD-026 validation:
   renderer presentation scanner helpers; response overlay entries still come
   from SDK/current-turn presentation messages in the minimal chat pill view
   model.
+- CD-027 has no storage or transport migration impact. It deletes only
+  renderer phase predicate exports that had no production consumers; loop UI
+  state still uses `isOverlayAwaitingReplyPhase(...)`.
