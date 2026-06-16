@@ -53,6 +53,7 @@ function readDocMeta(page) {
   const headings = [...content.matchAll(/^#{1,4}\s+(.+)$/gm)]
     .map((match) => match[1].trim())
     .join(' ');
+  const body = content.replace(/^---\n[\s\S]*?\n---/, '');
   return {
     page,
     path: path.relative(REPO_ROOT, filePath),
@@ -60,7 +61,8 @@ function readDocMeta(page) {
     summary,
     readWhen,
     headings,
-    text: normalizeSearchText(`${page} ${title} ${summary} ${readWhen} ${headings}`),
+    body,
+    text: normalizeSearchText(`${page} ${title} ${summary} ${readWhen} ${headings} ${body}`),
   };
 }
 
@@ -112,10 +114,29 @@ function normalizeSearchText(value) {
     .trim();
 }
 
+function fieldHasTerm(field, term) {
+  if (!field || !term) {
+    return false;
+  }
+  const tokens = field.split(' ').filter(Boolean);
+  return tokens.some((token) => {
+    if (token === term) {
+      return true;
+    }
+    if (term.length > 3 && token === `${term}s`) {
+      return true;
+    }
+    if (token.length > 3 && term === `${token}s`) {
+      return true;
+    }
+    return false;
+  });
+}
+
 function countFieldScore(field, terms, weight) {
   let score = 0;
   for (const term of terms) {
-    if (field.includes(term)) {
+    if (fieldHasTerm(field, term)) {
       score += weight;
     }
   }
@@ -149,6 +170,7 @@ function scoreDoc(doc, query) {
     summary: normalizeSearchText(doc.summary),
     readWhen: normalizeSearchText(doc.readWhen),
     headings: normalizeSearchText(doc.headings),
+    body: normalizeSearchText(doc.body),
     text: doc.text,
   };
 
@@ -170,6 +192,9 @@ function scoreDoc(doc, query) {
     if (fields.readWhen.includes(phrase)) {
       score += 20;
     }
+    if (fields.body.includes(phrase)) {
+      score += 12;
+    }
     if (fields.text.includes(phrase)) {
       score += 10;
     }
@@ -180,6 +205,7 @@ function scoreDoc(doc, query) {
   score += countFieldScore(fields.summary, terms, 4);
   score += countFieldScore(fields.headings, terms, 3);
   score += countFieldScore(fields.readWhen, terms, 2);
+  score += countFieldScore(fields.body, terms, 2);
   score += countFieldScore(fields.text, terms, 1);
 
   score += countPairScore(fields.page, pairs, 18);
@@ -187,19 +213,23 @@ function scoreDoc(doc, query) {
   score += countPairScore(fields.summary, pairs, 12);
   score += countPairScore(fields.headings, pairs, 10);
   score += countPairScore(fields.readWhen, pairs, 8);
+  score += countPairScore(fields.body, pairs, 6);
   score += countPairScore(fields.text, pairs, 5);
 
-  if (terms.every((term) => fields.text.includes(term))) {
+  if (terms.every((term) => fieldHasTerm(fields.text, term))) {
     score += 15;
   }
-  if (terms.every((term) => fields.title.includes(term))) {
+  if (terms.every((term) => fieldHasTerm(fields.title, term))) {
     score += 12;
   }
-  if (terms.every((term) => fields.summary.includes(term))) {
+  if (terms.every((term) => fieldHasTerm(fields.summary, term))) {
     score += 8;
   }
-  if (terms.every((term) => fields.headings.includes(term))) {
+  if (terms.every((term) => fieldHasTerm(fields.headings, term))) {
     score += 8;
+  }
+  if (terms.every((term) => fieldHasTerm(fields.body, term))) {
+    score += 6;
   }
 
   if (terms.length === 1 && isHubDoc(doc, fields)) {

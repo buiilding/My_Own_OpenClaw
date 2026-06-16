@@ -1,8 +1,9 @@
 ---
-summary: "Command matrix for the first-class WindieOS CLI surface, including docs search, `commits search` git commit-history lookup, validation, packaging, backend, endpoint, and self-host commands."
+summary: "Command matrix for the first-class WindieOS CLI surface, including diagnostics, durable traces, conversation inspection, docs search, `commits search` git commit-history lookup, validation, packaging, backend, endpoint, and self-host commands."
 read_when:
-  - When choosing the correct WindieOS command for local development, docs work, tests, packaging, `bin/windie commits search`, commit-history lookup, or hosted tunnel setup.
-  - When changing `bin/windie`, command docs, scripts wrapped by the CLI, commits search behavior, commit-history search behavior, or package command behavior.
+  - When looking for Windie command help, `bin/windie --help`, or the current command surface.
+  - When choosing the correct WindieOS command for local development, diagnostics, trace inspection, conversation messages, docs work, tests, packaging, `bin/windie commits search`, commit-history lookup, or hosted tunnel setup.
+  - When changing `bin/windie`, command docs, scripts wrapped by the CLI, diagnostics commands, trace commands, conversation commands, commits search behavior, or package command behavior.
 title: "Command Matrix"
 ---
 
@@ -23,6 +24,17 @@ adapters; document them only when changing the adapter itself.
 | `bin/windie doctor --fix` | Safe repairs only. |
 | `bin/windie doctor --deep` | Slower probes such as ports and sidecar imports. |
 | `bin/windie doctor --json` | Machine-readable diagnostic output. |
+| `bin/windie diagnostics paths [--json]` | List persistent app diagnostic paths. |
+| `bin/windie diagnostics list [--path <path>] [--limit <n>] [--json]` | List persistent app diagnostic rows. |
+| `bin/windie diagnostics inspect <trace-id> [--json]` | Inspect one persistent app diagnostic row. |
+| `bin/windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]` | Inspect hidden durable trace events for one conversation turn. |
+| `bin/windie capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]` | Inspect capability-level conversation trace summaries. |
+| `bin/windie conversation list [--limit <n>] [--json]` | List stored conversations. |
+| `bin/windie conversation inspect <conversation-ref> [--json]` | Inspect conversation metadata. |
+| `bin/windie conversation messages <conversation-ref> [--limit <n>] [--json]` | Print stored visible conversation messages. |
+| `bin/windie conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]` | Inspect persisted conversation events. |
+| `bin/windie conversation turns <conversation-ref> [--json]` | List turns for a conversation. |
+| `bin/windie conversation traces <conversation-ref> [--turn <turn-ref>] [--path <path>] [--limit <n>] [--json]` | Inspect persisted trace events for a conversation. |
 
 ## Lifecycle and Logs
 
@@ -40,8 +52,11 @@ adapters; document them only when changing the adapter itself.
 | `bin/windie logs backend --remote --host windie-prod` | Tail remote backend logs through SSH. |
 | `bin/windie logs frontend` | Tail `.windie/logs/frontend.log`, the captured Electron main/frontend desktop stream. |
 | `bin/windie logs frontend --tail 500 --no-follow` | Print the last 500 captured frontend log lines and exit. |
+| `bin/windie logs vite` | Tail the captured Vite dev-server log stream. |
+| `bin/windie logs main` | Tail Electron main-process logs. |
+| `bin/windie logs renderer --verbose` | Tail renderer logs and include verbose renderer entries. |
 | `bin/windie logs desktop` | Alias for `bin/windie logs frontend`. |
-| `bin/windie logs sidecar` | Print current sidecar-log collection guidance. |
+| `bin/windie logs sidecar` | Tail sidecar logs where available or print sidecar-log collection guidance. |
 
 ## Tests and Docs
 

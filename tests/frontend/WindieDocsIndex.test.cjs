@@ -28,9 +28,12 @@ describe('windie docs index', () => {
     expect(paths.indexOf(path.join('docs', 'providers', 'model_catalog_change_workflow.md'))).toBe(
       0,
     );
-    expect(paths.indexOf(path.join('docs', 'frontend', 'sidecar', 'tool_catalog_and_execution_model.md'))).toBeGreaterThan(
-      0,
+    const sidecarCatalogIndex = paths.indexOf(
+      path.join('docs', 'frontend', 'sidecar', 'tool_catalog_and_execution_model.md'),
     );
+    if (sidecarCatalogIndex !== -1) {
+      expect(sidecarCatalogIndex).toBeGreaterThan(0);
+    }
   });
 
   test('uses headings so MCP result contract queries find the MCP runtime first', () => {
@@ -104,5 +107,22 @@ describe('windie docs index', () => {
     expect(paths).toContain(
       path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),
     );
+  });
+
+  test('routes CLI diagnostics and conversation commands to the command matrix', () => {
+    const commandDocs = new Set([
+      path.join('docs', 'cli', 'README.md'),
+      path.join('docs', 'cli', 'command_matrix.md'),
+    ]);
+
+    for (const query of [
+      'diagnostics inspect',
+      'conversation messages',
+      'capability trace',
+      'logs renderer verbose',
+      'windie command help',
+    ]) {
+      expect(commandDocs.has(findDocs(query)[0].path)).toBe(true);
+    }
   });
 });

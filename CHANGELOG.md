@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
   while preserving ADR routing for decision-record queries.
 - docs/operations: route packaged SDK websocket dependency searches to the
   packaging docs and document that packaged `ws` is copied from the SDK package.
+- docs/cli: align command docs with the live `bin/windie --help` diagnostics,
+  trace, conversation inspection, and per-layer log command surface.
+- cli/docs: index Markdown body text with token-aware term matching so exact
+  command rows can rank without substring noise from unrelated helper docs.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
