@@ -22,6 +22,8 @@ All notable changes to WindieOS will be documented in this file.
   conversation runtime projection hook and test it through the hook listener.
 - frontend/main: keep layer-log file initialization and renderer verbose path
   resolution helpers private to the layer log sink.
+- frontend/packaging: copy packaged SDK websocket support from the SDK package's
+  own `ws` dependency and remove duplicate frontend direct dependency entries.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,

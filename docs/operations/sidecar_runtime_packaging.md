@@ -15,8 +15,8 @@ frontend app and do not need Python installed system-wide.
 - Installer includes Electron app.
 - Installer includes a bundled Python runtime at `resources/python-runtime`.
 - Installer includes generated SDK CommonJS runtime modules at
-  `resources/packages/windie-sdk-js/cjs` plus `resources/node_modules/ws` for
-  Electron main startup.
+  `resources/packages/windie-sdk-js/cjs` plus the SDK-owned `ws` dependency at
+  `resources/node_modules/ws` for Electron main startup.
 - Sidecar processes run from `resources/python-runtime/sidecar`.
 - Runtime build ships sidecar bytecode (`.pyc`) only; sidecar plaintext `.py` files are removed before packaging.
 - Runtime defaults to system-browser-first packaging and does not prebundle Playwright Chromium.
@@ -35,6 +35,8 @@ frontend app and do not need Python installed system-wide.
   - `frontend/electron-builder.bundled-python.yml`
 - Generated SDK runtime consumed by Electron main:
   - `packages/windie-sdk-js/cjs`
+- SDK-owned websocket runtime dependency copied into packaged resources:
+  - `packages/windie-sdk-js/node_modules/ws`
 
 ## Build Matrix Rule
 

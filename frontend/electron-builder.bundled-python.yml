@@ -9,7 +9,7 @@ extraResources:
     to: packages/windie-sdk-js/cjs
     filter:
       - "**/*"
-  - from: node_modules/ws
+  - from: ../packages/windie-sdk-js/node_modules/ws
     to: node_modules/ws
     filter:
       - "**/*"
