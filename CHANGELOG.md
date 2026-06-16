@@ -80,6 +80,10 @@ All notable changes to WindieOS will be documented in this file.
   sidecar implementation deep references.
 - docs/sdk: route live-turn projection searches to the SDK conversation runtime
   before broad frontend architecture docs.
+- docs/concepts: route prompt-compilation searches to the prompt/tool context
+  guide before broad architecture references.
+- docs/desktop: route desktop-shell searches to the desktop surfaces hub before
+  broad architecture references.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

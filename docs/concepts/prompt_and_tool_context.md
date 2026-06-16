@@ -1,7 +1,7 @@
 ---
-summary: "Conceptual guide to WindieOS prompt construction, repo instructions, memory/context injection, model-visible tool schemas, and transparency events."
+summary: "Conceptual guide to WindieOS prompt compilation, prompt construction, repo instructions, memory/context injection, model-visible tool schemas, and transparency events."
 read_when:
-  - When changing prompt construction, system prompt text, repo instruction forwarding, memory injection, tool-schema visibility, or prompt transparency events.
+  - When changing prompt compilation, prompt construction, system prompt text, repo instruction forwarding, memory injection, tool-schema visibility, or prompt transparency events.
   - When debugging why the model saw or did not see a tool, screenshot, memory entry, workspace instruction, or full user-message context.
 title: "Prompt and Tool Context"
 ---

@@ -166,6 +166,18 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes prompt compilation queries to prompt context docs', () => {
+    expect(findDocs('prompt compilation')[0].path).toBe(
+      path.join('docs', 'concepts', 'prompt_and_tool_context.md'),
+    );
+  });
+
+  test('routes desktop shell queries to the desktop surfaces hub', () => {
+    expect(findDocs('desktop shell')[0].path).toBe(
+      path.join('docs', 'desktop', 'README.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),
