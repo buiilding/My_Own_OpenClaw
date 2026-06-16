@@ -1,5 +1,5 @@
 ---
-summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, artifact upload URL handling, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, artifact URL handling, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
   - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`) before backend relay.
@@ -13,7 +13,7 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
-- `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
+- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
@@ -22,7 +22,7 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/SystemStateCapture.test.ts`
-- `tests/frontend/ArtifactUploader.test.ts`
+- `tests/frontend/BackendEndpointStore.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
 - `tests/frontend/ToolExecutionLogger.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
@@ -93,14 +93,12 @@ Failure policy:
 - screenshot visibility restore errors are logged, but active capture events and
   timing cleanup still run so listeners cannot remain stuck in active state
 
-## Artifact Upload and Runtime URL Composition
+## Artifact Materialization and Runtime URL Composition
 
-`uploadArtifactBase64(...)`:
-
-- no-op returns `null` for empty base64 input
-- sends IPC invoke `upload-artifact` with `{base64, contentType, filename}`
-- maps success response to normalized artifact shape
-- failed/missing-data responses return `null` with warning
+Renderer send code does not upload screenshot or attachment artifacts before
+dispatching a turn. It submits typed SDK resources; SDK/main owns resource
+resolution, screenshot capture, artifact materialization, and backend-bound
+artifact refs.
 
 `setBackendHttpUrl(...)`:
 
@@ -205,9 +203,8 @@ Error logs still emit through `console.error`.
 
 - main runtime prepares the desktop surface before computer-use sidecar execution
 
-`tests/frontend/ArtifactUploader.test.ts` and `ArtifactImageUtils.test.ts` verify:
+`tests/frontend/BackendEndpointStore.test.ts` and `ArtifactImageUtils.test.ts` verify:
 
-- upload success/failure mapping behavior
 - backend URL normalization and artifact URL composition
 - content-type/extension normalization defaults
 

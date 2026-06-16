@@ -35,7 +35,7 @@ WindieOS context is assembled from live UI state, stored transcript state, local
 - Sidecar memory store: `frontend/src/main/python/memory/*`
 - Backend memory routes: `backend/src/api/routes/memory/*`
 - Backend embedding/semantic services: `backend/src/services/*embedding*`, `backend/src/api/routes/memory/semantic/*`
-- Artifact flow: `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`, `backend/src/api/routes/artifacts/*`, `backend/src/services/artifacts/*`
+- Artifact flow: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`, `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`, `backend/src/api/routes/artifacts/*`, `backend/src/services/artifacts/*`
 
 ## Deep Docs
 

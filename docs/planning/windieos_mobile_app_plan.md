@@ -96,7 +96,7 @@ Implementation steps:
    - `TransportClient` (send/listen for backend events)
    - `ToolExecutor` (optional capability)
    - `SystemCaptureProvider` (optional capability)
-   - `ArtifactUploader` (HTTP upload)
+   - `ArtifactUploadClient` (HTTP upload)
    - `SettingsStore` (local persistence)
 2. Refactor Electron-only call sites to go through interfaces:
    - `frontend/src/renderer/infrastructure/ipc/bridge.ts`

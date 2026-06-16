@@ -88,7 +88,7 @@ Surface/capture orchestration is split:
 Retained renderer infrastructure:
 
 - `SystemStateCapture.ts`
-- `ArtifactUploader.ts`
+- `BackendEndpointStore.ts`
 - `ToolExecutionLogger.ts`
 
 Renderer host-capability calls use scoped IPC channels such as

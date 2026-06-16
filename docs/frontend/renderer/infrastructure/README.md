@@ -27,7 +27,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/utils/displaySelection.ts`
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`
 - `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
-- `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
+- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`

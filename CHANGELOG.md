@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the unused `ArtifactUploader` renderer upload
+  module, remove its orphan screenshot debug helper, and keep artifact URL
+  coverage on `BackendEndpointStore`.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,

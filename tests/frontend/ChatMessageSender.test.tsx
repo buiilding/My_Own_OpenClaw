@@ -8,7 +8,6 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
@@ -23,11 +22,6 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: jest.fn(() => ({
     config: mockFrontendConfig,
   })),
-}));
-
-jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
-  uploadArtifactBase64: jest.fn(),
-  buildArtifactUrl: (artifactId: string) => `http://127.0.0.1:8765/api/artifacts/${artifactId}`,
 }));
 
 let mockActiveConversationRef: string | null = null;
@@ -62,7 +56,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 
 const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery as jest.Mock;
 const mockSetModel = DesktopSettingsRuntimeClient.setModel as jest.Mock;
-const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef as jest.Mock;
 const mockSetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.setActiveConversationRef as jest.Mock;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
@@ -167,7 +160,6 @@ describe('useChatMessageSender', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     mockSendQuery.mockReset();
     mockSetModel.mockReset();
-    mockUploadArtifactBase64.mockReset();
     mockActiveConversationRef = null;
     mockFrontendConfig = {
       include_query_screenshot: true,
@@ -224,7 +216,6 @@ describe('useChatMessageSender', () => {
     };
 
     mockSendQuery.mockResolvedValue(undefined);
-    mockUploadArtifactBase64.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -434,7 +425,6 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'no image');
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('no image', 'conv_msg-1');
   });
 
@@ -442,7 +432,6 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ senderSurface: 'main-window' });
     await sendText(result, 'dashboard text');
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('dashboard text', 'conv_msg-1');
   });
 
@@ -458,22 +447,6 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-    expectSingleSendQueryCall('hello', 'conv_msg-1', [{
-      kind: 'query_screenshot_request',
-      isFirstUserMessage: true,
-      reason: 'query_send_with_capture',
-      required: false,
-    }]);
-  });
-
-  test('does not upload auto-captured screenshot artifacts in renderer before SDK send', async () => {
-    mockUploadArtifactBase64.mockRejectedValue(new Error('upload failed'));
-
-    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
-    await sendText(result, 'hello');
-
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
       isFirstUserMessage: true,
@@ -483,15 +456,9 @@ describe('useChatMessageSender', () => {
   });
 
   test('sends screenshot capture request to the SDK after showing an optimistic row', async () => {
-    mockUploadArtifactBase64.mockResolvedValue({
-      artifactId: 'artifact-1',
-      url: '/api/artifacts/artifact-1',
-    } as any);
-
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
       isFirstUserMessage: true,
@@ -507,7 +474,6 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello auto screenshot');
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('hello auto screenshot', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
       isFirstUserMessage: true,
@@ -518,11 +484,6 @@ describe('useChatMessageSender', () => {
   });
 
   test('sends pasted clipboard image as a SDK resource handle', async () => {
-    mockUploadArtifactBase64.mockResolvedValue({
-      artifactId: 'artifact-clipboard-1',
-      url: '/api/artifacts/artifact-clipboard-1',
-    } as any);
-
     const { result } = renderSender({ senderSurface: 'main-window' });
 
     await sendPayload(result, {
@@ -536,7 +497,6 @@ describe('useChatMessageSender', () => {
       ],
     });
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('Please inspect this image', 'conv_msg-1', [{
       kind: 'clipboard_image',
       base64: 'clipboard-image-base64',
@@ -551,16 +511,6 @@ describe('useChatMessageSender', () => {
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
-    mockUploadArtifactBase64
-      .mockResolvedValueOnce({
-        artifactId: 'artifact-clipboard-1',
-        url: '/api/artifacts/artifact-clipboard-1',
-      } as any)
-      .mockResolvedValueOnce({
-        artifactId: 'artifact-clipboard-2',
-        url: '/api/artifacts/artifact-clipboard-2',
-      } as any);
-
     const { result } = renderSender({ senderSurface: 'main-window' });
 
     await sendPayload(result, {
@@ -579,7 +529,6 @@ describe('useChatMessageSender', () => {
       ],
     });
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('Please inspect both images', 'conv_msg-1', [
       {
         kind: 'clipboard_image',

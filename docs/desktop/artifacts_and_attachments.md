@@ -8,11 +8,11 @@ title: "Artifacts and Attachments"
 
 # Artifacts and Attachments
 
-WindieOS uses artifacts to avoid passing large binary screenshots directly through every layer. The renderer and main process upload images; the backend stores and serves them by artifact id.
+WindieOS uses artifacts to avoid passing large binary screenshots directly through every layer. The renderer prepares typed image resources and display URLs, SDK/main materializes artifacts, and the backend stores and serves them by artifact id.
 
 ## Main Files
 
-- Renderer uploader: `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
+- Renderer artifact URL builder: `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
 - Query screenshot resource preparation: `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - SDK resource resolution: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - Message screenshot resolution: `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`

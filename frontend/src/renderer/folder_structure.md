@@ -197,11 +197,10 @@ frontend/src/renderer/
 │   │
 │   ├── services/                         # Business logic services
 │   │   ├── ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
-│   │   ├── ArtifactUploader.ts          # ArtifactUploader - Uploads screenshot artifacts and builds artifact URLs
+│   │   ├── BackendEndpointStore.ts      # BackendEndpointStore - Renderer backend URL state and artifact URL builder
 │   │   ├── SystemStateCapture.ts        # SystemStateCapture - explicit system-state capture service
 │   │   └── toolExecution/               # toolExecution - capture/debug helpers retained after SDK-owned tool routing migration
 │   │       ├── ToolExecutionLogger.ts   # Timing/log helpers used by capture services
-│   │       └── ToolScreenshotDebugTrace.ts # Gated screenshot/artifact debug trace helpers
 │   │
 │   └── transcript/                       # SDK-backed transcript projection helpers
 │       ├── desktopConversationStore.ts  # desktopConversationStore - Desktop adapter around SDK sidecar conversation storage

@@ -32,7 +32,7 @@ export function setBackendHttpUrl(url: string | null | undefined): void {
   }
 }
 
-export function getBackendHttpUrl(): string {
+function getBackendHttpUrl(): string {
   return backendHttpUrl;
 }
 

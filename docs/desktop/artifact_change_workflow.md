@@ -16,10 +16,10 @@ For composer-specific attachment behavior, start with [Chat Attachment Change Wo
 The normal pasted/selected image attachment path is:
 
 1. renderer collects pasted images, selected files, or screenshot capture.
-2. renderer uploads image base64 through artifact IPC/API.
-3. backend stores the image and returns an artifact id.
-4. renderer keeps display URL and durable `screenshot_ref`.
-5. query payload sends `screenshot_ref` and optional `screenshot_refs`.
+2. renderer sends typed SDK resources instead of uploading artifacts before the turn exists.
+3. SDK/main resolves resources, materializes artifacts, and forwards refs.
+4. backend stores the image and returns an artifact id.
+5. renderer and replay paths use artifact refs plus URLs from the active backend endpoint.
 6. backend resolves artifact refs into model image input.
 7. transcript/replay stores refs, not raw binary.
 8. artifact fetch routes serve images back to desktop/web clients.
@@ -32,7 +32,7 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 | --- | --- | --- | --- | --- |
 | pasted/selected image preview is wrong | renderer message input and attachment presentation | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`, `frontend/src/renderer/features/chat/utils/composerAttachmentPresentation.js` | [Message Send Surface Policy and Screenshot Capture Reference](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md) | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/FileAttachmentUtils.test.js` |
 | query screenshot capture does not upload or loses ref | renderer send resource request, SDK resource resolver, and main screenshot artifact bridge | `frontend/src/renderer/features/chat/utils/messageSender`, `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`, `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs` | [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` |
-| artifact URL points at wrong backend | renderer artifact URL builder and main endpoint status | `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/ipc_artifact_fetch.cjs` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Configuration Change Workflow](../operations/configuration_change_workflow.md) | `tests/frontend/ArtifactUploader.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs`, endpoint tests |
+| artifact URL points at wrong backend | renderer artifact URL builder and main endpoint status | `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/ipc_artifact_fetch.cjs` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Configuration Change Workflow](../operations/configuration_change_workflow.md) | `tests/frontend/BackendEndpointStore.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs`, endpoint tests |
 | backend upload/fetch route fails | backend artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | [Backend Artifact Service Docs Hub](../backend/services/artifacts/README.md) | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
 | query payload lacks image context | renderer sender and backend query input resolver | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/utils/messageSender`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/backend/test_query_execution_inputs.py` |
 | tool-result screenshot is stripped or not stored | SDK/main result envelope and backend tool-result router | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `backend/src/agent/tools/waiting/router.py` | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | SDK/main result-envelope tests, backend tool-result tests |
@@ -75,7 +75,7 @@ Primary files:
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/**`
 - `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
-- `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
+- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 
 Validation:
@@ -104,12 +104,12 @@ Primary files:
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
-- `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
+- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
 
 Validation:
 
 - `tests/frontend/IpcArtifactFetch.test.cjs`
-- `tests/frontend/ArtifactUploader.test.ts`
+- `tests/frontend/BackendEndpointStore.test.ts`
 - endpoint resolver tests when URL behavior changes.
 
 Rules:
