@@ -2,6 +2,7 @@
 summary: "Detailed packaging and local reinstall runbooks for WindieOS desktop builds across macOS, Windows, and Linux."
 read_when:
   - When changing Electron Builder packaging, bundled Python runtime generation, release artifacts, or local reinstall helpers.
+  - When debugging packaged SDK websocket support, the SDK-owned `ws` dependency, or `resources/node_modules/ws`.
   - When debugging packaged app startup, missing sidecar runtime, signing, notarization, or OS-specific install state.
 title: "Packaging and Reinstall Runbooks"
 ---
@@ -53,8 +54,9 @@ Runtime expectations:
 - Wakeword model prefetch is required unless explicitly overridden with `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`.
 - Electron main imports generated SDK CommonJS modules from the packaged
   `resources/packages/windie-sdk-js/cjs` resource tree. Keep `ws` packaged under
-  `resources/node_modules/ws` because the SDK websocket session uses it as a
-  bare CommonJS dependency from outside `app.asar`.
+  `resources/node_modules/ws`, copied from `packages/windie-sdk-js/node_modules/ws`,
+  because the SDK websocket session uses it as a bare CommonJS dependency from
+  outside `app.asar`.
 
 ## macOS Local Reinstall
 
@@ -178,7 +180,7 @@ Do not change version numbers, tags, or publish artifacts without explicit appro
 
 | Symptom | Likely owner | First checks |
 | --- | --- | --- |
-| Packaged app cannot find `packages/windie-sdk-js/cjs` at launch | generated SDK CJS resources missing from Electron Builder config | inspect package contents under `resources/packages/windie-sdk-js/cjs` and `resources/node_modules/ws` |
+| Packaged app cannot find `packages/windie-sdk-js/cjs` or `ws` at launch | generated SDK CJS resources or SDK-owned websocket dependency missing from Electron Builder config | inspect package contents under `resources/packages/windie-sdk-js/cjs` and `resources/node_modules/ws`; verify the source path is `packages/windie-sdk-js/node_modules/ws` |
 | Packaged app cannot start sidecar | runtime path or bundled Python missing | `frontend/src/main/app/runtime_paths.cjs`, package contents under `resources/python-runtime`, sidecar logs |
 | macOS local build hangs on signing/notarization | wrong path: using release signing instead of local reinstall | confirm reinstall helper strips `APPLE_*` and `CSC_*`; use ad-hoc local path |
 | macOS app launches from copied install but not DMG | signing/hardened runtime/Gatekeeper path | `scripts/ci/smoke-macos-packages.sh`, [Release Guide](release.md) |
@@ -192,7 +194,7 @@ Do not change version numbers, tags, or publish artifacts without explicit appro
 For packaging changes:
 
 1. Run the package command on the target OS.
-2. Inspect package contents for `resources/python-runtime`, `resources/packages/windie-sdk-js/cjs`, and `resources/node_modules/ws`.
+2. Inspect package contents for `resources/python-runtime`, `resources/packages/windie-sdk-js/cjs`, and `resources/node_modules/ws`; `ws` should be copied from `packages/windie-sdk-js/node_modules/ws`, not a frontend direct dependency.
 3. Launch installed app, not only the source Electron app.
 4. Verify backend connectivity to the intended endpoint.
 5. Verify one local tool call that exercises the sidecar.

@@ -94,4 +94,15 @@ describe('windie docs index', () => {
       title: 'ADR 004: Browser Extension Auto-Attach Boundary',
     });
   });
+
+  test('routes packaged SDK websocket dependency queries to packaging docs', () => {
+    const paths = findDocs('packaged sdk websocket')
+      .slice(0, 3)
+      .map((match) => match.path);
+
+    expect(paths).toContain(path.join('docs', 'operations', 'sidecar_runtime_packaging.md'));
+    expect(paths).toContain(
+      path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),
+    );
+  });
 });

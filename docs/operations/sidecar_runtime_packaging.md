@@ -2,6 +2,7 @@
 summary: "Bundled Sidecar Python Runtime Packaging"
 read_when:
   - When shipping frontend-only installers with no system Python requirement.
+  - When debugging packaged SDK websocket support, the SDK-owned `ws` dependency, or `resources/node_modules/ws`.
   - When preparing Windows/macOS/Linux release artifacts for end users.
 ---
 

@@ -33,6 +33,8 @@ All notable changes to WindieOS will be documented in this file.
   docs-search grounding and runtime-ownership cleanup queries.
 - cli/docs: keep generic feature searches on current docs before ADR pages
   while preserving ADR routing for decision-record queries.
+- docs/operations: route packaged SDK websocket dependency searches to the
+  packaging docs and document that packaged `ws` is copied from the SDK package.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
