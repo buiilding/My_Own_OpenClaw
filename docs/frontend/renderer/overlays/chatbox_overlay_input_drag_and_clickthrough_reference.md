@@ -221,7 +221,7 @@ Loop watchdog behavior:
 - startup compact-class stability (no delayed `with-preview` flip when no images exist)
 - multiline shell growth updating `set-chatbox-visual-anchor-height` without reviving deprecated `set-chatbox-size`
 - camera-toggle enabled/disabled styling and config writes without creating preview items
-- drag-from-input and drag-from-button behavior after the shared `5px` threshold
+- drag-from-input and drag-from-button behavior after the private `5px` movement threshold
 - normal button clicks still firing when no drag threshold crossing occurs
 
 ## Debug Checklist

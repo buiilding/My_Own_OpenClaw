@@ -14,12 +14,16 @@ All notable changes to WindieOS will be documented in this file.
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
 - cli: return the top ten matches from `bin/windie docs search` and the
   shorthand `bin/windie docs <query>`.
+- frontend/renderer: delete the unused session conversation-ref projection
+  export and keep main-session snapshot helpers private to session hydration.
 - frontend/renderer: keep live-turn surface phase and presentation guards
   private to the live-turn presentation input resolver.
 - frontend/renderer: delete unused chat box drag-block and clipboard screenshot
   payload helpers while keeping visual-anchor helpers as the public API.
 - frontend/renderer docs: align the renderer folder source map with the current
   chatbox helper split after deleting drag-block target helpers.
+- frontend/renderer docs: describe the chat pill drag threshold as private
+  movement behavior instead of a shared helper contract.
 - frontend/renderer: keep the minimal chat pill drag-start threshold private to
   the drag target resolver.
 - frontend/renderer: keep dashboard memory timestamp formatting private to
