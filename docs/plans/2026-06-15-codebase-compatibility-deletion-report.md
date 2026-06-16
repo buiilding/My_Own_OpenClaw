@@ -100,6 +100,7 @@ Date: 2026-06-15
 | CD-067 | Electron assistant backend trace helper path | `ipc_assistant_trace.cjs` still exported a standalone `[AssistantTrace][backend]` helper path plus direct summary/predicate helpers even though production uses `createElectronMainTraceLogger(...)` for backend event diagnostics | Knip reported the helper exports unused; repo search showed only `AssistantTrace.test.cjs` imported them directly, while `ipc.cjs` imports only the Electron main and current-turn trace logger factories | Delete the unused standalone assistant-backend trace path and keep settings summary private under the active Electron main trace logger | `c8ebcfd31` |
 | CD-068 | Electron backend event channel helper exports | `ipc_backend_event_channels.cjs` exported the backend-event channel map and channel resolver even though production imports only `broadcastTypedBackendEvent(...)` | Knip reported both exports unused; repo search showed only the channel unit test imported the helper resolver directly, while `ipc_runtime_helpers.cjs` uses the broadcaster | Remove the helper exports, keep channel routing private, and assert routing through the production broadcaster | `f4c491106` |
 | CD-069 | Electron backend payload allowlist export | `ipc_backend_payload_contract.cjs` exported `BACKEND_PAYLOAD_KEYS_BY_TYPE` even though production imports only `filterBackendPayload(...)` for outbound websocket payload normalization | Knip reported the allowlist export unused; repo search showed only a frontend/backend contract test imported it directly, while production payload normalization uses the filter API | Remove the allowlist export, keep the allowlist private, and assert backend contract parity by filtering synthetic payloads through `filterBackendPayload(...)` | `cc8dc6925` |
+| CD-070 | Electron IPC channel registry constant exports | `ipc_channel_registry_runtime.cjs` exported the shared IPC channel registry and preload argument prefix even though production imports only `buildPreloadIpcChannelsArgument(...)` | Knip reported both constant exports unused; repo search showed main window runtimes use only the argument builder and preload owns its own local prefix parser | Remove the constant exports and keep the registry/prefix private to the preload channel argument builder | pending |
 
 ## Commit Ledger
 
@@ -1191,6 +1192,22 @@ CD-069 validation:
 - Migration note: no storage, transport, or persisted-data migration is
   required. Outbound websocket payload filtering is unchanged; only the
   implementation allowlist stopped being a public Electron main export.
+
+CD-070 validation:
+
+- targeted `rg -n "IPC_CHANNELS|IPC_CHANNELS_ARGUMENT_PREFIX" frontend/src/main tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private same-module references remain inside
+  `ipc_channel_registry_runtime.cjs`.
+- `bin/windie test frontend -- IpcChannels PreloadIpcChannels MainWindowRuntime MainWindowOverlayRuntime`:
+  passed; 4 suites and 74 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 121 to 119 after
+  removing IPC channel registry constant exports.
+- `bin/windie docs list`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required. Preload channel injection still uses `buildPreloadIpcChannelsArgument(...)`;
+  the shared channel registry and argument prefix are just private implementation
+  details in Electron main.
 
 ## Inspection Notes
 

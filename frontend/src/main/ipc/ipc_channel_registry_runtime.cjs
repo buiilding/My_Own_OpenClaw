@@ -11,7 +11,5 @@ function buildPreloadIpcChannelsArgument(channelRegistry = IPC_CHANNELS) {
 }
 
 module.exports = {
-  IPC_CHANNELS,
-  IPC_CHANNELS_ARGUMENT_PREFIX,
   buildPreloadIpcChannelsArgument,
 };
