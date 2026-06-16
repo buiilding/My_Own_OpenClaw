@@ -412,6 +412,12 @@ describe('windie docs index', () => {
       'system_state',
       'system_state_collection_and_platform_adapter_reference.md',
     );
+    const bridgePath = path.join(
+      'docs',
+      'frontend',
+      'main',
+      'local_backend_bridge_handler_and_window_guard_reference.md',
+    );
 
     expect(findDocs('system state bridge export removed')[0].path).toBe(
       expectedPath,
@@ -420,6 +426,25 @@ describe('windie docs index', () => {
       expectedPath,
     );
     expect(findDocs('local_backend_bridge.getSystemState removed')[0].path).toBe(
+      bridgePath,
+    );
+  });
+
+  test('routes removed renderer tool-surface lifecycle queries to the surface removal reference', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'runtime',
+      'surface_orchestration_refactor_design_package_2026-02-28.md',
+    );
+
+    expect(findDocs('renderer tool surface lifecycle removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('deleted renderer surface services')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('SurfaceOrchestrator ToolExecutionLogger removed')[0].path).toBe(
       expectedPath,
     );
   });
