@@ -9,6 +9,13 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.computer import screenshot_tool  # noqa: E402
+from tools.result import ToolResult  # noqa: E402
+
+
+async def capture_screenshot(args):
+    result = await screenshot_tool.capture_screenshot(args)
+    assert isinstance(result, ToolResult)
+    return result.to_dict()
 
 
 class _FakeImage:
@@ -78,7 +85,7 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
 
     _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
 
-    result = await screenshot_tool.capture_screenshot(
+    result = await capture_screenshot(
         {"display_bounds": {"x": 10.1, "y": 20.9, "width": 300, "height": 200}}
     )
 
@@ -142,7 +149,7 @@ async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(
     _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Linux")
 
-    result = await screenshot_tool.capture_screenshot(
+    result = await capture_screenshot(
         {
             "display_bounds": {
                 "x": 1920,
@@ -196,7 +203,7 @@ async def test_capture_screenshot_scales_full_virtual_desktop_crop_to_image_pixe
     _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Linux")
 
-    result = await screenshot_tool.capture_screenshot(
+    result = await capture_screenshot(
         {
             "display_bounds": {
                 "x": 1920,
@@ -257,7 +264,7 @@ async def test_capture_screenshot_on_macos_uses_direct_region_for_monitor_bounds
     _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
 
-    result = await screenshot_tool.capture_screenshot(
+    result = await capture_screenshot(
         {
             "display_bounds": {
                 "x": 1920,
@@ -315,7 +322,7 @@ async def test_capture_screenshot_resizes_full_desktop_to_logical_coordinates(
     )
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
 
-    result = await screenshot_tool.capture_screenshot({})
+    result = await capture_screenshot({})
 
     assert result["success"] is True
     assert calls == [None]
@@ -353,7 +360,7 @@ async def test_capture_screenshot_resizes_region_to_display_bounds(monkeypatch):
     _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
 
-    result = await screenshot_tool.capture_screenshot(
+    result = await capture_screenshot(
         {
             "display_bounds": {
                 "x": 0,
@@ -409,7 +416,7 @@ async def test_capture_screenshot_keeps_identity_sized_capture(monkeypatch):
         desktop_size=(1710, 1112),
     )
 
-    result = await screenshot_tool.capture_screenshot({})
+    result = await capture_screenshot({})
 
     assert result["success"] is True
     assert calls == [None]
@@ -426,7 +433,7 @@ async def test_capture_screenshot_import_error_returns_failure(monkeypatch):
     monkeypatch.setitem(sys.modules, "pyautogui", None)
     monkeypatch.setitem(sys.modules, "PIL", None)
 
-    result = await screenshot_tool.capture_screenshot({})
+    result = await capture_screenshot({})
 
     assert result["success"] is False
     assert "Required library not available" in result["error"]
@@ -439,7 +446,7 @@ async def test_capture_screenshot_runtime_error_returns_failure(monkeypatch):
 
     _install_fake_modules(monkeypatch, screenshot_fn=_broken_screenshot)
 
-    result = await screenshot_tool.capture_screenshot({})
+    result = await capture_screenshot({})
 
     assert result["success"] is False
     assert "Screenshot failed: device busy" == result["error"]
@@ -466,7 +473,7 @@ async def test_capture_screenshot_windows_uses_native_cursor_capture_path(monkey
         screenshot_tool, "_capture_with_windows_cursor", _fake_windows_capture
     )
 
-    result = await screenshot_tool.capture_screenshot({})
+    result = await capture_screenshot({})
 
     assert result["success"] is True
     assert called["windows_capture"] is True

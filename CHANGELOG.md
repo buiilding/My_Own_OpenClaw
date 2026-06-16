@@ -19,6 +19,9 @@ All notable changes to WindieOS will be documented in this file.
   normalization.
 - frontend/sidecar: return native `ToolResult` from `keyboard_control` and
   `scroll_control` instead of producing registry-normalized dict envelopes.
+- frontend/sidecar: return native `ToolResult` from `screenshot` while keeping
+  the same screenshot payload and JSON-RPC envelope at the local backend
+  boundary.
 - frontend/sidecar: return native `ToolResult` from `switch_window` and
   `get_open_windows`, and serialize that contract explicitly where `open_app`
   polls windows.

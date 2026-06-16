@@ -26,7 +26,7 @@ This page documents sidecar computer tools as implemented in:
    - `keyboard_control` -> `execute_keyboard_control`
    - `scroll_control` -> `execute_scroll_control`
    - `screenshot` -> `capture_screenshot`
-3. Tool returns are normalized by registry into `ToolResult`.
+3. Tool returns are native `ToolResult`; the registry passes them through.
 
 ## Mouse Tool (`mouse_control`)
 
@@ -49,7 +49,7 @@ Execution semantics:
 Output semantics:
 
 - returns `ToolResult.success_result(...)` directly
-- payload includes `message`, `output`, and `output`
+- payload includes `message` and `output`
 
 ## Keyboard Tool (`keyboard_control`)
 
@@ -232,5 +232,5 @@ Common failure classes:
 
 Result normalization note:
 
-- migrated computer tools return `ToolResult` directly; any remaining
-  mapping-shaped payloads are legacy producers normalized by the registry
+- migrated computer tools return `ToolResult` directly; registry
+  mapping-normalization remains only for tool producers that have not moved yet

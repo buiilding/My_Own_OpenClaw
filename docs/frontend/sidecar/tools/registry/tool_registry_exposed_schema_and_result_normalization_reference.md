@@ -73,9 +73,10 @@ Exception behavior:
 ### Native `ToolResult`
 
 - passthrough with no transformation
-- `keyboard_control`, `scroll_control`, `switch_window`, `get_open_windows`,
-  `wait`, `get_system_stats`, and `process` return this shape directly;
-  first-party tools should prefer this contract when touched
+- `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`,
+  `switch_window`, `get_open_windows`, `wait`, `get_system_stats`, and
+  `process` return this shape directly; first-party tools should prefer this
+  contract when touched
 
 ### Legacy dict success path
 

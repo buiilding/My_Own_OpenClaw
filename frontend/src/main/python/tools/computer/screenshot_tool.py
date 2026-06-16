@@ -22,6 +22,7 @@ from path_trace import (
     build_sidecar_screenshot_capture_trace,
     monotonic_trace_start,
 )
+from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -632,7 +633,7 @@ def _capture_with_system_cursor(
     return None
 
 
-async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
+async def capture_screenshot(args: Dict[str, Any]) -> ToolResult:
     """
     Capture screenshot with optimized JPEG compression for faster encoding.
 
@@ -640,7 +641,7 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
         args: Screenshot args. Supports optional display_bounds payload.
 
     Returns:
-        Dictionary with success status and screenshot payload.
+        ToolResult with screenshot payload.
     """
     trace_started_at = monotonic_trace_start()
     try:
@@ -749,9 +750,8 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             get_interactive_executor(), _capture
         )
 
-        return {
-            "success": True,
-            "data": {
+        return ToolResult.success_result(
+            {
                 **capture_payload,
                 "path_trace": build_sidecar_screenshot_capture_trace(
                     capture_payload=capture_payload,
@@ -759,11 +759,11 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
                 ),
                 "output": "Screenshot captured successfully.",
                 "message": "Screenshot captured",
-            },
-        }
+            }
+        )
     except ImportError as e:
         logger.error(f"Required library not available: {e}")
-        return {"success": False, "error": f"Required library not available: {str(e)}"}
+        return ToolResult.error_result(f"Required library not available: {str(e)}")
     except Exception as e:
         logger.error(f"Screenshot failed: {e}", exc_info=True)
-        return {"success": False, "error": f"Screenshot failed: {str(e)}"}
+        return ToolResult.error_result(f"Screenshot failed: {str(e)}")
