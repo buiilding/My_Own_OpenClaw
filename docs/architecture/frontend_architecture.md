@@ -273,7 +273,11 @@ Primary modules:
   - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
   - Delegates split IPC handler registration to `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
   - Delegates surface/window ownership to `surface_runtime.cjs` and per-OS activation/protection/topmost policy to `window_platform_policy.cjs`.
+  - Reads WindieOS-specific browser and macOS automation permission copy from `main_host_skin.cjs` so generic Electron permission adapters do not own product wording.
   - Preserves sender-display affinity through composition when chat surfaces open the dashboard.
+- `main/main_host_skin.cjs`:
+  - WindieOS-specific host copy for generic Electron agent-host adapters.
+  - Browser automation and macOS automation fallback messages should read from this skin/config boundary instead of being embedded in `main/index.cjs`.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.

@@ -14,6 +14,9 @@ All notable changes to WindieOS will be documented in this file.
   runtime commands.
 - frontend/renderer: route onboarding, chat empty-state, send/replay failure,
   and live-turn fallback copy through the WindieOS renderer skin config.
+- frontend/main: route browser and macOS automation permission copy through the
+  WindieOS main host skin config so the Electron composition root stays focused
+  on host adapters.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

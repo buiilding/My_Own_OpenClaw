@@ -20,6 +20,7 @@ const {
   extractWorkspaceSelection,
   installApplicationMenu,
 } = require('./app/app_menu_runtime.cjs');
+const { mainHostSkin } = require('./app/main_host_skin.cjs');
 const {
   createPermissionStateStore,
   resolveStatePath: resolvePermissionStatePath,
@@ -426,6 +427,9 @@ function initializeMainProcessIpc() {
       emitMainWindowOpenTarget: surfaceRuntime.emitMainWindowOpenTarget,
     });
 
+    const browserAutomationCopy = mainHostSkin.permissions.browserAutomation;
+    const macAutomationCopy = mainHostSkin.permissions.macAutomation;
+
     initializePermissionHandlersRuntime({
       ipcMain,
       shell,
@@ -494,7 +498,7 @@ function initializeMainProcessIpc() {
         if (!backendStatus || backendStatus.success !== true || typeof backendStatus.data !== 'object') {
           return {
             granted: false,
-            reason: 'WindieOS local backend is not ready. Wait a moment and retry Enable.',
+            reason: browserAutomationCopy.localBackendNotReady,
             details: {
               backend_status: backendStatus,
             },
@@ -524,10 +528,7 @@ function initializeMainProcessIpc() {
         if (hasBrowserTool && featurePackAvailable && !browserBinaryAvailable) {
           return {
             granted: false,
-            reason: (
-              'Browser automation is enabled, but no compatible Chrome or Chromium browser was found. '
-              + 'Click Grant to install Chromium for WindieOS.'
-            ),
+            reason: browserAutomationCopy.installBrowserPrompt,
             details: {
               backend_status: payload,
               missing_browser_binary: true,
@@ -537,8 +538,8 @@ function initializeMainProcessIpc() {
         }
 
         const reason = autoInstallEnabled
-          ? 'Browser automation runtime is still unavailable. Retry Enable in a few seconds.'
-          : 'Browser automation runtime is unavailable in this build. Reinstall WindieOS or install browser feature pack dependencies.';
+          ? browserAutomationCopy.runtimeStillUnavailable
+          : browserAutomationCopy.runtimeUnavailable;
 
         return {
           granted: false,
@@ -556,7 +557,7 @@ function initializeMainProcessIpc() {
             success: false,
             error: typeof installResult?.error === 'string'
               ? installResult.error
-              : 'Failed to install Chromium runtime.',
+              : browserAutomationCopy.installFailure,
             details: installResult,
           };
         }
@@ -574,7 +575,7 @@ function initializeMainProcessIpc() {
             success: false,
             error: typeof warmResult?.error === 'string'
               ? warmResult.error
-              : 'Failed to open the WindieOS browser.',
+              : browserAutomationCopy.openFailure,
             details: warmResult,
           };
         }
@@ -591,7 +592,7 @@ function initializeMainProcessIpc() {
             granted: false,
             reason: typeof probeResult?.error === 'string'
               ? probeResult.error
-              : 'WindieOS could not verify macOS Automation permission yet.',
+              : macAutomationCopy.probeFailure,
             details: {
               backend_result: probeResult,
             },
@@ -607,7 +608,7 @@ function initializeMainProcessIpc() {
             granted: false,
             reason: typeof requestResult?.error === 'string'
               ? requestResult.error
-              : 'WindieOS could not request macOS Automation permission.',
+              : macAutomationCopy.requestFailure,
             details: {
               backend_result: requestResult,
             },
