@@ -226,6 +226,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes workspace folder permission queries to the workspace workflow', () => {
+    expect(findDocs('workspace folder permission')[0].path).toBe(
+      path.join('docs', 'frontend', 'runtime', 'workspace_context_change_workflow.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

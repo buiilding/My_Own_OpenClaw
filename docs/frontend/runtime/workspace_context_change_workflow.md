@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for changing workspace selection, conversation workspace binding, workspace_path query forwarding, AGENTS.md repo instruction injection, and backend prompt context."
+summary: "Workflow for changing workspace folder permission, active workspace selection, conversation workspace binding, workspace_path query forwarding, AGENTS.md repo instruction injection, and backend prompt context."
 read_when:
-  - When changing active workspace selection, workspace access permission, conversation workspace binding, workspace_path query payloads, or repo instruction injection.
+  - When changing workspace folder permission, active workspace selection, workspace access permission, conversation workspace binding, workspace_path query payloads, or repo instruction injection.
   - When debugging missing AGENTS.md instructions, wrong workspace on resumed conversations, file/shell tools using the wrong folder, or backend prompts not reflecting the active workspace.
   - When changing dashboard workspace settings, query send workspace forwarding, rehydrate workspace behavior, or backend prompt construction from workspace context.
 title: "Workspace Context Change Workflow"
