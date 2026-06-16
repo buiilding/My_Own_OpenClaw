@@ -648,28 +648,6 @@ describe('WindieSdkClient', () => {
     expect(ensureLocalRuntime).not.toHaveBeenCalled();
   });
 
-  test('wakeUp rejects the legacy builtinTools selection path', async () => {
-    const ensureLocalRuntime = jest.fn();
-    const client = new WindieClientClass({
-      backendUrl: 'https://sdk.windie.test',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      defaultUserId: 'dev-user',
-      ensureLocalRuntime,
-    });
-
-    await expect(client.wakeUp({
-      agentId: 'legacy-builtin-tools-agent',
-      builtinTools: ['filesystem'],
-      memory: false,
-      persistence: false,
-    } as any)).rejects.toThrow(
-      'WindieClient.wakeUp no longer accepts builtinTools; use builtins instead.',
-    );
-    expect(ensureLocalRuntime).not.toHaveBeenCalled();
-    expect(FakeWebSocket.instances).toHaveLength(0);
-  });
-
   test('wakeUp still resolves local runtime for builtins none when memory and persistence stay enabled', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),

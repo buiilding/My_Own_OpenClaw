@@ -21,7 +21,6 @@ class WindieClient {
         this.defaultOptions = options;
     }
     async wakeUp(options = {}) {
-        assertNoLegacyBuiltinToolsOption(options);
         const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
         const initialModelSettings = options.model
             ? (0, modelSelection_js_1.buildModelSettingsPatch)(options.model, 'WindieClient.wakeUp')
@@ -385,11 +384,6 @@ class WindieClient {
     }
 }
 exports.WindieClient = WindieClient;
-function assertNoLegacyBuiltinToolsOption(options) {
-    if (Object.prototype.hasOwnProperty.call(options, 'builtinTools')) {
-        throw new Error('WindieClient.wakeUp no longer accepts builtinTools; use builtins instead.');
-    }
-}
 function featureEnabled(value, fallback) {
     if (typeof value === 'boolean') {
         return value;

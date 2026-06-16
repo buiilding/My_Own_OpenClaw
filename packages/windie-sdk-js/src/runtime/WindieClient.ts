@@ -151,7 +151,6 @@ export class WindieClient {
   }
 
   async wakeUp(options: WindieWakeUpOptions = {}): Promise<WindieAgent> {
-    assertNoLegacyBuiltinToolsOption(options);
     const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
     const initialModelSettings = options.model
       ? buildModelSettingsPatch(options.model, 'WindieClient.wakeUp')
@@ -597,12 +596,6 @@ export class WindieClient {
       .filter(tool => !tool.module)
       .map(tool => buildManifestTool(tool));
     return dedupeManifestTools([...registeredRuntimeTools, ...selectedBuiltinTools, ...explicitTools]);
-  }
-}
-
-function assertNoLegacyBuiltinToolsOption(options: WindieWakeUpOptions): void {
-  if (Object.prototype.hasOwnProperty.call(options, 'builtinTools')) {
-    throw new Error('WindieClient.wakeUp no longer accepts builtinTools; use builtins instead.');
   }
 }
 

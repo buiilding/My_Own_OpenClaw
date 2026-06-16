@@ -37,6 +37,8 @@ All notable changes to WindieOS will be documented in this file.
   migration from renderer localStorage loading.
 - frontend/permissions: remove stale planned-system-access wording from
   permission storage tests and renderer folder-structure docs.
+- sdk/runtime: delete the removed `builtinTools` wake-up option rejection
+  branch so `builtins` is the only SDK built-in tool selection contract.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
