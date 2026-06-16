@@ -89,7 +89,7 @@ Date: 2026-06-15
 | CD-056 | Renderer formatter and screenshot pipeline modules | `MessageFormatter.ts`, `ScreenshotAttachmentPipeline.ts`, `CapturePayloadUtils.ts`, screenshot-only surface lifecycle APIs, and their tests remained after renderer sends stopped capturing/uploading query screenshots and SDK/main took over screenshot resource resolution | Knip reported the formatter and screenshot pipeline functions as unused; repo search showed production kept only stale type imports, docs, and tests; removing the modules exposed `CapturePayloadUtils.ts`, screenshot lifecycle exports, and screenshot-only timing/reason helpers as unused fallout | Delete the dead renderer formatter/screenshot pipeline modules and tests; inline the remaining query capture metadata/system-state shapes into active owners; update docs to route query screenshot capture and materialization through SDK/main | `3dbfaff7b` |
 | CD-057 | Electron app-menu helper exports | `app_menu_runtime.cjs` exported the workspace permission id, menu-template builder, path segment helper, and workspace permission request helper even though production imports only the app-menu installer and workspace selection extractor | Knip reported those four helper exports unused; repo search showed only tests imported the menu-template builder directly while the other helpers were internal implementation details | Remove the test-only/internal helper exports and assert menu template behavior through `installApplicationMenu(...)` instead | `fcb9a79f0` |
 | CD-058 | Electron repo-instruction message/helper exports | `repo_instruction_runtime.cjs` exported the old AGENTS.md message wrapper/resolver, prompt-layer builder, and workspace normalizer even though production imports only `resolveWorkspaceRepoInstructionPromptLayers(...)` | Knip reported those four helper exports unused; repo search showed only tests imported the old message path while production sends `agent_definition.agents_md` prompt layers through Electron main | Delete the legacy message wrapper/resolver, keep builders and normalizer private, and update docs/tests to the prompt-layer owner | `e934747cd` |
-| CD-059 | Electron runtime-path Python executable export | `runtime_paths.cjs` exported `resolvePythonExecutablePath(...)` even though production callers import only `resolveSidecarLaunchTarget(...)` and executable selection is an implementation detail of that launch-target resolver | Knip reported the lower-level export unused; repo search showed no external imports and runtime-path tests already cover executable resolution through sidecar launch targets | Remove the lower-level export and update runtime-path docs to describe Python executable lookup as internal launch-target behavior | pending implementation commit |
+| CD-059 | Electron runtime-path Python executable export | `runtime_paths.cjs` exported `resolvePythonExecutablePath(...)` even though production callers import only `resolveSidecarLaunchTarget(...)` and executable selection is an implementation detail of that launch-target resolver | Knip reported the lower-level export unused; repo search showed no external imports and runtime-path tests already cover executable resolution through sidecar launch targets | Remove the lower-level export and update runtime-path docs to describe Python executable lookup as internal launch-target behavior | `906522e8e` |
 
 ## Commit Ledger
 
@@ -205,7 +205,8 @@ Date: 2026-06-15
   completed CD-057.
 - `e934747cd refactor(frontend): keep repo instruction helpers private`
   completed CD-058.
-- pending implementation commit for CD-059.
+- `906522e8e refactor(frontend): keep python path helper private`
+  completed CD-059.
 
 ## Validation Log
 
