@@ -77,7 +77,7 @@ If backend error text changes, both save-status failure detection and chat-error
 `AppConfigProvider` also reacts to `ipc-status` and `get-client-user-id` snapshots:
 
 - updates transcript user/session snapshot
-- sets backend HTTP URL for artifact uploader
+- sets backend HTTP URL for renderer artifact URL composition
 - may trigger `DesktopSettingsRuntimeClient.updateSettings(currentConfig)` when backend connection is active
 
 This path is separate from `from-backend` ACK/control events but interacts with settings lifecycle timing.

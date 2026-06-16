@@ -159,4 +159,4 @@ Attachment-only fallback text:
 
 - [MessageInput Clipboard Image and Voice Submit Reference](message_input_clipboard_image_and_voice_submit_reference.md)
 - [Message Send Surface Policy and Screenshot Capture Reference](../message_send_surface_policy_and_screenshot_capture_reference.md)
-- [Capture, Artifact Upload, and Payload Normalization Reference](../../infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Capture, Artifact URL, and Payload Normalization Reference](../../infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)

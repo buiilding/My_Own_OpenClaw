@@ -38,5 +38,5 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 
 - [Artifact Change Workflow](artifact_change_workflow.md)
 - [Backend Artifact/Screenshot/System-State Flow Reference](../backend/services/artifact_screenshot_and_system_state_flow_reference.md)
-- [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Frontend Capture, Artifact URL, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [API Reference](../reference/api_reference.md)

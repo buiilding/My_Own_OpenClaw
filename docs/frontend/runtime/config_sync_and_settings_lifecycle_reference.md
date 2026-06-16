@@ -166,7 +166,7 @@ Main broadcasts `ipc-status` payload with:
 Renderer uses this to:
 
 - update transcript user identity
-- update artifact uploader backend HTTP base URL
+- update renderer backend HTTP URL for artifact URL composition
 - trigger config re-sync when connection becomes ready
 - persist resolved global-stop fallback bindings back into local config and Settings UI when the requested accelerator is unavailable
 

@@ -333,7 +333,7 @@ Read:
 - [Platform Change Workflow](../platforms/platform_change_workflow.md)
 - [Platform Validation Matrix](../platforms/platform_validation_matrix.md)
 - [Frontend Message Send Surface Policy and Screenshot Capture](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md)
-- [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Frontend Capture, Artifact URL, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 - [Backend OCR + Vision Coordinate Runtime Overview](../backend/services/ocr_and_vision_coordinate_runtime_reference.md)
 - [Backend OCR Service + Screenshot State-Machine Reference](../backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)

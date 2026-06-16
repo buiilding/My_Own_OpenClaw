@@ -1,12 +1,13 @@
 ---
-summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, artifact URL handling, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, `BackendEndpointStore` artifact URL handling through `setBackendHttpUrl` and `buildArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
+  - When changing renderer artifact URL base sync, `BackendEndpointStore`, `setBackendHttpUrl`, `buildArtifactUrl`, or backend endpoint propagation into artifact display URLs.
   - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`) before backend relay.
-title: "Capture, Artifact Upload, and Payload Normalization Reference"
+title: "Capture, Artifact URL, and Payload Normalization Reference"
 ---
 
-# Capture, Artifact Upload, and Payload Normalization Reference
+# Capture, Artifact URL, and Payload Normalization Reference
 
 ## Canonical Modules
 

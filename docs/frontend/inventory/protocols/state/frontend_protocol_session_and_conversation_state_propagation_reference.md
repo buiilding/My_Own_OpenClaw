@@ -49,7 +49,7 @@ Primary test sources:
 | `currentSessionId` | `ipc.cjs` | inbound backend events with `session_id` | synthetic local query context fields, renderer session info |
 | `currentServerUserId` | `ipc.cjs` | inbound backend events with `user_id` | synthetic local query context fields |
 | `currentConversationRef` | `ipc.cjs` | inbound backend events with `conversation_ref`; reset on reconnect close | query payload fallback when renderer omits conversation ref |
-| backend endpoint snapshot (`BACKEND_URL`, `BACKEND_HTTP_URL`) | `ipc.cjs` | backend endpoint resolution during init | `get-client-user-id` payload, `ipc-status`, artifact uploader base URL sync |
+| backend endpoint snapshot (`BACKEND_URL`, `BACKEND_HTTP_URL`) | `ipc.cjs` | backend endpoint resolution during init | `get-client-user-id` payload, `ipc-status`, renderer artifact URL base sync |
 | transcript session `{conversationRef,userId}` | SDK transcript session runtime (`desktopTranscriptSessionRuntime.ts`, `sessionInfoState.ts`) | `updateTranscriptSession(...)`, `setActiveConversationRef(...)` | SDK projection/store routing, pending flush eligibility, dashboard memory views |
 
 ## Main-Process Bridge State Flow (`ipc.cjs`)

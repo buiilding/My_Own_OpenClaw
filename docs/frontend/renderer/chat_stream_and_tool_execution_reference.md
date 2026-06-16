@@ -381,4 +381,4 @@ If transcript rows missing:
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Renderer Infrastructure Docs Hub](infrastructure/README.md)
 - [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md)
-- [Capture, Artifact Upload, and Payload Normalization Reference](infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Capture, Artifact URL, and Payload Normalization Reference](infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)

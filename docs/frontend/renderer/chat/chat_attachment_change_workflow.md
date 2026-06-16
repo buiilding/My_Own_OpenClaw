@@ -162,5 +162,5 @@ Clipboard image IPC trust boundary:
 - [Data-URL Image Parsing and Attachment Payload Contract Reference](presentation/data_url_image_parsing_and_attachment_payload_contract_reference.md)
 - [Artifact Change Workflow](../../../desktop/artifact_change_workflow.md)
 - [Artifacts and Attachments](../../../desktop/artifacts_and_attachments.md)
-- [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Frontend Capture, Artifact URL, and Payload Normalization Reference](../infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [Transcript Replay Change Workflow](../../../memory/transcript_replay_change_workflow.md)
