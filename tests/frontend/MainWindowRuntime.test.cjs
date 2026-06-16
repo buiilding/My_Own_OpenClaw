@@ -8,75 +8,12 @@ jest.mock('electron', () => ({
 }));
 
 const {
-  collapseMainWindowToChatPill,
   createMainWindow,
   createChatWindow,
   createResponseWindow,
   createTray,
-  enableContentProtectionSafely,
-  hideMainWindowWithoutChatPill,
   prepareOverlayQueryCaptureFocus,
 } = require('../../frontend/src/main/surfaces/main_window_runtime.cjs');
-
-describe('main_window_runtime enableContentProtectionSafely', () => {
-  test('enables content protection on Windows', () => {
-    const targetWindow = {
-      setContentProtection: jest.fn(),
-    };
-
-    enableContentProtectionSafely({
-      targetWindow,
-      platform: 'win32',
-      windowLabel: 'chat box',
-    });
-
-    expect(targetWindow.setContentProtection).toHaveBeenCalledWith(true);
-  });
-
-  test('can disable content protection on Windows', () => {
-    const targetWindow = {
-      setContentProtection: jest.fn(),
-    };
-
-    enableContentProtectionSafely({
-      targetWindow,
-      platform: 'win32',
-      windowLabel: 'chat box',
-      enabled: false,
-    });
-
-    expect(targetWindow.setContentProtection).toHaveBeenCalledWith(false);
-  });
-
-  test('skips content protection on Linux', () => {
-    const targetWindow = {
-      setContentProtection: jest.fn(),
-    };
-
-    enableContentProtectionSafely({
-      targetWindow,
-      platform: 'linux',
-      windowLabel: 'chat box',
-    });
-
-    expect(targetWindow.setContentProtection).not.toHaveBeenCalled();
-  });
-
-  test('warns when content protection API is unavailable', () => {
-    const warn = jest.fn();
-
-    enableContentProtectionSafely({
-      targetWindow: {},
-      platform: 'win32',
-      windowLabel: 'chat box',
-      warn,
-    });
-
-    expect(warn).toHaveBeenCalledWith(
-      '[Main] Cannot enable chat box content protection: BrowserWindow.setContentProtection is unavailable.',
-    );
-  });
-});
 
 describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
   function createFocusableWindow() {
@@ -598,7 +535,6 @@ describe('main_window_runtime createMainWindow', () => {
       getWindows: jest.fn(() => ({ mainWindow })),
       getMainWindowMode: jest.fn(() => 'dashboard'),
       setMainWindow: jest.fn(),
-      enableContentProtectionSafely: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
       log: jest.fn(),
       ...overrides,
@@ -674,14 +610,6 @@ describe('main_window_runtime createMainWindow', () => {
     expect(deps.log).toHaveBeenCalledWith('[Main][Window] shown name=main');
   });
 
-  test('keeps dashboard visible in system screenshots', () => {
-    const { deps } = createDeps({ platform: 'win32' });
-
-    createMainWindow(deps);
-
-    expect(deps.enableContentProtectionSafely).not.toHaveBeenCalled();
-  });
-
   test('passes native app icon into dashboard BrowserWindow options when available', () => {
     const { nativeImage } = require('electron');
     const icon = { isEmpty: () => false };
@@ -743,13 +671,16 @@ describe('main_window_runtime createMainWindow', () => {
   });
 
   test('logs main window close and closed lifecycle events', () => {
-    const { deps, handlers } = createDeps();
+    const { deps, handlers, mainWindow } = createDeps();
     const closeEvent = { preventDefault: jest.fn() };
 
     createMainWindow(deps);
     handlers.close(closeEvent);
     handlers.closed();
 
+    expect(closeEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
     expect(deps.log).toHaveBeenCalledWith('[Main][Window] close_requested name=main mode=dashboard minimizing=true');
     expect(deps.log).toHaveBeenCalledWith('[Main][Window] closed name=main');
   });
@@ -775,6 +706,32 @@ describe('main_window_runtime createMainWindow', () => {
     expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
   });
 
+  test('falls back when macOS never reports leaving fullscreen', () => {
+    jest.useFakeTimers();
+    try {
+      const { deps, handlers, mainWindow } = createDeps({
+        platform: 'darwin',
+      });
+      mainWindow.isFullScreen.mockReturnValue(true);
+      const closeEvent = { preventDefault: jest.fn() };
+
+      createMainWindow(deps);
+      handlers.close(closeEvent);
+
+      expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
+      expect(mainWindow.hide).not.toHaveBeenCalled();
+      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(true);
+
+      jest.advanceTimersByTime(1500);
+
+      expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+      expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
+      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('hides onboarding without restoring the chat pill on close', () => {
     const { deps, handlers, mainWindow } = createDeps({
       platform: 'darwin',
@@ -789,107 +746,6 @@ describe('main_window_runtime createMainWindow', () => {
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
     expect(mainWindow.setFullScreen).not.toHaveBeenCalled();
     expect(deps.showChatWindow).not.toHaveBeenCalled();
-  });
-});
-
-describe('main_window_runtime collapseMainWindowToChatPill', () => {
-  test('collapses immediately when the dashboard is not in macOS fullscreen', () => {
-    const mainWindow = {
-      isDestroyed: jest.fn(() => false),
-      hide: jest.fn(),
-      isFullScreen: jest.fn(() => false),
-    };
-    const showChatWindow = jest.fn();
-
-    collapseMainWindowToChatPill({
-      mainWindow,
-      showChatWindow,
-      platform: 'darwin',
-    });
-
-    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
-    expect(showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
-  });
-
-  test('falls back when macOS never reports leaving fullscreen', () => {
-    jest.useFakeTimers();
-    try {
-      const mainWindow = {
-        isDestroyed: jest.fn(() => false),
-        hide: jest.fn(),
-        isFullScreen: jest.fn(() => true),
-        setFullScreen: jest.fn(),
-        once: jest.fn(),
-      };
-      const showChatWindow = jest.fn();
-
-      collapseMainWindowToChatPill({
-        mainWindow,
-        showChatWindow,
-        platform: 'darwin',
-        leaveFullScreenTimeoutMs: 25,
-      });
-
-      expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
-      expect(mainWindow.hide).not.toHaveBeenCalled();
-      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(true);
-
-      jest.advanceTimersByTime(25);
-
-      expect(mainWindow.hide).toHaveBeenCalledTimes(1);
-      expect(showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
-      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(false);
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  test('clears the fullscreen fallback when the leave event arrives', () => {
-    jest.useFakeTimers();
-    try {
-      let leaveFullScreenHandler = null;
-      const mainWindow = {
-        isDestroyed: jest.fn(() => false),
-        hide: jest.fn(),
-        isFullScreen: jest.fn(() => true),
-        setFullScreen: jest.fn(),
-        once: jest.fn((_eventName, handler) => {
-          leaveFullScreenHandler = handler;
-        }),
-      };
-      const showChatWindow = jest.fn();
-
-      collapseMainWindowToChatPill({
-        mainWindow,
-        showChatWindow,
-        platform: 'darwin',
-        leaveFullScreenTimeoutMs: 25,
-      });
-
-      leaveFullScreenHandler();
-      jest.advanceTimersByTime(25);
-
-      expect(mainWindow.hide).toHaveBeenCalledTimes(1);
-      expect(showChatWindow).toHaveBeenCalledTimes(1);
-      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(false);
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-});
-
-describe('main_window_runtime hideMainWindowWithoutChatPill', () => {
-  test('hides immediately when onboarding closes', () => {
-    const mainWindow = {
-      isDestroyed: jest.fn(() => false),
-      hide: jest.fn(),
-    };
-
-    hideMainWindowWithoutChatPill({
-      mainWindow,
-    });
-
-    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
   });
 });
 

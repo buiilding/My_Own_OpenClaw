@@ -80,24 +80,6 @@ async function prepareOverlayQueryCaptureFocus({
   };
 }
 
-function enableContentProtectionSafely({
-  targetWindow,
-  platform,
-  windowLabel,
-  enabled = true,
-  warn = console.warn,
-}) {
-  const policy = createWindowPlatformPolicy({
-    platform,
-    warn,
-  });
-  policy.applyContentProtection({
-    targetWindow,
-    windowLabel,
-    enabled,
-  });
-}
-
 function normalizeMainWindowOpenTarget({ options = {}, allowedTargets }) {
   if (!options || typeof options !== 'object') {
     return null;
@@ -553,14 +535,11 @@ function createTray({
 }
 
 module.exports = {
-  collapseMainWindowToChatPill,
   createChatWindow,
   createMainWindow,
   createResponseWindow,
   createTray,
   emitMainWindowOpenTarget,
-  enableContentProtectionSafely,
-  hideMainWindowWithoutChatPill,
   normalizeMainWindowOpenTarget,
   prepareOverlayQueryCaptureFocus,
 };

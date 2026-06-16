@@ -61,8 +61,11 @@ Creation behavior:
 
 Important ownership note:
 
-- `createMainWindow(...)` does not call `enableContentProtectionSafely(...)`.
-- Content protection in this module is applied to overlay windows (`createChatWindow`, `createResponseWindow`) only.
+- `createMainWindow(...)` does not apply content protection to the dashboard
+  window.
+- Overlay creation applies topmost/workspace policy through
+  `createWindowPlatformPolicy(...)`; screenshot content protection is toggled
+  by the surface runtime during capture leases.
 
 Close behavior:
 

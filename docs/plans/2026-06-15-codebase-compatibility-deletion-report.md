@@ -119,6 +119,7 @@ Date: 2026-06-15
 | CD-086 | Electron local-backend screenshot temp-dir helper export | `local_backend_bridge_screenshot_attachment.cjs` exported `resolveOwnedScreenshotTempDir(...)` even though production uses it only internally to validate owned `screenshot_path` attachments | Knip reported the export unused; repo search showed only `LocalBackendBridge.rpc.test.cjs` imported it directly to construct fixture screenshot paths | Remove the helper export and keep screenshot temp-path ownership tested through the documented `${os.tmpdir()}/windieos-screenshots/windie-shot-*` materialization contract | `38916c7fb` |
 | CD-087 | Electron overlay renderer-console helper exports | `main_window_overlay_runtime.cjs` exported console payload normalization, formatter, and severity classifier helpers even though production uses them only inside the renderer `console-message` hook | Knip reported all three exports unused; repo search showed only `MainWindowOverlayRuntime.test.cjs` imported them directly while Electron main callers use `attachRendererConsoleLogging(...)` | Remove the helper exports and assert old/new Electron console payload handling through the public renderer-console attachment path | `940a5b1d0` |
 | CD-088 | Electron chat-pill visibility intent path exports | `chat_pill_visibility_intent_store.cjs` exported the persisted filename constant and path resolver even though production uses only the read/write intent store operations | Knip reported both exports unused; repo search showed only `ChatPillVisibilityIntentStore.test.cjs` imported the resolver directly while `index.cjs` imports the store operations | Remove the path helper exports and assert default user-data path behavior through `writeChatPillVisibilityIntent(...)` | `e40ce6bed` |
+| CD-089 | Electron main-window close/content-protection helper exports | `main_window_runtime.cjs` exported dashboard collapse/hide helpers and an unused content-protection wrapper even though production routes close behavior through `createMainWindow(...)` and content protection through `window_platform_policy`/surface runtime | Knip reported all three exports unused; repo search showed only `MainWindowRuntime.test.cjs` imported them directly, while the content-protection wrapper had no production caller | Delete the unused content-protection wrapper, keep close helpers private, and assert close/collapse behavior through the main-window factory close handler | pending commit |
 
 ## Commit Ledger
 
@@ -294,6 +295,7 @@ Date: 2026-06-15
   completed CD-087.
 - `e40ce6bed refactor(frontend): keep chat pill intent path private`
   completed CD-088.
+- Pending implementation commit completes CD-089.
 
 ## Validation Log
 
@@ -1572,6 +1574,25 @@ CD-088 validation:
   `chat-pill-visibility-intent.json`; Electron main still reads and writes the
   same user-hidden intent JSON under app `userData` unless tests inject an
   explicit `statePath`.
+
+CD-089 validation:
+
+- targeted `rg -n "enableContentProtectionSafely|collapseMainWindowToChatPill|hideMainWindowWithoutChatPill" frontend/src/main/surfaces/main_window_runtime.cjs tests/frontend/MainWindowRuntime.test.cjs docs/frontend/main/main_window_runtime_factory_and_overlay_bootstrap_reference.md`:
+  only private same-module close helper definitions and uses remain; the stale
+  docs reference to the deleted content-protection wrapper was removed.
+- `bin/windie test frontend -- MainWindowRuntime WindowPlatformPolicy SurfaceRuntime MainProcessBootstrapRuntime`:
+  passed; 4 suites and 73 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 69 to 66 after
+  deleting/privatizing main-window helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, settings, IPC, websocket, or
+  persisted-data migration is required. Dashboard close handling still hides
+  onboarding without restoring the chat pill, collapses dashboard closes to the
+  chat pill, and waits for macOS fullscreen exit before hiding when needed.
+  Screenshot content protection remains owned by window platform policy and the
+  surface runtime capture lease path.
 
 ## Inspection Notes
 
