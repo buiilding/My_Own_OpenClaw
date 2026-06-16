@@ -109,7 +109,8 @@ Date: 2026-06-15
   completed CD-025.
 - `4040e429e refactor(frontend): remove response overlay scanner helpers`
   completed CD-026.
-- pending commit for CD-027.
+- `266017d03 refactor(frontend): remove unused stream phase predicates`
+  completed CD-027.
 
 ## Validation Log
 
