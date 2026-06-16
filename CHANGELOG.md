@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep app-diagnostics store schema, sanitizer, and internal path
+  definition constants private while preserving the CLI-facing diagnostics
+  query/list/inspect exports.
 - frontend/main: keep generic app-diagnostic append and data compaction helpers
   private so callers use the path-specific diagnostic appenders.
 - frontend/main: keep live-surface trace env gating and renderer payload

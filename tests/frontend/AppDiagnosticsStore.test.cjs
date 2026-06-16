@@ -13,8 +13,6 @@ const {
   LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
-  MCP_EXECUTION_DIAGNOSTICS_PATH,
-  MCP_REGISTRATION_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
@@ -23,8 +21,10 @@ const {
   inspectDiagnosticTrace,
   listDiagnosticPathDefinitions,
   queryDiagnosticEvents,
-  sanitizeData,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
+
+const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
+const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
 
 describe('app diagnostics store', () => {
   let previousDbPath;
@@ -96,26 +96,6 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('do not store');
 
     expect(inspectDiagnosticTrace('diag-test')).toHaveLength(1);
-  });
-
-  test('sanitizes data with an allowlist', () => {
-    expect(sanitizeData({
-      hasUserId: true,
-      resultCount: 2,
-      localBackendReady: true,
-      action: 'connect',
-      tabCount: 1,
-      lastMessage: 'secret',
-      workspacePath: '/repo',
-      title: 'chat title',
-      url: 'https://example.com/private',
-    })).toEqual({
-      hasUserId: true,
-      resultCount: 2,
-      localBackendReady: true,
-      action: 'connect',
-      tabCount: 1,
-    });
   });
 
   test('persists sanitized browser session control diagnostics', () => {

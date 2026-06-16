@@ -92,6 +92,7 @@ Date: 2026-06-15
 | CD-059 | Electron runtime-path Python executable export | `runtime_paths.cjs` exported `resolvePythonExecutablePath(...)` even though production callers import only `resolveSidecarLaunchTarget(...)` and executable selection is an implementation detail of that launch-target resolver | Knip reported the lower-level export unused; repo search showed no external imports and runtime-path tests already cover executable resolution through sidecar launch targets | Remove the lower-level export and update runtime-path docs to describe Python executable lookup as internal launch-target behavior | `906522e8e` |
 | CD-060 | Electron live-surface trace helper exports | `live_surface_trace_runtime.cjs` exported the env-gate predicate and renderer payload normalizer even though production imports only trace logging, renderer forwarding, and summarizer APIs | Knip reported those two helper exports unused; repo search showed only the unit test imported them directly while production exercises them internally through `logLiveSurfaceTrace(...)` and `handleRendererLiveSurfaceTrace(...)` | Remove the helper exports and retarget tests to the production trace APIs | `62a69489a` |
 | CD-061 | Electron app diagnostics generic helper exports | `app_diagnostics_runtime.cjs` exported `appendAppRuntimeDiagnostic(...)` and `compactData(...)` even though production callers import the path-specific diagnostic appenders | Knip reported both helper exports unused; repo search showed the generic appender and compaction helper are only used inside the diagnostics runtime implementation | Remove the generic helper exports and leave only path-specific diagnostic appenders public | `4fae12f53` |
+| CD-062 | Electron app diagnostics store internal exports | `app_diagnostics_store.cjs` exported internal path-definition/schema/sanitizer helpers and test-only MCP/conversation path constants alongside the real store/CLI APIs | Knip reported twelve store exports unused from the frontend package view; repo search showed five are used by the root `bin/windie diagnostics` command, while seven were internal or test-only | Remove only the internal/test-only store exports and preserve the CLI-facing diagnostics query/list/inspect/database exports | pending implementation commit |
 
 ## Commit Ledger
 
@@ -213,6 +214,7 @@ Date: 2026-06-15
   completed CD-060.
 - `4fae12f53 refactor(frontend): keep app diagnostic helpers private`
   completed CD-061.
+- pending implementation commit for CD-062.
 
 ## Validation Log
 
@@ -1028,6 +1030,25 @@ CD-061 validation:
 - `git diff --check`: passed.
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; diagnostics continue through the same path-specific appenders.
+
+CD-062 validation:
+
+- targeted `rg -n "CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH|DIAGNOSTIC_PATH_DEFINITIONS|MCP_EXECUTION_DIAGNOSTICS_PATH|MCP_REGISTRATION_DIAGNOSTICS_PATH|ensureDiagnosticsSchema|sanitizeData|sanitizeError" frontend/src tests/frontend docs scripts --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private same-module references, test-local MCP path literals, and
+  sidecar-owned Python diagnostic path constants remain.
+- `bin/windie test frontend -- AppDiagnosticsStore McpControl`: passed; 2
+  suites and 20 tests.
+- `bin/windie diagnostics paths --json`: passed and listed the registered
+  diagnostics path definitions through the root CLI entrypoint.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 154 to 147 after
+  removing the internal/test-only diagnostics-store exports. The remaining
+  diagnostics store exports in Knip are kept because `scripts/windie/commands.cjs`
+  imports them for `bin/windie diagnostics`.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; the SQLite schema and CLI query/list/inspect APIs are unchanged.
 
 ## Inspection Notes
 
