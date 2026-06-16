@@ -1,7 +1,7 @@
 ---
-summary: "Agent-facing workflow for changing WindieOS VM run control across `/api/runs/*`, `VmRunControlService`, worker heartbeats, event timelines, controls, auth, and Electron VM worker dispatch."
+summary: "Agent-facing workflow for changing WindieOS VM worker run control across `/api/runs/*`, `VmRunControlService`, worker heartbeats, event timelines, controls, auth, and Electron VM worker dispatch."
 read_when:
-  - When changing `/api/runs/*`, VM run statuses, worker heartbeat assignment, run events, pending controls, stop-all behavior, runs API keys, or Electron VM worker mode.
+  - When changing VM worker run control, `/api/runs/*`, VM run statuses, worker heartbeat assignment, run events, pending controls, stop-all behavior, runs API keys, or Electron VM worker mode.
   - When debugging hosted automation symptoms such as a run that is created but not assigned, assigned but not dispatched, missing timeline events, broken stop controls, or in-memory state disappearing after restart.
 title: "VM Run Control Change Workflow"
 ---

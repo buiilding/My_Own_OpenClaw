@@ -178,6 +178,18 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes hosted backend health queries to the gateway auth runbook', () => {
+    expect(findDocs('hosted backend health')[0].path).toBe(
+      path.join('docs', 'gateway', 'gateway_auth_and_health_runbook.md'),
+    );
+  });
+
+  test('routes VM worker run control queries to the automation workflow', () => {
+    expect(findDocs('vm worker run control')[0].path).toBe(
+      path.join('docs', 'automation', 'vm_run_control_change_workflow.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

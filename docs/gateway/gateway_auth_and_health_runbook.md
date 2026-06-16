@@ -1,7 +1,7 @@
 ---
-summary: "Gateway auth and health runbook for install registration, bearer-token REST/websocket auth, runs API key auth, and provider health endpoints."
+summary: "Gateway auth and hosted backend health runbook for install registration, bearer-token REST/websocket auth, runs API key auth, and provider health endpoints."
 read_when:
-  - When debugging hosted REST 401/503 responses, websocket policy closes, missing install identity, runs API auth failures, or unhealthy gateway-adjacent routes.
+  - When debugging hosted backend health, hosted REST 401/503 responses, websocket policy closes, missing install identity, runs API auth failures, or unhealthy gateway-adjacent routes.
   - When changing install auth middleware, websocket auth, route health checks, or hosted endpoint readiness behavior.
 title: "Gateway Auth and Health Runbook"
 ---

@@ -88,6 +88,10 @@ All notable changes to WindieOS will be documented in this file.
   guide before broad architecture references.
 - docs/desktop: route desktop-shell searches to the desktop surfaces hub before
   broad architecture references.
+- docs/gateway: route hosted-backend health searches to the gateway auth and
+  health runbook before SDK client docs.
+- docs/automation: route VM-worker run-control searches to the automation
+  workflow before Electron-main bridge references.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
