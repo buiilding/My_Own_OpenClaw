@@ -157,6 +157,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: align high-level voice capture docs and inventory with the
   AudioWorklet-only capture path and route removed ScriptProcessor fallback
   searches to the voice utility reference.
+- docs/frontend: remove stale voice auto-send wording from renderer flow docs
+  and align comments/tests with the composer-first utterance-end contract.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

@@ -366,7 +366,7 @@ frontend/src/renderer/
 4. UTTERANCE END
    └─> Gateway sends utterance_end event
        └─> onUtteranceEnd callback
-           └─> Auto-send message (if text is not empty)
+           └─> Stop temporary dictation; keep text in composer for manual send/edit
 ```
 
 ### Wakeword Detection Flow
@@ -603,7 +603,7 @@ Tools that may appear in renderer display projections:
 ### Voice Mode (Backend Transcription Gateway)
 - WebSocket connection to backend `/ws/transcription`
 - Real-time transcription with incremental updates
-- Utterance end detection (silence) triggers auto-send
+- Utterance end detection (silence) stops temporary dictation and keeps text in the composer
 - Audio format: 16kHz, mono, Int16Array PCM
 
 ### Wakeword Detection (openWakeWord)

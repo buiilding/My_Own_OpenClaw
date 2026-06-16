@@ -129,7 +129,7 @@ export function useVoiceMode(
             }
 
             case 'utterance_end':
-              // Silence detected, trigger auto-send
+              // Silence detected; notify the caller to end the temporary dictation session.
               logVoiceDebugTrace('voice-utterance-ended', {});
               if (onUtteranceEndRef.current) {
                 onUtteranceEndRef.current();

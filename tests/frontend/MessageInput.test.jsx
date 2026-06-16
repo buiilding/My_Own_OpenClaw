@@ -136,7 +136,7 @@ describe('MessageInput', () => {
     expect(screen.getByLabelText('Type your message')).toHaveClass('message-input');
   });
 
-  test('auto-sends latest transcription when utterance ends in voice mode', () => {
+  test('keeps latest transcription in composer when utterance ends in voice mode', () => {
     const onSendMessage = jest.fn();
     render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
 
