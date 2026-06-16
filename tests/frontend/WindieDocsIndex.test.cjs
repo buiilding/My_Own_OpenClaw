@@ -160,6 +160,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes live turn projection queries to the SDK conversation runtime', () => {
+    expect(findDocs('live turn projection')[0].path).toBe(
+      path.join('docs', 'sdk', 'conversation_runtime.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

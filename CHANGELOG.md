@@ -74,6 +74,8 @@ All notable changes to WindieOS will be documented in this file.
   before broad inference capability workflow docs.
 - docs/tools: route browser-use tool searches to the browser tool guide before
   sidecar implementation deep references.
+- docs/sdk: route live-turn projection searches to the SDK conversation runtime
+  before broad frontend architecture docs.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

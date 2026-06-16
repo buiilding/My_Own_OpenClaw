@@ -1,7 +1,7 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, projections, compaction lifecycle handling, edit/retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, display/rehydrate projections, compaction lifecycle handling, edit/retry revisions, and UI adapter boundaries."
 read_when:
-  - When changing SDK conversation state, store adapters, projections, edit/resend, retry, compaction replay, or desktop chat migration.
+  - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
   - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, or custom UI/CLI conversation behavior.
 title: "SDK Conversation Runtime"
 ---
