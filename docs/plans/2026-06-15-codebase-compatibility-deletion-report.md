@@ -145,7 +145,8 @@ Date: 2026-06-15
   completed CD-037.
 - `5aef56987 refactor(frontend): keep tool schema helpers private`
   completed CD-038.
-- pending commit for CD-039.
+- `71986997e refactor(frontend): keep screenshot parsing helpers private`
+  completed CD-039.
 
 ## Validation Log
 
