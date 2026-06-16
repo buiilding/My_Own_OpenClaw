@@ -35,7 +35,7 @@ Renderer contract adapter:
 
 - `responseOverlayPhaseContract.js` reads JSON phases/metadata keys and derives:
   - `RESPONSE_OVERLAY_PHASE` enum object (`IDLE`, `AWAITING_FIRST_CHUNK`, `STREAMING`, `TOOL_CALL`, `TOOL_OUTPUT`, `COMPLETE`, `ERROR`)
-  - preflight source and guard-ref constants used by renderer awaiting handoff
+  - renderer preflight guard-ref constant; main process owns the preflight source
 
 Main-process parity:
 

@@ -3,8 +3,8 @@
 import {
   RESPONSE_OVERLAY_PHASE as rendererPhaseEnum,
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF as rendererPreflightGuardRef,
-  RESPONSE_OVERLAY_PREFLIGHT_SOURCE as rendererPreflightSource,
 } from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
+import responseOverlayPhaseContract from '../../frontend/src/shared/response_overlay_phase_contract.json';
 
 const {
   createResponseOverlayPhaseEnum,
@@ -23,7 +23,7 @@ describe('overlay phase contract parity', () => {
   });
 
   test('keeps renderer and main preflight identity in lockstep', () => {
-    expect(mainPreflightSource).toBe(rendererPreflightSource);
+    expect(mainPreflightSource).toBe(responseOverlayPhaseContract.preflight.source);
     expect(mainPreflightGuardRef).toBe(rendererPreflightGuardRef);
   });
 });

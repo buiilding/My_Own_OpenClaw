@@ -116,29 +116,3 @@ export function resolveStopTurnTarget({
     canStop: false,
   };
 }
-
-export function applyStopQueryUiState({
-  setIsSending,
-  setThinkingStatus,
-  setThinkingSourceEventType,
-  updateStreamTracking,
-  setCurrentTurnProjection,
-  currentTurnProjection = null,
-  conversationRef = null,
-  stoppedAt = new Date().toISOString(),
-}) {
-  setIsSending(false, conversationRef);
-  setThinkingStatus(null, conversationRef);
-  setThinkingSourceEventType(null, conversationRef);
-  if (typeof setCurrentTurnProjection === 'function') {
-    setCurrentTurnProjection(
-      buildStoppedCurrentTurnProjection(currentTurnProjection),
-      conversationRef,
-    );
-  }
-  updateStreamTracking((current) => ({
-    ...current,
-    ...buildStopQueryTrackingPatch(stoppedAt),
-  }), conversationRef);
-  return stoppedAt;
-}

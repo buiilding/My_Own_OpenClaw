@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: remove the old stop-query UI mutator now that stopped-turn
+  state is owned by the shared hook and chat store action.
 - frontend/runtime: keep SDK invoke command-table and response-overlay
   preflight-source details private to their owning adapters.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
