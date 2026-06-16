@@ -127,7 +127,7 @@ export interface StreamTracking {
 
 export type SdkCurrentTurnProjection = CurrentTurnProjection;
 
-export interface ResponseOverlayDismissalInput {
+interface ResponseOverlayDismissalInput {
   conversationRef?: string | null;
   turnRef?: string | null;
   responseEntryId?: string | null;
