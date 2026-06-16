@@ -161,10 +161,8 @@ function prepareAutomatedQueryPayload(options) {
 }
 
 module.exports = {
-  BACKEND_QUERY_PAYLOAD_KEYS,
   buildBackendQueryPayload,
   buildQueryPayload,
-  normalizeQueryMessageId,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
   preserveSdkTurnInputFields,

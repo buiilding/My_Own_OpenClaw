@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep backend query payload key lists and query message-id
+  normalization private to the query payload runtime.
 - frontend/main: keep install-auth normalization and POSIX hardening helpers
   private to the install-auth persistence and validation runtime.
 - frontend/main: keep image context menu construction and popup helpers private

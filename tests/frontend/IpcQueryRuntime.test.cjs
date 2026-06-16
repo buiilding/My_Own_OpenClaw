@@ -1,7 +1,6 @@
 /** @jest-environment node */
 
 const {
-  BACKEND_QUERY_PAYLOAD_KEYS,
   buildBackendQueryPayload,
   buildQueryPayload,
   prepareAutomatedQueryPayload,
@@ -14,33 +13,21 @@ const {
 
 describe('ipc_query_runtime', () => {
   test('buildBackendQueryPayload keeps the exact backend query contract keys', () => {
-    expect(BACKEND_QUERY_PAYLOAD_KEYS).toEqual([
-      'text',
-      'conversation_ref',
-      'content',
-      'screenshot',
-      'screenshot_ref',
-      'screenshot_refs',
-      'capture_meta',
-      'system_state_internal',
-      'attachment_context',
-      'attachment_filenames',
-      'memory_retrieval_enabled',
-      'workspace_path',
-      'repo_instruction_messages',
-      'client_prompt_layers',
-      'agent_definition',
-    ]);
-
     expect(buildBackendQueryPayload({
       text: 'hello',
       conversation_ref: 'conv-1',
       content: '<user_query>hello</user_query>',
+      screenshot: 'data:image/png;base64,abc',
       screenshot_ref: 'artifact-1',
+      screenshot_refs: ['artifact-1'],
       screenshot_url: 'http://localhost/artifact-1',
+      capture_meta: { displayId: 1 },
       attachment_context: 'local only',
       attachment_filenames: ['notes.txt'],
       memory_retrieval_enabled: false,
+      workspace_path: '/tmp/workspace',
+      repo_instruction_messages: [],
+      client_prompt_layers: [],
       turn_ref: 'legacy-turn',
       query_message_id: 'query-1',
       unknown_backend_field: true,
@@ -50,11 +37,17 @@ describe('ipc_query_runtime', () => {
       text: 'hello',
       conversation_ref: 'conv-1',
       content: '<user_query>hello</user_query>',
+      screenshot: 'data:image/png;base64,abc',
       screenshot_ref: 'artifact-1',
+      screenshot_refs: ['artifact-1'],
+      capture_meta: { displayId: 1 },
       system_state_internal: { screen_resolution: '1920x1080' },
       attachment_context: 'local only',
       attachment_filenames: ['notes.txt'],
       memory_retrieval_enabled: false,
+      workspace_path: '/tmp/workspace',
+      repo_instruction_messages: [],
+      client_prompt_layers: [],
       agent_definition: { mode: 'custom' },
     });
   });
