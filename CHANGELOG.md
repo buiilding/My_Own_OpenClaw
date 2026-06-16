@@ -22,6 +22,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: return native `ToolResult` from `switch_window` and
   `get_open_windows`, and serialize that contract explicitly where `open_app`
   polls windows.
+- frontend/sidecar: return native `ToolResult` from the `process` session tool
+  while keeping JSON-RPC envelope conversion in the local backend boundary.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the

@@ -74,8 +74,8 @@ Exception behavior:
 
 - passthrough with no transformation
 - `keyboard_control`, `scroll_control`, `switch_window`, `get_open_windows`,
-  `wait`, and `get_system_stats` return this shape directly; first-party tools
-  should prefer this contract when touched
+  `wait`, `get_system_stats`, and `process` return this shape directly;
+  first-party tools should prefer this contract when touched
 
 ### Legacy dict success path
 

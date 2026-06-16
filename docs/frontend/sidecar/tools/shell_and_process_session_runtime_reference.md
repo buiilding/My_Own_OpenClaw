@@ -121,6 +121,9 @@ The shared backend/sidecar schema constrains `action` to the closed set below;
 unknown action names are rejected during argument validation instead of being
 deferred to process-tool execution.
 
+`process_tool.process_shell_command` returns native `ToolResult`; JSON-RPC
+conversion happens in `LocalBackend._handle_execute_tool`.
+
 `list`:
 
 - returns running (backgrounded only) and finished session summaries

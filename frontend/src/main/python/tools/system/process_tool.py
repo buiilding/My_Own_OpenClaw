@@ -10,6 +10,11 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
+from tools.result import ToolResult
+from tools.system.shell_process_control import (
+    cancel_session_tasks,
+    terminate_session_process_tree,
+)
 from tools.system.shell_process_registry import (
     clear_finished,
     delete_session,
@@ -20,12 +25,16 @@ from tools.system.shell_process_registry import (
     list_running_sessions,
     mark_exited,
 )
-from tools.system.shell_process_control import (
-    cancel_session_tasks,
-    terminate_session_process_tree,
-)
 
 logger = logging.getLogger(__name__)
+
+
+def _success(data: Dict[str, Any]) -> ToolResult:
+    return ToolResult.success_result(data)
+
+
+def _error(message: str) -> ToolResult:
+    return ToolResult.error_result(message)
 
 
 def _normalize_action(action: Optional[str]) -> str:
@@ -125,7 +134,7 @@ async def _write_to_session(session, data: bytes, close: bool) -> None:
         stdin.close()
 
 
-async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
+async def process_shell_command(args: Dict[str, Any]) -> ToolResult:
     """
     Manage background shell sessions (list, poll, log, write, send-keys, submit, paste, kill, clear, remove).
     """
@@ -163,42 +172,39 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             }
             for session in list_finished_sessions()
         ]
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "running": running,
                 "finished": finished,
                 "output": f"{len(running)} running, {len(finished)} finished session(s).",
                 "message": f"{len(running)} running, {len(finished)} finished session(s).",
-            },
-        }
+            }
+        )
 
     if action == "clear":
         cleared = clear_finished()
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "cleared": cleared,
                 "output": f"Cleared {cleared} finished session(s).",
                 "message": f"Cleared {cleared} finished session(s).",
-            },
-        }
+            }
+        )
 
     if not session_id:
-        return {"success": False, "error": "session_id is required for this action"}
+        return _error("session_id is required for this action")
 
     session = get_session(session_id)
     finished = get_finished_session(session_id)
 
     if action in {"poll", "log", "write", "send-keys", "submit", "paste", "kill", "remove"}:
         if not session and not finished:
-            return {"success": False, "error": f"No session found for {session_id}"}
+            return _error(f"No session found for {session_id}")
 
     if action == "poll":
         if not session:
-            return {
-                "success": True,
-                "data": {
+            return _success(
+                {
                     "status": finished.status,
                     "session_id": session_id,
                     "output": finished.tail or "(no output recorded)",
@@ -207,19 +213,18 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                     "exit_code": finished.exit_code,
                     "aggregated": finished.aggregated,
                     "message": f"Session {session_id} finished ({finished.status}).",
-                },
-            }
+                }
+            )
         if not session.backgrounded:
-            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+            return _error(f"Session {session_id} is not backgrounded.")
         stdout, stderr = drain_pending(session)
         output = "\n".join([chunk for chunk in [stdout, stderr] if chunk]).strip()
         exited = session.exited
         status = "running"
         if exited:
             status = "completed" if (session.exit_code or 0) == 0 else "failed"
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": status,
                 "session_id": session_id,
                 "output": output or "(no new output)",
@@ -228,13 +233,13 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 "exit_code": session.exit_code,
                 "aggregated": session.aggregated,
                 "message": f"Session {session_id} is {status}.",
-            },
-        }
+            }
+        )
 
     if action == "log":
         target = session or finished
         if session and not session.backgrounded:
-            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+            return _error(f"Session {session_id} is not backgrounded.")
         offset = args.get("offset")
         limit = args.get("limit")
         sliced = _slice_log_lines(target.aggregated, offset, limit)
@@ -244,105 +249,99 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             status = "completed" if (session.exit_code or 0) == 0 else "failed"
         else:
             status = "running"
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": status,
                 "session_id": session_id,
                 "output": sliced["slice"] or "(no output yet)",
                 "total_lines": sliced["total_lines"],
                 "truncated": target.truncated,
                 "message": f"Log slice for session {session_id}.",
-            },
-        }
+            }
+        )
 
     if action == "write":
         if not session:
-            return {"success": False, "error": f"No active session found for {session_id}"}
+            return _error(f"No active session found for {session_id}")
         if not session.backgrounded:
-            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+            return _error(f"Session {session_id} is not backgrounded.")
         data = (args.get("data") or "").encode("utf-8", errors="replace")
         await _write_to_session(session, data, bool(args.get("eof")))
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": "running",
                 "session_id": session_id,
                 "bytes_written": len(data),
                 "output": f"Wrote {len(data)} bytes to session {session_id}.",
                 "message": f"Wrote {len(data)} bytes to session {session_id}.",
-            },
-        }
+            }
+        )
 
     if action == "send-keys":
         if not session:
-            return {"success": False, "error": f"No active session found for {session_id}"}
+            return _error(f"No active session found for {session_id}")
         if not session.backgrounded:
-            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+            return _error(f"Session {session_id} is not backgrounded.")
         payload, warnings = _encode_keys(args.get("keys"), args.get("hex"), args.get("literal"))
         if not payload:
-            return {"success": False, "error": "No key data provided."}
+            return _error("No key data provided.")
         await _write_to_session(session, payload, False)
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": "running",
                 "session_id": session_id,
                 "bytes_written": len(payload),
                 "warnings": warnings,
                 "output": f"Sent {len(payload)} bytes to session {session_id}.",
                 "message": f"Sent {len(payload)} bytes to session {session_id}.",
-            },
-        }
+            }
+        )
 
     if action == "submit":
         if not session:
-            return {"success": False, "error": f"No active session found for {session_id}"}
+            return _error(f"No active session found for {session_id}")
         if not session.backgrounded:
-            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+            return _error(f"Session {session_id} is not backgrounded.")
         await _write_to_session(session, b"\r", False)
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": "running",
                 "session_id": session_id,
                 "output": f"Submitted session {session_id}.",
                 "message": f"Submitted session {session_id}.",
-            },
-        }
+            }
+        )
 
     if action == "paste":
         if not session:
-            return {"success": False, "error": f"No active session found for {session_id}"}
+            return _error(f"No active session found for {session_id}")
         if not session.backgrounded:
-            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+            return _error(f"Session {session_id} is not backgrounded.")
         text = args.get("text") or ""
         payload = _encode_paste(text, bool(args.get("bracketed", True)))
         await _write_to_session(session, payload, False)
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": "running",
                 "session_id": session_id,
                 "bytes_written": len(payload),
                 "output": f"Pasted {len(payload)} bytes to session {session_id}.",
                 "message": f"Pasted {len(payload)} bytes to session {session_id}.",
-            },
-        }
+            }
+        )
 
     if action == "kill":
         if not session:
-            return {"success": False, "error": f"No active session found for {session_id}"}
+            return _error(f"No active session found for {session_id}")
         if session.exited:
-            return {
-                "success": True,
-                "data": {
+            return _success(
+                {
                     "status": "completed",
                     "session_id": session_id,
                     "output": f"Session {session_id} already exited.",
                     "message": f"Session {session_id} already exited.",
-                },
-            }
+                }
+            )
         await terminate_session_process_tree(session)
         if session.wait_task and not session.wait_task.done():
             try:
@@ -353,15 +352,14 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             exit_code = session.process.returncode
             status = "completed" if exit_code == 0 else "failed"
             mark_exited(session, exit_code, status)
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": "killed",
                 "session_id": session_id,
                 "output": f"Killed session {session_id}.",
                 "message": f"Killed session {session_id}.",
-            },
-        }
+            }
+        )
 
     if action == "remove":
         if session and not session.exited:
@@ -374,14 +372,13 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 pass
             session.pty_master = None
         delete_session(session_id)
-        return {
-            "success": True,
-            "data": {
+        return _success(
+            {
                 "status": "removed",
                 "session_id": session_id,
                 "output": f"Removed session {session_id}.",
                 "message": f"Removed session {session_id}.",
-            },
-        }
+            }
+        )
 
-    return {"success": False, "error": f"Unknown action: {action}"}
+    return _error(f"Unknown action: {action}")

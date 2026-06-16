@@ -11,10 +11,17 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
+from tools.result import ToolResult  # noqa: E402
 from tools.system import shell_process_registry as registry  # noqa: E402
 from tools.system import shell_tool  # noqa: E402
-from tools.system.process_tool import process_shell_command  # noqa: E402
+from tools.system.process_tool import process_shell_command as _process_shell_command  # noqa: E402
 from tools.system.shell_tool import run_shell_command  # noqa: E402
+
+
+async def process_shell_command(args):
+    result = await _process_shell_command(args)
+    assert isinstance(result, ToolResult)
+    return result.to_dict()
 
 
 async def _wait_for_finish(session_id: str, timeout: float = 2.0):
