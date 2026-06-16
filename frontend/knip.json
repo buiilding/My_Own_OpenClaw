@@ -1,12 +1,14 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
+    "scripts/electron-builder-after-pack.cjs",
     "src/main/ipc.cjs",
     "src/preload.js",
     "src/landing/main.jsx",
     "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
   ],
   "project": [
+    "scripts/**/*.{js,jsx,ts,tsx,cjs,mjs}",
     "src/**/*.{js,jsx,ts,tsx,cjs,mjs}",
     "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
   ],
@@ -18,5 +20,11 @@
   ],
   "ignore": [
     "src/types/schema.ts"
-  ]
+  ],
+  "ignoreIssues": {
+    "src/main/diagnostics/app_diagnostics_store.cjs": ["exports"],
+    "src/main/extensions/extension_manifest.cjs": ["exports"],
+    "src/main/logging/layer_log_sink.cjs": ["exports"],
+    "src/main/sidecar/local_backend_bridge.cjs": ["exports"]
+  }
 }

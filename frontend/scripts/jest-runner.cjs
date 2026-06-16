@@ -3,10 +3,10 @@
  * Runs the jest runner workflow for the frontend tooling.
  */
 
-const path = require('path');
 const { spawnSync } = require('child_process');
+const path = require('path');
 
-const jestBin = path.resolve(__dirname, '..', 'node_modules', 'jest', 'bin', 'jest.js');
+const jestBin = require.resolve('jest/bin/jest');
 const env = {
   ...process.env,
   NODE_OPTIONS: [

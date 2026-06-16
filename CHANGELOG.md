@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tooling: make the unused-code audit cover frontend scripts and the
+  Electron Builder after-pack hook, resolve Jest through package resolution, and
+  declare the direct `app-builder-lib` hook dependency.
 - docs/frontend: update stale architecture, overlay, minimal-pill, dashboard,
   and sidecar-core source paths to current runtime modules.
 - docs/testing: replace deleted browser, conversation-search, transcript-session,
