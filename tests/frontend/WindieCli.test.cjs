@@ -253,6 +253,19 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('[WindieOS] frontend log');
   });
 
+  test('prints current renderer verbose logs without following', () => {
+    const testLogFile = path.join(repoRoot, '.windie', 'logs', `windie-renderer-verbose-cli-test-${process.pid}.log`);
+    fs.rmSync(testLogFile, { force: true });
+
+    const result = runCli(
+      ['logs', 'renderer', '--verbose', '--no-follow', '--tail', '3'],
+      { WINDIE_RENDERER_VERBOSE_LOG_FILE: testLogFile },
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('[WindieOS] renderer verbose log file initialized.');
+  });
+
   test('prints current sidecar logs without following', () => {
     const testLogFile = path.join(repoRoot, '.windie', 'logs', `windie-sidecar-cli-test-${process.pid}.log`);
     fs.rmSync(testLogFile, { force: true });
@@ -264,6 +277,23 @@ describe('windie CLI', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('[WindieOS] sidecar log');
+  });
+
+  test('prints registered diagnostic paths', () => {
+    const result = runCli(['diagnostics', 'paths', '--json']);
+
+    expect(result.status).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.paths).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        path: 'desktop.startup',
+        purpose: expect.stringContaining('Desktop startup'),
+      }),
+      expect.objectContaining({
+        path: 'surface.visibility',
+        owner: expect.stringContaining('surface runtime'),
+      }),
+    ]));
   });
 
   test('exports display conversation messages from the canonical history database', () => {

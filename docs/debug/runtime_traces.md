@@ -1,9 +1,9 @@
 ---
-summary: "Runtime trace guide for stream events, chat pill phases, tool screenshots, overlay windows, sidecar JSON-RPC, backend websocket events, persistent app diagnostics, and removed app diagnostics inspection helper exports."
+summary: "Runtime trace guide for stream events, chat pill phases, tool screenshots, overlay windows, sidecar JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and windieUserDataRoot."
 read_when:
   - When debugging event ordering across backend, Electron main, renderer, or sidecar.
   - When changing stream handling, overlay phases, screenshot capture, tool execution, or websocket routing.
-  - When resolving removed app diagnostics inspection helper references such as `queryDiagnosticEvents`, `inspectDiagnosticTrace`, `listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, or `windieUserDataRoot`.
+  - When resolving app diagnostics inspection helper references such as `queryDiagnosticEvents`, `inspectDiagnosticTrace`, `listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, or `windieUserDataRoot`.
 title: "Runtime Traces"
 ---
 
@@ -262,13 +262,14 @@ Inspect the latest rows with:
 bin/windie diagnostics list --path conversation.metadata.list --limit 50
 ```
 
-The Electron main app diagnostics store no longer exports inspection helpers
-such as `queryDiagnosticEvents`, `inspectDiagnosticTrace`,
-`listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, or
-`windieUserDataRoot`. Runtime code should emit diagnostics through exported path
-constants plus `appendDiagnosticEvent(...)`; inspection is owned by
-`bin/windie diagnostics ...` commands or direct test-owned SQLite reads against
-the configured diagnostics database.
+The Electron main app diagnostics store exposes inspection helpers such as
+`queryDiagnosticEvents`, `inspectDiagnosticTrace`,
+`listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, and
+`windieUserDataRoot` for the `bin/windie diagnostics ...` command surface.
+Runtime feature code should emit diagnostics through exported path constants
+plus `appendDiagnosticEvent(...)`; it should not query diagnostic storage to
+drive behavior. Focused tests may read temporary SQLite diagnostics databases
+directly when they need to prove the stored row shape.
 
 For browser header readiness:
 

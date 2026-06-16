@@ -344,16 +344,30 @@ describe('windie docs index', () => {
     );
   });
 
-  test('routes removed app diagnostics inspection helper queries to runtime traces', () => {
+  test('routes app diagnostics inspection helper queries to runtime traces', () => {
     const expectedPath = path.join('docs', 'debug', 'runtime_traces.md');
 
-    expect(findDocs('queryDiagnosticEvents removed app diagnostics export')[0].path).toBe(
+    expect(findDocs('queryDiagnosticEvents app diagnostics CLI inspection')[0].path).toBe(
       expectedPath,
     );
-    expect(findDocs('inspectDiagnosticTrace removed diagnosticsDatabasePath')[0].path).toBe(
+    expect(findDocs('inspectDiagnosticTrace diagnosticsDatabasePath windieUserDataRoot')[0].path).toBe(
       expectedPath,
     );
-    expect(findDocs('listDiagnosticPathDefinitions removed app diagnostics paths')[0].path).toBe(
+    expect(findDocs('listDiagnosticPathDefinitions diagnostic paths')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
+  test('routes layer log sink helper queries to the logging guide', () => {
+    const expectedPath = path.join('docs', 'debug', 'logging.md');
+
+    expect(findDocs('ensureLogFile layer log sink CLI')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('resolveRendererVerboseLogFile renderer verbose log')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('layer log sink helpers renderer verbose')[0].path).toBe(
       expectedPath,
     );
   });
@@ -563,11 +577,14 @@ describe('windie docs index', () => {
       'diagnostics inspect',
       'conversation messages',
       'capability trace',
-      'logs renderer verbose',
       'windie command help',
     ]) {
       expect(commandDocs.has(findDocs(query)[0].path)).toBe(true);
     }
+
+    expect(findDocs('logs renderer verbose')[0].path).toBe(
+      path.join('docs', 'debug', 'logging.md'),
+    );
   });
 
   test('routes shell sudo pkexec queries to filesystem shell docs', () => {

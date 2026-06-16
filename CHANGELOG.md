@@ -76,6 +76,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/debug: route removed app diagnostics inspection-helper searches to the
   runtime traces guide and document `bin/windie diagnostics ...` as the current
   inspection path.
+- cli/debug: restore diagnostics and renderer verbose log inspection helpers
+  consumed by `bin/windie diagnostics ...` and
+  `bin/windie logs renderer --verbose`.
 - sdk/tools: remove the unreachable top-level tool-output fallback helper after
   canonical `output`/`message`/`error` fields have already been checked.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
@@ -153,7 +156,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep SDK display-row annotation merging private to the
   conversation runtime projection hook and test it through the hook listener.
 - frontend/main: keep layer-log file initialization and renderer verbose path
-  resolution helpers private to the layer log sink.
+  resolution owned by the layer log sink, with the CLI using that public
+  inspection surface.
 - frontend/packaging: copy packaged SDK websocket support from the SDK package's
   own `ws` dependency and remove duplicate frontend direct dependency entries.
 - frontend/sidecar: remove the retired passwordless sudo setting, IPC handler,
@@ -161,8 +165,8 @@ All notable changes to WindieOS will be documented in this file.
   always use the sidecar OS-auth prompt path.
 - frontend/sdk: remove the legacy edit/retry user-message ordinal fallback so
   replay cuts canonical conversation events by message id only.
-- frontend/main: keep app diagnostics inspection helpers private by deleting
-  their unused production export surface.
+- frontend/main: keep app diagnostics storage writes owned by the diagnostics
+  store while preserving the CLI inspection helper surface.
 - sidecar/memory: remove legacy chat-history table migration and compatibility
   views so history storage uses canonical `conversation_events` tables only.
 - frontend/config: remove the hardcoded legacy OpenAI selected-model id

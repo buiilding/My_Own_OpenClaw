@@ -49,6 +49,23 @@ function resolveRendererVerboseLogFile(env = process.env) {
   return path.join(LOG_DIR, RENDERER_VERBOSE_LOG_FILE_NAME);
 }
 
+function ensureLogFile(logFile, {
+  fsImpl = fs,
+  initialLines = null,
+} = {}) {
+  if (!logFile) {
+    return null;
+  }
+  fsImpl.mkdirSync(path.dirname(logFile), { recursive: true });
+  if (!fsImpl.existsSync(logFile)) {
+    const lines = Array.isArray(initialLines)
+      ? initialLines
+      : ['[WindieOS] log file initialized.', ''];
+    fsImpl.writeFileSync(logFile, lines.join('\n'));
+  }
+  return logFile;
+}
+
 function createLayerLogStream(layer, {
   env = process.env,
   fsImpl = fs,
@@ -258,7 +275,9 @@ module.exports = {
   appendRendererVerboseLogLine,
   appendRendererVerboseLogSessionBanner,
   createLayerLogStream,
+  ensureLogFile,
   formatConsoleArgs,
   installConsoleLayerLog,
   resolveLayerLogFile,
+  resolveRendererVerboseLogFile,
 };

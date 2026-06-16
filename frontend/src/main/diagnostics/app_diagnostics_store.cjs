@@ -24,6 +24,61 @@ const FRONTEND_INTERACTION_DIAGNOSTICS_PATH = 'frontend.interaction';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const APP_DATA_DIR_NAME = 'windieos';
 
+const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
+  [CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH]: {
+    owner: 'SDK + sidecar conversation store',
+    purpose: 'Dashboard/sidebar conversation list lifecycle and local history-store reads.',
+  },
+  [BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main local-backend bridge',
+    purpose: 'Browser runtime readiness and chat-header browser action lifecycle before a turn exists.',
+  },
+  [DESKTOP_STARTUP_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main process lifecycle',
+    purpose: 'Desktop startup samples, process metrics, single-instance routing, and app quit cleanup.',
+  },
+  [FRONTEND_INTERACTION_DIAGNOSTICS_PATH]: {
+    owner: 'Renderer interaction logger through Electron main',
+    purpose: 'Sanitized UI interaction breadcrumbs without labels, chat text, or message content.',
+  },
+  [IPC_BRIDGE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main IPC bridge',
+    purpose: 'Backend connection and settings/update bridge milestones that are not owned by one conversation turn.',
+  },
+  [LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main local-backend bridge',
+    purpose: 'Local backend bridge initialization and lifecycle status outside a specific browser action.',
+  },
+  [MCP_DISCOVERY_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main and sidecar MCP runtime',
+    purpose: 'MCP stdio discovery, initialization, timeout, and sanitized startup failure evidence.',
+  },
+  [MCP_ENABLEMENT_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main MCP config runtime',
+    purpose: 'MCP dashboard enablement toggles and frontend-config persistence lifecycle.',
+  },
+  [MCP_EXECUTION_DIAGNOSTICS_PATH]: {
+    owner: 'Python sidecar MCP runtime',
+    purpose: 'MCP tool call execution lifecycle with tool ids, correlation ids, and sanitized transport failures.',
+  },
+  [MCP_REGISTRATION_DIAGNOSTICS_PATH]: {
+    owner: 'Python sidecar MCP runtime',
+    purpose: 'SDK/local-runtime MCP registration, reconciliation, and registered tool counts.',
+  },
+  [PERMISSION_PROBE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main permission runtime',
+    purpose: 'Permission probe/request and workspace activation diagnostics before or outside a turn.',
+  },
+  [SURFACE_VISIBILITY_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main surface runtime',
+    purpose: 'Chat pill and response-overlay show/hide decisions, phase decisions, guard refs, and final visibility.',
+  },
+  [WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main wakeword bridge',
+    purpose: 'Wakeword service enable/disable, process start/exit, readiness, frame parsing, and detection lifecycle.',
+  },
+});
+
 const ALLOWED_DATA_KEYS = new Set([
   'hasUserId',
   'userIdSource',
@@ -397,6 +452,107 @@ function appendDiagnosticEvent(input = {}, options = {}) {
   };
 }
 
+function parseJsonField(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return null;
+  }
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function parseDiagnosticRows(rows) {
+  return rows.map(row => ({
+    id: row.id,
+    traceId: row.traceId,
+    spanId: row.spanId,
+    parentSpanId: row.parentSpanId || null,
+    path: row.path,
+    stage: row.stage,
+    status: row.status,
+    runtime: row.runtime,
+    timestamp: row.timestamp,
+    durationMs: Number.isFinite(row.durationMs) ? row.durationMs : null,
+    requestId: row.requestId || null,
+    sessionId: row.sessionId || null,
+    conversationRef: row.conversationRef || null,
+    data: parseJsonField(row.data) || {},
+    error: parseJsonField(row.error),
+  }));
+}
+
+function queryDiagnosticEvents({ pathFilter = '', limit = 50 } = {}, options = {}) {
+  const dbPath = options.dbPath || diagnosticsDatabasePath();
+  if (!fs.existsSync(dbPath)) {
+    return [];
+  }
+  const safeLimit = Math.min(Math.max(Number.parseInt(String(limit), 10) || 50, 1), 1000);
+  const where = pathFilter ? `WHERE path = ${sqlString(pathFilter)}` : '';
+  const rows = JSON.parse(runSqlite(dbPath, `
+    SELECT id,
+           trace_id AS traceId,
+           span_id AS spanId,
+           parent_span_id AS parentSpanId,
+           path,
+           stage,
+           status,
+           runtime,
+           timestamp,
+           duration_ms AS durationMs,
+           request_id AS requestId,
+           session_id AS sessionId,
+           conversation_ref AS conversationRef,
+           data,
+           error
+    FROM diagnostic_events
+    ${where}
+    ORDER BY timestamp DESC
+    LIMIT ${safeLimit}
+  `, { json: true }) || '[]');
+  return parseDiagnosticRows(rows);
+}
+
+function inspectDiagnosticTrace(traceId, options = {}) {
+  const normalizedTraceId = normalizeString(traceId);
+  const dbPath = options.dbPath || diagnosticsDatabasePath();
+  if (!normalizedTraceId || !fs.existsSync(dbPath)) {
+    return [];
+  }
+  const rows = JSON.parse(runSqlite(dbPath, `
+    SELECT id,
+           trace_id AS traceId,
+           span_id AS spanId,
+           parent_span_id AS parentSpanId,
+           path,
+           stage,
+           status,
+           runtime,
+           timestamp,
+           duration_ms AS durationMs,
+           request_id AS requestId,
+           session_id AS sessionId,
+           conversation_ref AS conversationRef,
+           data,
+           error
+    FROM diagnostic_events
+    WHERE trace_id = ${sqlString(normalizedTraceId)}
+    ORDER BY timestamp ASC
+  `, { json: true }) || '[]');
+  return parseDiagnosticRows(rows);
+}
+
+function listDiagnosticPathDefinitions() {
+  return Object.entries(DIAGNOSTIC_PATH_DEFINITIONS)
+    .map(([diagnosticPath, definition]) => ({
+      path: diagnosticPath,
+      owner: definition.owner,
+      purpose: definition.purpose,
+    }))
+    .sort((left, right) => left.path.localeCompare(right.path));
+}
+
 module.exports = {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
@@ -410,4 +566,9 @@ module.exports = {
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
+  diagnosticsDatabasePath,
+  inspectDiagnosticTrace,
+  listDiagnosticPathDefinitions,
+  queryDiagnosticEvents,
+  windieUserDataRoot,
 };

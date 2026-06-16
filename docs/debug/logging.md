@@ -1,8 +1,9 @@
 ---
-summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, frontend interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
+summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, layer log sink helpers such as ensureLogFile and resolveRendererVerboseLogFile, frontend interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
 read_when:
   - When desktop logs, layer logs, or runtime logs are missing, too noisy, or needed to isolate a bug.
   - When changing logging setup, launch scripts, frontend interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
+  - When resolving layer log sink helper references such as `ensureLogFile`, `resolveRendererVerboseLogFile`, renderer verbose logs, or `bin/windie logs renderer --verbose`.
 title: "Logging"
 ---
 
@@ -46,6 +47,14 @@ owner for every frontend-layer event. Prefer the layer-owned files and app
 diagnostic paths when proving what a runtime emitted; the aggregate stream is
 useful for quick startup context, but it should not be parsed to reassign events
 to renderer, main, sidecar, or SDK owners.
+
+`frontend/src/main/logging/layer_log_sink.cjs` owns layer log path resolution,
+file initialization, append APIs, renderer verbose log writes, and console
+mirroring. `bin/windie logs ...` uses `resolveLayerLogFile(...)`,
+`resolveRendererVerboseLogFile(...)`, and `ensureLogFile(...)` so CLI log
+inspection can create or tail the correct file. Runtime feature code should use
+layer append/banner APIs or the owning diagnostic path instead of resolving log
+files directly.
 
 Useful commands:
 
