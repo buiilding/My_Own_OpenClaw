@@ -94,7 +94,9 @@ runtime and calls `runtime.stop(...)`, which the same adapter maps into the
 `windie:invoke` command `conversation.stop`. Stop targets resolve from SDK
 current turn first, renderer pending turn second, and idle conversation fallback
 last. Pending-turn stops carry the pending `turnRef`; they are not turnless
-stops.
+stops. Renderer surfaces share `useStopTurnHandler(...)`, which calls
+`resolveStopTurnTarget(...)` and then `chatStore.acceptStoppedTurn(...)` before
+dispatching `DesktopLiveTurnRuntimeClient.stop(...)`.
 
 ## Change Sequence
 

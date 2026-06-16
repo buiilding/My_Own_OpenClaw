@@ -1,9 +1,9 @@
 ---
-summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, backend stream event handling, removed chatStreamTransparency helper behavior, removed ToolRunnerHook callback/turn-guard test routing, thinking status ownership, SDK-projected tool display semantics, and private mergeRendererAnnotations runtime-projection annotation merge behavior."
+summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, backend stream event handling, removed chatStreamTransparency helper behavior, local tool execution boundary, thinking status ownership, SDK-projected tool display semantics, and private mergeRendererAnnotations runtime-projection annotation merge behavior."
 read_when:
   - When changing renderer chat hooks, stream event handling, or projected tool display callbacks.
   - When debugging stale-turn tool cancellation, transcript writes, or streaming state drift.
-  - When resolving stale references to removed `ToolRunnerHook.callbacks.test.ts` or `ToolRunnerHook.turnGuards.test.ts`; renderer no longer owns local tool execution.
+  - When debugging current-turn projection side effects such as send-latch cleanup, thinking text, streamTracking updates, or duplicate tool-event tracking.
   - When resolving stale references to removed `chatStreamTransparency.ts`, `ChatStreamTransparency.test.ts`, or `ChatStreamThinkingStatusUtils.test.ts` helper/test paths.
   - When stale code, tests, or docs mention exported `mergeRendererAnnotations` or direct renderer annotation-merge helpers; the merge is an internal `useConversationRuntimeProjectionStream` detail.
 title: "Chat Stream and Tool Execution Reference"
@@ -21,6 +21,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
+- `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
@@ -103,7 +104,7 @@ Thinking status constants from `chatStreamThinkingStatus.ts`:
 - Final assistant thinking text comes from SDK current-turn reasoning
   projection, not from persisted placeholder status normalization.
 
-## Runtime Projection Annotation Merge
+## Runtime Projection Listener and Side Effects
 
 `useConversationRuntimeProjectionStream` listens to SDK `windie:current-turn` and
 `windie:rows` projections, then maps SDK display rows through
@@ -117,6 +118,26 @@ remain visible until the SDK display rows include the same turn.
 `mergeRendererAnnotations` is intentionally private. Stale searches for the
 removed export should route here; tests should drive the public hook listener
 and SDK row projection behavior instead of importing the helper directly.
+
+The hook delegates current-turn UI side effects to
+`currentTurnProjectionSideEffects.ts`. That reducer owns cursor-based delta
+tracking for `assistantText`, `reasoningText`, `phase`, `lastError`, and seen
+tool-event ids. It is the renderer-side owner for:
+
+- accepting an SDK `awaiting` turn before the local send latch has fully reset
+- clearing `isSending` when SDK presentation reports visible content,
+  assistant text, terminal state, or executable tool rows
+- appending reasoning deltas into transient thinking text
+- recording `query-accepted`, `llm-thought`, `streaming-response`,
+  `tool-call`, `tool-output`, `web-search-progress`, `streaming-complete`, and
+  `error` tracking events
+- preserving typing/thinking state for backend-owned synthetic tool calls marked
+  with `metadata.skip_frontend_execution === true`
+
+The utility does not create transcript rows or interpret raw backend events.
+Transcript display still comes from SDK display rows, and conversation-event
+handlers still own metadata, compaction, terminal materialization, and tool-row
+persistence.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 
@@ -236,8 +257,9 @@ SDK dispatch behavior:
 - SDK `currentTurn.phase` from the conversation runtime projection: records terminal `streaming-complete`/`error` tracking and clears transient send/thinking state for `complete` and `error`
   - benign settings-update errors and recoverable streamed tool-call parse errors are filtered before they become SDK current-turn terminal errors.
   - dashboard and minimal chat pill busy/typing/stop state resolve from SDK
-    current-turn projection only, with a local send latch used only before the
-    SDK turn opens. Renderer stream tracking is telemetry/transcript
+    current-turn projection first, then the pending renderer turn before the
+    SDK turn opens. Stop uses the same target order and clears the matching
+    pending turn locally before backend cancellation completes. Renderer stream tracking is telemetry/transcript
     bookkeeping, not a busy-state fallback. `response-overlay-phase` is
     retained only as Electron overlay window/layout state, not chat runtime
     authority.
@@ -289,11 +311,11 @@ Handler composition boundary:
 - `useChatStream` dispatches SDK-normalized conversation events first.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
-- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated to `useConversationRuntimeProjectionStream`
+- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `currentTurnProjectionSideEffects.ts`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error` transcript/error materialization plus SDK `usage_updated` terminal behavior is delegated to `useChatStreamTerminalHandlers`
-- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated to `useConversationRuntimeProjectionStream`.
+- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `currentTurnProjectionSideEffects.ts`.
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by the main-process SDK runtime and sidecar.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.

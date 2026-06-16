@@ -12,6 +12,7 @@ title: "Stream Event State Machine"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
+- `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
@@ -111,7 +112,11 @@ Extra error gate:
 - `eventCount`, `chunkCount`, `toolCallCount`, `toolOutputCount`
 - `lastEventType`, `lastChunkSize`, `lastError`
 
-Transition reducer is centralized in `applyTrackingEvent(...)`.
+Transition reducer is centralized in `applyTrackingEvent(...)`. SDK
+current-turn projection deltas are converted into those tracking events by
+`currentTurnProjectionSideEffects.ts`; `useConversationRuntimeProjectionStream`
+owns subscription, cursor storage, stale projection acceptance, and display-row
+merging.
 
 Reset/start contract:
 
@@ -156,7 +161,10 @@ Compaction events:
 
 SDK current-turn tool events:
 
-- clear transient thinking state
+- clear transient thinking state for frontend-executed tool rows. Backend-owned
+  synthetic tool calls marked with `metadata.skip_frontend_execution === true`
+  still record tool-call tracking, but they do not clear the current typing or
+  thinking state as if a renderer-executed local tool had started.
 - dashboard renders SDK display rows for normal tool-call/tool-output rows and
   retained OpenAI-native `tool_progress` search trace rows. Response overlay
   renders current-turn tool-call/tool-output/tool-progress rows from the SDK

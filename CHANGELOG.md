@@ -22,6 +22,8 @@ All notable changes to WindieOS will be documented in this file.
   pending-turn target resolution, and chat-store stopped-turn state.
 - frontend/chat: extract SDK current-turn projection side effects from the
   projection subscription hook into a focused renderer adapter.
+- frontend/docs: document the current-turn projection side-effect utility as
+  the owner of renderer send-latch, thinking, and stream-tracking updates.
 - tooling/commits: require `scripts/committer` bodies to use the AGENTS.md
   section format before staging files.
 - backend/tools: publish OCR tool-context services through `ocr_router` only and

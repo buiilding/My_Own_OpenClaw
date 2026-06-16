@@ -16,6 +16,8 @@ title: "Stream Dispatch and Turn Guard Matrix Reference"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
+- `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
+- `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 
 ## Dispatch Pipeline
@@ -96,10 +98,15 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
   - SDK `usage_updated`: workspace token counter update
   - SDK `turn_error`: materialized assistant error row + transcript error row unless suppressed
 - `useConversationRuntimeProjectionStream`:
+  - listens to SDK current-turn projections and passes accepted projections to `currentTurnProjectionSideEffects.ts`
+  - keeps per-conversation/turn cursors so repeated projections do not duplicate text-delta or tool-event side effects
+  - merges SDK display rows with renderer-only annotations for transcript display
+- `currentTurnProjectionSideEffects.ts`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows
-  - SDK `currentTurn.toolEvents`: clear send/thinking state for active tool rows and record `tool-call`, `tool-output`, and `web-search-progress` phase tracking
+  - SDK `currentTurn.toolEvents`: clear send/thinking state for active executable tool rows and record `tool-call`, `tool-output`, and `web-search-progress` phase tracking
   - SDK `currentTurn.phase`: clear send/thinking state and record terminal `streaming-complete`/`error` tracking for `complete`/`error`
+  - backend-owned synthetic tool calls with `metadata.skip_frontend_execution === true`: record the tool-call tracking event without clearing typing/thinking state as if a frontend-executed tool started
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots
