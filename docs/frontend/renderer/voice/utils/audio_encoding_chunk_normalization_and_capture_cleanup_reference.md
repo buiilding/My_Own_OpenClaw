@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, chunk-size normalization, AudioWorklet capture processing, processorNodeRef cleanup, and safe audio-node/context teardown behavior."
+summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, chunk-size normalization, AudioWorklet-only capture processing, removed ScriptProcessor fallback behavior, processorNodeRef cleanup, and safe audio-node/context teardown behavior."
 read_when:
   - When changing voice/wakeword audio chunk conversion or gateway framing payload shape.
-  - When debugging mic-resource leaks, repeated AudioContext-close warnings, AudioWorklet capture processor unavailable errors, processorNodeRef cleanup, or wakeword chunk-size warnings/normalization behavior.
+  - When debugging mic-resource leaks, repeated AudioContext-close warnings, AudioWorklet capture processor unavailable errors, removed ScriptProcessor fallback behavior, processorNodeRef cleanup, or wakeword chunk-size warnings/normalization behavior.
 title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 ---
 

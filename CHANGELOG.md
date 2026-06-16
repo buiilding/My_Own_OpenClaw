@@ -154,6 +154,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/backend: remove stale ToolCallSchema unified-wrapper normalization docs
   and align remote-tool docs/search routing with direct parser/native tool-call
   ingress.
+- docs/frontend: align high-level voice capture docs and inventory with the
+  AudioWorklet-only capture path and route removed ScriptProcessor fallback
+  searches to the voice utility reference.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

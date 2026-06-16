@@ -263,12 +263,12 @@ Primary files:
 Functionality:
 
 - Wakeword detection hook:
-  - Captures mic audio via ScriptProcessor.
+  - Captures mic audio through the required AudioWorklet capture processor.
   - Encodes float PCM -> int16 and pushes IPC chunks.
   - Applies confidence threshold and cooldown suppression.
 - Voice mode hook:
   - Connects to Nova voice gateway websocket.
-  - Streams audio frames and receives realtime transcription.
+  - Streams AudioWorklet-captured audio frames and receives realtime transcription.
   - Triggers utterance-end callbacks and reconnect backoff policy.
 - `WakewordController`:
   - Sends backend `wakeword-detected` event.

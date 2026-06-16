@@ -222,6 +222,7 @@ describe('windie docs index', () => {
 
     expect(findDocs('AudioWorklet required capture processor')[0].path).toBe(expectedPath);
     expect(findDocs('AudioWorklet capture processor unavailable')[0].path).toBe(expectedPath);
+    expect(findDocs('ScriptProcessor fallback voice capture removed')[0].path).toBe(expectedPath);
     expect(findDocs('processorNodeRef cleanup')[0].path).toBe(expectedPath);
   });
 

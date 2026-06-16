@@ -1,8 +1,8 @@
 ---
-summary: "Renderer voice runtime reference for live transcription and wakeword detection: config ownership, audio capture, IPC/event wiring, and temporary dictation-session behavior."
+summary: "Renderer voice runtime reference for live transcription and wakeword detection: config ownership, AudioWorklet-only capture, IPC/event wiring, and temporary dictation-session behavior."
 read_when:
-  - When changing renderer voice capture hooks, wakeword controller behavior, or audio encoding.
-  - When debugging missing transcriptions, wakeword retriggers, or readiness drift between renderer and main wakeword bridge.
+  - When changing renderer voice capture hooks, wakeword controller behavior, or AudioWorklet audio encoding.
+  - When debugging missing transcriptions, wakeword retriggers, AudioWorklet capture startup failures, or readiness drift between renderer and main wakeword bridge.
 title: "Voice Capture and Wakeword Controller Reference"
 ---
 
@@ -111,12 +111,16 @@ Reconnect policy:
 
 - `getUserMedia` with mono/16kHz + echo/noise controls
 - `AudioContext` at 16kHz
-- `AudioWorkletNode` capture processor when available (fallback: `ScriptProcessorNode` buffer size 4096)
+- required `AudioWorkletNode` capture processor (`windieos-capture-processor`) with chunk size 4096
 - every capture callback:
-- read Float32 input
-- convert to PCM16 (`float32ToPcm16`)
-- frame payload (`buildGatewayAudioMessage`)
-- send binary payload over WebSocket
+  - read Float32 input
+  - convert to PCM16 (`float32ToPcm16`)
+  - frame payload (`buildGatewayAudioMessage`)
+  - send binary payload over WebSocket
+
+There is no `ScriptProcessorNode` fallback. If the worklet API or module setup
+is unavailable, capture startup fails explicitly with an AudioWorklet capture
+processor error.
 
 Gateway binary framing (`buildGatewayAudioMessage`):
 
@@ -126,8 +130,8 @@ Gateway binary framing (`buildGatewayAudioMessage`):
 
 Cleanup path uses shared helpers:
 
-- disconnect script/source nodes
-- null `onaudioprocess`
+- disconnect processor/source nodes
+- null `processorNodeRef.current.port.onmessage`
 - stop media tracks
 - close AudioContext
 
@@ -170,7 +174,7 @@ Detection guardrails:
 
 Chunk-size normalization:
 
-- requested ScriptProcessor size is normalized to nearest supported power-of-two-like value set
+- requested capture chunk size is normalized to nearest supported power-of-two-like value set
 - warning logged when normalized value differs
 
 Missing-device guardrails:
@@ -185,16 +189,16 @@ Missing-device guardrails:
 ## Failure and Drift Hotspots
 
 - repeated wakeword triggers:
-- check cooldown timer updates
-- verify immediate `wakeword-disable` send path
+  - check cooldown timer updates
+  - verify immediate `wakeword-disable` send path
 - missing transcriptions:
-- verify gateway WebSocket open state and `isRecording` transition
-- verify an active dictation session or wakeword-triggered STT session is running in the renderer
+  - verify gateway WebSocket open state and `isRecording` transition
+  - verify an active dictation session or wakeword-triggered STT session is running in the renderer
 - no wakeword readiness:
-- inspect `wakeword-status` events reaching renderer
-- verify `wakeword-toggle` suppression is not forcing inactive state
+  - inspect `wakeword-status` events reaching renderer
+  - verify `wakeword-toggle` suppression is not forcing inactive state
 - stuck microphone:
-- check cleanup path ran (`stopAudioCapture`) and tracks were stopped
+  - check cleanup path ran (`stopAudioCapture`) and tracks were stopped
 
 ## Cross-Doc References
 

@@ -353,7 +353,7 @@ frontend/src/renderer/
    └─> features/voice/hooks/useVoiceMode.ts
        ├─> Connect to backend transcription WebSocket (/ws/transcription)
        ├─> Request microphone access (getUserMedia)
-       ├─> Create AudioContext and ScriptProcessorNode
+       ├─> Create AudioContext and required AudioWorklet capture processor
        ├─> Capture audio chunks (Float32Array → Int16Array)
        ├─> Format and send to Gateway (binary protocol)
        └─> Receive transcription results (realtime events)
@@ -379,7 +379,7 @@ frontend/src/renderer/
 2. WAKEWORD DETECTION HOOK
    └─> features/voice/hooks/useWakewordDetection.ts
        ├─> Request microphone access (getUserMedia)
-       ├─> Create AudioContext and ScriptProcessorNode
+       ├─> Create AudioContext and required AudioWorklet capture processor
        ├─> Capture audio chunks (Float32Array → Int16Array)
        ├─> Send to main process via IPC (SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK)
        └─> Main process forwards to Python wakeword service
