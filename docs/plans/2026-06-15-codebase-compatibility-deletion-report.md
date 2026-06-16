@@ -77,7 +77,7 @@ Date: 2026-06-15
 | CD-044 | Renderer chat-stream thinking status normalizer | `normalizePersistedThinkingStatus(...)` and `COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS` remained exported from `chatStreamThinkingStatus.ts` after reasoning text moved to SDK current-turn projection | Knip reported both exports unused; repo search showed they were imported only by `ChatStreamThinkingStatusUtils.test.ts` and stale docs, while production imports only the live thinking/compaction status constants | Delete the unused normalizer, the obsolete no-changes status, and the helper-only test; update docs to route final reasoning text to SDK current-turn projection | implemented |
 | CD-045 | Renderer chat-stream transparency helper module | `chatStreamTransparency.ts` and `buildAssistantTranscriptTransparency(...)` remained after transcript transparency replay moved to SDK projections and backend rehydrate transparency resolution | Knip reported the export unused; repo search showed the module was imported only by `ChatStreamTransparency.test.ts`, while remaining docs still routed transparency debugging through the orphan renderer helper | Delete the orphan helper module and test; update docs to route transparency replay issues to SDK projection and backend rehydrate transparency owners | `d445d30e2` |
 | CD-046 | Renderer transcript transparency type alias | `TranscriptTransparencyData` remained exported from renderer transcript `types.ts` after the renderer transparency helper was deleted and transparency replay moved to SDK/backend owners | Knip reported the type export unused; repo search showed no code imports and only stale transcript docs referenced the contract | Delete the stale type alias and its unused `ToolSchema` import; update transcript docs to keep `SessionInfo` as the active renderer transcript type contract | `1fd49e2a1` |
-| CD-047 | Transcript session options type export | `desktopTranscriptSessionRuntime.ts` re-exported `TranscriptSessionResolveOptions` from the infrastructure transcript runtime, and the infrastructure runtime exported the same options type even though it is used only inside that module | Knip reported the facade type export unused, then exposed the underlying infrastructure type export as unused after the facade re-export was removed; repo search showed no imports of either exported type | Remove the unused type import/re-export from the desktop facade and make the infrastructure options type private to the runtime implementation | pending implementation commit |
+| CD-047 | Transcript session options type export | `desktopTranscriptSessionRuntime.ts` re-exported `TranscriptSessionResolveOptions` from the infrastructure transcript runtime, and the infrastructure runtime exported the same options type even though it is used only inside that module | Knip reported the facade type export unused, then exposed the underlying infrastructure type export as unused after the facade re-export was removed; repo search showed no imports of either exported type | Remove the unused type import/re-export from the desktop facade and make the infrastructure options type private to the runtime implementation | `dd2f4d593` |
 
 ## Commit Ledger
 
@@ -169,7 +169,8 @@ Date: 2026-06-15
   completed CD-045.
 - `1fd49e2a1 refactor(frontend): remove transcript transparency type`
   completed CD-046.
-- pending implementation commit will complete CD-047.
+- `dd2f4d593 refactor(frontend): remove transcript session type exports`
+  completed CD-047.
 
 ## Validation Log
 
