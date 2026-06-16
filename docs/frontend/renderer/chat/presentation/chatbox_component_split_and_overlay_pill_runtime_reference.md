@@ -82,7 +82,8 @@ compaction behind its loop lock.
 
 - drag starts from pill pointer-down capture for primary-button gestures, with
   `onMouseDown` retained as a fallback
-- blocked targets are defined by `isDragBlockedTarget(...)` selector guard
+- buttons, icons, and the text input all participate in the same tentative
+  drag start instead of using a separate blocked-target selector guard
 - drag tracking starts from pointer-down capture and listens for pointer
   movement first, with mouse movement as a fallback, so a prevented first
   pointer-down used for focus handoff can still become a drag
