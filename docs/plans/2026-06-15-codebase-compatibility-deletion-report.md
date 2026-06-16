@@ -94,7 +94,7 @@ Date: 2026-06-15
 | CD-061 | Electron app diagnostics generic helper exports | `app_diagnostics_runtime.cjs` exported `appendAppRuntimeDiagnostic(...)` and `compactData(...)` even though production callers import the path-specific diagnostic appenders | Knip reported both helper exports unused; repo search showed the generic appender and compaction helper are only used inside the diagnostics runtime implementation | Remove the generic helper exports and leave only path-specific diagnostic appenders public | `4fae12f53` |
 | CD-062 | Electron app diagnostics store internal exports | `app_diagnostics_store.cjs` exported internal path-definition/schema/sanitizer helpers and test-only MCP/conversation path constants alongside the real store/CLI APIs | Knip reported twelve store exports unused from the frontend package view; repo search showed five are used by the root `bin/windie diagnostics` command, while seven were internal or test-only | Remove only the internal/test-only store exports and preserve the CLI-facing diagnostics query/list/inspect/database exports | `a8f5eae63` |
 | CD-063 | Electron MCP control helper exports | `mcp_control.cjs` exported config-normalization, config-mutation, enablement-diagnostics, and cache-clearing helpers even though production imports only the high-level MCP list/spec/refresh/update operations plus the config key | Knip reported those five helper exports unused; repo search showed only tests imported the config mutator directly to build enabled config fixtures | Remove helper exports, keep the helpers private, and make tests use literal config state while validating the production MCP control APIs | `cbb64120a` |
-| CD-064 | Electron MCP runtime execution registry | `mcp_runtime.cjs` still exported and implemented the old Electron-side MCP execution registry, `executeMcpTool(...)`, discovered-tool lookup, and MCP result serialization/image promotion helpers after production MCP execution moved to the sidecar local runtime | Knip reported the execution helpers unused; the sidecar-owned MCP report says Electron main no longer calls `executeMcpTool` for production local tool execution, and repo search found no production consumers | Delete the retired Electron direct-execution path and keep `mcp_runtime.cjs` scoped to manifest discovery/projection fallback plus cache/tool-name helpers used by MCP control and handshake | pending implementation commit |
+| CD-064 | Electron MCP runtime execution registry | `mcp_runtime.cjs` still exported and implemented the old Electron-side MCP execution registry, `executeMcpTool(...)`, discovered-tool lookup, and MCP result serialization/image promotion helpers after production MCP execution moved to the sidecar local runtime | Knip reported the execution helpers unused; the sidecar-owned MCP report says Electron main no longer calls `executeMcpTool` for production local tool execution, and repo search found no production consumers | Delete the retired Electron direct-execution path and keep `mcp_runtime.cjs` scoped to manifest discovery/projection fallback plus cache/tool-name helpers used by MCP control and handshake | `156d42ebb` |
 
 ## Commit Ledger
 
@@ -220,7 +220,8 @@ Date: 2026-06-15
   completed CD-062.
 - `cbb64120a refactor(frontend): keep mcp control helpers private`
   completed CD-063.
-- pending implementation commit for CD-064.
+- `156d42ebb refactor(frontend): delete retired mcp execution path`
+  completed CD-064.
 
 ## Validation Log
 
