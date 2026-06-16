@@ -3,12 +3,14 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../../../permissions/utils/permissionGrantEffects';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
+const browserSettingsSkin = windieDesktopSkin.settings.browser;
 
 function BrowserSettingsTab() {
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
@@ -71,8 +73,8 @@ function BrowserSettingsTab() {
         });
       }
     } catch (err) {
-      const message = err?.message || 'Unable to open Windie Browser.';
-      setOpenBrowserError(`Unable to open Windie Browser: ${message}`);
+      const message = err?.message || browserSettingsSkin.openErrorFallback;
+      setOpenBrowserError(`${browserSettingsSkin.openErrorPrefix} ${message}`);
     } finally {
       setIsOpeningBrowser(false);
     }
@@ -80,21 +82,18 @@ function BrowserSettingsTab() {
 
   return (
     <div className="clone-settings-general">
-      <h2>Browser</h2>
+      <h2>{browserSettingsSkin.title}</h2>
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
           <div className="clone-settings-browser-title-row">
-            <span>Windie Browser</span>
+            <span>{browserSettingsSkin.browserName}</span>
             <PermissionStatusBadge
               permission={browserPermission}
               status={effectiveStatus?.status}
             />
           </div>
-          <p>
-            Open the dedicated browser profile WindieOS uses for sign-in state, browsing,
-            navigation, and web tasks.
-          </p>
+          <p>{browserSettingsSkin.description}</p>
           {statusReason ? (
             <p className="clone-settings-browser-status">{statusReason}</p>
           ) : null}
@@ -112,11 +111,8 @@ function BrowserSettingsTab() {
 
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
         <div>
-          <span>Open Windie Browser</span>
-          <p>
-            Reopen the persistent browser window WindieOS manages so you can sign in or verify the
-            session it should reuse later.
-          </p>
+          <span>{browserSettingsSkin.actionLabel}</span>
+          <p>{browserSettingsSkin.actionDescription}</p>
         </div>
         <button
           type="button"
@@ -126,7 +122,7 @@ function BrowserSettingsTab() {
           }}
           disabled={isLoading || isOpeningBrowser}
         >
-          {isOpeningBrowser ? 'Opening...' : 'Open Windie Browser'}
+          {isOpeningBrowser ? browserSettingsSkin.openingLabel : browserSettingsSkin.actionLabel}
         </button>
       </div>
     </div>

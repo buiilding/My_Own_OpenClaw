@@ -3,11 +3,14 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
 import { IpcBridge, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import {
   fetchActiveWorkspaceSelection,
   requestActiveWorkspaceSelection,
 } from '../../../../../infrastructure/workspace/workspaceAccess';
+
+const workspaceSettingsSkin = windieDesktopSkin.settings.workspace;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (
@@ -82,11 +85,11 @@ function WorkspaceSettingsTab() {
         setStatusTone('success');
         setStatusMessage(result.workspace.activeWorkspaceName
           ? `Active workspace set to ${result.workspace.activeWorkspaceName}.`
-          : 'Active workspace updated.');
+          : workspaceSettingsSkin.updatedFallback);
       }
     } catch (error) {
       setStatusTone('error');
-      setStatusMessage(error?.message || 'Failed to change active workspace.');
+      setStatusMessage(error?.message || workspaceSettingsSkin.updateFailureFallback);
     } finally {
       setIsSelectingWorkspace(false);
     }
@@ -94,17 +97,14 @@ function WorkspaceSettingsTab() {
 
   return (
     <div className="clone-settings-general">
-      <h2>Workspace</h2>
+      <h2>{workspaceSettingsSkin.title}</h2>
 
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
         <div>
-          <span>Active workspace</span>
-          <p>
-            WindieOS uses the active workspace as the default folder for file reads, shell
-            commands, and repo-aware tasks when a tool call does not provide its own directory.
-          </p>
+          <span>{workspaceSettingsSkin.activeWorkspaceLabel}</span>
+          <p>{workspaceSettingsSkin.description}</p>
           <p className="clone-settings-workspace-path">
-            {activeWorkspace.activeWorkspacePath || 'No workspace selected yet.'}
+            {activeWorkspace.activeWorkspacePath || workspaceSettingsSkin.emptyWorkspace}
           </p>
         </div>
         <button
@@ -115,7 +115,7 @@ function WorkspaceSettingsTab() {
           }}
           disabled={isSelectingWorkspace}
         >
-          {isSelectingWorkspace ? 'Opening…' : 'Change workspace'}
+          {isSelectingWorkspace ? workspaceSettingsSkin.selectingWorkspaceLabel : workspaceSettingsSkin.changeWorkspaceLabel}
         </button>
       </div>
 

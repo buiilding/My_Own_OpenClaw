@@ -4,11 +4,14 @@
 
 import PropTypes from 'prop-types';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
+import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
 import {
   getGlobalAgentStopShortcutLabel,
   getGlobalAgentStopShortcutOptions,
 } from '../../../../../infrastructure/shortcuts/agentStopShortcut';
 import { CloneToggle, SelectDropdown } from './settingsControls';
+
+const generalSettingsSkin = windieDesktopSkin.settings.general;
 
 function GeneralSettingsTab({ config, onConfigChange }) {
   const {
@@ -43,78 +46,73 @@ function GeneralSettingsTab({ config, onConfigChange }) {
 
   return (
     <div className="clone-settings-general">
-      <h2>General</h2>
+      <h2>{generalSettingsSkin.title}</h2>
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
-          <span>Wakeword Listening (Hey Jarvis)</span>
-          <p>Allow wakeword detection when the chat pill is hidden.</p>
+          <span>{generalSettingsSkin.wakeword.label}</span>
+          <p>{generalSettingsSkin.wakeword.description}</p>
           {wakewordEnabled && wakewordSuppressed ? (
-            <p>Listening is paused while the chatbox is visible.</p>
+            <p>{generalSettingsSkin.wakeword.suppressedDescription}</p>
           ) : null}
         </div>
         <CloneToggle
           checked={wakewordEnabled}
           onChange={setWakewordEnabled}
-          ariaLabel="Wakeword Listening (Hey Jarvis)"
+          ariaLabel={generalSettingsSkin.wakeword.label}
         />
       </div>
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
-          <span>Speech-To-Text After &quot;Hey Jarvis&quot;</span>
-          <p>After wakeword, open chat pill and transcribe speech into the input field.</p>
+          <span>{generalSettingsSkin.speechAfterWakeword.label}</span>
+          <p>{generalSettingsSkin.speechAfterWakeword.description}</p>
         </div>
         <CloneToggle
           checked={wakewordSttEnabled}
           onChange={handleWakewordSttEnabledChange}
-          ariaLabel={'Speech-To-Text After "Hey Jarvis"'}
+          ariaLabel={generalSettingsSkin.speechAfterWakeword.label}
         />
       </div>
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
-          <span>View tool logs</span>
-          <p>
-            Show raw tool-call and tool-output cards in chat. When off, WindieOS shows only
-            subdued action explanations and collapses them into a View actions summary after the
-            loop completes.
-          </p>
+          <span>{generalSettingsSkin.toolLogs.label}</span>
+          <p>{generalSettingsSkin.toolLogs.description}</p>
         </div>
         <CloneToggle
           checked={showToolLogs}
           onChange={handleShowToolLogsChange}
-          ariaLabel="View tool logs"
+          ariaLabel={generalSettingsSkin.toolLogs.label}
         />
       </div>
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
-          <span>Global Stop Shortcut</span>
+          <span>{generalSettingsSkin.globalStopShortcut.label}</span>
           <p>
-            Ends the active agent loop from anywhere. Current binding:
+            {generalSettingsSkin.globalStopShortcut.descriptionPrefix}
             {' '}
             <strong>{getGlobalAgentStopShortcutLabel(globalStopShortcut)}</strong>
             .
           </p>
           {shortcutFallbackActive ? (
             <p className="clone-settings-inline-warning">
-              Requested shortcut unavailable on this system. WindieOS switched to
+              {generalSettingsSkin.globalStopShortcut.fallbackPrefix}
               {' '}
               <strong>
                 {getGlobalAgentStopShortcutLabel(globalAgentStopShortcutStatus.resolvedAccelerator)}
               </strong>
               {' '}
-              and saved that binding locally.
+              {generalSettingsSkin.globalStopShortcut.fallbackSuffix}
             </p>
           ) : null}
           {shortcutRegistrationFailed ? (
             <p className="clone-settings-inline-warning">
-              Global stop shortcut could not be registered. Choose another binding if you need
-              stop-from-anywhere behavior.
+              {generalSettingsSkin.globalStopShortcut.registrationFailure}
             </p>
           ) : null}
-          <p>Focused chat and dashboard windows still support <strong>Esc</strong> for stop.</p>
+          <p>{generalSettingsSkin.globalStopShortcut.focusedWindowHint}</p>
         </div>
         <SelectDropdown
           value={globalStopShortcut}

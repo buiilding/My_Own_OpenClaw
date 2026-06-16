@@ -4,29 +4,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import {
+  formatToolAcceptanceRuntimeSummary,
+  windieDesktopSkin,
+} from '../../../../../app/skin/windieDesktopSkin';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import { CloneToggle } from './settingsControls';
 
-const LOCAL_TOOLS = Object.freeze([
-  'mouse_control',
-  'keyboard_control',
-  'screenshot',
-  'scroll_control',
-  'switch_window',
-  'wait',
-  'get_open_windows',
-  'get_system_stats',
-  'open_app',
-  'run_shell_command',
-  'process',
-  'read_file',
-  'replace',
-  'browser',
-]);
-
-const REMOTE_TOOLS = Object.freeze([
-  'web_search',
-]);
+const agentSettingsSkin = windieDesktopSkin.settings.agent;
 
 function toggleListValue(values, value, enabled) {
   const source = Array.isArray(values) ? values : [];
@@ -95,12 +80,12 @@ function AgentSettingsTab({ config, onConfigChange }) {
 
   return (
     <div className="clone-settings-general">
-      <h2>Agent</h2>
+      <h2>{agentSettingsSkin.title}</h2>
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
-          <span>Custom instructions</span>
-          <p>Saved locally and included with each workspace query.</p>
+          <span>{agentSettingsSkin.customInstructions.label}</span>
+          <p>{agentSettingsSkin.customInstructions.description}</p>
           <textarea
             className="clone-settings-textarea"
             value={config?.agent_custom_instructions || ''}
@@ -115,8 +100,8 @@ function AgentSettingsTab({ config, onConfigChange }) {
 
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
         <div>
-          <span>Extensions</span>
-          <p>Local extension contributions are divided into sidecar plugins, prompt skills, and MCP servers.</p>
+          <span>{agentSettingsSkin.extensions.label}</span>
+          <p>{agentSettingsSkin.extensions.description}</p>
         </div>
         <div className="clone-settings-layer-list">
           {extensionRuntime.plugins.length > 0 ? extensionRuntime.plugins.map((plugin) => (
@@ -128,7 +113,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
               <PluginRuntimeDetails plugin={plugin} />
             </details>
           )) : (
-            <p className="clone-settings-tool-status">No sidecar plugins loaded</p>
+            <p className="clone-settings-tool-status">{agentSettingsSkin.extensions.emptyPlugins}</p>
           )}
           {extensionRuntime.skills.length > 0 ? (
             <details className="clone-settings-schema-viewer">
@@ -163,11 +148,11 @@ function AgentSettingsTab({ config, onConfigChange }) {
 
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
         <div>
-          <span>Local sidecar tools</span>
-          <p>These are included in the client tool manifest when enabled.</p>
+          <span>{agentSettingsSkin.localTools.label}</span>
+          <p>{agentSettingsSkin.localTools.description}</p>
         </div>
         <div className="clone-settings-tool-grid">
-          {LOCAL_TOOLS.map((toolName) => (
+          {agentSettingsSkin.localTools.ids.map((toolName) => (
             <div key={toolName} className="clone-settings-tool-card">
               <div className="clone-settings-tool-toggle">
                 <span>{toolName}</span>
@@ -194,11 +179,11 @@ function AgentSettingsTab({ config, onConfigChange }) {
 
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
         <div>
-          <span>Remote backend tools</span>
-          <p>These execute on the hosted WindieOS backend when available.</p>
+          <span>{agentSettingsSkin.remoteTools.label}</span>
+          <p>{agentSettingsSkin.remoteTools.description}</p>
         </div>
         <div className="clone-settings-tool-grid">
-          {REMOTE_TOOLS.map((toolName) => {
+          {agentSettingsSkin.remoteTools.ids.map((toolName) => {
             const catalogEntry = remoteTools.find((tool) => tool.name === toolName);
             return (
               <div key={toolName} className="clone-settings-tool-toggle clone-settings-tool-card">
@@ -269,23 +254,24 @@ function PluginRuntimeDetails({ plugin }) {
 }
 
 function ToolAcceptanceStatus({ acceptedTool, rejectedTool }) {
+  const config = agentSettingsSkin.toolAcceptance;
   if (rejectedTool) {
     return (
       <p className="clone-settings-tool-status clone-settings-tool-status-error">
-        Rejected: {rejectedTool.reason || 'manifest validation failed'}
+        {config.rejectedPrefix}: {rejectedTool.reason || 'manifest validation failed'}
       </p>
     );
   }
   if (!acceptedTool) {
     return (
-      <p className="clone-settings-tool-status">Waiting for backend acceptance</p>
+      <p className="clone-settings-tool-status">{config.pending}</p>
     );
   }
   return (
     <details className="clone-settings-schema-viewer">
-      <summary>Accepted schema</summary>
+      <summary>{config.acceptedSummary}</summary>
       <p className="clone-settings-tool-status">
-        {acceptedTool.argument_resolution || 'passthrough'} / {acceptedTool.execution_target || 'sidecar'}
+        {formatToolAcceptanceRuntimeSummary(acceptedTool)}
       </p>
       <pre>{JSON.stringify({
         schema: acceptedTool.schema,

@@ -348,6 +348,12 @@ Primary modules:
 - `renderer/app/App.jsx`: Root provider stack and dashboard shell mounting.
   - Startup route gate is VM mode + frontend onboarding slideshow completion.
   - No boot-time renderer permission gate in current `App.jsx`.
+- `renderer/app/skin/windieDesktopSkin.js`:
+  - WindieOS-specific renderer copy, tool catalog presentation, and display-safe
+    runtime labels for generic desktop agent UI components.
+  - Settings feature components should read product copy and app-specific tool
+    catalog choices from this skin/config boundary instead of hard-coding
+    WindieOS wording or sidecar/backend runtime names inline.
 - `renderer/app/providers/AppConfigProvider.jsx`:
   - Frontend config load/merge/save.
   - Persists renderer-owned config such as `global_agent_stop_shortcut` locally without syncing that key to the backend.

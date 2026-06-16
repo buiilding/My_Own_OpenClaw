@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move settings product copy, tool catalog labels, and
+  display-safe tool runtime labels into the WindieOS renderer skin config so
+  settings components read as generic desktop agent UI consumers.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.
