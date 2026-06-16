@@ -15,9 +15,6 @@ import fs from 'fs';
 import path from 'path';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
-  createFrontendInteractionEntry,
-  describeInteractionTarget,
-  formatFrontendInteractionSummary,
   installFrontendInteractionLogger,
   logUserSentMessage,
 } from '../../frontend/src/renderer/infrastructure/interaction/frontendInteractionLogger';
@@ -40,13 +37,22 @@ describe('frontendInteractionLogger', () => {
     consoleSpy?.mockRestore();
   });
 
-  test('describes buttons by accessible label', () => {
+  test('logs buttons by accessible label', () => {
     document.body.innerHTML = '<button aria-label="Open settings"><span></span></button>';
-    const button = document.querySelector('button');
+    cleanup = installFrontendInteractionLogger();
 
-    expect(describeInteractionTarget(button)).toEqual(expect.objectContaining({
-      label: 'Open settings',
-      tagName: 'button',
+    document.querySelector('button').click();
+
+    expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
+      source: 'frontend-interaction',
+      entry: expect.objectContaining({
+        action: 'settings_button_clicked',
+        event: 'click',
+        target: expect.objectContaining({
+          label: 'Open settings',
+          tagName: 'button',
+        }),
+      }),
     }));
   });
 
@@ -125,31 +131,24 @@ describe('frontendInteractionLogger', () => {
   test('includes message text only when explicit diagnostic flag is enabled', () => {
     window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ = true;
 
-    expect(createFrontendInteractionEntry('message_sent', {
-      event: 'send-message',
+    logUserSentMessage({
+      conversationRef: 'conv-1',
+      senderSurface: 'main-window',
       messageText: 'show this message in logs',
       textLength: 27,
-    })).toEqual(expect.objectContaining({
-      schemaVersion: 1,
-      source: 'frontend-interaction',
-      action: 'message_sent',
-      event: 'send-message',
-      messageText: 'show this message in logs',
-      messageTextRedacted: false,
-      messageTextLength: 27,
-    }));
-  });
+    });
 
-  test('formats frontend interaction entries as compact console summaries', () => {
-    expect(formatFrontendInteractionSummary({
-      action: 'button_clicked',
-      event: 'click',
-      view: 'minimal-chat-pill',
-      target: {
-        label: 'Open config',
-        tagName: 'button',
-      },
-    })).toBe('action=button_clicked event=click view=minimal-chat-pill label="Open config" target=button');
+    expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
+      source: 'frontend-interaction',
+      entry: expect.objectContaining({
+        schemaVersion: 1,
+        action: 'message_sent',
+        event: 'send-message',
+        messageText: 'show this message in logs',
+        messageTextRedacted: false,
+        messageTextLength: 27,
+      }),
+    }));
   });
 
   test('prints compact frontend interaction summaries only when debug stdout is enabled', () => {

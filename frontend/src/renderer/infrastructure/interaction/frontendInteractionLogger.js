@@ -114,7 +114,7 @@ function classifyClickAction(element, label) {
   return 'element_clicked';
 }
 
-export function describeInteractionTarget(target) {
+function describeInteractionTarget(target) {
   const element = findInteractionElement(target);
   if (!element) {
     return null;
@@ -175,7 +175,7 @@ function normalizeInteractionDetails(details = {}, {
   return normalized;
 }
 
-export function createFrontendInteractionEntry(action, details = {}, options = {}) {
+function createFrontendInteractionEntry(action, details = {}, options = {}) {
   return {
     schemaVersion: INTERACTION_SCHEMA_VERSION,
     source: 'frontend-interaction',
@@ -199,7 +199,7 @@ function compactInteractionValue(value, maxLength = 80) {
     : normalized;
 }
 
-export function formatFrontendInteractionSummary(entry = {}) {
+function formatFrontendInteractionSummary(entry = {}) {
   const target = entry.target && typeof entry.target === 'object' && !Array.isArray(entry.target)
     ? entry.target
     : {};
@@ -212,7 +212,7 @@ export function formatFrontendInteractionSummary(entry = {}) {
   ].join(' ');
 }
 
-export function logFrontendInteraction(action, details = {}) {
+function logFrontendInteraction(action, details = {}) {
   const payload = createFrontendInteractionEntry(action, details);
   if (window.__WINDIE_DEBUG_SURFACE_STDOUT__ === true) {
     console.log(`[FrontendInteraction] ${formatFrontendInteractionSummary(payload)}`);
