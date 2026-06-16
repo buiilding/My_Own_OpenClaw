@@ -5,7 +5,7 @@
 import {
   resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
-} from '../toolCorrelationIds';
+} from '../../../../infrastructure/api/windieSdkClient';
 import {
   buildRemoteScreenshotAttachment,
 } from '../../../../infrastructure/services/screenshotMessageState';

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the renderer-only tool correlation alias and route
+  chat stream correlation through the SDK package export.
 - docs/sdk: clarify that sidecar daemon discovery files require canonical
   `base_url` while the public `sidecarDaemon.baseUrl` option remains client-only.
 - docs/sdk: document that Python SDK local tool execution consumes canonical

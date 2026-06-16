@@ -51,7 +51,7 @@ When behavior changes in these areas, add or update tests in the same PR:
   - `tests/frontend/DesktopChatStreamEventRuntime.test.ts`
   - `tests/frontend/ChatStreamToolHandlers.test.ts`
   - `tests/frontend/WindieSdkConversationRuntime.test.ts`
-  - `tests/frontend/ToolCorrelationIds.test.ts`
+  - `tests/frontend/WindieSdkPackageBoundary.test.ts`
 - capture hide/restore overlap and platform policy:
   - `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`
 - main-process overlay phase to visibility/interactivity policy:
