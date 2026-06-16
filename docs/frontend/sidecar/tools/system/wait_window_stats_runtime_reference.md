@@ -82,6 +82,8 @@ Semantics:
 - on macOS, app-level entries from `get_open_windows` now verify success by active app match when the target entry is the app name rather than a specific window title, so entries like `Finder` do not fail just because the focused Finder window title is `Downloads`
 - `False` return becomes a user-facing guidance error that recommends using exact title from `get_open_windows`
 - unexpected exceptions are wrapped as `Window switching operation failed: ...`
+- returns native `ToolResult`; JSON-RPC conversion happens in
+  `LocalBackend._handle_execute_tool`
 
 ### `get_open_windows` behavior
 
@@ -98,6 +100,8 @@ Semantics:
 - removes empty entries while preserving one row per underlying window; duplicate final display strings are suffixed as ` (1)`, ` (2)`, and so on
 - optional filter is case-insensitive substring match against the displayed app/window name and its raw app/title parts
 - `output` is bullet list (`- <name>`) or `No open windows found.`
+- returns native `ToolResult`; JSON-RPC conversion happens in
+  `LocalBackend._handle_execute_tool`
 
 ## Platform Window Manager Semantics
 

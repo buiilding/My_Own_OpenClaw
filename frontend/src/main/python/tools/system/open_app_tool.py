@@ -286,7 +286,9 @@ async def _verify_window_open(window_title: Optional[str], timeout_seconds: floa
     deadline = time.monotonic() + max(timeout_seconds, 0.0)
 
     while True:
-        windows_result = await get_open_windows({"filter_text": window_title})
+        windows_result = (
+            await get_open_windows({"filter_text": window_title})
+        ).to_dict()
         if windows_result.get("success"):
             data = windows_result.get("data")
             windows = data.get("windows") if isinstance(data, dict) else []

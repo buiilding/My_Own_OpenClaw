@@ -10,6 +10,13 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.system import stats_tool, wait_tool, window_tool  # noqa: E402
+from tools.result import ToolResult  # noqa: E402
+
+
+async def _execute_window_tool(call):
+    result = await call
+    assert isinstance(result, ToolResult)
+    return result.to_dict()
 
 
 class FakeWindowManager:
@@ -52,9 +59,10 @@ def test_get_window_manager_creates_and_reuses_singleton(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_switch_to_window_requires_tab_name():
-    result = await window_tool.switch_to_window({})
+    result = await _execute_window_tool(window_tool.switch_to_window({}))
 
-    assert result == {"success": False, "error": "tab_name is required"}
+    assert result["success"] is False
+    assert result["error"] == "tab_name is required"
 
 
 @pytest.mark.asyncio
@@ -65,7 +73,9 @@ async def test_switch_to_window_success(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.switch_to_window({"tab_name": "Terminal"})
+    result = await _execute_window_tool(
+        window_tool.switch_to_window({"tab_name": "Terminal"})
+    )
 
     assert result["success"] is True
     assert manager.switch_calls == ["Terminal"]
@@ -78,7 +88,9 @@ async def test_switch_to_window_returns_not_found_error(monkeypatch):
     manager = FakeWindowManager(windows=[{"title": "Other Window"}], switch_result=False)
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.switch_to_window({"tab_name": "Missing"})
+    result = await _execute_window_tool(
+        window_tool.switch_to_window({"tab_name": "Missing"})
+    )
 
     assert result["success"] is False
     assert "Could not find or switch" in result["error"]
@@ -92,7 +104,9 @@ async def test_switch_to_window_handles_exceptions(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.switch_to_window({"tab_name": "Terminal"})
+    result = await _execute_window_tool(
+        window_tool.switch_to_window({"tab_name": "Terminal"})
+    )
 
     assert result["success"] is False
     assert "Window switching operation failed" in result["error"]
@@ -106,8 +120,8 @@ async def test_switch_to_window_supports_contains_match_mode(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.switch_to_window(
-        {"tab_name": "docs", "match_mode": "contains"}
+    result = await _execute_window_tool(
+        window_tool.switch_to_window({"tab_name": "docs", "match_mode": "contains"})
     )
 
     assert result["success"] is True
@@ -122,8 +136,10 @@ async def test_switch_to_window_supports_app_name_matches(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.switch_to_window(
-        {"tab_name": "Google Chrome", "match_mode": "contains"}
+    result = await _execute_window_tool(
+        window_tool.switch_to_window(
+            {"tab_name": "Google Chrome", "match_mode": "contains"}
+        )
     )
 
     assert result["success"] is True
@@ -138,8 +154,10 @@ async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.switch_to_window(
-        {"tab_name": r"Beautiful Boy.*2010", "match_mode": "regex"}
+    result = await _execute_window_tool(
+        window_tool.switch_to_window(
+            {"tab_name": r"Beautiful Boy.*2010", "match_mode": "regex"}
+        )
     )
 
     assert result["success"] is True
@@ -167,8 +185,10 @@ async def test_switch_to_window_supports_duplicate_display_labels(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.switch_to_window(
-        {"tab_name": "Google Chrome: New Tab - Google Chrome (2)"}
+    result = await _execute_window_tool(
+        window_tool.switch_to_window(
+            {"tab_name": "Google Chrome: New Tab - Google Chrome (2)"}
+        )
     )
 
     assert result["success"] is True
@@ -200,7 +220,7 @@ async def test_get_open_windows_prefers_app_names_and_includes_titles(monkeypatc
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.get_open_windows({})
+    result = await _execute_window_tool(window_tool.get_open_windows({}))
 
     assert result["success"] is True
     assert result["data"]["windows"] == [
@@ -227,7 +247,9 @@ async def test_get_open_windows_filters_display_names_case_insensitively(monkeyp
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.get_open_windows({"filter_text": "chrome"})
+    result = await _execute_window_tool(
+        window_tool.get_open_windows({"filter_text": "chrome"})
+    )
 
     assert result["success"] is True
     assert result["data"]["windows"] == ["Google Chrome: my prompts - Google Docs"]
@@ -244,7 +266,7 @@ async def test_get_open_windows_preserves_duplicate_display_names(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.get_open_windows({})
+    result = await _execute_window_tool(window_tool.get_open_windows({}))
 
     assert result["success"] is True
     assert result["data"]["windows"] == [
@@ -262,7 +284,7 @@ async def test_get_open_windows_handles_manager_errors(monkeypatch):
     manager = FakeWindowManager(windows_error=RuntimeError("wm failed"))
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.get_open_windows({})
+    result = await _execute_window_tool(window_tool.get_open_windows({}))
 
     assert result["success"] is False
     assert "Failed to get open windows" in result["error"]
@@ -273,7 +295,7 @@ async def test_get_open_windows_returns_empty_state_message(monkeypatch):
     manager = FakeWindowManager(windows=[{"title": " "}, {"title": ""}, {}])
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.get_open_windows({})
+    result = await _execute_window_tool(window_tool.get_open_windows({}))
 
     assert result["success"] is True
     assert result["data"]["windows"] == []

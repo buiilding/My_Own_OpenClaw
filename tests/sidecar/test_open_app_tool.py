@@ -6,6 +6,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.system import open_app_tool  # noqa: E402
+from tools.result import ToolResult  # noqa: E402
 
 
 @pytest.mark.asyncio
@@ -56,7 +57,10 @@ async def test_open_app_verify_window_polls_until_match(monkeypatch):
     )
 
     async def _fake_get_open_windows(_args):
-        return next(responses)
+        payload = next(responses)
+        if payload["success"]:
+            return ToolResult.success_result(payload["data"])
+        return ToolResult.error_result(payload["error"])
 
     async def _fake_sleep(_seconds):
         return None
@@ -89,7 +93,7 @@ async def test_open_app_verify_screenshot_includes_screenshot_payload(monkeypatc
     )
 
     async def _fake_get_open_windows(_args):
-        return {"success": True, "data": {"windows": []}}
+        return ToolResult.success_result({"windows": []})
 
     async def _fake_screenshot(_args):
         return {

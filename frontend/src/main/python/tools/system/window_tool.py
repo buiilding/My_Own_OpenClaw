@@ -9,6 +9,7 @@ from typing import Dict, Any
 
 from core.executors import get_interactive_executor
 from core.platform import WindowManager
+from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +130,7 @@ def _collect_window_display_names(
     ]
 
 
-async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
+async def switch_to_window(args: Dict[str, Any]) -> ToolResult:
     """
     Switch to a window by title.
     
@@ -137,13 +138,13 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
         args: Dictionary with 'tab_name'
         
     Returns:
-        Dictionary with success status and switch result
+        ToolResult with switch result data
     """
     tab_name = args.get("tab_name")
     match_mode = args.get("match_mode", "exact")
     
     if not tab_name:
-        return {"success": False, "error": "tab_name is required"}
+        return ToolResult.error_result("tab_name is required")
     
     try:
         def _switch():
@@ -163,28 +164,28 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
         success, resolved_title = await loop.run_in_executor(get_interactive_executor(), _switch)
         
         if not success:
-            return {
-                "success": False,
-                "error": (
+            return ToolResult.error_result(
+                (
                     f"Could not find or switch to window with name: {tab_name}. "
                     "Use the app/window name from get_open_windows output for best results."
-                ),
-            }
+                )
+            )
         
-        return {
-            "success": True,
-            "data": {
+        return ToolResult.success_result(
+            {
                 "tab_name": resolved_title,
                 "output": f"Successfully switched to window '{resolved_title}'",
                 "message": f"Successfully switched to window '{resolved_title}'",
-            },
-        }
+            }
+        )
     except Exception as e:
         logger.error(f"Error switching to window: {e}", exc_info=True)
-        return {"success": False, "error": f"Window switching operation failed: {str(e)}"}
+        return ToolResult.error_result(
+            f"Window switching operation failed: {str(e)}"
+        )
 
 
-async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
+async def get_open_windows(args: Dict[str, Any]) -> ToolResult:
     """
     Get list of open windows.
     
@@ -192,7 +193,7 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
         args: Dictionary with optional 'filter_text'
         
     Returns:
-        Dictionary with success status and window list
+        ToolResult with window list data
     """
     filter_text = args.get("filter_text", "")
     
@@ -207,16 +208,15 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
         
         content = "\n".join(f"- {w}" for w in window_titles) if window_titles else "No open windows found."
         
-        return {
-            "success": True,
-            "data": {
+        return ToolResult.success_result(
+            {
                 "windows": window_titles,
                 "output": content,
-            },
-        }
+            }
+        )
     except Exception as e:
         logger.error(f"Error getting open windows: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to get open windows: {str(e)}"}
+        return ToolResult.error_result(f"Failed to get open windows: {str(e)}")
 
 
 def _resolve_target_reference(
