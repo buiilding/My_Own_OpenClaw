@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for backend core tool-security primitives: fail-closed permission semantics, path/resource checks, audit parameter sanitization + lock-guarded log reads, and runtime tool-executor registry behavior."
+summary: "Deep reference for backend core tool-security primitives: fail-closed permission semantics, path/resource checks, audit parameter sanitization + lock-guarded log reads, removed ProcessSandboxedExecutor placeholder behavior, and runtime tool-executor registry behavior."
 read_when:
   - When changing tool permission declarations, blocked-tool/path policy, or audit log memory/concurrency controls.
   - When implementing sandboxed execution and deciding executor registry switching behavior.
+  - When resolving stale references to removed `ProcessSandboxedExecutor`, sandboxed executor placeholder, or old sandbox `NotImplementedError` behavior.
 title: "Policy Permissions, Audit Sanitization, and Executor Registry Reference"
 ---
 
@@ -118,6 +119,8 @@ Important:
 
 - no sandboxed executor is currently exposed; add a concrete isolated executor
   only with an implemented isolation strategy and tests
+- `ProcessSandboxedExecutor` was removed rather than kept as a placeholder; the
+  current export surface intentionally contains only implemented executor paths
 
 ## Current Integration Reality
 

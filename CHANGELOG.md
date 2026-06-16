@@ -88,6 +88,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/security: remove the unused `ProcessSandboxedExecutor` placeholder
   export so the security executor surface exposes only implemented execution
   paths.
+- docs/backend: route removed `ProcessSandboxedExecutor` and sandbox placeholder
+  searches to the current tool-security executor docs.
 - backend/tools: remove the missing-`request_id` pending placeholder from
   single-tool waits; invalid tool calls now produce an explicit failed tool
   result instead of pretending local execution is still pending.

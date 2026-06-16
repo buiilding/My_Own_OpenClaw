@@ -1,8 +1,9 @@
 ---
-summary: "Backend tool security reference: active ToolPolicy gating, core SecurityPolicy permission/audit primitives, executor registry behavior, and current integration boundaries."
+summary: "Backend tool security reference: active ToolPolicy gating, core SecurityPolicy permission/audit primitives, executor registry behavior, removed ProcessSandboxedExecutor placeholder behavior, and current integration boundaries."
 read_when:
   - When changing backend tool permission models, blocked-tool/path policy, or audit logging behavior.
   - When wiring sandboxed executors or debugging permission denials and tool security boundary drift.
+  - When resolving stale references to removed `ProcessSandboxedExecutor` or its old `NotImplementedError` placeholder behavior.
 title: "Tool Security Policy and Executor Reference"
 ---
 
@@ -103,6 +104,16 @@ execution.
 Current default execution path is direct executor semantics. There is no
 sandbox executor in the runtime; add a concrete isolated executor only when the
 process/container strategy is implemented and tested.
+
+### Removed Sandbox Executor Placeholder
+
+`ProcessSandboxedExecutor` was removed from `core/security/executor.py` and from
+the `backend.src.core.security` export surface. The runtime no longer exposes a
+sandboxed executor placeholder that raises `NotImplementedError`. Stale
+searches for `ProcessSandboxedExecutor removed` or
+`ProcessSandboxedExecutor NotImplementedError` should route here. Current code
+exposes only the abstract `ToolExecutor`, the in-process `DirectToolExecutor`,
+and the registry helpers.
 
 ## Integration Status Summary
 

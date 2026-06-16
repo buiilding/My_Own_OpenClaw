@@ -433,6 +433,23 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed sandbox executor queries to tool security docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'tools',
+      'tool_security_policy_and_executor_reference.md',
+    );
+
+    expect(findDocs('ProcessSandboxedExecutor removed')[0].path).toBe(expectedPath);
+    expect(findDocs('sandboxed executor placeholder removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('ProcessSandboxedExecutor NotImplementedError')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes replay ordinal fallback queries to transcript replay docs', () => {
     expect(findDocs('replay ordinal fallback')[0].path).toBe(
       path.join('docs', 'memory', 'transcript_replay_change_workflow.md'),
