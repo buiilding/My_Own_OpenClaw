@@ -112,7 +112,8 @@ Date: 2026-06-15
   completed CD-026.
 - `266017d03 refactor(frontend): remove unused stream phase predicates`
   completed CD-027.
-- pending commit for CD-028.
+- `2960e0378 refactor(frontend): remove unused renderer default exports`
+  completed CD-028.
 
 ## Validation Log
 
