@@ -77,6 +77,8 @@ All notable changes to WindieOS will be documented in this file.
   `backend.src.simulation.main`.
 - docs/backend: route removed simulation computer alias searches to the current
   package-runner and main-module entrypoint reference.
+- docs/backend: route missing-`request_id` pending-placeholder searches to the
+  current single-tool wait failure contract.
 - backend/bootstrap: delete pass-through `ContainerInitializer` service-wrapper
   methods so startup behavior is owned by the ordered startup-step runner.
 - backend/websocket: remove the top-level `client_tool_manifest` handshake

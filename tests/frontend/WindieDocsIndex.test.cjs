@@ -450,6 +450,26 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes missing request-id placeholder queries to tool wait docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'tools',
+      'execution',
+      'tool_result_orchestrator_bundle_detection_and_wait_path_reference.md',
+    );
+
+    expect(findDocs('missing request_id pending placeholder removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('single tool wait missing request_id pending removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(
+      findDocs('missing request_id invalid tool call failure result')[0].path,
+    ).toBe(expectedPath);
+  });
+
   test('routes replay ordinal fallback queries to transcript replay docs', () => {
     expect(findDocs('replay ordinal fallback')[0].path).toBe(
       path.join('docs', 'memory', 'transcript_replay_change_workflow.md'),

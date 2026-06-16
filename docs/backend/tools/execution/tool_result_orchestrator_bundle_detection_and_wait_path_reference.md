@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for tool execution wait orchestration: atomic bundle detection, session-required routing, single-vs-bundle future wait semantics, stale-screen safety checks, and capability exposure filtering."
+summary: "Deep reference for tool execution wait orchestration: atomic bundle detection, session-required routing, single-vs-bundle future wait semantics, missing request_id failure behavior after pending placeholder removal, stale-screen safety checks, and capability exposure filtering."
 read_when:
   - When changing `ToolResultOrchestrator` routing or single/bundle wait helpers.
   - When debugging skipped tool calls, bundle-id/request-id metadata drift, or SDK-submitted tool-result timeout behavior.
+  - When debugging a missing `request_id`, removed pending-local-runtime placeholder, or invalid tool-call failure result in the single-tool wait path.
 title: "Tool Result Orchestrator Bundle Detection and Wait Path Reference"
 ---
 
@@ -74,6 +75,18 @@ For each non-bundle call:
 - if pending result already exists, resolve immediately
 - else wait up to 120 seconds
 - always clean up future in `finally`
+
+### Missing Request-ID Failure
+
+The current single-tool wait path does not create the old
+pending-local-runtime placeholder when a parsed tool call lacks
+`metadata.request_id`.
+
+Instead, `execute_single_tool(...)` returns an immediate failed `ToolResult`
+with `data.status == "missing_request_id"` before any request future is
+created. This is intentionally a backend correlation failure, not a local
+runtime wait state: without `request_id`, no later frontend or SDK tool-result
+payload can resolve the call.
 
 ### Stale-Screen Guard
 
