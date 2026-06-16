@@ -9,11 +9,17 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: move settings product copy, tool catalog labels, and
   display-safe tool runtime labels into the WindieOS renderer skin config so
   settings components read as generic desktop agent UI consumers.
+- frontend/renderer: route memory panel and destructive memory settings copy
+  through the WindieOS renderer skin config without changing SDK-shaped memory
+  runtime commands.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.
 - frontend/sidecar: return native `ToolResult` from `keyboard_control` and
   `scroll_control` instead of producing registry-normalized dict envelopes.
+- frontend/sidecar: return native `ToolResult` from `switch_window` and
+  `get_open_windows`, and serialize that contract explicitly where `open_app`
+  polls windows.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the

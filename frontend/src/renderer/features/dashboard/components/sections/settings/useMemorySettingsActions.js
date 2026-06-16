@@ -4,7 +4,10 @@
 
 import { useState } from 'react';
 import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
+import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
 import { useTranscriptSessionInfo } from '../../../hooks/useTranscriptSessionInfo';
+
+const memorySettingsSkin = windieDesktopSkin.settings.memory;
 
 export function useMemorySettingsActions() {
   const sessionInfo = useTranscriptSessionInfo();
@@ -31,7 +34,7 @@ export function useMemorySettingsActions() {
     if (requireActiveUser && (!userId || userId === 'default_user')) {
       setStatus({
         tone: 'error',
-        message: 'Connect WindieOS before deleting saved data.',
+        message: memorySettingsSkin.requireUserMessage,
       });
       return false;
     }
@@ -62,7 +65,7 @@ export function useMemorySettingsActions() {
     } catch (error) {
       setStatus({
         tone: 'error',
-        message: error?.message || 'Failed to complete destructive action',
+        message: error?.message || memorySettingsSkin.destructiveFailureFallback,
       });
       return false;
     } finally {
@@ -72,18 +75,18 @@ export function useMemorySettingsActions() {
 
   const clearLocalMemory = async () => runDestructiveAction({
     actionId: 'memory',
-    confirmMessage: 'Delete saved episodic interaction memories and semantic memories? Chat transcripts will be kept.',
+    confirmMessage: memorySettingsSkin.deleteMemories.confirmMessage,
     run: DesktopMemoryRuntimeClient.clearLocalMemory,
-    successMessage: 'Saved memories deleted.',
+    successMessage: memorySettingsSkin.deleteMemories.successMessage,
   });
 
   const clearChatHistory = async (onSuccess) => runDestructiveAction({
     actionId: 'chats',
-    confirmMessage: 'Delete saved chat transcripts, revisions, and titles? Memories will be kept.',
+    confirmMessage: memorySettingsSkin.deleteChats.confirmMessage,
     run: DesktopMemoryRuntimeClient.clearChatHistory,
     runArgs: [userId],
     requireActiveUser: true,
-    successMessage: 'Chat history deleted.',
+    successMessage: memorySettingsSkin.deleteChats.successMessage,
     onSuccess,
   });
 

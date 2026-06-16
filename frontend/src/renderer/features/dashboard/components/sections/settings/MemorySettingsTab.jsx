@@ -3,7 +3,10 @@
  */
 
 import PropTypes from 'prop-types';
+import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
 import { useMemorySettingsActions } from './useMemorySettingsActions';
+
+const memorySettingsSkin = windieDesktopSkin.settings.memory;
 
 function MemorySettingsTab({ onChatsCleared }) {
   const {
@@ -15,12 +18,12 @@ function MemorySettingsTab({ onChatsCleared }) {
 
   return (
     <div className="clone-settings-memory">
-      <h2>Memory</h2>
+      <h2>{memorySettingsSkin.title}</h2>
 
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
         <div>
-          <span>Delete saved memories</span>
-          <p>Deletes saved episodic interaction memories and semantic memories. Chat transcripts remain.</p>
+          <span>{memorySettingsSkin.deleteMemories.label}</span>
+          <p>{memorySettingsSkin.deleteMemories.description}</p>
         </div>
         <button
           type="button"
@@ -30,14 +33,16 @@ function MemorySettingsTab({ onChatsCleared }) {
           }}
           disabled={pendingAction !== null}
         >
-          {pendingAction === 'memory' ? 'Deleting...' : 'Delete memories'}
+          {pendingAction === 'memory'
+            ? memorySettingsSkin.deleteMemories.pendingLabel
+            : memorySettingsSkin.deleteMemories.actionLabel}
         </button>
       </div>
 
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
         <div>
-          <span>Delete chat history</span>
-          <p>Deletes saved chat transcripts, revisions, and titles. Memories remain.</p>
+          <span>{memorySettingsSkin.deleteChats.label}</span>
+          <p>{memorySettingsSkin.deleteChats.description}</p>
         </div>
         <button
           type="button"
@@ -47,7 +52,9 @@ function MemorySettingsTab({ onChatsCleared }) {
           }}
           disabled={pendingAction !== null}
         >
-          {pendingAction === 'chats' ? 'Deleting...' : 'Delete chats'}
+          {pendingAction === 'chats'
+            ? memorySettingsSkin.deleteChats.pendingLabel
+            : memorySettingsSkin.deleteChats.actionLabel}
         </button>
       </div>
 

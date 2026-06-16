@@ -351,8 +351,9 @@ Primary modules:
 - `renderer/app/skin/windieDesktopSkin.js`:
   - WindieOS-specific renderer copy, tool catalog presentation, and display-safe
     runtime labels for generic desktop agent UI components.
-  - Settings feature components should read product copy and app-specific tool
-    catalog choices from this skin/config boundary instead of hard-coding
+  - Settings and memory feature components should read product copy,
+    app-specific tool catalog choices, destructive-action labels, and memory
+    panel wording from this skin/config boundary instead of hard-coding
     WindieOS wording or sidecar/backend runtime names inline.
 - `renderer/app/providers/AppConfigProvider.jsx`:
   - Frontend config load/merge/save.

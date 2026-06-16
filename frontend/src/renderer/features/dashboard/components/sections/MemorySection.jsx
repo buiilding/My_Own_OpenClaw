@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
+import { windieDesktopSkin } from '../../../../app/skin/windieDesktopSkin';
 import { ON_CHANNELS } from '../../../../infrastructure/ipc/channels';
 import {
   getMemoryRetrievalInjectionEnabled,
@@ -26,6 +27,8 @@ import {
   filterMemoriesByQuery,
   resolveActiveMemoryTypeInfo,
 } from './memorySectionState';
+
+const memoryPanelSkin = windieDesktopSkin.memoryPanel;
 
 function MemorySection({ onClose = () => {} }) {
   const [activeType, setActiveType] = useState('episodic');
@@ -58,7 +61,7 @@ function MemorySection({ onClose = () => {} }) {
         procedural: buildProceduralMemories(),
       });
     } catch (error) {
-      setLoadError(error?.message || 'Failed to load memories');
+      setLoadError(error?.message || memoryPanelSkin.loadFailureFallback);
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +104,7 @@ function MemorySection({ onClose = () => {} }) {
           kind: backendType,
         });
       } catch (error) {
-        setLoadError(error?.message || `Failed to delete ${backendType} memory`);
+        setLoadError(error?.message || `${memoryPanelSkin.deleteFailurePrefix} ${backendType} memory`);
         return;
       }
     }
@@ -128,14 +131,14 @@ function MemorySection({ onClose = () => {} }) {
           type="button"
           className="clone-panel-close"
           onClick={onClose}
-          aria-label="Close memory"
+          aria-label={memoryPanelSkin.closeLabel}
         >
           <X size={18} />
         </button>
       </div>
       <div className="clone-panel-header">
-        <h1>Memory</h1>
-        <p>WindieOS builds understanding from every interaction</p>
+        <h1>{memoryPanelSkin.title}</h1>
+        <p>{memoryPanelSkin.subtitle}</p>
       </div>
 
       <div className="clone-panel-body">
@@ -166,7 +169,9 @@ function MemorySection({ onClose = () => {} }) {
         <div className="clone-memory-retrieval-row">
           <div className="clone-memory-retrieval-copy">
             <p className="clone-memory-retrieval-title">
-              {`Memory ${memoryRetrievalEnabled ? 'On' : 'Off'}`}
+              {memoryRetrievalEnabled
+                ? memoryPanelSkin.retrievalStateLabel.enabled
+                : memoryPanelSkin.retrievalStateLabel.disabled}
             </p>
           </div>
           <label
@@ -174,7 +179,7 @@ function MemorySection({ onClose = () => {} }) {
           >
             <input
               type="checkbox"
-              aria-label="Memory on or off"
+              aria-label={memoryPanelSkin.retrievalToggleLabel}
               checked={memoryRetrievalEnabled}
               onChange={handleMemoryRetrievalToggle}
             />
@@ -191,10 +196,10 @@ function MemorySection({ onClose = () => {} }) {
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search memories..."
+                placeholder={memoryPanelSkin.searchPlaceholder}
               />
               {searchQuery ? (
-                <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear search">
+                <button type="button" onClick={() => setSearchQuery('')} aria-label={memoryPanelSkin.clearSearchLabel}>
                   <X size={12} />
                 </button>
               ) : null}
@@ -204,7 +209,7 @@ function MemorySection({ onClose = () => {} }) {
 
         <div className="clone-memory-list">
           {isLoading ? (
-            <div className="clone-empty-state">Loading memories...</div>
+            <div className="clone-empty-state">{memoryPanelSkin.loadingLabel}</div>
           ) : loadError ? (
             <div className="clone-empty-state error">{loadError}</div>
           ) : filteredMemories.length === 0 ? (
@@ -212,11 +217,11 @@ function MemorySection({ onClose = () => {} }) {
               <div className="icon-wrap">
                 <MessageSquare size={18} />
               </div>
-              <p className="title">No memories found</p>
+              <p className="title">{memoryPanelSkin.emptyTitle}</p>
               <p className="subtitle">
                 {searchQuery
-                  ? 'Try a different search term'
-                  : 'Memories will appear as you interact with WindieOS'}
+                  ? memoryPanelSkin.emptySearchSubtitle
+                  : memoryPanelSkin.emptyDefaultSubtitle}
               </p>
             </div>
           ) : (
