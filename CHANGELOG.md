@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: soften directive wording toward prefer, avoid, guide, and
+  explicit-approval language while preserving the same workflow boundaries.
 - docs/agents: clarify that implementation, reasoning, runtime, and architecture
   paths should stay simple instead of adding unnecessary indirection.
 - frontend/chat: remove unused public message screenshot source helpers while

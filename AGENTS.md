@@ -7,8 +7,9 @@ WindieOS selects and runs tools to achieve it safely and reliably.
 
 The product spans Electron UX, the Windie SDK runtime, a Python sidecar for
 local authority, and a Python FastAPI backend for hosted or self-hosted agent
-orchestration. Frontend and sidecar code must not import backend code at
-runtime. Use public transport contracts, manifests, docs, and tests for parity.
+orchestration. Frontend and sidecar code should stay import-independent from
+backend runtime code. Use public transport contracts, manifests, docs, and
+tests for parity.
 
 ## Detailed Architecture Reference
 
@@ -46,7 +47,7 @@ Before coding or answering implementation questions:
   and `git blame` to understand what changed recently, why the current behavior
   exists, and whether the bug is a regression from a refactor, deletion, or
   ownership move.
-- Do not treat recent commits as automatically correct. Use them as context:
+- Treat recent commits as context rather than automatic truth:
   compare the commit intent, current code, tests, docs, and live behavior before
   deciding whether to restore, revise, or continue the current direction.
 - Use `rg` and live files over memory or assumptions.
@@ -102,15 +103,15 @@ Fast routing queries:
 - Prefer deletion-first cleanup over compatibility layers that keep duplicate
   authorities alive.
 - Prefer the cleanest ownership refactor that fixes the problem at its source.
-  Do not default to the narrowest patch when a broader change deletes code,
-  removes duplicate authorities, centralizes a contract, or makes the boundary
-  more foundational with less total complexity. If converging duplicated
+  Prefer the broader same-boundary change when it deletes code, removes
+  duplicate authorities, centralizes a contract, or makes the boundary more
+  foundational with less total complexity. If converging duplicated
   runtimes, stores, bridges, or transport paths realistically needs cross-module
-  or cross-runtime work, state that scope plainly, name the boundaries that must
-  move, and explain why a smaller patch would preserve the wrong source of
+  or cross-runtime work, state that scope plainly, name the boundaries that
+  would move, and explain why a smaller patch would preserve the wrong source of
   truth.
-- Fix root causes, not symptoms, and do not layer workarounds on top of messy
-  local design when a small refactor can remove the problem.
+- Fix root causes, not symptoms, and prefer a small refactor over layering
+  workarounds on top of messy local design.
 - Keep the implementation path, reasoning path, runtime path, and architecture
   simple. Prefer the direct owner-correct path that removes confusion over a
   clever abstraction, multi-hop flow, or speculative future-proofing.
@@ -126,10 +127,10 @@ Fast routing queries:
 - When replacing Electron bridge behavior with SDK behavior, include a deletion
   milestone for the old bridge/store/helper path in the same change or the next
   explicit phase.
-- Do not add adapter layers whose only job is to rename and forward payloads.
-  Adapters must enforce a real runtime, security, lifecycle, or test boundary.
-- Do not keep backward-compatibility shims unless the user explicitly requests
-  compatibility or there is a verified dependency.
+- Avoid adapter layers whose only job is to rename and forward payloads.
+  Adapters should enforce a real runtime, security, lifecycle, or test boundary.
+- Keep backward-compatibility shims only when the user explicitly requests
+  compatibility or a verified dependency needs them.
 - Add code only when it enables a simpler ownership boundary, removes
   duplication, unlocks deletion of legacy paths, or makes a real invariant
   testable.
@@ -163,30 +164,31 @@ Fast routing queries:
   trust boundaries, applies policy/provider projection, owns backend remote
   tools, and owns final prompt compilation.
 - Frontend/sidecar own local tool implementations and executable manifests for
-  client-local tools; they must not import backend code for schema parity.
-- Tool changes must update the client tool manifest, docs, and focused tests in
+  client-local tools; keep schema parity import-independent from backend code.
+- Tool changes should update the client tool manifest, docs, and focused tests in
   the same change.
-- MCP tool results must preserve the raw MCP result for every MCP tool, current
+- MCP tool results should preserve the raw MCP result for every MCP tool, current
   and future. The MCP adapter may wrap results in WindieOS native tool
-  call/tool output envelopes, but must not summarize, flatten, or discard MCP
-  `content`, `structuredContent`, or other returned fields. Model-facing
+  call/tool output envelopes while preserving MCP `content`,
+  `structuredContent`, and other returned fields without summarizing,
+  flattening, or discarding them. Model-facing
   `data.output` should contain the MCP result content, and `data.mcp_result`
   should keep the raw object for inspection. If an MCP result contains image
   content, additively promote it into WindieOS native image fields such as
   `data.screenshot` and `data.screenshot_content_type` without rewriting or
   removing the raw MCP result.
-- Computer-use tools must return automatic post-action screenshot context in
-  their tool outputs. Tool bundles that include any computer-use action must
+- Computer-use tools should return automatic post-action screenshot context in
+  their tool outputs. Tool bundles that include any computer-use action should
   also return screenshot context for the bundle output; capture once after the
   bundle unless an explicit successful screenshot step already provides the
   needed image.
-- Built-in grounded tools must preserve the model-schema vs prepared-argument
+- Built-in grounded tools should preserve the model-schema vs prepared-argument
   distinction. Use `backend_grounding` only when OCR/vision/prediction prepares
   executable sidecar arguments; otherwise use `passthrough`.
 - Example: backend may resolve higher-level screen intent into coordinates while
   frontend receives and executes a simpler action such as `click(100, 200)`.
-- Prefer parity tests that verify schemas and registries do not drift.
-- Extensions must keep contribution types separated inside one package:
+- Prefer parity tests that verify schemas and registries stay aligned.
+- Extension contribution types should stay separated inside one package:
   metadata in `extensions/<id>/extension.json`, plugin code in
   `plugin/index.cjs`, MCP server config in `mcp/servers.json`, skills in
   `skills/<skill-id>/SKILL.md`, sidecar schemas in `tools/`, and sidecar code in
@@ -207,7 +209,7 @@ Conda environments:
 - Backend runtime and backend tests: `jarvis`
 - Frontend app, sidecar, and frontend tests: `frontend_jarvis`
 
-Do not manually activate environments. Use:
+Prefer the wrapper over manual environment activation:
 
 - `./scripts/python-in-env <backend|frontend|sidecar> <cmd...>`
 
@@ -250,8 +252,8 @@ Validation:
 - Keep modules focused and split large files when it improves clarity or
   testability.
 - Prefer simple, intuitive implementations.
-- Do not add indirection, configuration, generic helpers, or new concepts unless
-  they make the current path simpler to understand, test, or delete.
+- Avoid indirection, configuration, generic helpers, or new concepts unless they
+  make the current path simpler to understand, test, or delete.
 - Minimize conditionals by making ownership, state, and input shape explicit
   before core logic runs. A small typed dispatcher, state table, or boundary
   normalizer is better than repeated local checks spread through consumers.
@@ -308,8 +310,8 @@ Before finishing, verify:
 - Tests cover the cleaned-up behavior and boundaries.
 - You removed at least as much complexity as you added.
 - Any new abstraction has a deletion or consolidation payoff.
-- No obsolete UI, bridge, alias, compatibility path, or fallback remains in the
-  touched area without a stated reason.
+- Confirm obsolete UI, bridge, alias, compatibility path, or fallback surfaces
+  are removed from the touched area or have a stated reason to remain.
 - Security-sensitive changes were checked for trust-boundary, permission,
   credential, IPC, tool-execution, and machine-specific path regressions.
 - Storage, API, event-payload, tool-schema, settings, or persisted-data changes
@@ -332,7 +334,7 @@ Safe defaults:
 - `git checkout` is allowed for PR review or explicit user request.
 - Branch changes require user consent.
 
-Forbidden without explicit approval:
+Requires explicit approval:
 
 - Destructive commands such as `git reset --hard`, `git clean`, `git restore`,
   and `rm`.
@@ -342,25 +344,24 @@ Commit policy:
 - Commit completed changes by default after implementation and validation,
   unless the user explicitly asks not to commit or asks to inspect/test first.
 - Prefer small, frequent commits.
-- No amend unless asked.
+- Amend only when asked.
 - Update `CHANGELOG.md` before committing repo-visible changes.
 - Preferred helper: `./scripts/committer` or `committer`.
 - `--body` is required for every commit.
-- The commit body must describe the issue, the fix and improvements, previous
+- The commit body should describe the issue, the fix and improvements, previous
   behavior, and behavior after the fix.
-- On Windows PowerShell, do not invoke `./scripts/committer` directly; use Git
-  Bash or fall back to plain `git add` and `git commit`.
+- On Windows PowerShell, prefer Git Bash or plain `git add` and `git commit`
+  instead of invoking `./scripts/committer` directly.
 
 Use Conventional Commits with a body section.
 
 Additional git notes:
 
 - Use HTTPS remotes; flip SSH to HTTPS before pull or push if needed.
-- Do not delete or rename unexpected files.
-- No repo-wide search-and-replace scripts.
-- Keep commits reviewable, but do not keep implementation artificially narrow
-  when a broader same-boundary cleanup creates less code, stronger ownership,
-  and a more foundational path.
+- Avoid deleting or renaming unexpected files.
+- Prefer targeted edits over repo-wide search-and-replace scripts.
+- Keep commits reviewable while still allowing broader same-boundary cleanup
+  when it creates less code, stronger ownership, and a more foundational path.
 - Avoid manual `git stash`.
 - If Git auto-stashes during pull or rebase, that is fine.
 - If the user types a command like "pull and push", that counts as consent for
@@ -370,30 +371,30 @@ Additional git notes:
 
 PR modes:
 
-- Review mode: use `gh pr view` and `gh pr diff`; do not switch branches or
-  change code.
+- Review mode: use `gh pr view` and `gh pr diff`; keep the checkout and code
+  unchanged.
 - Landing mode: create an integration branch from `main`, bring in PR commits
   with rebase or squash, apply fixes, run relevant tests, merge back to `main`,
   and delete the temporary branch.
-- PR summaries must mention testing performed and user-facing changes.
+- PR summaries should mention testing performed and user-facing changes.
 
 Release flow:
 
 - Look for release instructions in `docs/`, `RELEASING.md`, or `release.md`.
-- Do not change version numbers or publish artifacts without explicit approval.
+- Change version numbers or publish artifacts only with explicit approval.
 - Before any release step, run the relevant tests.
 - If UI is touched, include frontend test, lint, and build checks as appropriate.
 - For local macOS reinstalls, skip Apple notarization so local rebuild/reinstall
-  loops do not wait on Apple services.
+  loops avoid waiting on Apple services.
 
 ## Security and Configuration
 
-- API keys must come from environment variables.
+- API keys should come from environment variables.
 - Core config lives in `backend/src/core/config/app_config.py` and
   `backend/src/core/config/models.py`.
-- Do not commit real credentials, user data, or machine-specific paths to docs
-  or tests.
-- Never edit `node_modules` or vendored dependency output.
+- Keep real credentials, user data, and machine-specific paths out of docs and
+  tests.
+- Leave `node_modules` and vendored dependency output untouched.
 - Dependency patching, overrides, or vendored changes require explicit approval.
 
 ## Working Style
@@ -401,7 +402,7 @@ Release flow:
 - Be unbiased and logical first.
 - Verify in code and docs before answering implementation questions.
 - When the user asks a question, inspect the relevant code and report first;
-  do not modify files unless the user explicitly asks for implementation or
+  keep the turn read-only unless the user explicitly asks for implementation or
   approves changes after the report.
 - Avoid guessing; if unsure, read more code first.
 - If still blocked, ask with short options.
@@ -422,14 +423,14 @@ Release flow:
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and
-why. Do not mention file paths, symbol names, or implementation breadcrumbs
-unless the user explicitly asks.
+why. Mention file paths, symbol names, or implementation breadcrumbs only when
+the user explicitly asks or when they materially clarify the answer.
 
 ## Issues, PR Comments, and tmux
 
 - Use literal multiline strings or heredocs for real newlines in posted issues
   and PR comments.
-- Do not use `\\n` in posted text.
+- Prefer real newlines over `\\n` in posted text.
 - Use tmux only when persistence or interactive debugging is needed.
 - Quick refs: `tmux new -d -s codex-shell`, `tmux attach -t codex-shell`,
   `tmux list-sessions`, `tmux kill-session -t codex-shell`.
