@@ -2,9 +2,7 @@
 
 const {
   handleRendererLiveSurfaceTrace,
-  isLiveSurfaceTraceEnabled,
   logLiveSurfaceTrace,
-  normalizeRendererLiveSurfaceTracePayload,
   summarizeCurrentTurn,
 } = require('../../frontend/src/main/debug/live_surface_trace_runtime.cjs');
 
@@ -25,14 +23,22 @@ describe('live_surface_trace_runtime', () => {
 
   test('does not enable trace from dev UI mode alone', () => {
     process.env.WINDIE_DEV_UI = '1';
+    const log = jest.fn();
 
-    expect(isLiveSurfaceTraceEnabled()).toBe(false);
+    logLiveSurfaceTrace('typing.show', {}, { log });
+
+    expect(log).not.toHaveBeenCalled();
   });
 
   test('enables trace through the explicit live surface flag', () => {
     process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
+    const log = jest.fn();
 
-    expect(isLiveSurfaceTraceEnabled()).toBe(true);
+    logLiveSurfaceTrace('typing.show', {}, { log });
+
+    expect(log).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
+      event: 'typing.show',
+    }));
   });
 
   test('summarizes current turn without raw text content', () => {
@@ -91,7 +97,10 @@ describe('live_surface_trace_runtime', () => {
   });
 
   test('normalizes renderer trace payload without raw content', () => {
-    const normalized = normalizeRendererLiveSurfaceTracePayload({
+    process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
+    const log = jest.fn();
+
+    expect(handleRendererLiveSurfaceTrace({
       event: 'renderer.overlay_view_model.resolved',
       process: 'main',
       ts: '2026-06-06T00:00:00.000Z',
@@ -108,29 +117,28 @@ describe('live_surface_trace_runtime', () => {
         textLength: 9,
         text: 'private nested row',
       },
-    });
+    }, { log })).toBe(true);
 
-    expect(normalized).toEqual({
+    const normalized = log.mock.calls[0][1];
+    expect(normalized).toEqual(expect.objectContaining({
+      process: 'renderer',
       event: 'renderer.overlay_view_model.resolved',
-      payload: expect.objectContaining({
-        view: 'minimal-response-overlay',
-        activeConversationRef: 'conv-1',
-        textLength: 15,
-        hasVisibleContent: true,
-        entries: { count: 1 },
-        messageText: '[redacted:string:15]',
-        assistantText: '[redacted:string:17]',
-        content: '[redacted:string:15]',
-        lastMessage: expect.objectContaining({
-          sender: 'assistant',
-          textLength: 9,
-          text: '[redacted:string:18]',
-        }),
+      view: 'minimal-response-overlay',
+      activeConversationRef: 'conv-1',
+      textLength: 15,
+      hasVisibleContent: true,
+      entries: { count: 1 },
+      messageText: '[redacted:string:15]',
+      assistantText: '[redacted:string:17]',
+      content: '[redacted:string:15]',
+      lastMessage: expect.objectContaining({
+        sender: 'assistant',
+        textLength: 9,
+        text: '[redacted:string:18]',
       }),
-    });
+    }));
     expect(JSON.stringify(normalized)).not.toContain('private');
-    expect(normalized.payload).not.toHaveProperty('process');
-    expect(normalized.payload).not.toHaveProperty('ts');
+    expect(normalized.ts).not.toBe('2026-06-06T00:00:00.000Z');
   });
 
   test('forwards renderer trace to the live surface logger', () => {

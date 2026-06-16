@@ -187,9 +187,7 @@ function logLiveSurfaceTrace(event, payload = {}, {
 
 module.exports = {
   handleRendererLiveSurfaceTrace,
-  isLiveSurfaceTraceEnabled,
   logLiveSurfaceTrace,
-  normalizeRendererLiveSurfaceTracePayload,
   summarizeCurrentTurn,
   summarizeWindow,
 };

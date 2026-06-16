@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep live-surface trace env gating and renderer payload
+  normalization private to the trace runtime while tests cover the public trace
+  logging and renderer forwarding APIs.
 - frontend/main: keep Python executable resolution private to the sidecar
   launch-target resolver instead of exporting the lower-level runtime-path
   helper.

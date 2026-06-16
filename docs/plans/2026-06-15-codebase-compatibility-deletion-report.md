@@ -90,6 +90,7 @@ Date: 2026-06-15
 | CD-057 | Electron app-menu helper exports | `app_menu_runtime.cjs` exported the workspace permission id, menu-template builder, path segment helper, and workspace permission request helper even though production imports only the app-menu installer and workspace selection extractor | Knip reported those four helper exports unused; repo search showed only tests imported the menu-template builder directly while the other helpers were internal implementation details | Remove the test-only/internal helper exports and assert menu template behavior through `installApplicationMenu(...)` instead | `fcb9a79f0` |
 | CD-058 | Electron repo-instruction message/helper exports | `repo_instruction_runtime.cjs` exported the old AGENTS.md message wrapper/resolver, prompt-layer builder, and workspace normalizer even though production imports only `resolveWorkspaceRepoInstructionPromptLayers(...)` | Knip reported those four helper exports unused; repo search showed only tests imported the old message path while production sends `agent_definition.agents_md` prompt layers through Electron main | Delete the legacy message wrapper/resolver, keep builders and normalizer private, and update docs/tests to the prompt-layer owner | `e934747cd` |
 | CD-059 | Electron runtime-path Python executable export | `runtime_paths.cjs` exported `resolvePythonExecutablePath(...)` even though production callers import only `resolveSidecarLaunchTarget(...)` and executable selection is an implementation detail of that launch-target resolver | Knip reported the lower-level export unused; repo search showed no external imports and runtime-path tests already cover executable resolution through sidecar launch targets | Remove the lower-level export and update runtime-path docs to describe Python executable lookup as internal launch-target behavior | `906522e8e` |
+| CD-060 | Electron live-surface trace helper exports | `live_surface_trace_runtime.cjs` exported the env-gate predicate and renderer payload normalizer even though production imports only trace logging, renderer forwarding, and summarizer APIs | Knip reported those two helper exports unused; repo search showed only the unit test imported them directly while production exercises them internally through `logLiveSurfaceTrace(...)` and `handleRendererLiveSurfaceTrace(...)` | Remove the helper exports and retarget tests to the production trace APIs | pending implementation commit |
 
 ## Commit Ledger
 
@@ -207,6 +208,7 @@ Date: 2026-06-15
   completed CD-058.
 - `906522e8e refactor(frontend): keep python path helper private`
   completed CD-059.
+- pending implementation commit for CD-060.
 
 ## Validation Log
 
@@ -993,6 +995,21 @@ CD-059 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; sidecar and wakeword launches still use
   `resolveSidecarLaunchTarget(...)`.
+
+CD-060 validation:
+
+- targeted `rg -n "isLiveSurfaceTraceEnabled|normalizeRendererLiveSurfaceTracePayload" frontend/src tests/frontend docs --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private same-module references remain.
+- `bin/windie test frontend -- LiveSurfaceTraceRuntime`: passed; 1 suite and
+  7 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 158 to 156 after
+  removing the live-surface trace helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; trace logging and renderer trace forwarding continue through the
+  same production APIs.
 
 ## Inspection Notes
 
