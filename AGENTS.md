@@ -111,6 +111,9 @@ Fast routing queries:
   truth.
 - Fix root causes, not symptoms, and do not layer workarounds on top of messy
   local design when a small refactor can remove the problem.
+- Keep the implementation path, reasoning path, runtime path, and architecture
+  simple. Prefer the direct owner-correct path that removes confusion over a
+  clever abstraction, multi-hop flow, or speculative future-proofing.
 - Prefer clear, deterministic execution paths over branch-heavy defensive code.
   Normalize inputs at the runtime boundary, fail fast on invalid state, and
   split distinct states into named handlers instead of stacking nested `if`,
@@ -247,6 +250,8 @@ Validation:
 - Keep modules focused and split large files when it improves clarity or
   testability.
 - Prefer simple, intuitive implementations.
+- Do not add indirection, configuration, generic helpers, or new concepts unless
+  they make the current path simpler to understand, test, or delete.
 - Minimize conditionals by making ownership, state, and input shape explicit
   before core logic runs. A small typed dispatcher, state table, or boundary
   normalizer is better than repeated local checks spread through consumers.

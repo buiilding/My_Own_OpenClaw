@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: clarify that implementation, reasoning, runtime, and architecture
+  paths should stay simple instead of adding unnecessary indirection.
 - frontend/chat: remove unused public message screenshot source helpers while
   keeping production attachment normalization and static screenshot resolution.
 - frontend/chat: keep the resolved screenshot artifact cache internal instead
