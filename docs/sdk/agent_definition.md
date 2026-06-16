@@ -63,9 +63,8 @@ accepted during handshake.
 
 Current SDK/Electron clients do not send a separate `frontend-tool-schemas`
 message after handshake. The old planned post-handshake frontend tool schema
-sync is superseded by `agent_definition.tools.client_manifest` on the
-websocket handshake. The backend still accepts top-level `client_tool_manifest`
-only as a compatibility fallback for older clients.
+sync is owned by `agent_definition.tools.client_manifest` on the websocket
+handshake.
 
 ## Removed Agent Capability Handshake Builder
 

@@ -121,9 +121,7 @@ Use this order:
 3. Check `ToolPolicy.filter_tool_names()` for disabled tools and interaction allowlist.
 4. Check `agent_tool_profile`.
 5. Check `agent_available_tools` derived from websocket
-   `agent_definition.tools` and the accepted client manifest. For older
-   clients, the backend may also derive it from top-level handshake
-   compatibility fields.
+   `agent_definition.tools` and the accepted client manifest.
 6. Check disabled capabilities and provider-unavailable capabilities.
 7. Check provider projection if the provider adds native declarations.
 8. If local execution is expected, confirm sidecar `EXPOSED_TO_BACKEND_TOOL_NAMES` and registry registration.

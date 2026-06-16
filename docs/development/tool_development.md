@@ -53,8 +53,7 @@ Current runtime note:
 - the live backend and sidecar registries expose direct tool names only
 - the SDK/Electron frontend sends `agent_definition.tools.client_manifest`
   during websocket handshake so client-local tool schemas can be extended
-  without editing backend schema code. The backend still accepts a top-level
-  `client_tool_manifest` only as a compatibility fallback.
+  without editing backend schema code.
 - sidecar plugin tools put model-facing JSON Schema files under
   `plugins/<id>/schemas/` and reference them as `schema` from
   `plugins/<id>/plugin.json`

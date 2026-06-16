@@ -91,8 +91,7 @@ async def perform_handshake(
         raw_client_tool_manifest = (
             agent_definition.client_tool_manifest()
             if agent_definition is not None
-            and agent_definition.client_tool_manifest() is not None
-            else handshake_msg.client_tool_manifest
+            else None
         )
         capability_overrides = (
             agent_definition.to_session_config_overrides()
@@ -111,16 +110,6 @@ async def perform_handshake(
                         )
                     )
                 )
-            else:
-                available_tools = list(
-                    capability_overrides.get("agent_available_tools") or []
-                )
-                seen_available_tools = set(available_tools)
-                for tool_name in client_tool_manifest_result.accepted_tool_names:
-                    if tool_name not in seen_available_tools:
-                        available_tools.append(tool_name)
-                        seen_available_tools.add(tool_name)
-                capability_overrides["agent_available_tools"] = available_tools
         setattr(
             safe_ws,
             "frontend_agent_capability_overrides",

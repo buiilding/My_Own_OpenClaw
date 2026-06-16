@@ -150,8 +150,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Confirm it exists in `backend/src/tools/tool_catalog.py` or is a backend-owned tool registered by `ToolRegistry`.
 - If it is client-local, confirm the websocket handshake supplied
   `agent_definition.tools.client_manifest` and backend validation accepted the
-  entry. Top-level `client_tool_manifest` is only a compatibility fallback for
-  older clients.
+  entry.
 - Confirm the tool class emits a canonical function tool spec.
 - Confirm `ToolRegistry.get_model_tool_names()` includes it.
 - Confirm `ToolPolicy.filter_tool_names()` is not hiding it through interaction mode, profile, disabled tools, capability gates, provider health, browser gating, web-search availability, or agent capability policy.

@@ -18,9 +18,8 @@ The public client sends local tool schemas through
 `agent_definition.tools.client_manifest` during websocket handshake; the hosted
 backend validates that manifest, applies policy/provider projection, and can
 resolve high-level or grounded intent into a simpler executable sidecar action.
-The backend still accepts top-level `client_tool_manifest` as a compatibility
-fallback for older clients. Built-in local tool schemas are generated from the
-frontend/sidecar Python contract into
+Built-in local tool schemas are generated from the frontend/sidecar Python
+contract into
 `frontend/src/main/generated/builtin_tool_manifest.json`, which Electron loads
 into the agent definition for the websocket handshake.
 
@@ -43,7 +42,7 @@ with the arguments emitted for that tool.
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
 | backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No sidecar parity is needed, but provider projection and policy still apply. |
-| client-local manifest tool | yes, after validation | sidecar or declared backend target for reserved tools | frontend/sidecar `agent_definition.tools.client_manifest` (`client_tool_manifest` top-level fallback for older clients) | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the sidecar manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
+| client-local manifest tool | yes, after validation | sidecar or declared backend target for reserved tools | frontend/sidecar `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the sidecar manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
 | sidecar-only helper | no until exposed | sidecar | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
 | renderer display projection | no | renderer UI | stream/transcript consumers | none unless backend emits event contract | Display rows must not become the source of model-facing truth. |
@@ -73,7 +72,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 2. Electron loads the generated built-in manifest and merges plugin/MCP tools.
    - MCP stdio clients are cached by server identity, command, args, cwd, and a hashed fingerprint of configured env key/value pairs so changed credentials or endpoints create a fresh client without placing raw secrets in the cache key.
 3. Client sends `agent_definition.tools.client_manifest` during websocket
-   handshake. Top-level `client_tool_manifest` is compatibility fallback only.
+   handshake.
 4. Backend validates accepted/rejected manifest entries.
 5. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.
 6. Prompt construction merges accepted dynamic client-local schemas with backend remote schemas; accepted built-in sidecar names keep backend catalog specs.
@@ -90,9 +89,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 ## Shape Separation Rules
 
 - `agent_definition.tools.client_manifest` is capability input to backend
-  validation; sidecar `entrypoint` is executable implementation. The top-level
-  `client_tool_manifest` handshake field is a compatibility fallback, not the
-  current SDK/Electron path.
+  validation; sidecar `entrypoint` is executable implementation.
 - `schema` is the developer-authored extension schema field; `function_tool_schema` is the backend-normalized model-facing shape.
 - For built-in sidecar tool names, backend validation accepts the manifest but
   provider-visible schemas come from the backend tool catalog. The sidecar

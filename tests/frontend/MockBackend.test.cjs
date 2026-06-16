@@ -51,14 +51,18 @@ describe('mock backend', () => {
 
     ws.send(JSON.stringify({
       type: 'handshake',
-      client_tool_manifest: {
-        tools: [{
-          name: 'read_file',
-          description: 'Read a file.',
-          schema: { type: 'object' },
-          execution_target: 'sidecar',
-          argument_resolution: 'passthrough',
-        }],
+      agent_definition: {
+        tools: {
+          client_manifest: {
+            tools: [{
+              name: 'read_file',
+              description: 'Read a file.',
+              schema: { type: 'object' },
+              execution_target: 'sidecar',
+              argument_resolution: 'passthrough',
+            }],
+          },
+        },
       },
     }));
     await waitForEvent(events, 'client-tool-manifest');

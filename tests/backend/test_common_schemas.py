@@ -85,8 +85,17 @@ def test_handshake_message_validates_user_id():
         HandshakeMessage(
             type="handshake",
             user_id="user-2",
-        available_tools=["  "],
-    )
+            available_tools=["  "],
+        )
+
+
+def test_handshake_rejects_top_level_client_tool_manifest():
+    with pytest.raises(ValidationError):
+        HandshakeMessage(
+            type="handshake",
+            user_id="user-2",
+            client_tool_manifest={"tools": []},
+        )
 
 
 def test_handshake_coordinate_method_overrides_use_consistent_key():

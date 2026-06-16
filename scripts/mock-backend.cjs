@@ -47,11 +47,11 @@ function createMockBackendServer() {
           return;
         }
         handshake = message;
-        const manifestTools = Array.isArray(message.client_tool_manifest?.tools)
-          ? message.client_tool_manifest.tools
-          : Array.isArray(message.agent_definition?.tools?.client_manifest?.tools)
-            ? message.agent_definition.tools.client_manifest.tools
-            : [];
+        const manifestTools = Array.isArray(
+          message.agent_definition?.tools?.client_manifest?.tools,
+        )
+          ? message.agent_definition.tools.client_manifest.tools
+          : [];
         send(ws, 'client-tool-manifest', {
           accepted: manifestTools,
           rejected: [],
@@ -79,11 +79,11 @@ function createMockBackendServer() {
         const promptLayers = Array.isArray(message.client_prompt_layers)
           ? message.client_prompt_layers
           : [];
-        const handshakeTools = Array.isArray(handshake.client_tool_manifest?.tools)
-          ? handshake.client_tool_manifest.tools
-          : Array.isArray(handshake.agent_definition?.tools?.client_manifest?.tools)
-            ? handshake.agent_definition.tools.client_manifest.tools
-            : [];
+        const handshakeTools = Array.isArray(
+          handshake.agent_definition?.tools?.client_manifest?.tools,
+        )
+          ? handshake.agent_definition.tools.client_manifest.tools
+          : [];
         const toolSchemas = Array.isArray(handshakeTools)
           ? handshakeTools.map((tool) => ({
             type: 'function',

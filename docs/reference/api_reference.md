@@ -1164,9 +1164,8 @@ provider projection, and emits the public validation result as
 `client-tool-manifest`.
 
 Current SDK/Electron clients should not send a post-handshake
-`frontend-tool-schemas` message. The backend still accepts top-level
-`client_tool_manifest` on the handshake only as a compatibility fallback for
-older clients.
+`frontend-tool-schemas` message. Client-local tool manifests must be nested
+under `agent_definition.tools.client_manifest`.
 
 **Handshake excerpt**:
 ```json
