@@ -103,7 +103,7 @@ Date: 2026-06-15
 | CD-070 | Electron IPC channel registry constant exports | `ipc_channel_registry_runtime.cjs` exported the shared IPC channel registry and preload argument prefix even though production imports only `buildPreloadIpcChannelsArgument(...)` | Knip reported both constant exports unused; repo search showed main window runtimes use only the argument builder and preload owns its own local prefix parser | Remove the constant exports and keep the registry/prefix private to the preload channel argument builder | `a5deefb3a` |
 | CD-071 | Electron clipboard image helper exports | `ipc_clipboard_image.cjs` exported image size-limit constants and the trusted artifact URL validator even though production imports only `copyImageToClipboard(...)` and `registerClipboardImageHandler(...)` | Knip reported all three exports unused; repo search showed tests already cover validator behavior through the high-level copy path and no external caller imports the helpers | Remove the helper exports and keep size limits plus remote URL validation private to the clipboard image copy implementation | `8bf31abb6` |
 | CD-072 | Electron conversation-event broadcast wrapper | `ipc_conversation_event_broadcast.cjs` exported `broadcastConversationEvent(...)` even though production imports only `buildConversationEventFromBackendEvent(...)` and active callers own renderer broadcasting themselves | Knip reported the wrapper export unused; repo search found no production, test, docs, or script call sites outside the module definition | Delete the wrapper export and keep backend-to-conversation event normalization as the module's public API | `0567dd6ca` |
-| CD-073 | Electron renderer diagnostics helper exports | `ipc_diagnostics_runtime.cjs` exported frontend interaction summary, normalization, and message-text gating helpers even though production imports only `handleRendererLog(...)` | Knip reported all three helper exports unused; repo search showed only the diagnostics unit test imported them directly while runtime callers route through `handleRendererLog(...)` | Remove the helper exports, keep diagnostics normalization private, and assert summary/redaction behavior through the public renderer-log handler | pending |
+| CD-073 | Electron renderer diagnostics helper exports | `ipc_diagnostics_runtime.cjs` exported frontend interaction summary, normalization, and message-text gating helpers even though production imports only `handleRendererLog(...)` | Knip reported all three helper exports unused; repo search showed only the diagnostics unit test imported them directly while runtime callers route through `handleRendererLog(...)` | Remove the helper exports, keep diagnostics normalization private, and assert summary/redaction behavior through the public renderer-log handler | `b1dd73c80` |
 
 ## Commit Ledger
 
@@ -247,6 +247,8 @@ Date: 2026-06-15
   completed CD-071.
 - `0567dd6ca refactor(frontend): delete unused conversation broadcast wrapper`
   completed CD-072.
+- `b1dd73c80 refactor(frontend): keep renderer diagnostics helpers private`
+  completed CD-073.
 
 ## Validation Log
 
