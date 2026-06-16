@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
   and current-doc matches so feature queries land on grounded owner docs before
   broad catalog or historical refactor pages.
+- cli/docs: boost adjacent query-term matches and add routing hints for
+  docs-search grounding and runtime-ownership cleanup queries.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

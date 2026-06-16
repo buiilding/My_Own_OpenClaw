@@ -122,8 +122,27 @@ function countFieldScore(field, terms, weight) {
   return score;
 }
 
+function queryTermPairs(terms) {
+  const pairs = [];
+  for (let index = 0; index < terms.length - 1; index += 1) {
+    pairs.push(`${terms[index]} ${terms[index + 1]}`);
+  }
+  return pairs;
+}
+
+function countPairScore(field, pairs, weight) {
+  let score = 0;
+  for (const pair of pairs) {
+    if (field.includes(pair)) {
+      score += weight;
+    }
+  }
+  return score;
+}
+
 function scoreDoc(doc, query) {
   const { terms, phrase } = query;
+  const pairs = queryTermPairs(terms);
   const fields = {
     page: normalizeSearchText(doc.page),
     title: normalizeSearchText(doc.title),
@@ -162,6 +181,13 @@ function scoreDoc(doc, query) {
   score += countFieldScore(fields.headings, terms, 3);
   score += countFieldScore(fields.readWhen, terms, 2);
   score += countFieldScore(fields.text, terms, 1);
+
+  score += countPairScore(fields.page, pairs, 18);
+  score += countPairScore(fields.title, pairs, 16);
+  score += countPairScore(fields.summary, pairs, 12);
+  score += countPairScore(fields.headings, pairs, 10);
+  score += countPairScore(fields.readWhen, pairs, 8);
+  score += countPairScore(fields.text, pairs, 5);
 
   if (terms.every((term) => fields.text.includes(term))) {
     score += 15;

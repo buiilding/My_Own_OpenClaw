@@ -2,6 +2,7 @@
 summary: "Agent-facing runtime ownership matrix and change-routing table extracted from AGENTS.md."
 read_when:
   - When starting a WindieOS code or docs change and choosing the owning runtime before editing.
+  - When routing runtime ownership cleanup, ownership refactors, source-of-truth moves, or cross-runtime deletion work.
   - When a change could cross backend, SDK, Electron main, renderer, preload, sidecar, docs, or tests.
 title: "Agent Runtime Ownership and Change Routing"
 ---

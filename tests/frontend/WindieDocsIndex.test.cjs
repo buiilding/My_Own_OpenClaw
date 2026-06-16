@@ -54,4 +54,26 @@ describe('windie docs index', () => {
       false,
     );
   });
+
+  test('prioritizes docs search workflow over screen-grounding docs for docs-search queries', () => {
+    const matches = findDocs('docs search grounding');
+
+    expect(matches[0]).toMatchObject({
+      path: path.join('docs', 'development', 'docs_update_workflow.md'),
+      title: 'Docs Update Workflow',
+    });
+  });
+
+  test('prioritizes runtime ownership routing for cleanup queries', () => {
+    const matches = findDocs('runtime ownership cleanup');
+
+    expect(matches[0]).toMatchObject({
+      path: path.join(
+        'docs',
+        'development',
+        'agent_runtime_ownership_and_change_routing.md',
+      ),
+      title: 'Agent Runtime Ownership and Change Routing',
+    });
+  });
 });

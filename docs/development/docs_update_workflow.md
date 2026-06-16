@@ -2,6 +2,7 @@
 summary: "Docs update workflow for WindieOS agents, covering docs listing, read_when routing, hub updates, changelog entries, link checks, whitespace checks, and when docs-only changes need tests."
 read_when:
   - When adding, moving, renaming, or expanding WindieOS documentation.
+  - When tuning docs search grounding, docs-search ranking, `bin/windie docs search`, or `read_when` routing quality.
   - When behavior changes require docs updates across hubs, references, runbooks, and changelog entries.
 title: "Docs Update Workflow"
 ---
