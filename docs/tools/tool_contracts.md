@@ -1,8 +1,9 @@
 ---
-summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, sidecar local tools, bundles, request ids, and validation."
+summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, frontend tool manifest builder ownership, sidecar local tools, bundles, request ids, and validation."
 read_when:
   - When changing tool schemas or tool result payloads.
   - When debugging backend/frontend/sidecar tool drift.
+  - When changing `frontend/src/main/extensions/tool_manifest.cjs`, the client manifest builder export, or stale tool manifest name-list helper references.
 title: "Tool Contracts"
 ---
 
@@ -22,6 +23,16 @@ fallback for older clients. Built-in local tool schemas are generated from the
 frontend/sidecar Python contract into
 `frontend/src/main/generated/builtin_tool_manifest.json`, which Electron loads
 into the agent definition for the websocket handshake.
+
+## Frontend Tool Manifest Builder
+
+`frontend/src/main/extensions/tool_manifest.cjs` is the Electron-side
+loader/merger for that generated built-in manifest plus plugin tools. Its public
+export is `buildClientToolManifest(...)`. It must not become a second authority
+for built-in tool names, and removed name-list helper exports should stay
+deleted; consumers that need the active tool surface should read the built
+manifest and its accepted/rejected backend transparency instead of importing a
+separate manifest name list.
 
 Extension manifests use one developer-facing JSON Schema field: `schema`.
 Extension authors pair that with `entrypoint`; the sidecar calls the entrypoint

@@ -538,4 +538,13 @@ describe('windie docs index', () => {
       expectedPath,
     );
   });
+
+  test('routes frontend tool manifest builder queries to tool contracts', () => {
+    const expectedPath = path.join('docs', 'tools', 'tool_contracts.md');
+
+    expect(findDocs('tool manifest name list export')[0].path).toBe(expectedPath);
+    expect(findDocs('frontend tool manifest builder buildClientToolManifest')[0].path).toBe(
+      expectedPath,
+    );
+  });
 });

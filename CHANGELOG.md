@@ -52,6 +52,8 @@ All notable changes to WindieOS will be documented in this file.
   declaration queries to the WindieClient runtime contract.
 - docs/sdk: route removed standalone current-turn projector searches to the
   SDK conversation runtime and document `conversationProjections` as the owner.
+- docs/tools: route Electron tool-manifest builder and removed name-list export
+  searches to the tool contract map.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`
