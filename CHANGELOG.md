@@ -104,6 +104,8 @@ All notable changes to WindieOS will be documented in this file.
   parsing, provider payload helper, and computer tool schema modules.
 - backend: remove unused imports from agent tool preparation, bundle
   formatting, tool-result waiting, and SDK config helpers.
+- backend: remove unused imports from API formatters/config/container modules
+  and delete the tool-call bridge raw-preview builder relay.
 - docs/frontend: route deprecated renderer browser API searches to the runtime
   trace and markdown rendering owner docs.
 - docs/frontend: route removed frontend dead-symbol searches to main-window

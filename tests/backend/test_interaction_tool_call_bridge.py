@@ -1,7 +1,6 @@
 """Tests for execution tool-call bridge helpers."""
 
 from backend.src.agent.execution.tool_call_bridge import (
-    build_raw_tool_call_preview,
     build_recoverable_tool_output_message,
     extract_history_tool_call_ids,
     extract_raw_arguments_preview_from_error,
@@ -14,6 +13,7 @@ from backend.src.agent.execution.tool_call_bridge import (
     to_history_tool_calls,
     to_parsed_response,
 )
+from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.llm.parser_types import ParsedToolCall
 
 

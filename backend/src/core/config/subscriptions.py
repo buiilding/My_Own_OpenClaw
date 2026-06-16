@@ -7,7 +7,7 @@ Separates subscriber management from configuration data access.
 import asyncio
 import logging
 import threading
-from typing import Any, Callable, List, Protocol
+from typing import Callable, List, Protocol
 
 from backend.src.core.config import AppConfig
 

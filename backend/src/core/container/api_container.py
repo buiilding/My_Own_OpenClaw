@@ -5,11 +5,9 @@ Contains handlers, registry, TTS manager, and response formatter providers.
 """
 
 import logging
-from typing import Any
 
 from dependency_injector import containers, providers
 
-from backend.src.agent.session.manager import SessionManager
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.handlers.compact_history import CompactHistoryHandler
 from backend.src.api.handlers.query import QueryMessageHandler
@@ -24,11 +22,8 @@ from backend.src.api.handlers.settings import (
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
-from backend.src.core.config import AppConfig
-from backend.src.core.config.service import ConfigurationService
 from backend.src.core.container.incoming_routing import build_handler_bindings
 from backend.src.core.services.wakeword_service import WakewordService
-from backend.src.llm.models import ModelService
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,6 @@ import re
 from typing import Any, Dict, List
 
 from backend.src.core.utils.string_normalization import normalize_non_empty_string
-from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 

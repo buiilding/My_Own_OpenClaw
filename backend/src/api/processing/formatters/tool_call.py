@@ -1,5 +1,4 @@
 """Formatter for tool call events."""
-from typing import Any, Dict
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatters.base import EventFormatter, EventInput, FormattedEvent

@@ -10,7 +10,6 @@ from windie_shared.browser_contract_models import (
     BrowserCloseArgs,
     BrowserCloseTabArgs,
     BrowserConnectArgs,
-    BrowserControlArgs,
     BrowserDoneArgs,
     BrowserEvaluateArgs,
     BrowserExtractArgs,

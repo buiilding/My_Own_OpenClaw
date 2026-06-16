@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, provider-payload preservation, whitespace-safe tool-call-id handling, history tool-call shaping, and recoverable-error helper contracts."
+summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, provider-payload preservation, whitespace-safe tool-call-id handling, history tool-call shaping, recoverable-error helper contracts, and removed raw-preview builder relay behavior."
 read_when:
   - When changing `backend/src/agent/execution/tool_call_bridge.py` conversion behavior or metadata extraction.
   - When debugging mismatches between provider-native `tool_calls` payloads and downstream parsed/history tool-call shapes.
+  - When stale imports reference `tool_call_bridge.build_raw_tool_call_preview`; raw preview construction belongs to `backend/src/core/utils/raw_tool_call_preview.py`.
 title: "Native Tool-Call Bridge and History Mapping Reference"
 ---
 
@@ -12,6 +13,7 @@ title: "Native Tool-Call Bridge and History Mapping Reference"
 
 - `backend/src/agent/execution/tool_call_bridge.py`
 - `backend/src/agent/execution/interaction_loop.py`
+- `backend/src/core/utils/raw_tool_call_preview.py`
 - `backend/src/llm/parser_types.py`
 - `tests/backend/test_interaction_tool_call_bridge.py`
 - `tests/backend/test_interaction_loop.py`
@@ -111,6 +113,11 @@ Deep-copy boundary:
 - `build_recoverable_tool_output_message(...)`
 
 These helpers provide deterministic classification + synthetic message formatting for malformed streamed tool-call arguments.
+
+Raw preview construction is not owned by `tool_call_bridge.py`. Consumers import
+`build_raw_tool_call_preview(...)` directly from
+`backend/src/core/utils/raw_tool_call_preview.py`; the former bridge-level relay
+is removed so raw-preview serialization has a single utility owner.
 
 ## Regex/Classification Contracts
 
