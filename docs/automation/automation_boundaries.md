@@ -1,7 +1,7 @@
 ---
-summary: "Boundary guide separating current WindieOS VM run orchestration from future cron, webhook, durable queue, and scheduler automation work."
+summary: "Boundary guide for automation tools, separating current WindieOS VM run orchestration from future cron, webhook, durable queue, and scheduler automation work."
 read_when:
-  - When planning automation features or deciding whether a change belongs in `/api/runs/*`, the desktop query path, operations config, or planning docs.
+  - When planning automation tools or deciding whether a change belongs in `/api/runs/*`, the desktop query path, operations config, or planning docs.
   - When documenting future automation without implying that WindieOS already has cron, webhook, or durable scheduled jobs.
 title: "Automation Boundaries"
 ---

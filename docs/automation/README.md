@@ -1,8 +1,8 @@
 ---
-summary: "Automation hub for WindieOS VM run orchestration, worker polling, run-control APIs, and future scheduling boundaries."
+summary: "Automation hub for WindieOS automation tools and current VM run orchestration: worker polling, run-control APIs, hosted run timelines, and future scheduling boundaries."
 read_when:
   - When changing `/api/runs/*`, VM worker mode, hosted dashboard run orchestration, or run-control behavior.
-  - When deciding whether a feature belongs in current VM runs, a future scheduler, the desktop query path, or operations docs.
+  - When deciding whether automation tools belong in current VM runs, a future scheduler, the desktop query path, or operations docs.
 title: "Automation Hub"
 ---
 
