@@ -74,9 +74,11 @@ longer owns production MCP tool execution.
 - MCP dashboard refresh no longer needs Electron stdio discovery when a sidecar
   local runtime is available.
 
-The older `mcp_runtime.cjs` helpers still exist for focused unit coverage and
-fallback behavior when no sidecar runtime is injected. They are no longer the
-desktop production execution path.
+The 2026-06-15 deletion pass removed the retired Electron-side MCP tool
+execution registry, direct `executeMcpTool` path, and MCP result serialization
+helpers. `mcp_runtime.cjs` remains only for client-tool manifest discovery
+fallback behavior when no sidecar runtime is injected; it is no longer a
+desktop tool execution owner.
 
 ## Validation
 

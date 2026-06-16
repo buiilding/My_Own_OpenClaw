@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: delete the retired Electron-side MCP tool execution registry,
+  direct `executeMcpTool` path, and MCP result serialization helpers so MCP
+  execution remains owned by the sidecar local runtime.
 - frontend/main: keep MCP control config normalization, enablement diagnostics,
   and cache-clearing helpers private while exposing only the high-level MCP
   list, refresh, spec, and enablement operations.

@@ -6,11 +6,6 @@ const {
   buildClientToolManifestWithMcp,
   clearMcpRuntimeCache,
   createMcpToolName,
-  discoverMcpTools,
-  executeMcpTool,
-  hasDiscoveredMcpTool,
-  loadMcpServerSpecs,
-  normalizeMcpServerSpec,
 } = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
 
 describe('MCP runtime', () => {
@@ -32,14 +27,6 @@ describe('MCP runtime', () => {
           },
         },
       ]),
-      callTool: jest.fn(async (name, args) => ({
-        content: [
-          {
-            type: 'text',
-            text: `${name}:${args.query}`,
-          },
-        ],
-      })),
     };
   }
 
@@ -69,17 +56,6 @@ describe('MCP runtime', () => {
     ]);
   });
 
-  test('keeps explicit snake_case timeout precedence over camelCase fallback', () => {
-    expect(normalizeMcpServerSpec({
-      id: 'memory',
-      command: 'node',
-      timeout_ms: 0,
-      timeoutMs: 9000,
-    })).toEqual(expect.objectContaining({
-      timeout_ms: 0,
-    }));
-  });
-
   test('keeps user-gated MCP specs out of discovery unless explicitly enabled', async () => {
     const client = createClient();
     const toolName = createMcpToolName('memory', 'search');
@@ -92,14 +68,15 @@ describe('MCP runtime', () => {
       extension_id: 'mcp:memory',
     };
 
-    await discoverMcpTools({
+    const disabledManifest = await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
       mcpServers: [gatedServer],
       enabledMcpServers: [],
       createClient: () => client,
     });
 
+    expect(disabledManifest.tools).toEqual([]);
     expect(client.listTools).not.toHaveBeenCalled();
-    expect(hasDiscoveredMcpTool(toolName)).toBe(false);
 
     const manifest = await buildClientToolManifestWithMcp({
       baseManifest: { version: 1, tools: [] },
@@ -115,11 +92,12 @@ describe('MCP runtime', () => {
         mcp_server_id: 'memory',
       }),
     ]);
-    expect(hasDiscoveredMcpTool(toolName)).toBe(true);
   });
 
   test('loads enabled MCP ids from comma-delimited options', () => {
-    expect(loadMcpServerSpecs({
+    const client = createClient();
+    return expect(buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
       enabledMcpServers: 'mcp:memory, other',
       mcpServers: [{
         id: 'memory',
@@ -132,147 +110,17 @@ describe('MCP runtime', () => {
         requires_user_enable: true,
         extension_id: 'mcp:disabled',
       }],
-    }).map((server) => server.id)).toEqual(['memory']);
+      createClient: () => client,
+    })).resolves.toEqual(expect.objectContaining({
+      tools: [
+        expect.objectContaining({
+          mcp_server_id: 'memory',
+        }),
+      ],
+    }));
   });
 
-  test('executes discovered MCP tools through the local MCP client', async () => {
-    const client = createClient();
-    await discoverMcpTools({
-      mcpServers: [{
-        id: 'memory',
-        command: 'node',
-        args: ['server.cjs'],
-      }],
-      createClient: () => client,
-    });
-
-    const result = await executeMcpTool(
-      createMcpToolName('memory', 'search'),
-      { query: 'windie' },
-      {},
-      { createClient: () => client },
-    );
-
-    expect(client.callTool).toHaveBeenCalledWith('search', { query: 'windie' }, {});
-    expect(result).toEqual({
-      success: true,
-      data: {
-        output: '{"content":[{"type":"text","text":"search:windie"}]}',
-        mcp_result: {
-          content: [{ type: 'text', text: 'search:windie' }],
-        },
-      },
-    });
-  });
-
-  test('preserves MCP structured content in model-facing output', async () => {
-    const mcpResult = {
-      content: [{ type: 'text', text: 'Found 1 window(s).' }],
-      structuredContent: {
-        windows: [{ window_id: 1045, title: 'WindieOS' }],
-      },
-    };
-    const client = {
-      ...createClient(),
-      callTool: jest.fn(async () => mcpResult),
-    };
-    await discoverMcpTools({
-      mcpServers: [{
-        id: 'cua-driver',
-        command: 'cua-driver',
-        args: ['mcp'],
-      }],
-      createClient: () => client,
-    });
-
-    const result = await executeMcpTool(
-      createMcpToolName('cua-driver', 'search'),
-      { query: 'windows' },
-      {},
-      { createClient: () => client },
-    );
-
-    expect(result).toEqual({
-      success: true,
-      data: {
-        output: JSON.stringify(mcpResult),
-        mcp_result: mcpResult,
-      },
-    });
-  });
-
-  test('omits promoted MCP image bytes from model-facing output', async () => {
-    const client = {
-      ...createClient(),
-      callTool: jest.fn(async () => ({
-        content: [
-          {
-            type: 'image',
-            data: 'png-base64',
-            mimeType: 'image/png',
-          },
-        ],
-      })),
-    };
-    await discoverMcpTools({
-      mcpServers: [{
-        id: 'vision',
-        command: 'node',
-        args: ['server.cjs'],
-      }],
-      createClient: () => client,
-    });
-
-    const result = await executeMcpTool(
-      createMcpToolName('vision', 'search'),
-      { query: 'window' },
-      {},
-      { createClient: () => client },
-    );
-
-    expect(result).toEqual({
-      success: true,
-      data: {
-        output: '{"content":[{"type":"image","data":"[image data omitted; promoted to native screenshot field]","mimeType":"image/png"}]}',
-        screenshot: 'png-base64',
-        screenshot_content_type: 'image/png',
-        mcp_result: {
-          content: [{ type: 'image', data: 'png-base64', mimeType: 'image/png' }],
-        },
-      },
-    });
-    expect(result.data.output).not.toContain('png-base64');
-  });
-
-  test('reconciles stale MCP tools after server removal', async () => {
-    const client = createClient();
-    const toolName = createMcpToolName('memory', 'search');
-    await discoverMcpTools({
-      mcpServers: [{
-        id: 'memory',
-        command: 'node',
-        args: ['server.cjs'],
-      }],
-      createClient: () => client,
-    });
-    expect(hasDiscoveredMcpTool(toolName)).toBe(true);
-
-    await discoverMcpTools({
-      mcpServers: [],
-      createClient: () => client,
-    });
-
-    expect(hasDiscoveredMcpTool(toolName)).toBe(false);
-    await expect(
-      executeMcpTool(toolName, { query: 'windie' }, {}, {
-        mcpServers: [],
-        createClient: () => client,
-      }),
-    ).resolves.toBeNull();
-    expect(client.callTool).not.toHaveBeenCalled();
-  });
-
-  test('removes disabled MCP tools from the execution registry', async () => {
+  test('removes disabled MCP tools from the projected manifest', async () => {
     const client = createClient();
     const toolName = createMcpToolName('memory', 'search');
 
@@ -288,14 +136,7 @@ describe('MCP runtime', () => {
     });
 
     expect(manifest.tools).toEqual([]);
-    expect(hasDiscoveredMcpTool(toolName)).toBe(false);
-    await expect(
-      executeMcpTool(toolName, { query: 'windie' }, {}, {
-        mcpServers: [],
-        createClient: () => client,
-      }),
-    ).resolves.toBeNull();
-    expect(client.callTool).not.toHaveBeenCalled();
+    expect(client.listTools).toHaveBeenCalledTimes(1);
   });
 
   test('normalizes malformed base manifest metadata while appending MCP tools', async () => {
@@ -519,8 +360,13 @@ describe('MCP runtime', () => {
       env: { TOKEN: 'old' },
     };
 
-    await discoverMcpTools({ mcpServers: [server], spawnImpl });
-    await discoverMcpTools({
+    await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [server],
+      spawnImpl,
+    });
+    await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
       mcpServers: [{ ...server, env: { TOKEN: 'new' } }],
       spawnImpl,
     });

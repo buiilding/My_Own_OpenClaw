@@ -17,7 +17,6 @@ const DEFAULT_MCP_CLIENT_INFO = Object.freeze({
 });
 
 const clientCache = new Map();
-const toolRegistry = new Map();
 const MAX_DIAGNOSTIC_TEXT_LENGTH = 240;
 
 function normalizeString(value) {
@@ -538,7 +537,7 @@ function getMcpClient(server, options = {}) {
   return clientCache.get(cacheKey);
 }
 
-function normalizeDiscoveredTool(server, tool, registry = toolRegistry) {
+function normalizeDiscoveredTool(server, tool) {
   if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
     return null;
   }
@@ -559,10 +558,6 @@ function normalizeDiscoveredTool(server, tool, registry = toolRegistry) {
     mcp_server_id: server.id,
     mcp_tool_name: originalToolName,
   };
-  registry.set(exposedName, {
-    server,
-    originalToolName,
-  });
   return manifestTool;
 }
 
@@ -570,7 +565,6 @@ async function discoverMcpTools(options = {}) {
   const servers = loadMcpServerSpecs(options);
   const tools = [];
   const errors = [];
-  const nextToolRegistry = new Map();
   for (const server of servers) {
     const startedAt = Date.now();
     emitMcpDiagnostic(options.diagnostics, {
@@ -592,7 +586,7 @@ async function discoverMcpTools(options = {}) {
         : await client.listTools();
       const durationMs = Date.now() - startedAt;
       for (const tool of discoveredTools) {
-        const manifestTool = normalizeDiscoveredTool(server, tool, nextToolRegistry);
+        const manifestTool = normalizeDiscoveredTool(server, tool);
         if (manifestTool) {
           tools.push(manifestTool);
         }
@@ -632,16 +626,12 @@ async function discoverMcpTools(options = {}) {
         reason: error?.message || String(error),
       });
       for (const fallbackTool of server.tools) {
-        const manifestTool = normalizeDiscoveredTool(server, fallbackTool, nextToolRegistry);
+        const manifestTool = normalizeDiscoveredTool(server, fallbackTool);
         if (manifestTool) {
           tools.push(manifestTool);
         }
       }
     }
-  }
-  toolRegistry.clear();
-  for (const [name, registration] of nextToolRegistry.entries()) {
-    toolRegistry.set(name, registration);
   }
   return { tools, errors };
 }
@@ -654,7 +644,6 @@ async function buildClientToolManifestWithMcp(options = {}) {
   const discovered = await discoverMcpTools(options);
   const mcpTools = discovered.tools.filter((tool) => {
     if (!tool?.name || disabledTools.has(tool.name) || seenNames.has(tool.name)) {
-      toolRegistry.delete(tool?.name);
       return false;
     }
     seenNames.add(tool.name);
@@ -670,129 +659,15 @@ async function buildClientToolManifestWithMcp(options = {}) {
   };
 }
 
-function stripMcpImageDataForOutput(value) {
-  if (Array.isArray(value)) {
-    return value.map((item) => stripMcpImageDataForOutput(item));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-  const outputValue = {};
-  for (const [key, childValue] of Object.entries(value)) {
-    if (
-      key === 'data'
-      && value.type === 'image'
-      && typeof childValue === 'string'
-      && childValue.trim()
-    ) {
-      outputValue[key] = '[image data omitted; promoted to native screenshot field]';
-      continue;
-    }
-    outputValue[key] = stripMcpImageDataForOutput(childValue);
-  }
-  return outputValue;
-}
-
-function serializeMcpResultForOutput(result) {
-  return JSON.stringify(stripMcpImageDataForOutput(result || {}));
-}
-
-function extractMcpImageContent(content) {
-  if (!Array.isArray(content)) {
-    return null;
-  }
-  for (const item of content) {
-    if (!item || typeof item !== 'object' || item.type !== 'image') {
-      continue;
-    }
-    const screenshot = typeof item.data === 'string' ? item.data.trim() : '';
-    if (!screenshot) {
-      continue;
-    }
-    const contentType = normalizeString(
-      item.mimeType || item.mime_type || item.contentType || item.content_type,
-    ) || 'image/png';
-    return {
-      screenshot,
-      screenshot_content_type: contentType,
-    };
-  }
-  return null;
-}
-
-function buildMcpToolData(result) {
-  const imageContent = extractMcpImageContent(result?.content);
-  return {
-    output: serializeMcpResultForOutput(result),
-    ...(imageContent || {}),
-    mcp_result: result || null,
-  };
-}
-
-async function executeMcpTool(toolName, args = {}, context = {}, options = {}) {
-  const normalizedToolName = normalizeString(toolName);
-  if (!normalizedToolName) {
-    return null;
-  }
-  if (!toolRegistry.has(normalizedToolName)) {
-    await discoverMcpTools(options);
-  }
-  const registration = toolRegistry.get(normalizedToolName);
-  if (!registration) {
-    return null;
-  }
-  const enabledMcpIds = normalizeMcpEnablementIds(readEnabledMcpServersOption(options));
-  if (!isMcpServerEnabled(registration.server, enabledMcpIds)) {
-    toolRegistry.delete(normalizedToolName);
-    return null;
-  }
-  try {
-    const client = getMcpClient(registration.server, options);
-    const result = await client.callTool(registration.originalToolName, args, context);
-    const output = serializeMcpResultForOutput(result);
-    if (result?.isError) {
-      return {
-        success: false,
-        error: output || `MCP tool ${registration.originalToolName} failed`,
-      };
-    }
-    return {
-      success: true,
-      data: buildMcpToolData(result),
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error?.message || String(error),
-    };
-  }
-}
-
-function hasDiscoveredMcpTool(toolName) {
-  return toolRegistry.has(normalizeString(toolName));
-}
-
 function clearMcpRuntimeCache() {
   for (const client of clientCache.values()) {
     client.close?.();
   }
   clientCache.clear();
-  toolRegistry.clear();
 }
 
 module.exports = {
-  McpStdioClient,
   buildClientToolManifestWithMcp,
   clearMcpRuntimeCache,
   createMcpToolName,
-  discoverMcpTools,
-  executeMcpTool,
-  extractMcpImageContent,
-  hasDiscoveredMcpTool,
-  isMcpServerEnabled,
-  loadMcpServerSpecs,
-  normalizeMcpEnablementIds,
-  normalizeMcpServerSpec,
-  serializeMcpResultForOutput,
-  stripMcpImageDataForOutput,
 };
