@@ -14,7 +14,7 @@ export function inferArtifactRefFromUrl(url) {
   return match?.[1] || null;
 }
 
-export function looksLikeInlineImageData(value) {
+function looksLikeInlineImageData(value) {
   const normalizedValue = normalizeNonEmptyString(value);
   if (!normalizedValue) {
     return false;
@@ -25,7 +25,7 @@ export function looksLikeInlineImageData(value) {
   return /^[A-Za-z0-9+/]+={0,2}$/.test(normalizedValue) && normalizedValue.length >= 128;
 }
 
-export function parseInlineScreenshotPayload(payload) {
+function parseInlineScreenshotPayload(payload) {
   const normalizedPayload = normalizeNonEmptyString(payload);
   if (!normalizedPayload) {
     return null;
@@ -183,9 +183,4 @@ export function resolveReplayScreenshotState({
     screenshotUrl: attachment.screenshotUrl,
     screenshotContentType: attachment.screenshotContentType,
   };
-}
-
-export function resolveStoredTranscriptScreenshotValue(input) {
-  const attachment = resolveReplayScreenshotState(input || {});
-  return attachment.screenshotRef || attachment.screenshot || null;
 }

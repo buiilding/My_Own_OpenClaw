@@ -7,10 +7,8 @@ import {
   buildRemoteScreenshotAttachment,
   buildRemoteScreenshotAttachments,
   inferArtifactRefFromUrl,
-  parseInlineScreenshotPayload,
   resolveReplayScreenshotState,
   resolveScreenshotAttachmentState,
-  resolveStoredTranscriptScreenshotValue,
 } from '../../frontend/src/renderer/infrastructure/services/screenshotMessageState';
 
 describe('screenshotMessageState', () => {
@@ -40,15 +38,6 @@ describe('screenshotMessageState', () => {
         screenshotUrl: expect.stringContaining('/api/artifacts/artifact-2'),
       },
     ]);
-  });
-
-  test('parseInlineScreenshotPayload decodes data urls and ignores artifact/http references', () => {
-    expect(parseInlineScreenshotPayload('data:image/png;base64,abc123')).toEqual({
-      base64: 'abc123',
-      contentType: 'image/png',
-    });
-    expect(parseInlineScreenshotPayload('artifact://shot-1')).toBeNull();
-    expect(parseInlineScreenshotPayload('https://example.com/shot.png')).toBeNull();
   });
 
   test('resolveScreenshotAttachmentState can preserve inline screenshots alongside remote refs', () => {
@@ -103,10 +92,15 @@ describe('screenshotMessageState', () => {
     });
   });
 
-  test('resolveStoredTranscriptScreenshotValue infers artifact refs from screenshot urls', () => {
-    expect(resolveStoredTranscriptScreenshotValue({
+  test('resolveReplayScreenshotState infers artifact refs from screenshot urls', () => {
+    expect(resolveReplayScreenshotState({
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-91',
-    })).toBe('artifact-91');
+    })).toEqual({
+      screenshot: null,
+      screenshotRef: 'artifact-91',
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-91',
+      screenshotContentType: null,
+    });
   });
 
   test('inferArtifactRefFromUrl extracts artifact ids from backend urls', () => {
