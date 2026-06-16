@@ -139,11 +139,15 @@ Other behavior:
 - `SessionContext.metadata` copies snapshot of `session_ref.metadata` at creation time
 - service toggles `set_vision_service(None)` and `set_ocr_service(None)` remove those keys
 
-## Legacy Boundary
+## Core Tool Result Boundary
 
-`backend/src/core/interfaces/tool.py` still defines a separate legacy `ToolContext`/`ToolResult` protocol surface.
+`backend/src/core/interfaces/tool.py` defines the backend `ToolResult` value used
+by tool-result waiting, routing, processing, and history projection.
 
-Current SDK tool runtime path uses `backend/src/sdk/context.py` + `backend/src/sdk/tool.py`. Do not mix the two context types when wiring new SDK tools.
+Current SDK tool runtime path uses `backend/src/sdk/context.py` +
+`backend/src/sdk/tool.py` for `ToolContext` and tool implementation contracts.
+Do not reintroduce a parallel core tool-context protocol when wiring new SDK
+tools.
 
 ## Test-Backed Invariants
 
