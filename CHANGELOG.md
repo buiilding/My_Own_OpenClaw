@@ -39,6 +39,8 @@ All notable changes to WindieOS will be documented in this file.
   permission storage tests and renderer folder-structure docs.
 - sdk/runtime: delete the removed `builtinTools` wake-up option rejection
   branch so `builtins` is the only SDK built-in tool selection contract.
+- sidecar/tools: remove the `replace` tool's custom top-level edit-field
+  rejection branch and rely on the canonical `replacements[]` parser.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,

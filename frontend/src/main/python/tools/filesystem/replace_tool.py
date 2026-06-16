@@ -29,15 +29,6 @@ logger = logging.getLogger(__name__)
 # Default encoding
 DEFAULT_ENCODING = "utf-8"
 MAX_REPLACE_NEW_STRING_BYTES = 16 * 1024
-LEGACY_REPLACE_FIELDS = (
-    "old_string",
-    "new_string",
-    "replace_all",
-    "before_context",
-    "after_context",
-    "occurrence_index",
-    "require_eof",
-)
 
 
 def _resolve_replace_file_path(
@@ -102,15 +93,6 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
     Replace text in a file with strict/lenient context-aware matching.
     """
     try:
-        legacy_fields = sorted(
-            field for field in LEGACY_REPLACE_FIELDS if field in args
-        )
-        if legacy_fields:
-            return ToolResult.error_result(
-                "replace no longer accepts top-level edit fields; "
-                "use replacements[] for text edits"
-            )
-
         path, normalized_input, path_error = _resolve_replace_file_path(
             args.get("file_path")
         )

@@ -136,27 +136,6 @@ async def test_replace_rejects_oversized_new_string_payload(tmp_path: Path):
 
 
 @pytest.mark.asyncio
-async def test_replace_rejects_legacy_top_level_edit_fields(tmp_path: Path):
-    target = tmp_path / "legacy.txt"
-    target.write_text("hello\n", encoding="utf-8")
-
-    result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "hello",
-            "new_string": "goodbye",
-        }
-    )
-
-    assert result.success is False
-    assert result.error == (
-        "replace no longer accepts top-level edit fields; "
-        "use replacements[] for text edits"
-    )
-    assert target.read_text(encoding="utf-8") == "hello\n"
-
-
-@pytest.mark.asyncio
 async def test_replace_rejects_multiple_matches_without_replace_all(tmp_path: Path):
     target = tmp_path / "duplicate.txt"
     target.write_text("dup\nx\ndup\n", encoding="utf-8")
