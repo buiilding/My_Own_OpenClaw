@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/api: remove legacy `tool-bundle` formatter compatibility for missing,
   null, and non-list `tools` payloads so formatter output matches the canonical
   websocket schema.
+- sdk/events: remove the unused backend `tool-bundle-output` event type and
+  normalizer branch; bundle outputs remain SDK-internal `tool_bundle_output`
+  conversation events.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
