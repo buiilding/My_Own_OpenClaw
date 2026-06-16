@@ -21,7 +21,6 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 | Backend service helpers | `backend/src/api/routes/sdk/service.py` | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
 | Backend SDK helpers | `backend/src/sdk` | Tool/context helpers and sub-agent helper utilities. |
 | TypeScript hosted client | `frontend/src/renderer/infrastructure/api/windieSdkClient.ts` | Public TS route methods, request typing, artifact helpers, and `WindieClient.wakeUp` agent runtime. |
-| Renderer API exports | `frontend/src/renderer/infrastructure/api/index.ts` | Export surface for TS client types/methods. |
 | Python sidecar/developer client | `frontend/src/main/python/core/windie_sdk_client.py` | Python hosted client behavior. |
 
 ## Add or Change a Route
@@ -32,9 +31,8 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 4. Keep `backend/src/api/routes/sdk/__init__.py` limited to the package `router` export.
 5. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) if the public route surface changes.
 6. Add or update TypeScript client types and methods in `windieSdkClient.ts`.
-7. Update `frontend/src/renderer/infrastructure/api/index.ts` exports if new types are public.
-8. Update Python hosted client behavior when parity is expected.
-9. Add backend route tests and client tests.
+7. Update Python hosted client behavior when parity is expected.
+8. Add backend route tests and client tests.
 
 Do not add a hosted SDK route just to reach local machine state. Local screenshots, mouse/keyboard, shell/filesystem, and browser actions belong to the Electron/sidecar tool path.
 
@@ -70,7 +68,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | OCR route behavior | SDK route tests plus focused OCR service/provider tests |
 | Vision route behavior | SDK route tests plus focused vision service/provider tests |
 | SDK/backend wire contract | `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_contract.py -q`; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
-| TypeScript client change | `cd frontend && npm run test -- WindieSdkClient WindieSdkClientExports` |
+| TypeScript client change | `bin/windie test frontend -- WindieSdkClient` |
 | Python hosted client change | `./scripts/python-in-env sidecar pytest tests/sidecar/test_windie_sdk_client.py -q` |
 | Public route surface change | Docs-list plus focused Markdown link check for SDK/web/reference docs |
 
