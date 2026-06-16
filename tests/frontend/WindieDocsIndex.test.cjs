@@ -337,6 +337,20 @@ describe('windie docs index', () => {
     expect(findDocs('tool result history rows')[0].path).toBe(expectedPath);
   });
 
+  test('routes provider choice text completion fallback queries to LLM provider parsing docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'llm',
+      'providers',
+      'base_request_stream_and_normalization_reference.md',
+    );
+
+    expect(findDocs('choice text completion fallback')[0].path).toBe(expectedPath);
+    expect(findDocs('OpenAI choice text fallback')[0].path).toBe(expectedPath);
+    expect(findDocs('completion fallback choice text')[0].path).toBe(expectedPath);
+  });
+
   test('routes plugin tool registration queries to the extension convention', () => {
     expect(findDocs('plugin tool registration')[0].path).toBe(
       path.join('docs', 'development', 'extensions.md'),

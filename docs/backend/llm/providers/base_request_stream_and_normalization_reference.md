@@ -1,8 +1,8 @@
 ---
-summary: "Backend LLM provider base runtime reference: request param validation, message/tool schema normalization, stream event extraction, and usage/cache diagnostics semantics."
+summary: "Backend LLM provider base runtime reference: request param validation, message/tool schema normalization, stream event extraction, removed choice text completion fallback behavior, canonical message.content completion parsing, and usage/cache diagnostics semantics."
 read_when:
   - When changing `LLMProvider`/`OnlineLLMProvider` method contracts in `backend/src/llm/providers/base.py` and `online.py`.
-  - When debugging malformed tool-calls, stream delta parsing, or cache diagnostics values on streamed turns.
+  - When debugging malformed tool-calls, stream delta parsing, choice-level completion text fallback behavior, OpenAI choice text fallback payloads, or cache diagnostics values on streamed turns.
 title: "Base Request, Stream, and Normalization Reference"
 ---
 
@@ -170,6 +170,14 @@ Completion response normalization (`_extract_completion_response(...)`):
   normalized tool-call IDs in one assistant response because `tool_call_id` is
   the join key for later `role=tool` messages,
 - includes `finish_reason` when present.
+
+Removed compatibility fallback:
+
+- `choices[0].text` is not assistant content when `choices[0].message.content`
+  is empty
+- completion parsing does not backfill from choice-level text payloads
+- providers must normalize assistant text into the canonical message payload
+  before backend history or query-completion logic sees it
 
 Tool-call argument normalization supports:
 
