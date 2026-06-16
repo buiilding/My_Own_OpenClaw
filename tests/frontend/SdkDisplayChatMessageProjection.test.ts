@@ -106,7 +106,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
-  test('normalizes persisted screenshot artifact refs without treating them as inline image bytes', () => {
+  test('normalizes persisted screenshot artifact refs without treating inline payloads as primary image bytes', () => {
     const messages = buildChatMessagesFromSdkDisplayRows([
       {
         id: 'msg-user-shot',
@@ -120,7 +120,7 @@ describe('sdkDisplayChatMessageProjection', () => {
           timestamp: '2026-05-15T12:00:00.000Z',
           raw: {
             screenshotRef: 'artifact-user-1',
-            screenshot: 'artifact-user-1',
+            screenshot: 'inline-shot',
           },
         },
       },

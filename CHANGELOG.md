@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: delete the unused `ArtifactUploader` renderer upload
   module, remove its orphan screenshot debug helper, and keep artifact URL
   coverage on `BackendEndpointStore`.
+- frontend/renderer: remove the old screenshot-field artifact-ref inference
+  path so remote screenshots use explicit `screenshotRef`/`screenshotUrl`
+  metadata only.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,
   per-platform renderer hide/restore helpers, renderer computer-use catalog,
   stale system-state capture helper, and capture-only logging utilities; keep

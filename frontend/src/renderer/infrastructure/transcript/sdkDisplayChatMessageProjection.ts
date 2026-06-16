@@ -78,7 +78,6 @@ function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<
     screenshotRef,
     screenshotUrl,
     screenshotContentType: stringField(payload, 'screenshotContentType', 'screenshot_content_type'),
-    inferArtifactRefFromScreenshot: true,
     preserveInlineScreenshotWithRemote: false,
   });
   const screenshotAttachments = buildRemoteScreenshotAttachments(

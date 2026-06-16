@@ -14,17 +14,6 @@ export function inferArtifactRefFromUrl(url) {
   return match?.[1] || null;
 }
 
-function looksLikeInlineImageData(value) {
-  const normalizedValue = normalizeNonEmptyString(value);
-  if (!normalizedValue) {
-    return false;
-  }
-  if (normalizedValue.startsWith('data:image/')) {
-    return true;
-  }
-  return /^[A-Za-z0-9+/]+={0,2}$/.test(normalizedValue) && normalizedValue.length >= 128;
-}
-
 function parseInlineScreenshotPayload(payload) {
   const normalizedPayload = normalizeNonEmptyString(payload);
   if (!normalizedPayload) {
@@ -96,22 +85,13 @@ export function resolveScreenshotAttachmentState({
   screenshotRef = null,
   screenshotUrl = null,
   screenshotContentType = null,
-  inferArtifactRefFromScreenshot = false,
   preserveInlineScreenshotWithRemote = true,
   deriveUrlFromRef = true,
 }) {
   const normalizedScreenshot = normalizeNonEmptyString(screenshot);
   const parsedInlineScreenshot = parseInlineScreenshotPayload(normalizedScreenshot);
-  const inferredScreenshotRef = (
-    !normalizeNonEmptyString(screenshotRef)
-    && inferArtifactRefFromScreenshot
-    && normalizedScreenshot
-    && !looksLikeInlineImageData(normalizedScreenshot)
-  )
-    ? normalizedScreenshot
-    : null;
   const remoteAttachment = buildRemoteScreenshotAttachment(
-    normalizeNonEmptyString(screenshotRef) || inferredScreenshotRef || inferArtifactRefFromUrl(screenshotUrl),
+    normalizeNonEmptyString(screenshotRef) || inferArtifactRefFromUrl(screenshotUrl),
     screenshotUrl,
     { deriveUrlFromRef },
   );
@@ -124,8 +104,7 @@ export function resolveScreenshotAttachmentState({
 
   return {
     screenshot: (
-      inferredScreenshotRef
-      || (hasRemoteScreenshot && !preserveInlineScreenshotWithRemote)
+      hasRemoteScreenshot && !preserveInlineScreenshotWithRemote
     )
       ? null
       : (parsedInlineScreenshot?.base64 || null),
@@ -141,14 +120,12 @@ export function buildMessageScreenshotState({
   screenshotRef = null,
   screenshotUrl = null,
   screenshotContentType = null,
-  inferArtifactRefFromScreenshot = false,
 }) {
   const attachment = resolveScreenshotAttachmentState({
     screenshot,
     screenshotRef,
     screenshotUrl,
     screenshotContentType,
-    inferArtifactRefFromScreenshot,
     preserveInlineScreenshotWithRemote: false,
   });
 
@@ -173,7 +150,6 @@ export function resolveReplayScreenshotState({
     screenshotRef,
     screenshotUrl,
     screenshotContentType,
-    inferArtifactRefFromScreenshot: true,
     preserveInlineScreenshotWithRemote: false,
   });
 

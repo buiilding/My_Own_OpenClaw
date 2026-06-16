@@ -66,17 +66,16 @@ describe('screenshotMessageState', () => {
     });
   });
 
-  test('resolveScreenshotAttachmentState infers transcript artifact refs from old screenshot fields', () => {
+  test('resolveScreenshotAttachmentState keeps screenshot payloads as inline image data', () => {
     expect(resolveScreenshotAttachmentState({
-      screenshot: 'artifact-legacy-1',
-      inferArtifactRefFromScreenshot: true,
+      screenshot: 'inline-shot',
       preserveInlineScreenshotWithRemote: true,
     })).toEqual({
-      screenshot: null,
-      screenshotRef: 'artifact-legacy-1',
-      screenshotUrl: expect.stringContaining('/api/artifacts/artifact-legacy-1'),
+      screenshot: 'inline-shot',
+      screenshotRef: null,
+      screenshotUrl: null,
       screenshotContentType: null,
-      hasRemoteScreenshot: true,
+      hasRemoteScreenshot: false,
     });
   });
 
