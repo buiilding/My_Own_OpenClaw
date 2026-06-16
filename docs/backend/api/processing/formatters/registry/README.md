@@ -1,5 +1,5 @@
 ---
-summary: "Backend API formatter registry docs sub-hub for canonical formatter-spec ownership, ResponseFormatter dual-dispatch map construction, and context-envelope attachment behavior."
+summary: "Backend API formatter registry docs sub-hub for canonical formatter-spec ownership, ResponseFormatter typed-dispatch construction, duplicate-type guards, and context-envelope attachment behavior."
 read_when:
   - When changing `backend/src/api/contracts/formatter_specs.py` or `backend/src/api/processing/formatter.py`.
   - When debugging formatter registration drift, duplicate-spec failures, or missing context fields in outbound stream events.

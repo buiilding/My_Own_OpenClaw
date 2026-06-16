@@ -115,8 +115,9 @@ TTS race handling:
 Formatter registry built from `api/contracts/formatter_specs.py`:
 
 - typed event dispatch table (`event class -> formatter`)
-- backward-compatible dict event dispatch table (`event type -> formatter`)
-- duplicate registration guard on both tables
+- event-type registry mirror used for duplicate-registration guards
+- production dispatch ignores dict event payloads and formats typed agent events
+  only
 
 Context envelope fields (`user_id`, `session_id`, `conversation_ref`, `turn_ref`) are attached uniformly via `attach_context_fields(...)`.
 

@@ -112,7 +112,7 @@ Debug implication:
 `tests/backend/test_response_formatter.py` locks:
 
 - typed event formatting path
-- dict compatibility path
+- dict event payloads are ignored by top-level response dispatch
 - unknown event returns `None`
 - context attaches on success only
 - duplicate type/class registration hard-fails

@@ -109,6 +109,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/core: remove unused legacy `Kind`, `ToolContext`, and `ToolInterface`
   exports from the core tool interface package; SDK tool context remains the
   only backend tool-context contract.
+- docs/backend: remove stale response-formatter dict-dispatch compatibility
+  wording; response formatting now documents typed event dispatch only.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

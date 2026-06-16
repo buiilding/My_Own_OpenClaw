@@ -30,7 +30,8 @@ title: "Formatter Dispatch and Schema Alignment Reference"
 `ResponseFormatter._register_formatters()` builds two O(1) dispatch maps:
 
 - `_typed_formatters`: `type(event) -> formatter`
-- `_formatters`: `event["type"] -> formatter` (dict compatibility path)
+- `_formatters`: `event_type -> formatter` registry mirror for duplicate-type
+  validation and drift checks
 
 Fail-fast guards:
 
@@ -42,9 +43,8 @@ Fail-fast guards:
 `ResponseFormatter.format(event, msg_id, context)` order:
 
 1. typed dispatch by exact `type(event)`
-2. dict fallback only when input is `dict`
-3. return `None` when no route exists
-4. attach transport context fields only when formatter returned a message
+2. return `None` when no typed route exists, including dict payloads
+3. attach transport context fields only when formatter returned a message
 
 Context fields attached by `attach_context_fields(...)`:
 
