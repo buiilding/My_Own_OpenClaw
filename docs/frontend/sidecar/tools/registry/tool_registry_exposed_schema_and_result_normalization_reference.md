@@ -73,6 +73,8 @@ Exception behavior:
 ### Native `ToolResult`
 
 - passthrough with no transformation
+- `wait` and `get_system_stats` return this shape directly; first-party tools
+  should prefer this contract when touched
 
 ### Legacy dict success path
 

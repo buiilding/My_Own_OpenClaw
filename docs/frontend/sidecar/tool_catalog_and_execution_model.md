@@ -130,7 +130,8 @@ sidecar directly accepts every field in that schema.
 Registry output normalization handles:
 
 - native `ToolResult`
-- mapping-shaped payloads (`success`, `data`, `error`)
+- legacy mapping-shaped payloads (`success`, `data`, `error`) while remaining
+  first-party tools are migrated
 - fallback error extraction from nested payload fields
 
-This keeps backend ingestion stable despite mixed tool implementation styles.
+First-party tools should return `ToolResult` directly when touched.

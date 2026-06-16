@@ -291,15 +291,16 @@ async def test_get_system_stats_success_with_battery(monkeypatch):
 
     result = await stats_tool.get_system_stats({})
 
-    assert result["success"] is True
-    stats = result["data"]["stats"]
+    assert result.success is True
+    assert result.data is not None
+    stats = result.data["stats"]
     assert stats == {
         "cpu_percent": 12.5,
         "memory_percent": 44.2,
         "battery_percent": 78,
         "battery_charging": True,
     }
-    assert '"cpu_percent": 12.5' in result["data"]["output"]
+    assert '"cpu_percent": 12.5' in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -316,8 +317,9 @@ async def test_get_system_stats_uses_shared_metrics_collector(monkeypatch):
 
     result = await stats_tool.get_system_stats({})
 
-    assert result["success"] is True
-    assert result["data"]["stats"]["cpu_percent"] == 7.5
+    assert result.success is True
+    assert result.data is not None
+    assert result.data["stats"]["cpu_percent"] == 7.5
 
 
 @pytest.mark.asyncio
@@ -334,8 +336,9 @@ async def test_get_system_stats_without_battery_support(monkeypatch):
 
     result = await stats_tool.get_system_stats({})
 
-    assert result["success"] is True
-    stats = result["data"]["stats"]
+    assert result.success is True
+    assert result.data is not None
+    stats = result.data["stats"]
     assert stats["battery_percent"] is None
     assert stats["battery_charging"] is None
 
@@ -354,7 +357,8 @@ async def test_get_system_stats_reports_import_error(monkeypatch):
 
     result = await stats_tool.get_system_stats({})
 
-    assert result == {"success": False, "error": "psutil library not available"}
+    assert result.success is False
+    assert result.error == "psutil library not available"
 
 
 @pytest.mark.asyncio
@@ -371,39 +375,45 @@ async def test_get_system_stats_handles_runtime_exception(monkeypatch):
 
     result = await stats_tool.get_system_stats({})
 
-    assert result["success"] is False
-    assert "Failed to get system stats" in result["error"]
+    assert result.success is False
+    assert "Failed to get system stats" in (result.error or "")
 
 
 @pytest.mark.asyncio
 async def test_wait_tool_validates_seconds_and_formats_status():
     missing_seconds = await wait_tool.wait({})
-    assert missing_seconds == {"success": False, "error": "seconds is required"}
+    assert missing_seconds.success is False
+    assert missing_seconds.error == "seconds is required"
 
     custom_result = await wait_tool.wait({"seconds": 2.5})
-    assert custom_result["success"] is True
-    assert custom_result["data"]["status"] == "Waited for 2.5 seconds"
-    assert custom_result["data"]["seconds_waited"] == 2.5
+    assert custom_result.success is True
+    assert custom_result.data is not None
+    assert custom_result.data["status"] == "Waited for 2.5 seconds"
+    assert custom_result.data["seconds_waited"] == 2.5
 
     invalid_type = await wait_tool.wait({"seconds": "soon"})
-    assert invalid_type == {"success": False, "error": "seconds must be a non-negative number"}
+    assert invalid_type.success is False
+    assert invalid_type.error == "seconds must be a non-negative number"
 
     invalid_negative = await wait_tool.wait({"seconds": -1})
-    assert invalid_negative == {"success": False, "error": "seconds must be a non-negative number"}
+    assert invalid_negative.success is False
+    assert invalid_negative.error == "seconds must be a non-negative number"
 
 
 @pytest.mark.asyncio
 async def test_wait_tool_formats_zero_and_integer_one_second_consistently():
     zero_result = await wait_tool.wait({"seconds": 0})
-    assert zero_result["success"] is True
-    assert zero_result["data"]["seconds_waited"] == 0.0
-    assert zero_result["data"]["status"] == "Waited for 0.0 seconds"
-    assert zero_result["data"]["output"] == "status: Waited for 0.0 seconds"
+    assert zero_result.success is True
+    assert zero_result.data is not None
+    assert zero_result.data["seconds_waited"] == 0.0
+    assert zero_result.data["status"] == "Waited for 0.0 seconds"
+    assert zero_result.data["output"] == "status: Waited for 0.0 seconds"
 
     one_result = await wait_tool.wait({"seconds": 1})
-    assert one_result["success"] is True
-    assert one_result["data"]["seconds_waited"] == 1.0
-    assert one_result["data"]["status"] == "Waited for 1 second"
+    assert one_result.success is True
+    assert one_result.data is not None
+    assert one_result.data["seconds_waited"] == 1.0
+    assert one_result.data["status"] == "Waited for 1 second"
 
 
 @pytest.mark.asyncio
@@ -414,5 +424,5 @@ async def test_wait_tool_exception_path_returns_failure():
 
     result = await wait_tool.wait(BrokenArgs())
 
-    assert result["success"] is False
-    assert "Wait operation failed" in result["error"]
+    assert result.success is False
+    assert "Wait operation failed" in (result.error or "")

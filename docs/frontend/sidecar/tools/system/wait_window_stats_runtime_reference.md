@@ -50,7 +50,8 @@ Return shape:
   - `seconds_waited`
   - `status`
   - `output`
-  - `output`
+- the tool returns native `ToolResult`; JSON-RPC conversion happens in
+  `LocalBackend._handle_execute_tool`
 
 Test-backed semantics:
 
@@ -200,6 +201,8 @@ Battery fallback semantics:
 Output shape:
 
 - returns `stats` object and pretty-printed JSON `output`
+- the tool returns native `ToolResult`; JSON-RPC conversion happens in
+  `LocalBackend._handle_execute_tool`
 
 Error semantics:
 

@@ -5,10 +5,12 @@ Wait Tool - Python implementation.
 import logging
 from typing import Dict, Any
 
+from tools.result import ToolResult
+
 logger = logging.getLogger(__name__)
 
 
-async def wait(args: Dict[str, Any]) -> Dict[str, Any]:
+async def wait(args: Dict[str, Any]) -> ToolResult:
     """
     Wait tool - returns immediately without blocking.
     
@@ -19,17 +21,17 @@ async def wait(args: Dict[str, Any]) -> Dict[str, Any]:
         args: Dictionary with required 'seconds' parameter
         
     Returns:
-        Dictionary with success status and wait result (returns immediately)
+        ToolResult with wait result data (returns immediately)
     """
     try:
         if "seconds" not in args:
-            return {"success": False, "error": "seconds is required"}
+            return ToolResult.error_result("seconds is required")
 
         seconds = args.get("seconds")
         
         # Validate seconds is a positive number
         if not isinstance(seconds, (int, float)) or seconds < 0:
-            return {"success": False, "error": "seconds must be a non-negative number"}
+            return ToolResult.error_result("seconds must be a non-negative number")
         
         # Return immediately - the frontend will delay screenshot/system state capture
         # This ensures the wait doesn't block other operations
@@ -41,15 +43,14 @@ async def wait(args: Dict[str, Any]) -> Dict[str, Any]:
         else:
             status_msg = f"Waited for {seconds_float} seconds"
         
-        return {
-            "success": True,
-            "data": {
+        return ToolResult.success_result(
+            {
                 "seconds_waited": seconds_float,
                 "status": status_msg,
                 "output": f"status: {status_msg}",
                 "message": status_msg,
-            },
-        }
+            }
+        )
     except Exception as e:
         logger.error(f"Error in wait operation: {e}", exc_info=True)
-        return {"success": False, "error": f"Wait operation failed: {str(e)}"}
+        return ToolResult.error_result(f"Wait operation failed: {str(e)}")

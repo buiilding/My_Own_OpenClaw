@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: return native `ToolResult` from the `wait` and
+  `get_system_stats` tools instead of relying on registry dict-result
+  normalization.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the
