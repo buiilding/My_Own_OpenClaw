@@ -1,9 +1,24 @@
 /** @jest-environment node */
 
+const fs = require('fs');
 const path = require('path');
 const { findDocs, loadDocsIndex } = require('../../scripts/windie/docs.cjs');
 
 const repoRoot = path.resolve(__dirname, '../..');
+
+function listMarkdownDocs(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = path.join(dir, entry.name);
+    const repoPath = path.relative(repoRoot, fullPath);
+    if (entry.isDirectory()) {
+      if (repoPath === path.join('docs', 'plans') || repoPath === path.join('docs', 'refactors')) {
+        return [];
+      }
+      return listMarkdownDocs(fullPath);
+    }
+    return entry.isFile() && entry.name.endsWith('.md') ? [repoPath] : [];
+  });
+}
 
 describe('windie docs index', () => {
   test('resolves the canonical README page to docs/README.md', () => {
@@ -19,6 +34,43 @@ describe('windie docs index', () => {
 
   test('returns the top ten docs matches by default', () => {
     expect(findDocs('runtime')).toHaveLength(10);
+  });
+
+  test('current docs pages do not contain broken relative markdown links', () => {
+    const brokenLinks = [];
+    const linkPattern = /\[[^\]]+\]\(([^)]+)\)/g;
+
+    for (const docPath of listMarkdownDocs(path.join(repoRoot, 'docs'))) {
+      const content = fs.readFileSync(path.join(repoRoot, docPath), 'utf8');
+      let match;
+      while ((match = linkPattern.exec(content))) {
+        let href = match[1].trim();
+        if (
+          !href ||
+          href.startsWith('#') ||
+          href.startsWith('http:') ||
+          href.startsWith('https:') ||
+          href.startsWith('mailto:')
+        ) {
+          continue;
+        }
+
+        href = href.split('#')[0];
+        if (!href || /[{}*$]/.test(href)) {
+          continue;
+        }
+        if (href.startsWith('<') && href.endsWith('>')) {
+          href = href.slice(1, -1);
+        }
+
+        const targetPath = path.normalize(path.join(repoRoot, path.dirname(docPath), href));
+        if (!fs.existsSync(targetPath)) {
+          brokenLinks.push(`${docPath}: ${match[1]} -> ${path.relative(repoRoot, targetPath)}`);
+        }
+      }
+    }
+
+    expect(brokenLinks).toEqual([]);
   });
 
   test('prioritizes provider model catalog docs over broad sidecar catalog matches', () => {

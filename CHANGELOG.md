@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - docs/navigation: replace broken formatter, memory IPC, overlay, and browser
   runtime links with current maintained references.
+- docs/testing: add a docs-index guard for broken relative markdown links in
+  current docs pages.
 - docs/reference: qualify inventory, hub, and IPC source references with current
   repo paths so docs search returns copy-pastable routing targets.
 - docs/routing: refresh operations, platform, and code-change routing entries
@@ -23,6 +25,8 @@ All notable changes to WindieOS will be documented in this file.
   snake_case request fields.
 - frontend/sidecar: remove camelCase MCP execution metadata accepts from the
   sidecar daemon diagnostics context builder.
+- sdk/sidecar: remove `baseUrl` discovery-file compatibility from the
+  TypeScript and Python SDK auto-sidecar discovery readers.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and
