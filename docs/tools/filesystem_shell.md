@@ -1,7 +1,8 @@
 ---
-summary: "Filesystem and shell tool guide covering read/replace, shell commands, process sessions, path resolution, and output formatting."
+summary: "Filesystem and shell tool guide covering read/replace, shell commands, process sessions, Linux sudo pkexec prompting, path resolution, and output formatting."
 read_when:
   - When changing file editing, shell/process execution, output truncation, or sidecar path handling.
+  - When debugging `run_shell_command` sudo behavior, Linux pkexec prompting, shell working directories, or process sessions.
   - When debugging local filesystem or terminal tool behavior.
 title: "Filesystem and Shell Tools"
 ---
@@ -10,7 +11,7 @@ title: "Filesystem and Shell Tools"
 
 Filesystem and shell tools execute in the local sidecar. They are used for code edits, file inspection, command execution, process sessions, app launching, waits, and host stats.
 
-For code changes or debugging, start with [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md). That workflow maps model-visible schema, SDK/main dispatch, Electron local tool runtime, bridge argument shaping, sidecar execution, sudo mode, process sessions, result envelopes, and focused tests.
+For code changes or debugging, start with [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md). That workflow maps model-visible schema, SDK/main dispatch, Electron local tool runtime, bridge argument shaping, sidecar execution, sudo behavior, process sessions, result envelopes, and focused tests.
 
 ## Tool Surface
 
@@ -32,6 +33,10 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
   Ambiguous combinations are rejected at the backend schema boundary before
   reaching local execution.
 - Keep shell output formatting predictable for both user display and model-facing `output`.
+- On Linux, `run_shell_command` rewrites leading `sudo ...` commands to
+  `pkexec bash -lc ...` so privilege prompts use the OS authentication dialog.
+  There is no renderer setting or Electron bridge argument that selects a
+  separate sudo auth mode; unsupported sudo flags fail before execution.
 - Foreground shell timeouts and manual `process kill` must terminate the shell
   process group on POSIX so child commands cannot keep running behind OS
   prompts or inherited pipes after the wrapper shell exits.

@@ -39,6 +39,8 @@ All notable changes to WindieOS will be documented in this file.
   trace, conversation inspection, and per-layer log command surface.
 - cli/docs: index Markdown body text with token-aware term matching so exact
   command rows can rank without substring noise from unrelated helper docs.
+- docs/tools: document the current Linux `run_shell_command` sudo path as
+  sidecar-owned `pkexec` prompting without a frontend-selected sudo auth mode.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

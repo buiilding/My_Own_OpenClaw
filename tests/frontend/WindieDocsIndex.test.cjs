@@ -125,4 +125,12 @@ describe('windie docs index', () => {
       expect(commandDocs.has(findDocs(query)[0].path)).toBe(true);
     }
   });
+
+  test('routes shell sudo pkexec queries to filesystem shell docs', () => {
+    const paths = findDocs('run shell sudo pkexec')
+      .slice(0, 4)
+      .map((match) => match.path);
+
+    expect(paths).toContain(path.join('docs', 'tools', 'filesystem_shell.md'));
+  });
 });
