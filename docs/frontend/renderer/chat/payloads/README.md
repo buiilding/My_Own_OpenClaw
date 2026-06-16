@@ -1,7 +1,8 @@
 ---
-summary: "Renderer chat payload docs sub-hub for model-facing tool call/output rendering, details panels, and transparency section assembly."
+summary: "Renderer chat payload docs sub-hub for markdown rendering and sanitization, model-facing tool call/output rendering, details panels, and transparency section assembly."
 read_when:
   - When changing `MessageContent`, tool output payload projection, or transparency section components in renderer chat.
+  - When changing renderer markdown rendering, markdown sanitization, math rendering, or thread-find highlights.
   - When debugging missing tool details panels, screenshot attachments, or system-prompt/tool-schema visibility.
 title: "Renderer Chat Payload Docs Hub"
 ---

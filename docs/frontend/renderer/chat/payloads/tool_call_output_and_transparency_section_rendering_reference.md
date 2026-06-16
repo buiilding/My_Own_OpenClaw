@@ -1,7 +1,8 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: tool-call/tool-output card rendering, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
+summary: "Deep reference for renderer chat payload surfaces: markdown rendering and sanitization through toSanitizedMarkdownHtml, tool-call/tool-output card rendering, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
+  - When changing renderer markdown sanitization, markdown rendering, math rendering, or thread-find highlight behavior.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
 title: "Tool Call/Output and Transparency Section Rendering Reference"
 ---
@@ -68,6 +69,10 @@ Assistant markdown rendering now follows a single contract:
 - **Provider-aware transport cleanup** happens before markdown parse in `resolveLlmOutputContract(...)`
 - **Provider-agnostic math normalization** converts LaTeX delimiters (`\(...\)` / `\[...\]`) into the dollar-delimited forms consumed by the markdown math renderer when math rendering is enabled
 - **Renderer remains model-agnostic** (`toSanitizedMarkdownHtml`) and receives normalized markdown + `enableMath`
+- **Sanitization is exposed only through the markdown rendering pipeline**:
+  callers use `toSanitizedMarkdownHtml(...)` for markdown parse/sanitize and
+  `highlightSanitizedHtml(...)` for thread-find markup over already-sanitized
+  output. There is no separate public sanitized-HTML wrapper for arbitrary HTML.
 
 Contract fields:
 

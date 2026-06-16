@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer docs: route response-overlay docs search toward SDK
   current-turn presentation, renderer-send-preflight handoff, and fixed-frame
   size IPC instead of stale tool-ghost wording.
+- frontend/renderer docs: route markdown sanitization searches to the chat
+  payload rendering contract and document the `toSanitizedMarkdownHtml` path.
 - docs: route automation-tool queries toward the VM run orchestration hub and
   automation boundary docs while preserving the current-versus-future split.
 - frontend/renderer: keep the minimal chat pill drag-start threshold private to

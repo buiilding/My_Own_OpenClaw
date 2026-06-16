@@ -1,9 +1,9 @@
 ---
-summary: "Frontend renderer infrastructure docs hub for audio playback queue runtime, capture/artifact upload behavior, display projection boundaries, and incoming text sanitization contracts."
+summary: "Frontend renderer infrastructure docs hub for audio playback queue runtime, capture/artifact upload behavior, display projection boundaries, incoming text normalization contracts, and chat markdown rendering owner routing."
 read_when:
   - When changing `frontend/src/renderer/infrastructure/services/*` renderer-side services.
   - When changing `frontend/src/renderer/infrastructure/audio/*` playback queue or cleanup behavior.
-  - When debugging screenshot capture/upload drift, display projection drift, or malformed renderer-side service payloads.
+  - When debugging screenshot capture/upload drift, display projection drift, malformed renderer-side service payloads, or chat markdown rendering owner routing.
 title: "Frontend Renderer Infrastructure Docs Hub"
 ---
 
@@ -17,6 +17,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - [Capture, Artifact Upload, and Payload Normalization Reference](capture_artifact_upload_and_payload_normalization_reference.md)
 - [Incoming Text Normalization Contract Reference](incoming_text_normalization_mojibake_and_lone_surrogate_contract_reference.md)
 - [Conversation Transcript Loader and Display-Bounds Storage Reference](conversation_transcript_loader_and_display_bounds_storage_reference.md)
+- [Tool Call/Output and Transparency Section Rendering Reference](../chat/payloads/tool_call_output_and_transparency_section_rendering_reference.md) for renderer markdown parse/sanitize, math rendering, and thread-find highlight behavior.
 
 ## Code Scope
 
