@@ -56,6 +56,8 @@ All notable changes to WindieOS will be documented in this file.
   Brave fallback, visibility policy, and docs-search routing.
 - docs/sdk: clarify that edit/resend and retry replay now cut by canonical
   message id only, without user-message ordinal fallback.
+- docs/operations: route broad packaging and reinstall searches to the
+  cross-platform package/reinstall runbook before platform-specific notes.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

@@ -109,6 +109,15 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes package and reinstall queries to the cross-platform runbook', () => {
+    expect(findDocs('packaging reinstall')[0].path).toBe(
+      path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),
+    );
+    expect(findDocs('packaging reinstall runbook')[0].path).toBe(
+      path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

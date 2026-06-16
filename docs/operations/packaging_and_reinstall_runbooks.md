@@ -1,13 +1,13 @@
 ---
-summary: "Detailed packaging and local reinstall runbooks for WindieOS desktop builds across macOS, Windows, and Linux."
+summary: "Detailed packaging reinstall runbooks for WindieOS desktop package builds, local reinstall helpers, sidecar runtime packaging, and packaged app validation across macOS, Windows, and Linux."
 read_when:
-  - When changing Electron Builder packaging, bundled Python runtime generation, release artifacts, or local reinstall helpers.
+  - When changing packaging reinstall behavior, Electron Builder package commands, bundled Python runtime generation, release artifacts, or local reinstall helpers.
   - When debugging packaged SDK websocket support, the SDK-owned `ws` dependency, or `resources/node_modules/ws`.
-  - When debugging packaged app startup, missing sidecar runtime, signing, notarization, or OS-specific install state.
-title: "Packaging and Reinstall Runbooks"
+  - When debugging packaged app startup, missing sidecar runtime, package signing, notarization, local reinstall state, or OS-specific install state.
+title: "Packaging Reinstall Runbooks"
 ---
 
-# Packaging and Reinstall Runbooks
+# Packaging Reinstall Runbooks
 
 WindieOS packaged builds are Electron apps with a bundled Python sidecar runtime. Packaging behavior is shared through `frontend/package.json` and `frontend/electron-builder.bundled-python.yml`; reinstall behavior is OS-specific because installed app paths, permissions, state reset, and installer formats differ.
 
