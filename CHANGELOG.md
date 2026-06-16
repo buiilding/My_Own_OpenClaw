@@ -64,6 +64,9 @@ All notable changes to WindieOS will be documented in this file.
   tool context contract and current core `ToolResult` boundary.
 - docs/backend: route stale response-formatter dict-dispatch and event-type-map
   searches to the typed formatter dispatch and registry docs.
+- docs/backend: route removed `ContainerInitializer` service-wrapper searches
+  to the bootstrap lifecycle doc and document `_run_startup_step(...)` as the
+  single startup-step orchestration path.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability

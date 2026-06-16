@@ -297,6 +297,27 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed container initializer wrapper queries to bootstrap docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'bootstrap',
+      'container_di_and_init_lifecycle_reference.md',
+    );
+
+    expect(findDocs('container initializer service wrapper removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('_initialize_vision_service removed startup step')[0].path).toBe(
+      expectedPath,
+    );
+    expect(
+      findDocs(
+        '_initialize_ocr_service removed ContainerInitializer service wrapper _run_startup_step',
+      )[0].path,
+    ).toBe(expectedPath);
+  });
+
   test('routes local hosted query routing to the SDK runtime contract', () => {
     expect(findDocs('local hosted query routing')[0].path).toBe(
       path.join('docs', 'sdk', 'windie_client_runtime.md'),

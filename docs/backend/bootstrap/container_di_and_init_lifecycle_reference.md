@@ -3,6 +3,7 @@ summary: "Dependency-injector wiring and startup lifecycle reference for backend
 read_when:
   - When changing backend dependency wiring, lazy provider overrides, or config update behavior.
   - When debugging startup races, session-manager creation, or handler-registry initialization failures.
+  - When resolving removed ContainerInitializer service wrapper references such as _initialize_vision_service, _initialize_ocr_service, _initialize_embedder, or _initialize_config_service.
 title: "Container DI and Initialization Lifecycle Reference"
 ---
 
@@ -129,6 +130,14 @@ Initializer structure:
 - startup behavior is declared as ordered `StartupStep` entries in `backend/src/core/container/initializer.py`
 - each step owns its own initialization logic and can optionally publish initialized services into the context factory
 - `ContainerInitializer` exposes the ordered startup-step runner as the single orchestration path
+
+### Removed _initialize_ocr_service and _initialize_vision_service Wrappers
+
+- service-specific wrapper methods such as `_initialize_vision_service`,
+  `_initialize_ocr_service`, `_initialize_embedder`, and
+  `_initialize_config_service` were removed; tests and call sites should invoke
+  `_run_startup_step("<step_name>")` when they need to exercise one declared
+  startup step
 
 Policy source:
 
