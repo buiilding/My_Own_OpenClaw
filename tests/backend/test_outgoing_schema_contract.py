@@ -35,6 +35,15 @@ from backend.src.api.schemas import (
     WebSearchProgressPayload,
 )
 import backend.src.api.schemas as schemas
+from backend.src.core.events.streaming_events import (
+    ContextCompactionCompletedEvent,
+    ContextCompactionFailedEvent,
+    ContextCompactionStartedEvent,
+    SystemPromptEvent,
+    TokenCountEvent,
+    ToolSchemasEvent,
+    TraceEvent,
+)
 
 
 def test_outgoing_public_package_exports_include_progress_schemas() -> None:
@@ -69,26 +78,26 @@ def test_outgoing_public_package_exports_include_progress_schemas() -> None:
 def test_trace_event_formatter_output_matches_schema_and_sanitizes_data() -> None:
     formatter = TraceEventFormatter()
     payload = formatter.format(
-        {
-            "path": "backend.stream",
-            "stage": "stream",
-            "status": "succeeded",
-            "runtime": "backend",
-            "trace_id": "trace_1",
-            "span_id": "span_1",
-            "request_id": "turn_1",
-            "duration_ms": 123.4,
-            "data": {
+        TraceEvent(
+            path="backend.stream",
+            stage="stream",
+            status="succeeded",
+            runtime="backend",
+            trace_id="trace_1",
+            span_id="span_1",
+            request_id="turn_1",
+            duration_ms=123.4,
+            data={
                 "eventCount": 3,
                 "content": "do not persist",
                 "nested": {"apiKey": "secret", "safeFlag": True},
             },
-            "error": {
+            error={
                 "code": "RuntimeError",
                 "message": "short failure",
                 "stack": "do not persist",
             },
-        },
+        ),
         "msg_trace",
     )
 
@@ -157,8 +166,8 @@ def test_settings_and_model_events_match_outgoing_schema_contracts() -> None:
 def test_tool_schemas_formatter_output_matches_schema() -> None:
     formatter = ToolSchemasEventFormatter()
     payload = formatter.format(
-        {
-            "tool_schemas": [
+        ToolSchemasEvent(
+            tool_schemas=[
                 {
                     "type": "function",
                     "function": {
@@ -167,7 +176,7 @@ def test_tool_schemas_formatter_output_matches_schema() -> None:
                     },
                 }
             ]
-        },
+        ),
         "msg_1",
     )
 
@@ -185,15 +194,18 @@ def test_tool_schemas_formatter_rejects_non_list_payload() -> None:
     formatter = ToolSchemasEventFormatter()
 
     with pytest.raises(ValueError, match="canonical tool object list"):
-        formatter.format({"tool_schemas": {"read_file": {"type": "object"}}}, "msg_1")
+        formatter.format(
+            ToolSchemasEvent(tool_schemas={"read_file": {"type": "object"}}),
+            "msg_1",
+        )
 
 
 def test_system_prompt_formatter_includes_client_prompt_layers() -> None:
     formatter = SystemPromptEventFormatter()
     payload = formatter.format(
-        {
-            "content": "base prompt",
-            "client_prompt_layers": [
+        SystemPromptEvent(
+            content="base prompt",
+            client_prompt_layers=[
                 {
                     "id": "custom-instructions",
                     "type": "custom_instructions",
@@ -201,7 +213,7 @@ def test_system_prompt_formatter_includes_client_prompt_layers() -> None:
                     "content": "Prefer concise answers.",
                 }
             ],
-        },
+        ),
         "msg_prompt",
     )
 
@@ -225,18 +237,18 @@ def test_system_prompt_formatter_includes_client_prompt_layers() -> None:
 def test_token_count_formatter_output_matches_schema() -> None:
     formatter = TokenCountEventFormatter()
     payload = formatter.format(
-        {
-            "prompt_tokens": 12,
-            "visible_output_tokens": 3,
-            "thinking_tokens": 1,
-            "output_tokens_total": 4,
-            "total_tokens": 16,
-            "conversation_tokens": 200,
-            "usage_source": "provider",
-            "cached_tokens": 10,
-            "cache_hit": True,
-            "cache_status": "hit",
-        },
+        TokenCountEvent(
+            prompt_tokens=12,
+            visible_output_tokens=3,
+            thinking_tokens=1,
+            output_tokens_total=4,
+            total_tokens=16,
+            conversation_tokens=200,
+            usage_source="provider",
+            cached_tokens=10,
+            cache_hit=True,
+            cache_status="hit",
+        ),
         "msg_2",
     )
 
@@ -257,12 +269,12 @@ def test_token_count_formatter_output_matches_schema() -> None:
 def test_context_compaction_started_formatter_output_matches_schema() -> None:
     formatter = ContextCompactionStartedEventFormatter()
     payload = formatter.format(
-        {
-            "reason": "auto-pre",
-            "strategy": "inline",
-            "before_tokens": 2200,
-            "projected_tokens": 2300,
-        },
+        ContextCompactionStartedEvent(
+            reason="auto-pre",
+            strategy="inline",
+            before_tokens=2200,
+            projected_tokens=2300,
+        ),
         "msg_4",
     )
 
@@ -279,15 +291,15 @@ def test_context_compaction_started_formatter_output_matches_schema() -> None:
 def test_context_compaction_completed_formatter_output_matches_schema() -> None:
     formatter = ContextCompactionCompletedEventFormatter()
     payload = formatter.format(
-        {
-            "reason": "auto-mid",
-            "strategy": "inline",
-            "before_tokens": 2400,
-            "after_tokens": 900,
-            "removed_messages": 10,
-            "summary_preview": "short summary",
-            "summary_text": "full summary text",
-            "replacement_history_preview": [
+        ContextCompactionCompletedEvent(
+            reason="auto-mid",
+            strategy="inline",
+            before_tokens=2400,
+            after_tokens=900,
+            removed_messages=10,
+            summary_preview="short summary",
+            summary_text="full summary text",
+            replacement_history_preview=[
                 {
                     "role": "assistant",
                     "message_type": "context_compaction",
@@ -299,7 +311,7 @@ def test_context_compaction_completed_formatter_output_matches_schema() -> None:
                     "content": "latest user turn",
                 },
             ],
-            "replacement_history_entries": [
+            replacement_history_entries=[
                 {
                     "role": "assistant",
                     "message_type": "context_compaction",
@@ -311,8 +323,8 @@ def test_context_compaction_completed_formatter_output_matches_schema() -> None:
                     "content": "latest user turn",
                 },
             ],
-            "skipped_reason": None,
-        },
+            skipped_reason=None,
+        ),
         "msg_5",
     )
 
@@ -338,18 +350,18 @@ def test_context_compaction_completed_formatter_output_matches_schema() -> None:
 def test_context_compaction_completed_skipped_shape_matches_schema() -> None:
     formatter = ContextCompactionCompletedEventFormatter()
     payload = formatter.format(
-        {
-            "reason": "auto-mid",
-            "strategy": "inline",
-            "before_tokens": 1800,
-            "after_tokens": 1800,
-            "removed_messages": 0,
-            "summary_preview": None,
-            "summary_text": None,
-            "replacement_history_preview": None,
-            "replacement_history_entries": None,
-            "skipped_reason": "below-threshold",
-        },
+        ContextCompactionCompletedEvent(
+            reason="auto-mid",
+            strategy="inline",
+            before_tokens=1800,
+            after_tokens=1800,
+            removed_messages=0,
+            summary_preview=None,
+            summary_text=None,
+            replacement_history_preview=None,
+            replacement_history_entries=None,
+            skipped_reason="below-threshold",
+        ),
         "msg_5_skipped",
     )
 
@@ -370,12 +382,12 @@ def test_context_compaction_completed_skipped_shape_matches_schema() -> None:
 def test_context_compaction_failed_formatter_output_matches_schema() -> None:
     formatter = ContextCompactionFailedEventFormatter()
     payload = formatter.format(
-        {
-            "reason": "manual",
-            "strategy": "inline",
-            "error": "compaction failed",
-            "before_tokens": 2000,
-        },
+        ContextCompactionFailedEvent(
+            reason="manual",
+            strategy="inline",
+            error="compaction failed",
+            before_tokens=2000,
+        ),
         "msg_6",
     )
 

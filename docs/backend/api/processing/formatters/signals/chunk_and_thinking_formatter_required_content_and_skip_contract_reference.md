@@ -51,13 +51,11 @@ This is fail-closed at formatting layer for incomplete stream signal events.
 
 Field-name divergence (`text` vs `status`) is intentional and aligned to outgoing schema expectations.
 
-## Typed vs Dict Event Support
+## Typed Event Support
 
-Both formatters call `_get_event_dict(event)` first.
-
-Production input form:
-
-- typed dataclass events (`StreamingEvent` subclasses via `to_dict()`)
+Both formatters receive typed event objects and read `event.content` directly.
+They no longer normalize dict payloads through `_get_event_dict(...)` or
+`StreamingEvent.to_dict()` before validation.
 
 This keeps required-field guard behavior aligned with the typed streaming-event runtime.
 
@@ -65,13 +63,14 @@ This keeps required-field guard behavior aligned with the typed streaming-event 
 
 `tests/backend/test_formatters.py` verifies:
 
-- successful dict formatting for chunk/thinking events
+- successful typed-event formatting for chunk/thinking events
 - skip behavior when `content` is `None`
 - chunk formatter typed-event path via `ChunkEvent`
 
 Coverage note:
 
-- explicit typed-event test exists for chunk; thinking typed-event behavior remains indirectly implied via shared base-path semantics.
+- chunk and thinking use the same typed attribute extraction pattern; coverage
+  should stay focused on that path rather than reintroducing dict fixtures.
 
 ## Drift Hotspots
 

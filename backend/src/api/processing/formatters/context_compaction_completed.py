@@ -11,33 +11,32 @@ class ContextCompactionCompletedEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
         reason = self._get_required_field(
-            event_dict,
+            event.reason,
             "reason",
             "ContextCompactionCompletedEvent",
             msg_id,
         )
         strategy = self._get_required_field(
-            event_dict,
+            event.strategy,
             "strategy",
             "ContextCompactionCompletedEvent",
             msg_id,
         )
         before_tokens = self._get_required_field(
-            event_dict,
+            event.before_tokens,
             "before_tokens",
             "ContextCompactionCompletedEvent",
             msg_id,
         )
         after_tokens = self._get_required_field(
-            event_dict,
+            event.after_tokens,
             "after_tokens",
             "ContextCompactionCompletedEvent",
             msg_id,
         )
         removed_messages = self._get_required_field(
-            event_dict,
+            event.removed_messages,
             "removed_messages",
             "ContextCompactionCompletedEvent",
             msg_id,
@@ -60,10 +59,10 @@ class ContextCompactionCompletedEventFormatter(EventFormatter):
                 "before_tokens": before_tokens,
                 "after_tokens": after_tokens,
                 "removed_messages": removed_messages,
-                "summary_preview": event_dict.get("summary_preview"),
-                "summary_text": event_dict.get("summary_text"),
-                "replacement_history_preview": event_dict.get("replacement_history_preview"),
-                "replacement_history_entries": event_dict.get("replacement_history_entries"),
-                "skipped_reason": event_dict.get("skipped_reason"),
+                "summary_preview": event.summary_preview,
+                "summary_text": event.summary_text,
+                "replacement_history_preview": event.replacement_history_preview,
+                "replacement_history_entries": event.replacement_history_entries,
+                "skipped_reason": event.skipped_reason,
             },
         }

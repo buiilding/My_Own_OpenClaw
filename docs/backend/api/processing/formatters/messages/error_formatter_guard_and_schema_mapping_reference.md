@@ -29,7 +29,7 @@ Outgoing type is fixed to `error`.
 
 Key behavior:
 
-- formatter accepts typed or dict events via `_get_event_dict(...)`
+- formatter reads typed event attributes directly
 - no skip path; the formatter always returns an error payload dict
 - unsafe or empty content is replaced by the shared user-facing fallback message
 

@@ -39,24 +39,25 @@ Operational implication:
 
 `test_formatters.py` confirms key contracts:
 
-- base formatter converts typed events with `to_dict()`
+- base formatter required-field guards operate on already-extracted typed-event
+  attribute values
 - chunk/thinking/assistant-full skip when `content` missing
 - error formatter maps:
   - `content -> payload.message`
-  - `details -> payload.content`
-  - fallback default message when content absent
+  - `metadata -> payload.metadata` when metadata is a dict
+  - fallback default message when content is unsafe or empty
 - tool-call formatter:
   - validates required `tool_name` + dict `parameters`
   - allows empty `parameters` dict
   - optional `request_id` and `metadata` passthrough
 - tool-output formatter:
-  - supports dict and typed events
-  - requires non-`None` `tool_name/success/output`
+  - requires non-`None` `tool_name/success`
   - allows `output=""` and `success=False`
 
 Additional dedicated matrix:
 
-- `test_tool_bundle_formatter.py` covers typed/dict/default/`None` tools behaviors
+- `test_tool_bundle_formatter.py` covers typed-event validation and malformed
+  `tools` behaviors
 
 ## Outgoing Schema Contract Tests
 
@@ -100,7 +101,7 @@ When adding a new event formatter:
 
 1. add event -> formatter entry in `formatter_specs`
 2. ensure outgoing type constant is represented in schema-contract tables when required
-3. add typed + dict path tests (or intentionally typed-only with rationale)
+3. add typed-event tests for the formatter and any schema edge cases
 
 When changing strict/skip behavior:
 
@@ -119,4 +120,4 @@ When changing strict/skip behavior:
 - [Token Count and Tool Schemas Formatter Schema-Alignment and Strict-Validation Reference](signals/token_count_and_tool_schemas_formatter_schema_alignment_and_strict_validation_reference.md)
 - [Formatter Action Docs Hub](actions/README.md)
 - [Tool Call and Tool Output Formatter Validation and Metadata-Passthrough Reference](actions/tool_call_and_tool_output_formatter_validation_and_metadata_passthrough_reference.md)
-- [Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference](actions/tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
+- [Tool Bundle Formatter Payload Validation Contract Reference](actions/tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)

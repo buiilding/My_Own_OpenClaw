@@ -11,27 +11,26 @@ class ContextCompactionStartedEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.CONTEXT_COMPACTION_STARTED
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
         reason = self._get_required_field(
-            event_dict,
+            event.reason,
             "reason",
             "ContextCompactionStartedEvent",
             msg_id,
         )
         strategy = self._get_required_field(
-            event_dict,
+            event.strategy,
             "strategy",
             "ContextCompactionStartedEvent",
             msg_id,
         )
         before_tokens = self._get_required_field(
-            event_dict,
+            event.before_tokens,
             "before_tokens",
             "ContextCompactionStartedEvent",
             msg_id,
         )
         projected_tokens = self._get_required_field(
-            event_dict,
+            event.projected_tokens,
             "projected_tokens",
             "ContextCompactionStartedEvent",
             msg_id,

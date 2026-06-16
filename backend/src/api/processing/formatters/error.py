@@ -1,9 +1,7 @@
 """Formatter for error events."""
-from typing import Any, Dict, Optional, Union
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.processing.formatters.base import EventFormatter
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.api.processing.formatters.base import EventFormatter, EventInput, FormattedEvent
 from backend.src.core.infrastructure.user_facing_errors import (
     sanitize_stream_error_message,
 )
@@ -13,12 +11,11 @@ class ErrorEventFormatter(EventFormatter):
     """Formatter for error events."""
     message_type = OutgoingMessageType.ERROR
 
-    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
-        event_dict = self._get_event_dict(event)
+    def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         payload = {
-            "message": sanitize_stream_error_message(event_dict.get("content")),
+            "message": sanitize_stream_error_message(event.content),
         }
-        metadata = event_dict.get("metadata")
+        metadata = event.metadata
         if isinstance(metadata, dict):
             payload["metadata"] = metadata
         return {

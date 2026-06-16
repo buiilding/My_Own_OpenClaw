@@ -9,8 +9,7 @@ class ChunkEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.STREAMING_RESPONSE
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
-        content = self._get_required_field(event_dict, "content", "ChunkEvent", msg_id)
+        content = self._get_required_field(event.content, "content", "ChunkEvent", msg_id)
         if content is None:
             return None
 

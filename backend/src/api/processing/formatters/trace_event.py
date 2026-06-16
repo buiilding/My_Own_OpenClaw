@@ -47,12 +47,6 @@ _TRACE_RUNTIMES = {"sdk", "electron-main", "renderer", "sidecar", "backend", "pr
 _MAX_ERROR_MESSAGE_LENGTH = 240
 
 
-def _camel_field(event_dict: Dict[str, Any], snake_name: str, camel_name: str) -> Any:
-    if snake_name in event_dict:
-        return event_dict.get(snake_name)
-    return event_dict.get(camel_name)
-
-
 def _optional_string(value: Any) -> Optional[str]:
     if not isinstance(value, str):
         return None
@@ -109,11 +103,10 @@ class TraceEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.TRACE_EVENT
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
-        path = _optional_string(event_dict.get("path"))
-        stage = _optional_string(event_dict.get("stage"))
-        status = _optional_string(event_dict.get("status"))
-        runtime = _optional_string(event_dict.get("runtime"))
+        path = _optional_string(event.path)
+        stage = _optional_string(event.stage)
+        status = _optional_string(event.status)
+        runtime = _optional_string(event.runtime)
         missing_fields = [
             name
             for name, value in (
@@ -139,31 +132,26 @@ class TraceEventFormatter(EventFormatter):
             "runtime": runtime,
         }
         optional_string_fields = (
-            ("traceId", _camel_field(event_dict, "trace_id", "traceId")),
-            ("spanId", _camel_field(event_dict, "span_id", "spanId")),
-            (
-                "parentSpanId",
-                _camel_field(event_dict, "parent_span_id", "parentSpanId"),
-            ),
-            ("requestId", _camel_field(event_dict, "request_id", "requestId")),
-            ("startedAt", _camel_field(event_dict, "started_at", "startedAt")),
-            ("endedAt", _camel_field(event_dict, "ended_at", "endedAt")),
+            ("traceId", event.trace_id),
+            ("spanId", event.span_id),
+            ("parentSpanId", event.parent_span_id),
+            ("requestId", event.request_id),
+            ("startedAt", event.started_at),
+            ("endedAt", event.ended_at),
         )
         for key, raw_value in optional_string_fields:
             value = _optional_string(raw_value)
             if value is not None:
                 payload[key] = value
 
-        duration_ms = _finite_number(
-            _camel_field(event_dict, "duration_ms", "durationMs")
-        )
+        duration_ms = _finite_number(event.duration_ms)
         if duration_ms is not None:
             payload["durationMs"] = round(duration_ms)
 
-        data = _sanitize_data(event_dict.get("data"))
+        data = _sanitize_data(event.data)
         if data is not None:
             payload["data"] = data
-        error = _sanitize_error(event_dict.get("error"))
+        error = _sanitize_error(event.error)
         if error is not None:
             payload["error"] = error
 

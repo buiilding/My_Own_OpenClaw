@@ -9,19 +9,18 @@ class WebSearchProgressEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.WEB_SEARCH_PROGRESS
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
-        text = event_dict.get("text")
+        text = event.text
         if not isinstance(text, str) or not text.strip():
             self._log_missing_fields("WebSearchProgressEvent", ["text"], msg_id)
             return None
 
         payload = {
             "text": text,
-            "request_id": event_dict.get("request_id"),
-            "action_type": event_dict.get("action_type"),
-            "query": event_dict.get("query"),
-            "url": event_dict.get("url"),
-            "pattern": event_dict.get("pattern"),
+            "request_id": event.request_id,
+            "action_type": event.action_type,
+            "query": event.query,
+            "url": event.url,
+            "pattern": event.pattern,
         }
 
         return {

@@ -1,10 +1,7 @@
 """Formatter for system prompt events."""
 
-from typing import Any, Dict, Optional, Union
-
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.processing.formatters.base import EventFormatter
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.api.processing.formatters.base import EventFormatter, EventInput, FormattedEvent
 
 
 class SystemPromptEventFormatter(EventFormatter):
@@ -12,16 +9,13 @@ class SystemPromptEventFormatter(EventFormatter):
 
     message_type = OutgoingMessageType.SYSTEM_PROMPT
 
-    def format(
-        self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str
-    ) -> Optional[Dict[str, Any]]:
-        event_dict = self._get_event_dict(event)
+    def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         return {
             "type": self.message_type,
             "id": msg_id,
             "payload": {
-                "content": event_dict.get("content"),
-                "tool_schemas": event_dict.get("tool_schemas"),
-                "client_prompt_layers": event_dict.get("client_prompt_layers"),
+                "content": event.content,
+                "tool_schemas": event.tool_schemas,
+                "client_prompt_layers": event.client_prompt_layers,
             },
         }

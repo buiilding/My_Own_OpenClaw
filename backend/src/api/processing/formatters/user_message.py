@@ -1,22 +1,19 @@
 """Formatter for full user message events."""
-from typing import Any, Dict, Optional, Union
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.processing.formatters.base import EventFormatter
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.api.processing.formatters.base import EventFormatter, EventInput, FormattedEvent
 
 
 class UserMessageFullEventFormatter(EventFormatter):
     """Formatter for full user message events."""
     message_type = OutgoingMessageType.USER_MESSAGE_FULL
 
-    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
-        event_dict = self._get_event_dict(event)
+    def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         return {
             "type": self.message_type,
             "id": msg_id,
             "payload": {
-                "content": event_dict.get("content"),
-                "metadata": event_dict.get("metadata"),
+                "content": event.content,
+                "metadata": event.metadata,
             },
         }

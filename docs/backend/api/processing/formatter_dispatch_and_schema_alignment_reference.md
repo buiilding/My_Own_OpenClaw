@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for backend API formatter registration/dispatch, per-event payload shaping rules, context-envelope attachment, and schema-alignment drift guards."
+summary: "Deep reference for backend API formatter registration/dispatch, removed formatter dict dispatch compatibility, typed-only event routing, per-event payload shaping rules, context-envelope attachment, and schema-alignment drift guards."
 read_when:
   - When adding/changing agent streaming events or formatter classes.
   - When debugging websocket payload fields that fail renderer type-guards or Pydantic schema validation.

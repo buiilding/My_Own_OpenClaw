@@ -11,21 +11,20 @@ class ContextCompactionFailedEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.CONTEXT_COMPACTION_FAILED
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
         reason = self._get_required_field(
-            event_dict,
+            event.reason,
             "reason",
             "ContextCompactionFailedEvent",
             msg_id,
         )
         strategy = self._get_required_field(
-            event_dict,
+            event.strategy,
             "strategy",
             "ContextCompactionFailedEvent",
             msg_id,
         )
         error = self._get_required_field(
-            event_dict,
+            event.error,
             "error",
             "ContextCompactionFailedEvent",
             msg_id,
@@ -40,6 +39,6 @@ class ContextCompactionFailedEventFormatter(EventFormatter):
                 "reason": reason,
                 "strategy": strategy,
                 "error": error,
-                "before_tokens": event_dict.get("before_tokens"),
+                "before_tokens": event.before_tokens,
             },
         }

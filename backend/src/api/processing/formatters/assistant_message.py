@@ -9,9 +9,8 @@ class AssistantMessageFullEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.ASSISTANT_MESSAGE_FULL
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
         content = self._get_required_field(
-            event_dict,
+            event.content,
             "content",
             "AssistantMessageFullEvent",
             msg_id,

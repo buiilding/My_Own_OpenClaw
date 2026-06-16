@@ -10,9 +10,8 @@ class ToolBundleEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.TOOL_BUNDLE
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
-        bundle_id = event_dict.get("bundle_id")
-        tools = event_dict.get("tools")
+        bundle_id = event.bundle_id
+        tools = event.tools
 
         missing_fields = []
         if not bundle_id:

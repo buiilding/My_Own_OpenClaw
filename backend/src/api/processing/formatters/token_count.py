@@ -1,30 +1,27 @@
 """Formatter for token count events."""
-from typing import Any, Dict, Optional, Union
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.processing.formatters.base import EventFormatter
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.api.processing.formatters.base import EventFormatter, EventInput, FormattedEvent
 
 
 class TokenCountEventFormatter(EventFormatter):
     """Formatter for token count events."""
     message_type = OutgoingMessageType.TOKEN_COUNT
 
-    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
-        event_dict = self._get_event_dict(event)
+    def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         return {
             "type": self.message_type,
             "id": msg_id,
             "payload": {
-                "prompt_tokens": event_dict.get("prompt_tokens"),
-                "visible_output_tokens": event_dict.get("visible_output_tokens"),
-                "thinking_tokens": event_dict.get("thinking_tokens"),
-                "output_tokens_total": event_dict.get("output_tokens_total"),
-                "total_tokens": event_dict.get("total_tokens"),
-                "conversation_tokens": event_dict.get("conversation_tokens"),
-                "usage_source": event_dict.get("usage_source"),
-                "cached_tokens": event_dict.get("cached_tokens"),
-                "cache_hit": event_dict.get("cache_hit"),
-                "cache_status": event_dict.get("cache_status"),
+                "prompt_tokens": event.prompt_tokens,
+                "visible_output_tokens": event.visible_output_tokens,
+                "thinking_tokens": event.thinking_tokens,
+                "output_tokens_total": event.output_tokens_total,
+                "total_tokens": event.total_tokens,
+                "conversation_tokens": event.conversation_tokens,
+                "usage_source": event.usage_source,
+                "cached_tokens": event.cached_tokens,
+                "cache_hit": event.cache_hit,
+                "cache_status": event.cache_status,
             },
         }

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for tool-call/tool-output formatter contracts: required-field validation, skip semantics, request-id/metadata passthrough, and typed/dict payload normalization boundaries."
+summary: "Deep reference for tool-call/tool-output formatter contracts: typed event attribute extraction, required-field validation, skip semantics, and request-id/metadata passthrough."
 read_when:
   - When changing `ToolCallEventFormatter` or `ToolOutputEventFormatter` required-field checks.
   - When debugging missing tool action events, dropped request-id correlation, or metadata passthrough regressions.
@@ -77,10 +77,11 @@ Payload mapping always includes:
 ## Formatter Input Semantics
 
 Production response formatting reaches these formatters through typed event dispatch.
+`ToolCallEventFormatter` and `ToolOutputEventFormatter` read typed event
+attributes directly; they do not normalize dict payloads inside the formatter.
 
 Contract outcome:
 
-- typed streaming dataclasses use the shared validation path
 - skip semantics apply consistently for required-field failures
 
 ## Schema Alignment Notes
@@ -98,7 +99,7 @@ Formatter behavior must remain aligned with these permissive payload envelopes.
 
 - tool-call success + request-id + metadata passthrough
 - tool-call skips for missing/empty `tool_name`, missing/non-dict parameters
-- tool-output success for dict + typed events
+- tool-output success for typed events
 - tool-output allows `success=False` and `output=""`
 - tool-output skip + warning logging for missing required fields
 
@@ -111,5 +112,5 @@ Formatter behavior must remain aligned with these permissive payload envelopes.
 ## Related Pages
 
 - [Backend API Formatter Action Docs Hub](README.md)
-- [Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference](tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
+- [Tool Bundle Formatter Payload Validation Contract Reference](tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
 - [Result Transformer and Tool Result Formatting Contract Reference](../../../../tools/processing/result_transformer_and_tool_result_formatting_contract_reference.md)

@@ -1,12 +1,13 @@
 ---
-summary: "Deep reference for tool-bundle formatter behavior: typed-vs-dict extraction, canonical payload validation, and outbound tool-bundle payload stability."
+summary: "Deep reference for tool-bundle formatter behavior: typed event attribute extraction, removed dict-event parity, canonical payload validation, and outbound tool-bundle payload stability."
 read_when:
   - When changing `ToolBundleEventFormatter` validation behavior or typed-event extraction logic.
+  - When resolving stale typed/dict parity, dict formatting path, or `StreamingEvent.to_dict()` formatter references; tool-bundle formatting reads typed event attributes directly.
   - When debugging tool-bundle payload shape regressions in frontend bundle execution consumers.
-title: "Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference"
+title: "Tool Bundle Formatter Typed Event and Payload Validation Contract Reference"
 ---
 
-# Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference
+# Tool Bundle Formatter Typed Event and Payload Validation Contract Reference
 
 ## Canonical Modules
 
@@ -20,14 +21,13 @@ title: "Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract 
 
 `formatter_specs` maps `ToolBundleEvent` / `tool_bundle` to `ToolBundleEventFormatter` with outgoing type `tool-bundle`.
 
-## Typed vs Dict Extraction Contract
+## Typed Event Extraction Contract
 
-Formatter branches by input shape:
+Formatter input is a typed `AgentStreamingEvent` subclass. `ToolBundleEventFormatter`
+reads `event.bundle_id` and `event.tools` directly; it does not accept a dict
+event payload and does not call `StreamingEvent.to_dict()` before validation.
 
-- dict input is read through the same event-dict helper used by typed events
-- typed event input uses `StreamingEvent.to_dict()`
-
-Both paths must provide the canonical payload shape:
+The typed event must provide the canonical payload shape:
 
 - `bundle_id`: non-empty string
 - `tools`: list
@@ -36,9 +36,7 @@ Both paths must provide the canonical payload shape:
 Malformed payloads are skipped with the formatter missing-field warning instead
 of being emitted to the websocket transport.
 
-## Default and Preservation Semantics
-
-Dict-event compatibility defaults were removed:
+## Validation Semantics
 
 - missing `bundle_id` is invalid
 - missing `tools` is invalid
@@ -67,7 +65,6 @@ Returned payload always includes:
 `tests/backend/test_tool_bundle_formatter.py` verifies:
 
 - typed event formatting path
-- dict formatting path
 - typed event with empty tools list
 - formatter output validates against `ToolBundleMessage`
 - missing fields are skipped
@@ -82,7 +79,7 @@ Coverage note:
 
 ## Drift Hotspots
 
-1. Reintroducing dict defaults can emit schema-invalid websocket payloads.
+1. Reintroducing dict-event compatibility can emit schema-invalid websocket payloads.
 2. Coercing explicit `None` tools to `[]` hides malformed backend producers.
 3. Removing frontend fail-closed display handling can make non-backend malformed
    transport payloads crash chat display.

@@ -9,8 +9,7 @@ class ThinkingEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.LLM_THOUGHT
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
-        content = self._get_required_field(event_dict, "content", "ThinkingEvent", msg_id)
+        content = self._get_required_field(event.content, "content", "ThinkingEvent", msg_id)
         if content is None:
             return None
 

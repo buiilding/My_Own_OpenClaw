@@ -93,14 +93,20 @@ Output payload keys:
 - `error`
 - `before_tokens` (nullable)
 
-## Typed and Dict Event Input Parity
+## Typed Event Input Contract
 
-Formatters support both event input forms:
+Formatters consume typed compaction event attributes directly:
 
-- dataclass events (`StreamingEvent.to_dict()` path)
-- legacy dict payloads
+- `ContextCompactionStartedEventFormatter` reads `event.reason`,
+  `event.strategy`, `event.before_tokens`, and `event.projected_tokens`
+- `ContextCompactionCompletedEventFormatter` reads required lifecycle fields
+  plus optional `summary_preview` and `skipped_reason`
+- `ContextCompactionFailedEventFormatter` reads required failure fields plus
+  optional `before_tokens`
 
-Required-field lookup behavior is identical for both forms because each formatter starts with `_get_event_dict(event)`.
+There is no dict-event fallback inside formatter classes. Dict compatibility,
+if ever needed for a test helper or external producer, belongs before typed
+event construction.
 
 ## Outgoing Schema Alignment
 

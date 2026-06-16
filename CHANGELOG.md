@@ -8,6 +8,10 @@ All notable changes to WindieOS will be documented in this file.
 
 - frontend/renderer: remove the renderer-only tool correlation alias and route
   chat stream correlation through the SDK package export.
+- backend/api: remove formatter dict-event input compatibility and require typed
+  streaming event attribute extraction.
+- docs/backend: update formatter references for typed event attribute extraction
+  after dict-event conversion removal.
 - docs/sdk: clarify that sidecar daemon discovery files require canonical
   `base_url` while the public `sidecarDaemon.baseUrl` option remains client-only.
 - docs/sdk: document that Python SDK local tool execution consumes canonical

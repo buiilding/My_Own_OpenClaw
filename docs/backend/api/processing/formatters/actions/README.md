@@ -1,5 +1,5 @@
 ---
-summary: "Backend API formatter action docs sub-hub for tool-call/tool-output validation contracts and tool-bundle typed/dict parity plus payload validation behavior."
+summary: "Backend API formatter action docs sub-hub for tool-call/tool-output validation contracts and tool-bundle typed-event payload validation behavior."
 read_when:
   - When changing tool action formatter modules (`tool_call`, `tool_output`, `tool_bundle`).
   - When debugging dropped tool-call/output payloads, request-id/metadata passthrough, or tool-bundle payload validation.
@@ -11,7 +11,7 @@ title: "Backend API Formatter Action Docs Hub"
 ## Deep Pages
 
 - [Tool Call and Tool Output Formatter Validation and Metadata-Passthrough Reference](tool_call_and_tool_output_formatter_validation_and_metadata_passthrough_reference.md)
-- [Tool Bundle Formatter Typed/Dict Parity and Payload Validation Contract Reference](tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
+- [Tool Bundle Formatter Typed Event and Payload Validation Contract Reference](tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
 
 ## Related Pages
 

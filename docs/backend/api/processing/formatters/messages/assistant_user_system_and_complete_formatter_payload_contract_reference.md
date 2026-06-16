@@ -48,8 +48,8 @@ Schema expectation:
 
 `UserMessageFullEventFormatter` forwards fields without local required-field checks:
 
-- `payload.content = event_dict.get("content")`
-- `payload.metadata = event_dict.get("metadata")`
+- `payload.content = event.content`
+- `payload.metadata = event.metadata`
 
 Schema expectation:
 
@@ -58,14 +58,13 @@ Schema expectation:
 Practical contract:
 
 - typed `UserMessageFullEvent` instances should satisfy required fields upstream.
-- dict-event compatibility path can emit shape that only remains safe if upstream preserves typed-equivalent payload shape.
 
 ## System Prompt Contract
 
 `SystemPromptEventFormatter` maps:
 
-- `payload.content = event_dict.get("content")`
-- `payload.tool_schemas = event_dict.get("tool_schemas")`
+- `payload.content = event.content`
+- `payload.tool_schemas = event.tool_schemas`
 
 Tool-schema payload may be absent (`None`), matching schema optionality.
 

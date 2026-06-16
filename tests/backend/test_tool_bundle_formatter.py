@@ -19,9 +19,9 @@ def test_tool_bundle_formatter_from_event():
     assert parsed.payload.bundle_id == "b1"
 
 
-def test_tool_bundle_formatter_from_dict():
+def test_tool_bundle_formatter_from_event_with_tools():
     formatter = ToolBundleEventFormatter()
-    event = {"bundle_id": "b2", "tools": [{"name": "read_file", "args": {}}]}
+    event = ToolBundleEvent(bundle_id="b2", tools=[{"name": "read_file", "args": {}}])
 
     result = formatter.format(event, "msg-2")
 
@@ -31,8 +31,9 @@ def test_tool_bundle_formatter_from_dict():
 
 def test_tool_bundle_formatter_skips_when_fields_missing():
     formatter = ToolBundleEventFormatter()
+    event = ToolBundleEvent(bundle_id=None, tools=[])
 
-    result = formatter.format({}, "msg-3")
+    result = formatter.format(event, "msg-3")
 
     assert result is None
 
@@ -49,7 +50,7 @@ def test_tool_bundle_formatter_typed_event_with_empty_tools():
 
 def test_tool_bundle_formatter_skips_explicit_none_tools():
     formatter = ToolBundleEventFormatter()
-    event = {"bundle_id": "b-none", "tools": None}
+    event = ToolBundleEvent(bundle_id="b-none", tools=None)
 
     result = formatter.format(event, "msg-5")
 
@@ -58,7 +59,7 @@ def test_tool_bundle_formatter_skips_explicit_none_tools():
 
 def test_tool_bundle_formatter_skips_non_list_tools():
     formatter = ToolBundleEventFormatter()
-    event = {"bundle_id": "b-string", "tools": "not-a-list"}
+    event = ToolBundleEvent(bundle_id="b-string", tools="not-a-list")
 
     result = formatter.format(event, "msg-6")
 
@@ -67,7 +68,7 @@ def test_tool_bundle_formatter_skips_non_list_tools():
 
 def test_tool_bundle_formatter_skips_invalid_tool_items():
     formatter = ToolBundleEventFormatter()
-    event = {"bundle_id": "b-invalid-item", "tools": ["read_file"]}
+    event = ToolBundleEvent(bundle_id="b-invalid-item", tools=["read_file"])
 
     result = formatter.format(event, "msg-7")
 

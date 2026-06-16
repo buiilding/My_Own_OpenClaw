@@ -9,11 +9,8 @@ class ToolCallEventFormatter(EventFormatter):
     message_type = OutgoingMessageType.TOOL_CALL
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
-        event_dict = self._get_event_dict(event)
-        
-        # Validate required fields
-        tool_name = event_dict.get("tool_name")
-        parameters = event_dict.get("parameters")
+        tool_name = event.tool_name
+        parameters = event.parameters
 
         missing_fields = []
         if not tool_name:
@@ -32,11 +29,11 @@ class ToolCallEventFormatter(EventFormatter):
             "parameters": parameters,
         }
         # Include request_id if present (for remote tools to match results)
-        if event_dict.get("request_id"):
-            payload["request_id"] = event_dict.get("request_id")
+        if event.request_id:
+            payload["request_id"] = event.request_id
         # Include metadata if present (for computer-use tools: description, explanation, expectation)
-        if event_dict.get("metadata"):
-            payload["metadata"] = event_dict.get("metadata")
+        if event.metadata:
+            payload["metadata"] = event.metadata
         
         return {
             "type": self.message_type,

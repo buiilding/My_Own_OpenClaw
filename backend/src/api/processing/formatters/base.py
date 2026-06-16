@@ -4,14 +4,14 @@ Base Event Formatter.
 Abstract base class for all event formatters.
 """
 from abc import ABC, abstractmethod
-from typing import Any, ClassVar, Dict, Optional, Union
+from typing import Any, ClassVar, Optional
 
-from backend.src.core.events import AgentStreamingEvent, StreamingEvent
+from backend.src.core.events import AgentStreamingEvent
 
 logger = __import__("logging").getLogger(__name__)
 
-EventInput = Union[AgentStreamingEvent, Dict[str, Any]]
-FormattedEvent = Optional[Dict[str, Any]]
+EventInput = AgentStreamingEvent
+FormattedEvent = Optional[dict[str, Any]]
 
 
 class EventFormatter(ABC):
@@ -25,29 +25,21 @@ class EventFormatter(ABC):
         Format an event into a WebSocket response.
 
         Args:
-            event: Event object (typed or dict) from agent
+            event: Typed event object from agent
             msg_id: Message ID for response
 
         Returns:
             Formatted response dictionary or None if event should be skipped
         """
         pass
-    
-    def _get_event_dict(self, event: EventInput) -> Dict[str, Any]:
-        """Convert event to dict if it's a typed event."""
-        if isinstance(event, StreamingEvent):
-            return event.to_dict()
-        return event
-
     def _get_required_field(
         self,
-        event_dict: Dict[str, Any],
+        value: Any,
         field_name: str,
         event_name: str,
         msg_id: str,
     ) -> Any:
         """Return a required field value, logging and returning None if missing."""
-        value = event_dict.get(field_name)
         if value is None:
             logger.warning(
                 "%s missing required field '%s'. Skipping format (msg_id=%s)",

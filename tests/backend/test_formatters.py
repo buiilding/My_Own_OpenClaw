@@ -1,6 +1,5 @@
 """Tests for API processing formatters."""
 import pytest
-from unittest.mock import MagicMock, patch
 
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.api.processing.formatters.chunk import ChunkEventFormatter
@@ -30,30 +29,16 @@ from backend.src.core.events.streaming_events import (
 class TestEventFormatterBase:
     """Tests for EventFormatter base class."""
 
-    def test_get_event_dict_with_dict(self):
+    def test_get_required_field_returns_present_value(self):
         class TestFormatter(EventFormatter):
             def format(self, event, msg_id):
-                return self._get_event_dict(event)
+                return self._get_required_field("value", "field", "TestEvent", msg_id)
         
         formatter = TestFormatter()
-        event_dict = {"key": "value"}
         
-        result = formatter.format(event_dict, "msg-123")
+        result = formatter.format(ChunkEvent(content="ignored"), "msg-123")
         
-        assert result == event_dict
-
-    def test_get_event_dict_with_streaming_event(self):
-        class TestFormatter(EventFormatter):
-            def format(self, event, msg_id):
-                return self._get_event_dict(event)
-        
-        formatter = TestFormatter()
-        event = ChunkEvent(content="test content")
-        
-        result = formatter.format(event, "msg-123")
-        
-        assert result["type"] == "streaming-response"
-        assert result["content"] == "test content"
+        assert result == "value"
 
 
 class TestChunkEventFormatter:
@@ -64,7 +49,7 @@ class TestChunkEventFormatter:
         return ChunkEventFormatter()
 
     def test_format_success(self, formatter):
-        event = {"type": "streaming-response", "content": "Hello world"}
+        event = ChunkEvent(content="Hello world")
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -76,11 +61,10 @@ class TestChunkEventFormatter:
         }
 
     def test_format_with_none_content(self, formatter):
-        event = {"type": "streaming-response", "content": None}
+        event = ChunkEvent(content=None)
         msg_id = "msg-123"
         
-        with patch.object(formatter, "_get_event_dict", return_value=event):
-            result = formatter.format(event, msg_id)
+        result = formatter.format(event, msg_id)
         
         assert result is None
 
@@ -105,7 +89,7 @@ class TestAssistantMessageFullEventFormatter:
         return AssistantMessageFullEventFormatter()
 
     def test_format_success(self, formatter):
-        event = {"type": "assistant-message-full", "content": "Full message"}
+        event = AssistantMessageFullEventClass(content="Full message")
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -117,11 +101,10 @@ class TestAssistantMessageFullEventFormatter:
         }
 
     def test_format_with_none_content(self, formatter):
-        event = {"type": "assistant-message-full", "content": None}
+        event = AssistantMessageFullEventClass(content=None)
         msg_id = "msg-123"
         
-        with patch.object(formatter, "_get_event_dict", return_value=event):
-            result = formatter.format(event, msg_id)
+        result = formatter.format(event, msg_id)
         
         assert result is None
 
@@ -134,7 +117,7 @@ class TestStreamingCompleteEventFormatter:
         return StreamingCompleteEventFormatter()
 
     def test_format(self, formatter):
-        event = {"type": "complete", "final_response": "done"}
+        event = StreamingCompleteEventClass(final_response="done")
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -146,7 +129,7 @@ class TestStreamingCompleteEventFormatter:
         }
 
     def test_format_with_empty_event(self, formatter):
-        result = formatter.format({}, "msg-123")
+        result = formatter.format(StreamingCompleteEventClass(), "msg-123")
         
         assert result == {
             "type": "streaming-complete",
@@ -174,7 +157,7 @@ class TestErrorEventFormatter:
         return ErrorEventFormatter()
 
     def test_format_with_content(self, formatter):
-        event = {"type": "error", "content": "Error message"}
+        event = ErrorEventClass(content="Error message")
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -188,7 +171,7 @@ class TestErrorEventFormatter:
         }
 
     def test_format_with_details(self, formatter):
-        event = {"type": "error", "content": "Error message", "details": "Stack trace"}
+        event = ErrorEventClass(content="Error message")
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -197,7 +180,7 @@ class TestErrorEventFormatter:
         assert "content" not in result["payload"]
 
     def test_format_with_empty_content(self, formatter):
-        event = {"type": "error"}
+        event = ErrorEventClass(content="")
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -205,29 +188,28 @@ class TestErrorEventFormatter:
         assert result["payload"]["message"] == INTERNAL_SERVER_ERROR_MESSAGE
 
     def test_format_preserves_rate_limit_message(self, formatter):
-        event = {"type": "error", "content": "Rate limit exceeded. Please wait."}
+        event = ErrorEventClass(content="Rate limit exceeded. Please wait.")
 
         result = formatter.format(event, "msg-456")
 
         assert result["payload"]["message"] == "Rate limit exceeded. Please wait."
 
     def test_format_preserves_openai_responses_empty_stream_message(self, formatter):
-        event = {"type": "error", "content": OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE}
+        event = ErrorEventClass(content=OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE)
 
         result = formatter.format(event, "msg-openai-empty")
 
         assert result["payload"]["message"] == OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE
 
     def test_format_preserves_structured_metadata(self, formatter):
-        event = {
-            "type": "error",
-            "content": "LLM error",
-            "metadata": {
+        event = ErrorEventClass(
+            content="LLM error",
+            metadata={
                 "stream_failed": True,
                 "partial_response_emitted": True,
                 "discard_partial_response": True,
             },
-        }
+        )
 
         result = formatter.format(event, "msg-789")
 
@@ -246,7 +228,7 @@ class TestThinkingEventFormatter:
         return ThinkingEventFormatter()
 
     def test_format_success(self, formatter):
-        event = {"type": "thinking", "content": "Thinking about..."}
+        event = ThinkingEvent(content="Thinking about...")
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -258,11 +240,10 @@ class TestThinkingEventFormatter:
         }
 
     def test_format_with_none_content(self, formatter):
-        event = {"type": "thinking", "content": None}
+        event = ThinkingEvent(content=None)
         msg_id = "msg-123"
         
-        with patch.object(formatter, "_get_event_dict", return_value=event):
-            result = formatter.format(event, msg_id)
+        result = formatter.format(event, msg_id)
         
         assert result is None
 
@@ -275,11 +256,7 @@ class TestToolCallEventFormatter:
         return ToolCallEventFormatter()
 
     def test_format_success(self, formatter):
-        event = {
-            "type": "tool_call",
-            "tool_name": "read_file",
-            "parameters": {"path": "/test.txt"},
-        }
+        event = ToolCallEventClass(tool_name="read_file", parameters={"path": "/test.txt"})
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -294,12 +271,11 @@ class TestToolCallEventFormatter:
         }
 
     def test_format_with_request_id(self, formatter):
-        event = {
-            "type": "tool_call",
-            "tool_name": "read_file",
-            "parameters": {"path": "/test.txt"},
-            "request_id": "req-456",
-        }
+        event = ToolCallEventClass(
+            tool_name="read_file",
+            parameters={"path": "/test.txt"},
+            request_id="req-456",
+        )
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -307,12 +283,11 @@ class TestToolCallEventFormatter:
         assert result["payload"]["request_id"] == "req-456"
 
     def test_format_with_metadata(self, formatter):
-        event = {
-            "type": "tool_call",
-            "tool_name": "click",
-            "parameters": {"x": 100, "y": 200},
-            "metadata": {"description": "Click button"},
-        }
+        event = ToolCallEventClass(
+            tool_name="click",
+            parameters={"x": 100, "y": 200},
+            metadata={"description": "Click button"},
+        )
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -320,10 +295,7 @@ class TestToolCallEventFormatter:
         assert result["payload"]["metadata"] == {"description": "Click button"}
 
     def test_format_missing_tool_name(self, formatter):
-        event = {
-            "type": "tool_call",
-            "parameters": {"path": "/test.txt"},
-        }
+        event = ToolCallEventClass(tool_name=None, parameters={"path": "/test.txt"})
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -331,10 +303,7 @@ class TestToolCallEventFormatter:
         assert result is None
 
     def test_format_missing_parameters(self, formatter):
-        event = {
-            "type": "tool_call",
-            "tool_name": "read_file",
-        }
+        event = ToolCallEventClass(tool_name="read_file", parameters=None)
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -342,11 +311,7 @@ class TestToolCallEventFormatter:
         assert result is None
 
     def test_format_empty_tool_name(self, formatter):
-        event = {
-            "type": "tool_call",
-            "tool_name": "",
-            "parameters": {"path": "/test.txt"},
-        }
+        event = ToolCallEventClass(tool_name="", parameters={"path": "/test.txt"})
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -355,11 +320,7 @@ class TestToolCallEventFormatter:
 
     def test_format_empty_parameters(self, formatter):
         # Empty args object is valid for tools that have no required args.
-        event = {
-            "type": "tool_call",
-            "tool_name": "read_file",
-            "parameters": {},
-        }
+        event = ToolCallEventClass(tool_name="read_file", parameters={})
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -373,11 +334,7 @@ class TestToolCallEventFormatter:
         }
 
     def test_format_invalid_parameters_type(self, formatter):
-        event = {
-            "type": "tool_call",
-            "tool_name": "read_file",
-            "parameters": "not-a-dict",
-        }
+        event = ToolCallEventClass(tool_name="read_file", parameters="not-a-dict")
         msg_id = "msg-123"
 
         result = formatter.format(event, msg_id)
@@ -416,7 +373,10 @@ class TestWebSearchProgressEventFormatter:
         }
 
     def test_format_skips_blank_text(self, formatter):
-        assert formatter.format({"text": "   "}, "msg-search-blank") is None
+        assert formatter.format(
+            WebSearchProgressEventClass(text="   "),
+            "msg-search-blank",
+        ) is None
 
 
 class TestToolOutputEventFormatter:
@@ -426,15 +386,14 @@ class TestToolOutputEventFormatter:
     def formatter(self):
         return ToolOutputEventFormatter()
 
-    def test_format_success_with_dict_event(self, formatter):
-        event = {
-            "type": "tool_output",
-            "tool_name": "read_file",
-            "success": True,
-            "output": "file contents",
-            "execution_time": 0.12,
-            "metadata": {"source": "sidecar"},
-        }
+    def test_format_success(self, formatter):
+        event = ToolOutputEventClass(
+            tool_name="read_file",
+            success=True,
+            output="file contents",
+            execution_time=0.12,
+            metadata={"source": "sidecar"},
+        )
 
         result = formatter.format(event, "msg-1")
 
@@ -448,7 +407,6 @@ class TestToolOutputEventFormatter:
                 "output": "file contents",
                 "error": None,
                 "screenshot": None,
-                "screenshot_ref": None,
                 "metadata": {"source": "sidecar"},
             },
         }
@@ -471,43 +429,23 @@ class TestToolOutputEventFormatter:
             "output": "",
             "error": "Element not found",
             "screenshot": "artifact://shot-1",
-            "screenshot_ref": None,
             "metadata": None,
         }
 
-    def test_format_preserves_screenshot_ref(self, formatter):
-        event = {
-            "type": "tool_output",
-            "tool_name": "mouse_control",
-            "success": True,
-            "output": "clicked",
-            "screenshot_ref": "artifact-shot-1",
-        }
-
-        result = formatter.format(event, "msg-3")
-
-        assert result["payload"]["screenshot_ref"] == "artifact-shot-1"
-
     def test_format_preserves_null_output_payload(self, formatter):
-        event = {
-            "type": "tool_output",
-            "tool_name": "noop",
-            "success": True,
-            "output": None,
-        }
+        event = ToolOutputEventClass(tool_name="noop", success=True, output=None)
 
         result = formatter.format(event, "msg-null")
 
         assert result["payload"]["output"] is None
 
     def test_format_preserves_metadata_request_id_for_frontend_correlation_fallback(self, formatter):
-        event = {
-            "type": "tool_output",
-            "tool_name": "read_file",
-            "success": True,
-            "output": "ok",
-            "metadata": {"request_id": "meta-corr-1", "origin": "sidecar"},
-        }
+        event = ToolOutputEventClass(
+            tool_name="read_file",
+            success=True,
+            output="ok",
+            metadata={"request_id": "meta-corr-1", "origin": "sidecar"},
+        )
 
         result = formatter.format(event, "msg-4")
 
@@ -519,9 +457,14 @@ class TestToolOutputEventFormatter:
     @pytest.mark.parametrize(
         "event,missing_field",
         [
-            ({"success": True, "output": "ok"}, "tool_name"),
-            ({"tool_name": "read_file", "output": "ok"}, "success"),
-            ({"tool_name": "read_file", "success": True}, "output"),
+            (
+                ToolOutputEventClass(tool_name=None, success=True, output="ok"),
+                "tool_name",
+            ),
+            (
+                ToolOutputEventClass(tool_name="read_file", success=None, output="ok"),
+                "success",
+            ),
         ],
     )
     def test_format_missing_required_fields_returns_none_and_logs_warning(

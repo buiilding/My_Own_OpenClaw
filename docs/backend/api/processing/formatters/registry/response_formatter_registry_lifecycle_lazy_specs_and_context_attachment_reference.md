@@ -139,7 +139,7 @@ When adding a new event formatter:
 1. add tuple to `get_formatter_specs()`
 2. set formatter class `message_type` to the canonical outgoing message type constant
 3. add/extend formatter output schema contract tests
-4. add typed and dict-path dispatch tests when compatibility is required
+4. add typed dispatch and formatter-output tests for the new event class
 
 When changing context behavior:
 

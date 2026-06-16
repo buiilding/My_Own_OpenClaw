@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for shared EventFormatter utilities: typed/dict conversion, required-field guard helpers, and formatter-level skip-vs-raise behavior across event classes."
+summary: "Deep reference for shared EventFormatter utilities: typed event inputs, required-field guard helpers, removed dict-event conversion, and formatter-level skip-vs-raise behavior across event classes."
 read_when:
   - When adding a new formatter class and choosing validation behavior.
   - When debugging warnings like missing required fields and dropped outbound messages.
+  - When resolving stale `_get_event_dict`, dict formatter input, or `StreamingEvent.to_dict()` formatter conversion references; formatter classes consume typed event attributes directly.
 title: "Base Formatter Guard Utilities and Skip Semantics Reference"
 ---
 
@@ -24,10 +25,7 @@ title: "Base Formatter Guard Utilities and Skip Semantics Reference"
 
 `EventFormatter` provides shared helpers:
 
-- `_get_event_dict(event)`:
-  - if `StreamingEvent` typed object, returns `event.to_dict()`
-  - if `dict`, returns input as-is
-- `_get_required_field(event_dict, field_name, event_name, msg_id)`:
+- `_get_required_field(value, field_name, event_name, msg_id)`:
   - returns field value when non-`None`
   - logs warning and returns `None` when missing
 - `_log_missing_fields(event_name, missing_fields, msg_id)`:
@@ -36,6 +34,7 @@ title: "Base Formatter Guard Utilities and Skip Semantics Reference"
 Design intent:
 
 - formatter classes stay thin
+- each formatter reads typed event attributes directly
 - missing-data behavior is consistent and visible in logs
 
 ## Skip Semantics (`None` Return)
@@ -51,7 +50,7 @@ Skip-based formatters include:
 - `ThinkingEventFormatter` (`content` required)
 - `AssistantMessageFullEventFormatter` (`content` required)
 - `ToolCallEventFormatter` (`tool_name` + dict `parameters` required)
-- `ToolOutputEventFormatter` (`tool_name`, `success`, `output` must be non-`None`)
+- `ToolOutputEventFormatter` (`tool_name` and `success` must be non-`None`)
 
 ## Raise Semantics (Hard Validation)
 
@@ -66,9 +65,14 @@ Reason:
 
 ## Typed Input Behavior
 
-The top-level response formatter dispatches typed `StreamingEvent` subclasses from the agent runtime.
+The top-level response formatter dispatches typed `AgentStreamingEvent`
+subclasses from the agent runtime. Formatter classes no longer normalize dict
+payloads through `_get_event_dict`, and they no longer call
+`StreamingEvent.to_dict()` before field extraction.
 
-Some low-level formatter unit tests still call formatter classes directly with mapping-shaped fixtures, but production dispatch should not rely on dict event payloads.
+Low-level formatter tests should construct typed events. Dict-shaped fixture
+compatibility belongs at the event producer or test helper boundary, not inside
+formatter classes.
 
 `ResponseFormatter` dispatch order:
 
@@ -114,7 +118,8 @@ If an expected websocket event disappears:
 1. confirm formatter route exists in `formatter_specs`
 2. inspect logs for required-field warnings
 3. confirm formatter returns payload instead of `None`
-4. confirm event is typed correctly or dict `type` matches route key
+4. confirm the event is a typed `AgentStreamingEvent` subclass with the
+   attributes that formatter reads
 
 If strict formatter errors bubble up:
 
