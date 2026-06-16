@@ -178,7 +178,7 @@ function mergePendingOptimisticUserMessages(
   return merged;
 }
 
-export function mergeRendererAnnotations(
+function mergeRendererAnnotations(
   sdkMessages: ChatMessage[],
   currentMessages: ChatMessage[],
 ): ChatMessage[] {

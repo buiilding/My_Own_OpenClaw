@@ -2,8 +2,14 @@
  * Covers conversation runtime projection stream transcript merging.
  */
 
-import { mergeRendererAnnotations } from '../../frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream';
+import { act } from '@testing-library/react';
+import {
+  registerBackendAndProjectionListeners,
+  resetChatStreamTestState,
+  setMockActiveConversationRef,
+} from './ChatStreamThinkingStatus.testUtils';
 import type { ChatMessage } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
   return {
@@ -14,7 +20,12 @@ function message(overrides: Partial<ChatMessage>): ChatMessage {
   };
 }
 
-describe('mergeRendererAnnotations', () => {
+describe('useConversationRuntimeProjectionStream display row merging', () => {
+  beforeEach(() => {
+    resetChatStreamTestState();
+    setMockActiveConversationRef('conv-1');
+  });
+
   test('preserves optimistic user row while sdk rows have not projected that user turn', () => {
     const optimisticUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
@@ -25,19 +36,40 @@ describe('mergeRendererAnnotations', () => {
       sourceChannel: 'renderer-local',
       isComplete: true,
     });
-    const sdkToolRow = message({
-      id: 'tool-row',
-      sender: 'assistant',
-      text: 'Reading files',
-      type: 'tool-call',
-      turnRef: 'turn-1',
-      sourceEventType: 'tool_call',
-      sourceChannel: 'windie:rows',
+    useChatStore.getState().setMessages([optimisticUser], 'conv-1');
+    const { emitDisplayRows } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      emitDisplayRows([{
+        id: 'tool-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          id: 'call-1',
+          name: 'read_file',
+          arguments: {
+            path: 'CHANGELOG.md',
+          },
+        },
+        metadata: {
+          toolName: 'read_file',
+          requestId: 'request-1',
+        },
+      }]);
     });
 
-    expect(mergeRendererAnnotations([sdkToolRow], [optimisticUser])).toEqual([
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
       optimisticUser,
-      sdkToolRow,
+      expect.objectContaining({
+        id: 'tool-row',
+        sender: 'assistant',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+        sourceEventType: 'tool_call',
+      }),
     ]);
   });
 
@@ -51,18 +83,35 @@ describe('mergeRendererAnnotations', () => {
       sourceChannel: 'renderer-local',
       isComplete: true,
     });
-    const sdkUserRow = message({
-      id: 'turn-1-sdk-evt-000002-user_message',
-      sender: 'user',
-      text: 'inspect recent commits',
-      turnRef: 'turn-1',
-      sourceEventType: 'user_message',
-      sourceChannel: 'windie:rows',
-      isComplete: true,
+
+    useChatStore.getState().setMessages([optimisticUser], 'conv-1');
+    const { emitDisplayRows } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      emitDisplayRows([{
+        id: 'turn-1-sdk-evt-000002-user_message',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'inspect recent commits',
+      }]);
     });
 
-    expect(mergeRendererAnnotations([sdkUserRow], [optimisticUser])).toEqual([
-      sdkUserRow,
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
+      expect.objectContaining({
+        id: 'turn-1-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'inspect recent commits',
+        isComplete: true,
+      }),
     ]);
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages[0]).not.toEqual(
+      expect.objectContaining({
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+      }),
+    );
   });
 });
