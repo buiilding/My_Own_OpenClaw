@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the wakeword bridge window-sendability predicate private
+  behind wakeword event/status emission helpers.
 - frontend/main: keep chat-pill visibility reasons and visibility-decision
   logging helpers private to the surface runtime.
 - frontend/main: keep the response-overlay preflight guard predicate private to

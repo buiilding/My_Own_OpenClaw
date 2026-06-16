@@ -130,7 +130,6 @@ function normalizeAudioChunk(audioData) {
 }
 
 module.exports = {
-  canSendToWakewordWindow,
   emitWakewordEvent,
   emitWakewordStatus,
   handleWakewordStderrLine,
