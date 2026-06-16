@@ -103,6 +103,10 @@ When attachment(s) exist:
      - main-process session snapshot (`get-client-user-id`) conversation ref
      - generated new ref (only when all three are missing)
    - snapshot projection into transcript/chat state is centralized in `conversationSessionRuntime.ts`
+   - callers use the exported session APIs (`ensureConversationRefForSend(...)`,
+     `hydrateConversationSessionFromMainSnapshot(...)`, and
+     `resolveRendererConversationSessionSnapshot(...)`); main-session snapshot
+     normalization and send-resolution helpers stay private to that module.
 4. run send-surface preflight only (`prime-response-overlay-awaiting` and
    optional return-to-chatbox window policy).
 5. build typed SDK turn resources:
