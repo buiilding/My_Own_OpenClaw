@@ -50,7 +50,7 @@ def init_event_bus(session, event_bus: Optional[EventBus]) -> None:
     session.event_bus = event_bus
 
 
-def init_executor(session, ocr_service) -> None:
+def init_executor(session) -> None:
     from backend.src.agent.execution.executor import AgentExecutor
 
     session.executor = AgentExecutor(
@@ -58,7 +58,6 @@ def init_executor(session, ocr_service) -> None:
         llm_client=session.llm_client,
         tool_orchestrator=session.tool_orchestrator,
         prompt_constructor=session.prompt_builder,
-        ocr_service=ocr_service,
         event_bus=session.event_bus,
     )
 

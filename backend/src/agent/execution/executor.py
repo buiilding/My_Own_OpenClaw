@@ -49,7 +49,6 @@ from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +65,6 @@ class AgentExecutor:
         llm_client: LLMClient,
         tool_orchestrator: ToolResultOrchestrator,
         prompt_constructor: PromptConstructor,
-        ocr_service: Optional["OcrService"],
         event_bus: EventBus,
     ):
         self.session = session
@@ -74,8 +72,6 @@ class AgentExecutor:
         self.tool_orchestrator = tool_orchestrator
         self.prompt_builder = prompt_constructor
         self.event_bus = event_bus
-
-        self.ocr_service = ocr_service
 
         # Initialize specialized components for SRP
         conversation_context = ConversationContext(

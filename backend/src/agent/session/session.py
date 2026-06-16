@@ -168,7 +168,7 @@ class AgentSession:
         init_event_bus(self, event_bus)
         self.ocr_router = ocr_service
         self.ocr_service = ocr_service
-        init_executor(self, self.ocr_service)
+        init_executor(self)
         init_session_state(self)
 
         # Initialize tool result handler after executor creation.

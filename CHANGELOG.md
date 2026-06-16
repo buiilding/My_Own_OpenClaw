@@ -10,6 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   runtime command contract.
 - frontend/renderer: remove the renderer-only tool correlation alias and route
   chat stream correlation through the SDK package export.
+- backend/agent: remove unused OCR service plumbing from `AgentExecutor`
+  construction.
 - backend/core: require `ConfigurationService.update_config()` for container
   config updates and remove the direct `ConfigManager` fallback.
 - backend/tools: require the session `ocr_router` path for screenshot OCR

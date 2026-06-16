@@ -126,7 +126,6 @@ def test_init_executor_passes_expected_dependencies(monkeypatch):
             llm_client,
             tool_orchestrator,
             prompt_constructor,
-            ocr_service,
             event_bus,
         ):
             captured.update(
@@ -135,12 +134,14 @@ def test_init_executor_passes_expected_dependencies(monkeypatch):
                     "llm_client": llm_client,
                     "tool_orchestrator": tool_orchestrator,
                     "prompt_constructor": prompt_constructor,
-                    "ocr_service": ocr_service,
                     "event_bus": event_bus,
                 }
             )
 
-    monkeypatch.setattr(initializer, "AgentExecutor", DummyExecutor)
+    monkeypatch.setattr(
+        "backend.src.agent.execution.executor.AgentExecutor",
+        DummyExecutor,
+    )
 
     session = SimpleNamespace(
         llm_client=object(),
@@ -148,13 +149,10 @@ def test_init_executor_passes_expected_dependencies(monkeypatch):
         prompt_builder=object(),
         event_bus=object(),
     )
-    ocr_service = object()
-
-    init_executor(session, ocr_service)
+    init_executor(session)
 
     assert isinstance(session.executor, DummyExecutor)
     assert captured["session"] is session
-    assert captured["ocr_service"] is ocr_service
     assert captured["llm_client"] is session.llm_client
     assert captured["tool_orchestrator"] is session.tool_orchestrator
     assert captured["prompt_constructor"] is session.prompt_builder
