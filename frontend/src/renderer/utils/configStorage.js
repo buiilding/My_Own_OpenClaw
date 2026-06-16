@@ -231,7 +231,7 @@ function buildFrontendConfig(overrides = {}) {
   };
 }
 
-export function stripProviderSecretsForConfigPersistence(config) {
+function stripProviderSecretsForConfigPersistence(config) {
   const normalized = buildFrontendConfig(config);
   const providerApiKeys = {};
   for (const [provider, entry] of Object.entries(normalized.provider_api_keys)) {

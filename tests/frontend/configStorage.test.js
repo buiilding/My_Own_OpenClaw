@@ -22,6 +22,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   agent_custom_instructions: '',
   agent_disabled_local_tools: [],
   agent_disabled_remote_tools: [],
+  agent_enabled_mcp_servers: [],
   browser_automation_enabled: false,
   global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
   include_query_screenshot: true,
