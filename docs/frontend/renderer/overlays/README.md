@@ -28,7 +28,6 @@ title: "Frontend Renderer Overlay Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`

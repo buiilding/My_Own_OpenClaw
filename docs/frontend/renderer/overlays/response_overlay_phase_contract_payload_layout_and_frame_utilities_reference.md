@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, payload normalization rules, layout-mode resolution, and frame-size measurement semantics."
+summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, layout-mode resolution, and frame-size measurement semantics."
 read_when:
   - When changing files under `frontend/src/renderer/features/chat/utils/overlay/*`.
   - When debugging overlay phase payload drops, renderer/main phase-contract drift, or response overlay sizing regressions.
@@ -16,13 +16,11 @@ title: "Response Overlay Utility Contract Reference"
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `tests/frontend/ResponseOverlayPhaseContract.test.js`
 - `tests/frontend/OverlayPhaseContractParity.test.js`
-- `tests/frontend/ResponseOverlayPhasePayload.test.js`
 - `tests/frontend/ResponseOverlayLayoutMode.test.js`
 - `tests/frontend/OverlayFrameSize.test.js`
 
@@ -36,31 +34,24 @@ Renderer contract adapter:
 
 - `responseOverlayPhaseContract.js` reads JSON phases/metadata keys and derives:
   - `RESPONSE_OVERLAY_PHASE` enum object (`IDLE`, `AWAITING_FIRST_CHUNK`, `STREAMING`, `TOOL_CALL`, `TOOL_OUTPUT`, `COMPLETE`, `ERROR`)
-  - `RESPONSE_OVERLAY_METADATA_KEYS`
-  - validators/normalizers (`isResponseOverlayPhase`, string/number normalization helpers)
+  - preflight source and guard-ref constants used by renderer awaiting handoff
 
 Main-process parity:
 
 - `ipc_overlay_phase_contract.cjs` consumes the same JSON and generates parallel phase/metadata structures.
 - parity tests enforce renderer and main stay in lockstep (`OverlayPhaseContractParity.test.js`).
 
-## Payload Parse Contract
+## Phase Payload Boundary
 
-`parseResponseOverlayPhasePayload(payload)` rules:
-
-1. reject non-object payloads and arrays
-2. normalize `phase` with trim semantics
-3. reject unknown phase values via `isResponseOverlayPhase(...)`
-4. normalize optional fields:
-  - string fields (`source`, `correlation_id`, `recovery_stage`, `failure_reason`) -> trimmed string or `undefined`
-  - numeric fields (`attempt`, `max_attempts`) -> finite number or `undefined`
-5. return normalized payload object or `null`
-
-Result: renderer utilities can validate phase payload shape for parity, but
-React chat surfaces do not subscribe to phase IPC for active runtime state.
-Dashboard, minimal pill, and response overlay render from SDK
+React chat surfaces do not parse generic phase IPC payloads for active runtime
+state. Dashboard, minimal pill, and response overlay render from SDK
 `currentTurnProjection`; main-process overlay phase remains a native
-window/layout signal.
+window/layout and diagnostics signal.
+
+Payload validation for native phase events belongs to Electron main phase
+state/events plus the shared JSON-backed contract. Renderer utility tests should
+cover phase identity parity, lifecycle mapping, layout modes, and frame-size
+measurement, not a second renderer payload parser.
 
 ## Turn Lifecycle Contract
 

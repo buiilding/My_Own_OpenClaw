@@ -1,7 +1,6 @@
 /** @jest-environment node */
 
 import {
-  RESPONSE_OVERLAY_METADATA_KEYS as rendererMetadataKeys,
   RESPONSE_OVERLAY_PHASE as rendererPhaseEnum,
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF as rendererPreflightGuardRef,
   RESPONSE_OVERLAY_PREFLIGHT_SOURCE as rendererPreflightSource,
@@ -9,7 +8,6 @@ import {
 
 const {
   createResponseOverlayPhaseEnum,
-  RESPONSE_OVERLAY_METADATA_KEYS: mainMetadataKeys,
   RESPONSE_OVERLAY_PHASES: mainPhaseSet,
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF: mainPreflightGuardRef,
   RESPONSE_OVERLAY_PREFLIGHT_SOURCE: mainPreflightSource,
@@ -18,10 +16,6 @@ const {
 describe('overlay phase contract parity', () => {
   test('keeps renderer and main phase sequence in lockstep', () => {
     expect(Array.from(mainPhaseSet)).toEqual(Object.values(rendererPhaseEnum));
-  });
-
-  test('keeps renderer and main metadata keys in lockstep', () => {
-    expect(mainMetadataKeys).toEqual(rendererMetadataKeys);
   });
 
   test('keeps renderer and main phase enum mapping in lockstep', () => {

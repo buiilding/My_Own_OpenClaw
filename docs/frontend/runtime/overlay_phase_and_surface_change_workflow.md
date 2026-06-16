@@ -51,7 +51,7 @@ rather than the React component that happens to render the symptom.
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
 | Add, remove, or rename an overlay phase | `frontend/src/shared/response_overlay_phase_contract.json`, `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js` | `tests/frontend/OverlayPhaseContractParity.test.js`, `tests/frontend/IpcOverlayPhaseContract.test.cjs`, `tests/frontend/ResponseOverlayPhaseContract.test.js` |
-| Phase event is ignored, malformed, or loses metadata | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/ResponseOverlayPhasePayload.test.js` |
+| Phase event is ignored, malformed, or loses metadata | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/shared/response_overlay_phase_contract.json` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/OverlayPhaseContractParity.test.js` |
 | Response overlay window shows/hides at wrong time | `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/surfaces/response_overlay_visibility_policy.cjs`, `frontend/src/main/surfaces/overlay_responsebox_handler.cjs` | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/ResponseOverlayVisibilityPolicy.test.cjs`, `tests/frontend/OverlayResponseboxHandler.test.cjs` |
 | Chat pill click-through or focusability is wrong | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/sdk/tool_surface_lifecycle.cjs`, `frontend/src/main/surfaces/overlay_chatbox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx` | `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/OverlayChatboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Response overlay click-through or close/scroll hit-testing is wrong | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/surfaces/overlay_responsebox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx` | `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/OverlayResponseboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
@@ -246,7 +246,7 @@ Phase contract or payload change:
 
 - `cd frontend && npm run test -- OverlayPhaseContractParity`
 - `cd frontend && npm run test -- IpcOverlayPhaseContract`
-- `cd frontend && npm run test -- ResponseOverlayPhasePayload`
+- `cd frontend && npm run test -- IpcOverlayPhaseState IpcOverlayPhaseEvents`
 
 Main-process phase/window policy change:
 

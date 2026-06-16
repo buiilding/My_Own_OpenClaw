@@ -62,6 +62,7 @@ Date: 2026-06-15
 | CD-029 | Renderer selector and trace helpers | `selectChatBoxState(...)`, `logRendererStreamTrace(...)`, debug trace predicates, and `CHAT_PILL_SURFACE_REASON` remained exported after their production consumers moved to current live-turn/view-model paths or internal calls | Knip reported the exports unused; repo search showed `selectChatBoxState(...)` and `logRendererStreamTrace(...)` had no production consumers, while the remaining trace predicates/constants are internal implementation details | Delete the dead selector and stream trace function; make the still-used trace predicates and chat-pill reason constant private to their modules | implemented |
 | CD-030 | Renderer message screenshot helpers | `resolveMessageScreenshotSrcList(...)` and `resolveMessageScreenshotSrc(...)` stayed exported after screenshot rendering moved to attachment normalization plus async artifact resolution | Knip reported both exports unused; repo search showed they were imported only by tests, while production uses `resolveMessageScreenshotAttachments(...)`, `resolveStaticScreenshotAttachmentSrc(...)`, and screenshot predicates | Delete the test-only source helpers and the dedicated first-source test; move useful assertions onto production-used attachment/static resolver APIs | implemented |
 | CD-031 | Renderer resolved screenshot cache | `clearResolvedArtifactImageCache(...)` exported a cache reset solely for tests while production screenshot artifact resolution should own its cache internally | Knip reported the export unused; repo search showed only `MessageContent.test.jsx` imported it, and the tests already use unique artifact refs for cache-sensitive cases | Delete the test-only cache reset export and let tests exercise artifact resolution through normal component rendering | implemented |
+| CD-032 | Renderer response-overlay phase payload parser | `responseOverlayPhasePayload.js` preserved a renderer parser for generic overlay phase IPC payloads, plus parser-only metadata/normalizer exports in `responseOverlayPhaseContract.js`, after React chat surfaces stopped subscribing to phase IPC for runtime state | Knip reported the parser and parser-dependent exports unused; repo search showed the parser file was imported only by its own test, while docs still incorrectly called it canonical | Delete the orphan parser, parser-only contract exports, and parser-only tests; update overlay docs to route phase payload validation to Electron main phase state/events and shared phase-contract parity | implemented |
 
 ## Commit Ledger
 
@@ -123,6 +124,7 @@ Date: 2026-06-15
   completed CD-030.
 - `7f4ad40e5 refactor(frontend): keep screenshot cache internal`
   completed CD-031.
+- pending commit for CD-032.
 
 ## Validation Log
 
@@ -467,6 +469,23 @@ CD-031 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this removes a test-only renderer export and leaves artifact-image
   cache lifetime internal to the hook module.
+
+CD-032 validation:
+
+- targeted `rg -n "responseOverlayPhasePayload\\.js|parseResponseOverlayPhasePayload|tests/frontend/ResponseOverlayPhasePayload|cd frontend && npm run test -- ResponseOverlayPhasePayload|RESPONSE_OVERLAY_METADATA_KEYS as rendererMetadataKeys|isResponseOverlayPhase|normalizeResponseOverlayString|normalizeResponseOverlayNumber" frontend/src/renderer tests/frontend docs/frontend docs/plans/2026-06-15-codebase-compatibility-deletion-report.md --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no production, test, or current-doc matches; remaining hit is this cleanup
+  report entry.
+- `bin/windie test frontend -- OverlayPhaseContractParity ResponseOverlayPhaseContract IpcOverlayPhaseContract IpcOverlayPhaseState IpcOverlayPhaseEvents ResponseOverlayLayoutMode OverlayFrameSize ChatBoxResponse`:
+  passed, 10 suites and 66 tests. Existing renderer live-surface trace logs
+  were emitted by the `ChatBoxResponse` suite.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 212 to
+  211 and the CD-032 parser/normalizer exports no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes a renderer-only parser and leaves native phase payload
+  validation with Electron main/shared phase contracts.
 
 ## Inspection Notes
 

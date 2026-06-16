@@ -22,7 +22,6 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayViewContract.ts`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
@@ -72,9 +71,8 @@ Closeability:
 
 SDK current-turn channel: `windie:current-turn`.
 
-Payload normalization boundary:
+Phase ownership boundary:
 
-- `responseOverlayPhasePayload.parseResponseOverlayPhasePayload(...)` is the canonical parser for phase + recovery metadata (`correlation_id`, `attempt`, `max_attempts`, `recovery_stage`, `failure_reason`).
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
   changes for runtime state. The response overlay renderer has one narrow
   exception: `awaiting-first-chunk` with source `renderer-send-preflight`

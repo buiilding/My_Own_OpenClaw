@@ -8,10 +8,6 @@ const RESPONSE_OVERLAY_PHASES = Object.freeze(
   [...(responseOverlayPhaseContract?.phases || [])],
 );
 
-export const RESPONSE_OVERLAY_METADATA_KEYS = Object.freeze(
-  [...(responseOverlayPhaseContract?.metadata_keys || [])],
-);
-
 export const RESPONSE_OVERLAY_PREFLIGHT_SOURCE = responseOverlayPhaseContract?.preflight?.source;
 export const RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF = responseOverlayPhaseContract?.preflight?.guard_ref;
 
@@ -21,21 +17,3 @@ export const RESPONSE_OVERLAY_PHASE = Object.freeze(Object.fromEntries(
     phase,
   ]),
 ));
-
-const RESPONSE_OVERLAY_PHASE_SET = new Set(RESPONSE_OVERLAY_PHASES);
-
-export function isResponseOverlayPhase(phase) {
-  return typeof phase === 'string' && RESPONSE_OVERLAY_PHASE_SET.has(phase);
-}
-
-export function normalizeResponseOverlayString(value) {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : undefined;
-}
-
-export function normalizeResponseOverlayNumber(value) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
-}
