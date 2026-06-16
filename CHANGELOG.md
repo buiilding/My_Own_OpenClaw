@@ -44,6 +44,8 @@ All notable changes to WindieOS will be documented in this file.
   default.
 - frontend/renderer: keep effective appearance theme resolution private to the
   appearance-theme application runtime.
+- frontend/renderer: keep live current-turn entry message projection private to
+  the presentation message list builder.
 - frontend/main: keep the wakeword bridge window-sendability predicate private
   behind wakeword event/status emission helpers.
 - frontend/main: keep chat-pill visibility reasons and visibility-decision

@@ -180,7 +180,7 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
   };
 }
 
-export function buildChatMessageFromLiveTurnEntry(entry, currentTurnProjection = null) {
+function buildChatMessageFromLiveTurnEntry(entry, currentTurnProjection = null) {
   if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string') {
     return null;
   }
