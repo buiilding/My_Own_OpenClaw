@@ -2,7 +2,6 @@
  * Provides the message presentation pipeline module for the renderer UI.
  */
 
-import { collectToolExplanationTexts } from './toolExplanationMessages';
 import { buildCurrentTurnMessagesFromPresentation } from './liveTurnPresentationMessages';
 
 function findLastUserIndex(messages) {
@@ -27,89 +26,6 @@ function normalizeText(value) {
 
 function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function buildToolExplanationMessage(message, explanation, explanationIndex) {
-  return {
-    id: `${message.id}:tool-explanation:${explanationIndex}`,
-    text: explanation,
-    sender: 'assistant',
-    type: 'tool-explanation',
-    sourceEventType: message.sourceEventType || null,
-    sourceChannel: message.sourceChannel || null,
-    turnRef: message.turnRef,
-    modelId: message.modelId || null,
-    modelProvider: message.modelProvider || null,
-  };
-}
-
-function queueToolMessageEntries(entries, message) {
-  if (message?.type === 'search-source') {
-    const entryText = normalizeText(message.text);
-    if (!entryText) {
-      return;
-    }
-    entries.push({
-      id: message.id,
-      text: message.text,
-      sender: 'assistant',
-      type: 'search-source',
-      sourceEventType: message.sourceEventType || null,
-      sourceChannel: message.sourceChannel || null,
-      turnRef: message.turnRef,
-      modelId: message.modelId || null,
-      modelProvider: message.modelProvider || null,
-    });
-    return;
-  }
-
-  if (message?.type !== 'tool-call') {
-    return;
-  }
-
-  const explanationEntries = collectToolExplanationTexts(message);
-  explanationEntries.forEach((explanation, explanationIndex) => {
-    entries.push(buildToolExplanationMessage(message, explanation, explanationIndex));
-  });
-}
-
-export function buildCurrentTurnResponseOverlayEntries(messages) {
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return [];
-  }
-
-  const lastUserIndex = findLastUserIndex(messages);
-  const lowerBound = lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
-  const entries = [];
-
-  for (let index = lowerBound; index < messages.length; index += 1) {
-    const message = messages[index];
-    if (message?.sender !== 'assistant') {
-      continue;
-    }
-
-    if (message.type === 'llm-text' || message.type === 'error') {
-      const entryText = normalizeText(message.text);
-      if (!entryText) {
-        continue;
-      }
-      entries.push({
-        id: message.id,
-        type: message.type,
-        text: message.text,
-        sourceEventType: message.sourceEventType || null,
-        sourceChannel: message.sourceChannel || null,
-        modelId: message.modelId || null,
-        modelProvider: message.modelProvider || null,
-        isComplete: message.isComplete === true,
-      });
-      continue;
-    }
-
-    queueToolMessageEntries(entries, message);
-  }
-
-  return entries;
 }
 
 export function hasCurrentTurnLiveProgressMessages(messages) {

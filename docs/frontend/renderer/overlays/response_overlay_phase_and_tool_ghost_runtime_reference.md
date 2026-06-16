@@ -44,17 +44,23 @@ Current-turn entry construction:
 
 - when SDK `currentTurn` is present, `MinimalResponseOverlay` converts that projection
   into overlay-ready current-turn messages and entries
-- `buildCurrentTurnResponseOverlayEntries(...)` scans assistant messages after the latest user boundary.
+- SDK live-turn presentation rows are converted with `buildCurrentTurnMessagesFromPresentation(...)`;
+  older projection snapshots are converted with `buildCurrentTurnMessagesFromProjection(...)`.
+- the response overlay filters those current-turn messages directly instead of
+  running a separate assistant-message scanner after the latest user boundary.
 - entry types currently included:
   - `llm-text`
   - `error`
-  - `tool-explanation` (derived from tool-call explanation fields, including unified wrapper paths such as `system_use.arguments.explanation` and `computer_use.arguments.metadata.explanation`)
+  - `tool-call`
+  - `tool-output`
+  - `search-source`
+  - `tool-explanation`
 
 Selection logic:
 
 1. `useCurrentTurnPresentationState(...)` resolves loop state and latest visible assistant reply for compact/awaiting behavior.
 2. `resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
-3. `showResponse` is true when current-turn entry list is non-empty and not dismissed, even when latest entry is a `tool-explanation`.
+3. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
 4. during `preflight` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
 
 Closeability:

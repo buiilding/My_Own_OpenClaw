@@ -2,7 +2,6 @@
  * Provides the chat box response state module for the renderer UI.
  */
 
-import { buildCurrentTurnResponseOverlayEntries as buildCurrentTurnResponseOverlayEntriesFromPipeline } from '../message/messagePresentationPipeline';
 import {
   buildToolBundleMessageState,
   buildToolCallMessageState,
@@ -14,10 +13,6 @@ import {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } from '../chatStream/chatStreamEventUtils';
-
-export function buildCurrentTurnResponseOverlayEntries(messages) {
-  return buildCurrentTurnResponseOverlayEntriesFromPipeline(messages);
-}
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null;

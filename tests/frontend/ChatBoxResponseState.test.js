@@ -4,7 +4,6 @@
 
 import {
   buildCurrentTurnMessagesFromProjection,
-  buildCurrentTurnResponseOverlayEntries,
   isResponseCloseable,
   normalizeThinkingText,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatBoxResponseState';
@@ -21,13 +20,6 @@ describe('chatBoxResponseState', () => {
     expect(normalizeThinkingText('  Thinking...  ')).toBe('Thinking...');
     expect(normalizeThinkingText('')).toBe('');
     expect(normalizeThinkingText(null)).toBe('');
-  });
-
-  test('buildCurrentTurnResponseOverlayEntries ignores non-tool explanatory rows without tool-call content', () => {
-    expect(buildCurrentTurnResponseOverlayEntries([
-      { id: 'user-1', sender: 'user', text: 'find the answer' },
-      { id: 'assistant-1', sender: 'assistant', type: 'tool-explanation', text: 'Searching https://example.com' },
-    ])).toEqual([]);
   });
 
   test('buildCurrentTurnMessagesFromProjection creates overlay-ready active turn messages', () => {
@@ -51,12 +43,12 @@ describe('chatBoxResponseState', () => {
       }],
     });
 
-    expect(buildCurrentTurnResponseOverlayEntries(messages)).toEqual([
+    expect(messages).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        type: 'tool-explanation',
-        text: 'Reading README.md',
+        type: 'tool-call',
+        text: expect.stringContaining('Reading README.md'),
       }),
-    ]);
+    ]));
   });
 
   test('buildCurrentTurnMessagesFromProjection renders tool-bundle-output step content', () => {

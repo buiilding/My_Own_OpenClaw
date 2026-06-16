@@ -3,7 +3,6 @@
  */
 
 import {
-  buildCurrentTurnResponseOverlayEntries,
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
 } from '../../frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline';
@@ -272,7 +271,7 @@ describe('messagePresentationPipeline', () => {
     })).toBe(messages);
   });
 
-  test('buildCurrentTurnResponseOverlayEntries includes live tool explanations only for tool calls', () => {
+  test('detects live tool-call progress messages', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Find OCR code' },
       {
@@ -288,19 +287,11 @@ describe('messagePresentationPipeline', () => {
         },
       },
     ];
-    const entries = buildCurrentTurnResponseOverlayEntries(messages);
 
-    expect(entries).toEqual([
-      expect.objectContaining({
-        id: 'tool-call-1:tool-explanation:0',
-        type: 'tool-explanation',
-        text: 'Search Python files for OCR-related code.',
-      }),
-    ]);
     expect(hasCurrentTurnLiveProgressMessages(messages)).toBe(true);
   });
 
-  test('keeps live search-source rows visible in overlay and hidden-thread presentation', () => {
+  test('keeps live search-source rows visible in hidden-thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Search the web' },
       {
@@ -311,14 +302,6 @@ describe('messagePresentationPipeline', () => {
         sourceEventType: 'web-search-progress',
       },
     ];
-
-    expect(buildCurrentTurnResponseOverlayEntries(messages)).toEqual([
-      expect.objectContaining({
-        id: 'search-1',
-        type: 'search-source',
-        text: 'Searched youtube.com',
-      }),
-    ]);
 
     expect(buildThreadPresentationMessages(messages, {
       showToolLogs: false,
