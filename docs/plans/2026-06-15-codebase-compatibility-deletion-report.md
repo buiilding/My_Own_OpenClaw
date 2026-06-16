@@ -97,6 +97,7 @@ Date: 2026-06-15
 | CD-064 | Electron MCP runtime execution registry | `mcp_runtime.cjs` still exported and implemented the old Electron-side MCP execution registry, `executeMcpTool(...)`, discovered-tool lookup, and MCP result serialization/image promotion helpers after production MCP execution moved to the sidecar local runtime | Knip reported the execution helpers unused; the sidecar-owned MCP report says Electron main no longer calls `executeMcpTool` for production local tool execution, and repo search found no production consumers | Delete the retired Electron direct-execution path and keep `mcp_runtime.cjs` scoped to manifest discovery/projection fallback plus cache/tool-name helpers used by MCP control and handshake | `156d42ebb` |
 | CD-065 | Electron client tool manifest helper export | `tool_manifest.cjs` exported `buildBuiltinClientToolManifest(...)` even though the generated built-in manifest loader is used only inside the client manifest merger and public callers use `buildClientToolManifest(...)` or tool-name lists | Knip reported the helper export unused; repo search showed no production, test, docs, or script imports outside the module itself, while handshake and MCP projection consumers use the higher-level manifest APIs | Remove the lower-level helper export and keep built-in manifest filtering private to the manifest merger | `6da1f3164` |
 | CD-066 | Electron artifact fetch helper exports | `ipc_artifact_fetch.cjs` exported URL construction and artifact-id inference helpers even though production imports only `fetchArtifactImage(...)` for protected artifact image reads | Knip reported both helper exports unused; repo search showed only the helper-only artifact fetch test imported them directly, while `ipc.cjs` and artifact handlers call the high-level fetch function | Remove the helper exports, keep URL construction and ID inference private, and cover both behaviors through the public artifact fetch path | `aa7973141` |
+| CD-067 | Electron assistant backend trace helper path | `ipc_assistant_trace.cjs` still exported a standalone `[AssistantTrace][backend]` helper path plus direct summary/predicate helpers even though production uses `createElectronMainTraceLogger(...)` for backend event diagnostics | Knip reported the helper exports unused; repo search showed only `AssistantTrace.test.cjs` imported them directly, while `ipc.cjs` imports only the Electron main and current-turn trace logger factories | Delete the unused standalone assistant-backend trace path and keep settings summary private under the active Electron main trace logger | pending |
 
 ## Commit Ledger
 
@@ -1130,6 +1131,22 @@ CD-066 validation:
   required. The protected artifact fetch IPC behavior and response shape are
   unchanged; URL construction and artifact-id inference are now private helper
   details under `fetchArtifactImage(...)`.
+
+CD-067 validation:
+
+- targeted `rg -n "buildBackendAssistantTraceSummary|buildSettingsTraceSummary|shouldTraceAssistantBackendEvent|traceAssistantBackendEvent|\\[AssistantTrace\\]\\[backend\\]" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only the private same-module `buildSettingsTraceSummary(...)` implementation
+  remains.
+- `bin/windie test frontend -- AssistantTrace IpcDiagnosticsRuntime`: passed; 2
+  suites and 8 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 128 to 124 after
+  deleting the standalone assistant-backend trace helper exports.
+- `bin/windie docs list`: passed.
+- Migration note: no storage, transport, or persisted-data migration is
+  required. Electron backend event diagnostics still flow through
+  `createElectronMainTraceLogger(...)`; only the unused standalone
+  `[AssistantTrace][backend]` helper output path was removed.
 
 ## Inspection Notes
 

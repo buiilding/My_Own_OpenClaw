@@ -2,14 +2,6 @@
  * Provides the ipc assistant trace module for the Electron main process.
  */
 
-const ASSISTANT_BACKEND_TRACE_TYPES = new Set([
-  'query-accepted',
-  'streaming-response',
-  'assistant-message-full',
-  'streaming-complete',
-  'error',
-]);
-
 const {
   appendIpcBridgeDiagnostic: appendIpcBridgeDiagnosticRuntime,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
@@ -123,54 +115,6 @@ function compactBackendSummary(data) {
     `content_len=${payloadStringLength(payload, ['content', 'message', 'output'])}`,
     `success=${summarizeBoolean(payload.success)}`,
   ].join(' ');
-}
-
-function shouldTraceAssistantBackendEvent(data) {
-  return Boolean(
-    data
-    && typeof data === 'object'
-    && ASSISTANT_BACKEND_TRACE_TYPES.has(data.type),
-  );
-}
-
-function buildBackendAssistantTraceSummary(data) {
-  if (!data || typeof data !== 'object') {
-    return 'type=unknown turn=- conv=- text_len=0 final_len=0 content_len=0';
-  }
-  const payload = safeObject(data.payload);
-  return [
-    `type=${safeString(data.type) || 'unknown'}`,
-    `turn=${safeId(data.turn_ref || payload.turn_ref || payload.turnRef)}`,
-    `conv=${safeId(data.conversation_ref || payload.conversation_ref || payload.conversationRef)}`,
-    `text_len=${payloadStringLength(payload, ['text', 'delta', 'assistant_delta'])}`,
-    `final_len=${payloadStringLength(payload, ['final_response', 'finalResponse'])}`,
-    `content_len=${payloadStringLength(payload, ['content', 'message'])}`,
-  ].join(' ');
-}
-
-function backendAssistantTraceAction(data) {
-  switch (data?.type) {
-    case 'query-accepted':
-      return 'turn accepted';
-    case 'streaming-response':
-      return 'assistant chunk received';
-    case 'assistant-message-full':
-      return 'assistant message metadata received';
-    case 'streaming-complete':
-      return 'assistant complete received';
-    case 'error':
-      return 'assistant error received';
-    default:
-      return 'assistant event received';
-  }
-}
-
-function traceAssistantBackendEvent(data, { log }) {
-  if (!shouldTraceAssistantBackendEvent(data) || typeof log !== 'function') {
-    return false;
-  }
-  log(`[AssistantTrace][backend] ${backendAssistantTraceAction(data)} ${buildBackendAssistantTraceSummary(data)}`);
-  return true;
 }
 
 function currentTurnTraceKey(currentTurn) {
@@ -529,10 +473,6 @@ function createElectronMainTraceLogger({
 }
 
 module.exports = {
-  buildBackendAssistantTraceSummary,
-  buildSettingsTraceSummary,
   createElectronMainTraceLogger,
   createCurrentTurnTraceLogger,
-  shouldTraceAssistantBackendEvent,
-  traceAssistantBackendEvent,
 };

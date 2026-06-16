@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: delete the unused standalone assistant-backend trace helper
+  path so backend event diagnostics route through the Electron main trace
+  logger.
 - frontend/main: keep artifact URL construction and artifact-id inference
   private to the artifact fetch handler while preserving protected artifact
   image fetch behavior.
