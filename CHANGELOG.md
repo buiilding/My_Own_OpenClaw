@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the tool-surface lifecycle tool-name normalizer private
+  to Electron's local-tool lifecycle hook.
 - frontend/main: keep settings-sync backend payload filtering and runtime
   factory wiring private to the IPC settings sync runtime.
 - frontend/main: delete unused Electron runtime helper exports for synthetic

@@ -23,5 +23,4 @@ function createElectronToolSurfaceLifecycle(surfaceRuntime) {
 
 module.exports = {
   createElectronToolSurfaceLifecycle,
-  normalizeToolName,
 };
