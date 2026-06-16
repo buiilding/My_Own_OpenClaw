@@ -256,7 +256,6 @@ function createMainWindow({
     }
   });
   initializeLocalBackendBridge(getWindows, {
-    getFrontendConfig: getLatestFrontendConfig,
     getKnownLocalRuntime,
     ensureLocalRuntime,
     isPackaged: app.isPackaged,

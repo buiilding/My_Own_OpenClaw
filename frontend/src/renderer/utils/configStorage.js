@@ -64,7 +64,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   speech_mode_enabled: false,
   wakeword_enabled: true,
   wakeword_stt_enabled: false,
-  agent_full_sudo_enabled: false,
   show_tool_logs: false,
   agent_custom_instructions: '',
   agent_disabled_local_tools: [],

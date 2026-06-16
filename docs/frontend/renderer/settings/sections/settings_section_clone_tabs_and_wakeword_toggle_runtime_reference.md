@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for current clone-style SettingsSection runtime: general/memory tab routing, wakeword/STT/sudo control ownership, and local destructive reset actions."
+summary: "Deep reference for current clone-style SettingsSection runtime: general/memory tab routing, wakeword/STT controls, tool-log visibility, and local destructive reset actions."
 read_when:
   - When changing `SettingsSection.jsx` tab layout, initial-tab behavior, or close controls.
-  - When debugging wakeword/wakeword-STT/agent-sudo settings payloads or settings tab routing.
+  - When debugging wakeword/wakeword-STT settings payloads, retired agent-sudo settings references, or settings tab routing.
 title: "Settings Section General + Memory Tabs Runtime Reference"
 ---
 
@@ -54,7 +54,7 @@ Routing model:
 
 ## General Tab Ownership Model
 
-`GeneralSettingsTab` owns five control classes:
+`GeneralSettingsTab` owns four control classes:
 
 ### 1) AppConfigContext-driven wakeword preference
 
@@ -77,22 +77,13 @@ Suppression helper text appears only when:
 
 - `{ wakeword_stt_enabled: boolean }`
 
-### 3) Agent sudo access toggle with main-process handshake
-
-`Agent Full Sudo Access` toggle path:
-
-1. user confirmation dialog when enabling
-2. invoke `IpcBridge.invoke('set-agent-sudo-access', { enabled })`
-3. on success, emit `onConfigChange({ agent_full_sudo_enabled: enabled })`
-4. while in flight, toggle is disabled and helper text shows pending OS-auth prompt
-
-### 4) Local-only presentation state
+### 3) Local-only presentation state
 
 Current local-only controls do not emit config updates:
 
 - `voice`
 
-### 5) Frontend-only chat transcript presentation toggles
+### 4) Frontend-only chat transcript presentation toggles
 
 `View tool logs` emits:
 
@@ -148,7 +139,6 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 
 Exception:
 
-- `GeneralSettingsTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` before persisting `agent_full_sudo_enabled`; current main-process policy rejects new persistent passwordless sudo grants and only supports legacy cleanup.
 - `useMemorySettingsActions()` invokes memory and chat reset through
   `DesktopMemoryRuntimeClient`, which sends SDK-shaped `memories.clearAll` and
   `conversations.clearAll` commands over `window.windie.invoke`.
@@ -163,16 +153,14 @@ Exception:
 - suppression helper message render condition
 - wakeword STT toggle emits exact payload `{ wakeword_stt_enabled: true }`
 - tool log visibility toggle emits exact payload `{ show_tool_logs: true }`
-- agent full sudo toggle confirm/invoke/failure handling behavior
 - memory-tab destructive actions call the correct IPC channels and success callbacks
 
 ## Drift Hotspots
 
 1. Replacing context-driven wakeword setter with direct config patches can desync suppression-aware wakeword state.
-2. Bypassing sudo toggle confirmation/invoke flow can persist `agent_full_sudo_enabled` without OS-auth success.
-3. Adding new settings tabs requires updating both the shared `SETTINGS_TABS` registry and `renderTabContent()` routing in `SettingsSection.jsx`.
-4. Theme editor values should remain frontend-local unless a future runtime theme engine explicitly consumes them.
-5. Treating local-only `voice` selector as persisted config without wiring provider updates.
+2. Adding new settings tabs requires updating both the shared `SETTINGS_TABS` registry and `renderTabContent()` routing in `SettingsSection.jsx`.
+3. Theme editor values should remain frontend-local unless a future runtime theme engine explicitly consumes them.
+4. Treating local-only `voice` selector as persisted config without wiring provider updates.
 
 ## Related Pages
 

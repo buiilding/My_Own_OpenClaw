@@ -216,12 +216,8 @@ Locked by:
 
 `local_backend_bridge.cjs` rewrites shell-tool args with frontend config state:
 
-- reads `getFrontendConfig()?.agent_full_sudo_enabled`
 - for `run_shell_command` only:
-  - `true` -> `sudo_auth_mode: 'native'`
-  - `false`/missing -> `sudo_auth_mode: 'os_prompt'`
 - for `system_use` only when nested `tool === 'run_shell_command'` and nested `arguments` is an object:
-  - applies the same `sudo_auth_mode` mapping inside nested `arguments`
   - leaves non-object nested `arguments` unchanged so sidecar validation remains authoritative
 
 This is protocol state propagation because a renderer config bit changes sidecar RPC payload semantics (`execute_tool` args) without call-site changes.
@@ -240,7 +236,6 @@ When changing this surface, keep aligned:
 - conversation-gate terminal-phase list vs stream-tracking phase names
 - dashboard conversation open/delete session updates vs active-row session snapshots
 - websocket close/session reset behavior vs display-affinity continuity expectations (do not clear `activeDisplayAffinity`)
-- `agent_full_sudo_enabled` config propagation to direct and unified-wrapper (`system_use -> run_shell_command`) `sudo_auth_mode` arg rewrite
 
 ## State Control-Path Index
 
@@ -252,7 +247,6 @@ When changing this surface, keep aligned:
 | dashboard conversation open/delete session transitions | `useDashboardConversations`, SDK transcript session runtime | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
 | renderer stale-event gating | `desktopChatStreamConversationGateRuntime.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving identity-less lifecycle events |
 | websocket-close display affinity continuity | `frontend/src/main/ipc.cjs`, `frontend/src/main/surfaces/display_affinity_runtime.cjs` | backend session identity resets do not clear active monitor affinity, preserving reconnect-time screenshot/main-window fallback targeting |
-| frontend config to sidecar sudo-mode propagation | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs` | `agent_full_sudo_enabled` deterministically maps to `sudo_auth_mode` in direct run-shell args and nested `system_use -> run_shell_command` args |
 
 ## Related Pages
 

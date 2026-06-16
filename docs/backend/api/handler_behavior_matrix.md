@@ -79,7 +79,6 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 - validates frontend-owned settings fields
 - applies updates to user session config
 - returns updated-key list
-- frontend-owned field set includes runtime toggles (`agent_full_sudo_enabled`, `browser_automation_enabled`) and provider credentials payloads (`provider_api_keys`, `provider_oauth`)
 
 ## Response Pattern Contract
 

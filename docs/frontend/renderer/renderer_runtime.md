@@ -137,7 +137,6 @@ Typical keys:
 - query screenshot inclusion
 - provider API keys
 - provider OAuth credentials can still be persisted/synced, but no OAuth controls are exposed in the renderer settings UI
-- agent sudo access policy flag (`agent_full_sudo_enabled`)
 - browser automation feature toggle (`browser_automation_enabled`)
 
 Backend remains source of truth for non-frontend runtime fields.

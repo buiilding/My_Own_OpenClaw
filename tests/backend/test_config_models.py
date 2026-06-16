@@ -209,7 +209,6 @@ class TestAppConfig:
         assert config.history_compaction_summary_max_tokens == 1200
         assert config.history_compaction_strategy == "auto"
         assert config.history_compaction_prompt is None
-        assert config.agent_full_sudo_enabled is False
         assert config.browser_automation_enabled is False
         assert config.include_query_screenshot is True
         assert config.provider_api_keys.openai.enabled is False

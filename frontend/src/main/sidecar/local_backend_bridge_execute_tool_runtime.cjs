@@ -54,7 +54,6 @@ function createLocalBackendExecuteToolRuntime({
   sendRequest,
   backendHttpUrl,
   getArtifactUploadHeaders,
-  getFrontendConfig,
   resolveWindows,
   resolveChatWindow,
   resolveMainWindow,
@@ -79,8 +78,6 @@ function createLocalBackendExecuteToolRuntime({
     return resolveToolArgs(
       toolName,
       args,
-      getFrontendConfig,
-      console.warn,
       {
         displayBounds: resolveDisplayBounds(event),
       },

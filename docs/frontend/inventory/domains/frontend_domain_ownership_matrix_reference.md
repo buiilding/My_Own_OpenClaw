@@ -24,7 +24,6 @@ title: "Frontend Domain Ownership Matrix Reference"
 | Sidecar runtime core | `main/python/{local_backend,wakeword_service}.py`, `main/python/core/**` | `main/local_backend_bridge.cjs`, wakeword bridge | renderer UI components |
 | Sidecar tool runtime | `main/python/tools/**` | backend tool schemas + SDK/main tool router | main window/tray modules |
 | Sidecar memory runtime | `main/python/memory/**` | SDK-provided embeddings, remote semantic client, and renderer dashboard memory views | renderer chat presentation |
-| Main permission/privilege runtime | `main/permission_service.cjs`, `main/agent_sudo_access_handler.cjs` | renderer permission store + settings data controls | sidecar tool modules |
 | Landing page runtime | `frontend/src/landing/**` | none (isolated app surface) | main/renderer runtime modules |
 
 ## Responsibility Boundaries

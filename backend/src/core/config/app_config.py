@@ -65,7 +65,6 @@ APP_CONFIG = AppConfig(
     stt_vad_threshold=0.5,
     stt_vad_prefix_padding_ms=300,
     stt_vad_silence_duration_ms=500,
-    agent_full_sudo_enabled=False,
     browser_automation_enabled=False,
     # Wakeword Settings
     wakeword_enabled=True,

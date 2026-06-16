@@ -136,7 +136,6 @@ Main modules:
 
 - `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
 
@@ -151,7 +150,6 @@ Responsibilities:
   - `check-permission`
   - `run-permission-probe`
   - `request-permission`
-  - `set-agent-sudo-access` (Linux passwordless-sudo toggle path)
 
 ## IPC Channel Taxonomy
 
@@ -160,13 +158,10 @@ From renderer usage perspective:
 - send channels: backend messaging, overlay window control, wakeword chunk/control
 - invoke channels: tool execution, artifact upload, config load/save, window/display APIs, SDK-shaped `windie:invoke` runtime commands, and host permission/status requests
 - direct renderer-facing memory CRUD/search invoke channels were removed from the preload boundary; memory UI now uses SDK-shaped `memories.*` commands through `windie:invoke`.
-- invoke channels also include permission/status request channels and sudo access toggle:
-  - `set-agent-sudo-access`
+- invoke channels also include permission/status request channels:
   - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 - on channels: backend stream events, connection status, wakeword events (including `wakeword-stt-trigger`), overlay phase updates
 
 Canonical constants are in renderer infra (`frontend/src/renderer/infrastructure/ipc/channels.ts`) and must stay aligned with main-process handlers.
 
 For `get-displays` payload mapping details, see [Display Query Handler Display Inventory Payload Contract Reference](display_query_handler_display_inventory_payload_contract_reference.md).
-
-For Linux sudo toggle command/runtime details, see [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md).

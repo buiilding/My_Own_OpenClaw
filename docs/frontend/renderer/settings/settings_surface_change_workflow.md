@@ -23,7 +23,7 @@ flowchart LR
     D --> E["update-settings over websocket"]
     E --> F["backend patch validation + session rewire"]
     B -- "local authority" --> G["permission store or Electron IPC"]
-    G --> H["permission service / sudo / browser / workspace"]
+    G --> H["permission service / browser / workspace"]
     B -- "local data admin" --> I["memory settings action hook"]
     I --> J["main IPC memory RPC"]
     J --> K["sidecar memory admin/store"]
@@ -38,7 +38,6 @@ flowchart LR
 | Setting saves locally but backend ignores it | Backend patch validation or main sync | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, backend validation docs | backend settings/update tests |
 | General wakeword listening toggle is wrong | AppConfig context wakeword state | `GeneralSettingsTab.jsx`, `AppConfigProvider.jsx`, wakeword bridge/runtime docs | wakeword/voice tests |
 | Wakeword STT toggle is wrong | Renderer config patch path | `GeneralSettingsTab.jsx`, config filter/storage, settings sync | `GeneralSettingsTab.test.jsx`, config tests |
-| Agent full sudo toggle persists without auth or fails prompt | Electron sudo access handler | `GeneralSettingsTab.jsx`, `frontend/src/main/permissions/agent_sudo_access_handler.cjs`, shell sudo docs | `GeneralSettingsTab.test.jsx`, main-process sudo tests |
 | View tool logs changes execution instead of presentation | Renderer transcript/display settings | `GeneralSettingsTab.jsx`, chat message rendering, transcript display filtering | chat/message display tests |
 | Workspace settings uses wrong folder | Workspace permission/runtime path | `WorkspaceSettingsTab.jsx`, `workspaceAccess`, Electron workspace permission service | [Workspace Context Change Workflow](../../runtime/workspace_context_change_workflow.md), file/shell workflow |
 | Browser settings opens wrong browser or status is stale | Permission store plus browser permission service | `BrowserSettingsTab.jsx`, `permissionStore.js`, browser permission service, browser runtime docs | permission/browser tests |
@@ -50,7 +49,7 @@ flowchart LR
 
 | Tab | Renderer component | Primary behavior | Owner boundary |
 | --- | --- | --- | --- |
-| General | `GeneralSettingsTab.jsx` | wakeword listening, wakeword STT, agent sudo access, tool log visibility, global stop shortcut | mixed: context setters, config patches, Electron sudo IPC |
+| General | `GeneralSettingsTab.jsx` | wakeword listening, wakeword STT, tool log visibility, global stop shortcut | mixed: context setters and config patches |
 | Workspace | `WorkspaceSettingsTab.jsx` | active workspace display and folder selection | Electron workspace permission/runtime path |
 | Browser | `BrowserSettingsTab.jsx` | dedicated browser permission/status and open-browser action | renderer permission store plus Electron/sidecar browser runtime |
 | Memory | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js` | local memory reset and chat-history reset | renderer action hook, main IPC, sidecar memory admin |
@@ -80,7 +79,6 @@ flowchart LR
 
 4. For authority controls, update the authority path.
    - Permission controls should go through `permissionStore` and permission services.
-   - Sudo controls should go through `agent_sudo_access_handler.cjs` before persisting `agent_full_sudo_enabled`.
    - Browser controls should apply permission grant effects and update browser automation config only through the established permission path.
    - Workspace controls should go through workspace access helpers and Electron workspace permission/runtime services.
 
@@ -134,12 +132,14 @@ If a test stem is not available in the current checkout, search by the component
 4. If sidecar-owned, inspect sidecar launch env or JSON-RPC action path.
 5. Add producer and consumer tests for the changed field.
 
-### Sudo Toggle Is Unsafe or Ineffective
+### Retired Sudo Toggle Appears In Settings
 
-1. Confirm enabling still asks the user for confirmation.
-2. Confirm `SET_AGENT_SUDO_ACCESS` succeeds before `agent_full_sudo_enabled` is persisted.
-3. Confirm failure paths alert and do not update config.
-4. Confirm shell tool argument mapping still derives `sudo_auth_mode` from frontend config.
+1. Remove the renderer setting instead of reviving `agent_full_sudo_enabled`.
+2. Keep Linux sudo behavior in the sidecar shell tool. Current
+   `run_shell_command` rewrites leading `sudo ...` commands to `pkexec`
+   prompting; renderer settings do not choose a sudo auth mode.
+3. Update docs-search routing so `agent sudo access` and `sudo auth mode`
+   queries land on current settings or shell docs, not deleted IPC-handler docs.
 
 ### Memory Reset Deletes the Wrong Thing
 

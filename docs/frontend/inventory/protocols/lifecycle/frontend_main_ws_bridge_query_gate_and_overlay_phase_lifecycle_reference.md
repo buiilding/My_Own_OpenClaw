@@ -25,7 +25,6 @@ Lifecycle contract sources:
 - Overlay phase -> window visibility behavior: `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
 - Wakeword + overlay signal emitters: `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - Main-window target routing and display inventory invoke handlers: `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/surfaces/display_query_handler.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
-- Permission/sudo invoke lifecycle owners: `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_service.cjs`, `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 - Minimal chat pill wakeword trigger handling: `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - Renderer boundary allowlists: `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs`
@@ -48,7 +47,6 @@ Lifecycle contract sources:
   - `window-toggle-maximize`
   - `window-close`
 - `initializePermissionHandlersRuntime(...)`:
-  - `set-agent-sudo-access`
   - `list-permissions`
   - `check-permissions`
   - `check-permission`
@@ -239,12 +237,11 @@ Display query lifecycle contracts:
   - `scaleFactor`
 - Coverage: `tests/frontend/DisplayQueryHandler.test.cjs`.
 
-Permission/sudo lifecycle contracts:
+Permission lifecycle contracts:
 
-- `permission_ipc_runtime.cjs` owns the permission + sudo invoke channels and shared `permissionDeps` wiring.
+- `permission_ipc_runtime.cjs` owns permission invoke channels and shared `permissionDeps` wiring.
 - `check-permission` and `run-permission-probe` are intentionally equivalent envelope paths.
-- Linux sudo toggle behavior is delegated to `agent_sudo_access_handler.cjs` through `set-agent-sudo-access`.
-- Coverage: `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs`, `tests/frontend/AgentSudoAccessHandler.test.cjs`.
+- Coverage: `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs`.
 
 ## Overlay Visibility Broadcast Contract
 
@@ -287,7 +284,6 @@ When changing this lifecycle, keep synchronized:
 | wakeword callback -> STT trigger | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | STT trigger emits only after chat window show succeeds and is routed only to chat window; helper runtime normalizes ready/error state inputs used by wakeword bridge |
 | show-main-window target routing | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |
 | display inventory query mapping | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/surfaces/display_query_handler.cjs` | display payload normalization remains stable for renderer selection surfaces |
-| permission/sudo invoke lifecycle | `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_service.cjs`, `frontend/src/main/permissions/agent_sudo_access_handler.cjs` | permission probes/requests and sudo toggle remain isolated from overlay/window registrars |
 
 ## Related Deep Dives
 

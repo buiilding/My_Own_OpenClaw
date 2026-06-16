@@ -21,7 +21,6 @@ Permissions are not just UI state. They control whether WindieOS can see the scr
 | Permission state store | `frontend/src/main/permissions/permission_state_store.cjs` | Main-process cached permission state and notifications. |
 | Renderer onboarding/settings | `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions` | User-visible permission gates, status rows, request buttons, and control center. |
 | Sidecar platform/tools | `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools` | Runtime local execution that may fail when OS permission is missing. |
-| Sudo/elevated access | `frontend/src/main/permissions/agent_sudo_access_handler.cjs`, local bridge tool args | Optional local elevated tool access and noninteractive disable rules. |
 
 ## Add or Change a Permission
 
@@ -45,7 +44,6 @@ Do not mark a permission granted just because the user clicked a button. The sou
 | Browser automation | Browser/session UI and permission surface | Dedicated browser runtime and sidecar browser tools | Browser availability is not the same as arbitrary user Chrome control. |
 | Workspace/repo context | Chat/settings surfaces | Main workspace access/runtime helpers | Do not treat workspace access as broad filesystem permission. |
 | Shell/filesystem tools | Tool policy and permissions UI | Backend tool visibility, main shell-execution authorization probe, plus sidecar validation | Shell execution requires both an explicit persisted authorization grant and current runtime availability. Local execution must validate args even if model schema is narrow. |
-| Sudo/elevated tool args | Settings/control surface | Main sudo handler and local bridge arg resolver | Noninteractive disable must remain explicit. |
 
 Workspace access grants must come from the main-process workspace picker flow.
 Renderer-driven active-workspace sync may switch to a previously selected path
@@ -69,7 +67,7 @@ must not mark shell execution granted.
 | Permission button does nothing | Renderer action, IPC channel, main permission handler, OS open-settings/request code. |
 | Screen capture hides windows on macOS/Windows | Screenshot overlay policy; hide/restore should be Linux-specific unless requirements change. |
 | Input tool works on one OS only | Platform adapter and OS docs, not backend schema. |
-| Sudo auth mode ignored | Local backend bridge tool arg resolver and agent sudo access handler. |
+| Linux sudo command does not show an OS prompt | Sidecar shell sudo rewrite and `pkexec` availability. |
 
 ## Test Targets
 
@@ -79,7 +77,7 @@ must not mark shell execution granted.
 | Main permission IPC/service | `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs` |
 | Onboarding permission actions | `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
 | Permission grant effects | `tests/frontend/permissionGrantEffects.test.js` |
-| Sudo/elevated access | `tests/frontend/AgentSudoAccessHandler.test.cjs`, backend parser/system auth-mode tests |
+| Linux sudo prompt behavior | `tests/sidecar/test_shell_process_tool.py` |
 | Platform permission adapters | `tests/sidecar/test_macos_automation_permission.py`, platform-specific sidecar tests |
 
 ## Related Docs

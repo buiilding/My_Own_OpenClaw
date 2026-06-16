@@ -69,7 +69,6 @@ Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
-- `set-agent-sudo-access`
 - `list-permissions`
 - `check-permissions`
 - `check-permission`

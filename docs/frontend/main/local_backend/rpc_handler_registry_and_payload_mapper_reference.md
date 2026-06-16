@@ -69,15 +69,14 @@ Dispatch:
 
 Tool-arg normalization behavior:
 
-- `run_shell_command` always receives derived `sudo_auth_mode`
-  - `native` when frontend config has `agent_full_sudo_enabled=true`
-  - `os_prompt` otherwise (including config-read failure)
-- `system_use` with nested `tool: "run_shell_command"` and object `arguments` receives the same derived `sudo_auth_mode` inside nested `arguments`
 - invalid non-object `system_use.arguments` values are intentionally passed through unchanged for sidecar validation ownership
 - non-shell tools receive deep-cloned object args
 - non-object args normalize to `{}`
 - screenshot tools may receive injected fallback `display_bounds` derived from
   main-process display-affinity runtime when explicit bounds are missing
+- `run_shell_command` arguments are not augmented with a frontend-selected
+  `sudo_auth_mode`; Linux `sudo ...` rewriting is owned by the sidecar shell
+  tool
 
 Display-affinity fallback precedence for screenshot local tool calls:
 
@@ -186,7 +185,6 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 - deprecation stderr lines are filtered while normal stderr lines remain logged
 - screenshot path materialization returns artifact refs on success and inline fallback on upload failures
 - screenshot tool request path injects active display-affinity bounds when sender window is hidden
-- `system_use` wrapper payloads route nested run-shell sudo-mode rewriting only when wrapper target tool is `run_shell_command`
 
 ## Drift and Regression Hotspots
 
@@ -200,6 +198,5 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 - [Frontend Main Local-Backend Docs Hub](README.md)
 - [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
-- [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](../../contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)

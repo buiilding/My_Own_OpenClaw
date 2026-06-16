@@ -43,7 +43,6 @@ Role:
 High-sensitivity allowlisted channels currently include:
 
 - invoke:
-  - `set-agent-sudo-access`
   - `list-permissions`
   - `check-permissions`
   - `check-permission`

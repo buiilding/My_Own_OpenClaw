@@ -57,8 +57,7 @@ Execution transport:
 - Windows: `powershell.exe -NoProfile -NonInteractive -Command ...`
 - non-Windows: `bash -c ...`
 - Linux sudo path:
-  - when `sudo_auth_mode=os_prompt` (default), leading `sudo ...` is rewritten to `pkexec bash -lc ...` so elevation uses the OS authentication dialog instead of sidecar terminal password prompts
-  - when `sudo_auth_mode=native`, command stays `sudo ...` unchanged for legacy/runtime compatibility; new persistent passwordless sudo grants are not created
+  - leading `sudo ...` commands are rewritten to `pkexec bash -lc ...` so elevation uses the OS authentication dialog instead of sidecar terminal password prompts
 - optional PTY path uses `pty.openpty()` and a single read loop
 - non-PTY path reads stdout/stderr concurrently via `_read_stream`
 

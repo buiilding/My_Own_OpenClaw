@@ -1,7 +1,7 @@
 ---
-summary: "Linux WindieOS platform guide for overlay screenshot capture, content protection, app packaging, sudo policy, and sidecar platform behavior."
+summary: "Linux WindieOS platform guide for overlay screenshot capture, content protection, app packaging, sudo prompts, and sidecar platform behavior."
 read_when:
-  - When changing Linux screenshot capture behavior, overlay visibility, packaging, sudo access, or platform adapters.
+  - When changing Linux screenshot capture behavior, overlay visibility, packaging, sudo prompts, or platform adapters.
 title: "Linux"
 ---
 
@@ -15,7 +15,6 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 - Main overlay/window code: `frontend/src/main/overlay_*`, `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - Sidecar adapter: `frontend/src/main/python/core/platform/linux.py`
 - Content protection runtime: `frontend/src/main/platform/content_protection/linux.cjs`
-- Sudo access handler: `frontend/src/main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md`
 - Package target: `frontend/package.json` `package:linux`
 - Reinstall helper: `bin/windie reinstall linux`
 
@@ -24,7 +23,6 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 - Hide WindieOS overlay surfaces before screenshot capture and restore them after capture.
 - Use the hide-only collapse path for minimal pill screenshot timing; do not pre-hide with a show path.
 - Keep the awaiting indicator latched through transient `idle` until streaming, completion, error, or visible response content clears it.
-- Keep sudo behavior explicit: persistent passwordless sudo grants are rejected, and legacy sudoers cleanup uses an OS authentication prompt.
 - Verify `xdotool` or `ydotool` availability before editing window-switching or input-control behavior.
 - Treat AppImage dependency gaps separately from DEB/RPM package dependency metadata.
 

@@ -46,7 +46,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     },
   },
   INVOKE_CHANNELS: {
-    SET_AGENT_SUDO_ACCESS: 'set-agent-sudo-access',
     CHECK_PERMISSION: 'check-permission',
     REQUEST_PERMISSION: 'request-permission',
   },
@@ -77,7 +76,6 @@ jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionSto
 describe('SettingsSection', () => {
   const defaultConfig = {
     wakeword_stt_enabled: false,
-    agent_full_sudo_enabled: false,
     show_tool_logs: false,
     global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
     show_additional_models: true,
@@ -305,53 +303,6 @@ describe('SettingsSection', () => {
     renderSettingsSection();
 
     expect(screen.getByText(/Global stop shortcut could not be registered/)).toBeInTheDocument();
-  });
-
-  test('agent full sudo toggle confirms, invokes os auth, then persists on success', async () => {
-    const onConfigChange = jest.fn();
-    renderSettingsSection({ onConfigChange });
-
-    const sudoToggle = screen.getByLabelText('Agent Full Sudo Access');
-    fireEvent.click(sudoToggle);
-
-    expect(window.confirm).toHaveBeenCalledWith(
-      'Warning: This action will enable the agent to have sudo access without password prompts. Continue?',
-    );
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set-agent-sudo-access', { enabled: true });
-      expect(onConfigChange).toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
-      expect(sudoToggle).not.toBeDisabled();
-    });
-  });
-
-  test('agent full sudo toggle does not invoke when user cancels warning', () => {
-    window.confirm.mockReturnValue(false);
-    const onConfigChange = jest.fn();
-    renderSettingsSection({ onConfigChange });
-
-    fireEvent.click(screen.getByLabelText('Agent Full Sudo Access'));
-
-    expect(mockInvoke).not.toHaveBeenCalled();
-    expect(onConfigChange).not.toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
-  });
-
-  test('agent full sudo toggle alerts and does not persist on failed auth', async () => {
-    mockInvoke.mockResolvedValueOnce({
-      success: false,
-      reason: 'User canceled or denied OS authentication while trying to enable passwordless sudo access.',
-    });
-    const onConfigChange = jest.fn();
-    renderSettingsSection({ onConfigChange });
-
-    const sudoToggle = screen.getByLabelText('Agent Full Sudo Access');
-    fireEvent.click(sudoToggle);
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith(
-        'User canceled or denied OS authentication while trying to enable passwordless sudo access.',
-      );
-      expect(onConfigChange).not.toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
-      expect(sudoToggle).not.toBeDisabled();
-    });
   });
 
   test('renders a memory tab in the settings sidebar', () => {

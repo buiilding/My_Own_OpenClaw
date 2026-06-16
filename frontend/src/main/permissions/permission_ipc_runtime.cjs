@@ -2,8 +2,6 @@
  * Coordinates the permission ipc runtime for the Electron main process.
  */
 
-const os = require('os');
-const { handleSetAgentSudoAccess } = require('./agent_sudo_access_handler.cjs');
 const {
   verifyScreenCaptureCapability: verifyRealScreenCaptureCapability,
 } = require('../sidecar/local_backend_bridge.cjs');
@@ -14,14 +12,6 @@ const {
   requestPermission,
   runPermissionProbe,
 } = require('./permission_service.cjs');
-
-function resolveUsername() {
-  try {
-    return os.userInfo()?.username;
-  } catch (_error) {
-    return '';
-  }
-}
 
 function initializePermissionHandlersRuntime(deps = {}) {
   const {
@@ -331,13 +321,6 @@ function initializePermissionHandlersRuntime(deps = {}) {
       throw error;
     }
   };
-
-  ipcMain.handle('set-agent-sudo-access', async (_event, options = {}) => {
-    return await handleSetAgentSudoAccess(options, {
-      platform,
-      username: resolveUsername(),
-    });
-  });
 
   ipcMain.handle('list-permissions', async () => {
     return {

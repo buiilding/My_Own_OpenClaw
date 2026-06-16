@@ -2,10 +2,8 @@
  * Defines general settings tab configuration for the renderer UI.
  */
 
-import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import {
   getGlobalAgentStopShortcutLabel,
   getGlobalAgentStopShortcutOptions,
@@ -19,9 +17,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
     setWakewordEnabled,
     globalAgentStopShortcutStatus,
   } = useAppConfigContext();
-  const [sudoAccessPending, setSudoAccessPending] = useState(false);
   const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
-  const agentFullSudoEnabled = config?.agent_full_sudo_enabled ?? false;
   const showToolLogs = config?.show_tool_logs === true;
   const globalStopShortcut = config?.global_agent_stop_shortcut;
   const globalStopShortcutOptions = getGlobalAgentStopShortcutOptions();
@@ -43,37 +39,6 @@ function GeneralSettingsTab({ config, onConfigChange }) {
     onConfigChange({
       show_tool_logs: enabled,
     });
-  };
-
-  const handleAgentSudoAccessChange = async (enabled) => {
-    if (sudoAccessPending) {
-      return;
-    }
-    if (enabled) {
-      const confirmed = window.confirm(
-        'Warning: This action will enable the agent to have sudo access without password prompts. Continue?',
-      );
-      if (!confirmed) {
-        return;
-      }
-    }
-
-    setSudoAccessPending(true);
-    try {
-      const result = await IpcBridge.invoke(INVOKE_CHANNELS.SET_AGENT_SUDO_ACCESS, { enabled });
-      if (!result?.success) {
-        const reason = result?.reason || 'Failed to update sudo access setting.';
-        window.alert(reason);
-        return;
-      }
-      onConfigChange({
-        agent_full_sudo_enabled: enabled,
-      });
-    } catch (error) {
-      window.alert(error?.message || 'Failed to open OS authentication prompt.');
-    } finally {
-      setSudoAccessPending(false);
-    }
   };
 
   return (
@@ -104,24 +69,6 @@ function GeneralSettingsTab({ config, onConfigChange }) {
           checked={wakewordSttEnabled}
           onChange={handleWakewordSttEnabledChange}
           ariaLabel={'Speech-To-Text After "Hey Jarvis"'}
-        />
-      </div>
-
-      <div className="clone-settings-row clone-settings-row-rich">
-        <div>
-          <span>Agent Full Sudo Access (No Password Prompt)</span>
-          <p>This action will enable the agent to have sudo access.</p>
-          {sudoAccessPending ? (
-            <p>Waiting for OS authentication prompt...</p>
-          ) : null}
-        </div>
-        <CloneToggle
-          checked={agentFullSudoEnabled}
-          onChange={(enabled) => {
-            void handleAgentSudoAccessChange(enabled);
-          }}
-          ariaLabel="Agent Full Sudo Access"
-          disabled={sudoAccessPending}
         />
       </div>
 
@@ -190,7 +137,6 @@ function GeneralSettingsTab({ config, onConfigChange }) {
 GeneralSettingsTab.propTypes = {
   config: PropTypes.shape({
     wakeword_stt_enabled: PropTypes.bool,
-    agent_full_sudo_enabled: PropTypes.bool,
     show_tool_logs: PropTypes.bool,
     global_agent_stop_shortcut: PropTypes.string,
   }),

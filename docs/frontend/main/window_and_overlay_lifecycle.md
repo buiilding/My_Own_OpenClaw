@@ -244,8 +244,6 @@ thrown partial registration can fail clearly and be retried in the same process:
 - `window-minimize`, `window-toggle-maximize`, `window-close`
   - `window-toggle-maximize` is platform-aware: Windows/Linux use native maximize/unmaximize, while macOS routes the custom dashboard maximize control through `setFullScreen(...)` so the frameless dashboard enters and exits native fullscreen instead of the weaker zoom-style maximize path
 - `permission_ipc_runtime.cjs`
-- `set-agent-sudo-access`
-  - details: Linux privilege-toggle command/runtime behavior is documented in [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 
 Legacy overlay interactivity/focus-prep invoke handlers were removed; the shared response-overlay phase handler now owns active-loop click-through/`focusable=false`, and query-capture focus prep remains an internal main-process callback.

@@ -14,7 +14,6 @@ const FRONTEND_CONFIG_FIELDS = [
   'speech_mode_enabled',
   'wakeword_enabled',
   'wakeword_stt_enabled',
-  'agent_full_sudo_enabled',
   'show_tool_logs',
   'agent_custom_instructions',
   'agent_disabled_local_tools',

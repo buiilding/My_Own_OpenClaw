@@ -262,7 +262,6 @@ assigns `message_index` as local append order for display and replay.
 
 **`update-settings`**
 - Purpose: Apply frontend-owned config fields to the active backend session.
-- Payload: `{ model_mode?, model_provider?, selected_model_id?, interaction_mode?, speech_mode_enabled?, wakeword_enabled?, wakeword_stt_enabled?, agent_full_sudo_enabled?, browser_automation_enabled?, include_query_screenshot?, provider_api_keys?, provider_oauth? }`
 - Response: `settings-updated`
 
 **`wakeword-detected`**

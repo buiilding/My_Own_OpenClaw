@@ -5,56 +5,6 @@ const {
 } = require('../../frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs');
 
 describe('local_backend_bridge_tool_args', () => {
-  test('sets native sudo auth mode for run_shell_command when full sudo is enabled', () => {
-    const baseArgs = { command: 'sudo apt update', run_in_background: false };
-    const result = resolveToolArgs(
-      'run_shell_command',
-      baseArgs,
-      () => ({ agent_full_sudo_enabled: true }),
-    );
-
-    expect(result).toEqual({
-      command: 'sudo apt update',
-      run_in_background: false,
-      sudo_auth_mode: 'native',
-    });
-    expect(baseArgs).toEqual({ command: 'sudo apt update', run_in_background: false });
-  });
-
-  test('sets os_prompt sudo auth mode for run_shell_command when full sudo is disabled', () => {
-    const result = resolveToolArgs(
-      'run_shell_command',
-      { command: 'sudo apt update' },
-      () => ({ agent_full_sudo_enabled: false }),
-    );
-
-    expect(result).toEqual({
-      command: 'sudo apt update',
-      sudo_auth_mode: 'os_prompt',
-    });
-  });
-
-  test('falls back to os_prompt and warns when frontend config read fails', () => {
-    const warn = jest.fn();
-
-    const result = resolveToolArgs(
-      'run_shell_command',
-      { command: 'id' },
-      () => {
-        throw new Error('boom');
-      },
-      warn,
-    );
-
-    expect(result).toEqual({
-      command: 'id',
-      sudo_auth_mode: 'os_prompt',
-    });
-    expect(warn).toHaveBeenCalledWith(
-      '[Main][LocalBackendBridge] sudo_auth_config_read_failed message="boom"',
-    );
-  });
-
   test('returns cloned plain args for non shell tools', () => {
     const baseArgs = { file_path: '/tmp/a' };
     const result = resolveToolArgs('read_file', baseArgs, null);
@@ -84,8 +34,6 @@ describe('local_backend_bridge_tool_args', () => {
     const result = resolveToolArgs(
       'screenshot',
       { explanation: 'Capture current monitor' },
-      null,
-      console.warn,
       {
         displayBounds: {
           x: 1920,
@@ -133,8 +81,6 @@ describe('local_backend_bridge_tool_args', () => {
           monitor_id: '1',
         },
       },
-      null,
-      console.warn,
       {
         displayBounds: {
           x: 1920,
@@ -169,8 +115,6 @@ describe('local_backend_bridge_tool_args', () => {
       {
         explanation: 'Capture only the active monitor',
       },
-      null,
-      console.warn,
       {
         displayBounds: {
           x: 1920,
@@ -219,8 +163,6 @@ describe('local_backend_bridge_tool_args', () => {
           monitor_id: '1',
         },
       },
-      null,
-      console.warn,
       {
         displayBounds: {
           x: 1920,
@@ -250,53 +192,4 @@ describe('local_backend_bridge_tool_args', () => {
     });
   });
 
-  test('run_shell_command normalizes non-object args to sudo_auth_mode payload', () => {
-    const result = resolveToolArgs(
-      'run_shell_command',
-      null,
-      () => ({ agent_full_sudo_enabled: true }),
-    );
-
-    expect(result).toEqual({
-      sudo_auth_mode: 'native',
-    });
-  });
-
-  test('injects native sudo auth mode into direct run_shell_command arguments', () => {
-    const baseArgs = {
-      command: 'sudo apt update',
-      run_in_background: false,
-      explanation: 'run privileged command',
-    };
-
-    const result = resolveToolArgs(
-      'run_shell_command',
-      baseArgs,
-      () => ({ agent_full_sudo_enabled: true }),
-    );
-
-    expect(result).toEqual({
-      command: 'sudo apt update',
-      run_in_background: false,
-      explanation: 'run privileged command',
-      sudo_auth_mode: 'native',
-    });
-    expect(baseArgs).toEqual({
-      command: 'sudo apt update',
-      run_in_background: false,
-      explanation: 'run privileged command',
-    });
-  });
-
-  test('normalizes non-object direct run_shell_command args into sudo payload', () => {
-    const result = resolveToolArgs(
-      'run_shell_command',
-      'not-an-object',
-      () => ({ agent_full_sudo_enabled: true }),
-    );
-
-    expect(result).toEqual({
-      sudo_auth_mode: 'native',
-    });
-  });
 });

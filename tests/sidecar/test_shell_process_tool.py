@@ -332,51 +332,6 @@ def test_rewrite_sudo_command_for_os_prompt_rejects_missing_pkexec(monkeypatch):
     assert "pkexec not found" in (error or "")
 
 
-def test_rewrite_sudo_command_for_os_prompt_bypasses_pkexec_for_native_mode(monkeypatch):
-    monkeypatch.setattr(shell_tool, "IS_LINUX", True)
-    monkeypatch.setattr(shell_tool.shutil, "which", lambda _name: None)
-
-    rewritten, routed, error = shell_tool._rewrite_sudo_command_for_os_prompt(
-        "sudo apt purge -y cursor",
-        route_via_os_prompt=False,
-    )
-
-    assert rewritten == "sudo apt purge -y cursor"
-    assert routed is False
-    assert error is None
-
-
-def test_resolve_sudo_auth_mode_accepts_canonical_modes_only():
-    assert shell_tool._resolve_sudo_auth_mode(None) == ("os_prompt", None)
-    assert shell_tool._resolve_sudo_auth_mode("native") == ("native", None)
-    assert shell_tool._resolve_sudo_auth_mode("os_prompt") == ("os_prompt", None)
-    assert shell_tool._resolve_sudo_auth_mode("os-prompt") == ("os_prompt", None)
-    assert shell_tool._resolve_sudo_auth_mode("direct") == (
-        None,
-        "sudo_auth_mode must be 'native' or 'os_prompt'",
-    )
-    assert shell_tool._resolve_sudo_auth_mode("sudo") == (
-        None,
-        "sudo_auth_mode must be 'native' or 'os_prompt'",
-    )
-
-
-@pytest.mark.asyncio
-async def test_run_shell_command_rejects_invalid_sudo_auth_mode():
-    result = await run_shell_command(
-        {
-            "command": "echo should-not-run",
-            "run_in_background": False,
-            "sudo_auth_mode": "direct",
-        }
-    )
-
-    assert result == {
-        "success": False,
-        "error": "sudo_auth_mode must be 'native' or 'os_prompt'",
-    }
-
-
 def test_normalize_sudo_auth_result_rewrites_canceled_prompt_error():
     result = {
         "output": "",

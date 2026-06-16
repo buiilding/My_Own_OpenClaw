@@ -41,7 +41,6 @@ Primary protocol tests:
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
 - `tests/frontend/WakewordBridgeRuntime.test.cjs`
-- `tests/frontend/AgentSudoAccessHandler.test.cjs`
 - `tests/frontend/PermissionService.test.cjs`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
@@ -67,7 +66,6 @@ Primary protocol tests:
 | permission/sudo IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission and sudo invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
 | wakeword stream/restart robustness | wakeword subprocess + framed parser (`wakeword_bridge.cjs`) | `WakewordBridge.test.cjs` | detection callback + renderer event fire only when enabled; process restarts keep callback wiring; stale stdout/stderr partial buffers are cleared across restarts |
 | wakeword helper runtime normalization | helper runtime (`wakeword_bridge_runtime.cjs`) | `WakewordBridgeRuntime.test.cjs` | packaged-vs-dev startup error mapping, ENOENT process error guidance, stderr ready-status promotion, and audio payload normalization (base64/Buffer/ArrayBuffer) |
-| sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, persistent enable rejection, pkexec legacy cleanup path, and cancel/auth-failure normalization |
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
 | wakeword STT trigger channel consumption | renderer chatbox overlay listeners | `ChatBoxOverlayMouseIgnore.test.jsx` | renderer listener wiring for `wakeword-stt-trigger` channel and overlay-focused behavior consistency |
 | websocket open + overlay phase lifecycle | `connect()` open/message handlers (`ipc.cjs`) | `IpcMainBridge.lifecycle.test.cjs` | handshake user-id sanitization, backend endpoint metadata exposure, backend tool-event to response-overlay phase transitions, and active display-affinity continuity across websocket close |
@@ -86,7 +84,7 @@ Primary protocol tests:
 | permission/sudo IPC runtime channel ownership | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
-| local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/sidecar/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
+| local sidecar RPC mapping | `frontend/src/main/sidecar/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
 
 ## Renderer IPC Validation Contract
 
@@ -160,7 +158,6 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
   - `delete-semantic-memory`
   - `store-chat-event`
 - malformed/non-object IPC payloads normalize to safe empty param objects for mapped handlers
-- internal tool execution direct `run_shell_command` and nested `system_use -> run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config
 
 ## Wakeword Bridge Protocol Contract
 
@@ -179,15 +176,6 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - ENOENT process-error guidance by launch-target kind
 - stderr `{"status":"ready"}` -> `wakeword-status { ready:true }` promotion
 - audio payload normalization across supported types and invalid payload rejection
-
-## Permission/Sudo Protocol Contract
-
-`tests/frontend/AgentSudoAccessHandler.test.cjs` validates:
-
-- Linux-only support guard behavior.
-- Enable flow writes/validates sudoers via `pkexec`.
-- Disable flow uses `pkexec` to remove the legacy WindieOS sudoers file.
-- Spawn errors and auth-cancel conditions map to normalized renderer-safe result payloads.
 
 `tests/frontend/PermissionService.test.cjs` validates:
 
@@ -242,7 +230,6 @@ Use this command to inspect protocol-test breadth:
 - `  'tests/frontend/LocalBackendBridge.rpc.test.cjs',`
 - `  'tests/frontend/WakewordBridge.test.cjs',`
 - `  'tests/frontend/WakewordBridgeRuntime.test.cjs',`
-- `  'tests/frontend/AgentSudoAccessHandler.test.cjs',`
 - `  'tests/frontend/PermissionService.test.cjs',`
 - `  'tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx',`
 - `  'tests/frontend/ChatGptDashboardShell.test.jsx',`

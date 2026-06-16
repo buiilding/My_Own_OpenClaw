@@ -80,7 +80,6 @@ Electron main maps those commands to public SDK agent APIs.
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
-- `set-agent-sudo-access`
 - `list-permissions`
 - `check-permissions`
 - `check-permission`

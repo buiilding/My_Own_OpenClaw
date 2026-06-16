@@ -35,13 +35,11 @@ flowchart LR
 
 - Backend schema changes live under `backend/src/tools/filesystem`, `backend/src/tools/system`, `backend/src/tools/tool_catalog.py`, and backend policy/profile code. Do not make the sidecar import backend schemas for parity.
 - SDK/local dispatch lives under `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, and `packages/windie-sdk-js/src/tools`. It should preserve correlation, bundle semantics, formatted model content, screenshot/system-state inclusion rules, and result envelopes.
-- Electron bridge payload shaping lives in `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` and `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`. This is where frontend-local defaults such as `sudo_auth_mode` and screenshot display bounds are injected before sidecar execution.
 - Sidecar runtime argument models live in `frontend/src/main/python/tools/schemas.py`. Sidecar executable implementations live in `frontend/src/main/python/tools/filesystem` and `frontend/src/main/python/tools/system`.
 - `read_file` may read text, selected binary-safe formats, and paginated windows, but it must keep OCR/text extraction boundaries explicit. OCR belongs to screenshot/vision/OCR flows, not normal file reads.
 - `replace` must preserve the atomic edit contract: validate input first, read existing content, compute all matches/replacements, write through a temporary file, then `os.replace`. Failed matches must not partially mutate the target.
 - `run_shell_command` must keep output predictable for user display and model-facing `output`. Foreground execution returns captured stdout/stderr directly; long-running or high-volume output should use background sessions and `process`.
 - `process` owns ongoing shell sessions after foreground execution yields or a command starts in the background. Do not create parallel session state in renderer or backend code.
-- Linux sudo prompting depends on the frontend bridge injecting `sudo_auth_mode=os_prompt` unless full sudo is explicitly enabled. Sidecar shell code owns the final `native` versus OS-prompt execution behavior.
 - File/shell default-directory behavior is tied to selected workspace context. If defaults feel wrong, inspect workspace selection and permission/runtime context before changing shell or filesystem code.
 
 ## Fast Owner Map
@@ -50,7 +48,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Tool is missing from prompt or has the wrong argument schema | Backend tool schema/catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/filesystem/schemas.py`, `backend/src/tools/system/schemas.py` | [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md), backend schema tests |
 | Tool is visible but never reaches the sidecar | SDK conversation runtime/tool coordinator or sidecar bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
-| `run_shell_command` receives the wrong sudo mode | Electron bridge argument mapper | `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs` | `frontend/src/main/python/tools/system/shell_tool.py`, `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`, `tests/sidecar/test_shell_process_tool.py` |
+| `run_shell_command` uses the wrong sudo prompt behavior | Sidecar shell runtime | `frontend/src/main/python/tools/system/shell_tool.py` | `tests/sidecar/test_shell_process_tool.py` |
 | Shell command runs in the wrong directory | Sidecar shell path resolution plus selected workspace state | `frontend/src/main/python/tools/system/shell_tool.py` | workspace-context docs/tests and bridge payload tests |
 | Shell output is truncated, malformed, or missing metadata | Sidecar shell formatter | `frontend/src/main/python/tools/system/shell_output_formatting.py`, `frontend/src/main/python/tools/system/shell_response_payloads.py` | `tests/sidecar/test_shell_output_formatting.py`, renderer message formatter tests |
 | Background session cannot be polled, written to, killed, or cleared | Sidecar process tool/session registry | `frontend/src/main/python/tools/system/process_tool.py`, `frontend/src/main/python/tools/system/shell_process_registry.py` | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py` |
@@ -133,7 +131,7 @@ flowchart LR
 | Sidecar `replace` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
 | Sidecar shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
 | Sidecar registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
-| Electron bridge argument shaping, sudo mode, and local tool failures | `cd frontend && npm run test -- LocalBackendBridgeToolArgs LocalBackendBridge.lifecycle` |
+| Electron bridge argument shaping and local tool failures | `cd frontend && npm run test -- LocalBackendBridgeToolArgs LocalBackendBridge.lifecycle` |
 | SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- ChatStreamEventUtils ChatBoxResponse ChatStreamToolHandlers` |
 | Workspace default-folder behavior | Workspace tests plus the focused shell/read-file tests that exercise selected-workspace path resolution |
@@ -155,11 +153,9 @@ If a listed test file has moved, search by the test stem before adding a new tes
 
 ### Shell command uses the wrong sudo behavior
 
-1. Inspect the frontend config source for `agent_full_sudo_enabled`.
-2. Inspect `resolveRunShellCommandArgs` in `local_backend_bridge_tool_args.cjs`.
-3. Confirm non-object args normalize into a payload with `sudo_auth_mode`.
-4. Inspect `shell_tool.py` sudo-mode resolution.
-5. Cover both bridge behavior and sidecar behavior; the bridge decides the mode from frontend config, the sidecar executes it.
+1. Inspect `shell_tool.py` sudo command rewriting.
+2. Confirm `pkexec` is available on Linux when an OS authentication prompt is expected.
+3. Cover sidecar behavior with `tests/sidecar/test_shell_process_tool.py`.
 
 ### Shell process appears stuck
 

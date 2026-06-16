@@ -31,7 +31,6 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `speech_mode_enabled`
 - `wakeword_enabled`
 - `wakeword_stt_enabled`
-- `agent_full_sudo_enabled`
 - `browser_automation_enabled`
 - `global_agent_stop_shortcut`
 - `include_query_screenshot`
@@ -65,7 +64,6 @@ Default config surface:
 - `speech_mode_enabled: false`
 - `wakeword_enabled: true`
 - `wakeword_stt_enabled: false`
-- `agent_full_sudo_enabled: false`
 - `browser_automation_enabled: false`
 - `global_agent_stop_shortcut`: normalized platform default accelerator
 - `include_query_screenshot: true`

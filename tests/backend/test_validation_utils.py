@@ -167,7 +167,6 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
         "model_mode": "online",
         "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
         "wakeword_stt_enabled": True,
-        "agent_full_sudo_enabled": True,
         "browser_automation_enabled": False,
         "include_query_screenshot": True,
         "provider_api_keys": {
@@ -188,7 +187,6 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
     assert "not_allowed" not in validated
     assert validated["model_mode"] == "online"
     assert validated["wakeword_stt_enabled"] is True
-    assert validated["agent_full_sudo_enabled"] is True
     assert validated["browser_automation_enabled"] is False
     assert validated["include_query_screenshot"] is True
     assert validated["provider_api_keys"]["openai"]["enabled"] is True

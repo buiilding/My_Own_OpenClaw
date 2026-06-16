@@ -41,10 +41,9 @@ describe('permission_ipc_runtime', () => {
     };
   }
 
-  test('registers permission and sudo handlers outside the overlay phase runtime', () => {
+  test('registers permission handlers outside the overlay phase runtime', () => {
     const { invokeHandlers } = createRuntime();
 
-    expect(typeof invokeHandlers['set-agent-sudo-access']).toBe('function');
     expect(typeof invokeHandlers['list-permissions']).toBe('function');
     expect(typeof invokeHandlers['check-permissions']).toBe('function');
     expect(typeof invokeHandlers['check-permission']).toBe('function');

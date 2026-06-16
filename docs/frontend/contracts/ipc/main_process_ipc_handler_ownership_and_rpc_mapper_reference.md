@@ -28,7 +28,6 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/display_query_handler.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
@@ -154,7 +153,6 @@ Notable behavior:
 
 `ipcMain.handle`:
 
-- `set-agent-sudo-access`
 - `list-permissions`
 - `check-permissions`
 - `check-permission`
@@ -164,7 +162,6 @@ Notable behavior:
 Notable behavior:
 
 - permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)
-- `set-agent-sudo-access` delegates to `agent_sudo_access_handler.cjs` and is Linux-only; persistent enable is rejected, while legacy sudoers cleanup uses `pkexec` with normalized auth-cancel/error messaging
 
 ### `window_visibility_runtime.cjs`
 
@@ -203,8 +200,6 @@ Notable behavior:
 
 - local browser tool execution uses an extended timeout (120s vs default 30s)
 - local tool args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including:
-  - `run_shell_command` `sudo_auth_mode` derivation from frontend config (`native` vs `os_prompt`)
-  - nested `system_use -> run_shell_command` `arguments.sudo_auth_mode` derivation from the same frontend config policy
   - non-object nested `system_use.arguments` values are passed through unchanged so sidecar schema validation remains authoritative
   - deep-clone normalization for non-shell payloads
   - screenshot-only `display_bounds` default injection from display-affinity fallback
@@ -284,4 +279,3 @@ If sidecar memory operations return wrong filters:
 - [IPC Channel and Handler Reference](../ipc_channel_and_handler_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](../../main/display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Display Query Handler Display Inventory Payload Contract Reference](../../main/display_query_handler_display_inventory_payload_contract_reference.md)
-- [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)

@@ -1260,7 +1260,6 @@ Update application configuration.
   "speech_mode_enabled": true | false,
   "wakeword_enabled": true | false,
   "wakeword_stt_enabled": true | false,
-  "agent_full_sudo_enabled": true | false,
   "browser_automation_enabled": true | false,
   "include_query_screenshot": true | false,
   "provider_api_keys": { ... },
@@ -1286,7 +1285,6 @@ Payload shape is validated at message-parse time; value semantics are validated 
     "speech_mode_enabled": true,
     "wakeword_enabled": true,
     "wakeword_stt_enabled": false,
-    "agent_full_sudo_enabled": false,
     "browser_automation_enabled": true,
     "include_query_screenshot": true,
     "provider_api_keys": {
@@ -1667,7 +1665,6 @@ Response to load-settings request.
     "speech_mode_enabled": true,
     "wakeword_enabled": true,
     "wakeword_stt_enabled": false,
-    "agent_full_sudo_enabled": false,
     "browser_automation_enabled": false,
     "include_query_screenshot": true,
     "provider_api_keys": {
@@ -1693,7 +1690,6 @@ Response to load-settings request.
       "speech_mode_enabled": true,
       "wakeword_enabled": true,
       "wakeword_stt_enabled": false,
-      "agent_full_sudo_enabled": false,
       "browser_automation_enabled": false,
       "include_query_screenshot": true,
       "provider_api_keys": {

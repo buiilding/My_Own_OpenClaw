@@ -27,7 +27,6 @@ const SAFE_SETTINGS_KEYS = [
   'speech_mode_enabled',
   'wakeword_enabled',
   'wakeword_stt_enabled',
-  'agent_full_sudo_enabled',
   'browser_automation_enabled',
   'include_query_screenshot',
   'tools',

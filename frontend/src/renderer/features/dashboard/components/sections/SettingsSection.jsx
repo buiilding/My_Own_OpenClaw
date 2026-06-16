@@ -136,7 +136,6 @@ function SettingsSection({
 SettingsSection.propTypes = {
   config: PropTypes.shape({
     show_additional_models: PropTypes.bool,
-    agent_full_sudo_enabled: PropTypes.bool,
     show_tool_logs: PropTypes.bool,
     global_agent_stop_shortcut: PropTypes.string,
     agent_custom_instructions: PropTypes.string,

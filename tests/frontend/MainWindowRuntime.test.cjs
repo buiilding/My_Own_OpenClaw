@@ -588,7 +588,6 @@ describe('main_window_runtime createMainWindow', () => {
     const [getWindows, bridgeOptions] = deps.initializeLocalBackendBridge.mock.calls[0];
     expect(typeof getWindows).toBe('function');
     expect(bridgeOptions).toEqual(expect.objectContaining({
-      getFrontendConfig: deps.getLatestFrontendConfig,
       getKnownLocalRuntime: deps.getKnownLocalRuntime,
       ensureLocalRuntime: deps.ensureLocalRuntime,
       isPackaged: false,

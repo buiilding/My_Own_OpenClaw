@@ -108,17 +108,16 @@ Functionality:
 - Starts/stops sidecar process and verifies readiness with ping retries.
 - Correlates JSON-RPC request/response ids and enforces request timeouts.
 - Registers mapped IPC handlers for memory/transcript/system APIs.
-- Executes tool calls and normalizes tool args (`run_shell_command` sudo mode injection, including nested `system_use -> run_shell_command` argument shaping).
+- Executes tool calls and normalizes tool args for local sidecar dispatch.
 - Applies screenshot visibility runtime wrapper for screenshot tool execution.
 
-### 1.4 Wakeword + Permission + Privilege Bridges
+### 1.4 Wakeword + Permission Bridges
 
 Primary files:
 
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/permissions/permission_service.cjs`
-- `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 
 Functionality:
 
@@ -128,10 +127,6 @@ Functionality:
   - Parses length-prefixed detection results and relays `wakeword-detected`, with helper-owned payload normalization.
   - Flushes stale buffers when disabled.
   - Delegates startup/status/process error mapping and noisy stderr suppression to `wakeword_bridge_runtime.cjs`.
-- Agent sudo bridge (Linux-only):
-  - Rejects persistent passwordless sudo enable; sudo commands use per-command OS authentication prompts.
-  - Removes the legacy WindieOS sudoers file via `pkexec`.
-  - Normalizes cancellation/auth failure reasons for renderer UX.
 - Permission bridge:
   - Loads and evaluates permission manifest entries.
   - Runs per-permission probe/check/request handlers for onboarding/data controls.

@@ -2,7 +2,7 @@
 summary: "Frontend renderer settings docs sub-hub for clone-style settings sections, frontend config ownership/persistence boundaries, and AppConfig update payload routing."
 read_when:
   - When changing settings controls in `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`.
-  - When debugging wakeword/wakeword-STT/agent-sudo behavior, frontend config filtering/persistence, or settings update payload shape from settings UI.
+  - When debugging wakeword/wakeword-STT behavior, retired agent-sudo settings references, frontend config filtering/persistence, or settings update payload shape from settings UI.
 title: "Frontend Renderer Settings Docs Hub"
 ---
 

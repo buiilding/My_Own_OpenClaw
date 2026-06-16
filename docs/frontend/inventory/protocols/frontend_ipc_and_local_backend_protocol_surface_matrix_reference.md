@@ -62,7 +62,6 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `load-frontend-config` | `main/ipc.cjs` | Reads frontend config from disk |
 | `save-frontend-config` | `main/ipc.cjs` | Persists frontend config to disk |
 | `get-client-user-id` | `main/ipc.cjs` | Returns connection/user snapshot |
-| `set-agent-sudo-access` | `main/permission_ipc_runtime.cjs` | Linux-only sudo access toggle via privileged command runner (`agent_sudo_access_handler.cjs`) |
 | `list-permissions` | `main/permission_ipc_runtime.cjs` | Returns permission manifest + status bundle |
 | `check-permissions` | `main/permission_ipc_runtime.cjs` | Batch permission probe result list |
 | `check-permission` | `main/permission_ipc_runtime.cjs` | Single permission probe shortcut |
@@ -145,7 +144,6 @@ Transport:
 
 | IPC channel | JSON-RPC method | Param mapping notes |
 |---|---|---|
-| scoped host channels / `executeToolForBackend(...)` | `execute_tool` | Electron main chooses `tool_name` for renderer host channels; SDK/main internal execution passes `{ toolName, args }`; screenshot tool uses Linux hide/show guard; direct `run_shell_command` and nested `system_use -> run_shell_command` arguments receive derived `sudo_auth_mode` from frontend config state |
 | `get-system-state` | `get_system_state` | Optional `{ fields }` passthrough |
 | `search-memory` | `search_memory` | Maps `excludeConversationId` fallback to `exclude_conversation_id` |
 | `search-chat-conversations` | `search_chat_conversations` | `userId -> user_id` with query/limit passthrough |
@@ -220,7 +218,6 @@ Use these commands to refresh protocol counts:
 - [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Frontend Protocol State Hub](state/README.md)
 - [Display Query Handler Display Inventory Payload Contract Reference](../../main/display_query_handler_display_inventory_payload_contract_reference.md)
-- [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Frontend Protocol Observability Hub](observability/README.md)
 - [Frontend Protocol Errors Hub](errors/README.md)
 - [Frontend Protocol Validation Hub](validation/README.md)

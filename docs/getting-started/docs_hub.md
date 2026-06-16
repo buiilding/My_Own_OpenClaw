@@ -71,7 +71,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and tool-result contracts.
-- [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md) for changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, sudo mode, working directories, process sessions, output formatting, and local tool results.
+- [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md) for changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, sudo prompt behavior, working directories, process sessions, output formatting, and local tool results.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) for browser action schemas, shared contracts, sidecar runtime, CDP launch, snapshots, refs, files, Electron bridge, and renderer browser controls.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [Provider Change Workflow](../providers/provider_change_workflow.md) for backend provider runtime, factory, config, credential, frontend setting, and test changes.

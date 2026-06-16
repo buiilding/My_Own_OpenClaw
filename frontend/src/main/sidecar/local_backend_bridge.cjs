@@ -385,9 +385,6 @@ async function loadArtifactUploadHeaders() {
 }
 
 function initializeLocalBackendBridge(getWindows, options = {}) {
-  const getFrontendConfig = typeof options.getFrontendConfig === 'function'
-    ? options.getFrontendConfig
-    : null;
   const isPackaged = options.isPackaged === true;
   const backendEndpointCandidates = resolveBackendEndpointCandidates(process.env, { isPackaged });
   const backendEndpoints = backendEndpointCandidates[0] || resolveBackendEndpoints(process.env, { isPackaged });
@@ -424,7 +421,6 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     sendRequest,
     backendHttpUrl: backendEndpoints.httpUrl,
     getArtifactUploadHeaders,
-    getFrontendConfig,
     resolveWindows,
     resolveChatWindow,
     resolveMainWindow,

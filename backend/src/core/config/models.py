@@ -372,7 +372,6 @@ class AppConfig(BaseModel):
     stt_vad_threshold: float = 0.5
     stt_vad_prefix_padding_ms: int = 300
     stt_vad_silence_duration_ms: int = 500
-    agent_full_sudo_enabled: bool = False
     browser_automation_enabled: bool = False
     include_query_screenshot: bool = True
     provider_api_keys: ProviderApiKeys = Field(default_factory=ProviderApiKeys)

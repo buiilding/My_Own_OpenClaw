@@ -43,10 +43,7 @@ Key examples:
 - window management and display queries
 - `get-displays` payload includes `{ id, label, isPrimary, bounds, scaleFactor }` from main-process display mapper
   - details: [Display Query Handler Display Inventory Payload Contract Reference](../main/display_query_handler_display_inventory_payload_contract_reference.md)
-- sudo access toggle and permission onboarding channels
-  - `set-agent-sudo-access`
-    - Linux-only sudo flow: persistent enable is rejected and legacy sudoers cleanup uses `pkexec`
-    - details: [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
+- permission onboarding channels
   - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 - `show-main-window` supports optional `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`
 

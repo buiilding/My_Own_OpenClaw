@@ -2,8 +2,6 @@
  * Bridges local backend tool args behavior for the Electron main process.
  */
 
-const { getErrorMessage } = require('./local_backend_bridge_utils.cjs');
-
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -69,45 +67,15 @@ function resolveScreenshotArgsWithDisplayBounds(args, defaultDisplayBounds) {
   return nextArgs;
 }
 
-function resolveRunShellCommandArgs(args, getFrontendConfig, warn = console.warn) {
-  const nextArgs = (
-    isRecord(args)
-  ) ? deepClone(args) : {};
-
-  let agentHasFullSudoAccess = false;
-  if (typeof getFrontendConfig === 'function') {
-    try {
-      const config = getFrontendConfig();
-      agentHasFullSudoAccess = Boolean(
-        config
-        && typeof config === 'object'
-        && !Array.isArray(config)
-        && config.agent_full_sudo_enabled === true,
-      );
-    } catch (error) {
-      warn(
-        `[Main][LocalBackendBridge] sudo_auth_config_read_failed message=${JSON.stringify(getErrorMessage(error))}`,
-      );
-    }
-  }
-
-  nextArgs.sudo_auth_mode = agentHasFullSudoAccess ? 'native' : 'os_prompt';
-  return nextArgs;
-}
-
 function resolveToolArgs(
   toolName,
   args,
-  getFrontendConfig,
-  warn = console.warn,
   options = {},
 ) {
-  if (toolName === 'run_shell_command') {
-    return resolveRunShellCommandArgs(args, getFrontendConfig, warn);
-  }
   const nextArgs = isRecord(args) ? deepClone(args) : {};
   if (toolName === 'screenshot') {
-    const defaultDisplayBounds = normalizeDisplayBounds(options.displayBounds);
+    const normalizedOptions = isRecord(options) ? options : {};
+    const defaultDisplayBounds = normalizeDisplayBounds(normalizedOptions.displayBounds);
     return resolveScreenshotArgsWithDisplayBounds(nextArgs, defaultDisplayBounds);
   }
   return nextArgs;

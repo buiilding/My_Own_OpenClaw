@@ -24,7 +24,6 @@ title: "IPC Channel and Handler Reference"
 - `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/display_query_handler.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
-- `frontend/src/main/permissions/agent_sudo_access_handler.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
@@ -99,14 +98,15 @@ Behavior:
 
 ## Permission channels (`permission_ipc_runtime.cjs`, wired by `index.cjs`)
 
-- `set-agent-sudo-access`
-  - Linux-only sudo flow: rejects persistent passwordless enable and removes legacy WindieOS sudoers files through `pkexec`
-  - detailed runtime contract: [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - `list-permissions`
 - `check-permissions`
 - `check-permission`
 - `run-permission-probe`
 - `request-permission`
+
+There is no renderer-callable `set-agent-sudo-access` channel. Linux
+`run_shell_command` sudo behavior is owned by the sidecar shell tool, which
+rewrites leading `sudo ...` commands to `pkexec` prompting.
 
 Removed legacy renderer-callable channels:
 
@@ -141,7 +141,6 @@ Local tool runtime nuances:
 - screenshot calls resolve display bounds in main-process order:
   1. visible sender window display affinity
   2. active query-origin display affinity fallback
-- direct `run_shell_command` and nested `system_use -> run_shell_command` payloads derive `sudo_auth_mode` from frontend config (`agent_full_sudo_enabled`)
 - sidecar `screenshot_path` responses are materialized into artifact refs (`screenshot_ref`/`screenshot_url`) when upload succeeds, with inline base64 fallback on upload failure
 
 ## Main -> Renderer Event Channels (`on`)

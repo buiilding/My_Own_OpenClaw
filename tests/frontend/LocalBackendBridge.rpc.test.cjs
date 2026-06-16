@@ -634,58 +634,8 @@ describe('local_backend_bridge RPC handlers', () => {
     }
   });
 
-  test('internal tool execution injects native sudo auth mode when full sudo access is enabled', async () => {
-    const { bridge, stdoutHandler } = initBridge({
-      frontendConfig: { agent_full_sudo_enabled: true },
-    });
-    markReady();
-
-    const promise = bridge.executeToolForBackend({
-      toolName: 'run_shell_command',
-      args: { command: 'sudo apt update', run_in_background: false },
-    });
-
-    await expectLastRequestWith('execute_tool', {
-      tool_name: 'run_shell_command',
-      args: {
-        command: 'sudo apt update',
-        run_in_background: false,
-        sudo_auth_mode: 'native',
-      },
-    });
-
-    emitRpcResult(stdoutHandler, { success: true, data: { value: 1 } });
-    await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
-  });
-
-  test('internal tool execution injects os_prompt sudo auth mode when full sudo access is disabled', async () => {
-    const { bridge, stdoutHandler } = initBridge({
-      frontendConfig: { agent_full_sudo_enabled: false },
-    });
-    markReady();
-
-    const promise = bridge.executeToolForBackend({
-      toolName: 'run_shell_command',
-      args: { command: 'sudo apt update', run_in_background: false },
-    });
-
-    await expectLastRequestWith('execute_tool', {
-      tool_name: 'run_shell_command',
-      args: {
-        command: 'sudo apt update',
-        run_in_background: false,
-        sudo_auth_mode: 'os_prompt',
-      },
-    });
-
-    emitRpcResult(stdoutHandler, { success: true, data: { value: 1 } });
-    await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
-  });
-
-  test('internal tool execution does not mutate caller run_shell_command args when injecting sudo mode', async () => {
-    const { bridge, stdoutHandler } = initBridge({
-      frontendConfig: { agent_full_sudo_enabled: true },
-    });
+  test('internal tool execution forwards run_shell_command args unchanged', async () => {
+    const { bridge, stdoutHandler } = initBridge();
     markReady();
 
     const callerArgs = { command: 'sudo apt update', run_in_background: false };
@@ -703,7 +653,6 @@ describe('local_backend_bridge RPC handlers', () => {
       args: {
         command: 'sudo apt update',
         run_in_background: false,
-        sudo_auth_mode: 'native',
       },
     });
 
