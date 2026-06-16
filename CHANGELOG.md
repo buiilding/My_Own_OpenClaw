@@ -96,6 +96,8 @@ All notable changes to WindieOS will be documented in this file.
   desktop conversation storage, and transcript tool-schema normalization.
 - sdk: remove unused TypeScript symbols from conversation projections, agent
   stream attachment extraction, managed agent sessions, and package exports.
+- frontend/renderer: remove deprecated browser API usage from chat stream trace
+  platform labeling and markdown HTML container construction.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
 - docs/frontend: route removed legacy selected-model localStorage migration
@@ -110,6 +112,8 @@ All notable changes to WindieOS will be documented in this file.
   searches to the chat stream runtime reference.
 - docs/frontend: route removed renderer tool-schema list helper searches to the
   transparency rendering reference.
+- docs/sdk: route removed SDK tool-pair helper searches to the conversation
+  runtime projection contract.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability

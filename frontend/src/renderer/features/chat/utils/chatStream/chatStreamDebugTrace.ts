@@ -67,10 +67,17 @@ export function logRendererResponseSurfaceTrace(data: Record<string, unknown>): 
 }
 
 function getRendererPlatform(): string | null {
-  if (typeof navigator === 'undefined' || typeof navigator.platform !== 'string') {
+  if (typeof navigator === 'undefined') {
     return null;
   }
-  const platform = navigator.platform.trim();
+  const userAgentDataPlatform = (
+    navigator as Navigator & { userAgentData?: { platform?: unknown } }
+  ).userAgentData?.platform;
+  const platform = typeof userAgentDataPlatform === 'string' && userAgentDataPlatform.trim()
+    ? userAgentDataPlatform.trim()
+    : typeof navigator.userAgent === 'string' && navigator.userAgent.trim()
+      ? navigator.userAgent.trim()
+      : '';
   return platform.length > 0 ? platform : null;
 }
 

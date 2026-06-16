@@ -182,15 +182,18 @@ function buildMatchMarkup(content: string, matchIndex: number, active: boolean):
 }
 
 function createHtmlContainer(sourceHtml: string): HTMLDivElement | null {
-  if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
-    const container = document.createElement('div');
-    container.innerHTML = sourceHtml;
-    return container;
-  }
-
   if (typeof window !== 'undefined' && typeof window.DOMParser === 'function') {
     const parser = new window.DOMParser();
     const parsed = parser.parseFromString(`<div>${sourceHtml}</div>`, 'text/html');
+    return parsed.body.firstElementChild as HTMLDivElement | null;
+  }
+
+  if (
+    typeof document !== 'undefined'
+    && typeof document.implementation?.createHTMLDocument === 'function'
+  ) {
+    const parsed = document.implementation.createHTMLDocument('');
+    parsed.body.innerHTML = `<div>${sourceHtml}</div>`;
     return parsed.body.firstElementChild as HTMLDivElement | null;
   }
 
