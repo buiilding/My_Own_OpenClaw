@@ -100,6 +100,8 @@ All notable changes to WindieOS will be documented in this file.
   platform labeling and markdown HTML container construction.
 - backend/sidecar: remove unused imports from remote system tools, TTS helpers,
   and sidecar filesystem/system tool modules.
+- backend: remove unused imports and relay paths from provider response
+  parsing, provider payload helper, and computer tool schema modules.
 - docs/frontend: route deprecated renderer browser API searches to the runtime
   trace and markdown rendering owner docs.
 - docs/frontend: route removed frontend dead-symbol searches to main-window

@@ -5,7 +5,6 @@ from typing import Any, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.src.core.types.enums import (
-    CoordinateFindingMethod,
     KeyboardAction,
     MouseAction,
 )

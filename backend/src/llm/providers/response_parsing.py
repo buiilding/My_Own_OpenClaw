@@ -10,10 +10,6 @@ from typing import Any, Dict, List, Optional
 from backend.src.core.infrastructure.error_types import LLMAPIError
 from backend.src.core.messages.content_blocks import iter_text_content_fragments
 from backend.src.core.types.schemas import NormalizedLLMResponse
-from backend.src.llm.providers.thinking_extraction import (
-    extract_tagged_thinking_from_content,
-    extract_thinking_content,
-)
 
 logger = logging.getLogger(__name__)
 

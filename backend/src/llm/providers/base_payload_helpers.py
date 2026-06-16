@@ -21,12 +21,14 @@ from backend.src.llm.providers.response_parsing import (
     extract_message_tool_calls,
     extract_stream_delta,
     extract_stream_finish_reason,
-    extract_tagged_thinking_from_content,
-    extract_thinking_content,
     first_item,
     get_value,
     normalize_raw_tool_calls,
     normalize_tool_arguments,
+)
+from backend.src.llm.providers.thinking_extraction import (
+    extract_tagged_thinking_from_content,
+    extract_thinking_content,
 )
 
 
