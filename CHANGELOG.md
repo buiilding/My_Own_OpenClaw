@@ -6,28 +6,20 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/openai: document that Responses history input consumes provider-normalized
-  assistant tool calls only.
-- backend/openai: require provider-normalized assistant tool calls before
-  building OpenAI Responses input items.
-- frontend/sidecar: regenerate the built-in browser tool manifest so
-  Electron advertises canonical replace_file old_string/new_string fields.
-- frontend/chat: remove the old stop-query UI mutator now that stopped-turn
-  state is owned by the shared hook and chat store action.
-- frontend/runtime: keep SDK invoke command-table and response-overlay
-  preflight-source details private to their owning adapters.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
-- frontend/docs: route stop/cancel docs through the shared stop-turn hook,
-  pending-turn target resolution, and chat-store stopped-turn state.
 - frontend/chat: extract SDK current-turn projection side effects from the
   projection subscription hook into a focused renderer adapter.
 - frontend/docs: document the current-turn projection side-effect utility as
   the owner of renderer send-latch, thinking, and stream-tracking updates.
+- frontend/docs: route stop/cancel docs through the shared stop-turn hook,
+  pending-turn target resolution, and chat-store stopped-turn state.
 - tooling/commits: require `scripts/committer` bodies to use the AGENTS.md
   section format before staging files.
 - backend/tools: publish OCR tool-context services through `ocr_router` only and
   remove the `ContextFactory` `ocr_service` alias.
+- backend/openai: require provider-normalized assistant tool calls when building
+  Responses input instead of accepting legacy flat tool-call rows there.
 - docs/backend: route removed `ContextFactory.set_ocr_service` searches to the
   tool-context `ocr_router` service-key contract.
 - frontend/main: extract the SDK-shaped `windie:invoke` command allowlist into
@@ -38,6 +30,12 @@ All notable changes to WindieOS will be documented in this file.
   session runtime `ocr_router` contract.
 - frontend/main: route the strict `windie:invoke` allowlist through the SDK
   runtime command contract.
+- frontend/main: keep `buildWindieSdkCommandHandlers` internal to the SDK
+  command IPC module instead of exporting the unused helper.
+- frontend/renderer: remove the unused response-overlay preflight source export;
+  renderer overlay code now exposes only the guard ref it consumes.
+- frontend/chat: remove the unused `applyStopQueryUiState` export after stop
+  handling moved to the chat store `acceptStoppedTurn` path.
 - frontend/renderer: remove the renderer-only tool correlation alias and route
   chat stream correlation through the SDK package export.
 - backend/agent: require `ocr_router` in `AgentSession` construction and remove
@@ -85,6 +83,8 @@ All notable changes to WindieOS will be documented in this file.
   sidecar daemon diagnostics context builder.
 - frontend/sidecar: replace browser `replace_file` `old_str`/`new_str`
   compatibility fields with canonical `old_string`/`new_string`.
+- frontend/sidecar: regenerate the built-in tool manifest so Electron no
+  longer advertises browser `replace_file` `old_str`/`new_str` aliases.
 - docs/browser: route browser `replace_file` `old_str`/`new_str` schema
   searches to the browser action runtime reference.
 - frontend/sidecar: remove wakeword `wakeword_models` constructor compatibility;
