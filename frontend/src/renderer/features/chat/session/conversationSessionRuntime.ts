@@ -14,7 +14,7 @@ type MainSessionSnapshot = {
   userId: string | null;
 };
 
-export const EMPTY_MAIN_SESSION_SNAPSHOT: MainSessionSnapshot = Object.freeze({
+const EMPTY_MAIN_SESSION_SNAPSHOT: MainSessionSnapshot = Object.freeze({
   conversationRef: null,
   userId: null,
 });
@@ -27,11 +27,7 @@ function normalizeConversationRef(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-export function shouldProjectSessionConversationRef(value: unknown): boolean {
-  return Boolean(normalizeConversationRef(value));
-}
-
-export function resolveConversationRefForSend(
+function resolveConversationRefForSend(
   transcriptConversationRef: unknown,
   storeConversationRef: unknown,
 ): {
@@ -60,7 +56,7 @@ export function resolveConversationRefForSend(
   };
 }
 
-export function normalizeMainSessionSnapshot(payload: unknown): MainSessionSnapshot {
+function normalizeMainSessionSnapshot(payload: unknown): MainSessionSnapshot {
   const source = (
     payload
     && typeof payload === 'object'
@@ -135,7 +131,7 @@ type TranscriptSessionUserBindingOptions = {
   updateTranscriptSession: TranscriptSessionUpdater;
 };
 
-export function applyMainSessionSnapshot(
+function applyMainSessionSnapshot(
   snapshot: MainSessionSnapshot,
   callbacks: SessionProjectionCallbacks,
 ): MainSessionSnapshot {

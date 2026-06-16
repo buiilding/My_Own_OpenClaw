@@ -7,126 +7,13 @@ import {
   applyEventChatConversationProjection,
   applyTranscriptSessionUserBinding,
   applyRendererConversationSelection,
-  EMPTY_MAIN_SESSION_SNAPSHOT,
-  applyMainSessionSnapshot,
   ensureConversationRefForSend,
   hydrateConversationSessionFromMainSnapshot,
   initializeLocalConversationSession,
-  normalizeMainSessionSnapshot,
   resolveRendererConversationSessionSnapshot,
-  resolveConversationRefForSend,
-  shouldProjectSessionConversationRef,
 } from '../../frontend/src/renderer/features/chat/session/conversationSessionRuntime';
 
 describe('conversationSessionRuntime', () => {
-  test('normalizes refs through send-resolution path', () => {
-    expect(resolveConversationRefForSend(' conv-a ', ' conv-store ')).toEqual({
-      conversationRef: 'conv-a',
-      source: 'transcript',
-    });
-    expect(resolveConversationRefForSend('   ', ' conv-store ')).toEqual({
-      conversationRef: 'conv-store',
-      source: 'store',
-    });
-    expect(resolveConversationRefForSend('   ', null)).toEqual({
-      conversationRef: null,
-      source: null,
-    });
-  });
-
-  test('projects session conversation only when normalized ref is present', () => {
-    expect(shouldProjectSessionConversationRef('conv-1')).toBe(true);
-    expect(shouldProjectSessionConversationRef('   ')).toBe(false);
-    expect(shouldProjectSessionConversationRef(null)).toBe(false);
-  });
-
-  test('prefers transcript ref for send resolution', () => {
-    expect(resolveConversationRefForSend('conv-transcript', 'conv-store')).toEqual({
-      conversationRef: 'conv-transcript',
-      source: 'transcript',
-    });
-  });
-
-  test('falls back to store ref when transcript ref is missing', () => {
-    expect(resolveConversationRefForSend(null, ' conv-store ')).toEqual({
-      conversationRef: 'conv-store',
-      source: 'store',
-    });
-  });
-
-  test('returns null source when neither transcript nor store refs exist', () => {
-    expect(resolveConversationRefForSend(null, undefined)).toEqual({
-      conversationRef: null,
-      source: null,
-    });
-  });
-
-  test('normalizes main session snapshot payload fields', () => {
-    expect(normalizeMainSessionSnapshot({
-      conversationRef: ' conv-main ',
-      userId: ' user-main ',
-    })).toEqual({
-      conversationRef: 'conv-main',
-      userId: 'user-main',
-    });
-
-    expect(normalizeMainSessionSnapshot({
-      conversation_ref: ' conv-backend ',
-      user_id: ' user-backend ',
-    })).toEqual({
-      conversationRef: 'conv-backend',
-      userId: 'user-backend',
-    });
-
-    expect(normalizeMainSessionSnapshot({
-      session_id: ' session-ignored ',
-      sessionId: 'session-ignored',
-      userId: ' user-main ',
-    })).toEqual({
-      conversationRef: null,
-      userId: 'user-main',
-    });
-  });
-
-  test('applyMainSessionSnapshot projects conversation refs and transcript session through shared callbacks', () => {
-    const setTranscriptConversationRef = jest.fn();
-    const setChatConversationRef = jest.fn();
-    const updateTranscriptSession = jest.fn();
-    const snapshot = {
-      conversationRef: 'conv-main',
-      userId: 'user-main',
-    };
-
-    expect(applyMainSessionSnapshot(snapshot, {
-      setTranscriptConversationRef,
-      setChatConversationRef,
-      updateTranscriptSession,
-    })).toEqual(snapshot);
-    expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-main');
-    expect(setChatConversationRef).toHaveBeenCalledWith('conv-main');
-    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-main', 'user-main');
-  });
-
-  test('applyMainSessionSnapshot still updates transcript session when conversation ref is missing', () => {
-    const setTranscriptConversationRef = jest.fn();
-    const setChatConversationRef = jest.fn();
-    const updateTranscriptSession = jest.fn();
-    const snapshot = {
-      conversationRef: null,
-      userId: 'user-main',
-    };
-
-    applyMainSessionSnapshot(snapshot, {
-      setTranscriptConversationRef,
-      setChatConversationRef,
-      updateTranscriptSession,
-    });
-
-    expect(setTranscriptConversationRef).not.toHaveBeenCalled();
-    expect(setChatConversationRef).not.toHaveBeenCalled();
-    expect(updateTranscriptSession).toHaveBeenCalledWith(null, 'user-main');
-  });
-
   test('applyRendererConversationSelection updates transcript session and optionally projects chat store selection', () => {
     const updateTranscriptSession = jest.fn();
     const setChatConversationRef = jest.fn();
@@ -161,6 +48,17 @@ describe('conversationSessionRuntime', () => {
     })).toEqual({
       conversationRef: 'conv-session',
       userId: 'user-1',
+    });
+  });
+
+  test('resolveRendererConversationSessionSnapshot normalizes missing conversation refs and user ids', () => {
+    expect(resolveRendererConversationSessionSnapshot({
+      transcriptConversationRef: null,
+      storeConversationRef: null,
+      userId: ' user-main ',
+    })).toEqual({
+      conversationRef: null,
+      userId: 'user-main',
     });
   });
 
@@ -337,7 +235,10 @@ describe('conversationSessionRuntime', () => {
       setChatConversationRef: jest.fn(),
       updateTranscriptSession: jest.fn(),
       onError,
-    })).resolves.toBe(EMPTY_MAIN_SESSION_SNAPSHOT);
+    })).resolves.toEqual({
+      conversationRef: null,
+      userId: null,
+    });
 
     expect(onError).toHaveBeenCalledWith(expect.any(Error));
   });
@@ -386,7 +287,10 @@ describe('conversationSessionRuntime', () => {
       storeConversationRef: null,
       setTranscriptConversationRef,
       setChatConversationRef,
-      hydrateMainSessionSnapshot: async () => EMPTY_MAIN_SESSION_SNAPSHOT,
+      hydrateMainSessionSnapshot: async () => ({
+        conversationRef: null,
+        userId: null,
+      }),
       createConversationRef: () => 'conv-generated',
     })).resolves.toBe('conv-generated');
 
