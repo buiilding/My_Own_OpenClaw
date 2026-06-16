@@ -117,7 +117,7 @@ Date: 2026-06-15
 | CD-084 | Electron local-backend bridge utility exports | `local_backend_bridge_timeout_policy.cjs` exported execute-tool timeout tier constants and `local_backend_bridge_utils.cjs` exported `toErrorResponse(...)` even though production uses `resolveExecuteToolTimeoutMs(...)` and direct error mapping at call sites | Knip reported all three exports unused; repo search found the timeout constants are private resolver inputs and `toErrorResponse(...)` had no call sites | Remove the dead error-response helper and keep execute-tool timeout constants private to the timeout resolver | `e4dfd5246` |
 | CD-085 | Electron SDK sidecar launch helper exports | `sdk_sidecar_launch_options.cjs` exported daemon discovery/context/env/log helper constants and functions even though production imports only `createDesktopAutoSidecarLaunchPlan(...)` | Knip reported five launch helper exports unused; repo search showed only `SdkSidecarLaunchOptions.test.cjs` imported those helpers directly while Electron main receives launch env/context/log callbacks from the plan object | Remove the helper exports and retarget tests to assert source identity and sidecar log routing through the public desktop auto-sidecar launch plan | `1e45f3336` |
 | CD-086 | Electron local-backend screenshot temp-dir helper export | `local_backend_bridge_screenshot_attachment.cjs` exported `resolveOwnedScreenshotTempDir(...)` even though production uses it only internally to validate owned `screenshot_path` attachments | Knip reported the export unused; repo search showed only `LocalBackendBridge.rpc.test.cjs` imported it directly to construct fixture screenshot paths | Remove the helper export and keep screenshot temp-path ownership tested through the documented `${os.tmpdir()}/windieos-screenshots/windie-shot-*` materialization contract | `38916c7fb` |
-| CD-087 | Electron overlay renderer-console helper exports | `main_window_overlay_runtime.cjs` exported console payload normalization, formatter, and severity classifier helpers even though production uses them only inside the renderer `console-message` hook | Knip reported all three exports unused; repo search showed only `MainWindowOverlayRuntime.test.cjs` imported them directly while Electron main callers use `attachRendererConsoleLogging(...)` | Remove the helper exports and assert old/new Electron console payload handling through the public renderer-console attachment path | pending commit |
+| CD-087 | Electron overlay renderer-console helper exports | `main_window_overlay_runtime.cjs` exported console payload normalization, formatter, and severity classifier helpers even though production uses them only inside the renderer `console-message` hook | Knip reported all three exports unused; repo search showed only `MainWindowOverlayRuntime.test.cjs` imported them directly while Electron main callers use `attachRendererConsoleLogging(...)` | Remove the helper exports and assert old/new Electron console payload handling through the public renderer-console attachment path | `940a5b1d0` |
 
 ## Commit Ledger
 
@@ -289,7 +289,8 @@ Date: 2026-06-15
   completed CD-085.
 - `38916c7fb refactor(frontend): keep screenshot temp resolver private`
   completed CD-086.
-- Pending implementation commit completes CD-087.
+- `940a5b1d0 refactor(frontend): keep renderer console helpers private`
+  completed CD-087.
 
 ## Validation Log
 
