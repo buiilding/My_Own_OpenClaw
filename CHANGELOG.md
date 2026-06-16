@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep SDK sidecar daemon launch env/context/log helpers private
+  behind the desktop auto-sidecar launch plan.
 - frontend/main: delete the unused local-backend error response helper and keep
   execute-tool timeout tier constants private to the timeout resolver.
 - frontend/main: keep SDK live-turn typing transition logging private to the

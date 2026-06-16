@@ -215,10 +215,5 @@ function createDesktopAutoSidecarLaunchPlan({
 }
 
 module.exports = {
-  DAEMON_LAUNCH_CONTEXT_ENV_KEYS,
-  DEFAULT_DAEMON_DISCOVERY_PATH,
-  buildSidecarDaemonEnv,
-  buildSidecarLaunchContextFromEnv,
   createDesktopAutoSidecarLaunchPlan,
-  writeSidecarDaemonLogLine,
 };

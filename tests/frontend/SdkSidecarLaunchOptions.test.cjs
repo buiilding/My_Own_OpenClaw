@@ -5,44 +5,21 @@ const os = require('os');
 const path = require('path');
 
 const {
-  DAEMON_LAUNCH_CONTEXT_ENV_KEYS,
-  buildSidecarDaemonEnv,
-  buildSidecarLaunchContextFromEnv,
   createDesktopAutoSidecarLaunchPlan,
-  writeSidecarDaemonLogLine,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
 
 describe('sdk sidecar launch options', () => {
   test('includes source identity in daemon launch context', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-sidecar-source-'));
-    try {
-      for (const fileName of [
-        'sidecar_daemon.py',
-        'local_backend.py',
-        'local_backend_memory_handlers.py',
-      ]) {
-        fs.writeFileSync(path.join(tempDir, fileName), `${fileName}\n`);
-      }
-      const launchTarget = {
-        resolvedPath: path.join(tempDir, 'sidecar_daemon.py'),
-      };
-      const env = buildSidecarDaemonEnv({
-        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
-        launchTarget,
-      });
-      const context = buildSidecarLaunchContextFromEnv(env);
+    const plan = createDesktopAutoSidecarLaunchPlan({
+      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+    });
 
-      expect(DAEMON_LAUNCH_CONTEXT_ENV_KEYS).toEqual(expect.arrayContaining([
-        'WINDIE_SIDECAR_SOURCE_PATH',
-        'WINDIE_SIDECAR_SOURCE_STAMP',
-      ]));
-      expect(context.WINDIE_SIDECAR_SOURCE_PATH).toBe(launchTarget.resolvedPath);
-      expect(context.WINDIE_SIDECAR_SOURCE_STAMP).toContain('sidecar_daemon.py:');
-      expect(context.WINDIE_SIDECAR_SOURCE_STAMP).toContain('local_backend.py:');
-      expect(context.WINDIE_SIDECAR_SOURCE_STAMP).toContain('local_backend_memory_handlers.py:');
-    } finally {
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    }
+    expect(plan.ok).toBe(true);
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_PATH).toBe(plan.launchTarget.resolvedPath);
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toContain('sidecar_daemon.py:');
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toContain('local_backend.py:');
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP)
+      .toContain('local_backend_memory_handlers.py:');
   });
 
   test('desktop launch owns a fresh sidecar instead of reusing discovered daemons', () => {
@@ -58,29 +35,36 @@ describe('sdk sidecar launch options', () => {
   });
 
   test('sidecar daemon lines write to sidecar log layer and stderr stream', () => {
-    const stream = { write: jest.fn() };
-    const writeLayerLogLine = jest.fn();
+    const originalEnv = process.env;
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-sidecar-log-'));
+    const logFile = path.join(tempDir, 'sidecar.log');
+    const stderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-    expect(writeSidecarDaemonLogLine('daemon ready', {
-      filter: false,
-      stream,
-      writeLayerLogLine,
-    })).toBe(true);
+    try {
+      process.env = {
+        ...originalEnv,
+        WINDIE_SIDECAR_LOG_FILE: logFile,
+      };
+      const plan = createDesktopAutoSidecarLaunchPlan({
+        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+      });
 
-    expect(writeLayerLogLine).toHaveBeenCalledWith('sidecar', '[SidecarDaemon] daemon ready');
-    expect(stream.write).toHaveBeenCalledWith('[SidecarDaemon] daemon ready\n');
+      expect(plan.ok).toBe(true);
+      plan.options.onStdoutLine('daemon ready');
+      plan.options.onStdoutLine('[LocalBackend] ready');
+      plan.options.onStderrLine('[SidecarDaemon] listening pid=123');
 
-    expect(writeSidecarDaemonLogLine('[LocalBackend] ready', {
-      filter: false,
-      stream,
-      writeLayerLogLine,
-    })).toBe(true);
-    expect(writeLayerLogLine).toHaveBeenCalledWith('sidecar', '[LocalBackend] ready');
-
-    expect(writeSidecarDaemonLogLine('[SidecarDaemon] listening pid=123', {
-      stream,
-      writeLayerLogLine,
-    })).toBe(true);
-    expect(writeLayerLogLine).toHaveBeenCalledWith('sidecar', '[SidecarDaemon] listening pid=123');
+      expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] daemon ready\n');
+      expect(stderrWrite).toHaveBeenCalledWith('[LocalBackend] ready\n');
+      expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] listening pid=123\n');
+      const log = fs.readFileSync(logFile, 'utf8');
+      expect(log).toContain('[SidecarDaemon] daemon ready');
+      expect(log).toContain('[LocalBackend] ready');
+      expect(log).toContain('[SidecarDaemon] listening pid=123');
+    } finally {
+      stderrWrite.mockRestore();
+      process.env = originalEnv;
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 });
