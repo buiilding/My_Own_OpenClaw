@@ -101,7 +101,7 @@ Inspect:
 - `frontend/src/main/python/tools/computer/screenshot_tool.py`
 - `backend/src/services/ocr`
 - `backend/src/services/vision`
-- `backend/src/tools/coordinate_resolution`
+- `backend/src/agent/tools/preparation/coordinate_resolution`
 
 Docs:
 

@@ -46,7 +46,7 @@ Development no longer falls back to `127.0.0.1:8765` unless a local override is 
 | Provider API keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OPENROUTER_API_KEY`, `MISTRAL_API_KEY`, `KIMI_API_KEY`) | Process env | Authenticates LLM providers | `backend/src/core/config/models.py`, provider files under `backend/src/llm/providers` |
 | `BRAVE_SEARCH_API_KEY` | Process env | Enables Brave fallback for logical `web_search` when native provider search is unavailable | `backend/src/tools`, `backend/src/llm/providers`, config models |
 | `ELEVENLABS_API_KEY` | Process env | Enables ElevenLabs TTS provider | `backend/src/core/config/models.py`, backend TTS services |
-| `ocr_backend`, `vision_backend`, `embedding_backend` | Backend `AppConfig` | Chooses local, remote HTTP, vendor, or disabled inference routes | `backend/src/core/config/models.py`, `backend/src/services/screen_grounding`, `backend/src/embeddings`, `backend/src/api/routes/memory/embeddings` |
+| `ocr_backend`, `vision_backend`, `embedding_backend` | Backend `AppConfig` | Chooses local, remote HTTP, vendor, or disabled inference routes | `backend/src/core/config/models.py`, `backend/src/services/ocr`, `backend/src/services/vision`, `backend/src/embeddings`, `backend/src/api/routes/memory/embeddings` |
 | Inference remote URLs and health URLs | Backend `AppConfig` | Points OCR, vision, or embeddings at hosted services | `backend/src/core/config/models.py`, provider/router services |
 | Circuit breaker thresholds and cooldowns | Backend `AppConfig` | Hides degraded OCR/vision/embedding capabilities after repeated failures | `backend/src/core/config/models.py`, provider routers |
 

@@ -320,7 +320,7 @@ Use this when the backend sends events but the UI displays stale, missing, or du
 
 | Layer | Code root | What to inspect |
 | --- | --- | --- |
-| Backend formatter | `backend/src/api/formatters`, `backend/src/api/contracts` | Event type and payload shape. |
+| Backend formatter | `backend/src/api/processing/formatters`, `backend/src/api/contracts` | Event type and payload shape. |
 | Websocket route | `backend/src/api/routes/websocket` | Incoming query, task ownership, outgoing event stream. |
 | Electron relay | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs` | Backend receive and renderer broadcast logs. |
 | Renderer stream | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | Before/after event handling and workspace state. |

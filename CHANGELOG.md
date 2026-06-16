@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: refresh tool-preparation, formatter, logging, OCR/vision, and
+  result-processing source roots after backend package moves.
+
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and
   declare the direct `app-builder-lib` hook dependency.

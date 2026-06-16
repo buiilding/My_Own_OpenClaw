@@ -57,7 +57,7 @@ flowchart LR
 | `replace` fails to match or edits too broadly | Sidecar replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `tests/sidecar/test_replace_engine.py`, `tests/sidecar/test_replace_tool.py` |
 | `replace` writes partial content after an error | Sidecar replace I/O wrapper | `frontend/src/main/python/tools/filesystem/replace_tool.py` | atomic write tests and temp-file cleanup tests |
 | Tool result reaches UI but not backend continuation | SDK result envelope or backend result ingress | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | SDK/main runtime and backend tool-result ingress docs/tests |
-| Backend receives a result but model history looks wrong | Backend result processing | `backend/src/agent/tools`, `backend/src/tools/processing` | backend tool processing docs/tests |
+| Backend receives a result but model history looks wrong | Backend result processing | `backend/src/agent/tools`, `backend/src/agent/tools/processing` | backend tool processing docs/tests |
 
 ## Change Sequence
 
