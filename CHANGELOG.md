@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: mark `AGENTS.md` as the canonical source for agent operating
+  instructions when repo docs disagree.
 - sdk/frontend: expose SDK-shaped runtime command names from the TypeScript SDK
   and route renderer runtime facades through that shared command contract.
 - docs/frontend: route `SDK_RUNTIME_COMMANDS` searches to the renderer desktop

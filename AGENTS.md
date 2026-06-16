@@ -24,6 +24,10 @@ The detailed runtime ownership matrix and change-routing table live in
 
 Before coding or answering implementation questions:
 
+- Treat this `AGENTS.md` file as the canonical source for agent operating
+  instructions. When repo docs and this file disagree about agent workflow,
+  follow this file; use docs and code for implementation details and runtime
+  behavior.
 - Identify the owning runtime before editing code. Use
   `docs/development/agent_runtime_ownership_and_change_routing.md` for the
   owner matrix and common change routes.
@@ -53,8 +57,8 @@ Before coding or answering implementation questions:
   compare the commit intent, current code, tests, docs, and live behavior before
   deciding whether to restore, revise, or continue the current direction.
 - Use `rg` and live files over memory or assumptions.
-- Use the repo-local docs and code as canonical; this file is a routing guide,
-  not an exhaustive source map.
+- Use the repo-local docs and code as canonical for product/runtime behavior;
+  this file owns agent workflow and routes to implementation details.
 
 Detailed source-map entry points are in
 `docs/development/agent_architecture_reference.md`.
