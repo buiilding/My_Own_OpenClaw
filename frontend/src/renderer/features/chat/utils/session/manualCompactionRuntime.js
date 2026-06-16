@@ -10,7 +10,7 @@ import {
   COMPACTION_THINKING_STATUS,
 } from '../chatStream/chatStreamThinkingStatus';
 
-export function waitForNextPaint() {
+function waitForNextPaint() {
   return new Promise((resolve) => {
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => resolve());

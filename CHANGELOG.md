@@ -13,6 +13,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/overlays: remove the orphan renderer response-overlay phase payload
   parser plus parser-only metadata normalizers, and route phase payload
   validation docs to main/shared contracts.
+- frontend/chat: keep the manual-compaction paint-delay helper private to the
+  compaction runtime instead of exporting it as unused public utility surface.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.
