@@ -870,6 +870,9 @@ describe('windie docs index', () => {
     expect(findDocs('plugin tool registration')[0].path).toBe(
       path.join('docs', 'development', 'extensions.md'),
     );
+    expect(findDocs('extension package plugin mcp skills sidecar tools')[0].path).toBe(
+      path.join('docs', 'development', 'extensions.md'),
+    );
   });
 
   test('routes edit resend resource preservation queries to SDK conversation runtime', () => {
