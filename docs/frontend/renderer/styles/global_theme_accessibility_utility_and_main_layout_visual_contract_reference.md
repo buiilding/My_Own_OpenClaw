@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for renderer-wide visual primitives: typography/color token variables, motion/global reset behavior, screen-reader utility class semantics, and ChatGPT-style dashboard shell layout contracts."
+summary: "Deep reference for renderer-wide visual primitives: typography/color token variables, motion/global reset behavior, screen-reader utility class semantics, and dashboard shell layout contracts."
 read_when:
   - When changing global style tokens, font imports, background gradients, or reduced-motion behavior.
-  - When modifying dashboard shell/sidebar/modal markup or responsive breakpoints in `ChatGptDashboardShell`.
+  - When modifying dashboard shell/sidebar/modal markup or responsive breakpoints in `DashboardShell`.
+  - When resolving stale references to removed `ChatGptDashboardShell.css` or `ChatGptDashboardShell.jsx`; the current owner is `DashboardShell.css` plus `DashboardShell.jsx`.
 title: "Global Theme, Accessibility Utility, and Dashboard Shell Visual Contract Reference"
 ---
 
@@ -12,10 +13,13 @@ This page documents:
 
 - `frontend/src/renderer/styles/theme.css`
 - `frontend/src/renderer/styles/accessibility.css`
-- `frontend/src/renderer/styles/ChatGptDashboardShell.css`
+- `frontend/src/renderer/styles/ChatInterface.css`
+- `frontend/src/renderer/styles/DashboardShell.css`
 - `frontend/src/renderer/styles/CloneMemoryModels.css`
+- `frontend/src/renderer/styles/CloneSettings.css`
+- `frontend/src/renderer/styles/FrontendOnboarding.css`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 
 ## Global Theme Token Contract (`theme.css`)
 
@@ -62,11 +66,11 @@ Motion baseline:
 - uses clip/size/overflow pattern for screen-reader-only labels
 - consumed by renderer surfaces where visible labels are replaced by iconography or condensed UI
 
-## Dashboard Shell Layout Contract (`ChatGptDashboardShell.css` + `ChatGptDashboardShell.jsx`)
+## Dashboard Shell Layout Contract (`DashboardShell.css` + `DashboardShell.jsx`)
 
 Structure coupling:
 
-- `ChatGptDashboardShell.jsx` emits fixed class surface:
+- `DashboardShell.jsx` emits fixed class surface:
   - `.cg-dashboard-shell`
   - `.cg-sidebar`, `.cg-sidebar-brand`, `.cg-sidebar-nav`
   - `.cg-nav-item`, `.cg-main-content`
@@ -91,12 +95,21 @@ Responsive behavior:
 
 ## Import/Load Contract (`App.jsx`)
 
-`App.jsx` imports `theme.css`, `ChatInterface.css`, `ChatGptDashboardShell.css`, and `accessibility.css` at root.
+`App.jsx` imports `theme.css`, `ChatInterface.css`, `DashboardShell.css`,
+`CloneMemoryModels.css`, `FrontendOnboarding.css`, and `accessibility.css` at root.
 
-It also imports `CloneMemoryModels.css`, which owns clone-style modal panel visuals for:
+`CloneMemoryModels.css` owns clone-style modal panel visuals for:
 
 - `MemorySection` (episodic/semantic/procedural tabs and memory cards)
 - `ModelsSection` (hover-expanding model cards)
+- `UsageSection` placeholder panels that reuse the clone/dashboard panel visual language
+
+`CloneSettings.css` is section-scoped through `SettingsSection.jsx`, not a root
+`App.jsx` import. It owns settings tab and control visuals while the dashboard
+shell still owns modal framing and backdrop behavior.
+
+`FrontendOnboarding.css` is a root import because onboarding can replace the
+dashboard/chat surface before normal dashboard sections mount.
 
 Implication:
 

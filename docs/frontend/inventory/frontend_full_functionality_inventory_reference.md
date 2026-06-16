@@ -223,7 +223,7 @@ Functionality:
 
 Primary files:
 
-- Shell: `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- Shell: `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - Sidebar/search: `DashboardSidebar.jsx`, `SearchChatsModal.jsx`
 - Sections:
   - `MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`

@@ -30,7 +30,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
@@ -140,7 +140,7 @@ Renderer transcript rows remain visible projections and do not execute tools.
 
 ## Dashboard Resume and Rehydrate Flow
 
-`ChatGptDashboardShell` conversation-open path:
+`DashboardShell` conversation-open path:
 
 1. list conversations from the SDK conversation library (`recordKind: "chat_event"`)
 2. load selected conversation SDK events via the chat-event store adapter (cursor-paginated local RPC)

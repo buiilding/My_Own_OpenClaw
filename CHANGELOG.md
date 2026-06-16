@@ -45,6 +45,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/tools: align tool-manifest and agent-definition docs with the current
   websocket handshake path and route removed post-handshake schema-sync queries
   to the SDK agent definition contract.
+- docs/frontend: align dashboard shell/style references with the current
+  `DashboardShell.css`, `CloneMemoryModels.css`, `CloneSettings.css`, and
+  `FrontendOnboarding.css` ownership after stale renderer styles were removed.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

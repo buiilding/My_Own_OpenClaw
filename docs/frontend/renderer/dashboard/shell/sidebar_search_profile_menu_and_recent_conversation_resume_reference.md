@@ -15,10 +15,10 @@ title: "Dashboard Sidebar, Search, and Profile Menu Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/sidebar/DashboardSidebarUserMenu.jsx`
 - `frontend/src/renderer/features/dashboard/components/sidebar/useDismissOnOutside.js`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
-- `frontend/src/renderer/styles/ChatGptDashboardShell.css`
+- `frontend/src/renderer/styles/DashboardShell.css`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 - `tests/frontend/ConversationGroups.test.js`
 - `tests/frontend/DashboardSidebar.test.jsx`
@@ -62,7 +62,7 @@ Module split ownership:
 
 Collapse/expand motion contract:
 
-- sidebar width/min-width transitions animate in both directions (expanded `260px` <-> collapsed `56px`) using CSS motion tokens in `ChatGptDashboardShell.css`
+- sidebar width/min-width transitions animate in both directions (expanded `260px` <-> collapsed `56px`) using CSS motion tokens in `DashboardShell.css`
 - nav/user/header/footer controls animate positional/spacing changes with the same motion timing so collapse/expand feels continuous instead of snap-only
 - main-content surface applies a subtle counter-shift while collapsed to reinforce sidebar state change
 - reduced-motion users get static transitions disabled via `@media (prefers-reduced-motion: reduce)`
@@ -196,7 +196,7 @@ They do not own:
 - transcript session updates
 - backend rehydrate calls
 
-Those side effects are owned by `useDashboardConversations` (consumed by `ChatGptDashboardShell`).
+Those side effects are owned by `useDashboardConversations` (consumed by `DashboardShell`).
 
 Recent-chat title visibility sync details:
 

@@ -12,7 +12,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
@@ -24,7 +24,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 
 ## Ownership Boundary
 
-`ChatGptDashboardShell` delegates conversation list/search/rehydrate behavior to `useDashboardConversations`.
+`DashboardShell` delegates conversation list/search/rehydrate behavior to `useDashboardConversations`.
 
 Shell-owned concerns:
 

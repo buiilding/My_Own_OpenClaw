@@ -10,7 +10,7 @@ title: "Dashboard Memory Management and Resume Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
@@ -28,7 +28,7 @@ title: "Dashboard Memory Management and Resume Reference"
 
 ### Dashboard shell lifecycle surface
 
-`ChatGptDashboardShell` also owns dashboard-level runtime state that affects memory/resume UX:
+`DashboardShell` also owns dashboard-level runtime state that affects memory/resume UX:
 
 - VM-mode gating:
   - when `vmModeEnabled=true`, sidebar/search/settings/models/memory/usage modal surfaces are not mounted

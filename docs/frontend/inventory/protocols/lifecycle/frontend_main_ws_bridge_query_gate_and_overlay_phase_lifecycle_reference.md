@@ -24,7 +24,7 @@ Lifecycle contract sources:
 - Main-process IPC registrar split: `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
 - Wakeword + overlay signal emitters: `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
-- Main-window target routing and display inventory invoke handlers: `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/surfaces/display_query_handler.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- Main-window target routing and display inventory invoke handlers: `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/surfaces/display_query_handler.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - Minimal chat pill wakeword trigger handling: `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - Renderer boundary allowlists: `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs`
@@ -220,7 +220,7 @@ Guardrails validated in tests:
 2. Target normalization only accepts one of: `chat`, `memory`, `models`, `settings`.
 3. `main-window-open-target` event is emitted only when main-window show succeeded and target is valid.
 
-Renderer consumption contract (`ChatGptDashboardShell.jsx`):
+Renderer consumption contract (`DashboardShell.jsx`):
 
 - `chat` target closes panels and requests composer focus.
 - `settings`/`models`/`memory` targets open corresponding modal surfaces.

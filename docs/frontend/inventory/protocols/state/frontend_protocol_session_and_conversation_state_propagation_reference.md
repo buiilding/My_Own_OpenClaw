@@ -149,7 +149,7 @@ Locked by `tests/frontend/IpcMainBridge.query.test.cjs`:
   - `updateTranscriptSession(null, resolvedUserId)`
   - clear chat messages + active send/thinking flags
 
-`ChatGptDashboardShell` consumes `useTranscriptSessionInfo()` for active-row highlighting and user-id fallback flow.
+`DashboardShell` consumes `useTranscriptSessionInfo()` for active-row highlighting and user-id fallback flow.
 
 Locked by:
 

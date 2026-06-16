@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for ChatGptDashboardShell runtime: conversation-first layout, modal/panel exclusivity including Usage, recent/search conversation grouping, and rehydrate/open-target routing contracts."
+summary: "Deep reference for DashboardShell runtime: conversation-first layout, modal/panel exclusivity including Usage, recent/search conversation grouping, and rehydrate/open-target routing contracts."
 read_when:
-  - When changing `ChatGptDashboardShell` state ownership, modal open/close rules, or dashboard sidebar/search flows.
+  - When changing `DashboardShell` state ownership, modal open/close rules, or dashboard sidebar/search flows.
   - When debugging conversation resume failures, stale active conversation highlighting, or `main-window-open-target` routing drift.
 title: "Dashboard Shell Modal Routing Contract Reference"
 ---
@@ -10,7 +10,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`

@@ -1,7 +1,7 @@
 ---
-summary: "Dashboard shell docs sub-hub for ChatGptDashboardShell modal exclusivity, sidebar/search intent routing, and main-process open-target handling."
+summary: "Dashboard shell docs sub-hub for DashboardShell modal exclusivity, sidebar/search intent routing, and main-process open-target handling."
 read_when:
-  - When changing `ChatGptDashboardShell` panel-state ownership or sidebar/search interaction wiring.
+  - When changing `DashboardShell` panel-state ownership or sidebar/search interaction wiring.
   - When debugging modal exclusivity regressions, conversation search/recent list drift, or `main-window-open-target` routing mismatches.
 title: "Dashboard Shell Docs Hub"
 ---

@@ -15,7 +15,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/features/chat/utils/session/conversationRef.ts`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
 - `tests/frontend/ChatStore.test.ts`
@@ -113,7 +113,7 @@ So new-chat resets local store regardless, while active backend loop receives st
 
 ## Resume Conversation Call-Site (Dashboard)
 
-`ChatGptDashboardShell.handleOpenConversation(...)` flow:
+`DashboardShell.handleOpenConversation(...)` flow:
 
 1. mark the target `conversationRef` as opening so an empty selected workspace
    renders a loading state instead of the new-chat welcome state

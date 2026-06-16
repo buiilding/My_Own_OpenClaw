@@ -507,4 +507,19 @@ describe('windie docs index', () => {
     expect(findDocs('snake_case command contract')[0].path).toBe(expectedPath);
     expect(findDocs('DesktopBackendTransport')[0].path).toBe(expectedPath);
   });
+
+  test('routes dashboard stylesheet queries to the current renderer style contract', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'styles',
+      'global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md',
+    );
+
+    expect(findDocs('DashboardShell css CloneMemoryModels FrontendOnboarding')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('ChatGptDashboardShell css removed')[0].path).toBe(expectedPath);
+  });
 });

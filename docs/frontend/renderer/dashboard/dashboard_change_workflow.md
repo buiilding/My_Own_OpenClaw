@@ -209,7 +209,7 @@ Docs-only change:
 
 Shell/sidebar/search change:
 
-- `cd frontend && npm run test -- ChatGptDashboardShell`
+- `cd frontend && npm run test -- DashboardShell`
 - `cd frontend && npm run test -- DashboardSidebar`
 - add focused `SearchChatsModal` coverage if search modal behavior changes
 

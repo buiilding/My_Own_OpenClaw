@@ -1,7 +1,7 @@
 ---
 summary: "Renderer dashboard docs sub-hub for shell/sidebar/search behavior, panel section runtime contracts, and dashboard utility ownership."
 read_when:
-  - When changing `ChatGptDashboardShell.jsx` panel routing behavior.
+  - When changing `DashboardShell.jsx` panel routing behavior.
   - When modifying sidebar/search UX or section components under `features/dashboard/components/sections`.
 title: "Renderer Dashboard Docs Hub"
 ---

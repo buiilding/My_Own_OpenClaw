@@ -11,7 +11,7 @@ title: "Usage Section Placeholder Panel and Modal Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/styles/CloneMemoryModels.css`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`

@@ -57,7 +57,7 @@ All surfaces mount `AppProvider`, which means:
 1. `ErrorBoundary`
 2. `AppProvider`
 3. `ChatProvider` (full chat hooks)
-4. `AppContent` (`ChatGptDashboardShell` or onboarding)
+4. `AppContent` (`DashboardShell` or onboarding)
 
 `AppContent` behavior:
 

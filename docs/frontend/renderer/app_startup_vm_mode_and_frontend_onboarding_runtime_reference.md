@@ -50,7 +50,7 @@ Routing behavior:
 
 - VM mode enabled:
   - mount `WakewordController`
-  - render `ChatGptDashboardShell` immediately
+  - render `DashboardShell` immediately
   - pass `vmModeEnabled={true}`
   - bypass frontend onboarding slideshow
   - request `show-main-window({ focus: true })` from the renderer startup-surface controller
@@ -62,7 +62,7 @@ Routing behavior:
   - onboarding never requests maximize/fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
 - VM mode disabled + onboarding complete:
   - mount `WakewordController`
-  - render `ChatGptDashboardShell`
+  - render `DashboardShell`
   - pass `vmModeEnabled={false}`
   - request `show-chatbox({ focus: true, reason: "startup" })` from the renderer startup-surface controller so cold start lands on the minimal chat pill unless Electron main has persisted user-hidden chat-pill intent
 

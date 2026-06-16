@@ -24,12 +24,21 @@ title: "Frontend Renderer Styles Docs Hub"
 
 - `frontend/src/renderer/styles/theme.css`
 - `frontend/src/renderer/styles/accessibility.css`
-- `frontend/src/renderer/styles/ChatGptDashboardShell.css`
+- `frontend/src/renderer/styles/ChatBox.css`
+- `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
+- `frontend/src/renderer/styles/DashboardShell.css`
 - `frontend/src/renderer/styles/ChatInterface.css`
+- `frontend/src/renderer/styles/CloneMemoryModels.css`
+- `frontend/src/renderer/styles/CloneSettings.css`
+- `frontend/src/renderer/styles/ErrorBoundary.css`
+- `frontend/src/renderer/styles/FrontendOnboarding.css`
 - `frontend/src/renderer/styles/ThinkingDisplay.css`
 - `frontend/src/renderer/styles/VoiceStatus.css`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
+- `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`

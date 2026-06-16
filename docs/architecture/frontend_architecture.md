@@ -405,7 +405,7 @@ Primary modules:
 
 ### Dashboard Runtime
 
-- `features/dashboard/components/ChatGptDashboardShell.jsx`:
+- `features/dashboard/components/DashboardShell.jsx`:
   - Sidebar + modal surface orchestration.
   - Conversation search/recent grouping/open/rename/pin/delete actions.
   - `main-window-open-target` IPC target routing (`chat|settings|models|memory`).
