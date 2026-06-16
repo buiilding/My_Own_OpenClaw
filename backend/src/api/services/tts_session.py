@@ -118,7 +118,7 @@ class TTSSession:
             )
         return self
 
-    async def __aexit__(self, exc_type, exc, tb) -> None:
+    async def __aexit__(self, _exc_type, _exc, _tb) -> None:
         await self._tts_manager.cleanup(self.service, self.audio_task)
 
     async def wait_for_audio_completion(self, timeout: float) -> None:

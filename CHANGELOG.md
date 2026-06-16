@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
   result-processing source roots after backend package moves.
 - backend/tools: remove the unused screenshot manager timeout constructor knob
   from screenshot preparation.
+- backend/services: remove unused TTS context-manager bindings and InternVL
+  optional dependency bindings while preserving availability checks.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and

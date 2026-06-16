@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import importlib
 import logging
 from io import BytesIO
 from typing import Any, Optional, Tuple
@@ -43,8 +44,8 @@ INTERNVL_STD = (0.229, 0.224, 0.225)
 
 # Import InternVL-specific dependencies
 if VISION_MODELS_AVAILABLE:
-    import einops  # Required for InternVL model operations
-    import timm  # Required for InternVL vision components
+    importlib.import_module("einops")  # Required for InternVL model operations
+    importlib.import_module("timm")  # Required for InternVL vision components
     import torch
     import torchvision.transforms as T
     from torchvision.transforms.functional import InterpolationMode
@@ -68,8 +69,7 @@ class InternVLModel(BaseVisionModel):
         try:
             # Check if flash-attn is available
             try:
-                import flash_attn
-
+                importlib.import_module("flash_attn")
                 use_flash_attn = True
                 logger.info("FlashAttention2 is available")
             except ImportError:
