@@ -411,6 +411,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes camelCase sidecar discovery metadata to the daemon runtime contract', () => {
+    expect(findDocs('baseUrl discovery metadata ignored')[0].path).toBe(
+      path.join('docs', 'frontend', 'sidecar', 'sidecar_daemon_runtime_reference.md'),
+    );
+  });
+
   test('routes SDK builtins wake option queries to the WindieClient runtime contract', () => {
     const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
 

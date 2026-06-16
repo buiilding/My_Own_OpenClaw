@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: clarify that sidecar daemon discovery files require canonical
+  `base_url` while the public `sidecarDaemon.baseUrl` option remains client-only.
 - docs/navigation: replace broken formatter, memory IPC, overlay, and browser
   runtime links with current maintained references.
 - docs/testing: add a docs-index guard for broken relative markdown links in

@@ -16,7 +16,7 @@ The daemon:
 
 - binds an HTTP/WebSocket server on localhost
 - generates a random per-process token unless a test explicitly provides one
-- writes a discovery file containing `pid`, `host`, `port`, `base_url`,
+- writes a discovery file containing `pid`, `host`, `port`, canonical `base_url`,
   `token`, `created_at`, and non-secret launch context for backend URL,
   auth-state path, packaging mode, and sidecar feature flags
 - is started/reused by the SDK auto-sidecar provider from desktop launch options
@@ -32,6 +32,12 @@ Default discovery path:
 ```text
 ${TMPDIR}/windieos/sidecar-daemon.json
 ```
+
+Discovery metadata is daemon-authored and snake_case. SDK discovery readers
+require `base_url` and `token`; stale camelCase discovery files using `baseUrl`
+are ignored and replaced through the normal launch/reuse flow. The public SDK
+`sidecarDaemon.baseUrl` option is a client constructor option, not a discovery
+file field.
 
 Every endpoint requires the token in either:
 

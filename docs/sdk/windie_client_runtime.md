@@ -646,8 +646,11 @@ The SDK auto sidecar provider reads the daemon discovery file, validates launch
 context when one is provided, starts or reuses `sidecar_daemon.py`, owns
 `SidecarDaemonHttpClient`, unwraps JSON-RPC `/rpc` responses before callers see
 them, and exposes the runtime to memory, persistence, tool registration, and
-local tool execution. Electron remains responsible for host-only behavior around
-native windows, screenshots, display bounds, and artifact upload plumbing.
+local tool execution. Discovery files are daemon-authored snake_case metadata:
+the SDK accepts `base_url` plus `token` and ignores stale camelCase discovery
+metadata such as `baseUrl`. Electron remains responsible for host-only behavior
+around native windows, screenshots, display bounds, and artifact upload
+plumbing.
 
 By default, the provider shuts down a healthy discovered daemon and starts a fresh
 one. Set `autoSidecar.reuseExisting = true` only for hosts that intentionally want
@@ -665,9 +668,11 @@ Non-Electron SDK hosts can override that behavior with:
   a `WindieLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.
 - `sidecar`: a custom `WindieLocalRuntimeClient` implementation.
-- `sidecarDaemon`: daemon `baseUrl` and per-process `token`; `WindieClient`
-  creates a `SidecarDaemonHttpClient` and uses `/status`, registration endpoints,
-  `/tools`, and `/execute-tool`.
+- `sidecarDaemon`: public client option for an already-known daemon `baseUrl`
+  and per-process `token`; `WindieClient` creates a `SidecarDaemonHttpClient`
+  and uses `/status`, registration endpoints, `/tools`, and `/execute-tool`.
+  This camelCase `baseUrl` option does not change the daemon discovery-file
+  contract, which remains canonical `base_url`.
 - `memory`: enabled by default. When enabled, the SDK obtains backend embeddings,
   asks the sidecar memory index for relevant local memories, injects them into
   model-facing user content, and stores completed turns as episodic memory.
