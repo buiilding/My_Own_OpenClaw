@@ -114,6 +114,8 @@ All notable changes to WindieOS will be documented in this file.
   context workflow before deep permission manifest references.
 - docs/backend: route tool-result-history searches to the history commit
   boundary before lower-level tool-result receiver or transformer internals.
+- docs/development: route plugin-tool-registration searches to the extension
+  convention before sidecar-daemon or architecture internals.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

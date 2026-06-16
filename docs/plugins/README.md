@@ -12,7 +12,7 @@ WindieOS has three first-class repo-level contribution roots:
 
 | Developer asks to add | Put it here | Canonical instructions |
 | --- | --- | --- |
-| A local Python tool exposed to the model | `plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#sidecar-plugin-tools) |
+| A local Python tool exposed to the model | `plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#sidecar-plugin-tool-registration) |
 | Instructions only | `skills/<id>/SKILL.md` | [Skills](../development/extensions.md#skills) |
 | An MCP server | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | A built-in WindieOS tool | Core backend/frontend/sidecar tool files | [Tool Development](../development/tool_development.md) |

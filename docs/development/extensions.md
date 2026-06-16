@@ -1,7 +1,8 @@
 ---
-summary: "Canonical WindieOS contribution layout: repo-level sidecar plugins, prompt skills, and MCP server specs."
+summary: "Canonical WindieOS contribution layout for plugin tool registration, repo-level sidecar plugins, prompt skills, and MCP server specs."
 read_when:
   - When adding reusable client-side plugins, skills, or MCP integrations.
+  - When registering plugin tools through `plugins/<id>/plugin.json`, schemas, and sidecar Python entrypoints.
   - When changing extension-owned tool schemas, sidecar execution, prompt layers, or MCP discovery.
 ---
 
@@ -69,7 +70,7 @@ Use `--dir <path>` to target another WindieOS repo/contribution root. The comman
 overwrite existing contribution folders unless `--force` is passed and the
 target folders are empty.
 
-## Sidecar Plugin Tools
+## Sidecar Plugin Tool Registration
 
 `plugin.json` is required for a plugin:
 
@@ -111,8 +112,9 @@ from tools.result import ToolResult
 async def run(root: str, max_files: int = 20):
     return ToolResult.success_result(
         {
-            "output": f"Inspected {root} with limit {max_files}",
             "output": "Repository snapshot ready",
+            "root": root,
+            "max_files": max_files,
         }
     )
 ```

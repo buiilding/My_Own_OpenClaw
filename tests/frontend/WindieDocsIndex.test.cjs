@@ -299,4 +299,10 @@ describe('windie docs index', () => {
     expect(findDocs('tool result history')[0].path).toBe(expectedPath);
     expect(findDocs('tool result history rows')[0].path).toBe(expectedPath);
   });
+
+  test('routes plugin tool registration queries to the extension convention', () => {
+    expect(findDocs('plugin tool registration')[0].path).toBe(
+      path.join('docs', 'development', 'extensions.md'),
+    );
+  });
 });
