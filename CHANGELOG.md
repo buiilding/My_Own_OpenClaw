@@ -83,6 +83,9 @@ All notable changes to WindieOS will be documented in this file.
   searches to the SDK conversation runtime contract.
 - sdk/tools: remove the unreachable top-level tool-output fallback helper after
   canonical `output`/`message`/`error` fields have already been checked.
+- backend/llm: remove provider tool-call id synthesis so non-stream, streamed,
+  and OpenAI Responses tool calls fail closed when the provider omits a
+  non-empty id.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability

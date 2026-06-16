@@ -165,10 +165,11 @@ Completion response normalization (`_extract_completion_response(...)`):
 - parses tool calls from both:
   - OpenAI-style `message.tool_calls`,
   - Anthropic-style `content` blocks with `type=tool_use`,
+- requires each provider tool call to include a non-empty id because
+  `tool_call_id` is the join key for later `role=tool` messages,
 - collapses exact duplicate tool-call representations when a provider exposes
   the same call in multiple fields, then rejects any remaining duplicate
-  normalized tool-call IDs in one assistant response because `tool_call_id` is
-  the join key for later `role=tool` messages,
+  normalized tool-call IDs in one assistant response,
 - includes `finish_reason` when present.
 
 Removed compatibility fallback:

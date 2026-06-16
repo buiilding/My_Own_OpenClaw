@@ -683,6 +683,7 @@ def test_normalize_raw_tool_calls_supports_tool_use_with_string_input():
         [
             {
                 "type": "tool_use",
+                "id": "call_1",
                 "name": "replace",
                 "input": "{\"path\":\"/tmp/demo.txt\"}",
             }
@@ -693,11 +694,26 @@ def test_normalize_raw_tool_calls_supports_tool_use_with_string_input():
 
     assert normalized == [
         {
-            "id": "tool_call_0",
+            "id": "call_1",
             "name": "replace",
             "arguments": {"path": "/tmp/demo.txt"},
         }
     ]
+
+
+def test_normalize_raw_tool_calls_rejects_missing_tool_call_id():
+    with pytest.raises(LLMAPIError, match="missing tool-call id"):
+        normalize_raw_tool_calls(
+            [
+                {
+                    "type": "tool_use",
+                    "name": "replace",
+                    "input": "{\"path\":\"/tmp/demo.txt\"}",
+                }
+            ],
+            model="m",
+            invalid_response_message="Invalid response",
+        )
 
 
 def test_normalize_raw_tool_calls_rejects_invalid_container_shape():

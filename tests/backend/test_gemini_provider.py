@@ -398,7 +398,7 @@ async def test_gemini_stream_emits_error_event_when_tool_arguments_json_is_inval
 
 
 @pytest.mark.asyncio
-async def test_gemini_stream_parses_block_tool_use_and_synthesizes_missing_id(
+async def test_gemini_stream_rejects_block_tool_use_missing_id(
     monkeypatch,
 ):
     provider = GeminiProvider(api_key="test-key")
@@ -434,15 +434,12 @@ async def test_gemini_stream_parses_block_tool_use_and_synthesizes_missing_id(
     )
     assert chunk_text == "Hello world"
 
-    payload = provider.get_last_stream_response_payload()
-    assert payload is not None
-    assert payload["tool_calls"] == [
-        {
-            "id": "tool_call_2",
-            "name": "read_file",
-            "arguments": {"path": "/tmp/block.txt"},
-        }
+    error_messages = [
+        event.content for event in events if isinstance(event, ErrorEvent)
     ]
+    assert len(error_messages) == 1
+    assert "missing streamed tool-call id" in error_messages[0]
+    assert provider.get_last_stream_response_payload() is None
 
 
 @pytest.mark.asyncio
@@ -455,11 +452,13 @@ async def test_gemini_stream_prefers_object_arguments_over_fragmented_string(
         yield _build_stream_chunk(
             tool_name="replace",
             tool_arguments='{"file_path":"/tmp/a","old_string":"x"',
+            tool_call_id="call_1",
         )
         yield _build_block_tool_use_chunk(
             tool_name="replace",
             tool_input={"file_path": "/tmp/a", "old_string": "x", "new_string": "y"},
             tool_index=0,
+            tool_use_id="call_1",
             finish_reason="tool_calls",
         )
 
@@ -485,7 +484,7 @@ async def test_gemini_stream_prefers_object_arguments_over_fragmented_string(
     assert payload is not None
     assert payload["tool_calls"] == [
         {
-            "id": "tool_call_0",
+            "id": "call_1",
             "name": "replace",
             "arguments": {
                 "file_path": "/tmp/a",

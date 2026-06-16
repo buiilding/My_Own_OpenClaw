@@ -66,12 +66,13 @@ Text and reasoning chunks are emitted live as:
 At stream end, `_finalize_stream_tool_calls(...)` produces normalized tool-call entries:
 
 - skips entries missing non-empty tool name
-- synthesizes missing ids as `tool_call_<index>`
+- requires a non-empty provider tool-call id
 - uses `arguments_obj` directly when available
 - otherwise joins `arguments_chunks` and normalizes via `_normalize_tool_arguments(...)`
 
 Fail-closed behavior:
 
+- missing tool-call ids raise `LLMAPIError`
 - malformed argument JSON raises `LLMAPIError`
 - provider logs warning with bounded raw-argument preview
 - `get_completion_stream` emits an `ErrorEvent` through base-class error mapping

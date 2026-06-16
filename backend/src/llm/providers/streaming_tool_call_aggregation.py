@@ -200,7 +200,18 @@ class StreamingToolCallAggregationMixin:
 
             tool_call_id = state.get("id")
             if not isinstance(tool_call_id, str) or not tool_call_id.strip():
-                tool_call_id = f"tool_call_{index}"
+                raise LLMAPIError(
+                    (
+                        f"{self.tool_turn_invalid_response_message}: missing streamed "
+                        f"tool-call id at index {index} name={name.strip()}."
+                    ),
+                    model=model,
+                    metadata={
+                        "llm_tool_call_missing_id": True,
+                        "llm_tool_name": name.strip(),
+                    },
+                )
+            tool_call_id = tool_call_id.strip()
 
             if isinstance(state.get("arguments_obj"), dict):
                 arguments = copy.deepcopy(state["arguments_obj"])

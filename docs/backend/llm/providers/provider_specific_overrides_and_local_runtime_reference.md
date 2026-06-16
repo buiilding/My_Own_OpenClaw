@@ -134,7 +134,7 @@ Kimi stream path reuses shared `StreamingToolCallAggregationMixin` for text + to
 - merges OpenAI-style `delta.tool_calls` and Anthropic-style `content[type=tool_use]`,
 - reconstructs JSON arguments from chunked strings,
 - fails closed when streamed argument decoding fails (emits stream error event, no payload persisted),
-- synthesizes missing ids as `tool_call_<index>`,
+- fails closed when streamed tool-call ids are missing,
 - preserves stream `finish_reason`.
 
 Result is persisted via `get_last_stream_response_payload()` for runtime loop tool processing.

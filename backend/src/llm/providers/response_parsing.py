@@ -336,12 +336,9 @@ def normalize_raw_tool_calls(
             )
 
         if not isinstance(tool_id, str) or not tool_id.strip():
-            tool_id = f"tool_call_{index}"
-            logger.warning(
-                "Tool-call payload missing id; synthesizing fallback id='%s' (model=%s, name=%s)",
-                tool_id,
-                model,
-                tool_name,
+            raise LLMAPIError(
+                f"{invalid_response_message}: missing tool-call id at index {index}",
+                model=model,
             )
 
         arguments = normalize_tool_arguments(
@@ -350,7 +347,7 @@ def normalize_raw_tool_calls(
             invalid_response_message=invalid_response_message,
         )
         normalized_call: Dict[str, Any] = {
-            "id": tool_id,
+            "id": tool_id.strip(),
             "name": tool_name.strip(),
             "arguments": arguments,
         }

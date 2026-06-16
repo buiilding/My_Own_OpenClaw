@@ -14,6 +14,7 @@ from backend.src.core.events.streaming_events import (
     ThinkingEvent,
     WebSearchProgressEvent,
 )
+from backend.src.core.infrastructure.error_types import LLMAPIError
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openai_responses_input import (
@@ -1757,6 +1758,26 @@ def test_normalize_openai_responses_payload_preserves_refusal_text():
 
     assert payload["content"] == "I cannot do that. This request is disallowed."
     assert payload["finish_reason"] == "completed"
+
+
+def test_normalize_openai_responses_payload_rejects_missing_tool_call_id():
+    provider = OpenAIProvider(api_key="test-key")
+
+    with pytest.raises(LLMAPIError, match="missing Responses API tool-call id"):
+        normalize_openai_responses_payload(
+            provider,
+            {
+                "output": [
+                    {
+                        "type": "function_call",
+                        "name": "read_file",
+                        "arguments": "{\"path\":\"/tmp/demo.txt\"}",
+                    }
+                ],
+                "status": "requires_action",
+            },
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+        )
 
 
 def test_extract_openai_web_search_sources_dedupes_urls_and_preserves_query_order():

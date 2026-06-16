@@ -48,6 +48,16 @@ def iter_response_output_items(response: Any) -> Iterable[Any]:
         yield from output
 
 
+def require_function_call_id(item: Any, *, model: str) -> str:
+    tool_call_id = get_value(item, "call_id") or get_value(item, "id")
+    if not isinstance(tool_call_id, str) or not tool_call_id.strip():
+        raise LLMAPIError(
+            f"{_INVALID_OPENAI_RESPONSE}: missing Responses API tool-call id",
+            model=model,
+        )
+    return tool_call_id.strip()
+
+
 def normalize_openai_responses_payload(
     provider: Any,
     response: Any,
@@ -73,18 +83,14 @@ def normalize_openai_responses_payload(
 
         if item_type == "function_call":
             raw_arguments = get_value(item, "arguments")
+            tool_call_id = require_function_call_id(item, model=model)
+            tool_name = str(get_value(item, "name") or "")
             try:
                 arguments = normalize_tool_call_arguments(
                     provider, raw_arguments, model=model
                 )
             except LLMAPIError as exc:
                 preview = preview_function_arguments(str(raw_arguments or ""))
-                tool_call_id = str(
-                    get_value(item, "call_id")
-                    or get_value(item, "id")
-                    or f"tool_call_{len(tool_calls)}"
-                )
-                tool_name = str(get_value(item, "name") or "")
                 raw_tool_call_preview = build_raw_tool_call_preview(
                     tool_call_id=tool_call_id,
                     tool_name=tool_name,
@@ -110,12 +116,8 @@ def normalize_openai_responses_payload(
 
             tool_calls.append(
                 {
-                    "id": str(
-                        get_value(item, "call_id")
-                        or get_value(item, "id")
-                        or f"tool_call_{len(tool_calls)}"
-                    ),
-                    "name": str(get_value(item, "name") or ""),
+                    "id": tool_call_id,
+                    "name": tool_name,
                     "arguments": arguments,
                 }
             )
