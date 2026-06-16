@@ -44,7 +44,7 @@ class BundleResultFormatter:
             system_state: Optional system state dict (if not in bundle_result)
 
         Returns:
-            Formatted string with narrative text plus optional legacy system-state XML
+            Formatted string with narrative text plus optional system-state XML
         """
         status = bundle_result.get("status", "unknown")
         step_results = bundle_result.get("step_results", [])

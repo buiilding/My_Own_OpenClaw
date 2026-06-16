@@ -47,6 +47,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/events: remove the unused backend `tool-bundle-output` event type and
   normalizer branch; bundle outputs remain SDK-internal `tool_bundle_output`
   conversation events.
+- backend/tools: remove stale compatibility wording from current bundle result
+  fan-out and system-state formatting comments.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,

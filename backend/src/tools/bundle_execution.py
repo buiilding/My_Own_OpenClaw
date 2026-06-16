@@ -99,8 +99,7 @@ async def execute_bundle(
     finally:
         result_storage.remove_bundle_future(bundle_id)
 
-    # Extract step_results from bundle result and create individual results
-    # This maintains compatibility with existing code that expects individual tool results
+    # Fan out bundle step results for the current history/result processor path.
     results = []
     step_results: List[Any] = []
     if isinstance(bundle_result.data, dict):
