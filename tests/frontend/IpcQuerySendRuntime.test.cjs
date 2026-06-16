@@ -43,7 +43,6 @@ function buildDeps(overrides = {}) {
     })),
     buildQueryPayloadContext: jest.fn(),
     getSystemState: jest.fn(),
-    searchMemory: jest.fn(),
     ...overrides,
   };
 }

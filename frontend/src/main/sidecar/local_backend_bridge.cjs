@@ -9,7 +9,6 @@ const {
 } = require('../app/backend_endpoints.cjs');
 const {
   COMPILED_RPC_HANDLER_DEFINITIONS,
-  mapSearchMemoryPayload,
   registerMappedRpcHandlers,
 } = require('./local_backend_bridge_rpc_mappers.cjs');
 const {
@@ -353,13 +352,6 @@ async function getSystemStateFromBackend(fields) {
   }
 }
 
-async function sendMemorySearchRequest(payload = {}) {
-  return sendRequestOrError(
-    'search_memory',
-    mapSearchMemoryPayload(payload),
-  );
-}
-
 function stopLocalBackend() {
   runtimeExecuteTool = createStoppedToolExecutor();
   clearSdkLocalRuntime();
@@ -547,10 +539,6 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     return getSystemStateFromBackend(fields);
   });
 
-  ipcMain.handle('search-memory', async (event, payload = {}) => (
-    sendMemorySearchRequest(payload)
-  ));
-
   registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS);
 
   appendLocalBackendLifecycleDiagnostic({
@@ -649,24 +637,6 @@ async function warmBrowserAutomation() {
   };
 }
 
-async function searchMemory(
-  query,
-  user_id,
-  limit,
-  memory_type,
-  exclude_conversation_id,
-  retrievalOptions = {},
-) {
-  return sendMemorySearchRequest({
-    query,
-    user_id,
-    limit,
-    memory_type,
-    exclude_conversation_id,
-    ...retrievalOptions,
-  });
-}
-
 module.exports = {
   initializeLocalBackendBridge,
   stopLocalBackend,
@@ -677,5 +647,4 @@ module.exports = {
   installBrowserChromium,
   determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
-  searchMemory,
 };

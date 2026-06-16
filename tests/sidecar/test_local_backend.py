@@ -52,12 +52,6 @@ class DummyMemoryStore:
             "deleted_title_count": 0,
         }
 
-    async def search(self, query, user_id, filters, limit):
-        return [
-            {"type": "semantic", "text": "fact"},
-            {"type": "episodic", "text": "event", "conversation_id": "conv-1"},
-        ]
-
     async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
         self.added.append((content, user_id, metadata, conversation_id, kwargs))
         return "memory-1"
@@ -178,17 +172,7 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
     def __init__(self, results):
         super().__init__()
         self.results = results
-        self.search_calls = []
         self.search_by_embedding_calls = []
-
-    async def search(self, query, user_id, filters, limit):
-        self.search_calls.append((query, user_id, filters, limit))
-        if isinstance(self.results, dict):
-            normalized_type = None
-            if isinstance(filters, dict):
-                normalized_type = filters.get("type")
-            return self.results.get(normalized_type, [])
-        return self.results
 
     async def search_by_embedding(
         self,
@@ -831,7 +815,7 @@ def test_initialize_methods_keeps_memory_handlers_registered():
     backend = LocalBackend()
 
     expected_methods = {
-        "search_memory",
+        "search_memory_by_embedding",
         "store_memory_by_embedding",
         "list_episodic_memories",
         "list_semantic_memories",
@@ -896,46 +880,6 @@ async def test_handle_list_chat_conversations_returns_sanitized_diagnostics(tmp_
 
 
 @pytest.mark.asyncio
-async def test_handle_search_memory_groups_results():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-
-    result = await backend._handle_search_memory("query", user_id="user-1")
-    assert result["success"] is True
-    assert result["data"]["memories"]["semantic"] == ["fact"]
-    assert result["data"]["memories"]["episodic"] == ["event"]
-
-
-@pytest.mark.asyncio
-async def test_handle_search_memory_empty_results():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing([])
-
-    result = await backend._handle_search_memory("query")
-    assert result["success"] is True
-    assert result["data"]["memories"] == {"semantic": [], "episodic": []}
-
-
-@pytest.mark.asyncio
-async def test_handle_search_memory_applies_filters():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing(
-        [{"type": "semantic", "text": "fact"}]
-    )
-
-    result = await backend._handle_search_memory(
-        "query",
-        user_id="user-1",
-        limit=3,
-        memory_type="semantic",
-    )
-    assert result["success"] is True
-    assert backend.memory_store.search_calls == [
-        ("query", "user-1", {"type": "semantic"}, 3)
-    ]
-
-
-@pytest.mark.asyncio
 async def test_handle_search_memory_by_embedding_applies_filters():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStoreCapturing(
@@ -968,7 +912,6 @@ async def test_handle_search_memory_by_embedding_applies_filters():
         "episodicResultCount": 0,
         "semanticResultCount": 1,
     }
-    assert backend.memory_store.search_calls == []
     assert backend.memory_store.search_by_embedding_calls == [
         ([0.1, 0.2, 0.3], "user-1", {"type": "semantic"}, 3, "v1")
     ]
@@ -987,119 +930,6 @@ async def test_handle_search_memory_by_embedding_rejects_missing_embedding():
     assert result["success"] is False
     assert result["error"] == "embedding must be a non-empty list"
     assert backend.memory_store.search_by_embedding_calls == []
-
-
-@pytest.mark.asyncio
-async def test_handle_search_memory_rejects_invalid_memory_type_filter():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing([])
-
-    result = await backend._handle_search_memory(
-        "query",
-        memory_type="archive",
-    )
-    assert result["success"] is False
-    assert result["error"] == "Invalid memory_type: archive"
-    assert backend.memory_store.search_calls == []
-
-
-@pytest.mark.asyncio
-async def test_handle_search_memory_normalizes_query_and_type_filter():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing([])
-
-    result = await backend._handle_search_memory(
-        "  query  ",
-        user_id="user-1",
-        memory_type=" SEMANTIC ",
-    )
-    assert result["success"] is True
-    assert backend.memory_store.search_calls == [
-        ("query", "user-1", {"type": "semantic"}, 5)
-    ]
-
-
-@pytest.mark.asyncio
-async def test_handle_search_memory_ignores_unknown_type():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing(
-        [{"type": "weird", "text": "skip"}, {"text": "fallback"}]
-    )
-
-    result = await backend._handle_search_memory("query")
-    assert result["success"] is True
-    assert result["data"]["memories"]["semantic"] == []
-    assert result["data"]["memories"]["episodic"] == ["fallback"]
-
-
-@pytest.mark.asyncio
-async def test_handle_search_memory_excludes_active_conversation():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing(
-        [
-            {
-                "type": "episodic",
-                "text": "from active",
-                "conversation_id": "conv-active",
-            },
-            {"type": "episodic", "text": "from old", "conversation_id": "conv-old"},
-            {"type": "semantic", "text": "semantic fact"},
-        ]
-    )
-
-    result = await backend._handle_search_memory(
-        "query",
-        user_id="user-1",
-        exclude_conversation_id="conv-active",
-    )
-    assert result["success"] is True
-    assert result["data"]["memories"]["episodic"] == ["from old"]
-    assert result["data"]["memories"]["semantic"] == ["semantic fact"]
-
-
-@pytest.mark.asyncio
-async def test_handle_search_memory_balances_episodic_and_semantic_results():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing(
-        {
-            "episodic": [
-                {
-                    "type": "episodic",
-                    "text": "from active",
-                    "conversation_id": "conv-active",
-                    "score": 0.95,
-                },
-                {
-                    "type": "episodic",
-                    "text": "from old",
-                    "conversation_id": "conv-old",
-                    "score": 0.9,
-                },
-            ],
-            "semantic": [
-                {"type": "semantic", "text": "high value fact", "score": 0.3},
-                {"type": "semantic", "text": "low value fact", "score": 0.1},
-            ],
-        }
-    )
-
-    result = await backend._handle_search_memory(
-        "query",
-        user_id="user-1",
-        limit=6,
-        exclude_conversation_id="conv-active",
-        episodic_limit=4,
-        semantic_limit=2,
-        semantic_min_score=0.2,
-    )
-
-    assert result["success"] is True
-    assert result["data"]["memories"]["episodic"] == ["from old"]
-    assert result["data"]["memories"]["semantic"] == ["high value fact"]
-    assert backend.memory_store.search_calls == [
-        ("query", "user-1", {"type": "episodic"}, 4),
-        ("query", "user-1", {"type": "semantic"}, 2),
-    ]
 
 
 @pytest.mark.asyncio

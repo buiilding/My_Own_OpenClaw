@@ -33,7 +33,6 @@ function createHarness(overrides = {}) {
     })),
     buildQueryPayloadContext: jest.fn(),
     getSystemState: jest.fn(),
-    searchMemory: jest.fn(),
     attachAgentDefinitionContext: jest.fn((payload) => ({
       ...payload,
       agent_definition: { mode: 'test' },

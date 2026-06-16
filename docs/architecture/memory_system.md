@@ -289,8 +289,9 @@ memory_id = await store.add(
     metadata={"type": "episodic"}
 )
 
-results = await store.search(
-    query="project status",
+query_embedding = [0.1, 0.2, 0.3]  # SDK-provided query embedding
+results = await store.search_by_embedding(
+    embedding=query_embedding,
     user_id="default_user",
     filters={"type": "episodic"},
     limit=5

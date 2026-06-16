@@ -136,8 +136,9 @@ embedding-space version, retrieval limits, exclusion id, result counts, and
 duration. It must not include memory text, embedding vectors, raw SQL rows, or
 full user query text.
 
-`search(query, ...)` is retained as a local-only compatibility surface but does
-not generate embeddings. SDK callers should use `search_memory_by_embedding`.
+Local memory retrieval uses SDK-provided embeddings through
+`search_memory_by_embedding`; the sidecar does not expose a text-query
+compatibility search surface or generate query embeddings.
 
 ## Mapping and Index Drift Recovery
 

@@ -99,7 +99,6 @@ jest.mock('fs', () => ({
 jest.mock('../../../frontend/src/main/sidecar/local_backend_bridge.cjs', () => ({
   executeToolForBackend: jest.fn(),
   getSystemState: jest.fn(),
-  searchMemory: jest.fn(),
 }));
 
 const { createBridgeSuiteLifecycle } = require('./bridgeSuiteLifecycle.cjs');
@@ -120,11 +119,6 @@ const DEFAULT_SYSTEM_STATE = {
   mouse_position: '0,0',
 };
 
-const DEFAULT_MEMORY_RESULT = {
-  success: true,
-  data: { memories: { episodic: [], semantic: [] } },
-};
-
 let lastIpc = null;
 
 function primeQueryContext(backendBridge, options = {}) {
@@ -142,11 +136,6 @@ function primeQueryContext(backendBridge, options = {}) {
     backendBridge.getSystemState.mockResolvedValue(options.systemState ?? DEFAULT_SYSTEM_STATE);
   }
 
-  if (options.memoryError) {
-    backendBridge.searchMemory.mockRejectedValue(options.memoryError);
-  } else {
-    backendBridge.searchMemory.mockResolvedValue(options.memoryResult ?? DEFAULT_MEMORY_RESULT);
-  }
 }
 
 function initIpc(options = {}) {

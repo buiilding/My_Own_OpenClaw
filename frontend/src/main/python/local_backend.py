@@ -165,7 +165,6 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method("get_system_state", self._handle_get_system_state)
 
         # Memory methods
-        self.protocol.register_method("search_memory", self._handle_search_memory)
         self.protocol.register_method(
             "search_memory_by_embedding", self._handle_search_memory_by_embedding
         )

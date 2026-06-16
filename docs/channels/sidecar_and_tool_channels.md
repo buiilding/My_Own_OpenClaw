@@ -46,7 +46,6 @@ Common local channels:
 
 - `execute-tool`: run a sidecar executable tool
 - `get-system-state`: collect local OS/window/runtime state
-- `search-memory`: query local memory behind SDK/local-runtime APIs
 - `search-chat-conversations`: query local chat-event history
 - `store-chat-event` and list/delete memory channels are local-runtime
   implementation details, not renderer-facing user command APIs

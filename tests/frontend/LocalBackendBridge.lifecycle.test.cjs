@@ -22,7 +22,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
       status: 'error',
       error: 'Windie SDK local runtime resolver is unavailable.',
     }));
-    await expect(handlers['search-memory'](null, { query: 'hello' })).resolves.toEqual({
+    await expect(handlers['list-episodic-memories'](null, { userId: 'user-1' })).resolves.toEqual({
       success: false,
       error: 'Windie SDK local runtime resolver is not initialized.',
     });
@@ -105,10 +105,10 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
   test('stopLocalBackend stops bridge execution without shutting down the SDK-owned runtime', async () => {
     const { bridge, handlers, sdkRuntime } = initBridge();
 
-    const searchPromise = handlers['search-memory'](null, { query: 'hello' });
+    const rpcPromise = handlers['list-episodic-memories'](null, { userId: 'user-1' });
     await Promise.resolve();
     resolveNextSdkRuntimeRequest({ success: true });
-    await expect(searchPromise).resolves.toEqual({ success: true });
+    await expect(rpcPromise).resolves.toEqual({ success: true });
 
     bridge.stopLocalBackend();
 
@@ -135,7 +135,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     const { handlers, spawn } = initBridge({ ensureLocalRuntime });
 
     expect(spawn).not.toHaveBeenCalled();
-    await expect(handlers['search-memory'](null, { query: 'hello' })).resolves.toEqual({
+    await expect(handlers['list-episodic-memories'](null, { userId: 'user-1' })).resolves.toEqual({
       success: false,
       error: 'daemon unavailable',
     });

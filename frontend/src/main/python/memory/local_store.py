@@ -779,57 +779,6 @@ class LocalMemoryStore:
         except Exception:
             return timestamp
 
-    async def search(
-        self,
-        query: str,
-        user_id: str,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10,
-    ) -> List[Dict[str, Any]]:
-        """
-        Search memories using semantic similarity with optional metadata filtering.
-        Searches both episodic and semantic databases and combines results.
-
-        Args:
-            query: Search query text
-            user_id: User identifier
-            filters: Optional metadata filters (e.g., {"metadata.type": "episodic"})
-                     Note: type filter is now handled by searching appropriate database(s)
-            limit: Maximum number of results
-
-        Returns:
-            List of memory dictionaries with 'id', 'text', 'metadata', 'score' keys
-        """
-        # Determine which databases to search based on filters
-        search_episodic = True
-        search_semantic = True
-
-        if filters:
-            # Check if type filter is specified
-            memory_type_filter = None
-            if "metadata.type" in filters:
-                memory_type_filter = filters["metadata.type"]
-            elif "type" in filters:
-                memory_type_filter = filters["type"]
-
-            # Convert string filter to enum for type safety
-            normalized_type = self._maybe_normalize_memory_type(memory_type_filter)
-            if normalized_type == "episodic":
-                search_semantic = False
-            elif normalized_type == "semantic":
-                search_episodic = False
-
-        self._log_search_start(query, user_id, limit)
-        search_targets = self._build_search_targets(search_episodic, search_semantic)
-        if not search_targets:
-            logger.debug("Skipping memory search embedding call: no searchable indices")
-            return []
-
-        logger.info(
-            "Skipping text memory search because SDK-owned embeddings are required; use search_by_embedding"
-        )
-        return []
-
     async def search_by_embedding(
         self,
         embedding: List[float],

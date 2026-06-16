@@ -52,7 +52,6 @@ or local tool runtime code rather than the compiled mapper table.
 | --- | --- | --- | --- |
 | scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs sidecar tools through `ToolRegistry`; screenshot path may be materialized into backend artifacts by Electron main. |
 | `get-system-state` IPC | `get_system_state` | `_handle_get_system_state` | Returns system/window/runtime state; failure normalizes to `null` in main helper paths. |
-| `search-memory` IPC | `search_memory` | `_handle_search_memory` | Uses dedicated mapper because it accepts both camelCase and snake_case exclusion/retrieval keys. |
 | status helper | `get_status` | `_handle_get_status` | Returns sidecar diagnostic status through SDK runtime RPC. |
 | browser install helper | `install_browser_chromium` | `_handle_install_browser_chromium` | Main helper uses a long timeout for feature-pack/browser provisioning. |
 | permission helper | `determine_macos_system_events_automation_permission` | `_handle_determine_macos_system_events_automation_permission` | Used by permission runtime for macOS System Events automation checks. |

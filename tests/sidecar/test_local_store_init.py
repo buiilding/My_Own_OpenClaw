@@ -246,7 +246,7 @@ async def test_add_indexes_caller_provided_embedding(monkeypatch, tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_search_text_returns_empty_without_sidecar_embedding(tmp_path):
+async def test_search_by_embedding_returns_empty_without_searchable_indices(tmp_path):
     store = LocalMemoryStore.__new__(LocalMemoryStore)
     store.episodic_db_path = str(tmp_path / "episodic.db")
     store.semantic_db_path = str(tmp_path / "semantic.db")
@@ -259,7 +259,7 @@ async def test_search_text_returns_empty_without_sidecar_embedding(tmp_path):
     store.episodic_next_vector_id = 0
     store.semantic_next_vector_id = 0
 
-    results = await LocalMemoryStore.search(store, "hello", "user-1")
+    results = await LocalMemoryStore.search_by_embedding(store, [1.0], "user-1")
 
     assert results == []
 

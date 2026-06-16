@@ -22,6 +22,9 @@ All notable changes to WindieOS will be documented in this file.
 - cli/endpoints: remove the remaining packaged hosted-default endpoint alias
   checks from `bin/windie status`; status now uses the Electron main endpoint
   resolver and canonical `WINDIE_DEFAULT_BACKEND_*` defaults only.
+- frontend/sidecar: remove the legacy `search-memory` IPC and `search_memory`
+  text-query JSON-RPC path so local memory retrieval uses SDK-owned embeddings
+  through `search_memory_by_embedding` only.
 - frontend/voice: remove the legacy ScriptProcessor audio capture fallback so
   voice and wakeword capture use the AudioWorklet processor path only.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,
@@ -161,6 +164,9 @@ All notable changes to WindieOS will be documented in this file.
   and align comments/tests with the composer-first utterance-end contract.
 - docs/frontend: document that removed packaged backend endpoint aliases are
   ignored and route those searches to the Electron endpoint runtime reference.
+- docs/frontend: align local-backend memory RPC docs with the removal of the
+  text-query `search-memory` bridge and route removed-RPC searches to the
+  JSON-RPC reference.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

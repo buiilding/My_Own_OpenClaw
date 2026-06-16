@@ -106,7 +106,6 @@ Core handlers:
 - `read-attachment-file`
 - `run-browser-action`
 - `get-system-state`
-- `search-memory`
 
 Additional mapped handlers are registered through compiled mapper definitions (`registerMappedRpcHandlers`).
 

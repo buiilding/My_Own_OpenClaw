@@ -74,7 +74,7 @@ sequenceDiagram
     M->>M: ensure initial settings ACK if needed
     M->>M: prepareRendererQuerySend(...)
     M->>S: local-user-message optimistic event
-    M->>L: get_system_state + search_memory
+    M->>L: get_system_state + search_memory_by_embedding
     M->>M: build content, runtime state, replay buffer, overlay phase
     M->>SDK: send query envelope
     SDK->>B: websocket query message

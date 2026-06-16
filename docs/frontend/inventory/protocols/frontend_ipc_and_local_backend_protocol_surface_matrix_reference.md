@@ -48,7 +48,6 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `read-attachment-file` | `main/local_backend_bridge.cjs` | Maps readable attachment context reads to local `read_file` execution |
 | `run-browser-action` | `main/local_backend_bridge.cjs` | Maps browser session controls to local `browser` execution |
 | `get-system-state` | `main/local_backend_bridge.cjs` | Proxies to `get_system_state` |
-| `search-memory` | `main/local_backend_bridge.cjs` | Internal local-runtime/SDK implementation channel for `search_memory` |
 | `search-chat-conversations` | `main/local_backend_bridge.cjs` | Internal SDK store channel for `search_chat_conversations` |
 | `list-chat-conversations` | `main/local_backend_bridge.cjs` | Internal SDK store channel for `list_chat_conversations` |
 | `list-episodic-memories` | `main/local_backend_bridge.cjs` | Internal local-runtime/SDK implementation channel for `list_episodic_memories` |
@@ -145,7 +144,6 @@ Transport:
 | IPC channel | JSON-RPC method | Param mapping notes |
 |---|---|---|
 | `get-system-state` | `get_system_state` | Optional `{ fields }` passthrough |
-| `search-memory` | `search_memory` | Maps `excludeConversationId` fallback to `exclude_conversation_id` |
 | `search-chat-conversations` | `search_chat_conversations` | `userId -> user_id` with query/limit passthrough |
 | `list-chat-conversations` | `list_chat_conversations` | `userId -> user_id`, `recordKind -> record_kind` |
 | `list-episodic-memories` | `list_episodic_memories` | `userId -> user_id` |
@@ -163,7 +161,7 @@ Transport:
 Registered callable surface:
 
 - Tool/system: `execute_tool`, `get_system_state`
-- Memory/transcript: `search_memory`, `search_memory_by_embedding`, `store_memory_by_embedding`, `search_chat_conversations`, `store_chat_event`, `list_chat_conversations`, `list_episodic_memories`, `get_chat_events`, `list_semantic_memories`, `delete_chat_conversation`, `delete_semantic_memory`
+- Memory/transcript: `search_memory_by_embedding`, `store_memory_by_embedding`, `search_chat_conversations`, `store_chat_event`, `list_chat_conversations`, `list_episodic_memories`, `get_chat_events`, `list_semantic_memories`, `delete_chat_conversation`, `delete_semantic_memory`
 - Health/diagnostics: `ping`, `get_status`
 
 ### JSON-RPC Validation Semantics (`core/ipc_protocol.py`)

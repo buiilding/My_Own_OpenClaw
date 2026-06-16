@@ -122,6 +122,13 @@ describe('windie docs index', () => {
     expect(findDocs('WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL')[0].path).toBe(expectedPath);
   });
 
+  test('routes removed search-memory RPC queries to local backend JSON-RPC docs', () => {
+    const expectedPath = path.join('docs', 'frontend', 'sidecar', 'local_backend_jsonrpc_reference.md');
+
+    expect(findDocs('removed search-memory text query')[0].path).toBe(expectedPath);
+    expect(findDocs('search_memory text-query RPC removed')[0].path).toBe(expectedPath);
+  });
+
   test('routes package and reinstall queries to the cross-platform runbook', () => {
     expect(findDocs('packaging reinstall')[0].path).toBe(
       path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),

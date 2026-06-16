@@ -25,52 +25,6 @@ function createOwnedScreenshotTempPath(label) {
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  test('search-memory routes through SDK local runtime rpc when local runtime is active', async () => {
-    const localRuntime = {
-      executeTool: jest.fn(async () => ({ success: true, data: {} })),
-      rpc: jest.fn(async ({ method, params }) => ({
-        success: true,
-        method,
-        params,
-      })),
-      subscribeEvents: jest.fn(() => jest.fn()),
-    };
-    const ensureLocalRuntime = jest.fn(async () => localRuntime);
-    const { handlers, spawn } = initBridge({ ensureLocalRuntime });
-
-    const result = await handlers['search-memory'](null, {
-      query: 'hello',
-      user_id: 'user-1',
-      limit: 3,
-    });
-
-    expect(spawn).not.toHaveBeenCalled();
-    expect(result).toEqual({
-      success: true,
-      method: 'search_memory',
-      params: {
-        query: 'hello',
-        user_id: 'user-1',
-        limit: 3,
-        memory_type: undefined,
-        exclude_conversation_id: undefined,
-        episodic_limit: undefined,
-        semantic_limit: undefined,
-        semantic_min_score: undefined,
-      },
-    });
-    expect(localRuntime.rpc).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: 'search_memory',
-        params: expect.objectContaining({
-          query: 'hello',
-          user_id: 'user-1',
-          limit: 3,
-        }),
-      }),
-    );
-  });
-
   function emitRpcResult(_stdoutHandler, result) {
     resolveNextSdkRuntimeRequest(result);
   }
@@ -708,84 +662,6 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const result = await promise;
     expect(result).toBeNull();
-  });
-
-  test('search-memory handler returns error on json-rpc error', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['search-memory'](null, {
-      query: 'q',
-      user_id: 'u',
-      limit: 3,
-      memory_type: 'semantic',
-      excludeConversationId: 'conv-active',
-      episodicLimit: 4,
-      semanticLimit: 2,
-      semanticMinScore: 0.2,
-    });
-    await Promise.resolve();
-    await Promise.resolve();
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'search_memory',
-        params: {
-          query: 'q',
-          user_id: 'u',
-          limit: 3,
-          memory_type: 'semantic',
-          exclude_conversation_id: 'conv-active',
-          episodic_limit: 4,
-          semantic_limit: 2,
-          semantic_min_score: 0.2,
-        },
-      }),
-    );
-
-    emitRpcError(stdoutHandler, 'nope');
-
-    const result = await promise;
-    expect(result).toEqual({ success: false, error: 'nope' });
-  });
-
-  test('search-memory handler accepts snake_case exclude_conversation_id payload key', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['search-memory'](null, {
-      query: 'q2',
-      user_id: 'u2',
-      limit: 4,
-      memory_type: 'episodic',
-      exclude_conversation_id: 'conv-snake',
-      episodic_limit: 3,
-      semantic_limit: 1,
-      semantic_min_score: 0.15,
-    });
-    await Promise.resolve();
-    await Promise.resolve();
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'search_memory',
-        params: {
-          query: 'q2',
-          user_id: 'u2',
-          limit: 4,
-          memory_type: 'episodic',
-          exclude_conversation_id: 'conv-snake',
-          episodic_limit: 3,
-          semantic_limit: 1,
-          semantic_min_score: 0.15,
-        },
-      }),
-    );
-
-    emitRpcResult(stdoutHandler, { success: true, data: { memories: [] } });
-
-    const result = await promise;
-    expect(result).toEqual({ success: true, data: { memories: [] } });
   });
 
   test('chat-event handlers map dedicated chat storage params', async () => {

@@ -2,7 +2,7 @@
 summary: "Renderer/main/sidecar memory and chat-event IPC contract reference: invoke-channel payload shapes, JSON-RPC method mappings, response envelopes, and storage ownership."
 read_when:
   - When changing memory-related IPC invoke payloads or sidecar JSON-RPC method contracts.
-  - When debugging dashboard memory list/delete failures, chat history persistence issues, or search-memory filter mismatches.
+  - When debugging dashboard memory list/delete failures, chat history persistence issues, or embedding memory search mismatches.
 title: "Memory IPC and RPC Mapping Reference"
 ---
 
@@ -55,7 +55,6 @@ Chat-event channels:
 
 Memory local-runtime channels:
 
-- `search-memory` -> `search_memory`
 - `list-episodic-memories` -> `list_episodic_memories`
 - `list-semantic-memories` -> `list_semantic_memories`
 - `delete-episodic-memory` -> `delete_episodic_memory`
@@ -66,6 +65,15 @@ Chat clear local-runtime channel:
 
 - `clear-chat-history` -> `clear_chat_history`
 - `replace-chat-conversation` -> `replace_chat_conversation`
+- `rewrite-chat-conversation-after-event` -> `rewrite_chat_conversation_after_event`
+- `get-chat-conversation-revision` -> `get_chat_conversation_revision`
+
+Removed text-query memory search:
+
+- `search-memory` no longer maps to `search_memory`.
+- `search_memory` is not registered by the Python local backend.
+- prompt memory search uses SDK-owned backend embeddings and
+  `search_memory_by_embedding`.
 
 Renderer camelCase to sidecar snake_case conversions include:
 
@@ -143,9 +151,10 @@ The main-process bridge forwards mapped responses to the renderer unchanged.
 - writes episodic rows with `record_kind='interaction'`
 - rejects non-string or blank content and invalid embedding payloads
 
-### `search_memory`
+### `search_memory_by_embedding`
 
 - retrieves relevant episodic and semantic memory for prompt injection
+- requires an SDK-provided query embedding
 - excludes active conversation ids when requested
 - groups memory text without depending on chat-event replay rows
 

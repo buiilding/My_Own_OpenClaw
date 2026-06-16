@@ -142,12 +142,13 @@ The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with 
 
 Memory section formatting contract (`ContextEnrichmentPipeline.ts`):
 
-- `searchMemory(query, user_id, limit=6, memory_type=null, exclude_conversation_id=conversationRef, retrievalOptions)` is called when retrieval injection is enabled.
+- SDK `agent.searchMemory(...)` creates the query embedding and calls sidecar
+  `search_memory_by_embedding` when retrieval injection is enabled.
 - prompt injection requests a balanced retrieval budget:
   - `episodic_limit=4`
   - `semantic_limit=2`
   - `semantic_min_score=0.20`
-- sidecar search path applies: store search -> active-conversation exclusion -> episodic/semantic grouping.
+- sidecar search path applies: embedding store search -> active-conversation exclusion -> episodic/semantic grouping.
 - episodic grouping prefers pre-paired interaction rows (`User + Assistant`), then transcript synthesis fallback, then raw episodic fallback text.
 - each section is always emitted when retrieval injection is enabled:
   - `<episodic_memory>...</episodic_memory>`

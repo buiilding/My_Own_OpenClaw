@@ -179,7 +179,6 @@ Direct `ipcMain.handle`:
 - `read-attachment-file`
 - `run-browser-action`
 - `get-system-state`
-- `search-memory`
 
 Mapped implementation-level `ipcMain.handle` registrations via
 `registerMappedRpcHandlers(...)`. These are for SDK/local-runtime or main
@@ -237,8 +236,6 @@ Notable behavior:
 
 Examples of non-trivial mappings:
 
-- `search-memory`:
-  - `exclude_conversation_id` accepts fallback keys `excludeConversationId` or `exclude_conversation_id`
 - `get-chat-events` and `delete-chat-conversation`:
   - `conversation_id` derived from `conversationId` with explicit `null`
     fallback for internal bridge callers

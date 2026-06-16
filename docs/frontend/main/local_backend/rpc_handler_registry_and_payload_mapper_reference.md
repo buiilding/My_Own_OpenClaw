@@ -30,7 +30,6 @@ Direct handlers:
 - `read-attachment-file`
 - `run-browser-action`
 - `get-system-state`
-- `search-memory`
 
 Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS)`:
 
@@ -45,6 +44,9 @@ Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_
 - `clear-local-memory`
 - `clear-chat-history`
 - `store-chat-event`
+- `replace-chat-conversation`
+- `rewrite-chat-conversation-after-event`
+- `get-chat-conversation-revision`
 
 `registerRpcHandler` contract:
 
@@ -123,22 +125,6 @@ Return normalization:
 - sidecar `{ success:false }` or thrown request error -> `null`
 - otherwise `result.data || result`
 
-### `search-memory`
-
-Input payload:
-
-- object with `query`, `user_id`, `limit`, `memory_type`, optional exclusion key
-
-Dispatch:
-
-- JSON-RPC method: `search_memory`
-- params built by `mapSearchMemoryPayload(...)`
-
-Exclusion key fallback:
-
-- accepts either `excludeConversationId` or `exclude_conversation_id`
-- both map to `exclude_conversation_id`
-
 ## Payload Mapper Runtime Contract
 
 `createPayloadMapper(fieldMap)` compile step supports three mapping types:
@@ -170,6 +156,15 @@ Guarantee:
 - `clear-local-memory` -> `clear_local_memory` with `{ userId } -> { user_id }`
 - `clear-chat-history` -> `clear_chat_history` with `{ userId } -> { user_id }`
 - `store-chat-event` -> `store_chat_event` mapping transcript metadata (`conversation_ref`, `message_type`, `tool_name`, `correlation_id`, `message_index`, `model_id`, `model_provider`)
+- `replace-chat-conversation` -> `replace_chat_conversation` with mapped event rows
+- `rewrite-chat-conversation-after-event` -> `rewrite_chat_conversation_after_event` with mapped replacement event payload
+- `get-chat-conversation-revision` -> `get_chat_conversation_revision` with `{ userId, conversationId } -> { user_id, conversation_id }`
+
+Removed mapping:
+
+- `search-memory` and `mapSearchMemoryPayload(...)` are not registered. Prompt
+  memory lookup is SDK-owned and calls sidecar `search_memory_by_embedding`
+  with an SDK-provided embedding.
 
 ## Test-Backed Invariants
 
@@ -177,7 +172,6 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 
 - mapped channels send expected JSON-RPC method names and param keys
 - non-object payloads do not crash mapper paths (`list-chat-conversations` sends `{}`)
-- `search-memory` accepts both camelCase and snake_case exclusion keys
 - completed-turn memory writes are SDK-owned and do not have a renderer-visible `store-memory` IPC channel
 - `get-chat-events` emits explicit `conversation_id: null` when `conversationId` absent
 - `store-chat-event` errors normalize to `{ success:false, error }`

@@ -1,8 +1,8 @@
 ---
-summary: "Local backend JSON-RPC reference for SDK daemon-backed sidecar calls: request envelope, registered methods, bridge mapping, and timeout/error semantics."
+summary: "Local backend JSON-RPC reference for SDK daemon-backed sidecar calls: request envelope, registered methods, removed search_memory text-query RPC behavior, bridge mapping, and timeout/error semantics."
 read_when:
   - When adding/changing sidecar JSON-RPC methods or bridge payload mappers.
-  - When debugging execute_tool/search-memory/chat-event persistence failures between Electron and Python sidecar.
+  - When debugging execute_tool, removed search-memory text-query calls, embedding-backed memory search, or chat-event persistence failures between Electron and Python sidecar.
 title: "Local Backend JSON-RPC Reference"
 ---
 
@@ -62,7 +62,6 @@ Core/tool methods:
 
 Memory methods:
 
-- `search_memory`
 - `search_memory_by_embedding`
 - `store_memory_by_embedding`
 - `list_episodic_memories`
@@ -75,9 +74,12 @@ Memory methods:
 Chat-event methods:
 
 - `store_chat_event`
+- `replace_chat_conversation`
+- `rewrite_chat_conversation_after_event`
 - `list_chat_conversations`
 - `search_chat_conversations`
 - `get_chat_events`
+- `get_chat_conversation_revision`
 - `delete_chat_conversation`
 
 The legacy transcript-row conversation methods are not registered.
@@ -88,7 +90,6 @@ Direct bridge handlers:
 
 - scoped host channels and `executeToolForBackend(...)` -> `execute_tool`
 - `get-system-state` -> `get_system_state`
-- `search-memory` -> `search_memory`
 
 Mapped bridge handlers:
 
@@ -103,6 +104,17 @@ Mapped bridge handlers:
 - `delete-semantic-memory` -> `delete_semantic_memory`
 - `clear-local-memory` -> `clear_local_memory`
 - `clear-chat-history` -> `clear_chat_history`
+- `replace-chat-conversation` -> `replace_chat_conversation`
+- `rewrite-chat-conversation-after-event` -> `rewrite_chat_conversation_after_event`
+- `get-chat-conversation-revision` -> `get_chat_conversation_revision`
+
+Removed direct memory-search bridge:
+
+- `search-memory` is no longer registered by Electron main.
+- `search_memory` is no longer registered by `LocalBackend`.
+- text-query memory search does not run in the sidecar.
+- prompt memory retrieval must use SDK-provided embeddings and
+  `search_memory_by_embedding`.
 
 ## Memory and Chat Semantics
 
@@ -118,7 +130,7 @@ retry rewrites from reporting an old preserved event revision.
 
 `store_memory_by_embedding` writes SDK-formatted interaction memory rows with `record_kind='interaction'` and a caller-provided embedding. Those rows power Episodic Memory and semantic summarization. They are not the visible chat replay source. The sidecar does not call backend embeddings for memory writes.
 
-`search_memory_by_embedding` queries episodic and semantic memory for prompt injection using an SDK-provided embedding. `search_memory` remains a legacy text-query RPC but does not generate embeddings inside the sidecar. Neither path reconstructs chat replay from chat events.
+`search_memory_by_embedding` queries episodic and semantic memory for prompt injection using an SDK-provided embedding. The sidecar does not expose a text-query memory search RPC and does not generate embeddings for memory retrieval. This path does not reconstruct chat replay from chat events.
 
 ## Failure Handling
 

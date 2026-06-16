@@ -135,14 +135,14 @@ def _create_unprocessed_memories_table(db_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_search_short_circuits_without_embedding_when_no_searchable_indices(
+async def test_search_by_embedding_short_circuits_when_no_searchable_indices(
     tmp_path: Path,
 ):
     store = _build_store(tmp_path)
     store.episodic_index = None
     store.semantic_index = None
 
-    results = await store.search("hello", "user-1")
+    results = await store.search_by_embedding([1.0], "user-1")
 
     assert results == []
 

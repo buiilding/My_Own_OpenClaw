@@ -132,17 +132,6 @@ function registerMappedRpcHandlers(registerRpcHandler, definitions) {
   }
 }
 
-const mapSearchMemoryPayload = createPayloadMapper({
-  query: 'query',
-  user_id: 'user_id',
-  limit: 'limit',
-  memory_type: 'memory_type',
-  exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
-  episodic_limit: ['episodicLimit', 'episodic_limit'],
-  semantic_limit: ['semanticLimit', 'semantic_limit'],
-  semantic_min_score: ['semanticMinScore', 'semantic_min_score'],
-});
-
 const mapChatEventWritePayload = createPayloadMapper({
   user_id: 'userId',
   conversation_id: 'conversationId',
@@ -292,6 +281,5 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
 
 module.exports = {
   COMPILED_RPC_HANDLER_DEFINITIONS,
-  mapSearchMemoryPayload,
   registerMappedRpcHandlers,
 };

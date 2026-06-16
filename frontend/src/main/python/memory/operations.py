@@ -143,30 +143,6 @@ def build_memory_filters(memory_type: Optional[str]) -> Dict[str, str]:
     return {"type": memory_type}
 
 
-def normalize_search_memory_payload(
-    query: Any,
-    memory_type: Any,
-) -> Tuple[Optional[Dict[str, Optional[str]]], Optional[str]]:
-    """Validate and normalize search-memory payload fields."""
-    if not isinstance(query, str) or not query.strip():
-        return None, "Query is required for memory search"
-
-    normalized_memory_type: Optional[str] = None
-    if memory_type is not None:
-        if not isinstance(memory_type, str):
-            return None, "memory_type must be a string"
-        normalized_memory_type = memory_type.strip().lower()
-        if normalized_memory_type == "":
-            normalized_memory_type = None
-        elif normalized_memory_type not in {"episodic", "semantic"}:
-            return None, f"Invalid memory_type: {normalized_memory_type}"
-
-    return {
-        "query": query.strip(),
-        "memory_type": normalized_memory_type,
-    }, None
-
-
 def normalize_search_memory_embedding_payload(
     embedding: Any,
     memory_type: Any,

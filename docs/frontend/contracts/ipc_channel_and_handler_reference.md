@@ -124,7 +124,6 @@ memory user actions instead of these sidecar names.
 - `read-attachment-file`
 - `run-browser-action`
 - `get-system-state`
-- `search-memory`
 - `search-chat-conversations`
 - mapped JSON-RPC channels:
 - `list-chat-conversations`

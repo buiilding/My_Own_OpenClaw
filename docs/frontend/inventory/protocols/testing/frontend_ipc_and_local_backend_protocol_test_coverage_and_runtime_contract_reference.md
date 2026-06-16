@@ -149,7 +149,6 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - `NODE_OPTIONS` augmentation with `--no-deprecation`
 - suppression of known noisy deprecation stderr lines while preserving meaningful logs
 - key mapping coverage for:
-  - `search-memory` (camelCase + snake_case `exclude_conversation_id`)
   - `list-chat-conversations`
   - `list-semantic-memories`
   - `get-chat-events`
