@@ -398,5 +398,4 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 module.exports = {
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
-  isResponseOverlayPreflightGuardRef,
 };

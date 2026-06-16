@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the response-overlay preflight guard predicate private to
+  the phase handler.
 - frontend/main: delete the unused main-window content-protection wrapper and
   keep dashboard close/collapse helpers private to the main-window factory.
 - frontend/main: keep chat-pill visibility intent filename/path resolution
