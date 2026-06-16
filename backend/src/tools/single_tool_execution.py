@@ -72,14 +72,18 @@ async def execute_single_tool(
     """
     request_id = tool_call.metadata.get('request_id') if (hasattr(tool_call, 'metadata') and tool_call.metadata is not None) else None
     if not request_id:
-        logger.warning(f"Tool call {tool_call.tool_name} missing request_id in metadata")
-        # Fallback to placeholder if no request_id (shouldn't happen with ToolResolver)
-        placeholder_result = ToolResult(
-            success=True,
-            output=f"Tool {tool_call.tool_name} executing in the local runtime...",
-            data={"status": "pending_local_runtime_execution"}
+        error = (
+            f"Tool call {tool_call.tool_name} is missing request_id metadata; "
+            "cannot wait for local-runtime execution."
         )
-        return create_tool_result_object(tool_call, placeholder_result, execution_time=0)
+        logger.error(error)
+        invalid_result = ToolResult(
+            success=False,
+            error=error,
+            output=f"Error: {error}",
+            data={"status": "missing_request_id"},
+        )
+        return create_tool_result_object(tool_call, invalid_result, execution_time=0)
     
     request_id_short = short_id(request_id)
 

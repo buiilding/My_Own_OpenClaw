@@ -118,7 +118,7 @@ async def test_execute_tools_from_response_calls_execute_single_tool(monkeypatch
 
 
 @pytest.mark.asyncio
-async def test_execute_tools_from_response_preserves_missing_request_id_placeholder():
+async def test_execute_tools_from_response_surfaces_missing_request_id_failure():
     orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
     tool_call = ParsedToolCall(
         tool_name="tool-without-request-id",
@@ -140,8 +140,9 @@ async def test_execute_tools_from_response_preserves_missing_request_id_placehol
     assert len(result.tool_results) == 1
     tool_result = result.tool_results[0]
     assert tool_result.tool_call is tool_call
-    assert tool_result.success is True
-    assert tool_result.result.data == {"status": "pending_local_runtime_execution"}
+    assert tool_result.success is False
+    assert tool_result.result.data == {"status": "missing_request_id"}
+    assert "missing request_id metadata" in (tool_result.result.error or "")
 
 
 def test_get_available_tools_returns_capabilities():

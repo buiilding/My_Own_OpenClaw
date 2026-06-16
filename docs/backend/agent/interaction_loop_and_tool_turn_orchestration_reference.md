@@ -150,8 +150,8 @@ Validated by:
 - requires `session_ref`; returns empty batch when absent
 - bundle path uses one bundle future (`execute_bundle`)
 - non-bundle path delegates every parsed call to `execute_single_tool`; calls
-  missing `request_id` return that helper's pending-local-runtime placeholder
-  instead of being dropped
+  missing `request_id` return that helper's invalid-tool-call failure result
+  instead of opening an unmatchable local-runtime wait
 
 Bundle waiting behavior:
 

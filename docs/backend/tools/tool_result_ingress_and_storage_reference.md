@@ -125,6 +125,8 @@ Important behavior:
 ### Single-tool wait (`execute_single_tool`)
 
 - request ID read from tool metadata
+- missing request ID returns an invalid-tool-call failure result before any
+  future is created
 - creates future first (race prevention)
 - checks already-stored result and resolves immediately if present
 - otherwise waits up to 120s
