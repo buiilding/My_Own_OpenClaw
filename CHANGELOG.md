@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep generic app-diagnostic append and data compaction helpers
+  private so callers use the path-specific diagnostic appenders.
 - frontend/main: keep live-surface trace env gating and renderer payload
   normalization private to the trace runtime while tests cover the public trace
   logging and renderer forwarding APIs.

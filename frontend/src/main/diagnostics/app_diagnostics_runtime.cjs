@@ -262,12 +262,10 @@ function appendWakewordLifecycleDiagnostic(input = {}, options = {}) {
 }
 
 module.exports = {
-  appendAppRuntimeDiagnostic,
   appendDesktopStartupDiagnostic,
   appendFrontendInteractionDiagnostic,
   appendIpcBridgeDiagnostic,
   appendLocalBackendLifecycleDiagnostic,
   appendSurfaceVisibilityDiagnostic,
   appendWakewordLifecycleDiagnostic,
-  compactData,
 };
