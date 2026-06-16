@@ -13,8 +13,8 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
-- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
@@ -30,8 +30,8 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 Minimal pill support modules live under `features/minimalChatPill/components/`
 and reuse shared chat hooks/state:
 
-- icon render-only exports (`ChatBoxIcons.jsx`)
-- preview-row render-only component (`ChatBoxImagePreviewRow.jsx`)
+- icon render-only exports (`PillIcons.jsx`)
+- preview-row render-only component (`AttachmentPreviewRow.jsx`)
 
 `MinimalChatPill.jsx` and `MinimalResponseOverlay.jsx` stay as orchestration
 components; presentational helpers are kept inside the minimal pill feature.

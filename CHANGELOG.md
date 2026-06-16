@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: update stale architecture, overlay, minimal-pill, dashboard,
+  and sidecar-core source paths to current runtime modules.
 - docs/testing: replace deleted browser, conversation-search, transcript-session,
   IPC memory, dashboard conversation, and agent-handshake test references with
   current focused suites.

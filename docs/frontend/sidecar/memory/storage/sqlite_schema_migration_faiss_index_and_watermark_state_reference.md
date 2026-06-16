@@ -13,7 +13,7 @@ title: "SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference"
 - `frontend/src/main/python/memory/sqlite_store.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/watermark_state.py`
-- `frontend/src/main/python/core/thread_pool.py`
+- `frontend/src/main/python/core/executors.py`
 - `frontend/src/main/python/memory/local_store.py`
 
 ## SQLite Schema Ownership

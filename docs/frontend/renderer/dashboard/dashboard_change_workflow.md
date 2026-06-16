@@ -121,8 +121,8 @@ Read these files for recent chats, search, open, rename, pin, or delete work:
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
-- `frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`
+- `frontend/src/main/ipc.cjs`
 
 Conversation invariants:
 

@@ -315,9 +315,6 @@ Primary modules:
     `conversation.load`, and `conversations.list/search/delete`.
   - Sidecar storage RPC names stay inside SDK store/local-runtime
     implementation code and Electron main sidecar bridge internals.
-- `renderer/features/chat/session/conversationInferenceSessionRuntime.ts`:
-  - Tracks whether a given conversation needs backend inference-session hydration from canonical SDK conversation-store snapshots.
-  - Makes backend state explicitly disposable and rebuildable instead of treating it as conversation truth.
 - `renderer/features/chat/session/conversationSessionRuntime.ts`:
   - Shared renderer policy for conversation selection, local conversation creation, transcript-session sync, and active-chat projection.
   - Owns the normalization rules that decide when transcript session, chat-store projection, and backend bootstrap state may move foreground conversation focus.
@@ -377,9 +374,9 @@ Primary modules:
 - `features/chat/utils/overlay/responseOverlayViewContract.ts`:
   - Small renderer contract for `showResponse` vs `showAwaitingReply` vs hidden layout state.
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
-- `features/chat/session/conversationInferenceSessionRuntime.ts`:
-  - Rehydrates disposable backend inference state on reconnect/resume from SDK conversation-store snapshots.
-  - Uses canonical chat events for rehydrate; compaction snapshots are loaded from complete `compaction_applied` SDK events.
+- Electron main keeps one SDK conversation runtime per active conversation;
+  renderer resume/open flows send intent and display rows rather than
+  rehydrating backend inference state through a renderer-owned runtime.
 - `renderer/infrastructure/transcript/desktopConversationStore.ts`:
   - Adapts desktop display projections, edit/resend rewrites, and compaction snapshots into canonical SDK conversation events.
   - Delegates sidecar-backed conversation reads/writes to the SDK `SidecarConversationStore`.

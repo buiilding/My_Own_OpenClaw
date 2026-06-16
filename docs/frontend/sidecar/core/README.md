@@ -1,5 +1,5 @@
 ---
-summary: "Frontend sidecar core docs sub-hub for JSON-RPC protocol/error semantics, graceful stdin shutdown handlers, stdout framing, backend URL resolution, remote semantic clients, and shared thread-pool lifecycle."
+summary: "Frontend sidecar core docs sub-hub for JSON-RPC protocol/error semantics, graceful stdin shutdown handlers, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle."
 read_when:
   - When changing `frontend/src/main/python/core/*` modules.
   - When debugging sidecar protocol parse/dispatch failures, shutdown hangs, or remote semantic client connectivity.
@@ -32,11 +32,11 @@ title: "Frontend Sidecar Core Docs Hub"
 - `frontend/src/main/python/core/runtime_shutdown.py`
 - `frontend/src/main/python/core/stdout_json.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
-- `frontend/src/main/python/core/thread_pool.py`
+- `frontend/src/main/python/core/executors.py`
 - `tests/sidecar/test_json_rpc_protocol.py`
 - `tests/sidecar/test_runtime_shutdown.py`
 - `tests/sidecar/test_stdout_json.py`
 - `tests/sidecar/test_backend_config.py`
 - `tests/sidecar/test_remote_semantic_client.py`
 - `tests/sidecar/remote_client_test_utils.py`
-- `tests/sidecar/test_thread_pool.py`
+- `tests/sidecar/test_executors.py`

@@ -17,7 +17,7 @@ title: "Overlay and Wakeword Control Channel Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
 
 ## Channel Set
 

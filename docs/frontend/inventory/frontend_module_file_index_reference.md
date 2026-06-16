@@ -79,7 +79,7 @@ App + providers:
 Shared components:
 
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
-- `frontend/src/renderer/components/ChatGptLogo.jsx`
+- `frontend/src/renderer/components/ErrorBoundary.jsx`
 
 Feature slices:
 
