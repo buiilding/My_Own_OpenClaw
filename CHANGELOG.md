@@ -88,6 +88,10 @@ All notable changes to WindieOS will be documented in this file.
 - backend/llm: remove provider tool-call id synthesis so non-stream, streamed,
   and OpenAI Responses tool calls fail closed when the provider omits a
   non-empty id.
+- docs/backend: route removed provider tool-call id synthesis searches to the
+  base LLM provider parsing contract.
+- frontend/renderer: delete the unused desktop conversation-store write
+  enrichment helpers so renderer persistence stays a direct SDK command bridge.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability

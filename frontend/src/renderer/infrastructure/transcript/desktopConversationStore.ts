@@ -3,16 +3,12 @@
  */
 
 import {
-  getConversationWorkspaceBinding,
-} from '../workspace/conversationWorkspaceBinding';
-import {
   buildTraceTimeline,
   createConversationEvent,
   type CompactedReplaySnapshot,
   type ConversationMetadata,
   type ConversationRewritePlan,
   type ConversationEvent,
-  type JsonRecord,
   type ListConversationOptions,
   type RehydrateSnapshot,
   type SearchConversationOptions,
@@ -20,13 +16,8 @@ import {
   type DisplayConversation,
   type SdkDisplayRow,
   type TraceTimelineEntry,
-  resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
 import { invokeWindieCommand } from '../../app/runtime/windieCommandInvokeClient';
-
-type DesktopConversationStoreDeps = {
-  getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
-};
 
 export type DesktopTraceTimelineOptions = {
   turnRef?: string | null;
@@ -34,194 +25,8 @@ export type DesktopTraceTimelineOptions = {
   path?: string | null;
 };
 
-function normalizeNonEmptyString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function normalizeRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return null;
-  }
-  return value as Record<string, unknown>;
-}
-
-function normalizeArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
-}
-
-function toolNameFromEvent(event: ConversationEvent): string | null {
-  const payload = normalizeRecord(event.payload) ?? {};
-  return normalizeNonEmptyString(payload.toolName)
-    ?? normalizeNonEmptyString(payload.tool_name);
-}
-
-function correlationIdFromEvent(event: ConversationEvent): string | null {
-  return resolveToolEventCorrelationId(event.payload);
-}
-
-function valueByKeys(record: Record<string, unknown>, keys: string[]): unknown {
-  for (const key of keys) {
-    if (record[key] !== undefined && record[key] !== null) {
-      return record[key];
-    }
-  }
-  return undefined;
-}
-
-function addImageAttachment(
-  attachments: Record<string, unknown>[],
-  candidate: unknown,
-  sourceField: string,
-): void {
-  if (candidate === undefined || candidate === null || candidate === '') {
-    return;
-  }
-  const record = normalizeRecord(candidate);
-  if (!record) {
-    attachments.push({
-      kind: 'image',
-      sourceField,
-      value: candidate,
-    });
-    return;
-  }
-
-  const screenshot = valueByKeys(record, ['screenshot', 'image', 'data', 'base64']);
-  const ref = valueByKeys(record, ['screenshotRef', 'screenshot_ref', 'artifactRef', 'artifact_ref', 'ref', 'id']);
-  const url = valueByKeys(record, ['screenshotUrl', 'screenshot_url', 'url']);
-  const contentType = valueByKeys(record, [
-    'screenshotContentType',
-    'screenshot_content_type',
-    'contentType',
-    'content_type',
-    'mimeType',
-    'mime_type',
-  ]);
-
-  attachments.push({
-    kind: 'image',
-    sourceField,
-    ...(ref !== undefined ? { ref } : {}),
-    ...(url !== undefined ? { url } : {}),
-    ...(contentType !== undefined ? { contentType } : {}),
-    ...(screenshot !== undefined ? { data: screenshot } : {}),
-    original: record,
-  });
-}
-
-function collectImageAttachmentsFromRecord(
-  attachments: Record<string, unknown>[],
-  record: Record<string, unknown>,
-): void {
-  const directRef = valueByKeys(record, ['screenshotRef', 'screenshot_ref']);
-  const directUrl = valueByKeys(record, ['screenshotUrl', 'screenshot_url']);
-  const directContentType = valueByKeys(record, ['screenshotContentType', 'screenshot_content_type']);
-  const directScreenshot = valueByKeys(record, ['screenshot', 'image']);
-  if (
-    directRef !== undefined
-    || directUrl !== undefined
-    || directContentType !== undefined
-    || directScreenshot !== undefined
-  ) {
-    addImageAttachment(attachments, {
-      screenshotRef: directRef,
-      screenshotUrl: directUrl,
-      screenshotContentType: directContentType,
-      screenshot: directScreenshot,
-    }, 'screenshot');
-  }
-
-  for (const key of ['screenshots', 'images', 'attachments', 'artifactRefs', 'artifact_refs']) {
-    for (const item of normalizeArray(record[key])) {
-      addImageAttachment(attachments, item, key);
-    }
-  }
-  for (const key of ['screenshotRefs', 'screenshot_refs']) {
-    for (const item of normalizeArray(record[key])) {
-      addImageAttachment(attachments, { screenshotRef: item }, key);
-    }
-  }
-}
-
-function imageAttachmentsFromEvent(event: ConversationEvent): Record<string, unknown>[] {
-  const attachments: Record<string, unknown>[] = [];
-  const payload = normalizeRecord(event.payload) ?? {};
-  const roots = [
-    payload,
-    normalizeRecord(payload.result),
-    normalizeRecord(payload.data),
-    normalizeRecord(payload.output),
-  ].filter((entry): entry is Record<string, unknown> => Boolean(entry));
-
-  for (const root of roots) {
-    collectImageAttachmentsFromRecord(attachments, root);
-  }
-
-  const seen = new Set<string>();
-  return attachments.filter((attachment) => {
-    const key = JSON.stringify(attachment);
-    if (seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
-}
-
-function modelMetadataFromEvent(event: ConversationEvent): {
-  modelId: string | null;
-  modelProvider: string | null;
-} {
-  return {
-    modelId: normalizeNonEmptyString(event.payload?.modelId)
-      ?? normalizeNonEmptyString(event.payload?.model_id),
-    modelProvider: normalizeNonEmptyString(event.payload?.modelProvider)
-      ?? normalizeNonEmptyString(event.payload?.model_provider),
-  };
-}
-
-function resolveDesktopConversationStoreDeps(
-  deps: DesktopConversationStoreDeps = {},
-): Required<DesktopConversationStoreDeps> {
-  return {
-    getConversationWorkspaceBinding: deps.getConversationWorkspaceBinding ?? getConversationWorkspaceBinding,
-  };
-}
-
-function buildDesktopEventWriteParams(
-  event: ConversationEvent,
-  deps: Required<DesktopConversationStoreDeps>,
-): JsonRecord {
-  const workspaceBinding = deps.getConversationWorkspaceBinding(event.conversationRef);
-  const attachments = imageAttachmentsFromEvent(event);
-  const firstAttachment = attachments[0] ?? null;
-  const modelMetadata = modelMetadataFromEvent(event);
-  return {
-    tool_name: toolNameFromEvent(event),
-    correlation_id: correlationIdFromEvent(event),
-    workspace_path: workspaceBinding.workspacePath || null,
-    workspace_name: workspaceBinding.workspaceName || null,
-    metadata: {
-      model_id: modelMetadata.modelId,
-      model_provider: modelMetadata.modelProvider,
-      screenshot: firstAttachment?.['ref']
-        ?? firstAttachment?.['url']
-        ?? firstAttachment?.['value']
-        ?? firstAttachment?.['data']
-        ?? null,
-    },
-    attachments,
-    compaction_checkpoint: event.type === 'compaction_applied' ? event.payload : null,
-  };
-}
-
 export function createDesktopConversationStore(
   userId: string,
-  _deps: DesktopConversationStoreDeps = {},
 ): ConversationStore {
   return {
     async appendEvent(event: ConversationEvent): Promise<void> {

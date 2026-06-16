@@ -1,7 +1,7 @@
 ---
 summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, IPC storage contract, and dashboard conversation resume/rehydrate flow."
 read_when:
-  - When changing transcript session identity wiring, SDK display projection, or `store-chat-event` payload shape.
+  - When changing transcript session identity wiring, SDK display projection, or sidecar conversation-store payload shape.
   - When debugging missing transcript rows, dashboard resume, or rehydrate mismatches.
   - When changing try-again/edit+resend replay sequencing in `useConversationReplayActions.js`.
 title: "Transcript Session and Rehydrate Reference"
@@ -85,7 +85,9 @@ Transcript conversation pagination helper:
 The desktop runtime uses `ConversationContinuityService` as the SDK-owned
 continuity orchestrator and the SDK `SidecarConversationStore` as the
 sidecar-backed conversation-store owner. The desktop conversation store factory
-adapts desktop metadata and attachment enrichment into that SDK store.
+is now only a renderer command bridge: it forwards canonical SDK events and
+load/list/rewrite commands to Electron main without reshaping event metadata or
+attachments.
 
 Storage split:
 
@@ -97,11 +99,11 @@ Storage split:
 - compacted backend rehydrate snapshots are stored as complete
   `compaction_applied` conversation events.
 
-The factory supplies desktop write-enrichment params to the SDK
-`SidecarConversationStore`, which owns the sidecar write/read RPCs. Display and
-backend rehydrate snapshots come from the SDK projection path, and backend
-resume is triggered by the SDK continuity service rather than by dashboard or
-chat feature code.
+Event write enrichment, sidecar persistence payload shaping, and attachment
+storage belong to the SDK `SidecarConversationStore` plus the sidecar write/read
+RPCs. Display and backend rehydrate snapshots come from the SDK projection path,
+and backend resume is triggered by the SDK continuity service rather than by
+dashboard or chat feature code.
 
 Direct `store-chat-event` calls and replay append mutation are not renderer
 feature-code surfaces; sidecar chat-event RPC names remain inside SDK
