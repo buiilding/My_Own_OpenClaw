@@ -1,5 +1,5 @@
 ---
-summary: "Renderer settings config docs sub-hub for frontend config-field filtering, localStorage defaults/versioning, and AppConfigProvider merge/apply guards."
+summary: "Renderer settings config docs sub-hub for frontend config-field filtering, localStorage defaults, and AppConfigProvider merge/apply guards."
 read_when:
   - When changing frontend-owned config field allowlist or local config defaults.
   - When debugging config persistence drift between localStorage, disk config load, and backend update-settings sync.

@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for frontend config ownership boundary: allowlist filtering, localStorage default/version handling, and AppConfigProvider sanitize/merge/apply persistence guards."
+summary: "Deep reference for frontend config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config-version behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
 read_when:
   - When changing frontend-owned config keys (`configFilter`) or local fallback defaults (`configStorage`).
   - When debugging why settings updates are skipped, cross-window storage sync applies unexpectedly, or disk config merges differ from memory state.
+  - When resolving stale references to `desktop-assistant-config-version`, `saveConfigToStorage` version arguments, or `Date.now()` storage-version writes.
 title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 ---
 
@@ -54,6 +55,14 @@ Storage keys:
 
 - `desktop-assistant-config`
 
+Removed storage keys:
+
+- `desktop-assistant-config-version`
+
+Renderer config persistence is intentionally single-key: config payload changes
+are broadcast by the `desktop-assistant-config` localStorage write itself, not by
+a separate version timestamp.
+
 Default config surface:
 
 - `model_mode: "online"`
@@ -87,7 +96,7 @@ Load semantics (`loadConfigFromStorage`):
 Save semantics (`saveConfigToStorage`):
 
 - rejects non-object/array payloads
-- writes config + version (`Date.now()` fallback)
+- writes only `desktop-assistant-config`
 - strips provider `api_key`, OAuth `access_token`, and OAuth `refresh_token` before serializing to localStorage
 - returns boolean success/failure
 
@@ -178,7 +187,8 @@ On `window.storage` for desktop-assistant config keys:
 - default-return behavior when empty
 - default merge with stored overrides
 - invalid payload cleanup
-- version timestamp behavior
+- single-key persistence after the removed `desktop-assistant-config-version`
+  timestamp behavior
 - write-failure handling returns false
 
 `AppConfigProvider.models.test.tsx` and `storageAndIpc.test.tsx`:

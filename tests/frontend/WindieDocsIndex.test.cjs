@@ -340,6 +340,27 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed config-version storage queries to frontend config docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'renderer',
+      'settings',
+      'config',
+      'frontend_config_filter_storage_and_provider_merge_runtime_reference.md',
+    );
+
+    expect(findDocs('config storage version key removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('desktop-assistant-config-version removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('saveConfigToStorage version Date.now removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes stop button queries to the ChatInterface control reference', () => {
     expect(findDocs('stop button')[0].path).toBe(
       path.join(

@@ -70,6 +70,8 @@ All notable changes to WindieOS will be documented in this file.
   the SDK conversation runtime owner.
 - docs/frontend: route removed renderer overlay, tool-explanation, screenshot,
   and chat-stream helper searches to the current owner references.
+- docs/frontend: route removed config-version storage-key searches to the
+  renderer config persistence owner.
 - docs/search: route removed renderer transcript-store, pending-writer, and
   dashboard memory helper searches to their current owner docs.
 - frontend/renderer: stop writing the unused config-version localStorage key;
