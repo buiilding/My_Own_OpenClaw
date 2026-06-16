@@ -1,5 +1,6 @@
 /** @jest-environment node */
 
+const childProcess = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -17,14 +18,84 @@ const {
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
-  diagnosticsDatabasePath,
-  inspectDiagnosticTrace,
-  listDiagnosticPathDefinitions,
-  queryDiagnosticEvents,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 
 const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
 const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
+
+function sqlString(value) {
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function parseJsonField(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return null;
+  }
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function readDiagnosticEvents({ pathFilter = '', traceId = '', limit = 50 } = {}) {
+  const dbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
+  const conditions = [];
+  if (pathFilter) {
+    conditions.push(`path = ${sqlString(pathFilter)}`);
+  }
+  if (traceId) {
+    conditions.push(`trace_id = ${sqlString(traceId)}`);
+  }
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const safeLimit = Math.min(Math.max(Number.parseInt(String(limit), 10) || 50, 1), 1000);
+  const result = childProcess.spawnSync('sqlite3', ['-json', dbPath, `
+    SELECT id,
+           trace_id AS traceId,
+           span_id AS spanId,
+           parent_span_id AS parentSpanId,
+           path,
+           stage,
+           status,
+           runtime,
+           timestamp,
+           duration_ms AS durationMs,
+           request_id AS requestId,
+           session_id AS sessionId,
+           conversation_ref AS conversationRef,
+           data,
+           error
+    FROM diagnostic_events
+    ${where}
+    ORDER BY timestamp DESC
+    LIMIT ${safeLimit}
+  `], {
+    encoding: 'utf8',
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(result.stderr || `sqlite3 exited with status ${result.status}`);
+  }
+  return JSON.parse(result.stdout || '[]').map(row => ({
+    id: row.id,
+    traceId: row.traceId,
+    spanId: row.spanId,
+    parentSpanId: row.parentSpanId || null,
+    path: row.path,
+    stage: row.stage,
+    status: row.status,
+    runtime: row.runtime,
+    timestamp: row.timestamp,
+    durationMs: Number.isFinite(row.durationMs) ? row.durationMs : null,
+    requestId: row.requestId || null,
+    sessionId: row.sessionId || null,
+    conversationRef: row.conversationRef || null,
+    data: parseJsonField(row.data) || {},
+    error: parseJsonField(row.error),
+  }));
+}
 
 describe('app diagnostics store', () => {
   let previousDbPath;
@@ -67,12 +138,12 @@ describe('app diagnostics store', () => {
 
     expect(stored).toEqual(expect.objectContaining({
       stored: true,
-      database: diagnosticsDatabasePath(),
+      database: process.env.WINDIE_APP_DIAGNOSTICS_DB,
       traceId: 'diag-test',
       spanId: 'span-test',
     }));
 
-    const events = queryDiagnosticEvents({ pathFilter: APP_DIAGNOSTICS_PATH, limit: 10 });
+    const events = readDiagnosticEvents({ pathFilter: APP_DIAGNOSTICS_PATH, limit: 10 });
     expect(events).toHaveLength(1);
     expect(events[0]).toEqual(expect.objectContaining({
       traceId: 'diag-test',
@@ -95,7 +166,7 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('/private/path');
     expect(JSON.stringify(events[0])).not.toContain('do not store');
 
-    expect(inspectDiagnosticTrace('diag-test')).toHaveLength(1);
+    expect(readDiagnosticEvents({ traceId: 'diag-test' })).toHaveLength(1);
   });
 
   test('persists sanitized browser session control diagnostics', () => {
@@ -117,7 +188,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -157,7 +228,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -199,7 +270,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -241,7 +312,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: DESKTOP_STARTUP_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -286,7 +357,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: IPC_BRIDGE_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -329,7 +400,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -367,7 +438,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -409,7 +480,7 @@ describe('app diagnostics store', () => {
       error: new Error('MCP initialize timed out for cua-driver at /private/path'),
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: MCP_DISCOVERY_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -458,7 +529,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: MCP_EXECUTION_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -510,7 +581,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -559,7 +630,7 @@ describe('app diagnostics store', () => {
       },
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: MCP_REGISTRATION_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -610,7 +681,7 @@ describe('app diagnostics store', () => {
       error: new Error('permission path failed at /Users/peter/private'),
     });
 
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: PERMISSION_PROBE_DIAGNOSTICS_PATH,
       limit: 10,
     });
@@ -641,25 +712,4 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('example.com/private');
   });
 
-  test('describes registered diagnostic paths for the CLI', () => {
-    const paths = listDiagnosticPathDefinitions();
-    expect(paths).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        path: DESKTOP_STARTUP_DIAGNOSTICS_PATH,
-        purpose: expect.stringContaining('Desktop startup'),
-      }),
-      expect.objectContaining({
-        path: IPC_BRIDGE_DIAGNOSTICS_PATH,
-        owner: expect.stringContaining('IPC bridge'),
-      }),
-      expect.objectContaining({
-        path: SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
-        purpose: expect.stringContaining('Chat pill'),
-      }),
-      expect.objectContaining({
-        path: WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
-        owner: expect.stringContaining('wakeword'),
-      }),
-    ]));
-  });
 });

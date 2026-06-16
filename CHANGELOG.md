@@ -29,6 +29,8 @@ All notable changes to WindieOS will be documented in this file.
   always use the sidecar OS-auth prompt path.
 - frontend/sdk: remove the legacy edit/retry user-message ordinal fallback so
   replay cuts canonical conversation events by message id only.
+- frontend/main: keep app diagnostics inspection helpers private by deleting
+  their unused production export surface.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
@@ -52,6 +54,8 @@ All notable changes to WindieOS will be documented in this file.
   route Settings searches to the main-owned accelerator registration path.
 - docs/tools: add a dedicated `web_search` guide for native provider search,
   Brave fallback, visibility policy, and docs-search routing.
+- docs/sdk: clarify that edit/resend and retry replay now cut by canonical
+  message id only, without user-message ordinal fallback.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

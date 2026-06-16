@@ -1,5 +1,6 @@
 /** @jest-environment node */
 
+const childProcess = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -17,8 +18,41 @@ const {
 } = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
 const {
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
-  queryDiagnosticEvents,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
+
+function sqlString(value) {
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function readDiagnosticEvents({ pathFilter = '', limit = 50 } = {}) {
+  const safeLimit = Math.min(Math.max(Number.parseInt(String(limit), 10) || 50, 1), 1000);
+  const where = pathFilter ? `WHERE path = ${sqlString(pathFilter)}` : '';
+  const result = childProcess.spawnSync('sqlite3', ['-json', process.env.WINDIE_APP_DIAGNOSTICS_DB, `
+    SELECT trace_id AS traceId,
+           stage,
+           status,
+           duration_ms AS durationMs,
+           data
+    FROM diagnostic_events
+    ${where}
+    ORDER BY timestamp DESC
+    LIMIT ${safeLimit}
+  `], {
+    encoding: 'utf8',
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(result.stderr || `sqlite3 exited with status ${result.status}`);
+  }
+  return JSON.parse(result.stdout || '[]').map(event => ({
+    ...event,
+    data: typeof event.data === 'string' && event.data.trim()
+      ? JSON.parse(event.data)
+      : {},
+  }));
+}
 
 function writeCuaMcpRegistry() {
   const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cua-mcp-'));
@@ -259,7 +293,7 @@ describe('MCP control runtime', () => {
     });
 
     expect(result.success).toBe(true);
-    const events = queryDiagnosticEvents({
+    const events = readDiagnosticEvents({
       pathFilter: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
       limit: 10,
     });
