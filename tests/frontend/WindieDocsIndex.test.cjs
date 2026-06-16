@@ -560,4 +560,19 @@ describe('windie docs index', () => {
     expect(findDocs('stale cjs tool event router artifact')[0].path).toBe(expectedPath);
     expect(findDocs('Electron tool event router cjs removed')[0].path).toBe(expectedPath);
   });
+
+  test('routes removed dev tool selection config queries to agent capability policy docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'tools',
+      'policy',
+      'tool_policy_and_agent_capability_runtime_reference.md',
+    );
+
+    expect(findDocs('WINDIEOS_DEV_TOOL_SELECTION_PATH')[0].path).toBe(expectedPath);
+    expect(findDocs('backend dev tool_selection toml removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
 });

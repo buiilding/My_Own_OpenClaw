@@ -1,8 +1,9 @@
 ---
-summary: "Deep backend reference for ToolPolicy and agent capability selection: profile precedence, mouse method schema pruning, parser validation, and startup OCR/vision gating."
+summary: "Deep backend reference for ToolPolicy and agent capability selection: profile precedence, removed dev TOML tool-selection config, mouse method schema pruning, parser validation, and startup OCR/vision gating."
 read_when:
   - When changing backend tool policy rules, agent tool profiles, or coordinate-method gates.
   - When debugging tool whitelist errors, mouse method denial messages, or startup OCR/vision unexpectedly enabled or skipped.
+  - When searching for removed `WINDIEOS_DEV_TOOL_SELECTION_PATH`, `backend/dev/tool_selection.toml`, or dev tool_selection TOML behavior.
 title: "Tool Policy and Agent Capability Runtime Reference"
 ---
 
@@ -44,6 +45,15 @@ Current config hard-disable:
 - `agent_disabled_tools` removes matching direct tool names.
 - `agent_disabled_capabilities=["browser"]` removes `browser`.
 - `agent_disabled_capabilities=["web_search"]` removes backend logical `web_search`.
+
+## Removed Dev Tool Selection Config
+
+The backend no longer loads dev TOML tool-selection config from
+`backend/dev/tool_selection.toml` or `WINDIEOS_DEV_TOOL_SELECTION_PATH`.
+Searches for removed backend dev `tool_selection` TOML behavior should route to
+this page because the replacement path is typed agent capability policy on the
+effective `AppConfig`, with `ToolSelection` used only as the in-memory structural
+value object.
 
 ## Agent Capability Policy
 
