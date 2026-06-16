@@ -1,8 +1,9 @@
 ---
-summary: "Agent session runtime reference: SessionManager locking/session maps, AgentSession state containers, transcript-thread switching, and runtime config update rewiring across executor dependencies."
+summary: "Agent session runtime reference: SessionManager locking/session maps, AgentSession state containers, AgentSession ocr_service constructor removal, ocr_router session_factory wiring, transcript-thread switching, and runtime config update rewiring across executor dependencies."
 read_when:
   - When changing per-user session creation/update/end behavior or query-task cancellation.
   - When debugging settings updates that appear in config but not in live LLM responses.
+  - When resolving stale `AgentSession(..., ocr_service=...)`, session factory OCR service parameter, or sub-agent OCR constructor references.
 title: "Session Runtime and Config Rewire Reference"
 ---
 
@@ -46,6 +47,7 @@ This boundary matters because handlers/services should still depend on `SessionM
 - executor + tool-result handler
 - runtime state containers (`SessionRuntimeState`)
 - session-scoped async lock (`self._lock`)
+- `ocr_router` reference used by screenshot/OCR preparation state
 
 ## Session Creation and Locking Model
 
@@ -63,6 +65,27 @@ factory base config and a real session-specific config override:
 
 - default `Container.create_agent_session(...)` calls the LLM factory without a config argument so the DI `llm_client` provider can be overridden by tests/simulation/runtime containers
 - explicit config overrides still call the config-aware LLM factory branch and become the session `cfg`
+- `SessionRuntimeCoordinator` passes the container `ocr_router` into
+  `AgentSessionFactory`, and `AgentSession` stores only `self.ocr_router`.
+  Do not add an `ocr_service` constructor alias back onto `AgentSession`;
+  tool-preparation code reads the router from `session.ocr_router`.
+
+### Removed `AgentSession(..., ocr_service=...)` Constructor Parameter
+
+Stale references to `AgentSession ocr_service constructor removed ocr_router
+session_factory` belong here, not in the OCR engine/service lifecycle docs.
+The current session-construction path is:
+
+1. `SessionRuntimeCoordinator` reads `container.ocr_router`.
+2. `AgentSessionFactory(..., ocr_router=...)` stores that router dependency.
+3. `AgentSession(..., ocr_router=...)` stores `self.ocr_router`.
+4. `AgentFactory.create_agent(...)` and `sdk/agents/session_builder.build_session(...)`
+   copy `parent_session.ocr_router` into child sessions.
+
+The `ContextFactory.set_ocr_service(...)` service-key helper is separate from
+the session constructor contract. It may still publish tool-context
+`ocr_service` and `ocr_router` service keys, but it is not the dependency shape
+for creating `AgentSession`.
 
 Agent definition updates layer onto existing session prompt context. When an
 agent definition changes workspace, client prompt layers, tool manifest, or

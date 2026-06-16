@@ -133,7 +133,7 @@ Container object passed to tool `run(...)`:
 
 Service merge order:
 
-1. base services (`config`, optionally `tool_registry`, `agent_factory`, `vision_service`, `ocr_service`)
+1. base services (`config`, optionally `tool_registry`, `agent_factory`, `vision_service`, `vision_router`, `ocr_service`, `ocr_router`)
 2. session service (`services["session"]`) when `session_ref` exists
 3. `additional_services` (last-write wins)
 
@@ -142,7 +142,11 @@ Other behavior:
 - default workspace root is `os.getcwd()` if not passed
 - `SessionContext.created_at` uses `time.time()`
 - `SessionContext.metadata` copies snapshot of `session_ref.metadata` at creation time
-- service toggles `set_vision_service(None)` and `set_ocr_service(None)` remove those keys
+- service toggles `set_vision_service(None)` and `set_ocr_service(None)` remove
+  both service and router keys
+- `set_ocr_service(...)` is still the tool-context setter name, but
+  `AgentSession` construction uses `ocr_router`; do not treat the
+  tool-context service key as a session constructor dependency
 
 ## Core Tool Result Boundary
 

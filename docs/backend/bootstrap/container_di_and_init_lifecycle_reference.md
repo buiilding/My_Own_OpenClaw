@@ -96,7 +96,8 @@ Session factory dependencies:
 
 - config
 - tool registry
-- OCR service
+- OCR router (`container.ocr_router`, passed through as the `ocr_router`
+  constructor dependency)
 - llm client factory (session-config aware)
 - tool orchestrator factory
 - event bus

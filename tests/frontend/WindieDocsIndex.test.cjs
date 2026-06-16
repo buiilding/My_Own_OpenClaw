@@ -436,6 +436,12 @@ describe('windie docs index', () => {
     ).toBe(expectedPath);
   });
 
+  test('routes stale session OCR constructor queries to session runtime docs', () => {
+    expect(
+      findDocs('AgentSession ocr_service constructor removed ocr_router session_factory')[0].path,
+    ).toBe(path.join('docs', 'backend', 'agent', 'session_runtime_and_config_rewire_reference.md'));
+  });
+
   test('routes removed Kimi provider alias queries to Kimi provider docs', () => {
     expect(findDocs('kimi_code provider alias rejected')[0].path).toBe(
       path.join('docs', 'providers', 'kimi_coding.md'),
