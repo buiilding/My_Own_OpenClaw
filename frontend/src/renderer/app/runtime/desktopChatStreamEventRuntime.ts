@@ -28,7 +28,7 @@ type ConversationTurnRefEvent = {
   turnRef?: string | null;
 };
 
-export function shouldIgnoreForStaleTurn(
+function shouldIgnoreForStaleTurn(
   event: TurnRefEvent,
   conversationRef?: string | null,
   deps?: ShouldIgnoreForStaleTurnDeps,

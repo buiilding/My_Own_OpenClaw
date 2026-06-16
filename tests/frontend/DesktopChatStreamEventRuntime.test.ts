@@ -5,7 +5,7 @@
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   recordTrackingEvent,
-  shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
+  shouldIgnoreConversationEventForStaleTurn,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
 
 function createEvent(overrides: Record<string, unknown> = {}) {
@@ -22,7 +22,7 @@ function getWorkspaceState(conversationRef?: string | null) {
 }
 
 function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: string | null): boolean {
-  return shouldIgnoreForStaleTurnRuntime(event, conversationRef, { getWorkspaceState });
+  return shouldIgnoreConversationEventForStaleTurn(event, conversationRef, { getWorkspaceState });
 }
 
 describe('DesktopChatStreamEventRuntime', () => {
@@ -75,7 +75,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
@@ -107,7 +107,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-old' }), null)).toBe(true);
   });
 
   test('stale turn guard keeps same-turn packets during terminal pending handoff when a new optimistic user row is present', () => {
@@ -139,7 +139,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard keeps same-turn packets during terminal pending handoff when an incomplete current-turn assistant placeholder is present', () => {
@@ -187,7 +187,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows next-turn packets during idle pending handoff', () => {
@@ -213,7 +213,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard keeps same-turn packets during idle sending handoff after re-anchor', () => {
@@ -239,7 +239,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows next-turn packets during error pending handoff', () => {
@@ -265,7 +265,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard ignores same-turn packets during error pending handoff', () => {
@@ -297,7 +297,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-old' }), null)).toBe(true);
   });
 
   test('stale turn guard keeps same-turn packets during error pending handoff when a new optimistic user row is present', () => {
@@ -329,7 +329,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows mismatched turn packets while sending during awaiting-first-chunk', () => {
@@ -355,15 +355,15 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard keeps packets when turn ref is absent', () => {
-    expect(shouldIgnore(createEvent({ turn_ref: undefined }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: undefined }), null)).toBe(false);
   });
 
   test('stale turn guard treats whitespace turn ref as absent', () => {
-    expect(shouldIgnore(createEvent({ turn_ref: '   ' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: '   ' }), null)).toBe(false);
   });
 
   test('stale turn guard compares normalized turn refs', () => {
@@ -388,7 +388,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: ' turn-1 ' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: ' turn-1 ' }), null)).toBe(false);
   });
 
   test('stale turn guard allows next-turn packets when pending handoff has no active turn ref', () => {
@@ -414,11 +414,11 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard ignores old-turn packets during active stream', () => {
-    expect(shouldIgnore(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-old' }), null)).toBe(true);
   });
 
   test('stale turn guard is scoped to the provided conversation workspace', () => {
@@ -448,7 +448,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     }));
 
     expect(
-      shouldIgnore(createEvent({ turn_ref: 'turn-default' }), 'conv-scoped'),
+      shouldIgnore(createEvent({ turnRef: 'turn-default' }), 'conv-scoped'),
     ).toBe(true);
   });
 
@@ -485,7 +485,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     }));
 
     expect(
-      shouldIgnore(createEvent({ turn_ref: 'turn-conv-new' }), 'conv-scoped'),
+      shouldIgnore(createEvent({ turnRef: 'turn-conv-new' }), 'conv-scoped'),
     ).toBe(true);
   });
 
