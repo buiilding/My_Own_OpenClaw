@@ -50,17 +50,25 @@ function readDocMeta(page) {
   const readWhen = [...content.matchAll(/^\s*-\s+When\s+(.+)$/gm)]
     .map((match) => match[1].trim())
     .join(' ');
+  const headings = [...content.matchAll(/^#{1,4}\s+(.+)$/gm)]
+    .map((match) => match[1].trim())
+    .join(' ');
   return {
     page,
     path: path.relative(REPO_ROOT, filePath),
     title,
     summary,
-    text: `${page} ${title} ${summary} ${readWhen}`.toLowerCase(),
+    readWhen,
+    headings,
+    text: normalizeSearchText(`${page} ${title} ${summary} ${readWhen} ${headings}`),
   };
 }
 
 function listMarkdownFiles(dir, files = []) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+  const entries = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name));
+  for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       listMarkdownFiles(fullPath, files);
@@ -88,45 +96,116 @@ function loadDocsIndex() {
     ...listMarkdownFiles(repoPath('docs')),
   ].map(pageFromDocPath);
   const pages = [...new Set([...flattenPagesFromDocsJson(docsJson), ...discoveredPages])];
-  return pages.map(readDocMeta).filter(Boolean);
+  return pages
+    .map((page, order) => {
+      const metadata = readDocMeta(page);
+      return metadata ? { ...metadata, order } : null;
+    })
+    .filter(Boolean);
 }
 
-function scoreDoc(doc, terms) {
+function normalizeSearchText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function countFieldScore(field, terms, weight) {
   let score = 0;
   for (const term of terms) {
-    if (!term) {
-      continue;
-    }
-    if (doc.page.toLowerCase().includes(term)) {
-      score += 5;
-    }
-    if (doc.title.toLowerCase().includes(term)) {
-      score += 4;
-    }
-    if (doc.summary.toLowerCase().includes(term)) {
-      score += 3;
-    }
-    if (doc.text.includes(term)) {
-      score += 1;
+    if (field.includes(term)) {
+      score += weight;
     }
   }
   return score;
 }
 
+function scoreDoc(doc, query) {
+  const { terms, phrase } = query;
+  const fields = {
+    page: normalizeSearchText(doc.page),
+    title: normalizeSearchText(doc.title),
+    summary: normalizeSearchText(doc.summary),
+    readWhen: normalizeSearchText(doc.readWhen),
+    headings: normalizeSearchText(doc.headings),
+    text: doc.text,
+  };
+
+  let score = 0;
+
+  if (phrase && terms.length > 1) {
+    if (fields.page.includes(phrase)) {
+      score += 45;
+    }
+    if (fields.title.includes(phrase)) {
+      score += 40;
+    }
+    if (fields.summary.includes(phrase)) {
+      score += 32;
+    }
+    if (fields.headings.includes(phrase)) {
+      score += 28;
+    }
+    if (fields.readWhen.includes(phrase)) {
+      score += 20;
+    }
+    if (fields.text.includes(phrase)) {
+      score += 10;
+    }
+  }
+
+  score += countFieldScore(fields.page, terms, 7);
+  score += countFieldScore(fields.title, terms, 6);
+  score += countFieldScore(fields.summary, terms, 4);
+  score += countFieldScore(fields.headings, terms, 3);
+  score += countFieldScore(fields.readWhen, terms, 2);
+  score += countFieldScore(fields.text, terms, 1);
+
+  if (terms.every((term) => fields.text.includes(term))) {
+    score += 15;
+  }
+  if (terms.every((term) => fields.title.includes(term))) {
+    score += 12;
+  }
+  if (terms.every((term) => fields.summary.includes(term))) {
+    score += 8;
+  }
+  if (terms.every((term) => fields.headings.includes(term))) {
+    score += 8;
+  }
+
+  if (isHistoricalDocPath(doc.path) && !isHistoricalQuery(terms)) {
+    score -= 60;
+  }
+
+  return score;
+}
+
+function isHistoricalDocPath(docPath) {
+  return /(^|\/)(plans|planning|refactors)\//.test(String(docPath || ''));
+}
+
+function isHistoricalQuery(terms) {
+  return terms.some((term) => ['plan', 'plans', 'planning', 'refactor', 'refactors', 'report'].includes(term));
+}
+
 const DEFAULT_DOC_SEARCH_LIMIT = 10;
 
 function findDocs(topic, limit = DEFAULT_DOC_SEARCH_LIMIT) {
-  const terms = String(topic || '')
-    .toLowerCase()
-    .split(/[^a-z0-9_-]+/)
+  const phrase = normalizeSearchText(topic);
+  const terms = phrase
+    .split(' ')
     .filter(Boolean);
   if (!terms.length) {
     return [];
   }
+  const query = { phrase, terms };
   return loadDocsIndex()
-    .map((doc) => ({ ...doc, score: scoreDoc(doc, terms) }))
+    .map((doc) => ({ ...doc, score: scoreDoc(doc, query) }))
     .filter((doc) => doc.score > 0)
-    .sort((a, b) => b.score - a.score || a.path.localeCompare(b.path))
+    .sort((a, b) => b.score - a.score || a.order - b.order || a.path.localeCompare(b.path))
     .slice(0, limit);
 }
 

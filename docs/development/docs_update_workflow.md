@@ -17,10 +17,10 @@ git status --short --branch
 bin/windie docs list
 ```
 
-If `bin/windie docs list` is unavailable:
+For targeted orientation, use docs search before broad file scans:
 
 ```bash
-bin/windie docs list
+bin/windie docs search "<feature or symptom>"
 ```
 
 ## Choose The Doc Type
@@ -51,6 +51,12 @@ title: "Page Title"
 ```
 
 Use `read_when` hints to route agents before code edits.
+
+`bin/windie docs search <query>` ranks exact phrase and all-query-term matches
+ahead of broad partial matches. Keep titles, summaries, `read_when` hints, and
+section headings specific enough that queries like `model catalog` or
+`mcp tool result` land on the owning workflow or contract before generic
+references.
 
 ## Hub Wiring
 

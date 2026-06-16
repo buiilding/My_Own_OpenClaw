@@ -23,6 +23,9 @@ This is the compact local docs directory. For the complete canonical navigation 
 ## Architecture
 
 - [Runtime Model](../concepts/runtime_model.md) - backend, Electron main, renderer, preload, and sidecar boundaries.
+- [Runtime Nodes Hub](../nodes/README.md) - process and service ownership across backend, desktop, sidecar, wakeword, VM worker, and hosted ingress.
+- [Channels Hub](../channels/README.md) - desktop, websocket, sidecar JSON-RPC, voice, SDK, and VM-run communication paths.
+- [Gateway Hub](../gateway/README.md) - hosted backend ingress, app assembly, websocket handshake, auth, health, and troubleshooting.
 - [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - owner responsibilities and first docs for common change types.
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) - owner selection by runtime and trust boundary.
 - [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) - query, stream, tool result, settings, transcript, memory, artifact, permission, provider, and VM-run state.
@@ -41,38 +44,49 @@ This is the compact local docs directory. For the complete canonical navigation 
 ## Frontend and Desktop
 
 - [Frontend Hub](../frontend/README.md) - renderer, main, preload, contracts, and sidecar maps.
+- [Desktop Surfaces](../desktop/README.md) - dashboard, chat pill, response overlay, voice, permissions, onboarding, screenshots, and artifacts.
 - [Frontend Architecture](../architecture/frontend_architecture.md) - current Electron/React/sidecar topology.
 - [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md) - Electron main ownership.
 - [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) - chat/dashboard/settings renderer state.
 - [IPC Change Workflow](../frontend/ipc_change_workflow.md) - preload/main/renderer IPC changes.
 - [Workspace Context Change Workflow](../frontend/runtime/workspace_context_change_workflow.md) - workspace path and AGENTS.md prompt context.
+- [Platforms Hub](../platforms/README.md) - macOS, Windows, and Linux permission, screenshot, overlay, packaging, and input behavior.
 
 ## Tools, Browser, SDK, and Providers
 
 - [Tools Hub](../tools/README.md) - model-facing and sidecar-executable tool contracts.
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) - tool visibility, schemas, policy, provider projection, and parity.
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) - backend call to SDK/main/sidecar execution to backend history.
+- [Plugins and Extensions Hub](../plugins/README.md) - sidecar plugin tools, prompt skills, MCP integrations, provider-like extensions, and current plugin boundaries.
+- [MCP Runtime](../development/mcp.md) - repo-level MCP server config, discovery, enablement, execution, and MCP tool-result preservation.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) - dedicated browser schema, runtime, bridge, UI, and tests.
+- [Browser Hub](../browser/README.md) - dedicated browser runtime, CDP session ownership, action schemas, snapshots, and debug routes.
 - [SDK Hub](../sdk/README.md) - hosted clients, query planning, OCR/vision, and tool authoring.
 - [WindieClient Runtime Contract](../sdk/windie_client_runtime.md) - SDK runtime ownership and public API.
 - [Providers Hub](../providers/README.md) - LLM, inference, credential, STT, TTS, and search providers.
+- [Models and LLM Providers](../providers/models.md) - provider factory registration, model catalog metadata, reasoning variants, and capability flags.
 
 ## Debug, Install, and Operations
 
 - [Debug Hub](../debug/README.md) - logs, flags, process health, traces, symptom playbooks, and test selection.
 - [Process Health Checklist](../debug/process_health_checklist.md) - prove which process is dead, stuck, disconnected, or healthy.
 - [Triage Routes](../help/triage_routes.md) - symptom to owner before code edits.
+- [Help Hub](../help/README.md) - diagnostics, triage, doctor checklist, evidence packets, FAQ, and troubleshooting routes.
 - [Install Hub](../install/README.md) - local development, packaged builds, endpoint setup, and reset loops.
 - [Local Development](../install/local_development.md) - source setup, run commands, tests, and environment launcher.
 - [Operations Hub](../operations/README.md) - runtime config, hosted auth, packaging, release, deployment, and troubleshooting.
+- [Automation Hub](../automation/README.md) - VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) - config ownership, defaults, propagation, and validation.
 - [Remote Backend Auto Deploy](../operations/remote_backend_auto_deploy.md) - GitHub push-to-host checkout updates, systemd restarts, and deploy health checks.
+- [Web Surfaces](../web/README.md) - landing page, hosted APIs/auth, SDK clients, artifacts, websockets, and dashboard-adjacent web behavior.
 
 ## Security and Reference
 
 - [Security Hub](../security/README.md) - hosted auth, IPC isolation, validation, credentials, tools, and sidecar boundaries.
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) - screen/input/microphone/browser/workspace/sudo authority changes.
+- [Memory Hub](../memory/README.md) - transcript, replay, sidecar memory, backend history, semantic routes, and compaction ownership.
 - [Reference Hub](../reference/README.md) - stable API, websocket event, configuration, and identifier maps.
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md) - route-level hosted API map.
 - [WebSocket Event Reference](../reference/websocket_event_reference.md) - backend event families and renderer consumers.
+- [Commands and Scripts](../cli/README.md) - first-class `bin/windie` command groups, diagnostics, docs search, tests, build, package, and deploy helpers.
 - [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) - docs organization benchmark.

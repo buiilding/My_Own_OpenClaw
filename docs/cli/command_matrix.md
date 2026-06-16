@@ -54,8 +54,8 @@ adapters; document them only when changing the adapter itself.
 | `bin/windie test pick <area>` | Print or run test-selection presets. |
 | `bin/windie docs list` | List docs front matter and `read_when` hints. |
 | `bin/windie docs check` | Run docs listing plus whitespace checks. |
-| `bin/windie docs search <query>` | Search local docs and print matching paths. |
-| `bin/windie docs <query>` | Shorthand local docs search, mirroring OpenClaw-style query ergonomics without hosted docs lookup. |
+| `bin/windie docs search <query>` | Search local docs and print the top ten matches, ranking exact phrase, all-term, title/path, summary, `read_when`, and heading matches above broad partial matches. |
+| `bin/windie docs <query>` | Shorthand local docs search with the same ranking behavior. |
 
 ## Build, Package, and Reinstall
 

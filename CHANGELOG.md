@@ -6,8 +6,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
+  and current-doc matches so feature queries land on grounded owner docs before
+  broad catalog or historical refactor pages.
+- docs: expose current feature hubs in canonical navigation and the compact docs
+  directory, including nodes, channels, gateway, memory, desktop, platforms,
+  plugins, MCP, browser, automation, web, help, and CLI surfaces.
 - cli: return the top ten matches from `bin/windie docs search` and the
   shorthand `bin/windie docs <query>`.
+- frontend/renderer: keep the minimal chat pill drag-start threshold private to
+  the drag target resolver.
 - frontend/renderer: keep dashboard memory timestamp formatting private to
   memory item normalization.
 - frontend/renderer: delete the unused desktop transcript-session runtime

@@ -44,6 +44,9 @@
             "pages": [
               "concepts/runtime_model",
               "architecture/README",
+              "nodes/README",
+              "channels/README",
+              "gateway/README",
               "architecture/runtime_boundary_matrix",
               "architecture/data_flow_and_state_ownership",
               "architecture/agent_visible_data_pipeline",
@@ -58,6 +61,7 @@
               "concepts/streaming_and_events",
               "concepts/prompt_and_tool_context",
               "concepts/context_and_memory",
+              "memory/README",
               "concepts/model_provider_selection"
             ]
           }
@@ -98,11 +102,13 @@
             "group": "Desktop runtime",
             "pages": [
               "frontend/README",
+              "desktop/README",
               "architecture/frontend_architecture",
               "frontend/main/README",
               "frontend/main/main_process_change_workflow",
               "frontend/runtime/README",
-              "frontend/runtime/workspace_context_change_workflow"
+              "frontend/runtime/workspace_context_change_workflow",
+              "platforms/README"
             ]
           },
           {
@@ -129,6 +135,9 @@
               "tools/tool_execution_lifecycle",
               "tools/tool_schema_policy_change_workflow",
               "tools/tool_catalog_matrix",
+              "plugins/README",
+              "development/mcp",
+              "browser/README",
               "browser/browser_change_workflow"
             ]
           },
@@ -140,6 +149,7 @@
               "sdk/sdk_route_change_workflow",
               "sdk/sdk_auth_and_error_handling",
               "providers/README",
+              "providers/models",
               "providers/provider_change_workflow",
               "providers/model_catalog_change_workflow"
             ]
@@ -157,6 +167,8 @@
               "install/local_backend_and_endpoint_setup",
               "install/packaged_desktop",
               "operations/README",
+              "automation/README",
+              "web/README",
               "operations/runtime_configuration_matrix",
               "operations/remote_backend_auto_deploy"
             ]
@@ -167,6 +179,7 @@
               "debug/README",
               "debug/process_health_checklist",
               "debug/symptom_playbooks",
+              "help/README",
               "help/triage_routes",
               "security/README",
               "security/security_boundary_matrix",
@@ -182,6 +195,8 @@
             "group": "Contracts",
             "pages": [
               "reference/README",
+              "cli/README",
+              "cli/command_matrix",
               "reference/http_api_surface",
               "reference/websocket_event_reference",
               "reference/configuration_reference",
