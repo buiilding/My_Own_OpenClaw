@@ -38,5 +38,3 @@ export function useMainWindowControls({ warningPrefix = 'MainWindowControls' } =
     showMainWindow,
   };
 }
-
-export default useMainWindowControls;

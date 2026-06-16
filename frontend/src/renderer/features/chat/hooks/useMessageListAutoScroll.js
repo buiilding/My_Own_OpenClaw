@@ -259,5 +259,3 @@ export function useMessageListAutoScroll({
     handleMessageListScroll,
   };
 }
-
-export default useMessageListAutoScroll;

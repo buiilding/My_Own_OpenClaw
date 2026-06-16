@@ -19,5 +19,3 @@ const toolSchemaPropType = PropTypes.shape({
 });
 
 export const toolSchemaListPropType = PropTypes.arrayOf(toolSchemaPropType);
-
-export default toolSchemaPropType;

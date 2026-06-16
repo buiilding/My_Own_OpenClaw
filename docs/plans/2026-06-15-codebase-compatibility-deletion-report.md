@@ -58,6 +58,7 @@ Date: 2026-06-15
 | CD-025 | Renderer desktop conversation store | Store-side transcript projection append/rewrite helpers, projection conversion types, and stored-transcript bridge utilities survived after deleting the renderer projection writer | Repo search showed `appendTranscriptProjectionEntry`, `rewriteTranscriptProjection`, projection conversion types, `CHAT_EVENT_RECORD_KIND`, `storedTranscriptSdkProjection.ts`, and `storedTranscriptMemoryState.js` were referenced only by tests and the store module itself | Delete the store-side projection helper exports, conversion functions, stored-transcript bridge utilities, dead constant, and tests that covered only that deleted surface | implemented |
 | CD-026 | Renderer current-turn presentation | `chatBoxResponseState.js` and `messagePresentationPipeline.js` still exposed `buildCurrentTurnResponseOverlayEntries(...)` scanner helpers after response overlay rendering moved to direct SDK/current-turn presentation messages; deleting the scanner also orphaned `toolExplanationMessages.js` | Knip reported the wrapper and then the pipeline export unused; production overlay code now filters current-turn projection/presentation entries directly, while the scanner and explanation helper were covered only by stale tests/docs | Delete the wrapper, the unused pipeline scanner, the orphaned explanation helper, and scanner-only test assertions; keep current-turn projection and live-progress detection on their active paths | implemented |
 | CD-027 | Renderer loop UI state | `streamPhaseState.js` still exported active-loop, terminal, first-chunk, and stop-control predicates after loop UI state kept only the overlay-awaiting predicate | Knip reported the unused predicate exports, and repo search showed only their own test imported them; production imports only `isOverlayAwaitingReplyPhase(...)` from this module | Delete the unused predicates and their tests; keep the awaiting-reply predicate used by `chatLoopUiState.js` | implemented |
+| CD-028 | Renderer module export surface | `useMainWindowControls.js`, `useMessageListAutoScroll.js`, and `toolSchemaPropType.js` still carried default exports while all consumers use named imports | Knip reported the default exports unused, and repo search showed no default-import consumers | Delete the unused default exports and keep the named exports that production imports | implemented |
 
 ## Commit Ledger
 
@@ -111,6 +112,7 @@ Date: 2026-06-15
   completed CD-026.
 - `266017d03 refactor(frontend): remove unused stream phase predicates`
   completed CD-027.
+- pending commit for CD-028.
 
 ## Validation Log
 
@@ -395,6 +397,17 @@ CD-027 validation:
 - `bin/windie docs list`: passed.
 - `git diff --check`: passed.
 
+CD-028 validation:
+
+- targeted `rg -n "export default useMainWindowControls|export default useMessageListAutoScroll|export default toolSchemaPropType|import useMainWindowControls|import useMessageListAutoScroll|import toolSchemaPropType" frontend/src tests/frontend docs --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no matches.
+- `bin/windie test frontend -- ChatInterfaceWiring MessageList FrontendOnboardingSlideshow`:
+  passed, 7 suites and 107 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 227 to
+  224 and the CD-028 default exports no longer appear.
+- `git diff --check`: passed.
+
 ## Inspection Notes
 
 - The prior 25-commit campaign is complete and already removed many stale docs,
@@ -497,3 +510,6 @@ CD-027 validation:
 - CD-027 has no storage or transport migration impact. It deletes only
   renderer phase predicate exports that had no production consumers; loop UI
   state still uses `isOverlayAwaitingReplyPhase(...)`.
+- CD-028 has no runtime, storage, or transport migration impact. It deletes
+  only unused default export aliases while retaining the named exports used by
+  production imports.
