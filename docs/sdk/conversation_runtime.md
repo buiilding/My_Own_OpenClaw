@@ -7,6 +7,7 @@ read_when:
   - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
   - When debugging edit/resend resource preservation, retry resource preservation, missing screenshot refs, or attachment metadata lost across revisions.
   - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool-pair matching, removed `toolPairKey` helper references, tool output content fallback behavior, removed `fallbackText` helper references, `normalizeToolOutputContent` searches, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
+  - When debugging TypeScript `ToolExecutionCoordinator` claim failures, SDK-shaped local execution events, or direct snake_case SDK tool events that remain unclaimed.
 title: "SDK Conversation Runtime"
 ---
 
@@ -598,10 +599,18 @@ needed to claim execution, the SDK stores a `runtime_error` with
 backend result id.
 
 `SdkConversationRuntime` can be constructed with a `localRuntime` adapter. In
-that mode, normalized backend `tool_call` and `tool_bundle_call` events are
-handed to `ToolExecutionCoordinator`, which executes the local runtime, sends
-the result back through the transport, and appends the corresponding normalized
-output event through the same store/projection path.
+that mode, backend `tool-call` / `tool-bundle` wire payloads first pass through
+the SDK backend-event normalizer. The normalizer is the only place that maps
+backend snake_case fields into SDK-shaped local execution events: single calls
+become `toolName`, `requestId`, `correlationId`, and `toolCallId`; bundle calls
+become `bundleId` plus executable step rows shaped as `name`, `args`, and
+optional `toolCallId`. `ToolExecutionCoordinator` consumes only that SDK-shaped
+event contract. Direct `tool_call` or `tool_bundle_call` events with snake_case
+payload keys such as `tool_name`, `request_id`, `bundle_id`, or step
+`tool_call_id` are malformed for coordinator execution and remain unclaimed.
+Claimed SDK-shaped events execute the local runtime, send the result back
+through the transport, and append the corresponding normalized output event
+through the same store/projection path.
 
 If local execution succeeds but backend delivery of `tool-result` or
 `tool-bundle-result` fails, the coordinator stores the output as an explicit

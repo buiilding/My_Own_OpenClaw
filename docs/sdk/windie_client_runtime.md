@@ -7,6 +7,7 @@ read_when:
   - When changing SDK `agent.stream(...)` tool-output attachment extraction, `AgentStreamEvents.ts`, or stale `extractToolResultAttachments` parent-parameter references.
   - When debugging stale `builtinTools` wakeUp option calls, the removed builtinTools wake guard, or current `builtins` agent setup.
   - When adding SDK, CLI, Electron, plugin, MCP, or module-tool entrypoints.
+  - When debugging Python SDK camelCase `toolName`/`requestId`/`bundleId` payloads that are ignored because Python local tool execution reads backend-wire snake_case fields.
 title: "WindieClient Runtime Contract"
 ---
 
@@ -576,6 +577,10 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
 - the Electron main-process SDK tool router accepts canonical SDK identity fields
   (`requestId`, `toolCallId`, `correlationId`, `bundleId`) before emitting
   backend wire payloads.
+- the TypeScript SDK backend-event normalizer owns backend snake_case to
+  SDK-shaped tool event conversion before local execution. Field-level
+  coordinator payload rules live in `conversation_runtime.md`; direct
+  snake_case SDK tool events are unclaimable.
 - the Python SDK websocket session treats backend `tool-call` and `tool-bundle`
   payloads as backend-wire snake_case. It reads `tool_name`, `request_id`,
   `correlation_id`, `tool_call_id`, `bundle_id`, and bundle step `name` /

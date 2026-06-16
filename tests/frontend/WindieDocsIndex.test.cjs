@@ -423,6 +423,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes SDK-shaped local tool coordinator payload queries to conversation runtime', () => {
+    expect(findDocs('ToolExecutionCoordinator SDK-shaped toolName requestId bundleId')[0].path).toBe(
+      path.join('docs', 'sdk', 'conversation_runtime.md'),
+    );
+  });
+
   test('routes SDK builtins wake option queries to the WindieClient runtime contract', () => {
     const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
 

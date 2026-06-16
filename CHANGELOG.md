@@ -10,6 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   `base_url` while the public `sidecarDaemon.baseUrl` option remains client-only.
 - docs/sdk: document that Python SDK local tool execution consumes canonical
   snake_case backend tool-call and tool-bundle payload fields only.
+- docs/sdk: clarify that TypeScript local tool execution requires SDK-shaped
+  tool-call and tool-bundle events after backend event normalization.
 - docs/navigation: replace broken formatter, memory IPC, overlay, and browser
   runtime links with current maintained references.
 - docs/testing: add a docs-index guard for broken relative markdown links in
