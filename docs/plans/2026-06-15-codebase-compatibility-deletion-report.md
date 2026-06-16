@@ -83,6 +83,7 @@ Date: 2026-06-15
 | CD-050 | Conversation session snapshot type export | `conversationSessionRuntime.ts` exported `MainSessionSnapshot` even though callers use the runtime functions and do not import the snapshot type directly | Knip reported the snapshot type export unused; repo search showed the type is referenced only inside `conversationSessionRuntime.ts` while tests import runtime functions/constants | Make `MainSessionSnapshot` private to the conversation session runtime while preserving the public runtime functions and `EMPTY_MAIN_SESSION_SNAPSHOT` value | `0d18f130f` |
 | CD-051 | Response overlay dismissal input type export | `chatStore.ts` exported `ResponseOverlayDismissalInput` even though dismissal callers pass plain object literals to the store methods and dismissal-key helper without importing the interface | Knip reported the interface export unused; repo search showed it is referenced only inside the chat store module while response overlay callers consume store methods | Make the dismissal input interface private to the chat store while preserving the public dismissal methods and key builder | `7aaec4655` |
 | CD-052 | Prepared desktop chat turn type export | `desktopChatSendPreparation.ts` exported `PreparedDesktopChatTurn` even though the shape is only used by prepare/build/dispatch functions inside the same module | Knip reported the type export unused; repo search showed callers import functions from the module and docs reference the concept, but no code imports the type | Make the prepared turn shape private to the send-preparation module while preserving the exported preparation and dispatch functions | `0663f822c` |
+| CD-053 | Tool-output transcript model context re-export | `toolOutputMessages.ts` re-exported `TranscriptModelContext` even though the canonical type remains owned by `transcriptModelContext.ts` and chat-stream consumers use `chatStreamTypes.ts` | Knip reported the re-export unused; repo search showed no imports from `toolOutputMessages.ts` while the module still uses the type internally | Delete the unused type re-export and preserve the internal type import for tool-output envelope construction | pending implementation commit |
 
 ## Commit Ledger
 
@@ -186,6 +187,7 @@ Date: 2026-06-15
   completed CD-051.
 - `0663f822c refactor(frontend): keep prepared chat turn type private`
   completed CD-052.
+- pending implementation commit will complete CD-053.
 
 ## Validation Log
 
@@ -863,6 +865,21 @@ CD-052 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this removes only an unused TypeScript type export and preserves
   desktop chat send preparation and dispatch behavior.
+
+CD-053 validation:
+
+- targeted `rg -n "from ['\\\"].*toolOutputMessages['\\\"].*TranscriptModelContext|export type \\{ TranscriptModelContext \\}" frontend/src tests/frontend docs packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no matches outside this report.
+- `bin/windie test frontend -- ToolOutputChatMessageState MessageTransparency ChatStreamMessageUpdates ChatStreamThinkingStatus`:
+  passed; 6 suites and 81 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings; unused exported types dropped from 52 to 51
+  after removing the `TranscriptModelContext` re-export.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes only an unused TypeScript type re-export and preserves
+  tool-output envelope construction.
 
 ## Inspection Notes
 

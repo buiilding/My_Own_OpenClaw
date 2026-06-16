@@ -54,6 +54,8 @@ All notable changes to WindieOS will be documented in this file.
   chat store.
 - frontend/chat: make the prepared desktop chat turn shape private to the send
   preparation module.
+- frontend/chat: remove the unused tool-output transcript model context
+  re-export.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.
