@@ -202,6 +202,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes settings model selection queries to the model settings workflow', () => {
+    expect(findDocs('settings model selection')[0].path).toBe(
+      path.join('docs', 'frontend', 'renderer', 'settings', 'model_settings_change_workflow.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),
