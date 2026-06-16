@@ -529,4 +529,13 @@ describe('windie docs index', () => {
     expect(findDocs('SDK websocket ws ambient declaration')[0].path).toBe(expectedPath);
     expect(findDocs('WebSocketLike WebSocketConstructor ws package')[0].path).toBe(expectedPath);
   });
+
+  test('routes removed current-turn projector queries to the SDK conversation runtime', () => {
+    const expectedPath = path.join('docs', 'sdk', 'conversation_runtime.md');
+
+    expect(findDocs('standalone current turn projector')[0].path).toBe(expectedPath);
+    expect(findDocs('currentTurnProjection.ts conversationProjections')[0].path).toBe(
+      expectedPath,
+    );
+  });
 });

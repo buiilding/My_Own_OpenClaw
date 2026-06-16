@@ -1,7 +1,8 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, display/rehydrate projections, tool output content fallback behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display/rehydrate projections, tool output content fallback behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
   - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
+  - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
   - When debugging edit/resend resource preservation, retry resource preservation, missing screenshot refs, or attachment metadata lost across revisions.
   - When debugging skipped compaction display, replay/rehydrate drift, duplicate transcript rows, tool output content fallback behavior, assistant-shaped content fields, final_response fallback tool output fields, or custom UI/CLI conversation behavior.
 title: "SDK Conversation Runtime"
@@ -112,6 +113,16 @@ UI adapters:
 - `presentation`: SDK-owned live-turn UI contract with ordered visible entries,
   `hasVisibleContent`, `typingVisible`, `overlayVisible`, `isBusy`, and
   `isTerminal`
+
+### Removed Standalone Current Turn Projector
+
+Current-turn projection is not a separate projection module. The removed
+standalone `packages/windie-sdk-js/src/projections/currentTurnProjection.ts`
+and generated `cjs/projections/currentTurnProjection.js` files must not be
+reintroduced. `packages/windie-sdk-js/src/projections/conversationProjections.ts`
+owns `buildCurrentTurnProjection(...)`, the live-turn presentation builder, and
+the display/rehydrate projection helpers so one event sequence produces the
+same transcript, active-turn, and replay views.
 
 Electron main emits the projection to renderer surfaces as
 `conversation-runtime-updated`. Renderer overlays should
