@@ -11,6 +11,7 @@ import time
 from typing import Dict, Any
 
 from core.executors import get_interactive_executor
+from tools.result import ToolResult
 from .scroll_config import (
     calculate_scroll_clicks,
     get_default_scroll_clicks,
@@ -19,7 +20,7 @@ from .scroll_config import (
 logger = logging.getLogger(__name__)
 
 
-async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
+async def execute_scroll_control(args: Dict[str, Any]) -> ToolResult:
     """Execute scroll control action with targeted coarse vertical scrolling.
 
     Args:
@@ -31,7 +32,7 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
             - 'direction': "up", "down", "left", or "right" (for "scroll" action)
 
     Returns:
-        Dictionary with success status and scroll result including:
+        ToolResult with scroll result data including:
         - 'scroll_mode': Whether the executor used coarse auto scrolling or
           explicit clicks
         - 'os_clicks': Actual literal wheel clicks sent to OS
@@ -43,7 +44,7 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
     direction = args.get("direction")
 
     if not action:
-        return {"success": False, "error": "action is required"}
+        return ToolResult.error_result("action is required")
 
     try:
         import pyautogui
@@ -165,13 +166,10 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(get_interactive_executor(), _execute_action)
 
-        return {
-            "success": True,
-            "data": result,
-        }
+        return ToolResult.success_result(result)
     except ImportError:
         logger.error("pyautogui not available, cannot execute scroll control")
-        return {"success": False, "error": "pyautogui library not available"}
+        return ToolResult.error_result("pyautogui library not available")
     except Exception as e:
         logger.error(f"Scroll control failed: {e}", exc_info=True)
-        return {"success": False, "error": f"Scroll control failed: {str(e)}"}
+        return ToolResult.error_result(f"Scroll control failed: {str(e)}")

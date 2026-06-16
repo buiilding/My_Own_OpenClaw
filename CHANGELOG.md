@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.
+- frontend/sidecar: return native `ToolResult` from `keyboard_control` and
+  `scroll_control` instead of producing registry-normalized dict envelopes.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the

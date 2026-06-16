@@ -82,8 +82,7 @@ Execution semantics:
 
 Output semantics:
 
-- returns mapping-shaped tool payloads (`{"success": bool, "data": ...}`)
-- registry converts this to standardized `ToolResult`
+- returns `ToolResult.success_result(...)` directly
 - `input` field truncates visible preview to 50 chars, while `message` contains full text
 
 ## Scroll Tool (`scroll_control`)
@@ -115,6 +114,7 @@ Direction mapping:
 Returned metadata:
 
 - both `scroll_units` (requested) and `os_clicks` (actual emitted) are returned
+- returns `ToolResult.success_result(...)` directly
 
 ## OS-Aware Scroll Normalization (`scroll_config.py`)
 
@@ -232,4 +232,5 @@ Common failure classes:
 
 Result normalization note:
 
-- mixed return styles (`ToolResult` and mapping-shaped payloads) are intentionally normalized by the registry
+- migrated computer tools return `ToolResult` directly; any remaining
+  mapping-shaped payloads are legacy producers normalized by the registry

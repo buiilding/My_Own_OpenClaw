@@ -9,6 +9,13 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.computer import keyboard_tool  # noqa: E402
+from tools.result import ToolResult  # noqa: E402
+
+
+async def _execute_keyboard(args):
+    result = await keyboard_tool.execute_keyboard_control(args)
+    assert isinstance(result, ToolResult)
+    return result.to_dict()
 
 
 def _fake_pyautogui():
@@ -53,8 +60,9 @@ def _fake_pyperclip(initial_text="existing clipboard"):
 
 @pytest.mark.asyncio
 async def test_execute_keyboard_control_requires_action():
-    result = await keyboard_tool.execute_keyboard_control({})
-    assert result == {"success": False, "error": "action is required"}
+    result = await _execute_keyboard({})
+    assert result["success"] is False
+    assert result["error"] == "action is required"
 
 
 @pytest.mark.asyncio
@@ -62,7 +70,7 @@ async def test_execute_keyboard_control_type_writes_text(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "type", "text": "hello world"}
     )
 
@@ -81,7 +89,7 @@ async def test_execute_keyboard_control_type_multiline_uses_clipboard_paste(monk
     monkeypatch.setitem(sys.modules, "pyperclip", fake_pyperclip)
     monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Linux")
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "type", "text": "first line\nsecond line"}
     )
 
@@ -106,7 +114,7 @@ async def test_execute_keyboard_control_paste_uses_platform_hotkey(monkeypatch):
     monkeypatch.setitem(sys.modules, "pyperclip", fake_pyperclip)
     monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Darwin")
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "paste", "text": "hello world"}
     )
 
@@ -122,7 +130,7 @@ async def test_execute_keyboard_control_press_maps_escape_key(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "press", "key": "escape"}
     )
 
@@ -137,7 +145,7 @@ async def test_execute_keyboard_control_press_maps_super_by_platform(monkeypatch
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
     monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Darwin")
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "press", "key": "SUPER"}
     )
 
@@ -151,7 +159,7 @@ async def test_execute_keyboard_control_press_supports_repeat_and_interval(monke
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "press", "key": "enter", "repeat": 3, "interval_ms": 25}
     )
 
@@ -166,7 +174,7 @@ async def test_execute_keyboard_control_hotkey_blocks_dangerous_combinations(mon
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "hotkey", "keys": ["Ctrl", "Alt", "Del"]}
     )
 
@@ -180,7 +188,7 @@ async def test_execute_keyboard_control_hotkey_maps_keys(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "hotkey", "keys": ["Ctrl", "Shift", "A"]}
     )
 
@@ -195,7 +203,7 @@ async def test_execute_keyboard_control_hotkey_maps_super_to_win(monkeypatch):
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
     monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Linux")
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "hotkey", "keys": ["SUPER", "Shift", "S"]}
     )
 
@@ -210,7 +218,7 @@ async def test_execute_keyboard_control_hotkey_maps_super_to_command_on_macos(mo
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
     monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Darwin")
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "hotkey", "keys": ["SUPER", "Shift", "S"]}
     )
 
@@ -224,7 +232,7 @@ async def test_execute_keyboard_control_rejects_unknown_action(monkeypatch):
     fake_pyautogui, _calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await keyboard_tool.execute_keyboard_control({"action": "unknown"})
+    result = await _execute_keyboard({"action": "unknown"})
 
     assert result["success"] is False
     assert "Unknown keyboard action" in result["error"]
@@ -235,12 +243,12 @@ async def test_execute_keyboard_control_rejects_missing_or_too_long_text(monkeyp
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    missing = await keyboard_tool.execute_keyboard_control({"action": "type"})
-    missing_paste = await keyboard_tool.execute_keyboard_control({"action": "paste"})
-    too_long = await keyboard_tool.execute_keyboard_control(
+    missing = await _execute_keyboard({"action": "type"})
+    missing_paste = await _execute_keyboard({"action": "paste"})
+    too_long = await _execute_keyboard(
         {"action": "type", "text": "x" * 10001}
     )
-    too_long_paste = await keyboard_tool.execute_keyboard_control(
+    too_long_paste = await _execute_keyboard(
         {"action": "paste", "text": "x" * 10001}
     )
 
@@ -259,7 +267,7 @@ async def test_execute_keyboard_control_rejects_missing_or_too_long_text(monkeyp
 async def test_execute_keyboard_control_import_error_returns_failure(monkeypatch):
     monkeypatch.setitem(sys.modules, "pyautogui", None)
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "press", "key": "enter"}
     )
 
@@ -273,7 +281,7 @@ async def test_execute_keyboard_control_paste_requires_pyperclip(monkeypatch):
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
     monkeypatch.setitem(sys.modules, "pyperclip", None)
 
-    result = await keyboard_tool.execute_keyboard_control(
+    result = await _execute_keyboard(
         {"action": "paste", "text": "hello"}
     )
 

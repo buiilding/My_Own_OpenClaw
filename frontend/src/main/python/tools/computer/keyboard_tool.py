@@ -7,6 +7,7 @@ import time
 from typing import Any, Dict
 
 from core.executors import get_interactive_executor
+from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 _MAX_TEXT_LENGTH = 10000
@@ -77,7 +78,7 @@ def _get_paste_modifier_key() -> str:
     return "command" if platform.system() == "Darwin" else "ctrl"
 
 
-async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
+async def execute_keyboard_control(args: Dict[str, Any]) -> ToolResult:
     """
     Execute keyboard control action.
     
@@ -85,23 +86,23 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
         args: Dictionary with 'action', 'text', 'key', 'keys'
         
     Returns:
-        Dictionary with success status and action result
+        ToolResult with keyboard action data
     """
     action = args.get("action")
     repeat = args.get("repeat", 1)
     interval_ms = args.get("interval_ms", 0)
     
     if not action:
-        return {"success": False, "error": "action is required"}
+        return ToolResult.error_result("action is required")
 
     try:
         repeat_count = int(repeat)
         interval_seconds = max(float(interval_ms) / 1000.0, 0.0)
     except (TypeError, ValueError):
-        return {"success": False, "error": "repeat and interval_ms must be numeric"}
+        return ToolResult.error_result("repeat and interval_ms must be numeric")
 
     if repeat_count < 1:
-        return {"success": False, "error": "repeat must be at least 1"}
+        return ToolResult.error_result("repeat must be at least 1")
     
     try:
         import pyautogui
@@ -259,17 +260,14 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(get_interactive_executor(), _execute_action)
 
-        return {
-            "success": True,
-            "data": result,
-        }
+        return ToolResult.success_result(result)
     except ImportError as e:
         message = str(e).strip().lower()
         if "pyperclip" in message:
             logger.error("pyperclip not available, cannot execute clipboard paste")
-            return {"success": False, "error": "pyperclip library not available"}
+            return ToolResult.error_result("pyperclip library not available")
         logger.error("pyautogui not available, cannot execute keyboard control")
-        return {"success": False, "error": "pyautogui library not available"}
+        return ToolResult.error_result("pyautogui library not available")
     except Exception as e:
         logger.error(f"Keyboard action failed: {e}", exc_info=True)
-        return {"success": False, "error": f"Keyboard action failed: {str(e)}"}
+        return ToolResult.error_result(f"Keyboard action failed: {str(e)}")

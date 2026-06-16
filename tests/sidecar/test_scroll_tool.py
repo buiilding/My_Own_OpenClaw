@@ -9,6 +9,13 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.computer import scroll_tool  # noqa: E402
+from tools.result import ToolResult  # noqa: E402
+
+
+async def _execute_scroll(args):
+    result = await scroll_tool.execute_scroll_control(args)
+    assert isinstance(result, ToolResult)
+    return result.to_dict()
 
 
 def _fake_pyautogui(*, with_hscroll: bool):
@@ -38,8 +45,9 @@ def stub_sleep(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_execute_scroll_control_requires_action():
-    result = await scroll_tool.execute_scroll_control({})
-    assert result == {"success": False, "error": "action is required"}
+    result = await _execute_scroll({})
+    assert result["success"] is False
+    assert result["error"] == "action is required"
 
 
 @pytest.mark.asyncio
@@ -47,7 +55,7 @@ async def test_execute_scroll_control_requires_coordinates(monkeypatch):
     fake_pyautogui, _calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control({"action": "scroll_up"})
+    result = await _execute_scroll({"action": "scroll_up"})
 
     assert result["success"] is False
     assert "x and y are required" in result["error"]
@@ -58,7 +66,7 @@ async def test_execute_scroll_control_scroll_up_uses_positive_vscroll(monkeypatc
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll_up", "x": 100, "y": 200, "clicks": 3}
     )
 
@@ -74,7 +82,7 @@ async def test_execute_scroll_control_scroll_down_uses_negative_vscroll(monkeypa
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll_down", "x": 10, "y": 20, "clicks": 2}
     )
 
@@ -90,7 +98,7 @@ async def test_execute_scroll_control_vertical_uses_coarse_auto_when_clicks_omit
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
     monkeypatch.setattr(scroll_tool, "get_default_scroll_clicks", lambda: 5)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll_down", "x": 10, "y": 20}
     )
 
@@ -106,7 +114,7 @@ async def test_execute_scroll_control_scroll_left_falls_back_without_hscroll(mon
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=False)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll", "direction": "left", "x": 5, "y": 6, "clicks": 1}
     )
 
@@ -121,7 +129,7 @@ async def test_execute_scroll_control_scroll_right_uses_hscroll_when_available(m
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll", "direction": "right", "x": 9, "y": 11, "clicks": 2}
     )
 
@@ -136,7 +144,7 @@ async def test_execute_scroll_control_rejects_invalid_direction(monkeypatch):
     fake_pyautogui, _calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll", "direction": "diagonal", "x": 1, "y": 2}
     )
 
@@ -149,7 +157,7 @@ async def test_execute_scroll_control_rejects_unknown_action(monkeypatch):
     fake_pyautogui, _calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll_around", "x": 1, "y": 2}
     )
 
@@ -162,7 +170,7 @@ async def test_execute_scroll_control_requires_direction_for_scroll_action(monke
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll", "x": 1, "y": 2}
     )
 
@@ -175,7 +183,7 @@ async def test_execute_scroll_control_requires_direction_for_scroll_action(monke
 async def test_execute_scroll_control_import_error_returns_failure(monkeypatch):
     monkeypatch.setitem(sys.modules, "pyautogui", None)
 
-    result = await scroll_tool.execute_scroll_control(
+    result = await _execute_scroll(
         {"action": "scroll_up", "x": 1, "y": 2}
     )
 
