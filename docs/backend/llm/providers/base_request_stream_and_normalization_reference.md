@@ -160,6 +160,8 @@ Completion response normalization (`_extract_completion_response(...)`):
 
 - reads `choices[0].message`,
 - extracts textual content from strings, dicts, or text blocks,
+- ignores choice-level completion `text`; provider responses must expose
+  assistant text through `message.content` or the supported message text fields,
 - parses tool calls from both:
   - OpenAI-style `message.tool_calls`,
   - Anthropic-style `content` blocks with `type=tool_use`,

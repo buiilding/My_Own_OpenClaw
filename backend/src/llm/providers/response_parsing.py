@@ -169,12 +169,6 @@ def extract_completion_response(
         raise LLMAPIError(invalid_response_message, model=model)
 
     content = extract_message_content(message)
-    if not content:
-        # Compatibility fallback for completion-style payloads that expose plain
-        # text directly on the choice object instead of message.content.
-        choice_text = get_value(first_choice, "text")
-        if isinstance(choice_text, str):
-            content = choice_text
     normalized: NormalizedLLMResponse = {"content": content}
 
     tool_calls = extract_message_tool_calls(

@@ -17,6 +17,8 @@ All notable changes to WindieOS will be documented in this file.
   contract.
 - sdk/projection: remove assistant-shaped `content` and final-response fallback
   fields from tool-output model/display text projection.
+- backend/llm: remove the choice-level completion `text` compatibility fallback
+  so provider completion parsing uses the canonical message payload only.
 - frontend/voice: remove the legacy ScriptProcessor audio capture fallback so
   voice and wakeword capture use the AudioWorklet processor path only.
 - frontend/renderer: delete the legacy renderer tool-surface lifecycle,

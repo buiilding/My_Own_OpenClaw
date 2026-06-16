@@ -899,13 +899,13 @@ class TestCompletionResponseHelpers:
                 invalid_response_message="Invalid response",
             )
 
-    def test_extract_completion_response_reads_choice_level_text_fallback(
+    def test_extract_completion_response_ignores_choice_level_text(
         self, provider
     ):
         response = SimpleNamespace(
             choices=[
                 SimpleNamespace(
-                    text="legacy text payload",
+                    text="choice text payload",
                     message=SimpleNamespace(content=None),
                 )
             ]
@@ -917,7 +917,7 @@ class TestCompletionResponseHelpers:
             invalid_response_message="Invalid response",
         )
 
-        assert normalized["content"] == "legacy text payload"
+        assert normalized["content"] == ""
 
     def test_extract_completion_response_reads_message_content_block_content_key(
         self, provider

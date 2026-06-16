@@ -451,7 +451,7 @@ def test_normalize_response_payload_rejects_duplicate_tool_call_ids():
         )
 
 
-def test_extract_completion_response_falls_back_to_choice_text_when_message_content_empty():
+def test_extract_completion_response_ignores_choice_text_when_message_content_empty():
     response = {
         "choices": [
             {
@@ -467,7 +467,7 @@ def test_extract_completion_response_falls_back_to_choice_text_when_message_cont
         invalid_response_message="Invalid response",
     )
 
-    assert normalized["content"] == "fallback text"
+    assert normalized["content"] == ""
 
 
 def test_extract_delta_content_suppresses_tool_use_only_blocks():
