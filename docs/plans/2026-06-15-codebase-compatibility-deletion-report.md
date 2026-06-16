@@ -136,7 +136,8 @@ Date: 2026-06-15
   completed CD-034.
 - `38ced9039 refactor(frontend): remove renderer rehydrate payload helper`
   completed CD-035.
-- pending commit for CD-036.
+- `b36ad10c0 refactor(frontend): remove transparency normalizer helper`
+  completed CD-036.
 
 ## Validation Log
 
