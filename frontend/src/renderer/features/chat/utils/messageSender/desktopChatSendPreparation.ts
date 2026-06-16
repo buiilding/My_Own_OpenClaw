@@ -52,7 +52,7 @@ type PrepareDesktopChatSendDependencies = {
   stopPlayback?: () => void;
 };
 
-export type PreparedDesktopChatTurn = {
+type PreparedDesktopChatTurn = {
   attachmentFilenames: string[] | null;
   conversationRef: string;
   deferredQueryModelSelection: ReturnType<typeof buildDeferredQueryModelSelection>;
