@@ -1,8 +1,7 @@
-/**
- * Implements the hosted backend http client integration for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Implements the hosted backend http client integration for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieSdkClient = void 0;
 function resolveFetchImplementation(fetchImpl) {

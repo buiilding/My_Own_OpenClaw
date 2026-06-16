@@ -1,8 +1,7 @@
-/**
- * Provides the backend events module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the backend events module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isBackendEvent = isBackendEvent;
 const BACKEND_EVENT_TYPES = new Set([
@@ -16,7 +15,6 @@ const BACKEND_EVENT_TYPES = new Set([
     'tool-call',
     'tool-output',
     'tool-bundle',
-    'tool-bundle-output',
     'web-search-progress',
     'audio-chunk',
     'wakeword-activated',

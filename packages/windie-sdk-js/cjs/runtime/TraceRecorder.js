@@ -1,8 +1,7 @@
-/**
- * Provides the trace recorder module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the trace recorder module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TraceRecorder = void 0;
 exports.sanitizeTraceData = sanitizeTraceData;

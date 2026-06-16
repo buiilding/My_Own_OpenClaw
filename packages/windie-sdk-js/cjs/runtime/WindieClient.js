@@ -1,8 +1,7 @@
-/**
- * Implements the windie client integration for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Implements the windie client integration for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieClient = void 0;
 const modelSelection_js_1 = require("../settings/modelSelection.js");

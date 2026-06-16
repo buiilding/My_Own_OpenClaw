@@ -1,8 +1,7 @@
-/**
- * Provides the tool output content module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the tool output content module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.recordFromUnknown = recordFromUnknown;
 exports.stringField = stringField;
@@ -31,16 +30,15 @@ function resultRecord(payload) {
     return recordFromUnknown(payload.result);
 }
 function fallbackText(payload) {
-    return stringField(payload, 'text', 'content', 'finalResponse', 'final_response', 'error') ?? '';
+    return stringField(payload, ...OUTPUT_FALLBACK_KEYS);
 }
 function jsonFallback(payload) {
-    return fallbackText(payload) || JSON.stringify(payload);
+    return fallbackText(payload) ?? JSON.stringify(payload);
 }
 function readToolOutputContent(payload) {
     const result = resultRecord(payload);
     const output = stringField(payload, ...OUTPUT_FALLBACK_KEYS)
-        ?? stringField(result, ...OUTPUT_FALLBACK_KEYS)
-        ?? fallbackText(payload);
+        ?? stringField(result, ...OUTPUT_FALLBACK_KEYS);
     const modelContent = output ?? jsonFallback(payload);
     return {
         displayContent: modelContent,

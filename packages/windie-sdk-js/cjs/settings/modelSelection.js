@@ -1,8 +1,7 @@
-/**
- * Provides the model selection module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the model selection module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildModelSettingsPatch = buildModelSettingsPatch;
 function coerceNonEmptyString(value) {

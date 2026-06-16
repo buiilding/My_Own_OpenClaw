@@ -1,8 +1,7 @@
-/**
- * Provides the managed backend session module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the managed backend session module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ManagedBackendSession = void 0;
 exports.createManagedBackendSession = createManagedBackendSession;

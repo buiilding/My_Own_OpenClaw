@@ -1,8 +1,7 @@
-/**
- * Provides the builtins module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the builtins module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.windieBuiltins = void 0;
 exports.shouldIncludeBuiltinTool = shouldIncludeBuiltinTool;

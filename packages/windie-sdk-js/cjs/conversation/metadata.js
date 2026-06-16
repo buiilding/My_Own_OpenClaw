@@ -1,8 +1,7 @@
-/**
- * Provides the metadata module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the metadata module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.applyConversationMetadataPagination = applyConversationMetadataPagination;
 exports.searchConversationMetadata = searchConversationMetadata;

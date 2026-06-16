@@ -1,8 +1,7 @@
-/**
- * Projects conversation projections state for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Projects conversation projections state for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildDisplayRows = buildDisplayRows;
 exports.buildCurrentTurnProjection = buildCurrentTurnProjection;
@@ -75,7 +74,8 @@ function rawToolOutputTextFromPayload(payload) {
         ?? (0, toolOutputContent_js_1.stringField)(payload, 'output')
         ?? (0, toolOutputContent_js_1.stringField)(result, 'message')
         ?? (0, toolOutputContent_js_1.stringField)(payload, 'message')
-        ?? (0, toolOutputContent_js_1.stringField)(payload, 'text', 'content', 'error')
+        ?? (0, toolOutputContent_js_1.stringField)(result, 'error')
+        ?? (0, toolOutputContent_js_1.stringField)(payload, 'error')
         ?? JSON.stringify(payload);
 }
 function bundleOutputContentFromPayload(payload) {
@@ -872,6 +872,14 @@ function buildCurrentTurnProjection(events) {
                 ...projection,
                 phase: 'complete',
                 assistantText: projection.assistantText || finalResponse,
+                lastError: null,
+            };
+            continue;
+        }
+        if (event.type === 'turn_stopped') {
+            projection = {
+                ...projection,
+                phase: 'complete',
                 lastError: null,
             };
             continue;

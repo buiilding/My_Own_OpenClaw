@@ -1,8 +1,7 @@
-/**
- * Provides the tool execution coordinator module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the tool execution coordinator module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ToolExecutionCoordinator = void 0;
 const events_js_1 = require("../conversation/events.js");

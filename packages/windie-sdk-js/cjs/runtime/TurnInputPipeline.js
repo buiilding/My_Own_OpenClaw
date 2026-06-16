@@ -1,8 +1,7 @@
-/**
- * Provides the turn input pipeline module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the turn input pipeline module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveTurnInputResources = resolveTurnInputResources;
 function isJsonRecord(value) {

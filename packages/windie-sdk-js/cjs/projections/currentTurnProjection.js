@@ -1,8 +1,7 @@
-/**
- * Projects current turn state for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Projects current turn state for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createConversationEventCurrentTurnProjector = createConversationEventCurrentTurnProjector;
 exports.createCurrentTurnProjector = createCurrentTurnProjector;
@@ -186,12 +185,11 @@ function toolEventFromBackendEvent(event, payload) {
             payload,
         };
     }
-    if (event.type === 'tool-output' || event.type === 'tool-bundle-output') {
-        const fallbackName = event.type === 'tool-bundle-output' ? 'tool_bundle' : null;
+    if (event.type === 'tool-output') {
         return {
             id: event.id || payload.request_id || payload.bundle_id || `${event.type}:${Date.now()}`,
             kind: 'tool_output',
-            toolName: toolNameFromPayload(payload, fallbackName),
+            toolName: toolNameFromPayload(payload, null),
             text: textFromPayload(payload) || undefined,
             status: statusFromPayload(payload),
             payload,

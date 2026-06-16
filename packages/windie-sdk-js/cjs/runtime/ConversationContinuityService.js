@@ -1,8 +1,7 @@
-/**
- * Implements the conversation continuity service service for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Implements the conversation continuity service service for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationContinuityService = void 0;
 exports.conversationMetadataInvalidationFromLocalRuntimeEvent = conversationMetadataInvalidationFromLocalRuntimeEvent;

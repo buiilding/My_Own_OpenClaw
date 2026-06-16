@@ -318,7 +318,7 @@ export class WindieAgent {
         turn_ref: input.turn_ref ?? input.turnRef ?? null,
       });
     }
-    return this.session.stopQuery({ conversation_ref: input ?? null });
+    return this.session.stopQuery({ conversation_ref: typeof input === 'string' ? input : null });
   }
 
   async wakewordDetected(payload: JsonRecord = {}): Promise<string> {

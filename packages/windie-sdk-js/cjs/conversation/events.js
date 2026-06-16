@@ -1,8 +1,7 @@
-/**
- * Provides the events module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the events module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createRuntimeId = createRuntimeId;
 exports.createConversationEvent = createConversationEvent;

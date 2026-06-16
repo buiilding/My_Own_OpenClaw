@@ -1,6 +1,5 @@
-/**
- * Defines types contracts for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Defines types contracts for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });

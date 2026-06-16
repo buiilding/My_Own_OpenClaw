@@ -1,8 +1,7 @@
-/**
- * Defines backend payload contract contracts for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Defines backend payload contract contracts for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.filterBackendPayload = filterBackendPayload;
 const BACKEND_PAYLOAD_KEYS_BY_TYPE = Object.freeze({

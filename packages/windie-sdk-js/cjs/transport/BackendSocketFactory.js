@@ -1,8 +1,7 @@
-/**
- * Provides the backend socket factory module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the backend socket factory module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWindieSdkBackendSocket = createWindieSdkBackendSocket;
 function createWindieSdkBackendSocket({ WebSocketImpl, wsUrl, wsOrigin, headers, }) {

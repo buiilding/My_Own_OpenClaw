@@ -1,8 +1,7 @@
-/**
- * Provides the conversation reducer module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the conversation reducer module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createInitialConversationRuntimeState = createInitialConversationRuntimeState;
 exports.reduceConversationRuntimeState = reduceConversationRuntimeState;

@@ -1,8 +1,7 @@
-/**
- * Stores and retrieves sidecar conversation state for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Stores and retrieves sidecar conversation state for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SidecarConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
@@ -148,6 +147,9 @@ function responseMessageIndex(response) {
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 function logStoredCompactionEvent(event, params, response) {
+    if (!isCompactionStdoutEnabled()) {
+        return;
+    }
     const payload = normalizeRecord(event.payload) ?? {};
     console.log('[Windie SDK][Compaction] conversation.append_event succeeded', {
         conversationRef: event.conversationRef,
@@ -165,6 +167,10 @@ function logStoredCompactionEvent(event, params, response) {
         skippedReason: normalizeString(payload.skippedReason) ?? normalizeString(payload.skipped_reason),
         hasCompactionCheckpoint: Boolean(params.compaction_checkpoint),
     });
+}
+function isCompactionStdoutEnabled() {
+    const env = globalThis.process?.env;
+    return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 function metadataFromRow(row) {
     const conversationRef = normalizeString(row.conversation_id)

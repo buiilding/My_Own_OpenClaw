@@ -1,8 +1,7 @@
-/**
- * Provides the windie chat session module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the windie chat session module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieChatSession = void 0;
 const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");

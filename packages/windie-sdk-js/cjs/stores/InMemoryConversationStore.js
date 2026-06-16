@@ -1,8 +1,7 @@
-/**
- * Stores and retrieves in memory conversation state for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Stores and retrieves in memory conversation state for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemoryConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");

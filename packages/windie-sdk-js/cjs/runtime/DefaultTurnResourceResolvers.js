@@ -1,8 +1,7 @@
-/**
- * Provides the default turn resource resolvers module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the default turn resource resolvers module for the TypeScript SDK runtime.
+ */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);

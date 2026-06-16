@@ -1,8 +1,7 @@
-/**
- * Provides the backend event normalizer module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the backend event normalizer module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.normalizeBackendEventToConversationEvent = normalizeBackendEventToConversationEvent;
 const events_js_1 = require("../conversation/events.js");
@@ -189,6 +188,9 @@ function tracePayloadFromBackendEvent(event, base) {
     };
 }
 function logCompactionNormalization(event, base, normalizedType, payload) {
+    if (!isCompactionStdoutEnabled()) {
+        return;
+    }
     const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
         ? payload.replacement_history_entries
         : null;
@@ -208,6 +210,10 @@ function logCompactionNormalization(event, base, normalizedType, payload) {
         afterTokens: numberField(payload, 'after_tokens'),
         removedMessages: numberField(payload, 'removed_messages'),
     });
+}
+function isCompactionStdoutEnabled() {
+    const env = globalThis.process?.env;
+    return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 function missingBackendIdentityEvent(event, base) {
     return (0, events_js_1.createConversationEvent)({
@@ -464,24 +470,6 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 correlationId: typeof payload.bundle_id === 'string' ? payload.bundle_id : null,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
                 tools: Array.isArray(payload.tools) ? payload.tools : [],
-                structuredPayload: payload,
-                ...backendMetadata,
-            },
-        });
-    }
-    if (event.type === 'tool-bundle-output') {
-        return (0, events_js_1.createConversationEvent)({
-            ...base,
-            type: 'tool_bundle_output',
-            source: 'sidecar',
-            payload: {
-                ...payload,
-                bundleId: typeof payload.bundle_id === 'string' ? payload.bundle_id : (typeof payload.bundleId === 'string' ? payload.bundleId : null),
-                correlationId: typeof payload.bundle_id === 'string' ? payload.bundle_id : (typeof payload.bundleId === 'string' ? payload.bundleId : null),
-                userId: typeof event.user_id === 'string' ? event.user_id : null,
-                stepResults: Array.isArray(payload.step_results) ? payload.step_results : (Array.isArray(payload.stepResults) ? payload.stepResults : []),
-                screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
-                screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
                 structuredPayload: payload,
                 ...backendMetadata,
             },

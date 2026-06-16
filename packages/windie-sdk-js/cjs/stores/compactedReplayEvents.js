@@ -1,8 +1,7 @@
-/**
- * Provides the compacted replay events module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the compacted replay events module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.compactedReplayFromEvent = compactedReplayFromEvent;
 exports.latestCompactedReplayFromEvents = latestCompactedReplayFromEvents;

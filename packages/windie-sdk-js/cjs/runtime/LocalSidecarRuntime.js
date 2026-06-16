@@ -1,8 +1,7 @@
-/**
- * Coordinates the local sidecar runtime for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Coordinates the local sidecar runtime for the TypeScript SDK runtime.
+ */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);

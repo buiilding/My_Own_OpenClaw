@@ -1702,6 +1702,9 @@ describe('WindieSdkClient', () => {
 
   test('SDK backend event guard includes schema-backed control websocket events', async () => {
     const { isBackendEvent } = await import('../../packages/windie-sdk-js/src/events/backendEvents');
+    const {
+      isBackendEvent: isPackagedBackendEvent,
+    } = require('../../packages/windie-sdk-js/cjs/events/backendEvents.js');
 
     expect(isBackendEvent({
       type: 'audio-chunk',
@@ -1728,6 +1731,10 @@ describe('WindieSdkClient', () => {
       payload: [{ id: 'gpt-5.4@@gpt-5-4-none-thinking' }],
     })).toBe(true);
     expect(isBackendEvent({
+      type: 'tool-bundle-output',
+      payload: { bundle_id: 'bundle-1' },
+    })).toBe(false);
+    expect(isPackagedBackendEvent({
       type: 'tool-bundle-output',
       payload: { bundle_id: 'bundle-1' },
     })).toBe(false);

@@ -1,8 +1,7 @@
-/**
- * Provides the managed windie agent session module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the managed windie agent session module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ManagedWindieAgentSession = void 0;
 exports.createManagedWindieAgentSession = createManagedWindieAgentSession;

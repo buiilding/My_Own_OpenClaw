@@ -1,8 +1,7 @@
-/**
- * Coordinates the conversation runtime for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Coordinates the conversation runtime for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SdkConversationRuntime = void 0;
 exports.createConversationRuntime = createConversationRuntime;

@@ -1,8 +1,7 @@
-/**
- * Provides the conversation event scope module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the conversation event scope module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getConversationEventScope = getConversationEventScope;
 exports.isConversationControlEvent = isConversationControlEvent;

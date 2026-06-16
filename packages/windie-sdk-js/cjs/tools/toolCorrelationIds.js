@@ -1,8 +1,7 @@
-/**
- * Provides the tool correlation ids module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the tool correlation ids module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveModelFacingToolCallId = resolveModelFacingToolCallId;
 exports.resolveCorrelationId = resolveCorrelationId;

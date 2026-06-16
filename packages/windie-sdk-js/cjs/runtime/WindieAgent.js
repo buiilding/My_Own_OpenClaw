@@ -1,8 +1,7 @@
-/**
- * Provides the windie agent module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the windie agent module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieAgent = void 0;
 const events_js_1 = require("../conversation/events.js");
@@ -151,7 +150,7 @@ class WindieAgent {
                 turn_ref: input.turn_ref ?? input.turnRef ?? null,
             });
         }
-        return this.session.stopQuery({ conversation_ref: input ?? null });
+        return this.session.stopQuery({ conversation_ref: typeof input === 'string' ? input : null });
     }
     async wakewordDetected(payload = {}) {
         return this.session.wakewordDetected(payload);

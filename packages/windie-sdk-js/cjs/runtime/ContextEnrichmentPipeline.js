@@ -1,8 +1,7 @@
-/**
- * Provides the context enrichment pipeline module for the committed JavaScript SDK runtime.
- */
-
 "use strict";
+/**
+ * Provides the context enrichment pipeline module for the TypeScript SDK runtime.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.renderModelFacingUserContent = renderModelFacingUserContent;
 exports.renderPlainModelFacingUserContent = renderPlainModelFacingUserContent;
