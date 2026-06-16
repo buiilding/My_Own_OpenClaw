@@ -103,7 +103,8 @@ Ownership split:
 
 `ScreenshotToolArgs`:
 
-- optional `wait` with `extra='ignore'` to tolerate legacy/noise fields
+- optional `wait`
+- unknown legacy/noise fields are rejected with `extra='forbid'`
 - wording now uses `screen image` / `capture` terminology instead of cross-tool-like `screenshot` guidance in unrelated tool descriptions
 ## Parser Validation and Policy Coupling
 

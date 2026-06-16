@@ -6,7 +6,11 @@ from pydantic import ValidationError
 
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
-from backend.src.tools.computer.schemas import MouseControlArgs, ScrollControlArgs
+from backend.src.tools.computer.schemas import (
+    MouseControlArgs,
+    ScreenshotToolArgs,
+    ScrollControlArgs,
+)
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
 
@@ -131,6 +135,22 @@ def test_scroll_control_schema_stays_direct_and_requires_direction_for_scroll():
         "left",
         "right",
     ]
+
+
+def test_screenshot_schema_rejects_unknown_legacy_fields():
+    payload = {
+        "explanation": _EXPLANATION,
+        "wait": 0,
+        "full_page": True,
+    }
+
+    with pytest.raises(ValidationError):
+        ScreenshotToolArgs.model_validate(payload)
+
+    errors = _schema_errors("screenshot", payload)
+
+    assert errors
+    assert any("Additional properties are not allowed" in error for error in errors)
 
 
 def test_provider_projection_is_noop_for_openai_computer_tools():

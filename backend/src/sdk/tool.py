@@ -218,9 +218,8 @@ class Tool(ABC, Generic[TArgs]):
         resolved_schema = cls._resolve_local_defs(raw_schema)
         cleaned_params = cls._clean_schema(resolved_schema)
 
-        # Remove unnecessary top-level fields
+        # Remove unnecessary top-level fields.
         cleaned_params.pop("title", None)
-        cleaned_params.pop("additionalProperties", None)
 
         # OpenAI Responses API requires function.parameters to be an explicit
         # JSON Schema object with type="object".

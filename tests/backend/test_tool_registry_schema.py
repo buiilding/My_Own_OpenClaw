@@ -10,6 +10,7 @@ from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.cache import CacheManager
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
+from backend.src.tools.computer.schemas import MouseControlArgs
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.tool_catalog import (
@@ -92,6 +93,17 @@ def test_tool_schema_preserves_typed_map_value_schemas():
     assert nested_value_schema["properties"]["label"]["type"] == "string"
     assert nested_value_schema["properties"]["count"]["type"] == "integer"
     assert nested_value_schema["required"] == ["label", "count"]
+
+
+def test_tool_schema_preserves_top_level_extra_forbid_boundary():
+    schema = MouseControlArgs.model_json_schema()
+    assert schema["additionalProperties"] is False
+
+    tool_schema = ToolRegistry(
+        config=AppConfig(), cache_manager=CacheManager()
+    ).get_function_declarations_filtered(["mouse_control"])[0]
+
+    assert tool_schema["parameters"]["additionalProperties"] is False
 
 
 def test_schema_registry_caches_schemas():

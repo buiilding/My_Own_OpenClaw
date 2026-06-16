@@ -272,7 +272,7 @@ class GroundedScrollActionArgs(BaseModel):
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
 
     explanation: str = explanation_field()
     wait: Optional[float] = Field(

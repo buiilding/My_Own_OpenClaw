@@ -95,6 +95,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: remove the missing-`request_id` pending placeholder from
   single-tool waits; invalid tool calls now produce an explicit failed tool
   result instead of pretending local execution is still pending.
+- backend/tools: preserve top-level `additionalProperties` in backend tool
+  specs and make the screenshot direct-tool schema reject unknown legacy fields
+  instead of ignoring them.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`

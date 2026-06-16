@@ -66,15 +66,16 @@ Normalization rules in `_clean_schema(...)`:
 - preserves constraints (`minimum`, `maximum`, `minLength`, `maxLength`, `pattern`, `enum`)
 - keeps non-null defaults only
 - strips noisy fields like `title`
-- strips top-level `additionalProperties`
+- preserves top-level `additionalProperties` so model-facing schemas retain
+  args-model strictness
 - keys outside this allowlist are intentionally dropped to keep function-schema payloads compact for model context budgets
 
 Top-level object-type guard:
 
 - after cleanup, if `properties` exists and `type` is missing, `get_json_schema()` enforces `parameters.type = "object"`
 - this keeps OpenAI/LiteLLM function-tool compatibility even when Pydantic output omitted explicit object type
-- top-level `title` and `additionalProperties` are removed after cleaning;
-  nested boolean `additionalProperties` and typed map value schemas are retained
+- top-level `title` is removed after cleaning; top-level and nested boolean
+  `additionalProperties` plus typed map value schemas are retained
 
 ## Registry + Cache Enforcement
 
