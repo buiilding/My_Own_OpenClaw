@@ -100,7 +100,6 @@ Capabilities:
 - Streams wakeword audio binary frames and receives framed detection payloads.
 - Delegates wakeword stderr readiness/error parsing, startup/process error mapping, and audio chunk normalization to helper runtime module.
 - Provides permission list/check/request/probe IPC contracts for onboarding.
-- Provides Linux sudo enable/disable path with normalized renderer-safe result semantics.
 - Sidecar spawn env injects `WINDIE_BACKEND_HTTP_URL` and enforces `NODE_OPTIONS=--no-deprecation` append policy via bridge utils.
 - Sidecar readiness checks use bounded ping retry (`<=10` attempts, exponential backoff capped at `1000ms`) with stale-generation token guards.
 - Local sidecar RPC request timeout defaults to `30s` (`120s` for browser tool), with canonical `{success:false,error}` response normalization for failures.

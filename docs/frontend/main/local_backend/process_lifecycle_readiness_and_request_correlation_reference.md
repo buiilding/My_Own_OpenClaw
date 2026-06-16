@@ -63,7 +63,6 @@ Tool helpers call SDK runtime `executeTool(...)` when available. The bridge stil
 normalizes host-only arguments before execution:
 
 - screenshot helpers inject active display bounds
-- shell helpers inject sudo auth mode from frontend config
 - browser header controls add their fixed explanation
 - screenshot results are materialized into backend artifacts when possible
 

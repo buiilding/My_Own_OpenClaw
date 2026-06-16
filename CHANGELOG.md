@@ -44,6 +44,8 @@ All notable changes to WindieOS will be documented in this file.
   command rows can rank without substring noise from unrelated helper docs.
 - docs/tools: document the current Linux `run_shell_command` sudo path as
   sidecar-owned `pkexec` prompting without a frontend-selected sudo auth mode.
+- docs/frontend: remove retired agent-sudo setting and IPC ownership references
+  from current renderer, IPC, inventory, and local-backend docs.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.

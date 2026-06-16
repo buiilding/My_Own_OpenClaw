@@ -27,7 +27,7 @@ Delegated runtime modules:
 - lifecycle orchestration: `main_process_lifecycle_runtime.cjs`
 - phase-owned overlay shell IPC registration: `overlay_phase_ipc_runtime.cjs`
 - main-window/display IPC registration: `window_controls_ipc_runtime.cjs`
-- permission/sudo IPC registration: `permission_ipc_runtime.cjs`
+- permission IPC registration: `permission_ipc_runtime.cjs`
 - show/hide/main-window transition behavior: `window_visibility_runtime.cjs`
 
 ## Lifecycle Runtime (`main_process_lifecycle_runtime.cjs`)

@@ -48,7 +48,7 @@ Main-process handler registration is split by responsibility:
 - settings ACK-gate helper ownership: `ipc_settings_sync.cjs`
 - phase-owned overlay shell registration: `overlay_phase_ipc_runtime.cjs` (wired by `index.cjs`)
 - main-window/display control registration: `window_controls_ipc_runtime.cjs` (wired by `index.cjs`)
-- permission/sudo registration: `permission_ipc_runtime.cjs` (wired by `index.cjs`)
+- permission registration: `permission_ipc_runtime.cjs` (wired by `index.cjs`)
 - chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
 - app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
 - Python sidecar tool + memory bridge: `local_backend_bridge.cjs`

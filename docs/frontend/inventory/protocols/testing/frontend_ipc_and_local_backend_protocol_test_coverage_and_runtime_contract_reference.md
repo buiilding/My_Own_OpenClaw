@@ -63,7 +63,7 @@ Primary protocol tests:
 | local backend RPC shape mapping | handler registration + mapper utilities (`local_backend_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
 | overlay IPC registrar ownership boundary | `overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` | overlay phase module registers only overlay-owned channels (`set-responsebox-size`, `set-chatbox-visual-anchor-height`, `show-chatbox`, `hide-chatbox`, `move-chatbox-to`) and does not own deprecated focus/interactivity channels |
 | window-control IPC registrar + display mapping | `window_controls_ipc_runtime.cjs`, `display_query_handler.cjs` | `WindowControlsIpcRuntime.test.cjs`, `DisplayQueryHandler.test.cjs` | `show-main-window` normalization/route emit stays in window-control module; display inventory payload is mapped to stable `{ id, label, isPrimary, bounds, scaleFactor }` |
-| permission/sudo IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission and sudo invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
+| permission IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
 | wakeword stream/restart robustness | wakeword subprocess + framed parser (`wakeword_bridge.cjs`) | `WakewordBridge.test.cjs` | detection callback + renderer event fire only when enabled; process restarts keep callback wiring; stale stdout/stderr partial buffers are cleared across restarts |
 | wakeword helper runtime normalization | helper runtime (`wakeword_bridge_runtime.cjs`) | `WakewordBridgeRuntime.test.cjs` | packaged-vs-dev startup error mapping, ENOENT process error guidance, stderr ready-status promotion, and audio payload normalization (base64/Buffer/ArrayBuffer) |
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
@@ -81,7 +81,7 @@ Primary protocol tests:
 | overlay IPC runtime channel ownership | `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` |
 | window-control IPC runtime target routing + visibility handlers | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs` | `WindowControlsIpcRuntime.test.cjs` |
 | display query payload mapping | `frontend/src/main/surfaces/display_query_handler.cjs` | `DisplayQueryHandler.test.cjs` |
-| permission/sudo IPC runtime channel ownership | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
+| permission IPC runtime channel ownership | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
 | local sidecar RPC mapping | `frontend/src/main/sidecar/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
@@ -185,7 +185,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 
 `tests/frontend/PermissionIpcRuntime.test.cjs` validates:
 
-- Permission + sudo channels are registered by `permission_ipc_runtime.cjs` rather than overlay/window registrars.
+- Permission channels are registered by `permission_ipc_runtime.cjs` rather than overlay/window registrars.
 - `check-permission` and `run-permission-probe` return the same canonical status envelope shape.
 
 ## Split Registrar Runtime Contracts
