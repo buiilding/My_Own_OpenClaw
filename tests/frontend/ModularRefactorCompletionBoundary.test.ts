@@ -156,7 +156,6 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/sidecar_tool_change_workflow.md',
       'docs/frontend/renderer/README.md',
       'docs/frontend/renderer/renderer_state_change_workflow.md',
-      'docs/frontend/renderer/infrastructure/tool_computer_use_catalog_surface_mode_and_capture_policy_reference.md',
       'docs/frontend/README.md',
       'docs/frontend/renderer/chat/payloads/README.md',
       'docs/frontend/renderer/infrastructure/README.md',

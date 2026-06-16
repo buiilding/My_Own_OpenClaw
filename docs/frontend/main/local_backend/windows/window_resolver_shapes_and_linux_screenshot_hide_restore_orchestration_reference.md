@@ -51,8 +51,7 @@ Current runtime implementation contract:
 - the platform runtime executes `task()` directly
 - local tool execution is pass-through here; dashboard-to-pill
   handoff happens earlier through Electron main's computer-use surface-prep hook,
-  while renderer `SurfaceOrchestrator` remains scoped to renderer-initiated
-  attachment capture flows
+  while renderer code does not own screenshot hide/restore
 
 ## Why Resolver Contracts Still Matter
 
@@ -96,4 +95,4 @@ When touching window wrapper flow:
 1. verify resolver output shape (`main/chat/response`) remains stable for callers
 2. verify screenshot tool only path remains scoped in the local tool execution runtime
 3. verify platform runtime dispatch still matches `process.platform`
-4. verify renderer capture orchestration assumptions stay aligned with Linux runtime comment/ownership
+4. verify renderer capture orchestration assumptions stay out of the local-backend screenshot wrapper

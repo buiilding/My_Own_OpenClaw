@@ -26,7 +26,6 @@ title: "Frontend Runtime Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/features/chat/hooks/*`
-- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`

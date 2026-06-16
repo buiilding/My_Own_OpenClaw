@@ -441,7 +441,7 @@ Primary modules:
 - `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
 - `infrastructure/services/toolExecution/*`: retained display and capture timing helpers; backend tool execution is owned by the SDK runtime in Electron main and the sidecar daemon.
-- `infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op because overlay exclusion comes from Electron main's SDK screenshot-capture lease, not capture-time renderer hide/show).
+- Electron main owns screenshot-capture window policy through the local tool lifecycle and platform screenshot/content-protection runtimes; renderer surface orchestration is limited to system-capture focus logging.
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
 
 ## Sidecar Responsibilities (`frontend/src/main/python`)

@@ -36,7 +36,7 @@ cd frontend && npm run lint
 | Electron main IPC | `bin/windie test frontend -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
 | Electron main SDK query controls and VM worker | `bin/windie test frontend -- IpcAutomatedQueryDispatcher.test.cjs IpcMainConversationRuntimeRegistry.test.cjs IpcMainSdkRuntimeBoundary.test.cjs MainProcessBootstrapRuntime.test.cjs VmWorkerRuntime.test.cjs` |
 | Frontend CLI and layer logs | `bin/windie test frontend -- WindieCli.test.cjs LayerLogSink.test.cjs WindieRunLayerLog.test.cjs ElectronLauncher.test.cjs IpcDiagnosticsRuntime.test.cjs` |
-| Overlay windows/phases | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs SurfaceOrchestratorPhases.test.ts WindowVisibilityRuntime.test.cjs` |
+| Overlay windows/phases | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs WindowVisibilityRuntime.test.cjs` |
 | Minimal chat pill hit-testing and dragging | `bin/windie test frontend -- ChatBoxOverlayMouseIgnore.test.jsx ChatBoxPillLayout.test.js ChatPillSessionFlow.test.ts` |
 | Renderer chat stream | `bin/windie test frontend -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx ConversationRuntimeProjectionStream.test.ts` |
 | SDK conversation runtime and stop flow | `bin/windie test frontend -- WindieSdkConversationRuntime.test.ts DesktopBackendTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js StopQueryState.test.js` |

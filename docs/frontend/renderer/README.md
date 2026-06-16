@@ -91,7 +91,6 @@ title: "Frontend Renderer Docs Hub"
 - [Tool Ghost Lifecycle System-State Sampling, Target Resolution, and Click Hide-Timer Reference](overlays/tool_ghost/lifecycle/tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
 - [Tool Ghost Track Style Variable and CSS Animation Contract Reference](overlays/tool_ghost/lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
 - [Capture, Artifact URL, and Payload Normalization Reference](infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
-- [Removed SurfaceOrchestrator Reference](infrastructure/removed_surface_orchestrator_reference.md)
 - [Incoming Text Normalization Contract Reference](infrastructure/incoming_text_normalization_mojibake_and_lone_surrogate_contract_reference.md)
 - [Player Service Queue, Generation, and Error-Recovery Reference](infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md)
 - [Global Theme, Accessibility Utility, and Main Layout Visual Contract Reference](styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)

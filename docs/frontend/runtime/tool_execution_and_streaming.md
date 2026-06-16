@@ -87,9 +87,7 @@ Surface/capture orchestration is split:
 
 Retained renderer infrastructure:
 
-- `SystemStateCapture.ts`
 - `BackendEndpointStore.ts`
-- `ToolExecutionLogger.ts`
 
 Renderer host-capability calls use scoped IPC channels such as
 `capture-screenshot-attachment`, `read-attachment-file`, and

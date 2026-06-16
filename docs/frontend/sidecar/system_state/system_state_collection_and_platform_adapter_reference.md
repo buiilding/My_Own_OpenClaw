@@ -18,11 +18,11 @@ title: "System-State Collection and Platform Adapter Reference"
 - `frontend/src/main/python/core/system_metrics.py`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
-- `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
+- `frontend/src/main/ipc.cjs`
 
 ## End-to-End Path
 
-1. renderer invokes `INVOKE_CHANNELS.GET_SYSTEM_STATE`.
+1. a renderer/main consumer invokes `get-system-state` through Electron IPC.
 2. Electron main (`ipcMain.handle('get-system-state')`) calls `getSystemStateFromBackend(fields)`.
 3. main bridge sends JSON-RPC `get_system_state` request to sidecar.
 4. sidecar `LocalBackend._handle_get_system_state(...)` calls `core.system_state.get_system_state(...)`.
@@ -138,7 +138,7 @@ Platform bootstrap:
 
 ### Query context assembly
 
-`SystemStateCapture.captureSystemState(...)` requests:
+SDK/main query preparation requests:
 
 - default captures: `active_window`, `mouse_position`, `screen_resolution`
 - `windows` only when explicitly requested by the caller
@@ -159,13 +159,10 @@ Current runtime note:
 - sidecar field probe failure -> per-field defaults in response object
 - sidecar handler exception -> `{ success: false, error }`
 - main bridge error or `success: false` -> renderer receives `null`
-- renderer capture hooks typically degrade to null/unknown UI state rather than hard-failing query flow
+- main/renderer consumers typically degrade to null/unknown UI state rather than hard-failing query flow
 
 ## Test-Backed Anchors
 
-- `tests/frontend/SystemStateCapture.test.ts`
-  - first-turn vs later-turn field selection
-  - graceful null fallback on invoke errors
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
   - `get-system-state` returns `null` when sidecar response is unsuccessful
 - `tests/frontend/IpcMainBridge.query.test.cjs`

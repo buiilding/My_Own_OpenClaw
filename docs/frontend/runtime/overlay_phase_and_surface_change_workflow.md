@@ -112,8 +112,7 @@ Common phase producers:
   and `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - main-process computer-use surface prep in
   `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
-- renderer capture lifecycle transitions for user-initiated attachments in
-  `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
+- system-state and screenshot capture requests crossing Electron main IPC
 
 Producer rules:
 
@@ -206,8 +205,7 @@ Read these files before changing screenshot or content-protection behavior:
 - `frontend/src/main/surfaces/overlay_visibility_handler.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/*`
 - `frontend/src/main/platform/content_protection/*`
-- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts` for
-  renderer-initiated attachment capture flows
+- Electron main IPC and sidecar bridge paths for system-state and screenshot capture
 
 Platform rules:
 

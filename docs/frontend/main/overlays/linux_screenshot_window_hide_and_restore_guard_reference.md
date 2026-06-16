@@ -15,7 +15,6 @@ title: "Linux Screenshot Window Visibility Runtime Dispatch Reference"
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/surfaces/main_window_runtime.cjs`
-- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts` for renderer-initiated attachment capture flows
 
 ## Runtime Scope and Entry
 
@@ -44,8 +43,7 @@ Implication:
 - SDK/main computer-use execution prepares the desktop surface before invoking the
   sidecar; dashboard-visible turns are handed to the minimal pill by Electron
   main before local execution starts
-- renderer `SurfaceOrchestrator` capture flow is retained for renderer-initiated
-  attachment capture, not backend tool execution
+- renderer code does not own screenshot hide/restore
 
 ## Resolver Argument Compatibility
 
@@ -81,6 +79,4 @@ If Linux screenshots contain overlay UI:
 
 1. verify screenshot execute-tool path still wraps task via `withHiddenWindowForScreenshot(...)`
 2. verify SDK/main computer-use surface prep ran before sidecar execution
-3. verify renderer `SurfaceOrchestrator` capture prep/hide logic only when the
-   screenshot came from a renderer-initiated attachment capture
-4. verify no legacy wrapper-level hide/restore assumptions remain in debugging scripts
+3. verify no legacy renderer or wrapper-level hide/restore assumptions remain in debugging scripts

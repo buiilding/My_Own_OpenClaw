@@ -143,7 +143,7 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js ChatBoxResponse.state.test.jsx LiveTurnSurfaceState.test.js ChatBoxPillLayout.test.js SurfaceOrchestratorPhases.test.ts
+bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js ChatBoxResponse.state.test.jsx LiveTurnSurfaceState.test.js ChatBoxPillLayout.test.js
 ```
 
 ## Permissions Gate Does Not Match OS State

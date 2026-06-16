@@ -9,6 +9,11 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: delete the unused `ArtifactUploader` renderer upload
   module, remove its orphan screenshot debug helper, and keep artifact URL
   coverage on `BackendEndpointStore`.
+- frontend/renderer: delete the legacy renderer tool-surface lifecycle,
+  per-platform renderer hide/restore helpers, renderer computer-use catalog,
+  stale system-state capture helper, and capture-only logging utilities; keep
+  screenshot and system-state capture owned by SDK/main, Electron main, and the
+  sidecar.
 - cli: add `bin/windie commits search <query>` with `--limit` and `--json`
   support for local commit-history lookup.
 - cli/docs: rank `bin/windie docs search` by exact phrase, all-term, heading,
