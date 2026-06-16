@@ -100,7 +100,7 @@ Date: 2026-06-15
 | CD-067 | Electron assistant backend trace helper path | `ipc_assistant_trace.cjs` still exported a standalone `[AssistantTrace][backend]` helper path plus direct summary/predicate helpers even though production uses `createElectronMainTraceLogger(...)` for backend event diagnostics | Knip reported the helper exports unused; repo search showed only `AssistantTrace.test.cjs` imported them directly, while `ipc.cjs` imports only the Electron main and current-turn trace logger factories | Delete the unused standalone assistant-backend trace path and keep settings summary private under the active Electron main trace logger | `c8ebcfd31` |
 | CD-068 | Electron backend event channel helper exports | `ipc_backend_event_channels.cjs` exported the backend-event channel map and channel resolver even though production imports only `broadcastTypedBackendEvent(...)` | Knip reported both exports unused; repo search showed only the channel unit test imported the helper resolver directly, while `ipc_runtime_helpers.cjs` uses the broadcaster | Remove the helper exports, keep channel routing private, and assert routing through the production broadcaster | `f4c491106` |
 | CD-069 | Electron backend payload allowlist export | `ipc_backend_payload_contract.cjs` exported `BACKEND_PAYLOAD_KEYS_BY_TYPE` even though production imports only `filterBackendPayload(...)` for outbound websocket payload normalization | Knip reported the allowlist export unused; repo search showed only a frontend/backend contract test imported it directly, while production payload normalization uses the filter API | Remove the allowlist export, keep the allowlist private, and assert backend contract parity by filtering synthetic payloads through `filterBackendPayload(...)` | `cc8dc6925` |
-| CD-070 | Electron IPC channel registry constant exports | `ipc_channel_registry_runtime.cjs` exported the shared IPC channel registry and preload argument prefix even though production imports only `buildPreloadIpcChannelsArgument(...)` | Knip reported both constant exports unused; repo search showed main window runtimes use only the argument builder and preload owns its own local prefix parser | Remove the constant exports and keep the registry/prefix private to the preload channel argument builder | pending |
+| CD-070 | Electron IPC channel registry constant exports | `ipc_channel_registry_runtime.cjs` exported the shared IPC channel registry and preload argument prefix even though production imports only `buildPreloadIpcChannelsArgument(...)` | Knip reported both constant exports unused; repo search showed main window runtimes use only the argument builder and preload owns its own local prefix parser | Remove the constant exports and keep the registry/prefix private to the preload channel argument builder | `a5deefb3a` |
 
 ## Commit Ledger
 
@@ -238,6 +238,8 @@ Date: 2026-06-15
   completed CD-068.
 - `cc8dc6925 refactor(frontend): keep backend payload allowlist private`
   completed CD-069.
+- `a5deefb3a refactor(frontend): keep ipc channel registry constants private`
+  completed CD-070.
 
 ## Validation Log
 
