@@ -1,7 +1,7 @@
 ---
-summary: "Backend tools policy docs sub-hub for interaction allowlist + dev tool-selection filtering, mouse method constraints, and startup OCR/vision gating semantics."
+summary: "Backend tools policy docs sub-hub for interaction allowlists, agent capability filtering, mouse method constraints, and startup OCR/vision gating semantics."
 read_when:
-  - When changing tool visibility rules across interaction mode and dev selection config.
+  - When changing tool visibility rules across interaction mode and agent capability policy.
   - When debugging mouse coordinate-method validation errors, filtered schemas, or OCR/vision startup enablement behavior.
 title: "Backend Tools Policy Docs Hub"
 ---
@@ -10,7 +10,7 @@ title: "Backend Tools Policy Docs Hub"
 
 ## Deep Pages
 
-- [Tool Policy and Dev Tool Selection Runtime Reference](tool_policy_and_dev_tool_selection_runtime_reference.md)
+- [Tool Policy and Agent Capability Runtime Reference](tool_policy_and_agent_capability_runtime_reference.md)
 
 ## Related Pages
 
@@ -27,4 +27,4 @@ title: "Backend Tools Policy Docs Hub"
 - `backend/src/core/container/initializer.py`
 - `backend/src/core/utils/coordinate_methods.py`
 - `tests/backend/test_tool_policy.py`
-- `tests/backend/test_dev_tool_selection.py`
+- `tests/backend/test_tool_selection.py`

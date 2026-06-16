@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from backend.src.core.config.models import AppConfig
 from backend.src.tools.agent_capability_policy import build_agent_tool_selection
 from backend.src.tools.remote import RemoteMouseTool
@@ -13,17 +11,27 @@ from backend.src.tools.remote_tools.computer import (
     RemoteScrollTool,
 )
 from backend.src.tools.tool_policy import ToolPolicy
-from backend.src.tools.tool_selection import load_tool_selection
+from backend.src.tools.tool_selection import ToolSelection
 
 
-def _load_selection(tmp_path: Path, text: str):
-    path = tmp_path / "tool_selection.toml"
-    path.write_text(text, encoding="utf-8")
-    return load_tool_selection(path)
+def _selection(
+    tools: list[str],
+    *,
+    methods: list[str] | None = None,
+    mode: str = "allowlist",
+) -> ToolSelection:
+    return ToolSelection(
+        enabled=True,
+        mode=mode,
+        tools=frozenset(tools),
+        mouse_enabled_coordinate_methods=(
+            frozenset(methods) if methods is not None else None
+        ),
+    )
 
 
 def test_filter_tool_names_applies_interaction_mode_allowlist():
-    policy = ToolPolicy(config=AppConfig(interaction_mode="chat"), selection=None)
+    policy = ToolPolicy(config=AppConfig(interaction_mode="chat"))
 
     filtered = policy.filter_tool_names(
         [
@@ -47,16 +55,12 @@ def test_filter_tool_names_applies_interaction_mode_allowlist():
     ]
 
 
-def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
-    selection = _load_selection(
-        tmp_path,
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["read_file", "write_file"]\n'
-        ),
+def test_filter_tool_names_applies_agent_selection():
+    selection = _selection(["read_file", "write_file"])
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent"),
+        agent_selection=selection,
     )
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     filtered = policy.filter_tool_names(["read_file", "write_file", "glob"])
 
@@ -72,7 +76,6 @@ def test_filter_tool_names_applies_agent_tool_profile():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(
@@ -92,7 +95,6 @@ def test_filter_tool_names_intersects_agent_profile_with_available_tools():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(
@@ -112,7 +114,6 @@ def test_filter_tool_names_applies_agent_disabled_capabilities():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(
@@ -132,7 +133,6 @@ def test_filter_tool_names_applies_provider_unavailable_capabilities():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(
@@ -145,7 +145,6 @@ def test_filter_tool_names_applies_provider_unavailable_capabilities():
 def test_filter_tool_names_keeps_direct_tool_names():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=True),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(
@@ -164,7 +163,6 @@ def test_filter_tool_names_does_not_normalize_wrapper_names():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(
@@ -177,7 +175,6 @@ def test_filter_tool_names_does_not_normalize_wrapper_names():
 def test_filter_tool_names_keeps_browser_when_browser_automation_not_enabled():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=False),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(["browser", "mouse_control", "read_file"])
@@ -192,7 +189,6 @@ def test_filter_tool_names_hides_backend_web_search_for_openai_native_search():
             model_provider="openai",
             selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
         ),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(["browser", "web_search", "read_file"])
@@ -207,7 +203,6 @@ def test_filter_tool_names_hides_web_search_without_native_or_brave_support():
             model_provider="anthropic",
             selected_model_id="claude-sonnet-4-20250514",
         ),
-        selection=None,
     )
 
     filtered = policy.filter_tool_names(["web_search", "read_file"])
@@ -215,18 +210,12 @@ def test_filter_tool_names_hides_web_search_without_native_or_brave_support():
     assert filtered == ["read_file"]
 
 
-def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
-    selection = _load_selection(
-        tmp_path,
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual"]\n'
-        ),
+def test_filter_tool_schemas_filters_mouse_method_fields():
+    selection = _selection(["mouse_control"], methods=["manual"])
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent"),
+        agent_selection=selection,
     )
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     mouse_schema = RemoteMouseTool().get_json_schema()
     read_schema = {
@@ -261,7 +250,6 @@ def test_filter_tool_schemas_applies_agent_capability_coordinate_methods():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     schemas = policy.filter_tool_schemas([RemoteMouseTool().get_json_schema()])
@@ -280,18 +268,12 @@ def test_filter_tool_schemas_applies_agent_capability_coordinate_methods():
     assert "drag_to_model_name" not in args_props
 
 
-def test_filter_tool_schemas_filters_scroll_and_grounded_method_fields(tmp_path: Path):
-    selection = _load_selection(
-        tmp_path,
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control", "scroll_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual", "ocr"]\n'
-        ),
+def test_filter_tool_schemas_filters_scroll_and_grounded_method_fields():
+    selection = _selection(["mouse_control", "scroll_control"], methods=["manual", "ocr"])
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent"),
+        agent_selection=selection,
     )
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     schemas = policy.filter_tool_schemas(
         [
@@ -330,19 +312,12 @@ def test_filter_tool_schemas_filters_scroll_and_grounded_method_fields(tmp_path:
 
 
 def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disabled(
-    tmp_path: Path,
 ):
-    selection = _load_selection(
-        tmp_path,
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual", "ocr"]\n'
-        ),
+    selection = _selection(["mouse_control"], methods=["manual", "ocr"])
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent"),
+        agent_selection=selection,
     )
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     mouse_schema = policy.filter_tool_schemas([RemoteMouseTool().get_json_schema()])[0]
     props = mouse_schema["parameters"]["properties"]
@@ -371,7 +346,6 @@ def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disab
 def test_filter_tool_schemas_keeps_browser_when_browser_automation_not_enabled():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=False),
-        selection=None,
     )
 
     browser_schema = {
@@ -397,7 +371,6 @@ def test_filter_tool_schemas_hides_backend_web_search_for_openai_native_search()
             model_provider="openai",
             selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
         ),
-        selection=None,
     )
 
     web_search_schema = {
@@ -416,18 +389,12 @@ def test_filter_tool_schemas_hides_backend_web_search_for_openai_native_search()
     assert [schema["name"] for schema in filtered] == ["read_file"]
 
 
-def test_get_method_validation_errors_rejects_disabled_mouse_method(tmp_path: Path):
-    selection = _load_selection(
-        tmp_path,
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual", "ocr"]\n'
-        ),
+def test_get_method_validation_errors_rejects_disabled_mouse_method():
+    selection = _selection(["mouse_control"], methods=["manual", "ocr"])
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent"),
+        agent_selection=selection,
     )
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     errors = policy.get_method_validation_errors(
         "mouse_control",
@@ -446,7 +413,6 @@ def test_get_method_validation_errors_rejects_agent_disabled_drag_method():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     errors = policy.get_method_validation_errors(
@@ -468,7 +434,6 @@ def test_available_coordinate_methods_narrow_agent_coordinate_methods():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     assert policy.get_allowed_mouse_coordinate_methods() == frozenset({"manual"})
@@ -489,7 +454,6 @@ def test_provider_unavailable_ocr_and_vision_disable_coordinate_methods():
     policy = ToolPolicy(
         config=config,
         agent_selection=build_agent_tool_selection(config),
-        selection=None,
     )
 
     assert policy.get_allowed_mouse_coordinate_methods() == frozenset({"manual"})
@@ -502,35 +466,23 @@ def test_provider_unavailable_ocr_and_vision_disable_coordinate_methods():
     assert "find_coordinates_by='prediction'" in errors[0]
 
 
-def test_should_initialize_startup_services_follow_mouse_methods(tmp_path: Path):
-    selection = _load_selection(
-        tmp_path,
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual"]\n'
-        ),
+def test_should_initialize_startup_services_follow_mouse_methods():
+    selection = _selection(["mouse_control"], methods=["manual"])
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent"),
+        agent_selection=selection,
     )
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     assert policy.should_initialize_ocr() is False
     assert policy.should_initialize_vision() is False
 
 
-def test_invalid_mouse_method_config_keeps_default_startup_services(tmp_path: Path):
-    selection = _load_selection(
-        tmp_path,
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = "manual"\n'
-        ),
+def test_unspecified_mouse_method_config_keeps_default_startup_services():
+    selection = _selection(["mouse_control"])
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent"),
+        agent_selection=selection,
     )
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     assert selection.get_allowed_mouse_coordinate_methods() == frozenset(
         {"manual", "ocr", "prediction"}

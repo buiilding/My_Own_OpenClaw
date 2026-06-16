@@ -20,7 +20,7 @@ Tools are registered by the backend tool registry (`backend/src/tools/registry.p
 Model-visible tool exposure is narrowed after registration by typed agent
 capability policy in `backend/src/tools/agent_capability_policy.py` and
 `backend/src/tools/tool_policy.py`. Add new production profiles or capability
-gates there instead of extending `backend/dev/tool_selection*.toml`.
+gates there.
 
 ## 2) Frontend Python Sidecar Tools
 

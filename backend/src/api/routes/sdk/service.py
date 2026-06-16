@@ -18,7 +18,6 @@ from PIL import Image, ImageDraw
 from backend.src.agent.session.capability_application import (
     capability_config_overrides,
     merge_runtime_tools_into_config_overrides,
-    merge_runtime_tools_into_prompt_policy,
 )
 from backend.src.agent.session.prompt_layers import validate_client_prompt_layers
 from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
@@ -222,11 +221,6 @@ def build_debug_tool_schemas(
 
     constructor = build_prompt_constructor(config=config, container=container)
     constructor.client_tool_schemas = normalized_client_tool_schemas
-    merge_runtime_tools_into_prompt_policy(
-        constructor,
-        accepted_tool_names=client_tool_names,
-        previous_tool_names=[],
-    )
     return constructor.get_tool_schema_surfaces(prompt_messages=prompt_messages)
 
 
@@ -296,11 +290,6 @@ def apply_agent_definition_to_constructor(
     if raw_manifest is not None:
         manifest_result = validate_client_tool_manifest(raw_manifest)
         constructor.client_tool_schemas = list(manifest_result.accepted_tool_schemas)
-        merge_runtime_tools_into_prompt_policy(
-            constructor,
-            accepted_tool_names=manifest_result.accepted_tool_names,
-            previous_tool_names=[],
-        )
 
 
 def build_debug_user_message_full(

@@ -2,7 +2,7 @@
 Tool policy service.
 
 Centralizes decisions for:
-- Tool visibility (interaction mode allowlist + dev selection)
+- Tool visibility (interaction mode allowlist + agent capability selection)
 - Tool schema filtering for prompt injection
 - Mouse coordinate-method validation (manual/ocr/prediction)
 - Startup gating for optional OCR and vision initialization
@@ -10,7 +10,6 @@ Centralizes decisions for:
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -19,16 +18,11 @@ from backend.src.tools.agent_capability_policy import (
     build_agent_tool_selection,
     disabled_tools_from_config,
 )
-from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
+from backend.src.tools.tool_selection import ToolSelection
 from backend.src.tools.tool_specs import get_tool_spec_name
 from backend.src.tools.web_search.capabilities import (
     should_expose_backend_web_search_tool,
 )
-
-logger = logging.getLogger(__name__)
-
-_UNSET = object()
-
 
 @dataclass(slots=True)
 class ToolPolicy:
@@ -36,30 +30,18 @@ class ToolPolicy:
 
     config: Any
     agent_selection: Optional[ToolSelection] = None
-    selection: Optional[ToolSelection] = None
 
     @classmethod
     def from_config(cls, config: Any) -> "ToolPolicy":
         agent_selection = build_agent_tool_selection(config)
-        selection: Optional[ToolSelection]
-        try:
-            selection = load_tool_selection()
-        except Exception:
-            logger.debug(
-                "Failed to load dev tool selection; continuing without it.",
-                exc_info=True,
-            )
-            selection = None
         return cls(
             config=config,
             agent_selection=agent_selection,
-            selection=selection,
         )
 
     def filter_tool_names(
         self,
         tool_names: Sequence[str],
-        selection: Optional[ToolSelection] | object = _UNSET,
     ) -> List[str]:
         filtered = [name for name in tool_names if isinstance(name, str)]
         filtered = self._filter_web_search_names(filtered)
@@ -72,16 +54,11 @@ class ToolPolicy:
 
         if self.agent_selection is not None:
             filtered = self.agent_selection.filter_tool_names(filtered)
-
-        effective_selection = self._resolve_selection(selection)
-        if effective_selection is not None:
-            filtered = effective_selection.filter_tool_names(filtered)
         return filtered
 
     def filter_tool_schemas(
         self,
         tool_schemas: Sequence[Dict[str, Any]],
-        selection: Optional[ToolSelection] | object = _UNSET,
     ) -> List[Dict[str, Any]]:
         filtered = list(tool_schemas)
         filtered = self._filter_web_search_schemas(filtered)
@@ -102,16 +79,11 @@ class ToolPolicy:
 
         if self.agent_selection is not None:
             filtered = self.agent_selection.filter_tool_schemas(filtered)
-
-        effective_selection = self._resolve_selection(selection)
-        if effective_selection is not None:
-            filtered = effective_selection.filter_tool_schemas(filtered)
         return filtered
 
     def filter_projected_tool_schemas(
         self,
         tool_schemas: Sequence[Dict[str, Any]],
-        selection: Optional[ToolSelection] | object = _UNSET,
     ) -> List[Dict[str, Any]]:
         """
         Apply selection-only pruning after provider projection.
@@ -121,15 +93,7 @@ class ToolPolicy:
         tool declarations, but still prune grounded function schemas so disabled
         OCR/prediction fields do not leak into the model-facing surface.
         """
-        selections = [
-            policy_selection
-            for policy_selection in (
-                self.agent_selection,
-                self._resolve_selection(selection),
-            )
-            if policy_selection is not None
-        ]
-        if not selections:
+        if self.agent_selection is None:
             return list(tool_schemas)
 
         filtered: List[Dict[str, Any]] = []
@@ -141,12 +105,9 @@ class ToolPolicy:
                 filtered.append(schema)
                 continue
             schema_candidates = [schema]
-            for policy_selection in selections:
-                schema_candidates = policy_selection.filter_tool_schemas(
-                    schema_candidates
-                )
-                if not schema_candidates:
-                    break
+            schema_candidates = self.agent_selection.filter_tool_schemas(
+                schema_candidates
+            )
             filtered.extend(schema_candidates)
         return filtered
 
@@ -154,25 +115,18 @@ class ToolPolicy:
         self,
         tool_name: str,
         args: Dict[str, Any],
-        selection: Optional[ToolSelection] | object = _UNSET,
     ) -> List[str]:
         if tool_name != "mouse_control":
             return []
 
         errors: List[str] = []
-        selections = [
-            ("agent capability policy", self.agent_selection),
-            ("dev tool selection", self._resolve_selection(selection)),
-        ]
-        for label, effective_selection in selections:
-            if effective_selection is None:
-                continue
+        if self.agent_selection is not None:
             errors.extend(
                 self._get_method_validation_errors_for_selection(
                     tool_name,
                     args,
-                    effective_selection,
-                    policy_label=label,
+                    self.agent_selection,
+                    policy_label="agent capability policy",
                 )
             )
         return errors
@@ -216,17 +170,11 @@ class ToolPolicy:
 
     def get_allowed_mouse_coordinate_methods(
         self,
-        selection: Optional[ToolSelection] | object = _UNSET,
     ) -> frozenset[str]:
         allowed_methods = frozenset(("manual", "ocr", "prediction"))
-        for effective_selection in (
-            self.agent_selection,
-            self._resolve_selection(selection),
-        ):
-            if effective_selection is None:
-                continue
+        if self.agent_selection is not None:
             allowed_methods = allowed_methods.intersection(
-                effective_selection.get_allowed_mouse_coordinate_methods()
+                self.agent_selection.get_allowed_mouse_coordinate_methods()
             )
         return frozenset(
             method
@@ -236,27 +184,13 @@ class ToolPolicy:
 
     def should_initialize_ocr(
         self,
-        selection: Optional[ToolSelection] | object = _UNSET,
     ) -> bool:
-        effective_selection = self._resolve_selection(selection)
-        return "ocr" in self.get_allowed_mouse_coordinate_methods(effective_selection)
+        return "ocr" in self.get_allowed_mouse_coordinate_methods()
 
     def should_initialize_vision(
         self,
-        selection: Optional[ToolSelection] | object = _UNSET,
     ) -> bool:
-        effective_selection = self._resolve_selection(selection)
-        return "prediction" in self.get_allowed_mouse_coordinate_methods(
-            effective_selection
-        )
-
-    def _resolve_selection(
-        self,
-        selection: Optional[ToolSelection] | object,
-    ) -> Optional[ToolSelection]:
-        if selection is _UNSET:
-            return self.selection
-        return selection
+        return "prediction" in self.get_allowed_mouse_coordinate_methods()
 
     def _get_config_disabled_tools(self) -> set[str]:
         return disabled_tools_from_config(self.config)

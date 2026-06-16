@@ -146,8 +146,6 @@ async def test_execute_tools_from_response_preserves_missing_request_id_placehol
 
 def test_get_available_tools_returns_capabilities():
     orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
-    # Keep this unit deterministic regardless of local dev tool-selection config.
-    orchestrator._tool_policy.selection = None
 
     tools = orchestrator.get_available_tools()
 

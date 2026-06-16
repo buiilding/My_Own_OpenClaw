@@ -167,7 +167,7 @@ Test-backed behavior:
 If prediction method reports service unavailable:
 
 1. inspect `VisionService.is_initialized` and `initialization_error`
-2. confirm startup gating (`ToolPolicy.should_initialize_vision`) if dev selection is active
+2. confirm startup gating (`ToolPolicy.should_initialize_vision`) against the effective agent capability policy
 3. inspect provider dependencies (`transformers`, model class availability)
 
 If coordinates parse but click lands in wrong place:

@@ -2,8 +2,8 @@
 summary: "Backend tools docs sub-hub for remote-tool registry/domain surfaces, policy/selection boundaries, security controls, and tool-result ingress orchestration."
 read_when:
   - When changing backend remote-tool registration, schema declaration generation, or browser compatibility schema surface.
-  - When changing interaction allowlist/dev tool-selection filtering or mouse coordinate-method policy behavior.
-  - When changing core tool-security boundaries, dev tool selection policy, or sidecar compatibility rules.
+  - When changing interaction allowlist, agent capability filtering, or mouse coordinate-method policy behavior.
+  - When changing core tool-security boundaries, agent capability policy, or sidecar compatibility rules.
   - When debugging tool-result ingress, future resolution, or bundle execution wait behavior.
 title: "Backend Tools Docs Hub"
 ---
@@ -29,7 +29,7 @@ title: "Backend Tools Docs Hub"
 - [Browser Remote Schema Surface Reference](browser/browser_remote_schema_surface_reference.md)
 - [Browser Control Unified Schema Reference](browser/schema/browser_control_unified_schema_reference.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
-- [Tool Policy and Dev Tool Selection Runtime Reference](policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+- [Tool Policy and Agent Capability Runtime Reference](policy/tool_policy_and_agent_capability_runtime_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
 - [Tool Domain and Category Enum Contract Reference](contracts/tool_domain_and_category_enum_contract_reference.md)
 - [Computer Tool Schema Guidance and Unified Envelope Validation Reference](contracts/computer_tool_schema_guidance_and_unified_envelope_validation_reference.md)

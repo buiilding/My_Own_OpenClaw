@@ -18,7 +18,6 @@ class ToolCallValidator:
         self.metrics = metrics
         self.limits = limits
         self._tool_policy = ToolPolicy.from_config(config)
-        self._valid_tool_name_cache_selection = None
         self._valid_tool_name_cache: Optional[
             tuple[List[str], set[str]]
         ] = None
@@ -160,22 +159,13 @@ class ToolCallValidator:
         return set(display_tool_names)
 
     def _get_valid_tool_name_index(self) -> tuple[List[str], set[str]]:
-        """
-        Return cached valid tool names + set for repeated per-call lookups.
-
-        Cache is scoped to the current policy selection object.
-        """
-        selection = self._tool_policy.selection
-        if (
-            self._valid_tool_name_cache is not None
-            and self._valid_tool_name_cache_selection is selection
-        ):
+        """Return cached valid tool names + set for repeated per-call lookups."""
+        if self._valid_tool_name_cache is not None:
             return self._valid_tool_name_cache
 
         valid_tool_names = self._compute_valid_tool_names()
         valid_tool_name_set = self._compute_allowed_tool_name_set(valid_tool_names)
         self._valid_tool_name_cache = (valid_tool_names, valid_tool_name_set)
-        self._valid_tool_name_cache_selection = selection
         return self._valid_tool_name_cache
 
     def _get_valid_tool_names(self) -> List[str]:

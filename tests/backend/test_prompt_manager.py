@@ -208,9 +208,8 @@ def test_render_system_prompt_accepts_explicit_operating_system(tmp_path, monkey
     )
 
 
-def test_render_system_prompt_filters_method_gated_sections_from_dev_tool_selection(
+def test_render_system_prompt_keeps_method_gated_sections_without_explicit_methods(
     tmp_path,
-    monkeypatch,
 ):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text(
@@ -225,32 +224,18 @@ def test_render_system_prompt_filters_method_gated_sections_from_dev_tool_select
         ),
         encoding="utf-8",
     )
-    selection_file = tmp_path / "tool_selection.toml"
-    selection_file.write_text(
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual"]\n'
-        ),
-        encoding="utf-8",
-    )
-    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(selection_file))
-
     manager = PromptManager()
     manager.initialize(prompt_file)
 
     rendered = manager.system_prompt
     assert "base" in rendered
-    assert "ocr guidance" not in rendered
-    assert "prediction guidance" not in rendered
+    assert "ocr guidance" in rendered
+    assert "prediction guidance" in rendered
     assert "tool_selection:" not in rendered
 
 
 def test_render_system_prompt_uses_effective_coordinate_methods_when_provided(
     tmp_path,
-    monkeypatch,
 ):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text(
@@ -265,10 +250,6 @@ def test_render_system_prompt_uses_effective_coordinate_methods_when_provided(
         ),
         encoding="utf-8",
     )
-    selection_file = tmp_path / "tool_selection.toml"
-    selection_file.write_text("enabled = false\n", encoding="utf-8")
-    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(selection_file))
-
     manager = PromptManager()
     manager.initialize(prompt_file)
 

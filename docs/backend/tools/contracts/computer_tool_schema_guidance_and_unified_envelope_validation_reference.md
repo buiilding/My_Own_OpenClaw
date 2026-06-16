@@ -109,7 +109,7 @@ Ownership split:
 
 `ToolCallValidator` applies additional enforcement after parser extraction:
 
-- allowed mouse coordinate methods are filtered by policy/dev tool selection
+- allowed mouse coordinate methods are filtered by policy
 - disabled coordinate methods raise `find_coordinates_by` validation errors
 - implicit manual calls (`x/y` without explicit mode) still fail when manual mode is disabled
 
@@ -124,7 +124,7 @@ Policy pruning boundary:
 Remote computer tool descriptions are part of schema prompt guidance and should now follow this rule:
 
 - describe what the tool itself does
-- keep wording valid after dev selection prunes fields
+- keep wording valid after agent capability policy prunes fields
 - avoid cross-tool references in the tool description
 - leave broader coordination strategy to the system prompt
 
@@ -143,5 +143,5 @@ Focused backend tests now lock the structural pruning contract plus the stable d
 ## Related Docs
 
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](../remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
-- [Tool Policy and Dev Tool Selection Runtime Reference](../policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+- [Tool Policy and Agent Capability Runtime Reference](../policy/tool_policy_and_agent_capability_runtime_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)

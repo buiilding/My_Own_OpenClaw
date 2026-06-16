@@ -6,10 +6,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from backend.src.agent.llm.conversation_context import ConversationContext
-from backend.src.agent.session.capability_application import (
-    accepted_client_tool_names,
-    merge_runtime_tools_into_prompt_policy,
-)
 from backend.src.llm.prompts import PromptConstructor
 
 if TYPE_CHECKING:
@@ -67,17 +63,6 @@ class SessionConfigRuntime:
         session.prompt_builder.client_tool_schemas = list(
             getattr(previous_prompt, "client_tool_schemas", []) or []
         )
-        runtime = getattr(session, "runtime", None)
-        merge_runtime_tools_into_prompt_policy(
-            session.prompt_builder,
-            accepted_tool_names=accepted_client_tool_names(
-                getattr(runtime, "client_tool_manifest", None)
-                if runtime is not None
-                else None
-            ),
-            previous_tool_names=[],
-        )
-
         session.executor.prompt_builder = session.prompt_builder
         session.executor.interaction_loop.prompt_coordinator = ConversationContext(
             prompt_constructor=session.prompt_builder,

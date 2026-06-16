@@ -10,7 +10,6 @@ from backend.src.llm.prompts.prompt_images import (
     policy_from_config,
 )
 from backend.src.tools.tool_policy import ToolPolicy
-from backend.src.tools.tool_selection import ToolSelection
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -186,11 +185,6 @@ def apply_client_capability_to_session(
         previous_tool_names=previous_client_tool_names,
     )
     _apply_capability_config_overrides(session, overrides)
-    merge_runtime_tools_into_prompt_policy(
-        prompt_builder,
-        accepted_tool_names=accepted_names,
-        previous_tool_names=previous_client_tool_names,
-    )
 
     filtered_client_count = 0
     tool_policy = getattr(prompt_builder, "tool_policy", None)
@@ -289,35 +283,6 @@ def merge_runtime_tools_into_config_overrides(
     ]
     overrides["tool_allowlist"] = _dedupe_strings(
         [*base_allowlist, *accepted_tool_names]
-    )
-
-
-def merge_runtime_tools_into_prompt_policy(
-    prompt_builder: Any,
-    *,
-    accepted_tool_names: list[str],
-    previous_tool_names: list[str],
-) -> None:
-    if prompt_builder is None or (not accepted_tool_names and not previous_tool_names):
-        return
-    tool_policy = getattr(prompt_builder, "tool_policy", None)
-    if not isinstance(tool_policy, ToolPolicy):
-        return
-    selection = tool_policy.selection
-    if selection is None or not selection.enabled or selection.mode != "allowlist":
-        return
-
-    previous_tool_set = set(previous_tool_names)
-    base_tools = [
-        name
-        for name in selection.tools
-        if isinstance(name, str) and name not in previous_tool_set
-    ]
-    tool_policy.selection = ToolSelection(
-        enabled=selection.enabled,
-        mode=selection.mode,
-        tools=frozenset(_dedupe_strings([*base_tools, *accepted_tool_names])),
-        mouse_enabled_coordinate_methods=selection.mouse_enabled_coordinate_methods,
     )
 
 

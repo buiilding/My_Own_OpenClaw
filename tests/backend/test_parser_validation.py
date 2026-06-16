@@ -5,7 +5,6 @@ import pytest
 from backend.src.core.config.models import SecurityLimits
 from backend.src.core.infrastructure.error_types import ParseValidationError
 from backend.src.llm.parser_validation import ToolCallValidator
-from backend.src.tools.tool_selection import ToolSelection
 from tests.backend.tool_validator_test_utils import DummyRegistry, make_tool_call_validator
 
 
@@ -27,33 +26,25 @@ class CountingRegistry(DummyRegistry):
         return self._tool_names
 
 
-def _configure_mouse_coordinate_methods(monkeypatch: pytest.MonkeyPatch, tmp_path, methods: str) -> None:
-    config_path = tmp_path / "tool_selection.toml"
-    config_path.write_text(
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            f"enabled_coordinate_methods = [{methods}]\n"
-        ),
-        encoding="utf-8",
-    )
-    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
-
-
-def _make_validator(tool_names, interaction_mode="agent"):
+def _make_validator(tool_names, interaction_mode="agent", **config_overrides):
     return _make_validator_for_registry(
         DummyRegistry(tool_names),
         interaction_mode=interaction_mode,
+        **config_overrides,
     )
 
 
-def _make_validator_for_registry(tool_registry, interaction_mode="agent", limits=None):
+def _make_validator_for_registry(
+    tool_registry,
+    interaction_mode="agent",
+    limits=None,
+    **config_overrides,
+):
     return make_tool_call_validator(
         tool_registry,
         interaction_mode=interaction_mode,
         limits=limits,
+        **config_overrides,
     )
 
 
@@ -104,12 +95,12 @@ def test_validate_tool_call_applies_chat_mode_allowlist():
 
 
 def test_validate_tool_call_rejects_disabled_mouse_prediction_method(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
 ):
-    _configure_mouse_coordinate_methods(monkeypatch, tmp_path, '"manual", "ocr"')
-
-    validator, _metrics = _make_validator(["mouse_control"], interaction_mode="agent")
+    validator, _metrics = _make_validator(
+        ["mouse_control"],
+        interaction_mode="agent",
+        agent_coordinate_methods=["manual", "ocr"],
+    )
 
     with pytest.raises(ParseValidationError, match="find_coordinates_by"):
         validator.validate_tool_call(
@@ -119,24 +110,24 @@ def test_validate_tool_call_rejects_disabled_mouse_prediction_method(
 
 
 def test_validate_tool_call_rejects_implicit_manual_when_manual_disabled(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
 ):
-    _configure_mouse_coordinate_methods(monkeypatch, tmp_path, '"ocr"')
-
-    validator, _metrics = _make_validator(["mouse_control"], interaction_mode="agent")
+    validator, _metrics = _make_validator(
+        ["mouse_control"],
+        interaction_mode="agent",
+        agent_coordinate_methods=["ocr"],
+    )
 
     with pytest.raises(ParseValidationError, match="find_coordinates_by"):
         validator.validate_tool_call("mouse_control", {"action": "click", "x": 10, "y": 20})
 
 
 def test_validate_tool_call_accepts_enabled_mouse_ocr_method(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
 ):
-    _configure_mouse_coordinate_methods(monkeypatch, tmp_path, '"ocr"')
-
-    validator, _metrics = _make_validator(["mouse_control"], interaction_mode="agent")
+    validator, _metrics = _make_validator(
+        ["mouse_control"],
+        interaction_mode="agent",
+        agent_coordinate_methods=["ocr"],
+    )
     validator.validate_tool_call(
         "mouse_control",
         {"action": "click", "find_coordinates_by": "ocr", "ocr_text": "Submit"},
@@ -207,7 +198,6 @@ def test_serialized_param_size_returns_none_for_unserializable_payload():
 def test_validate_tool_call_whitelist_error_truncates_sorted_tool_display():
     tool_names = [f"tool_{index:02d}" for index in range(20, 0, -1)]
     validator, _metrics = _make_validator(tool_names)
-    validator._tool_policy.selection = None
 
     with pytest.raises(ParseValidationError) as exc:
         validator.validate_tool_call("missing_tool", {})
@@ -226,18 +216,10 @@ def test_validate_tool_call_reuses_valid_tool_cache_across_calls():
     assert registry.calls == 1
 
 
-def test_validate_tool_call_invalidates_cache_when_dev_selection_changes():
+def test_validate_tool_call_reuses_valid_tool_cache_after_policy_construction():
     registry = CountingRegistry(["read_file"])
     validator, _metrics = _make_validator_for_registry(registry)
-    validator._tool_policy.selection = None
 
     validator.validate_tool_call("read_file", {"file_path": "/tmp/a"})
-    assert registry.calls == 1
-
-    validator._tool_policy.selection = ToolSelection(
-        enabled=True,
-        mode="allowlist",
-        tools=frozenset({"read_file"}),
-    )
     validator.validate_tool_call("read_file", {"file_path": "/tmp/b"})
-    assert registry.calls == 2
+    assert registry.calls == 1

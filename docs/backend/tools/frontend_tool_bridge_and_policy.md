@@ -2,7 +2,7 @@
 summary: "Backend tool surface that is schema-driven and frontend-executed, including policy filtering and sidecar compatibility constraints."
 read_when:
   - When adding/removing tools across backend and sidecar.
-  - When changing tool allowlist/dev-selection behavior.
+  - When changing tool allowlist or agent capability behavior.
 title: "Frontend Tool Bridge and Policy"
 ---
 
@@ -62,7 +62,7 @@ Policy service:
 Current controls:
 
 - interaction-mode allowlist (`config.get_tool_allowlist()` path)
-- optional dev tool selection file integration
+- agent capability policy from effective `AppConfig`
 - method-level validation for mouse coordinate modes (`manual`, `ocr`, `prediction`)
 - startup gating for OCR/vision initialization based on allowed methods
 
@@ -100,5 +100,5 @@ When adding a tool:
 
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
 - [Browser Remote Schema Surface Reference](browser/browser_remote_schema_surface_reference.md)
-- [Tool Policy and Dev Tool Selection Runtime Reference](policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+- [Tool Policy and Agent Capability Runtime Reference](policy/tool_policy_and_agent_capability_runtime_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)

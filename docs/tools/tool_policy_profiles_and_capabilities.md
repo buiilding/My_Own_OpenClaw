@@ -2,7 +2,7 @@
 summary: "WindieOS tool policy guide covering interaction allowlists, agent tool profiles, disabled tools/capabilities, coordinate methods, web-search exposure, browser capability policy, and validation."
 read_when:
   - When a tool is unexpectedly hidden from the model or visible when it should be disabled.
-  - When changing agent tool profiles, coordinate method gates, browser automation policy, web-search capability routing, or dev tool selection.
+  - When changing agent tool profiles, coordinate method gates, browser automation policy, or web-search capability routing.
 title: "Tool Policy Profiles and Capabilities"
 ---
 
@@ -22,7 +22,6 @@ Tool visibility is not just the static catalog. Backend `ToolPolicy` narrows too
 | `agent_provider_unavailable_capabilities` | provider health policy | Removes capabilities known unavailable before prompt construction |
 | `agent_coordinate_methods` | config/session policy | Narrows mouse/scroll coordinate methods |
 | `agent_available_coordinate_methods` | specialized websocket `agent_definition` or compatibility capability fields | Optional narrowing input for clients that truly lack a coordinate method; Electron does not send it |
-| dev tool selection | local development config | Optional local structural pruning layer |
 | provider projection | backend provider layer | May add or adapt provider-native declarations after canonical filtering |
 
 Primary files:
@@ -44,7 +43,7 @@ Primary files:
 | `full` | `browser`, `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_window`, `wait`, `get_open_windows`, `get_system_stats`, `run_shell_command`, `open_app`, `process`, `read_file`, `replace`, `web_search` |
 | `default` or `custom` | no profile allowlist by itself |
 
-Profile tools are still narrowed by available tools, disabled tools, disabled capabilities, provider health, and dev selection.
+Profile tools are still narrowed by available tools, disabled tools, disabled capabilities, and provider health.
 Provider projection reuses `ToolPolicy.from_config(...)`, so direct calls to
 `project_tool_schemas_for_provider(...)` cannot bypass those config-driven
 tool availability and disabled-tool gates.
@@ -56,7 +55,7 @@ treated as unavailable.
 
 ### Browser
 
-`browser` follows the same model-visible policy path as other client-local tools: it must be present in the accepted client manifest or backend catalog, and it can be narrowed by profiles, available tools, disabled tools, disabled capabilities, provider-unavailable capabilities, or dev selection.
+`browser` follows the same model-visible policy path as other client-local tools: it must be present in the accepted client manifest or backend catalog, and it can be narrowed by profiles, available tools, disabled tools, disabled capabilities, or provider-unavailable capabilities.
 
 Check:
 
@@ -126,9 +125,8 @@ Use this order:
    clients, the backend may also derive it from top-level handshake
    compatibility fields.
 6. Check disabled capabilities and provider-unavailable capabilities.
-7. Check dev tool selection.
-8. Check provider projection if the provider adds native declarations.
-9. If local execution is expected, confirm sidecar `EXPOSED_TO_BACKEND_TOOL_NAMES` and registry registration.
+7. Check provider projection if the provider adds native declarations.
+8. If local execution is expected, confirm sidecar `EXPOSED_TO_BACKEND_TOOL_NAMES` and registry registration.
 
 ## Debugging Unexpectedly Visible Tools
 
@@ -145,7 +143,7 @@ Use this order:
 Backend:
 
 - `tests/backend/test_tool_policy.py`
-- `tests/backend/test_dev_tool_selection.py`
+- `tests/backend/test_tool_selection.py`
 - `tests/backend/test_tool_registry_schema.py`
 - `tests/backend/test_web_search_tool.py`
 

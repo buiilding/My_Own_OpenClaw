@@ -429,10 +429,7 @@ def test_client_tool_manifest_uses_client_schema_for_builtin_tools():
     )
 
 
-def test_prompt_constructor_merges_client_tool_schemas_after_policy(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.tools.tool_policy.load_tool_selection", lambda: None
-    )
+def test_prompt_constructor_merges_client_tool_schemas_after_policy():
     config = AppConfig(agent_available_tools=["my_tool"])
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     constructor = PromptConstructor(
@@ -459,11 +456,7 @@ def test_prompt_constructor_merges_client_tool_schemas_after_policy(monkeypatch)
 
 
 def test_prompt_constructor_policy_does_not_resurrect_disabled_client_tools(
-    monkeypatch,
 ):
-    monkeypatch.setattr(
-        "backend.src.tools.tool_policy.load_tool_selection", lambda: None
-    )
     config = AppConfig(agent_available_tools=["allowed_tool"])
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     constructor = PromptConstructor(
@@ -491,10 +484,7 @@ def test_prompt_constructor_policy_does_not_resurrect_disabled_client_tools(
     ]
 
 
-def test_prompt_constructor_client_schema_replaces_registry_schema(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.tools.tool_policy.load_tool_selection", lambda: None
-    )
+def test_prompt_constructor_client_schema_replaces_registry_schema():
     config = AppConfig(agent_available_tools=["read_file"])
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     constructor = PromptConstructor(

@@ -11,8 +11,6 @@ import threading
 from pathlib import Path
 from typing import Iterable, Optional
 
-from backend.src.tools.tool_selection import load_tool_selection
-
 _METHOD_SECTION_TAGS: tuple[str, ...] = ("ocr", "prediction")
 
 
@@ -61,11 +59,7 @@ def _filter_prompt_method_sections(
 ) -> str:
     """Strip prompt sections gated by the effective coordinate-method policy."""
     if allowed_coordinate_methods is None:
-        selection = load_tool_selection()
-        if selection is None:
-            allowed_methods = set(_METHOD_SECTION_TAGS)
-        else:
-            allowed_methods = set(selection.get_allowed_mouse_coordinate_methods())
+        allowed_methods = set(_METHOD_SECTION_TAGS)
     else:
         allowed_methods = {
             method for method in allowed_coordinate_methods if isinstance(method, str)

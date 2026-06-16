@@ -1,12 +1,12 @@
 ---
-summary: "Deep backend reference for ToolPolicy and ToolSelection internals: allowlist/denylist precedence, mouse method schema pruning, parser-time method validation, startup OCR/vision gating, and selection cache invalidation semantics."
+summary: "Deep backend reference for ToolPolicy and agent capability selection: profile precedence, mouse method schema pruning, parser validation, and startup OCR/vision gating."
 read_when:
-  - When changing backend tool policy rules or `backend/dev/tool_selection*.toml` behavior.
+  - When changing backend tool policy rules, agent tool profiles, or coordinate-method gates.
   - When debugging tool whitelist errors, mouse method denial messages, or startup OCR/vision unexpectedly enabled or skipped.
-title: "Tool Policy and Dev Tool Selection Runtime Reference"
+title: "Tool Policy and Agent Capability Runtime Reference"
 ---
 
-# Tool Policy, Agent Capability Policy, and Dev Tool Selection Runtime Reference
+# Tool Policy and Agent Capability Runtime Reference
 
 This page documents policy behavior implemented in:
 
@@ -18,7 +18,7 @@ This page documents policy behavior implemented in:
 - `backend/src/tools/orchestrator.py`
 - `backend/src/core/container/initializer.py`
 - `tests/backend/test_tool_policy.py`
-- `tests/backend/test_dev_tool_selection.py`
+- `tests/backend/test_tool_selection.py`
 
 ## Policy Layers and Precedence
 
@@ -27,19 +27,17 @@ Tool exposure filtering is layered in this order:
 1. config-driven hard disables (`ToolPolicy._get_config_disabled_tools()`)
 2. interaction-mode allowlist from runtime config (`config.get_tool_allowlist()`)
 3. session/server agent capability policy from typed `AppConfig` fields
-4. legacy dev tool-selection policy (`ToolSelection`) when enabled
 
 `ToolPolicy.filter_tool_names(...)` and `ToolPolicy.filter_tool_schemas(...)`
-apply both layers in that order. Tool-name filtering is direct-name only:
+apply those gates in that order. Tool-name filtering is direct-name only:
 callers pass canonical model-visible tool names, and policy does not normalize
 old wrapper names into executable tool names.
 
 Practical effect:
 
-- interaction-mode restrictions always apply, even when dev selection is disabled
-- config hard-disables always apply before allowlist/selection filtering
-- agent capability policy can narrow what remains per effective user/session config
-- dev selection remains a legacy local-development narrowing layer and should not be treated as the production source of truth
+- interaction-mode restrictions always apply
+- config hard-disables always apply before allowlist or capability filtering
+- agent capability policy narrows what remains per effective user/session config
 
 Current config hard-disable:
 
@@ -49,8 +47,8 @@ Current config hard-disable:
 
 ## Agent Capability Policy
 
-Agent capability policy is the backend-owned production path for changing what the
-model can see without restarting the backend.
+Agent capability policy is the backend-owned production path for changing what
+the model can see without restarting the backend.
 
 Typed config fields:
 
@@ -66,7 +64,7 @@ Profile behavior:
 
 - `default` preserves existing `interaction_mode` plus `tool_allowlist` behavior.
 - `chat`, `coding`, `browser`, `computer`, and `full` apply built-in allowlists from `backend/src/tools/agent_capability_policy.py`.
-- `custom` does not add a built-in allowlist; use `tool_allowlist`/`agent_disabled_tools` to shape it.
+- `custom` does not add a built-in allowlist; use `tool_allowlist` or `agent_disabled_tools` to shape it.
 
 Coordinate/capability behavior:
 
@@ -75,15 +73,14 @@ Coordinate/capability behavior:
 - `agent_disabled_capabilities=["ocr"]` removes OCR coordinate fields and rejects OCR method calls.
 - `agent_disabled_capabilities=["vision"]` removes prediction coordinate fields and rejects prediction method calls.
 - `agent_provider_unavailable_capabilities=["ocr", "vision"]` has the same prompt/schema effect as explicit disables, but is computed from backend provider health instead of user/session preference.
-- These gates are evaluated from the effective `AppConfig`, so `SessionManager` user overrides can give different users different model-visible tool surfaces in the same backend process.
 
 The WebSocket handshake can populate `agent_available_tools`,
 `agent_available_coordinate_methods`, and requested policy fields before the
-first query. `available_coordinate_methods`, `requested_agent_policy.coordinate_methods`,
-and agent-definition `runtime.coordinate_methods` all converge on
+first query. `available_coordinate_methods`, requested agent policy coordinate
+methods, and agent-definition runtime coordinate methods all converge on
 `agent_available_coordinate_methods` because they describe client/session
 availability. These client-provided fields are narrowing inputs only; they do
-not override backend hard-disables or legacy dev-selection narrowing.
+not override backend hard-disables.
 
 Provider-health gates are also narrowing inputs. The container-backed session
 manager resolves known OCR, vision, embeddings, and web-search availability when
@@ -94,26 +91,25 @@ building effective session config:
 - disabled/missing embedding provider -> `embeddings`
 - no native web-search mode and no Brave fallback -> `web_search`
 
-This layer intentionally reuses `ToolSelection` as its structural selection
-object so prompt schema filtering, parser validation, projected-schema pruning,
-and available-tool listing stay aligned.
+This layer intentionally reuses `ToolSelection` as its structural value object
+so prompt schema filtering, parser validation, projected-schema pruning, and
+available-tool listing stay aligned.
 
-## Legacy ToolSelection Config Model
+## ToolSelection Value Object
 
-`backend/dev/tool_selection*.toml` remains supported as a local development
-compatibility layer. It should be removed once production agent capability
-policy covers all needed profile and testing flows.
+`ToolSelection` is the in-memory value object built by agent capability policy
+from effective `AppConfig`.
 
-`ToolSelection` fields:
+Fields:
 
 - `enabled`
 - `mode` (`allowlist` or `denylist`)
 - `tools` (name set)
 - `mouse_enabled_coordinate_methods` (`manual|ocr|prediction`, optional)
 
-Top-level enable rules:
+Top-level rules:
 
-- if `enabled=false`, selection returns `None` and policy acts as if dev selection is absent
+- `enabled=false` makes the selection transparent
 - allowlist keeps only named tools
 - denylist removes named tools
 
@@ -123,10 +119,9 @@ Mouse policy has method-level controls beyond tool name visibility.
 
 `get_allowed_mouse_coordinate_methods()` behavior:
 
-- if `mouse_control` disabled by top-level selection mode, returns empty set
-- if enabled and no per-method list configured, all methods allowed
-- if explicit method list configured, only those methods are allowed
-- if `enabled_coordinate_methods` is malformed, the parser ignores that field and preserves the default all-methods behavior
+- if `mouse_control` is disabled by top-level selection mode, returns an empty set
+- if enabled and no per-method list is configured, all methods are allowed
+- if an explicit method list is configured, only those methods are allowed
 
 If allowed method set is empty:
 
@@ -134,7 +129,8 @@ If allowed method set is empty:
 
 ## Schema Pruning for Mouse Methods
 
-`ToolSelection.filter_tool_schemas(...)` performs deep schema edits for grounded desktop schemas that share the coordinate-method contract.
+`ToolSelection.filter_tool_schemas(...)` performs deep schema edits for grounded
+desktop schemas that share the coordinate-method contract.
 
 Field/enum pruning behavior:
 
@@ -146,7 +142,7 @@ Field/enum pruning behavior:
   - `ocr` disabled -> remove `ocr_text`
   - `prediction` disabled -> remove `source_description`, `model_name`
 - removes matching JSON Schema conditional branches so disabled method names do not remain in `allOf`
-- preserves canonical field and tool descriptions; `ToolSelection` no longer rewrites prose
+- preserves canonical field and tool descriptions; `ToolSelection` does not rewrite prose
 
 Current grounded schema coverage:
 
@@ -154,10 +150,6 @@ Current grounded schema coverage:
 - `scroll_control`
 - `grounded_mouse_action`
 - `grounded_scroll_action`
-
-Schema path:
-
-- supports the canonical flat function-tool spec shape
 
 ## Parsing-Time Validation Coupling
 
@@ -176,9 +168,13 @@ Method normalization:
 - `drag_to_find_coordinates_by` values are normalized through the same path
 - enum instances and mixed-case strings are normalized to lowercase strings
 
+The valid tool-name cache is stable for the validator lifetime because policy is
+constructed from immutable effective config at validator construction time.
+
 ## Prompt Injection Coupling
 
-`PromptConstructor._get_filtered_tool_schemas()` no longer filters final wrapper schemas directly.
+`PromptConstructor._get_filtered_tool_schemas()` no longer filters final wrapper
+schemas directly.
 
 Current flow:
 
@@ -193,11 +189,12 @@ Result:
 
 - LLM only sees policy-filtered tool schemas
 - prompt injection no longer depends on a separate schema-source helper path
-- grounded desktop schemas the LLM receives are pruned when dev selection disables OCR or prediction, including provider-projected grounded helpers
+- grounded desktop schemas the LLM receives are pruned when policy disables OCR or prediction, including provider-projected grounded helpers
 
 ## Available-Tools Listing Coupling
 
-`ToolResultOrchestrator.get_available_tools()` filters tool names via policy before returning capability metadata.
+`ToolResultOrchestrator.get_available_tools()` filters tool names via policy
+before returning capability metadata.
 
 Result:
 
@@ -219,55 +216,29 @@ This keeps startup cost aligned with currently enabled coordinate methods.
 
 ## System Prompt Coupling
 
-`PromptManager.render_system_prompt(...)` strips OCR/prediction sections from
-the rendered prompt template using the effective coordinate-method policy when
-one is provided, falling back to legacy dev tool-selection when called without
-session context.
+`PromptManager.render_system_prompt(...)` strips OCR/prediction sections from the
+rendered prompt template using the effective coordinate-method policy when one
+is provided. Without explicit coordinate methods, static prompt rendering keeps
+both sections because there is no runtime policy context to apply.
 
 Result:
 
-- the runtime system prompt no longer references disabled OCR/prediction-only guidance
+- runtime system prompts no longer reference disabled OCR/prediction-only guidance
 - prompt transparency stays aligned with the filtered model-facing tool surface
-
-## Selection File Loading and Cache Semantics
-
-`load_tool_selection(...)` behavior:
-
-- default file path: `backend/dev/tool_selection.toml`
-- env override: `WINDIEOS_DEV_TOOL_SELECTION_PATH`
-- missing file -> `None` (no selection)
-
-Cache key uses file signature tuple:
-
-- `mtime_ns`
-- `ctime_ns`
-- `size`
-
-Rationale:
-
-- protects against same-mtime rewrites (for example explicit `utime` operations)
-
-Parsing robustness:
-
-- invalid modes fall back to `denylist` with warning
-- non-string tool entries ignored
-- unknown mouse methods ignored with warning
-- malformed tables/arrays tolerated with warning and best-effort defaults
 
 ## Test-Backed Invariants
 
-From `test_tool_policy.py` and `test_dev_tool_selection.py`:
+From `test_tool_policy.py` and `test_tool_selection.py`:
 
 - interaction-mode allowlist filtering works independently
-- allowlist/denylist selection filtering works
+- agent selection allowlist/denylist filtering works
 - mouse method schema field pruning works
 - disabled method calls produce parser validation errors
 - empty mouse method list effectively disables mouse tool
 - OCR/vision startup helpers reflect allowed methods
-- cache refresh occurs even when file rewritten with same mtime
+- parser valid-tool caches are stable after policy construction
 
 ## Related Docs
 
-- [Dev Tool Selection (Backend)](../../../development/dev_tool_selection.md)
 - [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)
 - [Tool Security Policy and Executor Reference](../tool_security_policy_and_executor_reference.md)

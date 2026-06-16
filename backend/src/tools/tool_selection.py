@@ -1,32 +1,13 @@
-"""
-Dev Tool Selection.
-
-This module provides a lightweight, dev-oriented mechanism to filter which tool
-schemas are injected into the LLM prompt (and which tool calls are accepted).
-
-Configuration file (default):
-  backend/dev/tool_selection.toml
-
-Override path via env var:
-  WINDIEOS_DEV_TOOL_SELECTION_PATH=/abs/path/to/tool_selection.toml
-"""
+"""Structural tool selection value object for backend tool policy."""
 
 from __future__ import annotations
 
 import copy
-import hashlib
-import logging
-import os
-import tomllib
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 from backend.src.tools.tool_specs import get_tool_spec_name
 
-logger = logging.getLogger(__name__)
-
-_ENV_PATH = "WINDIEOS_DEV_TOOL_SELECTION_PATH"
 _MOUSE_COORD_METHODS: tuple[str, ...] = ("manual", "ocr", "prediction")
 _SOURCE_GROUNDED_TOOL_NAMES: frozenset[str] = frozenset(
     {
@@ -50,11 +31,6 @@ _DERIVED_TOOL_PARENT_NAMES: dict[str, str] = {
 
 def _ordered_mouse_methods(methods: Sequence[str]) -> List[str]:
     return [method for method in _MOUSE_COORD_METHODS if method in methods]
-
-
-def _default_selection_path() -> Path:
-    # WindieOS/backend/src/tools/tool_selection.py -> parents[2] == WindieOS/backend
-    return Path(__file__).resolve().parents[2] / "dev" / "tool_selection.toml"
 
 
 @dataclass(frozen=True, slots=True)
@@ -352,165 +328,5 @@ class ToolSelection:
         return True
 
     @staticmethod
-    def _normalize_tool_name(tool_name: str) -> str:
-        return tool_name
-
-    @staticmethod
     def _get_tool_name(schema: Dict[str, Any]) -> Optional[str]:
         return get_tool_spec_name(schema)
-
-
-_CACHE: dict[Path, tuple[tuple[int, int, int], str, Optional[ToolSelection]]] = {}
-
-
-def _cache_stat_signature(stat_result: os.stat_result) -> tuple[int, int, int]:
-    """
-    Return a file-change signature robust against same-mtime rewrites.
-
-    We intentionally include ctime and size in addition to mtime so cache
-    invalidation still works when a file is rewritten and its mtime is
-    preserved (for example, via explicit utime calls in tooling/scripts).
-    """
-    return (stat_result.st_mtime_ns, stat_result.st_ctime_ns, stat_result.st_size)
-
-
-def _cache_content_signature(raw_bytes: bytes) -> str:
-    """Return a stable content fingerprint for same-size/same-mtime rewrites."""
-    return hashlib.blake2b(raw_bytes, digest_size=16).hexdigest()
-
-
-def _parse_selection(data: Dict[str, Any]) -> Optional[ToolSelection]:
-    enabled = bool(data.get("enabled", False))
-    if not enabled:
-        return None
-
-    mode_raw = data.get("mode", "denylist")
-    mode = str(mode_raw).strip().lower()
-    if mode not in {"allowlist", "denylist"}:
-        logger.warning(
-            "Invalid tool selection mode=%r (expected allowlist|denylist). Using denylist.",
-            mode_raw,
-        )
-        mode = "denylist"
-
-    tools_raw = data.get("tools", [])
-    tools: set[str] = set()
-    if isinstance(tools_raw, (list, tuple, set)):
-        for item in tools_raw:
-            if isinstance(item, str) and item.strip():
-                tools.add(item.strip())
-            elif item is not None:
-                logger.debug("Ignoring non-string tool selection entry: %r", item)
-    elif tools_raw is not None:
-        logger.warning(
-            "Invalid tool selection tools=%r (expected array). Ignoring.", tools_raw
-        )
-
-    mouse_methods: Optional[frozenset[str]] = None
-    tool_options = data.get("tool_options", {})
-    if isinstance(tool_options, dict):
-        mouse_cfg = tool_options.get("mouse_control", {})
-        if isinstance(mouse_cfg, dict) and "enabled_coordinate_methods" in mouse_cfg:
-            methods_raw = mouse_cfg.get("enabled_coordinate_methods")
-            parsed_methods: Optional[set[str]] = set()
-            if isinstance(methods_raw, (list, tuple, set)):
-                for item in methods_raw:
-                    if not isinstance(item, str):
-                        logger.debug(
-                            "Ignoring non-string mouse enabled_coordinate_methods entry: %r",
-                            item,
-                        )
-                        continue
-                    normalized = item.strip().lower()
-                    if normalized in _MOUSE_COORD_METHODS:
-                        parsed_methods.add(normalized)
-                    elif normalized:
-                        logger.warning(
-                            "Ignoring unknown mouse coordinate method '%s' (valid: %s)",
-                            normalized,
-                            ", ".join(_MOUSE_COORD_METHODS),
-                        )
-            else:
-                logger.warning(
-                    "Invalid mouse enabled_coordinate_methods=%r (expected array). Ignoring.",
-                    methods_raw,
-                )
-                parsed_methods = None
-            if parsed_methods is not None:
-                mouse_methods = frozenset(parsed_methods)
-    elif tool_options is not None:
-        logger.warning(
-            "Invalid tool_options=%r (expected table/object). Ignoring.", tool_options
-        )
-
-    return ToolSelection(
-        enabled=True,
-        mode=mode,
-        tools=frozenset(tools),
-        mouse_enabled_coordinate_methods=mouse_methods,
-    )
-
-
-def load_tool_selection(path: Optional[Path] = None) -> Optional[ToolSelection]:
-    """
-    Load tool selection config from TOML.
-
-    Returns:
-        ToolSelection if enabled; otherwise None.
-    """
-    if path is None:
-        env_path = os.getenv(_ENV_PATH)
-        path = Path(env_path).expanduser() if env_path else _default_selection_path()
-
-    try:
-        stat = path.stat()
-    except FileNotFoundError:
-        return None
-    except Exception as e:
-        logger.warning("Failed to stat tool selection file %s: %s", path, e)
-        return None
-
-    cached = _CACHE.get(path)
-    stat_signature = _cache_stat_signature(stat)
-
-    selection: Optional[ToolSelection] = None
-    content_signature = ""
-    try:
-        raw_bytes = path.read_bytes()
-        content_signature = _cache_content_signature(raw_bytes)
-        if cached and cached[0] == stat_signature and cached[1] == content_signature:
-            return cached[2]
-        data = tomllib.loads(raw_bytes.decode("utf-8"))
-        if isinstance(data, dict):
-            selection = _parse_selection(data)
-        else:
-            logger.warning(
-                "Tool selection file %s did not parse to a dict. Ignoring.", path
-            )
-            selection = None
-    except Exception as e:
-        logger.warning("Failed to load tool selection file %s: %s", path, e)
-        selection = None
-
-    _CACHE[path] = (stat_signature, content_signature, selection)
-    if selection is not None and selection.mode == "allowlist" and not selection.tools:
-        logger.warning(
-            "Tool selection enabled with allowlist mode but no tools configured (0 tools allowed)."
-        )
-    return selection
-
-
-def should_initialize_ocr(path: Optional[Path] = None) -> bool:
-    """Return whether OCR service should initialize at backend startup."""
-    selection = load_tool_selection(path)
-    if selection is None:
-        return True
-    return "ocr" in selection.get_allowed_mouse_coordinate_methods()
-
-
-def should_initialize_vision(path: Optional[Path] = None) -> bool:
-    """Return whether vision service should initialize at backend startup."""
-    selection = load_tool_selection(path)
-    if selection is None:
-        return True
-    return "prediction" in selection.get_allowed_mouse_coordinate_methods()

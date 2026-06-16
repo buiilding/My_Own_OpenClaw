@@ -42,7 +42,7 @@ Startup path:
 
 Policy source:
 
-- `ToolPolicy.should_initialize_ocr()` returns true only when dev tool selection allows `mouse_control` OCR method
+- `ToolPolicy.should_initialize_ocr()` returns true only when agent capability policy allows the `mouse_control` OCR method
 
 Test-backed behavior:
 
@@ -182,7 +182,7 @@ Test-backed behavior:
 
 If OCR never initializes:
 
-1. inspect dev tool selection policy (`should_initialize_ocr`)
+1. inspect agent capability policy (`should_initialize_ocr`)
 2. inspect RapidOCR import/dependency availability
 3. inspect container initializer logs for service disablement
 

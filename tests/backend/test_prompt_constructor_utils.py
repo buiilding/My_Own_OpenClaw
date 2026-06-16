@@ -201,26 +201,13 @@ def test_build_provider_prompt_stamps_client_prompt_layer_metadata_summary():
     ]
 
 
-def test_format_user_message_content_filters_mouse_coordinate_methods(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
-):
-    config_path = tmp_path / "tool_selection.toml"
-    config_path.write_text(
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual"]\n'
-        ),
-        encoding="utf-8",
-    )
-    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
-
+def test_format_user_message_content_filters_mouse_coordinate_methods():
     constructor = PromptConstructor(
         tool_registry=DummyRegistry([RemoteMouseTool().get_json_schema()]),
-        config=AppConfig(interaction_mode="agent"),
+        config=AppConfig(
+            interaction_mode="agent",
+            agent_coordinate_methods=["manual"],
+        ),
         metrics_service=MetricsService(),
         system_prompt="system",
     )
@@ -822,23 +809,11 @@ def test_build_provider_prompt_allowlisting_mouse_control_yields_single_direct_s
 
 
 def test_build_provider_prompt_real_registry_prunes_live_model_facing_grounding_schema(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
 ):
-    config_path = tmp_path / "tool_selection.toml"
-    config_path.write_text(
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control", "scroll_control"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual"]\n'
-        ),
-        encoding="utf-8",
+    config = AppConfig(
+        tool_allowlist=["mouse_control", "scroll_control"],
+        agent_coordinate_methods=["manual"],
     )
-    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
-
-    config = AppConfig(tool_allowlist=["mouse_control", "scroll_control"])
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     constructor = PromptConstructor(
         tool_registry=registry,
@@ -874,25 +849,11 @@ def test_build_provider_prompt_real_registry_prunes_live_model_facing_grounding_
 
 
 def test_build_provider_prompt_openai_projection_filters_grounded_tools_after_projection(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
 ):
-    config_path = tmp_path / "tool_selection.toml"
-    config_path.write_text(
-        (
-            "enabled = true\n"
-            'mode = "allowlist"\n'
-            'tools = ["mouse_control", "keyboard_control", "screenshot", "scroll_control", "wait"]\n'
-            "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual", "ocr"]\n'
-        ),
-        encoding="utf-8",
-    )
-    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
-
     config = AppConfig(
         interaction_mode="agent",
         model_provider="openai",
+        agent_coordinate_methods=["manual", "ocr"],
         tool_allowlist=[
             "mouse_control",
             "keyboard_control",

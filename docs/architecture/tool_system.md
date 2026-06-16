@@ -90,8 +90,7 @@ Catalog-driven declaration contract:
 - model visibility, declaration assembly, and runtime lookup all project from the same registered tool names
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
 - typed agent capability policy can narrow the model-visible tool surface per effective user/session config without rebuilding the registry or restarting the backend
-- dev tool selection is now structural-only: it prunes tool names, fields, enums/defaults, and conditional branches, but does not rewrite descriptions
-- dev tool selection remains a legacy local-development narrowing layer; production behavior should use the typed agent capability policy fields on `AppConfig`
+- agent capability selection prunes tool names, fields, enums/defaults, and conditional branches without rewriting descriptions
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
 - provider adapters still convert the internal flat tool spec into transport-specific formats when needed; that transport adaptation remains the main remaining schema-transformation drift risk
 - OpenAI now receives the same direct desktop function tools (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `wait`) as the canonical internal contract; provider-native adaptation is limited to features that remain intentionally native, such as OpenAI web search

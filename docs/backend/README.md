@@ -167,7 +167,7 @@ Covers:
 - [Browser Remote Schema Surface Reference](tools/browser/browser_remote_schema_surface_reference.md)
 - [Browser Control Unified Schema Reference](tools/browser/schema/browser_control_unified_schema_reference.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
-- [Tool Policy and Dev Tool Selection Runtime Reference](tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+- [Tool Policy and Agent Capability Runtime Reference](tools/policy/tool_policy_and_agent_capability_runtime_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
 - [Tool Domain and Category Enum Contract Reference](tools/contracts/tool_domain_and_category_enum_contract_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](tools/contracts/schema_field_factory_explanation_and_post_action_wait_contract_reference.md)

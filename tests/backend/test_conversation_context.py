@@ -15,10 +15,7 @@ class DummyRegistry:
         return self._schemas
 
 
-def test_get_prompt_rebuilds_static_prompt_layers_after_first_iteration(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.tools.tool_policy.load_tool_selection", lambda: None
-    )
+def test_get_prompt_rebuilds_static_prompt_layers_after_first_iteration():
     constructor = PromptConstructor(
         tool_registry=DummyRegistry(
             [

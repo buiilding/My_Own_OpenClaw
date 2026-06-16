@@ -361,7 +361,7 @@ contracts.
 - [**Backend Browser Remote Schema Surface**](backend/tools/browser/browser_remote_schema_surface_reference.md) - `BrowserControlArgs` unified action schema, action-specific validator models, canonical fields, and `RemoteBrowserTool` payload emission semantics
 - [**Backend Browser Control Unified Schema**](backend/tools/browser/schema/browser_control_unified_schema_reference.md) - Action literal surface, strict action models, grouped validation, and canonical schema projection contracts
 - [**Backend-Sidecar Browser Schema Parity + Validation Boundary**](backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md) - Cross-layer action/field parity checks and debugging flow for backend parse-success vs sidecar runtime rejection cases
-- [**Backend Tool Policy + Dev Tool Selection Runtime**](backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md) - `ToolPolicy` + `ToolSelection` precedence rules, mouse schema pruning, parser method validation, and OCR/vision startup gating behavior
+- [**Backend Tool Policy + Agent Capability Runtime**](backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md) - `ToolPolicy` + `ToolSelection` precedence rules, mouse schema pruning, parser method validation, and OCR/vision startup gating behavior
 - [**Backend Remote Tool Domain Payload + Request-ID Runtime**](backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md) - Domain stub matrix (computer/system/filesystem/browser), request-id sourcing/override behavior, and payload model_dump differences
 - [**Backend Query Lifecycle Change Workflow**](backend/runtime/query_lifecycle_change_workflow.md) - Owner routing for query ingress, active-task cancellation, stream completion, TTS, agent loop, and frontend event consumers
 - [**Backend Tool Turn Change Workflow**](backend/agent/tool_turn_change_workflow.md) - Owner routing for model-visible tool schemas, tool-call parsing, preparation, dispatch, waiting, history, and frontend/sidecar execution contracts
@@ -472,7 +472,6 @@ contracts.
 - [**Validation Commands**](cli/validation_commands.md) - Command-focused validation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
 - [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
 - Developer Guide includes current Windie CLI automation (`bin/windie docs list`, `bin/windie test all`, `bin/windie test backend`, `bin/windie test sidecar`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
-- [**Dev Tool Selection**](development/dev_tool_selection.md) - Backend-only tool schema allow/denylist controls for development
 - [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
 - [**API Reference**](reference/api_reference.md) - Complete API documentation
 - [**Extension Points**](architecture/extension_points.md) - How to extend the system

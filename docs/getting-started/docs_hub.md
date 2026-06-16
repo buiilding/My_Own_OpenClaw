@@ -797,7 +797,6 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Environment Setup](../development/environment_setup.md)
 - [Testing Guide](../development/testing.md)
 - [Tool Development](../development/tool_development.md)
-- [Dev Tool Selection](../development/dev_tool_selection.md)
 
 ### Operations
 

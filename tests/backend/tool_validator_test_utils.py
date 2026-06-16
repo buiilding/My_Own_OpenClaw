@@ -23,11 +23,17 @@ class DummyRegistry:
         return None
 
 
-def make_tool_call_validator(tool_registry, interaction_mode="agent", limits=None):
+def make_tool_call_validator(
+    tool_registry,
+    interaction_mode="agent",
+    limits=None,
+    **config_overrides,
+):
     resolved_limits = limits or SecurityLimits()
     config = AppConfig(
         interaction_mode=interaction_mode,
         security_limits=resolved_limits,
+        **config_overrides,
     )
     metrics = DummyMetrics()
     validator = ToolCallValidator(

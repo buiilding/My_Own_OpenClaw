@@ -25,7 +25,6 @@ Use this hub when you are about to edit code. It routes a change to the right su
 - [Testing Guide](testing.md)
 - [Contributing](contributing.md)
 - [Tool Development](tool_development.md)
-- [Dev Tool Selection](dev_tool_selection.md)
 
 ## Runtime Boundaries
 

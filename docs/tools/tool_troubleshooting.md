@@ -35,12 +35,11 @@ Questions to answer:
 4. Did the client provide `agent_available_tools` that excludes it?
 5. Is a disabled capability hiding it?
 6. Is provider health hiding `ocr`, `vision`, `embedding`, `browser`, or `web_search`?
-7. Is dev tool selection narrowing local development prompts?
 
 Read:
 
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md)
-- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md)
 
 ## Schema and Parser Failures
 
@@ -56,7 +55,7 @@ Read:
 
 - [Tool Contracts](tool_contracts.md)
 - [Backend Tool Registry and Schema Cache](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
-- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md)
 
 ## Dispatch and Execution Failures
 

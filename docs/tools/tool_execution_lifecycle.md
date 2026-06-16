@@ -22,7 +22,7 @@ event router.
 ## Lifecycle
 
 1. Backend builds canonical tool specs from `backend/src/tools/tool_catalog.py`.
-2. Backend `ToolPolicy` filters specs by interaction mode, agent profile, client capabilities, provider health, disabled tools, and dev selection.
+2. Backend `ToolPolicy` filters specs by interaction mode, agent profile, client capabilities, provider health, disabled tools, and agent capability policy.
 3. Prompt construction includes the filtered model-facing tools.
 4. The model emits one or more tool calls.
 5. Backend parser/tool bridge normalizes provider-native calls into WindieOS tool-call shapes.

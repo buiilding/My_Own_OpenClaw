@@ -1712,12 +1712,8 @@ async def test_sdk_debug_prompt_preview_maps_preview_contract_fields(
 @pytest.mark.asyncio
 async def test_sdk_debug_prompt_preview_applies_agent_definition(
     tmp_path,
-    monkeypatch,
     authenticated_install_identity,
 ) -> None:
-    monkeypatch.setattr(
-        "backend.src.tools.tool_policy.load_tool_selection", lambda: None
-    )
     container = _container(tmp_path)
 
     response = await sdk_routes.sdk_debug_prompt_preview(

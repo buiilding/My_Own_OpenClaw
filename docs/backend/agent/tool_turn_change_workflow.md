@@ -34,7 +34,7 @@ Frontend and sidecar code must not import backend tool schema code for parity. K
 
 | Symptom or request | First owner | Source roots | Start docs | Tests |
 | --- | --- | --- | --- | --- |
-| model cannot see a tool or sees the wrong schema | backend tool registry and policy | `backend/src/tools`, `backend/src/tools/tool_selection.py`, `backend/src/tools/registry` | [Tool Catalog Matrix](../../tools/tool_catalog_matrix.md), [Backend Tools Hub](../tools/README.md) | `tests/backend/test_tool_registry_schema.py`, `tests/backend/test_tool_policy.py`, `tests/backend/test_dev_tool_selection.py` |
+| model cannot see a tool or sees the wrong schema | backend tool registry and policy | `backend/src/tools`, `backend/src/tools/tool_selection.py`, `backend/src/tools/registry` | [Tool Catalog Matrix](../../tools/tool_catalog_matrix.md), [Backend Tools Hub](../tools/README.md) | `tests/backend/test_tool_registry_schema.py`, `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_selection.py` |
 | provider returns tool calls but parser drops them | LLM stream processor and tool-call bridge | `backend/src/agent/llm/llm_stream_processor.py`, `backend/src/agent/execution/tool_call_bridge.py` | [LLM Stream Processor Token Count and Cache Diagnostics Reference](llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md), [Native Tool-Call Bridge and History Mapping Reference](native_tool_call_bridge_and_history_mapping_reference.md) | `tests/backend/test_llm_stream_processor.py`, `tests/backend/test_interaction_tool_call_bridge.py` |
 | tool-call ID or request ID is missing | tool-call bridge, history staging, preparer | `backend/src/agent/execution/tool_call_bridge.py`, `backend/src/agent/history`, `backend/src/agent/tools/preparation` | [Tool-Call-ID Staging and Tool-Output History Row Contract Reference](history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md) | `tests/backend/test_resolved_tool_call_storage.py`, `tests/backend/test_tool_preparer.py` |
 | screenshot, OCR, or coordinate arguments are wrong | tool preparation and screen-grounding services | `backend/src/agent/tools/preparation`, `backend/src/services/screen_grounding`, `backend/src/services/ocr`, `backend/src/services/vision` | [Backend Tool Preparation and Coordinate Resolution Reference](../tools/tool_preparation_and_coordinate_resolution_reference.md), [Computer Tools](../../tools/computer.md) | `tests/backend/test_tool_preparer.py`, OCR/vision coordinate tests |
@@ -83,7 +83,7 @@ Validation:
 
 - `tests/backend/test_tool_registry_schema.py`
 - `tests/backend/test_tool_policy.py`
-- `tests/backend/test_dev_tool_selection.py`
+- `tests/backend/test_tool_selection.py`
 - provider-specific tool-call tests if a provider adapts schema shape.
 
 Docs to update:

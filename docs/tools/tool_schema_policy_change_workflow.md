@@ -20,7 +20,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 | add or change a client-local sidecar tool schema | Windie Agent manifest, then backend manifest envelope/policy checks | public `frontend/src/main/extensions/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
 | add, remove, or rename a model-visible remote tool | backend tool catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote.py`, `backend/src/tools/remote_tools/*` | [Tool Catalog Matrix](tool_catalog_matrix.md), [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md) | `tests/backend/test_remote_tool_contract.py`, `tests/backend/test_tool_registry_schema.py` |
 | change a tool argument schema or description | backend schema model and remote stub | `backend/src/tools/{computer,system,filesystem,browser}/schemas.py`, `backend/src/tools/remote_tools/*`, `backend/src/tools/schema_fields.py` | [Tool Contracts](tool_contracts.md), [Backend Tools Contracts Hub](../backend/tools/contracts/README.md) | backend schema tests plus `tests/sidecar/test_shared_tool_schema_parity.py` when executable fields should match |
-| hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/provider_health.py`, `backend/src/tools/tool_selection.py` | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), [Tool Policy and Dev Tool Selection Runtime Reference](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_dev_tool_selection.py`, `tests/backend/test_provider_health_policy.py` |
+| hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/provider_health.py`, `backend/src/tools/tool_selection.py` | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), [Tool Policy and Agent Capability Runtime Reference](../backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_selection.py`, `tests/backend/test_provider_health_policy.py` |
 | change OCR, vision, manual coordinate method availability or validation | backend tool policy and preparation | `backend/src/tools/tool_policy.py`, `backend/src/tools/computer/schemas.py`, `backend/src/agent/tools/preparation/*` | [Computer Tools](computer.md), [Tool Preparation and Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_preparer.py`, `tests/backend/test_computer_use_schema_contract.py` |
 | backend rejects a backend-executed tool call before execution | backend parser/preparation validation | `backend/src/agent/tools/preparation/validation.py`, backend tool `args_model`, parser tests | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Troubleshooting](tool_troubleshooting.md) | `tests/backend/test_interaction_tool_call_bridge.py`, backend-tool validation tests |
 | sidecar says tool not found or rejects executable args | sidecar registry/schema/runtime | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/**` | [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md), [Sidecar Tool Catalog and Execution Model](../frontend/sidecar/tool_catalog_and_execution_model.md) | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_schemas.py`, tool-specific sidecar tests |
@@ -56,7 +56,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 4. `SchemaRegistry` validates and caches canonical function tool schemas.
 5. `client_tool_manifest` entries are structurally validated into accepted client-local function schemas or rejected diagnostics; accepted local tool schemas are not replaced by backend catalog schemas.
 6. Prompt construction merges accepted client schemas with backend registry schemas while avoiding unsupported duplicate names.
-7. `ToolPolicy` filters names and schemas by config, profile, available tools, disabled tools/capabilities, provider health, browser toggle, web-search availability, and dev tool selection.
+7. `ToolPolicy` filters names and schemas by config, profile, available tools, disabled tools/capabilities, provider health, browser toggle, web-search availability, and agent capability policy.
 8. Provider projection can adapt the filtered schema set for provider-specific transports.
 9. Prompt construction sends the final model-visible schema set to the provider and transparency events.
 
@@ -124,7 +124,6 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
    - `agent_provider_unavailable_capabilities`
    - `agent_coordinate_methods`
    - `agent_available_coordinate_methods`
-   - dev tool selection
    - provider projection
 2. Update `ToolPolicy` or `agent_capability_policy.py` rather than hiding tools in prompt construction ad hoc.
 3. Update method-level validation if the policy controls allowed coordinate methods.
@@ -155,7 +154,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
   older clients.
 - Confirm the tool class emits a canonical function tool spec.
 - Confirm `ToolRegistry.get_model_tool_names()` includes it.
-- Confirm `ToolPolicy.filter_tool_names()` is not hiding it through interaction mode, profile, disabled tools, capability gates, provider health, browser gating, web-search availability, or dev selection.
+- Confirm `ToolPolicy.filter_tool_names()` is not hiding it through interaction mode, profile, disabled tools, capability gates, provider health, browser gating, web-search availability, or agent capability policy.
 - Confirm provider projection did not drop it.
 - Confirm prompt metadata/tool-schema transparency events reflect the final filtered set.
 
@@ -197,7 +196,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | backend catalog/name registration | `./scripts/python-in-env backend pytest tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py tests/backend/test_remote_tools.py` |
 | client manifest validation | `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py` plus frontend manifest builder tests when client payload generation changes |
 | backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env sidecar pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
-| policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_dev_tool_selection.py tests/backend/test_provider_health_policy.py` |
+| policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_tool_selection.py tests/backend/test_provider_health_policy.py` |
 | parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus backend-tool validation tests |
 | sidecar executable tool | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific sidecar tests |
 | SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` tests |

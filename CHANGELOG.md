@@ -58,6 +58,10 @@ All notable changes to WindieOS will be documented in this file.
   to the agent definition contract.
 - docs/tools: route removed Electron tool event router artifact searches to the
   SDK-owned tool execution lifecycle.
+- backend/tools: remove dev TOML tool-selection loading and profile helpers so
+  tool visibility is owned by effective `AppConfig` agent capability policy.
+- docs/tools: align tool-policy docs with the current agent capability
+  `ToolSelection` value-object path after dev TOML selection loading was removed.
 - sdk/package: regenerate the checked-in CommonJS runtime from TypeScript and
   delete the orphaned CJS-only Electron tool event router artifact.
 - frontend/sidecar: remove the unused `local_backend_bridge.getSystemState`
