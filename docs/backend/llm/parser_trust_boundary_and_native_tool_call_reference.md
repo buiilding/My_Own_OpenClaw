@@ -224,5 +224,5 @@ If parser tests fail on limits/validation:
 ## Related Pages
 
 - [Backend LLM Docs Hub](README.md)
-- [ToolCallSchema Extraction and Unified Wrapper Normalization Reference](tool_call_schema_extraction_and_unified_wrapper_normalization_reference.md)
+- [ToolCallSchema Extraction Reference](tool_call_schema_extraction_reference.md)
 - [Native Tool-Call Bridge and History Mapping Reference](../agent/native_tool_call_bridge_and_history_mapping_reference.md)

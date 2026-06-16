@@ -15,7 +15,7 @@ title: "Backend LLM Docs Hub"
 - [Prompt Docs Hub](prompts/README.md)
 - [Provider Factory and Runtime Selection Reference](provider_factory_and_runtime_selection_reference.md)
 - [Parser Trust Boundary and Native Tool-Call Reference](parser_trust_boundary_and_native_tool_call_reference.md)
-- [ToolCallSchema Extraction and Unified Wrapper Normalization Reference](tool_call_schema_extraction_and_unified_wrapper_normalization_reference.md)
+- [ToolCallSchema Extraction Reference](tool_call_schema_extraction_reference.md)
 - [Base Request, Stream, and Normalization Reference](providers/base_request_stream_and_normalization_reference.md)
 - [Provider-Specific Overrides and Local Runtime Reference](providers/provider_specific_overrides_and_local_runtime_reference.md)
 - [Backend Kimi Provider Docs Hub](providers/kimi/README.md)

@@ -204,7 +204,7 @@ Covers:
 - [LLM Models and Parsing](llm/llm_models_and_parsing.md)
 - [Provider Factory and Runtime Selection Reference](llm/provider_factory_and_runtime_selection_reference.md)
 - [Parser Trust Boundary and Native Tool-Call Reference](llm/parser_trust_boundary_and_native_tool_call_reference.md)
-- [ToolCallSchema Extraction and Unified Wrapper Normalization Reference](llm/tool_call_schema_extraction_and_unified_wrapper_normalization_reference.md)
+- [ToolCallSchema Extraction Reference](llm/tool_call_schema_extraction_reference.md)
 - [Base Request, Stream, and Normalization Reference](llm/providers/base_request_stream_and_normalization_reference.md)
 - [Provider-Specific Overrides and Local Runtime Reference](llm/providers/provider_specific_overrides_and_local_runtime_reference.md)
 - [Prompt Constructor and Transparency Metadata Reference](llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)

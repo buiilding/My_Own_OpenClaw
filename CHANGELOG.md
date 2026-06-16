@@ -148,6 +148,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/backend: document provider completion parsing after the choice-level
   `text` fallback removal and route those searches to the LLM provider parser
   reference.
+- docs/backend: remove stale ToolCallSchema unified-wrapper normalization docs
+  and align remote-tool docs with direct parser/native tool-call ingress.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
