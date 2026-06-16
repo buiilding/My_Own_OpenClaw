@@ -16,6 +16,9 @@ All notable changes to WindieOS will be documented in this file.
   from screenshot preparation.
 - backend/services: remove unused TTS context-manager bindings and InternVL
   optional dependency bindings while preserving availability checks.
+- frontend/sidecar: remove camelCase MCP registration and execute-tool payload
+  accepts from the sidecar daemon; sidecar HTTP now requires the documented
+  snake_case request fields.
 
 - frontend/tooling: make the unused-code audit cover frontend scripts and the
   Electron Builder after-pack hook, resolve Jest through package resolution, and

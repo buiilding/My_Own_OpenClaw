@@ -475,7 +475,7 @@ class McpServerSpec:
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> "McpServerSpec":
-        server_id = normalize_string(payload.get("id") or payload.get("name"))
+        server_id = normalize_string(payload.get("id"))
         command = normalize_string(payload.get("command"))
         if not server_id:
             raise ValueError("MCP server id is required")
@@ -495,19 +495,10 @@ class McpServerSpec:
             ),
             cwd=normalize_string(payload.get("cwd")) or None,
             env={key: str(value) for key, value in raw_env.items()},
-            timeout_ms=int(
-                payload.get("timeout_ms") or payload.get("timeoutMs") or 15000
-            ),
-            tool_prefix=normalize_string(
-                payload.get("tool_prefix") or payload.get("toolPrefix")
-            )
-            or None,
-            mcp_id=normalize_string(payload.get("mcp_id") or payload.get("mcpId"))
-            or None,
-            extension_id=normalize_string(
-                payload.get("extension_id") or payload.get("extensionId")
-            )
-            or None,
+            timeout_ms=int(payload.get("timeout_ms") or 15000),
+            tool_prefix=normalize_string(payload.get("tool_prefix")) or None,
+            mcp_id=normalize_string(payload.get("mcp_id")) or None,
+            extension_id=normalize_string(payload.get("extension_id")) or None,
             tools=(
                 [tool for tool in payload.get("tools", []) if isinstance(tool, dict)]
                 if isinstance(payload.get("tools"), list)
@@ -971,9 +962,7 @@ class SidecarDaemon:
         if replace:
             for raw_server in servers:
                 if isinstance(raw_server, dict):
-                    server_id = normalize_string(
-                        raw_server.get("id") or raw_server.get("name")
-                    )
+                    server_id = normalize_string(raw_server.get("id"))
                     if server_id:
                         requested_server_ids.add(server_id)
             append_mcp_diagnostic_event(
@@ -1004,10 +993,7 @@ class SidecarDaemon:
         for raw_server in servers:
             if not isinstance(raw_server, dict):
                 continue
-            server_id = (
-                normalize_string(raw_server.get("id") or raw_server.get("name"))
-                or "unknown"
-            )
+            server_id = normalize_string(raw_server.get("id")) or "unknown"
             trace_id = f"mcp-discovery-{int(time.time() * 1000)}-{secrets.token_hex(6)}"
             started_at = time.monotonic()
             try:
@@ -1342,7 +1328,11 @@ class SidecarDaemon:
 
     async def handle_execute_tool(self, request: web.Request) -> web.Response:
         payload = await request.json()
-        tool_name = payload.get("tool_name") or payload.get("toolName")
+        tool_name = normalize_string(payload.get("tool_name"))
+        if not tool_name:
+            return web.json_response(
+                {"success": False, "error": "tool_name is required"}, status=400
+            )
         args = normalize_object(payload.get("args"))
         context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(
             build_mcp_execution_context(normalize_object(payload))

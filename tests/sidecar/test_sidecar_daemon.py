@@ -144,6 +144,48 @@ def test_resolve_mcp_command_uses_cua_driver_app_fallback(tmp_path: Path, monkey
     assert resolve_mcp_command_for_spawn("cua-driver") == str(binary)
 
 
+def test_mcp_server_spec_uses_canonical_snake_case_fields():
+    spec = McpServerSpec.from_payload(
+        {
+            "id": "notes",
+            "name": "Notes",
+            "command": "fake-mcp-server",
+            "timeout_ms": 9000,
+            "tool_prefix": "local_notes",
+            "mcp_id": "mcp-notes",
+            "extension_id": "extension-notes",
+        }
+    )
+
+    assert spec.id == "notes"
+    assert spec.name == "Notes"
+    assert spec.timeout_ms == 9000
+    assert spec.tool_prefix == "local_notes"
+    assert spec.mcp_id == "mcp-notes"
+    assert spec.extension_id == "extension-notes"
+
+
+def test_mcp_server_spec_rejects_name_only_identifier_and_ignores_camel_aliases():
+    with pytest.raises(ValueError, match="MCP server id is required"):
+        McpServerSpec.from_payload({"name": "notes", "command": "fake-mcp-server"})
+
+    spec = McpServerSpec.from_payload(
+        {
+            "id": "notes",
+            "command": "fake-mcp-server",
+            "timeoutMs": 9000,
+            "toolPrefix": "local_notes",
+            "mcpId": "mcp-notes",
+            "extensionId": "extension-notes",
+        }
+    )
+
+    assert spec.timeout_ms == 15000
+    assert spec.tool_prefix is None
+    assert spec.mcp_id is None
+    assert spec.extension_id is None
+
+
 @pytest.mark.asyncio
 async def test_mcp_stdout_reader_failure_fails_pending_request(tmp_path: Path, monkeypatch):
     diagnostics_db = tmp_path / "diagnostics.db"
@@ -293,6 +335,21 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
             "payload": {"tool_name": "missing_tool", "success": False},
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
+    backend = FakeBackendWithExecuteTool()
+    daemon = SidecarDaemon(backend=backend, token="test-token")
+
+    response = await daemon.handle_execute_tool(
+        FakeRequest({"toolName": "read_file", "args": {"file_path": "/tmp/a"}})
+    )
+    payload = json.loads(response.text)
+
+    assert response.status == 400
+    assert payload == {"success": False, "error": "tool_name is required"}
+    assert backend.calls == []
 
 
 @pytest.mark.asyncio
