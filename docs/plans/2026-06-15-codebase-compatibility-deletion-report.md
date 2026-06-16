@@ -124,7 +124,8 @@ Date: 2026-06-15
   completed CD-030.
 - `7f4ad40e5 refactor(frontend): keep screenshot cache internal`
   completed CD-031.
-- pending commit for CD-032.
+- `9bc4b70d8 refactor(frontend): remove overlay phase payload parser`
+  completed CD-032.
 
 ## Validation Log
 
