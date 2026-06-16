@@ -106,7 +106,8 @@ Date: 2026-06-15
   completed CD-024.
 - `c145c0afc refactor(frontend): remove transcript projection store helpers`
   completed CD-025.
-- pending commit for CD-026.
+- `4040e429e refactor(frontend): remove response overlay scanner helpers`
+  completed CD-026.
 
 ## Validation Log
 
