@@ -102,6 +102,7 @@ Date: 2026-06-15
 | CD-069 | Electron backend payload allowlist export | `ipc_backend_payload_contract.cjs` exported `BACKEND_PAYLOAD_KEYS_BY_TYPE` even though production imports only `filterBackendPayload(...)` for outbound websocket payload normalization | Knip reported the allowlist export unused; repo search showed only a frontend/backend contract test imported it directly, while production payload normalization uses the filter API | Remove the allowlist export, keep the allowlist private, and assert backend contract parity by filtering synthetic payloads through `filterBackendPayload(...)` | `cc8dc6925` |
 | CD-070 | Electron IPC channel registry constant exports | `ipc_channel_registry_runtime.cjs` exported the shared IPC channel registry and preload argument prefix even though production imports only `buildPreloadIpcChannelsArgument(...)` | Knip reported both constant exports unused; repo search showed main window runtimes use only the argument builder and preload owns its own local prefix parser | Remove the constant exports and keep the registry/prefix private to the preload channel argument builder | `a5deefb3a` |
 | CD-071 | Electron clipboard image helper exports | `ipc_clipboard_image.cjs` exported image size-limit constants and the trusted artifact URL validator even though production imports only `copyImageToClipboard(...)` and `registerClipboardImageHandler(...)` | Knip reported all three exports unused; repo search showed tests already cover validator behavior through the high-level copy path and no external caller imports the helpers | Remove the helper exports and keep size limits plus remote URL validation private to the clipboard image copy implementation | `8bf31abb6` |
+| CD-072 | Electron conversation-event broadcast wrapper | `ipc_conversation_event_broadcast.cjs` exported `broadcastConversationEvent(...)` even though production imports only `buildConversationEventFromBackendEvent(...)` and active callers own renderer broadcasting themselves | Knip reported the wrapper export unused; repo search found no production, test, docs, or script call sites outside the module definition | Delete the wrapper export and keep backend-to-conversation event normalization as the module's public API | pending |
 
 ## Commit Ledger
 
@@ -1228,6 +1229,25 @@ CD-071 validation:
   required. Clipboard copy behavior, trusted artifact validation, redirect
   checks, and size limits are unchanged; the lower-level helpers are no longer
   public Electron main exports.
+
+CD-072 validation:
+
+- targeted `rg -n "broadcastConversationEvent" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**'`:
+  no remaining references.
+- `bin/windie test frontend -- IpcMainBridge.query QueryBroadcast FrontendBackendWebsocketContract`:
+  passed; 2 suites and 31 tests, then hit the existing Jest open-handle hang
+  after completion.
+- `npm run test:ci -- --forceExit FrontendBackendWebsocketContract` in
+  `frontend`: passed; 1 suite and 9 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 116 to 115 after
+  removing the conversation-event broadcast wrapper export.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, IPC payload, or persisted-data
+  migration is required. Backend-to-conversation event normalization remains
+  available through `buildConversationEventFromBackendEvent(...)`; renderer
+  broadcast ownership stays with the active caller modules.
 
 ## Inspection Notes
 

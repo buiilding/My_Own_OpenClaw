@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: delete the unused conversation-event broadcast wrapper while
+  keeping backend-to-conversation event normalization as the public API.
 - frontend/main: keep clipboard image size limits and trusted-artifact URL
   validation private to the copy-image handler.
 - frontend/main: keep IPC channel registry constants private to the preload

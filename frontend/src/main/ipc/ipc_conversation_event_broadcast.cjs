@@ -16,26 +16,6 @@ function buildConversationEventFromBackendEvent(event, options = {}) {
   });
 }
 
-function broadcastConversationEvent({
-  event,
-  fallbackConversationRef = null,
-  broadcastToRenderers,
-  sourceWebContents = null,
-}) {
-  if (typeof broadcastToRenderers !== 'function') {
-    return null;
-  }
-  const conversationEvent = buildConversationEventFromBackendEvent(event, {
-    fallbackConversationRef,
-  });
-  if (!conversationEvent) {
-    return null;
-  }
-  broadcastToRenderers('windie:conversation-event', conversationEvent, sourceWebContents);
-  return conversationEvent;
-}
-
 module.exports = {
-  broadcastConversationEvent,
   buildConversationEventFromBackendEvent,
 };
