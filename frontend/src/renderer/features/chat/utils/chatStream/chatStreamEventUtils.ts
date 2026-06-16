@@ -8,7 +8,6 @@ import {
 } from '../toolCorrelationIds';
 import {
   buildRemoteScreenshotAttachment,
-  buildRemoteScreenshotAttachments,
 } from '../../../../infrastructure/services/screenshotMessageState';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
@@ -57,13 +56,6 @@ export function buildScreenshotAttachment(
   screenshotUrl?: string | null,
 ) {
   return buildRemoteScreenshotAttachment(screenshotRef, screenshotUrl);
-}
-
-export function buildScreenshotAttachments(
-  screenshotRefs: Array<string | null | undefined> | null | undefined,
-  screenshotUrl?: string | null,
-) {
-  return buildRemoteScreenshotAttachments(screenshotRefs, screenshotUrl);
 }
 
 export function resolveToolOutputCorrelationId(

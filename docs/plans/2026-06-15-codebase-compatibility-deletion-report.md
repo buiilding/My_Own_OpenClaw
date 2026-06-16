@@ -72,6 +72,7 @@ Date: 2026-06-15
 | CD-039 | Renderer screenshot message helper exports | `looksLikeInlineImageData(...)`, `parseInlineScreenshotPayload(...)`, and `resolveStoredTranscriptScreenshotValue(...)` remained exported from `screenshotMessageState.js` after screenshot rendering/replay moved to attachment-state APIs | Knip reported the exports unused; repo search showed inline parsing helpers are used only internally and `resolveStoredTranscriptScreenshotValue(...)` was imported only by its own test | Make inline parsing helpers private; delete the obsolete stored-transcript screenshot value helper and move the useful artifact-url assertion onto `resolveReplayScreenshotState(...)` | implemented |
 | CD-040 | Renderer SDK display chat projection | `buildChatMessagesFromDisplayConversation(...)` was exported from the renderer projection module even though production imports only `buildChatMessagesFromSdkDisplayRows(...)` | Knip reported the display-conversation projector export unused; repo search showed the export was imported only by `SdkDisplayChatMessageProjection.test.ts`, while dashboard and chat runtime consumers project SDK display rows directly | Delete the public display-conversation projector surface, keep a private single-message projector inside the row path, and retarget tests to the active SDK display-row API | implemented |
 | CD-041 | Renderer chat-stream tool formatting helpers | `formatToolCallPayload(...)`, `formatToolBundlePayload(...)`, `formatToolOutputText(...)`, and `resolveModelFacingToolCall(...)` remained exported from `chatStreamFormatting.ts` after tool display moved to transcript message-state builders; deleting them exposed `buildNormalizedToolCall(...)` as an internal-only normalizer | Knip reported the helper exports unused; repo search showed only `ChatStreamFormatting.test.ts` and stale docs referenced them, while production imports only `buildThinkingStatus(...)` from the module and uses the higher-level message-state builders for tool rows | Delete the unused tool-formatting exports and tests, make `buildNormalizedToolCall(...)` private, and update docs to route tool-call/bundle/output display to the active message-state projection builders | implemented |
+| CD-042 | Renderer chat-stream screenshot attachment wrapper | `buildScreenshotAttachments(...)` was exported from `chatStreamEventUtils.ts` even though production imports only the single `buildScreenshotAttachment(...)` helper from that module | Knip reported the list-wrapper export unused; repo search showed it was imported only by `ChatStreamEventUtils.test.ts`, while list attachment normalization is owned by `screenshotMessageState` | Delete the unused wrapper export and wrapper-only test while keeping the active single-attachment helper | pending implementation commit |
 
 ## Commit Ledger
 
@@ -153,6 +154,7 @@ Date: 2026-06-15
   completed CD-040.
 - `110aa1df7 refactor(frontend): remove chat stream tool formatting exports`
   completed CD-041.
+- pending implementation commit will complete CD-042.
 
 ## Validation Log
 
@@ -662,6 +664,21 @@ CD-041 validation:
   required; this deletes only unused renderer helper exports while keeping
   active tool-call, tool-bundle, and tool-output message projection in the
   transcript message-state builders.
+
+CD-042 validation:
+
+- targeted `rg -n "buildScreenshotAttachments" frontend/src tests/frontend docs packages --glob '!docs/plans/2026-06-15-codebase-compatibility-deletion-report.md' --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no renderer helper export, import, test, or docs references remain.
+- `bin/windie test frontend -- ChatStreamEventUtils ChatBoxResponseState ScreenshotMessageState MessageScreenshots`:
+  passed, 4 suites and 25 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 189 to
+  188 and the CD-042 wrapper export no longer appears.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this deletes only an unused renderer wrapper export while preserving
+  active single screenshot attachment projection and shared list normalization.
 
 ## Inspection Notes
 

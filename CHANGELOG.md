@@ -32,6 +32,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: delete unused chat-stream tool formatting exports, keep the
   tool-call normalizer private, and route tool display docs to the active
   message-state projection builders.
+- frontend/chat: remove the unused chat-stream screenshot attachment list
+  wrapper while keeping the active single-attachment helper.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.
