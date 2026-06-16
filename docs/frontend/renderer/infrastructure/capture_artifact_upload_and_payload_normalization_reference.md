@@ -13,19 +13,15 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
-- `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 - `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `tests/frontend/ChatMessageSender.test.tsx`
-- `tests/frontend/SystemStateCapture.test.ts`
 - `tests/frontend/BackendEndpointStore.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
-- `tests/frontend/ToolExecutionLogger.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
 
@@ -78,11 +74,6 @@ Renderer send behavior:
 
 System-state behavior:
 
-- optional wait (seconds -> milliseconds) before capture
-- prepares external focus before invoking main for system state
-
-`captureSystemState(...)`:
-
 - optional system-state fields:
   - `active_window`, `mouse_position`, `screen_resolution`
 - includes `windows` only when explicitly requested
@@ -90,7 +81,7 @@ System-state behavior:
 Failure policy:
 
 - invoke errors are logged
-- renderer system-state capture returns `null` instead of throwing
+- main/renderer system-state consumers receive `null` instead of throwing
 - screenshot visibility restore errors are logged, but active capture events and
   timing cleanup still run so listeners cannot remain stuck in active state
 
@@ -176,22 +167,11 @@ before backend relay:
 - backend history stores the normalized result payload instead of relying on a
   renderer formatter layer
 
-## Logging Gate
-
-`ToolExecutionLogger` info logs are gated by:
-
-- default off in test mode
-- force-on via `window.__WINDIE_VERBOSE_TOOL_LOGS__ = true`
-
-Error logs still emit through `console.error`.
-
 ## Test-Backed Invariants
 
-`tests/frontend/ChatMessageSender.test.tsx` and `tests/frontend/SystemStateCapture.test.ts` verify:
+`tests/frontend/ChatMessageSender.test.tsx` verifies:
 
 - query screenshot requests are sent as SDK resources, not renderer captures
-- wait delays and graceful system-state error fallback
-- default versus `includeWindows` system-state field selection
 
 `tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` verify:
 

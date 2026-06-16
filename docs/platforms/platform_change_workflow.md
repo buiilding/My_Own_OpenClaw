@@ -22,8 +22,8 @@ Do not route platform fixes through the hosted backend. The backend can own mode
 
 | Symptom or request | First owner | Source roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| WindieOS appears in screenshots | Electron main screenshot visibility and content protection | `frontend/src/main/platform/screenshot_window_visibility`, `frontend/src/main/platform/content_protection`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`, `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs` |
-| Linux chat pill flickers during capture | Renderer surface orchestrator plus main-process screenshot wrapper | `frontend/src/renderer/infrastructure/services/surfaceOrchestrator`, `frontend/src/main/platform/screenshot_window_visibility/index.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md), [Linux](linux.md) | `tests/frontend/SurfaceOrchestrator*.test.ts`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
+| WindieOS appears in screenshots | Electron main screenshot visibility and content protection | `frontend/src/main/platform/screenshot_window_visibility`, `frontend/src/main/platform/content_protection`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs` |
+| Linux chat pill flickers during capture | Electron main screenshot wrapper and surface runtime | `frontend/src/main/platform/screenshot_window_visibility/index.cjs`, `frontend/src/main/surfaces/surface_runtime.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md), [Linux](linux.md) | `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | macOS or Windows content protection remains active while idle | Electron main content-protection policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/platform/content_protection/*`, `frontend/src/main/surfaces/response_overlay_phase_handler.cjs` | [Screenshot and Overlay Policy](screenshot_overlay_policy.md) | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | Permission row is wrong or grant opens the wrong OS pane | Electron permission service and renderer permission UI | `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions` | [Platform Permission Matrix](permission_matrix.md), [Onboarding and Permissions](../desktop/onboarding_permissions.md) | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
 | Mouse, keyboard, scroll, screenshot, or window switching fails on one OS | Python sidecar computer tools and platform adapter | `frontend/src/main/python/tools/computer`, `frontend/src/main/python/core/platform` | [Window and Input Matrix](window_input_matrix.md), [Computer Tools](../tools/computer.md) | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_screenshot_tool.py`, `tests/sidecar/test_*_window_manager.py` |
@@ -94,7 +94,6 @@ Primary files:
 
 - `frontend/src/renderer/features/chat/**`
 - `frontend/src/renderer/features/overlays/**`
-- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/**`
 - `frontend/src/renderer/features/onboarding/**`
 - `frontend/src/renderer/features/permissions/**`
 - `frontend/src/renderer/features/settings/**`
@@ -112,7 +111,7 @@ Do not use this owner for:
 - OS permission probing.
 - calling `xdotool`, PowerShell, AppleScript, or AppKit.
 - choosing content-protection behavior.
-- hiding native windows outside the shared surface orchestrator path.
+- hiding native windows from renderer code instead of the Electron main screenshot-capture lease.
 
 ## Python Sidecar Platform Changes
 
@@ -210,8 +209,8 @@ Validation sequence:
 | Changed behavior | Minimum tests |
 | --- | --- |
 | content protection | `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/DisplayAffinityRuntime.test.cjs` |
-| screenshot hide/restore | `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`, `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs` |
-| overlay phase latching | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/SurfaceOrchestratorPhases.test.ts` |
+| screenshot hide/restore | `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs` |
+| overlay phase latching | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | permission probe or grant | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs` |
 | sidecar screenshot | `tests/sidecar/test_screenshot_tool.py` |
 | sidecar input tools | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py` |

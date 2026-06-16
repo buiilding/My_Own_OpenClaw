@@ -37,12 +37,11 @@ short lease around SDK-local screenshot execution:
 | platform content protection dispatch | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/platform/content_protection/{index,linux,supported}.cjs` |
 | screenshot visibility runtime dispatch | `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/screenshot_window_visibility/index.cjs` |
 | overlay phase IPC | `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/response_overlay_phase_handler.cjs` |
-| renderer surface orchestration | `frontend/src/renderer/features/overlays`, `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts` |
 | Linux guard reference | `docs/frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md` |
 
 ## Linux-Specific Contract
 
-Linux is the only OS where WindieOS overlay surfaces should be hidden for screenshot capture. The current platform runtime delegates Linux hide/show to the renderer SurfaceOrchestrator so capture uses one deterministic collapse/restore path.
+Linux is the only OS where WindieOS overlay surfaces may need hide/restore for SDK-local screenshot capture. That policy belongs to Electron main's local tool lifecycle and platform screenshot visibility bridge, not renderer surface orchestration.
 
 Rules:
 
@@ -64,7 +63,7 @@ lease and must disable it immediately after capture.
 
 Rules:
 
-- no renderer hide/show collapse path for capture
+- no renderer hide/show collapse path for capture on any platform
 - no focus-restoration hacks in renderer chat-pill runtime
 - content protection belongs in Electron main platform policy
 - overlay phase does not own screenshot invisibility
@@ -73,7 +72,7 @@ Rules:
 
 Use focused tests when changing capture or overlay policy:
 
-- `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`
+- `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`
 - `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`
 - `tests/frontend/IpcMainBridge*.test.cjs`
 - platform-specific window policy tests when adding a new owner

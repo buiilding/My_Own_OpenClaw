@@ -27,7 +27,7 @@ Any change touching renderer chat loop state, main-process overlay phase handlin
    - before screenshot capture: hide chat pill
    - keep chat pill/response overlay non-focusable
    - after capture: restore chat pill visibility (no focus steal)
-   - overlapping tool screenshot preparations reserve a surface token before async handoff/hide work so only the first preparation owns the hide/restore cycle
+   - Electron main owns the screenshot-capture lease; renderer code does not hide or restore windows
 5. Windows/macOS screenshot contract:
    - no renderer hide/show collapse path for capture
    - rely on overlay content protection policy only during SDK screenshot-capture leases
@@ -51,7 +51,7 @@ When behavior changes in these areas, add or update tests in the same PR:
   - `tests/frontend/ToolRunnerHook.callbacks.test.ts`
   - `tests/frontend/ToolRunnerHook.turnGuards.test.ts`
 - capture hide/restore overlap and platform policy:
-  - `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`
+  - `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`
 - main-process overlay phase to visibility/interactivity policy:
   - `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`
   - `tests/frontend/IpcMainBridge*.test.cjs`
