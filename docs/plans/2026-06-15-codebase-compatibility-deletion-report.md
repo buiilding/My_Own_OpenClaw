@@ -133,7 +133,8 @@ Date: 2026-06-15
   completed CD-033.
 - `bc4f62813 refactor(frontend): remove transcript payload helpers`
   completed CD-034.
-- pending commit for CD-035.
+- `38ced9039 refactor(frontend): remove renderer rehydrate payload helper`
+  completed CD-035.
 
 ## Validation Log
 
