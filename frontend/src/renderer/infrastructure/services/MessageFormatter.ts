@@ -33,7 +33,7 @@ export interface ToolResult {
   } | string | null;
 }
 
-export interface BundledToolResult {
+interface BundledToolResult {
   tool_name: string;
   success: boolean;
   error?: string | null;

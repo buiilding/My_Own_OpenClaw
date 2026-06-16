@@ -44,7 +44,7 @@ export type CaptureMeta = {
   capture_engine?: string | null;
 };
 
-export type ScreenshotAttachment = {
+type ScreenshotAttachment = {
   screenshot: string | null;
   screenshotRef: string | null;
   screenshotUrl: string | null;

@@ -60,6 +60,8 @@ All notable changes to WindieOS will be documented in this file.
   re-export.
 - frontend/sdk: delete the unused renderer API barrel and barrel-only export
   test after callers standardized on `windieSdkClient.ts`.
+- frontend/infrastructure: make final unused formatter and screenshot helper
+  type shapes private to their service modules.
 - backend/sdk: make Stop an ack-only control path that preserves `turn_ref`
   through Electron and SDK transport, cancels the matching active turn, and no
   longer emits synthetic sequenced `streaming-complete` events.
