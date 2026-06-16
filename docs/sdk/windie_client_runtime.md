@@ -1,9 +1,10 @@
 ---
-summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, and tool-result routing."
+summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, AgentStreamEvents extractToolResultAttachments attachment projection, and tool-result routing."
 read_when:
   - When changing `WindieClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
   - When debugging whether a query should use the hosted backend websocket, the local sidecar daemon, or both.
   - When changing SDK websocket implementation selection, `WebSocketLike`/`WebSocketConstructor` types, the `ws` package dependency, or stale references to the removed `src/types/ws.d.ts` ambient declaration.
+  - When changing SDK `agent.stream(...)` tool-output attachment extraction, `AgentStreamEvents.ts`, or stale `extractToolResultAttachments` parent-parameter references.
   - When debugging stale `builtinTools` wakeUp option calls, the removed builtinTools wake guard, or current `builtins` agent setup.
   - When adding SDK, CLI, Electron, plugin, MCP, or module-tool entrypoints.
 title: "WindieClient Runtime Contract"
@@ -793,6 +794,14 @@ tool calls and bundled tool outputs stay bundled on the backend transport and
 conversation history path, but the public stream exposes them as plural tool
 call/output arrays so CLI and custom UI callers do not need bundle-specific
 rendering branches.
+
+`AgentStreamEvents.ts` owns display-safe public tool-output extraction for
+`agent.stream(...)`. `extractToolResultAttachments(...)` walks nested arrays and
+objects, removes large binary/image fields from `tool_outputs[].result`, and
+emits those fields as public stream `attachments` with field paths, keys,
+content type, kind, and length metadata. The helper now threads only the current
+field path during recursion; the removed `parent` parameter was not part of the
+public SDK contract.
 
 `conversation(options)` returns an SDK conversation runtime backed by the agent
 session transport. It is the migration path for clients that need local event

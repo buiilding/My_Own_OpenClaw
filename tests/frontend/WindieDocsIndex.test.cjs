@@ -901,6 +901,14 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes SDK stream attachment extraction queries to WindieClient runtime', () => {
+    const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
+
+    expect(
+      findDocs('extractToolResultAttachments parent removed agent stream attachments')[0].path,
+    ).toBe(expectedPath);
+  });
+
   test('routes renderer screenshot metadata queries to the screenshot state reference', () => {
     const expectedPath = path.join(
       'docs',

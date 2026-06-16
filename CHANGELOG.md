@@ -104,6 +104,8 @@ All notable changes to WindieOS will be documented in this file.
   trace and markdown rendering owner docs.
 - docs/frontend: route removed frontend dead-symbol searches to main-window
   bootstrap and transcript-store owner docs.
+- docs/sdk: route stream attachment extraction searches to the WindieClient
+  runtime contract.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
 - docs/frontend: route removed legacy selected-model localStorage migration
