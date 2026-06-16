@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep clipboard image size limits and trusted-artifact URL
+  validation private to the copy-image handler.
 - frontend/main: keep IPC channel registry constants private to the preload
   channel argument builder.
 - frontend/main: keep backend payload allowlist tables private to

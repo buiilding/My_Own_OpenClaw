@@ -240,9 +240,6 @@ function registerClipboardImageHandler({
 }
 
 module.exports = {
-  MAX_DATA_IMAGE_BYTES,
-  MAX_REMOTE_IMAGE_BYTES,
   copyImageToClipboard,
   registerClipboardImageHandler,
-  validateRemoteImageUrl,
 };
