@@ -1,8 +1,9 @@
 ---
-summary: "Deep contract reference for backend computer tool schemas: mouse/keyboard/scroll conditional validation, direct schema behavior, parser mapping behavior, and metadata/coordinate-method enforcement boundaries."
+summary: "Deep contract reference for backend computer tool schemas: mouse/keyboard/scroll conditional validation, direct schema behavior, parser mapping behavior, shared grounding mixin strictness, and metadata/coordinate-method enforcement boundaries."
 read_when:
   - When changing `backend/src/tools/computer/schemas.py` field descriptions, conditional validators, or grounded computer-tool wording.
   - When debugging parser-time rejections for computer tools (`find_coordinates_by`, grounded field requirements, direct-tool mapping) across parser/remote-tool layers.
+  - When resolving stale searches for `SourceDescriptionFields`, `DestinationDescriptionFields`, `SourceGroundingArgsMixin`, `DragDestinationGroundingArgsMixin`, or legacy coordinate fields rejected by grounded computer schemas.
 title: "Computer Tool Schema Guidance Reference"
 ---
 
@@ -38,6 +39,9 @@ For the computer schema sources touched in `backend/src/tools/computer/schemas.p
 
 - shared source and drag-destination grounding mixins also use `extra='forbid'`
   so schema composition cannot silently accept legacy coordinate fields
+- current shared mixin owners are `SourceGroundingArgsMixin` and
+  `DragDestinationGroundingArgsMixin`; stale shorthand searches such as
+  `SourceDescriptionFields` or `DestinationDescriptionFields` should route here
 - `find_coordinates_by='manual'`:
   - requires `x` and `y`
   - omitted `find_coordinates_by` is treated as the same default manual mode by both runtime validation and exported JSON Schema

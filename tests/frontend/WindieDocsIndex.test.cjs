@@ -318,6 +318,29 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes strict computer grounding mixin queries to schema docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'backend',
+      'tools',
+      'contracts',
+      'computer_tool_schema_guidance_and_unified_envelope_validation_reference.md',
+    );
+
+    expect(
+      findDocs('SourceDescriptionFields unknown coordinate legacy fields')[0].path,
+    ).toBe(expectedPath);
+    expect(
+      findDocs('DestinationDescriptionFields extra forbid removed ignore')[0].path,
+    ).toBe(expectedPath);
+    expect(
+      findDocs('SourceGroundingArgsMixin extra forbid legacy coordinate fields')[0].path,
+    ).toBe(expectedPath);
+    expect(
+      findDocs('DragDestinationGroundingArgsMixin extra forbid legacy coordinate fields')[0].path,
+    ).toBe(expectedPath);
+  });
+
   test('routes voice audio capture processor queries to the voice utility reference', () => {
     const expectedPath = path.join(
       'docs',

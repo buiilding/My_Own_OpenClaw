@@ -66,6 +66,8 @@ All notable changes to WindieOS will be documented in this file.
   `ToolSelection` value-object path after dev TOML selection loading was removed.
 - docs/search: route removed sudo auth-mode and renderer capture-helper
   searches to the current filesystem/shell and capture payload owner docs.
+- docs/backend: route stale computer grounding mixin and legacy coordinate-field
+  searches to the current computer schema contract.
 - docs/sdk: route removed renderer transcript and rehydrate helper searches to
   the SDK conversation runtime owner.
 - docs/frontend: route removed renderer overlay, tool-explanation, screenshot,
