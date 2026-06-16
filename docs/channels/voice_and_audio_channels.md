@@ -1,8 +1,8 @@
 ---
-summary: "Voice and audio channel guide covering wakeword, voice dictation, transcription websocket, TTS audio chunks, and debugging ownership."
+summary: "Voice and audio channel guide covering wakeword, voice dictation, transcription stream websocket, TTS audio chunks, and debugging ownership."
 read_when:
   - When changing voice mode, wakeword capture, STT gateway behavior, TTS playback, or audio event routing.
-  - When debugging microphone capture, transcription websocket failures, wakeword subprocess behavior, or audio-chunk playback.
+  - When debugging microphone capture, transcription stream websocket failures, wakeword subprocess behavior, or audio-chunk playback.
 title: "Voice and Audio Channels"
 ---
 

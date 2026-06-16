@@ -92,6 +92,8 @@ All notable changes to WindieOS will be documented in this file.
   health runbook before SDK client docs.
 - docs/automation: route VM-worker run-control searches to the automation
   workflow before Electron-main bridge references.
+- docs/channels: route transcription-stream searches to the voice/audio channel
+  guide before generic backend API route workflow docs.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
