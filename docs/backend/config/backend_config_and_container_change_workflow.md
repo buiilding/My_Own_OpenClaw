@@ -63,7 +63,7 @@ Do not make renderer settings, sidecar env, or Electron endpoint code mutate bac
 Use this path when backend-owned config changes at runtime.
 
 1. Call `Container.update_config(new_config)`.
-2. `ContainerConfigUpdater.update_config(...)` updates `ConfigurationService` or `ConfigManager`.
+2. `ContainerConfigUpdater.update_config(...)` updates `ConfigurationService`.
 3. The DI `core.config` provider is rebound to the updated `AppConfig`, so
    future DI-backed factories such as LLM clients and tool orchestrators resolve
    the same config as the facade.

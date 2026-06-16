@@ -155,7 +155,7 @@ Behavior details:
 
 Update steps:
 
-1. update via `ConfigurationService.update_config()` when available (publishes notifications)
+1. update via `ConfigurationService.update_config()` (publishes notifications)
 2. rebind DI `core.config` to the updated `AppConfig`
 3. refresh facade runtime references (`refresh_runtime_config`)
 4. recreate `ModelService` provider override with new config singleton

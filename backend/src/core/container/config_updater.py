@@ -46,13 +46,7 @@ class ContainerConfigUpdater:
         """
         # Update config service first (handles ConfigManager update and notifications)
         # This ensures all subscribers are notified and EventBus events are published
-        config_service = self.container.config_service
-        if config_service:
-            updated_config = await config_service.update_config(config)
-        else:
-            # Fallback if config_service is not available
-            config_manager = self.container._di_container.config_manager()
-            updated_config = config_manager.update_config(config)
+        updated_config = await self.container.config_service.update_config(config)
 
         self._rebind_runtime_config_provider(updated_config)
 
