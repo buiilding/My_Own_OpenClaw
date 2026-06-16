@@ -183,6 +183,7 @@ export function setChatState(messages) {
     messages,
     isSending: false,
     thinkingStatus: null,
+    pendingTurn: null,
     currentTurnProjection,
     latestCurrentTurnProjection: currentTurnProjection,
   });

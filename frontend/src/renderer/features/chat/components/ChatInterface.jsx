@@ -79,6 +79,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     thinkingSourceEventType,
     compactionDebugInfo,
     currentTurnProjection,
+    pendingTurn,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
@@ -212,6 +213,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     isSending,
     messages,
     currentTurnProjection,
+    pendingTurn,
     allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
     sessionInfo,
     setThinkingStatus,

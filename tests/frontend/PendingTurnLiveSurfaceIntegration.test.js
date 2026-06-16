@@ -1,0 +1,235 @@
+/**
+ * Covers pending-turn live surface integration for renderer sends.
+ */
+
+import {
+  prepareDesktopChatSend,
+} from '../../frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation';
+import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  resolveLiveTurnPresentationInput,
+} from '../../frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState';
+import {
+  buildThreadPresentationMessages,
+} from '../../frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline';
+import {
+  buildCurrentTurnMessagesFromPresentation,
+} from '../../frontend/src/renderer/features/chat/utils/message/liveTurnPresentationMessages';
+import {
+  resetChatStoreForTests,
+} from './chatStoreTestUtils';
+
+const mockSend = jest.fn();
+let resolveWorkspaceSelection = null;
+
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    send: (...args) => mockSend(...args),
+    invoke: jest.fn(() => Promise.resolve({ success: true })),
+  },
+  INVOKE_CHANNELS: {
+    SHOW_CHATBOX: 'show-chatbox',
+  },
+  SEND_CHANNELS: {
+    WINDIE_PENDING_TURN: 'windie:pending-turn',
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/workspace/workspaceAccess', () => ({
+  fetchActiveWorkspaceSelection: jest.fn(() => new Promise((resolve) => {
+    resolveWorkspaceSelection = resolve;
+  })),
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => {
+  let activeConversationRef = null;
+  return {
+    DesktopTranscriptSessionRuntimeClient: {
+      getActiveConversationRef: jest.fn(() => activeConversationRef),
+      setActiveConversationRef: jest.fn((conversationRef) => {
+        activeConversationRef = conversationRef;
+      }),
+      updateTranscriptSession: jest.fn((conversationRef, userId) => ({
+        conversationRef,
+        userId,
+      })),
+      getTranscriptSessionInfo: jest.fn(() => ({
+        conversationRef: activeConversationRef,
+        userId: null,
+      })),
+    },
+  };
+});
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
+  DesktopLiveTurnRuntimeClient: {
+    sendQuery: jest.fn(),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
+  DesktopSettingsRuntimeClient: {
+    setModel: jest.fn(),
+  },
+}));
+
+function resetStore() {
+  resetChatStoreForTests();
+  useChatStore.setState({
+    activeConversationRef: null,
+    currentTurnProjection: null,
+    latestCurrentTurnProjection: null,
+    pendingTurn: null,
+    isSending: false,
+  });
+}
+
+function currentTurnWithPresentation() {
+  return {
+    conversationRef: 'conv_msg-1',
+    turnRef: 'msg-1',
+    phase: 'streaming',
+    assistantText: 'Live answer',
+    reasoningText: null,
+    toolEvents: [],
+    lastError: null,
+    presentation: {
+      typingVisible: false,
+      overlayVisible: true,
+      isBusy: true,
+      hasVisibleContent: true,
+      entries: [{
+        id: 'conv_msg-1:msg-1:assistant',
+        type: 'llm-text',
+        text: 'Live answer',
+        sourceEventType: 'assistant_delta',
+        sourceChannel: 'windie:current-turn',
+        turnRef: 'msg-1',
+      }],
+      overlayIntent: {
+        visible: true,
+        mode: 'response',
+        turnRef: 'msg-1',
+        conversationRef: 'conv_msg-1',
+        staleGuardRef: 'msg-1',
+      },
+    },
+  };
+}
+
+describe('pending-turn live surface integration', () => {
+  beforeEach(() => {
+    mockSend.mockReset();
+    resolveWorkspaceSelection = null;
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');
+    resetStore();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('accepts pending send before async prep, replays it, then hands off to SDK presentation', async () => {
+    const preparePromise = prepareDesktopChatSend({
+      payload: 'Live now',
+      config: { include_query_screenshot: false },
+      dependencies: {
+        setChatActiveConversationRef: useChatStore.getState().setActiveConversationRef,
+      },
+      senderSurface: 'overlay-chatbox',
+      sendLifecycle: {
+        shouldCaptureQueryScreenshot: false,
+        shouldReturnToChatboxOnSend: false,
+        surfaceReason: 'overlay-chatbox',
+      },
+    });
+
+    await Promise.resolve();
+
+    let state = useChatStore.getState();
+    expect(state.pendingTurn).toEqual(expect.objectContaining({
+      conversationRef: 'conv_msg-1',
+      turnRef: 'msg-1',
+      text: 'Live now',
+    }));
+    expect(state.messages).toEqual([
+      expect.objectContaining({
+        id: 'msg-1-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'Live now',
+        turnRef: 'msg-1',
+      }),
+    ]);
+    expect(resolveLiveTurnPresentationInput({
+      messages: state.messages,
+      isSending: state.isSending,
+      pendingTurn: state.pendingTurn,
+      currentTurnProjection: state.currentTurnProjection,
+    })).toMatchObject({
+      source: 'pending-turn',
+      showAwaiting: true,
+      showResponse: false,
+    });
+    expect(mockSend).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'pending',
+      pendingTurn: state.pendingTurn,
+    });
+
+    const pendingTurn = state.pendingTurn;
+    resetStore();
+    useChatStore.getState().applyPendingTurnBroadcast({
+      type: 'pending',
+      pendingTurn,
+    });
+    state = useChatStore.getState();
+    expect(resolveLiveTurnPresentationInput({
+      messages: state.messages,
+      isSending: state.isSending,
+      pendingTurn: state.pendingTurn,
+      currentTurnProjection: state.currentTurnProjection,
+    })).toMatchObject({
+      source: 'pending-turn',
+      showAwaiting: true,
+    });
+
+    const currentTurnProjection = currentTurnWithPresentation();
+    useChatStore.getState().setCurrentTurnProjection(
+      currentTurnProjection,
+      currentTurnProjection.conversationRef,
+    );
+    state = useChatStore.getState();
+    expect(state.pendingTurn).toBeNull();
+    expect(resolveLiveTurnPresentationInput({
+      messages: state.messages,
+      isSending: state.isSending,
+      pendingTurn: state.pendingTurn,
+      currentTurnProjection: state.currentTurnProjection,
+    })).toMatchObject({
+      source: 'sdk-current-turn',
+      showAwaiting: false,
+      showResponse: true,
+    });
+
+    const dashboardMessages = buildThreadPresentationMessages(state.messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv_msg-1',
+    }).filter((message) => message.sourceChannel === 'windie:current-turn');
+    const overlayMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
+    expect(dashboardMessages).toEqual(overlayMessages);
+    expect(overlayMessages).toEqual([
+      expect.objectContaining({
+        text: 'Live answer',
+        sender: 'assistant',
+        type: 'llm-text',
+      }),
+    ]);
+
+    resolveWorkspaceSelection?.({ workspace: null });
+    await expect(preparePromise).resolves.toEqual(expect.objectContaining({
+      conversationRef: 'conv_msg-1',
+      turnRef: 'msg-1',
+    }));
+  });
+});

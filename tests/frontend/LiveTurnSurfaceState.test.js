@@ -85,6 +85,85 @@ describe('liveTurnSurfaceState', () => {
     });
   });
 
+  test('uses pending turn before SDK current turn arrives', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: null,
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
+        text: 'start now',
+        timestamp: '2026-06-16T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      isSending: true,
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      isBusy: true,
+      source: 'pending-turn',
+      useLocalSendLatch: true,
+      turnRef: 'turn-pending',
+      conversationRef: 'conv-1',
+      overlayIntent: {
+        visible: true,
+        mode: 'awaiting',
+        turnRef: 'turn-pending',
+        conversationRef: 'conv-1',
+      },
+    });
+  });
+
+  test('uses SDK current turn over pending turn once SDK owns that turn', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'awaiting',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-pending',
+        assistantText: '',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+        presentation: {
+          typingVisible: true,
+          overlayVisible: true,
+          isBusy: true,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: true,
+            mode: 'awaiting',
+            turnRef: 'turn-pending',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-pending',
+          },
+        },
+      },
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
+        text: 'start now',
+        timestamp: '2026-06-16T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      isSending: true,
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      isBusy: true,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
+      useSdkLiveTurnPresentation: true,
+      turnRef: 'turn-pending',
+      conversationRef: 'conv-1',
+    });
+  });
+
   test('keeps send preflight when SDK presentation is hidden during handoff', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {

@@ -50,25 +50,6 @@ import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 
-function applyAcceptedSendUiLatch({
-  conversationRef,
-  setCurrentTurnProjection,
-  setIsSending,
-  setThinkingSourceEventType,
-  setThinkingStatus,
-}) {
-  setIsSending(true, conversationRef);
-  setThinkingStatus(null, conversationRef);
-  setThinkingSourceEventType(null, conversationRef);
-  setCurrentTurnProjection(null, conversationRef);
-}
-
-function primeResponseOverlayAwaitingPreflight() {
-  void IpcBridge.invoke(INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING).catch((error) => {
-    console.warn('[MinimalChatPill] Failed to prime response overlay awaiting state:', error);
-  });
-}
-
 function MinimalChatPill() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
@@ -76,6 +57,7 @@ function MinimalChatPill() {
   const currentTurnProjection = useChatStore((state) => (
     state.latestCurrentTurnProjection || state.currentTurnProjection
   ));
+  const pendingTurn = useChatStore((state) => state.pendingTurn);
   const sessionInfo = useRendererConversationSessionInfo();
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -109,6 +91,7 @@ function MinimalChatPill() {
     isSending,
     messages,
     currentTurnProjection,
+    pendingTurn,
     sessionInfo,
     setThinkingStatus,
     setThinkingSourceEventType,
@@ -148,14 +131,6 @@ function MinimalChatPill() {
     onSendMessage: sendMessage,
     onBeforeSend: () => {
       const conversationRef = sessionInfo?.conversationRef || null;
-      applyAcceptedSendUiLatch({
-        conversationRef,
-        setCurrentTurnProjection,
-        setIsSending,
-        setThinkingSourceEventType,
-        setThinkingStatus,
-      });
-      primeResponseOverlayAwaitingPreflight();
       logRendererLiveSurfaceTrace('turn_surface.reset', {
         source: 'minimal-chat-pill',
         reason: 'user-send',

@@ -55,6 +55,21 @@ function findLatestUserTurnRef(messages) {
   return null;
 }
 
+function normalizeConversationRef(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function isPendingTurn(value) {
+  return Boolean(
+    value
+      && typeof value === 'object'
+      && normalizeConversationRef(value.conversationRef)
+      && normalizeTurnRef(value.turnRef)
+      && typeof value.userMessageId === 'string'
+      && typeof value.text === 'string',
+  );
+}
+
 function mapCurrentTurnProjectionPhase(phase) {
   return CURRENT_TURN_PHASE_TO_SURFACE_PHASE[normalizePhase(phase)] ?? null;
 }
@@ -118,9 +133,10 @@ function shouldUseSendPreflight({
   currentTurnProjection,
   isSending,
   messages,
+  pendingTurn,
   useSdkLiveTurnPresentation,
 }) {
-  if (isSending !== true) {
+  if (!isPendingTurn(pendingTurn) && isSending !== true) {
     return false;
   }
   if (!currentTurnProjection) {
@@ -162,6 +178,7 @@ function shouldUseSendPreflight({
 
 export function resolveLiveTurnPresentationInput({
   currentTurnProjection = null,
+  pendingTurn = null,
   isSending = false,
   messages = [],
 } = {}) {
@@ -170,18 +187,23 @@ export function resolveLiveTurnPresentationInput({
     currentTurnProjection,
     isSending,
     messages,
+    pendingTurn,
     useSdkLiveTurnPresentation,
   });
   if (useLocalSendLatch) {
-    const turnRef = findLatestUserTurnRef(messages);
-    const conversationRef = currentTurnProjection?.conversationRef ?? null;
+    const turnRef = normalizeTurnRef(pendingTurn?.turnRef) || findLatestUserTurnRef(messages);
+    const conversationRef = (
+      normalizeConversationRef(pendingTurn?.conversationRef)
+      || currentTurnProjection?.conversationRef
+      || null
+    );
     return {
       phase: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
       isSending: true,
       isBusy: true,
       showAwaiting: true,
       showResponse: false,
-      source: 'send-preflight',
+      source: isPendingTurn(pendingTurn) ? 'pending-turn' : 'send-preflight',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation,
       overlayIntent: {

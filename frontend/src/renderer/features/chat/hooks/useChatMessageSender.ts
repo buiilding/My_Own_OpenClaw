@@ -19,6 +19,7 @@ import {
   dispatchPreparedDesktopChatTurn,
   prepareDesktopChatSend,
 } from '../utils/messageSender/desktopChatSendPreparation';
+import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -34,6 +35,7 @@ export function useChatMessageSender(
   options: ChatMessageSenderOptions = {},
 ) {
   const { addMessage, setIsSending } = useChatCommonActions();
+  const clearPendingTurn = useChatStore((state) => state.clearPendingTurn);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config } = useAppConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
@@ -76,12 +78,22 @@ export function useChatMessageSender(
       await dispatchPreparedDesktopChatTurn(preparedTurn);
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
+      clearPendingTurn({
+        conversationRef: preparedTurn.conversationRef,
+        turnRef: preparedTurn.turnRef,
+      });
+      IpcBridge.send(SEND_CHANNELS.WINDIE_PENDING_TURN, {
+        type: 'clear',
+        conversationRef: preparedTurn.conversationRef,
+        turnRef: preparedTurn.turnRef,
+      });
       setIsSending(false, preparedTurn.conversationRef);
       appendSendFailureMessage(preparedTurn.conversationRef);
       throw error;
     }
   }, [
     appendSendFailureMessage,
+    clearPendingTurn,
     setIsSending,
     stopPlayback,
     senderSurface,

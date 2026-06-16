@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
   snake_case backend tool-call and tool-bundle payload fields only.
 - docs/sdk: clarify that TypeScript local tool execution requires SDK-shaped
   tool-call and tool-bundle events after backend event normalization.
+- frontend/chat: replace response-overlay send priming with pending-turn IPC
+  broadcast and replay before SDK current-turn handoff.
 - docs/providers: clarify that Kimi accepts `kimi-coding`/`kimi_coding`
   provider names while old `kimi-code`/`kimi_code` aliases are rejected.
 - docs/navigation: replace broken formatter, memory IPC, overlay, and browser

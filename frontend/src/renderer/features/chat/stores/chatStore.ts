@@ -127,6 +127,15 @@ export interface StreamTracking {
 
 export type SdkCurrentTurnProjection = CurrentTurnProjection;
 
+export interface PendingTurn {
+  conversationRef: string;
+  turnRef: string;
+  userMessageId: string;
+  text: string;
+  timestamp: string;
+  attachmentFilenames: string[] | null;
+}
+
 interface ResponseOverlayDismissalInput {
   conversationRef?: string | null;
   turnRef?: string | null;
@@ -168,6 +177,7 @@ interface ChatState {
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
   currentTurnProjection: SdkCurrentTurnProjection | null;
+  pendingTurn: PendingTurn | null;
   latestCurrentTurnProjection: SdkCurrentTurnProjection | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
@@ -199,6 +209,13 @@ interface ChatState {
     currentTurnProjection: SdkCurrentTurnProjection | null,
     conversationRef?: string | null,
   ) => void;
+  acceptPendingTurn: (pendingTurn: PendingTurn) => void;
+  clearPendingTurn: (
+    input?: { conversationRef?: string | null; turnRef?: string | null } | null,
+  ) => void;
+  applyPendingTurnBroadcast: (
+    payload: unknown,
+  ) => void;
   setLatestCurrentTurnProjection: (
     currentTurnProjection: SdkCurrentTurnProjection | null,
   ) => void;
@@ -219,6 +236,7 @@ ChatState,
 | 'tokenCounts'
 | 'streamTracking'
 | 'currentTurnProjection'
+| 'pendingTurn'
 >;
 
 function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
@@ -231,6 +249,7 @@ function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWo
     tokenCounts: workspace.tokenCounts,
     streamTracking: workspace.streamTracking,
     currentTurnProjection: workspace.currentTurnProjection,
+    pendingTurn: workspace.pendingTurn,
   };
 }
 
@@ -285,6 +304,99 @@ function mergeTurnConversationRefs(
   return nextTurnConversationRefs;
 }
 
+function buildPendingTurnUserMessage(pendingTurn: PendingTurn): ChatMessage {
+  return {
+    id: pendingTurn.userMessageId,
+    text: pendingTurn.text,
+    sender: 'user',
+    turnRef: pendingTurn.turnRef,
+    sourceEventType: 'renderer-compose',
+    sourceChannel: 'renderer-local',
+    isComplete: true,
+    timestamp: pendingTurn.timestamp,
+    attachmentFilenames: pendingTurn.attachmentFilenames,
+  };
+}
+
+function doesPendingTurnMatch(
+  pendingTurn: PendingTurn | null,
+  input?: { conversationRef?: string | null; turnRef?: string | null } | null,
+): boolean {
+  if (!pendingTurn) {
+    return false;
+  }
+  if (!input) {
+    return true;
+  }
+  const conversationRef = normalizeConversationRef(input.conversationRef);
+  const turnRef = normalizeTurnRef(input.turnRef);
+  return (
+    (!conversationRef || pendingTurn.conversationRef === conversationRef)
+    && (!turnRef || pendingTurn.turnRef === turnRef)
+  );
+}
+
+function normalizePendingTurn(value: unknown): PendingTurn | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const source = value as Record<string, unknown>;
+  const conversationRef = normalizeConversationRef(source.conversationRef);
+  const turnRef = normalizeTurnRef(source.turnRef);
+  const userMessageId = typeof source.userMessageId === 'string' && source.userMessageId.trim()
+    ? source.userMessageId.trim()
+    : null;
+  const text = typeof source.text === 'string' ? source.text : null;
+  const timestamp = typeof source.timestamp === 'string' && source.timestamp.trim()
+    ? source.timestamp
+    : null;
+  if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
+    return null;
+  }
+  const attachmentFilenames = Array.isArray(source.attachmentFilenames)
+    ? source.attachmentFilenames.filter((entry): entry is string => (
+      typeof entry === 'string' && entry.trim().length > 0
+    ))
+    : null;
+  return {
+    conversationRef,
+    turnRef,
+    userMessageId,
+    text,
+    timestamp,
+    attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
+      ? attachmentFilenames
+      : null,
+  };
+}
+
+function shouldCurrentTurnClearPendingTurn(
+  pendingTurn: PendingTurn | null,
+  currentTurnProjection: SdkCurrentTurnProjection | null,
+): boolean {
+  if (!pendingTurn || !currentTurnProjection) {
+    return false;
+  }
+  if (
+    normalizeConversationRef(currentTurnProjection.conversationRef) !== pendingTurn.conversationRef
+    || normalizeTurnRef(currentTurnProjection.turnRef) !== pendingTurn.turnRef
+  ) {
+    return false;
+  }
+  const presentation = currentTurnProjection.presentation;
+  const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
+  return (
+    currentTurnProjection.phase === 'streaming'
+    || currentTurnProjection.phase === 'tool_call'
+    || currentTurnProjection.phase === 'tool_output'
+    || currentTurnProjection.phase === 'complete'
+    || currentTurnProjection.phase === 'error'
+    || presentation?.typingVisible === true
+    || presentation?.hasVisibleContent === true
+    || entries.length > 0
+  );
+}
+
 function resolveWorkspaceMutationTarget(
   state: ChatState,
   conversationRef?: string | null,
@@ -325,6 +437,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   tokenCounts: null,
   streamTracking: createInitialStreamTracking(),
   currentTurnProjection: null,
+  pendingTurn: null,
   latestCurrentTurnProjection: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();
@@ -349,6 +462,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         && state.tokenCounts === nextWorkspace.tokenCounts
         && state.streamTracking === nextWorkspace.streamTracking
         && state.currentTurnProjection === nextWorkspace.currentTurnProjection
+        && state.pendingTurn === nextWorkspace.pendingTurn
       ) {
         return state;
       }
@@ -548,14 +662,141 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => {
       const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const nextPendingTurn = shouldCurrentTurnClearPendingTurn(
+        currentWorkspace.pendingTurn,
+        currentTurnProjection,
+      )
+        ? null
+        : currentWorkspace.pendingTurn;
       const latestUpdate = state.latestCurrentTurnProjection === currentTurnProjection
         ? {}
         : { latestCurrentTurnProjection: currentTurnProjection };
-      if (currentWorkspace.currentTurnProjection === currentTurnProjection) {
+      if (
+        currentWorkspace.currentTurnProjection === currentTurnProjection
+        && currentWorkspace.pendingTurn === nextPendingTurn
+      ) {
         return Object.keys(latestUpdate).length > 0 ? latestUpdate : state;
       }
-      const nextWorkspace = { ...currentWorkspace, currentTurnProjection };
+      const nextWorkspace = {
+        ...currentWorkspace,
+        currentTurnProjection,
+        pendingTurn: nextPendingTurn,
+      };
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace, latestUpdate);
+    }),
+
+  acceptPendingTurn: (pendingTurn) =>
+    set((state) => {
+      const normalizedConversationRef = normalizeConversationRef(pendingTurn.conversationRef);
+      const normalizedTurnRef = normalizeTurnRef(pendingTurn.turnRef);
+      const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+      if (!normalizedConversationRef || !normalizedTurnRef || !normalizedPendingTurn) {
+        return state;
+      }
+      const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
+      const currentWorkspace = readWorkspaceState(state, workspaceRef);
+      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn);
+      const existingMessageIndex = currentWorkspace.messages.findIndex(
+        (message) => message.id === optimisticMessage.id,
+      );
+      const nextMessages = existingMessageIndex === -1
+        ? [...currentWorkspace.messages, optimisticMessage]
+        : currentWorkspace.messages.map((message, index) => (
+          index === existingMessageIndex ? { ...message, ...optimisticMessage } : message
+        ));
+      const nextWorkspace = {
+        ...currentWorkspace,
+        messages: nextMessages,
+        isSending: true,
+        thinkingStatus: null,
+        thinkingSourceEventType: null,
+        currentTurnProjection: null,
+        pendingTurn: normalizedPendingTurn,
+      };
+      const nextTurnConversationRefs = mergeTurnConversationRefs(
+        state.turnConversationRefs,
+        [optimisticMessage],
+        normalizedConversationRef,
+      );
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
+        activeConversationRef: normalizedConversationRef,
+        latestCurrentTurnProjection: null,
+        turnConversationRefs: nextTurnConversationRefs,
+        ...getProjectedWorkspaceFields(nextWorkspace),
+      });
+    }),
+
+  clearPendingTurn: (input = null) =>
+    set((state) => {
+      const conversationRef = normalizeConversationRef(input?.conversationRef);
+      const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, workspaceRef);
+      if (!doesPendingTurnMatch(currentWorkspace.pendingTurn, input)) {
+        return state;
+      }
+      const nextWorkspace = {
+        ...currentWorkspace,
+        pendingTurn: null,
+        isSending: false,
+      };
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+    }),
+
+  applyPendingTurnBroadcast: (payload) =>
+    set((state) => {
+      const source = payload && typeof payload === 'object' && !Array.isArray(payload)
+        ? payload as Record<string, unknown>
+        : {};
+      if (source.type === 'clear') {
+        const conversationRef = normalizeConversationRef(source.conversationRef);
+        const turnRef = normalizeTurnRef(source.turnRef as string | null | undefined);
+        const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+        const currentWorkspace = readWorkspaceState(state, workspaceRef);
+        if (!doesPendingTurnMatch(currentWorkspace.pendingTurn, { conversationRef, turnRef })) {
+          return state;
+        }
+        const nextWorkspace = {
+          ...currentWorkspace,
+          pendingTurn: null,
+          isSending: false,
+        };
+        return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+      }
+      const normalizedPendingTurn = normalizePendingTurn(source.pendingTurn);
+      if (!normalizedPendingTurn) {
+        return state;
+      }
+      const workspaceRef = resolveChatWorkspaceRef(normalizedPendingTurn.conversationRef);
+      const currentWorkspace = readWorkspaceState(state, workspaceRef);
+      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn);
+      const existingMessageIndex = currentWorkspace.messages.findIndex(
+        (message) => message.id === optimisticMessage.id,
+      );
+      const nextMessages = existingMessageIndex === -1
+        ? [...currentWorkspace.messages, optimisticMessage]
+        : currentWorkspace.messages.map((message, index) => (
+          index === existingMessageIndex ? { ...message, ...optimisticMessage } : message
+        ));
+      const nextWorkspace = {
+        ...currentWorkspace,
+        messages: nextMessages,
+        isSending: true,
+        thinkingStatus: null,
+        thinkingSourceEventType: null,
+        currentTurnProjection: null,
+        pendingTurn: normalizedPendingTurn,
+      };
+      const nextTurnConversationRefs = mergeTurnConversationRefs(
+        state.turnConversationRefs,
+        [optimisticMessage],
+        normalizedPendingTurn.conversationRef,
+      );
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
+        activeConversationRef: normalizedPendingTurn.conversationRef,
+        latestCurrentTurnProjection: null,
+        turnConversationRefs: nextTurnConversationRefs,
+        ...getProjectedWorkspaceFields(nextWorkspace),
+      });
     }),
 
   setLatestCurrentTurnProjection: (currentTurnProjection) =>
@@ -594,6 +835,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         compactionDebugInfo: null,
         streamTracking: createInitialStreamTracking(),
         currentTurnProjection: null,
+        pendingTurn: null,
       };
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),

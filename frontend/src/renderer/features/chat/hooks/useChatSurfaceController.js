@@ -74,6 +74,7 @@ export function useChatSurfaceController({
   isSending,
   messages,
   currentTurnProjection = null,
+  pendingTurn = null,
   allowedTypes,
   sessionInfo,
   setThinkingStatus,
@@ -84,6 +85,7 @@ export function useChatSurfaceController({
   const { config, updateConfig } = useAppConfigContext();
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
+    pendingTurn,
     isSending,
     messages,
   });

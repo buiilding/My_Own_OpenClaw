@@ -101,6 +101,7 @@ export function useResponseOverlayViewModel({
   isSending = false,
   thinkingStatus,
   currentTurnProjection = null,
+  pendingTurn = null,
 }) {
   const dismissedResponseOverlayEntries = useChatStore(
     (state) => state.dismissedResponseOverlayEntries,
@@ -113,6 +114,7 @@ export function useResponseOverlayViewModel({
   const lastOverlayIntentModeRef = useRef(null);
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
+    pendingTurn,
     isSending,
     messages,
   });

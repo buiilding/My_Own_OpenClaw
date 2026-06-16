@@ -11,6 +11,7 @@ function trackRendererWindow({
   rendererWindows,
   getResponseOverlayPhase,
   getLatestCurrentTurn = null,
+  getLatestPendingTurn = null,
   getReplayEvents = null,
   buildConversationEvent = null,
 }) {
@@ -42,6 +43,15 @@ function trackRendererWindow({
       const latestCurrentTurn = getLatestCurrentTurn();
       if (latestCurrentTurn && typeof latestCurrentTurn === 'object') {
         webContents.send('windie:current-turn', latestCurrentTurn);
+      }
+    }
+    if (typeof getLatestPendingTurn === 'function') {
+      const latestPendingTurn = getLatestPendingTurn();
+      if (latestPendingTurn && typeof latestPendingTurn === 'object') {
+        webContents.send('windie:pending-turn', {
+          type: 'pending',
+          pendingTurn: latestPendingTurn,
+        });
       }
     }
     if (typeof getReplayEvents !== 'function') {

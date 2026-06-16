@@ -2,7 +2,7 @@
  * Provides the desktop chat send preparation module for the renderer UI.
  */
 
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
@@ -17,8 +17,7 @@ import {
 import { logUserSentMessage } from '../../../../infrastructure/interaction/frontendInteractionLogger';
 import type { ChatSendSurface } from '../../policies/messageSendUiPolicy';
 import {
-  ensureConversationRefForSend,
-  hydrateConversationSessionFromMainSnapshot,
+  resolveRendererConversationSessionSnapshot,
 } from '../../session/conversationSessionRuntime';
 import { useChatStore } from '../../stores/chatStore';
 import { logRendererChatPillTrace } from '../chatStream/chatStreamDebugTrace';
@@ -33,7 +32,6 @@ import {
   hasUserMessages,
 } from './chatMessageSenderUtils';
 import { createConversationRef } from '../session/conversationRef';
-import type { ChatMessage } from '../../stores/chatStore';
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 
@@ -71,21 +69,6 @@ type PreparedDesktopChatTurn = {
   turnRef: string | null;
   workspacePath: string | null;
 };
-
-async function hydrateSessionFromMainSnapshot(
-  setChatActiveConversationRef: (conversationRef: string | null) => void,
-): Promise<string | null> {
-  const snapshot = await hydrateConversationSessionFromMainSnapshot({
-    loadMainSessionSnapshot: () => IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID),
-    setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
-    setChatConversationRef: setChatActiveConversationRef,
-    updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
-    onError: (error) => {
-      console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
-    },
-  });
-  return snapshot.conversationRef;
-}
 
 function buildTurnInputResources({
   readableFiles,
@@ -140,25 +123,6 @@ function buildTurnInputResources({
   return resources.length > 0 || attachmentFilenames.length > 0 ? resources : [];
 }
 
-async function ensureConversationRef(
-  setChatActiveConversationRef: (conversationRef: string | null) => void,
-): Promise<string> {
-  return ensureConversationRefForSend({
-    transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef(),
-    storeConversationRef: useChatStore.getState().activeConversationRef,
-    setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
-    setChatConversationRef: setChatActiveConversationRef,
-    hydrateMainSessionSnapshot: async () => {
-      const conversationRef = await hydrateSessionFromMainSnapshot(setChatActiveConversationRef);
-      return {
-        conversationRef,
-        userId: DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo().userId,
-      };
-    },
-    createConversationRef,
-  });
-}
-
 async function ensureConversationWorkspaceBinding(conversationRef: string): Promise<WorkspaceBinding> {
   const existingBinding = getConversationWorkspaceBinding(conversationRef);
   if (existingBinding.workspacePath) {
@@ -176,31 +140,25 @@ async function ensureConversationWorkspaceBinding(conversationRef: string): Prom
   }
 }
 
-function buildOptimisticUserMessage({
-  attachmentFilenames,
-  text,
-  timestamp,
-  turnId,
-}: {
-  attachmentFilenames: string[];
-  text: string;
-  timestamp: string;
-  turnId: string;
-}): ChatMessage {
-  return {
-    id: `${turnId}-sdk-evt-000002-user_message`,
-    text,
-    sender: 'user',
-    turnRef: turnId,
-    sourceEventType: 'renderer-compose',
-    sourceChannel: 'renderer-local',
-    isComplete: true,
-    timestamp,
-    attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
-  };
+function resolveImmediateConversationRef(
+  setChatActiveConversationRef: (conversationRef: string | null) => void,
+): string {
+  const sessionSnapshot = resolveRendererConversationSessionSnapshot({
+    transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef(),
+    storeConversationRef: useChatStore.getState().activeConversationRef,
+    userId: DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo().userId,
+  });
+  const conversationRef = sessionSnapshot.conversationRef || createConversationRef();
+  DesktopTranscriptSessionRuntimeClient.setActiveConversationRef(conversationRef);
+  setChatActiveConversationRef(conversationRef);
+  DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(
+    conversationRef,
+    sessionSnapshot.userId,
+  );
+  return conversationRef;
 }
 
-function applyOptimisticUserMessage({
+function acceptPendingTurn({
   attachmentFilenames,
   conversationRef,
   text,
@@ -213,36 +171,27 @@ function applyOptimisticUserMessage({
   timestamp: string;
   turnId: string;
 }): void {
-  const store = useChatStore.getState();
-  store.addMessage(
-    buildOptimisticUserMessage({
-      attachmentFilenames,
-      text,
-      timestamp,
-      turnId,
-    }),
+  const pendingTurn = {
     conversationRef,
-  );
-  store.setIsSending(true, conversationRef);
-  store.setThinkingStatus(null, conversationRef);
-  store.setThinkingSourceEventType(null, conversationRef);
+    turnRef: turnId,
+    userMessageId: `${turnId}-sdk-evt-000002-user_message`,
+    text,
+    timestamp,
+    attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
+  };
+  const store = useChatStore.getState();
+  store.acceptPendingTurn(pendingTurn);
+  IpcBridge.send(SEND_CHANNELS.WINDIE_PENDING_TURN, {
+    type: 'pending',
+    pendingTurn,
+  });
 }
 
-async function runSendSurfacePreflight({
-  senderSurface,
+async function runSendSurfaceWindowPolicy({
   shouldReturnToChatboxOnSend,
 }: {
-  senderSurface: ChatSendSurface;
   shouldReturnToChatboxOnSend: boolean;
 }): Promise<void> {
-  if (senderSurface === 'overlay-chatbox') {
-    try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING);
-    } catch (error) {
-      console.warn('[useChatMessageSender] Failed to prime response overlay awaiting state:', error);
-    }
-  }
-
   if (shouldReturnToChatboxOnSend) {
     try {
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
@@ -280,8 +229,8 @@ export async function prepareDesktopChatSend({
   const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
-  const conversationRef = await ensureConversationRef(dependencies.setChatActiveConversationRef);
-  applyOptimisticUserMessage({
+  const conversationRef = resolveImmediateConversationRef(dependencies.setChatActiveConversationRef);
+  acceptPendingTurn({
     attachmentFilenames,
     conversationRef,
     text,
@@ -309,8 +258,7 @@ export async function prepareDesktopChatSend({
     readableFileCount: readableFiles.length,
   });
 
-  await runSendSurfacePreflight({
-    senderSurface,
+  await runSendSurfaceWindowPolicy({
     shouldReturnToChatboxOnSend: sendLifecycle.shouldReturnToChatboxOnSend,
   });
 

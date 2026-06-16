@@ -2,6 +2,7 @@
   "SEND_CHANNELS": {
     "RENDERER_LOG": "renderer-log",
     "LIVE_SURFACE_TRACE": "live-surface-trace",
+    "WINDIE_PENDING_TURN": "windie:pending-turn",
     "TRANSCRIPT_SESSION_SYNC": "transcript-session-sync",
     "MOVE_CHATBOX_TO": "move-chatbox-to",
     "WAKEWORD_AUDIO_CHUNK": "wakeword-audio-chunk",
@@ -23,7 +24,6 @@
     "SET_CHATBOX_HIT_TEST_ACTIVE": "set-chatbox-hit-test-active",
     "SET_RESPONSEBOX_HIT_TEST_ACTIVE": "set-responsebox-hit-test-active",
     "SET_RESPONSEBOX_SIZE": "set-responsebox-size",
-    "PRIME_RESPONSE_OVERLAY_AWAITING": "prime-response-overlay-awaiting",
     "SHOW_MAIN_WINDOW": "show-main-window",
     "GET_MAIN_WINDOW_VISIBILITY": "get-main-window-visibility",
     "SHOW_CHATBOX": "show-chatbox",
@@ -59,6 +59,7 @@
     "WINDIE_MEMORY_STORE_CHANGED": "windie:memory-store-changed",
     "WINDIE_CONVERSATION_METADATA_INVALIDATED": "windie:conversation-metadata-invalidated",
     "WINDIE_CURRENT_TURN": "windie:current-turn",
+    "WINDIE_PENDING_TURN": "windie:pending-turn",
     "TRANSCRIPT_SESSION_SYNC": "transcript-session-sync",
     "IPC_STATUS": "ipc-status",
     "LOCAL_BACKEND_STATUS": "local-backend-status",

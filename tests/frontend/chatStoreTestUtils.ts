@@ -54,6 +54,7 @@ export function resetChatStoreForTests(
         tokenCounts: null,
         streamTracking,
         currentTurnProjection: null,
+        pendingTurn: null,
       },
     },
     messages,
@@ -63,6 +64,7 @@ export function resetChatStoreForTests(
     tokenCounts: null,
     streamTracking,
     currentTurnProjection: null,
+    pendingTurn: null,
     latestCurrentTurnProjection: null,
   });
 }

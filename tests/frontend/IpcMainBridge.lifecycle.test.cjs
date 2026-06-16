@@ -273,6 +273,79 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(sentQuery.payload.conversation_ref).toBe('conv-dashboard-selected');
   });
 
+  test('stores, broadcasts, replays, and clears pending turn state', () => {
+    const { handlers, mainWindow, ipc } = initIpc();
+    const pendingTurn = {
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      userMessageId: 'user-pending',
+      text: 'start now',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
+
+    handlers['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn,
+    });
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'pending',
+      pendingTurn,
+    });
+
+    const replayWindow = {
+      on: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+      webContents: {
+        send: jest.fn(),
+        on: jest.fn(),
+        removeListener: jest.fn(),
+        isLoadingMainFrame: jest.fn(() => false),
+      },
+    };
+    ipc.registerRendererWindow(replayWindow);
+
+    expect(replayWindow.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'pending',
+      pendingTurn,
+    });
+
+    handlers['windie:pending-turn']({}, {
+      type: 'clear',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    });
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'clear',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    });
+    expect(replayWindow.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'clear',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    });
+
+    const afterClearWindow = {
+      on: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+      webContents: {
+        send: jest.fn(),
+        on: jest.fn(),
+        removeListener: jest.fn(),
+        isLoadingMainFrame: jest.fn(() => false),
+      },
+    };
+    ipc.registerRendererWindow(afterClearWindow);
+
+    expect(afterClearWindow.webContents.send).not.toHaveBeenCalledWith(
+      'windie:pending-turn',
+      expect.anything(),
+    );
+  });
+
   test('switches response overlay phase to tool-call when backend emits tool-call', async () => {
     const applyResponseOverlayPhase = jest.fn();
     const { ws } = await setupOpenedIpc({ applyResponseOverlayPhase });

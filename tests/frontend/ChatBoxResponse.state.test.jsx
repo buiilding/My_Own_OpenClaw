@@ -14,7 +14,6 @@ import {
 import {
   ChatBoxResponse,
   emitOverlayPhase,
-  emitResponseOverlayPhasePayload,
   emitOverlayVisibility,
   mockInvoke,
   mockSend,
@@ -22,10 +21,6 @@ import {
   setChatState,
   useChatStore,
 } from './ChatBoxResponse.testUtils';
-import {
-  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
-  RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
-} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
 
 describe('ChatBoxResponse state behavior', () => {
   beforeEach(() => {
@@ -78,6 +73,18 @@ describe('ChatBoxResponse state behavior', () => {
     };
   }
 
+  function pendingTurn(overrides = {}) {
+    return {
+      conversationRef: 'conv-test',
+      turnRef: 'turn-pending',
+      userMessageId: 'user-pending',
+      text: 'run command',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+      ...overrides,
+    };
+  }
+
   test('shows awaiting indicator when no assistant response exists yet', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
@@ -93,14 +100,13 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('shows awaiting indicator from renderer send preflight before SDK current-turn arrives', async () => {
+  test('shows awaiting indicator from pending turn before SDK current-turn arrives', async () => {
     render(<ChatBoxResponse />);
 
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
 
-    emitResponseOverlayPhasePayload({
-      phase: 'awaiting-first-chunk',
-      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+    act(() => {
+      useChatStore.getState().acceptPendingTurn(pendingTurn());
     });
 
     await waitFor(() => {
@@ -110,12 +116,11 @@ describe('ChatBoxResponse state behavior', () => {
     expect(useChatStore.getState().currentTurnProjection).toBeNull();
   });
 
-  test('reports preflight typing size immediately when renderer preflight arrives', () => {
+  test('reports pending-turn typing size immediately', () => {
     render(<ChatBoxResponse />);
 
-    emitResponseOverlayPhasePayload({
-      phase: 'awaiting-first-chunk',
-      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+    act(() => {
+      useChatStore.getState().acceptPendingTurn(pendingTurn());
     });
 
     expect(mockInvoke).toHaveBeenCalledWith(
@@ -123,17 +128,17 @@ describe('ChatBoxResponse state behavior', () => {
       expect.objectContaining({
         visible: true,
         compact_hover: true,
-        stale_guard_ref: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+        stale_guard_ref: 'renderer-send-preflight',
+        turn_ref: 'turn-pending',
       }),
     );
   });
 
-  test('keeps preflight awaiting visible through hidden startup SDK projection', async () => {
+  test('keeps pending-turn awaiting visible through hidden startup SDK projection', async () => {
     render(<ChatBoxResponse />);
 
-    emitResponseOverlayPhasePayload({
-      phase: 'awaiting-first-chunk',
-      source: RESPONSE_OVERLAY_PREFLIGHT_SOURCE,
+    act(() => {
+      useChatStore.getState().acceptPendingTurn(pendingTurn());
     });
 
     await waitFor(() => {
@@ -1057,7 +1062,7 @@ describe('ChatBoxResponse state behavior', () => {
         expect.objectContaining({
           visible: true,
           compact_hover: true,
-          stale_guard_ref: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+          stale_guard_ref: 'renderer-send-preflight',
           turn_ref: 'turn-2',
         }),
       );

@@ -28,6 +28,7 @@ describe('chatSelectors', () => {
       tokenCounts: { total_tokens: 42 },
       streamTracking: state.streamTracking,
       currentTurnProjection: null,
+      pendingTurn: null,
     });
   });
 
@@ -182,6 +183,7 @@ describe('chatSelectors', () => {
       compactionDebugInfo: null,
       tokenCounts: null,
       currentTurnProjection: null,
+      pendingTurn: null,
     }));
     expect(selected.streamTracking).toEqual(expect.objectContaining({
       phase: 'idle',

@@ -183,6 +183,8 @@ describe('useChatMessageSender', () => {
           thinkingSourceEventType: null,
           tokenCounts: null,
           streamTracking,
+          currentTurnProjection: null,
+          pendingTurn: null,
         },
       },
       messages: [],
@@ -191,6 +193,9 @@ describe('useChatMessageSender', () => {
       thinkingSourceEventType: null,
       tokenCounts: null,
       streamTracking,
+      currentTurnProjection: null,
+      pendingTurn: null,
+      latestCurrentTurnProjection: null,
     });
 
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');
@@ -308,23 +313,37 @@ describe('useChatMessageSender', () => {
     );
   });
 
-  test('overlay-chatbox primes response overlay awaiting immediately on send', async () => {
+  test('overlay-chatbox broadcasts pending turn immediately on send', async () => {
     const { result } = renderSender({ senderSurface: 'overlay-chatbox' });
     await sendText(result, 'hello');
 
-    expect((window as any).ipc.invoke).toHaveBeenCalledWith(
-      INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING,
-      undefined,
+    expect((window as any).ipc.send).toHaveBeenCalledWith(
+      'windie:pending-turn',
+      expect.objectContaining({
+        type: 'pending',
+        pendingTurn: expect.objectContaining({
+          conversationRef: 'conv_msg-1',
+          turnRef: 'msg-1',
+          text: 'hello',
+        }),
+      }),
     );
   });
 
-  test('main-window sends do not prime response overlay awaiting', async () => {
+  test('main-window sends use the same pending turn broadcast', async () => {
     const { result } = renderSender({ senderSurface: 'main-window' });
     await sendText(result, 'hello');
 
-    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
-      INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING,
-      expect.anything(),
+    expect((window as any).ipc.send).toHaveBeenCalledWith(
+      'windie:pending-turn',
+      expect.objectContaining({
+        type: 'pending',
+        pendingTurn: expect.objectContaining({
+          conversationRef: 'conv_msg-1',
+          turnRef: 'msg-1',
+          text: 'hello',
+        }),
+      }),
     );
   });
 
@@ -673,17 +692,18 @@ describe('useChatMessageSender', () => {
     );
   });
 
-  test('reuses existing conversation ref without generating a new one', async () => {
+  test('reuses existing conversation ref and synchronizes renderer stores immediately', async () => {
     mockActiveConversationRef = 'conv_existing';
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello again');
 
-    expect(mockSetActiveConversationRef).not.toHaveBeenCalled();
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv_existing');
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_existing', null);
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_existing');
   });
 
-  test('hydrates missing conversation ref from main startup snapshot before first send', async () => {
+  test('creates a conversation synchronously instead of waiting for main startup hydration', async () => {
     (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string) => {
       if (channel === INVOKE_CHANNELS.GET_CLIENT_USER_ID) {
         return Promise.resolve({
@@ -700,10 +720,10 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'resume on startup');
 
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-main-snapshot');
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-main-snapshot', 'user-main-snapshot');
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv_msg-1');
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_msg-1', null);
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv-main-snapshot');
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_msg-1');
   });
 
   test('reuses chat store active conversation ref when transcript session ref is temporarily missing', async () => {

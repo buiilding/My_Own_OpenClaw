@@ -52,6 +52,31 @@ describe('ipc_renderer_windows', () => {
     expect(win.webContents.send).toHaveBeenCalledWith('windie:current-turn', currentTurn);
   });
 
+  test('syncs latest pending turn when a renderer window is tracked', () => {
+    const rendererWindows = new Set();
+    const win = createWindowMock();
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
+
+    trackRendererWindow({
+      win,
+      rendererWindows,
+      getResponseOverlayPhase: () => 'idle',
+      getLatestPendingTurn: () => pendingTurn,
+    });
+
+    expect(win.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'pending',
+      pendingTurn,
+    });
+  });
+
   test('does not send current-turn sync when none exists', () => {
     const rendererWindows = new Set();
     const win = createWindowMock();

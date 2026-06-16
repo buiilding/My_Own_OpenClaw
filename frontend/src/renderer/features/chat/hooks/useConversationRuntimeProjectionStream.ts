@@ -212,10 +212,23 @@ export function useConversationRuntimeProjectionStream(): void {
   const setMessages = useChatStore((state) => state.setMessages);
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
   const setLatestCurrentTurnProjection = useChatStore((state) => state.setLatestCurrentTurnProjection);
+  const applyPendingTurnBroadcast = useChatStore((state) => state.applyPendingTurnBroadcast);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
+
+  useEffect(() => {
+    if (!ON_CHANNELS.WINDIE_PENDING_TURN) {
+      return undefined;
+    }
+    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_PENDING_TURN, (payload: unknown) => {
+      applyPendingTurnBroadcast(payload);
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, [applyPendingTurnBroadcast]);
 
   useEffect(() => {
     if (!ON_CHANNELS.WINDIE_CURRENT_TURN) {

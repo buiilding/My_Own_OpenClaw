@@ -17,20 +17,10 @@ import {
   logRendererResponseSurfaceTrace,
 } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
-import { RESPONSE_OVERLAY_PREFLIGHT_SOURCE } from '../../chat/utils/overlay/responseOverlayPhaseContract';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const RESPONSE_FIXED_HEIGHT = RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
-
-function isRendererSendPreflightAwaiting(payload) {
-  return (
-    payload
-    && typeof payload === 'object'
-    && payload.phase === 'awaiting-first-chunk'
-    && payload.source === RESPONSE_OVERLAY_PREFLIGHT_SOURCE
-  );
-}
 
 function MinimalResponseOverlay() {
   const {
@@ -38,25 +28,12 @@ function MinimalResponseOverlay() {
     isSending,
     thinkingStatus,
     currentTurnProjection,
+    pendingTurn,
   } = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const shellRef = useRef(null);
   const responseboxHitTestActiveRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
   const lastRenderedTypingVisibleRef = useRef(null);
-
-  useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_PHASE, (payload = {}) => {
-      if (!isRendererSendPreflightAwaiting(payload)) {
-        return;
-      }
-      const store = useChatStore.getState();
-      store.setIsSending(true);
-      store.setThinkingStatus(null);
-      store.setThinkingSourceEventType(null);
-      store.setCurrentTurnProjection(null);
-    });
-    return removeListener;
-  }, []);
 
   const {
     responseOverlayEntries,
@@ -77,6 +54,7 @@ function MinimalResponseOverlay() {
     isSending,
     thinkingStatus,
     currentTurnProjection,
+    pendingTurn,
   });
   const {
     hasOverflowAbove,

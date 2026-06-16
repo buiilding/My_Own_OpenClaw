@@ -123,7 +123,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     ACTIVATE_CHATBOX_TEXT_ENTRY: 'activate-chatbox-text-entry',
     SHOW_MAIN_WINDOW: 'show-main-window',
     HIDE_CHATBOX: 'hide-chatbox',
-    PRIME_RESPONSE_OVERLAY_AWAITING: 'prime-response-overlay-awaiting',
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
@@ -144,6 +143,7 @@ const mockChatState = {
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
   streamTracking: { phase: 'idle' },
   currentTurnProjection: null,
+  pendingTurn: null,
 };
 
 let mockConfig = {
@@ -453,7 +453,7 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('latches stop state before dispatching the pill send path', async () => {
+  test('dispatches pill send path without private busy latch', async () => {
     mockChatState.currentTurnProjection = {
       phase: 'complete',
       turnRef: 'previous-turn',
@@ -475,25 +475,11 @@ describe('ChatBox overlay mouse ignore', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
     });
 
-    expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv-overlay');
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv-overlay');
-    expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith(null, 'conv-overlay');
-    expect(mockSetCurrentTurnProjection).toHaveBeenCalledWith(null, 'conv-overlay');
-    expect(mockInvoke.mock.calls.some(
-      ([channel]) => channel === 'prime-response-overlay-awaiting',
-    )).toBe(true);
-    expect(mockSetIsSending.mock.invocationCallOrder[0]).toBeLessThan(
-      mockSendMessage.mock.invocationCallOrder[0],
-    );
-    expect(mockSetCurrentTurnProjection.mock.invocationCallOrder[0]).toBeLessThan(
-      mockSendMessage.mock.invocationCallOrder[0],
-    );
-    const primeCallIndex = mockInvoke.mock.calls.findIndex(
-      ([channel]) => channel === 'prime-response-overlay-awaiting',
-    );
-    expect(mockInvoke.mock.invocationCallOrder[primeCallIndex]).toBeLessThan(
-      mockSendMessage.mock.invocationCallOrder[0],
-    );
+    expect(mockSendMessage).toHaveBeenCalledWith('Start immediately');
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockSetThinkingStatus).not.toHaveBeenCalled();
+    expect(mockSetThinkingSourceEventType).not.toHaveBeenCalled();
+    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
   });
 
   test('config button opens and maximizes the dashboard on the chat surface', () => {

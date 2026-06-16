@@ -118,9 +118,6 @@ const {
   createResponseOverlayPhaseState,
 } = require('./ipc/ipc_overlay_phase_state.cjs');
 const {
-  registerResponseOverlayHandlers,
-} = require('./ipc/ipc_response_overlay_handlers.cjs');
-const {
   createIpcEventReplayState,
 } = require('./ipc/ipc_event_replay_state.cjs');
 const {
@@ -201,6 +198,7 @@ let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
 let pendingStartupMcpRefreshPromise = null;
 let latestCurrentTurnProjection = null;
+let latestPendingTurn = null;
 let desktopAutoSidecarLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
@@ -559,6 +557,7 @@ function resetBackendSessionState() {
   currentServerUserId = null;
   currentConversationRef = null;
   latestCurrentTurnProjection = null;
+  latestPendingTurn = null;
   currentTurnTraceLogger.reset();
   electronMainTraceLogger.reset();
 }
@@ -578,6 +577,7 @@ function resetIpcProcessStateForTests() {
   pendingInstallAuthStatePromise = null;
   pendingStartupMcpRefreshPromise = null;
   latestCurrentTurnProjection = null;
+  latestPendingTurn = null;
   syncSdkLiveTurnSurfaceIntent = null;
   currentTurnTraceLogger.reset();
   electronMainTraceLogger.reset();
@@ -827,6 +827,9 @@ function createDirectWakeUpAgentAdapter({
       }
       broadcastToRenderers('windie:rows', snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
+      if (pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)) {
+        latestPendingTurn = null;
+      }
       logLiveSurfaceTrace('sdk.current_turn.received', {
         ...summarizeCurrentTurn(snapshot.currentTurn),
         source: 'conversation-runtime',
@@ -1262,11 +1265,63 @@ function trackRendererWindow(win) {
     rendererWindows,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     getLatestCurrentTurn: () => latestCurrentTurnProjection,
+    getLatestPendingTurn: () => latestPendingTurn,
     getReplayEvents: () => ipcEventReplayState.snapshot(),
     buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
       fallbackConversationRef: currentConversationRef,
     }),
   });
+}
+
+function normalizePendingTurnPayload(value) {
+  const source = value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : {};
+  const pendingTurn = source.pendingTurn && typeof source.pendingTurn === 'object'
+    ? source.pendingTurn
+    : source;
+  const conversationRef = typeof pendingTurn.conversationRef === 'string'
+    && pendingTurn.conversationRef.trim()
+    ? pendingTurn.conversationRef.trim()
+    : null;
+  const turnRef = typeof pendingTurn.turnRef === 'string' && pendingTurn.turnRef.trim()
+    ? pendingTurn.turnRef.trim()
+    : null;
+  const userMessageId = typeof pendingTurn.userMessageId === 'string'
+    && pendingTurn.userMessageId.trim()
+    ? pendingTurn.userMessageId.trim()
+    : null;
+  const text = typeof pendingTurn.text === 'string' ? pendingTurn.text : null;
+  const timestamp = typeof pendingTurn.timestamp === 'string' && pendingTurn.timestamp.trim()
+    ? pendingTurn.timestamp
+    : null;
+  if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
+    return null;
+  }
+  const attachmentFilenames = Array.isArray(pendingTurn.attachmentFilenames)
+    ? pendingTurn.attachmentFilenames.filter((entry) => (
+      typeof entry === 'string' && entry.trim()
+    ))
+    : null;
+  return {
+    conversationRef,
+    turnRef,
+    userMessageId,
+    text,
+    timestamp,
+    attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
+      ? attachmentFilenames
+      : null,
+  };
+}
+
+function pendingTurnMatchesCurrentTurn(pendingTurn, currentTurn) {
+  return Boolean(
+    pendingTurn
+      && currentTurn
+      && pendingTurn.conversationRef === currentTurn.conversationRef
+      && pendingTurn.turnRef === currentTurn.turnRef,
+  );
 }
 
 function broadcastToRenderers(channel, payload, sourceWebContents = null) {
@@ -1410,6 +1465,7 @@ function shutdownIpcForTests() {
   isConnected = false;
   pendingWindieAgentStartPromise = null;
   pendingStartupMcpRefreshPromise = null;
+  latestPendingTurn = null;
   void windieClient?.shutdownLocalRuntime?.();
   windieClient = null;
   windieAgent?.close();
@@ -1542,12 +1598,6 @@ function initializeIpc(win, options = {}) {
     };
   });
 
-  registerResponseOverlayHandlers({
-    ipcMain,
-    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    setResponseOverlayPhase,
-  });
-
   registerArtifactHandlers({
     ipcMain,
     uploadArtifact,
@@ -1607,6 +1657,42 @@ function initializeIpc(win, options = {}) {
 
   ipcMain.on('live-surface-trace', (_event, payload = {}) => {
     handleRendererLiveSurfaceTrace(payload);
+  });
+
+  ipcMain.on('windie:pending-turn', (_event, payload = {}) => {
+    const source = payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? payload
+      : {};
+    if (source.type === 'clear') {
+      const conversationRef = typeof source.conversationRef === 'string' && source.conversationRef.trim()
+        ? source.conversationRef.trim()
+        : null;
+      const turnRef = typeof source.turnRef === 'string' && source.turnRef.trim()
+        ? source.turnRef.trim()
+        : null;
+      if (
+        latestPendingTurn
+        && (!conversationRef || latestPendingTurn.conversationRef === conversationRef)
+        && (!turnRef || latestPendingTurn.turnRef === turnRef)
+      ) {
+        latestPendingTurn = null;
+      }
+      broadcastToRenderers('windie:pending-turn', {
+        type: 'clear',
+        conversationRef,
+        turnRef,
+      });
+      return;
+    }
+    const pendingTurn = normalizePendingTurnPayload(source);
+    if (!pendingTurn) {
+      return;
+    }
+    latestPendingTurn = pendingTurn;
+    broadcastToRenderers('windie:pending-turn', {
+      type: 'pending',
+      pendingTurn,
+    });
   });
 
   const {

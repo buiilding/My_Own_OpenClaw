@@ -15,6 +15,7 @@ export function selectChatInterfaceState(state) {
     tokenCounts: activeWorkspace.tokenCounts,
     streamTracking: activeWorkspace.streamTracking,
     currentTurnProjection: activeWorkspace.currentTurnProjection,
+    pendingTurn: activeWorkspace.pendingTurn,
   };
 }
 
@@ -26,5 +27,6 @@ export function selectLiveTurnSurfaceState(state) {
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
     currentTurnProjection: state.latestCurrentTurnProjection || activeWorkspace.currentTurnProjection,
+    pendingTurn: activeWorkspace.pendingTurn,
   };
 }

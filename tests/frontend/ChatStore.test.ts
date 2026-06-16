@@ -258,4 +258,121 @@ describe('chatStore', () => {
       }),
     ]);
   });
+
+  test('acceptPendingTurn adds the optimistic user row and marks the conversation busy', () => {
+    useChatStore.getState().acceptPendingTurn({
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      userMessageId: 'user-pending',
+      text: 'start now',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: ['note.txt'],
+    });
+
+    const state = useChatStore.getState();
+    expect(state.activeConversationRef).toBe('conv-pending');
+    expect(state.isSending).toBe(true);
+    expect(state.pendingTurn).toEqual(expect.objectContaining({
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      userMessageId: 'user-pending',
+      text: 'start now',
+    }));
+    expect(state.messages).toEqual([
+      expect.objectContaining({
+        id: 'user-pending',
+        sender: 'user',
+        text: 'start now',
+        turnRef: 'turn-pending',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+        attachmentFilenames: ['note.txt'],
+      }),
+    ]);
+  });
+
+  test('applyPendingTurnBroadcast replays pending state into an empty renderer workspace', () => {
+    useChatStore.getState().applyPendingTurnBroadcast({
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-replay',
+        turnRef: 'turn-replay',
+        userMessageId: 'user-replay',
+        text: 'replay this',
+        timestamp: '2026-06-16T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+    });
+
+    const state = useChatStore.getState();
+    expect(state.activeConversationRef).toBe('conv-replay');
+    expect(state.isSending).toBe(true);
+    expect(state.pendingTurn?.turnRef).toBe('turn-replay');
+    expect(state.messages).toEqual([
+      expect.objectContaining({
+        id: 'user-replay',
+        sender: 'user',
+        text: 'replay this',
+        turnRef: 'turn-replay',
+      }),
+    ]);
+  });
+
+  test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
+    useChatStore.getState().acceptPendingTurn({
+      conversationRef: 'conv-sdk',
+      turnRef: 'turn-sdk',
+      userMessageId: 'user-sdk',
+      text: 'handoff',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    });
+
+    useChatStore.getState().setCurrentTurnProjection({
+      conversationRef: 'conv-sdk',
+      turnRef: 'turn-sdk',
+      phase: 'awaiting',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        typingVisible: true,
+        overlayVisible: true,
+        isBusy: true,
+        hasVisibleContent: false,
+        entries: [],
+      },
+    });
+
+    const state = useChatStore.getState();
+    expect(state.pendingTurn).toBeNull();
+    expect(state.currentTurnProjection?.turnRef).toBe('turn-sdk');
+    expect(state.isSending).toBe(true);
+  });
+
+  test('clearPendingTurn clears only the matching pending turn', () => {
+    useChatStore.getState().acceptPendingTurn({
+      conversationRef: 'conv-clear',
+      turnRef: 'turn-clear',
+      userMessageId: 'user-clear',
+      text: 'clear me',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    });
+
+    useChatStore.getState().clearPendingTurn({
+      conversationRef: 'conv-other',
+      turnRef: 'turn-clear',
+    });
+    expect(useChatStore.getState().pendingTurn?.turnRef).toBe('turn-clear');
+    expect(useChatStore.getState().isSending).toBe(true);
+
+    useChatStore.getState().clearPendingTurn({
+      conversationRef: 'conv-clear',
+      turnRef: 'turn-clear',
+    });
+    expect(useChatStore.getState().pendingTurn).toBeNull();
+    expect(useChatStore.getState().isSending).toBe(false);
+  });
 });
