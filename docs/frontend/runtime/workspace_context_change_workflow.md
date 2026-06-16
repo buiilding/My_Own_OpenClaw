@@ -23,14 +23,13 @@ execution, and backend prompt construction.
   status, and local AGENTS.md reading for the desktop query path.
 - Backend owns prompt construction, session workspace path, backend-side
   AGENTS.md lookup when the backend can access the path, and preference for
-  injected repo instruction messages when the backend cannot read local files.
+  injected `agents_md` prompt layers when the backend cannot read local files.
 - Sidecar local tools may use workspace-related config for execution defaults,
   but sidecar must not construct backend prompt context or import backend code.
 - `workspace_path` is context. It must not be treated as proof that the backend
   can access the same filesystem path.
-- Repo instruction messages are user-role context blocks generated from
-  AGENTS.md files. Preserve the marker format unless every consumer/test is
-  updated.
+- Repo instruction prompt layers are generated from AGENTS.md files. Preserve
+  the layer content format unless every consumer/test is updated.
 
 ## Fast Owner Map
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep repo-instruction helpers private and remove the unused
+  AGENTS.md message wrapper now that Electron main injects `agents_md` prompt
+  layers through the SDK agent definition.
 - frontend/runtime: delete the unused renderer message formatter, renderer
   screenshot attachment pipeline, capture-payload helpers, and screenshot-only
   surface lifecycle tests after query screenshots moved to SDK/main resource

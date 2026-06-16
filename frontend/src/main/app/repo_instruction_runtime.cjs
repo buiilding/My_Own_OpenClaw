@@ -6,22 +6,6 @@ const fs = require('fs');
 const path = require('path');
 
 const AGENTS_FILENAME = 'AGENTS.md';
-const AGENTS_MD_START_MARKER = '# AGENTS.md instructions for ';
-const AGENTS_MD_END_MARKER = '</INSTRUCTIONS>';
-
-function buildAgentsMdMessage(directoryPath, contents) {
-  if (typeof contents !== 'string') {
-    return null;
-  }
-  const normalizedContents = contents.trim();
-  if (!normalizedContents) {
-    return null;
-  }
-  return {
-    role: 'user',
-    content: `${AGENTS_MD_START_MARKER}${directoryPath}\n\n<INSTRUCTIONS>\n${normalizedContents}\n${AGENTS_MD_END_MARKER}`,
-  };
-}
 
 function buildAgentsMdPromptLayer(directoryPath, contents, index = 0) {
   if (typeof contents !== 'string') {
@@ -114,35 +98,6 @@ function listInstructionDirectories(workspaceDir, deps = {}) {
   return directories.reverse();
 }
 
-function resolveWorkspaceRepoInstructionMessages(workspacePath, deps = {}) {
-  const resolvedFs = deps.fs || fs;
-  const resolvedPath = deps.path || path;
-  const workspaceDir = normalizeWorkspaceDirectory(workspacePath, deps);
-  if (!workspaceDir) {
-    return [];
-  }
-
-  const messages = [];
-  for (const directoryPath of listInstructionDirectories(workspaceDir, deps)) {
-    const agentsPath = resolvedPath.join(directoryPath, AGENTS_FILENAME);
-    if (!resolvedFs.existsSync(agentsPath)) {
-      continue;
-    }
-
-    try {
-      const contents = resolvedFs.readFileSync(agentsPath, 'utf8');
-      const message = buildAgentsMdMessage(directoryPath, contents);
-      if (message) {
-        messages.push(message);
-      }
-    } catch (_error) {
-      continue;
-    }
-  }
-
-  return messages;
-}
-
 function resolveWorkspaceRepoInstructionPromptLayers(workspacePath, deps = {}) {
   const resolvedFs = deps.fs || fs;
   const resolvedPath = deps.path || path;
@@ -174,9 +129,5 @@ function resolveWorkspaceRepoInstructionPromptLayers(workspacePath, deps = {}) {
 }
 
 module.exports = {
-  buildAgentsMdMessage,
-  buildAgentsMdPromptLayer,
-  normalizeWorkspaceDirectory,
-  resolveWorkspaceRepoInstructionMessages,
   resolveWorkspaceRepoInstructionPromptLayers,
 };

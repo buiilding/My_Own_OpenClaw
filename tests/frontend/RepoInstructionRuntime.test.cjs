@@ -5,53 +5,22 @@ const os = require('os');
 const path = require('path');
 
 const {
-  buildAgentsMdMessage,
-  buildAgentsMdPromptLayer,
-  normalizeWorkspaceDirectory,
-  resolveWorkspaceRepoInstructionMessages,
   resolveWorkspaceRepoInstructionPromptLayers,
 } = require('../../frontend/src/main/app/repo_instruction_runtime.cjs');
 
 describe('repo_instruction_runtime', () => {
-  test('buildAgentsMdMessage returns null for blank contents', () => {
-    expect(buildAgentsMdMessage('/tmp/workspace', ' \n ')).toBeNull();
-  });
-
-  test('buildAgentsMdPromptLayer returns prompt layer payload', () => {
-    expect(buildAgentsMdPromptLayer('/tmp/workspace', 'use tests\n', 2)).toEqual({
-      id: 'agents-md:tmp_workspace',
-      type: 'agents_md',
-      priority: 42,
-      content: '# AGENTS.md instructions for /tmp/workspace\n\nuse tests',
-    });
-  });
-
-  test('normalizeWorkspaceDirectory resolves file paths to their parent directory', () => {
+  test('resolves file paths to their parent directory before loading prompt layers', () => {
     const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-agents-file-'));
     const filePath = path.join(workspaceRoot, 'main.ts');
     fs.writeFileSync(filePath, 'console.log("hi");\n', 'utf8');
+    fs.writeFileSync(path.join(workspaceRoot, 'AGENTS.md'), 'use tests\n', 'utf8');
 
-    expect(normalizeWorkspaceDirectory(filePath)).toBe(workspaceRoot);
-  });
-
-  test('resolveWorkspaceRepoInstructionMessages walks from git root to workspace', () => {
-    const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-agents-repo-'));
-    const workspaceDir = path.join(repoRoot, 'apps', 'desktop');
-    fs.mkdirSync(workspaceDir, { recursive: true });
-    fs.mkdirSync(path.join(repoRoot, '.git'));
-    fs.writeFileSync(path.join(repoRoot, 'AGENTS.md'), 'root instructions\n', 'utf8');
-    fs.writeFileSync(path.join(repoRoot, 'apps', 'AGENTS.md'), 'apps instructions\n', 'utf8');
-
-    const messages = resolveWorkspaceRepoInstructionMessages(workspaceDir);
-
-    expect(messages).toEqual([
+    expect(resolveWorkspaceRepoInstructionPromptLayers(filePath)).toEqual([
       {
-        role: 'user',
-        content: `# AGENTS.md instructions for ${repoRoot}\n\n<INSTRUCTIONS>\nroot instructions\n</INSTRUCTIONS>`,
-      },
-      {
-        role: 'user',
-        content: `# AGENTS.md instructions for ${path.join(repoRoot, 'apps')}\n\n<INSTRUCTIONS>\napps instructions\n</INSTRUCTIONS>`,
+        id: expect.stringContaining('agents-md:'),
+        type: 'agents_md',
+        priority: 40,
+        content: `# AGENTS.md instructions for ${workspaceRoot}\n\nuse tests`,
       },
     ]);
   });

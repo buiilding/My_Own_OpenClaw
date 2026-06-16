@@ -88,6 +88,7 @@ Date: 2026-06-15
 | CD-055 | Final renderer infrastructure helper type exports | `MessageFormatter.ts` exported `BundledToolResult` and `ScreenshotAttachmentPipeline.ts` exported `ScreenshotAttachment` even though both shapes are only used by their own service function signatures | Knip reported both as the final unused exported types; repo search showed no external imports of either type while callers consume service functions directly | Make both helper shapes private to their service modules and preserve formatter/screenshot pipeline behavior | `e04bfc335` |
 | CD-056 | Renderer formatter and screenshot pipeline modules | `MessageFormatter.ts`, `ScreenshotAttachmentPipeline.ts`, `CapturePayloadUtils.ts`, screenshot-only surface lifecycle APIs, and their tests remained after renderer sends stopped capturing/uploading query screenshots and SDK/main took over screenshot resource resolution | Knip reported the formatter and screenshot pipeline functions as unused; repo search showed production kept only stale type imports, docs, and tests; removing the modules exposed `CapturePayloadUtils.ts`, screenshot lifecycle exports, and screenshot-only timing/reason helpers as unused fallout | Delete the dead renderer formatter/screenshot pipeline modules and tests; inline the remaining query capture metadata/system-state shapes into active owners; update docs to route query screenshot capture and materialization through SDK/main | `3dbfaff7b` |
 | CD-057 | Electron app-menu helper exports | `app_menu_runtime.cjs` exported the workspace permission id, menu-template builder, path segment helper, and workspace permission request helper even though production imports only the app-menu installer and workspace selection extractor | Knip reported those four helper exports unused; repo search showed only tests imported the menu-template builder directly while the other helpers were internal implementation details | Remove the test-only/internal helper exports and assert menu template behavior through `installApplicationMenu(...)` instead | `fcb9a79f0` |
+| CD-058 | Electron repo-instruction message/helper exports | `repo_instruction_runtime.cjs` exported the old AGENTS.md message wrapper/resolver, prompt-layer builder, and workspace normalizer even though production imports only `resolveWorkspaceRepoInstructionPromptLayers(...)` | Knip reported those four helper exports unused; repo search showed only tests imported the old message path while production sends `agent_definition.agents_md` prompt layers through Electron main | Delete the legacy message wrapper/resolver, keep builders and normalizer private, and update docs/tests to the prompt-layer owner | pending implementation commit |
 
 ## Commit Ledger
 
@@ -201,6 +202,7 @@ Date: 2026-06-15
   completed CD-056.
 - `fcb9a79f0 refactor(frontend): keep app menu helpers private`
   completed CD-057.
+- pending implementation commit for CD-058.
 
 ## Validation Log
 
@@ -959,6 +961,20 @@ CD-057 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this narrows a CommonJS test-only export surface while preserving
   the Electron app menu installer behavior.
+
+CD-058 validation:
+
+- `bin/windie test frontend -- RepoInstructionRuntime IpcMainBridge.query`:
+  passed; 2 suites and 24 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 163 to 159 after
+  deleting the repo-instruction message/helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; this removes only unused Electron main CommonJS exports and the
+  obsolete AGENTS.md user-message wrapper while preserving the active
+  `agents_md` prompt-layer path.
 
 ## Inspection Notes
 
