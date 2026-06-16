@@ -60,6 +60,7 @@ Date: 2026-06-15
 | CD-027 | Renderer loop UI state | `streamPhaseState.js` still exported active-loop, terminal, first-chunk, and stop-control predicates after loop UI state kept only the overlay-awaiting predicate | Knip reported the unused predicate exports, and repo search showed only their own test imported them; production imports only `isOverlayAwaitingReplyPhase(...)` from this module | Delete the unused predicates and their tests; keep the awaiting-reply predicate used by `chatLoopUiState.js` | implemented |
 | CD-028 | Renderer module export surface | `useMainWindowControls.js`, `useMessageListAutoScroll.js`, and `toolSchemaPropType.js` still carried default exports while all consumers use named imports | Knip reported the default exports unused, and repo search showed no default-import consumers | Delete the unused default exports and keep the named exports that production imports | implemented |
 | CD-029 | Renderer selector and trace helpers | `selectChatBoxState(...)`, `logRendererStreamTrace(...)`, debug trace predicates, and `CHAT_PILL_SURFACE_REASON` remained exported after their production consumers moved to current live-turn/view-model paths or internal calls | Knip reported the exports unused; repo search showed `selectChatBoxState(...)` and `logRendererStreamTrace(...)` had no production consumers, while the remaining trace predicates/constants are internal implementation details | Delete the dead selector and stream trace function; make the still-used trace predicates and chat-pill reason constant private to their modules | implemented |
+| CD-030 | Renderer message screenshot helpers | `resolveMessageScreenshotSrcList(...)` and `resolveMessageScreenshotSrc(...)` stayed exported after screenshot rendering moved to attachment normalization plus async artifact resolution | Knip reported both exports unused; repo search showed they were imported only by tests, while production uses `resolveMessageScreenshotAttachments(...)`, `resolveStaticScreenshotAttachmentSrc(...)`, and screenshot predicates | Delete the test-only source helpers and the dedicated first-source test; move useful assertions onto production-used attachment/static resolver APIs | implemented |
 
 ## Commit Ledger
 
@@ -117,6 +118,7 @@ Date: 2026-06-15
   completed CD-028.
 - `20b3adce1 refactor(frontend): remove renderer selector trace exports`
   completed CD-029.
+- pending commit for CD-030.
 
 ## Validation Log
 
@@ -431,6 +433,21 @@ CD-029 validation:
 - Migration note: no runtime, storage, transport, or persisted-data migration is
   required; this slice deletes dead renderer selector and trace public surfaces
   while preserving the active production trace entrypoints.
+
+CD-030 validation:
+
+- targeted `rg -n "resolveMessageScreenshotSrc|resolveMessageScreenshotSrcList" frontend/src tests/frontend docs --glob '!frontend/node_modules/**' --glob '!frontend/release/**' --glob '!frontend/dist/**' --glob '!frontend/python-runtime/**'`:
+  no production or test matches; remaining hits are this cleanup report entry.
+- `bin/windie test frontend -- MessageScreenshots MessageContent UseResolvedMessageScreenshots`:
+  passed, 3 suites and 22 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export/type findings, but unused export count dropped from 215 to
+  213 and the CD-030 screenshot source helpers no longer appear.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, transport, or persisted-data migration is
+  required; the active message screenshot path still normalizes attachments and
+  resolves static/async artifact images through production-used APIs.
 
 ## Inspection Notes
 

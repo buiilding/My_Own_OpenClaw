@@ -5,7 +5,8 @@
 import {
   hasMessageScreenshot,
   isUserMessageWithScreenshot,
-  resolveMessageScreenshotSrcList,
+  resolveMessageScreenshotAttachments,
+  resolveStaticScreenshotAttachmentSrc,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageScreenshots';
 
 describe('messageScreenshots', () => {
@@ -31,16 +32,48 @@ describe('messageScreenshots', () => {
     expect(isUserMessageWithScreenshot({ sender: 'user' })).toBe(false);
   });
 
-  test('resolves multiple screenshot sources from screenshots array', () => {
-    const sources = resolveMessageScreenshotSrcList({
+  test('normalizes multiple screenshot attachments from screenshots array', () => {
+    const attachments = resolveMessageScreenshotAttachments({
       screenshots: [
         { screenshotRef: 'artifact-1' },
         { screenshot: 'base64-2', screenshotContentType: 'image/png' },
       ],
     });
 
-    expect(sources).toHaveLength(2);
-    expect(sources[0]).toContain('/api/artifacts/artifact-1');
-    expect(sources[1]).toBe('data:image/png;base64,base64-2');
+    expect(attachments).toHaveLength(2);
+    expect(attachments[0]).toMatchObject({ screenshotRef: 'artifact-1' });
+    expect(attachments[1]).toMatchObject({
+      screenshot: 'base64-2',
+      screenshotContentType: 'image/png',
+    });
+  });
+
+  test('resolves static screenshot sources from url and inline payloads', () => {
+    expect(
+      resolveStaticScreenshotAttachmentSrc({
+        screenshotUrl: 'https://cdn.example/screenshot.png',
+        screenshot: 'inline-data',
+      }),
+    ).toBe('https://cdn.example/screenshot.png');
+    expect(
+      resolveStaticScreenshotAttachmentSrc({
+        screenshot: 'abc123',
+        screenshotContentType: 'image/png',
+      }),
+    ).toBe('data:image/png;base64,abc123');
+    expect(resolveStaticScreenshotAttachmentSrc({ screenshot: 'raw' }))
+      .toBe('data:image/jpeg;base64,raw');
+    expect(
+      resolveStaticScreenshotAttachmentSrc({
+        screenshot: 'raw',
+        screenshotContentType: 'text/plain',
+      }),
+    ).toBe('data:image/jpeg;base64,raw');
+  });
+
+  test('leaves artifact-backed screenshots for async resolution', () => {
+    expect(resolveStaticScreenshotAttachmentSrc({ screenshotRef: 'artifact-123' })).toBeNull();
+    expect(resolveStaticScreenshotAttachmentSrc({ text: 'plain message' })).toBeNull();
+    expect(resolveStaticScreenshotAttachmentSrc(null)).toBeNull();
   });
 });

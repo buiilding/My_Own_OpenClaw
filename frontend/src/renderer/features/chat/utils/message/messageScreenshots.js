@@ -76,25 +76,10 @@ export function resolveMessageScreenshotAttachments(message) {
   return [];
 }
 
-export function resolveMessageScreenshotSrcList(message) {
-  const screenshotSources = resolveMessageScreenshotAttachments(message)
-    .map((attachment) => resolveAttachmentSrc(attachment))
-    .filter((src) => Boolean(src));
-
-  if (screenshotSources.length > 0) {
-    return screenshotSources;
-  }
-  return [];
-}
-
 export function hasMessageScreenshot(message) {
-  return resolveMessageScreenshotSrcList(message).length > 0;
+  return resolveMessageScreenshotAttachments(message).length > 0;
 }
 
 export function isUserMessageWithScreenshot(message) {
   return message?.sender === 'user' && hasMessageScreenshot(message);
-}
-
-export function resolveMessageScreenshotSrc(message) {
-  return resolveMessageScreenshotSrcList(message)[0] || null;
 }
