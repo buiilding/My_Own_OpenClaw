@@ -2,6 +2,7 @@ summary: "Electron main local-backend bridge overview covering startup/handler b
 read_when:
   - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
   - When tracing local-backend issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.
+  - When resolving removed `local_backend_bridge.getSystemState` export references.
 title: "Local Backend Bridge Overview and Window Guard Index"
 ---
 
@@ -36,6 +37,13 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 3. map renderer IPC channels to sidecar JSON-RPC methods
 4. normalize error payloads for renderer callers
 5. route screenshot tool calls through platform screenshot visibility runtime wrapper (current runtime behavior is pass-through; Linux hide/show ownership lives in renderer capture orchestration)
+
+## Removed System-State Direct Export
+
+`local_backend_bridge.cjs` no longer exports `getSystemState(fields)`.
+System-state access is the `get-system-state` IPC handler registered by
+`initializeLocalBackendBridge(...)`; the focused behavior reference is
+[System-State Collection and Platform Adapter Reference](../sidecar/system_state/system_state_collection_and_platform_adapter_reference.md).
 
 ## Canonical Modules
 

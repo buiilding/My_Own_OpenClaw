@@ -67,6 +67,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/backend: route removed `ContainerInitializer` service-wrapper searches
   to the bootstrap lifecycle doc and document `_run_startup_step(...)` as the
   single startup-step orchestration path.
+- docs/frontend: route removed `local_backend_bridge.getSystemState` export
+  searches to the sidecar system-state reference and document
+  `get-system-state` IPC as the current owner.
 - backend/tools: remove dev TOML tool-selection loading and profile helpers so
   tool visibility is owned by effective `AppConfig` agent capability policy.
 - docs/tools: align tool-policy docs with the current agent capability

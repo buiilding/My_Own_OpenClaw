@@ -1,8 +1,9 @@
 ---
-summary: "Sidecar runtime reference for system-state capture fields, per-field fallback defaults, platform-specific probes, and Electron/renderer `get-system-state` integration semantics."
+summary: "Sidecar runtime reference for system-state capture fields, per-field fallback defaults, platform-specific probes, Electron/renderer `get-system-state` integration semantics, and the removed `local_backend_bridge.getSystemState` export."
 read_when:
   - When adding/removing system-state fields or changing per-field fallback/default values.
   - When debugging active-window/mouse/screen/windows/stats drift across sidecar, main-process bridge, and renderer consumers.
+  - When resolving removed `local_backend_bridge.getSystemState` or `getSystemState` export references.
 title: "System-State Collection and Platform Adapter Reference"
 ---
 
@@ -32,6 +33,15 @@ title: "System-State Collection and Platform Adapter Reference"
 Error path:
 
 - if JSON-RPC fails or sidecar returns `{ success: false, ... }`, main returns `null`.
+
+## Removed Direct Bridge Export
+
+`local_backend_bridge.cjs` no longer exports `getSystemState(fields)`.
+System-state access stays on the `get-system-state` IPC handler, which calls
+the internal `getSystemStateFromBackend(fields)` helper and then dispatches
+sidecar JSON-RPC `get_system_state`. Stale references to
+`local_backend_bridge.getSystemState`, `getSystemState export removed`, or
+direct system-state bridge exports should be routed back to this IPC path.
 
 ## Requested Fields Contract
 

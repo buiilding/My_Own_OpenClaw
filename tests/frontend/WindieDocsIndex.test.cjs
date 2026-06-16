@@ -404,6 +404,26 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed system-state bridge export queries to system-state docs', () => {
+    const expectedPath = path.join(
+      'docs',
+      'frontend',
+      'sidecar',
+      'system_state',
+      'system_state_collection_and_platform_adapter_reference.md',
+    );
+
+    expect(findDocs('system state bridge export removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('getSystemState export removed')[0].path).toBe(
+      expectedPath,
+    );
+    expect(findDocs('local_backend_bridge.getSystemState removed')[0].path).toBe(
+      expectedPath,
+    );
+  });
+
   test('routes strict computer grounding mixin queries to schema docs', () => {
     const expectedPath = path.join(
       'docs',
