@@ -30,6 +30,9 @@ All notable changes to WindieOS will be documented in this file.
   polls windows.
 - frontend/sidecar: return native `ToolResult` from the `process` session tool
   while keeping JSON-RPC envelope conversion in the local backend boundary.
+- frontend/sidecar: return native `ToolResult` from `run_shell_command` and
+  build foreground/background shell payloads without registry dict-result
+  normalization.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar shell output formatting and response payload builders: foreground display text, raw captured output, and foreground/background response envelopes."
+summary: "Deep reference for sidecar shell output formatting and response payload builders: foreground display text, raw captured output, and foreground/background ToolResult payloads."
 read_when:
   - When changing `run_shell_command` output shaping (`output`, `error`, `message`).
   - When changing shell response payload fields returned to ToolRegistry/backend or session-running metadata.
@@ -21,7 +21,7 @@ title: "Shell Output Formatting and Response Payload Contract Reference"
 `shell_tool.py` delegates shell output shaping to focused helpers:
 
 - user-facing status text formatting: `shell_output_formatting.py`
-- foreground/background response envelope assembly: `shell_response_payloads.py`
+- foreground/background `ToolResult` assembly: `shell_response_payloads.py`
 
 This keeps process execution/session lifecycle logic separate from payload-shaping contracts.
 
@@ -52,9 +52,8 @@ Used for `output` field in foreground responses.
 
 ### `build_background_response(...)`
 
-Returns:
+Returns `ToolResult.success_result(...)` with:
 
-- `success: true`
 - `data.status: "running"`
 - session/runtime fields: `session_id`, `pid`, `pty`, `tail`
 - warnings list passthrough
@@ -63,7 +62,7 @@ Returns:
 
 ### `build_foreground_response(...)`
 
-Returns:
+Returns a native `ToolResult` with:
 
 - `success = (exit_code == 0 or exit_code is None)`
 - execution payload fields:
@@ -74,6 +73,10 @@ Returns:
   - user-facing `message`
 
 Warnings append to `message` while preserving base status text.
+
+Failed foreground commands preserve structured stdout/stderr/exit-code data and
+set the native `ToolResult.error` message explicitly instead of relying on
+registry legacy mapping extraction.
 
 ## ToolRegistry/Backend Contract Impact
 

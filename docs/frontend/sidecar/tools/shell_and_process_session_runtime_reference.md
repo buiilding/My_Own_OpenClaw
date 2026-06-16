@@ -35,8 +35,8 @@ Model-facing wording note:
 The design separates:
 
 - execution path + stream capture (`shell_tool.py`)
-- output/token formatting + `output`/`output` shaping (`shell_output_formatting.py`)
-- foreground/background response envelope assembly (`shell_response_payloads.py`)
+- output/token formatting + `output`/`message` shaping (`shell_output_formatting.py`)
+- foreground/background `ToolResult` assembly (`shell_response_payloads.py`)
 - session state store + retention policy (`shell_process_registry.py`)
 - user-facing session operations (`process_tool.py`)
 
@@ -76,6 +76,8 @@ Foreground vs background:
 Output shaping:
 
 - foreground responses return the sidecar-captured stdout/stderr directly
+- `run_shell_command` returns native `ToolResult`; JSON-RPC conversion happens
+  in `LocalBackend._handle_execute_tool`
 - `run_shell_command` does not accept a caller-provided output token limit
 - background sessions keep aggregate and pending-output caps in the process
   registry; use `process` actions to poll or inspect long-running output

@@ -15,7 +15,13 @@ from tools.result import ToolResult  # noqa: E402
 from tools.system import shell_process_registry as registry  # noqa: E402
 from tools.system import shell_tool  # noqa: E402
 from tools.system.process_tool import process_shell_command as _process_shell_command  # noqa: E402
-from tools.system.shell_tool import run_shell_command  # noqa: E402
+from tools.system.shell_tool import run_shell_command as _run_shell_command  # noqa: E402
+
+
+async def run_shell_command(args):
+    result = await _run_shell_command(args)
+    assert isinstance(result, ToolResult)
+    return result.to_dict()
 
 
 async def process_shell_command(args):
@@ -59,6 +65,20 @@ async def test_run_shell_command_timeout_sets_flag():
     assert result["success"] is True
     assert result["data"]["timed_out"] is True
     assert "timed out" in (result["data"]["error"] or "").lower()
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_nonzero_exit_preserves_failure_payload():
+    cmd = f'{sys.executable} -c "import sys; sys.stderr.write(\'bad\'); sys.exit(7)"'
+    result = await run_shell_command(
+        {"command": cmd, "run_in_background": False, "terminate_after_seconds": 5}
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "bad"
+    assert result["data"]["error"] == "bad"
+    assert isinstance(result["data"]["exit_code"], int)
+    assert result["data"]["exit_code"] != 0
 
 
 @pytest.mark.asyncio

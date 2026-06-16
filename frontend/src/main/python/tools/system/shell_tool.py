@@ -34,6 +34,7 @@ from tools.system.shell_response_payloads import (
     build_foreground_response,
 )
 from tools.path_resolution import resolve_workspace_path
+from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ def _resolve_shell_working_directory(raw_directory: object) -> Tuple[Optional[Pa
     return resolved_path, None
 
 
-async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
+async def run_shell_command(args: Dict[str, Any]) -> ToolResult:
     """
     Execute shell command.
     
@@ -107,7 +108,7 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
               'yield_after_seconds', 'env', and optional 'pty'
         
     Returns:
-        Dictionary with success status and command result
+        ToolResult with command result data
     """
     command = args.get("command", "").strip()
     directory = args.get("directory")
@@ -118,12 +119,12 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
     pty_requested = bool(args.get("pty", False))
     
     if not command:
-        return {"success": False, "error": "Command cannot be empty"}
+        return ToolResult.error_result("Command cannot be empty")
     
     try:
         working_dir, directory_error = _resolve_shell_working_directory(directory)
         if directory_error:
-            return {"success": False, "error": directory_error}
+            return ToolResult.error_result(directory_error)
 
         warnings = []
         if pty_requested and (IS_WINDOWS or pty is None):
@@ -133,7 +134,7 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             command,
         )
         if sudo_error:
-            return {"success": False, "error": sudo_error}
+            return ToolResult.error_result(sudo_error)
 
         env = _build_env(env_overrides)
         session, wait_task = await _start_shell_session(
@@ -201,7 +202,7 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
         )
     except Exception as e:
         logger.error(f"Error executing shell command: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to execute command: {str(e)}"}
+        return ToolResult.error_result(f"Failed to execute command: {str(e)}")
 
 
 async def _start_shell_session(
