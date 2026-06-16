@@ -1,12 +1,13 @@
 ---
-summary: "Historical frontend surface lifecycle orchestration refactor package. Superseded by current Electron-main screenshot lease ownership, SDK/main local-tool capture policy, and deleted renderer `SurfaceOrchestrator`, `SystemStateCapture`, `ToolComputerUseCatalog`, and `ToolExecutionLogger` services."
+summary: "Historical frontend surface lifecycle orchestration refactor package for stale renderer tool surface lifecycle searches. Superseded by current Electron-main screenshot lease ownership, SDK/main local-tool capture policy, and deleted renderer `SurfaceOrchestrator`, `SystemStateCapture`, `ToolComputerUseCatalog`, and `ToolExecutionLogger` services."
 read_when:
   - When an old plan, search, or stack trace mentions `SurfaceOrchestrator`, `prepareExternalFocusForCapture`, `SystemStateCapture`, `ToolComputerUseCatalog`, `ToolExecutionLogger`, renderer surface lifecycle orchestration, renderer capture prep, or deleted renderer surface services.
+  - When resolving stale renderer tool surface lifecycle, renderer tool surface lifecycle removed, or removed renderer surface service references.
   - When comparing the earlier no-code design package with the current Electron-main/SDK ownership boundaries.
-title: "Historical Surface Orchestration Refactor Design Package (2026-02-28)"
+title: "Historical Renderer Tool Surface Lifecycle Removal Reference"
 ---
 
-# Historical Surface Orchestration Refactor Design Package (2026-02-28)
+# Historical Renderer Tool Surface Lifecycle Removal Reference
 
 ## Current Status
 
