@@ -541,6 +541,5 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
 module.exports = {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
-  logSdkTypingTransition,
   resolveOverlayIntent,
 };

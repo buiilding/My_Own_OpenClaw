@@ -7,7 +7,6 @@ const {
 const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
-  logSdkTypingTransition,
   resolveOverlayIntent,
 } = require('../../frontend/src/main/sdk/sdk_live_turn_surface_controller.cjs');
 
@@ -396,15 +395,20 @@ describe('sdk_live_turn_surface_controller', () => {
     };
 
     try {
-      logSdkTypingTransition(awaitingTurn, awaitingTurn.presentation.overlayIntent, surfaceState);
-      logSdkTypingTransition(awaitingTurn, awaitingTurn.presentation.overlayIntent, surfaceState);
-      logSdkTypingTransition(responseTurn, responseTurn.presentation.overlayIntent, surfaceState);
+      const deps = createDeps({ surfaceState });
+      handleSdkLiveTurnSurfaceIntent(awaitingTurn, deps);
+      handleSdkLiveTurnSurfaceIntent(awaitingTurn, deps);
+      handleSdkLiveTurnSurfaceIntent(responseTurn, deps);
 
       const events = logSpy.mock.calls
         .filter(([marker]) => marker === '[LiveSurfaceTrace]')
-        .map(([, payload]) => payload.event);
+        .map(([, payload]) => payload.event)
+        .filter((event) => event.startsWith('typing.'));
       expect(events).toEqual(['typing.show', 'typing.hide']);
-      expect(logSpy.mock.calls[0][1]).toEqual(expect.objectContaining({
+      const typingPayloads = logSpy.mock.calls
+        .filter(([marker, payload]) => marker === '[LiveSurfaceTrace]' && payload.event?.startsWith('typing.'))
+        .map(([, payload]) => payload);
+      expect(typingPayloads[0]).toEqual(expect.objectContaining({
         event: 'typing.show',
         process: 'main',
         source: 'sdk-live-turn-surface',
@@ -412,7 +416,7 @@ describe('sdk_live_turn_surface_controller', () => {
         hasVisibleContent: false,
         entryCount: 0,
       }));
-      expect(logSpy.mock.calls[1][1]).toEqual(expect.objectContaining({
+      expect(typingPayloads[1]).toEqual(expect.objectContaining({
         event: 'typing.hide',
         process: 'main',
         source: 'sdk-live-turn-surface',

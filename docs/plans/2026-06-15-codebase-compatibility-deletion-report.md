@@ -113,6 +113,7 @@ Date: 2026-06-15
 | CD-080 | Electron global stop shortcut helper exports | `agent_stop_shortcut_runtime.cjs` exported `ACTIVE_AGENT_LOOP_STOP_PHASES`, `getSupportedGlobalAgentStopShortcuts(...)`, and `normalizeGlobalAgentStopAccelerator(...)` even though production imports only the runtime initializer, phase predicate, and public accelerator resolver | Knip reported all three exports unused; repo search showed only `AgentStopShortcutRuntime.test.cjs` imported the catalog and normalizer helpers directly while production observes shortcut options through runtime status | Remove the helper exports, keep phase/catalog/accelerator normalization private, and assert shortcut catalog/normalization through public runtime status and resolver APIs | `9bcb5c08c` |
 | CD-081 | Electron layer-log helper exports | `layer_log_sink.cjs` exported logging constants, `normalizeLayer(...)`, `installConsoleStreamErrorGuards(...)`, and an unused `attachLineStream(...)` helper even though production callers use the higher-level layer log APIs; `ensureLogFile(...)` and `resolveRendererVerboseLogFile(...)` must remain public because `bin/windie` imports them | Knip reported the helper exports unused from the frontend package; repo-wide search found no external consumers for the constants, normalizer, guard installer, or line-stream helper, while CLI search confirmed the two false-positive exports are still used by `scripts/windie/commands.cjs` | Delete the orphan line-stream helper, remove the internal helper exports, keep stream guard behavior private behind `installConsoleLayerLog(...)`, and preserve CLI-facing log path exports | `f4762cf31` |
 | CD-082 | Electron permission verifier helper exports | Focused permission service modules exported verifier helpers such as `verifyScreenCaptureCapability(...)`, `verifyBrowserAutomationCapability(...)`, and `normalizePlatformScope(...)` even though callers use `permission_service.cjs` probe/request entrypoints and pass verifier callbacks through `deps` | Knip reported seven permission verifier/runtime exports unused; repo search found remaining occurrences are private same-module calls or dependency-injection callback names, not module imports | Remove the helper exports while preserving verifier callback injection and public probe/request behavior through the permission service runtime | `fd1c9c454` |
+| CD-083 | Electron SDK live-turn typing logger export | `sdk_live_turn_surface_controller.cjs` exported `logSdkTypingTransition(...)` even though production calls it only inside `handleSdkLiveTurnSurfaceIntent(...)` | Knip reported the export unused; repo search showed only `SdkLiveTurnSurfaceController.test.cjs` imported the helper directly while production imports the live-turn surface state/handler APIs | Remove the helper export and assert typing trace de-duplication through the public live-turn surface handler | pending |
 
 ## Commit Ledger
 
@@ -1464,6 +1465,19 @@ CD-082 validation:
   migration is required. Permission probes and requests still route through
   `permission_service.cjs`, and verifier callback injection via `deps` remains
   unchanged for platform/runtime tests and Electron main callers.
+
+CD-083 validation:
+
+- targeted `rg -n "logSdkTypingTransition" frontend/src tests/frontend docs scripts --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  only private same-module helper definition and use remain.
+- `bin/windie test frontend -- SdkLiveTurnSurfaceController MainProcessBootstrapRuntime SurfaceRuntime MainWindowRuntime`:
+  passed; 4 suites and 91 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 84 to 83 after
+  removing the SDK typing transition helper export.
+- Migration note: no runtime, storage, settings, IPC, or persisted-data
+  migration is required. SDK live-turn surface sync still logs typing
+  transitions through `handleSdkLiveTurnSurfaceIntent(...)`.
 
 ## Inspection Notes
 
