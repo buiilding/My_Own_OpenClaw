@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep Python executable resolution private to the sidecar
+  launch-target resolver instead of exporting the lower-level runtime-path
+  helper.
 - frontend/main: keep repo-instruction helpers private and remove the unused
   AGENTS.md message wrapper now that Electron main injects `agents_md` prompt
   layers through the SDK agent definition.

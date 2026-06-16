@@ -83,9 +83,10 @@ Optional runs auth header:
 
 ## Python Runtime and Script Resolution
 
-Main process uses `runtime_paths.cjs` helpers.
+Main process uses `runtime_paths.cjs` helpers through the canonical sidecar
+launch resolver.
 
-### `resolvePythonExecutablePath()`
+### Python Executable Resolution
 
 Resolution order:
 
@@ -117,7 +118,7 @@ Resolution behavior:
   - `<resources>/sidecar-bin/<service>[.exe]`
   - `<resources>/sidecar-bin/<service>/<service>[.exe]`
 2. fallback python launch target:
-  - command: `resolvePythonExecutablePath()`
+  - command: internal Python executable resolution
   - script path:
     - packaged: `<resources>/python-runtime/sidecar/<script>.pyc`
       (`local_backend`, `local_backend.py`, and `local_backend.pyc` all resolve

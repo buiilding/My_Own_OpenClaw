@@ -199,6 +199,5 @@ function resolveSidecarLaunchTarget(scriptName) {
 }
 
 module.exports = {
-  resolvePythonExecutablePath,
   resolveSidecarLaunchTarget,
 };
