@@ -135,14 +135,15 @@ SDK `currentTurn.reasoningText`.
 `sendMessage(text)` sequence:
 
 1. stop playback (optional)
-2. ensure `conversation_ref` exists:
+2. resolve `conversation_ref` from renderer state:
   - resolve from transcript/store active ref
-  - fallback to main-process session snapshot (`GET_CLIENT_USER_ID`)
   - create new ref only when both are absent
-3. append a renderer-local optimistic user message with the outgoing turn id
-4. set sending state before async send preparation continues
+3. accept a pending turn in chat state, which appends/updates the renderer-local
+   optimistic user message with the outgoing turn id
+4. emit `windie:pending-turn` so Electron main can fan out and replay that
+   pending user row until SDK current-turn projection clears it
 5. resolve workspace binding and typed resource handles for SDK send
-6. optional overlay preflight (`prime-response-overlay-awaiting` or `show-chatbox`)
+6. optional send-surface window policy (`show-chatbox` when configured)
 7. apply deferred model/provider selection through `DesktopSettingsRuntimeClient`
 8. dispatch the turn through `DesktopLiveTurnRuntimeClient.sendQuery(...)`
 9. let SDK `ConversationRuntime.send()` emit the authoritative base user row,

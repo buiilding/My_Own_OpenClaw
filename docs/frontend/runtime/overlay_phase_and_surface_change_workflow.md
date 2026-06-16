@@ -146,11 +146,11 @@ Main-process rules:
 - The response overlay should be shown during active loop phases, hidden on
   idle, and restored after terminal phases only when the overlay was visible and
   the chat window is still visible.
-- SDK overlay intent, renderer responsebox size reports, guarded preflight, and
-  terminal restore must not show the native response overlay unless the
-  chat-pill surface currently owns presentation. Guarded
-  `renderer-send-preflight` records the awaiting phase and stale-response guard,
-  but the first native show for typing must come from the renderer's measured
+- SDK overlay intent, renderer responsebox size reports, pending-turn preflight,
+  and terminal restore must not show the native response overlay unless the
+  chat-pill surface currently owns presentation. Pending-turn preflight preserves
+  the optimistic user row and busy state across renderer windows; the first
+  native show for typing must still come from the renderer's measured
   `set-responsebox-size` report emitted immediately after the typing layout
   commits.
 - Terminal/idle phases with a mismatched active response `correlation_id` must

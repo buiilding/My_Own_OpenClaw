@@ -90,9 +90,12 @@ Notable behavior:
 - `save/load-frontend-config` are registered by
   `ipc_frontend_config_handlers.cjs` and call atomic file helpers in
   `ipc_frontend_config.cjs`
-- `prime-response-overlay-awaiting` is registered by
-  `ipc_response_overlay_handlers.cjs` so overlay phase preflight policy stays
-  outside the IPC composition root
+- `windie:pending-turn` is handled in `ipc.cjs` because it coordinates
+  renderer-composed optimistic user turns with main's latest pending-turn cache,
+  sibling-window fan-out, late-window replay, and current-turn clear semantics
+- `ipc_response_overlay_handlers.cjs` / `prime-response-overlay-awaiting` are
+  removed; active response phases are driven by SDK/backend current-turn
+  projection and overlay phase events, not a renderer invoke preflight handler
 - `upload-artifact` and `fetch-artifact-image` are registered by
   `ipc_artifact_handlers.cjs`; upload delegates to the shared artifact uploader,
   and protected image fetch ensures install auth before calling

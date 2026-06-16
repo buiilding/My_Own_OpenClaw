@@ -565,6 +565,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes removed response overlay preflight IPC queries to current IPC docs', () => {
+    expect(findDocs('ipc_response_overlay_handlers.cjs removed')[0].path).toBe(
+      path.join('docs', 'frontend', 'main', 'ipc_helper_module_split_and_runtime_boundary_reference.md'),
+    );
+  });
+
   test('routes prompt compilation queries to prompt context docs', () => {
     expect(findDocs('prompt compilation')[0].path).toBe(
       path.join('docs', 'concepts', 'prompt_and_tool_context.md'),

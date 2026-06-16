@@ -3,6 +3,7 @@ summary: "Electron main IPC helper-module split reference for websocket event pr
 read_when:
   - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
+  - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
 ---
 
@@ -148,6 +149,9 @@ Owns renderer-window lifecycle and generic fan-out:
 
 - `trackRendererWindow`: register + prune windows, sync current overlay phase after load
 - `trackRendererWindow`: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
+- `trackRendererWindow`: replays the latest pending renderer-composed user turn
+  through `windie:pending-turn` when a secondary renderer mounts before SDK
+  current-turn projection has replaced the optimistic row
 - `broadcastToRenderers`: channel payload fan-out with optional source-window exclusion
 
 ### `ipc_query_broadcast.cjs`
@@ -212,14 +216,18 @@ the live SDK runtime:
 - SDK query command send
 - send-failure recovery
 - stop-query phase completion
+- pending-turn relay: renderer sends `windie:pending-turn` with
+  `{ type: "pending", pendingTurn }`; main stores the latest normalized
+  pending turn, broadcasts it to sibling renderers, replays it to late windows,
+  and clears it on explicit `{ type: "clear" }` or matching SDK current-turn
+  projection
 
-### `ipc_response_overlay_handlers.cjs`
+Removed preflight invoke path:
 
-Owns response-overlay preflight IPC handler registration:
-
-- `prime-response-overlay-awaiting`
-- active-loop phase guard before moving the response overlay into
-  `awaiting-first-chunk`
+- `ipc_response_overlay_handlers.cjs` and `prime-response-overlay-awaiting` are
+  no longer current runtime surfaces. Renderer send preflight is represented as
+  a pending user turn in chat state and over `windie:pending-turn`; backend/SDK
+  current-turn projection remains the authority for active response phases.
 
 ### `ipc_artifact_handlers.cjs`
 

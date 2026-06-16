@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, renderer-send-preflight awaiting latch, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, pending-turn preflight handoff, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
   - When changing `MinimalResponseOverlay.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
-  - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local send-preflight flicker, or incorrect response overlay resize behavior.
+  - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local pending-turn preflight flicker, removed `prime-response-overlay-awaiting`, or incorrect response overlay resize behavior.
 title: "Response Overlay Phase Runtime Reference"
 ---
 
@@ -74,13 +74,14 @@ SDK current-turn channel: `windie:current-turn`.
 Phase ownership boundary:
 
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
-  changes for runtime state. The response overlay renderer has one narrow
-  exception: `awaiting-first-chunk` with source `renderer-send-preflight`
-  latches local awaiting UI until SDK current-turn presentation arrives. The
-  latch may outlive hidden, non-busy SDK startup projections so first-send
-  typing does not flicker; active SDK awaiting or response presentation replaces
-  it. The main-process phase channel otherwise remains for native window/layout
-  policy and diagnostics.
+  changes for runtime state. Renderer send preflight is represented as a
+  pending user turn in chat state and over `windie:pending-turn`; this keeps the
+  optimistic user row and sending state alive across renderer windows until SDK
+  current-turn presentation arrives. The main-process phase channel otherwise
+  remains for native window/layout policy and diagnostics.
+- `prime-response-overlay-awaiting` is removed. A renderer send no longer asks
+  main to force `awaiting-first-chunk`; backend/SDK current-turn projection owns
+  active assistant/tool response phases.
 
 Modes:
 
@@ -99,9 +100,10 @@ Contract ownership:
 - renderer owns only presentation mapping from `currentTurn` into compact overlay
   rows; it must not execute tools, write transcripts, or reinterpret backend
   stream semantics for the overlay.
-- the `renderer-send-preflight` awaiting latch is presentation-only. It may keep
-  the response overlay mounted through early SDK startup projections, but it
-  must not create message rows, transcript rows, or a second completion path.
+- pending-turn preflight is presentation-only. It may keep the optimistic user
+  row and sending state visible through early SDK startup projections, but it
+  must not create transcript rows, execute tools, or become a second completion
+  path.
 - renderer raw backend stream handlers are transcript/history side-effect paths.
   They must not suppress, replace, or duplicate live
   assistant/tool row construction and commit the projected turn into message

@@ -94,35 +94,34 @@ When attachment(s) exist:
 
 1. normalize payload.
 2. optional `stopPlayback()`.
-3. resolve/create conversation ref.
+3. resolve/create conversation ref immediately from renderer state.
    - resolution order is deterministic:
      - transcript session ref
      - chat store active conversation ref
-     - main-process session snapshot (`get-client-user-id`) conversation ref
      - generated new ref (only when all three are missing)
    - snapshot projection into transcript/chat state is centralized in `conversationSessionRuntime.ts`
-   - callers use the exported session APIs (`ensureConversationRefForSend(...)`,
-     `hydrateConversationSessionFromMainSnapshot(...)`, and
-     `resolveRendererConversationSessionSnapshot(...)`); main-session snapshot
-     normalization and send-resolution helpers stay private to that module.
-4. run send-surface preflight only (`prime-response-overlay-awaiting` and
-   optional return-to-chatbox window policy).
-5. build typed SDK turn resources:
+   - send preparation uses `resolveRendererConversationSessionSnapshot(...)`; it
+     no longer awaits a main-process session snapshot before composing the local
+     pending row.
+4. accept the pending turn locally and send `windie:pending-turn` so Electron
+   main can broadcast/replay the optimistic user row across renderer windows.
+5. run send-surface window policy only (optional return-to-chatbox behavior).
+6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images
    - `readable_file` for selected non-image files
    - `query_screenshot_request` when overlay/config policy asks for a query screenshot
    - `workspace` when the conversation has a workspace binding
-6. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
+7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, display-safe metadata, and resources.
-7. Electron main preserves `resources`/`metadata` for SDK `send()` while keeping
+8. Electron main preserves `resources`/`metadata` for SDK `send()` while keeping
    them out of the backend query allowlist.
-8. SDK `ConversationRuntime.send()` emits `turn_started` and base
+9. SDK `ConversationRuntime.send()` emits `turn_started` and base
    `user_message` before resource resolution.
-9. SDK resource resolvers read files, upload clipboard images, capture query
+10. SDK resource resolvers read files, upload clipboard images, capture query
    screenshots, merge user-row metadata, and assemble backend-compatible
    `screenshot_ref`, `screenshot_refs`, `attachment_context`,
    `attachment_filenames`, `capture_meta`, and `workspace_path` fields.
-10. SDK memory/context enrichment appends hidden context to model-facing content
+11. SDK memory/context enrichment appends hidden context to model-facing content
     before backend transport.
 
 Steps 1-6 produce a `PreparedDesktopChatTurn`. The final dispatch helper applies

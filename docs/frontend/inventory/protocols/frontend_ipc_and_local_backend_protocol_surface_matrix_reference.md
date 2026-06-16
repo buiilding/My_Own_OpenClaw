@@ -10,9 +10,9 @@ title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
 
 ## Renderer Invoke Channel Counts and Compiled RPC Mapper Definitions Snapshot (2026-06-16)
 
-- Renderer `send` channels: `7`
-- Renderer `invoke` channels: `42`
-- Renderer `on/once` channels: `22`
+- Renderer `send` channels: `8`
+- Renderer `invoke` channels: `41`
+- Renderer `on/once` channels: `23`
 - Compiled JSON-RPC mapper definitions: `14` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
 
 ## Scope and Sources
@@ -22,7 +22,7 @@ This page maps protocol surfaces across renderer, Electron main, and Python loca
 - Shared preload/main channel registry: `frontend/src/shared/ipcChannels.json`
 - Preload allowlist boundary: `frontend/src/preload.js`
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`, `frontend/src/main/ipc/ipc_response_overlay_handlers.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
+- Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs` + `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - Main-to-sidecar JSON-RPC bridge: `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
@@ -37,6 +37,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 |---|---|---|
 | `renderer-log` | `main/ipc.cjs` | Receives renderer log envelopes and forwards them into the Electron main logging path |
 | `live-surface-trace` | `main/ipc.cjs` | Receives renderer live-surface trace envelopes for deterministic surface diagnostics |
+| `windie:pending-turn` | `main/ipc.cjs` | Stores, broadcasts, replays, and clears renderer-composed pending user turns until SDK current-turn projection catches up |
 | `transcript-session-sync` | `main/ipc.cjs` | Syncs renderer transcript session/conversation/user identity into main runtime state and rebroadcasts normalized session snapshots |
 | `move-chatbox-to` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Repositions chatbox overlay window |
 | `wakeword-audio-chunk` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` normalizes payload types) | Streams mic PCM chunks to wakeword subprocess |
@@ -61,7 +62,6 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `set-chatbox-hit-test-active` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Toggles chatbox overlay hit testing |
 | `set-responsebox-hit-test-active` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Toggles response overlay hit testing |
 | `set-responsebox-size` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Resize response overlay |
-| `prime-response-overlay-awaiting` | `main/ipc/ipc_response_overlay_handlers.cjs` | Moves the response overlay to `awaiting-first-chunk` unless an active streaming/tool phase already owns it |
 | `show-main-window` | `main/surfaces/window_controls_ipc_runtime.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit; `maximize` is platform-aware (`maximize` on Windows/Linux, native fullscreen on macOS when not display-targeted) |
 | `get-main-window-visibility` | `main/surfaces/window_controls_ipc_runtime.cjs` | Returns dashboard visibility state |
 | `show-chatbox` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Show chatbox overlay |
@@ -100,6 +100,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `windie:memory-store-changed` | `main/ipc.cjs` | SDK memory-store invalidation event emitted from conversation runtime events |
 | `windie:conversation-metadata-invalidated` | `main/ipc.cjs` | Conversation metadata invalidation signal for sidebar/list refreshes |
 | `windie:current-turn` | `main/ipc.cjs` | Current live-turn projection for overlay/runtime presentation |
+| `windie:pending-turn` | `main/ipc.cjs` | Pending renderer user turn replay/clear events for secondary windows and startup handoff |
 | `transcript-session-sync` | `main/ipc/ipc_transcript_session_sync.cjs` | Normalized transcript session/conversation/user identity snapshot |
 | `ipc-status` | `main/ipc.cjs` | Backend connection + client/user/session snapshot |
 | `local-backend-status` | `main/sidecar/local_backend_bridge.cjs` | Local SDK sidecar process/readiness status |

@@ -4,6 +4,7 @@ read_when:
   - When adding or changing Electron IPC channels, including permission onboarding and focused settings channels.
   - When debugging renderer-main contract mismatches or unhandled invoke/send events.
   - When searching for retired permission sudo IPC behavior or removed sudo permission channels.
+  - When searching for removed `prime-response-overlay-awaiting`; current send preflight uses `windie:pending-turn`.
 title: "IPC Channel and Handler Reference"
 ---
 
@@ -42,7 +43,7 @@ Result: unknown channel usage is rejected before Electron main dispatch.
 
 ## Renderer -> Main One-way Channels (`send`)
 
-### `renderer-log` / `live-surface-trace` / `transcript-session-sync`
+### `renderer-log` / `live-surface-trace` / `windie:pending-turn` / `transcript-session-sync`
 
 Owner: `ipc.cjs`
 
@@ -51,6 +52,9 @@ Behavior:
 - forwards renderer log and live-surface trace payloads into main logging
 - syncs transcript session/conversation/user identity from renderer to main
   runtime state
+- relays renderer-composed pending user turns across windows with
+  `windie:pending-turn`; payloads are `{ type: "pending", pendingTurn }` or
+  `{ type: "clear", conversationRef?, turnRef? }`
 
 ### `move-chatbox-to`
 
@@ -102,7 +106,6 @@ Behavior:
 - `set-chatbox-hit-test-active`
 - `set-responsebox-hit-test-active`
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
-- `prime-response-overlay-awaiting` -> response overlay preflight phase update
 - `show-chatbox`
 - `activate-chatbox-text-entry`
 - `hide-chatbox`
@@ -186,6 +189,7 @@ Local tool runtime nuances:
 - `windie:memory-store-changed`: memory-store invalidation events
 - `windie:conversation-metadata-invalidated`: sidebar/list metadata invalidation
 - `windie:current-turn`: SDK current-turn projection for live assistant/tool UI
+- `windie:pending-turn`: main-replayed pending renderer user turn until matching SDK current-turn projection or explicit clear
 - `transcript-session-sync`: normalized transcript session sync snapshots
 - `ipc-status`: websocket connection + endpoint status payload
 - `local-backend-status`: local SDK sidecar process/readiness status

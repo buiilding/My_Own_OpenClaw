@@ -65,29 +65,20 @@ The chat pill is the small always-available desktop command surface. It is rende
   shared async send preparation resolves the active conversation. The shared
   send path still owns the optimistic user row, conversation ref, resources, and
   SDK dispatch.
-- The pill also primes the response overlay awaiting preflight immediately on
-  send acceptance. The response overlay renderer may use only that
-  `renderer-send-preflight` phase as a local pre-SDK typing fallback; SDK
-  current-turn presentation replaces it when the runtime projection arrives.
-  The preflight source and guard identity are defined by the shared response
-  overlay phase contract and consumed by both renderer and Electron main.
-- The renderer resolves that preflight fallback through one shared live-turn
-  surface resolver. A hidden or idle SDK presentation does not clear local
-  preflight while `isSending=true`; active SDK awaiting/response or terminal
-  state after the local send latch clears supersedes it. This also covers the
-  gap before the optimistic new user row lands, when the previous completed
-  turn may still be the latest SDK projection.
-- Renderer response-overlay size reports during local preflight must carry the
-  `renderer-send-preflight` stale guard, not a previous SDK turn guard. That
-  keeps the native response window correlated to typing-only preflight until the
-  real SDK awaiting or response intent supersedes it.
-- Electron main treats `renderer-send-preflight` as a temporary native response
-  overlay guard, not as permission to show the native response window. The
-  first native show for preflight typing comes from the renderer's measured
-  `set-responsebox-size` report emitted immediately after the typing layout
-  commits, so startup cannot expose a stale response frame before the typing
-  layout is ready. Stale SDK hidden intent must not hide the guarded preflight
-  before SDK awaiting/response intent replaces the guard.
+- The send path accepts a pending turn immediately and emits
+  `windie:pending-turn` to Electron main. Main stores, broadcasts, and replays
+  that pending user row so sibling renderer windows keep the optimistic row and
+  busy state until the matching SDK current-turn projection arrives or the turn
+  is explicitly cleared after send failure.
+- The response overlay renderer resolves local pre-SDK waiting from pending-turn
+  and chat state, not from a renderer-invoked phase override. Hidden or idle SDK
+  startup projections must not clear the pending-turn presentation; active SDK
+  awaiting/response or terminal send failure supersedes it.
+- `prime-response-overlay-awaiting` / `renderer-send-preflight` are removed from
+  the current send preflight path. The first native response window show for
+  typing still comes from the renderer's measured `set-responsebox-size` report,
+  while backend/SDK current-turn projection remains the authority for active
+  assistant/tool response phases.
 - Preflight typing is not durable chat state. It exists only to cover the gap
   between user acceptance and SDK current-turn publication, and must be cleared
   or superseded by SDK projection rather than stored as transcript, replay, or

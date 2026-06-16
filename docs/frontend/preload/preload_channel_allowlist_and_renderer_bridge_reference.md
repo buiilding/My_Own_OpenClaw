@@ -77,7 +77,6 @@ Allowed channels (from shared `INVOKE_CHANNELS` registry):
 - `set-chatbox-hit-test-active`
 - `set-responsebox-hit-test-active`
 - `set-responsebox-size`
-- `prime-response-overlay-awaiting`
 - `show-main-window`
 - `get-main-window-visibility`
 - `show-chatbox`

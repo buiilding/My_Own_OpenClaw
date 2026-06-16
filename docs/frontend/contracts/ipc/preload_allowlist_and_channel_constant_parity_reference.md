@@ -47,6 +47,7 @@ Shared names from `ipcChannels.json`, consumed by preload + `SEND_CHANNELS`:
 
 - `renderer-log`
 - `live-surface-trace`
+- `windie:pending-turn`
 - `transcript-session-sync`
 - `move-chatbox-to`
 - `wakeword-audio-chunk`
@@ -80,7 +81,6 @@ Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 - `set-chatbox-hit-test-active`
 - `set-responsebox-hit-test-active`
 - `set-responsebox-size`
-- `prime-response-overlay-awaiting`
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `get-main-window-visibility`
 - `show-chatbox`
@@ -128,6 +128,7 @@ Shared names from `ipcChannels.json`, consumed by preload + `ON_CHANNELS`:
 - `windie:memory-store-changed`
 - `windie:conversation-metadata-invalidated`
 - `windie:current-turn`
+- `windie:pending-turn`
 - `transcript-session-sync`
 - `ipc-status`
 - `local-backend-status`
