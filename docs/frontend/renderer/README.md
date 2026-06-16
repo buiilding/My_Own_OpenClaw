@@ -11,6 +11,7 @@ title: "Frontend Renderer Docs Hub"
 ## Deep Pages
 
 - [Renderer Runtime](renderer_runtime.md)
+- [Desktop Backend Transport Command Contract Reference](desktop_backend_transport_command_contract_reference.md)
 - [Renderer State Change Workflow](renderer_state_change_workflow.md)
 - [App Startup and Onboarding Change Workflow](app_startup_onboarding_change_workflow.md)
 - [App Startup VM-Mode and Frontend Onboarding Runtime Reference](app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)

@@ -129,6 +129,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: add a renderer screenshot-state projection reference and route
   screenshot artifact-inference searches to the explicit
   `screenshotRef`/`screenshotUrl` metadata contract.
+- docs/frontend: add a renderer desktop-backend-transport contract reference
+  and route camelCase query-payload searches to the canonical snake_case
+  command surface.
 - docs: expose current feature hubs in canonical navigation and the compact docs
   directory, including nodes, channels, gateway, memory, desktop, platforms,
   plugins, MCP, browser, automation, web, help, and CLI surfaces.
