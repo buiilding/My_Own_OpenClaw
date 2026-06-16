@@ -154,6 +154,12 @@ describe('windie docs index', () => {
     );
   });
 
+  test('routes browser use tool queries to the browser tool guide', () => {
+    expect(findDocs('browser use tool')[0].path).toBe(
+      path.join('docs', 'tools', 'browser.md'),
+    );
+  });
+
   test('routes CLI diagnostics and conversation commands to the command matrix', () => {
     const commandDocs = new Set([
       path.join('docs', 'cli', 'README.md'),

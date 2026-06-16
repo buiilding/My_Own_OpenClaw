@@ -1,7 +1,7 @@
 ---
-summary: "Browser automation guide for WindieOS dedicated browser control, backend schema exposure, sidecar runtime execution, and debugging."
+summary: "Browser use tool guide for WindieOS dedicated browser control, backend schema exposure, sidecar runtime execution, Browser Use engine ownership, and debugging."
 read_when:
-  - When changing browser tool schemas, dedicated browser runtime behavior, browser snapshots, or browser UI status.
+  - When changing the browser use tool, browser tool schemas, dedicated browser runtime behavior, browser snapshots, or browser UI status.
   - When debugging browser action failures.
 title: "Browser Tool"
 ---
