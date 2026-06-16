@@ -78,7 +78,5 @@ async function fetchArtifactImage({
 }
 
 module.exports = {
-  buildArtifactFetchUrl,
   fetchArtifactImage,
-  inferArtifactId,
 };

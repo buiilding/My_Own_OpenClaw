@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep artifact URL construction and artifact-id inference
+  private to the artifact fetch handler while preserving protected artifact
+  image fetch behavior.
 - frontend/main: keep the built-in client tool manifest builder private to the
   manifest merger so callers use the production client manifest APIs.
 - frontend/main: delete the retired Electron-side MCP tool execution registry,

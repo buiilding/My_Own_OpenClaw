@@ -1,23 +1,10 @@
 /** @jest-environment node */
 
 const {
-  buildArtifactFetchUrl,
   fetchArtifactImage,
-  inferArtifactId,
 } = require('../../frontend/src/main/ipc/ipc_artifact_fetch.cjs');
 
 describe('ipc artifact fetch helper', () => {
-  test('infers artifact id from canonical artifact url', () => {
-    expect(inferArtifactId('https://api.windieos.com/api/artifacts/artifact-123?x=1')).toBe('artifact-123');
-  });
-
-  test('builds artifact fetch url from backend base and artifact id', () => {
-    expect(buildArtifactFetchUrl({
-      backendHttpUrl: 'https://api.windieos.com/',
-      artifactId: 'artifact-123',
-    })).toBe('https://api.windieos.com/api/artifacts/artifact-123');
-  });
-
   test('fetches protected artifact bytes and returns a data url', async () => {
     const fetchImpl = jest.fn().mockResolvedValue({
       ok: true,
@@ -48,6 +35,30 @@ describe('ipc artifact fetch helper', () => {
         headers: {
           Authorization: 'Bearer test-install-token',
         },
+      },
+    );
+  });
+
+  test('infers canonical artifact urls through the fetch path', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: jest.fn(() => 'image/jpeg'),
+      },
+      arrayBuffer: async () => Uint8Array.from([1, 2, 3]).buffer,
+    });
+
+    await fetchArtifactImage({
+      url: 'https://other.example.com/api/artifacts/artifact-456?x=1',
+      backendHttpUrl: 'https://api.windieos.com/',
+      fetchImpl,
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://api.windieos.com/api/artifacts/artifact-456',
+      {
+        method: 'GET',
+        headers: {},
       },
     );
   });
