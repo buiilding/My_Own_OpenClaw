@@ -82,7 +82,7 @@ Date: 2026-06-15
 | CD-049 | Desktop voice transcription gateway event type export | `desktopVoiceRuntimeClient.ts` exported `DesktopTranscriptionGatewayEvent` even though the union is only used as the return type for the module's own gateway message normalizer | Knip reported the event union export unused; repo search showed no external imports while voice UI callers consume the `DesktopVoiceRuntimeClient` methods directly | Make the gateway event union private to the desktop voice runtime client and preserve normalized gateway message behavior | `aa74f8074` |
 | CD-050 | Conversation session snapshot type export | `conversationSessionRuntime.ts` exported `MainSessionSnapshot` even though callers use the runtime functions and do not import the snapshot type directly | Knip reported the snapshot type export unused; repo search showed the type is referenced only inside `conversationSessionRuntime.ts` while tests import runtime functions/constants | Make `MainSessionSnapshot` private to the conversation session runtime while preserving the public runtime functions and `EMPTY_MAIN_SESSION_SNAPSHOT` value | `0d18f130f` |
 | CD-051 | Response overlay dismissal input type export | `chatStore.ts` exported `ResponseOverlayDismissalInput` even though dismissal callers pass plain object literals to the store methods and dismissal-key helper without importing the interface | Knip reported the interface export unused; repo search showed it is referenced only inside the chat store module while response overlay callers consume store methods | Make the dismissal input interface private to the chat store while preserving the public dismissal methods and key builder | `7aaec4655` |
-| CD-052 | Prepared desktop chat turn type export | `desktopChatSendPreparation.ts` exported `PreparedDesktopChatTurn` even though the shape is only used by prepare/build/dispatch functions inside the same module | Knip reported the type export unused; repo search showed callers import functions from the module and docs reference the concept, but no code imports the type | Make the prepared turn shape private to the send-preparation module while preserving the exported preparation and dispatch functions | pending implementation commit |
+| CD-052 | Prepared desktop chat turn type export | `desktopChatSendPreparation.ts` exported `PreparedDesktopChatTurn` even though the shape is only used by prepare/build/dispatch functions inside the same module | Knip reported the type export unused; repo search showed callers import functions from the module and docs reference the concept, but no code imports the type | Make the prepared turn shape private to the send-preparation module while preserving the exported preparation and dispatch functions | `0663f822c` |
 
 ## Commit Ledger
 
@@ -184,7 +184,8 @@ Date: 2026-06-15
   completed CD-050.
 - `7aaec4655 refactor(frontend): keep overlay dismissal input private`
   completed CD-051.
-- pending implementation commit will complete CD-052.
+- `0663f822c refactor(frontend): keep prepared chat turn type private`
+  completed CD-052.
 
 ## Validation Log
 
