@@ -165,7 +165,6 @@ function createIpcSettingsSyncRuntime({
   }
 
   return {
-    buildBackendSettingsPayload,
     ensureInitialSettingsSync,
     getPendingSettingsSyncPromise,
     reset,
@@ -175,34 +174,6 @@ function createIpcSettingsSyncRuntime({
   };
 }
 
-function createSettingsSyncRuntime({
-  getConnected,
-  getLatestFrontendConfig,
-  setLatestFrontendConfig,
-  loadCachedFrontendConfigFromDisk,
-  isBackendRuntimeConnected,
-  ensureBackendConnection,
-  updateSettings,
-  traceSettingsUpdate,
-  timeoutMs,
-  log,
-} = {}) {
-  return createIpcSettingsSyncRuntime({
-    getLatestFrontendConfig,
-    setLatestFrontendConfig,
-    loadCachedFrontendConfig: loadCachedFrontendConfigFromDisk,
-    isConnected: getConnected,
-    isBackendRuntimeConnected,
-    ensureBackendConnection,
-    updateSettings,
-    traceSettingsUpdate,
-    timeoutMs,
-    log,
-  });
-}
-
 module.exports = {
-  buildBackendSettingsPayload,
   createIpcSettingsSyncRuntime,
-  createSettingsSyncRuntime,
 };

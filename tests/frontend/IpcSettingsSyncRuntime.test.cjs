@@ -1,9 +1,7 @@
 /** @jest-environment node */
 
 const {
-  buildBackendSettingsPayload,
   createIpcSettingsSyncRuntime,
-  createSettingsSyncRuntime,
 } = require('../../frontend/src/main/ipc/ipc_settings_sync_runtime.cjs');
 
 describe('ipc_settings_sync_runtime', () => {
@@ -20,8 +18,19 @@ describe('ipc_settings_sync_runtime', () => {
     }
   }
 
-  test('buildBackendSettingsPayload strips renderer-only config fields', () => {
-    expect(buildBackendSettingsPayload({
+  test('sendSettingsUpdate strips renderer-only config fields', async () => {
+    const updateSettings = jest.fn(async () => 'settings-msg-1');
+    const runtime = createIpcSettingsSyncRuntime({
+      getLatestFrontendConfig: () => null,
+      setLatestFrontendConfig: jest.fn(),
+      isBackendRuntimeConnected: () => true,
+      ensureBackendConnection: jest.fn(),
+      updateSettings,
+      log: jest.fn(),
+      timeoutMs: 1000,
+    });
+
+    const promise = runtime.sendSettingsUpdate({
       selected_model_id: 'model-1',
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test', renderer_only: true },
@@ -31,13 +40,30 @@ describe('ipc_settings_sync_runtime', () => {
       show_tool_logs: true,
       agent_custom_instructions: 'local prompt layer',
       appearance_theme: 'graphite',
-    })).toEqual({
+    });
+
+    await waitForPendingSettingsSync(runtime, updateSettings);
+    runtime.resolveAck('settings-msg-1', true);
+
+    await expect(promise).resolves.toBe(true);
+    expect(updateSettings).toHaveBeenCalledWith({
       selected_model_id: 'model-1',
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },
       },
     });
-    expect(buildBackendSettingsPayload(null)).toBeNull();
+  });
+
+  test('sendSettingsUpdate rejects invalid config payloads before backend send', async () => {
+    const updateSettings = jest.fn();
+    const runtime = createIpcSettingsSyncRuntime({
+      updateSettings,
+      log: jest.fn(),
+      timeoutMs: 1000,
+    });
+
+    await expect(runtime.sendSettingsUpdate(null)).resolves.toBe(false);
+    expect(updateSettings).not.toHaveBeenCalled();
   });
 
   test('sendSettingsUpdate connects, sends update-settings, and resolves on ack', async () => {
@@ -163,25 +189,4 @@ describe('ipc_settings_sync_runtime', () => {
     expect(updateSettings).toHaveBeenCalledTimes(1);
   });
 
-  test('createSettingsSyncRuntime uses explicit SDK agent methods', async () => {
-    const updateSettings = jest.fn(async () => 'settings-msg-1');
-    const runtime = createSettingsSyncRuntime({
-      getConnected: () => true,
-      getLatestFrontendConfig: () => ({ selected_model_id: 'gpt-5' }),
-      setLatestFrontendConfig: jest.fn(),
-      loadCachedFrontendConfigFromDisk: jest.fn(),
-      isBackendRuntimeConnected: () => true,
-      ensureBackendConnection: jest.fn(),
-      updateSettings,
-      timeoutMs: 1000,
-      log: jest.fn(),
-    });
-
-    const promise = runtime.sendSettingsUpdate({ selected_model_id: 'gpt-5' });
-    await waitForUpdateSettings(updateSettings);
-    runtime.resolveAck('settings-msg-1', true);
-
-    await expect(promise).resolves.toBe(true);
-    expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'gpt-5' });
-  });
 });
