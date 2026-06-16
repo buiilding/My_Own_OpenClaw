@@ -109,7 +109,7 @@ Date: 2026-06-15
 | CD-076 | Electron query payload helper exports | `ipc_query_runtime.cjs` exported the backend query payload key allowlist and query-message-id normalizer even though production imports the public query payload builders and renderer/automated query preparers | Knip reported both helper exports unused; repo search showed only the query unit test imported the allowlist directly while message-id normalization is exercised through `prepareRendererQueryPayload(...)` | Remove the helper exports, keep the allowlist and id normalizer private, and assert backend query contract filtering through `buildBackendQueryPayload(...)` | `e7cc3d4f2` |
 | CD-077 | Electron runtime helper user/payload exports | `ipc_runtime_helpers.cjs` still exported `generateUserId(...)` and `normalizeBackendPayload(...)` after install auth and SDK managed agent sessions became the active identity/websocket payload owners | Knip reported both exports unused; repo search found no production imports, and the only direct payload-normalizer use was a websocket contract test that should exercise the SDK managed agent session default filter instead | Delete the stale helper functions and retarget contract tests/docs to the SDK managed agent session plus current Electron direct-payload filters | `f739e3df3` |
 | CD-078 | Electron settings sync helper exports | `ipc_settings_sync_runtime.cjs` exported `buildBackendSettingsPayload(...)` and `createSettingsSyncRuntime(...)` even though production imports only `createIpcSettingsSyncRuntime(...)` | Knip reported both exports unused; repo search found `buildBackendSettingsPayload(...)` only inside the same module plus tests, and `createSettingsSyncRuntime(...)` only in the helper-specific test | Remove the helper exports and wrapper, keep backend settings filtering private inside `sendSettingsUpdate(...)`, and assert filtering through the production runtime factory | `11d7649a1` |
-| CD-079 | Electron tool-surface lifecycle helper export | `tool_surface_lifecycle.cjs` exported `normalizeToolName(...)` even though production imports only `createElectronToolSurfaceLifecycle(...)` to install the SDK local-tool lifecycle hook | Knip reported the export unused; repo search found no external imports, and same-module use only normalizes local tool names before choosing pointer/screenshot leases | Remove the helper export and keep tool-name normalization private to the lifecycle hook implementation | pending |
+| CD-079 | Electron tool-surface lifecycle helper export | `tool_surface_lifecycle.cjs` exported `normalizeToolName(...)` even though production imports only `createElectronToolSurfaceLifecycle(...)` to install the SDK local-tool lifecycle hook | Knip reported the export unused; repo search found no external imports, and same-module use only normalizes local tool names before choosing pointer/screenshot leases | Remove the helper export and keep tool-name normalization private to the lifecycle hook implementation | `0edefaf36` |
 
 ## Commit Ledger
 
@@ -265,6 +265,8 @@ Date: 2026-06-15
   completed CD-077.
 - `11d7649a1 refactor(frontend): keep settings sync helpers private`
   completed CD-078.
+- `0edefaf36 refactor(frontend): keep tool surface normalizer private`
+  completed CD-079.
 
 ## Validation Log
 
