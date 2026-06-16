@@ -218,43 +218,6 @@ function appendRendererVerboseLogSessionBanner({
   );
 }
 
-function attachLineStream(stream, {
-  onLine,
-  onChunk = null,
-} = {}) {
-  if (!stream || typeof stream.on !== 'function') {
-    return null;
-  }
-  let buffered = '';
-  stream.setEncoding?.('utf8');
-  stream.on('data', (chunk) => {
-    const text = String(chunk ?? '');
-    if (typeof onChunk === 'function') {
-      onChunk(text);
-    }
-    buffered += text;
-    const lines = buffered.split(/\r?\n/);
-    buffered = lines.pop() ?? '';
-    lines.forEach((line) => {
-      if (typeof onLine === 'function') {
-        onLine(line);
-      }
-    });
-  });
-  stream.on('end', () => {
-    if (buffered && typeof onLine === 'function') {
-      onLine(buffered);
-      buffered = '';
-    }
-  });
-  return () => {
-    if (buffered && typeof onLine === 'function') {
-      onLine(buffered);
-      buffered = '';
-    }
-  };
-}
-
 function installConsoleLayerLog({
   layer = 'main',
   consoleObject = console,
@@ -307,20 +270,14 @@ function installConsoleLayerLog({
 }
 
 module.exports = {
-  LOG_DIR,
-  REPO_ROOT,
-  VALID_LOG_LAYERS,
   appendLayerLogLine,
   appendLayerLogSessionBanner,
   appendRendererVerboseLogLine,
   appendRendererVerboseLogSessionBanner,
-  attachLineStream,
   createLayerLogStream,
   ensureLogFile,
   formatConsoleArgs,
   installConsoleLayerLog,
-  installConsoleStreamErrorGuards,
-  normalizeLayer,
   resolveLayerLogFile,
   resolveRendererVerboseLogFile,
 };

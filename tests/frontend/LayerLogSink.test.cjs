@@ -9,10 +9,8 @@ const {
   appendLayerLogSessionBanner,
   appendRendererVerboseLogLine,
   appendRendererVerboseLogSessionBanner,
-  attachLineStream,
   ensureLogFile,
   installConsoleLayerLog,
-  installConsoleStreamErrorGuards,
   resolveLayerLogFile,
   resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
@@ -78,27 +76,6 @@ describe('layer_log_sink', () => {
     const log = fs.readFileSync(logFile, 'utf8');
     expect(log).toContain('[WindieOS] main renderer verbose console log session 2026-06-14T00:00:00.000Z');
     expect(log).toContain('[Renderer][main][console:0] [vite] connected.');
-  });
-
-  test('line-buffers stream chunks', () => {
-    const handlers = {};
-    const stream = {
-      setEncoding: jest.fn(),
-      on: jest.fn((event, handler) => {
-        handlers[event] = handler;
-      }),
-    };
-    const lines = [];
-
-    attachLineStream(stream, {
-      onLine: (line) => lines.push(line),
-    });
-
-    handlers.data('one\nt');
-    handlers.data('wo\nthree');
-    handlers.end();
-
-    expect(lines).toEqual(['one', 'two', 'three']);
   });
 
   test('installs console logging without changing console output behavior', () => {
@@ -174,7 +151,10 @@ describe('layer_log_sink', () => {
     const epipeError = new Error('write EPIPE');
     epipeError.code = 'EPIPE';
 
-    expect(installConsoleStreamErrorGuards({
+    expect(installConsoleLayerLog({
+      consoleObject: { log: jest.fn() },
+      env: { WINDIE_MAIN_LOG_FILE: '0' },
+      methods: ['log'],
       processObject: { stdout, stderr },
     })).toBe(true);
 
@@ -192,7 +172,10 @@ describe('layer_log_sink', () => {
       }),
     };
 
-    installConsoleStreamErrorGuards({
+    installConsoleLayerLog({
+      consoleObject: { log: jest.fn() },
+      env: { WINDIE_MAIN_LOG_FILE: '0' },
+      methods: ['log'],
       processObject: { stdout, stderr: null },
     });
 

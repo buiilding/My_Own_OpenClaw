@@ -111,6 +111,7 @@ Date: 2026-06-15
 | CD-078 | Electron settings sync helper exports | `ipc_settings_sync_runtime.cjs` exported `buildBackendSettingsPayload(...)` and `createSettingsSyncRuntime(...)` even though production imports only `createIpcSettingsSyncRuntime(...)` | Knip reported both exports unused; repo search found `buildBackendSettingsPayload(...)` only inside the same module plus tests, and `createSettingsSyncRuntime(...)` only in the helper-specific test | Remove the helper exports and wrapper, keep backend settings filtering private inside `sendSettingsUpdate(...)`, and assert filtering through the production runtime factory | `11d7649a1` |
 | CD-079 | Electron tool-surface lifecycle helper export | `tool_surface_lifecycle.cjs` exported `normalizeToolName(...)` even though production imports only `createElectronToolSurfaceLifecycle(...)` to install the SDK local-tool lifecycle hook | Knip reported the export unused; repo search found no external imports, and same-module use only normalizes local tool names before choosing pointer/screenshot leases | Remove the helper export and keep tool-name normalization private to the lifecycle hook implementation | `0edefaf36` |
 | CD-080 | Electron global stop shortcut helper exports | `agent_stop_shortcut_runtime.cjs` exported `ACTIVE_AGENT_LOOP_STOP_PHASES`, `getSupportedGlobalAgentStopShortcuts(...)`, and `normalizeGlobalAgentStopAccelerator(...)` even though production imports only the runtime initializer, phase predicate, and public accelerator resolver | Knip reported all three exports unused; repo search showed only `AgentStopShortcutRuntime.test.cjs` imported the catalog and normalizer helpers directly while production observes shortcut options through runtime status | Remove the helper exports, keep phase/catalog/accelerator normalization private, and assert shortcut catalog/normalization through public runtime status and resolver APIs | `9bcb5c08c` |
+| CD-081 | Electron layer-log helper exports | `layer_log_sink.cjs` exported logging constants, `normalizeLayer(...)`, `installConsoleStreamErrorGuards(...)`, and an unused `attachLineStream(...)` helper even though production callers use the higher-level layer log APIs; `ensureLogFile(...)` and `resolveRendererVerboseLogFile(...)` must remain public because `bin/windie` imports them | Knip reported the helper exports unused from the frontend package; repo-wide search found no external consumers for the constants, normalizer, guard installer, or line-stream helper, while CLI search confirmed the two false-positive exports are still used by `scripts/windie/commands.cjs` | Delete the orphan line-stream helper, remove the internal helper exports, keep stream guard behavior private behind `installConsoleLayerLog(...)`, and preserve CLI-facing log path exports | pending |
 
 ## Commit Ledger
 
@@ -1425,6 +1426,23 @@ CD-080 validation:
   projects the same `supportedAccelerators`, fallback registration behavior, and
   phase gating, while the public accelerator resolver remains available for
   main bootstrap callers.
+
+CD-081 validation:
+
+- targeted `rg -n "LOG_DIR|VALID_LOG_LAYERS|attachLineStream|installConsoleStreamErrorGuards|normalizeLayer" frontend/src tests/frontend docs scripts bin --glob '!frontend/node_modules/**' --glob '!frontend/dist/**' --glob '!frontend/release/**' --glob '!frontend/python-runtime/**'`:
+  no external imports remain; matches are private same-module logging
+  implementation details.
+- `bin/windie test frontend -- LayerLogSink WindieCli ElectronLauncher MainProcessBootstrapRuntime`:
+  passed; 5 suites and 47 tests.
+- `npm run audit:knip` in `frontend`: still exits 1 for broader existing
+  dependency/export findings; unused exports dropped from 97 to 91 after
+  removing the layer-log helper exports.
+- `bin/windie docs list`: passed.
+- `git diff --check`: passed.
+- Migration note: no runtime, storage, settings, IPC, or persisted-data
+  migration is required. Electron and `bin/windie` still use the same layer log
+  append/session/file-resolution APIs; console stream error guards still install
+  through `installConsoleLayerLog(...)`.
 
 ## Inspection Notes
 

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: delete the orphan layer-log line-stream helper and keep
+  logging constants, layer normalization, and console stream guards private.
 - frontend/main: keep global stop shortcut phase, catalog, and accelerator
   normalization helpers private to the agent stop shortcut runtime.
 - frontend/main: keep the tool-surface lifecycle tool-name normalizer private
