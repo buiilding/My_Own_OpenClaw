@@ -94,6 +94,8 @@ All notable changes to WindieOS will be documented in this file.
   enrichment helpers so renderer persistence stays a direct SDK command bridge.
 - frontend: remove unused lint-detected symbols from main-window bootstrap,
   desktop conversation storage, and transcript tool-schema normalization.
+- sdk: remove unused TypeScript symbols from conversation projections, agent
+  stream attachment extraction, managed agent sessions, and package exports.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
 - docs/frontend: route removed legacy selected-model localStorage migration

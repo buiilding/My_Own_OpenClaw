@@ -904,9 +904,6 @@ function toolOutputDedupeKey(event) {
     }
     return (0, toolCorrelationIds_js_1.resolveToolOutputDedupeKey)(event.payload);
 }
-function toolPairKey(event) {
-    return toolPairKeys(event)[0] ?? null;
-}
 function toolPairKeys(event) {
     if (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output') {
         return (0, toolCorrelationIds_js_1.resolveToolPairKeys)(event.payload, { bundle: true });

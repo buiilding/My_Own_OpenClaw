@@ -2,8 +2,6 @@
  * Exposes the package entrypoint for the TypeScript SDK runtime.
  */
 
-import type { ToolSchema } from './events/backendEvents.js';
-
 export * from './conversation/types.js';
 export * from './conversation/events.js';
 export * from './conversation/metadata.js';

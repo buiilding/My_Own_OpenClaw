@@ -463,13 +463,12 @@ function appendArrayPath(parentPath: string, index: number): string {
 
 function extractToolResultAttachments(
   value: unknown,
-  parent: JsonRecord | null = null,
   path = '',
 ): { result: unknown; attachments: AgentToolAttachment[] } {
   if (Array.isArray(value)) {
     const attachments: AgentToolAttachment[] = [];
     const result = value.map((item, index) => {
-      const extracted = extractToolResultAttachments(item, null, appendArrayPath(path, index));
+      const extracted = extractToolResultAttachments(item, appendArrayPath(path, index));
       attachments.push(...extracted.attachments);
       return extracted.result;
     });
@@ -494,7 +493,7 @@ function extractToolResultAttachments(
         });
         continue;
       }
-      const extracted = extractToolResultAttachments(nested, record, fieldPath);
+      const extracted = extractToolResultAttachments(nested, fieldPath);
       result[key] = extracted.result;
       attachments.push(...extracted.attachments);
     }

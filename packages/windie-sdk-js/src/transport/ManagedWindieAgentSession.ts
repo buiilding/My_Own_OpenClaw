@@ -95,7 +95,7 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
   private activeEndpointIndex = 0;
   private readonly session: ManagedBackendSession;
 
-  constructor(private readonly options: ManagedWindieAgentSessionOptions) {
+  constructor(options: ManagedWindieAgentSessionOptions) {
     this.endpoints = normalizeEndpoints(options);
     const WebSocketImpl = resolveWebSocketImplementation(options.WebSocketImpl);
     this.session = createManagedBackendSession({

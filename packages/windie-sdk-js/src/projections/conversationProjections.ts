@@ -1043,10 +1043,6 @@ function toolOutputDedupeKey(event: ConversationEvent): string | null {
   return resolveToolOutputDedupeKey(event.payload);
 }
 
-function toolPairKey(event: ConversationEvent): string | null {
-  return toolPairKeys(event)[0] ?? null;
-}
-
 function toolPairKeys(event: ConversationEvent): string[] {
   if (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output') {
     return resolveToolPairKeys(event.payload, { bundle: true });

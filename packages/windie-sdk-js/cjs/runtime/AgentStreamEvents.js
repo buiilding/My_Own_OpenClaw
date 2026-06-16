@@ -318,11 +318,11 @@ function appendPath(parentPath, key) {
 function appendArrayPath(parentPath, index) {
     return `${parentPath}[${index}]`;
 }
-function extractToolResultAttachments(value, parent = null, path = '') {
+function extractToolResultAttachments(value, path = '') {
     if (Array.isArray(value)) {
         const attachments = [];
         const result = value.map((item, index) => {
-            const extracted = extractToolResultAttachments(item, null, appendArrayPath(path, index));
+            const extracted = extractToolResultAttachments(item, appendArrayPath(path, index));
             attachments.push(...extracted.attachments);
             return extracted.result;
         });
@@ -346,7 +346,7 @@ function extractToolResultAttachments(value, parent = null, path = '') {
                 });
                 continue;
             }
-            const extracted = extractToolResultAttachments(nested, record, fieldPath);
+            const extracted = extractToolResultAttachments(nested, fieldPath);
             result[key] = extracted.result;
             attachments.push(...extracted.attachments);
         }
