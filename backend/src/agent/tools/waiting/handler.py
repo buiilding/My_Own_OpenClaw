@@ -8,8 +8,6 @@ Uses receiver and router for separation of concerns.
 import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from backend.src.core.interfaces.tool import ToolResult
-
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.agent.tools.preparation.screenshot.processor import (
@@ -18,6 +16,7 @@ if TYPE_CHECKING:
     from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
     from backend.src.agent.tools.waiting.router import ToolResultRouter
     from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
+    from backend.src.core.interfaces.tool import ToolResult
 
 logger = logging.getLogger(__name__)
 

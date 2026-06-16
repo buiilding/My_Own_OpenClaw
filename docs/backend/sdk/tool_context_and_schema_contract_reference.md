@@ -9,9 +9,9 @@ title: "Tool Context and Schema Contract Reference"
 
 # Tool Context and Schema Contract Reference
 
-Search route note: stale queries for `Tool abstract base protocol removed`,
-`Kind ToolContext ToolInterface exports removed`, or the removed
-`backend.src.core.interfaces.tool` protocol boundary belong here.
+Search route note: stale queries for `Tool abstract base protocol removed`
+belong here. Removed `Kind`, `ToolContext`, and `ToolInterface` export-surface
+queries belong to the backend core interfaces reference.
 
 ## Canonical Modules
 

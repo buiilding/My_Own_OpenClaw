@@ -5,7 +5,7 @@ Provides vision service access without tight coupling to session hierarchy.
 """
 
 import logging
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

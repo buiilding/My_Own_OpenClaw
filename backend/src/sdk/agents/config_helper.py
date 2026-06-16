@@ -4,7 +4,6 @@ Configuration Helper for Agent SDK.
 Provides utilities for modifying AppConfig instances, particularly for
 overriding model_id for sub-agents.
 """
-import copy
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -33,4 +32,3 @@ def override_model_id(config: "AppConfig", model_id: str) -> "AppConfig":
     # Create new AppConfig instance from modified dict
     # Use model_validate to ensure proper validation
     return config.__class__.model_validate(config_dict)
-

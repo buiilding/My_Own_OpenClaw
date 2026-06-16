@@ -6,7 +6,7 @@ This eliminates redundant XML blocks and provides cleaner context.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from xml.sax.saxutils import escape
 
 logger = logging.getLogger(__name__)

@@ -9,7 +9,7 @@ cleanup automatically.
 import asyncio
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from backend.src.core.interfaces.tool import ToolResult
 

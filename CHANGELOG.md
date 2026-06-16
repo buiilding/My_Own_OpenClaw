@@ -102,6 +102,8 @@ All notable changes to WindieOS will be documented in this file.
   and sidecar filesystem/system tool modules.
 - backend: remove unused imports and relay paths from provider response
   parsing, provider payload helper, and computer tool schema modules.
+- backend: remove unused imports from agent tool preparation, bundle
+  formatting, tool-result waiting, and SDK config helpers.
 - docs/frontend: route deprecated renderer browser API searches to the runtime
   trace and markdown rendering owner docs.
 - docs/frontend: route removed frontend dead-symbol searches to main-window
@@ -113,6 +115,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/backend: route provider response-parsing relay searches to the LLM
   provider normalization reference while keeping removed Tool protocol queries
   on the SDK schema contract.
+- docs/development: clarify that legacy `extensions/` container shapes are not
+  active contribution roots.
 - docs/frontend: route removed desktop conversation-store write-enrichment
   searches to the transcript session and rehydrate reference.
 - docs/frontend: route removed legacy selected-model localStorage migration
