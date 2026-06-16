@@ -348,8 +348,21 @@ Commit policy:
 - Update `CHANGELOG.md` before committing repo-visible changes.
 - Preferred helper: `./scripts/committer` or `committer`.
 - `--body` is required for every commit.
-- The commit body should describe the issue, the fix and improvements, previous
-  behavior, and behavior after the fix.
+- Commit bodies should be contextual enough to make `git log` useful months
+  later. Prefer this structure when it fits:
+  - `Context:` why the change exists: symptom, missing capability, decision, or
+    cleanup pressure.
+  - `Ownership:` which runtime, layer, or boundary owns the change and why it
+    belongs there.
+  - `Change:` what behavior, contract, or architecture changed in plain
+    language.
+  - `Before:` the old observable behavior or old ownership shape.
+  - `After:` the new observable behavior or new ownership path.
+  - `Proof:` validation performed, or why validation was intentionally limited.
+  - `Notes:` migration, compatibility, security, risk, or follow-up only when
+    relevant.
+- Avoid commit bodies that repeat the subject, summarize files one by one, or
+  describe only "what changed" without why the change belongs in that layer.
 - On Windows PowerShell, prefer Git Bash or plain `git add` and `git commit`
   instead of invoking `./scripts/committer` directly.
 
