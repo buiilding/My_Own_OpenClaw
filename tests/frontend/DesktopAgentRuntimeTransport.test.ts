@@ -129,6 +129,27 @@ describe('desktopAgentRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
+  test('rejects removed camelCase rehydrate and compact payload aliases', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({});
+
+    const transport = createDesktopAgentRuntimeTransport(null);
+
+    await expect(transport.rehydrateConversation({
+      conversationRef: 'conv-camel',
+      workspacePath: '/repo-camel',
+      messages: [],
+    })).rejects.toThrow(
+      'conversation.rehydrate received removed camelCase field(s): conversationRef, workspacePath. Use canonical snake_case fields.',
+    );
+    await expect(transport.compactHistory({
+      conversationRef: 'conv-camel',
+      turnRef: 'turn-camel',
+    })).rejects.toThrow(
+      'conversation.compact received removed camelCase field(s): conversationRef, turnRef. Use canonical snake_case fields.',
+    );
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
   test('routes runtime commands through SDK-shaped command invoke', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
     const transport = createDesktopAgentRuntimeTransport('/repo');

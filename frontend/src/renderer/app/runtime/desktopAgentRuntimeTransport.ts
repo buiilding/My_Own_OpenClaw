@@ -114,6 +114,7 @@ function optionalRecordArray(value: unknown): Record<string, unknown>[] {
 }
 
 async function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
+  rejectRemovedCamelCaseFields(payload, ['conversationRef', 'workspacePath'], 'conversation.rehydrate');
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE, {
     conversation_ref: optionalString(payload.conversation_ref) ?? '',
     messages: optionalRecordArray(payload.messages),
@@ -123,7 +124,7 @@ async function sendRehydrateConversation(payload: Record<string, unknown>, works
 }
 
 async function sendCompactHistory(payload: Record<string, unknown>): Promise<void> {
-  rejectRemovedCamelCaseFields(payload, ['turnRef'], 'conversation.compact');
+  rejectRemovedCamelCaseFields(payload, ['conversationRef', 'turnRef'], 'conversation.compact');
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
     force: payload.force !== false,
     conversation_ref: optionalString(payload.conversation_ref) ?? null,

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 transport rehydrate/compact conversation-ref boundary
+
+- Finding: renderer `AgentRuntimeTransport` rehydrate and compact calls use the
+  backend transport payload shape, but Electron main validated those two command
+  payloads with the SDK library `conversationRef` helper.
+- Change: gave Electron main a transport-specific `conversation_ref` validator
+  for `conversation.rehydrate` and `conversation.compact`, kept SDK library
+  commands on `conversationRef`, and made the renderer transport reject removed
+  camelCase aliases for those backend transport commands.
+- Validation: focused DesktopAgentRuntimeTransport and IpcMainSdkRuntimeBoundary
+  Jest coverage, docs listing, and `git diff --check`.
+- Compatibility: no migration required for first-party callers. Backend
+  transport command payloads remain canonical snake_case while SDK library
+  command payloads remain canonical camelCase.
+
 ### 2026-06-17 main trace input alias removal
 
 - Finding: Electron main trace helpers still accepted removed query/current-turn

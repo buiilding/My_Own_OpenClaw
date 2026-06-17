@@ -246,6 +246,122 @@ describe('main ipc sdk runtime boundary', () => {
     expect(ensureAgent).not.toHaveBeenCalled();
   });
 
+  test('electron main keeps rehydrate and compact on backend transport conversation_ref', async () => {
+    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const rehydrateMessages = jest.fn(async () => ({ rehydrated: true }));
+    const compactHistory = jest.fn(async () => 'turn-compact');
+    const ensureAgent = jest.fn(async () => ({
+      rehydrateMessages,
+      compactHistory,
+    }));
+    const deps = {
+      ensureAgent,
+      appendAppDiagnostic: jest.fn(input => input),
+      resolveWorkspacePathForAgent: jest.fn(() => '/repo'),
+      getState: () => ({
+        currentUserId: 'user-1',
+        isConnected: true,
+        agent: true,
+      }),
+    };
+
+    await expect(handleAgentSdkInvoke(
+      null,
+      {
+        command: 'conversation.rehydrate',
+        payload: {
+          conversation_ref: 'conv-transport',
+          messages: [{ role: 'user', content: 'hello' }],
+          rehydrate_mode: 'replace',
+          workspace_path: '/repo',
+        },
+      },
+      { deps },
+    )).resolves.toEqual({
+      ok: true,
+      data: { rehydrated: true },
+    });
+    await expect(handleAgentSdkInvoke(
+      null,
+      {
+        command: 'conversation.compact',
+        payload: {
+          conversation_ref: 'conv-transport',
+          force: false,
+        },
+      },
+      { deps },
+    )).resolves.toEqual({
+      ok: true,
+      data: 'turn-compact',
+    });
+
+    expect(ensureAgent).toHaveBeenNthCalledWith(1, {
+      reason: 'sdk-command:conversation.rehydrate',
+      conversationRef: 'conv-transport',
+      workspacePath: '/repo',
+    });
+    expect(ensureAgent).toHaveBeenNthCalledWith(2, {
+      reason: 'sdk-command:conversation.compact',
+      conversationRef: 'conv-transport',
+    });
+    expect(rehydrateMessages).toHaveBeenCalledWith(expect.objectContaining({
+      conversation_ref: 'conv-transport',
+      workspace_path: '/repo',
+    }));
+    expect(compactHistory).toHaveBeenCalledWith(expect.objectContaining({
+      conversation_ref: 'conv-transport',
+      force: false,
+    }));
+  });
+
+  test('electron main rejects removed camelCase conversation refs on transport commands', async () => {
+    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const ensureAgent = jest.fn(async () => ({
+      rehydrateMessages: jest.fn(async () => ({})),
+      compactHistory: jest.fn(async () => 'turn-compact'),
+    }));
+    const deps = {
+      ensureAgent,
+      appendAppDiagnostic: jest.fn(input => input),
+      resolveWorkspacePathForAgent: jest.fn(() => '/repo'),
+      getState: () => ({
+        currentUserId: 'user-1',
+        isConnected: true,
+        agent: true,
+      }),
+    };
+
+    await expect(handleAgentSdkInvoke(
+      null,
+      {
+        command: 'conversation.rehydrate',
+        payload: {
+          conversationRef: 'conv-camel',
+          messages: [],
+        },
+      },
+      { deps },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent runtime transport command requires conversation_ref; conversationRef is not supported.',
+    });
+    await expect(handleAgentSdkInvoke(
+      null,
+      {
+        command: 'conversation.compact',
+        payload: {
+          conversationRef: 'conv-camel',
+        },
+      },
+      { deps },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent runtime transport command requires conversation_ref; conversationRef is not supported.',
+    });
+    expect(ensureAgent).not.toHaveBeenCalled();
+  });
+
   test('electron main rejects removed edit and retry SDK command aliases', async () => {
     const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     const ensureAgent = jest.fn(async () => ({

@@ -48,16 +48,16 @@ literals in each facade or IPC handler map.
 - `settings.update`
 - `models.list`
 
-Other desktop renderer facades use the same SDK export for conversation
-library, transcript, memory, and diagnostics commands such as
+Other desktop renderer facades use the same SDK export for SDK library,
+transcript, memory, and diagnostics commands such as
 `conversations.list`, `conversation.loadDisplay`, `memories.list`,
 `memories.delete`, `conversations.clearAll`, and `diagnostics.append`.
 Those SDK-shaped library commands use canonical SDK object fields such as
 `userId`, `conversationRef`, `messageId`, and `turnRef`; removed snake_case
 input aliases such as `user_id`, `conversation_ref`, `message_id`, and
 `turn_ref` are rejected at the Electron main validation boundary. Query
-transport payloads are the separate snake_case command contract described
-below.
+transport commands are separate and keep the backend transport payload contract
+described below.
 
 Electron main exports `handleAgentSdkInvoke(...)` as the `windie:invoke`
 boundary. Its internal command table uses those same `SDK_RUNTIME_COMMANDS`
@@ -86,8 +86,9 @@ execution routing.
 
 ## Query Payload Shape
 
-`conversation.send` payloads sent from the renderer transport to main use the
-canonical snake_case command contract:
+`conversation.send`, `conversation.stop`, `conversation.rehydrate`, and
+`conversation.compact` payloads sent from the renderer transport to main use
+the canonical backend-transport command contract. `conversation.send` accepts:
 
 - `conversation_ref`
 - `query_message_id`
@@ -111,6 +112,15 @@ directly through `windie:invoke`, those fields fail fast. Fix the caller to send
 the canonical snake_case runtime shape and use `query_message_id` for the turn
 identifier instead of reintroducing alias fallback in the transport or main
 query runtime.
+
+`conversation.rehydrate` accepts `conversation_ref`, `messages`,
+`rehydrate_mode`, and `workspace_path`; removed `conversationRef` and
+`workspacePath` aliases fail fast. `conversation.compact` accepts `force` and
+`conversation_ref`; removed `conversationRef` and `turnRef` aliases fail fast.
+Electron main uses those snake_case fields only for the backend transport
+commands. SDK library commands such as `conversation.loadDisplay`,
+`conversation.prepareRetryTurn`, and `conversations.list` continue to require
+SDK-shaped camelCase fields.
 
 ## Command Return and Error Contract
 

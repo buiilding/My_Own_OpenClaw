@@ -66,6 +66,13 @@ function optionalCommandConversationRef(payload = {}) {
   return normalizeOptionalString(payload.conversationRef);
 }
 
+function optionalTransportConversationRef(payload = {}) {
+  if (Object.prototype.hasOwnProperty.call(payload, 'conversationRef')) {
+    throw new Error('Agent runtime transport command requires conversation_ref; conversationRef is not supported.');
+  }
+  return normalizeOptionalString(payload.conversation_ref);
+}
+
 function rejectRemovedEditRetryAliases(payload = {}) {
   const removed = ['turn_ref', 'message_id'].filter(key => (
     Object.prototype.hasOwnProperty.call(payload, key)
@@ -153,7 +160,7 @@ function buildAgentSdkCommandHandlers({
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE]: async (payload = {}) => {
       const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.rehydrate',
-        conversationRef: optionalCommandConversationRef(payload),
+        conversationRef: optionalTransportConversationRef(payload),
         workspacePath: deps.resolveWorkspacePathForAgent(payload),
       });
       return agent.rehydrateMessages(payload);
@@ -161,7 +168,7 @@ function buildAgentSdkCommandHandlers({
     [SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT]: async (payload = {}) => {
       const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.compact',
-        conversationRef: optionalCommandConversationRef(payload),
+        conversationRef: optionalTransportConversationRef(payload),
       });
       return agent.compactHistory(payload);
     },

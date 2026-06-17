@@ -229,8 +229,11 @@ ipcMain.handle('windie:invoke', (_event, { command, payload }) => {
 
 Renderer-facing user commands that are SDK concepts should use SDK command
 names with the renderer command payload contract instead of sidecar RPC names.
-Conversation command payloads use canonical snake_case fields at this IPC
-boundary:
+Backend transport commands such as `conversation.send`, `conversation.stop`,
+`conversation.rehydrate`, and `conversation.compact` use canonical snake_case
+fields at this IPC boundary. SDK library commands such as
+`conversations.list`, `conversation.loadDisplay`, and memory commands use the
+public SDK camelCase option shape at the same allowlist boundary:
 
 ```js
 ipcMain.handle('windie:invoke', async (_event, { command, payload }) => {
