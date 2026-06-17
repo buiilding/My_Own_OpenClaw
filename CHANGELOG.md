@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed the stale `ChatGptDashboardShell.test.jsx` dashboard test path to `DashboardShell.test.jsx` and updated current dashboard docs to the active name. No migration is required.
+
 - Updated protocol validation and readiness docs from local-backend mapper/status wording to local-runtime ownership. No migration is required.
 
 - Updated overlay and main-process surface-prep docs from local-backend wording to SDK/main local-runtime ownership. No migration is required.

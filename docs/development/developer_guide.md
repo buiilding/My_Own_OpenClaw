@@ -67,7 +67,7 @@ frontend/src/
 │   │   │   ├── hooks/       # Chat hooks
 │   │   │   └── stores/      # Zustand store
 │   │   ├── dashboard/ # Dashboard feature
-│   │   │   ├── components/  # ChatGPT-style dashboard shell + dashboard sections
+│   │   │   ├── components/  # dashboard shell + dashboard sections
 │   │   │   └── utils/       # Display/model/memory helper logic
 │   │   ├── settings/  # Settings feature
 │   │   │   └── hooks/ # Settings management hook
@@ -501,7 +501,7 @@ const addMessage = useChatStore((state) => state.addMessage);
 
 - **Split Contexts**: AppConfigContext and AppStatusContext separated to prevent unnecessary re-renders
 - **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
-- **Conversation-First Shell**: `ChatGptDashboardShell` keeps chat mounted and opens memory/models/settings in modal panels
+- **Conversation-First Shell**: `DashboardShell` keeps chat mounted and opens memory/models/settings in modal panels
 - **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
 - **O(1) Channel Lookup**: IPC bridge uses Set data structures for fast channel validation
 

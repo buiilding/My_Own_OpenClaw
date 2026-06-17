@@ -21,7 +21,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
 - `tests/frontend/ConversationGroups.test.js`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 
 ## Ownership Boundary
 

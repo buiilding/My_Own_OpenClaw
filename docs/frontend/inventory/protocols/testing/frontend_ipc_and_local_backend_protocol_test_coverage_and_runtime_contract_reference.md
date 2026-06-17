@@ -43,7 +43,7 @@ Primary protocol tests:
 - `tests/frontend/WakewordBridgeRuntime.test.cjs`
 - `tests/frontend/PermissionService.test.cjs`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
 - `tests/frontend/WindowControlsIpcRuntime.test.cjs`
 - `tests/frontend/PermissionIpcRuntime.test.cjs`
@@ -69,7 +69,7 @@ Primary protocol tests:
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
 | wakeword STT trigger channel consumption | renderer chatbox overlay listeners | `ChatBoxOverlayMouseIgnore.test.jsx` | renderer listener wiring for `wakeword-stt-trigger` channel and overlay-focused behavior consistency |
 | websocket open + overlay phase lifecycle | `connect()` open/message handlers (`ipc.cjs`) | `IpcMainBridge.lifecycle.test.cjs` | handshake user-id sanitization, backend endpoint metadata exposure, backend tool-event to response-overlay phase transitions, and active display-affinity continuity across websocket close |
-| main-window open target channel routing | dashboard IPC event listener + panel routing | `ChatGptDashboardShell.test.jsx` | `main-window-open-target` payload routes to chat/settings/models/memory surfaces with chat target panel-close behavior |
+| main-window open target channel routing | dashboard IPC event listener + panel routing | `DashboardShell.test.jsx` | `main-window-open-target` payload routes to chat/settings/models/memory surfaces with chat target panel-close behavior |
 
 ## Protocol Control-Path Test Index
 
@@ -83,7 +83,7 @@ Primary protocol tests:
 | display query payload mapping | `frontend/src/main/surfaces/display_query_handler.cjs` | `DisplayQueryHandler.test.cjs` |
 | permission IPC runtime channel ownership | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
-| show-main-window target normalization -> dashboard surface routing | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
+| show-main-window target normalization -> dashboard surface routing | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx` | `DashboardShell.test.jsx` |
 | local runtime RPC mapping | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | `LocalRuntimeBridge.rpc.test.cjs`, `LocalRuntimeBridge.lifecycle.test.cjs` |
 
 ## Renderer IPC Validation Contract
@@ -231,7 +231,7 @@ Use this command to inspect protocol-test breadth:
 - `  'tests/frontend/WakewordBridgeRuntime.test.cjs',`
 - `  'tests/frontend/PermissionService.test.cjs',`
 - `  'tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx',`
-- `  'tests/frontend/ChatGptDashboardShell.test.jsx',`
+- `  'tests/frontend/DashboardShell.test.jsx',`
 - `  'tests/frontend/OverlayPhaseIpcRuntime.test.cjs',`
 - `  'tests/frontend/WindowControlsIpcRuntime.test.cjs',`
 - `  'tests/frontend/PermissionIpcRuntime.test.cjs',`

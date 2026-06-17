@@ -39,7 +39,7 @@ title: "Frontend Protocol Lifecycle Hub"
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
 - `tests/frontend/WindowControlsIpcRuntime.test.cjs`
 - `tests/frontend/PermissionIpcRuntime.test.cjs`

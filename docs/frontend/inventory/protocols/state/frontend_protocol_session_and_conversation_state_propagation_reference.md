@@ -40,7 +40,7 @@ Primary test sources:
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
 - `tests/frontend/IpcTranscriptSessionSync.test.cjs`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 
 ## State Ownership Matrix
@@ -156,7 +156,7 @@ Locked by `tests/frontend/IpcMainBridge.query.test.cjs`:
 
 Locked by:
 
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 
 ## Renderer Conversation Gate and Event Acceptance Rules
 

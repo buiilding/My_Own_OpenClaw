@@ -33,7 +33,7 @@ title: "Frontend Protocol Testing Hub"
 - `tests/frontend/WindowControlsIpcRuntime.test.cjs`
 - `tests/frontend/PermissionIpcRuntime.test.cjs`
 - `tests/frontend/DisplayQueryHandler.test.cjs`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`

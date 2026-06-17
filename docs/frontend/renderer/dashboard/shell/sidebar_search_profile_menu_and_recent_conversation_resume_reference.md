@@ -19,7 +19,7 @@ title: "Dashboard Sidebar, Search, and Profile Menu Runtime Reference"
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/styles/DashboardShell.css`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/ConversationGroups.test.js`
 - `tests/frontend/DashboardSidebar.test.jsx`
 

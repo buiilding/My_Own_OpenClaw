@@ -308,6 +308,19 @@ Each completed slice should report:
 - Compatibility: no migration required. This is test-only; runtime code, public
   package exports, IPC channels, and log behavior are unchanged.
 
+### 2026-06-17 DashboardShell test path cleanup
+
+- Finding: current renderer dashboard docs and test-selection guidance still
+  referenced the stale `ChatGptDashboardShell.test.jsx` path even though the
+  renderer owner is the generic `DashboardShell` component.
+- Change: renamed the focused dashboard shell suite to
+  `DashboardShell.test.jsx` and updated current dashboard/protocol docs to the
+  active test path.
+- Validation: focused DashboardShell Jest coverage, docs listing,
+  `git diff --check`, and stale active-path scan.
+- Compatibility: no migration required. This is a test/docs path cleanup only;
+  dashboard runtime behavior and renderer contracts are unchanged.
+
 ### 2026-06-17 local-runtime bridge prose cleanup
 
 - Finding: a current test title and two current docs still described validation

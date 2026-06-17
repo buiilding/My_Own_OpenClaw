@@ -41,5 +41,5 @@ title: "Frontend Protocol State Hub"
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
 - `tests/frontend/IpcTranscriptSessionSync.test.cjs`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`

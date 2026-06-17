@@ -14,7 +14,7 @@ title: "Usage Section Placeholder Panel and Modal Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/styles/CloneMemoryModels.css`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 
 ## Surface Ownership Contract
 
@@ -53,7 +53,7 @@ Because classes are shared, style changes in `CloneMemoryModels.css` can alter u
 
 ## Test-Backed Behavior
 
-`tests/frontend/ChatGptDashboardShell.test.jsx` covers user-intent routing:
+`tests/frontend/DashboardShell.test.jsx` covers user-intent routing:
 
 - clicking sidebar `Usage` button opens usage modal.
 - usage modal mount confirms wiring between sidebar product nav and shell panel state.

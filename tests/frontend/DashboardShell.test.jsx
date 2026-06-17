@@ -1,5 +1,5 @@
 /**
- * Covers chat gpt dashboard shell. behavior in the frontend test suite.
+ * Covers DashboardShell behavior in the frontend test suite.
  */
 
 import React from 'react';
@@ -190,7 +190,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
 const mockClearAllConversationWorkspaceBindings = clearAllConversationWorkspaceBindings;
 const mockClearConversationWorkspaceBinding = clearConversationWorkspaceBinding;
 
-describe('ChatGptDashboardShell', () => {
+describe('DashboardShell', () => {
   const flushMicrotasks = async () => {
     await act(async () => {
       await Promise.resolve();

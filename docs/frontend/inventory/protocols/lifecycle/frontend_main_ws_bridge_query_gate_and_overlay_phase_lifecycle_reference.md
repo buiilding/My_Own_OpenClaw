@@ -27,7 +27,7 @@ Lifecycle contract sources:
 - Main-window target routing and display inventory invoke handlers: `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/surfaces/display_query_handler.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - Minimal chat pill wakeword trigger handling: `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - Renderer boundary allowlists: `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/channels.ts`
-- Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs`
+- Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/DashboardShell.test.jsx`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs`
 
 ## Main-Process IPC Registrar Split Lifecycle
 
@@ -228,7 +228,7 @@ Renderer consumption contract (`DashboardShell.jsx`):
 
 Coverage anchors:
 
-- `tests/frontend/ChatGptDashboardShell.test.jsx` checks settings-target open and chat-target modal-close behavior.
+- `tests/frontend/DashboardShell.test.jsx` checks settings-target open and chat-target modal-close behavior.
 - `tests/frontend/WindowControlsIpcRuntime.test.cjs` checks runtime-owner routing and `show-main-window` target emission boundary.
 
 ## Display and Permission Runtime Lifecycle Contracts

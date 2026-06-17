@@ -14,7 +14,7 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
-- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/DashboardShell.test.jsx`
 
 ## Hook Ownership Boundary
 
@@ -144,7 +144,7 @@ Pin behavior:
 
 ## Test-Backed Invariants
 
-`tests/frontend/ChatGptDashboardShell.test.jsx` verifies:
+`tests/frontend/DashboardShell.test.jsx` verifies:
 
 - stale/default-user list load cannot overwrite active user list
 - assistant transcript-store event reloads recent chats
