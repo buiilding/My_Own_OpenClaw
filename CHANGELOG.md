@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Added SDK boundary coverage for generated auto local runtime output so stale auto-sidecar references stay removed.
+
 - Renamed AgentClient automatic local runtime launch option from autoSidecar to autoLocalRuntime. No persisted-data, wire, discovery-file, or daemon protocol migration is required.
 
 - Renamed AgentClient explicit local runtime constructor option from sidecar to localRuntime. No persisted-data migration is required.

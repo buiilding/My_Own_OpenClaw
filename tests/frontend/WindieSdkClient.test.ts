@@ -745,6 +745,18 @@ describe('Agent SDK client behavior', () => {
       path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentClient.ts'),
       'utf8',
     );
+    const sdkCjsSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/AgentClient.js'),
+      'utf8',
+    );
+    const localRuntimeSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts'),
+      'utf8',
+    );
+    const localRuntimeCjsSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js'),
+      'utf8',
+    );
 
     expect(sdkSource).toContain('localRuntime?: AgentLocalRuntimeClient');
     expect(sdkSource).toContain('this.defaultOptions.localRuntime');
@@ -754,6 +766,12 @@ describe('Agent SDK client behavior', () => {
     expect(sdkSource).not.toContain('this.defaultOptions.sidecar');
     expect(sdkSource).not.toContain('autoSidecar?: AgentAutoSidecarOptions');
     expect(sdkSource).not.toContain('this.defaultOptions.autoSidecar');
+    expect(sdkCjsSource).toContain('this.defaultOptions.autoLocalRuntime');
+    expect(sdkCjsSource).not.toContain('this.defaultOptions.autoSidecar');
+    expect(localRuntimeSource).toContain('AgentAutoLocalRuntimeOptions');
+    expect(localRuntimeSource).not.toContain('AgentAutoSidecarOptions');
+    expect(localRuntimeCjsSource).toContain('autoLocalRuntime.daemonScript');
+    expect(localRuntimeCjsSource).not.toContain('autoSidecar.daemonScript');
   });
 
   test('AgentClient uses env backend URL and install token when constructor options omit them', async () => {
