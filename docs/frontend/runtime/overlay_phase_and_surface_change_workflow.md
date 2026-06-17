@@ -205,7 +205,7 @@ Read these files before changing screenshot or content-protection behavior:
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_visibility_handler.cjs`
 - `frontend/src/main/platform/content_protection/*`
-- Electron main IPC and sidecar bridge paths for system-state and screenshot capture
+- Electron main IPC and local-runtime bridge paths for system-state and screenshot capture
 
 Platform rules:
 

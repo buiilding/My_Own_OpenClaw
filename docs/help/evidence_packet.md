@@ -34,7 +34,7 @@ Docs read:
 | Boundary | Include |
 | --- | --- |
 | backend | command used, endpoint, route/status, websocket close code, provider/model, relevant log lines |
-| Electron main | endpoint snapshot, websocket state, settings ACK state, sidecar bridge readiness, IPC route |
+| Electron main | endpoint snapshot, websocket state, settings ACK state, local-runtime bridge readiness, IPC route |
 | renderer | visible UI state, current turn/session id if relevant, event consumer or hook involved |
 | preload | channel name and whether it is allowed in preload/channel constants |
 | sidecar | JSON-RPC method, tool name, stderr log, registry entry, result/error payload |

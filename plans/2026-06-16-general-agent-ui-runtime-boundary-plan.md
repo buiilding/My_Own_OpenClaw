@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 current-doc local-runtime bridge wording
+
+- Finding: current routing and troubleshooting docs still used Electron/main
+  sidecar bridge wording for paths that now route through the Electron
+  local-runtime bridge and SDK-owned local runtime lifecycle.
+- Change: updated those current docs to say local-runtime bridge while leaving
+  Python sidecar executor references intact.
+- Validation: docs listing, focused stale sidecar-bridge wording scan, and diff
+  check.
+- Compatibility: no migration required. This is a docs-only terminology cleanup;
+  local tool dispatch, IPC channels, SDK runtime behavior, and sidecar execution
+  are unchanged.
+
 ### 2026-06-17 frontend inventory local-runtime bridge wording
 
 - Finding: current frontend architecture and inventory docs still framed the

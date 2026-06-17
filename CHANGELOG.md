@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated current routing and troubleshooting docs to say Electron local-runtime bridge where they point at SDK-owned local-runtime paths. No migration is required.
+
 - Updated frontend inventory and routing docs to describe the Electron main local-runtime bridge as SDK-owned lifecycle plus host adapters instead of a local sidecar bridge. No migration is required.
 
 - Removed an unused parser trust-boundary import after parser type ownership moved to `parser_types.py`. No migration is required.
