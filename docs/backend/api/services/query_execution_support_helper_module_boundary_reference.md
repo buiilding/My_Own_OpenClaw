@@ -108,17 +108,12 @@ Backfill is conditional:
 - info log only when reconciled count is positive
 - no exception propagation (cancellation semantics stay owned by caller)
 
-## Service Wrapper Surface Still Present
+## Service Wrapper Surface
 
-`QueryExecutionService` currently keeps thin wrappers for support-module helpers:
-
-- `_finalize_pending_tool_calls_on_cancel`
-- `_build_stream_context`
-
-Pipeline event forwarding and completion emission are not wrapped by
-`QueryExecutionService`; call sites use `process_pipeline_event(...)` and
-`complete_query_stream(...)`, which delegates to
-`query_execution_pipeline_events.emit_completion_events(...)`.
+`QueryExecutionService` does not keep thin wrappers for support-module helpers.
+Call sites use `build_stream_context(...)`,
+`finalize_pending_tool_calls_on_cancel(...)`, `process_pipeline_event(...)`, and
+`complete_query_stream(...)` directly.
 
 ## Drift Hotspots
 

@@ -166,7 +166,7 @@ If tool execution uses stale active-window info:
 
 If streamed events lack context fields:
 
-1. verify `_build_stream_context(...)` values are non-empty
+1. verify `build_stream_context(...)` values are non-empty
 2. verify events pass through `pipeline.process(..., context=stream_context)`
 3. verify formatter produced a message and did not return `None`
 

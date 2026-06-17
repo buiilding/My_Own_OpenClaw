@@ -68,7 +68,7 @@ Result:
 - `turn_ref = message.id`
 - `conversation_ref = message.payload.conversation_ref`
 
-`QueryExecutionService._build_stream_context(...)` creates one per-query context map:
+`build_stream_context(...)` creates one per-query context map:
 
 - `user_id: agent_instance.user_id`
 - `session_id: agent_instance.session_id`

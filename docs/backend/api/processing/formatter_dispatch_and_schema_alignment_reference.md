@@ -208,7 +208,7 @@ If a streamed event never appears in frontend:
 
 If context metadata is missing:
 
-1. check `QueryExecutionService._build_stream_context(...)` values
+1. check `build_stream_context(...)` values
 2. check field values are non-empty (falsy values are not attached)
 3. verify message passed through `ResponseFormatter` path rather than direct sender path
 

@@ -87,10 +87,11 @@ This state is backend-only and not direct prompt text content.
 
 ## Cancellation Reconciliation Path
 
-`execute(...)` catches `asyncio.CancelledError` and calls `_finalize_pending_tool_calls_on_cancel(...)` before re-raising.
-The service wrapper delegates reconciliation internals to `query_execution_cancellation.finalize_pending_tool_calls_on_cancel(...)`.
+`execute(...)` catches `asyncio.CancelledError` and calls
+`query_execution_cancellation.finalize_pending_tool_calls_on_cancel(...)` before
+re-raising.
 
-`_finalize_pending_tool_calls_on_cancel(...)` behavior:
+`finalize_pending_tool_calls_on_cancel(...)` behavior:
 
 - inspects `agent_instance.history.finalize_pending_tool_calls_as_cancelled` dynamically
 - no-ops when history or finalize hook is unavailable
@@ -102,7 +103,7 @@ This prevents lingering staged tool-call IDs after user stop/cancel races.
 
 ## Reused Stream Context Contract
 
-`_build_stream_context(...)` creates one per-query dict:
+`build_stream_context(...)` creates one per-query dict:
 
 - `user_id`
 - `session_id`

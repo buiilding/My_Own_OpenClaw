@@ -21,8 +21,12 @@ from backend.src.api.services.query_execution_support.query_execution_completion
     complete_query_stream,
     resolve_query_completion_text,
 )
+from backend.src.api.services.query_execution_support.query_execution_cancellation import (
+    finalize_pending_tool_calls_on_cancel,
+)
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
     apply_query_runtime_system_state,
+    build_stream_context,
     resolve_query_runtime_system_state,
     resolve_screenshots,
 )
@@ -197,7 +201,7 @@ def test_apply_query_runtime_system_state_continues_when_getter_fails():
 
 def test_build_stream_context_uses_agent_identifiers():
     agent = SimpleNamespace(user_id="u-1", session_id="s-1")
-    context = QueryExecutionService._build_stream_context(
+    context = build_stream_context(
         agent_instance=agent,
         msg_id="turn-1",
         conversation_ref="conv-1",
@@ -473,7 +477,7 @@ def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
             raise RuntimeError("boom")
 
     agent_ok = SimpleNamespace(history=_HistoryOk(), user_id="u", session_id="s")
-    QueryExecutionService._finalize_pending_tool_calls_on_cancel(
+    finalize_pending_tool_calls_on_cancel(
         agent_instance=agent_ok,
         msg_id="turn-1",
         conversation_ref="conv-1",
@@ -481,14 +485,14 @@ def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
     assert agent_ok.history.calls == 1
 
     agent_err = SimpleNamespace(history=_HistoryErr(), user_id="u", session_id="s")
-    QueryExecutionService._finalize_pending_tool_calls_on_cancel(
+    finalize_pending_tool_calls_on_cancel(
         agent_instance=agent_err,
         msg_id="turn-2",
         conversation_ref="conv-2",
     )
 
     agent_noop = SimpleNamespace(history=SimpleNamespace(), user_id="u", session_id="s")
-    QueryExecutionService._finalize_pending_tool_calls_on_cancel(
+    finalize_pending_tool_calls_on_cancel(
         agent_instance=agent_noop,
         msg_id="turn-3",
         conversation_ref="conv-3",

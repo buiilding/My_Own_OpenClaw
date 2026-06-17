@@ -86,7 +86,7 @@ class QueryExecutionService:
             conversation_ref=message.payload.conversation_ref,
         )
         frontend_operating_system = self._get_frontend_operating_system(user_id)
-        stream_context = self._build_stream_context(
+        stream_context = build_stream_context(
             agent_instance=agent_instance,
             msg_id=msg_id,
             conversation_ref=message.payload.conversation_ref,
@@ -339,7 +339,7 @@ class QueryExecutionService:
                 user_id,
             )
         except asyncio.CancelledError:
-            self._finalize_pending_tool_calls_on_cancel(
+            finalize_pending_tool_calls_on_cancel(
                 agent_instance=agent_instance,
                 msg_id=msg_id,
                 conversation_ref=message.payload.conversation_ref,
@@ -350,32 +350,6 @@ class QueryExecutionService:
                 agent_instance=agent_instance,
                 msg_id=msg_id,
             )
-
-    @staticmethod
-    def _finalize_pending_tool_calls_on_cancel(
-        *,
-        agent_instance: Any,
-        msg_id: str,
-        conversation_ref: Optional[str],
-    ) -> None:
-        finalize_pending_tool_calls_on_cancel(
-            agent_instance=agent_instance,
-            msg_id=msg_id,
-            conversation_ref=conversation_ref,
-        )
-
-    @staticmethod
-    def _build_stream_context(
-        *,
-        agent_instance: Any,
-        msg_id: str,
-        conversation_ref: Optional[str],
-    ) -> dict[str, Optional[str]]:
-        return build_stream_context(
-            agent_instance=agent_instance,
-            msg_id=msg_id,
-            conversation_ref=conversation_ref,
-        )
 
     @staticmethod
     def _set_active_stream_context(
