@@ -701,13 +701,14 @@ resolvers to host IPC facades such as browser control and local-backend status.
 
 The SDK auto sidecar provider reads the daemon discovery file, validates launch
 context when one is provided, starts or reuses `sidecar_daemon.py`, owns
-`SidecarDaemonHttpClient`, unwraps JSON-RPC `/rpc` responses before callers see
-them, and exposes the runtime to memory, persistence, tool registration, and
-local tool execution. Discovery files are daemon-authored snake_case metadata:
-the SDK accepts `base_url` plus `token` and ignores stale camelCase discovery
-metadata such as `baseUrl`. Electron remains responsible for host-only behavior
-around native windows, screenshots, display bounds, and artifact upload
-plumbing.
+`AgentLocalRuntimeHttpClient`, unwraps JSON-RPC `/rpc` responses before callers
+see them, and exposes the runtime to memory, persistence, tool registration,
+and local tool execution. `SidecarDaemonHttpClient` remains a compatibility
+alias for callers that used the sidecar-named HTTP client directly. Discovery
+files are daemon-authored snake_case metadata: the SDK accepts `base_url` plus
+`token` and ignores stale camelCase discovery metadata such as `baseUrl`.
+Electron remains responsible for host-only behavior around native windows,
+screenshots, display bounds, and artifact upload plumbing.
 
 By default, the provider shuts down a healthy discovered daemon and starts a fresh
 one. Set `autoSidecar.reuseExisting = true` only for hosts that intentionally want
@@ -726,7 +727,7 @@ Non-Electron SDK hosts can override that behavior with:
   execution.
 - `sidecar`: a custom `AgentLocalRuntimeClient` implementation.
 - `sidecarDaemon`: public client option for an already-known daemon `baseUrl`
-  and per-process `token`; `AgentClient` creates a `SidecarDaemonHttpClient`
+  and per-process `token`; `AgentClient` creates an `AgentLocalRuntimeHttpClient`
   and uses `/status`, registration endpoints, `/tools`, and `/execute-tool`.
   This camelCase `baseUrl` option does not change the daemon discovery-file
   contract, which remains canonical `base_url`.

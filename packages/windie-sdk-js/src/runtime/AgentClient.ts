@@ -41,8 +41,8 @@ import { Agent } from './Agent.js';
 import { stampAgentDefinitionCapabilityMetadata } from './CapabilityManifest.js';
 import {
   createAgentLocalRuntimeProvider,
-  SidecarDaemonHttpClient,
-  type SidecarDaemonClientOptions,
+  AgentLocalRuntimeHttpClient,
+  type AgentLocalRuntimeHttpClientOptions,
   type AgentAutoSidecarOptions,
   type AgentLocalRuntimeClient,
   type AgentLocalRuntimeProvider,
@@ -130,7 +130,7 @@ export type AgentClientOptions = {
   installAuth?: AgentInstallAuthOptions;
   sidecar?: AgentLocalRuntimeClient;
   localToolLifecycle?: LocalToolExecutionLifecycle;
-  sidecarDaemon?: SidecarDaemonClientOptions;
+  sidecarDaemon?: AgentLocalRuntimeHttpClientOptions;
   ensureLocalRuntime?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
   autoSidecar?: AgentAutoSidecarOptions;
@@ -477,7 +477,7 @@ export class AgentClient {
       return explicitRuntime;
     }
     if (this.defaultOptions.sidecarDaemon) {
-      return new SidecarDaemonHttpClient({
+      return new AgentLocalRuntimeHttpClient({
         ...this.defaultOptions.sidecarDaemon,
         fetchImpl: this.defaultOptions.sidecarDaemon.fetchImpl ?? this.defaultOptions.fetchImpl,
       });

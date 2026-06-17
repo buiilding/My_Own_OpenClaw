@@ -1,5 +1,5 @@
 /**
- * Coordinates the local sidecar runtime for the TypeScript SDK runtime.
+ * Coordinates the local runtime provider for the TypeScript SDK runtime.
  */
 
 import type { JsonRecord } from '../conversation/types.js';
@@ -95,16 +95,18 @@ export type WindieLocalRuntimeProviderContext<TWakeUpOptions = unknown> =
 export type WindieLocalRuntimeProvider<TWakeUpOptions = unknown> =
   AgentLocalRuntimeProvider<TWakeUpOptions>;
 
-export type SidecarDaemonClientOptions = {
+export type AgentLocalRuntimeHttpClientOptions = {
   baseUrl: string;
   token: string;
   fetchImpl?: FetchLike;
   WebSocketImpl?: EventWebSocketConstructor;
 };
 
+export type SidecarDaemonClientOptions = AgentLocalRuntimeHttpClientOptions;
+
 type SidecarLaunchEnvironment = Record<string, string | undefined>;
 
-type SidecarDaemonDiscovery = SidecarDaemonClientOptions & {
+type SidecarDaemonDiscovery = AgentLocalRuntimeHttpClientOptions & {
   launch?: Record<string, string> | null;
 };
 
@@ -174,7 +176,7 @@ export function moduleTool(tool: AgentToolDefinition & { module: string }): Agen
   };
 }
 
-export class SidecarDaemonHttpClient implements AgentLocalRuntimeClient {
+export class AgentLocalRuntimeHttpClient implements AgentLocalRuntimeClient {
   private readonly baseUrl: string;
   private readonly token: string;
   private readonly fetchImpl: FetchLike;
@@ -182,7 +184,7 @@ export class SidecarDaemonHttpClient implements AgentLocalRuntimeClient {
   private eventSocket: EventWebSocketLike | null = null;
   private eventListeners = new Set<AgentLocalRuntimeEventListener>();
 
-  constructor(options: SidecarDaemonClientOptions) {
+  constructor(options: AgentLocalRuntimeHttpClientOptions) {
     this.baseUrl = normalizeHttpBaseUrl(options.baseUrl);
     this.token = options.token;
     this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
@@ -552,14 +554,14 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function probeDaemon(
-  discovery: SidecarDaemonDiscovery | SidecarDaemonClientOptions | null,
+  discovery: SidecarDaemonDiscovery | AgentLocalRuntimeHttpClientOptions | null,
   fetchImpl?: FetchLike,
   WebSocketImpl?: EventWebSocketConstructor,
-): Promise<SidecarDaemonHttpClient | null> {
+): Promise<AgentLocalRuntimeHttpClient | null> {
   if (!discovery) {
     return null;
   }
-  const client = new SidecarDaemonHttpClient({
+  const client = new AgentLocalRuntimeHttpClient({
     ...discovery,
     fetchImpl,
     WebSocketImpl,
@@ -573,7 +575,7 @@ async function probeDaemon(
 }
 
 async function waitForDaemonStop(
-  discovery: SidecarDaemonDiscovery | SidecarDaemonClientOptions | null,
+  discovery: SidecarDaemonDiscovery | AgentLocalRuntimeHttpClientOptions | null,
   fetchImpl?: FetchLike,
   WebSocketImpl?: EventWebSocketConstructor,
   timeoutMs = 2000,
@@ -826,3 +828,5 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
 }
 
 export const createWindieLocalRuntimeProvider = createAgentLocalRuntimeProvider;
+export type SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;
+export const SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;

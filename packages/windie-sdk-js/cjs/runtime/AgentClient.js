@@ -275,7 +275,7 @@ class AgentClient {
             return explicitRuntime;
         }
         if (this.defaultOptions.sidecarDaemon) {
-            return new LocalSidecarRuntime_js_1.SidecarDaemonHttpClient({
+            return new LocalSidecarRuntime_js_1.AgentLocalRuntimeHttpClient({
                 ...this.defaultOptions.sidecarDaemon,
                 fetchImpl: this.defaultOptions.sidecarDaemon.fetchImpl ?? this.defaultOptions.fetchImpl,
             });

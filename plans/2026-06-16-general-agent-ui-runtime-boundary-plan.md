@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime HTTP client alias
+
+- Finding: the SDK local-runtime HTTP client was still exposed and constructed
+  primarily as `SidecarDaemonHttpClient`, making the public local-runtime
+  contract read like a sidecar implementation detail.
+- Change: promoted `AgentLocalRuntimeHttpClient` and
+  `AgentLocalRuntimeHttpClientOptions` as the canonical HTTP client surface,
+  kept `SidecarDaemonHttpClient` and `SidecarDaemonClientOptions` as
+  compatibility aliases, switched `AgentClient` and focused tests to the generic
+  name, updated SDK docs, and regenerated checked-in SDK CJS output.
+- Validation: SDK build, focused package-boundary/client tests, docs listing,
+  alias/export scan, and diff check.
+- Compatibility: no migration required. Existing `SidecarDaemonHttpClient`
+  imports construct the same HTTP client through the compatibility alias.
+
 ### 2026-06-17 SDK local-runtime conversation store alias
 
 - Finding: the SDK's durable local-runtime conversation store was still exposed

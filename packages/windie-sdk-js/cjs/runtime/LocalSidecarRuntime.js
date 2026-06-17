@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Coordinates the local sidecar runtime for the TypeScript SDK runtime.
+ * Coordinates the local runtime provider for the TypeScript SDK runtime.
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -36,7 +36,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createWindieLocalRuntimeProvider = exports.SidecarDaemonHttpClient = void 0;
+exports.SidecarDaemonHttpClient = exports.createWindieLocalRuntimeProvider = exports.AgentLocalRuntimeHttpClient = void 0;
 exports.moduleTool = moduleTool;
 exports.createAgentLocalRuntimeProvider = createAgentLocalRuntimeProvider;
 function resolveFetchImplementation(fetchImpl) {
@@ -75,7 +75,7 @@ function moduleTool(tool) {
         argument_resolution: tool.argument_resolution ?? 'passthrough',
     };
 }
-class SidecarDaemonHttpClient {
+class AgentLocalRuntimeHttpClient {
     constructor(options) {
         this.eventSocket = null;
         this.eventListeners = new Set();
@@ -247,7 +247,7 @@ class SidecarDaemonHttpClient {
         return response.json();
     }
 }
-exports.SidecarDaemonHttpClient = SidecarDaemonHttpClient;
+exports.AgentLocalRuntimeHttpClient = AgentLocalRuntimeHttpClient;
 function attachProcessLineReader(stream, onLine) {
     if (!stream || typeof stream.on !== 'function' || typeof onLine !== 'function') {
         return;
@@ -383,7 +383,7 @@ async function probeDaemon(discovery, fetchImpl, WebSocketImpl) {
     if (!discovery) {
         return null;
     }
-    const client = new SidecarDaemonHttpClient({
+    const client = new AgentLocalRuntimeHttpClient({
         ...discovery,
         fetchImpl,
         WebSocketImpl,
@@ -602,3 +602,4 @@ function createAgentLocalRuntimeProvider(options = {}) {
     };
 }
 exports.createWindieLocalRuntimeProvider = createAgentLocalRuntimeProvider;
+exports.SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;

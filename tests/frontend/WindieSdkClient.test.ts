@@ -13,10 +13,10 @@ import {
   createWindieAgentSession,
   createConversationEvent,
   createWindieLocalRuntimeProvider,
+  AgentLocalRuntimeHttpClient,
   InMemoryConversationStore,
   LocalRuntimeConversationStore,
   moduleTool,
-  SidecarDaemonHttpClient,
   WindieAgent,
   WindieClient as WindieClientClass,
   WindieSdkClient,
@@ -152,7 +152,7 @@ describe('WindieSdkClient', () => {
         httpBaseUrl: 'https://api.windieos.com',
       })).toThrow('Agent SDK HTTP client requires a fetch implementation');
 
-      expect(() => new SidecarDaemonHttpClient({
+      expect(() => new AgentLocalRuntimeHttpClient({
         baseUrl: 'http://127.0.0.1:8765',
         token: 'test-token',
       })).toThrow('Agent SDK local runtime client requires a fetch implementation');
@@ -3106,9 +3106,9 @@ describe('WindieSdkClient', () => {
     await runtime?.shutdown?.();
   });
 
-  test('SidecarDaemonHttpClient subscribes to sidecar runtime events', async () => {
+  test('AgentLocalRuntimeHttpClient subscribes to local runtime events', async () => {
     const events: unknown[] = [];
-    const client = new SidecarDaemonHttpClient({
+    const client = new AgentLocalRuntimeHttpClient({
       baseUrl: 'http://127.0.0.1:43126',
       token: 'event-token',
       fetchImpl: mockFetch as any,
@@ -3145,12 +3145,12 @@ describe('WindieSdkClient', () => {
     expect(FakeWebSocket.instances[0].closed).toBe(true);
   });
 
-  test('SidecarDaemonHttpClient forwards tool execution trace context', async () => {
+  test('AgentLocalRuntimeHttpClient forwards tool execution trace context', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       success: true,
       data: { output: 'done' },
     }));
-    const client = new SidecarDaemonHttpClient({
+    const client = new AgentLocalRuntimeHttpClient({
       baseUrl: 'http://127.0.0.1:43126',
       token: 'context-token',
       fetchImpl: mockFetch as any,
@@ -3184,7 +3184,7 @@ describe('WindieSdkClient', () => {
     });
   });
 
-  test('SidecarDaemonHttpClient unwraps json-rpc rpc results', async () => {
+  test('AgentLocalRuntimeHttpClient unwraps json-rpc rpc results', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       jsonrpc: '2.0',
       id: 'rpc-1',
@@ -3198,7 +3198,7 @@ describe('WindieSdkClient', () => {
         },
       },
     }) as any);
-    const client = new SidecarDaemonHttpClient({
+    const client = new AgentLocalRuntimeHttpClient({
       baseUrl: 'http://127.0.0.1:43127',
       token: 'rpc-token',
       fetchImpl: mockFetch as any,
@@ -3232,7 +3232,7 @@ describe('WindieSdkClient', () => {
     );
   });
 
-  test('SidecarDaemonHttpClient throws json-rpc rpc errors', async () => {
+  test('AgentLocalRuntimeHttpClient throws json-rpc rpc errors', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       jsonrpc: '2.0',
       id: 'rpc-err',
@@ -3241,7 +3241,7 @@ describe('WindieSdkClient', () => {
         message: 'sidecar failed',
       },
     }) as any);
-    const client = new SidecarDaemonHttpClient({
+    const client = new AgentLocalRuntimeHttpClient({
       baseUrl: 'http://127.0.0.1:43128',
       token: 'rpc-token',
       fetchImpl: mockFetch as any,
