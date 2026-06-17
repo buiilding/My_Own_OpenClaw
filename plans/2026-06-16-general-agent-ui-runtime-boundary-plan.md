@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python SDK hosted client alias deletion
+
+- Finding: the Python SDK still exported `WindieSdkClient` and
+  `WindieSdkAgentSession` as compatibility aliases after `AgentSdkClient` and
+  `AgentSdkAgentSession` became the canonical hosted client/session contracts.
+- Change: removed the Windie-prefixed Python alias assignments and package
+  re-exports from the SDK, core sidecar package, and public `windie` package,
+  repaired sidecar package-boundary tests to assert the aliases stay absent,
+  and updated SDK/sidecar docs.
+- Validation: focused Python SDK sidecar tests, docs listing, stale-reference
+  scan, and diff check.
+- Compatibility: no migration required for first-party code. Python callers
+  must use `AgentSdkClient` and `AgentSdkAgentSession` directly.
+
 ### 2026-06-17 Main local-runtime bridge alias deletion
 
 - Finding: Electron main still exported `initializeLocalBackendBridge`,
