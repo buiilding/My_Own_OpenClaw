@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main screenshot temp compatibility deletion
+
+- Finding: Electron main still treated `windie-shot-` filenames and
+  `${os.tmpdir()}/windieos-screenshots` as owned screenshot temp paths after
+  `desktop-agent-shot-` and `desktop-agent-screenshots` became canonical.
+- Change: removed the legacy screenshot temp directory and filename-prefix
+  acceptance, updated bridge RPC tests to assert those paths are not uploaded
+  or deleted, and updated screenshot materialization docs.
+- Validation: focused local-runtime bridge RPC Jest test, docs listing, stale
+  legacy screenshot path scan, and diff check.
+- Compatibility: no migration required for first-party code. Screenshot
+  materialization now accepts only direct children of
+  `${os.tmpdir()}/desktop-agent-screenshots` whose filenames start with
+  `desktop-agent-shot-`.
+
 ### 2026-06-17 Main local-runtime launch plan alias deletion
 
 - Finding: Electron main still exported
