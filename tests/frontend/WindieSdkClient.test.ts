@@ -19,7 +19,7 @@ import {
   moduleTool,
   Agent,
   WindieClient as WindieClientClass,
-  WindieSdkClient,
+  AgentHostedBackendClient,
   windieBuiltins,
   type SdkPromptPreviewRequest,
   type SdkQueryPlanRequest,
@@ -131,7 +131,7 @@ function jsonResponse(body: unknown, init: { status?: number; statusText?: strin
   };
 }
 
-describe('WindieSdkClient', () => {
+describe('Agent SDK client behavior', () => {
   const mockFetch = jest.fn<typeof fetch>();
 
   beforeEach(() => {
@@ -148,7 +148,7 @@ describe('WindieSdkClient', () => {
     });
 
     try {
-      expect(() => new WindieSdkClient({
+      expect(() => new AgentHostedBackendClient({
         httpBaseUrl: 'https://api.windieos.com',
       })).toThrow('Agent SDK HTTP client requires a fetch implementation');
 
@@ -277,7 +277,7 @@ describe('WindieSdkClient', () => {
       system_prompt: 'prompt',
     }));
 
-    const client = new WindieSdkClient({
+    const client = new AgentHostedBackendClient({
       httpBaseUrl: 'https://api.windieos.com/',
       fetchImpl: mockFetch,
     });
@@ -331,7 +331,7 @@ describe('WindieSdkClient', () => {
       ],
     } as unknown as SdkPromptPreviewRequest;
 
-    const client = new WindieSdkClient({
+    const client = new AgentHostedBackendClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
     });
@@ -407,7 +407,7 @@ describe('WindieSdkClient', () => {
       messages: [],
     } as unknown as SdkQueryPlanRequest;
 
-    const client = new WindieSdkClient({
+    const client = new AgentHostedBackendClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
     });
@@ -449,7 +449,7 @@ describe('WindieSdkClient', () => {
       .mockResolvedValueOnce(jsonResponse({ image: {}, description: 'button', matches: [] }) as any)
       .mockResolvedValueOnce(jsonResponse({ success: true, title: 'Filtered title' }) as any);
 
-    const client = new WindieSdkClient({
+    const client = new AgentHostedBackendClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
     });
@@ -524,7 +524,7 @@ describe('WindieSdkClient', () => {
       url: 'https://api.windieos.com/api/artifacts/shot.png',
     }));
 
-    const client = new WindieSdkClient({
+    const client = new AgentHostedBackendClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
     });
@@ -548,7 +548,7 @@ describe('WindieSdkClient', () => {
       .mockResolvedValueOnce(jsonResponse({ bytes: 'ok' }) as any)
       .mockResolvedValueOnce(jsonResponse({ success: true, title: 'Generated SDK title' }) as any);
 
-    const client = new WindieSdkClient({
+    const client = new AgentHostedBackendClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
     });
@@ -577,7 +577,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('does not expose the old direct websocket agent authoring surface', () => {
-    const client = new WindieSdkClient({
+    const client = new AgentHostedBackendClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
     });

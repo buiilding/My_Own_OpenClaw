@@ -2508,3 +2508,17 @@ Each completed slice should report:
   legacy class name no longer appears in SDK client behavior coverage.
 - Compatibility: no migration required. `WindieAgent` remains a public
   compatibility alias.
+
+### 2026-06-17 Agent hosted backend client behavior path
+
+- Finding: SDK HTTP route behavior coverage still constructed the hosted client
+  through the `WindieSdkClient` compatibility alias even though
+  `AgentHostedBackendClient` is the canonical hosted backend client surface.
+- Change: switched the hosted-route behavior tests and suite label to the
+  generic Agent SDK hosted client path, leaving `WindieSdkClient` compatibility
+  coverage in the package-boundary test.
+- Validation: focused SDK client Jest coverage, SDK package-boundary Jest
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  legacy hosted client class no longer appears in SDK client behavior coverage.
+- Compatibility: no migration required. `WindieSdkClient` remains a public
+  compatibility alias.
