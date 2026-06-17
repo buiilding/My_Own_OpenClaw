@@ -46,8 +46,10 @@ frontend/src/main/python/
     │   ├── file_utils.py              # Binary file detection, encoding detection utilities
     │   ├── gitignore_utils.py         # Gitignore parsing and filtering using pathspec
     │   ├── read_file_tool.py          # read_file() - File reading with binary detection, size limits, pagination
-    │   ├── replace_tool.py            # replace() - Find-and-replace with line ending normalization
-    │   └── ...                        # Removed legacy filesystem tool implementations
+    │   ├── replace_engine.py          # Replacement engine orchestration and validation
+    │   ├── replace_matchers.py        # Exact and lenient match discovery helpers
+    │   ├── replace_patch_chunks.py    # Structured patch chunk parsing helpers
+    │   └── replace_tool.py            # replace() - Find-and-replace with line ending normalization
     │
     └── system/                         # System tools
         ├── shell_tool.py              # run_shell_command() - Shell command execution with background sessions

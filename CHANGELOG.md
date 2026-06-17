@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend protocol matrix hubs to present Electron-facing JSON-RPC mapping as local-runtime protocol surface wording. No migration is required.
+
+- Replaced the sidecar filesystem topology placeholder for removed legacy tools with the active replace helper modules. No migration is required.
+
 - Removed the retired `[LocalBackend]` daemon log prefix from Electron main local-runtime stderr forwarding and refreshed local-runtime protocol docs. No migration is required.
 
 - Removed the stale backend mypy override for the deleted `backend.src.brain` package. No migration is required.
