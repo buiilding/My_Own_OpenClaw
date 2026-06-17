@@ -54,8 +54,8 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         action: 'ignore-hide-from-phase-for-guarded-sdk-overlay',
         mode,
         phase,
-        active_guard_ref: activeGuardRef,
-        response_window_visible: safeWindowVisible(responseWindow),
+        activeGuardRef: activeGuardRef,
+        responseWindowVisible: safeWindowVisible(responseWindow),
       });
       logChatPillMainTrace({
         source: 'phase-handler',
@@ -99,7 +99,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       action: 'hide-from-phase',
       mode,
       phase,
-      response_window_visible: safeWindowVisible(responseWindow),
+      responseWindowVisible: safeWindowVisible(responseWindow),
     });
     logChatPillMainTrace({
       source: 'phase-handler',
@@ -117,7 +117,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         mode,
         phase,
         source,
-        response_window_visible: safeWindowVisible(responseWindow),
+        responseWindowVisible: safeWindowVisible(responseWindow),
       });
       logChatPillMainTrace({
         source: 'phase-handler',
@@ -164,7 +164,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         mode,
         phase,
         source,
-        response_window_visible: safeWindowVisible(responseWindow),
+        responseWindowVisible: safeWindowVisible(responseWindow),
       });
       logChatPillMainTrace({
         source: 'phase-handler',
@@ -206,7 +206,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
       mode,
       phase,
       source,
-      response_window_visible: safeWindowVisible(responseWindow),
+      responseWindowVisible: safeWindowVisible(responseWindow),
     });
     logChatPillMainTrace({
       source: 'phase-handler',
@@ -231,7 +231,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         action: 'restore-terminal-from-phase',
         mode,
         phase,
-        response_window_visible: safeWindowVisible(responseWindow),
+        responseWindowVisible: safeWindowVisible(responseWindow),
       });
       logChatPillMainTrace({
         source: 'phase-handler',

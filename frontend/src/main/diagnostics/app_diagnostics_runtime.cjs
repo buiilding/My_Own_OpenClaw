@@ -70,7 +70,7 @@ function appendAppRuntimeDiagnostic(input = {}, options = {}) {
     runtime: normalizeString(input.runtime) || 'electron-main',
     requestId: normalizeString(input.requestId),
     sessionId: normalizeString(input.sessionId),
-    conversationRef: normalizeString(input.conversationRef || input.conversation_ref),
+    conversationRef: normalizeString(input.conversationRef),
     durationMs: finiteNumberOrNull(input.durationMs),
     data: compactData(input.data || {}),
     error: input.error || null,
@@ -117,7 +117,7 @@ function appendFrontendInteractionDiagnostic(entry = {}, options = {}) {
     stage: normalizeString(entry.action) || 'unknown',
     status: 'succeeded',
     runtime: 'renderer',
-    conversationRef: normalizeString(entry.conversationRef || entry.conversation_ref),
+    conversationRef: normalizeString(entry.conversationRef),
     data: {
       action: normalizeString(entry.action) || 'unknown',
       event: normalizeString(entry.event) || 'unknown',
@@ -196,8 +196,8 @@ function appendLocalRuntimeLifecycleDiagnostic(input = {}, options = {}) {
 function appendSurfaceVisibilityDiagnostic(input = {}, options = {}) {
   const action = normalizeString(input.action) || 'unknown';
   const phase = normalizeString(input.phase);
-  const conversationRef = normalizeString(input.conversationRef || input.conversation_ref);
-  const turnRef = normalizeString(input.turnRef || input.turn_ref);
+  const conversationRef = normalizeString(input.conversationRef);
+  const turnRef = normalizeString(input.turnRef);
   return appendAppRuntimeDiagnostic({
     traceId: normalizeString(input.traceId) || diagnosticId('surface-visibility'),
     path: SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
@@ -211,21 +211,21 @@ function appendSurfaceVisibilityDiagnostic(input = {}, options = {}) {
       phase,
       source: normalizeString(input.source),
       reason: normalizeString(input.reason),
-      userHidden: booleanOrNull(input.userHidden ?? input.user_hidden),
+      userHidden: booleanOrNull(input.userHidden),
       focus: booleanOrNull(input.focus),
-      restoreResponseOverlay: booleanOrNull(input.restoreResponseOverlay ?? input.restore_response_overlay),
-      resultReason: normalizeString(input.resultReason || input.result_reason),
-      chatWindowVisible: booleanOrNull(input.chatWindowVisible ?? input.chat_window_visible),
-      responseWindowVisible: booleanOrNull(input.responseWindowVisible ?? input.response_window_visible),
-      responseOverlayVisible: booleanOrNull(input.responseOverlayVisible ?? input.response_overlay_visible),
-      responseOverlayVisibleFlag: booleanOrNull(input.responseOverlayVisibleFlag ?? input.response_overlay_visible_flag),
-      requestedVisible: booleanOrNull(input.requestedVisible ?? input.requested_visible),
-      responseLayoutMode: normalizeString(input.responseLayoutMode || input.response_layout_mode),
+      restoreResponseOverlay: booleanOrNull(input.restoreResponseOverlay),
+      resultReason: normalizeString(input.resultReason),
+      chatWindowVisible: booleanOrNull(input.chatWindowVisible),
+      responseWindowVisible: booleanOrNull(input.responseWindowVisible),
+      responseOverlayVisible: booleanOrNull(input.responseOverlayVisible),
+      responseOverlayVisibleFlag: booleanOrNull(input.responseOverlayVisibleFlag),
+      requestedVisible: booleanOrNull(input.requestedVisible),
+      responseLayoutMode: normalizeString(input.responseLayoutMode),
       width: finiteNumberOrNull(input.width),
       height: finiteNumberOrNull(input.height),
-      activeGuardRef: normalizeString(input.activeGuardRef || input.active_guard_ref),
-      staleGuardRef: normalizeString(input.staleGuardRef || input.stale_guard_ref),
-      guardRef: normalizeString(input.guardRef || input.guard_ref),
+      activeGuardRef: normalizeString(input.activeGuardRef),
+      staleGuardRef: normalizeString(input.staleGuardRef),
+      guardRef: normalizeString(input.guardRef),
       turnRef,
     },
   }, options);

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 app diagnostics input alias removal
+
+- Finding: Electron main app diagnostics helpers still accepted snake_case
+  helper input aliases even though the active surface controllers already own
+  camelCase runtime state.
+- Change: converted surface visibility diagnostic callers to camelCase fields
+  and made the diagnostics runtime ignore removed snake_case helper inputs.
+- Validation: app diagnostics runtime plus surface runtime/responsebox/phase
+  focused Jest suites, docs listing, and diff checks. The full app diagnostics
+  store suite still requires the local `sqlite3` CLI and could not run on this
+  machine.
+- Compatibility: no migration required. SQLite diagnostic columns keep their
+  existing snake_case storage names; this only removes helper input aliases for
+  newly emitted diagnostics.
+
 ### 2026-06-17 transport rehydrate/compact conversation-ref boundary
 
 - Finding: renderer `AgentRuntimeTransport` rehydrate and compact calls use the

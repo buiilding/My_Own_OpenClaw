@@ -213,11 +213,11 @@ async function handleSetResponseboxSize(
       appendSurfaceVisibilityDiagnostic({
         action: 'ignore-stale-hide-from-size',
         phase: getResponseOverlayPhase(),
-        turn_ref: normalizedTurnRef,
-        stale_guard_ref: normalizedStaleGuardRef,
-        active_guard_ref: activeGuardRef,
-        response_window_visible: safeWindowVisible(responseWindow),
-        response_overlay_visible_flag: getResponseOverlayVisible(),
+        turnRef: normalizedTurnRef,
+        staleGuardRef: normalizedStaleGuardRef,
+        activeGuardRef: activeGuardRef,
+        responseWindowVisible: safeWindowVisible(responseWindow),
+        responseOverlayVisibleFlag: getResponseOverlayVisible(),
       });
       logChatPillMainTrace({
         source: 'responsebox-size',
@@ -301,11 +301,11 @@ async function handleSetResponseboxSize(
     appendSurfaceVisibilityDiagnostic({
       action: 'hide-from-size',
       phase: getResponseOverlayPhase(),
-      requested_visible: false,
-      turn_ref: normalizedTurnRef,
-      stale_guard_ref: normalizedStaleGuardRef,
-      response_window_visible: safeWindowVisible(responseWindow),
-      response_overlay_visible_flag: getResponseOverlayVisible(),
+      requestedVisible: false,
+      turnRef: normalizedTurnRef,
+      staleGuardRef: normalizedStaleGuardRef,
+      responseWindowVisible: safeWindowVisible(responseWindow),
+      responseOverlayVisibleFlag: getResponseOverlayVisible(),
     });
     logChatPillMainTrace({
       source: 'responsebox-size',
@@ -346,12 +346,12 @@ async function handleSetResponseboxSize(
     appendSurfaceVisibilityDiagnostic({
       action: 'suppress-size-show-for-surface-owner',
       phase: getResponseOverlayPhase(),
-      requested_visible: true,
-      turn_ref: normalizedTurnRef,
-      stale_guard_ref: normalizedStaleGuardRef,
-      active_guard_ref: activeGuardRef,
-      response_window_visible: safeWindowVisible(responseWindow),
-      response_overlay_visible_flag: getResponseOverlayVisible(),
+      requestedVisible: true,
+      turnRef: normalizedTurnRef,
+      staleGuardRef: normalizedStaleGuardRef,
+      activeGuardRef: activeGuardRef,
+      responseWindowVisible: safeWindowVisible(responseWindow),
+      responseOverlayVisibleFlag: getResponseOverlayVisible(),
     });
     logChatPillMainTrace({
       source: 'responsebox-size',
@@ -422,11 +422,11 @@ async function handleSetResponseboxSize(
       appendSurfaceVisibilityDiagnostic({
         action: 'show-fullscreen-from-size',
         phase: getResponseOverlayPhase(),
-        requested_visible: true,
-        turn_ref: normalizedTurnRef,
-        stale_guard_ref: normalizedStaleGuardRef,
-        response_window_visible: safeWindowVisible(responseWindow),
-        response_overlay_visible_flag: getResponseOverlayVisible(),
+        requestedVisible: true,
+        turnRef: normalizedTurnRef,
+        staleGuardRef: normalizedStaleGuardRef,
+        responseWindowVisible: safeWindowVisible(responseWindow),
+        responseOverlayVisibleFlag: getResponseOverlayVisible(),
         width: nextBounds.width,
         height: nextBounds.height,
       });
@@ -490,12 +490,12 @@ async function handleSetResponseboxSize(
     appendSurfaceVisibilityDiagnostic({
       action: 'show-or-resize-from-size',
       phase: getResponseOverlayPhase(),
-      requested_visible: true,
-      response_window_visible: safeWindowVisible(responseWindow),
-      response_overlay_visible_flag: getResponseOverlayVisible(),
-      response_layout_mode: compactHover ? 'awaiting-typing' : 'response',
-      turn_ref: normalizedTurnRef,
-      stale_guard_ref: normalizedStaleGuardRef,
+      requestedVisible: true,
+      responseWindowVisible: safeWindowVisible(responseWindow),
+      responseOverlayVisibleFlag: getResponseOverlayVisible(),
+      responseLayoutMode: compactHover ? 'awaiting-typing' : 'response',
+      turnRef: normalizedTurnRef,
+      staleGuardRef: normalizedStaleGuardRef,
       width: nextWidth,
       height: nextHeight,
     });

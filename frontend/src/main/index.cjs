@@ -209,9 +209,9 @@ function syncSdkLiveTurnSurfaceIntent(currentTurn) {
     appendSurfaceVisibilityDiagnostic({
       action: 'skip-dismissed-sdk-overlay-intent',
       mode: overlayIntent.mode,
-      turn_ref: overlayIntent.turnRef,
-      stale_guard_ref: overlayIntent.staleGuardRef,
-      conversation_ref: overlayIntent.conversationRef,
+      turnRef: overlayIntent.turnRef,
+      staleGuardRef: overlayIntent.staleGuardRef,
+      conversationRef: overlayIntent.conversationRef,
     });
     return {
       success: true,

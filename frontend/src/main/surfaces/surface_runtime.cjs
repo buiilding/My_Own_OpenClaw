@@ -936,11 +936,11 @@ function formatChatPillVisibilityDecision(payload = {}) {
   return [
     `action=${value(payload.action)}`,
     `reason=${value(payload.reason)}`,
-    `user_hidden=${value(payload.user_hidden)}`,
+    `user_hidden=${value(payload.userHidden)}`,
     `focus=${value(payload.focus)}`,
-    `result=${value(payload.result_reason)}`,
-    `chat_visible=${value(payload.chat_window_visible)}`,
-    `response_visible=${value(payload.response_window_visible)}`,
+    `result=${value(payload.resultReason)}`,
+    `chat_visible=${value(payload.chatWindowVisible)}`,
+    `response_visible=${value(payload.responseWindowVisible)}`,
   ].join(' ');
 }
 
@@ -952,16 +952,16 @@ function logChatPillVisibilityDecision(event = {}, deps = {}) {
   const payload = {
     action: normalizeChatPillReason(event.action, 'unknown'),
     reason: normalizeChatPillReason(event.reason, null),
-    user_hidden: event.userHidden === true,
+    userHidden: event.userHidden === true,
     focus: typeof event.focus === 'boolean' ? event.focus : null,
-    restore_response_overlay: typeof event.restoreResponseOverlay === 'boolean'
+    restoreResponseOverlay: typeof event.restoreResponseOverlay === 'boolean'
       ? event.restoreResponseOverlay
       : null,
-    result_reason: normalizeChatPillReason(event.resultReason, null),
-    chat_window_visible: typeof event.chatWindowVisible === 'boolean'
+    resultReason: normalizeChatPillReason(event.resultReason, null),
+    chatWindowVisible: typeof event.chatWindowVisible === 'boolean'
       ? event.chatWindowVisible
       : null,
-    response_window_visible: typeof event.responseWindowVisible === 'boolean'
+    responseWindowVisible: typeof event.responseWindowVisible === 'boolean'
       ? event.responseWindowVisible
       : null,
   };
@@ -974,18 +974,18 @@ function logChatPillVisibilityDecision(event = {}, deps = {}) {
       source: 'surface-runtime',
       reason: payload.reason,
       focus: payload.focus,
-      restoreResponseOverlay: payload.restore_response_overlay,
-      chatWindowVisible: payload.chat_window_visible,
-      responseWindowVisible: payload.response_window_visible,
-      userHidden: payload.user_hidden,
+      restoreResponseOverlay: payload.restoreResponseOverlay,
+      chatWindowVisible: payload.chatWindowVisible,
+      responseWindowVisible: payload.responseWindowVisible,
+      userHidden: payload.userHidden,
     });
   } else if (payload.action === 'hide-applied') {
     logLiveSurfaceTrace('chat_pill.window.hide', {
       source: 'surface-runtime',
       reason: payload.reason,
-      chatWindowVisible: payload.chat_window_visible,
-      responseWindowVisible: payload.response_window_visible,
-      userHidden: payload.user_hidden,
+      chatWindowVisible: payload.chatWindowVisible,
+      responseWindowVisible: payload.responseWindowVisible,
+      userHidden: payload.userHidden,
     });
   }
 }

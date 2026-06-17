@@ -414,9 +414,9 @@ describe('surface_runtime', () => {
     expect(appendSurfaceVisibilityDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'show-applied',
       reason: 'wakeword',
-      user_hidden: false,
+      userHidden: false,
       focus: true,
-      chat_window_visible: false,
+      chatWindowVisible: false,
     }));
   });
 
@@ -438,9 +438,9 @@ describe('surface_runtime', () => {
     expect(appendSurfaceVisibilityDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'show-suppressed',
       reason: 'startup',
-      user_hidden: true,
+      userHidden: true,
       focus: true,
-      result_reason: 'chat-pill-user-hidden',
+      resultReason: 'chat-pill-user-hidden',
     }));
   });
 
@@ -467,7 +467,7 @@ describe('surface_runtime', () => {
     expect(appendSurfaceVisibilityDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'show-suppressed',
       reason: 'startup',
-      result_reason: 'startup-surface-already-applied',
+      resultReason: 'startup-surface-already-applied',
     }));
   });
 

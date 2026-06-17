@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: remove snake_case app diagnostics helper input aliases so Electron main diagnostics helpers and surface visibility callers use canonical camelCase fields; SQLite diagnostic columns remain unchanged. No migration is required because persisted diagnostic rows keep the same schema.
+
 - frontend/main: keep renderer rehydrate and compact runtime commands on canonical backend-transport `conversation_ref` while SDK library commands continue to require `conversationRef`; removed camelCase transport aliases now fail fast. No migration is required for first-party callers.
 
 - frontend/main: remove frontend query and SDK current-turn trace alias fallbacks so diagnostics read only canonical `queryMessageId`, `conversationRef`, and `turnRef` helper fields; backend event summaries remain on backend wire fields. No migration is required because this changes diagnostics only.

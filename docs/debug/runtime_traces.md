@@ -222,6 +222,12 @@ metadata. They may include booleans and counts such as `hasUserId`, `limit`,
 `resultCount`, `backendConnected`, `localRuntimeReady`,
 and `canonicalHistoryDbExists`.
 
+Electron main diagnostics runtime helpers accept canonical camelCase fields
+such as `conversationRef`, `turnRef`, `responseWindowVisible`, and
+`activeGuardRef`. SQLite columns keep their existing snake_case storage names;
+there is no migration required for persisted diagnostic rows, and removed
+snake_case helper input aliases are ignored.
+
 `browser.session_control` rows may include local-runtime readiness booleans,
 status strings, browser action names, wake success/failure booleans, tab counts,
 response key counts, request ids, durations, and short errors. They must not
