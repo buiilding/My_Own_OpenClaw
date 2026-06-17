@@ -1276,3 +1276,19 @@ Each completed slice should report:
   sidecar scratch/artifact paths and the existing environment override can
   select the legacy root when needed; absolute-path and parent-escape
   protections are unchanged.
+
+### 2026-06-17 Python SDK generated agent identity
+
+- Finding: Python SDK wake-up defaults still generated `windie-python-agent-*`,
+  `Windie Python Agent`, and `conv-windie-python-agent` values even though the
+  SDK boundary should expose reusable agent API defaults rather than product
+  copy.
+- Change: changed Python SDK generated defaults to `python-agent-*`,
+  `Python Agent`, and `conv-python-agent`, documented the Python SDK identity
+  boundary next to the TypeScript SDK default, and added focused sidecar SDK
+  coverage.
+- Validation: focused Python SDK identity test, docs listing,
+  `git diff --check`, and source scans for the retired generated defaults.
+- Compatibility: no migration required. Explicit caller-provided agent ids,
+  names, and conversation refs are unchanged; public `WindieSdkClient` package
+  and class names remain compatibility API.

@@ -70,6 +70,20 @@ def test_python_sdk_default_sidecar_discovery_path_is_generic():
     )
 
 
+def test_python_sdk_generated_agent_identity_is_generic():
+    definition = windie_sdk_module._build_python_wake_up_agent_definition()
+    session = windie_sdk_module.WindieSdkAgentSession(
+        websocket=FakeWebSocket(),
+        user_id="dev-user",
+    )
+
+    assert definition["id"].startswith("python-agent-")
+    assert "windie" not in definition["id"].lower()
+    assert definition["name"] == "Python Agent"
+    assert "windie" not in definition["name"].lower()
+    assert session.default_conversation_ref == "conv-python-agent"
+
+
 class FakeWsMessage:
     def __init__(self, data):
         self.data = data

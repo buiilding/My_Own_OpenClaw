@@ -20,6 +20,9 @@ workspace path, and operating-system facts before calling the SDK builder.
 When callers omit a display name, `buildAgentDefinition(...)` uses the generic
 `Desktop Agent` default so SDK-authored agent definitions do not embed
 WindieOS product copy outside host skin/config boundaries.
+The Python SDK mirrors that boundary with generic generated identities:
+`python-agent-*` ids, `Python Agent` display names, and `conv-python-agent`
+conversation defaults when callers omit those values.
 
 If `agent_definition` is omitted, the backend uses the default WindieOS agent:
 the default backend prompt, built-in tools, backend policy, and normal provider

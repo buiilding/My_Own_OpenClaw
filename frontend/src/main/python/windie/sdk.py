@@ -450,8 +450,8 @@ def _build_python_wake_up_agent_definition(
 ) -> dict[str, Any]:
     definition: dict[str, Any] = {
         "version": 1,
-        "id": _clean_string(agent_id) or f"windie-python-agent-{uuid4().hex}",
-        "name": _clean_string(name) or "Windie Python Agent",
+        "id": _clean_string(agent_id) or f"python-agent-{uuid4().hex}",
+        "name": _clean_string(name) or "Python Agent",
     }
     prompt = _clean_string(system_prompt)
     if prompt:
@@ -688,7 +688,7 @@ class WindieSdkAgentSession:
         self.default_conversation_ref = (
             f"conv-{agent_id}"
             if isinstance(agent_id, str) and agent_id
-            else "conv-windie-python-agent"
+            else "conv-python-agent"
         )
 
     async def initialize(self) -> None:
