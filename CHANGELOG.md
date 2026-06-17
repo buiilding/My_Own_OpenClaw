@@ -48,6 +48,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: rename private Electron host runtime markers for log guards,
   renderer-console attachment, chat-pill collapse, and screenshot suppression
   to generic desktop-agent terms.
+- frontend/main: use generic Agent SDK runtime wording for main IPC connection,
+  wake-up, and query-send fallback logs.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

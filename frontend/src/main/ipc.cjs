@@ -616,7 +616,7 @@ function handleWindieAgentConnection(event = {}) {
     setResponseOverlayPhase('idle', 'ws-open');
     ipcEventReplayState.clear();
     logMainRuntime(`[Main][Backend] connected user=${handshakeUserId || currentUserId || 'unknown'}`);
-    log('Successfully connected to Python backend through Windie SDK runtime.');
+    log('Successfully connected to Python backend through Agent SDK runtime.');
     log(`Handshake sent with authenticated user_id: ${handshakeUserId || currentUserId || 'unknown'}`);
     broadcastConnectionStatus(true);
     return;
@@ -1157,7 +1157,7 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
     statusReason: reason,
     hasWorkspacePath: Boolean(resolvedWorkspacePath),
   });
-  log(`WindieClient wakeUp runtime started for ${reason}.`);
+  log(`Agent SDK wakeUp runtime started for ${reason}.`);
   return adapter;
 }
 
@@ -1853,7 +1853,7 @@ async function sendQueryThroughSdkAgent({ payload = {}, messageId = null } = {})
     });
     return result?.queryMessageId || result?.turnRef || null;
   } catch (error) {
-    log(`Failed to send query through WindieAgent: ${error?.message || error}`);
+    log(`Failed to send query through Agent SDK runtime: ${error?.message || error}`);
     return null;
   }
 }

@@ -64,6 +64,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[Main][SDK] local_runtime_ensure_start reason=');
     expect(source).toContain('[Main][SDK] local_runtime_ready reason=');
     expect(source).toContain('[Main][Backend] connected user=');
+    expect(source).not.toContain('Windie SDK runtime');
+    expect(source).not.toContain('WindieClient wakeUp runtime started');
+    expect(source).not.toContain('Failed to send query through WindieAgent');
   });
 
   test('electron main exposes SDK-shaped user commands through a strict invoke allowlist', async () => {
