@@ -70,6 +70,9 @@ function clientManifestHasTools(clientToolManifest) {
     return Array.isArray(clientToolManifest?.tools) && clientToolManifest.tools.length > 0;
 }
 function buildAgentDefinition(options = {}) {
+    if (Object.prototype.hasOwnProperty.call(options, 'agents_md')) {
+        throw new Error('buildAgentDefinition accepts agentsMd; snake_case agents_md input is not supported.');
+    }
     const includeToolManifest = options.includeToolManifest !== false;
     const clientToolManifest = includeToolManifest
         ? (isJsonRecord(options.clientToolManifest) ? options.clientToolManifest : { version: 1, tools: [] })
@@ -84,7 +87,7 @@ function buildAgentDefinition(options = {}) {
         ...(Array.isArray(options.promptLayers) ? options.promptLayers : []),
     ]);
     const skills = normalizePromptLayers(options.skills);
-    const agentsMd = normalizePromptLayers(options.agentsMd || options.agents_md);
+    const agentsMd = normalizePromptLayers(options.agentsMd);
     const plugins = Array.isArray(options.plugins) ? options.plugins : [];
     const systemPromptContent = normalizeString(options.systemPrompt);
     const workspacePath = normalizeString(options.workspacePath);

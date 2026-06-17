@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- packages/sdk-js: align the checked-in CJS AgentDefinition builder with the TypeScript source so removed `agents_md` SDK input aliases are rejected while generated backend wire `agents_md` remains unchanged. No migration is required for first-party callers; CJS SDK callers must use `agentsMd`.
+
 - tests/frontend: remove the stale `turn_ref` retry command fixture from the replay IPC bridge coverage so `conversation.prepareRetryTurn` tests exercise the canonical `turnRef` path. No migration is required because this is test-only alignment with an already-enforced SDK command contract.
 
 - frontend/main: remove snake_case permission trace-context helper aliases so permission probes use `conversationRef` and `turnRef` for conversation trace routing; snake_case-only helper inputs now fall back to app diagnostics. No migration is required because backend/query payload fields are unchanged.

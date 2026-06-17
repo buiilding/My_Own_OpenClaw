@@ -29,6 +29,19 @@ function expectNoExport(module, exportName) {
 }
 
 describe('@windie/sdk private helper exports', () => {
+  test('CJS agent definition builder rejects removed AGENTS.md input alias', () => {
+    const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/AgentDefinition.js');
+
+    expect(() => canonicalModule.buildAgentDefinition({
+      agents_md: [{ id: 'repo', type: 'agents_md', priority: 10, content: 'Repo rules.' }],
+    })).toThrow('buildAgentDefinition accepts agentsMd; snake_case agents_md input is not supported.');
+    expect(canonicalModule.buildAgentDefinition({
+      agentsMd: [{ id: 'repo', type: 'agents_md', priority: 10, content: 'Repo rules.' }],
+    })).toEqual(expect.objectContaining({
+      agents_md: [expect.objectContaining({ id: 'repo' })],
+    }));
+  });
+
   test('transport compatibility module is removed and websocket URL normalization stays private', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/transport/AgentSession.js');
     const removedModulePath = removedCjsPath('transport', retiredProductName('AgentSession'));

@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 CJS agent definition alias parity
+
+- Finding: the TypeScript `buildAgentDefinition` source rejected removed
+  `agents_md` SDK builder input, but the checked-in CJS build still accepted it
+  and normalized it into the backend wire field.
+- Change: aligned the CJS builder with the TypeScript source so only
+  `agentsMd` is accepted as SDK input while generated definitions still emit
+  backend wire `agents_md`.
+- Validation: focused WindieSdkPrivateExports and WindieSdkClient Jest coverage,
+  source scan for the stale CJS alias read, and `git diff --check`.
+- Compatibility: no migration required for current first-party callers. CJS SDK
+  callers using removed `agents_md` builder input must use `agentsMd`.
+
 ### 2026-06-17 replay retry test alias cleanup
 
 - Finding: the replay command bridge test still sent the removed `turn_ref`
