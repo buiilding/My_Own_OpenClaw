@@ -86,7 +86,7 @@ Transcript conversation pagination helper:
 ## SDK Store Boundary
 
 The desktop runtime uses `ConversationContinuityService` as the SDK-owned
-continuity orchestrator and the SDK `SidecarConversationStore` as the
+continuity orchestrator and the SDK `LocalRuntimeConversationStore` as the
 sidecar-backed conversation-store owner. The desktop conversation store factory
 is now only a renderer command bridge: it forwards canonical SDK events and
 load/list/rewrite commands to Electron main without reshaping event metadata or
@@ -108,7 +108,7 @@ Storage split:
   `compaction_applied` conversation events.
 
 Event write enrichment, sidecar persistence payload shaping, and attachment
-storage belong to the SDK `SidecarConversationStore` plus the sidecar write/read
+storage belong to the SDK `LocalRuntimeConversationStore` plus the sidecar write/read
 RPCs. Display and backend rehydrate snapshots come from the SDK projection path,
 and backend resume is triggered by the SDK continuity service rather than by
 dashboard or chat feature code.

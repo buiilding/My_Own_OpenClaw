@@ -100,7 +100,7 @@ This section distinguishes current behavior from target behavior and known migra
 | Live turn projection | SDK desktop agent normalizes backend packets and forwards SDK `windie:current-turn` snapshots through Electron main. Renderer live assistant/tool rows render from SDK `currentTurn`; `useChatStream` remains for transcript, metadata, telemetry, and persistence side effects. | SDK conversation runtime is the only live-turn reducer; renderer display adapters only project SDK state. | Raw backend traffic must not become a live-row fallback again; remaining renderer side effects must stay scoped to normalized conversation events. | `WindieSdkConversationRuntime`, `RendererChatRuntimeBoundary`, `ChatStreamThinkingStatus`, `ChatBoxResponse.state`, stream event runtime tests. |
 | SDK event fan-out | Electron main forwards SDK rows/status/conversation events/current-turn on `windie:rows`, `windie:status`, `windie:conversation-event`, and `windie:current-turn`. | Electron main is a thin Agent SDK host and does not expose a generic runtime compatibility relay. | New renderer SDK runtime commands must be explicit `windie:*` invokes or SDK/client methods, not a revived generic backend bridge. | `IpcMainSdkRuntimeBoundary`, `IpcChannels`, `RendererChatRuntimeBoundary`. |
 | Settings/model sync | `DesktopSettingsRuntimeClient` owns dashboard startup model-list requests and calls SDK-shaped `windie:invoke` commands: `settings.update` and `models.list`. Main owns backend settings ACK gates in `ipc_settings_sync_runtime.cjs` and sends through the SDK agent host. `AppConfigProvider` is a React store/facade consumer, not the startup policy owner. | One desktop settings/model runtime exposes explicit config-loaded, backend-connected, synced, requested, received, and error states. | Collapse remaining provider-local status derivation only after settings runtime exposes those explicit states without losing UI affordances. | `DesktopSettingsRuntimeClient`, `IpcSettingsSyncRuntime`, `IpcSettingsSync`, `AppConfigProvider.models`, `ModelsSection`. |
-| Conversation storage | SDK stores and projection builders own display/rehydrate events; sidecar-backed `SidecarConversationStore` is the canonical local persistent store. Renderer dashboard replay adapts SDK display rows to UI state, and continuity services perform backend rehydrate before backend-dependent actions. | SDK projection and store adapters are the only event interpretation tables for display, replay, edit/resend, retry, compaction, and backend rehydrate. | Renderer transcript state remains a cache/projection for visible workspaces; it must not add new event-to-history interpretation tables. | `WindieSdkConversationRuntime`, `WindieSdkFileConversationStore`, `SdkDisplayChatMessageProjection`, dashboard replay/continuity tests. |
+| Conversation storage | SDK stores and projection builders own display/rehydrate events; sidecar-backed `LocalRuntimeConversationStore` is the canonical local persistent store. Renderer dashboard replay adapts SDK display rows to UI state, and continuity services perform backend rehydrate before backend-dependent actions. | SDK projection and store adapters are the only event interpretation tables for display, replay, edit/resend, retry, compaction, and backend rehydrate. | Renderer transcript state remains a cache/projection for visible workspaces; it must not add new event-to-history interpretation tables. | `WindieSdkConversationRuntime`, `WindieSdkFileConversationStore`, `SdkDisplayChatMessageProjection`, dashboard replay/continuity tests. |
 | Electron main composition | `ipc.cjs` still wires many dependencies, but query payload construction, backend side-channel classification, model-list queueing, diagnostics, settings ACK state, overlay phase state, event replay state, and transcript sync helpers live in focused modules. | `ipc.cjs` is a composition root with handler registration and dependency wiring only. | Future extraction should move remaining endpoint/install-auth/session lifecycle wiring when it can be done without changing runtime behavior. | `IpcMainBridge.lifecycle`, `IpcMainBridge.query`, `IpcSettingsSyncRuntime`, `IpcBackendEventChannels`, `IpcDiagnosticsRuntime`. |
 
 ## Core Runtime Flows
@@ -210,7 +210,7 @@ context, overlay, permission, and window behavior.
    `conversation.load`, and `conversations.delete`. Renderer feature code does
    not call sidecar chat-event RPC channels or select storage table/record
    kinds.
-6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation
+6. `LocalRuntimeConversationStore` is the canonical sidecar-backed SDK conversation
    store. Sidecar chat-event RPC names remain below the SDK/local-runtime
    boundary, while the desktop conversation store factory only supplies
    desktop write enrichment such as workspace binding, attachments, and
@@ -422,7 +422,7 @@ Primary modules:
   rehydrating backend inference state through a renderer-owned runtime.
 - `renderer/infrastructure/transcript/desktopConversationStore.ts`:
   - Adapts desktop display projections, edit/resend rewrites, and compaction snapshots into canonical SDK conversation events.
-  - Delegates sidecar-backed conversation reads/writes to the SDK `SidecarConversationStore`.
+  - Delegates sidecar-backed conversation reads/writes to the SDK `LocalRuntimeConversationStore`.
   - Does not maintain hidden replay rows or legacy transcript fallback.
 - `features/dashboard/components/DashboardShell.jsx`:
   - Global `Nuke chats` success handling now resets the active chat plus invalidates SDK-runtime hydration and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
@@ -477,7 +477,7 @@ Primary modules:
 
 - `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
 - `infrastructure/api/client.ts`: typed backend command emitter.
-- `app/runtime/desktopConversationContinuityService.ts` and `app/runtime/desktopConversationLibraryClient.js`: replay, rehydrate, list/load/delete/search through the SDK `SidecarConversationStore` via the desktop conversation store factory.
+- `app/runtime/desktopConversationContinuityService.ts` and `app/runtime/desktopConversationLibraryClient.js`: replay, rehydrate, list/load/delete/search through the SDK `LocalRuntimeConversationStore` via the desktop conversation store factory.
 - `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
 - `infrastructure/services/toolExecution/*`: retained display and capture timing helpers; backend tool execution is owned by the SDK runtime in Electron main and the sidecar daemon.

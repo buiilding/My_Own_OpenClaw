@@ -2387,6 +2387,21 @@ Each completed slice should report:
   stale `TS Windie SDK runtime` wording.
 - Compatibility: no migration required. This is docs-only terminology cleanup.
 
+### 2026-06-17 LocalRuntimeConversationStore replay integration path
+
+- Finding: replay database integration coverage and current renderer
+  architecture docs still treated `SidecarConversationStore` as the canonical
+  SDK store even after `LocalRuntimeConversationStore` became the preferred
+  local-runtime store API.
+- Change: switched the replay integration test to instantiate
+  `LocalRuntimeConversationStore` and updated current-path renderer/frontend
+  docs to name it as the canonical sidecar-backed SDK store.
+- Validation: focused replay database integration Jest coverage, docs listing,
+  `git diff --check`, and source scans confirming the old store name remains
+  only in compatibility exports/tests/docs or historical plan notes.
+- Compatibility: no migration required. `SidecarConversationStore` remains a
+  compatibility alias covered by SDK package-boundary tests.
+
 ### 2026-06-17 Agent SDK focused test headers
 
 - Finding: focused Agent SDK tests for model selection, managed backend

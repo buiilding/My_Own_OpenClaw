@@ -211,7 +211,7 @@ The `conversation.metadata.list` path covers:
 renderer dashboard load
 -> Electron main `conversations.list`
 -> SDK `Agent.listConversations()`
--> SDK `SidecarConversationStore.listMetadata()`
+-> SDK `LocalRuntimeConversationStore.listMetadata()`
 -> sidecar `conversation.list`
 -> sidecar history SQLite read
 ```

@@ -12,8 +12,8 @@ import { useConversationReplayActions } from '../../frontend/src/renderer/featur
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   createConversationEvent,
+  LocalRuntimeConversationStore,
   SdkConversationRuntime,
-  SidecarConversationStore,
   type ConversationEvent,
   type JsonRecord,
 } from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
@@ -472,7 +472,7 @@ describe('conversation replay database integration', () => {
               : 'Agent SDK command requires an active user id.',
           );
         }
-        const store = new SidecarConversationStore({
+        const store = new LocalRuntimeConversationStore({
           userId: String(payload.userId),
           runtime: {
             rpc: request => history.rpc(request),

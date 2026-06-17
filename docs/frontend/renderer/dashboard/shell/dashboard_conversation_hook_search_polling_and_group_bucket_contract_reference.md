@@ -49,7 +49,7 @@ Hook-owned concerns:
   continuity service with no
   hidden limit so startup can see every local chat; explicit limits are applied
   only when a caller requests pagination
-- the continuity service uses the SDK `SidecarConversationStore` for list,
+- the continuity service uses the SDK `LocalRuntimeConversationStore` for list,
   search, delete, display, rehydrate, revision, and title metadata invalidation
   reads and writes; the desktop conversation store factory remains only as the
   desktop write-enrichment hook
