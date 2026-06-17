@@ -9,7 +9,7 @@ import type {
 import { resolveToolOutputCorrelationKeys } from '../tools/toolCorrelationIds.js';
 import type { AgentRuntimeEvent } from './ConversationRuntime.js';
 
-export type WindieAgentStreamState =
+export type AgentStreamState =
   | 'idle'
   | 'sending'
   | 'thinking'
@@ -18,7 +18,7 @@ export type WindieAgentStreamState =
   | 'tool_output'
   | 'error';
 
-export type WindieAgentToolCall = {
+export type AgentToolCall = {
   toolName: string;
   args: unknown;
   requestId: string | null;
@@ -26,7 +26,7 @@ export type WindieAgentToolCall = {
   index: number;
 };
 
-export type WindieAgentToolOutput = {
+export type AgentToolOutput = {
   toolName: string;
   result: unknown;
   attachments: AgentToolAttachment[];
@@ -46,10 +46,10 @@ export type AgentToolAttachment = {
   charLength: number;
 };
 
-export type WindieAgentStreamEvent =
+export type AgentStreamEvent =
   | {
       type: 'state';
-      state: WindieAgentStreamState;
+      state: AgentStreamState;
       conversationRef: string;
       turnRef: string | null;
     }
@@ -80,13 +80,13 @@ export type WindieAgentStreamEvent =
     }
   | {
       type: 'tool_calls';
-      calls: WindieAgentToolCall[];
+      calls: AgentToolCall[];
       conversationRef: string;
       turnRef: string | null;
     }
   | {
       type: 'tool_outputs';
-      outputs: WindieAgentToolOutput[];
+      outputs: AgentToolOutput[];
       conversationRef: string;
       turnRef: string | null;
     }
@@ -112,6 +112,11 @@ export type WindieAgentStreamEvent =
       turnRef: string | null;
     };
 
+export type WindieAgentStreamState = AgentStreamState;
+export type WindieAgentToolCall = AgentToolCall;
+export type WindieAgentToolOutput = AgentToolOutput;
+export type WindieAgentStreamEvent = AgentStreamEvent;
+
 type ConversationLocator = {
   conversationRef: string;
   turnRef: string | null;
@@ -128,7 +133,7 @@ export function toolOutputStreamKeys(event: ConversationEvent): string[] {
   return resolveToolOutputCorrelationKeys(event.payload);
 }
 
-export function toAgentStreamEvents(runtimeEvent: AgentRuntimeEvent): WindieAgentStreamEvent[] {
+export function toAgentStreamEvents(runtimeEvent: AgentRuntimeEvent): AgentStreamEvent[] {
   if (runtimeEvent.type === 'turn_started') {
     return [];
   }
@@ -285,7 +290,7 @@ function locatorFromConversationEvent(event: ConversationEvent): ConversationLoc
   };
 }
 
-function stateEvent(state: WindieAgentStreamState, locator: ConversationLocator): WindieAgentStreamEvent {
+function stateEvent(state: AgentStreamState, locator: ConversationLocator): AgentStreamEvent {
   return {
     type: 'state',
     state,
@@ -373,7 +378,7 @@ function toolCallIdFromModelCall(call: JsonRecord | null): string | null {
   return stringField(call ?? {}, 'id', 'toolCallId', 'tool_call_id');
 }
 
-function toolCallFromPayload(payload: JsonRecord, index: number): WindieAgentToolCall {
+function toolCallFromPayload(payload: JsonRecord, index: number): AgentToolCall {
   const modelFacing = modelFacingCallFromRecord(payload);
   return {
     toolName: toolNameFromModelCall(modelFacing)
@@ -389,7 +394,7 @@ function toolCallFromPayload(payload: JsonRecord, index: number): WindieAgentToo
   };
 }
 
-function bundleToolCallsFromPayload(payload: JsonRecord): WindieAgentToolCall[] {
+function bundleToolCallsFromPayload(payload: JsonRecord): AgentToolCall[] {
   const structuredPayload = recordField(payload, 'structuredPayload');
   const tools = arrayField(payload, 'tools');
   const structuredTools = structuredPayload ? arrayField(structuredPayload, 'tools') : [];
@@ -520,7 +525,7 @@ function successFromPayload(payload: JsonRecord): boolean | null {
   return null;
 }
 
-function toolOutputFromPayload(payload: JsonRecord, index: number): WindieAgentToolOutput {
+function toolOutputFromPayload(payload: JsonRecord, index: number): AgentToolOutput {
   const extractedResult = extractToolResultAttachments(resultFromPayload(payload));
   return {
     toolName: stringField(payload, 'toolName', 'tool_name', 'tool', 'name') ?? 'unknown_tool',
@@ -534,7 +539,7 @@ function toolOutputFromPayload(payload: JsonRecord, index: number): WindieAgentT
   };
 }
 
-function bundleToolOutputsFromPayload(payload: JsonRecord): WindieAgentToolOutput[] {
+function bundleToolOutputsFromPayload(payload: JsonRecord): AgentToolOutput[] {
   const structuredPayload = recordField(payload, 'structuredPayload');
   const steps = arrayField(payload, 'stepResults', 'step_results');
   const structuredSteps = structuredPayload

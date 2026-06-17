@@ -1421,3 +1421,18 @@ Each completed slice should report:
   the Windie-prefixed event type remains only as the compatibility alias.
 - Compatibility: no migration required. Runtime event payloads are unchanged,
   and existing `WindieRuntimeEvent` imports continue to type-check.
+
+### 2026-06-17 SDK agent stream type aliases
+
+- Finding: the high-level SDK agent stream projection exposed only
+  `WindieAgentStreamEvent` and related `WindieAgent*` tool/state type names
+  even though `agent.stream(...)` is a reusable agent API surface.
+- Change: added generic `AgentStreamEvent`, `AgentStreamState`,
+  `AgentToolCall`, and `AgentToolOutput` type names, switched SDK stream
+  internals to those names, and kept the Windie-prefixed names as compatibility
+  aliases.
+- Validation: focused conversation runtime Jest coverage, SDK no-emit
+  TypeScript check, docs listing, `git diff --check`, and source scans showing
+  Windie-prefixed stream types remain only as compatibility aliases.
+- Compatibility: no migration required. Stream payloads are unchanged, and
+  existing `WindieAgentStreamEvent` imports continue to type-check.

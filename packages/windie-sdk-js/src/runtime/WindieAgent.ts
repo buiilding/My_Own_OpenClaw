@@ -71,7 +71,7 @@ import { WindieChatSession } from './WindieChatSession.js';
 import {
   toAgentStreamEvents,
   toolOutputStreamKeys,
-  type WindieAgentStreamEvent,
+  type AgentStreamEvent,
 } from './AgentStreamEvents.js';
 
 export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & {
@@ -271,7 +271,7 @@ export class WindieAgent {
   async *stream(
     input: string | WindieAgentQueryInput,
     options: WindieAgentQueryOptions = {},
-  ): AsyncIterableIterator<WindieAgentStreamEvent> {
+  ): AsyncIterableIterator<AgentStreamEvent> {
     const queryInput = typeof input === 'string' ? this.buildQueryInput(input, options) : input;
     const model = typeof input === 'string' ? options.model : undefined;
     const seenToolOutputs = new Set<string>();

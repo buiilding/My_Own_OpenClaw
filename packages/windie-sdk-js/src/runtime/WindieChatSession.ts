@@ -10,7 +10,7 @@ import type {
 import {
   toAgentStreamEvents,
   toolOutputStreamKeys,
-  type WindieAgentStreamEvent,
+  type AgentStreamEvent,
 } from './AgentStreamEvents.js';
 import type {
   ConversationEventListener,
@@ -54,7 +54,7 @@ export class WindieChatSession {
     return this.runtime.send(normalizeSendInput(input));
   }
 
-  async *stream(input: WindieChatSendInput): AsyncIterableIterator<WindieAgentStreamEvent> {
+  async *stream(input: WindieChatSendInput): AsyncIterableIterator<AgentStreamEvent> {
     const seenToolOutputs = new Set<string>();
     for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
       const streamEvents = toAgentStreamEvents(runtimeEvent);

@@ -24,6 +24,8 @@ import {
   type ConversationEvent,
   type AgentRuntimeEvent,
   type WindieRuntimeEvent,
+  type AgentStreamEvent,
+  type WindieAgentStreamEvent,
 } from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 import { mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -1450,7 +1452,10 @@ describe('Windie SDK conversation runtime core', () => {
     };
     const compatibilityEvent: WindieRuntimeEvent = runtimeEvent;
 
-    expect(toAgentStreamEvents(compatibilityEvent)).toEqual([
+    const streamEvents: AgentStreamEvent[] = toAgentStreamEvents(compatibilityEvent);
+    const compatibilityStreamEvents: WindieAgentStreamEvent[] = streamEvents;
+
+    expect(compatibilityStreamEvents).toEqual([
       {
         type: 'state',
         state: 'error',

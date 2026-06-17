@@ -813,7 +813,7 @@ model-selection patch used by public `WindieClient` callers. Feature code
 should not shape `update-settings` payloads, route model sync through the
 live-turn facade, or call the backend API adapter directly.
 
-`stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
+`stream(input, options)` returns an `AsyncIterableIterator<AgentStreamEvent>`.
 It is a high-level projection over `SdkConversationRuntime.stream()`: it
 stores normalized events, preserves `conversationRef`/`turnRef`, routes local
 tool calls through the SDK coordinator, and maps runtime events into
@@ -822,7 +822,8 @@ consumer-ready `state`, `reasoning_delta`, `assistant_delta`,
 tool calls and bundled tool outputs stay bundled on the backend transport and
 conversation history path, but the public stream exposes them as plural tool
 call/output arrays so CLI and custom UI callers do not need bundle-specific
-rendering branches.
+rendering branches. `WindieAgentStreamEvent` remains exported as a compatibility
+alias for existing callers.
 
 `AgentStreamEvents.ts` owns display-safe public tool-output extraction for
 `agent.stream(...)`. `extractToolResultAttachments(...)` walks nested arrays and
