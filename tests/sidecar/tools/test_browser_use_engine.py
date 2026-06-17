@@ -254,7 +254,7 @@ async def test_connect_errors_when_incompatible_session_survives_close(
             await runtime.execute(_args({"action": "connect"}))
 
     run_cli.assert_awaited_once_with("close", headed=False)
-    assert "non-WindieOS profile" in exc_info.value.message
+    assert "non-dedicated profile" in exc_info.value.message
 
 
 @pytest.mark.asyncio
