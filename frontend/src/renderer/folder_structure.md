@@ -525,8 +525,8 @@ App
 - `GET_SYSTEM_STATE` - Get system state (active window, mouse, clipboard, etc.)
 
 ### On Channels (Main → Renderer, events)
-- `WINDIE_CURRENT_TURN` - SDK current-turn projection updates for live dashboard/overlay rendering
-- `WINDIE_CONVERSATION_EVENT` - SDK-normalized chat side-effect events for transcript/session/metadata handlers
+- `DESKTOP_AGENT_CURRENT_TURN` - SDK current-turn projection updates for live dashboard/overlay rendering
+- `DESKTOP_AGENT_CONVERSATION_EVENT` - SDK-normalized chat side-effect events for transcript/session/metadata handlers
 - `BACKEND_SETTINGS_EVENT` - Typed settings/model ACK and error control events
 - `AGENT_CAPABILITY_EVENT` - Typed tool manifest and remote tool catalog updates
 - `AUDIO_CHUNK` - Typed text-to-speech audio chunk side-channel

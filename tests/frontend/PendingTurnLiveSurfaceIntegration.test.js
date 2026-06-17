@@ -34,7 +34,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     SHOW_CHATBOX: 'show-chatbox',
   },
   SEND_CHANNELS: {
-    WINDIE_PENDING_TURN: 'windie:pending-turn',
+    DESKTOP_AGENT_PENDING_TURN: 'windie:pending-turn',
   },
 }));
 

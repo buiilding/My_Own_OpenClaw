@@ -37,7 +37,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     on: jest.fn(),
   },
   ON_CHANNELS: {
-    WINDIE_CONVERSATION_EVENT: 'windie:conversation-event',
+    DESKTOP_AGENT_CONVERSATION_EVENT: 'windie:conversation-event',
   },
 }));
 
