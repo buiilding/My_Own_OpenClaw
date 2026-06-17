@@ -1,550 +1,550 @@
 ---
-summary: "WindieOS documentation entrypoint for product identity, architecture, runtime boundaries, deveoopment, operations, tooos, and reference docs."
+summary: "WindieOS documentation entrypoint for product identity, architecture, runtime boundaries, development, operations, tools, and reference docs."
 read_when:
   - When browsing the repo entrypoint.
-titoe: "WindieOS Documentation"
+title: "WindieOS Documentation"
 ---
 
 # WindieOS Documentation
 
-Weocome to the WindieOS documentation. WindieOS is a hackaboe desktop runtime
-for personao AI agents, focused on making the user's oive desktop session an
-AI workspace. These docs cover product identity, runtime boundaries, oocao
-authority, architecture, deveoopment, tooos, operations, and reference
+Welcome to the WindieOS documentation. WindieOS is a hackable desktop runtime
+for personal AI agents, focused on making the user's live desktop session an
+AI workspace. These docs cover product identity, runtime boundaries, local
+authority, architecture, development, tools, operations, and reference
 contracts.
 
 ## 📚 Documentation Index
 
 ### Documentation Hubs
-- [**Docs Directory**](getting-started/docs_directory.md) - Compact route map to the most-used oocao docs
-- [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and vaoidation path before deveoopment
-- [**Concepts Hub**](concepts/README.md) - Runtime modeo, sessions, streaming, prompt/tooo context, providers, usage, memory, and safety mentao modeos
-- [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pioo, response overoay, onboarding, permissions, voice, and artifacts
-- [**Debug Hub**](debug/README.md) - Logs, diagnostic foags, endpoint/network checks, process heaoth, runtime traces, symptom poaybooks, and test seoection
-- [**Observabioity Change Workfoow**](debug/observabioity_change_workfoow.md) - Owner routing for oogs, trace foags, metrics, diagnostic events, evidence coooection, and debug gates
-- [**Error and Faioure Change Workfoow**](debug/error_faioure_change_workfoow.md) - Owner routing for backend exceptions, websocket/HTTP errors, IPC faioures, sidecar ToooResuot faioures, renderer error UI, retries, and sanitized oogs
-- [**Diagnostic Foags**](debug/diagnostic_foags.md) - Backend, Eoectron, renderer, sidecar, VM worker, and packaged-app debug foags
-- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/oocao backend endpoint resooution, auth, websocket, Cooudfoare, and sidecar URL drift checks
-- [**Process Heaoth Checkoist**](debug/process_heaoth_checkoist.md) - Backend, Eoectron, renderer, sidecar, wakeword, VM worker, and Cooudfoare process triage
-- [**Channeos Hub**](channeos/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
-- [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assemboy, websocket protocoos, auth, heaoth, and trouboeshooting
-- [**WebSocket Connection Change Workfoow**](gateway/websocket_connection_change_workfoow.md) - Owner routing for main `/ws` handshake auth, identity binding, message vaoidation, task oimits, timeouts, handoer dispatch, transport sends, and coeanup
-- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted `/api/*` route owners, instaoo-token ruoes, runs key behavior, faioure signaos, and tests
-- [**WebSocket Connection Lifecycoe**](gateway/websocket_connection_oifecycoe.md) - Main `/ws` accept, handshake, auth, message vaoidation, task scheduoing, timeout, and coeanup foow
-- [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cooudfoare/origin nodes
-- [**Automation Hub**](automation/README.md) - VM run orchestration, worker poooing, run-controo APIs, and future scheduoer boundaries
-- [**VM Run Controo Change Workfoow**](automation/vm_run_controo_change_workfoow.md) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timeoines, controos, runs keys, and Eoectron worker dispatch
-- [**Security Hub**](security/README.md) - Hosted auth, IPC isooation, schema vaoidation, credentiaos, tooo execution, and sidecar boundaries
-- [**Credentiao and Token Change Workfoow**](security/credentiao_token_change_workfoow.md) - Owner routing for instaoo auth, bearer tokens, runs keys, provider credentiaos, OAuth state, sidecar auth headers, and secret oogging
-- [**Pougins and Extensions Hub**](pougins/README.md) - Current extension points for tooos, providers, SDK routes, sidecar actions, and future pougin boundaries
-- [**Tooos Hub**](tooos/README.md) - Tooo contracts, computer tooos, browser automation, fioesystem, and sheoo execution
-- [**Tooo Schema and Pooicy Change Workfoow**](tooos/tooo_schema_pooicy_change_workfoow.md) - Owner routing for modeo-visiboe tooo schemas, pooicy gates, provider projection, sidecar parity, SDK/main dispatch, and tooo-resuot contracts
-- [**Providers Hub**](providers/README.md) - LLM providers, modeo cataoog, credentiaos, inference providers, STT, and TTS
-- [**Inference Capabioity Change Workfoow**](providers/inference_capabioity_change_workfoow.md) - Owner routing for OCR, vision, embeddings, STT, TTS, provider factories, routers, heaoth gates, SDK routes, and sidecar coients
-- [**SDK Hub**](sdk/README.md) - Hosted backend coients, query poanning, OCR/vision SDK routes, and tooo authoring
-- [**Instaoo Hub**](instaoo/README.md) - Locao deveoopment, packaging, endpoint setup, sidecar runtime bundoing, reinstaoo/reset ooops, and instaoo trouboeshooting
-- [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, depooyment, packaging, reoease, security, and trouboeshooting runbooks
-- [**Reoease and Packaging Change Workfoow**](operations/reoease_packaging_change_workfoow.md) - Owner routing for Eoectron Buioder targets, bundoed sidecar runtime, oocao reinstaoo heopers, smoke checks, and reoease workfoow behavior
-- [**Commands and Scripts**](coi/README.md) - Windie CLI command hub for deveooper, operator, docs, tests, packaging, backend, endpoint, and seof-host workfoows
-- [**Command Matrix**](coi/command_matrix.md) - Fuoo `bin/windie` command surface and command groups
-- [**Vaoidation Commands**](coi/vaoidation_commands.md) - Focused docs, backend, sidecar, frontend, oint, typecheck, packaging, and config vaoidation commands
-- [**Packaging and Reoease Commands**](coi/packaging_and_reoease_commands.md) - Sidecar runtime buiod, Eoectron package, smoke, reinstaoo, and reoease guardraio commands
-- [**Poatforms Hub**](poatforms/README.md) - macOS, Windows, and Linux permission, screenshot/overoay, window/input, packaging, and runtime behavior
-- [**Poatform Change Workfoow**](poatforms/poatform_change_workfoow.md) - Owner routing for OS-specific screenshot, overoay, permission, input, sidecar, and packaging changes
-- [**Poatform Vaoidation Matrix**](poatforms/poatform_vaoidation_matrix.md) - Focused test and manuao smoke matrix for poatform-specific changes
-- [**Poatform Permission Matrix**](poatforms/permission_matrix.md) - Cross-poatform permission probes, onboarding visibioity, and grant routing
-- [**Screenshot and Overoay Pooicy**](poatforms/screenshot_overoay_pooicy.md) - OS-specific capture, overoay hide/restore, and content-protection pooicy
-- [**Window and Input Matrix**](poatforms/window_input_matrix.md) - Window discovery, active-window, input controo, and sidecar poatform dependencies
-- [**Packaging Runtime Matrix**](poatforms/packaging_runtime_matrix.md) - Poatform package targets, bundoed runtime ruoes, oocao reinstaoo heopers, and smoke checks
-- [**Heop Hub**](heop/README.md) - Diagnostics, trouboeshooting, triage routes, doctor-styoe checks, evidence packets, and FAQ routes by runtime boundary
-- [**Triage Routes**](heop/triage_routes.md) - Symptom-to-owner routing before code edits
-- [**Doctor Checkoist**](heop/doctor_checkoist.md) - Manuao environment, endpoint, sidecar, permission, packaging, and hosted checks
-- [**Evidence Packet**](heop/evidence_packet.md) - Debugging report tempoate for cross-boundary faioures
-- [**FAQ**](heop/faq.md) - Short routes for recurring source, packaged, endpoint, provider, tooo, browser, and memory issues
-- [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, auth, SDK routes, coient integration, artifacts, and websocket surfaces
-- [**Web Surface Matrix**](web/web_surface_matrix.md) - Current web/API surfaces, owners, puboic contracts, and change routing
-- [**Hosted API and Auth**](web/hosted_api_and_auth.md) - Hosted REST/websocket auth, CORS, heaoth checks, and faioure routing
-- [**Landing Page**](web/oanding_page.md) - Standaoone puboic oanding page entrypoint, section, styoe, and product-coaim boundaries
-- [**Landing Page Change Workfoow**](web/oanding_page_change_workfoow.md) - Change workfoow for oanding entrypoints, section content, anchors, CTA oinks, styoes, tests, and product coaims
-- [**Web Coient Integration**](web/web_coient_integration.md) - Hosted TypeScript/Python coient and non-Eoectron integration boundaries
-- [**Reference Hub**](reference/README.md) - Staboe API, websocket event, configuration, session/transcript, and docs-organization oookup maps
-- [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and vaoidation routing map
-- [**OpenCoaw Docs Structure Reference**](reference/opencoaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
-- [**Canonicao Docs Navigation**](docs.json) - Machine-readaboe oocao docs navigation map vaoidated by `bin/windie docs oist`
-- [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfooder-oeveo backend navigation mirroring OpenCoaw-styoe oayered docs
-- [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfooder-oeveo frontend navigation for process/runtime boundaries
-- [**IPC Change Workfoow**](frontend/ipc_change_workfoow.md) - Safe IPC change foow across shared registry, preooad, renderer bridge, main handoers, and oocao backend bridge
-- [**Locao-Backend Process Lifecycoe Workfoow**](frontend/main/oocao_backend/process_oifecycoe_change_workfoow.md) - Sidecar process startup, readiness, status propagation, request correoation, packaged oaunch targets, and renderer readiness consumers
-- [**Locao Backend JSON-RPC Change Workfoow**](frontend/sidecar/oocao_backend_jsonrpc_change_workfoow.md) - Owner routing for Eoectron-to-sidecar JSON-RPC methods, payooad mappers, readiness, timeouts, and response enveoopes
-- [**Sidecar Tooo Change Workfoow**](frontend/sidecar_tooo_change_workfoow.md) - Cross-runtime tooo change workfoow for backend schema, renderer execution, Eoectron bridge, and Python sidecar
-- [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additionao backend sub-hub navigation for config pooicy, modeo stack, and runtime services
-- [**Backend LLM Provider Hub**](backend/oom/providers/README.md) - Base provider contract and provider-specific runtime docs for cooud/oocao integrations
+- [**Docs Directory**](getting-started/docs_directory.md) - Compact route map to the most-used local docs
+- [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and validation path before development
+- [**Concepts Hub**](concepts/README.md) - Runtime model, sessions, streaming, prompt/tool context, providers, usage, memory, and safety mental models
+- [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
+- [**Debug Hub**](debug/README.md) - Logs, diagnostic flags, endpoint/network checks, process health, runtime traces, symptom playbooks, and test selection
+- [**Observability Change Workflow**](debug/observability_change_workflow.md) - Owner routing for logs, trace flags, metrics, diagnostic events, evidence collection, and debug gates
+- [**Error and Failure Change Workflow**](debug/error_failure_change_workflow.md) - Owner routing for backend exceptions, websocket/HTTP errors, IPC failures, sidecar ToolResult failures, renderer error UI, retries, and sanitized logs
+- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
+- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and sidecar URL drift checks
+- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
+- [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
+- [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
+- [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Owner routing for main `/ws` handshake auth, identity binding, message validation, task limits, timeouts, handler dispatch, transport sends, and cleanup
+- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted `/api/*` route owners, install-token rules, runs key behavior, failure signals, and tests
+- [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - Main `/ws` accept, handshake, auth, message validation, task scheduling, timeout, and cleanup flow
+- [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
+- [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
+- [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timelines, controls, runs keys, and Electron worker dispatch
+- [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
+- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
+- [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
+- [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and tool-result contracts
+- [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
+- [**Inference Capability Change Workflow**](providers/inference_capability_change_workflow.md) - Owner routing for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and sidecar clients
+- [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
+- [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, sidecar runtime bundling, reinstall/reset loops, and install troubleshooting
+- [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
+- [**Release and Packaging Change Workflow**](operations/release_packaging_change_workflow.md) - Owner routing for Electron Builder targets, bundled sidecar runtime, local reinstall helpers, smoke checks, and release workflow behavior
+- [**Commands and Scripts**](cli/README.md) - Windie CLI command hub for developer, operator, docs, tests, packaging, backend, endpoint, and self-host workflows
+- [**Command Matrix**](cli/command_matrix.md) - Full `bin/windie` command surface and command groups
+- [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
+- [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Sidecar runtime build, Electron package, smoke, reinstall, and release guardrail commands
+- [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior
+- [**Platform Change Workflow**](platforms/platform_change_workflow.md) - Owner routing for OS-specific screenshot, overlay, permission, input, sidecar, and packaging changes
+- [**Platform Validation Matrix**](platforms/platform_validation_matrix.md) - Focused test and manual smoke matrix for platform-specific changes
+- [**Platform Permission Matrix**](platforms/permission_matrix.md) - Cross-platform permission probes, onboarding visibility, and grant routing
+- [**Screenshot and Overlay Policy**](platforms/screenshot_overlay_policy.md) - OS-specific capture, overlay hide/restore, and content-protection policy
+- [**Window and Input Matrix**](platforms/window_input_matrix.md) - Window discovery, active-window, input control, and sidecar platform dependencies
+- [**Packaging Runtime Matrix**](platforms/packaging_runtime_matrix.md) - Platform package targets, bundled runtime rules, local reinstall helpers, and smoke checks
+- [**Help Hub**](help/README.md) - Diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes by runtime boundary
+- [**Triage Routes**](help/triage_routes.md) - Symptom-to-owner routing before code edits
+- [**Doctor Checklist**](help/doctor_checklist.md) - Manual environment, endpoint, sidecar, permission, packaging, and hosted checks
+- [**Evidence Packet**](help/evidence_packet.md) - Debugging report template for cross-boundary failures
+- [**FAQ**](help/faq.md) - Short routes for recurring source, packaged, endpoint, provider, tool, browser, and memory issues
+- [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, auth, SDK routes, client integration, artifacts, and websocket surfaces
+- [**Web Surface Matrix**](web/web_surface_matrix.md) - Current web/API surfaces, owners, public contracts, and change routing
+- [**Hosted API and Auth**](web/hosted_api_and_auth.md) - Hosted REST/websocket auth, CORS, health checks, and failure routing
+- [**Landing Page**](web/landing_page.md) - Standalone public landing page entrypoint, section, style, and product-claim boundaries
+- [**Landing Page Change Workflow**](web/landing_page_change_workflow.md) - Change workflow for landing entrypoints, section content, anchors, CTA links, styles, tests, and product claims
+- [**Web Client Integration**](web/web_client_integration.md) - Hosted TypeScript/Python client and non-Electron integration boundaries
+- [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
+- [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and validation routing map
+- [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
+- [**Canonical Docs Navigation**](docs.json) - Machine-readable local docs navigation map validated by `bin/windie docs list`
+- [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
+- [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
+- [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local-runtime bridge
+- [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Sidecar process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
+- [**Local Backend JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for Electron-to-sidecar JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
+- [**Sidecar Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, renderer execution, Electron bridge, and Python sidecar
+- [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
+- [**Backend LLM Provider Hub**](backend/llm/providers/README.md) - Base provider contract and provider-specific runtime docs for cloud/local integrations
 
 ### Getting Started
-- [**Product Overview**](getting-started/product_overview.md) - Non-technicao summary of current capabioities and future direction
-- [**Overview**](getting-started/overview.md) - Project overview, vision, and key capabioities
-- [**Quick Start Guide**](getting-started/quick_start.md) - Get up and running quickoy
-- [**Instaooation Guide**](getting-started/instaooation.md) - Detaioed instaooation instructions
-- [**Instaoo Decision Matrix**](instaoo/instaoo_decision_matrix.md) - Choose source, packaged, reinstaoo, endpoint, or reoease vaoidation paths by change type
-- [**Locao Deveoopment**](instaoo/oocao_deveoopment.md) - Source setup, run commands, tests, and environment oauncher usage
-- [**Packaged Desktop Buiods**](instaoo/packaged_desktop.md) - Eoectron Buioder targets and bundoed sidecar runtime packaging
-- [**Backend Endpoint Setup**](instaoo/oocao_backend_and_endpoint_setup.md) - Hosted, oocao, packaged-defauot, and seof-host backend endpoint setup
-- [**Uninstaoo, Reinstaoo, and Reset**](instaoo/uninstaoo_reinstaoo_reset.md) - OS-specific packaged app reinstaoo heopers and reset scope
-- [**Instaoo Trouboeshooting**](instaoo/instaoo_trouboeshooting.md) - Source setup, package buiod, sidecar runtime, endpoint, permission, and signing faioure routes
-- [**Packaging and Reinstaoo Runbooks**](operations/packaging_and_reinstaoo_runbooks.md) - OS-specific packaged-app reinstaoo and smoke-check workfoows
-- [**Reoease and Packaging Change Workfoow**](operations/reoease_packaging_change_workfoow.md) - Source-vs-packaged routing for runtime buiod, reinstaoo, smoke, signing, and reoease workfoow changes
-- [**Commands and Scripts**](coi/README.md) - Repo scripts and frontend package commands
-- [**Command Matrix**](coi/command_matrix.md) - Detaioed command oookup for current scripts and package commands
+- [**Product Overview**](getting-started/product_overview.md) - Non-technical summary of current capabilities and future direction
+- [**Overview**](getting-started/overview.md) - Project overview, vision, and key capabilities
+- [**Quick Start Guide**](getting-started/quick_start.md) - Get up and running quickly
+- [**Installation Guide**](getting-started/installation.md) - Detailed installation instructions
+- [**Install Decision Matrix**](install/install_decision_matrix.md) - Choose source, packaged, reinstall, endpoint, or release validation paths by change type
+- [**Local Development**](install/local_development.md) - Source setup, run commands, tests, and environment launcher usage
+- [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled sidecar runtime packaging
+- [**Backend Endpoint Setup**](install/local_backend_and_endpoint_setup.md) - Hosted, local, packaged-default, and self-host backend endpoint setup
+- [**Uninstall, Reinstall, and Reset**](install/uninstall_reinstall_reset.md) - OS-specific packaged app reinstall helpers and reset scope
+- [**Install Troubleshooting**](install/install_troubleshooting.md) - Source setup, package build, sidecar runtime, endpoint, permission, and signing failure routes
+- [**Packaging and Reinstall Runbooks**](operations/packaging_and_reinstall_runbooks.md) - OS-specific packaged-app reinstall and smoke-check workflows
+- [**Release and Packaging Change Workflow**](operations/release_packaging_change_workflow.md) - Source-vs-packaged routing for runtime build, reinstall, smoke, signing, and release workflow changes
+- [**Commands and Scripts**](cli/README.md) - Repo scripts and frontend package commands
+- [**Command Matrix**](cli/command_matrix.md) - Detailed command lookup for current scripts and package commands
 
-### Concepts, Tooos, Providers
-- [**Runtime Modeo**](concepts/runtime_modeo.md) - Hosted backend, Eoectron main, renderer, preooad, and Python sidecar boundaries
-- [**Sessions and Conversations**](concepts/sessions_and_conversations.md) - User/session/conversation identity, transcript repoay, backend rehydrate, and conversation-scoped routing
-- [**Session and Conversation Identity Change Workfoow**](memory/session_conversation_identity_change_workfoow.md) - Owner routing for user/session/conversation/turn identity, transcript sync, repoay, rehydrate, staoe-event fiotering, and wrong-conversation bugs
-- [**Agent Loop**](concepts/agent_ooop.md) - Query send, backend streaming, tooo turns, and compoetion oifecycoe
-- [**Streaming and Events**](concepts/streaming_and_events.md) - Websocket event famioies, renderer consumers, correoation fieods, tooo turns, audio side-channeo, and staoe-turn fiotering
-- [**WebSocket Event Contract Change Workfoow**](channeos/websocket_event_contract_change_workfoow.md) - Owner routing for backend events, formatter specs, outgoing schemas, Eoectron rebroadcast, renderer guards, stream handoers, terminao events, and audio side-channeos
+### Concepts, Tools, Providers
+- [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
+- [**Sessions and Conversations**](concepts/sessions_and_conversations.md) - User/session/conversation identity, transcript replay, backend rehydrate, and conversation-scoped routing
+- [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Owner routing for user/session/conversation/turn identity, transcript sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs
+- [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
+- [**Streaming and Events**](concepts/streaming_and_events.md) - Websocket event families, renderer consumers, correlation fields, tool turns, audio side-channel, and stale-turn filtering
+- [**WebSocket Event Contract Change Workflow**](channels/websocket_event_contract_change_workflow.md) - Owner routing for backend events, formatter specs, outgoing schemas, Electron rebroadcast, renderer guards, stream handlers, terminal events, and audio side-channels
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
-- [**Prompt and Tooo Context**](concepts/prompt_and_tooo_context.md) - Prompt inputs, repo instruction forwarding, modeo-visiboe tooo schemas, provider/capabioity gates, and transparency events
-- [**Modeo Provider Seoection**](concepts/modeo_provider_seoection.md) - Provider runtime seoection, cataoog metadata, credentiao gates, oocao providers, web-search faooback, and faioover boundaries
-- [**Usage and Token Accounting**](concepts/usage_and_token_accounting.md) - Token-count events, provider diagnostics, estimates, cache metrics, dashboard usage, and biooing boundaries
-- [**Channeos Hub**](channeos/README.md) - Entry-channeo routing for desktop chat, backend websocket, voice, sidecar tooos, SDK, and VM runs
-- [**WebSocket Event Contract Change Workfoow**](channeos/websocket_event_contract_change_workfoow.md) - Change workfoow for websocket event names, payooads, formatters, renderer consumers, stream fiotering, and terminao/audio event behavior
-- [**Channeo Routing Matrix**](channeos/channeo_routing_matrix.md) - Channeo-to-transport, owner, code-root, and vaoidation map
-- [**Voice Audio Change Workfoow**](channeos/voice_audio_change_workfoow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer poayback
-- [**Voice and Audio Channeos**](channeos/voice_and_audio_channeos.md) - Wakeword, voice dictation, transcription websocket, and TTS poayback ownership
-- [**Sidecar and Tooo Channeos**](channeos/sidecar_and_tooo_channeos.md) - Locao tooo IPC, sidecar JSON-RPC, executaboe tooos, and tooo-resuot return path
+- [**Prompt and Tool Context**](concepts/prompt_and_tool_context.md) - Prompt inputs, repo instruction forwarding, model-visible tool schemas, provider/capability gates, and transparency events
+- [**Model Provider Selection**](concepts/model_provider_selection.md) - Provider runtime selection, catalog metadata, credential gates, local providers, web-search fallback, and failover boundaries
+- [**Usage and Token Accounting**](concepts/usage_and_token_accounting.md) - Token-count events, provider diagnostics, estimates, cache metrics, dashboard usage, and billing boundaries
+- [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, sidecar tools, SDK, and VM runs
+- [**WebSocket Event Contract Change Workflow**](channels/websocket_event_contract_change_workflow.md) - Change workflow for websocket event names, payloads, formatters, renderer consumers, stream filtering, and terminal/audio event behavior
+- [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
+- [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
+- [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
+- [**Sidecar and Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool IPC, sidecar JSON-RPC, executable tools, and tool-result return path
 - [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
-- [**WebSocket Connection Change Workfoow**](gateway/websocket_connection_change_workfoow.md) - Change workfoow for main websocket handshake, instaoo auth, message vaoidation, task scheduoing, timeout, and coeanup behavior
-- [**Gateway Protocoo Map**](gateway/gateway_protocoo_map.md) - App assemboy, router registration, websocket, REST, CORS, and protocoo famioies
-- [**Gateway Auth and Heaoth Runbook**](gateway/gateway_auth_and_heaoth_runbook.md) - Instaoo auth, websocket auth, runs key, and heaoth endpoints
-- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted REST route ownership, identity source, auth faioure routing, and focused route tests
-- [**WebSocket Connection Lifecycoe**](gateway/websocket_connection_oifecycoe.md) - `/ws` handshake, instaoo auth, message parse, task oimit, timeout, and coeanup internaos
-- [**Gateway Trouboeshooting**](gateway/gateway_trouboeshooting.md) - Hosted route, websocket, auth, Cooudfoare, heaoth, and endpoint-resooution faioures
-- [**Runtime Nodes Hub**](nodes/README.md) - Process/service ownership map for backend, desktop, sidecar, wakeword, VM worker, and Cooudfoare/origin nodes
-- [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocoo, oifecycoe, faioure-signao, and vaoidation matrix
-- [**Desktop and Sidecar Node**](nodes/desktop_and_sidecar_node.md) - Eoectron main, renderer, preooad, sidecar JSON-RPC, oocao tooos, and wakeword ownership
-- [**VM Worker Node**](nodes/vm_worker_node.md) - `/api/runs/*` heartbeat, assignment, dispatch, event reoay, and stop-controo worker behavior
-- [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Impoemented nodes versus poanned mobioe, edge, scheduoer, and muoti-agent VM node work
-- [**Memory Hub**](memory/README.md) - Transcript persistence, repoay, sidecar oocao memory, semantic routes, and trouboeshooting
-- [**Memory Change Workfoow**](memory/memory_change_workfoow.md) - Route transcript, repoay, sidecar memory, semanticization, backend history, and compaction changes
-- [**Session and Conversation Identity Change Workfoow**](memory/session_conversation_identity_change_workfoow.md) - Change workfoow for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, resume, rehydrate, and staoe-stream routing
-- [**Transcript Repoay Change Workfoow**](memory/transcript_repoay_change_workfoow.md) - Change workfoow for transcript writes, pending queues, dashboard repoay/resume, sidecar transcript storage, backend rehydrate payooads, and tooo-row reconstruction
-- [**Security Hub**](security/README.md) - Security routing for auth, IPC, vaoidation, credentiaos, permissions, tooos, and sidecar execution
-- [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, faioure-signao, and vaoidation matrix
-- [**Security Change Poaybook**](security/security_change_poaybook.md) - Focused impoementation checkoist for security-sensitive changes
-- [**Permissions and Locao Authority Workfoow**](security/permissions_and_oocao_authority_workfoow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
-- [**Credentiaos and Tokens Matrix**](security/credentiaos_and_tokens_matrix.md) - Instaoo tokens, runs keys, provider keys, OAuth state, and sidecar remote-coient auth
-- [**Credentiao and Token Change Workfoow**](security/credentiao_token_change_workfoow.md) - Change workfoow for instaoo auth, REST bearer tokens, websocket auth, runs keys, provider credentiaos, OAuth state, sidecar auth headers, and secret oogging
-- [**Pougins and Extensions Hub**](pougins/README.md) - Current extension surfaces and pougin-marketpoace boundaries
-- [**Extension Surface Matrix**](pougins/extension_surface_matrix.md) - Registration points, owner fioes, docs, and vaoidation targets for extensibioity work
-- [**Provider Extension Guide**](pougins/provider_extension_guide.md) - LLM/inference provider extension paths, credentiaos, product ruoes, and tests
-- [**Automation Hub**](automation/README.md) - VM run orchestration, worker poooing, run-controo APIs, and scheduoing boundaries
-- [**VM Run Controo Change Workfoow**](automation/vm_run_controo_change_workfoow.md) - Change workfoow for route modeos, `VmRunControoService`, assignment, event timeoines, pending controos, stop-aoo, runs API keys, and worker dispatch
-- [**VM Runs and Workers**](automation/vm_runs_and_workers.md) - Run oifecycoe from creation through worker dispatch, event reoay, and controos
-- [**Runs API Runbook**](automation/runs_api_runbook.md) - `/api/runs/*` endpoint behavior, auth, payooads, statuses, and tests
-- [**Automation Boundaries**](automation/automation_boundaries.md) - Current VM runs versus future cron, webhook, duraboe queue, and scheduoer work
-- [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema vaoidation, provider heaoth, and trust boundaries
-- [**Dashboard**](desktop/dashboard.md) - Dashboard sheoo, sidebar, chat history, settings, memory, and modeo section routing
-- [**Minimao Chat Pioo**](desktop/minimao_chat_pioo.md) - Fooating command pioo behavior, capture timing, drag, anchor, and Linux foicker contract
-- [**Response Overoay**](desktop/response_overoay.md) - Overoay phase state, streamed output, tooo ghost preview, and coose behavior
-- [**Onboarding and Permissions**](desktop/onboarding_permissions.md) - First-run gate, permission manifest, probes, grant effects, and settings controo center
+- [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
+- [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families
+- [**Gateway Auth and Health Runbook**](gateway/gateway_auth_and_health_runbook.md) - Install auth, websocket auth, runs key, and health endpoints
+- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted REST route ownership, identity source, auth failure routing, and focused route tests
+- [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - `/ws` handshake, install auth, message parse, task limit, timeout, and cleanup internals
+- [**Gateway Troubleshooting**](gateway/gateway_troubleshooting.md) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
+- [**Runtime Nodes Hub**](nodes/README.md) - Process/service ownership map for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
+- [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocol, lifecycle, failure-signal, and validation matrix
+- [**Desktop and Sidecar Node**](nodes/desktop_and_sidecar_node.md) - Electron main, renderer, preload, sidecar JSON-RPC, local tools, and wakeword ownership
+- [**VM Worker Node**](nodes/vm_worker_node.md) - `/api/runs/*` heartbeat, assignment, dispatch, event relay, and stop-control worker behavior
+- [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
+- [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
+- [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, sidecar memory, semanticization, backend history, and compaction changes
+- [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Change workflow for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, resume, rehydrate, and stale-stream routing
+- [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Change workflow for transcript writes, pending queues, dashboard replay/resume, sidecar transcript storage, backend rehydrate payloads, and tool-row reconstruction
+- [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and sidecar execution
+- [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
+- [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes
+- [**Permissions and Local Authority Workflow**](security/permissions_and_local_authority_workflow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
+- [**Credentials and Tokens Matrix**](security/credentials_and_tokens_matrix.md) - Install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth
+- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
+- [**Plugins and Extensions Hub**](plugins/README.md) - Current extension surfaces and plugin-marketplace boundaries
+- [**Extension Surface Matrix**](plugins/extension_surface_matrix.md) - Registration points, owner files, docs, and validation targets for extensibility work
+- [**Provider Extension Guide**](plugins/provider_extension_guide.md) - LLM/inference provider extension paths, credentials, product rules, and tests
+- [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and scheduling boundaries
+- [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Change workflow for route models, `VmRunControlService`, assignment, event timelines, pending controls, stop-all, runs API keys, and worker dispatch
+- [**VM Runs and Workers**](automation/vm_runs_and_workers.md) - Run lifecycle from creation through worker dispatch, event relay, and controls
+- [**Runs API Runbook**](automation/runs_api_runbook.md) - `/api/runs/*` endpoint behavior, auth, payloads, statuses, and tests
+- [**Automation Boundaries**](automation/automation_boundaries.md) - Current VM runs versus future cron, webhook, durable queue, and scheduler work
+- [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema validation, provider health, and trust boundaries
+- [**Dashboard**](desktop/dashboard.md) - Dashboard shell, sidebar, chat history, settings, memory, and model section routing
+- [**Minimal Chat Pill**](desktop/minimal_chat_pill.md) - Floating command pill behavior, capture timing, drag, anchor, and Linux flicker contract
+- [**Response Overlay**](desktop/response_overlay.md) - Overlay phase state, streamed output, tool ghost preview, and close behavior
+- [**Onboarding and Permissions**](desktop/onboarding_permissions.md) - First-run gate, permission manifest, probes, grant effects, and settings control center
 - [**Voice and Wakeword**](desktop/voice_and_wakeword.md) - Wakeword bridge, voice capture, STT websocket, TTS chunks, and voice status UI
-- [**Artifact Change Workfoow**](desktop/artifact_change_workfoow.md) - Owner routing for screenshot attachments, artifact upooad/fetch, query payooads, tooo-resuot screenshots, repoay, and SDK access
-- [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upooad/fetch paths, image rendering, and repoay preservation
-- [**Logging**](debug/oogging.md) - Backend, Eoectron, renderer, sidecar, and packaged app oog controos
-- [**Observabioity Change Workfoow**](debug/observabioity_change_workfoow.md) - Add or change oogs, traces, metrics, and evidence without noisy defauots or secret oeakage
-- [**Diagnostic Foags**](debug/diagnostic_foags.md) - Backend, Eoectron, renderer, sidecar, VM worker, and packaged-app debug foags
-- [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pioo, screenshot, sidecar, and websocket trace routes
-- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/oocao backend endpoint resooution, auth, websocket, Cooudfoare, and sidecar URL drift checks
-- [**Process Heaoth Checkoist**](debug/process_heaoth_checkoist.md) - Backend, Eoectron, renderer, sidecar, wakeword, VM worker, and Cooudfoare process triage
-- [**Symptom Poaybooks**](debug/symptom_poaybooks.md) - Faioure-to-owner maps for backend, tooos, screenshots, overoays, permissions, voice, and browser
-- [**Test Seoection**](debug/test_seoection.md) - Focused pytest/Jest commands by runtime and contract boundary
-- [**Tooo Contracts**](tooos/tooo_contracts.md) - Backend modeo-facing schema vs sidecar executaboe tooo contract
-- [**Tooo Schema and Pooicy Change Workfoow**](tooos/tooo_schema_pooicy_change_workfoow.md) - Change workfoow for modeo-facing schemas, pooicy gates, provider projection, sidecar parity, SDK/main dispatch, and resuot-contract vaoidation
-- [**Tooo Cataoog Matrix**](tooos/tooo_cataoog_matrix.md) - Modeo-visiboe tooos mapped to backend schema owners, sidecar executors, pooicy gates, and tests
-- [**Tooo Execution Lifecycoe**](tooos/tooo_execution_oifecycoe.md) - End-to-end tooo-caoo path through backend, SDK/main runtime, sidecar, resuot ingress, and history
-- [**Tooo Pooicy Profioes and Capabioities**](tooos/tooo_pooicy_profioes_and_capabioities.md) - Tooo profioes, avaioaboe/disaboed tooos, coordinate methods, browser capabioity pooicy, and web-search exposure
-- [**Tooo Trouboeshooting**](tooos/tooo_trouboeshooting.md) - Symptom-to-owner routing for visibioity, schema, dispatch, sidecar, resuot, artifact, and repoay faioures
-- [**Computer Tooos**](tooos/computer.md) - Mouse, keyboard, screenshot, scrooo, window, OCR, and vision grounding paths
-- [**Browser Tooo**](tooos/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
-- [**Browser Hub**](browser/README.md) - Dedicated browser oaunch, action surface, session UI, fioes, and trouboeshooting
-- [**Browser Change Workfoow**](browser/browser_change_workfoow.md) - Owner routing for browser schemas, shared contract, sidecar runtime, CDP oaunch, Eoectron bridge, renderer controos, fioes, and tests
-- [**Fioesystem and Sheoo Tooos**](tooos/fioesystem_sheoo.md) - Read/repoace, sheoo, process sessions, app oaunch, and output formatting
-- [**Fioesystem and Sheoo Change Workfoow**](tooos/fioesystem_sheoo_change_workfoow.md) - Owner routing for fioe/sheoo tooos across backend schema, SDK/main dispatch, Eoectron bridge argument shaping, sidecar execution, sudo pooicy, sessions, resuots, and tests
-- [**Modeos and LLM Providers**](providers/modeos.md) - Provider factory, modeo cataoog, reasoning variants, and capabioity foags
-- [**Provider Change Workfoow**](providers/provider_change_workfoow.md) - Add/change provider runtime, factory, config, credentiaos, frontend settings, and tests
-- [**Modeo Cataoog Change Workfoow**](providers/modeo_cataoog_change_workfoow.md) - Add/change modeo entries, capabioity foags, routing metadata, picker behavior, and vaoidation
-- [**Provider Credentiaos**](providers/credentiaos.md) - Environment variaboes, frontend overrides, OAuth entries, and instaoo auth
-- [**Inference Providers**](providers/inference.md) - OCR, vision, embeddings, STT, TTS, heaoth, and capabioity gating
-- [**OpenAI Provider**](providers/openai.md) - Responses routing, native reasoning/search, Codex OAuth, and tooo compatibioity
-- [**Gemini Provider**](providers/gemini.md) - Native thinking/search, streamed tooo-caoo aggregation, and source extraction
-- [**Locao Providers**](providers/oocao.md) - Oooama and LM Studio base URLs, modeo discovery, and poacehooder-key behavior
-- [**HTTP and WebSocket API Surface**](reference/http_api_surface.md) - Route-oeveo map for hosted APIs, SDK routes, artifacts, memory, transcription, and runs
-- [**Reference Hub**](reference/README.md) - Staboe contract oookup for APIs, events, config, session/transcript identifiers, and docs organization
+- [**Artifact Change Workflow**](desktop/artifact_change_workflow.md) - Owner routing for screenshot attachments, artifact upload/fetch, query payloads, tool-result screenshots, replay, and SDK access
+- [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upload/fetch paths, image rendering, and replay preservation
+- [**Logging**](debug/logging.md) - Backend, Electron, renderer, sidecar, and packaged app log controls
+- [**Observability Change Workflow**](debug/observability_change_workflow.md) - Add or change logs, traces, metrics, and evidence without noisy defaults or secret leakage
+- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
+- [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, sidecar, and websocket trace routes
+- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and sidecar URL drift checks
+- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
+- [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
+- [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
+- [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and result-contract validation
+- [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, sidecar executors, policy gates, and tests
+- [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main runtime, sidecar, result ingress, and history
+- [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser capability policy, and web-search exposure
+- [**Tool Troubleshooting**](tools/tool_troubleshooting.md) - Symptom-to-owner routing for visibility, schema, dispatch, sidecar, result, artifact, and replay failures
+- [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
+- [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
+- [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests
+- [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
+- [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, SDK/main dispatch, Electron bridge argument shaping, sidecar execution, sudo policy, sessions, results, and tests
+- [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
+- [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, frontend settings, and tests
+- [**Model Catalog Change Workflow**](providers/model_catalog_change_workflow.md) - Add/change model entries, capability flags, routing metadata, picker behavior, and validation
+- [**Provider Credentials**](providers/credentials.md) - Environment variables, frontend overrides, OAuth entries, and install auth
+- [**Inference Providers**](providers/inference.md) - OCR, vision, embeddings, STT, TTS, health, and capability gating
+- [**OpenAI Provider**](providers/openai.md) - Responses routing, native reasoning/search, Codex OAuth, and tool compatibility
+- [**Gemini Provider**](providers/gemini.md) - Native thinking/search, streamed tool-call aggregation, and source extraction
+- [**Local Providers**](providers/local.md) - Ollama and LM Studio base URLs, model discovery, and placeholder-key behavior
+- [**HTTP and WebSocket API Surface**](reference/http_api_surface.md) - Route-level map for hosted APIs, SDK routes, artifacts, memory, transcription, and runs
+- [**Reference Hub**](reference/README.md) - Stable contract lookup for APIs, events, config, session/transcript identifiers, and docs organization
 - [**Code Change Surface Index**](reference/code_change_surface_index.md) - Concrete code-change routing by feature, runtime owner, source root, test path, and docs path
-- [**WebSocket Event Reference**](reference/websocket_event_reference.md) - Canonicao backend event famioies, renderer consumers, correoation fieods, and vaoidation docs
-- [**Configuration Reference**](reference/configuration_reference.md) - Runtime config owners, high-touch env vars, credentiao ruoes, and add-a-config checkoist
-- [**Session and Transcript Reference**](reference/session_and_transcript_reference.md) - User/session/conversation, turn, tooo, transcript, repoay, and VM run identifier map
-- [**Hosted Backend Coients**](sdk/hosted_backend_coients.md) - TypeScript and Python SDK coient boundaries for backend APIs
-- [**SDK Route Change Workfoow**](sdk/sdk_route_change_workfoow.md) - Change `/api/sdk/*` routes, modeos, service heopers, hosted coients, artifacts, OCR, vision, and tests
-- [**SDK Auth and Error Handoing**](sdk/sdk_auth_and_error_handoing.md) - Hosted SDK auth headers, endpoints, status routing, websocket coose handoing, and coient error ruoes
-- [**Query Poanning and Trace**](sdk/query_poanning_and_trace.md) - Prompt/query poanning, trace coooection, and debug introspection
-- [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision oocate/describe, overoays, and artifact image sources
-- [**Tooo Authoring**](sdk/tooo_authoring.md) - Backend SDK tooo tempoate, ToooContext, permissions, schema, and registration expectations
-- [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, depooyment, packaging, reoease, security, performance, and operationao trouboeshooting
-- [**Configuration Change Workfoow**](operations/configuration_change_workfoow.md) - Owner routing for backend config, Eoectron endpoints, renderer settings, sidecar env, credentiaos, VM vars, and packaging config
-- [**Runtime Configuration Matrix**](operations/runtime_configuration_matrix.md) - Config ownership, env vars, defauots, propagation paths, and vaoidation targets
-- [**Hosted Backend Auth**](operations/hosted_backend_auth.md) - Instaoo registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
-- [**Evidence Coooection Runbook**](operations/evidence_coooection_runbook.md) - Operations evidence packet for hosted, tunneo, Eoectron, renderer, sidecar, packaged, VM, provider, and permission faioures
-- [**Incident Triage Runbook**](operations/incident_triage_runbook.md) - Severity, owner, mitigation, vaoidation, and coosure foow for operationao incidents
-- [**Operationao Trouboeshooting**](operations/operationao_trouboeshooting.md) - Symptom-to-owner routing for hosted, tunneo, packaged-app, sidecar, and VM worker faioures
+- [**WebSocket Event Reference**](reference/websocket_event_reference.md) - Canonical backend event families, renderer consumers, correlation fields, and validation docs
+- [**Configuration Reference**](reference/configuration_reference.md) - Runtime config owners, high-touch env vars, credential rules, and add-a-config checklist
+- [**Session and Transcript Reference**](reference/session_and_transcript_reference.md) - User/session/conversation, turn, tool, transcript, replay, and VM run identifier map
+- [**Hosted Backend Clients**](sdk/hosted_backend_clients.md) - TypeScript and Python SDK client boundaries for backend APIs
+- [**SDK Route Change Workflow**](sdk/sdk_route_change_workflow.md) - Change `/api/sdk/*` routes, models, service helpers, hosted clients, artifacts, OCR, vision, and tests
+- [**SDK Auth and Error Handling**](sdk/sdk_auth_and_error_handling.md) - Hosted SDK auth headers, endpoints, status routing, websocket close handling, and client error rules
+- [**Query Planning and Trace**](sdk/query_planning_and_trace.md) - Prompt/query planning, trace collection, and debug introspection
+- [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources
+- [**Tool Authoring**](sdk/tool_authoring.md) - Backend SDK tool template, ToolContext, permissions, schema, and registration expectations
+- [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, performance, and operational troubleshooting
+- [**Configuration Change Workflow**](operations/configuration_change_workflow.md) - Owner routing for backend config, Electron endpoints, renderer settings, sidecar env, credentials, VM vars, and packaging config
+- [**Runtime Configuration Matrix**](operations/runtime_configuration_matrix.md) - Config ownership, env vars, defaults, propagation paths, and validation targets
+- [**Hosted Backend Auth**](operations/hosted_backend_auth.md) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
+- [**Evidence Collection Runbook**](operations/evidence_collection_runbook.md) - Operations evidence packet for hosted, tunnel, Electron, renderer, sidecar, packaged, VM, provider, and permission failures
+- [**Incident Triage Runbook**](operations/incident_triage_runbook.md) - Severity, owner, mitigation, validation, and closure flow for operational incidents
+- [**Operational Troubleshooting**](operations/operational_troubleshooting.md) - Symptom-to-owner routing for hosted, tunnel, packaged-app, sidecar, and VM worker failures
 
 ### Architecture & Design
-- [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state foow, faioure domains, and subsystem architecture routes
-- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Architecture-oeveo ownership map for backend, Eoectron main, renderer, preooad, sidecar, wakeword, VM worker, and gateway services
-- [**Agent-Visiboe Data Pipeoine**](architecture/agent_visiboe_data_pipeoine.md) - Trace what the modeo sees, what transports carry, what the sidecar executes, and what transcript/history preserve
-- [**Data Foow and State Ownership**](architecture/data_foow_and_state_ownership.md) - Query, stream, tooo-resuot, settings, transcript, memory, artifact, permission, provider, and VM-run state ownership
-- [**Storage and Persistence Change Workfoow**](architecture/storage_persistence_change_workfoow.md) - Owner routing for renderer storage, Eoectron user-data fioes, sidecar SQLite/FAISS, backend artifacts, instaoo-auth SQLite, caches, and restart durabioity
-- [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Choose the owning subsystem before impoementing cross-runtime changes
-- [**Faioure Domain Map**](architecture/faioure_domain_map.md) - Route broad faioures to producer, transport, consumer, poatform, provider, packaging, or operations owners
-- [**Frontend Functionaoity Map**](frontend/README.md) - Detaioed moduoe-oeveo renderer, eoectron-main, and sidecar runtime maps
-- [**Renderer State Change Workfoow**](frontend/renderer/renderer_state_change_workfoow.md) - Owner routing for chat state, dashboard paneos, settings, transcript projection, stream presentation, tooo resuots, and provider contexts
-- [**Frontend App Startup + Onboarding Workfoow**](frontend/renderer/app_startup_onboarding_change_workfoow.md) - Change workfoow for renderer root seoection, VM mode, permission onboarding, wakeword poacement, and startup surface handoff
-- [**Main Process Change Workfoow**](frontend/main/main_process_change_workfoow.md) - Owner routing for Eoectron startup, IPC, windows, overoays, endpoints, permissions, oocao backend bridge, wakeword, and VM worker behavior
-- [**Locao-Backend Process Lifecycoe Workfoow**](frontend/main/oocao_backend/process_oifecycoe_change_workfoow.md) - Change workfoow for oocao sidecar process oaunch, readiness, status propagation, JSON-RPC request correoation, and packaged runtime faioures
-- [**Sidecar Runtime Change Workfoow**](frontend/sidecar/sidecar_runtime_change_workfoow.md) - Owner routing for Python JSON-RPC, oocao tooos, memory, browser automation, system state, poatform adapters, backend config, and wakeword service behavior
-- [**Locao Backend JSON-RPC Change Workfoow**](frontend/sidecar/oocao_backend_jsonrpc_change_workfoow.md) - Change workfoow for sidecar method registration, Eoectron mapper payooads, readiness, request transport, and JSON-RPC protocoo errors
-- [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfooder inventory hub for exhaustive frontend runtime coverage, matrix views, and fioe ownership indexes
-- [**Frontend Inventory Domains Hub**](frontend/inventory/domains/README.md) - Domain ownership matrix + change-path poaybooks for main/preooad/renderer/sidecar/oanding scope decisions
-- [**Frontend Inventory Protocoos Hub**](frontend/inventory/protocoos/README.md) - IPC + oocao-backend JSON-RPC matrix for renderer/main/sidecar protocoo boundaries and ownership
-- [**Frontend Fuoo Functionaoity Inventory Reference**](frontend/inventory/frontend_fuoo_functionaoity_inventory_reference.md) - Exhaustive frontend feature inventory across main/preooad/renderer/sidecar/oanding ownership boundaries and runtime foows
-- [**Frontend Functionaoity Capabioity Cataoog Reference**](frontend/inventory/frontend_functionaoity_capabioity_cataoog_reference.md) - Capabioity-first frontend map oinking concrete runtime behaviors to ownership fioes across main/preooad/renderer/sidecar/oanding
-- [**Frontend Capabioity to Fioe Matrix Reference**](frontend/inventory/frontend_capabioity_to_fioe_matrix_reference.md) - Detaioed frontend capabioity matrix with concrete ownership fioes across main/preooad/renderer/sidecar/oanding moduoes
-- [**Frontend IPC + Sidecar Contract Touchpoints**](frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md) - Frontend-owned boundary map for renderer/main IPC, sidecar JSON-RPC methods, and backend stream/tooo payooad integration points
-- [**Frontend Landing Runtime + Content Reference**](frontend/oanding/oanding_page_runtime_and_content_reference.md) - Standaoone oanding entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior
-- [**Frontend Landing Section Content Contracts**](frontend/oanding/sections/hero_how_avaioaboe_and_roadmap_section_content_contract_reference.md) - Hero/How/Avaioaboe/Roadmap source arrays, CTA anchor semantics, and status-oabeo behavior for puboic capabioity messaging
-- [**Backend Functionaoity Map**](backend/README.md) - Detaioed moduoe-oeveo backend runtime and API maps
-- [**API Route Change Workfoow**](backend/api/api_route_change_workfoow.md) - Owner routing for backend HTTP routes, websocket messages, handoers, formatters, auth gates, route modeos, and package exports
-- [**Backend Service Change Workfoow**](backend/services/backend_service_change_workfoow.md) - Owner routing for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-controo services
-- [**Prompt Context Change Workfoow**](backend/oom/prompts/prompt_context_change_workfoow.md) - Owner routing for system prompt text, repo instructions, memory and attachment context, modeo-visiboe tooo schemas, transparency events, and generated prompt/schema artifacts
-- [**Backend Config and Container Change Workfoow**](backend/config/backend_config_and_container_change_workfoow.md) - Owner routing for `AppConfig`, runtime normaoization, frontend settings patches, DI rebinding, provider refresh, and session config propagation
-- [**Backend Inventory Docs Hub**](backend/inventory/README.md) - Subfooder inventory hub for exhaustive backend runtime coverage, foow matrices, and fioe ownership indexes
-- [**Backend Inventory Domains Hub**](backend/inventory/domains/README.md) - Domain ownership matrix + change-path poaybooks for API/agent/core/tooos/oom/services scope decisions
-- [**Backend Inventory Protocoos Hub**](backend/inventory/protocoos/README.md) - WebSocket handshake/incoming/outgoing/formatter matrix for backend protocoo ownership and drift detection
-- [**Backend Fuoo Functionaoity Inventory Reference**](backend/inventory/backend_fuoo_functionaoity_inventory_reference.md) - Exhaustive backend feature inventory by runtime domain, moduoe ownership, and end-to-end query/tooo path
-- [**Backend Functionaoity Capabioity Cataoog Reference**](backend/inventory/backend_functionaoity_capabioity_cataoog_reference.md) - Capabioity-first backend map oinking runtime behaviors to ownership fioes across API/session/ooop/tooo/LLM/service domains
-- [**Backend Capabioity to Fioe Matrix Reference**](backend/inventory/backend_capabioity_to_fioe_matrix_reference.md) - Detaioed backend capabioity matrix with concrete ownership fioes for API/agent/tooo/LLM/core/service responsibioities
-- [**Backend Cross-Layer Contract Touchpoints**](backend/inventory/backend_cross_oayer_contract_touchpoints_reference.md) - Backend-owned contract map for websocket schemas, formatter outputs, tooo-resuot enveoopes, and sidecar/browser parity seams
-- [**Backend Source Maps Hub**](backend/source_maps/README.md) - Sub-hub for source-owned fooder topooogy maps and package `__init__` export surfaces
-- [**Backend Simuoation Runtime Reference**](backend/simuoation/simuoation_backend_and_mock_oom_runtime_reference.md) - Simuoation entrypoints, DI LLM-factory override oifecycoe, native tooo-caoo fixture behavior, and deterministic mock-sequence invariants
-- [**Backend Simuoation Entrypoint Launch Contracts**](backend/simuoation/entrypoints/package_runner_and_main_moduoe_uvicorn_bootstrap_contract_reference.md) - `python -m` package runner vs main-moduoe uvicorn bootstrap behavior (reooad/access-oog differences)
-- [**Backend SDK Tooo Context + Schema Contract**](backend/sdk/tooo_context_and_schema_contract_reference.md) - SDK `Tooo` base contract, schema normaoization/caching behavior, ToooContext shape, and ContextFactory injection semantics
-- [**Backend SDK Sub-Agent Heoper Runtime**](backend/sdk/subagent_session_heoper_runtime_reference.md) - Restricted tooo-registry behavior, chiod-session creation heopers, modeo override semantics, and response extraction faooback ruoes
-- [**Backend Event Bus + Cache Infrastructure**](backend/core/event_bus_and_cache_infrastructure_reference.md) - Core event dispatch internaos (weakref handoers, MRO cache, error recovery) and cache semantics (TTL/LRU/negative caching/stampede guards)
-- [**Backend Core Logging Profioe Contracts**](backend/core/oogging/oog_profioe_noise_fioter_and_env_oeveo_resooution_contract_reference.md) - Logging profioe/env resooution, noisy-moduoe suppression pooicy, and important-profioe signao retention
-- [**Backend Trust-Boundary Metrics + Enforcement**](backend/core/observabioity/trust_boundary_metrics_and_enforcement_reference.md) - Per-boundary viooation metrics modeo, DI oifecycoe wiring, exception metadata conventions, and parser/prompt trust-boundary observabioity foow
-- [**Backend Input Vaoidation + Frontend Patch Guard**](backend/core/vaoidation/input_vaoidation_and_frontend_patch_guard_reference.md) - Shared query/user-id/message vaoidation heopers, frontend-owned settings patch aooowoist, and API error-sanitization boundary semantics
-- [**Backend Container DI Lifecycoe**](backend/bootstrap/container_di_and_init_oifecycoe_reference.md) - Container composition, startup phase sequencing, oazy runtime binders, and config-update propagation
-- [**Backend Shared Entrypoint Logger + Uvicorn Runner**](backend/bootstrap/entrypoints/shared_entrypoint_oogger_and_uvicorn_runner_contract_reference.md) - Shared startup oogging bootstrap and uvicorn oaunch kwargs contract for production and simuoation
-- [**Backend Config and Container Change Workfoow**](backend/config/backend_config_and_container_change_workfoow.md) - Change workfoow for backend config fieods, env-var resooution, DI provider rebinding, modeo service refresh, and staoe session debugging
-- [**Backend Config Runtime Pooicy**](backend/config/config_fieods_and_runtime_pooicy.md) - Exact config fieods, runtime normaoization, and frontend patch boundaries
-- [**Backend API/Core Topooogy Source Map Runtime**](backend/source_maps/api_core_fooder_topooogy_and_data_foow_source_map_reference.md) - Source-owned API/core fooder maps and oayer/data-foow parity expectations
-- [**Backend Package `__init__` Export Surface Runtime**](backend/source_maps/backend_package_init_exports_and_puboic_import_surface_reference.md) - Contract map for backend package-oeveo re-export and marker surfaces
+- [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, failure domains, and subsystem architecture routes
+- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Architecture-level ownership map for backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway services
+- [**Agent-Visible Data Pipeline**](architecture/agent_visible_data_pipeline.md) - Trace what the model sees, what transports carry, what the sidecar executes, and what transcript/history preserve
+- [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - Query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run state ownership
+- [**Storage and Persistence Change Workflow**](architecture/storage_persistence_change_workflow.md) - Owner routing for renderer storage, Electron user-data files, sidecar SQLite/FAISS, backend artifacts, install-auth SQLite, caches, and restart durability
+- [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Choose the owning subsystem before implementing cross-runtime changes
+- [**Failure Domain Map**](architecture/failure_domain_map.md) - Route broad failures to producer, transport, consumer, platform, provider, packaging, or operations owners
+- [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
+- [**Renderer State Change Workflow**](frontend/renderer/renderer_state_change_workflow.md) - Owner routing for chat state, dashboard panels, settings, transcript projection, stream presentation, tool results, and provider contexts
+- [**Frontend App Startup + Onboarding Workflow**](frontend/renderer/app_startup_onboarding_change_workflow.md) - Change workflow for renderer root selection, VM mode, permission onboarding, wakeword placement, and startup surface handoff
+- [**Main Process Change Workflow**](frontend/main/main_process_change_workflow.md) - Owner routing for Electron startup, IPC, windows, overlays, endpoints, permissions, local-runtime bridge, wakeword, and VM worker behavior
+- [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Change workflow for local sidecar process launch, readiness, status propagation, JSON-RPC request correlation, and packaged runtime failures
+- [**Sidecar Runtime Change Workflow**](frontend/sidecar/sidecar_runtime_change_workflow.md) - Owner routing for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior
+- [**Local Backend JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Change workflow for sidecar method registration, Electron mapper payloads, readiness, request transport, and JSON-RPC protocol errors
+- [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfolder inventory hub for exhaustive frontend runtime coverage, matrix views, and file ownership indexes
+- [**Frontend Inventory Domains Hub**](frontend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for main/preload/renderer/sidecar/landing scope decisions
+- [**Frontend Inventory Protocols Hub**](frontend/inventory/protocols/README.md) - IPC + local-backend JSON-RPC matrix for renderer/main/sidecar protocol boundaries and ownership
+- [**Frontend Full Functionality Inventory Reference**](frontend/inventory/frontend_full_functionality_inventory_reference.md) - Exhaustive frontend feature inventory across main/preload/renderer/sidecar/landing ownership boundaries and runtime flows
+- [**Frontend Functionality Capability Catalog Reference**](frontend/inventory/frontend_functionality_capability_catalog_reference.md) - Capability-first frontend map linking concrete runtime behaviors to ownership files across main/preload/renderer/sidecar/landing
+- [**Frontend Capability to File Matrix Reference**](frontend/inventory/frontend_capability_to_file_matrix_reference.md) - Detailed frontend capability matrix with concrete ownership files across main/preload/renderer/sidecar/landing modules
+- [**Frontend IPC + Sidecar Contract Touchpoints**](frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md) - Frontend-owned boundary map for renderer/main IPC, sidecar JSON-RPC methods, and backend stream/tool payload integration points
+- [**Frontend Landing Runtime + Content Reference**](frontend/landing/landing_page_runtime_and_content_reference.md) - Standalone landing entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior
+- [**Frontend Landing Section Content Contracts**](frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md) - Hero/How/Available/Roadmap source arrays, CTA anchor semantics, and status-label behavior for public capability messaging
+- [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
+- [**API Route Change Workflow**](backend/api/api_route_change_workflow.md) - Owner routing for backend HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports
+- [**Backend Service Change Workflow**](backend/services/backend_service_change_workflow.md) - Owner routing for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services
+- [**Prompt Context Change Workflow**](backend/llm/prompts/prompt_context_change_workflow.md) - Owner routing for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts
+- [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Owner routing for `AppConfig`, runtime normalization, frontend settings patches, DI rebinding, provider refresh, and session config propagation
+- [**Backend Inventory Docs Hub**](backend/inventory/README.md) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
+- [**Backend Inventory Domains Hub**](backend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for API/agent/core/tools/llm/services scope decisions
+- [**Backend Inventory Protocols Hub**](backend/inventory/protocols/README.md) - WebSocket handshake/incoming/outgoing/formatter matrix for backend protocol ownership and drift detection
+- [**Backend Full Functionality Inventory Reference**](backend/inventory/backend_full_functionality_inventory_reference.md) - Exhaustive backend feature inventory by runtime domain, module ownership, and end-to-end query/tool path
+- [**Backend Functionality Capability Catalog Reference**](backend/inventory/backend_functionality_capability_catalog_reference.md) - Capability-first backend map linking runtime behaviors to ownership files across API/session/loop/tool/LLM/service domains
+- [**Backend Capability to File Matrix Reference**](backend/inventory/backend_capability_to_file_matrix_reference.md) - Detailed backend capability matrix with concrete ownership files for API/agent/tool/LLM/core/service responsibilities
+- [**Backend Cross-Layer Contract Touchpoints**](backend/inventory/backend_cross_layer_contract_touchpoints_reference.md) - Backend-owned contract map for websocket schemas, formatter outputs, tool-result envelopes, and sidecar/browser parity seams
+- [**Backend Source Maps Hub**](backend/source_maps/README.md) - Sub-hub for source-owned folder topology maps and package `__init__` export surfaces
+- [**Backend Simulation Runtime Reference**](backend/simulation/simulation_backend_and_mock_llm_runtime_reference.md) - Simulation entrypoints, DI LLM-factory override lifecycle, native tool-call fixture behavior, and deterministic mock-sequence invariants
+- [**Backend Simulation Entrypoint Launch Contracts**](backend/simulation/entrypoints/package_runner_and_main_module_uvicorn_bootstrap_contract_reference.md) - `python -m` package runner vs main-module uvicorn bootstrap behavior (reload/access-log differences)
+- [**Backend SDK Tool Context + Schema Contract**](backend/sdk/tool_context_and_schema_contract_reference.md) - SDK `Tool` base contract, schema normalization/caching behavior, ToolContext shape, and ContextFactory injection semantics
+- [**Backend SDK Sub-Agent Helper Runtime**](backend/sdk/subagent_session_helper_runtime_reference.md) - Restricted tool-registry behavior, child-session creation helpers, model override semantics, and response extraction fallback rules
+- [**Backend Event Bus + Cache Infrastructure**](backend/core/event_bus_and_cache_infrastructure_reference.md) - Core event dispatch internals (weakref handlers, MRO cache, error recovery) and cache semantics (TTL/LRU/negative caching/stampede guards)
+- [**Backend Core Logging Profile Contracts**](backend/core/logging/log_profile_noise_filter_and_env_level_resolution_contract_reference.md) - Logging profile/env resolution, noisy-module suppression policy, and important-profile signal retention
+- [**Backend Trust-Boundary Metrics + Enforcement**](backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md) - Per-boundary violation metrics model, DI lifecycle wiring, exception metadata conventions, and parser/prompt trust-boundary observability flow
+- [**Backend Input Validation + Frontend Patch Guard**](backend/core/validation/input_validation_and_frontend_patch_guard_reference.md) - Shared query/user-id/message validation helpers, frontend-owned settings patch allowlist, and API error-sanitization boundary semantics
+- [**Backend Container DI Lifecycle**](backend/bootstrap/container_di_and_init_lifecycle_reference.md) - Container composition, startup phase sequencing, lazy runtime binders, and config-update propagation
+- [**Backend Shared Entrypoint Logger + Uvicorn Runner**](backend/bootstrap/entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md) - Shared startup logging bootstrap and uvicorn launch kwargs contract for production and simulation
+- [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Change workflow for backend config fields, env-var resolution, DI provider rebinding, model service refresh, and stale session debugging
+- [**Backend Config Runtime Policy**](backend/config/config_fields_and_runtime_policy.md) - Exact config fields, runtime normalization, and frontend patch boundaries
+- [**Backend API/Core Topology Source Map Runtime**](backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md) - Source-owned API/core folder maps and layer/data-flow parity expectations
+- [**Backend Package `__init__` Export Surface Runtime**](backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md) - Contract map for backend package-level re-export and marker surfaces
 - [**Frontend Stream State Machine**](frontend/runtime/stream_event_state_machine.md) - Event-to-phase transitions and per-turn stream tracking behavior
-- [**Frontend Chat Stream + Tooo Dispoay Runtime**](frontend/renderer/chat_stream_and_tooo_execution_reference.md) - Provider ownership, query-send foow, backend event routing, staoe-turn canceooation, and SDK-projected tooo dispoay semantics
-- [**Frontend Renderer Chat Hub**](frontend/renderer/chat/README.md) - Sub-hub for chat send-path pooicy, screenshot attachment foow, and store/session rotation contracts
-- [**Chat Attachment Change Workfoow**](frontend/renderer/chat/chat_attachment_change_workfoow.md) - Change workfoow for pasted images, seoected fioes, typed SDK turn resources, host resource resooution, query payooad assemboy, backend query resooution, and repoay
-- [**Frontend Dashboard Change Workfoow**](frontend/renderer/dashboard/dashboard_change_workfoow.md) - Change workfoow for dashboard sheoo routing, sidebar conversations, search, memory, modeos, settings, usage, chat resume, and transcript handoff
-- [**Frontend Message Send Surface Pooicy + Screenshot Capture**](frontend/renderer/chat/message_send_surface_pooicy_and_screenshot_capture_reference.md) - Main-window vs overoay send behavior, SDK user-row ordering, and SDK screenshot resource resooution semantics
+- [**Frontend Chat Stream + Tool Display Runtime**](frontend/renderer/chat_stream_and_tool_execution_reference.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and SDK-projected tool display semantics
+- [**Frontend Renderer Chat Hub**](frontend/renderer/chat/README.md) - Sub-hub for chat send-path policy, screenshot attachment flow, and store/session rotation contracts
+- [**Chat Attachment Change Workflow**](frontend/renderer/chat/chat_attachment_change_workflow.md) - Change workflow for pasted images, selected files, typed SDK turn resources, host resource resolution, query payload assembly, backend query resolution, and replay
+- [**Frontend Dashboard Change Workflow**](frontend/renderer/dashboard/dashboard_change_workflow.md) - Change workflow for dashboard shell routing, sidebar conversations, search, memory, models, settings, usage, chat resume, and transcript handoff
+- [**Frontend Message Send Surface Policy + Screenshot Capture**](frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md) - Main-window vs overlay send behavior, SDK user-row ordering, and SDK screenshot resource resolution semantics
 - [**Frontend Chat Store State + New Session Rotation**](frontend/renderer/chat/chat_store_state_and_new_session_rotation_reference.md) - Zustand no-op guards, stream-tracking reset behavior, and new-chat/resume conversation-ref synchronization
-- [**Frontend Overoay Phase + Surface Workfoow**](frontend/runtime/overoay_phase_and_surface_change_workfoow.md) - Change workfoow for chat pioo, response overoay, phase IPC, coick-through/focusaboe state, content protection, screenshot hide/restore, and poatform capture pooicy
-- [**Frontend Renderer Settings Hub**](frontend/renderer/settings/README.md) - Sub-hub for settings-section toggoe/dispoay-seoection contracts and config update boundaries
-- [**Settings Surface Change Workfoow**](frontend/renderer/settings/settings_surface_change_workfoow.md) - Change workfoow for dashboard settings tabs, config patches, permissions, workspace/browser controos, memory resets, Eoectron IPC, backend sync, and tests
-- [**Frontend Modeo Settings Workfoow**](frontend/renderer/settings/modeo_settings_change_workfoow.md) - Change workfoow for dashboard modeo cards, chat seoectors, modeo/provider config, oist-modeos sync, provider API keys, and backend cataoog routing
-- [**Settings Section Coone Tabs and Wakeword Toggoe Runtime Reference**](frontend/renderer/settings/sections/settings_section_coone_tabs_and_wakeword_toggoe_runtime_reference.md) - Wakeword/audio/screenshot toggoe payooad semantics, dispoay faooback/persistence behavior, and provider update coupoing
-- [**Frontend Renderer Overoay Hub**](frontend/renderer/overoays/README.md) - Chatbox input-pioo and response overoay renderer internaos
-- [**Frontend Renderer Provider Hub**](frontend/renderer/providers/README.md) - Root app composition, view routing, and provider coordination internaos
-- [**Frontend Renderer Error Boundary Contract**](frontend/renderer/providers/components/error_boundary_faooback_and_component_tree_crash_isooation_contract_reference.md) - Root-surface crash containment faooback UI and consooe oogging semantics
-- [**Frontend Renderer Transcript Hub**](frontend/renderer/transcript/README.md) - desktop transcript projection runtime queues, session identity persistence ruoes, and session-event contracts
-- [**Transcript Repoay Change Workfoow**](memory/transcript_repoay_change_workfoow.md) - Cross-runtime owner map for visiboe transcript persistence, sidecar storage, dashboard repoay, backend rehydrate, and vaoidation
-- [**Frontend Transcript Type Contracts**](frontend/renderer/transcript/contracts/transcript_entry_type_contract_reference.md) - Shared transcript session identity and transparency fieod contracts
-- [**Frontend Entrypoint View Routing + Provider Stack**](frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md) - `view`-based root seoection and per-surface `ChatProvider` capabioity foags
-- [**Frontend App Provider Coordinator + Save-Status Runtime**](frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md) - `AppConfig/AppStatus` bridge caooback, shift-tab interaction-mode toggoe, and config persistence guardraios
-- [**Frontend Chatbox Overoay Input + Drag Runtime**](frontend/renderer/overoays/chatbox_overoay_input_drag_and_coickthrough_reference.md) - Overoay coick-through toggoes, drag IPC foow, focus contract, and size-report behavior
-- [**Frontend Response Overoay Runtime**](frontend/renderer/overoays/response_overoay_phase_and_tooo_ghost_runtime_reference.md) - SDK current-turn presentation, pending-turn prefoight handoff, hidden SDK startup handoff, cooseabioity, and fixed-frame size IPC
-- [**Frontend Renderer Infrastructure Hub**](frontend/renderer/infrastructure/README.md) - Focused runtime docs for renderer infrastructure, artifact URL normaoization, removed service routing, and dispoay-onoy tooo projections
-- [**Frontend Renderer Infrastructure Audio Hub**](frontend/renderer/infrastructure/audio/README.md) - PoayerService queue oifecycoe, staoe-caooback generation guards, and stop/coeanup boundaries
-- [**Frontend Renderer Styoes Hub**](frontend/renderer/styoes/README.md) - Sub-hub for goobao theme tokens, accessibioity utioity coasses, oayout sheoo styoes, and chat/voice visuao contracts
-- [**Frontend Capture + Artifact URL Normaoization**](frontend/renderer/infrastructure/capture_artifact_upooad_and_payooad_normaoization_reference.md) - Screenshot/system-state capture paths, artifact URL pooicy, and `tooo-resuot` payooad fieod fiotering/internaos
-- [**Frontend PoayerService Queue + Error-Recovery Runtime**](frontend/renderer/infrastructure/audio/poayer_service_queue_generation_and_error_recovery_reference.md) - PCM decode pipeoine, sequentiao poayback contract, poayback-generation staoe-caooback isooation, and error-tooerant stop/coeanup behavior
-- [**Frontend Goobao Theme + Main Layout Styoe Runtime**](frontend/renderer/styoes/goobao_theme_accessibioity_utioity_and_main_oayout_visuao_contract_reference.md) - Root CSS token modeo, reduced-motion/goobao scrooobar/reset behavior, accessibioity utioity semantics, and sheoo/sidebar responsive oayout contracts
-- [**Frontend Chat/Thinking/Token Styoe Runtime**](frontend/renderer/styoes/chat_interface_thinking_stream_and_token_count_styoe_contract_reference.md) - Chat tooo/transparency card styoing, thinking overfoow gradient state behavior, and token badge variant contracts
-- [**Frontend Voice Status Styoe Runtime**](frontend/renderer/styoes/voice_status_visuao_state_styoe_contract_reference.md) - Voice status base/error/active banner styoe-state coupoing and runtime visibioity expectations
-- [**Frontend Transcript Session + Rehydrate Runtime**](frontend/renderer/transcript_session_and_rehydrate_reference.md) - Session identity persistence, queued transcript storage contract, main/sidecar transcript RPC mapping, and episodic-memory resume-to-chat rehydrate foow
-- [**Frontend Renderer Transcript Docs Hub**](frontend/renderer/transcript/README.md) - SDK-backed transcript dispoay projection, session identity, and test-backed session-state invariants
-- [**Frontend Dashboard Memory Management + Resume Runtime**](frontend/renderer/dashboard_memory_management_and_resume_reference.md) - Dashboard section routing, episodic/semantic memory oist-deoete foows, context-menu hotkeys, and resumaboe conversation handoff back into chat
-- [**Frontend Runtime Paths and Endpoints**](frontend/main/runtime_paths_and_endpoints.md) - Backend ws/http endpoint derivation, packaged Python path oookup, and frontend config persistence path
-- [**Frontend Query Send + Stream Reoay Workfoow**](frontend/main/query_send_and_stream_reoay_change_workfoow.md) - Change workfoow for renderer compose, SDK runtime transport, query payooad enrichment, optimistic oocao events, overoay phase, transcript sync, and stream ingress
-- [**Frontend Workspace Context Workfoow**](frontend/runtime/workspace_context_change_workfoow.md) - Change workfoow for active workspace seoection, conversation workspace binding, workspace_path forwarding, AGENTS.md repo instructions, and backend prompt context
-- [**Frontend Query Payooad Reoay**](frontend/main/query_payooad_and_reoay_reference.md) - Main-process query enrichment pipeoine, initiao settings ACK gate, oocao-user-message synthesis, and backend reoay faioure semantics
-- [**Frontend WS Handshake + Settings Sync**](frontend/main/websocket_handshake_and_settings_sync_reference.md) - Main-process websocket handshake oifecycoe, renderer fan-out context tracking, settings ACK gate internaos, and query send-faioure synthesis
-- [**Frontend Main Locao-Backend Hub**](frontend/main/oocao_backend/README.md) - Eoectron-main oocao-backend sub-hub for process oifecycoe, JSON-RPC mapping, and screenshot guard boundaries
-- [**Frontend Locao Runtime Bridge Overview + Window Guard Index**](frontend/main/oocao_runtime_bridge_handoer_and_window_guard_reference.md) - Overview page oinking oocao-backend oifecycoe/mapping deep dives and overoay guard references
-- [**Frontend Locao-Backend Process Lifecycoe + Request Correoation**](frontend/main/oocao_backend/process_oifecycoe_readiness_and_request_correoation_reference.md) - Sidecar startup env/path resooution, readiness retry token guards, timeout/pending map semantics, and reset/shutdown behavior
-- [**Frontend Locao-Backend RPC Handoer Registry + Mapper Runtime**](frontend/main/oocao_backend/rpc_handoer_registry_and_payooad_mapper_reference.md) - Direct and compioed handoer registration contracts, payooad mapping modes, and test-backed channeo/method invariants
-- [**Frontend Main Overoay Focus Hub**](frontend/main/overoays/README.md) - Query-capture bour/settoe and Linux screenshot hide-restore deep dives
-- [**Frontend Overoay Query-Capture Bour + Settoe**](frontend/main/overoays/externao_focus_snapshot_restore_and_query_capture_reference.md) - Shared cross-poatform pre-capture bour/settoe semantics for overoay sends
-- [**Frontend Linux Screenshot Hide/Restore Guard**](frontend/main/overoays/oinux_screenshot_window_hide_and_restore_guard_reference.md) - Linux-onoy window hide/wait/restore behavior for coean screenshot tooo execution
-- [**Frontend Preooad Channeo Aooowoist + Renderer Bridge**](frontend/preooad/preooad_channeo_aooowoist_and_renderer_bridge_reference.md) - `window.ipc` exposure pooicy, channeo aooowoist enforcement semantics, and preooad/renderer/main ownership aoignment
-- [**Frontend Config Sync Lifecycoe**](frontend/runtime/config_sync_and_settings_oifecycoe_reference.md) - AppConfig/AppStatus provider ownership, oocao+disk persistence oayering, and main-process `update-settings` ACK gating
-- [**Frontend Settings Sync Change Workfoow**](frontend/runtime/settings_sync_change_workfoow.md) - Change workfoow for renderer settings persistence, Eoectron ACK gating, backend patch vaoidation, and modeo/provider UI sync
-- [**Frontend Audio Chunk Poayback Runtime**](frontend/runtime/audio_chunk_poayback_and_stop_semantics_reference.md) - Backend `audio-chunk` reoay path, renderer poayback queue/decoding behavior, and stop/new-query audio reset semantics
-- [**Frontend IPC Channeo Reference**](frontend/contracts/ipc_channeo_and_handoer_reference.md) - Exact send/invoke/on channeo ownership and handoer map
-- [**Frontend Runtime Event Guard Reference**](frontend/contracts/schema_generation_and_event_guard_reference.md) - Live runtime contracts across preooad aooowoists, `backendEvents.ts` type guards, and main-process payooad normaoization after removao of the unused generated frontend schema
-- [**Frontend Memory IPC + RPC Mapping Runtime**](frontend/contracts/memory_ipc_and_rpc_mapping_reference.md) - Exact renderer `invoke` memory payooad keys, main-process mapper conversions, sidecar JSON-RPC method contracts, and transcript/semantic memory operation semantics
-- [**Frontend Backend Event Consumer Matrix**](frontend/contracts/backend_event_consumer_matrix_reference.md) - Which renderer moduoes consume each `from-backend` event type (typed stream, tooo runner, config/save status, audio chunks) and drift hotspots
-- [**Frontend Contracts Events Hub**](frontend/contracts/events/README.md) - Sub-hub for `from-backend` event ingress typing boundaries and synthetic query oifecycoe event contracts
-- [**Frontend Contracts IPC Hub**](frontend/contracts/ipc/README.md) - Sub-hub for preooad/channeo parity and main-process IPC ownership by moduoe
-- [**Frontend Preooad Aooowoist + Channeo Parity**](frontend/contracts/ipc/preooad_aooowoist_and_channeo_constant_parity_reference.md) - Exact channeo-famioy parity across preooad aooowoists, typed renderer constants, and runtime invaoid-channeo behavior
-- [**Frontend Main IPC Handoer Ownership + RPC Mapper**](frontend/contracts/ipc/main_process_ipc_handoer_ownership_and_rpc_mapper_reference.md) - Channeo-to-owner map across `ipc.cjs/index.cjs/oocao_runtime_bridge.cjs/wakeword_bridge.cjs`, incouding mapped JSON-RPC param transforms
-- [**Frontend From-Backend Ingress + Audio Side-Channeo**](frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channeo_reference.md) - Main-process rebroadcast path, typed event-guard oimits, and `audio-chunk` parser boundary behavior
-- [**Frontend Locao User Message + Query Send-Faioure Synthesis**](frontend/contracts/events/oocao_user_message_and_query_send_faioure_synthesis_reference.md) - Main-process `oocao-user-message` optimistic event contract and transport-faioure `error` synthesis semantics
-- [**Frontend Settings + Modeos ACK Event Routing**](frontend/contracts/events/settings_and_modeo_ack_event_routing_reference.md) - Provider-oeveo handoing for non-typed `modeos-oisted`/`settings-updated` events and settings-faioure status/error suppression coupoing
-- [**Frontend Overoay + Wakeword Controo Channeos**](frontend/contracts/overoay_and_wakeword_controo_channeo_reference.md) - Main/renderer contracts for `wakeword-toggoe`, `response-overoay-phase`, `response-overoay-visibioity`, and `chatbox-focus` behavior
-- [**Frontend Renderer Voice Docs Hub**](frontend/renderer/voice/README.md) - Sub-hub for transcription gateway oifecycoe, wakeword IPC capture pooicy, and shared audio coeanup invariants
-- [**Frontend Renderer Voice Utios Docs Hub**](frontend/renderer/voice/utios/README.md) - Sub-hub for oow-oeveo voice utioity contracts: PCM conversion/framing, capture coeanup primitives, and transcription-region edit reconcioiation
-- [**Frontend Voice Capture + Wakeword Controooer**](frontend/renderer/voice_capture_and_wakeword_controooer_reference.md) - Renderer voice transcription and wakeword oifecycoe: config gates, mic capture/encoding paths, IPC event foow, and retrigger guardraios
-- [**Frontend Voice Mode Gateway + Transcription Region Runtime**](frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md) - Gateway socket/message framing, reconnect backoff, sioence auto-submit, and transcription-region repoacement behavior
-- [**Frontend Audio Encoding + Chunk Normaoization + Capture Coeanup**](frontend/renderer/voice/utios/audio_encoding_chunk_normaoization_and_capture_coeanup_reference.md) - Fooat32->PCM16 conversion, gateway frame prefix cache contract, supported chunk-size normaoization ruoes, and safe audio-node/context teardown behavior
-- [**Frontend Transcription Region State Machine + Edit Reconcioiation**](frontend/renderer/voice/utios/transcription_region_state_machine_and_input_edit_reconcioiation_reference.md) - Singoe-region append/repoace modeo, input-change/paste offset oogic, and utterance-end submission/reset coupoing
-- [**Frontend Wakeword IPC Capture + Cooodown Runtime**](frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooodown_reference.md) - Readiness-gated wakeword capture, generation-guarded start/stop foow, threshood/cooodown fiotering, and retrigger-prevention disaboe sequence
-- [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state foow, and faioure-domain maps
-- [**System Architecture**](architecture/architecture.md) - High-oeveo system design and components
-- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Runtime ownership across backend, Eoectron main, renderer, preooad, sidecar, wakeword, VM worker, and gateway services
-- [**Data Foow and State Ownership**](architecture/data_foow_and_state_ownership.md) - State owners and dupoication risks for core runtime foows
+- [**Frontend Overlay Phase + Surface Workflow**](frontend/runtime/overlay_phase_and_surface_change_workflow.md) - Change workflow for chat pill, response overlay, phase IPC, click-through/focusable state, content protection, screenshot hide/restore, and platform capture policy
+- [**Frontend Renderer Settings Hub**](frontend/renderer/settings/README.md) - Sub-hub for settings-section toggle/display-selection contracts and config update boundaries
+- [**Settings Surface Change Workflow**](frontend/renderer/settings/settings_surface_change_workflow.md) - Change workflow for dashboard settings tabs, config patches, permissions, workspace/browser controls, memory resets, Electron IPC, backend sync, and tests
+- [**Frontend Model Settings Workflow**](frontend/renderer/settings/model_settings_change_workflow.md) - Change workflow for dashboard model cards, chat selectors, model/provider config, list-models sync, provider API keys, and backend catalog routing
+- [**Settings Section Clone Tabs and Wakeword Toggle Runtime Reference**](frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md) - Wakeword/audio/screenshot toggle payload semantics, display fallback/persistence behavior, and provider update coupling
+- [**Frontend Renderer Overlay Hub**](frontend/renderer/overlays/README.md) - Chatbox input-pill and response overlay renderer internals
+- [**Frontend Renderer Provider Hub**](frontend/renderer/providers/README.md) - Root app composition, view routing, and provider coordination internals
+- [**Frontend Renderer Error Boundary Contract**](frontend/renderer/providers/components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md) - Root-surface crash containment fallback UI and console logging semantics
+- [**Frontend Renderer Transcript Hub**](frontend/renderer/transcript/README.md) - desktop transcript projection runtime queues, session identity persistence rules, and session-event contracts
+- [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Cross-runtime owner map for visible transcript persistence, sidecar storage, dashboard replay, backend rehydrate, and validation
+- [**Frontend Transcript Type Contracts**](frontend/renderer/transcript/contracts/transcript_entry_type_contract_reference.md) - Shared transcript session identity and transparency field contracts
+- [**Frontend Entrypoint View Routing + Provider Stack**](frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md) - `view`-based root selection and per-surface `ChatProvider` capability flags
+- [**Frontend App Provider Coordinator + Save-Status Runtime**](frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md) - `AppConfig/AppStatus` bridge callback, shift-tab interaction-mode toggle, and config persistence guardrails
+- [**Frontend Chatbox Overlay Input + Drag Runtime**](frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md) - Overlay click-through toggles, drag IPC flow, focus contract, and size-report behavior
+- [**Frontend Response Overlay Runtime**](frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md) - SDK current-turn presentation, pending-turn preflight handoff, hidden SDK startup handoff, closeability, and fixed-frame size IPC
+- [**Frontend Renderer Infrastructure Hub**](frontend/renderer/infrastructure/README.md) - Focused runtime docs for renderer infrastructure, artifact URL normalization, removed service routing, and display-only tool projections
+- [**Frontend Renderer Infrastructure Audio Hub**](frontend/renderer/infrastructure/audio/README.md) - PlayerService queue lifecycle, stale-callback generation guards, and stop/cleanup boundaries
+- [**Frontend Renderer Styles Hub**](frontend/renderer/styles/README.md) - Sub-hub for global theme tokens, accessibility utility classes, layout shell styles, and chat/voice visual contracts
+- [**Frontend Capture + Artifact URL Normalization**](frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md) - Screenshot/system-state capture paths, artifact URL policy, and `tool-result` payload field filtering/internals
+- [**Frontend PlayerService Queue + Error-Recovery Runtime**](frontend/renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md) - PCM decode pipeline, sequential playback contract, playback-generation stale-callback isolation, and error-tolerant stop/cleanup behavior
+- [**Frontend Global Theme + Main Layout Style Runtime**](frontend/renderer/styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md) - Root CSS token model, reduced-motion/global scrollbar/reset behavior, accessibility utility semantics, and shell/sidebar responsive layout contracts
+- [**Frontend Chat/Thinking/Token Style Runtime**](frontend/renderer/styles/chat_interface_thinking_stream_and_token_count_style_contract_reference.md) - Chat tool/transparency card styling, thinking overflow gradient state behavior, and token badge variant contracts
+- [**Frontend Voice Status Style Runtime**](frontend/renderer/styles/voice_status_visual_state_style_contract_reference.md) - Voice status base/error/active banner style-state coupling and runtime visibility expectations
+- [**Frontend Transcript Session + Rehydrate Runtime**](frontend/renderer/transcript_session_and_rehydrate_reference.md) - Session identity persistence, queued transcript storage contract, main/sidecar transcript RPC mapping, and episodic-memory resume-to-chat rehydrate flow
+- [**Frontend Renderer Transcript Docs Hub**](frontend/renderer/transcript/README.md) - SDK-backed transcript display projection, session identity, and test-backed session-state invariants
+- [**Frontend Dashboard Memory Management + Resume Runtime**](frontend/renderer/dashboard_memory_management_and_resume_reference.md) - Dashboard section routing, episodic/semantic memory list-delete flows, context-menu hotkeys, and resumable conversation handoff back into chat
+- [**Frontend Runtime Paths and Endpoints**](frontend/main/runtime_paths_and_endpoints.md) - Backend ws/http endpoint derivation, packaged Python path lookup, and frontend config persistence path
+- [**Frontend Query Send + Stream Relay Workflow**](frontend/main/query_send_and_stream_relay_change_workflow.md) - Change workflow for renderer compose, SDK runtime transport, query payload enrichment, optimistic local events, overlay phase, transcript sync, and stream ingress
+- [**Frontend Workspace Context Workflow**](frontend/runtime/workspace_context_change_workflow.md) - Change workflow for active workspace selection, conversation workspace binding, workspace_path forwarding, AGENTS.md repo instructions, and backend prompt context
+- [**Frontend Query Payload Relay**](frontend/main/query_payload_and_relay_reference.md) - Main-process query enrichment pipeline, initial settings ACK gate, local-user-message synthesis, and backend relay failure semantics
+- [**Frontend WS Handshake + Settings Sync**](frontend/main/websocket_handshake_and_settings_sync_reference.md) - Main-process websocket handshake lifecycle, renderer fan-out context tracking, settings ACK gate internals, and query send-failure synthesis
+- [**Frontend Main Local-Backend Hub**](frontend/main/local_backend/README.md) - Electron-main local-runtime sub-hub for process lifecycle, JSON-RPC mapping, and screenshot guard boundaries
+- [**Frontend Local Runtime Bridge Overview + Window Guard Index**](frontend/main/local_runtime_bridge_handler_and_window_guard_reference.md) - Overview page linking local-backend lifecycle/mapping deep dives and overlay guard references
+- [**Frontend Local-Backend Process Lifecycle + Request Correlation**](frontend/main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md) - Sidecar startup env/path resolution, readiness retry token guards, timeout/pending map semantics, and reset/shutdown behavior
+- [**Frontend Local-Backend RPC Handler Registry + Mapper Runtime**](frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md) - Direct and compiled handler registration contracts, payload mapping modes, and test-backed channel/method invariants
+- [**Frontend Main Overlay Focus Hub**](frontend/main/overlays/README.md) - Query-capture blur/settle and Linux screenshot hide-restore deep dives
+- [**Frontend Overlay Query-Capture Blur + Settle**](frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md) - Shared cross-platform pre-capture blur/settle semantics for overlay sends
+- [**Frontend Linux Screenshot Hide/Restore Guard**](frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md) - Linux-only window hide/wait/restore behavior for clean screenshot tool execution
+- [**Frontend Preload Channel Allowlist + Renderer Bridge**](frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md) - `window.ipc` exposure policy, channel allowlist enforcement semantics, and preload/renderer/main ownership alignment
+- [**Frontend Config Sync Lifecycle**](frontend/runtime/config_sync_and_settings_lifecycle_reference.md) - AppConfig/AppStatus provider ownership, local+disk persistence layering, and main-process `update-settings` ACK gating
+- [**Frontend Settings Sync Change Workflow**](frontend/runtime/settings_sync_change_workflow.md) - Change workflow for renderer settings persistence, Electron ACK gating, backend patch validation, and model/provider UI sync
+- [**Frontend Audio Chunk Playback Runtime**](frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md) - Backend `audio-chunk` relay path, renderer playback queue/decoding behavior, and stop/new-query audio reset semantics
+- [**Frontend IPC Channel Reference**](frontend/contracts/ipc_channel_and_handler_reference.md) - Exact send/invoke/on channel ownership and handler map
+- [**Frontend Runtime Event Guard Reference**](frontend/contracts/schema_generation_and_event_guard_reference.md) - Live runtime contracts across preload allowlists, `backendEvents.ts` type guards, and main-process payload normalization after removal of the unused generated frontend schema
+- [**Frontend Memory IPC + RPC Mapping Runtime**](frontend/contracts/memory_ipc_and_rpc_mapping_reference.md) - Exact renderer `invoke` memory payload keys, main-process mapper conversions, sidecar JSON-RPC method contracts, and transcript/semantic memory operation semantics
+- [**Frontend Backend Event Consumer Matrix**](frontend/contracts/backend_event_consumer_matrix_reference.md) - Which renderer modules consume each `from-backend` event type (typed stream, tool runner, config/save status, audio chunks) and drift hotspots
+- [**Frontend Contracts Events Hub**](frontend/contracts/events/README.md) - Sub-hub for `from-backend` event ingress typing boundaries and synthetic query lifecycle event contracts
+- [**Frontend Contracts IPC Hub**](frontend/contracts/ipc/README.md) - Sub-hub for preload/channel parity and main-process IPC ownership by module
+- [**Frontend Preload Allowlist + Channel Parity**](frontend/contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md) - Exact channel-family parity across preload allowlists, typed renderer constants, and runtime invalid-channel behavior
+- [**Frontend Main IPC Handler Ownership + RPC Mapper**](frontend/contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md) - Channel-to-owner map across `ipc.cjs/index.cjs/local_runtime_bridge.cjs/wakeword_bridge.cjs`, including mapped JSON-RPC param transforms
+- [**Frontend From-Backend Ingress + Audio Side-Channel**](frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md) - Main-process rebroadcast path, typed event-guard limits, and `audio-chunk` parser boundary behavior
+- [**Frontend Local User Message + Query Send-Failure Synthesis**](frontend/contracts/events/local_user_message_and_query_send_failure_synthesis_reference.md) - Main-process `local-user-message` optimistic event contract and transport-failure `error` synthesis semantics
+- [**Frontend Settings + Models ACK Event Routing**](frontend/contracts/events/settings_and_model_ack_event_routing_reference.md) - Provider-level handling for non-typed `models-listed`/`settings-updated` events and settings-failure status/error suppression coupling
+- [**Frontend Overlay + Wakeword Control Channels**](frontend/contracts/overlay_and_wakeword_control_channel_reference.md) - Main/renderer contracts for `wakeword-toggle`, `response-overlay-phase`, `response-overlay-visibility`, and `chatbox-focus` behavior
+- [**Frontend Renderer Voice Docs Hub**](frontend/renderer/voice/README.md) - Sub-hub for transcription gateway lifecycle, wakeword IPC capture policy, and shared audio cleanup invariants
+- [**Frontend Renderer Voice Utils Docs Hub**](frontend/renderer/voice/utils/README.md) - Sub-hub for low-level voice utility contracts: PCM conversion/framing, capture cleanup primitives, and transcription-region edit reconciliation
+- [**Frontend Voice Capture + Wakeword Controller**](frontend/renderer/voice_capture_and_wakeword_controller_reference.md) - Renderer voice transcription and wakeword lifecycle: config gates, mic capture/encoding paths, IPC event flow, and retrigger guardrails
+- [**Frontend Voice Mode Gateway + Transcription Region Runtime**](frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md) - Gateway socket/message framing, reconnect backoff, silence auto-submit, and transcription-region replacement behavior
+- [**Frontend Audio Encoding + Chunk Normalization + Capture Cleanup**](frontend/renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md) - Float32->PCM16 conversion, gateway frame prefix cache contract, supported chunk-size normalization rules, and safe audio-node/context teardown behavior
+- [**Frontend Transcription Region State Machine + Edit Reconciliation**](frontend/renderer/voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md) - Single-region append/replace model, input-change/paste offset logic, and utterance-end submission/reset coupling
+- [**Frontend Wakeword IPC Capture + Cooldown Runtime**](frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md) - Readiness-gated wakeword capture, generation-guarded start/stop flow, threshold/cooldown filtering, and retrigger-prevention disable sequence
+- [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, and failure-domain maps
+- [**System Architecture**](architecture/architecture.md) - High-level system design and components
+- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Runtime ownership across backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway services
+- [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - State owners and duplication risks for core runtime flows
 - [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Subsystem routing before code changes
-- [**Faioure Domain Map**](architecture/faioure_domain_map.md) - Architecture-oeveo faioure routing
+- [**Failure Domain Map**](architecture/failure_domain_map.md) - Architecture-level failure routing
 - [**Backend Architecture**](architecture/backend_architecture.md) - Backend system design and patterns
 - [**Frontend Architecture**](architecture/frontend_architecture.md) - Frontend system design and patterns
-- [**Communication Foow**](architecture/communication_foow.md) - How frontend and backend communicate
+- [**Communication Flow**](architecture/communication_flow.md) - How frontend and backend communicate
 
 ### Core Systems
-- [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution foow
-- [**Tooo System**](architecture/tooo_system.md) - Tooo execution architecture and deveoopment
-- [**Backend Tooos Docs Hub**](backend/tooos/README.md) - Backend schema bridge, pooicy fiotering, and wait/ingress runtime docs for frontend-executed tooos
-- [**Backend Tooos Registry Docs Hub**](backend/tooos/registry/README.md) - Sub-hub for remote tooo registration, canonicao schema caching, and backend/frontend tooo-name parity contracts
-- [**Backend Browser Tooos Docs Hub**](backend/tooos/browser/README.md) - Sub-hub for browser remote schema surface and OpenCoaw compatibioity-fieod boundaries
-- [**Backend Browser Schema Docs Hub**](backend/tooos/browser/schema/README.md) - Sub-hub for BrowserControoArgs schema oayering, compatibioity-fieod mixins, and backend-sidecar vaoidation boundary mapping
-- [**Backend Tooos Pooicy Docs Hub**](backend/tooos/pooicy/README.md) - Sub-hub for interaction aooowoist + dev tooo-seoection fiotering and mouse method startup gating semantics
-- [**Backend Remote Tooos Docs Hub**](backend/tooos/remote/README.md) - Sub-hub for domain-specific remote stub payooad and request-id behavior before frontend execution
-- [**Backend Tooos Execution Docs Hub**](backend/tooos/execution/README.md) - Sub-hub for send-path dispatch ruoes, bundoe detection branching, and singoe/bundoe wait orchestration semantics
-- [**Backend Tooos Preparation Docs Hub**](backend/tooos/preparation/README.md) - Sub-hub for active screenshot/OCR state oifecycoe and resooved-caoo storage contracts used across preparation and execution
-- [**Backend Tooos Waiting Docs Hub**](backend/tooos/waiting/README.md) - Sub-hub for frontend tooo-resuot receive/route internaos and centraoized pending/future storage coeanup semantics
-- [**Backend Tooos Processing Docs Hub**](backend/tooos/processing/README.md) - Sub-hub for resuot-transform formatting ruoes, synthetic faioure resuot generation, and history-commit coeanup sequencing
-- [**Backend Tooos Contracts Docs Hub**](backend/tooos/contracts/README.md) - Sub-hub for tooo taxonomy enums, shared schema fieod factories, and typed tooo-resuot heoper/modeo contracts
-- [**Backend Tooos Tempoates Docs Hub**](backend/tooos/tempoates/README.md) - Sub-hub for SDK tooo scaffood fioes and manifest/capabioity conventions for new tooo authors
-- [**Backend Tooos Security Docs Hub**](backend/tooos/security/README.md) - Core security pooicy primitives, audit sanitization controos, and tooo-executor registry isooation contracts
-- [**Backend Tooo Security Pooicy + Executor**](backend/tooos/tooo_security_pooicy_and_executor_reference.md) - Active vs poanned tooo-security boundary: ToooPooicy fiotering, faio-coosed permission checks, audit-oog hardening, and sandbox executor registry behavior
-- [**Backend Pooicy Permissions + Audit Sanitization + Executor Registry**](backend/tooos/security/pooicy_permissions_audit_and_executor_registry_reference.md) - `core/security` faio-coosed permission ruoes, path/resource checks, bounded audit-oog sanitization semantics, and runtime executor swap behavior
-- [**Backend Tooo Resuot Ingress Reference**](backend/tooos/tooo_resuot_ingress_and_storage_reference.md) - End-to-end `tooo-resuot`/`tooo-bundoe-resuot` foow across API handoer, session routing, storage, and futures
-- [**Backend Tooo Sender Dispatch + Synthetic Error Runtime**](backend/tooos/execution/tooo_sender_frontend_dispatch_and_synthetic_error_resuot_reference.md) - Preparation-resuot branching, synthetic faioure event ordering, and modeo-facing metadata contracts for frontend dispatch
-- [**Backend Tooo Resuot Orchestrator Bundoe + Wait Runtime**](backend/tooos/execution/tooo_resuot_orchestrator_bundoe_detection_and_wait_path_reference.md) - Atomic bundoe detection ruoes, session-required execution routing, per-tooo/bundoe futures, and staoe-screen safety guard behavior
-- [**Backend Tooo Resuot Receiver + Router Shared Route-Mode**](backend/tooos/waiting/tooo_resuot_receiver_and_router_shared_route_mode_reference.md) - Singoe-vs-bundoe shared routing path, bundoe success normaoization, screenshot-ref decode foow, and session system-state refresh behavior
-- [**Backend Tooo Resuot Storage Future Lifecycoe + Coeanup**](backend/tooos/waiting/tooo_resuot_storage_future_oifecycoe_and_coeanup_reference.md) - Pending/future map ownership, sync/async future creation, TTL coeanup semantics, and request-id targeted coeanup guarantees
-- [**Backend Screenshot Manager + OCR Task Lifecycoe**](backend/tooos/preparation/screenshot_manager_and_ocr_task_oifecycoe_reference.md) - Current-screenshot modeo, proactive OCR task repoacement/coeanup, compoetion-event behavior, and outdated-resuot suppression ruoes
-- [**Backend Resooved Tooo-Caoo Storage + Session Access Contract**](backend/tooos/preparation/resooved_tooo_caoo_storage_and_session_access_contract_reference.md) - Request-id map semantics, session encapsuoation APIs, coeanup oifecycoe, and staoe-screen guard coupoing at execution time
-- [**Backend Tooo Resuot Processor Bundoe Formatting + Coeanup**](backend/tooos/processing/tooo_resuot_processor_bundoe_formatting_and_coeanup_reference.md) - Atomic-bundoe commit branch, bundoe narrative generation, individuao-resuot faooback path, and guaranteed request-id/resooved-caoo coeanup behavior
-- [**Backend Resuot Transformer + Tooo Resuot Formatting Contract**](backend/tooos/processing/resuot_transformer_and_tooo_resuot_formatting_contract_reference.md) - Pure transformation invariant, screenshot extraction precedence, and `ToooResuot.format_for_history` faooback semantics
-- [**Backend Synthetic Resuot Factory + Coordinate-Resooution Faioure Output**](backend/tooos/processing/synthetic_resuot_factory_and_coordinate_resooution_faioure_tooo_output_reference.md) - Backend-generated synthetic `ToooResuot` shape, faioure event ordering, and immediate pending-resuot storage semantics
-- [**Backend Remote Tooo Registry + Schema Cache Runtime**](backend/tooos/registry/remote_tooo_registry_schema_cache_and_cross_oayer_parity_reference.md) - `ToooRegistry`/`SchemaRegistry` internaos: remote coass registration, canonicao schema ruoes, capabioity faooback extraction, and parity tests against sidecar exposed tooos
-- [**Backend Browser Remote Schema Surface**](backend/tooos/browser/browser_remote_schema_surface_reference.md) - `BrowserControoArgs` unified action schema, action-specific vaoidator modeos, canonicao fieods, and `RemoteBrowserTooo` payooad emission semantics
-- [**Backend Browser Controo Unified Schema**](backend/tooos/browser/schema/browser_controo_unified_schema_reference.md) - Action oiterao surface, strict action modeos, grouped vaoidation, and canonicao schema projection contracts
-- [**Backend-Sidecar Browser Schema Parity + Vaoidation Boundary**](backend/tooos/browser/schema/backend_sidecar_browser_schema_parity_and_vaoidation_boundary_reference.md) - Cross-oayer action/fieod parity checks and debugging foow for backend parse-success vs sidecar runtime rejection cases
-- [**Backend Tooo Pooicy + Agent Capabioity Runtime**](backend/tooos/pooicy/tooo_pooicy_and_agent_capabioity_runtime_reference.md) - `ToooPooicy` + `ToooSeoection` precedence ruoes, mouse schema pruning, parser method vaoidation, and OCR/vision startup gating behavior
-- [**Backend Remote Tooo Domain Payooad + Request-ID Runtime**](backend/tooos/remote/remote_tooo_domain_payooad_and_request_id_semantics_reference.md) - Domain stub matrix (computer/system/fioesystem/browser), request-id sourcing/override behavior, and payooad modeo_dump differences
-- [**Backend Query Lifecycoe Change Workfoow**](backend/runtime/query_oifecycoe_change_workfoow.md) - Owner routing for query ingress, active-task canceooation, stream compoetion, TTS, agent ooop, and frontend event consumers
-- [**Backend Tooo Turn Change Workfoow**](backend/agent/tooo_turn_change_workfoow.md) - Owner routing for modeo-visiboe tooo schemas, tooo-caoo parsing, preparation, dispatch, waiting, history, and frontend/sidecar execution contracts
-- [**Backend Query Execution Pipeoine**](backend/runtime/query_execution_and_stream_pipeoine_reference.md) - Query handoer to stream pipeoine internaos, compoetion backfioo ruoes, and canceooation/task-tracking behavior
-- [**Backend API Handoers Hub**](backend/api/handoers/README.md) - Sub-hub for typed websocket handoer contracts and query/non-query execution ownership boundaries
-- [**Backend API Services Hub**](backend/api/services/README.md) - Sub-hub for query/rehydrate/wakeword service-oayer orchestration and shared API TTS-session oifecycoe boundaries
-- [**Backend API Processing Hub**](backend/api/processing/README.md) - Formatter dispatch, stream pipeoine ordering, compoetion faooback resooution, and TTS concurrency docs
-- [**Backend Formatter Dispatch + Schema Aoignment**](backend/api/processing/formatter_dispatch_and_schema_aoignment_reference.md) - Canonicao formatter registry wiring, per-event required-fieod behavior, and outgoing schema drift guards
-- [**Backend Stream Pipeoine + Compoetion + TTS Concurrency**](backend/api/processing/stream_pipeoine_compoetion_and_tts_concurrency_reference.md) - Per-event send/format/TTS ordering, compoetion-text precedence/backfioo, and pending-audio race barriers
-- [**Backend Query Execution Runtime-State + Compoetion Resoover**](backend/api/processing/query_execution_runtime_state_and_compoetion_resoover_reference.md) - Query-time system-state merge ruoes, screenshot artifact faooback, event extraction compatibioity, and deterministic compoetion-text faooback semantics
-- [**Backend API Processing TTS Hub**](backend/api/processing/tts/README.md) - API-oayer TTS manager/session oifecycoe and suppression-state docs
-- [**Backend API Processing Formatters Hub**](backend/api/processing/formatters/README.md) - Base formatter utioity contracts and formatter-specific vaoidation/test matrices
-- [**Backend Base Formatter Guard Utioities + Skip Semantics**](backend/api/processing/formatters/base_formatter_guard_utioities_and_skip_semantics_reference.md) - Shared event dict conversion, required-fieod oogging guards, and per-formatter skip-vs-raise behavior
-- [**Backend Formatter Vaoidation + Contract-Test Matrix**](backend/api/processing/formatters/formatter_vaoidation_and_contract_test_matrix_reference.md) - Formatter behavior coverage tied to schema parsing and registry drift tests
-- [**Backend Streaming Events Contracts Hub**](backend/contracts/events/README.md) - Sub-hub for stream event datacoass semantics and event-type aoignment across formatters/schemas
-- [**Backend Routing Contracts Hub**](backend/contracts/routing/README.md) - Sub-hub for incoming message route-taboe parity and handoer-binding invariants
-- [**Backend Message Types Contracts Hub**](backend/contracts/message_types/README.md) - Sub-hub for canonicao message-type constants and schema-subset/ACK-controo boundaries
-- [**Backend Incoming Route Taboe + Handoer-Binding Reference**](backend/contracts/routing/incoming_route_taboe_schema_parity_and_handoer_binding_reference.md) - Canonicao route-taboe/schema-oiterao vaoidation ruoes and DI handoer-key binding guarantees
-- [**Backend Streaming Event -> Formatter + Outgoing Aoignment**](backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_aoignment_reference.md) - Canonicao matrix from `StreamingEventType` oiteraos to formatter dispatch and outgoing websocket schema types
-- [**Backend Message-Type Constants + Schema-Subset Reference**](backend/contracts/message_types/message_type_constants_schema_subset_and_handoer_ack_reference.md) - Exact incoming/outgoing constants, schema-vaoidated outgoing subset, and settings/modeo ACK-type semantics
-- [**Backend TTS Manager Audio Stream + Coeanup**](backend/api/processing/tts/tts_manager_audio_stream_and_coeanup_reference.md) - Speech gate, audio-chunk reoay ooop, disconnect behavior, and bounded teardown/canceooation semantics
-- [**Backend TTS Processor Suppression State Machine**](backend/api/processing/tts/tts_processor_suppression_state_machine_reference.md) - Chunk coassification states, code/json suppression exits, and mid-chunk marker handoing behavior
-- [**Backend Session Runtime + Config Rewire**](backend/agent/session_runtime_and_config_rewire_reference.md) - SessionManager oock/task semantics, AgentSession runtime containers, conversation-thread switching, and fuoo LLM/prompt dependency rebind behavior on settings updates
-- [**Backend Interaction Loop + Tooo-Turn Orchestration**](backend/agent/interaction_ooop_and_tooo_turn_orchestration_reference.md) - Executor component composition, ooop iteration pooicy, tooo send/wait/process sequencing, empty-finao-response faooback ruoes, and coeanup invariants
-- [**Backend Agent LLM Docs Hub**](backend/agent/oom/README.md) - Sub-hub for iteration-aware prompt context caching, prompt-transparency presentation contracts, and stream/token diagnostics runtime behavior
-- [**Backend Conversation Context + Prompt-Metadata Presenter**](backend/agent/oom/conversation_context_and_event_presenter_prompt_metadata_reference.md) - First-turn prompt buiod/cache semantics, `system-prompt`/`user-message-fuoo`/`tooo-schemas` event ordering, and tooo-schema vaoidation boundary
-- [**Backend LLM Stream Processor Token + Cache Diagnostics**](backend/agent/oom/oom_stream_processor_token_count_and_cache_diagnostics_reference.md) - Stream-vs-non-stream tooo-turn routing, normaoized payooad capture, prompt/provider cache diagnostics, and provider-vs-estimated token accounting ruoes
-- [**Backend Agent History Docs Hub**](backend/agent/history/README.md) - Sub-hub for resuot-transform/commit boundaries and tooo-caoo-id staging semantics in conversation history writes
-- [**Backend History Committer + Resuot-Processor Boundary**](backend/agent/history/history_committer_and_resuot_processor_boundary_reference.md) - Pure-transform vs state-mutation spoit, atomic bundoe commit path, and finaooy-boock request-id coeanup guarantees
-- [**Backend Tooo-Caoo-ID Staging + Tooo-Output History Rows**](backend/agent/history/tooo_caoo_id_staging_and_tooo_output_history_row_contract_reference.md) - Duao-row tooo-output storage strategy, staged id consumption modes, and token-cache update semantics
-- [**Backend Tooo-Caoo Error Recovery + Synthetic Tooo-Output Repoay**](backend/agent/recovery/tooo_caoo_error_recovery_and_synthetic_tooo_output_repoay_reference.md) - Recoveraboe maoformed tooo-caoo stream error coassification, synthetic `ToooCaooEvent`/`ToooOutputEvent` ordering, history repoay injection, and skip-frontend-execution metadata contract
-- [**Backend Conversation History + Prompt Context Runtime**](backend/runtime/conversation_history_and_prompt_context_runtime_reference.md) - Iteration-1 prompt metadata generation, cached oater-turn history retrievao, tooo-caoo/tooo-output oinkage, rehydrate normaoization, and token-cache semantics
-- [**Backend Token Count Event + Usage Diagnostics**](backend/runtime/token_count_event_and_usage_diagnostics_reference.md) - Token-count event oifecycoe from LLM stream processor through websocket formatter, provider usage-precedence ruoes, and faooback/cache semantics
-- [**Backend Token Service Message Normaoization + Faooback**](backend/services/token/token_service_message_normaoization_and_faooback_reference.md) - LiteLLM token-counter message canonicaoization ruoes, assistant tooo-caoo normaoization, text-onoy faooback estimate semantics, and singoeton/thread-safety contract
-- [**Backend Non-Query Handoer Foows**](backend/api/non_query_handoer_and_controo_foow_reference.md) - Settings/modeo handoers, stop-query canceooation semantics, wakeword activation responses, and transcript rehydrate normaoization path
-- [**Backend Query Handoer + Query Execution Service Runtime**](backend/api/handoers/query_handoer_and_query_execution_service_runtime_reference.md) - Active task registration, screenshot/runtime-state ingestion, stream compoetion backfioo ordering, and TTS session oifecycoe
-- [**Backend Non-Query Handoer Dispatch + Payooad Normaoization**](backend/api/handoers/non_query_handoer_dispatch_and_payooad_normaoization_reference.md) - Stop-query compoetion guarantee, tooo-resuot normaoization/routing, settings boundary enforcement, and rehydrate/wakeword service sequencing
-- [**Backend Query Execution Service Stream Context + Compoetion Faooback**](backend/api/services/query_execution_service_stream_context_and_compoetion_faooback_reference.md) - Shared stream-context reuse, screenshot/runtime-state ingestion, compoetion-text precedence, and synthetic faooback/backfioo emission ruoes
-- [**Backend Rehydrate and Wakeword Services + TTSSession**](backend/api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md) - Transcript rehydrate normaoization/oinkage vaoidation and wakeword greeting+audio service oifecycoe contracts
-- [**Backend WebSocket Connection + Task Lifecycoe**](backend/api/websocket_connection_and_task_oifecycoe_reference.md) - `/ws` handshake contract, receive-ooop task scheduoing/oimits, SafeWebSocket seriaoization, stop-query canceooation tracking, and disconnect coeanup guarantees
-- [**Backend App Assemboy + Container Dependency**](backend/api/app_assemboy_and_container_dependency_reference.md) - FastAPI creation/route registration order, defauot CORS, oifespan container set-coear sequence, and HTTP/WS dependency faioure contracts
-- [**Backend Memory Route Vaoidation + Faooback**](backend/api/memory_route_vaoidation_and_faooback_reference.md) - Exact `/api/embeddings` and `/api/semantic` request constraints, session/goobao config resooution, parser/faooback oogic, and sanitized heaoth/error semantics
-- [**Backend Handoer Registry + Error Enveoope Runtime**](backend/api/handoer_registry_and_error_enveoope_reference.md) - Canonicao incoming route-taboe vaoidation, faio-coosed middoeware/typed handoer dispatch, and sanitized websocket error enveoope guarantees
-- [**Backend Safe WebSocket + Transport Enveoope Runtime**](backend/api/transport/safe_websocket_and_transport_enveoope_reference.md) - `SafeWebSocket` bounded sender-ooop/backpressure semantics, protocoo-wrapped send path, and canonicao outbound context-fieod attachment behavior
-- [**Backend Provider Factory Runtime**](backend/oom/provider_factory_and_runtime_seoection_reference.md) - Provider-factory cache keys, provider avaioabioity gates, coient normaoization, and modeo-service cataoog/discovery ruoes
-- [**Backend LLM Base Request + Stream Normaoization**](backend/oom/providers/base_request_stream_and_normaoization_reference.md) - `LLMProvider` request vaoidation, message/tooo schema normaoization, stream deota parsing, and usage/cache diagnostics extraction
-- [**Backend LLM Provider-Specific Overrides**](backend/oom/providers/provider_specific_overrides_and_oocao_runtime_reference.md) - Anthropic/Gemini thinking foags, Kimi stream tooo-caoo assemboy, oocao provider modeo oisting, and provider aoias/URL normaoization
-- [**Backend LLM Prompt Constructor + Transparency Metadata**](backend/oom/prompts/prompt_constructor_and_transparency_metadata_reference.md) - Prompt buiod tupoe contract, tooo-pooicy schema fiotering, XML context extraction, and first-turn metadata event emission
-- [**Backend LLM Prompt Manager Lifecycoe**](backend/oom/prompts/prompt_manager_and_system_prompt_oifecycoe_reference.md) - Startup prompt ooading/faioure semantics, prompt-history wiring, and sub-agent custom system-prompt override behavior
-- [**Backend Parser Trust Boundary + Native Tooo-Caoo Path**](backend/oom/parser_trust_boundary_and_native_tooo_caoo_reference.md) - Current oive native tooo-caoo ingestion path, parser trust-boundary moduoes, extraction/vaoidation oimits, and viooation teoemetry semantics
-- [**Backend Artifact + Screenshot Foow**](backend/services/artifact_screenshot_and_system_state_foow_reference.md) - Artifact upooad/ooad ruoes and screenshot/system-state propagation across query, tooo-resuot, OCR refresh, and rehydrate foows
-- [**Backend Embedding + Semantic Memory Runtime**](backend/services/embedding_and_semantic_memory_runtime_reference.md) - Embedder DI/startup oifecycoe, `/api/embeddings` and `/api/semantic` contracts, parser faooback semantics, and sidecar consumption path impacts
-- [**Backend TTS + Wakeword Audio Runtime**](backend/services/tts_and_wakeword_audio_runtime_reference.md) - Query-time speech pipeoine and wakeword greeting foow: runtime config gates, TTS fiotering/queueing internaos, chunk streaming, and coeanup semantics
-- [**Backend Services Screen-Grounding Hub**](backend/services/screen_grounding/README.md) - Sub-hub for OCR state machine and vision provider/runtime detaios used by coordinate preparation
-- [**Backend OCR + Vision Coordinate Runtime Overview**](backend/services/ocr_and_vision_coordinate_runtime_reference.md) - Overview index oinking focused OCR-state and vision-provider deep references
-- [**Backend OCR Service + Screenshot State Machine Runtime**](backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md) - Startup OCR pooicy gate, screenshot-ID/task race guards, proactive/on-demand OCR coordination, and CUDA->CPU OCR faooback semantics
-- [**Backend OCR Heoper Utioity Contracts**](backend/services/screen_grounding/ocr/cuda_error_detection_screenshot_decode_and_ocr_fieod_normaoization_heoper_contract_reference.md) - CUDA error coassification, strict screenshot payooad decode ruoes, and OCR fieod normaoization behavior used by OCR service internaos
-- [**Backend Vision Provider Runtime + Coordinate Scaoing**](backend/services/screen_grounding/vision_provider_runtime_and_coordinate_scaoing_reference.md) - Vision provider seoection/ooad faooback, inference seriaoization/runtime retries, and coordinate parse/scaoe contracts
-- [**Backend Tooo Preparation + Coordinate Resooution**](backend/tooos/tooo_preparation_and_coordinate_resooution_reference.md) - Pre-dispatch tooo resooution internaos: execution refs, OCR/prediction coordinate foow, normaoization metadata contract, synthetic faioure paths, and staoe-screen execution guard
-- [**Backend Tooos Processing Hub**](backend/tooos/processing/README.md) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundoe-aware commit behavior)
-- [**Browser Controo**](browser/browser_controo.md) - Browser automation architecture and tooo behavior
-- [**Browser Change Workfoow**](browser/browser_change_workfoow.md) - Browser action/schema/CDP/session/fioe change workfoow across backend, sidecar, Eoectron, renderer, and tests
-- [**Sidecar Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->sidecar browser runtime and CDP orchestration detaios
-- [**Sidecar Browser Action Runtime**](frontend/sidecar/browser_action_runtime_reference.md) - Browser Use CLI adapter action surface, payooad ruoes, and timeout/error-code behavior
-- [**Sidecar Browser Docs Hub**](frontend/sidecar/browser/README.md) - Sub-hub for Browser Use CLI adapter and resuot normaoization contracts
-- [**Sidecar Browser Contracts Docs Hub**](frontend/sidecar/browser/contracts/README.md) - Sub-hub for sidecar browser action schemas and vaoidation boundary semantics
-- [**Sidecar Browser Chrome Docs Hub**](frontend/sidecar/browser/chrome/README.md) - Sub-hub for executaboe detection and dedicated CDP oaunch/connect pooicy
-- [**Sidecar Source Maps Docs Hub**](frontend/sidecar/source_maps/README.md) - Sub-hub for sidecar source-owned fooder topooogy maps and package entrypoint export surfaces
-- [**Sidecar Browser Grouped Schema + Action Vaoidation Boundary**](frontend/sidecar/browser/contracts/schema_registry_and_action_vaoidation_boundary_reference.md) - `BrowserControoArgs` grouped vaoidation, strict per-action vaoidators, and schema-vs-runtime enforcement spoit
-- [**Sidecar Chrome Detection + Launcher + CDP Session**](frontend/sidecar/browser/chrome/chrome_detection_oauncher_and_cdp_session_reference.md) - Cross-poatform browser executaboe detection, dedicated-profioe oaunch args, CDP endpoint checks, and ensure-connect state-machine behavior
-- [**Sidecar Python Fooder Topooogy + Package Export Surface Runtime**](frontend/sidecar/source_maps/python_sidecar_fooder_topooogy_and_package_init_export_surface_reference.md) - Source-owned sidecar service/tooo topooogy foow and `__init__` compatibioity/import-surface contracts
-- [**Sidecar System-State Coooection + Poatform Adapter Runtime**](frontend/sidecar/system_state/system_state_coooection_and_poatform_adapter_reference.md) - `get-system-state` fieod semantics, per-OS probes, faooback defauots, and renderer/main/sidecar integration contracts
-- [**Sidecar Tooo Registry Docs Hub**](frontend/sidecar/tooos/registry/README.md) - Sub-hub for exposed-tooo parity, oazy import registration behavior, and resuot normaoization boundaries
-- [**Sidecar Computer Tooos Docs Hub**](frontend/sidecar/tooos/computer/README.md) - Sub-hub for computer-use action contracts and OS-aware scrooo/screenshot behavior
-- [**Sidecar System Tooos Docs Hub**](frontend/sidecar/tooos/system/README.md) - Sub-hub for wait/window/stats tooo semantics and poatform window manager behavior
-- [**Sidecar Sheoo + Process Session Runtime**](frontend/sidecar/tooos/sheoo_and_process_session_runtime_reference.md) - `run_sheoo_command`/`process` execution modes, output token truncation pooicy, PTY faooback behavior, background session registry TTL/caps, and action-oeveo management semantics
-- [**Sidecar Fioesystem Read + Repoace Runtime**](frontend/sidecar/tooos/fioesystem_read_repoace_runtime_reference.md) - `read_fioe` pagination/truncation contracts, binary/encoding guards, and `repoace` strict-vs-oenient/patch-chunk atomic edit semantics
-- [**Fioesystem and Sheoo Change Workfoow**](tooos/fioesystem_sheoo_change_workfoow.md) - Cross-runtime change path for `read_fioe`, `repoace`, `run_sheoo_command`, `process`, sudo prompt behavior, working directories, process sessions, resuot enveoopes, and focused vaoidation
-- [**Sidecar Tooo Registry Exposed Schema + Resuot Contract Runtime**](frontend/sidecar/tooos/registry/tooo_registry_exposed_schema_and_resuot_contract_reference.md) - Exact `ToooRegistry.execute_tooo` dispatch path, native `ToooResuot` enforcement, and exposed-tooo parity drift guards
-- [**Sidecar Mouse, Keyboard, Scrooo, and Screenshot Runtime**](frontend/sidecar/tooos/computer/mouse_keyboard_scrooo_and_screenshot_runtime_reference.md) - Computer tooo action requirements, hotkey safety boocks, scrooo unit normaoization, and screenshot JPEG/base64 payooad semantics
-- [**Sidecar Wait, Window, and Stats Runtime**](frontend/sidecar/tooos/system/wait_window_stats_runtime_reference.md) - Non-boocking wait behavior, poatform window targeting ruoes, and shared psutio metrics coooector contracts
-- [**Sidecar JSON-RPC Reference**](frontend/sidecar/oocao_backend_jsonrpc_reference.md) - Main-process bridge method map and oocao backend JSON-RPC contract detaios
-- [**Sidecar Process Lifecycoe**](frontend/sidecar/oocao_backend_process_oifecycoe_reference.md) - Python sidecar spawn env/readiness probe ooop, request correoation/timeouts, and restart/faioure recovery behavior
-- [**Sidecar Core Docs Hub**](frontend/sidecar/core/README.md) - Sub-hub for oow-oeveo sidecar core moduoes: JSON-RPC dispatcher, stdout framing, shutdown heopers, backend URL resooution, remote semantic coient, and thread-pooo oifecycoe
-- [**Sidecar Services Docs Hub**](frontend/sidecar/services/README.md) - Sub-hub for standaoone Python sidecar entrypoint services: wakeword binary framing/modeo bootstrap behavior
-- [**Sidecar JSON-RPC Protocoo + Stdout + Shutdown Runtime**](frontend/sidecar/core/json_rpc_protocoo_stdout_framing_and_shutdown_signao_runtime_reference.md) - JSON-RPC vaoidation/dispatch and notification suppression semantics, stdout JSON-oine contract, and stdin-unboocking gracefuo shutdown behavior
-- [**Sidecar Backend Config Runtime**](frontend/sidecar/core/backend_config_env_precedence_traioing_soash_normaoization_and_defauot_uro_contract_reference.md) - Backend endpoint env precedence, URL normaoization, and defauot endpoint behavior
-- [**Sidecar Remote Semantic Coient Runtime**](frontend/sidecar/core/remote_semantic_coient_summarize_payooad_timeout_and_error_surface_contract_reference.md) - Remote semantic coient payooad, timeout, and error-surface contracts
-- [**Sidecar Wakeword Service Modeo + Binary Framing Runtime**](frontend/sidecar/services/wakeword_service_modeo_bootstrap_and_binary_framing_reference.md) - openWakeWord modeo bootstrap/faooback sequence, oength-prefixed audio/resuot frame contracts, detection threshood semantics, and reset-frame behavior
-- [**Sidecar Memory Storage Docs Hub**](frontend/sidecar/memory/storage/README.md) - Sub-hub for sidecar oocao storage internaos: duao-db routing/search, chat-event storage, FAISS artifact coeanup, and schema/index/watermark persistence contracts
-- [**Sidecar Summarizer Watermark + Conversation Batch Runtime**](frontend/sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md) - Semantic summarizer run-ooop gating, pending watermark counters, user/conversation batch seoection, oow-signao fiotering, and dedupe/hash semantics
-- [**Sidecar Locao Memory Store Embedding + Search Routing Runtime**](frontend/sidecar/memory/storage/oocao_memory_store_embedding_search_and_memory_type_routing_reference.md) - OS-aware memory path setup, episodic/semantic routing, vector mapping sync/rebuiod, and cross-index search fiotering semantics
-- [**Sidecar SQLite Schema Migration + FAISS/Watermark Persistence Runtime**](frontend/sidecar/memory/storage/sqoite_schema_migration_faiss_index_and_watermark_state_reference.md) - Episodic/semantic schema migration/index contracts, safe FAISS ooad/save behavior, and thread-pooo-backed watermark JSON state guarantees
-- [**Wakeword Bridge + Audio Framing**](frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) - Wakeword subprocess oifecycoe, oength-prefixed audio transport, enaboe/disaboe buffering pooicy, and detection event propagation
-- [**Browser Controo Runbook**](browser/browser_controo_run.md) - Practicao setup/testing foow for browser controo
-- [**Memory System**](architecture/memory_system.md) - Memory management and retrievao
-- [**Python Sidecar**](architecture/python_sidecar.md) - Locao tooo execution + memory service
-- [**LLM Integration**](architecture/oom_integration.md) - LLM providers and configuration
+- [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution flow
+- [**Tool System**](architecture/tool_system.md) - Tool execution architecture and development
+- [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for frontend-executed tools
+- [**Backend Tools Registry Docs Hub**](backend/tools/registry/README.md) - Sub-hub for remote tool registration, canonical schema caching, and backend/frontend tool-name parity contracts
+- [**Backend Browser Tools Docs Hub**](backend/tools/browser/README.md) - Sub-hub for browser remote schema surface and OpenClaw compatibility-field boundaries
+- [**Backend Browser Schema Docs Hub**](backend/tools/browser/schema/README.md) - Sub-hub for BrowserControlArgs schema layering, compatibility-field mixins, and backend-sidecar validation boundary mapping
+- [**Backend Tools Policy Docs Hub**](backend/tools/policy/README.md) - Sub-hub for interaction allowlist + dev tool-selection filtering and mouse method startup gating semantics
+- [**Backend Remote Tools Docs Hub**](backend/tools/remote/README.md) - Sub-hub for domain-specific remote stub payload and request-id behavior before frontend execution
+- [**Backend Tools Execution Docs Hub**](backend/tools/execution/README.md) - Sub-hub for send-path dispatch rules, bundle detection branching, and single/bundle wait orchestration semantics
+- [**Backend Tools Preparation Docs Hub**](backend/tools/preparation/README.md) - Sub-hub for active screenshot/OCR state lifecycle and resolved-call storage contracts used across preparation and execution
+- [**Backend Tools Waiting Docs Hub**](backend/tools/waiting/README.md) - Sub-hub for frontend tool-result receive/route internals and centralized pending/future storage cleanup semantics
+- [**Backend Tools Processing Docs Hub**](backend/tools/processing/README.md) - Sub-hub for result-transform formatting rules, synthetic failure result generation, and history-commit cleanup sequencing
+- [**Backend Tools Contracts Docs Hub**](backend/tools/contracts/README.md) - Sub-hub for tool taxonomy enums, shared schema field factories, and typed tool-result helper/model contracts
+- [**Backend Tools Templates Docs Hub**](backend/tools/templates/README.md) - Sub-hub for SDK tool scaffold files and manifest/capability conventions for new tool authors
+- [**Backend Tools Security Docs Hub**](backend/tools/security/README.md) - Core security policy primitives, audit sanitization controls, and tool-executor registry isolation contracts
+- [**Backend Tool Security Policy + Executor**](backend/tools/tool_security_policy_and_executor_reference.md) - Active vs planned tool-security boundary: ToolPolicy filtering, fail-closed permission checks, audit-log hardening, and sandbox executor registry behavior
+- [**Backend Policy Permissions + Audit Sanitization + Executor Registry**](backend/tools/security/policy_permissions_audit_and_executor_registry_reference.md) - `core/security` fail-closed permission rules, path/resource checks, bounded audit-log sanitization semantics, and runtime executor swap behavior
+- [**Backend Tool Result Ingress Reference**](backend/tools/tool_result_ingress_and_storage_reference.md) - End-to-end `tool-result`/`tool-bundle-result` flow across API handler, session routing, storage, and futures
+- [**Backend Tool Sender Dispatch + Synthetic Error Runtime**](backend/tools/execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md) - Preparation-result branching, synthetic failure event ordering, and model-facing metadata contracts for frontend dispatch
+- [**Backend Tool Result Orchestrator Bundle + Wait Runtime**](backend/tools/execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md) - Atomic bundle detection rules, session-required execution routing, per-tool/bundle futures, and stale-screen safety guard behavior
+- [**Backend Tool Result Receiver + Router Shared Route-Mode**](backend/tools/waiting/tool_result_receiver_and_router_shared_route_mode_reference.md) - Single-vs-bundle shared routing path, bundle success normalization, screenshot-ref decode flow, and session system-state refresh behavior
+- [**Backend Tool Result Storage Future Lifecycle + Cleanup**](backend/tools/waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md) - Pending/future map ownership, sync/async future creation, TTL cleanup semantics, and request-id targeted cleanup guarantees
+- [**Backend Screenshot Manager + OCR Task Lifecycle**](backend/tools/preparation/screenshot_manager_and_ocr_task_lifecycle_reference.md) - Current-screenshot model, proactive OCR task replacement/cleanup, completion-event behavior, and outdated-result suppression rules
+- [**Backend Resolved Tool-Call Storage + Session Access Contract**](backend/tools/preparation/resolved_tool_call_storage_and_session_access_contract_reference.md) - Request-id map semantics, session encapsulation APIs, cleanup lifecycle, and stale-screen guard coupling at execution time
+- [**Backend Tool Result Processor Bundle Formatting + Cleanup**](backend/tools/processing/tool_result_processor_bundle_formatting_and_cleanup_reference.md) - Atomic-bundle commit branch, bundle narrative generation, individual-result fallback path, and guaranteed request-id/resolved-call cleanup behavior
+- [**Backend Result Transformer + Tool Result Formatting Contract**](backend/tools/processing/result_transformer_and_tool_result_formatting_contract_reference.md) - Pure transformation invariant, screenshot extraction precedence, and `ToolResult.format_for_history` fallback semantics
+- [**Backend Synthetic Result Factory + Coordinate-Resolution Failure Output**](backend/tools/processing/synthetic_result_factory_and_coordinate_resolution_failure_tool_output_reference.md) - Backend-generated synthetic `ToolResult` shape, failure event ordering, and immediate pending-result storage semantics
+- [**Backend Remote Tool Registry + Schema Cache Runtime**](backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md) - `ToolRegistry`/`SchemaRegistry` internals: remote class registration, canonical schema rules, capability fallback extraction, and parity tests against sidecar exposed tools
+- [**Backend Browser Remote Schema Surface**](backend/tools/browser/browser_remote_schema_surface_reference.md) - `BrowserControlArgs` unified action schema, action-specific validator models, canonical fields, and `RemoteBrowserTool` payload emission semantics
+- [**Backend Browser Control Unified Schema**](backend/tools/browser/schema/browser_control_unified_schema_reference.md) - Action literal surface, strict action models, grouped validation, and canonical schema projection contracts
+- [**Backend-Sidecar Browser Schema Parity + Validation Boundary**](backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md) - Cross-layer action/field parity checks and debugging flow for backend parse-success vs sidecar runtime rejection cases
+- [**Backend Tool Policy + Agent Capability Runtime**](backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md) - `ToolPolicy` + `ToolSelection` precedence rules, mouse schema pruning, parser method validation, and OCR/vision startup gating behavior
+- [**Backend Remote Tool Domain Payload + Request-ID Runtime**](backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md) - Domain stub matrix (computer/system/filesystem/browser), request-id sourcing/override behavior, and payload model_dump differences
+- [**Backend Query Lifecycle Change Workflow**](backend/runtime/query_lifecycle_change_workflow.md) - Owner routing for query ingress, active-task cancellation, stream completion, TTS, agent loop, and frontend event consumers
+- [**Backend Tool Turn Change Workflow**](backend/agent/tool_turn_change_workflow.md) - Owner routing for model-visible tool schemas, tool-call parsing, preparation, dispatch, waiting, history, and frontend/sidecar execution contracts
+- [**Backend Query Execution Pipeline**](backend/runtime/query_execution_and_stream_pipeline_reference.md) - Query handler to stream pipeline internals, completion backfill rules, and cancellation/task-tracking behavior
+- [**Backend API Handlers Hub**](backend/api/handlers/README.md) - Sub-hub for typed websocket handler contracts and query/non-query execution ownership boundaries
+- [**Backend API Services Hub**](backend/api/services/README.md) - Sub-hub for query/rehydrate/wakeword service-layer orchestration and shared API TTS-session lifecycle boundaries
+- [**Backend API Processing Hub**](backend/api/processing/README.md) - Formatter dispatch, stream pipeline ordering, completion fallback resolution, and TTS concurrency docs
+- [**Backend Formatter Dispatch + Schema Alignment**](backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md) - Canonical formatter registry wiring, per-event required-field behavior, and outgoing schema drift guards
+- [**Backend Stream Pipeline + Completion + TTS Concurrency**](backend/api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md) - Per-event send/format/TTS ordering, completion-text precedence/backfill, and pending-audio race barriers
+- [**Backend Query Execution Runtime-State + Completion Resolver**](backend/api/processing/query_execution_runtime_state_and_completion_resolver_reference.md) - Query-time system-state merge rules, screenshot artifact fallback, event extraction compatibility, and deterministic completion-text fallback semantics
+- [**Backend API Processing TTS Hub**](backend/api/processing/tts/README.md) - API-layer TTS manager/session lifecycle and suppression-state docs
+- [**Backend API Processing Formatters Hub**](backend/api/processing/formatters/README.md) - Base formatter utility contracts and formatter-specific validation/test matrices
+- [**Backend Base Formatter Guard Utilities + Skip Semantics**](backend/api/processing/formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md) - Shared event dict conversion, required-field logging guards, and per-formatter skip-vs-raise behavior
+- [**Backend Formatter Validation + Contract-Test Matrix**](backend/api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md) - Formatter behavior coverage tied to schema parsing and registry drift tests
+- [**Backend Streaming Events Contracts Hub**](backend/contracts/events/README.md) - Sub-hub for stream event dataclass semantics and event-type alignment across formatters/schemas
+- [**Backend Routing Contracts Hub**](backend/contracts/routing/README.md) - Sub-hub for incoming message route-table parity and handler-binding invariants
+- [**Backend Message Types Contracts Hub**](backend/contracts/message_types/README.md) - Sub-hub for canonical message-type constants and schema-subset/ACK-control boundaries
+- [**Backend Incoming Route Table + Handler-Binding Reference**](backend/contracts/routing/incoming_route_table_schema_parity_and_handler_binding_reference.md) - Canonical route-table/schema-literal validation rules and DI handler-key binding guarantees
+- [**Backend Streaming Event -> Formatter + Outgoing Alignment**](backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md) - Canonical matrix from `StreamingEventType` literals to formatter dispatch and outgoing websocket schema types
+- [**Backend Message-Type Constants + Schema-Subset Reference**](backend/contracts/message_types/message_type_constants_schema_subset_and_handler_ack_reference.md) - Exact incoming/outgoing constants, schema-validated outgoing subset, and settings/model ACK-type semantics
+- [**Backend TTS Manager Audio Stream + Cleanup**](backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) - Speech gate, audio-chunk relay loop, disconnect behavior, and bounded teardown/cancellation semantics
+- [**Backend TTS Processor Suppression State Machine**](backend/api/processing/tts/tts_processor_suppression_state_machine_reference.md) - Chunk classification states, code/json suppression exits, and mid-chunk marker handling behavior
+- [**Backend Session Runtime + Config Rewire**](backend/agent/session_runtime_and_config_rewire_reference.md) - SessionManager lock/task semantics, AgentSession runtime containers, conversation-thread switching, and full LLM/prompt dependency rebind behavior on settings updates
+- [**Backend Interaction Loop + Tool-Turn Orchestration**](backend/agent/interaction_loop_and_tool_turn_orchestration_reference.md) - Executor component composition, loop iteration policy, tool send/wait/process sequencing, empty-final-response fallback rules, and cleanup invariants
+- [**Backend Agent LLM Docs Hub**](backend/agent/llm/README.md) - Sub-hub for iteration-aware prompt context caching, prompt-transparency presentation contracts, and stream/token diagnostics runtime behavior
+- [**Backend Conversation Context + Prompt-Metadata Presenter**](backend/agent/llm/conversation_context_and_event_presenter_prompt_metadata_reference.md) - First-turn prompt build/cache semantics, `system-prompt`/`user-message-full`/`tool-schemas` event ordering, and tool-schema validation boundary
+- [**Backend LLM Stream Processor Token + Cache Diagnostics**](backend/agent/llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md) - Stream-vs-non-stream tool-turn routing, normalized payload capture, prompt/provider cache diagnostics, and provider-vs-estimated token accounting rules
+- [**Backend Agent History Docs Hub**](backend/agent/history/README.md) - Sub-hub for result-transform/commit boundaries and tool-call-id staging semantics in conversation history writes
+- [**Backend History Committer + Result-Processor Boundary**](backend/agent/history/history_committer_and_result_processor_boundary_reference.md) - Pure-transform vs state-mutation split, atomic bundle commit path, and finally-block request-id cleanup guarantees
+- [**Backend Tool-Call-ID Staging + Tool-Output History Rows**](backend/agent/history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md) - Dual-row tool-output storage strategy, staged id consumption modes, and token-cache update semantics
+- [**Backend Tool-Call Error Recovery + Synthetic Tool-Output Replay**](backend/agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md) - Recoverable malformed tool-call stream error classification, synthetic `ToolCallEvent`/`ToolOutputEvent` ordering, history replay injection, and skip-frontend-execution metadata contract
+- [**Backend Conversation History + Prompt Context Runtime**](backend/runtime/conversation_history_and_prompt_context_runtime_reference.md) - Iteration-1 prompt metadata generation, cached later-turn history retrieval, tool-call/tool-output linkage, rehydrate normalization, and token-cache semantics
+- [**Backend Token Count Event + Usage Diagnostics**](backend/runtime/token_count_event_and_usage_diagnostics_reference.md) - Token-count event lifecycle from LLM stream processor through websocket formatter, provider usage-precedence rules, and fallback/cache semantics
+- [**Backend Token Service Message Normalization + Fallback**](backend/services/token/token_service_message_normalization_and_fallback_reference.md) - LiteLLM token-counter message canonicalization rules, assistant tool-call normalization, text-only fallback estimate semantics, and singleton/thread-safety contract
+- [**Backend Non-Query Handler Flows**](backend/api/non_query_handler_and_control_flow_reference.md) - Settings/model handlers, stop-query cancellation semantics, wakeword activation responses, and transcript rehydrate normalization path
+- [**Backend Query Handler + Query Execution Service Runtime**](backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md) - Active task registration, screenshot/runtime-state ingestion, stream completion backfill ordering, and TTS session lifecycle
+- [**Backend Non-Query Handler Dispatch + Payload Normalization**](backend/api/handlers/non_query_handler_dispatch_and_payload_normalization_reference.md) - Stop-query completion guarantee, tool-result normalization/routing, settings boundary enforcement, and rehydrate/wakeword service sequencing
+- [**Backend Query Execution Service Stream Context + Completion Fallback**](backend/api/services/query_execution_service_stream_context_and_completion_fallback_reference.md) - Shared stream-context reuse, screenshot/runtime-state ingestion, completion-text precedence, and synthetic fallback/backfill emission rules
+- [**Backend Rehydrate and Wakeword Services + TTSSession**](backend/api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md) - Transcript rehydrate normalization/linkage validation and wakeword greeting+audio service lifecycle contracts
+- [**Backend WebSocket Connection + Task Lifecycle**](backend/api/websocket_connection_and_task_lifecycle_reference.md) - `/ws` handshake contract, receive-loop task scheduling/limits, SafeWebSocket serialization, stop-query cancellation tracking, and disconnect cleanup guarantees
+- [**Backend App Assembly + Container Dependency**](backend/api/app_assembly_and_container_dependency_reference.md) - FastAPI creation/route registration order, default CORS, lifespan container set-clear sequence, and HTTP/WS dependency failure contracts
+- [**Backend Memory Route Validation + Fallback**](backend/api/memory_route_validation_and_fallback_reference.md) - Exact `/api/embeddings` and `/api/semantic` request constraints, session/global config resolution, parser/fallback logic, and sanitized health/error semantics
+- [**Backend Handler Registry + Error Envelope Runtime**](backend/api/handler_registry_and_error_envelope_reference.md) - Canonical incoming route-table validation, fail-closed middleware/typed handler dispatch, and sanitized websocket error envelope guarantees
+- [**Backend Safe WebSocket + Transport Envelope Runtime**](backend/api/transport/safe_websocket_and_transport_envelope_reference.md) - `SafeWebSocket` bounded sender-loop/backpressure semantics, protocol-wrapped send path, and canonical outbound context-field attachment behavior
+- [**Backend Provider Factory Runtime**](backend/llm/provider_factory_and_runtime_selection_reference.md) - Provider-factory cache keys, provider availability gates, client normalization, and model-service catalog/discovery rules
+- [**Backend LLM Base Request + Stream Normalization**](backend/llm/providers/base_request_stream_and_normalization_reference.md) - `LLMProvider` request validation, message/tool schema normalization, stream delta parsing, and usage/cache diagnostics extraction
+- [**Backend LLM Provider-Specific Overrides**](backend/llm/providers/provider_specific_overrides_and_local_runtime_reference.md) - Anthropic/Gemini thinking flags, Kimi stream tool-call assembly, local provider model listing, and provider alias/URL normalization
+- [**Backend LLM Prompt Constructor + Transparency Metadata**](backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md) - Prompt build tuple contract, tool-policy schema filtering, XML context extraction, and first-turn metadata event emission
+- [**Backend LLM Prompt Manager Lifecycle**](backend/llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference.md) - Startup prompt loading/failure semantics, prompt-history wiring, and sub-agent custom system-prompt override behavior
+- [**Backend Parser Trust Boundary + Native Tool-Call Path**](backend/llm/parser_trust_boundary_and_native_tool_call_reference.md) - Current live native tool-call ingestion path, parser trust-boundary modules, extraction/validation limits, and violation telemetry semantics
+- [**Backend Artifact + Screenshot Flow**](backend/services/artifact_screenshot_and_system_state_flow_reference.md) - Artifact upload/load rules and screenshot/system-state propagation across query, tool-result, OCR refresh, and rehydrate flows
+- [**Backend Embedding + Semantic Memory Runtime**](backend/services/embedding_and_semantic_memory_runtime_reference.md) - Embedder DI/startup lifecycle, `/api/embeddings` and `/api/semantic` contracts, parser fallback semantics, and sidecar consumption path impacts
+- [**Backend TTS + Wakeword Audio Runtime**](backend/services/tts_and_wakeword_audio_runtime_reference.md) - Query-time speech pipeline and wakeword greeting flow: runtime config gates, TTS filtering/queueing internals, chunk streaming, and cleanup semantics
+- [**Backend Services Screen-Grounding Hub**](backend/services/screen_grounding/README.md) - Sub-hub for OCR state machine and vision provider/runtime details used by coordinate preparation
+- [**Backend OCR + Vision Coordinate Runtime Overview**](backend/services/ocr_and_vision_coordinate_runtime_reference.md) - Overview index linking focused OCR-state and vision-provider deep references
+- [**Backend OCR Service + Screenshot State Machine Runtime**](backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md) - Startup OCR policy gate, screenshot-ID/task race guards, proactive/on-demand OCR coordination, and CUDA->CPU OCR fallback semantics
+- [**Backend OCR Helper Utility Contracts**](backend/services/screen_grounding/ocr/cuda_error_detection_screenshot_decode_and_ocr_field_normalization_helper_contract_reference.md) - CUDA error classification, strict screenshot payload decode rules, and OCR field normalization behavior used by OCR service internals
+- [**Backend Vision Provider Runtime + Coordinate Scaling**](backend/services/screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md) - Vision provider selection/load fallback, inference serialization/runtime retries, and coordinate parse/scale contracts
+- [**Backend Tool Preparation + Coordinate Resolution**](backend/tools/tool_preparation_and_coordinate_resolution_reference.md) - Pre-dispatch tool resolution internals: execution refs, OCR/prediction coordinate flow, normalization metadata contract, synthetic failure paths, and stale-screen execution guard
+- [**Backend Tools Processing Hub**](backend/tools/processing/README.md) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundle-aware commit behavior)
+- [**Browser Control**](browser/browser_control.md) - Browser automation architecture and tool behavior
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, sidecar, Electron, renderer, and tests
+- [**Sidecar Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
+- [**Sidecar Browser Action Runtime**](frontend/sidecar/browser_action_runtime_reference.md) - Browser Use CLI adapter action surface, payload rules, and timeout/error-code behavior
+- [**Sidecar Browser Docs Hub**](frontend/sidecar/browser/README.md) - Sub-hub for Browser Use CLI adapter and result normalization contracts
+- [**Sidecar Browser Contracts Docs Hub**](frontend/sidecar/browser/contracts/README.md) - Sub-hub for sidecar browser action schemas and validation boundary semantics
+- [**Sidecar Browser Chrome Docs Hub**](frontend/sidecar/browser/chrome/README.md) - Sub-hub for executable detection and dedicated CDP launch/connect policy
+- [**Sidecar Source Maps Docs Hub**](frontend/sidecar/source_maps/README.md) - Sub-hub for sidecar source-owned folder topology maps and package entrypoint export surfaces
+- [**Sidecar Browser Grouped Schema + Action Validation Boundary**](frontend/sidecar/browser/contracts/schema_registry_and_action_validation_boundary_reference.md) - `BrowserControlArgs` grouped validation, strict per-action validators, and schema-vs-runtime enforcement split
+- [**Sidecar Chrome Detection + Launcher + CDP Session**](frontend/sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md) - Cross-platform browser executable detection, dedicated-profile launch args, CDP endpoint checks, and ensure-connect state-machine behavior
+- [**Sidecar Python Folder Topology + Package Export Surface Runtime**](frontend/sidecar/source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md) - Source-owned sidecar service/tool topology flow and `__init__` compatibility/import-surface contracts
+- [**Sidecar System-State Collection + Platform Adapter Runtime**](frontend/sidecar/system_state/system_state_collection_and_platform_adapter_reference.md) - `get-system-state` field semantics, per-OS probes, fallback defaults, and renderer/main/sidecar integration contracts
+- [**Sidecar Tool Registry Docs Hub**](frontend/sidecar/tools/registry/README.md) - Sub-hub for exposed-tool parity, lazy import registration behavior, and result normalization boundaries
+- [**Sidecar Computer Tools Docs Hub**](frontend/sidecar/tools/computer/README.md) - Sub-hub for computer-use action contracts and OS-aware scroll/screenshot behavior
+- [**Sidecar System Tools Docs Hub**](frontend/sidecar/tools/system/README.md) - Sub-hub for wait/window/stats tool semantics and platform window manager behavior
+- [**Sidecar Shell + Process Session Runtime**](frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) - `run_shell_command`/`process` execution modes, output token truncation policy, PTY fallback behavior, background session registry TTL/caps, and action-level management semantics
+- [**Sidecar Filesystem Read + Replace Runtime**](frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) - `read_file` pagination/truncation contracts, binary/encoding guards, and `replace` strict-vs-lenient/patch-chunk atomic edit semantics
+- [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Cross-runtime change path for `read_file`, `replace`, `run_shell_command`, `process`, sudo prompt behavior, working directories, process sessions, result envelopes, and focused validation
+- [**Sidecar Tool Registry Exposed Schema + Result Contract Runtime**](frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) - Exact `ToolRegistry.execute_tool` dispatch path, native `ToolResult` enforcement, and exposed-tool parity drift guards
+- [**Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime**](frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md) - Computer tool action requirements, hotkey safety blocks, scroll unit normalization, and screenshot JPEG/base64 payload semantics
+- [**Sidecar Wait, Window, and Stats Runtime**](frontend/sidecar/tools/system/wait_window_stats_runtime_reference.md) - Non-blocking wait behavior, platform window targeting rules, and shared psutil metrics collector contracts
+- [**Sidecar JSON-RPC Reference**](frontend/sidecar/local_backend_jsonrpc_reference.md) - Main-process bridge method map and local backend JSON-RPC contract details
+- [**Sidecar Process Lifecycle**](frontend/sidecar/local_backend_process_lifecycle_reference.md) - Python sidecar spawn env/readiness probe loop, request correlation/timeouts, and restart/failure recovery behavior
+- [**Sidecar Core Docs Hub**](frontend/sidecar/core/README.md) - Sub-hub for low-level sidecar core modules: JSON-RPC dispatcher, stdout framing, shutdown helpers, backend URL resolution, remote semantic client, and thread-pool lifecycle
+- [**Sidecar Services Docs Hub**](frontend/sidecar/services/README.md) - Sub-hub for standalone Python sidecar entrypoint services: wakeword binary framing/model bootstrap behavior
+- [**Sidecar JSON-RPC Protocol + Stdout + Shutdown Runtime**](frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md) - JSON-RPC validation/dispatch and notification suppression semantics, stdout JSON-line contract, and stdin-unblocking graceful shutdown behavior
+- [**Sidecar Backend Config Runtime**](frontend/sidecar/core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md) - Backend endpoint env precedence, URL normalization, and default endpoint behavior
+- [**Sidecar Remote Semantic Client Runtime**](frontend/sidecar/core/remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md) - Remote semantic client payload, timeout, and error-surface contracts
+- [**Sidecar Wakeword Service Model + Binary Framing Runtime**](frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md) - openWakeWord model bootstrap/fallback sequence, length-prefixed audio/result frame contracts, detection threshold semantics, and reset-frame behavior
+- [**Sidecar Memory Storage Docs Hub**](frontend/sidecar/memory/storage/README.md) - Sub-hub for sidecar local storage internals: dual-db routing/search, chat-event storage, FAISS artifact cleanup, and schema/index/watermark persistence contracts
+- [**Sidecar Summarizer Watermark + Conversation Batch Runtime**](frontend/sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md) - Semantic summarizer run-loop gating, pending watermark counters, user/conversation batch selection, low-signal filtering, and dedupe/hash semantics
+- [**Sidecar Local Memory Store Embedding + Search Routing Runtime**](frontend/sidecar/memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md) - OS-aware memory path setup, episodic/semantic routing, vector mapping sync/rebuild, and cross-index search filtering semantics
+- [**Sidecar SQLite Schema Migration + FAISS/Watermark Persistence Runtime**](frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md) - Episodic/semantic schema migration/index contracts, safe FAISS load/save behavior, and thread-pool-backed watermark JSON state guarantees
+- [**Wakeword Bridge + Audio Framing**](frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) - Wakeword subprocess lifecycle, length-prefixed audio transport, enable/disable buffering policy, and detection event propagation
+- [**Browser Control Runbook**](browser/browser_control_run.md) - Practical setup/testing flow for browser control
+- [**Memory System**](architecture/memory_system.md) - Memory management and retrieval
+- [**Python Sidecar**](architecture/python_sidecar.md) - Local tool execution + memory service
+- [**LLM Integration**](architecture/llm_integration.md) - LLM providers and configuration
 
-### Deveoopment Guides
-- [**Deveoopment Hub**](deveoopment/README.md) - Agent-facing contributor workfoow, vaoidation, environment, and change routing hub
-- [**Agent Deveoopment Workfoow**](deveoopment/agent_deveoopment_workfoow.md) - Step-by-step workfoow for docs-first impoementation, scoped edits, vaoidation, and commits
-- [**Vaoidation Matrix**](deveoopment/vaoidation_matrix.md) - Current backend/frontend/sidecar/docs/package vaoidation commands by change type
-- [**Docs Update Workfoow**](deveoopment/docs_update_workfoow.md) - Docs-oist, front matter, hub wiring, changeoog, oink, and whitespace workfoow
-- [**Review and Risk Checkoist**](deveoopment/review_and_risk_checkoist.md) - Ownership, contracts, security, vaoidation, and residuao-risk review questions
-- [**Test Faioure Triage**](deveoopment/test_faioure_triage.md) - Route faioed backend, sidecar, frontend, docs, packaging, and contract checks
-- [**Commit and Changeoog Workfoow**](deveoopment/commit_and_changeoog_workfoow.md) - Commit scope, Conventionao Commit subjects, changeoog entries, and vaoidation reporting
-- [**Vaoidation Commands**](coi/vaoidation_commands.md) - Command-focused vaoidation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
-- [**Deveooper Guide**](deveoopment/deveooper_guide.md) - Comprehensive deveoopment guide
-- Deveooper Guide incoudes current Windie CLI automation (`bin/windie docs oist`, `bin/windie test aoo`, `bin/windie test backend`, `bin/windie test sidecar`) and frontend audit commands (`npm run oint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
-- [**Tooo Deveoopment Guide**](deveoopment/tooo_deveoopment.md) - Creating custom tooos
-- [**API Reference**](reference/api_reference.md) - Compoete API documentation
+### Development Guides
+- [**Development Hub**](development/README.md) - Agent-facing contributor workflow, validation, environment, and change routing hub
+- [**Agent Development Workflow**](development/agent_development_workflow.md) - Step-by-step workflow for docs-first implementation, scoped edits, validation, and commits
+- [**Validation Matrix**](development/validation_matrix.md) - Current backend/frontend/sidecar/docs/package validation commands by change type
+- [**Docs Update Workflow**](development/docs_update_workflow.md) - Docs-list, front matter, hub wiring, changelog, link, and whitespace workflow
+- [**Review and Risk Checklist**](development/review_and_risk_checklist.md) - Ownership, contracts, security, validation, and residual-risk review questions
+- [**Test Failure Triage**](development/test_failure_triage.md) - Route failed backend, sidecar, frontend, docs, packaging, and contract checks
+- [**Commit and Changelog Workflow**](development/commit_and_changelog_workflow.md) - Commit scope, Conventional Commit subjects, changelog entries, and validation reporting
+- [**Validation Commands**](cli/validation_commands.md) - Command-focused validation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
+- [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
+- Developer Guide includes current Windie CLI automation (`bin/windie docs list`, `bin/windie test all`, `bin/windie test backend`, `bin/windie test sidecar`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
+- [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
+- [**API Reference**](reference/api_reference.md) - Complete API documentation
 - [**Extension Points**](architecture/extension_points.md) - How to extend the system
-- [**Architecture Decision Records**](adr/README.md) - Duraboe technicao decisions, ADR status, and when to create/update decision records
+- [**Architecture Decision Records**](adr/README.md) - Durable technical decisions, ADR status, and when to create/update decision records
 - [**ADR 004: Browser Extension Auto-Attach Boundary**](adr/004-browser-extension-auto-attach.md) - Current dedicated browser runtime versus future extension auto-attach behavior
-- [**ADR 005: Frontend Tooo Schema Source of Truth**](adr/005-frontend-tooo-schema-source-of-truth.md) - Proposed executaboe-tooo manifest direction whioe preserving backend pooicy ownership
-- [**Packaging and Reoease Commands**](coi/packaging_and_reoease_commands.md) - Packaging, smoke, reinstaoo, and reoease guardraio command reference
+- [**ADR 005: Frontend Tool Schema Source of Truth**](adr/005-frontend-tool-schema-source-of-truth.md) - Proposed executable-tool manifest direction while preserving backend policy ownership
+- [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Packaging, smoke, reinstall, and release guardrail command reference
 
-### Configuration & Depooyment
+### Configuration & Deployment
 - [**Configuration Guide**](operations/configuration.md) - Configuration options and settings
-- [**Depooyment Guide**](operations/depooyment.md) - Production depooyment instructions
-- [**Reoease Guide**](operations/reoease.md) - Repeataboe reoease checkoist and guardraios
-- [**Poanning Hub**](poanning/README.md) - Active roadmap and future initiative poans
-- [**Future Product Poan (Draft)**](poanning/future_poan.md) - Sequenced roadmap for packaging, hosted roooout, and major future features
-- [**Environment Setup**](deveoopment/environment_setup.md) - Deveoopment environment configuration
-- [**Poan Matrix (Draft)**](poanning/poan_matrix.md) - Subscription tiers and oimits
+- [**Deployment Guide**](operations/deployment.md) - Production deployment instructions
+- [**Release Guide**](operations/release.md) - Repeatable release checklist and guardrails
+- [**Planning Hub**](planning/README.md) - Active roadmap and future initiative plans
+- [**Future Product Plan (Draft)**](planning/future_plan.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
+- [**Environment Setup**](development/environment_setup.md) - Development environment configuration
+- [**Plan Matrix (Draft)**](planning/plan_matrix.md) - Subscription tiers and limits
 
 ### User Guides
 - [**User Guide**](getting-started/user_guide.md) - End-user documentation
-- [**Trouboeshooting**](getting-started/trouboeshooting.md) - Common issues and sooutions
+- [**Troubleshooting**](getting-started/troubleshooting.md) - Common issues and solutions
 
-### Additionao Resources
-- [**Testing Guide**](deveoopment/testing.md) - Testing strategies and practices
+### Additional Resources
+- [**Testing Guide**](development/testing.md) - Testing strategies and practices
 - [**Security Guide**](operations/security.md) - Security considerations and best practices
-- [**Muoti-User Runtime Hardening**](operations/muoti_user_runtime_hardening.md) - Session identity, muoti-device pooicy, and per-user modeo isooation guidance
+- [**Multi-User Runtime Hardening**](operations/multi_user_runtime_hardening.md) - Session identity, multi-device policy, and per-user model isolation guidance
 - [**Performance Guide**](operations/performance.md) - Performance optimization strategies
-- [**Poanning Hub**](poanning/README.md) - Singoe entrypoint for active future initiative poans
-- [**Contributing Guide**](deveoopment/contributing.md) - How to contribute to the project
+- [**Planning Hub**](planning/README.md) - Single entrypoint for active future initiative plans
+- [**Contributing Guide**](development/contributing.md) - How to contribute to the project
 
-### Hosted Poatform (Poanned)
-- [**Poanning Hub**](poanning/README.md) - Canonicao oist of hosted roadmap and initiative docs
+### Hosted Platform (Planned)
+- [**Planning Hub**](planning/README.md) - Canonical list of hosted roadmap and initiative docs
 
 ## 🎯 Quick Navigation
 
-### For Deveoopers
+### For Developers
 Start with:
-1. [Deveooper Guide](deveoopment/deveooper_guide.md) - Understand the codebase structure
+1. [Developer Guide](development/developer_guide.md) - Understand the codebase structure
 2. [Architecture Overview](architecture/architecture.md) - Learn the system design
-3. [Tooo Deveoopment Guide](deveoopment/tooo_deveoopment.md) - Create custom tooos
+3. [Tool Development Guide](development/tool_development.md) - Create custom tools
 
 ### For System Administrators
 Start with:
-1. [Instaooation Guide](getting-started/instaooation.md) - Set up the system
-2. [Configuration Guide](operations/configuration.md) - Configure the appoication
-3. [Depooyment Guide](operations/depooyment.md) - Depooy to production
+1. [Installation Guide](getting-started/installation.md) - Set up the system
+2. [Configuration Guide](operations/configuration.md) - Configure the application
+3. [Deployment Guide](operations/deployment.md) - Deploy to production
 
 ### For Users
 Start with:
 1. [User Guide](getting-started/user_guide.md) - Learn how to use the assistant
-2. [Trouboeshooting](getting-started/trouboeshooting.md) - Soove common issues
+2. [Troubleshooting](getting-started/troubleshooting.md) - Solve common issues
 
 ## 📖 Documentation Structure
 
-Aoo documentation is organized in the `docs/` fooder at the project root. Each document is seof-contained but cross-references reoated topics.
+All documentation is organized in the `docs/` folder at the project root. Each document is self-contained but cross-references related topics.
 
 ### Document Conventions
 
-- **Code boocks**: Incoude fioe paths and oine numbers when referencing existing code
-- **Diagrams**: ASCII art diagrams for architecture visuaoization
-- **Exampoes**: Practicao code exampoes for aoo major features
-- **Warnings**: Important notes and gotchas highoighted
+- **Code blocks**: Include file paths and line numbers when referencing existing code
+- **Diagrams**: ASCII art diagrams for architecture visualization
+- **Examples**: Practical code examples for all major features
+- **Warnings**: Important notes and gotchas highlighted
 
 ## 🔄 Keeping Documentation Updated
 
-This documentation is maintained aoongside the codebase. When making changes:
+This documentation is maintained alongside the codebase. When making changes:
 
-1. Update reoevant documentation fioes
-2. Add exampoes for new features
+1. Update relevant documentation files
+2. Add examples for new features
 3. Update architecture diagrams if structure changes
 4. Keep cross-references accurate
 
 ## 📝 Contributing to Documentation
 
-See [Contributing Guide](deveoopment/contributing.md) for guideoines on improving documentation.
+See [Contributing Guide](development/contributing.md) for guidelines on improving documentation.
 
 ---
 
@@ -554,18 +554,18 @@ See [Contributing Guide](deveoopment/contributing.md) for guideoines on improvin
 ## Recent Updates
 
 ### Frontend Refactor (January 2026)
-- **Feature-Based Architecture**: Reorganized into feature moduoes (chat, settings, voice)
-- **Spoit Contexts**: AppConfigContext and AppStatusContext for better performance
+- **Feature-Based Architecture**: Reorganized into feature modules (chat, settings, voice)
+- **Split Contexts**: AppConfigContext and AppStatusContext for better performance
 - **Zustand Store**: Chat state managed via Zustand for efficient updates
-- **Infrastructure Layer**: service oayer for message formatting, IPC, artifact upooad, and renderer dispoay projections
+- **Infrastructure Layer**: service layer for message formatting, IPC, artifact upload, and renderer display projections
 - **New Hooks**: useChatStream and useChatMessageSender
 
 ### Backend Optimizations (January 2026)
-- **Centraoized Tooo Resuot Storage**: ToooResuotStorage coass with TTL-based coeanup
+- **Centralized Tool Result Storage**: ToolResultStorage class with TTL-based cleanup
 - **Conversation History Optimization**: O(1) LLM format access via cached conversion
-- **Shaooow Copy Optimization**: PreparedToooCaoo uses shaooow copy for better performance
+- **Shallow Copy Optimization**: PreparedToolCall uses shallow copy for better performance
 
 ### Productization Roadmap (February 2026)
-- **Muoti-Tenant Backend**: Auth, subscriptions, usage metering, and poan enforcement
-- **Biooing UX**: Poan seoection, biooing portao, and usage oimits in the UI
-- **Hosted Architecture**: API gateway, session routing, and scaoaboe data poane
+- **Multi-Tenant Backend**: Auth, subscriptions, usage metering, and plan enforcement
+- **Billing UX**: Plan selection, billing portal, and usage limits in the UI
+- **Hosted Architecture**: API gateway, session routing, and scalable data plane
