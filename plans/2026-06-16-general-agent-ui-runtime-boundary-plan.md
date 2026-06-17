@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime screenshot and memory docs label cleanup
+
+- Finding: screenshot/window, memory, browser readiness, and IPC helper docs
+  still used local-backend or local-sidecar labels for Electron-facing
+  local-runtime seams, and two focused local-runtime docs were missing their
+  opening frontmatter delimiter.
+- Change: updated visible labels to local-runtime or SDK local runtime,
+  corrected the frontmatter delimiters, and preserved historical file paths plus
+  concrete Python `LocalBackend` implementation references.
+- Validation: docs listing, focused stale visible local-backend/local-sidecar
+  label scan, and diff check.
+- Compatibility: no migration required. This is documentation label cleanup
+  only; screenshot routing, memory RPC methods, SDK local-runtime behavior, and
+  IPC channels are unchanged.
+
 ### 2026-06-17 sidecar docs local-runtime label cleanup
 
 - Finding: sidecar hubs, frontend maps, and tool/memory sidecar references still

@@ -326,7 +326,7 @@ Optional:
 
 The dashboard chat header exposes the same dedicated browser session with a compact control:
 
-- While the local sidecar runtime is still starting, the button stays disabled, shows **Starting local runtime...**, and waits for the shared `local-runtime-status` ready signal instead of issuing browser tool calls immediately on mount.
+- While the local runtime is still starting, the button stays disabled, shows **Starting local runtime...**, and waits for the shared `local-runtime-status` ready signal instead of issuing browser tool calls immediately on mount.
 - If local runtime startup fails, the button shows **Browser unavailable** and keeps the short sanitized error in the button title.
 - When disconnected, it shows **Connect browser**.
 - After the user requests a connection, it shows **Connecting browser...** until the browser action finishes.

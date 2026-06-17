@@ -1,5 +1,5 @@
 ---
-summary: "Renderer/main/sidecar memory and chat-event contract reference: SDK-shaped renderer commands, internal local-backend JSON-RPC bridge handler mappings, response envelopes, and storage ownership."
+summary: "Renderer/main/sidecar memory and chat-event contract reference: SDK-shaped renderer commands, internal local-runtime JSON-RPC bridge handler mappings, response envelopes, and storage ownership."
 read_when:
   - When changing memory-related SDK renderer commands, local-runtime bridge handler payloads, or sidecar JSON-RPC method contracts.
   - When debugging dashboard memory list/delete failures, chat history persistence issues, or embedding memory search mismatches.
@@ -79,7 +79,7 @@ Chat clear local-runtime channel:
 Removed text-query memory search:
 
 - `search-memory` no longer maps to `search_memory`.
-- `search_memory` is not registered by the Python local backend.
+- `search_memory` is not registered by the Python local runtime.
 - prompt memory search uses SDK-owned backend embeddings and
   `search_memory_by_embedding`.
 

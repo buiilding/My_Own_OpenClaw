@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for local-backend screenshot routing in Electron main: display-bounds fallback resolution, screenshot-path artifact materialization, inline fallback behavior, and temp-file cleanup guarantees."
+summary: "Deep reference for local-runtime screenshot routing in Electron main: display-bounds fallback resolution, screenshot-path artifact materialization, inline fallback behavior, and temp-file cleanup guarantees."
 read_when:
   - When changing screenshot tool routing in `frontend/src/main/sidecar/local_runtime*.cjs`.
   - When debugging missing `screenshot_ref`/`screenshot_url`, wrong monitor capture, or leaked temporary screenshot files.
@@ -149,5 +149,5 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 
 ## Related Pages
 
-- [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](../display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)

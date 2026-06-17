@@ -1,7 +1,8 @@
+---
 summary: "Deep reference for local-runtime bridge window-resolver input normalization and screenshot task wiring."
 read_when:
   - When changing resolver input contracts in `local_runtime_window_visibility.cjs`.
-  - When changing screenshot task routing in local-backend execution wrappers.
+  - When changing screenshot task routing in local-runtime execution wrappers.
 title: "Window Resolver Shapes and Screenshot Task Routing Reference"
 ---
 
@@ -54,7 +55,7 @@ Current runtime implementation contract:
 
 Resolver helpers remain part of the wrapper API:
 
-- keeps local-backend screenshot call-sites stable across platform behavior changes
+- keeps local-runtime screenshot call-sites stable across platform behavior changes
 
 ## Error Handling Semantics
 
@@ -89,4 +90,4 @@ When touching window wrapper flow:
 
 1. verify resolver output shape (`main/chat/response`) remains stable for callers
 2. verify screenshot tool only path remains scoped in the local tool execution runtime
-3. verify renderer capture orchestration assumptions stay out of the local-backend screenshot wrapper
+3. verify renderer capture orchestration assumptions stay out of the local-runtime screenshot wrapper

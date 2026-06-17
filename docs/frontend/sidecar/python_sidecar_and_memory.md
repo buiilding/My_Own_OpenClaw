@@ -1,5 +1,5 @@
 ---
-summary: "Python sidecar runtime architecture: JSON-RPC local backend, tool registry, memory stores, semantic consolidation, and wakeword service."
+summary: "Python sidecar runtime architecture: JSON-RPC local runtime, tool registry, memory stores, semantic consolidation, and wakeword service."
 read_when:
   - When changing sidecar tools, memory persistence/search, or subprocess protocol behavior.
   - When debugging sidecar readiness, request correlation, or memory summarization cadence.
@@ -12,7 +12,7 @@ title: "Python Sidecar and Memory"
 
 Primary Python entrypoints under `frontend/src/main/python`:
 
-- `sidecar_daemon.py`: canonical local sidecar runtime; owns the app-session `LocalBackend`, tool registry, memory store, and daemon HTTP/WebSocket surface
+- `sidecar_daemon.py`: canonical sidecar daemon; owns the app-session `LocalBackend`, tool registry, memory store, and daemon HTTP/WebSocket surface
 - `local_backend.py`: internal `LocalBackend` implementation used by the daemon for JSON-RPC method dispatch, tools, memory, and transcript handlers
 - `local_backend_memory_handlers.py`: extracted memory-search/store/transcript/delete RPC handlers used by `LocalBackend`
 - `wakeword_service.py`: binary-protocol wakeword inference service

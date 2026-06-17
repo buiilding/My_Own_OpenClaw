@@ -94,7 +94,7 @@ Own Agent SDK runtime lifecycle construction:
 
 - resolves install identity from the install token and builds the authenticated
   SDK handshake
-- starts/reuses the local sidecar runtime and discovers executable local tools
+- starts/reuses the SDK local runtime and discovers executable local tools
 - constructs the managed backend runtime once and exposes connection and command
   helpers through the agent plus projection helpers through the conversation
   runtime

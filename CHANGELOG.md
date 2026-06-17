@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated local-runtime screenshot, memory, browser readiness, and IPC helper docs to remove stale local-backend/local-sidecar labels while preserving concrete Python implementation names. No migration is required.
+
 - Removed stale `legacy JSON-RPC method handlers` wording from the runtime node matrix and labeled the Python sidecar protocol as local-runtime JSON-RPC. No migration is required.
 
 - Removed stale source-map wording about deprecated semantic-route `min_items`/`max_items` fields and documented the current Pydantic v2 list bounds. No migration is required.
