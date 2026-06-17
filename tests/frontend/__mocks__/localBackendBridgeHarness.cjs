@@ -1,5 +1,5 @@
 /**
- * Covers local backend bridge harness behavior in the frontend test suite.
+ * Covers local runtime bridge harness behavior in the frontend test suite.
  */
 
 const path = require('path');
@@ -210,7 +210,7 @@ function createMockSdkRuntime() {
 function initBridge(options = {}) {
   const { mainWindow, chatWindow, responseWindow } = initializeBridgeHarness((spawnMock) => {
     spawnMock.mockImplementation(() => {
-      throw new Error('Electron local backend bridge must not spawn a standalone sidecar process.');
+      throw new Error('Electron local runtime bridge must not spawn a standalone sidecar process.');
     });
   }, options);
   uuid = require('uuid');

@@ -21,8 +21,8 @@ flowchart LR
   Bridge --> Preload["preload.js allowlist"]
   Preload --> Main["ipcMain.handle/on owner"]
   Main --> MainHelper["Focused main helper module"]
-  MainHelper --> SidecarBridge["Optional local_backend_bridge mapper"]
-  SidecarBridge --> Sidecar["Python sidecar JSON-RPC method"]
+  MainHelper --> LocalRuntimeBridge["Optional local runtime bridge mapper"]
+  LocalRuntimeBridge --> Sidecar["Python sidecar JSON-RPC method"]
   Main --> Broadcast["Optional webContents.send broadcaster"]
   Broadcast --> RendererListener["Renderer IpcBridge.on cleanup"]
 ```
@@ -38,7 +38,7 @@ The shared channel registry is the naming source of truth, but it is not a handl
 | Renderer constants | `frontend/src/renderer/infrastructure/ipc/channels.ts` | Typed channel constants derived from the shared JSON registry. |
 | Renderer wrapper | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | Typed `IpcBridge` helper used by renderer features and infrastructure. |
 | Main handler surface | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/*.cjs`, `frontend/src/main/*_ipc_runtime.cjs` | Registers handlers, backend relay, overlay channels, settings sync, memory, artifacts, permissions, lifecycle, and query events. |
-| Local sidecar bridge | `frontend/src/main/sidecar/local_backend_bridge*.cjs` | Maps invoke handlers to Python JSON-RPC where local execution is required. |
+| Local runtime bridge | `frontend/src/main/sidecar/local_backend_bridge*.cjs` | Maps invoke handlers to Python JSON-RPC where local execution is required. |
 
 ## Fast Owner Map
 
@@ -84,7 +84,7 @@ Prefer one focused channel over a generic "do-anything" channel. The preload all
 3. Add or update renderer helper code so feature components call `IpcBridge` or a domain service instead of raw `window.ipc`.
 4. Register the main handler or broadcaster in the owning main-process module from the fast owner map.
 5. Return a structured payload from invoke handlers, usually `{ success, ... }` or a domain-specific object already used by nearby handlers. Avoid returning bare booleans for new behavior.
-6. If the channel reaches Python, add or update mapper code in `local_backend_bridge_rpc_mappers.cjs` or the local backend bridge module that owns the behavior.
+6. If the channel reaches Python, add or update mapper code in `local_backend_bridge_rpc_mappers.cjs` or the local-runtime bridge module that owns the behavior.
 7. Read [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) before changing sidecar method names, handler params, timeouts, readiness, or JSON-RPC response envelopes.
 8. Add tests for registry/preload parity plus the handler, broadcaster, mapper, or renderer consumer behavior.
 9. Update docs for the affected domain, not only this workflow.
@@ -173,7 +173,7 @@ Before committing:
 | Main query/backend relay | `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcQueryRuntime.test.cjs` |
 | Settings, transcript, memory, artifacts | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcTranscriptSessionSync.test.cjs`, `tests/frontend/DesktopMemoryRuntimeClient.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs` |
 | Overlay and window channels | `tests/frontend/IpcOverlayPhase*.test.cjs`, `tests/frontend/Overlay*.test.cjs`, `tests/frontend/MainWindow*.test.cjs` |
-| Local backend bridge | `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py` |
+| Local runtime bridge | `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py` |
 | Permissions/workspace/sudo | `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs`, `tests/frontend/permissionStore.test.js`, related sidecar permission tests |
 | Wakeword/voice IPC | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/voice/WakewordDetectionHook.test.ts` |
 | Clipboard/image context IPC | `tests/frontend/IpcClipboardImageHandler.test.cjs`, `tests/frontend/IpcImageContextMenuHandler.test.cjs`, `tests/frontend/MessageContent.test.jsx` |

@@ -143,7 +143,7 @@ Removed legacy renderer-callable channels:
 - `set-overlay-focusable`
 - `prepare-overlay-tool-focus`
 
-## Local sidecar bridge channels (`local_backend_bridge.cjs`)
+## Local runtime bridge channels (`local_backend_bridge.cjs`)
 
 These channels are implementation-level main/sidecar bridge channels. Renderer
 feature code uses SDK-shaped `windie:invoke` commands for conversation and

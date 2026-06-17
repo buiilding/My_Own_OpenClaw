@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local runtime bridge docs and harness wording
+
+- Finding: IPC/tool-routing docs and the frontend bridge harness still described
+  Electron main as a local-backend or local-sidecar bridge even when the path
+  adapts SDK local-runtime behavior.
+- Change: reworded IPC, tool-routing, protocol-test, memory-contract, and
+  harness text to describe the Electron adapter as the local-runtime bridge,
+  while leaving compatibility file and test names unchanged.
+- Validation: docs listing, focused local-runtime bridge lifecycle Jest run,
+  bridge wording scan, and diff check.
+- Compatibility: no migration required. This is documentation and test-harness
+  wording only.
+
 ### 2026-06-17 diagnostics local runtime lifecycle export alias
 
 - Finding: app diagnostics still exported

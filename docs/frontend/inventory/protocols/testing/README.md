@@ -2,7 +2,7 @@
 summary: "Frontend protocol testing sub-hub for renderer IPC validation, websocket/query lifecycle contracts, split IPC registrar ownership, local-backend JSON-RPC handling, and wakeword/dashboard routing coverage."
 read_when:
   - When changing renderer IPC channel validation behavior, Electron main websocket/query orchestration, or query payload enrichment rules.
-  - When changing local-backend bridge JSON-RPC mappings/timeouts, split IPC registrar ownership, or wakeword subprocess status/detection handling.
+  - When changing local-runtime bridge JSON-RPC mappings/timeouts, split IPC registrar ownership, or wakeword subprocess status/detection handling.
 title: "Frontend Protocol Testing Hub"
 ---
 

@@ -1,7 +1,7 @@
 ---
 summary: "Renderer/main/sidecar memory and chat-event contract reference: SDK-shaped renderer commands, internal local-backend JSON-RPC bridge handler mappings, response envelopes, and storage ownership."
 read_when:
-  - When changing memory-related SDK renderer commands, local-backend bridge handler payloads, or sidecar JSON-RPC method contracts.
+  - When changing memory-related SDK renderer commands, local-runtime bridge handler payloads, or sidecar JSON-RPC method contracts.
   - When debugging dashboard memory list/delete failures, chat history persistence issues, or embedding memory search mismatches.
 title: "Memory IPC and RPC Mapping Reference"
 ---
@@ -46,7 +46,7 @@ Memory storage and retrieval:
   `window.windie.invoke`.
 - Electron main maps those commands to public SDK agent APIs.
 - Sidecar memory RPC names remain implementation details behind the SDK local
-  runtime and Electron main local-backend bridge.
+  runtime and Electron main local-runtime bridge.
 - Chat clear uses SDK-shaped `conversations.clearAll`.
 
 Chat history is stored in `conversation_events`, not as memory rows. Memory rows are for episodic interaction memory and semantic memory.

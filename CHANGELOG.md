@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Reworded IPC/tool-routing docs and the frontend bridge harness around the Electron local-runtime bridge boundary.
+
 - Removed the backend-named diagnostics lifecycle export so Electron main code uses the local-runtime diagnostic constant directly.
 
 - Updated Electron main lifecycle docs to present local-runtime bridge APIs as canonical while documenting local-backend names as compatibility aliases.
