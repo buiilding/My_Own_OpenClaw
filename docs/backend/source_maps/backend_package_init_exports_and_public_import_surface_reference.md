@@ -126,9 +126,11 @@ docstring or compatibility path.
 - `backend/src/api/routes/memory/semantic/__init__.py` is intentionally
   absent; route registration imports `router` from
   `backend.src.api.routes.memory.semantic.router`.
-- `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
-  exports only the package router; SDK route handlers, models, and service
-  helpers live in `router.py`, `models.py`, and `service.py`
+- `backend/src/api/routes/sdk/__init__.py` is intentionally absent; route
+  registration imports `router` from `backend.src.api.routes.sdk.router`.
+- `backend/src/api/routes/websocket/__init__.py` is intentionally absent;
+  route registration imports `router` from
+  `backend.src.api.routes.websocket.router`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.

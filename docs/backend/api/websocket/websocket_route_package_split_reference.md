@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for WebSocket route package split: `router.py` runtime endpoint ownership, loop-runtime helpers, and package-level router export behavior."
+summary: "Deep reference for WebSocket route package split: `router.py` runtime endpoint ownership, loop-runtime helpers, and direct router registration."
 read_when:
   - When changing `backend/src/api/routes/websocket/router.py` receive-loop logic or timeout/cleanup semantics.
-  - When changing the package router export in `backend/src/api/routes/websocket/__init__.py`.
+  - When changing websocket route registration in `backend/src/api/routes/__init__.py`.
 title: "WebSocket Route Package Split Reference"
 ---
 
@@ -12,7 +12,6 @@ title: "WebSocket Route Package Split Reference"
 
 - `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/loop_runtime.py`
-- `backend/src/api/routes/websocket/__init__.py`
 - `backend/src/api/routes/websocket/connection.py`
 - `backend/src/api/routes/websocket/message_handler.py`
 - `backend/src/api/routes/websocket/task_manager.py`
@@ -21,11 +20,10 @@ title: "WebSocket Route Package Split Reference"
 
 ## Why This Split Exists
 
-`router.py` now owns the concrete FastAPI `@router.websocket("/ws")` runtime path.
-
-Package `__init__.py` exports only the package router used by API router registration.
-Endpoint tests patch `backend.src.api.routes.websocket.router` directly so there is one
-runtime module for route dependencies.
+`router.py` owns the concrete FastAPI `@router.websocket("/ws")` runtime path
+and is imported directly by API router registration. Endpoint tests patch
+`backend.src.api.routes.websocket.router` directly so there is one runtime
+module for route dependencies.
 
 ## Runtime Endpoint Ownership (`router.py`)
 
@@ -49,11 +47,7 @@ Config values read from `session_manager.config`:
 - `websocket_receive_timeout`
 - `websocket_task_cancellation_timeout`
 
-## Package Export Surface (`__init__.py`)
-
-`__init__.py` exports:
-
-- `router` (from `.router`)
+## Import Surface
 
 The route endpoint, dependency symbols, and test monkeypatch seam live in `router.py`.
 

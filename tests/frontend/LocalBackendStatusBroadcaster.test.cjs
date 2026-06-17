@@ -2,13 +2,13 @@
 
 const {
   broadcastConversationMetadataInvalidation,
-  buildLocalRuntimeStatusPayload,
-  sendLocalRuntimeStatus,
+  buildLocalBackendStatusPayload,
+  sendLocalBackendStatus,
 } = require('../../frontend/src/main/sidecar/local_backend_status_broadcaster.cjs');
 
 describe('local_backend_status_broadcaster', () => {
-  test('builds local runtime status from supervisor and SDK local runtime snapshots', () => {
-    expect(buildLocalRuntimeStatusPayload({
+  test('builds local backend status from supervisor and SDK local runtime snapshots', () => {
+    expect(buildLocalBackendStatusPayload({
       supervisor: {
         getSnapshot: () => ({
           ready: true,
@@ -25,14 +25,14 @@ describe('local_backend_status_broadcaster', () => {
     });
   });
 
-  test('sends local runtime status to the target window', () => {
+  test('sends local backend status to the target window', () => {
     const mainWindow = {
       webContents: {
         send: jest.fn(),
       },
     };
 
-    sendLocalRuntimeStatus(mainWindow, { ready: true });
+    sendLocalBackendStatus(mainWindow, { ready: true });
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
       ready: true,

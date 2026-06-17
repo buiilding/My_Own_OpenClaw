@@ -448,17 +448,3 @@ Each completed slice should report:
 - Compatibility: no migration required. Gateway URL shape, websocket protocol,
   audio framing, reconnect behavior, and backend provider routing are
   unchanged.
-
-### 2026-06-17 main local runtime status broadcaster naming
-
-- Finding: Electron main status broadcaster internals still used
-  local-backend function names even though the payload is composed from the
-  local runtime supervisor and SDK local runtime daemon snapshot.
-- Change: renamed the internal status payload/send helpers and immediate bridge
-  call sites to local-runtime terminology while preserving the compatibility
-  filename, `local-backend-status` channel, and payload fields.
-- Validation: focused Jest run for `LocalBackendStatusBroadcaster` and
-  `LocalBackendBridge.lifecycle`; docs listing; `git diff --check`; and a
-  stale-name scan for the retired helper names.
-- Compatibility: no migration required. IPC channel names, status payload
-  shape, lifecycle diagnostics, and renderer readiness behavior are unchanged.

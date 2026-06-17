@@ -15,8 +15,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 
 | Surface | Code roots | Owns |
 | --- | --- | --- |
-| Backend route package surface | `backend/src/api/routes/sdk/__init__.py` | Route-registration export only: `router`. |
-| Backend route registration | `backend/src/api/routes/sdk/router.py` | `/api/sdk/*` endpoint paths, HTTP method, response model wiring. |
+| Backend route registration | `backend/src/api/routes/sdk/router.py` | `/api/sdk/*` endpoint paths, HTTP method, response model wiring, and concrete router import surface. |
 | Backend request/response models | `backend/src/api/routes/sdk/models.py` | Pydantic payload validation and typed response shapes. |
 | Backend service helpers | `backend/src/api/routes/sdk/service.py` | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
 | Backend SDK helpers | `backend/src/sdk` | Tool/context helpers and sub-agent helper utilities. |
@@ -28,7 +27,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 1. Add or update Pydantic request/response models in `backend/src/api/routes/sdk/models.py`.
 2. Add or update service behavior in `backend/src/api/routes/sdk/service.py`.
 3. Register the route in `backend/src/api/routes/sdk/router.py`.
-4. Keep `backend/src/api/routes/sdk/__init__.py` limited to the package `router` export.
+4. Keep route registration pointed at `backend.src.api.routes.sdk.router`.
 5. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) if the public route surface changes.
 6. Add or update TypeScript client types and methods in `windieSdkClient.ts`.
 7. Update Python hosted client behavior when parity is expected.

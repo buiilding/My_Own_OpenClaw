@@ -6,11 +6,11 @@ const {
   conversationMetadataInvalidationFromLocalRuntimeEvent,
 } = require('../../../../packages/windie-sdk-js/cjs/index.js');
 
-function sendLocalRuntimeStatus(mainWindow, payload) {
+function sendLocalBackendStatus(mainWindow, payload) {
   mainWindow?.webContents.send('local-backend-status', payload);
 }
 
-function buildLocalRuntimeStatusPayload({
+function buildLocalBackendStatusPayload({
   supervisor,
   localRuntimeSnapshot,
 } = {}) {
@@ -39,6 +39,6 @@ function broadcastConversationMetadataInvalidation(resolveWindows, payload) {
 
 module.exports = {
   broadcastConversationMetadataInvalidation,
-  buildLocalRuntimeStatusPayload,
-  sendLocalRuntimeStatus,
+  buildLocalBackendStatusPayload,
+  sendLocalBackendStatus,
 };

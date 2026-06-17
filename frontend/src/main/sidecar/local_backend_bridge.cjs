@@ -22,8 +22,8 @@ const {
 } = require('./local_backend_bridge_execute_tool_runtime.cjs');
 const {
   broadcastConversationMetadataInvalidation,
-  buildLocalRuntimeStatusPayload,
-  sendLocalRuntimeStatus,
+  buildLocalBackendStatusPayload,
+  sendLocalBackendStatus,
 } = require('./local_backend_status_broadcaster.cjs');
 const {
   loadInstallAuthStateFromDisk,
@@ -92,16 +92,16 @@ function buildLocalRuntimeDiagnosticData(extra = {}) {
   };
 }
 
-function buildCurrentLocalRuntimeStatusPayload() {
-  return buildLocalRuntimeStatusPayload({
+function buildCurrentLocalBackendStatusPayload() {
+  return buildLocalBackendStatusPayload({
     supervisor: localRuntimeStatusSupervisor,
     localRuntimeSnapshot: sdkLocalRuntimeSnapshot,
   });
 }
 
-function publishLocalRuntimeStatus(mainWindow, diagnostic = {}) {
-  const payload = buildCurrentLocalRuntimeStatusPayload();
-  sendLocalRuntimeStatus(mainWindow, payload);
+function publishLocalBackendStatus(mainWindow, diagnostic = {}) {
+  const payload = buildCurrentLocalBackendStatusPayload();
+  sendLocalBackendStatus(mainWindow, payload);
   appendBrowserSessionDiagnostic({
     traceId: diagnostic.traceId,
     requestId: diagnostic.requestId,
@@ -117,7 +117,7 @@ function publishLocalRuntimeStatus(mainWindow, diagnostic = {}) {
 
 function markBackendReady(mainWindow, diagnostic = {}) {
   localRuntimeStatusSupervisor.markReady();
-  return publishLocalRuntimeStatus(mainWindow, {
+  return publishLocalBackendStatus(mainWindow, {
     stage: 'status_broadcast',
     status: 'succeeded',
     ...diagnostic,
@@ -238,7 +238,7 @@ async function wakeSdkLocalRuntimeForStatus(mainWindow) {
   });
 
   if (!ensureLocalRuntime && !resolveKnownLocalRuntime({ quiet: true })) {
-    const payload = buildCurrentLocalRuntimeStatusPayload();
+    const payload = buildCurrentLocalBackendStatusPayload();
     appendBrowserSessionDiagnostic({
       traceId,
       requestId,
@@ -267,12 +267,12 @@ async function wakeSdkLocalRuntimeForStatus(mainWindow) {
         wakeSucceeded: true,
       }),
     });
-    return buildCurrentLocalRuntimeStatusPayload();
+    return buildCurrentLocalBackendStatusPayload();
   }
 
   try {
     await ensureSdkLocalRuntime('status_bootstrap');
-    const payload = buildCurrentLocalRuntimeStatusPayload();
+    const payload = buildCurrentLocalBackendStatusPayload();
     appendBrowserSessionDiagnostic({
       traceId,
       requestId,
@@ -291,7 +291,7 @@ async function wakeSdkLocalRuntimeForStatus(mainWindow) {
       status: 'error',
       error: message,
     });
-    const payload = publishLocalRuntimeStatus(mainWindow, {
+    const payload = publishLocalBackendStatus(mainWindow, {
       traceId,
       requestId,
       stage: 'status_broadcast',
@@ -453,7 +453,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
       status: 'error',
       error: 'Agent SDK local runtime resolver is unavailable.',
     });
-    publishLocalRuntimeStatus(mainWindow, {
+    publishLocalBackendStatus(mainWindow, {
       stage: 'status_broadcast',
       status: 'failed',
       error: 'Agent SDK local runtime resolver is unavailable.',
