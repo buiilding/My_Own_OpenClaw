@@ -14,9 +14,9 @@ from urllib.parse import quote_plus
 
 from core.user_data_paths import app_user_data_root
 from tools.browser.chrome_launcher import (
-    DEFAULT_WINDIE_CDP_PORT,
+    DEFAULT_DEDICATED_CDP_PORT,
     ensure_chrome_with_cdp,
-    terminate_windie_chrome_with_cdp,
+    terminate_dedicated_chrome_with_cdp,
 )
 from tools.browser.content_extraction import (
     DEFAULT_EXTRACT_CHARS,
@@ -346,7 +346,7 @@ class BrowserUseEngineRuntime:
         self._session = _browser_use_session()
         self._home = _browser_use_home()
         self._timeout = _browser_use_timeout()
-        self._windie_cdp_url = f"http://127.0.0.1:{DEFAULT_WINDIE_CDP_PORT}"
+        self._dedicated_cdp_url = f"http://127.0.0.1:{DEFAULT_DEDICATED_CDP_PORT}"
 
     def _read_session_state(self) -> dict[str, Any]:
         state_path = Path(self._home) / f"{self._session}.state.json"
@@ -366,18 +366,18 @@ class BrowserUseEngineRuntime:
             and _is_pid_alive(pid)
         )
 
-    def _is_windie_cdp_session_state(
+    def _is_dedicated_cdp_session_state(
         self, state: dict[str, Any], *, cdp_url: str | None = None
     ) -> bool:
         config = state.get("config") if isinstance(state.get("config"), dict) else {}
-        return config.get("cdp_url") == (cdp_url or self._windie_cdp_url)
+        return config.get("cdp_url") == (cdp_url or self._dedicated_cdp_url)
 
     def _is_live_incompatible_session_state(
         self, state: dict[str, Any], *, cdp_url: str
     ) -> bool:
         return self._is_live_session_state(
             state
-        ) and not self._is_windie_cdp_session_state(
+        ) and not self._is_dedicated_cdp_session_state(
             state,
             cdp_url=cdp_url,
         )
@@ -395,19 +395,19 @@ class BrowserUseEngineRuntime:
         payload.setdefault("native_source", RUNTIME_SOURCE)
         return payload
 
-    def _has_running_windie_cdp_session(self) -> bool:
+    def _has_running_dedicated_cdp_session(self) -> bool:
         state = self._read_session_state()
-        return self._is_live_session_state(state) and self._is_windie_cdp_session_state(
+        return self._is_live_session_state(state) and self._is_dedicated_cdp_session_state(
             state
         )
 
-    async def _ensure_windie_cdp_target(self) -> str:
+    async def _ensure_dedicated_cdp_target(self) -> str:
         cdp_url = await ensure_chrome_with_cdp(
-            cdp_port=DEFAULT_WINDIE_CDP_PORT,
+            cdp_port=DEFAULT_DEDICATED_CDP_PORT,
             auto_launch=True,
             headless=False,
         )
-        self._windie_cdp_url = cdp_url
+        self._dedicated_cdp_url = cdp_url
         await self._recover_incompatible_session_before_start(cdp_url)
         return cdp_url
 
@@ -439,9 +439,9 @@ class BrowserUseEngineRuntime:
         if (
             cdp_url is None
             and headed is None
-            and not self._has_running_windie_cdp_session()
+            and not self._has_running_dedicated_cdp_session()
         ):
-            cdp_url = await self._ensure_windie_cdp_target()
+            cdp_url = await self._ensure_dedicated_cdp_target()
 
         command = [
             *_base_command(),
@@ -450,7 +450,7 @@ class BrowserUseEngineRuntime:
             "--json",
         ]
         should_request_headed = (
-            headed if headed is not None else not self._has_running_windie_cdp_session()
+            headed if headed is not None else not self._has_running_dedicated_cdp_session()
         )
         if should_request_headed:
             command.append("--headed")
@@ -524,8 +524,8 @@ class BrowserUseEngineRuntime:
         )
 
     async def _handle_connect(self, _args: Any) -> dict[str, Any]:
-        cdp_url = await self._ensure_windie_cdp_target()
-        if self._has_running_windie_cdp_session():
+        cdp_url = await self._ensure_dedicated_cdp_target()
+        if self._has_running_dedicated_cdp_session():
             data = await self._run_cli("state")
         else:
             data = await self._run_cli("state", headed=True, cdp_url=cdp_url)
@@ -533,7 +533,7 @@ class BrowserUseEngineRuntime:
             "status": "connected",
             "connected": True,
             "mode": "browser_use",
-            "scope": "windie_dedicated_browser",
+            "scope": "dedicated_browser",
             "cdp_url": cdp_url,
             "output": "Connected to the browser.",
         }
@@ -544,18 +544,18 @@ class BrowserUseEngineRuntime:
             return {
                 "connected": False,
                 "mode": "browser_use",
-                "scope": "windie_dedicated_browser",
+                "scope": "dedicated_browser",
                 "output": "Browser is not connected.",
             }
         if state.get("phase") not in {
             "ready",
             "running",
-        } or not self._is_windie_cdp_session_state(state):
+        } or not self._is_dedicated_cdp_session_state(state):
             return {
                 "connected": False,
                 "mode": "browser_use",
                 "phase": state.get("phase", "unknown"),
-                "scope": "windie_dedicated_browser",
+                "scope": "dedicated_browser",
                 "output": f"Browser is not connected; session phase is {state.get('phase', 'unknown')}.",
             }
         title = await self._run_cli("get", "title")
@@ -568,7 +568,7 @@ class BrowserUseEngineRuntime:
             "phase": state.get("phase"),
             "url": url_text,
             "title": title_text,
-            "scope": "windie_dedicated_browser",
+            "scope": "dedicated_browser",
             "output": f"Browser is connected to {url_text or 'an unknown URL'}"
             + (f" ({title_text})." if title_text else "."),
         }
@@ -579,7 +579,7 @@ class BrowserUseEngineRuntime:
                 {
                     "name": self._session,
                     "driver": "browser-use",
-                    "scope": "windie_dedicated_browser",
+                    "scope": "dedicated_browser",
                 }
             ],
             "default_profile": self._session,
@@ -935,7 +935,7 @@ class BrowserUseEngineRuntime:
                 "import base64, json",
                 f"output_path = Path({json.dumps(str(output_path))})",
                 f"params = {json.dumps(params)}",
-                "async def _windie_save_pdf():",
+                "async def _dedicated_browser_save_pdf():",
                 "    cdp_session = await browser._session.get_or_create_cdp_session(focus=True)",
                 "    result = await cdp_session.cdp_client.send.Page.printToPDF(params=params, session_id=cdp_session.session_id)",
                 "    data = result.get('data') or ''",
@@ -943,7 +943,7 @@ class BrowserUseEngineRuntime:
                 "    output_path.parent.mkdir(parents=True, exist_ok=True)",
                 "    output_path.write_bytes(pdf_bytes)",
                 "    return {'path': str(output_path), 'bytes': len(pdf_bytes), 'file_name': output_path.name}",
-                "print(json.dumps(browser._run(_windie_save_pdf())))",
+                "print(json.dumps(browser._run(_dedicated_browser_save_pdf())))",
             ]
         )
         data = await self._run_cli("python", script)
@@ -1083,8 +1083,8 @@ async def shutdown_browser_runtime() -> dict[str, Any]:
 
     terminated_chrome_processes = 0
     try:
-        terminated_chrome_processes = await terminate_windie_chrome_with_cdp(
-            DEFAULT_WINDIE_CDP_PORT
+        terminated_chrome_processes = await terminate_dedicated_chrome_with_cdp(
+            DEFAULT_DEDICATED_CDP_PORT
         )
     except Exception as exc:  # pragma: no cover - best-effort shutdown guard
         errors.append(f"chrome_terminate: {exc}")

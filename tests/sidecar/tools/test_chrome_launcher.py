@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 from tools.browser.chrome_launcher import (
-    DEFAULT_WINDIE_CDP_URL,
+    DEFAULT_DEDICATED_CDP_URL,
     ChromeLaunchTimeoutError,
     ChromeNotFoundError,
     ensure_chrome_with_cdp,
@@ -15,7 +15,7 @@ from tools.browser.chrome_launcher import (
     is_cdp_available,
     is_cdp_download_behavior_supported,
     launch_chrome_with_cdp,
-    terminate_windie_chrome_with_cdp,
+    terminate_dedicated_chrome_with_cdp,
 )
 
 
@@ -48,7 +48,7 @@ class TestIsCdpAvailable:
         ) as mock_session_class:
             self._patch_client_session(mock_session_class, mock_get_cm)
 
-            result = await is_cdp_available(DEFAULT_WINDIE_CDP_URL)
+            result = await is_cdp_available(DEFAULT_DEDICATED_CDP_URL)
 
             assert result is True
 
@@ -66,7 +66,7 @@ class TestIsCdpAvailable:
         ) as mock_session_class:
             self._patch_client_session(mock_session_class, mock_get_cm)
 
-            result = await is_cdp_available(DEFAULT_WINDIE_CDP_URL)
+            result = await is_cdp_available(DEFAULT_DEDICATED_CDP_URL)
 
             assert result is False
 
@@ -104,7 +104,7 @@ class TestCdpDownloadBehaviorSupport:
         )
         mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
 
-        assert await is_cdp_download_behavior_supported(DEFAULT_WINDIE_CDP_URL) is True
+        assert await is_cdp_download_behavior_supported(DEFAULT_DEDICATED_CDP_URL) is True
         mock_ws.send_json.assert_awaited_once_with(
             {
                 "id": 1,
@@ -146,7 +146,7 @@ class TestCdpDownloadBehaviorSupport:
         )
         mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
 
-        assert await is_cdp_download_behavior_supported(DEFAULT_WINDIE_CDP_URL) is False
+        assert await is_cdp_download_behavior_supported(DEFAULT_DEDICATED_CDP_URL) is False
 
 
 class TestGetChromeUserDataDir:
@@ -215,7 +215,7 @@ class TestLaunchChromeWithCdp:
         process, cdp_url = await launch_chrome_with_cdp()
 
         assert process is mock_process
-        assert cdp_url == DEFAULT_WINDIE_CDP_URL
+        assert cdp_url == DEFAULT_DEDICATED_CDP_URL
         mock_popen.assert_called_once()
         launch_args = mock_popen.call_args.args[0]
         assert "--user-data-dir=/tmp/test-google-chrome-cdp" in launch_args
@@ -260,7 +260,7 @@ class TestLaunchChromeWithCdp:
         mock_process.terminate.assert_called_once()
 
 
-class TestTerminateWindieChromeWithCdp:
+class TestTerminateDedicatedChromeWithCdp:
     """Test terminating only dedicated-profile CDP Chrome processes."""
 
     @pytest.mark.asyncio
@@ -268,7 +268,7 @@ class TestTerminateWindieChromeWithCdp:
         "tools.browser.chrome_launcher.asyncio.sleep", new_callable=mock.AsyncMock
     )
     @mock.patch("tools.browser.chrome_launcher.psutil.wait_procs")
-    @mock.patch("tools.browser.chrome_launcher._iter_windie_chrome_processes")
+    @mock.patch("tools.browser.chrome_launcher._iter_dedicated_chrome_processes")
     async def test_terminates_matching_processes(
         self, mock_iter_processes, mock_wait_procs, _mock_sleep
     ):
@@ -276,7 +276,7 @@ class TestTerminateWindieChromeWithCdp:
         mock_iter_processes.return_value = [process]
         mock_wait_procs.return_value = ([process], [])
 
-        result = await terminate_windie_chrome_with_cdp(9333)
+        result = await terminate_dedicated_chrome_with_cdp(9333)
 
         assert result == 1
         process.terminate.assert_called_once()
@@ -287,7 +287,7 @@ class TestTerminateWindieChromeWithCdp:
         "tools.browser.chrome_launcher.asyncio.sleep", new_callable=mock.AsyncMock
     )
     @mock.patch("tools.browser.chrome_launcher.psutil.wait_procs")
-    @mock.patch("tools.browser.chrome_launcher._iter_windie_chrome_processes")
+    @mock.patch("tools.browser.chrome_launcher._iter_dedicated_chrome_processes")
     async def test_kills_processes_that_ignore_terminate(
         self, mock_iter_processes, mock_wait_procs, _mock_sleep
     ):
@@ -295,7 +295,7 @@ class TestTerminateWindieChromeWithCdp:
         mock_iter_processes.return_value = [process]
         mock_wait_procs.return_value = ([], [process])
 
-        result = await terminate_windie_chrome_with_cdp(9333)
+        result = await terminate_dedicated_chrome_with_cdp(9333)
 
         assert result == 1
         process.terminate.assert_called_once()
@@ -315,11 +315,11 @@ class TestEnsureChromeWithCdp:
 
         result = await ensure_chrome_with_cdp()
 
-        assert result == DEFAULT_WINDIE_CDP_URL
+        assert result == DEFAULT_DEDICATED_CDP_URL
 
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.is_cdp_download_behavior_supported")
-    @mock.patch("tools.browser.chrome_launcher.terminate_windie_chrome_with_cdp")
+    @mock.patch("tools.browser.chrome_launcher.terminate_dedicated_chrome_with_cdp")
     @mock.patch("tools.browser.chrome_launcher.launch_chrome_with_cdp")
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
     async def test_restarts_incompatible_dedicated_cdp_endpoint(
@@ -340,7 +340,7 @@ class TestEnsureChromeWithCdp:
 
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.is_cdp_download_behavior_supported")
-    @mock.patch("tools.browser.chrome_launcher.terminate_windie_chrome_with_cdp")
+    @mock.patch("tools.browser.chrome_launcher.terminate_dedicated_chrome_with_cdp")
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
     async def test_rejects_incompatible_non_dedicated_cdp_endpoint(
         self, mock_available, mock_terminate, mock_download_supported

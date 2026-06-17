@@ -1147,3 +1147,22 @@ Each completed slice should report:
 - Compatibility: no migration required. Persisted paths, diagnostics database
   location, browser profile location, memory directories, wakeword model
   cache, and env vars remain unchanged.
+
+### 2026-06-17 sidecar dedicated browser CDP names
+
+- Finding: sidecar browser CDP launcher and Browser Use session helpers still
+  used `Windie`/`windie` in internal constant, function, session-state helper,
+  shutdown, and result-scope names even though the local authority is the
+  dedicated browser runtime.
+- Change: renamed the internal CDP constants and helpers to dedicated-browser
+  terminology and changed browser tool result scope from
+  `windie_dedicated_browser` to `dedicated_browser`, while keeping
+  `WINDIE_BROWSER_CDP_PORT`, the `windieos` browser profile path, and Browser
+  Use session defaults unchanged as compatibility surfaces.
+- Validation: focused Browser Use engine tests, Chrome CDP helper tests,
+  sidecar source-neutrality guard, docs listing, `git diff --check`, and stale
+  scan for the retired internal CDP names in runtime/docs.
+- Compatibility: no migration required. Chrome profile location, CDP port env
+  override, browser session name, and launch behavior are unchanged; only
+  internal helper names and the browser result scope label moved to generic
+  dedicated-browser terminology.

@@ -322,7 +322,7 @@ User: Close the browser
 
 **Fix:**
 ```bash
-# Check Windie CDP port listener
+# Check dedicated browser CDP port listener
 lsof -i :9333  # Linux/Mac
 netstat -ano | findstr :9333  # Windows
 ```

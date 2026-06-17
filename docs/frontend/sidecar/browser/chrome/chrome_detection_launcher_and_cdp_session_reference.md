@@ -51,7 +51,7 @@ Port override:
 
 Derived endpoints:
 
-- `DEFAULT_WINDIE_CDP_URL = http://127.0.0.1:<port>`
+- `DEFAULT_DEDICATED_CDP_URL = http://127.0.0.1:<port>`
 
 ## CDP Availability and Process Checks
 

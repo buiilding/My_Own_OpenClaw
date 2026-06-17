@@ -11,7 +11,6 @@ from tools.registry import ToolRegistry
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SIDECAR_TOOL_HELPER_PATHS = [
-    REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "__init__.py",
     REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "result.py",
     REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "schemas.py",
     REPO_ROOT
@@ -22,6 +21,14 @@ SIDECAR_TOOL_HELPER_PATHS = [
     / "tools"
     / "browser"
     / "browser_use_engine.py",
+    REPO_ROOT
+    / "frontend"
+    / "src"
+    / "main"
+    / "python"
+    / "tools"
+    / "browser"
+    / "chrome_launcher.py",
     REPO_ROOT
     / "frontend"
     / "src"
@@ -120,5 +127,9 @@ def test_sidecar_tool_helper_copy_is_runtime_neutral():
 
     assert "local sidecar runtime" in sources
     assert "Windie-owned" not in sources
+    assert "DEFAULT_WINDIE_CDP" not in sources
+    assert "terminate_windie_chrome" not in sources
+    assert "_iter_windie_chrome" not in sources
+    assert "windie_dedicated_browser" not in sources
     assert "local backend tools" not in sources
     assert "local backend." not in sources

@@ -134,7 +134,7 @@ async def test_connect_starts_headed_browser_use_session(tmp_path: Path) -> None
     with (
         mock.patch.object(
             runtime,
-            "_ensure_windie_cdp_target",
+            "_ensure_dedicated_cdp_target",
             new=mock.AsyncMock(return_value=cdp_url),
         ),
         mock.patch.object(
@@ -149,13 +149,14 @@ async def test_connect_starts_headed_browser_use_session(tmp_path: Path) -> None
     assert result["connected"] is True
     assert result["cdp_url"] == cdp_url
     assert result["mode"] == "browser_use"
+    assert result["scope"] == "dedicated_browser"
     assert result["native_source"] == "browser_use.cli"
     assert result["output"] == "Connected to the browser."
     assert "snapshot" not in result
 
 
 @pytest.mark.asyncio
-async def test_connect_reuses_running_windie_cdp_session_without_config_check(
+async def test_connect_reuses_running_dedicated_cdp_session_without_config_check(
     tmp_path: Path,
 ) -> None:
     runtime = BrowserUseEngineRuntime()
@@ -169,7 +170,7 @@ async def test_connect_reuses_running_windie_cdp_session_without_config_check(
     with (
         mock.patch.object(
             runtime,
-            "_ensure_windie_cdp_target",
+            "_ensure_dedicated_cdp_target",
             new=mock.AsyncMock(return_value=cdp_url),
         ),
         mock.patch.object(
@@ -183,10 +184,11 @@ async def test_connect_reuses_running_windie_cdp_session_without_config_check(
     run_cli.assert_awaited_once_with("state")
     assert result["connected"] is True
     assert result["cdp_url"] == cdp_url
+    assert result["scope"] == "dedicated_browser"
 
 
 @pytest.mark.asyncio
-async def test_connect_closes_incompatible_session_before_starting_windie_cdp(
+async def test_connect_closes_incompatible_session_before_starting_dedicated_cdp(
     tmp_path: Path,
 ) -> None:
     runtime = BrowserUseEngineRuntime()
@@ -292,7 +294,7 @@ async def test_status_does_not_claim_headless_session_is_connected(
 
 
 @pytest.mark.asyncio
-async def test_status_accepts_windie_cdp_session_even_when_browser_use_headed_flag_is_false(
+async def test_status_accepts_dedicated_cdp_session_even_when_browser_use_headed_flag_is_false(
     tmp_path: Path,
 ) -> None:
     runtime = BrowserUseEngineRuntime()
@@ -320,6 +322,22 @@ async def test_status_accepts_windie_cdp_session_even_when_browser_use_headed_fl
     ]
     assert result["connected"] is True
     assert result["url"] == "https://example.com"
+    assert result["scope"] == "dedicated_browser"
+
+
+@pytest.mark.asyncio
+async def test_profiles_use_generic_dedicated_browser_scope() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    result = await runtime.execute(_args({"action": "profiles"}))
+
+    assert result["profiles"] == [
+        {
+            "name": "windieos",
+            "driver": "browser-use",
+            "scope": "dedicated_browser",
+        }
+    ]
 
 
 @pytest.mark.asyncio
@@ -494,7 +512,7 @@ async def test_close_uses_config_neutral_browser_use_shutdown() -> None:
 
 
 @pytest.mark.asyncio
-async def test_shutdown_browser_runtime_closes_browser_use_and_windie_chrome() -> None:
+async def test_shutdown_browser_runtime_closes_browser_use_and_dedicated_chrome() -> None:
     with (
         mock.patch.object(
             BrowserUseEngineRuntime,
@@ -502,7 +520,7 @@ async def test_shutdown_browser_runtime_closes_browser_use_and_windie_chrome() -
             new=mock.AsyncMock(return_value={"shutdown": True}),
         ) as close_session,
         mock.patch(
-            "tools.browser.browser_use_engine.terminate_windie_chrome_with_cdp",
+            "tools.browser.browser_use_engine.terminate_dedicated_chrome_with_cdp",
             new=mock.AsyncMock(return_value=2),
         ) as terminate_chrome,
     ):

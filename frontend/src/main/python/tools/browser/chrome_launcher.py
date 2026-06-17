@@ -46,8 +46,8 @@ def _resolve_default_cdp_port() -> int:
         return DEFAULT_CDP_PORT
 
 
-DEFAULT_WINDIE_CDP_PORT = _resolve_default_cdp_port()
-DEFAULT_WINDIE_CDP_URL = f"http://127.0.0.1:{DEFAULT_WINDIE_CDP_PORT}"
+DEFAULT_DEDICATED_CDP_PORT = _resolve_default_cdp_port()
+DEFAULT_DEDICATED_CDP_URL = f"http://127.0.0.1:{DEFAULT_DEDICATED_CDP_PORT}"
 
 
 class ChromeLauncherError(Exception):
@@ -69,7 +69,7 @@ class ChromeLaunchTimeoutError(ChromeLauncherError):
 
 
 async def is_cdp_available(
-    cdp_url: str = DEFAULT_WINDIE_CDP_URL, timeout: float = 2.0
+    cdp_url: str = DEFAULT_DEDICATED_CDP_URL, timeout: float = 2.0
 ) -> bool:
     """
     Check if Chrome is running with CDP available.
@@ -92,7 +92,7 @@ async def is_cdp_available(
 
 
 async def is_cdp_download_behavior_supported(
-    cdp_url: str = DEFAULT_WINDIE_CDP_URL,
+    cdp_url: str = DEFAULT_DEDICATED_CDP_URL,
     timeout: float = 2.0,
 ) -> bool:
     """
@@ -140,7 +140,7 @@ async def is_cdp_download_behavior_supported(
         return False
 
 
-def _iter_windie_chrome_processes(cdp_port: int) -> List[psutil.Process]:
+def _iter_dedicated_chrome_processes(cdp_port: int) -> List[psutil.Process]:
     """Return Chrome processes that match the dedicated profile and CDP port."""
     user_data_arg = f"--user-data-dir={get_chrome_user_data_dir()}"
     port_arg = f"--remote-debugging-port={cdp_port}"
@@ -157,9 +157,9 @@ def _iter_windie_chrome_processes(cdp_port: int) -> List[psutil.Process]:
     return matches
 
 
-async def terminate_windie_chrome_with_cdp(cdp_port: int) -> int:
+async def terminate_dedicated_chrome_with_cdp(cdp_port: int) -> int:
     """Terminate only dedicated-profile Chrome processes for the requested CDP port."""
-    processes = _iter_windie_chrome_processes(cdp_port)
+    processes = _iter_dedicated_chrome_processes(cdp_port)
     if not processes:
         return 0
 
@@ -197,7 +197,7 @@ def get_chrome_user_data_dir() -> Path:
 
 
 async def launch_chrome_with_cdp(
-    cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
+    cdp_port: int = DEFAULT_DEDICATED_CDP_PORT,
     headless: bool = False,
     executable_path: Optional[str] = None,
     extra_args: Optional[List[str]] = None,
@@ -290,7 +290,7 @@ async def launch_chrome_with_cdp(
 
 
 async def ensure_chrome_with_cdp(
-    cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
+    cdp_port: int = DEFAULT_DEDICATED_CDP_PORT,
     auto_launch: bool = True,
     headless: bool = False,
 ) -> str:
@@ -320,7 +320,7 @@ async def ensure_chrome_with_cdp(
             logger.info("Dedicated browser with CDP already available at %s", cdp_url)
             return cdp_url
 
-        terminated = await terminate_windie_chrome_with_cdp(cdp_port)
+        terminated = await terminate_dedicated_chrome_with_cdp(cdp_port)
         if terminated:
             logger.warning(
                 "Restarting dedicated browser because existing CDP endpoint at %s "

@@ -463,12 +463,12 @@ Unsupported browser-controller actions remain removed from runtime routing
 
 1. **Auto-launch** (recommended): WindieOS connect auto-attaches to an existing Windie browser instance or launches one automatically.
 2. **If launch still fails**, close stale Windie browser instances and retry `{"action":"connect"}`.
-3. **Check Windie CDP port availability**:
+3. **Check dedicated browser CDP port availability**:
    ```bash
    lsof -i :9333  # macOS/Linux
    netstat -ano | findstr :9333  # Windows
    ```
-4. **Use a different Windie CDP port** by setting:
+4. **Use a different dedicated browser CDP port** by setting:
    ```bash
    export WINDIE_BROWSER_CDP_PORT=9334
    ```

@@ -37,7 +37,7 @@ Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwi
 
 1. starts or reuses the WindieOS-owned Chrome profile through `ensure_chrome_with_cdp`,
 2. invokes Browser Use `state` with `--cdp-url` targeting that profile,
-3. returns `mode = "browser_use"` and `scope = "windie_dedicated_browser"`.
+3. returns `mode = "browser_use"` and `scope = "dedicated_browser"`.
 
 Browser Use treats `--headed` and `--cdp-url` as explicit daemon-config checks. WindieOS passes them only when starting or recovering the dedicated session, then omits them for normal reuse so Browser Use does not compare the daemon's live CDP URL against every fresh CLI invocation. A state file for a running non-WindieOS Browser Use session is treated as disconnected; `connect` closes that stale daemon and waits briefly before starting Browser Use against the WindieOS dedicated profile.
 
