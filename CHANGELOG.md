@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend sidecar docs and maps to label Electron-facing sidecar JSON-RPC paths as local-runtime surfaces while preserving concrete LocalBackend implementation names. No migration is required.
+
 - Removed stale source-map wording about an unused websocket cleanup argument and documented the active task-manager/session-manager/user-id cleanup signature. No migration is required.
 
 - Updated JSON-RPC, browser, memory, and error workflow docs to describe Electron-facing sidecar request/status paths as SDK local-runtime surfaces. No migration is required.

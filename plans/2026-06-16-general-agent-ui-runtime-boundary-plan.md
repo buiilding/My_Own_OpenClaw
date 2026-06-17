@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 sidecar docs local-runtime label cleanup
+
+- Finding: sidecar hubs, frontend maps, and tool/memory sidecar references still
+  used local-backend labels for sidecar runtime paths that are exposed to
+  Electron and SDK callers as local-runtime JSON-RPC surfaces.
+- Change: updated visible link labels, table labels, and result/memory runtime
+  wording to say local-runtime or Python sidecar runtime while preserving
+  `local_backend.py` and `LocalBackend` names where they refer to the concrete
+  sidecar implementation.
+- Validation: docs listing, focused stale visible local-backend label scan, and
+  diff check.
+- Compatibility: no migration required. This is documentation label cleanup
+  only; sidecar files, JSON-RPC methods, SDK routing, and IPC channels are
+  unchanged.
+
 ### 2026-06-17 JSON-RPC workflow local-runtime wording cleanup
 
 - Finding: JSON-RPC, browser, memory, and error workflow docs still described

@@ -38,7 +38,7 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 | Change sidecar readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, sidecar daemon tests |
 | Change memory method payloads | RPC mapper plus memory mixin | `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`, sidecar memory/conversation tests |
 | Change `execute_tool` behavior | SDK/main local tool runtime plus sidecar tool registry | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, sidecar tool tests |
-| Change browser runtime install/warmup methods | main bridge helper plus local backend browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-backend tests |
+| Change browser runtime install/warmup methods | main bridge helper plus local-runtime browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-runtime tests |
 | Change macOS automation permission method | main permission bridge plus sidecar platform helper | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation sidecar tests |
 
 ## Method Families
@@ -89,7 +89,7 @@ channel.
 7. Keep the handler signature explicit so `JSONRPCProtocol` can reject missing or unexpected params before execution.
 8. Return a stable result envelope and avoid leaking tracebacks or local paths unless that is already the contract for the method.
 9. Add frontend mapper/IPC tests and sidecar handler/protocol tests.
-10. Link the new method from [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md) and the relevant domain doc.
+10. Link the new method from [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md) and the relevant domain doc.
 
 ## Add a Main-Only JSON-RPC Helper
 
@@ -194,7 +194,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 
 When a method changes, update the closest docs in the same commit:
 
-- [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md) when renderer channels change
@@ -204,7 +204,7 @@ When a method changes, update the closest docs in the same commit:
 
 ## Related Docs
 
-- [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)

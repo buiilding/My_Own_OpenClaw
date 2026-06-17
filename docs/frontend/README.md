@@ -28,7 +28,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md)
 - [Sidecar Tool Change Workflow](sidecar_tool_change_workflow.md)
 - [Local-Backend Process Lifecycle Change Workflow](main/local_backend/process_lifecycle_change_workflow.md)
-- [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 
 ## Deep Pages
 
@@ -177,7 +177,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Memory Docs Hub](sidecar/memory/README.md)
 - [Sidecar Memory Storage Docs Hub](sidecar/memory/storage/README.md)
 - [Python Sidecar and Memory](sidecar/python_sidecar_and_memory.md)
-- [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Sidecar System-State Collection and Platform Adapter Reference](sidecar/system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
 - [Sidecar Shell and Process Session Runtime Reference](sidecar/tools/shell_and_process_session_runtime_reference.md)
@@ -196,7 +196,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Browser Action Runtime Reference](sidecar/browser_action_runtime_reference.md)
 - [Schema Registry and Action Validation Boundary Reference](sidecar/browser/contracts/schema_registry_and_action_validation_boundary_reference.md)
 - [Chrome Detection, Launcher, and CDP Session Reference](sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md)
-- [Local Backend JSON-RPC Reference](sidecar/local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](sidecar/local_backend_jsonrpc_reference.md)
 - [Local Backend Process Lifecycle Reference](sidecar/local_backend_process_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](sidecar/wakeword_bridge_and_audio_framing_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
@@ -229,7 +229,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - `frontend/src/main`: Electron main process, SDK runtime adapter, wakeword bridge, query payload enrichment
 - `frontend/src/preload.js`: sandbox-safe IPC exposure to renderer
 - `frontend/src/renderer`: React app, contexts, feature modules, infrastructure services
-- `frontend/src/main/python`: local backend sidecar, memory service, wakeword subprocess, tool implementations
+- `frontend/src/main/python`: Python sidecar runtime, memory service, wakeword subprocess, tool implementations
 - `frontend/src/landing`: standalone landing page entrypoint, section composition, and shared marketing style system
 
 ## End-to-End Runtime Path (Condensed)

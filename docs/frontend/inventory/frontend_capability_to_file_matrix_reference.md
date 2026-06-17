@@ -89,7 +89,7 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| JSON-RPC local backend entrypoint | `frontend/src/main/python/local_backend.py` | Primary sidecar service process for tool/memory/transcript/system RPC. |
+| JSON-RPC local-runtime entrypoint | `frontend/src/main/python/local_backend.py` | Primary sidecar runtime implementation for tool/memory/transcript/system RPC. |
 | Wakeword sidecar entrypoint | `frontend/src/main/python/wakeword_service.py` | Wakeword model load + framed output loop. |
 | Core protocol and lifecycle | `frontend/src/main/python/core/{ipc_protocol,stdout_json,runtime_shutdown,thread_pool}.py` | Request framing, response writes, graceful shutdown behavior. |
 | Sidecar backend HTTP clients | `frontend/src/main/python/core/{remote_api_client_base,remote_semantic_client}.py` | Shared retry/error policy wrappers for semantic backend calls. |

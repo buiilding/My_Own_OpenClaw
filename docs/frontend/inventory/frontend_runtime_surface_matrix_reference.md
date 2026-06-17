@@ -34,7 +34,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Renderer chat runtime | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | SDK-normalized conversation-event handling, state transitions, and current-turn projection consumption | Message list + overlay updates |
 | SDK tool runtime | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | SDK local runtime + sidecar callback wiring | `tool-result` / `tool-bundle-result` send path |
 | Renderer voice runtime | `frontend/src/renderer/features/voice/hooks/*` | Wakeword capture + gateway audio stream | Transcription/voice status updates |
-| Sidecar local backend | `frontend/src/main/python/local_backend.py` | JSON-RPC method routing + tool registry | JSON-RPC result envelopes |
+| Sidecar local runtime | `frontend/src/main/python/local_backend.py` | JSON-RPC method routing + tool registry | JSON-RPC result envelopes |
 | Sidecar wakeword service | `frontend/src/main/python/wakeword_service.py` | Wakeword model bootstrap + detection loop | Length-prefixed detection frames |
 | Landing app runtime | `frontend/src/landing/main.jsx` | Landing section composition | Static marketing UI |
 

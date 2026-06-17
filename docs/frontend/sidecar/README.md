@@ -1,5 +1,5 @@
 ---
-summary: "Frontend sidecar docs sub-hub for Python local-backend runtime, tool catalog execution model, memory pipeline, and browser automation stack."
+summary: "Frontend sidecar docs sub-hub for Python sidecar runtime, tool catalog execution model, memory pipeline, and browser automation stack."
 read_when:
   - When changing sidecar JSON-RPC methods, tool implementations, or memory summarization behavior.
   - When debugging renderer->main->local-runtime bridge failures or browser automation runtime issues.
@@ -13,7 +13,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Python Sidecar and Memory](python_sidecar_and_memory.md)
 - [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
 - [Local-Backend Process Lifecycle Change Workflow](../main/local_backend/process_lifecycle_change_workflow.md)
-- [Local Backend JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Sidecar Core Docs Hub](core/README.md)
 - [Sidecar Services Docs Hub](services/README.md)
 - [Sidecar System-State Docs Hub](system_state/README.md)
@@ -43,8 +43,8 @@ title: "Frontend Sidecar Docs Hub"
 - [Schema Registry and Action Validation Boundary Reference](browser/contracts/schema_registry_and_action_validation_boundary_reference.md)
 - [Chrome Detection, Launcher, and CDP Session Reference](browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md)
 - [Python Sidecar Folder Topology and Package `__init__` Export Surface Reference](source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md)
-- [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md)
-- [Local Backend JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Local-Backend Process Lifecycle Change Workflow](../main/local_backend/process_lifecycle_change_workflow.md)
 - [Local Backend Process Lifecycle Reference](local_backend_process_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](wakeword_bridge_and_audio_framing_reference.md)
