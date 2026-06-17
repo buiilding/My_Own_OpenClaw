@@ -46,6 +46,21 @@ describe('sdk local runtime launch options', () => {
       .toBe('Bundled Python runtime not found in app resources. Please reinstall this app.');
   });
 
+  test('uses generic local-runtime wording for missing daemon script errors', () => {
+    const missingScript = path.join(os.tmpdir(), 'desktop-agent-missing-runtime.py');
+    const plan = createDesktopLocalRuntimeLaunchPlan({
+      resolveLaunchTarget: () => ({
+        kind: 'python',
+        command: 'python',
+        resolvedPath: missingScript,
+      }),
+    });
+
+    expect(plan.ok).toBe(false);
+    expect(plan.error).toBe(`Local runtime daemon script not found: ${missingScript}`);
+    expect(plan.error).not.toContain('Sidecar daemon script not found');
+  });
+
   test('includes source identity in daemon launch context', () => {
     const plan = createDesktopLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },

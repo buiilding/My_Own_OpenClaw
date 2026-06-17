@@ -178,7 +178,7 @@ function createDesktopLocalRuntimeLaunchPlan({
   if (launchTarget.kind === 'python' && !fs.existsSync(launchTarget.resolvedPath)) {
     return {
       ok: false,
-      error: `Sidecar daemon script not found: ${launchTarget.resolvedPath}`,
+      error: `Local runtime daemon script not found: ${launchTarget.resolvedPath}`,
       launchTarget,
     };
   }

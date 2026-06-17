@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime missing script error wording
+
+- Finding: Electron main's desktop local-runtime launch plan still returned
+  `Sidecar daemon script not found` when the Python launch target command
+  existed but the daemon script path was missing.
+- Change: changed that host-facing launch-plan failure to
+  `Local runtime daemon script not found` and added focused launch-options
+  coverage so the old sidecar-daemon message stays absent.
+- Validation: focused SDK sidecar launch-options Jest test, stale error scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. The launch target, daemon script file,
+  discovery file, and SDK `autoSidecar` option are unchanged; only the
+  Electron main launch-plan error text changed.
+
 ### 2026-06-17 SDK local-runtime error wording
 
 - Finding: SDK local-runtime startup and discovery failures still surfaced

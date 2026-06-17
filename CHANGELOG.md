@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Changed Electron main desktop local-runtime launch-plan missing-script errors to say local runtime daemon script instead of sidecar daemon script. No persisted-data migration is required.
+
 - Changed SDK local-runtime startup and discovery errors plus renderer dashboard retry matching to use local-runtime wording instead of sidecar-daemon-specific caller-facing text. No persisted-data migration is required.
 
 - Removed the backend API schema package re-export facade so handlers, websocket routes, services, and tests import concrete schema owner modules directly. No persisted-data migration is required.
