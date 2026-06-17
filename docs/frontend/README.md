@@ -62,7 +62,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Local-Backend Process Lifecycle Change Workflow](main/local_backend/process_lifecycle_change_workflow.md)
 - [Main Testing Docs Hub](main/testing/README.md)
 - [Main Testing Data-Seed Docs Hub](main/testing/data_seed/README.md)
-- [Local Backend Bridge Overview and Window Guard Index](main/local_backend_bridge_handler_and_window_guard_reference.md)
+- [Local Runtime Bridge Overview and Window Guard Index](main/local_runtime_bridge_handler_and_window_guard_reference.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Mock Memory Seed Script and NPM Entrypoints Reference](main/testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)

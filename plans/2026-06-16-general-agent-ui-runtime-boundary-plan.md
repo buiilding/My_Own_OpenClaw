@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime bridge docs entrypoint
+
+- Finding: the Electron main local-runtime bridge overview page title and
+  content had moved to local-runtime wording, but the docs filename, hub links,
+  and docs-index fixture still used local-backend bridge names.
+- Change: renamed the overview page to
+  `local_runtime_bridge_handler_and_window_guard_reference.md`, updated current
+  docs links and the docs-index fixture, and clarified that the
+  `local_backend/` docs subfolder refers to the Python sidecar executor domain.
+- Validation: docs listing, docs-index Jest test, stale docs-entrypoint scan,
+  and diff check.
+- Compatibility: no migration required. This is a docs-navigation rename; code
+  paths, IPC channels, and runtime behavior are unchanged.
+
 ### 2026-06-17 local-runtime bridge focused suites
 
 - Finding: the Electron main local-runtime bridge lifecycle/RPC focused Jest

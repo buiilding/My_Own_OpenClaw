@@ -11,8 +11,10 @@ title: "Local Runtime Bridge Overview and Window Guard Index"
 ## Scope
 
 This page is the entrypoint for Electron-main local-runtime bridge behavior.
-Detailed implementation docs now live under the dedicated local-backend
-subfolder because the file names remain compatibility names.
+Detailed implementation docs still live under the dedicated local-backend
+subfolder because that subfolder describes the Python sidecar executor and
+JSON-RPC protocol domain. The Electron main host adapter modules now use
+local-runtime names.
 
 ## Local-Backend Docs (Detailed)
 

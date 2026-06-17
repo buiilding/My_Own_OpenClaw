@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed the Electron main local-runtime bridge overview docs route from `local_backend_bridge_handler_and_window_guard_reference.md` to `local_runtime_bridge_handler_and_window_guard_reference.md`. No migration is required.
+
 - Renamed Electron main local-runtime bridge lifecycle/RPC focused Jest suites and shared harness from LocalBackendBridge names to LocalRuntimeBridge names. No migration is required.
 
 - Renamed Electron main local-runtime RPC mapper and window visibility helpers from local-backend bridge paths to `local_runtime_rpc_mappers.cjs` and `local_runtime_window_visibility.cjs`. No migration is required.

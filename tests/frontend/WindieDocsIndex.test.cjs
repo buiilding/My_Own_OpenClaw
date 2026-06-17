@@ -668,7 +668,7 @@ describe('windie docs index', () => {
       'docs',
       'frontend',
       'main',
-      'local_backend_bridge_handler_and_window_guard_reference.md',
+      'local_runtime_bridge_handler_and_window_guard_reference.md',
     );
 
     expect(findDocs('system state bridge export removed')[0].path).toBe(
