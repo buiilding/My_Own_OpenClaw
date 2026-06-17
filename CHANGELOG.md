@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: rename local status broadcaster internals to local-runtime terminology while preserving local-backend status channel compatibility.
+
 - frontend/renderer: describe voice mode as a desktop transcription gateway consumer while preserving backend provider ownership.
 
 - tests/frontend: describe renderer UI status and voice runtime failures with runtime transport terminology instead of backend transport wording.
