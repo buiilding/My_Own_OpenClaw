@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the backend remote-tool re-export facade so tests and docs use the canonical tool catalog and concrete remote tool modules directly; the browser shared-contract loader now supports the existing markerless `windie_shared` namespace package. No persisted-data migration is required.
+
 - Renamed Electron main local-runtime daemon launch helpers and main-added log prefix away from sidecar-daemon wording. No persisted-data migration is required.
 
 - Updated architecture docs to route renderer SDK commands through window.desktopAgent while keeping windie:invoke as the IPC wire channel. No persisted-data migration is required.

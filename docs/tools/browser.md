@@ -32,9 +32,10 @@ For browser changes that can cross schema, sidecar runtime, Electron bridge, ren
 - Renderer browser UI: `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`
 - Main bridge mapping: `frontend/src/main/sidecar/local_backend_bridge*.cjs`
 
-Backend schema re-exports load the shared browser contract from its explicit
-`windie_shared` package path and must not prepend `frontend/src/main/python` to
-`sys.path`; backend imports must keep their normal module precedence.
+Backend schema re-exports load the shared browser contract from the explicit
+markerless `windie_shared` namespace package path and must not prepend
+`frontend/src/main/python` to `sys.path`; backend imports must keep their normal
+module precedence.
 
 ## Debugging Rules
 

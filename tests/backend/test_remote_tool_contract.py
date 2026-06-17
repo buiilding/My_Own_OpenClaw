@@ -4,7 +4,7 @@ from pathlib import Path
 from importlib import import_module
 import sys
 
-from backend.src.tools.remote import get_all_remote_tools
+from backend.src.tools.tool_catalog import get_all_remote_tool_classes
 
 DERIVED_BACKEND_GROUNDING_TOOLS = {
     "grounded_mouse_action",
@@ -56,7 +56,7 @@ def _load_frontend_exposed_tool_names() -> set[str]:
 
 
 def test_backend_remote_tools_match_frontend_exposed_tools():
-    backend_remote_tools = set(get_all_remote_tools().keys())
+    backend_remote_tools = set(get_all_remote_tool_classes().keys())
     frontend_exposed_tools = _load_frontend_exposed_tool_names()
     backend_executable_tools = backend_remote_tools - DERIVED_BACKEND_GROUNDING_TOOLS
 

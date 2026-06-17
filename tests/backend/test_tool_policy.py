@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from backend.src.core.config.models import AppConfig
 from backend.src.tools.agent_capability_policy import build_agent_tool_selection
-from backend.src.tools.remote import RemoteMouseTool
 from backend.src.tools.remote_tools.computer import (
     RemoteGroundedMouseTool,
     RemoteGroundedScrollTool,
+    RemoteMouseTool,
     RemoteScrollTool,
 )
 from backend.src.tools.tool_policy import ToolPolicy

@@ -1,6 +1,5 @@
 """Covers computer tool catalog parity behavior in the backend test suite."""
 
-import backend.src.tools.remote as remote_exports
 from backend.src.tools.remote_tools.computer import (
     RemoteGetOpenWindowsTool,
     RemoteGroundedMouseTool,
@@ -47,4 +46,4 @@ def test_computer_tool_catalog_matches_remote_computer_classes():
 
 def test_computer_tools_are_exported():
     for tool_class in _EXPECTED_COMPUTER_TOOL_CLASSES:
-        assert getattr(remote_exports, tool_class.__name__) is tool_class
+        assert get_remote_tool_class(tool_class.name) is tool_class

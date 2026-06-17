@@ -19,13 +19,11 @@ from backend.src.tools.computer.schemas import (
     SwitchTabArgs,
     WaitToolArgs,
 )
-from backend.src.tools.remote import (
-    RemoteMouseTool,
-    RemoteToolBase,
-    RemoteToolResult,
-    RemoteWaitTool,
-    get_all_remote_tools,
-    get_remote_tool,
+from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
+from backend.src.tools.remote_tools.computer import RemoteMouseTool, RemoteWaitTool
+from backend.src.tools.tool_catalog import (
+    get_all_remote_tool_classes,
+    get_remote_tool_class,
 )
 
 EXPLANATION = "Advance the active user task."
@@ -263,19 +261,19 @@ async def test_remote_tool_run_delegates_to_execute_remote():
 
 
 def test_get_remote_tool_unknown_name_returns_none():
-    assert get_remote_tool("does-not-exist") is None
+    assert get_remote_tool_class("does-not-exist") is None
 
 
 def test_get_remote_tool_open_app_exists():
-    tool_class = get_remote_tool("open_app")
+    tool_class = get_remote_tool_class("open_app")
     assert tool_class is not None
 
 
-def test_get_all_remote_tools_returns_copy():
-    original = get_all_remote_tools()
+def test_get_all_remote_tool_classes_returns_copy():
+    original = get_all_remote_tool_classes()
     original.pop("mouse_control", None)
 
-    fresh = get_all_remote_tools()
+    fresh = get_all_remote_tool_classes()
     assert "mouse_control" in fresh
 
 
@@ -288,7 +286,7 @@ def test_sensitive_remote_tools_declare_required_permissions():
     }
 
     for tool_name, permissions in expected_permissions.items():
-        tool_class = get_remote_tool(tool_name)
+        tool_class = get_remote_tool_class(tool_name)
         assert tool_class is not None
         assert set(tool_class().required_permissions) == permissions
 
@@ -315,7 +313,7 @@ def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
 
 
 def test_direct_remote_tool_schema_uses_flat_internal_shape():
-    schema = get_remote_tool("run_shell_command")().get_json_schema()
+    schema = get_remote_tool_class("run_shell_command")().get_json_schema()
 
     assert schema["type"] == "function"
     assert schema["name"] == "run_shell_command"

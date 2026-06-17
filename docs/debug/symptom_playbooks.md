@@ -207,7 +207,7 @@ Likely boundary: backend schema, sidecar Browser Use CLI adapter, Chromium runti
 Inspect:
 
 - `backend/src/tools/tool_catalog.py`
-- `backend/src/tools/remote.py`
+- `backend/src/tools/remote_tools/browser.py`
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/permissions/permission_service_browser.cjs`

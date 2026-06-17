@@ -13,7 +13,6 @@ This page covers backend tool registry internals in:
 - `backend/src/tools/registry.py`
 - `backend/src/tools/schema_registry.py`
 - `backend/src/tools/tool_catalog.py`
-- `backend/src/tools/remote.py`
 - `backend/src/tools/remote_tools/*`
 - `tests/backend/test_tool_registry_schema.py`
 - `tests/backend/test_remote_tools.py`
@@ -59,7 +58,10 @@ The catalog owns:
 - the canonical flat tool spec built from the tool class
 - concrete direct-tool names only; it does not declare wrapper names such as `computer_use` or `system_use`
 
-`backend/src/tools/tool_catalog.py` now owns the built tool-spec layer as well as the name->class lookup helpers used by the backend public remote-tool exports.
+`backend/src/tools/tool_catalog.py` owns the built tool-spec layer as well as the
+name->class lookup helpers used by backend registry and tests. Concrete remote
+tool classes are imported from their domain modules under
+`backend/src/tools/remote_tools/`.
 
 Current names:
 
@@ -68,7 +70,8 @@ Current names:
 - filesystem: `read_file`, `replace`
 - browser: `browser`
 
-`backend.src.tools.remote.get_all_remote_tools()` still returns a copy, preventing external mutation of the module-level export map.
+`backend.src.tools.tool_catalog.get_all_remote_tool_classes()` returns a fresh
+mapping, preventing external mutation of the catalog-derived lookup map.
 
 Catalog-driven runtime helpers also power:
 
@@ -183,7 +186,7 @@ override into `_build_remote_result(...)`.
 
 `tests/backend/test_remote_tool_contract.py` enforces exact parity between:
 
-- backend remote tool names (`get_all_remote_tools().keys()`)
+- backend remote tool names (`get_all_remote_tool_classes().keys()`)
 - frontend sidecar exposed set (`frontend/src/main/python/tools/registry.py:ToolRegistry.get_exposed_tool_names()`)
 
 The test loads the sidecar `tools.registry` module inside an isolated import

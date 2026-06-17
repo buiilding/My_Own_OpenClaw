@@ -158,9 +158,9 @@ Integration consequence:
 
 ## Registry and Export Wiring
 
-`tool_catalog.py` defines the canonical name->class mapping helpers.
-
-`backend/src/tools/remote.py` materializes and re-exports that surface as the backend public entrypoint.
+`tool_catalog.py` defines the canonical name->class mapping helpers. Concrete
+remote stubs live in the matching `backend/src/tools/remote_tools/<domain>.py`
+module instead of a package-level re-export surface.
 
 Contract test (`test_remote_tool_contract.py`) ensures names exactly match frontend sidecar exposed tool set.
 

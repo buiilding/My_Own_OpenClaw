@@ -152,6 +152,10 @@ CONCRETE_MODULES = [
     "backend.src.tools.web_search.tool",
 ]
 
+REMOVED_MODULE_FACADES = [
+    "backend/src/tools/remote.py",
+]
+
 
 def test_marker_only_backend_package_files_are_removed():
     for marker in REMOVED_MARKERS:
@@ -161,3 +165,8 @@ def test_marker_only_backend_package_files_are_removed():
 def test_namespace_packages_still_import_concrete_modules():
     for module_name in CONCRETE_MODULES:
         assert importlib.import_module(module_name).__name__ == module_name
+
+
+def test_backend_module_facades_are_removed():
+    for module_path in REMOVED_MODULE_FACADES:
+        assert not (ROOT / module_path).exists()

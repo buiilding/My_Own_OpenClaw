@@ -27,7 +27,6 @@ title: "Backend Remote Tools Docs Hub"
 - `backend/src/tools/remote_tools/system.py`
 - `backend/src/tools/remote_tools/filesystem.py`
 - `backend/src/tools/remote_tools/browser.py`
-- `backend/src/tools/remote.py`
 - `tests/backend/test_remote_tools.py`
 - `tests/backend/test_remote_tool_contract.py`
 - `tests/backend/test_browser_remote_tool.py`

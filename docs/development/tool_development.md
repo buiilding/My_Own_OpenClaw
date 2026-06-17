@@ -30,7 +30,6 @@ SDK path below for backend-owned remote tools or built-in WindieOS tools.
 - Tool context: `backend/src/sdk/context.py`
 - Remote tool stubs: `backend/src/tools/remote_tools/`
 - Remote tool catalog: `backend/src/tools/tool_catalog.py`
-- Backend-facing re-export: `backend/src/tools/remote.py`
 - Contract test: `tests/backend/test_remote_tool_contract.py`
 
 ### Frontend sidecar (execution)
@@ -263,7 +262,8 @@ If you add backend-only tools, document the wiring point in the same PR.
 ### Tool not visible to model
 
 1. For backend-owned tools, confirm backend stub is present in
-   `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
+   `backend/src/tools/tool_catalog.py` and the concrete
+   `backend/src/tools/remote_tools/<domain>.py` module.
 2. For built-in sidecar tools, confirm the tool is listed in
    `frontend/src/main/python/tools/manifest.py`.
 3. For sidecar plugin tools, confirm `plugin.json` has `schema` and

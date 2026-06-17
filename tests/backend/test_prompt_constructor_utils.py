@@ -14,7 +14,7 @@ from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
-from backend.src.tools.remote import RemoteMouseTool
+from backend.src.tools.remote_tools.computer import RemoteMouseTool
 
 
 class DummyRegistry:
