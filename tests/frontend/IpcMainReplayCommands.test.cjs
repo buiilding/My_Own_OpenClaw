@@ -8,7 +8,7 @@ const {
 describe('ipc.cjs replay command handling', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  function installMockWindieClient() {
+  function installMockAgentClient() {
     const runtime = {
       subscribeEvents: jest.fn(() => jest.fn()),
       load: jest.fn(async () => ({
@@ -49,20 +49,20 @@ describe('ipc.cjs replay command handling', () => {
       sleep: jest.fn(),
     };
     const wakeUp = jest.fn(async () => agent);
-    const WindieClient = jest.fn().mockImplementation(() => ({ wakeUp }));
+    const AgentClient = jest.fn().mockImplementation(() => ({ wakeUp }));
     const sdkActual = jest.requireActual('../../packages/windie-sdk-js/cjs/index.js');
 
     jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
       ...sdkActual,
-      AgentClient: WindieClient,
-      WindieClient,
+      AgentClient,
+      WindieClient: AgentClient,
     }));
 
     return {
       agent,
       runtime,
       wakeUp,
-      WindieClient,
+      AgentClient,
     };
   }
 
@@ -78,7 +78,7 @@ describe('ipc.cjs replay command handling', () => {
   });
 
   test('routes edit/resend preparation through the real windie:invoke command bridge', async () => {
-    const sdk = installMockWindieClient();
+    const sdk = installMockAgentClient();
     const bridge = initIpc();
 
     const response = await invokeAgentSdkCommandHandler(
@@ -114,7 +114,7 @@ describe('ipc.cjs replay command handling', () => {
         }),
       }),
     });
-    expect(sdk.WindieClient).toHaveBeenCalledWith(expect.objectContaining({
+    expect(sdk.AgentClient).toHaveBeenCalledWith(expect.objectContaining({
       autoStartLocalRuntime: false,
     }));
     expect(sdk.wakeUp).toHaveBeenCalledWith(expect.objectContaining({
@@ -145,7 +145,7 @@ describe('ipc.cjs replay command handling', () => {
   });
 
   test('rejects stale transcript-session users before preparing edit/resend replay', async () => {
-    const sdk = installMockWindieClient();
+    const sdk = installMockAgentClient();
     const bridge = initIpc();
 
     await expect(invokeAgentSdkCommandHandler(
@@ -178,7 +178,7 @@ describe('ipc.cjs replay command handling', () => {
   });
 
   test('routes retry preparation through the same SDK agent adapter', async () => {
-    const sdk = installMockWindieClient();
+    const sdk = installMockAgentClient();
     const bridge = initIpc();
 
     const response = await invokeAgentSdkCommandHandler(

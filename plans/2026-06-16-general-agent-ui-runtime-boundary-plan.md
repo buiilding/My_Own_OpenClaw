@@ -1989,3 +1989,25 @@ Each completed slice should report:
   tests/frontend/WindieSdkMockBackendE2E.test.ts`.
 - Compatibility: no migration required. Windie-prefixed aliases remain covered
   by package-boundary and compatibility tests.
+
+### 2026-06-17 Main IPC AgentClient test mocks
+
+- Finding: main-process replay and conversation-runtime registry tests verified
+  the generic SDK agent path, but their local Jest helpers still named and
+  mocked the historical `WindieClient` alias.
+- Change: renamed the helpers and mock constructor to `AgentClient`, kept the
+  compatibility export mapped to that same constructor inside the mocked SDK
+  module, moved expectations to the canonical client constructor, and made the
+  active-send overlap test wait deterministically for the first runtime send.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/IpcMainReplayCommands.test.cjs
+  ../tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs`; `bin\windie
+  docs list`; `git diff --check --
+  tests/frontend/IpcMainReplayCommands.test.cjs
+  tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`; `rg -n
+  "installMockWindieClient|const WindieClient|sdk.WindieClient"
+  tests/frontend/IpcMainReplayCommands.test.cjs
+  tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs`.
+- Compatibility: no migration required. Compatibility alias behavior remains
+  covered by dedicated SDK package-boundary tests.

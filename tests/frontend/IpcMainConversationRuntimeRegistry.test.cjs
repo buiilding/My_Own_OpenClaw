@@ -9,7 +9,7 @@ const {
 describe('ipc.cjs conversation runtime registry', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  function installMockWindieClient(options = {}) {
+  function installMockAgentClient(options = {}) {
     const runtimes = new Map();
     const pendingSends = [];
 
@@ -95,13 +95,13 @@ describe('ipc.cjs conversation runtime registry', () => {
       sleep: jest.fn(),
     };
     const wakeUp = jest.fn(async () => agent);
-    const WindieClient = jest.fn().mockImplementation(() => ({ wakeUp }));
+    const AgentClient = jest.fn().mockImplementation(() => ({ wakeUp }));
     const sdkActual = jest.requireActual('../../packages/windie-sdk-js/cjs/index.js');
 
     jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
       ...sdkActual,
-      AgentClient: WindieClient,
-      WindieClient,
+      AgentClient,
+      WindieClient: AgentClient,
     }));
 
     return {
@@ -109,7 +109,7 @@ describe('ipc.cjs conversation runtime registry', () => {
       runtimes,
       pendingSends,
       wakeUp,
-      WindieClient,
+      AgentClient,
     };
   }
 
@@ -120,12 +120,23 @@ describe('ipc.cjs conversation runtime registry', () => {
     });
   }
 
+  async function waitForRuntimeSend(sdk, conversationRef) {
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const runtime = sdk.runtimes.get(conversationRef);
+      if (runtime?.send.mock.calls.length === 1) {
+        return runtime;
+      }
+      await new Promise(resolve => setImmediate(resolve));
+    }
+    throw new Error(`Timed out waiting for runtime send in ${conversationRef}`);
+  }
+
   afterEach(() => {
     jest.dontMock('../../packages/windie-sdk-js/cjs/index.js');
   });
 
   test('keeps conversation A runtime attached when sending in conversation B', async () => {
-    const sdk = installMockWindieClient();
+    const sdk = installMockAgentClient();
     const bridge = initIpc();
     primeQueryContext(bridge.backendBridge);
 
@@ -185,7 +196,7 @@ describe('ipc.cjs conversation runtime registry', () => {
   });
 
   test('rejects a second send in the same conversation while its runtime is active', async () => {
-    const sdk = installMockWindieClient({ holdSends: true });
+    const sdk = installMockAgentClient({ holdSends: true });
     const bridge = initIpc();
     primeQueryContext(bridge.backendBridge);
 
@@ -194,9 +205,7 @@ describe('ipc.cjs conversation runtime registry', () => {
       conversation_ref: 'conv-active',
     });
 
-    for (let attempt = 0; sdk.runtimes.get('conv-active')?.send.mock.calls.length !== 1 && attempt < 20; attempt += 1) {
-      await Promise.resolve();
-    }
+    const activeRuntime = await waitForRuntimeSend(sdk, 'conv-active');
 
     const secondSend = await invokeAgentSdkCommandHandler(bridge.handlers, 'conversation.send', {
       text: 'overlap chat',
@@ -214,7 +223,7 @@ describe('ipc.cjs conversation runtime registry', () => {
       ok: false,
       error: 'Failed to send query through SDK agent',
     });
-    expect(sdk.runtimes.get('conv-active').send).toHaveBeenCalledTimes(1);
+    expect(activeRuntime.send).toHaveBeenCalledTimes(1);
 
     sdk.pendingSends.shift()?.();
     await expect(firstSend).resolves.toEqual(expect.objectContaining({
