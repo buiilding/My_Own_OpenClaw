@@ -136,9 +136,9 @@ Current durable traced paths:
   control, dispatch, and worker stream events. Rows include run id as request
   id, action/status/control mode, counts, assignment booleans, and payload key
   counts without query text or worker payload bodies.
-- `sidecar.lifecycle`: SDK local-runtime helpers record sidecar status,
-  tool-list, and shutdown spans with ready/running booleans, tool count,
-  version presence, shutdown mode, and response key counts.
+- `local_runtime.lifecycle`: SDK local-runtime helpers record sidecar-backed
+  status, tool-list, and shutdown spans with ready/running booleans, tool
+  count, version presence, shutdown mode, and response key counts.
 - `agent.definition`: SDK conversation send records agent definition shape with
   merged tool/plugin/MCP/skill counts, SDK-vs-query agent-definition presence,
   SDK-vs-query client-manifest tool counts, key count, workspace-path presence,

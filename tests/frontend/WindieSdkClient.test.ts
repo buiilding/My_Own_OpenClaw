@@ -1334,7 +1334,7 @@ describe('WindieSdkClient', () => {
       toolSchemaCount: 1,
       hasToolSchemas: true,
     }));
-    expect(timelineByPath('sidecar.lifecycle').map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+    expect(timelineByPath('local_runtime.lifecycle').map(entry => `${entry.stage}:${entry.status}`)).toEqual([
       'status:started',
       'status:succeeded',
       'list_tools:started',
@@ -1342,12 +1342,12 @@ describe('WindieSdkClient', () => {
       'shutdown:started',
       'shutdown:succeeded',
     ]);
-    expect(timelineByPath('sidecar.lifecycle')[1].data).toEqual(expect.objectContaining({
+    expect(timelineByPath('local_runtime.lifecycle')[1].data).toEqual(expect.objectContaining({
       responseKeyCount: 3,
       ready: true,
       running: true,
     }));
-    expect(timelineByPath('sidecar.lifecycle')[3].data).toEqual(expect.objectContaining({
+    expect(timelineByPath('local_runtime.lifecycle')[3].data).toEqual(expect.objectContaining({
       toolCount: 1,
       hasVersion: true,
     }));

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local runtime lifecycle trace path
+
+- Finding: SDK `Agent` local-runtime helpers still emitted lifecycle trace rows
+  under the sidecar-specific `sidecar.lifecycle` path even though the public
+  boundary is the SDK local runtime.
+- Change: routed status, tool-list, and shutdown helper traces through the
+  `local_runtime.lifecycle` path while preserving the `sidecar` runtime marker
+  for the current sidecar-backed executor.
+- Validation: focused SDK trace test, runtime trace docs update, path scan,
+  docs listing, and diff check.
+- Compatibility: persisted trace rows from earlier builds keep the old path;
+  new SDK lifecycle rows use `local_runtime.lifecycle`. No storage migration is
+  required because trace paths are append-only diagnostics.
+
 ### 2026-06-17 main local runtime bridge headers
 
 - Finding: Electron main sidecar bridge modules still introduced host adapter
