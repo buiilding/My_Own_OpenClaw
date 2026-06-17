@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Chat Store (Zustand).
  * Manages chat state: messages, sending status, thinking status, token counts.
  * Pure state management - no business logic.
@@ -6,7 +6,7 @@
 
 import { create } from 'zustand';
 import type { ToolSchema } from '../../../types/toolSchemas';
-import type { CurrentTurnProjection } from '../../../infrastructure/api/windieSdkClient';
+import type { CurrentTurnProjection } from '../../../infrastructure/api/agentSdkClient';
 import {
   DEFAULT_CHAT_WORKSPACE_REF,
   createInitialStreamTracking,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Covers windie sdk file conversation store. behavior in the frontend test suite.
  */
 
@@ -10,7 +10,7 @@ import {
   createConversationEvent,
   FileConversationStore,
   type ConversationEvent,
-} from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 
 function event(
   type: ConversationEvent['type'],

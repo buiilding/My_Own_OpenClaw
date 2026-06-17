@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Coordinates the desktop live turn runtime client for the renderer UI.
  */
 
@@ -6,7 +6,7 @@ import {
   SDK_RUNTIME_COMMANDS,
   type TurnInputResource,
   type WindieModelSelection,
-} from '../../infrastructure/api/windieSdkClient';
+} from '../../infrastructure/api/agentSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';

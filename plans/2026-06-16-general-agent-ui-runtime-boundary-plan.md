@@ -900,3 +900,18 @@ Each completed slice should report:
   `git diff --check`, and stale scan for the retired argument name.
 - Compatibility: no migration required. The marker is supplied by Electron main
   to the matching bundled preload script at window creation time.
+
+### 2026-06-17 renderer SDK facade filename
+
+- Finding: the generic renderer UI imported SDK contracts through the
+  product-named local facade path `windieSdkClient.ts`.
+- Change: renamed the renderer-local facade to `agentSdkClient.ts`, updated
+  renderer imports, tests, and docs, and kept exported SDK symbol names
+  unchanged. The mock backend E2E fixture was also brought back into the
+  current SDK runtime contract by emitting backend event identity/sequence
+  fields and providing a minimal local-runtime RPC mock.
+- Validation: focused renderer SDK/runtime Jest run, docs listing,
+  `git diff --check`, and stale scan for the retired facade path.
+- Compatibility: no migration required. The module path is internal to the
+  renderer/tests/docs; persisted data, IPC channels, backend routes, and public
+  SDK exports are unchanged.

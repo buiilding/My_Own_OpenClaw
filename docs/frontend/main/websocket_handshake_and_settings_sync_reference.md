@@ -1,4 +1,4 @@
----
+﻿---
 summary: "Electron main SDK websocket relay reference for handshake, typed renderer fan-out, per-connection settings ACK gating, and query send-failure synthesis."
 read_when:
   - When changing `ipc.cjs` websocket lifecycle, handshake identity handling, or reconnection behavior.
@@ -10,7 +10,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 ## Canonical Modules
 
-- SDK runtime: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+- SDK runtime: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
 - Electron adapter: `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`

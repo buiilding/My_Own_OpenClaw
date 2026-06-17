@@ -1,4 +1,4 @@
----
+﻿---
 summary: "Renderer-main IPC contract and SDK conversation event contract used by chat stream, tool runner, settings lifecycle, and permission onboarding channels."
 read_when:
   - When adding/changing IPC channels.
@@ -111,7 +111,7 @@ Key normalized event families include:
 Type guards:
 
 - SDK conversation event types and display row projections from
-  `renderer/infrastructure/api/windieSdkClient.ts`
+  `renderer/infrastructure/api/agentSdkClient.ts`
 
 ## Overlay Phase Contract
 

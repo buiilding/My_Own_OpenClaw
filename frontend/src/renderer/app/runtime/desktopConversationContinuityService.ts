@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Implements the desktop conversation continuity service service for the renderer UI.
  */
 
@@ -14,7 +14,7 @@ import {
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
   type TraceTimelineEntry,
-} from '../../infrastructure/api/windieSdkClient';
+} from '../../infrastructure/api/agentSdkClient';
 import {
   createDesktopConversationStore,
   loadDesktopTraceTimeline,

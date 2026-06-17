@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Handles use chat stream compaction handlers events for the renderer UI.
  */
 
@@ -7,7 +7,7 @@ import type {
   CompactedReplaySnapshot,
   ConversationEvent,
   JsonRecord,
-} from '../../../../infrastructure/api/windieSdkClient';
+} from '../../../../infrastructure/api/agentSdkClient';
 import {
   COMPACTION_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,

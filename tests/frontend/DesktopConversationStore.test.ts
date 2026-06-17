@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Covers desktop conversation store. behavior in the frontend test suite.
  */
 
@@ -8,7 +8,7 @@ import {
 } from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
 import {
   createConversationEvent,
-} from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({

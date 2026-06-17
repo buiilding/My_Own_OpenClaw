@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Handles use chat stream terminal handlers events for the renderer UI.
  */
 
@@ -13,7 +13,7 @@ import {
 } from '../../utils/chatStream/chatStreamEventUtils';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
-import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
+import type { ConversationEvent } from '../../../../infrastructure/api/agentSdkClient';
 
 type UseChatStreamTerminalHandlersDeps = {
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;

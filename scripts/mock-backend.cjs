@@ -30,6 +30,15 @@ function createMockBackendServer() {
     let handshake = null;
     let pendingToolCall = null;
     let pendingRoutingEnvelope = {};
+    let backendSequence = 0;
+    const sendBackendEvent = (type, payload = {}, envelope = {}) => {
+      backendSequence += 1;
+      send(ws, type, payload, {
+        ...envelope,
+        event_id: `mock-backend-event-${backendSequence}`,
+        sequence: backendSequence,
+      });
+    };
 
     ws.on('message', (raw) => {
       let message;
@@ -92,13 +101,13 @@ function createMockBackendServer() {
             parameters: tool.model_schema || { type: 'object' },
           }))
           : [];
-        send(ws, 'system-prompt', {
+        sendBackendEvent('system-prompt', {
           content: 'Mock WindieOS system prompt.',
           tool_schemas: null,
           client_prompt_layers: promptLayers,
         }, routingEnvelope);
-        send(ws, 'tool-schemas', { tool_schemas: toolSchemas }, routingEnvelope);
-        send(ws, 'streaming-response', {
+        sendBackendEvent('tool-schemas', { tool_schemas: toolSchemas }, routingEnvelope);
+        sendBackendEvent('streaming-response', {
           chunk: 'Mock response from Windie-agent backend. ',
           text: 'Mock response from Windie-agent backend. ',
         }, routingEnvelope);
@@ -107,7 +116,7 @@ function createMockBackendServer() {
         if (firstTool) {
           pendingToolCall = firstTool.name;
           pendingRoutingEnvelope = routingEnvelope;
-          send(ws, 'tool-call', {
+          sendBackendEvent('tool-call', {
             tool_name: firstTool.name,
             parameters: {},
             request_id: 'mock-tool-call-1',
@@ -115,7 +124,7 @@ function createMockBackendServer() {
           return;
         }
 
-        send(ws, 'streaming-complete', {
+        sendBackendEvent('streaming-complete', {
           content: 'Mock response from Windie-agent backend.',
           final_response: 'Mock response from Windie-agent backend.',
         }, routingEnvelope);
@@ -123,14 +132,14 @@ function createMockBackendServer() {
       }
 
       if (message.type === 'tool-result' || message.type === 'tool-bundle-result') {
-        send(ws, 'tool-output', {
+        sendBackendEvent('tool-output', {
           tool_name: pendingToolCall || 'mock_tool',
           success: true,
           output: 'mock tool result accepted',
           metadata: { source: 'mock-backend' },
         }, pendingRoutingEnvelope);
         pendingToolCall = null;
-        send(ws, 'streaming-complete', {
+        sendBackendEvent('streaming-complete', {
           content: 'Mock response from Windie-agent backend.',
           final_response: 'Mock response from Windie-agent backend.',
         }, pendingRoutingEnvelope);

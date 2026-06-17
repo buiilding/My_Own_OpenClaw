@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Provides the conversation replay tool messages module for the renderer UI.
  */
 
@@ -7,7 +7,7 @@ import {
   resolveToolBundleCorrelationId,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
-} from '../../../infrastructure/api/windieSdkClient';
+} from '../../../infrastructure/api/agentSdkClient';
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);

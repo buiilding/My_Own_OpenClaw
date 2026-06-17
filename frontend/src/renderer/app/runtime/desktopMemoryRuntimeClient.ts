@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Coordinates the desktop memory runtime client for the renderer UI.
  */
 
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/windieSdkClient';
+import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/agentSdkClient';
 
 type MemoryKind = 'episodic' | 'semantic';
 

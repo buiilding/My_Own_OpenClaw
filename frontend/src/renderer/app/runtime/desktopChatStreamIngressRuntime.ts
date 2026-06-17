@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Coordinates the desktop chat stream ingress runtime for the renderer UI.
  */
 
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import {
   type ConversationEvent,
-} from '../../infrastructure/api/windieSdkClient';
+} from '../../infrastructure/api/agentSdkClient';
 import {
   applyEventChatConversationProjection,
 } from '../../features/chat/session/conversationSessionRuntime';

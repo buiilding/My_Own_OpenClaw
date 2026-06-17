@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Covers windie sdk managed backend session. behavior in the frontend test suite.
  */
 
@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 
 import {
   createManagedBackendSession,
-} from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 
 class FakeSocket extends EventEmitter {
   readyState = 0;

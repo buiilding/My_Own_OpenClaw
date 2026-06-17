@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Covers conversation replay database integration. behavior in the frontend test suite.
  */
 
@@ -16,7 +16,7 @@ import {
   SidecarConversationStore,
   type ConversationEvent,
   type JsonRecord,
-} from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 

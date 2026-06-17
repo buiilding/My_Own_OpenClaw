@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Provides the desktop agent runtime transport module for the renderer UI.
  */
 
 import {
   SDK_RUNTIME_COMMANDS,
   type BackendTransport,
-} from '../../infrastructure/api/windieSdkClient';
+} from '../../infrastructure/api/agentSdkClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';

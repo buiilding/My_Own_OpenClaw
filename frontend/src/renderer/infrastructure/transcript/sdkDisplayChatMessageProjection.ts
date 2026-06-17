@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Projects sdk display chat message state for the renderer UI.
  */
 
@@ -6,7 +6,7 @@ import type { ChatMessage } from '../../features/chat/stores/chatStore';
 import {
   type SdkDisplayRow,
   type DisplayMessage,
-} from '../api/windieSdkClient';
+} from '../api/agentSdkClient';
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
 import { buildToolOutputChatMessageState } from './toolOutputChatMessageState';

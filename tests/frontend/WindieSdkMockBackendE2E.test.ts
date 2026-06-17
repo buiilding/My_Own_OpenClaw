@@ -6,7 +6,7 @@ import {
   moduleTool,
   WindieClient,
   type WindieLocalRuntimeClient,
-} from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 
 const WebSocket = require('../../frontend/node_modules/ws');
 const { createMockBackendServer } = require('../../scripts/mock-backend.cjs');
@@ -41,6 +41,7 @@ describe('Windie SDK mock backend end to end', () => {
     ({ server, wss } = createMockBackendServer());
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     const { port } = server.address();
+    const storedEvents: Array<Record<string, unknown>> = [];
 
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
@@ -62,6 +63,36 @@ describe('Windie SDK mock backend end to end', () => {
         success: true,
         data: { output: 'saved by fake daemon' },
       })),
+      rpc: jest.fn(async ({ method, params }) => {
+        if (method === 'conversation.append_event') {
+          const eventPayload = params?.event_payload ?? params?.eventPayload ?? null;
+          storedEvents.push({
+            message_index: storedEvents.length + 1,
+            event_payload: eventPayload,
+          });
+          return { success: true, data: { message_index: storedEvents.length } };
+        }
+        if (method === 'conversation.load_events') {
+          return { success: true, data: { events: storedEvents } };
+        }
+        if (method === 'conversation.get_revision') {
+          const latestEvent = storedEvents[storedEvents.length - 1]?.event_payload as Record<string, unknown> | undefined;
+          return {
+            success: true,
+            data: {
+              revision_id: latestEvent?.revisionId ?? 'rev-mock-e2e',
+              updated_at: latestEvent?.timestamp ?? new Date(0).toISOString(),
+            },
+          };
+        }
+        if (method === 'search_memory_by_embedding') {
+          return { success: true, data: { memories: {} } };
+        }
+        if (method === 'store_memory_by_embedding') {
+          return { success: true, data: { stored: true } };
+        }
+        return { success: true, data: {} };
+      }),
     };
 
     const client = new WindieClient({
@@ -74,6 +105,7 @@ describe('Windie SDK mock backend end to end', () => {
     const agent = await client.wakeUp({
       agentId: 'mock-e2e-agent',
       systemPrompt: 'Use the fake daemon.',
+      memory: false,
       tools: [
         moduleTool({
           name: 'save_note',
@@ -92,6 +124,9 @@ describe('Windie SDK mock backend end to end', () => {
     const events: string[] = [];
     for await (const event of agent.stream('save this note', { conversationRef: 'conv-mock-e2e' })) {
       events.push(event.type);
+      if (event.type === 'error') {
+        throw new Error(event.message);
+      }
     }
 
     expect(events).toEqual(expect.arrayContaining([

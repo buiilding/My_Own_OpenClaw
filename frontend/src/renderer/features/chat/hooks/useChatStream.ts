@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Provides the use chat stream module for the renderer UI.
  */
 
 import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import type { ConversationEvent } from '../../../infrastructure/api/windieSdkClient';
+import type { ConversationEvent } from '../../../infrastructure/api/agentSdkClient';
 import {
   useChatStore,
 } from '../stores/chatStore';

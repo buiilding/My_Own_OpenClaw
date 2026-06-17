@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Covers windie sdk conversation runtime. behavior in the frontend test suite.
  */
 
@@ -22,7 +22,7 @@ import {
   toolOutputStreamKeys,
   type BackendTransport,
   type ConversationEvent,
-} from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 import { mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

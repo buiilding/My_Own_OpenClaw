@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Implements the desktop conversation library client integration for the renderer UI.
  */
 
 import {
   DesktopConversationContinuityService,
 } from './desktopConversationContinuityService';
-import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/windieSdkClient';
+import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/agentSdkClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH = 'conversation.metadata.list';

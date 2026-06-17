@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Provides the chat stream event utils module for the renderer UI.
  */
 
 import {
   resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
-} from '../../../../infrastructure/api/windieSdkClient';
+} from '../../../../infrastructure/api/agentSdkClient';
 import {
   buildRemoteScreenshotAttachment,
 } from '../../../../infrastructure/services/screenshotMessageState';

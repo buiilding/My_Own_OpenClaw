@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Covers renderer settings runtime boundary. behavior in the frontend test suite.
  */
 
@@ -20,7 +20,7 @@ describe('renderer settings runtime boundary', () => {
       if (source.includes('infrastructure/api/client') || source.includes('ApiClient.')) {
         offenders.push(path.relative(path.resolve(__dirname, '../../frontend/src/renderer'), file));
       }
-      if (source.includes('infrastructure/api/windieSdkClient')) {
+      if (source.includes('infrastructure/api/agentSdkClient')) {
         offenders.push(path.relative(path.resolve(__dirname, '../../frontend/src/renderer'), file));
       }
     }

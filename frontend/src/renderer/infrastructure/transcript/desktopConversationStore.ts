@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Stores and retrieves desktop conversation state for the renderer UI.
  */
 
@@ -16,7 +16,7 @@ import {
   type DisplayConversation,
   type SdkDisplayRow,
   type TraceTimelineEntry,
-} from '../api/windieSdkClient';
+} from '../api/agentSdkClient';
 import { invokeAgentSdkCommand } from '../../app/runtime/agentSdkCommandInvokeClient';
 
 export type DesktopTraceTimelineOptions = {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Provides the desktop chat send preparation module for the renderer UI.
  */
 
@@ -7,7 +7,7 @@ import { buildDeferredQueryModelSelection } from '../../../../app/providers/appC
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import type { TurnInputResource, WindieModelSelection } from '../../../../infrastructure/api/windieSdkClient';
+import type { TurnInputResource, WindieModelSelection } from '../../../../infrastructure/api/agentSdkClient';
 import { fetchActiveWorkspaceSelection } from '../../../../infrastructure/workspace/workspaceAccess';
 import {
   getConversationWorkspaceBinding,

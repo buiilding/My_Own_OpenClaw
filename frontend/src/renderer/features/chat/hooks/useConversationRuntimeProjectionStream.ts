@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Coordinates the use conversation runtime projection stream for the renderer UI.
  */
 
@@ -8,7 +8,7 @@ import { useChatStore } from '../stores/chatStore';
 import type { ChatMessage, SdkCurrentTurnProjection } from '../stores/chatStore';
 import type {
   SdkDisplayRow,
-} from '../../../infrastructure/api/windieSdkClient';
+} from '../../../infrastructure/api/agentSdkClient';
 import {
   buildChatMessagesFromSdkDisplayRows,
 } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Handles use chat stream local user events for the renderer UI.
  */
 
 import { useCallback } from 'react';
-import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
+import type { ConversationEvent } from '../../../../infrastructure/api/agentSdkClient';
 import { GENERIC_THINKING_STATUS } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { type TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';

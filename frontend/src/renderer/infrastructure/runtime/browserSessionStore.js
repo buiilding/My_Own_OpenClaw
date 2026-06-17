@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Stores and retrieves browser session state for the renderer UI.
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
-import { SDK_RUNTIME_COMMANDS } from '../api/windieSdkClient';
+import { SDK_RUNTIME_COMMANDS } from '../api/agentSdkClient';
 import {
   getLocalRuntimeStatusSnapshot,
   subscribeLocalRuntimeStatusStore,

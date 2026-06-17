@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Coordinates the desktop settings runtime client for the renderer UI.
  */
 
 import {
   buildModelSettingsPatch,
   type WindieModelSelection,
-} from '../../infrastructure/api/windieSdkClient';
+} from '../../infrastructure/api/agentSdkClient';
 import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
 
 type RuntimeSettingsPatch = Record<string, unknown>;
