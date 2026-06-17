@@ -3,10 +3,10 @@
  */
 
 import PropTypes from 'prop-types';
-import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
 import { useMemorySettingsActions } from './useMemorySettingsActions';
 
-const memorySettingsSkin = windieDesktopSkin.settings.memory;
+const memorySettingsSkin = desktopAgentSkin.settings.memory;
 
 function MemorySettingsTab({ onChatsCleared }) {
   const {

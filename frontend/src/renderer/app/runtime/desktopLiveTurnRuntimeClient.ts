@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Coordinates the desktop live turn runtime client for the renderer UI.
  */
 
@@ -10,7 +10,7 @@ import {
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { windieDesktopSkin } from '../skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../skin/desktopAgentSkin';
 
 type CaptureMeta = {
   source_w?: number;
@@ -71,7 +71,7 @@ function throwIfFailedIpcResult(result: unknown): void {
   }
   const message = 'error' in result && typeof result.error === 'string' && result.error.trim()
     ? result.error.trim()
-    : windieDesktopSkin.runtime.sendCommandFailure;
+    : desktopAgentSkin.runtime.sendCommandFailure;
   throw new Error(message);
 }
 

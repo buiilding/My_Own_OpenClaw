@@ -6,7 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
-import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../app/skin/desktopAgentSkin';
 import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
@@ -22,7 +22,7 @@ import {
 } from '../utils/messageSender/desktopChatSendPreparation';
 import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
-const chatSkin = windieDesktopSkin.chat;
+const chatSkin = desktopAgentSkin.chat;
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;

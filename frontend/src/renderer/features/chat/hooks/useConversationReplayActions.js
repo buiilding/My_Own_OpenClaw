@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../app/skin/desktopAgentSkin';
 import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
@@ -25,7 +25,7 @@ import { createConversationRef } from '../utils/session/conversationRef';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';
 
-const chatSkin = windieDesktopSkin.chat;
+const chatSkin = desktopAgentSkin.chat;
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({

@@ -4,14 +4,14 @@
 
 import PropTypes from 'prop-types';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
-import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
 import {
   getGlobalAgentStopShortcutLabel,
   getGlobalAgentStopShortcutOptions,
 } from '../../../../../infrastructure/shortcuts/agentStopShortcut';
 import { CloneToggle, SelectDropdown } from './settingsControls';
 
-const generalSettingsSkin = windieDesktopSkin.settings.general;
+const generalSettingsSkin = desktopAgentSkin.settings.general;
 
 function GeneralSettingsTab({ config, onConfigChange }) {
   const {

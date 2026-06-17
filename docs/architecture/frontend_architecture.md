@@ -371,12 +371,15 @@ Primary modules:
   - No boot-time renderer permission gate in current `App.jsx`.
 - `renderer/app/skin/windieDesktopSkin.js`:
   - WindieOS-specific renderer copy, tool catalog presentation, and display-safe
-    runtime labels for generic desktop agent UI components.
+    runtime labels for the active renderer skin.
+- `renderer/app/skin/desktopAgentSkin.js`:
+  - Generic renderer-facing facade over the active desktop-agent skin.
   - Settings, memory, onboarding, and chat feature components should read
     product copy, app-specific tool catalog choices, destructive-action labels,
     panel wording, empty-state text, and renderer-local runtime fallback
-    messages from this skin/config boundary instead of hard-coding WindieOS
-    wording or sidecar/backend runtime names inline.
+    messages from this generic skin facade instead of importing the WindieOS
+    skin/config directly or hard-coding WindieOS wording and sidecar/backend
+    runtime names inline.
 - `renderer/app/providers/AppConfigProvider.jsx`:
   - Frontend config load/merge/save.
   - Persists renderer-owned config such as `global_agent_stop_shortcut` locally without syncing that key to the backend.

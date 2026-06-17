@@ -3,14 +3,14 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
 import { IpcBridge, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import {
   fetchActiveWorkspaceSelection,
   requestActiveWorkspaceSelection,
 } from '../../../../../infrastructure/workspace/workspaceAccess';
 
-const workspaceSettingsSkin = windieDesktopSkin.settings.workspace;
+const workspaceSettingsSkin = desktopAgentSkin.settings.workspace;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (

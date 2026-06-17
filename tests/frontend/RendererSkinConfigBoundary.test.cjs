@@ -8,6 +8,7 @@ const path = require('path');
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const appPath = path.join(rendererRoot, 'app/App.jsx');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
+const skinFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentSkin.js');
 const skinCssPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.css');
 const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css');
 const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
@@ -24,6 +25,7 @@ function read(relativePath) {
 describe('renderer skin/config boundary', () => {
   test('WindieOS product strings for settings live in the renderer skin', () => {
     const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const skinFacadeSource = fs.readFileSync(skinFacadePath, 'utf8');
 
     expect(skinSource).toContain("const productName = 'WindieOS'");
     expect(skinSource).toContain("const browserName = 'Windie Browser'");
@@ -34,6 +36,8 @@ describe('renderer skin/config boundary', () => {
     expect(skinSource).toContain('web_search');
     expect(skinSource).toContain('run_shell_command');
     expect(skinSource).toContain('requireUserMessage');
+    expect(skinFacadeSource).toContain('windieDesktopSkin as desktopAgentSkin');
+    expect(skinFacadeSource).toContain("from './windieDesktopSkin'");
   });
 
   test('renderer brand icon asset lives in the renderer skin stylesheet', () => {
@@ -59,7 +63,8 @@ describe('renderer skin/config boundary', () => {
     ].map(read);
 
     for (const source of settingsSources) {
-      expect(source).toContain('windieDesktopSkin');
+      expect(source).toContain('desktopAgentSkin');
+      expect(source).not.toContain('windieDesktopSkin');
       expect(source).not.toContain('WindieOS');
       expect(source).not.toContain('Windie Browser');
       expect(source).not.toContain('hosted WindieOS backend');
@@ -72,7 +77,8 @@ describe('renderer skin/config boundary', () => {
   test('memory panel consumes skin copy instead of hard-coding product copy', () => {
     const source = fs.readFileSync(path.join(dashboardSectionsRoot, 'MemorySection.jsx'), 'utf8');
 
-    expect(source).toContain('windieDesktopSkin');
+    expect(source).toContain('desktopAgentSkin');
+    expect(source).not.toContain('windieDesktopSkin');
     expect(source).not.toContain('WindieOS builds understanding');
     expect(source).not.toContain('Memories will appear as you interact with WindieOS');
     expect(source).not.toContain('Search memories...');
@@ -89,7 +95,8 @@ describe('renderer skin/config boundary', () => {
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
 
     for (const source of consumers) {
-      expect(source).toContain('windieDesktopSkin');
+      expect(source).toContain('desktopAgentSkin');
+      expect(source).not.toContain('windieDesktopSkin');
       expect(source).not.toContain('WindieOS onboarding');
       expect(source).not.toContain('Start WindieOS');
       expect(source).not.toContain('Welcome to WindieOS Demo');

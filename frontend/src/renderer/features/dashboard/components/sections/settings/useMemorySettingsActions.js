@@ -4,10 +4,10 @@
 
 import { useState } from 'react';
 import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
-import { windieDesktopSkin } from '../../../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
 import { useTranscriptSessionInfo } from '../../../hooks/useTranscriptSessionInfo';
 
-const memorySettingsSkin = windieDesktopSkin.settings.memory;
+const memorySettingsSkin = desktopAgentSkin.settings.memory;
 
 export function useMemorySettingsActions() {
   const sessionInfo = useTranscriptSessionInfo();

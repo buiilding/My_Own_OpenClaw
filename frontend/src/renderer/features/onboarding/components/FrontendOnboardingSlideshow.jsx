@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../app/skin/desktopAgentSkin';
 import MainWindowControls from '../../../components/MainWindowControls';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { getAgentStopShortcutLabel } from '../../../infrastructure/shortcuts/agentStopShortcut';
@@ -14,7 +14,7 @@ import { buildOnboardingSlideState } from '../utils/onboardingSlides';
 import PermissionOnboardingSlide from './PermissionOnboardingSlide';
 import StopShortcutOnboardingSlide from './StopShortcutOnboardingSlide';
 
-const onboardingSkin = windieDesktopSkin.onboarding;
+const onboardingSkin = desktopAgentSkin.onboarding;
 
 function FrontendOnboardingSlideshow({
   onComplete,

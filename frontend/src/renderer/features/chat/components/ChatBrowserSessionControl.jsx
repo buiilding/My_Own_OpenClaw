@@ -4,7 +4,7 @@
 
 import { Link2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
+import { desktopAgentSkin } from '../../../app/skin/desktopAgentSkin';
 import { useBrowserSessionControl } from '../../../infrastructure/hooks/useBrowserSessionControl';
 
 function ChatBrowserSessionControl() {
@@ -97,9 +97,9 @@ function ChatBrowserSessionControl() {
 
   const buttonTitle = connected
     ? (currentTabTitle || currentTabUrl || currentTabLabel)
-    : (error || windieDesktopSkin.chat.browserSession.connectTitle);
+    : (error || desktopAgentSkin.chat.browserSession.connectTitle);
   const controlsDisabled = Boolean(busyAction) || !localRuntimeReady;
-  const copy = windieDesktopSkin.chat.browserSession;
+  const copy = desktopAgentSkin.chat.browserSession;
   const tabLabel = currentTabLabel || copy.tabFallbackLabel;
   const tabControlLabel = `${copy.connectedLabelPrefix} ${tabLabel}`;
   const disconnectedButtonLabel = !localRuntimeReady && error

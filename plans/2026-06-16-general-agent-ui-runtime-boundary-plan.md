@@ -1115,3 +1115,19 @@ Each completed slice should report:
   debug globals.
 - Compatibility: no migration required. These globals are ephemeral dev/test
   toggles on `window`, and the previous names remain accepted.
+
+### 2026-06-17 renderer skin facade
+
+- Finding: generic renderer feature consumers imported the product-named
+  `windieDesktopSkin` object directly, even though the intended split is a
+  reusable desktop-agent UI package with WindieOS product skin/config behind a
+  boundary.
+- Change: added a generic `desktopAgentSkin` facade over the WindieOS renderer
+  skin and moved chat, dashboard settings, memory, onboarding, and renderer
+  runtime fallback consumers to the facade while keeping WindieOS-specific copy
+  and assets in the product skin files.
+- Validation: focused renderer skin boundary coverage, targeted renderer
+  import-touching Jest suites, docs listing, `git diff --check`, and source
+  scans for product-skin imports from generic renderer consumers.
+- Compatibility: no migration required. Rendered copy, CSS asset loading, and
+  runtime payloads are unchanged; only renderer import ownership moved.
