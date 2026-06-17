@@ -148,6 +148,14 @@ describe('windie CLI', () => {
     });
   });
 
+  test('routes docs list through node instead of the platform shell shim', () => {
+    expect(getSpawnPlan(['docs', 'list'])).toMatchObject({
+      command: process.execPath,
+      args: [path.join(repoRoot, 'scripts/docs-list.js')],
+      cwd: repoRoot,
+    });
+  });
+
   test('searches recent commits with a limit', () => {
     const result = runCli(['commits', 'search', 'docs search', '--limit', '2']);
 

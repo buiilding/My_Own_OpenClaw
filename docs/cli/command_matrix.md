@@ -13,6 +13,9 @@ WindieOS command-line entrypoints start with `bin/windie ...` from the
 repository root. Lower-level scripts and package tasks are implementation
 adapters; document them only when changing the adapter itself.
 
+On Windows PowerShell, use `bin\windie.cmd ...`. The extensionless `bin/windie`
+shim is for Unix-like shells and can trigger Windows' file association picker.
+
 ## Status and Diagnostics
 
 | Command | Purpose |

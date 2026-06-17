@@ -135,6 +135,10 @@ function script(relativePath) {
   return repoPath(relativePath);
 }
 
+function nodeScriptArgs(relativePath, args = []) {
+  return [script(relativePath), ...args];
+}
+
 function historyDatabasePath() {
   return path.join(windieUserDataRoot(), 'history', 'history.db');
 }
@@ -1260,10 +1264,10 @@ function printDocsSearch(topic, usage) {
 function runDocs(args) {
   const action = args[0];
   if (action === 'list') {
-    return runForeground(script('bin/docs-list'), args.slice(1), { cwd: REPO_ROOT });
+    return runForeground(process.execPath, nodeScriptArgs('scripts/docs-list.js', args.slice(1)), { cwd: REPO_ROOT });
   }
   if (action === 'check') {
-    runSync(script('bin/docs-list'), [], { cwd: REPO_ROOT });
+    runSync(process.execPath, nodeScriptArgs('scripts/docs-list.js'), { cwd: REPO_ROOT });
     return runForeground('git', ['diff', '--check'], { cwd: REPO_ROOT });
   }
   if (action === 'search') {
@@ -1681,7 +1685,7 @@ function getSpawnPlan(argv) {
     };
   }
   if (command === 'docs' && args[0] === 'list') {
-    return { command: script('bin/docs-list'), args: args.slice(1), cwd: REPO_ROOT };
+    return { command: process.execPath, args: nodeScriptArgs('scripts/docs-list.js', args.slice(1)), cwd: REPO_ROOT };
   }
   return null;
 }

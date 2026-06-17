@@ -14,6 +14,9 @@ test, packaging, backend, endpoint, and self-host workflows. Lower-level repo
 scripts and package tasks remain implementation adapters behind this command
 surface.
 
+On Windows PowerShell, use `bin\windie.cmd ...`. The extensionless `bin/windie`
+shim is for Unix-like shells and can trigger Windows' file association picker.
+
 ## Main Commands
 
 | Command | Purpose |
