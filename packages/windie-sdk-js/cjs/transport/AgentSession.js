@@ -16,6 +16,15 @@ exports.createAgentBackendTransport = createAgentBackendTransport;
 exports.mergeQueryAgentDefinition = mergeQueryAgentDefinition;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const backendPayloadContract_js_1 = require("./backendPayloadContract.js");
+function rejectRemovedStopInputAliases(input) {
+    if (!input || typeof input !== 'object') {
+        return;
+    }
+    if (Object.prototype.hasOwnProperty.call(input, 'conversation_ref')
+        || Object.prototype.hasOwnProperty.call(input, 'turn_ref')) {
+        throw new Error('AgentSession.stopQuery accepts conversationRef and turnRef; snake_case stop fields are not supported.');
+    }
+}
 function resolveWebSocketImplementation(WebSocketImpl) {
     if (WebSocketImpl) {
         return WebSocketImpl;
@@ -211,9 +220,10 @@ class AgentSession {
         }, payload.turnRef ?? undefined);
     }
     async stopQuery(input = null) {
+        rejectRemovedStopInputAliases(input);
         return this.sendBackendMessage('stop-query', {
-            conversation_ref: input?.conversation_ref ?? input?.conversationRef ?? null,
-            turn_ref: input?.turn_ref ?? input?.turnRef ?? null,
+            conversation_ref: input?.conversationRef ?? null,
+            turn_ref: input?.turnRef ?? null,
         });
     }
     async updateSettings(config) {
@@ -314,10 +324,10 @@ function createAgentBackendTransport(session, conversationRef, agentDefinition) 
         wakewordDetected: async (payload) => session.wakewordDetected(payload),
         stop: async (payload) => {
             await session.stopQuery({
-                conversation_ref: typeof payload.conversation_ref === 'string'
+                conversationRef: typeof payload.conversation_ref === 'string'
                     ? payload.conversation_ref
                     : conversationRef,
-                turn_ref: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
+                turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
             });
         },
         updateSettings: async (payload) => {

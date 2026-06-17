@@ -150,7 +150,9 @@ follow the same rule: use `AgentClientOptions`, `AgentWakeUpOptions`,
 `AgentLocalRuntimeRequest`, `AgentRuntimeFeatureOption`, and
 `AgentInstallAuthOptions` in reusable SDK code.
 High-level `agent.stop(...)` option objects accept `conversationRef` and
-`turnRef`; snake_case stop fields are reserved for backend transport payloads.
+`turnRef`; `AgentSessionRuntime.stopQuery(...)` uses the same camelCase input
+shape. Snake_case stop fields are reserved for backend transport payloads and
+are emitted only by SDK transport adapters.
 
 ## Desktop Host Startup
 

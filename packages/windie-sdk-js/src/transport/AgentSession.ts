@@ -51,9 +51,7 @@ export type AgentQueryInput = {
 };
 
 export type AgentStopInput = {
-  conversation_ref?: string | null;
   conversationRef?: string | null;
-  turn_ref?: string | null;
   turnRef?: string | null;
 };
 
@@ -69,6 +67,18 @@ type AgentSessionEventMap = {
 
 type AgentSessionEventName = keyof AgentSessionEventMap;
 type AgentSessionListener<T> = (payload: T) => void;
+
+function rejectRemovedStopInputAliases(input: AgentStopInput | JsonRecord | null | undefined): void {
+  if (!input || typeof input !== 'object') {
+    return;
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(input, 'conversation_ref')
+    || Object.prototype.hasOwnProperty.call(input, 'turn_ref')
+  ) {
+    throw new Error('AgentSession.stopQuery accepts conversationRef and turnRef; snake_case stop fields are not supported.');
+  }
+}
 
 export type AgentSessionRuntime = {
   waitForOpen(): Promise<void>;
@@ -333,9 +343,10 @@ export class AgentSession {
   }
 
   async stopQuery(input: AgentStopInput | null = null): Promise<string> {
+    rejectRemovedStopInputAliases(input);
     return this.sendBackendMessage('stop-query', {
-      conversation_ref: input?.conversation_ref ?? input?.conversationRef ?? null,
-      turn_ref: input?.turn_ref ?? input?.turnRef ?? null,
+      conversation_ref: input?.conversationRef ?? null,
+      turn_ref: input?.turnRef ?? null,
     });
   }
 
@@ -456,10 +467,10 @@ export function createAgentBackendTransport(
     wakewordDetected: async payload => session.wakewordDetected(payload),
     stop: async payload => {
       await session.stopQuery({
-        conversation_ref: typeof payload.conversation_ref === 'string'
+        conversationRef: typeof payload.conversation_ref === 'string'
           ? payload.conversation_ref
           : conversationRef,
-        turn_ref: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
+        turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
       });
     },
     updateSettings: async payload => {

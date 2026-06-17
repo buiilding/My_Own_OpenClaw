@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK stopQuery input alias rejection
+
+- Finding: `Agent.stop(...)` had already rejected snake_case stop options, but
+  the lower SDK `AgentSessionRuntime.stopQuery(...)` contract and concrete
+  sessions still accepted `conversation_ref` and `turn_ref` as public input
+  aliases.
+- Change: made `AgentStopInput` and session `stopQuery(...)` inputs use only
+  `conversationRef` and `turnRef`, moved backend snake_case emission behind the
+  SDK transport adapter boundary, and updated checked-in CJS parity.
+- Validation: focused SDK client and package-boundary tests, docs listing, and
+  diff check.
+- Compatibility: no migration required for first-party SDK callers; high-level
+  `Agent.stop(...)` already uses camelCase. Low-level callers using
+  `conversation_ref` or `turn_ref` with `stopQuery(...)` must switch to
+  `conversationRef` and `turnRef`.
+
 ### 2026-06-17 main SDK command conversation alias rejection
 
 - Finding: Electron main SDK conversation-library command validation still

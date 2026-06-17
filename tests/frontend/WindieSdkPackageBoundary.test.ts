@@ -133,6 +133,7 @@ describe('@windie/sdk package boundary', () => {
     };
     expect(query.text).toBe('hello');
     expect(stop.conversationRef).toBe('conv-1');
+    expect('conversation_ref' in stop).toBe(false);
     expect(runtime.isOpen()).toBe(true);
     expect(await transport.sendQuery({ text: 'hello', conversation_ref: 'conv-1' })).toBe('message-1');
   });

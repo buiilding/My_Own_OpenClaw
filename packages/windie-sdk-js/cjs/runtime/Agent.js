@@ -150,11 +150,11 @@ class Agent {
                 throw new Error('agent.stop accepts conversationRef and turnRef; snake_case stop fields are not supported.');
             }
             return this.session.stopQuery({
-                conversation_ref: input.conversationRef ?? null,
-                turn_ref: input.turnRef ?? null,
+                conversationRef: input.conversationRef ?? null,
+                turnRef: input.turnRef ?? null,
             });
         }
-        return this.session.stopQuery({ conversation_ref: typeof input === 'string' ? input : null });
+        return this.session.stopQuery({ conversationRef: typeof input === 'string' ? input : null });
     }
     async wakewordDetected(payload = {}) {
         return this.session.wakewordDetected(payload);

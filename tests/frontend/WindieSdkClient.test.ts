@@ -1811,8 +1811,8 @@ describe('Agent SDK client behavior', () => {
     FakeWebSocket.instances[0].clearSent();
 
     await session.stopQuery({
-      conversation_ref: 'conv-1',
-      turn_ref: 'turn-1',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
       renderer_only: true,
     } as any);
     await session.updateSettings({
@@ -1851,6 +1851,12 @@ describe('Agent SDK client behavior', () => {
         turn_ref: 'turn-1',
       },
     });
+    await expect(session.stopQuery({
+      conversation_ref: 'legacy-conv',
+      turn_ref: 'legacy-turn',
+    } as any)).rejects.toThrow(
+      'AgentSession.stopQuery accepts conversationRef and turnRef; snake_case stop fields are not supported.',
+    );
     expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
       type: 'update-settings',
       payload: {
@@ -1903,8 +1909,8 @@ describe('Agent SDK client behavior', () => {
     })).resolves.toBe('stop-message-id');
 
     expect(stopQuery).toHaveBeenCalledWith({
-      conversation_ref: 'conv-stop',
-      turn_ref: 'turn-stop',
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
     });
 
     await expect(agent.stop({
