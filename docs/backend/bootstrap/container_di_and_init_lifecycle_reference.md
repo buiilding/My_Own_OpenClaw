@@ -37,7 +37,7 @@ title: "Container DI and Initialization Lifecycle Reference"
 Facade entrypoint is `Container`:
 
 - wraps `ApplicationContainer`
-- preserves backward-compatible `Container.*` accessors used by bootstrap/runtime code
+- exposes `Container.*` accessors used by bootstrap/runtime code
 - delegates orchestration to specialized helpers (`ContainerInitializer`, `ContainerConfigUpdater`, `SessionRuntimeCoordinator`, `ApiRuntimeBinder`)
 
 ## Startup Sequence (Coordinator + Container)

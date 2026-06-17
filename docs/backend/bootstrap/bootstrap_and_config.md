@@ -88,7 +88,7 @@ Main composition (`core/container/application.py`):
 - `MemoryContainer`: embedder provider wiring
 - `ApiContainer` (bound via runtime binder): handler registry + handler instances
 
-Facade (`core/container/facade.py`) keeps backward-compatible accessors while delegating to split runtime coordinators.
+Facade (`core/container/facade.py`) exposes bootstrap/runtime accessors while delegating to split runtime coordinators.
 
 Session LLM client creation:
 

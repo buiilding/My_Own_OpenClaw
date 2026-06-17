@@ -44,7 +44,7 @@ To reduce feature-change friction in `backend/src/core`, runtime internals were 
 - **EventBus internals were extracted** into `backend/src/core/infrastructure/event_bus_registry.py` so handler storage/caching and publish flow evolve independently.
 - **TTS internals were modularized** with `backend/src/core/services/tts_cuda.py` and `backend/src/core/services/tts_worker.py` while keeping `TTSService` as the public orchestrator.
 - **Container config refresh was hardened** in `backend/src/core/container/config_updater.py` and `backend/src/core/container/facade.py` to avoid stale references and to correctly reinitialize the embedder.
-- **Container runtime orchestration is split** into `backend/src/core/container/session_runtime.py` and `backend/src/core/container/api_runtime.py`, with `Container` acting as a thinner compatibility facade.
+- **Container runtime orchestration is split** into `backend/src/core/container/session_runtime.py` and `backend/src/core/container/api_runtime.py`, with `Container` acting as the runtime facade over `ApplicationContainer`.
 - **ApiContainer handler wiring is declarative** in `backend/src/core/container/api_container.py` so adding/removing WebSocket handlers no longer requires repetitive manual registration calls.
 - **Incoming message routing is core-owned** in `backend/src/core/container/incoming_routing.py`, and `ApiContainer` now consumes that single route table with schema coverage checks against `IncomingMessage`.
 - **Tool schema cache is DI-owned** in `backend/src/tools/schema_registry.py` and `backend/src/tools/registry.py` (no global cache singleton dependency in backend tool schema path).
@@ -481,7 +481,7 @@ ApplicationContainer
 
 **Container Setup**:
 - `core/container/application.py`: container composition
-- `core/container/facade.py`: backward-compatible facade and lazy session manager
+- `core/container/facade.py`: runtime facade and lazy session manager
 
 ## Event System
 
