@@ -32,7 +32,7 @@ Healthy signs:
 - `bin/windie start desktop` launches app windows.
 - IPC status reaches renderer.
 - backend endpoint snapshot shows expected HTTP/WS URLs.
-- local sidecar bridge reaches ready state.
+- local runtime bridge reaches ready state.
 
 First checks:
 

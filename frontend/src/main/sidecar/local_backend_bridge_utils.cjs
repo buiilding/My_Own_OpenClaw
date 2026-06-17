@@ -1,5 +1,5 @@
 /**
- * Provides local sidecar bridge utilities for the Electron main process.
+ * Provides local runtime bridge utilities for the Electron main process.
  */
 
 const SUPPRESSED_STDERR_PATTERNS = [

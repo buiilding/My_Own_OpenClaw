@@ -120,6 +120,17 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local runtime bridge utility wording
+
+- Finding: the Electron main sidecar utility docstring and process health
+  checklist still called the host-owned readiness path a local sidecar bridge.
+- Change: reworded those active docs to local runtime bridge while leaving file
+  names, sidecar process terminology, and compatibility diagnostics paths
+  unchanged.
+- Validation: active source/doc phrase scan, direct Node module smoke, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is code/doc commentary only.
+
 ### 2026-06-17 diagnostics local runtime error code
 
 - Finding: the app diagnostics error classifier still emitted the
