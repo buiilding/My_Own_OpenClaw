@@ -30,7 +30,7 @@ from tools.browser.file_store import (
     write_text,
 )
 
-DEFAULT_SESSION_NAME = "windieos"
+DEFAULT_SESSION_NAME = "desktop-agent"
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
 HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0

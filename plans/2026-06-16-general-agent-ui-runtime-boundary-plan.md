@@ -1245,3 +1245,18 @@ Each completed slice should report:
 - Compatibility: no persisted migration required. Electron desktop already
   passes an explicit discovery file, the discovery file is temporary runtime
   state, and callers can still override the path with explicit options.
+
+### 2026-06-17 sidecar browser-use session default
+
+- Finding: the sidecar Browser Use adapter still defaulted its daemon session
+  name to `windieos`, even though the Browser Use session is local executor
+  state and the dedicated profile path already carries the product boundary.
+- Change: changed the Browser Use default session name to `desktop-agent`,
+  updated sidecar tests to assert the generic default through the runtime
+  constant, and documented the legacy `WINDIE_BROWSER_USE_SESSION=windieos`
+  override for callers that intentionally want to reuse an old daemon session.
+- Validation: focused Browser Use engine tests, docs listing,
+  `git diff --check`, and source scans for the retired default session name.
+- Compatibility: no persisted data migration required. Existing dedicated
+  Chrome profile paths remain unchanged; an already-running legacy Browser Use
+  session can still be selected with `WINDIE_BROWSER_USE_SESSION=windieos`.

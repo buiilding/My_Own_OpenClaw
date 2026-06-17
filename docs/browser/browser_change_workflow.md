@@ -21,7 +21,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 - Electron main relays `execute_tool` requests and does not inspect Playwright objects.
 - Renderer browser controls call the scoped `RUN_BROWSER_ACTION` IPC channel;
   Electron main maps that to the local browser tool.
-- Browser automation uses a WindieOS-named Browser Use session by default, not the user's default Chrome profile.
+- Browser automation uses a generic desktop-agent Browser Use session by default, not the user's default Chrome profile.
 - Browser file actions resolve through the browser file store instead of arbitrary filesystem helper paths.
 
 ## Fast Owner Map

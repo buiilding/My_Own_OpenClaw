@@ -11,6 +11,7 @@ import pytest
 from tools.browser.browser_use_engine import (
     BrowserActionError,
     BrowserUseEngineRuntime,
+    DEFAULT_SESSION_NAME,
     _extract_response_data,
     _parse_cli_json,
     shutdown_browser_runtime,
@@ -28,6 +29,10 @@ def test_parse_cli_json_accepts_prefixed_close_output() -> None:
     parsed = _parse_cli_json('Closing...{"success": true, "data": {"shutdown": true}}')
 
     assert parsed == {"success": True, "data": {"shutdown": True}}
+
+
+def test_default_browser_use_session_name_is_generic() -> None:
+    assert DEFAULT_SESSION_NAME == "desktop-agent"
 
 
 def test_extract_response_data_rejects_non_object_data() -> None:
@@ -87,7 +92,7 @@ async def test_run_cli_reuses_running_headed_session_without_config_check(
 ) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
-    state_path = tmp_path / "windieos.state.json"
+    state_path = tmp_path / f"{DEFAULT_SESSION_NAME}.state.json"
     state_path.write_text(
         f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false, "cdp_url": "http://127.0.0.1:9333"}}}}'
     )
@@ -162,7 +167,7 @@ async def test_connect_reuses_running_dedicated_cdp_session_without_config_check
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     cdp_url = "http://127.0.0.1:9333"
-    state_path = tmp_path / "windieos.state.json"
+    state_path = tmp_path / f"{DEFAULT_SESSION_NAME}.state.json"
     state_path.write_text(
         f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false, "cdp_url": "{cdp_url}"}}}}'
     )
@@ -194,7 +199,7 @@ async def test_connect_closes_incompatible_session_before_starting_dedicated_cdp
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     cdp_url = "http://127.0.0.1:9333"
-    state_path = tmp_path / "windieos.state.json"
+    state_path = tmp_path / f"{DEFAULT_SESSION_NAME}.state.json"
     state_path.write_text(
         f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false}}}}'
     )
@@ -232,7 +237,7 @@ async def test_connect_errors_when_incompatible_session_survives_close(
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     cdp_url = "http://127.0.0.1:9333"
-    state_path = tmp_path / "windieos.state.json"
+    state_path = tmp_path / f"{DEFAULT_SESSION_NAME}.state.json"
     state_path.write_text(
         f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false}}}}'
     )
@@ -265,7 +270,7 @@ async def test_status_does_not_claim_starting_session_is_connected(
 ) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
-    state_path = tmp_path / "windieos.state.json"
+    state_path = tmp_path / f"{DEFAULT_SESSION_NAME}.state.json"
     state_path.write_text('{"phase": "starting"}')
 
     with mock.patch.object(runtime, "_run_cli", new=mock.AsyncMock()) as run_cli:
@@ -282,7 +287,7 @@ async def test_status_does_not_claim_headless_session_is_connected(
 ) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
-    state_path = tmp_path / "windieos.state.json"
+    state_path = tmp_path / f"{DEFAULT_SESSION_NAME}.state.json"
     state_path.write_text('{"phase": "running", "config": {"headed": false}}')
 
     with mock.patch.object(runtime, "_run_cli", new=mock.AsyncMock()) as run_cli:
@@ -299,7 +304,7 @@ async def test_status_accepts_dedicated_cdp_session_even_when_browser_use_headed
 ) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
-    state_path = tmp_path / "windieos.state.json"
+    state_path = tmp_path / f"{DEFAULT_SESSION_NAME}.state.json"
     state_path.write_text(
         f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false, "cdp_url": "http://127.0.0.1:9333"}}}}'
     )
@@ -333,7 +338,7 @@ async def test_profiles_use_generic_dedicated_browser_scope() -> None:
 
     assert result["profiles"] == [
         {
-            "name": "windieos",
+            "name": DEFAULT_SESSION_NAME,
             "driver": "browser-use",
             "scope": "dedicated_browser",
         }
