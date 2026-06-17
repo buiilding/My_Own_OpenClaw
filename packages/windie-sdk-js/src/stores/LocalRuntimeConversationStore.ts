@@ -26,7 +26,7 @@ import {
   buildDisplayRows,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
-import type { AgentLocalRuntimeClient } from '../runtime/LocalSidecarRuntime.js';
+import type { AgentLocalRuntimeClient } from '../runtime/LocalRuntime.js';
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 
 const CHAT_EVENT_RECORD_KIND = 'chat_event';

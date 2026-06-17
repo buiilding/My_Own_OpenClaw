@@ -50,7 +50,7 @@ import {
   type AgentPluginDefinition,
   type AgentSkillDefinition,
   type AgentToolDefinition,
-} from './LocalSidecarRuntime.js';
+} from './LocalRuntime.js';
 
 export type AgentRuntimeFeatureOption = boolean | {
   enabled?: boolean;

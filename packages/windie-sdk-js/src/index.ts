@@ -22,7 +22,7 @@ export * from './runtime/AgentStreamEvents.js';
 export * from './runtime/AgentChatSession.js';
 export * from './runtime/Agent.js';
 export * from './runtime/AgentClient.js';
-export * from './runtime/LocalSidecarRuntime.js';
+export * from './runtime/LocalRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './transport/BackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';

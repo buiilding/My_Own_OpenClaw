@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local runtime module rename
+
+- Finding: the SDK still exposed generic local-runtime contracts from the
+  `LocalSidecarRuntime` module path, making the reusable SDK boundary read like
+  a sidecar implementation module.
+- Change: renamed the canonical SDK module to `LocalRuntime`, updated SDK
+  imports/exports/tests, regenerated CommonJS output, removed the old generated
+  module path, and refreshed source-map docs.
+- Validation: SDK package build, focused SDK client/private-export tests,
+  stale module-path scan, docs listing, and diff check.
+- Compatibility: no persisted-data, wire, discovery-file, or daemon protocol
+  migration is required. This intentionally removes the old
+  `LocalSidecarRuntime` package path instead of adding a forwarding wrapper;
+  concrete sidecar daemon process paths and protocol names remain unchanged.
+
 ### 2026-06-17 AgentClient auto local runtime option
 
 - Finding: the reusable SDK `AgentClient` still exposed automatic local runtime
@@ -3394,9 +3409,9 @@ Each completed slice should report:
   generic local sidecar runtime module owned product-prefixed compatibility
   naming.
 - Change: moved those aliases and `createWindieLocalRuntimeProvider` to the
-  `WindieLocalSidecarRuntime` compatibility module and package boundary, leaving
-  `LocalSidecarRuntime` as the canonical module for `Agent*` local-runtime
-  contracts and `createAgentLocalRuntimeProvider`.
+  `WindieLocalSidecarRuntime` compatibility module and package boundary. A
+  later cleanup renamed the canonical module to `LocalRuntime` for `Agent*`
+  local-runtime contracts and `createAgentLocalRuntimeProvider`.
 - Validation: focused SDK package-boundary/private-export coverage, SDK local
   runtime behavior coverage, docs listing, `git diff --check`, and source scans
   confirming the canonical local-runtime module no longer exports

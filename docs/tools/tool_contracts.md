@@ -131,7 +131,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 | Prompt merge and projection | `backend/src/llm/prompts/prompt_constructor.py`, `backend/src/tools/provider_projection.py` |
 | Preparation and coordinate resolution | `backend/src/agent/tools/preparation/*` |
 | Sending/waiting/processing | `backend/src/agent/tools/sending/*`, `backend/src/agent/tools/waiting/*`, `backend/src/agent/tools/processing/*` |
-| SDK/local execution | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
+| SDK/local execution | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | Main sidecar bridge | `frontend/src/main/sidecar/local_backend_bridge*.cjs` |
 | Sidecar registry | `frontend/src/main/python/tools/registry.py` |
 

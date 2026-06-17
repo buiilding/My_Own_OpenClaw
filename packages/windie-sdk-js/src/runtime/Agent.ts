@@ -47,7 +47,7 @@ import type {
   AgentLocalRuntimeClient,
   AgentLocalRuntimeEventListener,
   AgentMcpDefinition,
-} from './LocalSidecarRuntime.js';
+} from './LocalRuntime.js';
 import {
   SdkConversationRuntime,
   type EditAndResendInput,

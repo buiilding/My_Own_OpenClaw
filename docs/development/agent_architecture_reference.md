@@ -219,7 +219,7 @@ Key TypeScript SDK surfaces:
   backend event fan-out, and tool-result return.
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`: client-local
   tool claim, execution callback, result correlation, and backend result return.
-- `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`: local sidecar
+- `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`: local runtime
   daemon discovery/start/reuse, sidecar-backed storage, builtin tool selection,
   local memory/title RPCs, and module-tool registration helpers.
 

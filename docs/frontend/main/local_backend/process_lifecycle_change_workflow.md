@@ -53,7 +53,7 @@ readiness/status broadcasts.
 | --- | --- | --- |
 | Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `sdk_sidecar_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
 | `local-backend-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
-| SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalSidecarRuntime.ts`, bridge lifecycle/RPC tests |
+| SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
 | Local tool result shape is wrong after sidecar executes | Tool execution contract, not lifecycle | [Sidecar Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
@@ -137,8 +137,8 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 
 | Failure | First proof | Next file |
 | --- | --- | --- |
-| SDK provider cannot start daemon | Check launch target, missing command/script errors, launch context, and SDK provider error. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `LocalSidecarRuntime.ts` |
-| Daemon starts but helper RPC fails | Check SDK `/rpc` unwrapping and daemon `LocalBackend.protocol.handle_request(...)`. | `LocalSidecarRuntime.ts`, `sidecar_daemon.py`, `local_backend.py` |
+| SDK provider cannot start daemon | Check launch target, missing command/script errors, launch context, and SDK provider error. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `LocalRuntime.ts` |
+| Daemon starts but helper RPC fails | Check SDK `/rpc` unwrapping and daemon `LocalBackend.protocol.handle_request(...)`. | `LocalRuntime.ts`, `sidecar_daemon.py`, `local_backend.py` |
 | Ready event reaches main but renderer still disabled | Check `get-local-backend-status` bootstrap invoke and `local-backend-status` listener cleanup. | `localRuntimeStatusStore.js` |
 | Browser controls stuck | Check browser session readiness handler and the first browser status/sync request after readiness. | `browserSessionStore.js` |
 | Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `docs/operations/release_packaging_change_workflow.md` |

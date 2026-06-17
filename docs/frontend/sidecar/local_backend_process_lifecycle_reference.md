@@ -15,7 +15,7 @@ title: "SDK-Owned Sidecar Lifecycle Reference"
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
-- `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`
+- `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`
 
 ## Process Startup Path
 

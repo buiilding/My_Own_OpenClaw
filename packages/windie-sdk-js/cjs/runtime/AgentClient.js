@@ -13,7 +13,7 @@ const ManagedAgentSession_js_1 = require("../transport/ManagedAgentSession.js");
 const HostedBackendHttpClient_js_1 = require("../transport/HostedBackendHttpClient.js");
 const Agent_js_1 = require("./Agent.js");
 const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
-const LocalSidecarRuntime_js_1 = require("./LocalSidecarRuntime.js");
+const LocalRuntime_js_1 = require("./LocalRuntime.js");
 class AgentClient {
     constructor(options = {}) {
         this.activeAgents = new Map();
@@ -276,7 +276,7 @@ class AgentClient {
         }
         const daemonOptions = this.defaultOptions.localRuntimeDaemon;
         if (daemonOptions) {
-            return new LocalSidecarRuntime_js_1.AgentLocalRuntimeHttpClient({
+            return new LocalRuntime_js_1.AgentLocalRuntimeHttpClient({
                 ...daemonOptions,
                 fetchImpl: daemonOptions.fetchImpl ?? this.defaultOptions.fetchImpl,
             });
@@ -315,7 +315,7 @@ class AgentClient {
             throw new Error(`Agent SDK local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
         }
         if (!this.autoLocalRuntimeProvider) {
-            this.autoLocalRuntimeProvider = (0, LocalSidecarRuntime_js_1.createAgentLocalRuntimeProvider)({
+            this.autoLocalRuntimeProvider = (0, LocalRuntime_js_1.createAgentLocalRuntimeProvider)({
                 fetchImpl: this.defaultOptions.fetchImpl,
                 ...(this.defaultOptions.autoLocalRuntime ?? {}),
             });

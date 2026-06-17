@@ -80,8 +80,12 @@ describe('@windie/sdk private helper exports', () => {
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie local sidecar runtime compatibility module is removed', () => {
-    const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js');
+  test('local sidecar runtime compatibility modules are removed', () => {
+    const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/LocalRuntime.js');
+    const removedLocalSidecarModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js',
+    );
     const removedModulePath = path.resolve(
       __dirname,
       '../../packages/windie-sdk-js/cjs/runtime/WindieLocalSidecarRuntime.js',
@@ -89,6 +93,7 @@ describe('@windie/sdk private helper exports', () => {
 
     expect(canonicalModule.createAgentLocalRuntimeProvider).toBeDefined();
     expect(canonicalModule.createWindieLocalRuntimeProvider).toBeUndefined();
+    expect(fs.existsSync(removedLocalSidecarModulePath)).toBe(false);
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 

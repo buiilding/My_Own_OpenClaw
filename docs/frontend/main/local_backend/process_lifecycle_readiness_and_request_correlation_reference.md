@@ -19,7 +19,7 @@ title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 - `frontend/src/main/sidecar/local_backend_supervisor.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
-- `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`
+- `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 

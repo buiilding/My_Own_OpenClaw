@@ -43,7 +43,7 @@ Validation:
 ### 3) Change tool execution payload/behavior
 
 1. Update SDK tool coordination in `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
-2. Update the SDK conversation/local-runtime client in `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` or `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`.
+2. Update the SDK conversation/local-runtime client in `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` or `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`.
 3. Sync sidecar tool schema/registry.
 4. Sync backend `tool-result` contract if needed.
 5. Update renderer display handlers only when the visible tool card changes.

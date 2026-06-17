@@ -750,11 +750,11 @@ describe('Agent SDK client behavior', () => {
       'utf8',
     );
     const localRuntimeSource = await fsPromises.readFile(
-      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts'),
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalRuntime.ts'),
       'utf8',
     );
     const localRuntimeCjsSource = await fsPromises.readFile(
-      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js'),
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/LocalRuntime.js'),
       'utf8',
     );
 
@@ -2803,11 +2803,11 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider source keeps generic default discovery path', async () => {
     const runtimeSource = await fsPromises.readFile(
-      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts'),
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalRuntime.ts'),
       'utf8',
     );
     const runtimeCjsSource = await fsPromises.readFile(
-      path.resolve(__dirname, '../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js'),
+      path.resolve(__dirname, '../../packages/windie-sdk-js/cjs/runtime/LocalRuntime.js'),
       'utf8',
     );
 

@@ -4,7 +4,7 @@
 
 import type { JsonRecord, TraceContext } from '../conversation/types.js';
 import type { AgentHostedBackendClient } from '../transport/HostedBackendHttpClient.js';
-import type { AgentLocalRuntimeClient } from './LocalSidecarRuntime.js';
+import type { AgentLocalRuntimeClient } from './LocalRuntime.js';
 import type { TraceEventInput } from './TraceRecorder.js';
 
 const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
