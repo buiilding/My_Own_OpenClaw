@@ -804,3 +804,18 @@ Each completed slice should report:
 - Compatibility: no persisted migration is required. The old temp directory is
   still read-compatible for returned screenshot paths, and new temp files use
   the generic directory.
+
+### 2026-06-17 removed dormant context-label renderer route
+
+- Finding: the renderer still carried a no-op `chatbox-context-label` route and
+  component even though the context-label feature is dormant in main-process
+  helper wiring and has no active renderer behavior.
+- Change: removed the dead renderer app/component route, left the main-process
+  helper references documented as dormant, and updated renderer/provider
+  inventory docs to describe only active renderer roots.
+- Validation: focused frontend routing/provider and main-window tests, docs
+  listing, `git diff --check`, and source scan for deleted context-label
+  renderer symbols/routes.
+- Compatibility: no migration required. Main process does not instantiate a
+  context-label window; an accidental old `view=chatbox-context-label` URL now
+  falls back to the default app route until a real renderer surface is restored.
