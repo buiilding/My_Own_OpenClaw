@@ -111,7 +111,7 @@ describe('useDashboardConversations', () => {
     IpcBridge.on.mockImplementation(() => jest.fn());
   });
 
-  test('reloads recent conversations when the local backend becomes ready', async () => {
+  test('reloads recent conversations when the local runtime becomes ready', async () => {
     let statusSubscriber = null;
     subscribeLocalRuntimeStatusStore.mockImplementation((subscriber) => {
       statusSubscriber = subscriber;

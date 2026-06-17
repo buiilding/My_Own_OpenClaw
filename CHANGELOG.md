@@ -117,6 +117,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: rename browser-session readiness snapshots from
   local-backend to local-runtime terminology while preserving IPC status
   channels.
+- frontend/renderer: rename the dashboard recent-conversation reload hook and
+  reason to local-runtime readiness terminology.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

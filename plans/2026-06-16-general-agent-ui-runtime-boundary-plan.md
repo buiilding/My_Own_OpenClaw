@@ -155,3 +155,13 @@ Each completed slice should report:
   `ChatBrowserSessionControl`.
 - Compatibility: no migration required. IPC status channel names remain
   unchanged.
+
+### 2026-06-17 renderer dashboard local runtime reload
+
+- Finding: the dashboard recent-conversation reload hook still used
+  local-backend naming while subscribing to the local runtime status store.
+- Change: renamed the callback, test wording, and reload reason to
+  local-runtime readiness terminology.
+- Validation: focused Jest run for `UseDashboardConversations`.
+- Compatibility: no migration required. IPC status channel names remain
+  unchanged.

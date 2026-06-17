@@ -376,15 +376,15 @@ function useDashboardConversations({
   }, [loadRecentConversations]);
 
   useEffect(() => {
-    const reloadWhenLocalBackendReady = () => {
+    const reloadWhenLocalRuntimeReady = () => {
       const snapshot = getLocalRuntimeStatusSnapshot();
       if (snapshot.ready === true) {
-        void loadRecentConversations('local-backend-ready');
+        void loadRecentConversations('local-runtime-ready');
       }
     };
 
-    const unsubscribe = subscribeLocalRuntimeStatusStore(reloadWhenLocalBackendReady);
-    reloadWhenLocalBackendReady();
+    const unsubscribe = subscribeLocalRuntimeStatusStore(reloadWhenLocalRuntimeReady);
+    reloadWhenLocalRuntimeReady();
     return unsubscribe;
   }, [loadRecentConversations]);
 
