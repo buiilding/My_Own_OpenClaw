@@ -11,7 +11,7 @@ title: "Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference"
 ## Canonical Modules
 
 - `backend/src/agent/execution/interaction_loop.py`
-- `backend/src/agent/execution/policies.py`
+- `backend/src/agent/execution/tool_call_bridge.py`
 - `backend/src/api/processing/formatters/tool_call.py`
 - `backend/src/api/processing/formatters/tool_output.py`
 - `tests/backend/test_interaction_loop.py`
@@ -152,17 +152,6 @@ This mirrors normal tool-result ingestion shape, preserving context continuity.
 In standard tool path, loop uses `finally` to call `tool_executor.process_results(...)` when needed, preventing leaked pending request ids/state.
 
 Recovery path bypasses tool execution entirely (`continue` after synthetic events), so no tool executor state should be created for that failed LLM-generated call.
-
-## Parser Recovery Policy Boundary (`policies.py`)
-
-`ParseRecoveryPolicy.build_validation_error_user_message(...)` exists separately for parser-level validation failures and emits corrective system guidance.
-
-Current corrective guidance includes both canonical unified wrapper examples:
-
-- `computer_use` with required top-level `metadata` (`description`, `explanation`, `expectation`) plus nested `arguments`
-- `system_use` with top-level `tool` + `explanation` + nested `arguments`
-
-This is distinct from stream error recovery path above, but both aim to keep model retry loop alive with structured corrective context.
 
 ## Formatter and Transport Contract
 

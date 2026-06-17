@@ -1,20 +1,6 @@
 """Covers execution policies behavior in the backend test suite."""
 
-from backend.src.agent.execution.policies import (
-    ParseRecoveryPolicy,
-    ToolExecutionPolicy,
-)
-
-
-def test_parse_recovery_policy_message_contains_format_guidance():
-    message = ParseRecoveryPolicy.build_validation_error_user_message("bad payload")
-
-    assert "System Validation Error: bad payload" in message
-    assert '"functionCall": {"name": "mouse_control", "args": {"action": "click"' in message
-    assert '"functionCall": {"name": "run_shell_command", "args": {"command": "pwd"' in message
-    assert "Direct functionCall format is required" in message
-    assert "computer_use" not in message
-    assert "system_use" not in message
+from backend.src.agent.execution.policies import ToolExecutionPolicy
 
 
 def test_tool_execution_policy_identifies_bundle_by_count():

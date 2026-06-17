@@ -75,6 +75,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/llm: remove obsolete `LLMStreamProcessor` helper wrappers now that
   stream aggregation, API-error mapping, and prompt fingerprinting live in the
   shared helper module.
+- backend/agent: remove the unused parse-recovery policy surface from
+  execution policies, leaving malformed tool-call recovery with the interaction
+  loop/tool-call bridge owners.
 - sdk/js: use generic default agent display names in agent-definition and
   wake-up helpers while letting hosts pass product identity explicitly.
 - docs/sdk: document the generic SDK agent display defaults so host skin/config
