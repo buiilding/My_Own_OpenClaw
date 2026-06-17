@@ -1,10 +1,12 @@
 """Covers sidecar namespace packages that intentionally have no marker file."""
 
+import ast
 from pathlib import Path
 import importlib
 
 
 ROOT = Path(__file__).resolve().parents[2]
+FRONTEND_PYTHON_ROOT = ROOT / "frontend/src/main/python"
 
 REMOVED_MARKERS = [
     "frontend/src/main/python/tools/__init__.py",
@@ -35,3 +37,22 @@ def test_marker_only_sidecar_package_files_are_removed():
 def test_sidecar_namespace_packages_still_import_concrete_modules():
     for module_name in CONCRETE_MODULES:
         assert importlib.import_module(module_name).__name__ == module_name
+
+
+def test_sidecar_modules_do_not_publish_wildcard_export_lists():
+    allowed_export_surfaces = {
+        FRONTEND_PYTHON_ROOT / "windie/__init__.py",
+    }
+
+    for path in FRONTEND_PYTHON_ROOT.rglob("*.py"):
+        if path in allowed_export_surfaces:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                assert all(
+                    not (isinstance(target, ast.Name) and target.id == "__all__")
+                    for target in node.targets
+                ), path
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                assert node.target.id != "__all__", path
