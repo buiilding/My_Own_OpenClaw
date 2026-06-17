@@ -79,10 +79,12 @@ or display-row projection.
 For advanced hosts that need the lower transport directly, the SDK exposes
 generic agent-session contracts such as `AgentSessionRuntime`,
 `createAgentSession`, `createAgentBackendTransport`,
-`ManagedAgentSession`, and `createManagedAgentSession`. Windie-prefixed
-transport names remain compatibility aliases, but new app-builder code should
-prefer the generic names because the hosted websocket transport is an SDK agent
-runtime concern rather than WindieOS renderer skin state.
+`ManagedAgentSession`, and `createManagedAgentSession`. `ManagedAgentSession`
+is the canonical managed hosted-session module; `ManagedWindieAgentSession`
+remains a compatibility module for existing Windie-prefixed callers. New
+app-builder code should prefer the generic names because the hosted websocket
+transport is an SDK agent runtime concern rather than WindieOS renderer skin
+state.
 
 `AgentClient.wakeUp(...)` can run on the SDK managed backend session. A host may
 pass backend endpoints and lifecycle hooks to the client when it needs fallback,

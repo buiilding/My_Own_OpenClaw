@@ -2551,3 +2551,19 @@ Each completed slice should report:
   confirming SDK internals import the canonical store path.
 - Compatibility: no migration required. The old sidecar-named store module path
   still exports both `SidecarConversationStore` and `LocalRuntimeConversationStore`.
+
+### 2026-06-17 ManagedAgentSession module compatibility wrapper
+
+- Finding: the canonical SDK managed hosted-session module still exported
+  `ManagedWindieAgentSession` compatibility names directly, so the generic
+  transport module owned historical product-prefixed naming.
+- Change: moved the Windie-prefixed managed-session value and factory aliases to
+  the `ManagedWindieAgentSession` compatibility module and package boundary,
+  left `ManagedAgentSession` as the canonical managed transport module, and
+  documented the split.
+- Validation: focused SDK package-boundary/private-export coverage, docs
+  listing, `git diff --check`, and source scans confirming the canonical
+  managed-session module no longer exports Windie-prefixed compatibility names.
+- Compatibility: no migration required. Existing package-level and
+  `ManagedWindieAgentSession` module imports still resolve to the same managed
+  session runtime objects.

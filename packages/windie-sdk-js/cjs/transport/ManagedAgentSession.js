@@ -3,7 +3,7 @@
  * Provides managed backend agent session transport for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.ManagedAgentSession = void 0;
+exports.ManagedAgentSession = void 0;
 exports.createManagedAgentSession = createManagedAgentSession;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const AgentSession_js_1 = require("./AgentSession.js");
@@ -201,5 +201,3 @@ function normalizeEndpoints(options) {
 function createManagedAgentSession(options) {
     return new ManagedAgentSession(options);
 }
-exports.ManagedWindieAgentSession = ManagedAgentSession;
-exports.createManagedWindieAgentSession = createManagedAgentSession;

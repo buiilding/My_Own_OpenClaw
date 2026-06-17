@@ -26,6 +26,8 @@ import {
   createAgentBackendTransport,
   createAgentLocalRuntimeProvider,
   createAgentSession,
+  ManagedAgentSession,
+  ManagedWindieAgentSession,
   createConversationRuntime,
   createManagedAgentSession,
   createWindieLocalRuntimeProvider,
@@ -102,6 +104,7 @@ describe('@windie/sdk package boundary', () => {
     expect(createWindieAgentSession).toBe(createAgentSession);
     expect(createWindieAgentBackendTransport).toBe(createAgentBackendTransport);
     expect(createWindieSdkBackendSocket).toBe(createAgentBackendSocket);
+    expect(ManagedWindieAgentSession).toBe(ManagedAgentSession);
     expect(createManagedWindieAgentSession).toBe(createManagedAgentSession);
     expect(WindieAgentSession).toBe(AgentSession);
     expect(WindieChatSession).toBe(AgentChatSession);

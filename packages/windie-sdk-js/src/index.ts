@@ -36,6 +36,14 @@ export * from './transport/BackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';
 export * from './transport/ManagedBackendSession.js';
 export * from './transport/ManagedAgentSession.js';
+export {
+  ManagedWindieAgentSession,
+  createManagedWindieAgentSession,
+} from './transport/ManagedWindieAgentSession.js';
+export type {
+  WindieManagedBackendEndpoint,
+  ManagedWindieAgentSessionOptions,
+} from './transport/ManagedWindieAgentSession.js';
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './tools/toolCorrelationIds.js';
 export * from './tools/builtins.js';

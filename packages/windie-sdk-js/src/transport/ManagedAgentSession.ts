@@ -45,8 +45,6 @@ export type ManagedAgentBackendEndpoint = {
   headers?: Record<string, string>;
 };
 
-export type WindieManagedBackendEndpoint = ManagedAgentBackendEndpoint;
-
 export type ManagedAgentSessionOptions = {
   backendUrl: string;
   wsUrl?: string;
@@ -79,8 +77,6 @@ export type ManagedAgentSessionOptions = {
   onSend?: (type: string) => void;
   onFallback?: (endpoint: ManagedAgentBackendEndpoint) => void;
 };
-
-export type ManagedWindieAgentSessionOptions = ManagedAgentSessionOptions;
 
 function resolveEndpointWsUrl(endpoint: ManagedAgentBackendEndpoint): string {
   if (endpoint.wsUrl) {
@@ -305,7 +301,3 @@ export function createManagedAgentSession(
 ): ManagedAgentSession {
   return new ManagedAgentSession(options);
 }
-
-export type ManagedWindieAgentSession = ManagedAgentSession;
-export const ManagedWindieAgentSession = ManagedAgentSession;
-export const createManagedWindieAgentSession = createManagedAgentSession;

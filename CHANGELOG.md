@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed managed session compatibility exports into the
+  ManagedWindieAgentSession wrapper while keeping ManagedAgentSession generic.
 - sdk: move the local-runtime conversation store implementation to the canonical
   LocalRuntimeConversationStore modules while keeping SidecarConversationStore
   as a compatibility wrapper.
@@ -1840,6 +1842,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed managed session compatibility exports into the
+  ManagedWindieAgentSession wrapper while keeping ManagedAgentSession generic.
 - sdk: move the local-runtime conversation store implementation to the canonical
   LocalRuntimeConversationStore modules while keeping SidecarConversationStore
   as a compatibility wrapper.
@@ -3573,6 +3577,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed managed session compatibility exports into the
+  ManagedWindieAgentSession wrapper while keeping ManagedAgentSession generic.
 - sdk: move the local-runtime conversation store implementation to the canonical
   LocalRuntimeConversationStore modules while keeping SidecarConversationStore
   as a compatibility wrapper.
@@ -3961,6 +3967,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed managed session compatibility exports into the
+  ManagedWindieAgentSession wrapper while keeping ManagedAgentSession generic.
 - sdk: move the local-runtime conversation store implementation to the canonical
   LocalRuntimeConversationStore modules while keeping SidecarConversationStore
   as a compatibility wrapper.
@@ -4379,6 +4387,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed managed session compatibility exports into the
+  ManagedWindieAgentSession wrapper while keeping ManagedAgentSession generic.
 - sdk: move the local-runtime conversation store implementation to the canonical
   LocalRuntimeConversationStore modules while keeping SidecarConversationStore
   as a compatibility wrapper.
@@ -6753,6 +6763,8 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- sdk: move Windie-prefixed managed session compatibility exports into the
+  ManagedWindieAgentSession wrapper while keeping ManagedAgentSession generic.
 - sdk: move the local-runtime conversation store implementation to the canonical
   LocalRuntimeConversationStore modules while keeping SidecarConversationStore
   as a compatibility wrapper.

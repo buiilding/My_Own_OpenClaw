@@ -26,6 +26,19 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.SidecarConversationStore).toBe(canonicalModule.LocalRuntimeConversationStore);
   });
 
+  test('managed Windie session module remains a compatibility wrapper for managed agent session', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/transport/ManagedAgentSession.js');
+    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/transport/ManagedWindieAgentSession.js');
+
+    expect(canonicalModule.ManagedAgentSession).toBeDefined();
+    expect(canonicalModule.ManagedWindieAgentSession).toBeUndefined();
+    expect(canonicalModule.createManagedWindieAgentSession).toBeUndefined();
+    expect(compatibilityModule.ManagedAgentSession).toBe(canonicalModule.ManagedAgentSession);
+    expect(compatibilityModule.ManagedWindieAgentSession).toBe(canonicalModule.ManagedAgentSession);
+    expect(compatibilityModule.createManagedAgentSession).toBe(canonicalModule.createManagedAgentSession);
+    expect(compatibilityModule.createManagedWindieAgentSession).toBe(canonicalModule.createManagedAgentSession);
+  });
+
   test('capability manifest module keeps summarization behind stamping API', () => {
     const manifestModule = require('../../packages/windie-sdk-js/cjs/runtime/CapabilityManifest.js');
 
