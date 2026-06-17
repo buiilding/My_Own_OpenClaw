@@ -25,8 +25,7 @@ semantics separately, and Electron-only adapters must remain isolated behind
 SDK interfaces such as `ConversationStore` and `BackendTransport`.
 
 `AgentRuntimeEvent` is the generic SDK stream event union emitted by
-`conversation.stream(...)`. `WindieConversationRuntime.ts` remains the
-compatibility wrapper for the historical `WindieRuntimeEvent` type alias.
+`conversation.stream(...)`.
 
 ## Ownership
 

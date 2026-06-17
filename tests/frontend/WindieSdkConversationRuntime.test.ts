@@ -23,7 +23,6 @@ import {
   type BackendTransport,
   type ConversationEvent,
   type AgentRuntimeEvent,
-  type WindieRuntimeEvent,
   type AgentStreamEvent,
   type WindieAgentStreamEvent,
 } from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
@@ -1445,14 +1444,13 @@ describe('Agent SDK conversation runtime core', () => {
     expect(streamEvents).not.toContainEqual(expect.objectContaining({ type: 'state', state: 'error' }));
   });
 
-  test('agent runtime event type keeps Windie compatibility alias', () => {
+  test('agent runtime event type projects error stream events', () => {
     const runtimeEvent: AgentRuntimeEvent = {
       type: 'error',
       error: new Error('projection failed'),
     };
-    const compatibilityEvent: WindieRuntimeEvent = runtimeEvent;
 
-    const streamEvents: AgentStreamEvent[] = toAgentStreamEvents(compatibilityEvent);
+    const streamEvents: AgentStreamEvent[] = toAgentStreamEvents(runtimeEvent);
     const compatibilityStreamEvents: WindieAgentStreamEvent[] = streamEvents;
 
     expect(compatibilityStreamEvents).toEqual([

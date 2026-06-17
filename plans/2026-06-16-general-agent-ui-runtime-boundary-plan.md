@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK conversation runtime wrapper deletion
+
+- Finding: the SDK still exposed a `WindieConversationRuntime` compatibility
+  module and `WindieRuntimeEvent` root type after `AgentRuntimeEvent` became
+  the canonical conversation runtime event contract.
+- Change: deleted the Windie-prefixed conversation runtime module, removed the
+  root type export, updated SDK docs, and switched focused tests to
+  `AgentRuntimeEvent` with removed-wrapper coverage.
+- Validation: focused SDK conversation-runtime and private-export Jest tests,
+  stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. SDK callers
+  must use `AgentRuntimeEvent` directly.
+
 ### 2026-06-17 SDK builtin selection wrapper deletion
 
 - Finding: the SDK still exported the `WindieBuiltins` compatibility module and
