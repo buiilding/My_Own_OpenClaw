@@ -707,7 +707,7 @@ describe('windie docs index', () => {
       'backend',
       'tools',
       'contracts',
-      'computer_tool_schema_guidance_and_unified_envelope_validation_reference.md',
+      'computer_tool_schema_guidance_reference.md',
     );
 
     expect(

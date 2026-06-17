@@ -46,7 +46,7 @@ These map to sidecar runtime implementations in `frontend/src/main/python/tools/
 Current runtime note:
 
 - this remote bridge is direct-name based; the live backend catalog and live sidecar exposed-tool set both use concrete tool names such as `mouse_control` and `run_shell_command`
-- repo-local wrapper artifacts `computer_use` and `system_use` still exist under `model-facing/`, but they are not registered remote tool names in the current bridge
+- wrapper envelopes are not registered remote tool names in the current bridge
 - backend-owned `web_search` is outside this frontend bridge because it never dispatches to the sidecar
 - backend-owned grounded helper tools such as `grounded_mouse_action` and
   `grounded_scroll_action` may be model-visible, but they are not

@@ -94,6 +94,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/session: remove unused private `SessionManager` pending-stop/default
   conversation pass-throughs now that `ActiveQueryTracker` and
   `SessionRegistry` own those paths directly.
+- backend/tools: remove unused remote wrapper mapping constants for the retired
+  `computer_use` and `system_use` paths, rename focused contract tests/docs to
+  direct-tool language, and keep catalog parity anchored on live remote classes.
 - backend/query: remove the unused private completion-emission wrapper from
   `QueryExecutionService` and keep backfill/terminal emission owned by the
   query execution pipeline-events helper.

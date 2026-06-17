@@ -11,8 +11,8 @@ title: "Backend Tools Contracts Docs Hub"
 ## Deep Pages
 
 - [Tool Domain and Category Enum Contract Reference](tool_domain_and_category_enum_contract_reference.md)
-- [Computer Tool Schema Guidance and Unified Envelope Validation Reference](computer_tool_schema_guidance_and_unified_envelope_validation_reference.md)
-- [System Tool Direct Schema and Remote Mapping Contract Reference](system_tool_direct_schema_and_remote_mapping_contract_reference.md)
+- [Computer Tool Schema Guidance Reference](computer_tool_schema_guidance_reference.md)
+- [System Tool Direct Schema and Remote Catalog Contract Reference](system_tool_direct_schema_and_remote_catalog_contract_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](schema_field_factory_explanation_and_post_action_wait_contract_reference.md)
 - [Tool Execution Result and Batch Dataclass Contract Reference](tool_execution_result_and_batch_dataclass_contract_reference.md)
 - [Tool Result Helper Object Creation and Default Timing Contract Reference](tool_result_helper_object_creation_and_default_timing_contract_reference.md)

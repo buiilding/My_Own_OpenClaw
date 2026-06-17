@@ -188,15 +188,3 @@ class RemoteGroundedScrollTool(RemoteToolBase, Tool[GroundedScrollActionArgs]):
             ctx,
             log_message=f"Remote grounded scroll tool call: {args.action}",
         )
-
-
-_COMPUTER_USE_MODEL_BY_TOOL = {
-    "mouse_control": RemoteMouseTool.args_model,
-    "grounded_mouse_action": RemoteGroundedMouseTool.args_model,
-    "keyboard_control": RemoteKeyboardTool.args_model,
-    "screenshot": RemoteScreenshotTool.args_model,
-    "scroll_control": RemoteScrollTool.args_model,
-    "grounded_scroll_action": RemoteGroundedScrollTool.args_model,
-    "switch_window": RemoteSwitchTabTool.args_model,
-    "wait": RemoteWaitTool.args_model,
-}

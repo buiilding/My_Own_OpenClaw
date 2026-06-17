@@ -1,8 +1,8 @@
 ---
-summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, explicit unified-wrapper remote stubs, concrete direct-tool dispatch, request-id sourcing, payload model_dump behavior, and cross-layer dispatch implications."
+summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, concrete direct-tool dispatch, request-id sourcing, payload model_dump behavior, and cross-layer dispatch implications."
 read_when:
-  - When modifying remote stub classes, especially unified `computer_use`/`system_use` routing, request-id generation, or payload serialization rules.
-  - When changing remote unified-wrapper dispatch or concrete subtool payload serialization.
+  - When modifying remote stub classes, request-id generation, or payload serialization rules.
+  - When changing concrete remote-tool payload serialization.
   - When debugging mismatches where backend remote tool payload looks valid but sidecar execution fails or correlates to wrong request.
 title: "Remote Tool Domain Payload and Request-ID Semantics Reference"
 ---
@@ -69,59 +69,26 @@ Test-backed behavior:
 
 Classes:
 
-- `RemoteComputerUseTool` (`ComputerUseArgs`)
 - `RemoteMouseTool` (`MouseControlArgs`)
+- `RemoteGroundedMouseTool` (`GroundedMouseActionArgs`)
 - `RemoteKeyboardTool` (`KeyboardControlArgs`)
 - `RemoteScreenshotTool` (`ScreenshotToolArgs`)
 - `RemoteScrollTool` (`ScrollControlArgs`)
+- `RemoteGroundedScrollTool` (`GroundedScrollActionArgs`)
 - `RemoteSwitchTabTool` (`SwitchTabArgs`) for the `switch_window` tool
 - `RemoteWaitTool` (`WaitToolArgs`)
 - `RemoteGetOpenWindowsTool` (`GetOpenWindowsArgs`)
 
 Behavior:
 
-- `RemoteComputerUseTool` uses `_COMPUTER_USE_MODEL_BY_TOOL` to re-validate `arguments` with tool-specific schemas before envelope creation
-- `RemoteComputerUseTool` uses `_get_request_id(ctx)` and returns `RemoteToolResult` directly
-- non-unified computer stubs use `_build_remote_result(...)`
+- each concrete computer stub binds directly to its Pydantic args model
+- computer stubs use `_build_remote_result(...)`
 - `category` is `ToolDomain.COMPUTER`
-
-### Unified `computer_use` metadata and argument contract
-
-`ComputerUseArgs` enforces a strict envelope:
-
-- `tool`: one of `mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait`
-- `metadata`: required `ComputerUseMetadata` object
-  - required string fields: `description`, `explanation`, `expectation`
-  - each field has `min_length=1`
-- `arguments`: free-form object validated at runtime against selected tool schema
-
-Runtime validation path:
-
-1. model parses envelope as `ComputerUseArgs`
-2. `RemoteComputerUseTool.execute_remote(...)` selects concrete Pydantic model using `_COMPUTER_USE_MODEL_BY_TOOL[tool]`
-3. selected model re-validates `arguments` (`model_validate(...)`)
-4. validated args are serialized with `model_dump()` into remote envelope
-
-Runtime envelope shaping nuance:
-
-- emitted `tool_name` becomes selected concrete subtool name (for example `mouse_control`), not `computer_use`
-- `metadata` fields do not flow into emitted `args`; only validated concrete action arguments are forwarded
-
-This keeps the optional unified `computer_use` remote stub aligned with the
-current direct computer tool schemas.
-
-Prompt/schema guidance contract for unified tool descriptions:
-
-- description explicitly requires metadata payload for every call
-- mouse targeting guidance instructs:
-  - `find_coordinates_by='ocr'` + exact `ocr_text` for text targets
-  - `find_coordinates_by='prediction'` + detailed visual `source_description` for non-text targets
-  - `drag_to_find_coordinates_by='prediction'` + `destination_description` for drag drop targets
 
 Test-backed coverage:
 
-- `tests/backend/test_remote_tools.py::test_remote_computer_use_schema_enforces_metadata_shape_and_mouse_guidance`
 - `tests/backend/test_remote_tools.py::test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets`
+- `tests/backend/test_computer_tool_catalog_parity.py`
 
 ### Dispatch Path
 
@@ -134,13 +101,12 @@ provider-native tool names and arguments intact.
 Consequence:
 
 - normal model-driven execution hits concrete remote stubs (`RemoteMouseTool`, `RemoteKeyboardTool`, `RemoteShellTool`, `RemoteReplaceTool`, etc.)
-- `RemoteComputerUseTool` and `RemoteSystemUseTool` are explicit invocation paths for callers that selected the unified wrapper name
+- wrapper names are not registered in the backend remote catalog
 
 ### System domain (`remote_tools/system.py`)
 
 Classes:
 
-- `RemoteSystemUseTool` (`SystemUseArgs`)
 - `RemoteGetSystemStatsTool` (`GetSystemStatsArgs`)
 - `RemoteOpenAppTool` (`OpenAppArgs`)
 - `RemoteShellTool` (`RunShellCommandArgs`)
@@ -150,33 +116,6 @@ Behavior:
 
 - category `ToolDomain.SYSTEM`
 - all call `_build_remote_result(...)` with default request-id sourcing
-
-### Unified `system_use` explanation and argument contract
-
-`SystemUseArgs` is the backend wrapper model for system/filesystem actions:
-
-- `tool`: one of `run_shell_command|replace|read_file|get_system_stats|get_open_windows`
-- `explanation`: canonical top-level rationale field for the unified wrapper
-- `arguments`: action payload object, re-validated against the selected concrete tool model
-
-Wrapper boundary:
-
-- `open_app` and `process` are intentionally **not** part of `system_use.tool`.
-- those actions remain direct tools (`open_app`, `process`) in backend declarations and sidecar runtime.
-
-Normalization behavior in `SystemUseArgs.normalize_explanation`:
-
-- top-level `explanation` is trim-normalized in place
-- nested `arguments.explanation` is ignored and never promoted
-
-Runtime path in `RemoteSystemUseTool.execute_remote(...)`:
-
-1. resolve selected model from `_SYSTEM_USE_MODEL_BY_TOOL`
-2. deep-copy `arguments`
-3. strip nested `arguments.explanation` and use top-level `explanation` only
-4. inject resolved explanation into concrete args when present
-5. validate concrete args with `model_validate(...)`
-6. emit `RemoteToolResult` where `tool_name` is the concrete tool (not `system_use`)
 
 ### Filesystem domain (`remote_tools/filesystem.py`)
 
@@ -211,7 +150,7 @@ Other remote stubs generally use `args.model_dump()` (defaults retained).
 Because model_dump strategies differ by tool class:
 
 - browser payloads are sparse (only non-default and non-null)
-- most other tool payloads include defaulted fields (including unified-wrapper resolved concrete args for `computer_use` and `system_use`)
+- most other tool payloads include defaulted fields
 
 Integration consequence:
 
@@ -252,14 +191,12 @@ If payload fields seem missing:
 
 1. check whether tool is browser (sparse `model_dump`) or non-browser (full `model_dump`)
 2. inspect schema defaults for omitted fields
-3. for unified wrappers, verify selected concrete model accepted `arguments` and filled defaults as expected
-4. for `system_use`, verify explanation resolution source (top-level vs nested fallback)
-5. verify sidecar action adapter defaulting assumptions
-6. for browser tools, verify whether missing fields/actions are absent from the canonical backend browser args model rather than dropped later at runtime
+3. verify sidecar action adapter defaulting assumptions
+4. for browser tools, verify whether missing fields/actions are absent from the canonical backend browser args model rather than dropped later at runtime
 
 ## Related Docs
 
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
-- [System Tool Direct Schema and Remote Mapping Contract Reference](../contracts/system_tool_direct_schema_and_remote_mapping_contract_reference.md)
+- [System Tool Direct Schema and Remote Catalog Contract Reference](../contracts/system_tool_direct_schema_and_remote_catalog_contract_reference.md)
 - [Browser Remote Schema Surface Reference](../browser/browser_remote_schema_surface_reference.md)
 - [Frontend Sidecar Tool Registry Exposed Schema and Result Contract Reference](../../../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)

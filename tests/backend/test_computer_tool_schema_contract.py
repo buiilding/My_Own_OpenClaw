@@ -1,4 +1,4 @@
-"""Covers computer use schema contract behavior in the backend test suite."""
+"""Covers computer tool schema contract behavior in the backend test suite."""
 
 import pytest
 from jsonschema import Draft202012Validator

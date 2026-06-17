@@ -20,7 +20,7 @@ title: "Computer Tool Schema Guidance Reference"
 - `tests/backend/test_parser_types.py`
 - `tests/backend/test_parser_validation.py`
 - `tests/backend/test_response_parser.py`
-- `tests/backend/test_computer_use_schema_contract.py`
+- `tests/backend/test_computer_tool_schema_contract.py`
 
 ## Direct Tool Contract
 

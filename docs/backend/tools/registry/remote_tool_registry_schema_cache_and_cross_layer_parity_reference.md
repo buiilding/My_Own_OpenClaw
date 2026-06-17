@@ -75,10 +75,11 @@ Catalog-driven runtime helpers also power:
 - model-facing surface resolution in `ToolRegistry`
 - sidecar exposed-tool parity in `frontend/src/main/python/tools/registry.py`
 
-Wrapper artifact note:
+Wrapper boundary:
 
-- repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` envelope schemas
-- those wrapper names are not part of `backend/src/tools/tool_catalog.py`, are not returned by `get_all_remote_tool_classes()`, and are not included in backend/sidecar remote parity tests
+- wrapper names are not part of `backend/src/tools/tool_catalog.py`, are not
+  returned by `get_all_remote_tool_classes()`, and are not included in
+  backend/sidecar remote parity tests
 
 ## Declaration and Capability APIs
 
@@ -200,10 +201,9 @@ Operational impact of drift:
 - LLM can call a backend-advertised tool that frontend cannot execute
 - or sidecar supports a tool never surfaced to model schema generation
 
-Intentional exclusions from this parity guard:
+Intentional exclusion from this parity guard:
 
 - backend-only `web_search`
-- repo-local wrapper reference artifacts `computer_use` and `system_use`
 
 Field-level shared-schema guard:
 

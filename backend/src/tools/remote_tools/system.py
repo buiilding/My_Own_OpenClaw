@@ -8,10 +8,8 @@ from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
-from backend.src.tools.filesystem.schemas import ReadFileArgs, ReplaceArgs
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 from backend.src.tools.system.schemas import (
-    GetOpenWindowsArgs,
     GetSystemStatsArgs,
     OpenAppArgs,
     ProcessShellCommandArgs,
@@ -120,15 +118,3 @@ class RemoteProcessTool(RemoteToolBase, Tool[ProcessShellCommandArgs]):
             ctx,
             log_message=f"Remote process tool call: {args.action}",
         )
-
-
-_SYSTEM_USE_MODEL_BY_TOOL = {
-    "run_shell_command": RunShellCommandArgs,
-    "replace": ReplaceArgs,
-    "read_file": ReadFileArgs,
-    "get_system_stats": GetSystemStatsArgs,
-    "get_open_windows": GetOpenWindowsArgs,
-}
-_SYSTEM_USE_TARGET_TOOL_BY_TOOL = {
-    tool_name: tool_name for tool_name in _SYSTEM_USE_MODEL_BY_TOOL
-}
