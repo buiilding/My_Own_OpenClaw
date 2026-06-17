@@ -8,7 +8,8 @@ const path = require('path');
 
 const SCREENSHOT_TEMP_DIR_NAME = 'desktop-agent-screenshots';
 const LEGACY_SCREENSHOT_TEMP_DIR_NAME = 'windieos-screenshots';
-const SCREENSHOT_TEMP_FILE_PREFIX = 'windie-shot-';
+const SCREENSHOT_TEMP_FILE_PREFIX = 'desktop-agent-shot-';
+const LEGACY_SCREENSHOT_TEMP_FILE_PREFIX = 'windie-shot-';
 
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -126,7 +127,12 @@ async function isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage) {
   if (!screenshotDir) {
     return false;
   }
-  if (!path.basename(normalizedPath).startsWith(SCREENSHOT_TEMP_FILE_PREFIX)) {
+  const basename = path.basename(normalizedPath);
+  const hasOwnedPrefix = [
+    SCREENSHOT_TEMP_FILE_PREFIX,
+    LEGACY_SCREENSHOT_TEMP_FILE_PREFIX,
+  ].some((prefix) => basename.startsWith(prefix));
+  if (!hasOwnedPrefix) {
     return false;
   }
 

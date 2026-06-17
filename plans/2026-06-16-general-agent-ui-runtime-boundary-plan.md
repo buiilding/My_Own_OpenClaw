@@ -1083,3 +1083,22 @@ Each completed slice should report:
 - Compatibility: no migration required. This is an internal helper/export name
   used by diagnostics commands and docs routing; storage paths and environment
   variables are unchanged.
+
+### 2026-06-17 local screenshot temp filename prefix
+
+- Finding: after the screenshot handoff directory moved to the generic
+  `${os.tmpdir()}/desktop-agent-screenshots`, the sidecar producer and Electron
+  main ownership check still used `windie-shot-` for new temporary screenshot
+  filenames.
+- Change: new sidecar screenshot temp files now use the
+  `desktop-agent-shot-` prefix, and Electron main accepts both the new prefix
+  and legacy `windie-shot-` filenames while preserving the existing legacy
+  directory compatibility.
+- Validation: focused local-backend bridge RPC Jest coverage, sidecar
+  `python-in-env` smoke check for the screenshot prefix constant, docs listing,
+  `git diff --check`, and source scan for new plus legacy screenshot temp path
+  names.
+- Compatibility: no persisted migration is required. In-flight or older
+  sidecar results using `windie-shot-` remain accepted, including files already
+  in the generic temp directory and files from the older WindieOS temp
+  directory.

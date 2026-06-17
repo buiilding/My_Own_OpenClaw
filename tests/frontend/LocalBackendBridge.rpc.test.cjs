@@ -18,11 +18,15 @@ const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
-function createOwnedScreenshotTempPath(label, dirName = 'desktop-agent-screenshots') {
+function createOwnedScreenshotTempPath(
+  label,
+  dirName = 'desktop-agent-screenshots',
+  filePrefix = 'desktop-agent-shot-',
+) {
   return path.join(
     os.tmpdir(),
     dirName,
-    `windie-shot-${Date.now()}-${label}.jpg`,
+    `${filePrefix}${Date.now()}-${label}.jpg`,
   );
 }
 
@@ -253,11 +257,63 @@ describe('local_backend_bridge RPC handlers', () => {
     }
   });
 
-  test('screenshot host channel accepts legacy owned temp directory', async () => {
+  test('screenshot host channel accepts legacy filename prefix in current temp directory', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
-    const screenshotPath = createOwnedScreenshotTempPath('legacy-capture', 'windieos-screenshots');
+    const screenshotPath = createOwnedScreenshotTempPath(
+      'legacy-prefix-capture',
+      'desktop-agent-screenshots',
+      'windie-shot-',
+    );
+    await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
+    await fsPromises.writeFile(screenshotPath, Buffer.from('legacy-prefix-fake-jpeg-bytes'));
+
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        artifact_id: 'legacy-prefix-artifact-1',
+      }),
+    });
+
+    try {
+      const promise = handlers['capture-screenshot-attachment'](null, {
+        args: {},
+      });
+
+      emitRpcResult(stdoutHandler, {
+        success: true,
+        data: {
+          screenshot_path: screenshotPath,
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+
+      await expect(promise).resolves.toEqual({
+        success: true,
+        data: {
+          screenshot_content_type: 'image/jpeg',
+          screenshot_ref: 'legacy-prefix-artifact-1',
+          screenshot_url: 'https://api.windieos.com/api/artifacts/legacy-prefix-artifact-1',
+        },
+      });
+      await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
+    } finally {
+      global.fetch = originalFetch;
+      await fsPromises.rm(screenshotPath, { force: true });
+    }
+  });
+
+  test('screenshot host channel accepts legacy owned temp directory and filename prefix', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const screenshotPath = createOwnedScreenshotTempPath(
+      'legacy-capture',
+      'windieos-screenshots',
+      'windie-shot-',
+    );
     await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
     await fsPromises.writeFile(screenshotPath, Buffer.from('legacy-fake-jpeg-bytes'));
 

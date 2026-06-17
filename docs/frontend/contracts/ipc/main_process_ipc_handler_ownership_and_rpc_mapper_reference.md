@@ -210,8 +210,8 @@ Notable behavior:
   1. `resolveActiveSurfaceDisplayAffinityForWindows(...)` resolves sender + visible-surface + stored-affinity selection
   2. internal precedence: visible sender surface (chat/main) -> visible chat/main surface -> stored active query display affinity
 - screenshot tool results with sidecar temp files are materialized in main process:
-  - accept only owned temp files under `${os.tmpdir()}/desktop-agent-screenshots` with `windie-shot-` filenames
-  - legacy owned temp files under `${os.tmpdir()}/windieos-screenshots` remain accepted for compatibility
+  - accept only owned temp files under `${os.tmpdir()}/desktop-agent-screenshots` with `desktop-agent-shot-` filenames
+  - legacy owned temp files with `windie-shot-` filenames or under `${os.tmpdir()}/windieos-screenshots` remain accepted for compatibility
   - upload accepted `data.screenshot_path` files to backend artifacts API when possible
   - fallback to inline base64 `data.screenshot` on upload failure
   - delete accepted temporary screenshot files and drop `screenshot_path` from returned payload
