@@ -76,7 +76,7 @@ The renderer renders display-only tool state and transcript projections. Do not 
 | event is visible in DevTools but ignored | renderer `backendEvents.ts` guard and consumer matrix |
 | event never reaches renderer | backend formatter/schema path or Electron main websocket rebroadcast |
 | text streams into the wrong chat | `conversation_ref` filtering and transcript session sync |
-| tool call renders but does not execute | SDK tool coordinator, Electron main SDK local-runtime client, and sidecar bridge |
+| tool call renders but does not execute | SDK tool coordinator, Electron main SDK local-runtime client, and local-runtime bridge |
 | audio text exists but no sound plays | `audio-chunk` side-channel parser and playback queue |
 | token count absent | backend token event emission and renderer token-count consumer |
 

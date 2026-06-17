@@ -157,6 +157,19 @@ Each completed slice should report:
   local tool dispatch, IPC channels, SDK runtime behavior, and sidecar execution
   are unchanged.
 
+### 2026-06-17 reference-doc local-runtime bridge wording
+
+- Finding: architecture, reference, contracts, tool, and renderer workflow docs
+  still used sidecar-bridge wording for Electron main paths that now route
+  through `local_runtime*.cjs`.
+- Change: updated those docs to say local-runtime bridge for the Electron main
+  transport while preserving Python sidecar executor ownership language.
+- Validation: docs listing, focused stale sidecar-bridge wording scan, and
+  `git diff --check`.
+- Compatibility: no migration required. This is documentation terminology
+  only; SDK tool routing, Electron IPC channels, daemon JSON-RPC payloads, and
+  persisted data are unchanged.
+
 ### 2026-06-17 frontend inventory local-runtime bridge wording
 
 - Finding: current frontend architecture and inventory docs still framed the

@@ -90,7 +90,7 @@ sequenceDiagram
   participant Main as Electron main
   participant Sidecar
   Backend->>SDK: tool-call with request_id/correlation key or tool-bundle with bundle_id
-  SDK->>Main: execute local tool through sidecar bridge
+  SDK->>Main: execute local tool through local-runtime bridge
   Main->>Sidecar: daemon/JSON-RPC method with executable args
   Sidecar-->>Main: ToolResult success/data/error
   Main-->>SDK: local execution result

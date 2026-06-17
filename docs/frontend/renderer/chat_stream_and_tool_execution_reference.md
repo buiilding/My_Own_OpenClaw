@@ -398,7 +398,7 @@ Execution contract:
 - sidecar executes filesystem, shell, browser, computer-use, MCP, plugin, and extension tools
 - SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend for each claimed call or bundle
 
-For execution bugs, start with the SDK main runtime and sidecar bridge. For
+For execution bugs, start with the SDK main runtime and local-runtime bridge. For
 active visual bugs, start with the SDK current-turn projection and
 `useConversationRuntimeProjectionStream`; for replay bugs, start with renderer
 chat-stream transcript handlers and transcript projection.

@@ -3,7 +3,7 @@ summary: "Workflow for safely adding, changing, or removing WindieOS Electron IP
 read_when:
   - When adding, renaming, deleting, or repurposing an Electron IPC channel.
   - When debugging invoke/send/on drift between preload, renderer constants, and main-process handlers.
-  - When a frontend change crosses renderer, preload, Electron main, or sidecar bridge boundaries.
+  - When a frontend change crosses renderer, preload, Electron main, local-runtime bridge, or Python sidecar boundaries.
 title: "IPC Change Workflow"
 ---
 

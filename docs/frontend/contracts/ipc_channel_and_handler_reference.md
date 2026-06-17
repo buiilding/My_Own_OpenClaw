@@ -145,7 +145,7 @@ Removed legacy renderer-callable channels:
 
 ## Local runtime bridge channels (`local_runtime_bridge.cjs`)
 
-These channels are implementation-level main/sidecar bridge channels. Renderer
+These channels are implementation-level main/local-runtime bridge channels. Renderer
 feature code uses SDK-shaped `windie:invoke` commands for conversation and
 memory user actions instead of these sidecar names.
 

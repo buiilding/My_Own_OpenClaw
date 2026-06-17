@@ -23,7 +23,7 @@ title: "Memory IPC and RPC Mapping Reference"
 
 ## Active Local-Runtime Bridge Handlers
 
-These names are internal Electron-main to sidecar bridge handler names, not
+These names are internal Electron-main local-runtime bridge handler names, not
 direct renderer preload `invoke` channels. Renderer feature code enters through
 SDK-shaped `window.desktopAgent.invoke(...)` commands.
 

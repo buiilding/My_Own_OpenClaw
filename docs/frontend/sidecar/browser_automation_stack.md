@@ -126,7 +126,7 @@ Do not route browser-owned file actions through general filesystem tools unless 
 
 Frequent failure points:
 
-- sidecar bridge timeout in Electron (`execute-tool` call timeout)
+- local-runtime bridge timeout in Electron (`execute-tool` call timeout)
 - Browser Use CLI/package import or command failures
 - CDP endpoint unavailable and Chrome auto-launch failure
 - schema validation errors for malformed action payloads

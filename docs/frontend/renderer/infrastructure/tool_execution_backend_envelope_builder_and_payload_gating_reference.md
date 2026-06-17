@@ -16,7 +16,7 @@ Current ownership:
 
 - SDK main runtime preserves `request_id`, `bundle_id`, `tool_call_id`, and
   correlation metadata while coordinating local execution.
-- Electron main and the sidecar bridge normalize local executor output into the
+- Electron main and the local-runtime bridge normalize local executor output into the
   SDK local-runtime contract.
 - Backend incoming schemas and tool-result handlers remain the authority for the
   websocket payload accepted by the hosted agent loop.

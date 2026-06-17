@@ -125,7 +125,7 @@ and the registry helpers from `backend.src.core.security.executor`.
 
 1. Declare explicit `required_permissions` per remote tool class.
 2. Populate explicit `granted_permissions` for authorized tools/deployments.
-3. Add SecurityPolicy checks at concrete execution boundaries (tool dispatch and/or sidecar bridge send path).
+3. Add SecurityPolicy checks at concrete execution boundaries (tool dispatch and/or local-runtime bridge send path).
 4. Attach audit logging on both success and failure tool-result paths.
 5. Implement and test a concrete isolated executor before selecting a sandboxed execution mode.
 6. Add tests that assert deny-by-default, blocked paths/tools, and audit truncation behavior.
