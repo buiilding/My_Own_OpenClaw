@@ -2,6 +2,8 @@
 
 import asyncio
 import json
+import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -60,6 +62,12 @@ def test_python_sdk_discovery_requires_canonical_base_url():
     assert windie_sdk_module._normalize_discovery(
         {"baseUrl": "http://127.0.0.1:43123", "token": "token"}
     ) is None
+
+
+def test_python_sdk_default_sidecar_discovery_path_is_generic():
+    assert windie_sdk_module.DEFAULT_SIDECAR_DISCOVERY_FILE == (
+        Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
+    )
 
 
 class FakeWsMessage:

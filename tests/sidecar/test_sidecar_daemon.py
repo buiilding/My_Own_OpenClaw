@@ -3,6 +3,7 @@
 import asyncio
 import json
 import sqlite3
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -28,6 +29,12 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert "Run the local sidecar daemon." in source
     assert "WindieOS sidecar" not in source
     assert "Run the WindieOS sidecar daemon." not in source
+
+
+def test_sidecar_daemon_default_discovery_path_is_generic():
+    assert sidecar_daemon.DEFAULT_DISCOVERY_FILE == (
+        Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
+    )
 
 
 class FakeRequest:

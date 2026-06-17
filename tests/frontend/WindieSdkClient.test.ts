@@ -2707,6 +2707,22 @@ describe('WindieSdkClient', () => {
     })).rejects.toThrow(`Timed out waiting for local sidecar daemon discovery at ${discoveryFile}`);
   });
 
+  test('createWindieLocalRuntimeProvider source keeps generic default discovery path', async () => {
+    const runtimeSource = await fsPromises.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts'),
+      'utf8',
+    );
+    const runtimeCjsSource = await fsPromises.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js'),
+      'utf8',
+    );
+
+    for (const source of [runtimeSource, runtimeCjsSource]) {
+      expect(source).toContain("path.join(os.tmpdir(), 'desktop-agent', 'sidecar-daemon.json')");
+      expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json')");
+    }
+  });
+
   test('createWindieLocalRuntimeProvider ignores camelCase discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-discovery-alias-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');

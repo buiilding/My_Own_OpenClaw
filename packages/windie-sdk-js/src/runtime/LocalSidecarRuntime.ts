@@ -689,7 +689,7 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
     const discoveryFile = path.resolve(
       options.discoveryFile
         ?? processEnv.WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE
-        ?? path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json'),
+        ?? path.join(os.tmpdir(), 'desktop-agent', 'sidecar-daemon.json'),
     );
     const fetchImpl = options.fetchImpl;
     const expectedLaunchContext = normalizeLaunchContext(options.launchContext);

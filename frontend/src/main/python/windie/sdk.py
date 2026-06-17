@@ -23,7 +23,7 @@ from windie._remote_api_client_base import RemoteApiClientBase
 from windie._unicode_sanitizer import sanitize_surrogates
 
 DEFAULT_SIDECAR_DISCOVERY_FILE = (
-    Path(tempfile.gettempdir()) / "windieos" / "sidecar-daemon.json"
+    Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
 )
 DEFAULT_SIDECAR_START_TIMEOUT_SECONDS = 10.0
 DEFAULT_SIDECAR_POLL_INTERVAL_SECONDS = 0.1

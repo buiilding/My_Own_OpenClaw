@@ -34,10 +34,11 @@ Electron desktop launch discovery path:
 ${TMPDIR}/desktop-agent/sidecar-daemon.json
 ```
 
-Standalone SDK/Python daemon defaults remain:
+Standalone SDK/Python daemon defaults use the same generic local-runtime
+discovery path:
 
 ```text
-${TMPDIR}/windieos/sidecar-daemon.json
+${TMPDIR}/desktop-agent/sidecar-daemon.json
 ```
 
 Discovery metadata is daemon-authored and snake_case. SDK discovery readers

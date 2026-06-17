@@ -1231,3 +1231,17 @@ Each completed slice should report:
   `git diff --check`, and stylesheet import scans.
 - Compatibility: no migration required. CSS variables, icon asset location,
   rendered branding, and skin runtime copy are unchanged.
+
+### 2026-06-17 SDK sidecar discovery default
+
+- Finding: after Electron desktop moved its explicit sidecar discovery path to
+  `${TMPDIR}/desktop-agent/sidecar-daemon.json`, standalone SDK and Python
+  daemon defaults still fell back to `${TMPDIR}/windieos/sidecar-daemon.json`.
+- Change: changed the TypeScript SDK auto-sidecar provider, Python SDK client,
+  and Python sidecar daemon default discovery file to the generic
+  `${TMPDIR}/desktop-agent/sidecar-daemon.json` path.
+- Validation: focused SDK and sidecar discovery-default tests, docs listing,
+  `git diff --check`, and source scans for the retired default path.
+- Compatibility: no persisted migration required. Electron desktop already
+  passes an explicit discovery file, the discovery file is temporary runtime
+  state, and callers can still override the path with explicit options.
