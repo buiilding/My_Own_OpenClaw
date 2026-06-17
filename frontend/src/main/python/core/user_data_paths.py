@@ -1,4 +1,4 @@
-"""Platform user-data paths for WindieOS sidecar-owned local storage."""
+"""Platform user-data paths for sidecar-owned local storage."""
 
 from __future__ import annotations
 
@@ -22,4 +22,4 @@ def windie_user_data_root() -> Path:
             return home_dir / "Library" / "Application Support" / APP_DATA_DIR_NAME
         return home_dir / ".config" / APP_DATA_DIR_NAME
 
-    raise RuntimeError(f"Unsupported OS for WindieOS user-data path: {os.name}")
+    raise RuntimeError(f"Unsupported OS for sidecar user-data path: {os.name}")

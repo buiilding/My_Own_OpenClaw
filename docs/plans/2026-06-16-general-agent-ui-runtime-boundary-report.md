@@ -563,6 +563,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   sidecar runtime boundary.
 - Change: changed the daemon MCP client identity and CLI description to generic
   Desktop Agent/local sidecar wording with a boundary assertion.
+- Finding: sidecar helper docstrings and the unsupported-OS user-data path
+  error still described local-runtime helpers as WindieOS-specific, even though
+  the persisted storage directory name remains the only compatibility-bound
+  product identifier there.
+- Change: updated those sidecar helper docstrings and unsupported-OS error to
+  generic local-runtime wording while preserving the existing `windieos` storage
+  path.
 
 ## Remaining Findings
 
@@ -658,3 +665,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   generic app wording; host permission copy remains the product-specific layer.
 - Sidecar daemon MCP client identity and CLI help now use generic local sidecar
   wording.
+- Sidecar helper docstrings and unsupported-OS user-data path errors now use
+  generic local-runtime wording while preserving the existing `windieos`
+  storage directory.

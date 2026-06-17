@@ -103,6 +103,9 @@ All notable changes to WindieOS will be documented in this file.
   verifier fallback reasons.
 - frontend/sidecar: use generic daemon client identity and CLI help copy for
   the local sidecar daemon.
+- frontend/sidecar: use generic local-runtime docstrings and unsupported-OS
+  user-data path errors while preserving the existing windieos storage
+  directory.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.
