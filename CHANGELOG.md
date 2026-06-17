@@ -28,6 +28,8 @@ All notable changes to WindieOS will be documented in this file.
   helpers resolve through concrete validation modules.
 - backend/core: remove the unused `core.messages` package export so message
   contracts resolve through concrete message modules.
+- backend/agent-tools: remove unused preparation and waiting storage package
+  exports so storage callers use concrete storage modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

@@ -19,12 +19,10 @@ concrete modules directly.
 - `backend/src/agent/tools/preparation/helpers/__init__.py`
 - `backend/src/agent/tools/preparation/ocr/__init__.py`
 - `backend/src/agent/tools/preparation/screenshot/__init__.py`
-- `backend/src/agent/tools/preparation/storage/__init__.py`
 - `backend/src/agent/tools/preparation/types/__init__.py`
 - `backend/src/agent/tools/processing/__init__.py`
 - `backend/src/agent/tools/sending/__init__.py`
 - `backend/src/agent/tools/waiting/__init__.py`
-- `backend/src/agent/tools/waiting/storage/__init__.py`
 - `backend/src/api/handlers/__init__.py`
 - `backend/src/api/infrastructure/__init__.py`
 - `backend/src/api/processing/__init__.py`
@@ -94,6 +92,12 @@ docstring or compatibility path.
 - `backend/src/core/messages/__init__.py` is intentionally absent; import
   message structures and converters from `backend.src.core.messages.structures`
   and `backend.src.core.messages.converters`.
+- `backend/src/agent/tools/preparation/storage/__init__.py` is intentionally
+  absent; import resolved-call storage from
+  `backend.src.agent.tools.preparation.storage.resolved_call_storage`.
+- `backend/src/agent/tools/waiting/storage/__init__.py` is intentionally
+  absent; import tool-result storage from
+  `backend.src.agent.tools.waiting.storage.result_storage`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
