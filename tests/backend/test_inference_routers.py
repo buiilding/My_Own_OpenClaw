@@ -5,14 +5,14 @@ import json
 import pytest
 
 from backend.src.agent.tools.processing.synthetic_factory import SyntheticResultFactory
-from backend.src.core.inference import (
-    EmbeddingRouter,
-    OcrRouter,
+from backend.src.core.inference.embedding_router import EmbeddingRouter
+from backend.src.core.inference.errors import (
     ProviderCircuitOpenError,
     ProviderRequestError,
     ProviderUnavailableError,
-    VisionRouter,
 )
+from backend.src.core.inference.ocr_router import OcrRouter
+from backend.src.core.inference.vision_router import VisionRouter
 from backend.src.llm.parser_types import ParsedToolCall
 
 

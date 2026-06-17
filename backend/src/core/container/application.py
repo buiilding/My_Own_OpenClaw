@@ -13,7 +13,9 @@ from backend.src.core.container.factories import (
 )
 from backend.src.core.container.memory_container import MemoryContainer
 from backend.src.core.container.tool_container import ToolContainer
-from backend.src.core.inference import EmbeddingRouter, OcrRouter, VisionRouter
+from backend.src.core.inference.embedding_router import EmbeddingRouter
+from backend.src.core.inference.ocr_router import OcrRouter
+from backend.src.core.inference.vision_router import VisionRouter
 
 
 class ApplicationContainer(containers.DeclarativeContainer):

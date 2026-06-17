@@ -137,6 +137,12 @@ docstring or compatibility path.
   service and providers from `backend.src.services.ocr.ocr_service`,
   `backend.src.services.ocr.provider`, and
   `backend.src.services.ocr.remote_provider`.
+- `backend/src/core/inference/__init__.py` is intentionally absent; import
+  inference routers and errors from concrete modules such as
+  `backend.src.core.inference.embedding_router`,
+  `backend.src.core.inference.ocr_router`,
+  `backend.src.core.inference.vision_router`, and
+  `backend.src.core.inference.errors`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.

@@ -28,7 +28,7 @@ from backend.src.api.routes.memory.semantic.parser import (
     extract_fallback_facts,
     parse_summarization_response,
 )
-from backend.src.core.inference import EmbeddingRouter
+from backend.src.core.inference.embedding_router import EmbeddingRouter
 
 semantic_routes = importlib.import_module(
     "backend.src.api.routes.memory.semantic.router"
