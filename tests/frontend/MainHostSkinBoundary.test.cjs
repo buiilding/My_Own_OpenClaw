@@ -148,7 +148,9 @@ describe('main host skin/config boundary', () => {
     expect(localBackendSource).not.toContain('Windie SDK local runtime');
     expect(localBackendSource).not.toContain('Open the WindieOS browser');
     expect(oauthSource).toContain('Return to the app for details');
+    expect(oauthSource).toContain('copy.loginFailure');
     expect(oauthSource).not.toContain('Return to WindieOS');
+    expect(oauthSource).not.toContain('OpenAI Codex OAuth login failed');
     expect(oauthHandlerSource).toContain('copy ? { copy } : {}');
     expect(oauthHandlerSource).toContain('oauthCopy.loginFailure');
     expect(oauthHandlerSource).not.toContain('OpenAI Codex OAuth login failed.');

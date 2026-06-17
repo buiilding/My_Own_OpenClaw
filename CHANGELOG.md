@@ -106,6 +106,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: use generic local-runtime docstrings and unsupported-OS
   user-data path errors while preserving the existing windieos storage
   directory.
+- frontend/main: route OpenAI Codex OAuth callback error prefixes through host
+  skin copy with provider-neutral OAuth defaults.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

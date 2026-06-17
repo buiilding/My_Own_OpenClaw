@@ -570,6 +570,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: updated those sidecar helper docstrings and unsupported-OS error to
   generic local-runtime wording while preserving the existing `windieos` storage
   path.
+- Finding: the OpenAI Codex OAuth callback flow still hard-coded the
+  provider-specific login failure prefix inside the main provider helper rather
+  than using host skin copy.
+- Change: routed that callback error prefix through the host copy object with a
+  provider-neutral default while preserving the browser callback response copy.
 
 ## Remaining Findings
 
@@ -668,3 +673,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Sidecar helper docstrings and unsupported-OS user-data path errors now use
   generic local-runtime wording while preserving the existing `windieos`
   storage directory.
+- Main OpenAI Codex OAuth callback error prefixes now read from host skin copy,
+  with a generic OAuth default in the provider helper.

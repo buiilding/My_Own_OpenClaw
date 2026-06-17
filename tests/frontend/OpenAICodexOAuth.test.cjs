@@ -130,13 +130,31 @@ describe('openai_codex_oauth', () => {
     });
 
     await expect(loginOpenAICodexOAuth({ openExternal, fetchImpl })).rejects.toThrow(
-      `OpenAI Codex OAuth login failed: ${rawDescription}`,
+      `OAuth login failed: ${rawDescription}`,
     );
 
     expect(fetchImpl).not.toHaveBeenCalled();
     expect(callbackResponse.statusCode).toBe(400);
     expect(callbackResponse.body).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;');
     expect(callbackResponse.body).not.toContain(rawDescription);
+  });
+
+  test('loginOpenAICodexOAuth uses host copy for oauth callback error messages', async () => {
+    const fetchImpl = jest.fn();
+    const openExternal = jest.fn(async (authUrl) => {
+      const parsed = new URL(authUrl);
+      const state = parsed.searchParams.get('state');
+
+      await requestCallback(
+        `/auth/callback?state=${encodeURIComponent(state)}&error=access_denied`,
+      );
+    });
+
+    await expect(loginOpenAICodexOAuth({
+      openExternal,
+      fetchImpl,
+      copy: { loginFailure: 'Provider login failed' },
+    })).rejects.toThrow('Provider login failed: access_denied');
   });
 
   test('loginOpenAICodexOAuth uses host skin copy for token exchange callback failures', async () => {

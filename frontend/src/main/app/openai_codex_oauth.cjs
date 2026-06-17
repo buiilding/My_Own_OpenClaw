@@ -243,9 +243,10 @@ async function waitForOAuthCallback({
       if (oauthError) {
         const oauthDescription = (requestUrl.searchParams.get('error_description') || '').trim();
         const message = oauthDescription || oauthError;
+        const loginFailure = copy.loginFailure || 'OAuth login failed';
         const callbackError = createCallbackResponse(`OAuth login failed: ${message}`, 400);
         sendCallbackResponse(res, callbackError, () => {
-          finish(new Error(`OpenAI Codex OAuth login failed: ${message}`));
+          finish(new Error(`${loginFailure}: ${message}`));
         });
         return;
       }
