@@ -4,25 +4,25 @@
 
 import {
   extractTranscriptUserId,
-  routeConfigBackendEvent,
+  routeConfigSettingsEvent,
 } from '../../frontend/src/renderer/app/providers/appConfigEvents';
 
 describe('appConfigEvents', () => {
-  test('routes models-listed backend events to settings handler', () => {
+  test('routes models-listed settings events to settings handler', () => {
     const handleModelsListed = jest.fn();
     const handlersRef = { current: { handleModelsListed } };
 
-    routeConfigBackendEvent({ type: 'models-listed', payload: { local_models: [] } }, handlersRef);
+    routeConfigSettingsEvent({ type: 'models-listed', payload: { local_models: [] } }, handlersRef);
     expect(handleModelsListed).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'models-listed' }),
     );
   });
 
-  test('ignores unsupported backend event types', () => {
+  test('ignores unsupported settings event types', () => {
     const handleModelsListed = jest.fn();
     const handlersRef = { current: { handleModelsListed } };
 
-    routeConfigBackendEvent({ type: 'status-updated' }, handlersRef);
+    routeConfigSettingsEvent({ type: 'status-updated' }, handlersRef);
     expect(handleModelsListed).not.toHaveBeenCalled();
   });
 

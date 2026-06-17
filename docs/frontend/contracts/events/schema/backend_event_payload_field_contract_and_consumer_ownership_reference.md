@@ -149,7 +149,7 @@ Not all renderer-facing backend events use `isBackendEvent`.
 Important untyped paths:
 
 - `audio-chunk`: routed to `audio-chunk` and parsed by `extractAudioChunkPayload(...)`
-- `models-listed`: routed to `backend-settings-event` and consumed by `routeConfigBackendEvent(...)`
+- `models-listed`: routed to `backend-settings-event` and consumed by `routeConfigSettingsEvent(...)`
 - `settings-updated`: routed to `backend-settings-event` and consumed by `AppStatusProvider` listener
 
 This means adding events to backend wire protocol may require both:

@@ -373,3 +373,18 @@ Each completed slice should report:
   and a source scan for the retired variable name.
 - Compatibility: no migration required. Browser-session snapshot shape,
   diagnostic stage names, and IPC behavior are unchanged.
+
+### 2026-06-17 renderer config settings event router naming
+
+- Finding: app config/status providers named settings-channel callbacks and the
+  config event router as backend-prefixed events even though the renderer
+  boundary consumes settings/model runtime events from the typed settings
+  channel.
+- Change: renamed the config router and provider callbacks to settings-event
+  terminology, updated tests/docs, and tightened stale storage expectations in
+  the model provider suite.
+- Validation: focused Jest run for `AppConfigEvents`, `AppStatusProvider`, and
+  `AppConfigProvider.models`; docs listing; `git diff --check`; and a
+  stale-name scan for the retired callback/router names.
+- Compatibility: no migration required. Settings channel name, event payloads,
+  settings ACK behavior, and model-list handling are unchanged.

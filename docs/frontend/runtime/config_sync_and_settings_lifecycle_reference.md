@@ -171,7 +171,7 @@ Renderer uses this to:
 
 ## Event Handling Notes
 
-`routeConfigBackendEvent(...)` currently handles:
+`routeConfigSettingsEvent(...)` currently handles:
 
 - `models-listed` -> available model list update
 

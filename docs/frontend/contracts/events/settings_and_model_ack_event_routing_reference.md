@@ -44,8 +44,8 @@ Flow:
 4. backend `ListModelsHandler` responds with `type: "models-listed"`
 5. `ipc_backend_event_channels.cjs` routes the event to
    `backend-settings-event`
-6. `AppConfigProvider` listener calls `routeConfigBackendEvent(...)`
-7. `routeConfigBackendEvent` dispatches `models-listed` to
+6. `AppConfigProvider` listener calls `routeConfigSettingsEvent(...)`
+7. `routeConfigSettingsEvent` dispatches `models-listed` to
    `handleModelsListed(...)`
 8. `useSettingsManagement` updates `availableModels` via payload passthrough
 
@@ -99,7 +99,7 @@ If model list never updates:
 
 1. verify the dashboard provider calls `DesktopSettingsRuntimeClient.requestDashboardStartupModelList()` and the `models.list` command reaches main through `windie:invoke`
 2. verify backend emits `models-listed`
-3. verify `routeConfigBackendEvent(...)` receives event and `handleModelsListed` runs
+3. verify `routeConfigSettingsEvent(...)` receives event and `handleModelsListed` runs
 
 If save status remains `saving`:
 

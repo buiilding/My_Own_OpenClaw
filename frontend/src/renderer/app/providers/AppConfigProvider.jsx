@@ -9,7 +9,7 @@ import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ip
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
 import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
-import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
+import { extractTranscriptUserId, routeConfigSettingsEvent } from './appConfigEvents';
 import { setBackendHttpUrl } from '../../infrastructure/services/BackendEndpointStore';
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 import {
@@ -144,8 +144,8 @@ export function AppConfigProvider({ children }) {
     saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
   }, []);
 
-  const onBackendEvent = useCallback((data) => {
-    routeConfigBackendEvent(data, handlersRef);
+  const onSettingsEvent = useCallback((data) => {
+    routeConfigSettingsEvent(data, handlersRef);
   }, [handlersRef]);
 
   const applyBackendConnectionSnapshot = useCallback((data) => {
@@ -196,12 +196,12 @@ export function AppConfigProvider({ children }) {
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, onBackendEvent);
+    const removeListener = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, onSettingsEvent);
 
     return () => {
       removeListener();
     };
-  }, [onBackendEvent]);
+  }, [onSettingsEvent]);
 
   useEffect(() => {
     DesktopSettingsRuntimeClient.requestDashboardStartupModelList();

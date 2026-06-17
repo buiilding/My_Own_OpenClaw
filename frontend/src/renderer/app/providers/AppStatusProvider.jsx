@@ -36,7 +36,7 @@ export function AppStatusProvider({ children }) {
     }, 3000);
   }, [clearTimer]);
 
-  const onBackendEvent = useCallback((data) => {
+  const onSettingsEvent = useCallback((data) => {
     switch (data.type) {
       case 'settings-updated':
         clearTimer(saveTimeoutId);
@@ -56,13 +56,13 @@ export function AppStatusProvider({ children }) {
   }, [clearTimer, scheduleIdleReset]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, onBackendEvent);
+    const removeListener = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, onSettingsEvent);
     return () => {
       removeListener();
       clearTimer(saveTimeoutId);
       clearTimer(resetTimeoutId);
     };
-  }, [onBackendEvent, clearTimer]);
+  }, [onSettingsEvent, clearTimer]);
 
   const setSaving = useCallback(() => {
     clearTimer(saveTimeoutId);

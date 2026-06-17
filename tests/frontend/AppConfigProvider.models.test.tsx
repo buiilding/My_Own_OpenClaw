@@ -160,7 +160,6 @@ describe('AppConfigProvider model + config wiring', () => {
         speech_mode_enabled: false,
         selected_model_id: 'model-merged',
       }),
-      expect.any(Number),
     );
     expect(((DesktopSettingsRuntimeClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
@@ -180,7 +179,6 @@ describe('AppConfigProvider model + config wiring', () => {
         selected_model_id: 'claude-sonnet-4-5',
         model_provider: 'anthropic',
       }),
-      expect.any(Number),
     );
     expect(((DesktopSettingsRuntimeClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
