@@ -60,7 +60,10 @@ function requireAuthenticatedCommandUserId(currentUserId = null) {
 }
 
 function optionalCommandConversationRef(payload = {}) {
-  return normalizeOptionalString(payload.conversationRef || payload.conversation_ref);
+  if (Object.prototype.hasOwnProperty.call(payload, 'conversation_ref')) {
+    throw new Error('Agent SDK command requires conversationRef; conversation_ref is not supported.');
+  }
+  return normalizeOptionalString(payload.conversationRef);
 }
 
 function requireCommandConversationRef(payload = {}) {

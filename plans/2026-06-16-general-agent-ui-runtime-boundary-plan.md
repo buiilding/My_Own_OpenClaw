@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main SDK command conversation alias rejection
+
+- Finding: Electron main SDK conversation-library command validation still
+  accepted the removed `conversation_ref` alias even though renderer library
+  facades send SDK-shaped `conversationRef` payloads.
+- Change: made command conversation normalization reject `conversation_ref`
+  before agent work starts, updated command contract docs, and kept the
+  separate snake_case `conversation.send`/`conversation.stop` query transport
+  contract unchanged.
+- Validation: focused main SDK runtime boundary test, docs listing, and diff
+  check.
+- Compatibility: no migration required for current renderer callers; they send
+  `conversationRef`. Stale SDK command callers using `conversation_ref` must
+  switch to `conversationRef`.
+
 ### 2026-06-17 transcript-session sync snake_case alias rejection
 
 - Finding: renderer/main transcript-session sync still accepted

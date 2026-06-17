@@ -205,4 +205,44 @@ describe('main ipc sdk runtime boundary', () => {
       }),
     }));
   });
+
+  test('electron main rejects removed conversation_ref SDK command alias', async () => {
+    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const ensureAgent = jest.fn(async () => ({
+      loadConversation: jest.fn(async () => ({
+        display: { messages: [] },
+        displayRows: [],
+        currentTurn: null,
+      })),
+    }));
+    const appendAppDiagnostic = jest.fn(input => input);
+
+    const result = await handleAgentSdkInvoke(
+      null,
+      {
+        command: 'conversation.loadDisplay',
+        payload: {
+          userId: 'user-1',
+          conversation_ref: 'conv-1',
+        },
+      },
+      {
+        deps: {
+          ensureAgent,
+          appendAppDiagnostic,
+          getState: () => ({
+            currentUserId: 'user-1',
+            isConnected: true,
+            agent: true,
+          }),
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Agent SDK command requires conversationRef; conversation_ref is not supported.',
+    });
+    expect(ensureAgent).not.toHaveBeenCalled();
+  });
 });
