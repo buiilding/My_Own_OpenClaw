@@ -1,5 +1,5 @@
 ---
-summary: "Local sidecar daemon HTTP/WebSocket contract, discovery token model, dynamic module/plugin/MCP registration, and executor-only responsibility boundary."
+summary: "Python sidecar daemon HTTP/WebSocket contract, discovery token model, dynamic module/plugin/MCP registration, and executor-only responsibility boundary."
 read_when:
   - When changing the Python sidecar daemon, local tool registration, daemon auth, sidecar discovery, or SDK local execution.
   - When deciding whether a capability belongs in backend policy or local executor code.

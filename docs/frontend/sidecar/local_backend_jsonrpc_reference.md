@@ -1,12 +1,12 @@
 ---
-summary: "Local backend JSON-RPC reference for SDK daemon-backed sidecar calls: request envelope, registered methods, removed search_memory text-query RPC behavior, bridge mapping, and timeout/error semantics."
+summary: "Local-runtime JSON-RPC reference for SDK daemon-backed sidecar calls: request envelope, registered methods, removed search_memory text-query RPC behavior, bridge mapping, and timeout/error semantics."
 read_when:
   - When adding/changing sidecar JSON-RPC methods or bridge payload mappers.
   - When debugging execute_tool, removed search-memory text-query calls, embedding-backed memory search, or chat-event persistence failures between Electron and Python sidecar.
-title: "Local Backend JSON-RPC Reference"
+title: "Local Runtime JSON-RPC Reference"
 ---
 
-# Local Backend JSON-RPC Reference
+# Local Runtime JSON-RPC Reference
 
 Electron bridge helpers use the SDK local runtime provider. The SDK sends
 JSON-RPC envelopes to the sidecar daemon `/rpc` endpoint, and the daemon

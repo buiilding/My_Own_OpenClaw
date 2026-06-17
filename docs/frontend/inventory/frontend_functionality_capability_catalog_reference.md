@@ -243,7 +243,7 @@ Capabilities:
    use their typed renderer channels.
 4. `useChatStream` updates chat state + transcript from SDK projections and
    tracks active turn phase.
-5. `tool-call`/`tool-bundle` events route through the SDK runtime to the local sidecar executor.
+5. `tool-call`/`tool-bundle` events route through the SDK runtime to the local-runtime executor.
 6. Tool results route back to backend as `tool-result`/`tool-bundle-result`.
 
 ## Related Docs

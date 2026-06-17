@@ -10,7 +10,7 @@ title: "SDK-Owned Local Runtime Lifecycle Change Workflow"
 
 Use this workflow when desktop needs to start/reuse the Python sidecar daemon,
 report readiness, or route Electron helper calls through the SDK local runtime.
-Use [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
+Use [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
 for method registration and payload-shape changes after the daemon is reachable.
 
 ## Runtime Path
@@ -55,7 +55,7 @@ readiness/status broadcasts.
 | `local-runtime-status` shows stale ready/error state | Supervisor and status broadcast path | `local_runtime_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
-| Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
+| Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
 | Local tool result shape is wrong after sidecar executes | Tool execution contract, not lifecycle | [Sidecar Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
 
 ## Lifecycle Contract
@@ -158,10 +158,10 @@ Docs-only changes should run `bin/windie docs list`, `git diff --check`, and a f
 
 ## Related Docs
 
-- [Frontend Main Local-Backend Docs Hub](README.md)
-- [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
-- [Local Backend Process Lifecycle Reference](../../sidecar/local_backend_process_lifecycle_reference.md)
-- [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
+- [Frontend Main Local-Runtime Docs Hub](README.md)
+- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
+- [SDK-Owned Sidecar Lifecycle Reference](../../sidecar/local_backend_process_lifecycle_reference.md)
+- [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Sidecar Runtime Change Workflow](../../sidecar/sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../../ipc_change_workflow.md)
 - [Release and Packaging Change Workflow](../../../operations/release_packaging_change_workflow.md)

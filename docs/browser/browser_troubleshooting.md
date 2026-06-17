@@ -92,7 +92,7 @@ Inspect:
 
 Checks:
 
-- Local backend status is ready.
+- Local runtime status is ready.
 - `status` succeeds before `get_tabs`.
 - Polling is active only when subscribers exist and the session is connected.
 - Stale async sync requests do not overwrite newer snapshots.

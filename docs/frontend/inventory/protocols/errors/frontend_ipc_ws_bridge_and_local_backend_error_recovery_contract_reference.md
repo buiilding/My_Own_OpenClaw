@@ -127,7 +127,7 @@ Failure notifications emitted to main window via `local-runtime-status`:
 
 | Failure case | Status payload |
 |---|---|
-| script file missing | `{ ready: false, error: "Local backend script not found: ..." }` |
+| script file missing | `{ ready: false, error: "Local runtime daemon script not found: ..." }` |
 | spawn `ENOENT` | `{ ready: false, error: "Python executable '<path>' not found..." }` |
 | non-zero process exit | `{ ready: false, error: "Python process exited with code <n>" }` |
 | runtime process error | `{ ready: false, error: "<error.message>" }` |

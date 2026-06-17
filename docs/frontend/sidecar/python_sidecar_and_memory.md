@@ -22,7 +22,7 @@ daemon is that owner for desktop. Electron must not start standalone
 `local_backend.py` beside it, because that can race SQLite writes and corrupt
 FAISS/SQLite mapping assumptions.
 
-## Local Backend Protocol
+## Local Runtime Protocol
 
 `LocalBackend` uses `core/ipc_protocol.py:JSONRPCProtocol`.
 Memory-focused RPC methods are implemented in `local_backend_memory_handlers.py` and mixed into `LocalBackend`.

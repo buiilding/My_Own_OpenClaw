@@ -12,19 +12,19 @@ title: "Local Runtime Bridge Overview and Window Guard Index"
 ## Scope
 
 This page is the entrypoint for Electron-main local-runtime bridge behavior.
-Detailed implementation docs still live under the dedicated local-backend
+Detailed implementation docs still live under the historical `local_backend/`
 subfolder because that subfolder describes the Python sidecar executor and
 JSON-RPC protocol domain. The Electron main host adapter modules now use
 local-runtime names.
 
-## Local-Backend Docs (Detailed)
+## Local-Runtime Docs (Detailed)
 
-- [Frontend Main Local-Backend Docs Hub](local_backend/README.md)
-- [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
-- [Local-Backend RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Frontend Main Local-Runtime Docs Hub](local_backend/README.md)
+- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
+- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_backend/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
-- [Local-Backend Windows Docs Hub](local_backend/windows/README.md)
+- [Local-Runtime Windows Docs Hub](local_backend/windows/README.md)
 - [Window Resolver Shapes and Screenshot Task Routing Reference](local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Window Guard Docs (Detailed)
@@ -68,4 +68,4 @@ export has been removed. The focused behavior reference is
 
 ## Legacy Note
 
-Earlier revisions kept most local-backend detail in this single page. The content is now split into `main/local_backend/` so each behavior domain has a stable, focused deep reference.
+Earlier revisions kept most local-runtime detail in this single page. The content is now split into the historical `main/local_backend/` folder so each behavior domain has a stable, focused deep reference.

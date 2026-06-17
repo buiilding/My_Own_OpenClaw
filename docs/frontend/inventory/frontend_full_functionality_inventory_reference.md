@@ -312,7 +312,7 @@ Primary files:
 
 Functionality:
 
-- Local backend JSON-RPC protocol host for tools/system/memory/transcript APIs.
+- Local-runtime JSON-RPC protocol host for tools/system/memory/transcript APIs.
 - Wakeword inference subprocess with binary frame protocol.
 
 ### 4.2 Tool Runtime

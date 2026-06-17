@@ -1,5 +1,5 @@
 """
-JSON-RPC Protocol Handler for Local Backend.
+JSON-RPC protocol handler for the Python sidecar runtime.
 
 Handles JSON-RPC 2.0 protocol over stdin/stdout for communication
 with Electron main process.

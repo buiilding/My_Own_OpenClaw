@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Local sidecar runtime service.
+Python sidecar runtime service.
 
 Handles tool execution, system state collection, memory operations,
 and wake-word detection. Communicates with Electron main process
@@ -788,7 +788,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         shutdown_all_executors(wait=True)
 
-        logger.info("Local sidecar runtime shutdown complete")
+        logger.info("Python sidecar runtime shutdown complete")
 
 
 def signal_handler(signum, frame):

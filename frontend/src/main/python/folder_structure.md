@@ -64,7 +64,7 @@ frontend/src/main/python/
 
 ## Data Flow
 
-### Local Backend Service Flow
+### Python Sidecar Runtime Flow
 
 ```
 1. ELECTRON MAIN PROCESS
@@ -222,7 +222,7 @@ frontend/src/main/python/
 ## Key Design Principles
 
 1. **Protocol Separation**: Two distinct sidecar services with different protocols:
-   - Local Backend: JSON-RPC 2.0 (full-featured)
+   - Python sidecar runtime: JSON-RPC 2.0 (full-featured)
    - Wakeword Service: Binary protocol (audio chunks)
 
 2. **Cross-Platform Support**: Platform abstraction layer for OS-specific operations (window management, system state)
@@ -255,7 +255,7 @@ frontend/src/main/python/
 
 ## Service Communication Patterns
 
-### JSON-RPC 2.0 (Local Backend)
+### JSON-RPC 2.0 (Python Sidecar Runtime)
 - **Protocol**: JSON-RPC 2.0 over stdin/stdout (one line per message)
 - **Methods**: execute_tool, get_system_state, search_memory_by_embedding, store_memory_by_embedding, ping, get_status
 - **Error Handling**: Standard JSON-RPC error codes

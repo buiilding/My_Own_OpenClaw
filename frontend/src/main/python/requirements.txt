@@ -1,4 +1,4 @@
-# Frontend Python Local Backend Dependencies
+# Frontend Python sidecar runtime dependencies
 
 # Vector storage and search
 faiss-cpu>=1.7.4

@@ -23,7 +23,7 @@ Use this hub when an agent needs to identify where a behavior runs before editin
 | Python sidecar node | local Python sidecar daemon managed by SDK local runtime | filesystem/shell/computer/browser tools, local memory, system state, JSON-RPC methods, SDK helper clients | [Desktop and Sidecar Node](desktop_and_sidecar_node.md), [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md) |
 | Wakeword service node | local Python subprocess separate from generic sidecar JSON-RPC | wakeword model bootstrap, audio framing, detection events | [Desktop and Sidecar Node](desktop_and_sidecar_node.md), [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
 | VM worker node | Electron main running in `WINDIE_VM_MODE` or `WINDIE_VM_WORKER_MODE` | `/api/runs/*` heartbeat, assignment, dispatch, run event relay, stop controls | [VM Worker Node](vm_worker_node.md), [Automation Hub](../automation/README.md) |
-| Cloudflare/origin service node | deployment host and Cloudflare Tunnel user service | public `api.windieos.com` ingress to local backend origin | [Runtime Node Matrix](runtime_node_matrix.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md), [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) |
+| Cloudflare/origin service node | deployment host and Cloudflare Tunnel user service | public `api.windieos.com` ingress to a self-hosted backend origin | [Runtime Node Matrix](runtime_node_matrix.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md), [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) |
 
 ## Node Boundary Rules
 

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime docs hub and sidecar source label cleanup
+
+- Finding: frontend docs hubs, IPC/main/sidecar workflows, node maps,
+  inventory references, and a few Python sidecar module labels still exposed
+  local-backend or local-sidecar wording where the current boundary is
+  SDK/Electron local runtime plus Python sidecar daemon.
+- Change: updated visible link labels, headings, summaries, daemon argparse
+  copy, Python module docstrings, and the stale script-missing error example to
+  local-runtime, Python sidecar, or self-hosted backend-origin language while
+  preserving historical file paths and `local_backend.py` implementation names.
+- Validation: docs listing, focused stale-label scans, Python compilation over
+  touched sidecar modules, and diff check.
+- Compatibility: no migration required. This is docs/source-copy cleanup only;
+  local-runtime launch options, sidecar JSON-RPC methods, IPC channels, and
+  tool execution behavior are unchanged.
+
 ### 2026-06-17 Python sidecar runtime source label cleanup
 
 - Finding: Python sidecar docstrings, helper docs, and lifecycle log messages

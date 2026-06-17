@@ -1,5 +1,5 @@
 """
-Tool Registry for Local Backend.
+Tool registry for the Python sidecar runtime.
 
 Registers and executes all available tools.
 """

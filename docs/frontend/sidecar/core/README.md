@@ -18,9 +18,9 @@ title: "Frontend Sidecar Core Docs Hub"
 ## Related Pages
 
 - [Frontend Sidecar Docs Hub](../README.md)
-- [Local Backend JSON-RPC Reference](../local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](../local_backend_jsonrpc_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
-- [Frontend Main Local-Backend Process Lifecycle Reference](../../main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
+- [Frontend Main Local-Runtime Process Lifecycle Reference](../../main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
 
 ## Code Scope
 

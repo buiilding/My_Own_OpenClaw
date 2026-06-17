@@ -186,5 +186,5 @@ If memory injection is empty:
 
 ## Related Pages
 
-- [Local Backend JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
 - [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)

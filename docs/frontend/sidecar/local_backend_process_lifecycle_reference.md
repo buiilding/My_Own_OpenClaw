@@ -6,7 +6,7 @@ read_when:
 title: "SDK-Owned Sidecar Lifecycle Reference"
 ---
 
-# Local Backend Process Lifecycle Reference
+# SDK-Owned Sidecar Lifecycle Reference
 
 ## Canonical Modules
 

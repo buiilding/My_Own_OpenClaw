@@ -195,7 +195,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 When a method changes, update the closest docs in the same commit:
 
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
-- [Local-Backend RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md) when renderer channels change
 - [Sidecar and Tool Channels](../../channels/sidecar_and_tool_channels.md) when tool or memory channel behavior changes
@@ -207,6 +207,6 @@ When a method changes, update the closest docs in the same commit:
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md)
-- [Local-Backend RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
-- [Local Backend Process Lifecycle Reference](local_backend_process_lifecycle_reference.md)
+- [SDK-Owned Sidecar Lifecycle Reference](local_backend_process_lifecycle_reference.md)

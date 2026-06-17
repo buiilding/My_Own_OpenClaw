@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local sidecar daemon HTTP/WebSocket runtime."""
+"""Python sidecar daemon HTTP/WebSocket runtime."""
 
 from __future__ import annotations
 
@@ -1468,7 +1468,7 @@ async def run_daemon(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the local sidecar daemon.")
+    parser = argparse.ArgumentParser(description="Run the Python sidecar daemon.")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--token", default=None)

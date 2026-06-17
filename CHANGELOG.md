@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the `package:*:bundled-python` npm compatibility aliases; Windows reinstall and packaging docs now use the canonical platform package commands. No storage, API, wire-event, or persisted-data migration is required.
+
 - Updated frontend local-runtime docs hubs, sidecar workflow labels, node maps, and Python sidecar source copy to remove stale local-backend/local-sidecar wording while preserving historical file paths and concrete implementation names. No migration is required.
 
 - Deleted the reintroduced Electron main conversation-event broadcast wrapper and routed callers directly to the SDK backend-event normalizer. No storage, API, wire-event, or persisted-data migration is required.

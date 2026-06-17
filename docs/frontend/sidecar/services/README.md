@@ -17,7 +17,7 @@ title: "Frontend Sidecar Services Docs Hub"
 
 - [Frontend Sidecar Docs Hub](../README.md)
 - [Frontend Sidecar Core Docs Hub](../core/README.md)
-- [Local Backend Process Lifecycle Reference](../local_backend_process_lifecycle_reference.md)
+- [SDK-Owned Sidecar Lifecycle Reference](../local_backend_process_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](../wakeword_bridge_and_audio_framing_reference.md)
 
 ## Code Scope

@@ -169,7 +169,7 @@ Protocol behaviors:
 - Query-send failures become SDK/runtime status and conversation projections,
   not direct renderer websocket payloads.
 
-## Main <-> Local Backend JSON-RPC Contract
+## Main <-> Local Runtime JSON-RPC Contract
 
 Transport:
 
@@ -232,7 +232,7 @@ Registered callable surface:
 - Handler signature is bound at runtime; invalid arg names/types return `INVALID_PARAMS`.
 - Missing `id` is treated as notification (no response written).
 
-## Local Backend Readiness and Failure Semantics
+## Local Runtime Readiness and Failure Semantics
 
 `local_runtime_bridge.cjs` process lifecycle rules:
 
