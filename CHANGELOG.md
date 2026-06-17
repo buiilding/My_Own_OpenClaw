@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Clarified historical local-runtime status plan notes after the IPC wire rename so earlier compatibility-removal slices no longer describe stale channel-preservation details as current behavior. No migration is required.
+
 - Renamed the local-runtime status IPC wire channels from `get-local-backend-status`/`local-backend-status` to `get-local-runtime-status`/`local-runtime-status`, removing the old compatibility channel names. No persisted-data migration is required.
 
 - Routed Electron main local-runtime status IPC through shared generic channel constants while preserving the existing wire channel values. No migration is required.

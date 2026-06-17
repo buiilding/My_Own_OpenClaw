@@ -225,8 +225,8 @@ Each completed slice should report:
   readiness and host IPC surfaces with the compatibility channel wording even
   though the owner is the SDK local-runtime status path.
 - Change: updated current docs prose to name local-runtime readiness/status and
-  local-runtime invoke payloads while preserving compatibility channel strings
-  such as `get-local-backend-status` and `local-backend-status`.
+  local-runtime invoke payloads while preserving runtime behavior for that
+  slice.
 - Validation: docs listing, focused stale wording scan, and diff check.
 - Compatibility: no migration required. Documentation-only change; IPC channel
   names, tests, and runtime behavior remain unchanged.
@@ -293,8 +293,8 @@ Each completed slice should report:
   aliases after renderer status consumers moved to local-runtime names.
 - Change: removed the legacy local-backend status alias constants from the
   shared registry, renderer channel validation, and frontend test mocks while
-  keeping the existing `get-local-backend-status` and `local-backend-status`
-  wire channels unchanged.
+  keeping the then-current wire channels unchanged for that slice. The later
+  local-runtime wire rename is tracked above.
 - Validation: focused local-runtime status store and browser-session frontend
   tests, stale alias scan, docs listing, and diff check.
 - Compatibility: no migration required for first-party code. Runtime consumers
@@ -967,9 +967,9 @@ Each completed slice should report:
   check, then routed the status store through those aliases.
 - Validation: focused IPC channel parity and local-runtime status store Jest
   runs, channel alias scan, docs listing, and diff check.
-- Compatibility: no migration required. The underlying channel strings remain
-  `get-local-backend-status` and `local-backend-status`, so preload/main
-  allowlists and handlers stay compatible.
+- Compatibility: no migration required. That slice kept the then-current
+  channel strings stable so preload/main allowlists and handlers stayed
+  compatible. The later local-runtime wire rename is tracked above.
 
 ### 2026-06-17 renderer local runtime status channel aliases
 
@@ -1793,12 +1793,12 @@ Each completed slice should report:
   local runtime supervisor and SDK local runtime daemon snapshot.
 - Change: renamed the internal status payload/send helpers and immediate bridge
   call sites to local-runtime terminology while preserving the compatibility
-  filename, `local-backend-status` channel, and payload fields.
+  filename, then-current status channel, and payload fields.
 - Validation: focused Jest run for `LocalBackendStatusBroadcaster` and
   `LocalBackendBridge.lifecycle`; docs listing; `git diff --check`; and a
   stale-name scan for the retired helper names.
-- Compatibility: no migration required. IPC channel names, status payload
-  shape, lifecycle diagnostics, and renderer readiness behavior are unchanged.
+- Compatibility: no migration required. Status payload shape, lifecycle
+  diagnostics, and renderer readiness behavior are unchanged.
 
 ### 2026-06-17 main local runtime ready helper naming
 
@@ -1808,9 +1808,8 @@ Each completed slice should report:
   readiness terminology.
 - Validation: focused Jest run for `LocalBackendBridge.lifecycle`;
   `git diff --check`; and a stale-name scan for the retired helper/test wording.
-- Compatibility: no migration required. Status supervisor behavior,
-  `local-backend-status` payloads, and SDK runtime bootstrap behavior are
-  unchanged.
+- Compatibility: no migration required. Status supervisor behavior, status
+  payload shape, and SDK runtime bootstrap behavior are unchanged.
 
 ### 2026-06-17 main local runtime bridge failure copy
 
@@ -1820,9 +1819,8 @@ Each completed slice should report:
   lifecycle expectations to local-runtime bridge terminology.
 - Validation: focused Jest run for `LocalBackendBridge.lifecycle`; `git diff
   --check`; and a stale-phrase scan for the retired error strings.
-- Compatibility: no migration required. Public bridge method names,
-  `local-backend-status` compatibility channel names, and failure control flow
-  are unchanged.
+- Compatibility: no migration required. Public bridge method names, status
+  payload shape, and failure control flow are unchanged.
 
 ### 2026-06-17 renderer chat conversation event listener wording
 
