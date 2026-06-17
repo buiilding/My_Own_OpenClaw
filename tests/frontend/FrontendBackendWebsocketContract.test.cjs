@@ -6,8 +6,8 @@ const path = require('path');
 
 const incomingContract = require('../../backend/src/api/contracts/incoming_message_contract.json');
 const {
-  createManagedWindieAgentSession,
-} = require('../../packages/windie-sdk-js/cjs/transport/ManagedWindieAgentSession.js');
+  createManagedAgentSession,
+} = require('../../packages/windie-sdk-js/cjs/transport/ManagedAgentSession.js');
 const {
   buildBackendQueryPayload,
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
@@ -90,7 +90,7 @@ async function createOpenSession() {
     }
   }
 
-  const session = createManagedWindieAgentSession({
+  const session = createManagedAgentSession({
     backendUrl: 'http://backend.test',
     wsUrl: 'ws://backend.test/ws',
     WebSocketImpl: FakeWebSocket,
@@ -212,7 +212,7 @@ function extractSdkBackendPayloadKeysByType() {
 
 describe('frontend/backend websocket incoming contract', () => {
   test('managed agent session endpoint validation uses generic agent wording', async () => {
-    const session = createManagedWindieAgentSession({
+    const session = createManagedAgentSession({
       endpoints: [{}],
       WebSocketImpl: FakeSocket,
       userId: 'user-1',

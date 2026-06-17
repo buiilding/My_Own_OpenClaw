@@ -1954,3 +1954,22 @@ Each completed slice should report:
   plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
 - Compatibility: no migration required. This is docs-only terminology cleanup
   for the current architecture boundary.
+
+### 2026-06-17 Frontend websocket contract generic managed session
+
+- Finding: the frontend/backend websocket contract test exercised current
+  managed-agent session behavior through the historical
+  `ManagedWindieAgentSession` compatibility module.
+- Change: switched the contract test to require the generic
+  `ManagedAgentSession` CommonJS module and call `createManagedAgentSession`.
+  Compatibility module coverage remains in the dedicated private/package
+  boundary tests.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/FrontendBackendWebsocketContract.test.cjs`; `bin\windie
+  docs list`; `git diff --check --
+  tests/frontend/FrontendBackendWebsocketContract.test.cjs
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`; `rg -n
+  "createManagedWindieAgentSession|ManagedWindieAgentSession"
+  tests/frontend/FrontendBackendWebsocketContract.test.cjs`.
+- Compatibility: no migration required. The compatibility module and aliases
+  remain exported for existing callers.
