@@ -16,7 +16,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     RUN_BROWSER_ACTION: 'run-browser-action',
-    DESKTOP_AGENT_INVOKE: 'windie:invoke',
+    WINDIE_INVOKE: 'windie:invoke',
   },
 }));
 

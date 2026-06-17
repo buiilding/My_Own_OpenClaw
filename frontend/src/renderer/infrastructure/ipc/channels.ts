@@ -17,7 +17,7 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WAKEWORD_DISABLE: 'wakeword-disable',
   },
   INVOKE_CHANNELS: {
-    DESKTOP_AGENT_INVOKE: 'windie:invoke',
+    WINDIE_INVOKE: 'windie:invoke',
     CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment',
     READ_ATTACHMENT_FILE: 'read-attachment-file',
     RUN_BROWSER_ACTION: 'run-browser-action',
@@ -66,7 +66,7 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WINDIE_MEMORY_STORE_CHANGED: 'windie:memory-store-changed',
     WINDIE_CONVERSATION_METADATA_INVALIDATED: 'windie:conversation-metadata-invalidated',
     WINDIE_CURRENT_TURN: 'windie:current-turn',
-    WINDIE_PENDING_TURN: 'windie:pending-turn',
+    DESKTOP_AGENT_PENDING_TURN: 'windie:pending-turn',
     TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
     IPC_STATUS: 'ipc-status',
     LOCAL_RUNTIME_STATUS: 'local-backend-status',
@@ -150,7 +150,7 @@ export const DESKTOP_AGENT_SEND_CHANNELS = {
 } as const;
 
 export const DESKTOP_AGENT_INVOKE_CHANNELS = {
-  INVOKE: INVOKE_CHANNELS.DESKTOP_AGENT_INVOKE,
+  INVOKE: INVOKE_CHANNELS.WINDIE_INVOKE,
 } as const;
 
 export const DESKTOP_AGENT_ON_CHANNELS = {
