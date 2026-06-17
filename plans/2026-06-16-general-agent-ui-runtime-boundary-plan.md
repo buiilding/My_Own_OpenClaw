@@ -1056,3 +1056,13 @@ Each completed slice should report:
   shell because its Python SQLite bridge invokes `python`, which resolves to
   the Windows Store alias instead of an installed interpreter.
 - Compatibility: no migration required. Test-only wording alignment.
+
+### 2026-06-17 SDK runtime docs command error copy
+
+- Finding: the SDK runtime docs still showed an Electron command-router example
+  throwing `Unsupported Windie SDK command`, while the current renderer/main
+  command path uses generic Agent SDK wording.
+- Change: updated the example error text to `Unsupported Agent SDK command`.
+- Validation: docs listing, `git diff --check`, and source scan for active
+  "Windie SDK command" wording.
+- Compatibility: no migration required. Documentation-only copy alignment.

@@ -193,7 +193,7 @@ ipcMain.handle('windie:invoke', (_event, { command, payload }) => {
   if (command === 'conversation.stop') {
     return conversation.stop(payload?.turnRef ?? null);
   }
-  throw new Error(`Unsupported Windie SDK command: ${command}`);
+  throw new Error(`Unsupported Agent SDK command: ${command}`);
 });
 ```
 
