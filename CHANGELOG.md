@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer docs: clarify that model settings list-model delivery flows through the settings runtime event route instead of raw backend IPC.
+
 - renderer: Clarify settings-runtime event wording in settings UI docs and hook comments.
 
 - main: Use local-runtime bridge naming through main-window bootstrap wiring.
@@ -1560,6 +1562,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer docs: clarify that model settings list-model delivery flows through the settings runtime event route instead of raw backend IPC.
+
 - renderer: Clarify settings-runtime event wording in settings UI docs and hook comments.
 
 - main: Use local-runtime bridge naming through main-window bootstrap wiring.
@@ -3036,6 +3040,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer docs: clarify that model settings list-model delivery flows through the settings runtime event route instead of raw backend IPC.
+
 - renderer: Clarify settings-runtime event wording in settings UI docs and hook comments.
 
 - main: Use local-runtime bridge naming through main-window bootstrap wiring.
@@ -3166,6 +3172,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Renderer docs: clarify that model settings list-model delivery flows through the settings runtime event route instead of raw backend IPC.
 
 - renderer: Clarify settings-runtime event wording in settings UI docs and hook comments.
 
@@ -3327,6 +3335,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Renderer docs: clarify that model settings list-model delivery flows through the settings runtime event route instead of raw backend IPC.
 
 - renderer: Clarify settings-runtime event wording in settings UI docs and hook comments.
 
@@ -5444,6 +5454,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Renderer docs: clarify that model settings list-model delivery flows through the settings runtime event route instead of raw backend IPC.
 
 - renderer: Clarify settings-runtime event wording in settings UI docs and hook comments.
 

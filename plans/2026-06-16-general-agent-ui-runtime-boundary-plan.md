@@ -640,3 +640,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Settings-event channels, backend
   settings ownership, model-list payloads, and save-status behavior are
   unchanged.
+
+### 2026-06-17 renderer model settings list-models route wording
+
+- Finding: the model settings change workflow still diagrammed model-list
+  delivery through the retired raw backend IPC route, even though generic raw
+  backend IPC was removed and renderer settings consumes `models-listed`
+  through the settings-event route.
+- Change: updated the workflow sequence to show
+  `DesktopSettingsRuntimeClient.listModels()`, SDK websocket list-models, and
+  settings-event `models-listed` delivery.
+- Validation: docs listing; `git diff --check`; and a stale scan for retired
+  raw-backend model-list wording.
+- Compatibility: no migration required. The `backend-settings-event`
+  compatibility channel, SDK list-models command, and model-list payload shape
+  are unchanged.

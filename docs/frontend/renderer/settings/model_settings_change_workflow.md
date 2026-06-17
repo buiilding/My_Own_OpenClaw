@@ -57,10 +57,10 @@ sequenceDiagram
     participant Dashboard as Dashboard Models
     participant Chat as Chat header
 
-    Provider->>Main: list-models request
-    Main->>Backend: websocket list-models
+    Provider->>Main: DesktopSettingsRuntimeClient.listModels()
+    Main->>Backend: SDK websocket list-models
     Backend->>Main: models-listed payload
-    Main->>Provider: from-backend models-listed
+    Main->>Provider: settings-event models-listed
     Provider->>Dashboard: availableModels + config
     Provider->>Chat: availableModels + config
     Dashboard->>Provider: updateConfig(selected_model_id/model_provider/provider_api_keys)
