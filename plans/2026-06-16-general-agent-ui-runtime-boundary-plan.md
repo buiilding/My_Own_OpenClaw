@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK memory local-runtime diagnostic stages
+
+- Finding: SDK memory retrieval and completed-turn memory diagnostics still
+  emitted `sidecar_*_failed` stages/messages from the context-enrichment
+  boundary, even after trace paths moved to local-runtime naming.
+- Change: renamed new memory search and store failure diagnostics to
+  `local_runtime_search_failed` and `local_runtime_store_failed`, and updated
+  focused context-enrichment tests and wording.
+- Validation: focused SDK context-enrichment test, sidecar-stage scan, docs
+  listing, and diff check.
+- Compatibility: this changes newly emitted SDK diagnostic callback stage values
+  for local-runtime memory failures. No storage migration is required because
+  these diagnostics are emitted at runtime and not replayed from persisted
+  conversation events.
+
 ### 2026-06-17 SDK memory local-runtime search trace path
 
 - Finding: SDK context enrichment emitted memory-search trace rows under

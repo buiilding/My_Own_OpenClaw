@@ -332,7 +332,7 @@ describe('SDK context enrichment pipeline', () => {
     expect(enriched.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
   });
 
-  test('emits sidecar search failure diagnostic for failed memory RPC', async () => {
+  test('emits local runtime search failure diagnostic for failed memory RPC', async () => {
     const diagnostics: unknown[] = [];
     const sdkClient = {
       embeddings: {
@@ -347,7 +347,7 @@ describe('SDK context enrichment pipeline', () => {
     };
 
     const enriched = await enrichQueryPayload({
-      text: 'lookup with sidecar failure',
+      text: 'lookup with local runtime failure',
       conversationRef: 'conv-1',
       userId: 'user-1',
       payload: { memory_retrieval_enabled: true },
@@ -360,14 +360,14 @@ describe('SDK context enrichment pipeline', () => {
 
     expect(diagnostics).toEqual([
       expect.objectContaining({
-        stage: 'sidecar_search_failed',
+        stage: 'local_runtime_search_failed',
         error: 'sqlite busy',
       }),
     ]);
     expect(enriched.memories).toEqual({ episodic: [], semantic: [] });
   });
 
-  test('emits search empty diagnostic when sidecar search finds no memories', async () => {
+  test('emits search empty diagnostic when local runtime search finds no memories', async () => {
     const diagnostics: unknown[] = [];
     const sdkClient = {
       embeddings: {
@@ -437,7 +437,7 @@ describe('SDK context enrichment pipeline', () => {
     expect(enriched.payload.content).toContain('<user_query>\nplain query\n</user_query>');
   });
 
-  test('stores completed turn memory through the sidecar RPC', async () => {
+  test('stores completed turn memory through the local runtime RPC', async () => {
     const diagnostics: unknown[] = [];
     const sdkClient = {
       embeddings: {
@@ -525,7 +525,7 @@ describe('SDK context enrichment pipeline', () => {
     ]);
   });
 
-  test('emits completed-turn sidecar store failure diagnostics', async () => {
+  test('emits completed-turn local runtime store failure diagnostics', async () => {
     const diagnostics: unknown[] = [];
     const sdkClient = {
       embeddings: {
@@ -553,7 +553,7 @@ describe('SDK context enrichment pipeline', () => {
 
     expect(diagnostics).toEqual([
       expect.objectContaining({
-        stage: 'sidecar_store_failed',
+        stage: 'local_runtime_store_failed',
         error: 'store failed',
         memoryType: 'episodic',
       }),
