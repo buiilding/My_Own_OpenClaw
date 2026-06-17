@@ -212,6 +212,12 @@ entrypoint appears necessary, prefer documenting the concrete owner module or
 creating a focused owner module with tests instead of reintroducing a
 compatibility facade.
 
+Concrete backend modules should also avoid `__all__` wildcard export lists.
+Callers import the needed symbols directly from the owner module. The current
+exception is the route-registration surface in `backend/src/api/routes/__init__.py`,
+where `API_ROUTERS` is the app assembly contract rather than a compatibility
+re-export.
+
 ## Refactor Safety Checklist
 
 When moving a class/function between modules:

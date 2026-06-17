@@ -1,5 +1,6 @@
 """Covers runtime architecture guardrails behavior in the backend test suite."""
 
+import ast
 from pathlib import Path
 
 
@@ -8,6 +9,20 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def _read(rel_path: str) -> str:
     return (REPO_ROOT / rel_path).read_text()
+
+
+def _assigns_dunder_all(path: Path) -> bool:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == "__all__"
+            for target in node.targets
+        ):
+            return True
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            if node.target.id == "__all__":
+                return True
+    return False
 
 
 def test_session_manager_is_no_longer_the_owner_of_transition_alias_state():
@@ -47,3 +62,14 @@ def test_parser_types_import_from_owner_module():
             continue
         source = path.read_text(encoding="utf-8")
         assert disallowed_import not in source, path
+
+
+def test_backend_modules_do_not_publish_wildcard_export_lists():
+    allowed_export_surfaces = {
+        REPO_ROOT / "backend/src/api/routes/__init__.py",
+    }
+
+    for path in REPO_ROOT.glob("backend/src/**/*.py"):
+        if path in allowed_export_surfaces:
+            continue
+        assert not _assigns_dunder_all(path), path

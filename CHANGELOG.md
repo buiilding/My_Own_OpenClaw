@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed unused backend module `__all__` wildcard export lists from run route models and the OpenAI Responses runtime so callers use direct owner-module imports. No persisted-data migration is required.
+
 - Renamed the Electron main local-runtime bridge stdout debug flag to WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT. No persisted-data migration is required.
 
 - Removed parser type re-exports from `backend.src.llm.parser` so parser dataclasses are imported from `backend.src.llm.parser_types` directly. No persisted-data migration is required.
