@@ -13,7 +13,6 @@ import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities'
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
-import { useChatStreamToolHandlers } from './chatStream/useChatStreamToolHandlers';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTerminalHandlers';
 import { useChatStreamLocalUserHandler } from './chatStream/useChatStreamLocalUserHandler';
@@ -98,12 +97,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const {
-    handleToolCall,
-    handleToolOutput,
-    handleToolBundle,
-  } = useChatStreamToolHandlers();
-
-  const {
     handleSystemPrompt,
     handleUserMessageFull,
     handleAssistantMessageFull,
@@ -171,16 +164,13 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleLocalUserMessage(event, event.conversationRef);
       return true;
     }
-    if (event.type === 'tool_call') {
-      handleToolCall(event, event.conversationRef);
-      return true;
-    }
-    if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
-      handleToolOutput(event, event.conversationRef);
-      return true;
-    }
-    if (event.type === 'tool_bundle_call') {
-      handleToolBundle(event, event.conversationRef);
+    if (
+      event.type === 'tool_call'
+      || event.type === 'tool_output'
+      || event.type === 'tool_bundle_call'
+      || event.type === 'tool_bundle_output'
+    ) {
+      // Tool display state is owned by the SDK current-turn projection listener.
       return true;
     }
     if (event.type === 'compaction_started') {
@@ -230,9 +220,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleLocalUserMessage,
     handleSystemPrompt,
     handleTokenCount,
-    handleToolBundle,
-    handleToolCall,
-    handleToolOutput,
     handleToolSchemas,
     handleUserMessageFull,
     processStreamingComplete,

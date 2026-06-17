@@ -31,6 +31,8 @@ All notable changes to WindieOS will be documented in this file.
   agent terms so product naming stays in the renderer skin.
 - frontend/renderer: make assistant markdown transport cleanup provider-agnostic
   and stop threading model/provider identity through the markdown component path.
+- frontend/renderer: delete the no-op chat stream tool handler shim now that SDK
+  current-turn projections own tool display state.
 - frontend/main: route browser and macOS automation permission copy through the
   WindieOS main host skin config so the Electron composition root stays focused
   on host adapters.

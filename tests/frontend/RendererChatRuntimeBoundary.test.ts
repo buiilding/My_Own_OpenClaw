@@ -99,7 +99,6 @@ describe('renderer chat runtime boundary', () => {
     const persistenceCallerFiles = [
       'hooks/chatStream/useChatStreamCompletionHandler.ts',
       'hooks/chatStream/useChatStreamTerminalHandlers.ts',
-      'hooks/chatStream/useChatStreamToolHandlers.ts',
     ];
     const offenders: string[] = [];
 
@@ -390,41 +389,34 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('web-search-progress');
   });
 
-  test('chat stream tool-call handling consumes SDK tool-call events without persistence', async () => {
-    const source = await fs.readFile(
+  test('chat stream tool display state stays with the SDK current-turn projection listener', async () => {
+    await expect(fs.stat(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
+    )).rejects.toThrow();
+
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+    const projectionSideEffectsSource = await fs.readFile(
+      path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
       'utf8',
     );
 
     expect(source).not.toContain('ToolCallEvent');
     expect(source).not.toContain("unwrapToolBackendEvent<ToolCallEvent>");
-    expect(source).toContain("event.type !== 'tool_call'");
     expect(source).not.toContain('recordToolTranscriptMessage');
-  });
-
-  test('chat stream tool-output handling consumes SDK tool-output events without persistence', async () => {
-    const source = await fs.readFile(
-      path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
-      'utf8',
-    );
-
     expect(source).not.toContain('ToolOutputEvent');
     expect(source).not.toContain("unwrapToolBackendEvent<ToolOutputEvent>");
-    expect(source).toContain("event.type !== 'tool_output'");
     expect(source).not.toContain('recordToolOutputTranscriptMessage');
-  });
-
-  test('chat stream tool-bundle handling consumes SDK tool-bundle events without persistence', async () => {
-    const source = await fs.readFile(
-      path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
-      'utf8',
-    );
-
     expect(source).not.toContain('ToolBundleEvent');
     expect(source).not.toContain('unwrapToolBackendEvent');
-    expect(source).toContain("event.type !== 'tool_bundle_call'");
-    expect(source).toContain("event.type !== 'tool_bundle_output'");
-    expect(source).not.toContain('recordToolTranscriptMessage');
+    expect(source).toContain("event.type === 'tool_call'");
+    expect(source).toContain("event.type === 'tool_output'");
+    expect(source).toContain("event.type === 'tool_bundle_call'");
+    expect(source).toContain("event.type === 'tool_bundle_output'");
+    expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_call'");
+    expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_output'");
   });
 
   test('conversation replay prepares with continuity and dispatches with live-turn send', async () => {

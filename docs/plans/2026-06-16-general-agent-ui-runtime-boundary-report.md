@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `6d4d6f2c1` (`refactor(sdk): genericize runtime diagnostic wording`)
+- Latest inspected plan checkpoint: `b6cd213d0` (`refactor(renderer): make markdown cleanup provider agnostic`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -19,7 +19,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   stay private behind higher-level runtime APIs, and renderer/main-private
   guard markers use generic desktop-agent naming. SDK internal diagnostics use
   generic Agent SDK wording while preserving current public Windie API names,
-  and renderer markdown cleanup no longer depends on provider identity.
+  renderer markdown cleanup no longer depends on provider identity, and the
+  obsolete renderer no-op tool-stream shim has been removed.
 
 ## Inspection Log
 
@@ -272,6 +273,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: `buildMarkdownRenderModel(...)`, `MarkdownMessage`, and `MessageContent` no longer pass provider/model identity into the markdown display path.
 - Change: markdown/output contract tests now cover provider-free assistant rendering and escaped transport cleanup.
 
+### 2026-06-16 Renderer Tool Stream Shim Deletion Slice
+
+- Worktree recovery: unrelated schema/docs/package changes appeared while continuing and were preserved outside this slice.
+- Finding: `useChatStreamToolHandlers` was a no-op renderer adapter that only acknowledged SDK tool events after tool display moved to SDK current-turn projections.
+- Decision: delete the empty hook/test and keep SDK tool-event acknowledgement directly in `useChatStream`, so the renderer has no separate tool display handler abstraction.
+- Change: chat stream dispatch now returns handled for tool call/output/bundle events with an inline SDK-projection ownership note.
+- Change: renderer chat runtime boundary tests now assert the old no-op hook remains deleted and that current-turn projection side effects still own tool rows.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -296,6 +305,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Renderer SDK command helper internals use generic agent SDK naming while preserving the `windie:invoke` wire contract.
 - [x] Renderer-private onboarding, settings, wakeword, and replay markers use generic desktop-agent naming.
 - [x] Renderer markdown transport cleanup is provider-agnostic and display-only.
+- [x] Renderer no-op tool stream shim removed; SDK current-turn projection remains the tool display owner.
 - [x] Main-private log, renderer-console, collapse, and screenshot-suppression markers use generic desktop-agent naming.
 - [x] Main local-runtime bridge fallback wording is generic while preserving SDK-owned runtime lifecycle.
 - [x] Main IPC SDK runtime logs use generic Agent SDK wording while preserving public SDK APIs.
@@ -382,6 +392,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "Windie SDK|WindieClient local runtime|WindieAgent\\.setModel|WindieClient could not locate|WindieClient local tools|WindieClient persistence|WindieClient memory|WindieClient install" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found old diagnostic wording only in public command/test names and boundary assertions.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/LlmOutputContract.test.ts ../tests/frontend/MarkdownMessage.test.jsx ../tests/frontend/MessageContent.test.jsx` passed.
 - `rg -n "provider|modelProvider|modelId|Gemini|gemini|google|normalizeGemini|isGeminiProvider" frontend/src/renderer/infrastructure/llmOutputContract.ts frontend/src/renderer/features/chat/utils/message/markdownMessageRendering.js frontend/src/renderer/features/chat/components/message/content/MarkdownMessage.jsx tests/frontend/LlmOutputContract.test.ts tests/frontend/MarkdownMessage.test.jsx` found only a provider-free test title.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/RendererChatRuntimeBoundary.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx` passed.
+- `rg -n "useChatStreamToolHandlers|ChatStreamToolHandlers" frontend/src/renderer tests/frontend -g "*.ts" -g "*.tsx" -g "*.js" -g "*.jsx" -g "*.cjs"` found only the renderer boundary assertion for the deleted hook path.
 
 ## Remaining Findings
 
@@ -410,6 +422,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Renderer markdown rendering no longer receives provider/model identity for
   display normalization; escaped transport-artifact cleanup is generic and
   assistant-display scoped.
+- Renderer tool stream handling no longer has a separate no-op hook; tool
+  call/output/bundle display remains owned by SDK current-turn projection side
+  effects.
 - Voice capture internals now use generic desktop-agent naming. The remaining
   renderer voice references are intentional feature/runtime names, not product
   skin copy.
