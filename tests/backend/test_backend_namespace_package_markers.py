@@ -7,6 +7,7 @@ import importlib
 ROOT = Path(__file__).resolve().parents[2]
 
 REMOVED_MARKERS = [
+    "backend/__init__.py",
     "backend/src/__init__.py",
     "backend/src/agent/__init__.py",
     "backend/src/agent/compaction/__init__.py",

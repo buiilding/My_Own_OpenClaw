@@ -20,6 +20,8 @@ All notable changes to WindieOS will be documented in this file.
   tools, and VM run-control namespace packages.
 - frontend/sidecar: remove docstring-only `tools` and `windie_shared` package
   marker files while keeping concrete module imports intact.
+- backend: remove the stale top-level package marker that only described the
+  old Personal Assistant package name.
 - cli: add a Windows `bin\windie.cmd` wrapper and route `docs list` through
   Node directly so PowerShell does not trigger the file-association picker for
   extensionless Unix shims; document the Windows spelling in `AGENTS.md`.
