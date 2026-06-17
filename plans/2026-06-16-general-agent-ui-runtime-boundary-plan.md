@@ -888,3 +888,15 @@ Each completed slice should report:
 - Compatibility: no migration required. No context-label window is created in
   the active startup path, and accidental old renderer URLs already fall back to
   the default route.
+
+### 2026-06-17 main preload IPC registry argument
+
+- Finding: the generic main/preload IPC allowlist bootstrap still used the
+  product-named private launch argument `--windie-ipc-channels=`.
+- Change: renamed the private bootstrap marker to
+  `--desktop-agent-ipc-channels=` in main and preload, then updated focused
+  tests and IPC workflow docs.
+- Validation: focused preload/main-window Jest run, docs listing,
+  `git diff --check`, and stale scan for the retired argument name.
+- Compatibility: no migration required. The marker is supplied by Electron main
+  to the matching bundled preload script at window creation time.

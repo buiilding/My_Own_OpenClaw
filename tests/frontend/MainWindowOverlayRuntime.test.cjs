@@ -174,7 +174,7 @@ describe('main_window_overlay_runtime', () => {
     }));
     expect(win.options.webPreferences.additionalArguments).toEqual(
       expect.arrayContaining([
-        expect.stringContaining('--windie-ipc-channels='),
+        expect.stringContaining('--desktop-agent-ipc-channels='),
       ]),
     );
     expect(BrowserWindow.mock.calls[0][0]).not.toHaveProperty('type');

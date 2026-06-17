@@ -52,7 +52,7 @@ describe('preload IPC channel registry', () => {
     };
     process.argv = [
       '/path/to/electron',
-      `--windie-ipc-channels=${encodeURIComponent(JSON.stringify(preloadChannels))}`,
+      `--desktop-agent-ipc-channels=${encodeURIComponent(JSON.stringify(preloadChannels))}`,
     ];
 
     require('../../frontend/src/preload.js');
@@ -213,7 +213,7 @@ describe('preload IPC channel registry', () => {
   test('loads channel data from the injected preload argument', () => {
     expect(process.argv).toEqual(
       expect.arrayContaining([
-        expect.stringContaining('--windie-ipc-channels='),
+        expect.stringContaining('--desktop-agent-ipc-channels='),
       ]),
     );
   });

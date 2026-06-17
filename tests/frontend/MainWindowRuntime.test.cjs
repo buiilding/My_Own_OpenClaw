@@ -551,7 +551,7 @@ describe('main_window_runtime createMainWindow', () => {
     expect(options.webPreferences.devTools).toBe(false);
     expect(options.webPreferences.additionalArguments).toEqual(
       expect.arrayContaining([
-        expect.stringContaining('--windie-ipc-channels='),
+        expect.stringContaining('--desktop-agent-ipc-channels='),
       ]),
     );
   });
