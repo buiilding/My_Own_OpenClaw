@@ -978,3 +978,14 @@ Each completed slice should report:
 - Compatibility: no migration required. The field is renderer presentation
   metadata for dev/source labeling; IPC names and SDK display-row payloads are
   unchanged.
+
+### 2026-06-17 docs SDK facade route references
+
+- Finding: docs still pointed hosted SDK client and runtime-boundary readers to
+  the retired renderer-local `windieSdkClient.ts` facade path.
+- Change: updated SDK, web, architecture, plugin, and API-reference docs to
+  route TypeScript hosted-client work through `agentSdkClient.ts`, while
+  preserving public `WindieClient` and `WindieSdkClient` names.
+- Validation: docs listing, `git diff --check`, and a stale-path scan for the
+  retired renderer facade filename.
+- Compatibility: no migration required. This is documentation routing only.

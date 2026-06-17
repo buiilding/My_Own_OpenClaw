@@ -17,7 +17,7 @@ clients are useful for artifacts and SDK HTTP routes. Agent sessions should use
 
 Package boundary: `packages/windie-sdk-js`
 
-Compatibility path: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+Renderer app facade path: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
 
 The package name is `@windie/sdk`.
 

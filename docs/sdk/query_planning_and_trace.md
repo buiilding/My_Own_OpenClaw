@@ -22,7 +22,7 @@ WindieOS exposes SDK routes and clients that let developer tools inspect backend
 
 - Backend route: `backend/src/api/routes/sdk/router.py`
 - Backend service helpers: `backend/src/api/routes/sdk/service.py`
-- TypeScript trace helper: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+- TypeScript trace helper: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
 - Python trace helper: `frontend/src/main/python/core/windie_sdk_client.py`
 
 ## Debugging Use

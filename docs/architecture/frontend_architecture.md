@@ -54,7 +54,7 @@ frontend/src/
 │   ├── features/voice                     # Voice mode + wakeword capture hooks
 │   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
 │       └── api/index.ts                   # Stable renderer API export surface for ApiClient + WindieSdkClient
-│       └── api/windieSdkClient.ts         # Developer-facing backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
+│       └── api/agentSdkClient.ts          # Developer-facing backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
 └── landing/                               # Marketing/landing surface
 ```
 
@@ -73,11 +73,11 @@ Current runtime behavior also relies on these explicit seams:
   screenshot/display/artifact shaping in
   `sidecar/local_backend_bridge_execute_tool_runtime.cjs`.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local runtime readiness from the shared IPC status surface and consume shared browser-session/local-runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localRuntimeStatusStore` owns the initial `get-local-backend-status` bootstrap plus `local-backend-status` event subscription, while `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
-- **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for settings and model listing commands that have not moved to SDK transport calls, while `renderer/infrastructure/api/windieSdkClient.ts` exposes the SDK runtime surface used by CLI/custom UI clients and first-party Electron facades. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, `app/runtime/desktopConversationContinuityService.ts`, and `app/runtime/desktopConversationLibraryClient.js`. Desktop-specific adapters are allowed behind SDK interfaces such as `ConversationStore` and `BackendTransport`; the app facades may use lower-level SDK modules, but renderer feature code should not reimplement SDK conversation, tool-routing, rehydrate, compaction, or projection semantics.
+- **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for settings and model listing commands that have not moved to SDK transport calls, while `renderer/infrastructure/api/agentSdkClient.ts` exposes the SDK runtime surface used by CLI/custom UI clients and first-party Electron facades. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, `app/runtime/desktopConversationContinuityService.ts`, and `app/runtime/desktopConversationLibraryClient.js`. Desktop-specific adapters are allowed behind SDK interfaces such as `ConversationStore` and `BackendTransport`; the app facades may use lower-level SDK modules, but renderer feature code should not reimplement SDK conversation, tool-routing, rehydrate, compaction, or projection semantics.
 - **Tool identity normalization is SDK-owned**: renderer chat display helpers may
   map SDK projections into `ChatMessage` state, but request/provider/bundle
   identity precedence for tool-call and tool-output rows comes from the SDK
-  correlation helpers exported through `renderer/infrastructure/api/windieSdkClient.ts`.
+  correlation helpers exported through `renderer/infrastructure/api/agentSdkClient.ts`.
   Electron store adapters and feature code should not keep separate
   backend-event alias tables for `request_id`, `tool_call_id`,
   `correlation_id`, or `bundle_id`.
