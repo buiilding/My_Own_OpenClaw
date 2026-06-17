@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Kimi Coding stale label cleanup
+
+- Finding: renderer provider credential copy and the LLM architecture overview
+  still used the old "Kimi Code" label after provider/config ownership moved to
+  the canonical Kimi Coding provider name.
+- Change: updated renderer skin copy, focused UI expectations, and architecture
+  docs to use Kimi Coding and its current Anthropic-compatible endpoint wording.
+- Validation: focused model-section Jest coverage, docs listing, stale-string
+  scan, and `git diff --check`.
+- Compatibility: no migration required. Provider ids, credential keys, config
+  fields, and backend provider routing remain unchanged.
+
 ### 2026-06-17 backend provider factory package facade removal
 
 - Finding: backend LLM provider selection still lived in

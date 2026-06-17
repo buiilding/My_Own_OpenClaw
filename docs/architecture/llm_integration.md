@@ -23,7 +23,7 @@ System prompt note:
 - **OpenAI**: GPT-5.4 and GPT-5.5 with configurable reasoning effort (`none`, `low`, `medium`, `high`, `xhigh`)
 - **Anthropic**: Claude 4/3.5 families (Opus, Sonnet, Haiku)
 - **Gemini**: Gemini 2.5 and Gemini 3 preview models
-- **Kimi Code**: Kimi for Coding (OpenAI-compatible)
+- **Kimi Coding**: Kimi coding endpoint (Anthropic-compatible)
 - **OpenRouter**: Access to 100+ models via unified API
 - **Mistral**: Mistral models
 

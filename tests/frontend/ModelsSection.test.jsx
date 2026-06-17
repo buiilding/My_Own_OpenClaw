@@ -120,7 +120,7 @@ describe('ModelsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'API Keys' }));
     expect(screen.getByLabelText('OpenAI API Key')).toBeInTheDocument();
     expect(screen.getByLabelText('Anthropic API Key')).toBeInTheDocument();
-    expect(screen.getByLabelText('Kimi Code API Key')).toBeInTheDocument();
+    expect(screen.getByLabelText('Kimi Coding API Key')).toBeInTheDocument();
     expect(screen.getByLabelText('Google API Key')).toBeInTheDocument();
     expect(screen.getByLabelText('OpenRouter API Key')).toBeInTheDocument();
     expect(screen.getByLabelText('Mistral API Key')).toBeInTheDocument();

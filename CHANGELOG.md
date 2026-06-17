@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: replace stale Kimi Code provider labels with Kimi Coding wording in credential UI copy and provider docs; no migration is required because provider ids, credential keys, and config fields are unchanged.
+
 - backend/llm: move provider factory/runtime selection out of `backend.src.llm.providers` package root into `backend.src.llm.providers.factory` and remove the provider package marker; no migration is required because provider ids, cache keys, API payloads, and config payloads are unchanged.
 
 - renderer/chat: make ChatBoxResponse current-turn tool-event fallback rows consume SDK `toolName`, `requestId`, and `correlationId` fields instead of backend snake_case identity aliases. No migration is required because backend wire payloads and transcript storage are unchanged.

@@ -36,9 +36,9 @@ export const PROVIDER_API_KEY_SPECS = Object.freeze([
   }),
   Object.freeze({
     id: 'kimi_coding',
-    title: 'Kimi Code API Key',
-    description: 'Enable to use your own Kimi Code key.',
-    placeholder: 'Enter your Kimi Code API Key',
+    title: 'Kimi Coding API Key',
+    description: 'Enable to use your own Kimi Coding key.',
+    placeholder: 'Enter your Kimi Coding API Key',
   }),
   Object.freeze({
     id: 'google',
