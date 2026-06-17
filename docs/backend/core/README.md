@@ -21,7 +21,7 @@ title: "Backend Core Infrastructure Docs Hub"
 - [Content Converter Parsing and Multi-Image Preservation Reference](messages/content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
 - [Core Cache Docs Hub](cache/README.md)
 - [Cache Store TTL, LRU, and Stats Contract Reference](cache/cache_store_ttl_lru_stats_contract_reference.md)
-- [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache/cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
+- [Cache Manager Namespace Keying and Cache Entry Singleton Reference](cache/cache_manager_namespace_keying_cache_entry_singleton_reference.md)
 - [Core Interfaces Docs Hub](interfaces/README.md)
 - [Embedding Provider Async Contract and Container Wiring Reference](interfaces/embedding_provider_async_contract_and_container_wiring_reference.md)
 - [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](interfaces/vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)

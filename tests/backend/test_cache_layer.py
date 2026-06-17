@@ -1,6 +1,6 @@
 """Covers cache layer behavior in the backend test suite."""
 
-from backend.src.core.infrastructure.cache import Cache
+from backend.src.core.infrastructure.cache_store import Cache
 import backend.src.core.infrastructure.cache_store as cache_store_module
 
 

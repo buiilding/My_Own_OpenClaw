@@ -9,7 +9,7 @@ from backend.src.api.schemas.agent_definition import AgentDefinition
 from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import ThinkingEvent, TraceEvent
 from backend.src.core.infrastructure.bus import EventBus
-from backend.src.core.infrastructure.cache import CacheManager
+from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.llm.client import LLMClient
 from backend.src.llm.prompts.prompts import PromptManager

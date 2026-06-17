@@ -8,7 +8,7 @@ import logging
 from dependency_injector import containers, providers
 
 from backend.src.core.infrastructure.bus import EventBus
-from backend.src.core.infrastructure.cache import CacheManager
+from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.config.manager import ConfigManager
 from backend.src.core.config.service import ConfigurationService
 from backend.src.core.container.factories import (

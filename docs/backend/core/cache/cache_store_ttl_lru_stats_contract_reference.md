@@ -69,5 +69,5 @@ title: "Cache Store TTL, LRU, and Stats Contract Reference"
 ## Related Pages
 
 - [Backend Core Cache Docs Hub](README.md)
-- [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
+- [Cache Manager Namespace Keying and Cache Entry Singleton Reference](cache_manager_namespace_keying_cache_entry_singleton_reference.md)
 - [Event Bus and Cache Infrastructure Reference](../event_bus_and_cache_infrastructure_reference.md)

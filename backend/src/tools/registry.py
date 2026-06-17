@@ -19,7 +19,7 @@ from backend.src.tools.tool_specs import get_tool_spec_parameters
 from backend.src.tools.web_search.tool import WebSearchTool
 
 if TYPE_CHECKING:
-    from backend.src.core.infrastructure.cache import CacheManager
+    from backend.src.core.infrastructure.cache_manager import CacheManager
     from backend.src.core.services.context_factory import ContextFactory
     from backend.src.sdk.tool import Tool as SDKTool
 

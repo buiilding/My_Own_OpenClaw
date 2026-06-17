@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, TYPE_CHECKING
 from backend.src.tools.tool_specs import is_function_tool_spec
 
 if TYPE_CHECKING:
-    from backend.src.core.infrastructure.cache import CacheManager
+    from backend.src.core.infrastructure.cache_manager import CacheManager
 
 logger = logging.getLogger(__name__)
 

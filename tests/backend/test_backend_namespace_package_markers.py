@@ -153,6 +153,7 @@ CONCRETE_MODULES = [
 ]
 
 REMOVED_MODULE_FACADES = [
+    "backend/src/core/infrastructure/cache.py",
     "backend/src/tools/remote.py",
 ]
 

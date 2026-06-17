@@ -5,7 +5,7 @@ import pytest
 from backend.src.agent.session.session import AgentSession
 from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.bus import EventBus
-from backend.src.core.infrastructure.cache import CacheManager
+from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.llm.client import LLMClient
 from backend.src.llm.prompts.prompts import PromptManager

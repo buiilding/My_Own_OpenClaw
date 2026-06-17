@@ -84,7 +84,7 @@ Count includes package `__init__.py` modules.
 - Config:
 - `backend/src/core/config/{models,app_config,loader,runtime,manager,service,subscriptions}.py`
 - Infrastructure:
-- `backend/src/core/infrastructure/{bus,event_bus_registry,cache,cache_store,cache_manager,cache_entry,exceptions}.py`
+- `backend/src/core/infrastructure/{bus,event_bus_registry,cache_store,cache_manager,cache_entry,exceptions}.py`
 - `backend/src/core/infrastructure/error_types/*.py`
 - Events/types/messages:
 - `backend/src/core/events/*.py`

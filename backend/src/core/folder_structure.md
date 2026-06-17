@@ -13,7 +13,6 @@ backend/src/core/
 │
 ├── infrastructure/                    # Cross-cutting infrastructure components
 │   ├── bus.py                         # EventBus - pub/sub event system with priority support and filtering
-│   ├── cache.py                       # Cache facade (re-exports store/manager/entry)
 │   ├── cache_entry.py                 # CacheEntry
 │   ├── cache_store.py                 # Cache - TTL + LRU in-memory cache
 │   ├── cache_manager.py               # CacheManager - shared caches

@@ -1,5 +1,5 @@
 ---
-summary: "Backend core cache docs sub-hub for cache-store ttl/lru/stat semantics and cache-manager namespace keying plus facade export contracts."
+summary: "Backend core cache docs sub-hub for cache-store ttl/lru/stat semantics and cache-manager namespace keying."
 read_when:
   - When changing cache internals under `backend/src/core/infrastructure/cache*`.
   - When debugging cache hit/miss behavior, ttl expiry, eviction, key generation, or cache singleton wiring.
@@ -11,7 +11,7 @@ title: "Backend Core Cache Docs Hub"
 ## Deep Pages
 
 - [Cache Store TTL, LRU, and Stats Contract Reference](cache_store_ttl_lru_stats_contract_reference.md)
-- [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
+- [Cache Manager Namespace Keying and Cache Entry Singleton Reference](cache_manager_namespace_keying_cache_entry_singleton_reference.md)
 
 ## Related Pages
 
@@ -24,6 +24,5 @@ title: "Backend Core Cache Docs Hub"
 - `backend/src/core/infrastructure/cache_store.py`
 - `backend/src/core/infrastructure/cache_manager.py`
 - `backend/src/core/infrastructure/cache_entry.py`
-- `backend/src/core/infrastructure/cache.py`
 - `tests/backend/test_cache_layer.py`
 - `tests/backend/test_cache_entry.py`

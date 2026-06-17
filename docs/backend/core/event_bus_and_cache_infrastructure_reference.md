@@ -186,4 +186,4 @@ If cache behavior looks wrong:
 - [Backend Core Infrastructure Docs Hub](README.md)
 - [Backend Core Cache Docs Hub](cache/README.md)
 - [Cache Store TTL, LRU, and Stats Contract Reference](cache/cache_store_ttl_lru_stats_contract_reference.md)
-- [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache/cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
+- [Cache Manager Namespace Keying and Cache Entry Singleton Reference](cache/cache_manager_namespace_keying_cache_entry_singleton_reference.md)

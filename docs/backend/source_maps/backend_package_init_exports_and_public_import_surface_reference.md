@@ -112,7 +112,8 @@ docstring or compatibility path.
 - `backend/src/core/infrastructure/__init__.py` is intentionally absent; import
   infrastructure primitives from concrete modules such as
   `backend.src.core.infrastructure.bus`,
-  `backend.src.core.infrastructure.cache`, and
+  `backend.src.core.infrastructure.cache_store`,
+  `backend.src.core.infrastructure.cache_manager`, and
   `backend.src.core.infrastructure.error_types.base`.
 - `backend/src/core/infrastructure/error_types/__init__.py` is intentionally
   absent; import exception classes from concrete domain modules such as

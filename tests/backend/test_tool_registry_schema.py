@@ -7,7 +7,7 @@ import pytest
 from pydantic import BaseModel
 
 from backend.src.core.config.models import AppConfig
-from backend.src.core.infrastructure.cache import CacheManager
+from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.schemas import MouseControlArgs
