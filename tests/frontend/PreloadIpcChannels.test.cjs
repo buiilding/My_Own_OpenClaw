@@ -42,7 +42,7 @@ describe('preload IPC channel registry', () => {
         LIVE_SURFACE_TRACE: 'live-surface-trace',
       },
       INVOKE_CHANNELS: {
-        WINDIE_INVOKE: 'windie:invoke',
+        DESKTOP_AGENT_INVOKE: 'windie:invoke',
         COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard',
         FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image',
         SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu',

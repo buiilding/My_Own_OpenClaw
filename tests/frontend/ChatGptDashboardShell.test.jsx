@@ -166,7 +166,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     },
   },
   INVOKE_CHANNELS: {
-    WINDIE_INVOKE: 'windie:invoke',
+    DESKTOP_AGENT_INVOKE: 'windie:invoke',
     SET_ACTIVE_WORKSPACE: 'set-active-workspace',
     GET_CLIENT_USER_ID: 'get-client-user-id',
   },

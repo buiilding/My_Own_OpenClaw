@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Desktop-agent invoke registry key rename
+
+- Finding: the shared IPC registry still exposed the desktop command bridge as
+  `WINDIE_INVOKE` even though renderer, preload, and main now use generic
+  desktop-agent facades.
+- Change: renamed the shared invoke-channel key to `DESKTOP_AGENT_INVOKE` and
+  updated preload, main, renderer channel facades, and focused frontend mocks
+  while preserving the existing `windie:invoke` IPC wire value.
+- Validation: focused preload, renderer runtime-boundary, browser-session, and
+  dashboard frontend tests; stale invoke-key scan; docs listing; and diff
+  check.
+- Compatibility: no migration required. This changes only the internal shared
+  registry key; the `window.desktopAgent` browser bridge and `windie:invoke`
+  IPC channel string remain unchanged.
+
 ### 2026-06-17 Renderer local-runtime status IPC alias deletion
 
 - Finding: the shared IPC channel registry still exported
@@ -1107,7 +1122,8 @@ Each completed slice should report:
 - Validation: focused preload IPC channel coverage, docs listing, source scan,
   and diff check.
 - Compatibility: no migration required. The exposed `desktopAgent` and
-  compatibility `windie` globals still use the same underlying IPC channel.
+  compatibility `windie` globals used the same underlying IPC channel at this
+  point; the Windie-named browser-global alias was removed in a later cleanup.
 
 ### 2026-06-17 SDK generic agent client class
 
@@ -2681,9 +2697,10 @@ Each completed slice should report:
   ../tests/frontend/DesktopAgentRuntimeTransport.test.ts
   ../tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`; `npm.cmd --prefix
   frontend test -- --runInBand ../tests/frontend/BrowserSessionStore.test.js`;
-  `git diff --check`; `bin\windie docs list`; source scan confirms generic
-  renderer code uses `DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE` and the remaining
-  `INVOKE_CHANNELS.WINDIE_INVOKE` reference is the alias definition.
+  `git diff --check`; `bin\windie docs list`; source scan confirmed generic
+  renderer code used `DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE`; the shared
+  registry key was renamed from `WINDIE_INVOKE` to `DESKTOP_AGENT_INVOKE` in a
+  later cleanup.
 - Compatibility: no migration required. Existing IPC channel strings and
   preload validation remain unchanged; generic renderer code can now use
   desktop-agent channel names.

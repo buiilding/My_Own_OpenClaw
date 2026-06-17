@@ -17,7 +17,7 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WAKEWORD_DISABLE: 'wakeword-disable',
   },
   INVOKE_CHANNELS: {
-    WINDIE_INVOKE: 'windie:invoke',
+    DESKTOP_AGENT_INVOKE: 'windie:invoke',
     CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment',
     READ_ATTACHMENT_FILE: 'read-attachment-file',
     RUN_BROWSER_ACTION: 'run-browser-action',
@@ -150,7 +150,7 @@ export const DESKTOP_AGENT_SEND_CHANNELS = {
 } as const;
 
 export const DESKTOP_AGENT_INVOKE_CHANNELS = {
-  INVOKE: INVOKE_CHANNELS.WINDIE_INVOKE,
+  INVOKE: INVOKE_CHANNELS.DESKTOP_AGENT_INVOKE,
 } as const;
 
 export const DESKTOP_AGENT_ON_CHANNELS = {
