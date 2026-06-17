@@ -19,7 +19,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Tuple
 import numpy as np
 
 from core.env_flags import env_flag_enabled
-from core.user_data_paths import windie_user_data_root
+from core.user_data_paths import app_user_data_root
 
 WAKEWORD_NAME = "hey_jarvis"
 DETECTION_THRESHOLD = 0.5
@@ -91,7 +91,7 @@ def resolve_wakeword_model_directory() -> Path:
     env_dir = os.environ.get("WINDIE_WAKEWORD_MODEL_DIR", "").strip()
     if env_dir:
         return Path(env_dir).expanduser()
-    return windie_user_data_root() / "wakeword" / "models"
+    return app_user_data_root() / "wakeword" / "models"
 
 
 def resolve_model_path_from_directory(

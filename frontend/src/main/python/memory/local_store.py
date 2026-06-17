@@ -31,7 +31,7 @@ from windie._unicode_sanitizer import (
     sanitize_surrogates,
     sanitize_surrogates_in_text,
 )
-from core.user_data_paths import windie_user_data_root
+from core.user_data_paths import app_user_data_root
 from memory.admin import clear_chat_history as clear_chat_history_admin
 from memory.admin import clear_local_memory as clear_local_memory_admin
 from memory.chat_event_store import (
@@ -189,7 +189,7 @@ class LocalMemoryStore:
         """
         # Determine memory directory
         if db_path is None:
-            memory_dir = windie_user_data_root() / "memory"
+            memory_dir = app_user_data_root() / "memory"
         else:
             db_path_obj = Path(db_path)
             if db_path_obj.suffix:

@@ -40,7 +40,7 @@ def test_local_memory_store_init_skips_sync_faiss_reads(monkeypatch, tmp_path):
 
 def test_local_memory_store_default_root_uses_windieos(monkeypatch, tmp_path):
     monkeypatch.setattr(
-        local_store_module, "windie_user_data_root", lambda: tmp_path / "windieos"
+        local_store_module, "app_user_data_root", lambda: tmp_path / "windieos"
     )
 
     store = LocalMemoryStore()

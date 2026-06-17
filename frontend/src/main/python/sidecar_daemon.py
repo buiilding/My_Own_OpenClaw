@@ -175,7 +175,7 @@ def serialize_diagnostic_args(args: list[str]) -> str:
     return sanitize_diagnostic_text(json.dumps(sanitized, separators=(",", ":")))
 
 
-def windie_user_data_root() -> Path:
+def app_user_data_root() -> Path:
     override = normalize_string(os.getenv("WINDIE_USER_DATA_DIR"))
     if override:
         return Path(override)
@@ -199,7 +199,7 @@ def diagnostics_database_path() -> Path:
     override = normalize_string(os.getenv("WINDIE_APP_DIAGNOSTICS_DB"))
     if override:
         return Path(override)
-    return windie_user_data_root() / "diagnostics" / "diagnostics.db"
+    return app_user_data_root() / "diagnostics" / "diagnostics.db"
 
 
 def classify_error_code(message: Any) -> str:

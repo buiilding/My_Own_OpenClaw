@@ -9,7 +9,7 @@ from pathlib import Path
 APP_DATA_DIR_NAME = "windieos"
 
 
-def windie_user_data_root() -> Path:
+def app_user_data_root() -> Path:
     if os.name == "nt":
         appdata = os.getenv("APPDATA")
         if not appdata:

@@ -71,7 +71,7 @@ def test_resolve_wakeword_model_supports_uppercase_models_map():
 def test_resolve_wakeword_model_directory_uses_windieos_root(monkeypatch, tmp_path):
     monkeypatch.delenv("WINDIE_WAKEWORD_MODEL_DIR", raising=False)
     monkeypatch.setattr(
-        wakeword_service, "windie_user_data_root", lambda: tmp_path / "windieos"
+        wakeword_service, "app_user_data_root", lambda: tmp_path / "windieos"
     )
 
     assert (

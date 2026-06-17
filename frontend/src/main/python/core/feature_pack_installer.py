@@ -13,7 +13,7 @@ import subprocess
 import sys
 from typing import Dict, Tuple
 
-from core.user_data_paths import windie_user_data_root
+from core.user_data_paths import app_user_data_root
 
 _FEATURE_PACK_REQUIREMENTS: Dict[str, str] = {
     "browser": "requirements.runtime.txt",
@@ -25,7 +25,7 @@ _FEATURE_PACK_MODULE_MARKERS: Dict[str, Tuple[str, ...]] = {
 
 
 def _resolve_user_data_root() -> Path:
-    return windie_user_data_root()
+    return app_user_data_root()
 
 
 def get_feature_pack_site_packages_dir() -> Path:

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-from core.user_data_paths import windie_user_data_root
+from core.user_data_paths import app_user_data_root
 
 DEFAULT_USER_ID = "default_user"
 MOCK_SOURCE = "mock_seed_dashboard"
@@ -189,7 +189,7 @@ MOCK_SEMANTIC_MEMORIES: List[Dict[str, Any]] = [
 
 
 def _memory_dir() -> Path:
-    return windie_user_data_root() / "memory"
+    return app_user_data_root() / "memory"
 
 
 def _history_dir() -> Path:

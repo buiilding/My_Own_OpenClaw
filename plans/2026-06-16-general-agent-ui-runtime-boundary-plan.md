@@ -1131,3 +1131,19 @@ Each completed slice should report:
   scans for product-skin imports from generic renderer consumers.
 - Compatibility: no migration required. Rendered copy, CSS asset loading, and
   runtime payloads are unchanged; only renderer import ownership moved.
+
+### 2026-06-17 sidecar app user-data helper
+
+- Finding: sidecar-owned local storage, wakeword, browser, feature-pack, and
+  diagnostics helpers used `windie_user_data_root` as the internal helper name
+  even though the helper represents the local app user-data root, not hosted
+  WindieOS runtime behavior.
+- Change: renamed the sidecar helper and active local consumers to
+  `app_user_data_root` while preserving the existing `windieos` directory name
+  and `WINDIE_*` environment-variable compatibility surfaces.
+- Validation: focused sidecar user-data, memory default-root, wakeword
+  directory, and feature-pack tests; smoke import of renamed local consumers;
+  docs listing, `git diff --check`, and stale helper-name scan.
+- Compatibility: no migration required. Persisted paths, diagnostics database
+  location, browser profile location, memory directories, wakeword model
+  cache, and env vars remain unchanged.

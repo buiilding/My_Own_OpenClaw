@@ -18,7 +18,7 @@ from typing import List, Optional, Tuple
 
 import aiohttp
 import psutil
-from core.user_data_paths import windie_user_data_root
+from core.user_data_paths import app_user_data_root
 from tools.browser.chrome_detection import find_chrome_executable
 
 logger = logging.getLogger(__name__)
@@ -193,7 +193,7 @@ def get_chrome_user_data_dir() -> Path:
     if system == "Windows":
         local_app_data = os.environ.get("LOCALAPPDATA", str(home / "AppData" / "Local"))
         return Path(local_app_data) / "windieos" / "BrowserProfile"
-    return windie_user_data_root() / "BrowserProfile"
+    return app_user_data_root() / "BrowserProfile"
 
 
 async def launch_chrome_with_cdp(
