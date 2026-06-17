@@ -119,6 +119,13 @@ class TestLLMProvider:
         assert provider.base_url is None
         assert provider.timeout == 60.0
 
+    def test_stream_pipeline_compatibility_wrappers_are_not_exported(self):
+        provider = MockProvider()
+
+        assert not hasattr(provider, "_enable_stream_with_usage")
+        assert not hasattr(provider, "_stream_text_content_events")
+        assert not hasattr(provider, "_stream_thinking_and_text_events")
+
     def test_init_with_custom_values(self):
         provider = MockProvider(
             api_key="test-key", base_url="https://api.test.com", timeout=30.0
@@ -1339,20 +1346,24 @@ class TestOnlineLLMProvider:
         provider = self._MockOnlineProvider(api_key="test-key")
         calls = {"text": 0, "thinking": 0}
 
-        async def fake_text_stream(_params):
+        async def fake_text_stream(**_kwargs):
             calls["text"] += 1
             yield ChunkEvent(content="text")
 
-        async def fake_thinking_stream(_params):
+        async def fake_thinking_stream(**_kwargs):
             calls["thinking"] += 1
             yield ChunkEvent(content="thinking")
 
         monkeypatch.setattr(
             provider, "_build_standard_completion_params", MagicMock(return_value={})
         )
-        monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
         monkeypatch.setattr(
-            provider, "_stream_thinking_and_text_events", fake_thinking_stream
+            "backend.src.llm.providers.online.stream_text_content_events",
+            fake_text_stream,
+        )
+        monkeypatch.setattr(
+            "backend.src.llm.providers.online.stream_thinking_and_text_events",
+            fake_thinking_stream,
         )
 
         events = []
@@ -1368,20 +1379,24 @@ class TestOnlineLLMProvider:
         provider.stream_includes_thinking = True
         calls = {"text": 0, "thinking": 0}
 
-        async def fake_text_stream(_params):
+        async def fake_text_stream(**_kwargs):
             calls["text"] += 1
             yield ChunkEvent(content="text")
 
-        async def fake_thinking_stream(_params):
+        async def fake_thinking_stream(**_kwargs):
             calls["thinking"] += 1
             yield ChunkEvent(content="thinking")
 
         monkeypatch.setattr(
             provider, "_build_standard_completion_params", MagicMock(return_value={})
         )
-        monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
         monkeypatch.setattr(
-            provider, "_stream_thinking_and_text_events", fake_thinking_stream
+            "backend.src.llm.providers.online.stream_text_content_events",
+            fake_text_stream,
+        )
+        monkeypatch.setattr(
+            "backend.src.llm.providers.online.stream_thinking_and_text_events",
+            fake_thinking_stream,
         )
 
         events = []
@@ -1396,13 +1411,16 @@ class TestOnlineLLMProvider:
         provider = self._MockOnlineProvider(api_key="test-key")
         build_params_mock = MagicMock(return_value={})
 
-        async def fake_text_stream(_params):
+        async def fake_text_stream(**_kwargs):
             yield ChunkEvent(content="text")
 
         monkeypatch.setattr(
             provider, "_build_stream_completion_params", build_params_mock
         )
-        monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
+        monkeypatch.setattr(
+            "backend.src.llm.providers.online.stream_text_content_events",
+            fake_text_stream,
+        )
 
         events = []
         async for event in provider._stream_internal(

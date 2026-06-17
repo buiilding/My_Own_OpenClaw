@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated backend provider stream pipeline docs and focused provider tests to lock the removed base stream-helper wrappers and patch `stream_event_pipeline` directly. No migration is required because this is docs/test coverage for private helper ownership.
+
 - Removed private base LLM provider stream forwarding helpers so stream usage setup and online stream event iteration call `stream_event_pipeline` directly. No migration is required because provider request params, streaming event shapes, and backend API contracts are unchanged.
 
 - Removed camelCase backend-event alias reads from compact Electron trace diagnostics so `ipc.bridge` summaries use canonical backend fields such as `turn_ref`, `conversation_ref`, `request_id`, `tool_name`, and `final_response`. No migration is required because this changes diagnostic summarization only.

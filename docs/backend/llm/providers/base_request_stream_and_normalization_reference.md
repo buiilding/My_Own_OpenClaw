@@ -147,15 +147,15 @@ Contract:
 - base method converts exceptions into `ErrorEvent` instead of raising.
 - stream callers always consume events, never exception-based control flow.
 
-Shared stream helpers:
+Shared stream helpers live in `stream_event_pipeline.py`:
 
-- `_enable_stream_with_usage(...)` sets `stream=true` + `stream_options.include_usage=true`.
-- `_stream_text_content_events(...)` yields `ChunkEvent` from text deltas.
-- `_stream_thinking_and_text_events(...)` yields `ThinkingEvent` + `ChunkEvent`.
+- `enable_stream_with_usage(...)` sets `stream=true` + `stream_options.include_usage=true`.
+- `stream_text_content_events(...)` yields `ChunkEvent` from text deltas.
+- `stream_thinking_and_text_events(...)` yields `ThinkingEvent` + `ChunkEvent`.
 
 Implementation note:
 
-- `LLMProvider` stream wrappers now delegate concrete loop logic to `stream_event_pipeline.py` while preserving compatibility method names in `base.py`.
+- `LLMProvider` no longer exposes stream-helper compatibility wrappers; online providers call the pipeline helpers directly.
 
 ## Delta and Completion Payload Extraction
 

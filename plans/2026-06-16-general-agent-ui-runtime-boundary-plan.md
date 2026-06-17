@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend provider stream helper test/docs lock
+
+- Finding: the base provider stream-helper docs and online provider tests still
+  referenced the removed private wrapper methods after stream iteration moved
+  to `stream_event_pipeline`.
+- Change: updated the base stream/normalization docs and focused provider tests
+  to assert the wrappers are absent and patch the pipeline helpers directly.
+- Validation: Python py_compile for the touched test module, docs listing, and
+  diff check. Focused backend pytest remains blocked because the `jarvis` conda
+  env is unavailable and fallback Python lacks backend dependencies.
+- Compatibility: no migration required. This is docs/test coverage for the
+  already-private provider helper deletion.
+
 ### 2026-06-17 backend provider stream helper ownership cleanup
 
 - Finding: base LLM provider still exposed private forwarding helpers for
@@ -4594,3 +4607,21 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing local-backend bridge imports
   still resolve to the same functions; IPC channel strings and status payloads
   remain unchanged.
+
+### 2026-06-17 backend LLM stream helper wrapper removal
+
+- Finding: `LLMProvider` still exposed private stream-helper wrapper methods
+  that only delegated to `stream_event_pipeline.py`, keeping compatibility names
+  alive after the shared stream loop had a dedicated owner.
+- Change: removed the base-provider wrapper methods, routed standard stream
+  parameter setup directly through `enable_stream_with_usage`, and made
+  `OnlineLLMProvider` call `stream_text_content_events` or
+  `stream_thinking_and_text_events` directly with provider extraction callbacks.
+- Validation: provider files compile with `scripts\python-in-env backend python
+  -m py_compile`, docs listing, and `git diff --check`. Focused backend pytest
+  collection could not run because the repo's `jarvis` conda env is unavailable
+  in this shell and fallback Python is missing backend dependencies including
+  `litellm` and `fastapi`.
+- Compatibility: no migration required. These were private backend provider
+  wrappers; concrete provider stream behavior and emitted stream events are
+  unchanged.
