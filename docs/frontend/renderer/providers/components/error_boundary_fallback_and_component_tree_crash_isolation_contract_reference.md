@@ -15,7 +15,6 @@ title: "Error Boundary Fallback and Component-Tree Crash Isolation Contract Refe
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/MinimalChatPillApp.jsx`
 - `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
-- `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 
 ## Class Lifecycle Contract
 

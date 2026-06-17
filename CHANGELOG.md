@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the dormant `chatbox-context-label` renderer route
+  and no-op context label component while leaving the main-process helper shell
+  documented as dormant.
 - main/sidecar: Use a generic desktop agent screenshot temp directory while keeping legacy WindieOS temp paths readable.
 
 - frontend/renderer: remove raw message-text fallback rendering for tool-call

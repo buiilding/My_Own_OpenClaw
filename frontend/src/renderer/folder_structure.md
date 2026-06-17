@@ -14,7 +14,6 @@ frontend/src/renderer/
 │   ├── App.jsx                          # Root component - sets up providers and layout
 │   ├── MinimalChatPillApp.jsx           # Minimal chat pill overlay root component
 │   ├── MinimalResponseOverlayApp.jsx    # Minimal response overlay root component
-│   ├── ChatBoxContextLabelApp.jsx       # Context label overlay root component
 │   ├── ToolGhostDebugApp.jsx            # Debug-only tool ghost overlay root component
 │   ├── WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
 │   ├── main.jsx                         # React entry point - routes App/minimal overlays by ?view=

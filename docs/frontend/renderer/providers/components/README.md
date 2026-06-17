@@ -24,4 +24,3 @@ title: "Renderer Provider Components Docs Hub"
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/MinimalChatPillApp.jsx`
 - `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
-- `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`

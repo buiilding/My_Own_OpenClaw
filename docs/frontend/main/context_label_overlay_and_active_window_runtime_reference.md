@@ -1,8 +1,8 @@
 ---
-summary: "Frontend main/runtime reference for the context-label overlay shell: retained main-process window orchestration hooks, renderer route wiring, and current no-op label component status."
+summary: "Frontend main/runtime reference for the removed context-label renderer route and retained dormant main-process window orchestration hooks."
 read_when:
-  - When changing `chatbox-context-label` window lifecycle, positioning helpers, or visibility gates in main process overlay code.
-  - When re-enabling active-window label rendering in `ChatBoxContextLabel` and related renderer IPC/system-state flows.
+  - When changing retained context-label positioning helpers or visibility gates in main process overlay code.
+  - When removing dormant context-label main-process helper wiring.
 title: "Context Label Overlay and Active-Window Runtime Reference"
 ---
 
@@ -12,18 +12,17 @@ title: "Context Label Overlay and Active-Window Runtime Reference"
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/renderer/app/main.jsx`
-- `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxContextLabel.jsx`
 
 ## Current Runtime Status
 
-Context-label overlay logic is currently a retained shell, not an active feature.
+Context-label overlay logic is currently a dormant main-process helper shell,
+not an active renderer feature.
 
 Current behavior in tree:
 
-- `ChatBoxContextLabel` returns `null` (no rendered label UI)
+- no `view=chatbox-context-label` renderer route exists
+- no context-label renderer app or component exists
 - no active-window polling helper is used by renderer
-- no `activeWindowContext` utility module exists in current chat utils
 - main process still keeps context-label visibility/position helper functions and constants
 - no `createContextLabelWindow()` flow is currently wired during `app.whenReady()`
 
@@ -31,17 +30,10 @@ Result: no active context-label overlay content is shown at runtime.
 
 ## View Routing
 
-Renderer routing in `frontend/src/renderer/app/main.jsx` still maps:
-
-- `view=chatbox-context-label` -> `ChatBoxContextLabelApp`
-
-`ChatBoxContextLabelApp` still wraps the component in:
-
-- `ErrorBoundary`
-- `AppProvider`
-- `ChatProvider(enableTranscript=false)`
-
-This preserves route compatibility, but with current component no-op output.
+Renderer routing in `frontend/src/renderer/app/main.jsx` does not include a
+context-label view. A window loaded with `view=chatbox-context-label` falls back
+to the default app route, so main process should not create that window unless a
+new renderer app is restored in the same change.
 
 ## Main-Process Retained Hooks
 
@@ -57,7 +49,8 @@ Guard behavior is defensive:
 - every helper early-returns when `contextLabelWindow` is `null` or destroyed
 - visibility sync is called from chat/response overlay transitions
 
-These hooks currently operate as dormant guards because context-label window is not instantiated.
+These hooks currently operate as dormant guards because context-label window is
+not instantiated and no renderer route exists for it.
 
 ## Overlay Visibility Coupling
 
@@ -74,12 +67,12 @@ This keeps re-enable path low-friction if window creation is restored later.
 If re-enabling context-label UI:
 
 1. restore/create context-label BrowserWindow lifecycle in `index.cjs`
-2. reintroduce renderer active-window state resolution (poll + normalization)
-3. wire channel contracts for overlay visibility and optional system-state polling cadence
-4. add/restore frontend tests for label render, overlay hide behavior, and fallback/offline state
+2. add a renderer app/component route for the label surface
+3. reintroduce renderer active-window state resolution (poll + normalization)
+4. wire channel contracts for overlay visibility and optional system-state polling cadence
+5. add/restore frontend tests for label render, overlay hide behavior, and fallback/offline state
 
 ## Drift Hotspots
 
-1. Doc/runtime mismatch if docs assume active label rendering while component remains no-op.
-2. Re-enabling renderer polling without main window lifecycle wiring creates invisible work and IPC noise.
-3. Re-introducing context-label window without overlay visibility gating can overlap response overlay phases.
+1. Re-enabling renderer polling without main window lifecycle wiring creates invisible work and IPC noise.
+2. Re-introducing context-label window without overlay visibility gating can overlap response overlay phases.

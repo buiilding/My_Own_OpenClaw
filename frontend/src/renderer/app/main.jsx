@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import MinimalChatPillApp from './MinimalChatPillApp';
 import MinimalResponseOverlayApp from './MinimalResponseOverlayApp';
-import ChatBoxContextLabelApp from './ChatBoxContextLabelApp';
 import ToolGhostDebugApp from './ToolGhostDebugApp';
 import { installFrontendInteractionLogger } from '../infrastructure/interaction/frontendInteractionLogger';
 
@@ -21,11 +20,9 @@ const RootComponent = view === 'minimal-chat-pill'
   ? MinimalChatPillApp
   : view === 'minimal-response-overlay'
     ? MinimalResponseOverlayApp
-    : view === 'chatbox-context-label'
-      ? ChatBoxContextLabelApp
-      : view === 'tool-ghost-debug'
-        ? ToolGhostDebugApp
-        : App;
+    : view === 'tool-ghost-debug'
+      ? ToolGhostDebugApp
+      : App;
 
 if (isDev) {
   root.render(

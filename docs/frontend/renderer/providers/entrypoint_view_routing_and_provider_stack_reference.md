@@ -14,7 +14,7 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/MinimalChatPillApp.jsx`
 - `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
-- `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
+- `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
@@ -26,7 +26,6 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 
 - `view=minimal-chat-pill` -> `MinimalChatPillApp`
 - `view=minimal-response-overlay` -> `MinimalResponseOverlayApp`
-- `view=chatbox-context-label` -> `ChatBoxContextLabelApp`
 - `view=tool-ghost-debug` -> `ToolGhostDebugApp`
 - default/no `view` -> `App`
 
@@ -47,7 +46,7 @@ All surfaces mount `AppProvider`, which means:
 
 - main app (`App.jsx`):
   - `enableTranscript=true`
-- overlay apps (`MinimalChatPillApp`, `MinimalResponseOverlayApp`, `ChatBoxContextLabelApp`):
+- overlay apps (`MinimalChatPillApp`, `MinimalResponseOverlayApp`):
   - `enableTranscript=false`
 
 ## Main App Stack
@@ -76,7 +75,6 @@ Surface-specific body:
 
 - `MinimalChatPillApp` -> `MinimalChatPill`
 - `MinimalResponseOverlayApp` -> `MinimalResponseOverlay`
-- `ChatBoxContextLabelApp` -> `ChatBoxContextLabel`
 
 Impact:
 

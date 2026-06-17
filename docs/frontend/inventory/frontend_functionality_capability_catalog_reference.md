@@ -144,7 +144,7 @@ Primary files:
 
 - `frontend/src/renderer/app/main.jsx`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/{MinimalChatPillApp,MinimalResponseOverlayApp,ChatBoxContextLabelApp,ToolGhostDebugApp}.jsx`
+- `frontend/src/renderer/app/{MinimalChatPillApp,MinimalResponseOverlayApp,ToolGhostDebugApp}.jsx`
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/renderer/app/providers/{appConfigPersistence,configComparison}.js`
 
