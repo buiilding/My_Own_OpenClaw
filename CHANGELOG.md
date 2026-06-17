@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Completed Electron main endpoint loopback fallback naming by renaming the host/port override and candidate locals away from local-backend wording. No migration is required.
+
 - Renamed Electron main endpoint loopback fallback constants and helper away from local-backend wording while preserving `BACKEND_HOST` and `BACKEND_PORT` behavior. No migration is required.
 
 - Removed the backend provider-factory normalization path for old Kimi provider spellings so `kimi_code` and `kimi-code` fail immediately instead of becoming normalized provider keys. No persisted-data migration is required.

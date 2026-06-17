@@ -173,7 +173,7 @@ function resolveBackendEndpoints(env = process.env) {
 function resolveBackendEndpointCandidates(env = process.env) {
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
-  const explicitLocalHostOrPort = (
+  const explicitHostOrPortOverride = (
     typeof env.BACKEND_HOST === 'string'
     || typeof env.BACKEND_PORT === 'string'
   );
@@ -187,12 +187,12 @@ function resolveBackendEndpointCandidates(env = process.env) {
     ]);
   }
 
-  if (explicitLocalHostOrPort) {
-    const localCandidates = dedupeEndpointCandidates([
+  if (explicitHostOrPortOverride) {
+    const loopbackCandidates = dedupeEndpointCandidates([
       resolveLoopbackFallbackEndpoints(env),
     ]);
-    if (localCandidates.length > 0) {
-      return localCandidates;
+    if (loopbackCandidates.length > 0) {
+      return loopbackCandidates;
     }
   }
 
