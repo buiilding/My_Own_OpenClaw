@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for local-backend screenshot execution visibility: direct task behavior, main-process computer-use surface prep, and renderer attachment capture boundaries."
 read_when:
-  - When changing `local_backend_bridge_window_visibility.cjs`.
+  - When changing `local_runtime_window_visibility.cjs`.
   - When debugging whether screenshot overlay hide/show is owned by Electron main process, SDK/main tool execution, or renderer attachment capture.
 title: "Linux Screenshot Window Visibility Reference"
 ---
@@ -10,7 +10,7 @@ title: "Linux Screenshot Window Visibility Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/main/surfaces/main_window_runtime.cjs`

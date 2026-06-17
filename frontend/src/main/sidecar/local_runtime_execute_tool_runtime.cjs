@@ -9,7 +9,7 @@ const { BrowserWindow, screen } = require('electron');
 const { resolveToolArgs } = require('./local_runtime_tool_args.cjs');
 const {
   withHiddenWindowForScreenshot,
-} = require('./local_backend_bridge_window_visibility.cjs');
+} = require('./local_runtime_window_visibility.cjs');
 const {
   resolveScreenshotToolDisplayBounds,
 } = require('./local_runtime_display_bounds.cjs');

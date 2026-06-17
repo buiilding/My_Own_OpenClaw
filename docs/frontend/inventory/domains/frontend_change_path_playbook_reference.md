@@ -58,7 +58,7 @@ Validation:
 
 1. Update sidecar method signature in `main/python/local_backend.py`.
 2. Update method registration and validation path if needed.
-3. Update main bridge request mapper (`local_backend_bridge_rpc_mappers.cjs`).
+3. Update main bridge request mapper (`local_runtime_rpc_mappers.cjs`).
 4. Update renderer invoker/client payload shape.
 
 Validation:

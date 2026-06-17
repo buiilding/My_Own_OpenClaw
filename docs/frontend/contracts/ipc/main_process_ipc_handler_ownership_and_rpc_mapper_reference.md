@@ -31,7 +31,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
@@ -236,7 +236,7 @@ Notable behavior:
 
 ## RPC Mapper Contract Details
 
-`COMPILED_RPC_HANDLER_DEFINITIONS` in `local_backend_bridge_rpc_mappers.cjs` defines channel -> JSON-RPC method + payload mapping.
+`COMPILED_RPC_HANDLER_DEFINITIONS` in `local_runtime_rpc_mappers.cjs` defines channel -> JSON-RPC method + payload mapping.
 
 Examples of non-trivial mappings:
 

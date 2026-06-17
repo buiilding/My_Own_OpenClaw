@@ -15,7 +15,7 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/local_backend_memory_handlers.py`
 - `frontend/src/main/python/memory/chat_event_store.py`
@@ -174,7 +174,7 @@ If chats do not reload:
    `conversation.load`
 2. inspect Electron main `windie:invoke` command handling
 3. if the SDK command reaches local persistence but data is missing, inspect
-   mapper output in `local_backend_bridge_rpc_mappers.cjs`
+   mapper output in `local_runtime_rpc_mappers.cjs`
 4. verify sidecar memory store is initialized and `conversation_events` rows exist
 
 If memory injection is empty:

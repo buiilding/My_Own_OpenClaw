@@ -25,7 +25,7 @@ Primary modules:
 - `frontend/src/main/debug/chat_pill_trace_runtime.cjs`
 - `frontend/src/main/surfaces/window_suppression_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 
@@ -301,7 +301,7 @@ For renderer-only deep dives:
 
 ## Linux Screenshot Guard
 
-`local_backend_bridge_window_visibility.cjs:withHiddenWindowForScreenshot(...)`:
+`local_runtime_window_visibility.cjs:withHiddenWindowForScreenshot(...)`:
 
 - calls the sidecar screenshot task directly without a platform visibility runtime
 - it does not perform a second hide/restore cycle around the sidecar screenshot task

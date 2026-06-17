@@ -1,6 +1,6 @@
 summary: "Frontend main local-backend windows docs sub-hub for window resolver normalization and screenshot task routing contracts."
 read_when:
-  - When changing `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` window resolver behavior.
+  - When changing `frontend/src/main/sidecar/local_runtime_window_visibility.cjs` window resolver behavior.
   - When debugging screenshot visibility ownership between main-process screenshot task routing and renderer capture orchestration.
 title: "Frontend Main Local-Backend Windows Docs Hub"
 ---
@@ -19,5 +19,5 @@ title: "Frontend Main Local-Backend Windows Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`

@@ -1,6 +1,6 @@
 summary: "Deep reference for local-runtime bridge window-resolver input normalization and screenshot task wiring."
 read_when:
-  - When changing resolver input contracts in `local_backend_bridge_window_visibility.cjs`.
+  - When changing resolver input contracts in `local_runtime_window_visibility.cjs`.
   - When changing screenshot task routing in local-backend execution wrappers.
 title: "Window Resolver Shapes and Screenshot Task Routing Reference"
 ---
@@ -9,7 +9,7 @@ title: "Window Resolver Shapes and Screenshot Task Routing Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 
 ## Resolver Input Normalization

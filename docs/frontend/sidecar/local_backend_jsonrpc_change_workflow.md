@@ -31,12 +31,12 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 
 | Change or symptom | First owner | Code roots | Tests |
 | --- | --- | --- | --- |
-| Add a renderer-visible sidecar method | Electron IPC registry and mapper plus sidecar method registry | `frontend/src/shared/ipcChannels.json`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend.py` | preload/IPC tests, `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_local_backend.py` |
+| Add a renderer-visible sidecar method | Electron IPC registry and mapper plus sidecar method registry | `frontend/src/shared/ipcChannels.json`, `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`, `frontend/src/main/python/local_backend.py` | preload/IPC tests, `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_local_backend.py` |
 | Add a main-only sidecar helper | main bridge helper plus sidecar method registry | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, sidecar handler tests |
 | Change JSON-RPC protocol validation | protocol core | `frontend/src/main/python/core/ipc_protocol.py` | `tests/sidecar/test_json_rpc_protocol.py` |
 | Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client tests and local-runtime bridge tests |
 | Change sidecar readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, sidecar daemon tests |
-| Change memory method payloads | RPC mapper plus memory mixin | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/frontend/LocalBackendBridge.rpc.test.cjs`, sidecar memory/conversation tests |
+| Change memory method payloads | RPC mapper plus memory mixin | `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/frontend/LocalBackendBridge.rpc.test.cjs`, sidecar memory/conversation tests |
 | Change `execute_tool` behavior | SDK/main local tool runtime plus sidecar tool registry | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, sidecar tool tests |
 | Change browser runtime install/warmup methods | main bridge helper plus local backend browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-backend tests |
 | Change macOS automation permission method | main permission bridge plus sidecar platform helper | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation sidecar tests |
@@ -82,7 +82,7 @@ channel.
 
 1. Add the renderer channel to `frontend/src/shared/ipcChannels.json` under `INVOKE_CHANNELS`.
 2. Confirm `frontend/src/renderer/infrastructure/ipc/channels.ts` exposes the channel through the typed constants used by renderer code.
-3. Add a compiled mapper entry in `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`.
+3. Add a compiled mapper entry in `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`.
 4. Use camelCase source keys for renderer payloads and snake_case target keys for sidecar params.
 5. Register the Python method in `LocalBackend._initialize_methods`.
 6. Implement the handler in `local_backend.py`, `local_backend_memory_handlers.py`, or a focused sidecar module.

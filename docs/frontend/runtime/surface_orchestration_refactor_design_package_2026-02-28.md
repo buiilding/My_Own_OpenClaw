@@ -27,7 +27,7 @@ Current ownership:
 - Renderer chat and attachment code owns display state, optimistic rows, and
   resource requests; it does not own native window hide/restore or computer-use
   surface mode policy.
-- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs` owns
+- `frontend/src/main/sidecar/local_runtime_window_visibility.cjs` owns
   screenshot task routing and currently calls the sidecar task directly.
 
 Use [Overlay Phase and Surface Change Workflow](overlay_phase_and_surface_change_workflow.md),

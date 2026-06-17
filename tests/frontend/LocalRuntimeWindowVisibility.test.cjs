@@ -3,9 +3,9 @@
 const {
   createWindowResolvers,
   withHiddenWindowForScreenshot,
-} = require('../../frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_window_visibility.cjs');
 
-describe('local_backend_bridge_window_visibility', () => {
+describe('local_runtime_window_visibility', () => {
   test('normalizes object-style window providers', () => {
     const mainWindow = { id: 'main' };
     const chatWindow = { id: 'chat' };

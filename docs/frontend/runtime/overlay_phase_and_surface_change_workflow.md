@@ -56,7 +56,7 @@ rather than the React component that happens to render the symptom.
 | Chat pill click-through or focusability is wrong | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/surfaces/tool_surface_lifecycle.cjs`, `frontend/src/main/surfaces/overlay_chatbox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx` | `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/OverlayChatboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Response overlay click-through or close/scroll hit-testing is wrong | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/surfaces/overlay_responsebox_handler.cjs`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx` | `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/OverlayResponseboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Awaiting indicator flickers or sticks | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`, `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js` | `tests/frontend/WindieSdkConversationRuntime.test.ts`, `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/LiveTurnSurfaceState.test.js`, `tests/frontend/ResponseOverlayLayoutMode.test.js` |
-| Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/content_protection/*`, SDK/main screenshot resource handling | `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs`, `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, platform policy tests |
+| Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`, `frontend/src/main/platform/content_protection/*`, SDK/main screenshot resource handling | `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs`, `tests/frontend/LocalRuntimeWindowVisibility.test.cjs`, platform policy tests |
 | Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/surfaces/tool_surface_lifecycle.cjs`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Window bounds, frame size, or drag anchor jumps | `frontend/src/main/surfaces/overlay_bounds.cjs`, `frontend/src/main/surfaces/overlay_chatbox_visual_anchor_handler.cjs`, `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`, `frontend/src/renderer/features/minimalChatPill/utils/minimalChatPillLayout.js` | `tests/frontend/OverlayBounds.test.cjs`, `tests/frontend/OverlayFrameSize.test.js`, `tests/frontend/ChatBoxPillLayout.test.js` |
 
@@ -201,7 +201,7 @@ Read these files before changing screenshot or content-protection behavior:
 - `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/surfaces/tool_surface_lifecycle.cjs`
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_visibility_handler.cjs`
 - `frontend/src/main/platform/content_protection/*`
@@ -264,7 +264,7 @@ Capture/platform behavior change:
 
 - `cd frontend && npm run test -- LocalRuntimeExecuteToolRuntime`
 - `cd frontend && npm run test -- OverlayVisibilityHandler`
-- `cd frontend && npm run test -- LocalBackendBridgeWindowVisibility`
+- `cd frontend && npm run test -- LocalRuntimeWindowVisibility`
 - platform-specific manual screenshot check on the affected OS
 
 ## Docs to Sync

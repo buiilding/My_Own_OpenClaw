@@ -24,7 +24,7 @@ This page maps protocol surfaces across renderer, Electron main, and Python loca
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs` + `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
-- Main-to-sidecar JSON-RPC bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- Main-to-sidecar JSON-RPC bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Renderer `window.ipc` Contract
@@ -179,7 +179,7 @@ Transport:
 ### JSON-RPC Method Map (bridge handler channel -> sidecar method)
 
 These names are compiled main-process bridge handler definitions in
-`local_backend_bridge_rpc_mappers.cjs`. They are not direct renderer preload
+`local_runtime_rpc_mappers.cjs`. They are not direct renderer preload
 `invoke` channels unless they also appear in `frontend/src/shared/ipcChannels.json`.
 Renderer feature code reaches conversation and memory operations through
 SDK-shaped commands on `windie:invoke`.
@@ -246,7 +246,7 @@ Registered callable surface:
 
 - Preload allowlists and renderer constants should remain in strict parity.
 - IPC handler registration is split across `ipc.cjs`, `surfaces/overlay_phase_ipc_runtime.cjs`, `surfaces/window_controls_ipc_runtime.cjs`, `permissions/permission_ipc_runtime.cjs`, `sidecar/local_runtime_bridge.cjs`, and `wakeword/wakeword_bridge.cjs` (with helper split in `wakeword_bridge_runtime.cjs`); ownership drift often appears when adding channels without updating all surfaces.
-- JSON-RPC channel maps are centralized in `local_backend_bridge_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
+- JSON-RPC channel maps are centralized in `local_runtime_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
 
 ## Recompute Surface Commands
 
@@ -261,7 +261,7 @@ Use these commands to refresh protocol counts:
   - `NODE`
 - JSON-RPC mapper definition count:
   - `node - <<'NODE'`
-  - `const { COMPILED_RPC_HANDLER_DEFINITIONS } = require('./frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs');`
+  - `const { COMPILED_RPC_HANDLER_DEFINITIONS } = require('./frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs');`
   - `console.log('compiled_rpc_handler_definitions', COMPILED_RPC_HANDLER_DEFINITIONS.length);`
   - `NODE`
 

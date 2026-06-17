@@ -5,9 +5,9 @@ const path = require('path');
 
 const {
   COMPILED_RPC_HANDLER_DEFINITIONS,
-} = require('../../frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs');
 
-describe('local_backend_bridge_rpc_mappers', () => {
+describe('local_runtime_rpc_mappers', () => {
   test('local runtime bridge does not expose direct memory storage', () => {
     expect(
       COMPILED_RPC_HANDLER_DEFINITIONS.map(definition => definition.channel),
@@ -36,7 +36,7 @@ describe('local_backend_bridge_rpc_mappers', () => {
   test('payload mapper does not support fallback source-key arrays', () => {
     const mapperPath = path.join(
       __dirname,
-      '../../frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs',
+      '../../frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs',
     );
     const mapperSource = fs.readFileSync(mapperPath, 'utf8');
 

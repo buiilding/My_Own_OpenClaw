@@ -114,7 +114,7 @@ Validate:
 
 ```bash
 bin/windie test backend tests/backend/test_coordinate_scaling.py tests/backend/test_ocr_coordinate_resolver.py tests/backend/test_vision_coordinates.py -q
-bin/windie test frontend -- LocalBackendBridgeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts
+bin/windie test frontend -- LocalRuntimeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts
 bin/windie test sidecar tests/sidecar/test_screenshot_tool.py -q
 ```
 

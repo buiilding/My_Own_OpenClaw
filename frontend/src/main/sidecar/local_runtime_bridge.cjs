@@ -10,10 +10,10 @@ const {
 const {
   COMPILED_RPC_HANDLER_DEFINITIONS,
   registerMappedRpcHandlers,
-} = require('./local_backend_bridge_rpc_mappers.cjs');
+} = require('./local_runtime_rpc_mappers.cjs');
 const {
   createWindowResolvers,
-} = require('./local_backend_bridge_window_visibility.cjs');
+} = require('./local_runtime_window_visibility.cjs');
 const {
   getErrorMessage,
 } = require('./local_runtime_utils.cjs');

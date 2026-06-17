@@ -40,7 +40,7 @@ Start with these files when local orchestration changes:
 - `packages/windie-sdk-js/src/runtime/Agent.ts` and `packages/windie-sdk-js/src/runtime/AgentClient.ts`: start the SDK agent runtime and supply Electron's SDK local-runtime client.
 - `frontend/src/main/ipc/**`: narrower IPC modules.
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`: SDK local-runtime host/status bridge.
-- `frontend/src/main/sidecar/local_backend_bridge_*`: local-runtime request mapping, timeout, screenshot, bounds, and tool-argument helpers.
+- `frontend/src/main/sidecar/local_runtime_*`: local-runtime request mapping, timeout, screenshot, bounds, and tool-argument helpers.
 - `frontend/src/main/app/backend_endpoints.cjs`: hosted backend endpoint selection.
 - `frontend/src/main/permission_*`: OS permission probes and grant effects.
 - `frontend/src/main/wakeword/wakeword_bridge*.cjs`: wakeword subprocess bridge.

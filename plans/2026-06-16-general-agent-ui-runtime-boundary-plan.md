@@ -120,6 +120,34 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime RPC mappers module
+
+- Finding: Electron main renderer-to-sidecar RPC mapper registration was a
+  local-runtime bridge contract, but the private module and focused Jest suite
+  still lived under local-backend bridge names.
+- Change: renamed the mapper module and focused test to local-runtime paths,
+  updated the bridge import, current docs, and host-boundary coverage.
+- Validation: focused RPC mapper, bridge RPC, window-visibility, execute-tool,
+  and host-boundary Jest tests, stale-reference scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. This is a private Electron main module
+  and test path rename; IPC channel strings, JSON-RPC method names, mapper
+  payloads, and sidecar protocol behavior are unchanged.
+
+### 2026-06-17 local-runtime window visibility module
+
+- Finding: Electron main screenshot window resolver and visibility helper
+  behavior was a local-runtime adapter, but the private module and focused
+  Jest suite still lived under local-backend bridge names.
+- Change: renamed the helper module and focused test to local-runtime paths,
+  updated bridge/execute-tool imports, current docs, and host-boundary coverage.
+- Validation: focused window-visibility, execute-tool, bridge RPC, artifact,
+  and host-boundary Jest tests, stale-reference scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. This is a private Electron main module
+  and test path rename; screenshot task execution and window resolver shapes
+  are unchanged.
+
 ### 2026-06-17 local-runtime screenshot attachment module
 
 - Finding: Electron main screenshot attachment materialization was a
@@ -1657,9 +1685,9 @@ Each completed slice should report:
   only behavior was to call the provided task, leaving a duplicate ownership
   hop in the local screenshot execution path.
 - Change: deleted the pass-through module and kept
-  `local_backend_bridge_window_visibility.cjs` as the direct screenshot task
+  `local_runtime_window_visibility.cjs` as the direct screenshot task
   seam while updating docs to describe the current owner.
-- Validation: focused Jest run for `LocalBackendBridgeWindowVisibility`.
+- Validation: focused Jest run for `LocalRuntimeWindowVisibility`.
 - Compatibility: no migration required. Screenshot tool routing and task error
   propagation remain unchanged.
 

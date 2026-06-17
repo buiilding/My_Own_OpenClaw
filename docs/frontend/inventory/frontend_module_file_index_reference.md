@@ -55,9 +55,9 @@ Overlay/window control helpers:
 Bridge/support modules:
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_utils.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/permissions/permission_service.cjs`

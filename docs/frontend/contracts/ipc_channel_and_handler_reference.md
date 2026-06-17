@@ -155,7 +155,7 @@ memory user actions instead of these sidecar names.
 - `get-system-state`
 
 Mapped JSON-RPC bridge handler channels in
-`local_backend_bridge_rpc_mappers.cjs`:
+`local_runtime_rpc_mappers.cjs`:
 
 - `list-chat-conversations`
 - `search-chat-conversations`

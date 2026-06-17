@@ -33,7 +33,7 @@ title: "Frontend Inventory Protocols Hub"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`

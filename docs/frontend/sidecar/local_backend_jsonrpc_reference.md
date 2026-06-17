@@ -15,7 +15,7 @@ dispatches them through `LocalBackend.protocol.handle_request(...)`.
 ## Core Modules
 
 - Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- IPC->method mappers: `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- IPC->method mappers: `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - Sidecar daemon: `frontend/src/main/python/sidecar_daemon.py`
 - LocalBackend implementation: `frontend/src/main/python/local_backend.py`
 - Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
