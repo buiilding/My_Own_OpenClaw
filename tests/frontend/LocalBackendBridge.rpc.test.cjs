@@ -6,6 +6,7 @@ const path = require('path');
 
 const {
   createWindow,
+  getAppendDiagnosticEventMock,
   getLastWrittenRequest,
   initBridge,
   markReady,
@@ -57,6 +58,20 @@ describe('local_backend_bridge RPC handlers', () => {
     const { handlers } = initBridge();
 
     expect(handlers['execute-tool']).toBeUndefined();
+  });
+
+  test('emits local-runtime readiness in lifecycle diagnostics', () => {
+    const appendDiagnosticEvent = getAppendDiagnosticEventMock();
+
+    initBridge();
+
+    expect(appendDiagnosticEvent).toHaveBeenCalledWith(expect.objectContaining({
+      path: 'local_backend.lifecycle',
+      data: expect.objectContaining({
+        ready: false,
+        localRuntimeReady: false,
+      }),
+    }));
   });
 
   test('internal tool execution returns success for valid response', async () => {

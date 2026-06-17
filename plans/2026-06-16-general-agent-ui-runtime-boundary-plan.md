@@ -759,3 +759,18 @@ Each completed slice should report:
   in the generic dashboard shell stylesheet.
 - Compatibility: no migration required. The WindieOS skin still points to the
   same bundled app icon asset.
+
+### 2026-06-17 diagnostics local runtime readiness field
+
+- Finding: local sidecar lifecycle diagnostics still only exposed the legacy
+  `localBackendReady` readiness field, even though current renderer and main
+  terminology is local-runtime readiness.
+- Change: added a sanitized `localRuntimeReady` diagnostic field and populated
+  it from the local runtime bridge while preserving the legacy field/path for
+  existing diagnostics queries.
+- Validation: focused local bridge diagnostics test, source scan for readiness
+  fields, docs listing, and `git diff --check`. The sqlite-backed
+  `AppDiagnosticsStore` suite still cannot run in this environment because the
+  `sqlite3` CLI is unavailable (`spawnSync sqlite3 ENOENT`).
+- Compatibility: no migration required. Existing `local_backend.lifecycle`
+  diagnostic path ids and `localBackendReady` payloads remain accepted.

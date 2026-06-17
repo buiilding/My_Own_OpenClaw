@@ -392,6 +392,7 @@ describe('app diagnostics store', () => {
         status: 'ready',
         ready: true,
         localBackendReady: true,
+        localRuntimeReady: true,
         hasClient: true,
         hasDiscoveryPath: true,
         discoveryPath: '/Users/peter/private',
@@ -408,6 +409,7 @@ describe('app diagnostics store', () => {
       status: 'ready',
       ready: true,
       localBackendReady: true,
+      localRuntimeReady: true,
       hasClient: true,
       hasDiscoveryPath: true,
     }));

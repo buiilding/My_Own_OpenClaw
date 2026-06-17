@@ -81,8 +81,10 @@ function appendBrowserSessionDiagnostic(input = {}) {
 
 function buildLocalRuntimeDiagnosticData(extra = {}) {
   const snapshot = localRuntimeStatusSupervisor.getSnapshot();
+  const ready = snapshot.ready === true;
   return {
-    ready: snapshot.ready === true,
+    ready,
+    localRuntimeReady: ready,
     status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
     hasResolver: Boolean(ensureLocalRuntime),
     hasKnownRuntime: Boolean(resolveKnownLocalRuntime({ quiet: true })),

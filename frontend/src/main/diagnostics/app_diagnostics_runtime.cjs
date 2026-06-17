@@ -185,6 +185,7 @@ function appendLocalBackendLifecycleDiagnostic(input = {}, options = {}) {
       status: normalizeString(input.status),
       ready: booleanOrNull(input.ready),
       localBackendReady: booleanOrNull(input.localBackendReady),
+      localRuntimeReady: booleanOrNull(input.localRuntimeReady ?? input.localBackendReady),
       connected: booleanOrNull(input.connected),
       hasClient: booleanOrNull(input.hasClient),
       hasDiscoveryPath: booleanOrNull(input.hasDiscoveryPath),

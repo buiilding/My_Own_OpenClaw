@@ -92,6 +92,7 @@ const ALLOWED_DATA_KEYS = new Set([
   'status',
   'statusReason',
   'localBackendReady',
+  'localRuntimeReady',
   'connected',
   'busyAction',
   'action',
