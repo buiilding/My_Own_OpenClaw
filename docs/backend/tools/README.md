@@ -31,7 +31,7 @@ title: "Backend Tools Docs Hub"
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
 - [Tool Policy and Agent Capability Runtime Reference](policy/tool_policy_and_agent_capability_runtime_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
-- [Tool Domain and Category Enum Contract Reference](contracts/tool_domain_and_category_enum_contract_reference.md)
+- [Tool Domain Enum Contract Reference](contracts/tool_domain_and_category_enum_contract_reference.md)
 - [Computer Tool Schema Guidance Reference](contracts/computer_tool_schema_guidance_reference.md)
 - [System Tool Direct Schema and Remote Catalog Contract Reference](contracts/system_tool_direct_schema_and_remote_catalog_contract_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](contracts/schema_field_factory_explanation_and_post_action_wait_contract_reference.md)

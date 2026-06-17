@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for backend tool taxonomy enums: stable ToolDomain and ToolCategory string literals used by SDK and remote-tool registry surfaces."
+summary: "Deep reference for backend tool domain taxonomy: stable ToolDomain string literals used by SDK and remote-tool registry surfaces."
 read_when:
-  - When adding or renaming tool domain/category literals in `backend/src/tools/categorization.py`.
+  - When adding or renaming tool domain literals in `backend/src/tools/categorization.py`.
   - When debugging schema/registry behavior that depends on stable enum string values (`domain` fields in tool declarations).
-title: "Tool Domain and Category Enum Contract Reference"
+title: "Tool Domain Enum Contract Reference"
 ---
 
-# Tool Domain and Category Enum Contract Reference
+# Tool Domain Enum Contract Reference
 
 ## Canonical Modules
 
@@ -32,23 +32,9 @@ Current literals:
 
 `ToolDomain` inherits from `str` + `Enum`, so values remain string-compatible in schema serialization and JSON payloads.
 
-## Category Enum Contract (`ToolCategory`)
-
-Current literals:
-
-- `browser`
-- `terminal`
-- `editor`
-- `file_operation`
-- `system_info`
-- `search`
-- `utility`
-
-Categories are intentionally more granular than domains and can be used by future discovery/filtering paths without changing high-level domain routing.
-
 ## Stability Expectations
 
-- enum values are part of backend/frontend contract surface
+- domain enum values are part of backend/frontend contract surface
 - string literal changes are breaking for persisted configs, tests, and tool declaration consumers
 - adding new values should preserve existing literals and avoid repurposing old names
 
@@ -64,7 +50,7 @@ Categories are intentionally more granular than domains and can be used by futur
 
 1. Renaming existing literals breaks remote tool declarations and parser validation assumptions.
 2. Switching away from `str` enum inheritance breaks JSON serialization compatibility.
-3. Domain/category overlap changes can silently affect discovery UIs that group by one or both enums.
+3. Adding a second taxonomy should start from a live consumer and contract test rather than a speculative enum.
 
 ## Related Pages
 

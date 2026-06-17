@@ -169,7 +169,7 @@ Covers:
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
 - [Tool Policy and Agent Capability Runtime Reference](tools/policy/tool_policy_and_agent_capability_runtime_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
-- [Tool Domain and Category Enum Contract Reference](tools/contracts/tool_domain_and_category_enum_contract_reference.md)
+- [Tool Domain Enum Contract Reference](tools/contracts/tool_domain_and_category_enum_contract_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](tools/contracts/schema_field_factory_explanation_and_post_action_wait_contract_reference.md)
 - [Tool Execution Result and Batch Dataclass Contract Reference](tools/contracts/tool_execution_result_and_batch_dataclass_contract_reference.md)
 - [Tool Result Helper Object Creation and Default Timing Contract Reference](tools/contracts/tool_result_helper_object_creation_and_default_timing_contract_reference.md)

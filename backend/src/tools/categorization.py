@@ -15,14 +15,3 @@ class ToolDomain(str, Enum):
     MARKETPLACE = "marketplace"
     MEMORY = "memory"
     OTHER = "other"
-
-
-class ToolCategory(str, Enum):
-    """Enumeration of tool categories (more granular than domains)."""
-    BROWSER = "browser"
-    TERMINAL = "terminal"
-    EDITOR = "editor"
-    FILE_OPERATION = "file_operation"
-    SYSTEM_INFO = "system_info"
-    SEARCH = "search"
-    UTILITY = "utility"

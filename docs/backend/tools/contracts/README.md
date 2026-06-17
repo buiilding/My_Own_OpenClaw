@@ -1,5 +1,5 @@
 ---
-summary: "Backend tools contract docs sub-hub for tool domain/category enums, shared schema field factories, and typed tool-result container/helper construction semantics."
+summary: "Backend tools contract docs sub-hub for tool domain enums, shared schema field factories, and typed tool-result container/helper construction semantics."
 read_when:
   - When changing shared tool contracts in `backend/src/tools/{categorization,schema_fields,result_types,result_helpers}.py`.
   - When debugging schema description drift, tool-result object shape mismatches, or enum/domain contract regressions.
@@ -10,7 +10,7 @@ title: "Backend Tools Contracts Docs Hub"
 
 ## Deep Pages
 
-- [Tool Domain and Category Enum Contract Reference](tool_domain_and_category_enum_contract_reference.md)
+- [Tool Domain Enum Contract Reference](tool_domain_and_category_enum_contract_reference.md)
 - [Computer Tool Schema Guidance Reference](computer_tool_schema_guidance_reference.md)
 - [System Tool Direct Schema and Remote Catalog Contract Reference](system_tool_direct_schema_and_remote_catalog_contract_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](schema_field_factory_explanation_and_post_action_wait_contract_reference.md)
