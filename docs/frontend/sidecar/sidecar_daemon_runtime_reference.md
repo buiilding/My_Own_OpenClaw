@@ -28,7 +28,13 @@ The daemon:
 
 The daemon is the single local memory owner. Electron should route legacy local JSON-RPC calls through daemon `POST /rpc` instead of spawning standalone `local_backend.py` beside it. A second `LocalBackend` process can race SQLite writes while embedding backfill is running.
 
-Default discovery path:
+Electron desktop launch discovery path:
+
+```text
+${TMPDIR}/desktop-agent/sidecar-daemon.json
+```
+
+Standalone SDK/Python daemon defaults remain:
 
 ```text
 ${TMPDIR}/windieos/sidecar-daemon.json

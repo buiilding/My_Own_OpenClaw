@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Main: default Electron desktop sidecar daemon discovery files to the generic desktop agent temp directory while leaving standalone SDK/Python defaults documented separately.
+
 - frontend/renderer: remove permission onboarding reads from the old
   `windieos-permission-onboarding` localStorage key so only the current
   desktop-agent completion key can satisfy startup onboarding.
@@ -1607,6 +1609,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Main: default Electron desktop sidecar daemon discovery files to the generic desktop agent temp directory while leaving standalone SDK/Python defaults documented separately.
+
 - docs: Record the removed dormant context-label renderer route in the runtime boundary plan.
 
 - main/sidecar: Use a generic desktop agent screenshot temp directory while keeping legacy WindieOS temp paths readable.
@@ -3107,6 +3111,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Main: default Electron desktop sidecar daemon discovery files to the generic desktop agent temp directory while leaving standalone SDK/Python defaults documented separately.
+
 - docs: Record the removed dormant context-label renderer route in the runtime boundary plan.
 
 - main/sidecar: Use a generic desktop agent screenshot temp directory while keeping legacy WindieOS temp paths readable.
@@ -3261,6 +3267,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Main: default Electron desktop sidecar daemon discovery files to the generic desktop agent temp directory while leaving standalone SDK/Python defaults documented separately.
 
 - docs: Record the removed dormant context-label renderer route in the runtime boundary plan.
 
@@ -3446,6 +3454,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Main: default Electron desktop sidecar daemon discovery files to the generic desktop agent temp directory while leaving standalone SDK/Python defaults documented separately.
 
 - docs: Record the removed dormant context-label renderer route in the runtime boundary plan.
 
@@ -5587,6 +5597,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Main: default Electron desktop sidecar daemon discovery files to the generic desktop agent temp directory while leaving standalone SDK/Python defaults documented separately.
 
 - docs: Record the removed dormant context-label renderer route in the runtime boundary plan.
 

@@ -60,6 +60,17 @@ describe('sdk sidecar launch options', () => {
     expect(typeof plan.options.onStderrLine).toBe('function');
   });
 
+  test('desktop launch uses a generic daemon discovery path by default', () => {
+    const plan = createDesktopAutoSidecarLaunchPlan({
+      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+    });
+
+    expect(plan.ok).toBe(true);
+    expect(plan.options.discoveryFile).toBe(
+      path.join(os.tmpdir(), 'desktop-agent', 'sidecar-daemon.json'),
+    );
+  });
+
   test('sidecar daemon lines write to sidecar log layer and stderr stream', () => {
     const originalEnv = process.env;
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-sidecar-log-'));

@@ -819,3 +819,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Main process does not instantiate a
   context-label window; an accidental old `view=chatbox-context-label` URL now
   falls back to the default app route until a real renderer surface is restored.
+
+### 2026-06-17 main desktop sidecar discovery path
+
+- Finding: the generic Electron desktop launch-plan builder still defaulted its
+  sidecar daemon discovery file under a WindieOS-specific temp directory.
+- Change: changed the Electron desktop `autoSidecar.discoveryFile` default to
+  `${os.tmpdir()}/desktop-agent/sidecar-daemon.json` and added focused launch
+  option coverage. Standalone SDK/Python daemon defaults are documented as a
+  separate compatibility path.
+- Validation: focused sidecar launch-options test, docs listing,
+  `git diff --check`, and source scan for desktop/legacy daemon discovery path
+  names.
+- Compatibility: no persisted migration is required. Electron desktop launches
+  own a fresh sidecar (`reuseExisting:false`) and pass an explicit discovery
+  file to the SDK provider; public standalone SDK/Python defaults are unchanged.
