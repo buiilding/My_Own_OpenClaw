@@ -6,7 +6,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AgentSession = exports.createWindieAgentBackendTransport = exports.WindieAgentSession = exports.createWindieAgentSession = void 0;
+exports.WindieAgentSession = exports.createWindieAgentBackendTransport = exports.AgentSession = exports.createWindieAgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
 exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
@@ -58,7 +58,7 @@ function createAgentSession(options) {
         ? { headers: options.headers }
         : undefined;
     const socket = new WebSocketImpl(wsUrl, socketOptions);
-    return new WindieAgentSession(socket, {
+    return new AgentSession(socket, {
         user_id: options.userId,
         operating_system: options.operatingSystem,
         agent_definition: options.agentDefinition,
@@ -96,7 +96,7 @@ function normalizeClosePayload(payload) {
         wasClean: typeof candidate.wasClean === 'boolean' ? candidate.wasClean : undefined,
     };
 }
-class WindieAgentSession {
+class AgentSession {
     constructor(socket, handshake) {
         this.socket = socket;
         this.handshake = handshake;
@@ -244,8 +244,7 @@ class WindieAgentSession {
         });
     }
 }
-exports.WindieAgentSession = WindieAgentSession;
-exports.AgentSession = WindieAgentSession;
+exports.AgentSession = AgentSession;
 function createAgentBackendTransport(session, conversationRef, agentDefinition) {
     return {
         connect: async () => session.waitForOpen(),
@@ -309,6 +308,7 @@ function createAgentBackendTransport(session, conversationRef, agentDefinition) 
     };
 }
 exports.createWindieAgentBackendTransport = createAgentBackendTransport;
+exports.WindieAgentSession = AgentSession;
 function cloneJsonRecord(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return {};

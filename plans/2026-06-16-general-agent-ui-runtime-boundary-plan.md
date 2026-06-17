@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK generic agent session class
+
+- Finding: the SDK transport factory exposed generic session type aliases, but
+  its concrete websocket session class was still `WindieAgentSession` with
+  `AgentSession` layered on as an alias.
+- Change: made `AgentSession` the canonical session class, kept
+  `WindieAgentSession` as the compatibility value/type alias, regenerated CJS
+  output, and tightened package-boundary coverage for the alias relationship.
+- Validation: focused SDK package-boundary/type/CJS checks, docs listing, and
+  diff check.
+- Compatibility: no migration required. Existing `WindieAgentSession` and
+  `createWindieAgentSession` imports continue to resolve to the same runtime
+  implementation.
+
 ### 2026-06-17 main local runtime metadata invalidation channel
 
 - Finding: the main local-runtime status broadcaster still sent conversation

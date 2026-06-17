@@ -138,7 +138,7 @@ export function createMessageId(): string {
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function createAgentSession(options: AgentSessionOptions): WindieAgentSession {
+export function createAgentSession(options: AgentSessionOptions): AgentSession {
   const wsUrl = options.wsUrl
     ? normalizeWsUrl(options.wsUrl)
     : deriveWsUrl(options.backendUrl);
@@ -147,7 +147,7 @@ export function createAgentSession(options: AgentSessionOptions): WindieAgentSes
     ? { headers: options.headers }
     : undefined;
   const socket = new WebSocketImpl(wsUrl, socketOptions);
-  return new WindieAgentSession(socket, {
+  return new AgentSession(socket, {
     user_id: options.userId,
     operating_system: options.operatingSystem,
     agent_definition: options.agentDefinition,
@@ -194,7 +194,7 @@ function normalizeClosePayload(payload: unknown): { code?: number; reason?: stri
   };
 }
 
-export class WindieAgentSession {
+export class AgentSession {
   private readonly listeners = new Map<AgentSessionEventName, Set<AgentSessionListener<unknown>>>();
   private readonly detachSocketListeners: Array<() => void> = [];
   private readonly readyPromise: Promise<void>;
@@ -449,7 +449,8 @@ export function createAgentBackendTransport(
 
 export const createWindieAgentBackendTransport = createAgentBackendTransport;
 
-export { WindieAgentSession as AgentSession };
+export type WindieAgentSession = AgentSession;
+export const WindieAgentSession = AgentSession;
 
 function cloneJsonRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

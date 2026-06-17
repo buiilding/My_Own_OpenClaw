@@ -6,9 +6,11 @@ import {
   AgentClient,
   Agent,
   AgentHostedBackendClient,
+  AgentSession,
   WindieAgent,
   WindieClient,
   WindieSdkClient,
+  WindieAgentSession,
   InMemoryConversationStore,
   SdkConversationRuntime,
   SDK_RUNTIME_COMMANDS,
@@ -93,6 +95,7 @@ describe('@windie/sdk package boundary', () => {
     expect(createWindieAgentBackendTransport).toBe(createAgentBackendTransport);
     expect(createWindieSdkBackendSocket).toBe(createAgentBackendSocket);
     expect(createManagedWindieAgentSession).toBe(createManagedAgentSession);
+    expect(WindieAgentSession).toBe(AgentSession);
     expect(WindieChatSession).toBe(AgentChatSession);
     expect(createWindieLocalRuntimeProvider).toBe(createAgentLocalRuntimeProvider);
     expect(buildDisplayConversation).toBeDefined();

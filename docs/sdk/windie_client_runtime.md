@@ -62,8 +62,9 @@ Ownership rules:
   defines the public `AgentSessionOptions`, `AgentQueryInput`,
   `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
   `createAgentSession`, and `createAgentBackendTransport` contracts alongside
-  `WebSocketLike` and `WebSocketConstructor`. The Windie-prefixed session names
-  remain compatibility aliases. `BackendSocketFactory.ts` exposes
+  `WebSocketLike` and `WebSocketConstructor`. `AgentSession` is the canonical
+  websocket session class, and the Windie-prefixed session names remain
+  compatibility aliases. `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`, with
   `createWindieSdkBackendSocket` and `WindieSdkBackendSocketOptions` kept as
   compatibility aliases. `ManagedWindieAgentSession.ts` exposes the same pattern
