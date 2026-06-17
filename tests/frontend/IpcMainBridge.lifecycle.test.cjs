@@ -311,6 +311,16 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       pendingTurn,
     });
 
+    mainWindow.webContents.send.mockClear();
+    replayWindow.webContents.send.mockClear();
+    handlers['windie:pending-turn']({}, {
+      type: 'clear',
+      conversation_ref: 'conv-pending',
+      turn_ref: 'turn-pending',
+    });
+    expect(mainWindow.webContents.send).not.toHaveBeenCalled();
+    expect(replayWindow.webContents.send).not.toHaveBeenCalled();
+
     handlers['windie:pending-turn']({}, {
       type: 'clear',
       conversationRef: 'conv-pending',

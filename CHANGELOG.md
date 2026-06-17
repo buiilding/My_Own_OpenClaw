@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: remove snake_case pending-turn clear helper aliases so `windie:pending-turn` clear filters use only `conversationRef` and `turnRef`; clear payloads containing removed snake_case fields are ignored. No migration is required because renderer pending-turn IPC already sends camelCase fields and backend stop-query payloads remain separate.
+
 - packages/sdk-js: align the checked-in CJS AgentDefinition builder with the TypeScript source so removed `agents_md` SDK input aliases are rejected while generated backend wire `agents_md` remains unchanged. No migration is required for first-party callers; CJS SDK callers must use `agentsMd`.
 
 - tests/frontend: remove the stale `turn_ref` retry command fixture from the replay IPC bridge coverage so `conversation.prepareRetryTurn` tests exercise the canonical `turnRef` path. No migration is required because this is test-only alignment with an already-enforced SDK command contract.

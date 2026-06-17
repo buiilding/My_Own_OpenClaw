@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 pending-turn clear alias removal
+
+- Finding: Electron main pending-turn clear helpers still accepted
+  `conversation_ref` and `turn_ref` helper aliases, and a snake_case clear
+  payload could accidentally behave like an unfiltered clear.
+- Change: made pending-turn matching and clear broadcasts read only
+  `conversationRef` and `turnRef`, and ignored clear payloads that contain the
+  removed snake_case filter fields.
+- Validation: focused Electron main lifecycle pending-turn coverage, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Renderer pending-turn IPC already emits
+  camelCase fields; backend stop-query payloads remain snake_case separately.
+
 ### 2026-06-17 CJS agent definition alias parity
 
 - Finding: the TypeScript `buildAgentDefinition` source rejected removed

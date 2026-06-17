@@ -1357,10 +1357,8 @@ function pendingTurnMatchesTarget(pendingTurn, input = {}) {
   if (!pendingTurn) {
     return false;
   }
-  const conversationRef = normalizeOptionalString(input.conversationRef)
-    || normalizeOptionalString(input.conversation_ref);
-  const turnRef = normalizeOptionalString(input.turnRef)
-    || normalizeOptionalString(input.turn_ref);
+  const conversationRef = normalizeOptionalString(input.conversationRef);
+  const turnRef = normalizeOptionalString(input.turnRef);
   return (
     (!conversationRef || pendingTurn.conversationRef === conversationRef)
     && (!turnRef || pendingTurn.turnRef === turnRef)
@@ -1377,10 +1375,8 @@ function clearLatestPendingTurn(input = {}) {
     broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
       type: 'clear',
       conversationRef: normalizeOptionalString(input.conversationRef)
-        || normalizeOptionalString(input.conversation_ref)
         || pendingTurn.conversationRef,
       turnRef: normalizeOptionalString(input.turnRef)
-        || normalizeOptionalString(input.turn_ref)
         || pendingTurn.turnRef,
     });
   }
@@ -1730,6 +1726,12 @@ function initializeIpc(win, options = {}) {
       ? payload
       : {};
     if (source.type === 'clear') {
+      if (
+        Object.prototype.hasOwnProperty.call(source, 'conversation_ref')
+        || Object.prototype.hasOwnProperty.call(source, 'turn_ref')
+      ) {
+        return;
+      }
       const conversationRef = typeof source.conversationRef === 'string' && source.conversationRef.trim()
         ? source.conversationRef.trim()
         : null;

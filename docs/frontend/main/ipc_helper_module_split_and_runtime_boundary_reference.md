@@ -226,7 +226,9 @@ dependencies such as `ensureAgent`:
   `{ type: "pending", pendingTurn }`; main stores the latest normalized
   pending turn, broadcasts it to sibling renderers, replays it to late windows,
   and clears it on explicit `{ type: "clear" }`, matching SDK current-turn
-  projection, or stop of the matching pending turn
+  projection, or stop of the matching pending turn. Explicit clear filters use
+  `conversationRef` and `turnRef`; removed snake_case filter fields are ignored
+  instead of being treated as aliases.
 
 Removed preflight invoke path:
 
