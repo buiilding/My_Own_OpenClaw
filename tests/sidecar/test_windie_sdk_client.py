@@ -514,8 +514,34 @@ async def test_wake_up_requires_user_id_when_no_default_is_configured():
     client = WindieSdkClient(backend_url="https://api.windieos.com")
     client._session = DummyWsSession(FakeWebSocket())
 
-    with pytest.raises(Exception, match="requires a user_id or default_user_id"):
+    with pytest.raises(
+        Exception, match="Agent SDK wake_up requires a user_id or default_user_id"
+    ):
         await client.wake_up()
+
+
+@pytest.mark.asyncio
+async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path):
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        auto_start_local_runtime=False,
+        sidecar_discovery_file=str(tmp_path / "missing-sidecar.json"),
+    )
+
+    with pytest.raises(
+        Exception,
+        match="Agent SDK local runtime is required but auto-start is disabled",
+    ):
+        await client.wake_up(
+            tools=[
+                {
+                    "name": "save_note",
+                    "module": "my_project.tools:save_note",
+                    "schema": {"type": "object", "properties": {}},
+                }
+            ],
+        )
 
 
 @pytest.mark.asyncio

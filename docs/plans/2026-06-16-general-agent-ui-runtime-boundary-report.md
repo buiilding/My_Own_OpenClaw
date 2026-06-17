@@ -506,6 +506,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local tool contract is selected workspace context.
 - Change: updated the sidecar shell tool manifest and generated builtin
   manifest snapshot to use generic selected-workspace wording.
+- Finding: the Python SDK wake-up and local-runtime preflight failures still
+  reported through the public `WindieSdkClient` class name instead of the
+  generic Agent SDK runtime boundary.
+- Change: changed those Python SDK diagnostics and module docstring to generic
+  Agent SDK wording while preserving public package/class exports.
 
 ## Remaining Findings
 
@@ -578,3 +583,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   trust boundaries.
 - Sidecar shell tool descriptions now refer to the selected workspace folder
   instead of embedding WindieOS product naming in executable tool metadata.
+- Python SDK wake-up and local-runtime preflight diagnostics now use generic
+  Agent SDK wording. Public Python package and class names remain unchanged.

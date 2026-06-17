@@ -93,6 +93,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/config: remove the unused `ConfigurationService.build_user_config`
   facade so runtime config policy stays on the active config manager/update
   path.
+- backend/tools: remove the unused `ToolCategory` enum and narrow tool
+  taxonomy docs/tests to the live `ToolDomain` contract.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

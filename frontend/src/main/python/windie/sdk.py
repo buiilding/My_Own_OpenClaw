@@ -1,5 +1,5 @@
 """
-Transport-only Python client for the hosted Windie SDK surface.
+Transport-only Python client for the hosted Agent SDK surface.
 """
 
 from __future__ import annotations
@@ -1481,7 +1481,7 @@ class WindieSdkClient(RemoteApiClientBase):
             effective_user_id = get_authenticated_user_id()
         if not isinstance(effective_user_id, str) or not effective_user_id.strip():
             raise Exception(
-                "WindieSdkClient.wake_up requires a user_id or default_user_id"
+                "Agent SDK wake_up requires a user_id or default_user_id"
             )
 
         last_network_error: Optional[Exception] = None
@@ -1581,7 +1581,7 @@ class WindieSdkClient(RemoteApiClientBase):
             return discovered
         if not self.auto_start_local_runtime:
             raise Exception(
-                "WindieSdkClient local runtime is required but auto-start is disabled"
+                "Agent SDK local runtime is required but auto-start is disabled"
             )
         self.sidecar_discovery_file.parent.mkdir(parents=True, exist_ok=True)
         daemon_script = _resolve_daemon_script(self.sidecar_daemon_script)
