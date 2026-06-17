@@ -287,6 +287,8 @@ Primary modules:
     this boundary instead of being embedded in host/runtime modules.
   - MCP client identity should be supplied by this boundary when Electron main
     refreshes extension MCP tools; the MCP runtime default remains generic.
+  - Layer-log product prefixes should be supplied by this boundary on app/script
+    paths; the shared log sink default remains generic.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.

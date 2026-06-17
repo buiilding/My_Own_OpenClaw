@@ -39,6 +39,7 @@ function createWindowBootstrapRuntime(deps) {
         : null,
       initializeMainProcessIpc: deps.initializeMainProcessIpc,
       getLatestFrontendConfig: deps.getLatestFrontendConfig,
+      mainHostSkin: deps.mainHostSkin,
       getWindows: () => deps.getState().windows,
       getMainWindowMode: deps.getMainWindowMode,
       setMainWindow: deps.setMainWindow,
@@ -80,6 +81,7 @@ function createWindowBootstrapRuntime(deps) {
       setChatWindow: deps.setChatWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      mainHostSkin: deps.mainHostSkin,
       log: (...args) => deps.log(...args),
       warn: (...args) => deps.warn(...args),
     });
@@ -109,6 +111,7 @@ function createWindowBootstrapRuntime(deps) {
       setResponseWindow: deps.setResponseWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      mainHostSkin: deps.mainHostSkin,
       log: (...args) => deps.log(...args),
       warn: (...args) => deps.warn(...args),
     });

@@ -137,6 +137,7 @@ function runConcurrent(processes) {
     if (item.logLayer) {
       appendLayerLogSessionBanner(item.logLayer, {
         sessionLabel: `${item.label} child process log session`,
+        logPrefix: '[WindieOS]',
       });
     }
     const platformCommand = commandForPlatform(item.command, item.args || []);

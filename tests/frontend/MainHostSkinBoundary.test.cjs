@@ -10,6 +10,7 @@ const indexPath = path.join(mainRoot, 'index.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
+const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
 const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_screen_capture.cjs');
@@ -26,6 +27,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
+    expect(skinSource).toContain('logPrefix');
     expect(skinSource).toContain('browserAutomation');
     expect(skinSource).toContain('macAutomation');
     expect(skinSource).toContain('localBackendNotReady');
@@ -91,5 +93,12 @@ describe('main host skin/config boundary', () => {
 
     expect(source).toContain("name: 'Desktop Agent'");
     expect(source).not.toContain("name: 'WindieOS'");
+  });
+
+  test('layer log sink uses generic defaults instead of product prefix', () => {
+    const source = fs.readFileSync(layerLogSinkPath, 'utf8');
+
+    expect(source).toContain("DEFAULT_LOG_PREFIX = '[Desktop Agent]'");
+    expect(source).not.toContain('[WindieOS]');
   });
 });

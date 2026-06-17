@@ -44,6 +44,7 @@ describe('layer_log_sink', () => {
       env: { WINDIE_VITE_LOG_FILE: logFile },
       now: () => new Date('2026-06-14T00:00:00.000Z'),
       sessionLabel: 'frontend child process log session',
+      logPrefix: '[WindieOS]',
     })).toBe(true);
 
     expect(fs.readFileSync(logFile, 'utf8')).toContain(
@@ -60,6 +61,7 @@ describe('layer_log_sink', () => {
       env,
       now: () => new Date('2026-06-14T00:00:00.000Z'),
       sessionLabel: 'main renderer verbose console log session',
+      logPrefix: '[WindieOS]',
     })).toBe(true);
     expect(appendRendererVerboseLogLine('[Renderer][main][console:0] [vite] connected.', { env }))
       .toBe(true);

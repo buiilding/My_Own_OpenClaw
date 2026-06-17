@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest commit for this plan: `27a157a12` (`refactor(frontend): skin main host identity`)
+- Latest commit for this plan: `d2f27710d` (`refactor(frontend): skin mcp client identity`)
 
 ## Inspection Log
 
@@ -105,6 +105,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: MCP runtime tests now prove configured client info reaches the initialize request.
 - Validation gap: `McpControl.test.cjs` was attempted but this environment lacks `sqlite3`, which that test's diagnostics helper requires.
 
+### 2026-06-16 Main Log Prefix Skin Slice
+
+- Concurrent-work recovery: backend cache cleanup changes were staged in the working tree and treated as unrelated context.
+- Finding: the shared layer log sink embedded `[WindieOS]` as its default session/error prefix.
+- Decision: make the log sink default generic and pass `mainHostSkin.identity.logPrefix` through app/runtime call paths that should keep WindieOS log branding.
+- Change: main console logging, main-window renderer console banners, and Windie CLI layer-log helpers now pass `[WindieOS]` explicitly.
+- Change: layer log sink tests now pass app-specific prefixes explicitly, and the host boundary test guards that the reusable sink no longer embeds `[WindieOS]`.
+- Validation gap: `WindieCli.test.cjs` was attempted but this environment lacks `sqlite3`, which its conversation export tests require.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -116,6 +125,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Query failure/interruption event builders consume injected host skin copy.
 - [x] SDK agent name and tray tooltip read product identity from the host skin.
 - [x] MCP client identity reads product identity from the host skin on the app path.
+- [x] Layer log product prefix reads product identity from the host skin on app/script paths.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -150,10 +160,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs` passed.
 - `git diff --check` passed.
 - `rg -n "name: 'WindieOS'|mcpClientInfo|Desktop Agent|clientInfo: mainHostSkin.identity.mcpClientInfo" frontend/src/main tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/McpRuntime.test.cjs` found expected skin/test matches and generic MCP runtime default.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/LayerLogSink.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/WindieRunLayerLog.test.cjs ../tests/frontend/WindieCli.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs` failed only in `WindieCli.test.cjs` because local `sqlite3` is unavailable for its conversation export setup.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/LayerLogSink.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/WindieRunLayerLog.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs` passed.
+- `git diff --check` passed.
+- `rg -n "\\[WindieOS\\]|DEFAULT_LOG_PREFIX|logPrefix" frontend/src/main/logging/layer_log_sink.cjs frontend/src/main/app/main_host_skin.cjs frontend/src/main/index.cjs frontend/src/main/surfaces tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/LayerLogSink.test.cjs scripts/windie` found expected skin/script/test matches and generic log sink default.
 
 ## Remaining Findings
 
 - Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
 - Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
 - Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
-- Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, and MCP client identity now read related product copy from a host skin. Remaining main-boundary candidates include wakeword/sidecar reinstall messages, logging prefixes, browser onboarding explanation copy, OAuth return copy, and other product-specific host defaults that may belong in a broader main host config.
+- Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, and layer-log prefixes now read related product copy from a host skin. Remaining main-boundary candidates include wakeword/sidecar reinstall messages, browser onboarding explanation copy, OAuth return copy, and other product-specific host defaults that may belong in a broader main host config.

@@ -11,6 +11,7 @@ const LOG_DIR = path.join(REPO_ROOT, '.windie', 'logs');
 const VALID_LOG_LAYERS = new Set(['frontend', 'vite', 'main', 'renderer', 'sidecar']);
 const RENDERER_VERBOSE_LOG_FILE_NAME = 'renderer.verbose.log';
 const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__windieConsoleStreamErrorGuardInstalled';
+const DEFAULT_LOG_PREFIX = '[Desktop Agent]';
 
 function normalizeLayer(layer) {
   const normalized = String(layer || '').trim().toLowerCase();
@@ -52,6 +53,7 @@ function resolveRendererVerboseLogFile(env = process.env) {
 function ensureLogFile(logFile, {
   fsImpl = fs,
   initialLines = null,
+  logPrefix = DEFAULT_LOG_PREFIX,
 } = {}) {
   if (!logFile) {
     return null;
@@ -60,7 +62,7 @@ function ensureLogFile(logFile, {
   if (!fsImpl.existsSync(logFile)) {
     const lines = Array.isArray(initialLines)
       ? initialLines
-      : ['[WindieOS] log file initialized.', ''];
+      : [`${logPrefix} log file initialized.`, ''];
     fsImpl.writeFileSync(logFile, lines.join('\n'));
   }
   return logFile;
@@ -71,6 +73,7 @@ function createLayerLogStream(layer, {
   fsImpl = fs,
   now = () => new Date(),
   sessionLabel = null,
+  logPrefix = DEFAULT_LOG_PREFIX,
 } = {}) {
   const normalizedLayer = normalizeLayer(layer);
   const logFile = resolveLayerLogFile(normalizedLayer, env);
@@ -80,9 +83,9 @@ function createLayerLogStream(layer, {
   fsImpl.mkdirSync(path.dirname(logFile), { recursive: true });
   const stream = fsImpl.createWriteStream(logFile, { flags: 'a' });
   const label = sessionLabel || `${normalizedLayer} log session`;
-  stream.write(`\n[WindieOS] ${label} ${now().toISOString()}\n`);
+  stream.write(`\n${logPrefix} ${label} ${now().toISOString()}\n`);
   stream.on?.('error', (error) => {
-    process.stderr.write(`[WindieOS] Failed to write ${normalizedLayer} log: ${error.message}\n`);
+    process.stderr.write(`${logPrefix} Failed to write ${normalizedLayer} log: ${error.message}\n`);
   });
   return stream;
 }
@@ -196,12 +199,13 @@ function appendLayerLogSessionBanner(layer, {
   fsImpl = fs,
   now = () => new Date(),
   sessionLabel = null,
+  logPrefix = DEFAULT_LOG_PREFIX,
 } = {}) {
   const normalizedLayer = normalizeLayer(layer);
   const label = sessionLabel || `${normalizedLayer} log session`;
   return appendLayerLogLine(
     normalizedLayer,
-    `\n[WindieOS] ${label} ${now().toISOString()}`,
+    `\n${logPrefix} ${label} ${now().toISOString()}`,
     { env, fsImpl },
   );
 }
@@ -211,9 +215,10 @@ function appendRendererVerboseLogSessionBanner({
   fsImpl = fs,
   now = () => new Date(),
   sessionLabel = 'renderer verbose console log session',
+  logPrefix = DEFAULT_LOG_PREFIX,
 } = {}) {
   return appendRendererVerboseLogLine(
-    `\n[WindieOS] ${sessionLabel} ${now().toISOString()}`,
+    `\n${logPrefix} ${sessionLabel} ${now().toISOString()}`,
     { env, fsImpl },
   );
 }
@@ -225,6 +230,7 @@ function installConsoleLayerLog({
   methods = ['log', 'info', 'warn', 'error', 'debug'],
   processObject = process,
   sessionLabel = null,
+  logPrefix = DEFAULT_LOG_PREFIX,
 } = {}) {
   const normalizedLayer = normalizeLayer(layer);
   installConsoleStreamErrorGuards({ processObject });
@@ -234,6 +240,7 @@ function installConsoleLayerLog({
   appendLayerLogSessionBanner(normalizedLayer, {
     env,
     sessionLabel: sessionLabel || `${normalizedLayer} console log session`,
+    logPrefix,
   });
   const originals = {};
   methods.forEach((method) => {

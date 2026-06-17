@@ -12,6 +12,7 @@ const identity = Object.freeze({
     name: productName,
     version: '0.6.23',
   }),
+  logPrefix: `[${productName}]`,
 });
 
 const browserAutomation = Object.freeze({

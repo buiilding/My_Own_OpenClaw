@@ -488,6 +488,7 @@ function ensureWindieLayerLogFile(target, logFile, { verbose = false } = {}) {
     throw new Error(`${displayTarget} log capture is disabled by ${envKey}.`);
   }
   ensureLogFile(logFile, {
+    logPrefix: '[WindieOS]',
     initialLines: [
       `[WindieOS] ${displayTarget} log file initialized.`,
       'Start a desktop run with: bin/windie start dev',

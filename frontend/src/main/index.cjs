@@ -106,7 +106,10 @@ const {
   installConsoleLayerLog,
 } = require('./logging/layer_log_sink.cjs');
 
-installConsoleLayerLog({ layer: 'main' });
+installConsoleLayerLog({
+  layer: 'main',
+  logPrefix: mainHostSkin.identity.logPrefix,
+});
 configureGpuRuntime({ app, env: process.env });
 
 const WAKEWORD_HOTKEY = process.platform === 'win32'

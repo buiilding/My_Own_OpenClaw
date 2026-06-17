@@ -194,6 +194,7 @@ function createMainWindow({
   getMainWindowMode = () => 'dashboard',
   setMainWindow,
   syncWindowDisplayAffinity = () => {},
+  mainHostSkin = {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
@@ -225,6 +226,7 @@ function createMainWindow({
   attachRendererConsoleLogging({
     targetWindow: mainWindow,
     view: 'main',
+    logPrefix: mainHostSkin?.identity?.logPrefix,
   });
   loadRendererView({
     targetWindow: mainWindow,
@@ -324,6 +326,7 @@ function createChatWindow({
   setChatWindow,
   applyOverlayWindowPolicy = null,
   syncWindowDisplayAffinity = () => {},
+  mainHostSkin = {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
@@ -349,6 +352,7 @@ function createChatWindow({
   attachRendererConsoleLogging({
     targetWindow: chatWindow,
     view: 'chat-pill',
+    logPrefix: mainHostSkin?.identity?.logPrefix,
   });
   applyOverlayPolicy({
     targetWindow: chatWindow,
@@ -417,6 +421,7 @@ function createResponseWindow({
   syncContextLabelWindowVisibility,
   setResponseWindow,
   applyOverlayWindowPolicy = null,
+  mainHostSkin = {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
@@ -443,6 +448,7 @@ function createResponseWindow({
   attachRendererConsoleLogging({
     targetWindow: responseWindow,
     view: enableOsToolGhostDebug ? responseWindowDebugView : 'response-overlay',
+    logPrefix: mainHostSkin?.identity?.logPrefix,
   });
   applyOverlayPolicy({
     targetWindow: responseWindow,

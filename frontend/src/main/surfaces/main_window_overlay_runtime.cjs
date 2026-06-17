@@ -60,6 +60,7 @@ function attachRendererConsoleLogging({
   writeSessionBanner = appendLayerLogSessionBanner,
   writeVerboseLogLine = appendRendererVerboseLogLine,
   writeVerboseSessionBanner = appendRendererVerboseLogSessionBanner,
+  logPrefix = undefined,
 } = {}) {
   const webContents = targetWindow?.webContents;
   if (!webContents || typeof webContents.on !== 'function') {
@@ -68,12 +69,16 @@ function attachRendererConsoleLogging({
   if (webContents.__windieRendererConsoleLoggingAttached) {
     return false;
   }
-  writeSessionBanner('renderer', {
+  const sessionBannerOptions = {
     sessionLabel: `${view} renderer console log session`,
-  });
-  writeVerboseSessionBanner({
+    ...(logPrefix ? { logPrefix } : {}),
+  };
+  const verboseSessionBannerOptions = {
     sessionLabel: `${view} renderer verbose console log session`,
-  });
+    ...(logPrefix ? { logPrefix } : {}),
+  };
+  writeSessionBanner('renderer', sessionBannerOptions);
+  writeVerboseSessionBanner(verboseSessionBannerOptions);
   webContents.on('console-message', (...args) => {
     const details = normalizeConsoleMessagePayload(args);
     const line = formatRendererConsoleLogLine({
