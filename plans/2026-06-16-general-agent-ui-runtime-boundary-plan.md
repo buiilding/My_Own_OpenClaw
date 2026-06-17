@@ -2046,3 +2046,24 @@ Each completed slice should report:
   docs/frontend/main/ipc_helper_module_split_and_runtime_boundary_reference.md
   plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
 - Compatibility: no migration required. This is docs-only terminology cleanup.
+
+### 2026-06-17 Agent SDK host wording in runtime docs
+
+- Finding: current streaming, frontend architecture, Electron main, query
+  relay, and renderer command-contract docs still described Electron main or
+  non-renderer SDK users as "SDK customers".
+- Change: updated those current-path docs to use Agent SDK host/caller wording
+  while preserving actual `windie:*` channel names.
+- Validation: `bin\windie docs list`; `rg -n "SDK customer|SDK
+  customers|thin SDK customer" docs/concepts/streaming_and_events.md
+  docs/architecture/frontend_architecture.md
+  docs/frontend/main/electron_main_and_ipc.md
+  docs/frontend/main/query_payload_and_relay_reference.md
+  docs/frontend/renderer/desktop_agent_runtime_transport_command_contract_reference.md`;
+  `git diff --check -- docs/concepts/streaming_and_events.md
+  docs/architecture/frontend_architecture.md
+  docs/frontend/main/electron_main_and_ipc.md
+  docs/frontend/main/query_payload_and_relay_reference.md
+  docs/frontend/renderer/desktop_agent_runtime_transport_command_contract_reference.md
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
+- Compatibility: no migration required. This is docs-only terminology cleanup.

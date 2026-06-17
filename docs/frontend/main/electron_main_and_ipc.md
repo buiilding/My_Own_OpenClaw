@@ -75,7 +75,7 @@ Responsibilities:
 
 Split boundary:
 
-- `ipc.cjs` is the SDK customer: it imports `Agent`, starts the desktop
+- `ipc.cjs` is the Agent SDK host: it imports `Agent`, starts the desktop
   agent with only normal public startup inputs (`apiKey`, `workspace`,
   `appName`), subscribes to SDK rows/status/events/current-turn/connection
   outputs, and exposes thin `windie:*` IPC handlers that call SDK agent methods.

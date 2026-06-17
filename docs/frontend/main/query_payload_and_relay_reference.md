@@ -31,7 +31,7 @@ title: "Query Payload and Relay Reference"
 
 Main receives live chat query invokes on the SDK-shaped `windie:invoke` command
 channel with `command: 'conversation.send'`.
-Electron main is the desktop host and SDK customer: it prepares host-only query
+Electron main is the desktop Agent SDK host: it prepares host-only query
 context, calls the SDK agent, and forwards SDK projections back to renderer
 windows. There is no generic renderer `to-backend` compatibility relay for SDK
 runtime commands.
