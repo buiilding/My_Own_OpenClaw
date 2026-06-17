@@ -461,7 +461,7 @@ describe('windie docs index', () => {
   });
 
   test('routes camelCase sidecar discovery metadata to the daemon runtime contract', () => {
-    expect(findDocs('baseUrl discovery metadata ignored')[0].path).toBe(
+    expect(findDocs('baseUrl discovery metadata rejected')[0].path).toBe(
       path.join('docs', 'frontend', 'sidecar', 'sidecar_daemon_runtime_reference.md'),
     );
   });

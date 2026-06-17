@@ -2863,13 +2863,14 @@ describe('Agent SDK client behavior', () => {
     expect(runtimeCjsSource).not.toContain('Node sidecar runtime provider');
   });
 
-  test('createAgentLocalRuntimeProvider ignores camelCase discovery metadata', async () => {
+  test('createAgentLocalRuntimeProvider rejects camelCase discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-discovery-alias-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
       discoveryFile,
       JSON.stringify({
+        base_url: 'http://127.0.0.1:43133',
         baseUrl: 'http://127.0.0.1:43133',
         token: 'alias-token',
       }),

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK daemon discovery alias rejection
+
+- Finding: SDK local-runtime daemon discovery skipped `baseUrl`-only discovery
+  files but still tolerated removed camelCase `baseUrl` when canonical
+  `base_url` was also present.
+- Change: made discovery normalization reject any discovery file containing the
+  removed `baseUrl` key, updated docs to describe rejection/replacement, and
+  updated the docs search routing test.
+- Validation: focused SDK local-runtime provider test, focused docs-index route
+  test, docs listing, and diff check.
+- Compatibility: discovery files containing removed camelCase `baseUrl` are
+  treated as stale and replaced through normal daemon launch/reuse flow. The
+  public `localRuntimeDaemon.baseUrl` client option is unchanged. No
+  persisted-data, storage, settings, credential, permission, IPC, or backend
+  wire migration is required.
+
 ### 2026-06-17 Python sidecar MCP alias rejection
 
 - Finding: the Python sidecar daemon still ignored removed camelCase MCP server

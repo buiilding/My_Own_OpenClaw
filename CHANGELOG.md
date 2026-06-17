@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Changed SDK local-runtime daemon discovery to reject discovery files containing the removed camelCase `baseUrl` key even when canonical `base_url` is present. The public `localRuntimeDaemon.baseUrl` option is unchanged; no persisted-data, storage, settings, credential, permission, IPC, or backend wire migration is required.
+
 - Changed the Python sidecar daemon to reject removed camelCase MCP server-spec and execution metadata fields instead of silently ignoring them. Callers must use canonical snake_case daemon payload fields; no persisted-data, storage, settings, credential, permission, or backend wire migration is required.
 
 - Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.

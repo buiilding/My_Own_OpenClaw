@@ -501,6 +501,9 @@ function normalizeDiscovery(raw: unknown): AgentLocalRuntimeDiscovery | null {
     return null;
   }
   const payload = raw as JsonRecord;
+  if (Object.prototype.hasOwnProperty.call(payload, 'baseUrl')) {
+    return null;
+  }
   const baseUrl = normalizeDaemonBaseUrl(payload.base_url);
   const token = typeof payload.token === 'string' ? payload.token.trim() : '';
   if (!baseUrl || !token) {

@@ -700,7 +700,7 @@ context when one is provided, starts or reuses `sidecar_daemon.py`, owns
 `AgentLocalRuntimeHttpClient`, unwraps JSON-RPC `/rpc` responses before callers
 see them, and exposes the runtime to memory, persistence, tool registration,
 and local tool execution. Discovery files are daemon-authored snake_case
-metadata: the SDK accepts `base_url` plus `token` and ignores stale camelCase
+metadata: the SDK accepts `base_url` plus `token` and rejects stale camelCase
 discovery metadata such as `baseUrl`.
 Electron remains responsible for host-only behavior around native windows,
 screenshots, display bounds, and artifact upload plumbing.

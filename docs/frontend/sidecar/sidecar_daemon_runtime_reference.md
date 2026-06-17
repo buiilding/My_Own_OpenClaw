@@ -3,7 +3,7 @@ summary: "Python sidecar daemon HTTP/WebSocket contract, discovery token model, 
 read_when:
   - When changing the Python sidecar daemon, local tool registration, daemon auth, sidecar discovery, or SDK local execution.
   - When deciding whether a capability belongs in backend policy or local executor code.
-  - When debugging `baseUrl` discovery metadata ignored by daemon discovery reuse.
+  - When debugging `baseUrl` discovery metadata rejected by daemon discovery reuse.
 title: "Sidecar Daemon Runtime Reference"
 ---
 
@@ -43,7 +43,7 @@ ${TMPDIR}/desktop-agent/sidecar-daemon.json
 
 Discovery metadata is daemon-authored and snake_case. SDK discovery readers
 require `base_url` and `token`; stale camelCase discovery files using `baseUrl`
-are ignored and replaced through the normal launch/reuse flow. The public SDK
+are rejected and replaced through the normal launch/reuse flow. The public SDK
 `localRuntimeDaemon.baseUrl` is a client constructor option, not a discovery
 file field.
 
