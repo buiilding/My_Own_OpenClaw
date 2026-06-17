@@ -248,6 +248,16 @@ describe('app diagnostics store', () => {
     expect(storeSource).not.toContain("'sidecarReady'");
   });
 
+  test('diagnostics error classifier emits generic local runtime code', () => {
+    const storeSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/diagnostics/app_diagnostics_store.cjs'),
+      'utf8',
+    );
+
+    expect(storeSource).toContain("return 'local_runtime_unavailable';");
+    expect(storeSource).not.toContain("return 'sidecar_unavailable';");
+  });
+
   test('persists sanitized surface visibility diagnostics', () => {
     appendDiagnosticEvent({
       traceId: 'surface-diag-test',

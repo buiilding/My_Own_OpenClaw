@@ -338,7 +338,7 @@ function classifyErrorCode(value) {
     return 'memory_store_not_initialized';
   }
   if (message.includes('local runtime') || message.includes('sidecar')) {
-    return 'sidecar_unavailable';
+    return 'local_runtime_unavailable';
   }
   return 'runtime_error';
 }

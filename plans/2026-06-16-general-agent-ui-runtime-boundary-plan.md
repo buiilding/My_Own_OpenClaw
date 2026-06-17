@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 diagnostics local runtime error code
+
+- Finding: the app diagnostics error classifier still emitted the
+  `sidecar_unavailable` code for both local-runtime and sidecar-worded
+  failures.
+- Change: renamed the emitted classifier code to `local_runtime_unavailable`
+  while preserving matching for lower-level sidecar-worded error messages.
+- Validation: focused diagnostics source assertion, diagnostic-code scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Existing stored diagnostic rows keep
+  their original error codes; new local-runtime availability classifier output
+  uses the generic code.
+
 ### 2026-06-17 conversation diagnostics local runtime owner
 
 - Finding: the conversation metadata diagnostics registry still named the
