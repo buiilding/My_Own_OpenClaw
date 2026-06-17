@@ -127,7 +127,7 @@ class QueryExecutionService:
                     tts_processor, self._response_formatter, transport
                 )
                 if tts_trace_enabled:
-                    await self._process_pipeline_event(
+                    await process_pipeline_event(
                         pipeline=pipeline,
                         event=TraceEvent(
                             path="tts.playback",
@@ -159,7 +159,7 @@ class QueryExecutionService:
                         msg_id=msg_id,
                         stream_context=stream_context,
                     )
-                await self._process_pipeline_event(
+                await process_pipeline_event(
                     pipeline=pipeline,
                     event=TraceEvent(
                         path="backend.stream",
@@ -214,7 +214,7 @@ class QueryExecutionService:
 
                     if stream_state.saw_terminal_event:
                         if is_post_terminal_event_allowed(event_type):
-                            await self._process_pipeline_event(
+                            await process_pipeline_event(
                                 pipeline=pipeline,
                                 event=event,
                                 tts_service=tts_session.service,
@@ -260,7 +260,7 @@ class QueryExecutionService:
                     if event_type == "error":
                         stream_state.mark_terminal()
 
-                    await self._process_pipeline_event(
+                    await process_pipeline_event(
                         pipeline=pipeline,
                         event=event,
                         tts_service=tts_session.service,
@@ -292,7 +292,7 @@ class QueryExecutionService:
                     await tts_session.service.flush()
 
                 if tts_trace_enabled:
-                    await self._process_pipeline_event(
+                    await process_pipeline_event(
                         pipeline=pipeline,
                         event=TraceEvent(
                             path="tts.playback",
@@ -318,7 +318,7 @@ class QueryExecutionService:
                         stream_context=stream_context,
                     )
 
-                await self._process_pipeline_event(
+                await process_pipeline_event(
                     pipeline=pipeline,
                     event=TraceEvent(
                         path="backend.stream",
@@ -441,21 +441,4 @@ class QueryExecutionService:
         else:
             operating_system = get_frontend_operating_system()
         return operating_system if isinstance(operating_system, str) else None
-
-    @staticmethod
-    async def _process_pipeline_event(
-        *,
-        pipeline: StreamPipeline,
-        event: Any,
-        tts_service: Any,
-        msg_id: str,
-        stream_context: dict[str, Any],
-    ) -> None:
-        await process_pipeline_event(
-            pipeline=pipeline,
-            event=event,
-            tts_service=tts_service,
-            msg_id=msg_id,
-            stream_context=stream_context,
-        )
 

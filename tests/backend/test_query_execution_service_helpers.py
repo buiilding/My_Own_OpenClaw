@@ -578,35 +578,6 @@ def test_resolve_query_completion_text_prefers_event_completion_then_state_fallb
 
 
 @pytest.mark.asyncio
-async def test_process_pipeline_event_forwards_event_and_context():
-    observed = {}
-
-    class _Pipeline:
-        async def process(self, event, tts_service, msg_id, context):
-            observed["event"] = event
-            observed["tts_service"] = tts_service
-            observed["msg_id"] = msg_id
-            observed["context"] = context
-
-    event = ChunkEvent(content="hi")
-    context = {"turn_ref": "turn-1"}
-    await QueryExecutionService._process_pipeline_event(
-        pipeline=_Pipeline(),
-        event=event,
-        tts_service="tts",
-        msg_id="turn-1",
-        stream_context=context,
-    )
-
-    assert observed == {
-        "event": event,
-        "tts_service": "tts",
-        "msg_id": "turn-1",
-        "context": context,
-    }
-
-
-@pytest.mark.asyncio
 async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_terminal_event():
     observed_events = []
 

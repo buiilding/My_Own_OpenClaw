@@ -127,9 +127,9 @@ post-terminal side-effect contract testable in one place.
 
 - `_finalize_pending_tool_calls_on_cancel`
 - `_build_stream_context`
-- `_process_pipeline_event`
 
-Completion emission is not wrapped by `QueryExecutionService`; call sites use
+Pipeline event forwarding and completion emission are not wrapped by
+`QueryExecutionService`; call sites use `process_pipeline_event(...)` and
 `complete_query_stream(...)`, which delegates to
 `query_execution_pipeline_events.emit_completion_events(...)`.
 

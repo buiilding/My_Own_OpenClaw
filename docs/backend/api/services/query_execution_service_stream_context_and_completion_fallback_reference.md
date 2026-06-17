@@ -110,8 +110,10 @@ This prevents lingering staged tool-call IDs after user stop/cancel races.
 - `conversation_ref`
 - `turn_ref`
 
-All pipeline sends reuse this same object via `_process_pipeline_event(...)` to reduce hot-path allocations and keep context consistent across events.
-Service wrappers delegate the actual forwarding/backfill operations to `query_execution_pipeline_events.py`.
+All pipeline sends reuse this same object via
+`query_execution_pipeline_events.process_pipeline_event(...)` to reduce hot-path
+allocations and keep context consistent across events. Completion backfill also
+lives in `query_execution_pipeline_events.py`.
 
 ## Completion and Backfill State Machine
 
@@ -126,7 +128,7 @@ Loop gate semantics:
 
 - once `saw_terminal_event=True`, only helper-approved post-terminal side effects continue through the pipeline; all other later events in the same stream iteration are ignored and debug-logged
 - `streaming-complete` marks terminal, resolves completion text, emits backfill completion path, and skips direct pipeline forwarding of the original event
-- `error` marks terminal and is still forwarded once through `_process_pipeline_event(...)`
+- `error` marks terminal and is still forwarded once through `process_pipeline_event(...)`
 
 Current post-terminal allowlist is empty. Completed-turn memory writes are
 SDK-owned local side effects, not backend post-terminal websocket events.
