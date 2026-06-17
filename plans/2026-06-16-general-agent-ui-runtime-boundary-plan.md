@@ -2600,3 +2600,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level and
   `WindieChatSession` module imports still resolve to the same chat session
   runtime objects and types.
+
+### 2026-06-17 AgentClient module compatibility wrapper
+
+- Finding: the canonical SDK client runtime module still exported `WindieClient`
+  and Windie-prefixed client option/type aliases directly, so the generic
+  wake-up/runtime client module owned historical product naming.
+- Change: moved the Windie-prefixed client value and option/type aliases to the
+  `WindieClient` compatibility module and package boundary, leaving
+  `AgentClient` as the canonical client runtime module.
+- Validation: focused SDK package-boundary/private-export coverage, SDK client
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  canonical client runtime module no longer exports Windie-prefixed
+  compatibility names.
+- Compatibility: no migration required. Existing package-level and
+  `WindieClient` module imports still resolve to the same client runtime object
+  and types.

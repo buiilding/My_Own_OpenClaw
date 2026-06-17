@@ -41,6 +41,8 @@ var WindieChatSession_js_1 = require("./runtime/WindieChatSession.js");
 Object.defineProperty(exports, "WindieChatSession", { enumerable: true, get: function () { return WindieChatSession_js_1.WindieChatSession; } });
 __exportStar(require("./runtime/Agent.js"), exports);
 __exportStar(require("./runtime/AgentClient.js"), exports);
+var WindieClient_js_1 = require("./runtime/WindieClient.js");
+Object.defineProperty(exports, "WindieClient", { enumerable: true, get: function () { return WindieClient_js_1.WindieClient; } });
 __exportStar(require("./runtime/LocalSidecarRuntime.js"), exports);
 __exportStar(require("./transport/backendEventNormalizer.js"), exports);
 __exportStar(require("./transport/BackendSocketFactory.js"), exports);

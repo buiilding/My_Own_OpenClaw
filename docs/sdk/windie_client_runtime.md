@@ -15,10 +15,11 @@ title: "AgentClient Runtime Contract"
 
 ## Runtime Boundary
 
-`AgentClient` is the canonical agent client runtime. `WindieClient` remains a
-compatibility and product-branded constructor alias, and the returned agent
-object is exported as the generic `Agent` class. `WindieAgent` remains the
-matching compatibility alias for that high-level agent object.
+`AgentClient` is the canonical agent client runtime. `WindieClient.ts` remains
+the compatibility wrapper for the historical product-branded constructor alias,
+and the returned agent object is exported as the generic `Agent` class.
+`WindieAgent` remains the matching compatibility alias for that high-level
+agent object.
 
 ```text
 Electron main / future CLI / SDK users
@@ -93,9 +94,11 @@ Ownership rules:
   auto-start/reuse, sidecar event subscriptions, sidecar-backed conversation
   storage, builtin desktop tool selection, memory/title RPC helpers, and
   `moduleTool(...)` registration helpers.
-- the SDK `AgentClient` / `WindieClient` runtime module owns wake-up orchestration, websocket
+- the SDK `AgentClient` runtime module owns wake-up orchestration, websocket
   session creation, initial model selection, local-runtime startup/reuse, and
   conversion of local tool/plugin/MCP definitions into the client manifest.
+  `WindieClient.ts` is the compatibility wrapper for historical
+  Windie-prefixed client imports.
   TypeScript callers that omit `workspacePath` get a runtime-derived workspace:
   `process.cwd()` first, then the best available home-directory environment
   path.

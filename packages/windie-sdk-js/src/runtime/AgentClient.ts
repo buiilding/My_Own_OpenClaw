@@ -56,21 +56,15 @@ export type AgentRuntimeFeatureOption = boolean | {
   enabled?: boolean;
 };
 
-export type WindieRuntimeFeatureOption = AgentRuntimeFeatureOption;
-
 export type AgentInstallAuthState = {
   userId: string;
   installId?: string;
   installToken: string;
 };
 
-export type WindieInstallAuthState = AgentInstallAuthState;
-
 export type AgentInstallAuthOptions = Partial<AgentInstallAuthState> & {
   autoRegister?: boolean;
 };
-
-export type WindieInstallAuthOptions = AgentInstallAuthOptions;
 
 export type AgentWakeUpOptions = {
   backendUrl?: string;
@@ -93,8 +87,6 @@ export type AgentWakeUpOptions = {
   memory?: AgentRuntimeFeatureOption;
   persistence?: AgentRuntimeFeatureOption;
 };
-
-export type WindieWakeUpOptions = AgentWakeUpOptions;
 
 export type AgentClientOptions = {
   backendUrl?: string;
@@ -138,14 +130,10 @@ export type AgentClientOptions = {
   persistence?: AgentRuntimeFeatureOption;
 };
 
-export type WindieClientOptions = AgentClientOptions;
-
 export type AgentLocalRuntimeRequest = {
   reason?: string;
   require?: boolean;
 };
-
-export type WindieLocalRuntimeRequest = AgentLocalRuntimeRequest;
 
 type NormalizedAgentRuntimeFeatures = {
   memory: boolean;
@@ -610,9 +598,6 @@ export class AgentClient {
     return dedupeManifestTools([...registeredRuntimeTools, ...selectedBuiltinTools, ...explicitTools]);
   }
 }
-
-export type WindieClient = AgentClient;
-export const WindieClient = AgentClient;
 
 function featureEnabled(value: AgentRuntimeFeatureOption | undefined, fallback: boolean): boolean {
   if (typeof value === 'boolean') {

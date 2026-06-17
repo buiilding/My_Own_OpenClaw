@@ -90,7 +90,8 @@ belongs in a `localToolLifecycle` callback supplied to `wakeUp(...)`. The
 backend remains the owner of model lists, provider policy, OCR/vision
 availability, prompt construction, compaction decisions, and paid capability
 gates. TypeScript callers should prefer `AgentClient` and `Agent` for reusable
-SDK host code; `WindieClient` and `WindieAgent` remain compatibility aliases.
+SDK host code; `WindieClient.ts` and `WindieAgent` remain compatibility
+surfaces for historical imports.
 
 Python callers should use `AgentSdkClient.wake_up(...)` followed by
 `agent.run(...)` or `agent.stream(...)` for the same high-level query shape. The

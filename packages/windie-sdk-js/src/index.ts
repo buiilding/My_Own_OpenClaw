@@ -38,6 +38,17 @@ export type {
 } from './runtime/WindieChatSession.js';
 export * from './runtime/Agent.js';
 export * from './runtime/AgentClient.js';
+export {
+  WindieClient,
+} from './runtime/WindieClient.js';
+export type {
+  WindieClientOptions,
+  WindieInstallAuthOptions,
+  WindieInstallAuthState,
+  WindieLocalRuntimeRequest,
+  WindieRuntimeFeatureOption,
+  WindieWakeUpOptions,
+} from './runtime/WindieClient.js';
 export * from './runtime/LocalSidecarRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './transport/BackendSocketFactory.js';

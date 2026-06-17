@@ -57,6 +57,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.WindieChatSession).toBe(canonicalModule.AgentChatSession);
   });
 
+  test('Windie client module remains a compatibility wrapper for agent client runtime', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
+    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/runtime/WindieClient.js');
+
+    expect(canonicalModule.AgentClient).toBeDefined();
+    expect(canonicalModule.WindieClient).toBeUndefined();
+    expect(compatibilityModule.AgentClient).toBe(canonicalModule.AgentClient);
+    expect(compatibilityModule.WindieClient).toBe(canonicalModule.AgentClient);
+  });
+
   test('capability manifest module keeps summarization behind stamping API', () => {
     const manifestModule = require('../../packages/windie-sdk-js/cjs/runtime/CapabilityManifest.js');
 
