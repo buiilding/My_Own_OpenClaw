@@ -231,8 +231,8 @@ backend/src/api/
 - `routes/websocket/message_handler.py` uses size-aware JSON parsing:
   small payloads parse inline, while larger payloads are offloaded to the
   executor path to reduce event-loop stalls under heavy message sizes.
-- `routes/websocket/connection.py` cleanup path uses a tighter signature that
-  only accepts task/session/user dependencies (no unused websocket argument).
+- `routes/websocket/connection.py` cleanup path accepts only task manager,
+  session manager, and user-id dependencies.
 - `routes/websocket/task_manager.py` cleanup prune now updates the active task
   set in-place, preserving set identity for callers/tests while removing done
   tasks deterministically.

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed stale source-map wording about an unused websocket cleanup argument and documented the active task-manager/session-manager/user-id cleanup signature. No migration is required.
+
 - Updated JSON-RPC, browser, memory, and error workflow docs to describe Electron-facing sidecar request/status paths as SDK local-runtime surfaces. No migration is required.
 
 - Removed stale compatibility-facade wording from backend container docs so `Container` is described as the active runtime facade over `ApplicationContainer`. No migration is required.
