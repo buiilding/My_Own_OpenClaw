@@ -49,6 +49,7 @@ import {
   type AgentTraceOptions,
   type AgentWakeUpOptions,
   type AgentLocalRuntimeClient,
+  type AgentLocalRuntimeHttpClientOptions,
   type AgentQueryInput,
   type AgentSessionRuntime,
   type AgentStopInput,
@@ -219,6 +220,10 @@ describe('@windie/sdk package boundary', () => {
   });
 
   test('exports generic local runtime contract aliases', () => {
+    const clientOptions: AgentLocalRuntimeHttpClientOptions = {
+      baseUrl: 'http://127.0.0.1:43132',
+      token: 'token-1',
+    };
     const tool: AgentToolDefinition = {
       name: 'save_note',
       module: 'example.tools:save_note',
@@ -233,6 +238,7 @@ describe('@windie/sdk package boundary', () => {
       execution_target: 'sidecar',
       argument_resolution: 'passthrough',
     });
+    expect(clientOptions.baseUrl).toBe('http://127.0.0.1:43132');
     expect(runtime.registerModuleTool).toBeDefined();
   });
 

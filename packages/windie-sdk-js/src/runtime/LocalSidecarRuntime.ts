@@ -89,11 +89,9 @@ export type AgentLocalRuntimeHttpClientOptions = {
   WebSocketImpl?: EventWebSocketConstructor;
 };
 
-export type SidecarDaemonClientOptions = AgentLocalRuntimeHttpClientOptions;
-
 type SidecarLaunchEnvironment = Record<string, string | undefined>;
 
-type SidecarDaemonDiscovery = AgentLocalRuntimeHttpClientOptions & {
+type AgentLocalRuntimeDiscovery = AgentLocalRuntimeHttpClientOptions & {
   launch?: Record<string, string> | null;
 };
 
@@ -498,7 +496,7 @@ function launchContextsEqual(
   return leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
 }
 
-function normalizeDiscovery(raw: unknown): SidecarDaemonDiscovery | null {
+function normalizeDiscovery(raw: unknown): AgentLocalRuntimeDiscovery | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     return null;
   }
@@ -515,7 +513,7 @@ function normalizeDiscovery(raw: unknown): SidecarDaemonDiscovery | null {
   };
 }
 
-function readDaemonDiscovery(fs: NodeFsLike, discoveryFile: string): SidecarDaemonDiscovery | null {
+function readDaemonDiscovery(fs: NodeFsLike, discoveryFile: string): AgentLocalRuntimeDiscovery | null {
   try {
     if (!fs.existsSync(discoveryFile)) {
       return null;
@@ -539,7 +537,7 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function probeDaemon(
-  discovery: SidecarDaemonDiscovery | AgentLocalRuntimeHttpClientOptions | null,
+  discovery: AgentLocalRuntimeDiscovery | AgentLocalRuntimeHttpClientOptions | null,
   fetchImpl?: FetchLike,
   WebSocketImpl?: EventWebSocketConstructor,
 ): Promise<AgentLocalRuntimeHttpClient | null> {
@@ -560,7 +558,7 @@ async function probeDaemon(
 }
 
 async function waitForDaemonStop(
-  discovery: SidecarDaemonDiscovery | AgentLocalRuntimeHttpClientOptions | null,
+  discovery: AgentLocalRuntimeDiscovery | AgentLocalRuntimeHttpClientOptions | null,
   fetchImpl?: FetchLike,
   WebSocketImpl?: EventWebSocketConstructor,
   timeoutMs = 2000,
@@ -578,7 +576,7 @@ async function waitForDaemonStop(
 }
 
 async function shutdownDiscoveredDaemon(
-  discovery: SidecarDaemonDiscovery | null,
+  discovery: AgentLocalRuntimeDiscovery | null,
   fetchImpl?: FetchLike,
   WebSocketImpl?: EventWebSocketConstructor,
   timeoutMs = 2000,

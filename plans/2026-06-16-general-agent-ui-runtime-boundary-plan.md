@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime client options alias deletion
+
+- Finding: the TypeScript SDK still exported `SidecarDaemonClientOptions` and
+  used the internal `SidecarDaemonDiscovery` type name after the local-runtime
+  HTTP client options became canonical.
+- Change: removed the daemon-named exported options alias, renamed the internal
+  discovery type to `AgentLocalRuntimeDiscovery`, and added focused package
+  boundary/source-scan coverage for the canonical options type and removed
+  daemon type names.
+- Validation: focused SDK package-boundary and client Jest tests, stale type
+  scan, docs listing, and diff check.
+- Compatibility: no migration required for first-party code. TypeScript SDK
+  callers must use `AgentLocalRuntimeHttpClientOptions`.
+
 ### 2026-06-17 Main local-runtime node options helper alias deletion
 
 - Finding: Electron main still exported and consumed
@@ -472,13 +486,14 @@ Each completed slice should report:
   contract read like a sidecar implementation detail.
 - Change: promoted `AgentLocalRuntimeHttpClient` and
   `AgentLocalRuntimeHttpClientOptions` as the canonical HTTP client surface,
-  kept `SidecarDaemonHttpClient` and `SidecarDaemonClientOptions` as
-  compatibility aliases, switched `AgentClient` and focused tests to the generic
-  name, updated SDK docs, and regenerated checked-in SDK CJS output.
+  switched `AgentClient` and focused tests to the generic name, updated SDK
+  docs, and regenerated checked-in SDK CJS output. The remaining
+  `SidecarDaemonClientOptions` compatibility type was removed in a later
+  cleanup slice.
 - Validation: SDK build, focused package-boundary/client tests, docs listing,
   alias/export scan, and diff check.
-- Compatibility: no migration required. Existing `SidecarDaemonHttpClient`
-  imports construct the same HTTP client through the compatibility alias.
+- Compatibility: no migration required for first-party code. SDK clients use
+  `AgentLocalRuntimeHttpClient` and `AgentLocalRuntimeHttpClientOptions`.
 
 ### 2026-06-17 SDK local-runtime conversation store alias
 

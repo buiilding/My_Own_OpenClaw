@@ -2777,6 +2777,8 @@ describe('Agent SDK client behavior', () => {
       expect(source).toContain("path.join(os.tmpdir(), 'desktop-agent', 'sidecar-daemon.json')");
       expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json')");
     }
+    expect(runtimeSource).not.toContain('SidecarDaemonClientOptions');
+    expect(runtimeSource).not.toContain('SidecarDaemonDiscovery');
   });
 
   test('createAgentLocalRuntimeProvider ignores camelCase discovery metadata', async () => {
