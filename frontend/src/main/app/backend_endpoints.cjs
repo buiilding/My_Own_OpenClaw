@@ -9,10 +9,11 @@
  *   (optional hosted-default overrides for all app modes)
  */
 
+const { mainHostSkin } = require('./main_host_skin.cjs');
+
 const DEFAULT_LOCAL_BACKEND_HOST = '127.0.0.1';
 const DEFAULT_LOCAL_BACKEND_PORT = '8765';
-const DEFAULT_HOSTED_BACKEND_HTTP_URL = 'https://api.windieos.com';
-const DEFAULT_HOSTED_BACKEND_WS_URL = 'wss://api.windieos.com/ws';
+const DEFAULT_HOSTED_BACKEND = mainHostSkin.hostedBackend;
 
 function trimTrailingSlash(value) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -131,8 +132,8 @@ function resolveHostedDefaultEndpoints(env) {
     };
   }
   return {
-    httpUrl: DEFAULT_HOSTED_BACKEND_HTTP_URL,
-    wsUrl: DEFAULT_HOSTED_BACKEND_WS_URL,
+    httpUrl: DEFAULT_HOSTED_BACKEND.httpUrl,
+    wsUrl: DEFAULT_HOSTED_BACKEND.wsUrl,
   };
 }
 

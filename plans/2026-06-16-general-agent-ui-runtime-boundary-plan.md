@@ -690,3 +690,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Renderer optimistic rows,
   `windie:conversation-event`, send-failure errors, and SDK tool-result payloads
   are unchanged.
+
+### 2026-06-17 main hosted backend defaults skin config
+
+- Finding: the generic Electron backend endpoint resolver still hardcoded the
+  WindieOS hosted HTTP and websocket defaults, even though hosted product
+  defaults belong to WindieOS skin/config rather than the generic main host
+  resolver.
+- Change: moved the canonical hosted backend URLs into `main_host_skin` as
+  `hostedBackend` config and changed `backend_endpoints.cjs` to read those
+  defaults from the skin while preserving env override behavior.
+- Validation: focused backend endpoint tests, main host skin boundary test, docs
+  listing, `git diff --check`, and a source scan showing the hosted URLs no
+  longer appear in the generic resolver.
+- Compatibility: no migration required. Default endpoint values, `BACKEND_*`
+  overrides, `WINDIE_DEFAULT_BACKEND_*` overrides, and endpoint output shapes
+  are unchanged.

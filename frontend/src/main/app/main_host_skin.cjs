@@ -15,6 +15,11 @@ const identity = Object.freeze({
   logPrefix: `[${productName}]`,
 });
 
+const hostedBackend = Object.freeze({
+  httpUrl: 'https://api.windieos.com',
+  wsUrl: 'wss://api.windieos.com/ws',
+});
+
 const browserAutomation = Object.freeze({
   localRuntimeNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
@@ -105,6 +110,7 @@ const openAICodexOAuth = Object.freeze({
 const mainHostSkin = Object.freeze({
   productName,
   identity,
+  hostedBackend,
   queryEvents,
   bundledRuntime,
   localRuntime,
