@@ -4,6 +4,7 @@ from core.remote_semantic_client import RemoteSemanticClient
 from core.windie_sdk_client import (
     AgentSdkAgentSession,
     AgentSdkClient,
+    AgentLocalRuntimeHttpClient,
     SidecarDaemonHttpClient,
     WindieSdkAgentSession,
     WindieSdkClient,
@@ -12,6 +13,7 @@ from core.windie_sdk_client import (
 __all__ = [
     "AgentSdkAgentSession",
     "AgentSdkClient",
+    "AgentLocalRuntimeHttpClient",
     "RemoteSemanticClient",
     "SidecarDaemonHttpClient",
     "WindieSdkAgentSession",

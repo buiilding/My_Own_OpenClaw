@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Promoted the Python SDK local runtime HTTP client to `AgentLocalRuntimeHttpClient` while keeping `SidecarDaemonHttpClient` as a compatibility alias.
+
 - frontend/main: make local runtime bridge functions canonical while preserving local-backend aliases.
 
 - frontend/main: prefer the local runtime execute-tool factory in the Electron sidecar adapter.

@@ -4,6 +4,7 @@ from windie import sdk as _sdk
 from windie.sdk import (
     AgentSdkAgentSession,
     AgentSdkClient,
+    AgentLocalRuntimeHttpClient,
     SidecarDaemonHttpClient,
     WindieSdkAgentSession,
     WindieSdkClient,
@@ -15,6 +16,7 @@ platform = _sdk.platform
 __all__ = [
     "AgentSdkAgentSession",
     "AgentSdkClient",
+    "AgentLocalRuntimeHttpClient",
     "SidecarDaemonHttpClient",
     "WindieSdkAgentSession",
     "WindieSdkClient",

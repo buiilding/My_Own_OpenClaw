@@ -26,7 +26,7 @@ flowchart LR
   Supervisor --> Status["local-backend-status broadcast"]
   Status --> RendererStore["localRuntimeStatusStore"]
   RendererStore --> Consumers["browser session, permissions, dashboard retries"]
-  SDKProvider --> Rpc["SDK SidecarDaemonHttpClient /rpc"]
+  SDKProvider --> Rpc["SDK AgentLocalRuntimeHttpClient /rpc"]
 ```
 
 The SDK owns sidecar daemon lifetime and RPC unwrapping. Electron main owns only

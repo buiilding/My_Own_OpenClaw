@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python SDK local-runtime HTTP client alias
+
+- Finding: the Python SDK still defined and constructed the sidecar daemon HTTP
+  client under the sidecar-specific `SidecarDaemonHttpClient` name even though
+  SDK docs describe the public boundary as `AgentLocalRuntimeHttpClient`.
+- Change: promoted `AgentLocalRuntimeHttpClient` as the canonical Python SDK
+  class, switched discovery and lifecycle checks to the generic name, re-exported
+  it from `windie` and `core`, kept `SidecarDaemonHttpClient` as a compatibility
+  alias, and updated local-runtime lifecycle docs.
+- Validation: focused Python SDK sidecar tests, local-runtime client alias scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. Existing `SidecarDaemonHttpClient`
+  imports resolve to the same class object through the compatibility alias.
+
 ### 2026-06-17 SDK local-runtime HTTP client alias
 
 - Finding: the SDK local-runtime HTTP client was still exposed and constructed

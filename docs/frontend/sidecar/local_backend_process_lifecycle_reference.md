@@ -21,8 +21,9 @@ title: "SDK-Owned Sidecar Lifecycle Reference"
 
 - Electron main computes desktop launch options and passes them to
   `AgentClient` as SDK `autoSidecar` options.
-- The SDK starts/reuses `sidecar_daemon.py`, owns `SidecarDaemonHttpClient`, and
-  unwraps daemon JSON-RPC `/rpc` responses before callers see them.
+- The SDK starts/reuses `sidecar_daemon.py`, owns `AgentLocalRuntimeHttpClient`
+  with `SidecarDaemonHttpClient` as a compatibility alias, and unwraps daemon
+  JSON-RPC `/rpc` responses before callers see them.
 - The daemon owns the single `LocalBackend` / `LocalMemoryStore` instance for the
   app session.
 - Electron bridge code keeps host-only behavior: BrowserWindow handling,
@@ -119,7 +120,7 @@ If sidecar shows ready=false indefinitely:
 If helper calls fail unexpectedly:
 
 1. verify `ensureSdkLocalRuntime()` resolved a runtime before the helper call
-2. verify SDK `SidecarDaemonHttpClient.rpc()` unwraps `/rpc` results
+2. verify SDK `AgentLocalRuntimeHttpClient.rpc()` unwraps `/rpc` results
 3. inspect the daemon `LocalBackend.protocol.handle_request(...)` method result
 
 If Linux screenshots include overlays:

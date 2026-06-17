@@ -3,6 +3,7 @@
 from windie.sdk import (
     AgentSdkAgentSession,
     AgentSdkClient,
+    AgentLocalRuntimeHttpClient,
     SidecarDaemonHttpClient,
     WindieSdkAgentSession,
     WindieSdkClient,
@@ -11,6 +12,7 @@ from windie.sdk import (
 __all__ = [
     "AgentSdkAgentSession",
     "AgentSdkClient",
+    "AgentLocalRuntimeHttpClient",
     "SidecarDaemonHttpClient",
     "WindieSdkAgentSession",
     "WindieSdkClient",

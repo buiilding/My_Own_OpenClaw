@@ -512,7 +512,7 @@ def _build_tool_result_payload(
     }
 
 
-class SidecarDaemonHttpClient:
+class AgentLocalRuntimeHttpClient:
     def __init__(
         self,
         *,
@@ -1107,7 +1107,7 @@ class AgentSdkClient(RemoteApiClientBase):
 
     async def close(self) -> None:
         await super().close()
-        if isinstance(self.sidecar, SidecarDaemonHttpClient):
+        if isinstance(self.sidecar, AgentLocalRuntimeHttpClient):
             await self.sidecar.close()
         if (
             self._owned_sidecar_process
@@ -1607,11 +1607,13 @@ class AgentSdkClient(RemoteApiClientBase):
             f"Timed out waiting for local sidecar daemon discovery at {self.sidecar_discovery_file}"
         )
 
-    async def _probe_discovered_sidecar(self) -> Optional[SidecarDaemonHttpClient]:
+    async def _probe_discovered_sidecar(
+        self,
+    ) -> Optional[AgentLocalRuntimeHttpClient]:
         discovery = _read_daemon_discovery(self.sidecar_discovery_file)
         if not discovery:
             return None
-        client = SidecarDaemonHttpClient(
+        client = AgentLocalRuntimeHttpClient(
             base_url=discovery["base_url"],
             token=discovery["token"],
             timeout_seconds=self.timeout_seconds,
@@ -1694,5 +1696,6 @@ class AgentSdkClient(RemoteApiClientBase):
             await session.close()
 
 
+SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient
 WindieSdkAgentSession = AgentSdkAgentSession
 WindieSdkClient = AgentSdkClient
