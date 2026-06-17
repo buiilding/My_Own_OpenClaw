@@ -95,13 +95,13 @@ canonical snake_case command contract:
 - `workspace_path`
 - `memory_retrieval_enabled`
 
-The transport no longer maps removed camelCase aliases such as
+The transport rejects removed camelCase aliases such as
 `conversationRef`, `screenshotRef`, `screenshotUrl`, `screenshotRefs`,
 `attachmentContext`, `attachmentFilenames`, `workspacePath`, or `turnRef`.
 
 If a caller passes camelCase aliases into `desktopAgentRuntimeTransport`, those
-fields are ignored. Fix the caller to send the canonical snake_case runtime
-shape instead of reintroducing alias fallback in the transport.
+fields fail fast. Fix the caller to send the canonical snake_case runtime shape
+instead of reintroducing alias fallback in the transport.
 
 ## Command Return and Error Contract
 
@@ -113,10 +113,10 @@ shape instead of reintroducing alias fallback in the transport.
 4. otherwise returns the caller-provided message id
 
 `compactHistory(...)`, `wakewordDetected(...)`, and `updateSettings(...)` return
-the snake_case `turn_ref` when present. Removed `turnRef` aliases are not read.
+the snake_case `turn_ref` when present. Removed `turnRef` aliases are rejected.
 
 `stop(...)` sends only `conversation_ref` and `turn_ref` to
-`conversation.stop`; camelCase stop aliases are ignored.
+`conversation.stop`; camelCase stop aliases are rejected.
 
 ## Drift Hotspots
 

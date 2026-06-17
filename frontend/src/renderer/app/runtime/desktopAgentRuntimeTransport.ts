@@ -24,6 +24,19 @@ function optionalStringArray(value: unknown): string[] | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function rejectRemovedCamelCaseFields(
+  payload: Record<string, unknown>,
+  fields: string[],
+  owner: string,
+): void {
+  const present = fields.filter((field) => Object.prototype.hasOwnProperty.call(payload, field));
+  if (present.length > 0) {
+    throw new Error(
+      `${owner} received removed camelCase field(s): ${present.join(', ')}. Use canonical snake_case fields.`,
+    );
+  }
+}
+
 async function sendStopQuery(conversationRef: string | null, turnRef: string | null): Promise<void> {
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
     conversation_ref: conversationRef,
@@ -36,6 +49,16 @@ async function sendQuery(
   workspacePath: string | null,
   messageId: string | null,
 ): Promise<string | null> {
+  rejectRemovedCamelCaseFields(payload, [
+    'conversationRef',
+    'screenshotRef',
+    'screenshotUrl',
+    'screenshotRefs',
+    'attachmentContext',
+    'attachmentFilenames',
+    'workspacePath',
+    'turnRef',
+  ], 'conversation.send');
   const result = await invokeAgentSdkCommand<Record<string, unknown> | null>(
     SDK_RUNTIME_COMMANDS.CONVERSATION_SEND,
     {
@@ -87,6 +110,7 @@ async function sendRehydrateConversation(payload: Record<string, unknown>, works
 }
 
 async function sendCompactHistory(payload: Record<string, unknown>): Promise<void> {
+  rejectRemovedCamelCaseFields(payload, ['turnRef'], 'conversation.compact');
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
     force: payload.force !== false,
     conversation_ref: optionalString(payload.conversation_ref) ?? null,
@@ -94,10 +118,12 @@ async function sendCompactHistory(payload: Record<string, unknown>): Promise<voi
 }
 
 async function sendWakewordDetected(payload: Record<string, unknown>): Promise<void> {
+  rejectRemovedCamelCaseFields(payload, ['turnRef'], 'wakeword.detected');
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED, payload);
 }
 
 async function sendUpdateSettings(payload: Record<string, unknown>): Promise<void> {
+  rejectRemovedCamelCaseFields(payload, ['turnRef'], 'settings.update');
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE, payload);
 }
 
@@ -136,6 +162,7 @@ export function createDesktopAgentRuntimeTransport(workspacePath: string | null 
       return undefined;
     },
     stop: async (payload) => {
+      rejectRemovedCamelCaseFields(payload, ['conversationRef', 'turnRef'], 'conversation.stop');
       await sendStopQuery(
         optionalString(payload.conversation_ref),
         optionalString(payload.turn_ref),

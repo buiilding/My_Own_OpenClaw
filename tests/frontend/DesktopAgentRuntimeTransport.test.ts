@@ -58,7 +58,7 @@ describe('desktopAgentRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
-  test('does not map removed camelCase query payload aliases', async () => {
+  test('rejects removed camelCase query payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,
       messageId: 'msg-1',
@@ -76,17 +76,24 @@ describe('desktopAgentRuntimeTransport', () => {
       attachmentContext: 'context',
       attachmentFilenames: ['shot.png'],
       workspacePath: '/repo',
-    })).resolves.toBe('msg-1');
-    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
-      text: 'hello',
-      conversation_ref: '',
-      screenshot_ref: null,
-      screenshot_url: null,
-      screenshot_refs: null,
-      attachment_context: null,
-      attachment_filenames: null,
-      workspace_path: null,
-    }));
+    })).rejects.toThrow(
+      'conversation.send received removed camelCase field(s): conversationRef, screenshotRef, screenshotUrl, screenshotRefs, attachmentContext, attachmentFilenames, workspacePath. Use canonical snake_case fields.',
+    );
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
+  test('rejects removed camelCase stop payload aliases', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({});
+
+    const transport = createDesktopAgentRuntimeTransport(null);
+
+    await expect(transport.stop({
+      conversationRef: 'conv-camel',
+      turnRef: 'turn-camel',
+    })).rejects.toThrow(
+      'conversation.stop received removed camelCase field(s): conversationRef, turnRef. Use canonical snake_case fields.',
+    );
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
   test('routes runtime commands through SDK-shaped command invoke', async () => {

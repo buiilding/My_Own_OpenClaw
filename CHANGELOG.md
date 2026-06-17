@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Changed the renderer desktop-agent runtime transport to reject removed camelCase command aliases instead of silently ignoring them, keeping `conversation.send`, `conversation.stop`, and related command payloads on canonical snake_case fields. No persisted-data, wire, or storage migration is required.
+
 - Removed the high-level `Agent.stop(...)` snake_case option compatibility path; public stop options now use `conversationRef` and `turnRef` while backend transport payloads remain snake_case. No persisted-data, wire, or storage migration is required.
 
 - Updated sidecar source-copy guard tests to require Python sidecar runtime/daemon wording instead of retired local-sidecar labels. No migration is required.
