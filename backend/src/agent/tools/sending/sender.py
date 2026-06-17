@@ -9,8 +9,8 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
 
-from backend.src.core.events import AgentStreamingEvent
 from backend.src.core.events.streaming_events import (
+    AgentStreamingEvent,
     StreamingEvent,
     ToolBundleEvent,
     ToolCallEvent,

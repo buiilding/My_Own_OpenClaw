@@ -3,8 +3,11 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from backend.src.core.events import AgentStreamingEvent
-from backend.src.core.events.streaming_events import ToolCallEvent, ToolOutputEvent
+from backend.src.core.events.streaming_events import (
+    AgentStreamingEvent,
+    ToolCallEvent,
+    ToolOutputEvent,
+)
 from backend.src.core.interfaces.tool import ToolResult
 
 

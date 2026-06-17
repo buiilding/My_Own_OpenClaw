@@ -14,7 +14,6 @@ namespace packages are used for package directories whose callers import
 concrete modules directly.
 
 - `backend/src/core/config/__init__.py`
-- `backend/src/core/events/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
 
 ## Import-Surface Contract
@@ -32,7 +31,6 @@ Compatibility implication:
 Major aggregator files:
 
 - `backend/src/core/config/__init__.py`: runtime config models + loader/manager/runtime policy exports
-- `backend/src/core/events/__init__.py`: base + bus + streaming event model exports
 
 ## Minimal/Marker Entrypoints
 
@@ -128,6 +126,10 @@ docstring or compatibility path.
 - `backend/src/core/container/__init__.py` is intentionally absent; import the
   runtime `Container` from `backend.src.core.container.facade` and concrete DI
   containers from their owner modules under `backend.src.core.container`.
+- `backend/src/core/events/__init__.py` is intentionally absent; import bus
+  events from `backend.src.core.events.bus_events`, streaming events from
+  `backend.src.core.events.streaming_events`, and the base event class from
+  `backend.src.core.events.base`.
 - `backend/src/api/processing/tts/__init__.py` is intentionally absent; import
   TTS manager and processor types from
   `backend.src.api.processing.tts.manager` and

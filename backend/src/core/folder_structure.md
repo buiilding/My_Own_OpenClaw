@@ -29,7 +29,6 @@ backend/src/core/
 │       └── trust_boundary.py          # InputSizeLimitError, ParseTimeoutError, ParseValidationError
 │
 ├── events/                            # Event system for decoupled communication
-│   ├── __init__.py                    # Re-exports all event types
 │   ├── base.py                        # Event - base class for all event bus events with timestamp
 │   ├── bus_events.py                  # Internal event bus events: InteractionCompleted, ConfigChanged
 │   └── streaming_events.py           # Streaming events for WebSocket: ThinkingEvent, ChunkEvent, ToolCallEvent, etc.

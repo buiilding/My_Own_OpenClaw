@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused core events package export so callers import bus and streaming events from their owner modules.
+
 - Frontend docs: align query, replay, inventory, overlay, and audio stream references with SDK conversation-event and typed backend side-channel fan-out.
 
 - Renderer docs: clarify that model settings list-model delivery flows through the settings runtime event route instead of raw backend IPC.

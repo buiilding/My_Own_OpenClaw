@@ -5,7 +5,8 @@ from types import SimpleNamespace
 import pytest
 
 from backend.src.agent.execution.executor import AgentExecutor
-from backend.src.core.events import InteractionCompleted, StreamingCompleteEvent
+from backend.src.core.events.bus_events import InteractionCompleted
+from backend.src.core.events.streaming_events import StreamingCompleteEvent
 
 
 class _History:

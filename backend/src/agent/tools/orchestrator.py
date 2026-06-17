@@ -6,7 +6,7 @@ Orchestrates the complete tool lifecycle: sending → waiting → processing.
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator
 
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.llm.parser import ParsedResponse
 
 if TYPE_CHECKING:

@@ -8,7 +8,7 @@ from copy import deepcopy
 from typing import Any, Dict, Optional
 
 from backend.src.api.contracts.formatter_specs import get_formatter_specs
-from backend.src.core.events import (
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
 )
 from backend.src.api.processing.formatters.base import EventFormatter

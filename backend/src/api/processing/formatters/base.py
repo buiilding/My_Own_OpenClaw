@@ -6,7 +6,7 @@ Abstract base class for all event formatters.
 from abc import ABC, abstractmethod
 from typing import Any, ClassVar, Optional
 
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.core.events.streaming_events import AgentStreamingEvent
 
 logger = __import__("logging").getLogger(__name__)
 

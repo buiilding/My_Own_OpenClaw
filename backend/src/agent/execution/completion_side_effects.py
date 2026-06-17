@@ -6,7 +6,7 @@ import html
 import logging
 import re
 
-from backend.src.core.events import InteractionCompleted
+from backend.src.core.events.bus_events import InteractionCompleted
 
 logger = logging.getLogger(__name__)
 
