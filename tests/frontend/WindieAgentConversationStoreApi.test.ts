@@ -253,6 +253,13 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
                 last_timestamp: '2026-06-05T12:01:00.000Z',
                 entry_count: -2,
               },
+              {
+                conversationId: 'conv-camel-removed',
+                revisionId: 'rev-camel',
+                title: 'Removed alias row',
+                updatedAt: '2026-06-05T12:03:00.000Z',
+                eventCount: 9,
+              },
             ],
           },
         };

@@ -238,27 +238,22 @@ function isCompactionStdoutEnabled(): boolean {
 }
 
 function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | null {
-  const conversationRef = normalizeString(row.conversation_id)
-    ?? normalizeString(row.conversationId)
-    ?? normalizeString(row.conversation_ref)
-    ?? normalizeString(row.conversationRef);
+  const conversationRef = normalizeString(row.conversation_id);
   if (!conversationRef) {
     return null;
   }
   return {
     conversationRef,
-    revisionId: normalizeString(row.revision_id) ?? normalizeString(row.revisionId) ?? `rev-stored-${conversationRef}`,
+    revisionId: normalizeString(row.revision_id) ?? `rev-stored-${conversationRef}`,
     title: normalizeString(row.title) ?? conversationRef,
-    lastMessage: normalizeString(row.last_message) ?? normalizeString(row.lastMessage),
+    lastMessage: normalizeString(row.last_message),
     updatedAt: normalizeString(row.last_timestamp)
-      ?? normalizeString(row.updatedAt)
-      ?? normalizeString(row.timestamp)
       ?? new Date(0).toISOString(),
-    eventCount: normalizeEventCount(row.entry_count ?? row.eventCount),
-    workspacePath: normalizeString(row.workspace_path) ?? normalizeString(row.workspacePath),
-    workspaceName: normalizeString(row.workspace_name) ?? normalizeString(row.workspaceName),
+    eventCount: normalizeEventCount(row.entry_count),
+    workspacePath: normalizeString(row.workspace_path),
+    workspaceName: normalizeString(row.workspace_name),
     snippet: normalizeString(row.snippet),
-    matchedRole: normalizeString(row.matched_role) ?? normalizeString(row.matchedRole),
+    matchedRole: normalizeString(row.matched_role),
   };
 }
 

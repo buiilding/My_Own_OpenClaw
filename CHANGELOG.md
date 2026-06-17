@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed camelCase metadata-row fallbacks from `LocalRuntimeConversationStore` so sidecar list/search rows must use canonical snake_case fields; no migration required for current sidecar-produced metadata rows.
+
 - Removed the `user_id` Electron main SDK command input alias so conversation-library commands validate only canonical `userId`; no migration required because renderer facades already send `userId`.
 
 - Removed SDK local-runtime title invalidation aliases so `conversation-title-updated` reads only canonical sidecar payload fields; no persisted-data migration required because the event is transient.

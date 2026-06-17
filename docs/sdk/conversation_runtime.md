@@ -296,9 +296,13 @@ The SDK ships two reusable store adapters:
   conversation library uses this store for metadata operations such as list,
   search, delete, and generated-title invalidation refreshes. The desktop
   conversation store adapter also delegates its read/projection conveniences to
-  this SDK store. Desktop supplies Electron-specific write enrichment such as
-  workspace binding and attachment extraction through the store's host
-  write-params hook, while the SDK store still owns the local-runtime write RPC.
+  this SDK store. Metadata rows read from the sidecar use canonical snake_case
+  local-runtime fields such as `conversation_id`, `revision_id`,
+  `last_timestamp`, `entry_count`, `workspace_path`, and `workspace_name`;
+  removed camelCase row aliases are ignored. Desktop supplies Electron-specific
+  write enrichment such as workspace binding and attachment extraction through
+  the store's host write-params hook, while the SDK store still owns the
+  local-runtime write RPC.
   Rewrites send `newRevisionId` as explicit conversation revision metadata; the
   local runtime stores that revision separately from preserved event rows so
   `getRevision()` and metadata listing advance even when the rewrite keeps only
