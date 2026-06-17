@@ -43,6 +43,10 @@ export function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
     return null;
   }
 
+  if (Object.prototype.hasOwnProperty.call(payload, 'clipboardImage')) {
+    return null;
+  }
+
   const normalizedClipboardImages = Array.isArray(payload.clipboardImages)
     ? payload.clipboardImages
       .map((clipboardImage) => normalizeClipboardImage(clipboardImage))

@@ -61,7 +61,7 @@ Normalized shape:
 - `text`: required
 - `clipboardImages[]`: accepted only when each image has non-empty `base64`
 - `readableFiles[]`: accepted only when each file has non-empty absolute-ish `filePath` + `filename`
-- singular `clipboardImage` is not accepted; all image attachments must use the canonical `clipboardImages[]` array.
+- singular `clipboardImage` rejects the object payload; all image attachments must use the canonical `clipboardImages[]` array.
 
 Invalid object payloads are ignored (no send side effect).
 

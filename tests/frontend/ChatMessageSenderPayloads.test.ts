@@ -37,16 +37,12 @@ describe('chatMessageSenderPayloads', () => {
     });
   });
 
-  test('ignores removed singular clipboard image compatibility payloads', () => {
+  test('rejects removed singular clipboard image compatibility payloads', () => {
     expect(normalizeOutgoingPayload({
       text: 'hello',
       // @ts-expect-error singular clipboardImage is no longer part of the send contract
       clipboardImage: { base64: 'abc', filename: 'shot.png' },
-    })).toEqual({
-      text: 'hello',
-      clipboardImages: [],
-      readableFiles: [],
-    });
+    })).toBeNull();
   });
 
   test('dedupes non-empty attachment filenames', () => {

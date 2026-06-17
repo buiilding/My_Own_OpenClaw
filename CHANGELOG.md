@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed quiet handling for the removed singular `clipboardImage` chat send payload field so object sends containing that stale key are rejected before any text-only send can proceed. No migration is required; current composer and minimal-pill senders emit canonical `clipboardImages[]` arrays.
+
 - Removed transcript session storage tolerance for removed `sessionId`/`session_id` identity keys so stale sessionStorage payloads are discarded instead of partially reusing `userId`. No migration is required; the current renderer writes canonical `conversationRef`/`userId` storage payloads and malformed storage already resets to null session info.
 
 - Changed SDK local-runtime daemon discovery to reject discovery files containing the removed camelCase `baseUrl` key even when canonical `base_url` is present. The public `localRuntimeDaemon.baseUrl` option is unchanged; no persisted-data, storage, settings, credential, permission, IPC, or backend wire migration is required.
