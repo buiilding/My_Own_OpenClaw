@@ -130,7 +130,7 @@ Electron frontend-config persistence are scrubbed.
 - no-op when shallow-equal to current config
 - otherwise updates ref and state
 
-This is the central dedupe guard preventing redundant writes and backend updates.
+This is the central dedupe guard preventing redundant writes and settings runtime updates.
 
 ## AppConfigProvider Integration Points
 
@@ -139,7 +139,7 @@ This is the central dedupe guard preventing redundant writes and backend updates
 1. seed state from `loadConfigFromStorage()`
 2. invoke `LOAD_FRONTEND_CONFIG` and merge filtered disk config
 3. invoke `GET_CLIENT_USER_ID` snapshot
-4. subscribe to `IPC_STATUS` and backend stream events
+4. subscribe to `IPC_STATUS` and settings event channel updates
 
 ### Update path (`updateConfig`)
 
@@ -150,7 +150,7 @@ This is the central dedupe guard preventing redundant writes and backend updates
 5. async disk save (`SAVE_FRONTEND_CONFIG`) with redacted provider credential fields
 6. runtime sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
 
-Deferred backend fields:
+Deferred runtime fields:
 
 - `model_provider`
 - `selected_model_id`
@@ -161,7 +161,7 @@ Those two fields remain renderer-local until an actual query/replay send path ru
 
 When IPC status reports connected:
 
-- provider sends current non-model config to backend (`DesktopSettingsRuntimeClient.updateSettings`)
+- provider sends current non-model config to the settings runtime (`DesktopSettingsRuntimeClient.updateSettings`)
 - deferred model selection is not pushed on connect/reconnect
 
 ### Storage-event sync behavior
@@ -171,11 +171,11 @@ On `window.storage` for desktop-assistant config keys:
 - reload from localStorage
 - merge/filter
 - apply only when changed; `provider_api_keys` and `provider_oauth` use content-aware comparison so equivalent nested objects from another window are treated as no-ops
-- do not write the applied snapshot back to localStorage, disk, or backend; the storage event is already the persistence broadcast from another renderer
+- do not write the applied snapshot back to localStorage, disk, or settings runtime; the storage event is already the persistence broadcast from another renderer
 
 ## Event Router Boundary (`appConfigEvents`)
 
-- only routes `models-listed` backend events to settings handlers
+- only routes `models-listed` settings events to settings handlers
 - `extractTranscriptUserId` accepts non-empty string only
 
 ## Test-Backed Invariants
@@ -201,8 +201,8 @@ On `window.storage` for desktop-assistant config keys:
 - disk config merge applies only when changed
 - no-op when disk config equals current config
 - cross-window storage event sync path
-- connected status triggers backend resync
-- connected status excludes deferred model selection from backend resync
+- connected status triggers settings runtime resync
+- connected status excludes deferred model selection from settings runtime resync
 - disk-save/load failures log warnings without crashing
 
 ## Drift Hotspots

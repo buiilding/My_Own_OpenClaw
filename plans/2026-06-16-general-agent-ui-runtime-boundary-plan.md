@@ -402,3 +402,18 @@ Each completed slice should report:
   --check`; and a stale-name scan for the retired test helper names.
 - Compatibility: no migration required. This is test-only naming cleanup; IPC
   channels, provider behavior, and settings status transitions are unchanged.
+
+### 2026-06-17 renderer app config runtime connection snapshot naming
+
+- Finding: `AppConfigProvider` tracked IPC status snapshots with
+  backend-prefixed connection names even though the renderer boundary only needs
+  to know whether the settings runtime is ready for non-model config sync.
+- Change: renamed the connection ref/callback to runtime terminology, updated
+  focused AppConfig provider tests, and aligned config lifecycle docs with
+  settings-runtime sync wording.
+- Validation: focused Jest run for `AppConfigProvider.models` and
+  `AppConfigProvider.storageAndIpc`; docs listing; `git diff --check`; and a
+  stale-name scan for the retired connection snapshot names.
+- Compatibility: no migration required. IPC status payloads, backend URL
+  metadata, settings sync behavior, and deferred model-selection behavior are
+  unchanged.

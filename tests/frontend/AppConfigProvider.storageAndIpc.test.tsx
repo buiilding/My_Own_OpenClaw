@@ -54,7 +54,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
 
-  test('syncs loaded disk config when backend is already connected', async () => {
+  test('syncs loaded disk config when runtime is already connected', async () => {
     setClientUserIdResponse({ isConnected: true });
     setLoadFrontendConfigResponse({
       speech_mode_enabled: true,
@@ -100,7 +100,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
-  test('does not rebroadcast storage-event config changes to localStorage or backend', () => {
+  test('does not rebroadcast storage-event config changes to localStorage or settings runtime', () => {
     const { result } = renderAppConfigContext();
     mockSaveConfigToStorage.mockClear();
     mockDesktopSettingsUpdateSettings.mockClear();
@@ -308,7 +308,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(mockSetBackendHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
   });
 
-  test('syncs current config to backend when IPC status reports connected', () => {
+  test('syncs current config to settings runtime when IPC status reports connected', () => {
     renderAppConfigContext();
 
     const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: rename AppConfig connection snapshot state to runtime terminology while preserving settings sync behavior.
+
 - tests/frontend: rename AppConfig provider listener helpers to IPC/settings terminology instead of backend-prefixed test utility names.
 
 - frontend/renderer: rename app config settings event routing away from backend-prefixed helper names while preserving settings channel contracts.

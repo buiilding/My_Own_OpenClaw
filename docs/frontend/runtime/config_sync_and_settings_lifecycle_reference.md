@@ -1,5 +1,5 @@
 ---
-summary: "Frontend config/settings lifecycle reference across renderer providers, main-process settings ACK gating, local storage + disk persistence, and backend sync timing."
+summary: "Frontend config/settings lifecycle reference across renderer providers, main-process settings ACK gating, local storage + disk persistence, and settings runtime sync timing."
 read_when:
   - When changing frontend-managed config fields, settings persistence, or update-settings ACK behavior.
   - When debugging stale settings, save-status drift, or first-query settings sync races.
@@ -48,7 +48,7 @@ Backend-owned speech/transcription runtime policy is intentionally excluded from
 - intentionally removed from backend `update-settings` payloads
 - may be rewritten locally when Electron fails to register the requested accelerator and main resolves a supported fallback
 
-All outbound config updates use this boundary before backend sync.
+All outbound config updates use this boundary before settings runtime sync.
 
 ## Renderer Provider Roles
 
@@ -57,8 +57,8 @@ All outbound config updates use this boundary before backend sync.
 Responsibilities:
 
 - source config state from localStorage on startup
-- request model list once for the main dashboard through `DesktopSettingsRuntimeClient.listModels()` after registering the backend event listener, even when the initial connection snapshot is disconnected; this is the startup signal that makes Electron main open the backend websocket for model metadata
-- sync non-model config to backend on connection availability
+- request model list once for the main dashboard through `DesktopSettingsRuntimeClient.listModels()` after registering the settings event listener, even when the initial runtime connection snapshot is disconnected; this is the startup signal that makes Electron main open the backend websocket for model metadata
+- sync non-model config to the settings runtime on connection availability
 - merge disk/local updates with current in-memory config
 - persist updates to localStorage and disk
 - publish `update-settings` through `DesktopSettingsRuntimeClient.updateSettings(...)`
@@ -166,7 +166,7 @@ Renderer uses this to:
 
 - update transcript user identity
 - update renderer backend HTTP URL for artifact URL composition
-- trigger config re-sync when connection becomes ready
+- trigger config re-sync when the runtime connection becomes ready
 - persist resolved global-stop fallback bindings back into local config and Settings UI when the requested accelerator is unavailable
 
 ## Event Handling Notes
@@ -175,7 +175,7 @@ Renderer uses this to:
 
 - `models-listed` -> available model list update
 
-`AppStatusProvider` separately listens on backend stream for:
+`AppStatusProvider` separately listens on the settings event channel for:
 
 - `settings-updated`
 - settings-related `error`

@@ -69,7 +69,7 @@ describe('AppConfigProvider model + config wiring', () => {
     expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
   });
 
-  test('requests model list even when initial backend snapshot is disconnected', async () => {
+  test('requests model list even when initial runtime snapshot is disconnected', async () => {
     setClientUserIdResponse({ isConnected: false });
 
     renderAppConfigContext();

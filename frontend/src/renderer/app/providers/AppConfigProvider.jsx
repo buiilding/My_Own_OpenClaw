@@ -74,7 +74,7 @@ export function AppConfigProvider({ children }) {
   const configRef = useLatestRef(config);
   const globalAgentStopShortcutStatusRef = useLatestRef(globalAgentStopShortcutStatus);
   const saveStatusCallbackRef = useRef(null);
-  const backendConnectedRef = useRef(false);
+  const runtimeConnectedRef = useRef(false);
 
   const syncCurrentConfigToRuntime = useCallback(() => {
     const currentConfig = configRef.current;
@@ -148,8 +148,8 @@ export function AppConfigProvider({ children }) {
     routeConfigSettingsEvent(data, handlersRef);
   }, [handlersRef]);
 
-  const applyBackendConnectionSnapshot = useCallback((data) => {
-    backendConnectedRef.current = data?.isConnected === true;
+  const applyRuntimeConnectionSnapshot = useCallback((data) => {
+    runtimeConnectedRef.current = data?.isConnected === true;
 
     const shortcutStatus = (
       data?.globalAgentStopShortcutStatus
@@ -185,7 +185,7 @@ export function AppConfigProvider({ children }) {
       updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
     });
     setBackendHttpUrl(data?.backendHttpUrl);
-    if (backendConnectedRef.current) {
+    if (runtimeConnectedRef.current) {
       syncCurrentConfigToRuntime();
     }
   }, [
@@ -209,20 +209,20 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (data) => {
-      applyBackendConnectionSnapshot(data);
+      applyRuntimeConnectionSnapshot(data);
     });
     return () => {
       removeListener?.();
     };
-  }, [applyBackendConnectionSnapshot]);
+  }, [applyRuntimeConnectionSnapshot]);
 
   useEffect(() => {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
       .then((result) => {
-        applyBackendConnectionSnapshot(result);
+        applyRuntimeConnectionSnapshot(result);
       })
       .catch(() => {});
-  }, [applyBackendConnectionSnapshot]);
+  }, [applyRuntimeConnectionSnapshot]);
 
   useEffect(() => {
     let isMounted = true;
@@ -234,7 +234,7 @@ export function AppConfigProvider({ children }) {
       const filteredConfig = buildMergedFrontendConfig(diskConfig);
       applyResolvedConfig(filteredConfig, {
         persistToDisk: false,
-        syncRuntime: backendConnectedRef.current,
+        syncRuntime: runtimeConnectedRef.current,
       });
     }).catch((error) => {
       console.warn('[Config] Failed to load config from disk:', error?.message || error);
