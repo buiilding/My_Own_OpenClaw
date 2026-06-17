@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer SDK facade model-selection alias
+
+- Finding: the renderer SDK facade re-exported the compatibility
+  `WindieModelSelection` type as `AgentModelSelection` even though the SDK now
+  exports the generic `AgentModelSelection` name directly.
+- Change: removed the redundant compatibility-name re-export and added renderer
+  boundary coverage to keep the facade using generic SDK type names directly.
+- Validation: focused renderer API boundary test, docs listing, and diff check.
+- Compatibility: no migration required. The facade still re-exports the full SDK
+  surface, including both `AgentModelSelection` and the compatibility
+  `WindieModelSelection` type.
+
 ### 2026-06-17 SDK generic agent alias
 
 - Finding: the SDK had generic client, option, stream, chat, and hosted

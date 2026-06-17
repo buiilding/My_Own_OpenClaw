@@ -72,4 +72,14 @@ describe('renderer api client boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('renderer SDK facade uses generic SDK type names directly', async () => {
+    const source = await fs.readFile(
+      path.join(rendererRoot, 'infrastructure/api/agentSdkClient.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain("export * from '../../../../../packages/windie-sdk-js/src';");
+    expect(source).not.toContain('WindieModelSelection as AgentModelSelection');
+  });
 });

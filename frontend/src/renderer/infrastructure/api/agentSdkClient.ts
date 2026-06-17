@@ -3,6 +3,3 @@
  */
 
 export * from '../../../../../packages/windie-sdk-js/src';
-export type {
-  WindieModelSelection as AgentModelSelection,
-} from '../../../../../packages/windie-sdk-js/src';
