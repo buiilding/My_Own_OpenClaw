@@ -1,0 +1,5 @@
+/*
+ * Exposes the active renderer skin stylesheet through a generic desktop-agent name.
+ */
+
+@import "./windieDesktopSkin.css";

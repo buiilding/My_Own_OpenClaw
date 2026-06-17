@@ -16,7 +16,7 @@ import { useAppConfigContext } from './providers/AppConfigContext';
 import { ChatProvider } from './providers/ChatProvider';
 import WakewordController from './WakewordController';
 import '../styles/theme.css';
-import './skin/windieDesktopSkin.css';
+import './skin/desktopAgentSkin.css';
 import '../styles/ChatInterface.css';
 import '../styles/DashboardShell.css';
 import '../styles/CloneMemoryModels.css';

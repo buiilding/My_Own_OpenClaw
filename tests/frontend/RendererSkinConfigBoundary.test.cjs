@@ -9,6 +9,7 @@ const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const appPath = path.join(rendererRoot, 'app/App.jsx');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
 const skinFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentSkin.js');
+const skinCssFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentSkin.css');
 const skinCssPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.css');
 const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css');
 const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
@@ -42,10 +43,13 @@ describe('renderer skin/config boundary', () => {
 
   test('renderer brand icon asset lives in the renderer skin stylesheet', () => {
     const appSource = fs.readFileSync(appPath, 'utf8');
+    const skinCssFacadeSource = fs.readFileSync(skinCssFacadePath, 'utf8');
     const skinCssSource = fs.readFileSync(skinCssPath, 'utf8');
     const dashboardShellCssSource = fs.readFileSync(dashboardShellCssPath, 'utf8');
 
-    expect(appSource).toContain("import './skin/windieDesktopSkin.css'");
+    expect(appSource).toContain("import './skin/desktopAgentSkin.css'");
+    expect(appSource).not.toContain("import './skin/windieDesktopSkin.css'");
+    expect(skinCssFacadeSource).toContain('@import "./windieDesktopSkin.css"');
     expect(skinCssSource).toContain('--windie-desktop-brand-icon-url');
     expect(skinCssSource).toContain('windieos.app.png');
     expect(dashboardShellCssSource).toContain('--windie-desktop-brand-icon-url');

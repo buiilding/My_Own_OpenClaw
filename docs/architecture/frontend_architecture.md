@@ -380,6 +380,10 @@ Primary modules:
     messages from this generic skin facade instead of importing the WindieOS
     skin/config directly or hard-coding WindieOS wording and sidecar/backend
     runtime names inline.
+- `renderer/app/skin/desktopAgentSkin.css`:
+  - Generic renderer-facing stylesheet entrypoint for the active skin. The
+    WindieOS icon asset remains in the product-specific skin stylesheet behind
+    this facade.
 - `renderer/app/providers/AppConfigProvider.jsx`:
   - Frontend config load/merge/save.
   - Persists renderer-owned config such as `global_agent_stop_shortcut` locally without syncing that key to the backend.

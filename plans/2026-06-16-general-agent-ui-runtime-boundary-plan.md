@@ -1218,3 +1218,16 @@ Each completed slice should report:
   `git diff --check`, and stale header-copy scan.
 - Compatibility: no migration required. Public SDK exports, filenames,
   runtime behavior, and package import paths are unchanged.
+
+### 2026-06-17 renderer skin stylesheet facade
+
+- Finding: the generic renderer app root still imported
+  `windieDesktopSkin.css` directly even though renderer copy/config already
+  moved behind the generic `desktopAgentSkin` facade.
+- Change: added `desktopAgentSkin.css` as the generic stylesheet entrypoint,
+  routed `App.jsx` through it, and kept the WindieOS icon asset URL in the
+  product-specific skin stylesheet.
+- Validation: focused renderer skin boundary Jest coverage, docs listing,
+  `git diff --check`, and stylesheet import scans.
+- Compatibility: no migration required. CSS variables, icon asset location,
+  rendered branding, and skin runtime copy are unchanged.
