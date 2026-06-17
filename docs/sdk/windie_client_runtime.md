@@ -237,12 +237,13 @@ tool-result return.
 ## Public API
 
 ```ts
-import { WindieClient, moduleTool, windieBuiltins } from "@windie/sdk";
+import { WindieClient, agentBuiltins, moduleTool } from "@windie/sdk";
 
 const client = new WindieClient();
 
 const simpleAgent = await client.wakeUp({
   systemPrompt: "You are a helpful assistant. Be concise. This text-only client has no callable tools.",
+  ...agentBuiltins.none(),
   // Memory and persistence default on. Set both false for a stateless backend-only client.
 });
 
@@ -429,6 +430,10 @@ const unsubscribe = agent.subscribeLocalRuntimeEvents((event) => {
   }
 });
 ```
+
+`agentBuiltins` is the generic SDK helper for selecting built-in local tool
+sets. `windieBuiltins` remains exported as a compatibility alias for existing
+callers.
 
 ## Conversation Runtime
 

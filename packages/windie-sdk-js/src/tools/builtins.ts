@@ -2,58 +2,64 @@
  * Provides the builtins module for the TypeScript SDK runtime.
  */
 
-export type WindieBuiltinToolSet =
+export type AgentBuiltinToolSet =
   | 'desktop'
   | 'filesystem'
   | 'shell'
   | 'browser'
   | 'computer';
 
-export type WindieBuiltinSelection = 'none' | 'default' | WindieBuiltinToolSet[];
+export type AgentBuiltinSelection = 'none' | 'default' | AgentBuiltinToolSet[];
 
-export type WindieBuiltinToolSelection = {
-  builtins: WindieBuiltinSelection;
+export type AgentBuiltinToolSelection = {
+  builtins: AgentBuiltinSelection;
 };
 
-export const windieBuiltins = {
-  none(): WindieBuiltinToolSelection {
+export type WindieBuiltinToolSet = AgentBuiltinToolSet;
+export type WindieBuiltinSelection = AgentBuiltinSelection;
+export type WindieBuiltinToolSelection = AgentBuiltinToolSelection;
+
+export const agentBuiltins = {
+  none(): AgentBuiltinToolSelection {
     return {
       builtins: 'none',
     };
   },
-  default(): WindieBuiltinToolSelection {
+  default(): AgentBuiltinToolSelection {
     return {
       builtins: 'default',
     };
   },
-  desktop(): WindieBuiltinToolSelection {
+  desktop(): AgentBuiltinToolSelection {
     return {
       builtins: 'default',
     };
   },
-  filesystem(): WindieBuiltinToolSelection {
+  filesystem(): AgentBuiltinToolSelection {
     return {
       builtins: ['filesystem'],
     };
   },
-  shell(): WindieBuiltinToolSelection {
+  shell(): AgentBuiltinToolSelection {
     return {
       builtins: ['shell'],
     };
   },
-  browser(): WindieBuiltinToolSelection {
+  browser(): AgentBuiltinToolSelection {
     return {
       builtins: ['browser'],
     };
   },
-  computer(): WindieBuiltinToolSelection {
+  computer(): AgentBuiltinToolSelection {
     return {
       builtins: ['computer'],
     };
   },
 };
 
-const BUILTIN_PREFIXES: Record<WindieBuiltinToolSet, string[]> = {
+export const windieBuiltins = agentBuiltins;
+
+const BUILTIN_PREFIXES: Record<AgentBuiltinToolSet, string[]> = {
   desktop: [],
   filesystem: ['read_file', 'replace', 'list_files', 'search_files'],
   shell: ['run_shell_command', 'run_command', 'shell', 'process'],
@@ -70,7 +76,7 @@ const BUILTIN_PREFIXES: Record<WindieBuiltinToolSet, string[]> = {
   ],
 };
 
-export function shouldIncludeBuiltinTool(toolName: string, selected: WindieBuiltinToolSet[] = []): boolean {
+export function shouldIncludeBuiltinTool(toolName: string, selected: AgentBuiltinToolSet[] = []): boolean {
   if (selected.length === 0) {
     return false;
   }

@@ -9,6 +9,7 @@ import {
   SdkConversationRuntime,
   SDK_RUNTIME_COMMANDS,
   ToolExecutionCoordinator,
+  agentBuiltins,
   buildDisplayConversation,
   createConversationRuntime,
   moduleTool,
@@ -17,6 +18,7 @@ import {
   resolveToolEventCorrelationId,
   resolveToolOutputCorrelationId,
   resolveToolWaitId,
+  windieBuiltins,
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
@@ -28,6 +30,8 @@ describe('@windie/sdk package boundary', () => {
     expect(SDK_RUNTIME_COMMANDS).toBeDefined();
     expect(createConversationRuntime).toBeDefined();
     expect(ToolExecutionCoordinator).toBeDefined();
+    expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
+    expect(windieBuiltins).toBe(agentBuiltins);
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveModelFacingToolCallId).toBeDefined();
     expect(resolveToolCallCorrelationId).toBeDefined();

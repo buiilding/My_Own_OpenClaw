@@ -17,8 +17,8 @@ import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.j
 import { SidecarConversationStore } from '../stores/SidecarConversationStore.js';
 import {
   shouldIncludeBuiltinTool,
-  type WindieBuiltinSelection,
-  type WindieBuiltinToolSet,
+  type AgentBuiltinSelection,
+  type AgentBuiltinToolSet,
 } from '../tools/builtins.js';
 import {
   createWindieAgentSession,
@@ -63,7 +63,7 @@ export type WindieWakeUpOptions = {
   skills?: WindieSkillDefinition[];
   mcps?: WindieMcpDefinition[];
   plugins?: WindiePluginDefinition[];
-  builtins?: WindieBuiltinSelection;
+  builtins?: AgentBuiltinSelection;
   conversationRef?: string;
   agentId?: string;
   name?: string;
@@ -687,7 +687,7 @@ function isHostedDefaultBackendUrl(backendUrl: string): boolean {
   }
 }
 
-function normalizeBuiltins(options: WindieWakeUpOptions): WindieBuiltinToolSet[] {
+function normalizeBuiltins(options: WindieWakeUpOptions): AgentBuiltinToolSet[] {
   const selected = options.builtins;
   if (selected === 'none') {
     return [];
@@ -701,8 +701,8 @@ function normalizeBuiltins(options: WindieWakeUpOptions): WindieBuiltinToolSet[]
   return [];
 }
 
-function dedupeBuiltinToolSets(values: WindieBuiltinToolSet[]): WindieBuiltinToolSet[] {
-  const normalized: WindieBuiltinToolSet[] = [];
+function dedupeBuiltinToolSets(values: AgentBuiltinToolSet[]): AgentBuiltinToolSet[] {
+  const normalized: AgentBuiltinToolSet[] = [];
   const seen = new Set<string>();
   for (const value of values) {
     if (seen.has(value)) {

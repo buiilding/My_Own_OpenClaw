@@ -1380,3 +1380,17 @@ Each completed slice should report:
 - Compatibility: no migration required. IPC payload compatibility fields such
   as `backend_status` remain unchanged; only private main-process dependency
   names moved to local-runtime wording.
+
+### 2026-06-17 SDK builtin selection helper alias
+
+- Finding: the SDK builtin tool-selection helper was exposed only as
+  `windieBuiltins` with `WindieBuiltin*` types even though builtin selection is
+  a reusable agent API concern, not WindieOS skin or hosted-backend policy.
+- Change: added `agentBuiltins` plus `AgentBuiltin*` type names as the generic
+  SDK surface, changed SDK client internals to depend on the generic type names,
+  and kept `windieBuiltins`/`WindieBuiltin*` as compatibility aliases.
+- Validation: focused SDK package-boundary Jest coverage, docs listing,
+  `git diff --check`, and source scans for the new generic helper export.
+- Compatibility: no migration required. Existing SDK callers can continue to
+  import `windieBuiltins` and `WindieBuiltin*`; new docs prefer
+  `agentBuiltins`.
