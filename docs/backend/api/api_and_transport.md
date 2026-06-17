@@ -153,7 +153,7 @@ Query handler delegates to `QueryExecutionService` then `StreamPipeline`:
 
 - screenshot/input resolution
 - runtime system-state application
-- completion backfill/terminal policy
+- completion backfill
 - cancellation-side cleanup
 
 ## Transport Guarantees and Safety

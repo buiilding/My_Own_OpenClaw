@@ -51,7 +51,6 @@ This means VM run-control APIs are part of the same canonical backend app regist
 - `query_execution_pipeline_events.py`: centralizes event->pipeline emission behavior
 - `query_execution_stream_state.py`: stores terminal/chunk/full-text stream state
 - `query_execution_completion.py`: single completion/backfill path for both normal terminal events and fallback completion
-- `query_execution_terminal_policy.py`: controls post-terminal event allowlist
 - `query_execution_cancellation.py`: resolves pending tool calls on cancellation
 
 Important behavior contracts:
@@ -60,6 +59,7 @@ Important behavior contracts:
 - artifact loads are best-effort and downgrade to no-image when refs fail to resolve
 - `system_state_internal` is runtime-only; it is merged onto session state but not injected directly as model-facing query text
 - missing terminal event causes deterministic fallback completion emission (same completion helper path as normal terminal flow)
+- events after a terminal stream event are ignored by `QueryExecutionService`
 
 ## Agent Loop and Tool Turn Contract
 

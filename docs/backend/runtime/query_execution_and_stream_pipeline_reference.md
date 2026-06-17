@@ -16,7 +16,6 @@ title: "Query Execution and Stream Pipeline Reference"
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`
 - `backend/src/api/services/query_execution_support/query_execution_runtime.py`
 - `backend/src/api/services/query_execution_support/query_execution_completion.py`
-- `backend/src/api/services/query_execution_support/query_execution_terminal_policy.py`
 - `backend/src/api/services/query_execution_support/query_execution_cancellation.py`
 - `backend/src/api/processing/pipeline.py`
 - `backend/src/api/processing/formatter.py`

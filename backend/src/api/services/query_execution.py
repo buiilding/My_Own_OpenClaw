@@ -37,9 +37,6 @@ from backend.src.api.services.query_execution_support.query_execution_runtime im
 from backend.src.api.services.query_execution_support.query_execution_stream_state import (
     QueryExecutionStreamState,
 )
-from backend.src.api.services.query_execution_support.query_execution_terminal_policy import (
-    is_post_terminal_event_allowed,
-)
 from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.envelope import build_transport_message
@@ -213,15 +210,6 @@ class QueryExecutionService:
                     stream_state.observe_event_type(event_type)
 
                     if stream_state.saw_terminal_event:
-                        if is_post_terminal_event_allowed(event_type):
-                            await process_pipeline_event(
-                                pipeline=pipeline,
-                                event=event,
-                                tts_service=tts_session.service,
-                                msg_id=msg_id,
-                                stream_context=stream_context,
-                            )
-                            continue
                         logger.debug(
                             "Ignoring post-terminal stream event "
                             "(user_id=%s, turn_ref=%s, event_type=%s)",

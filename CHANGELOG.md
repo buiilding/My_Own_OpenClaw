@@ -131,6 +131,8 @@ All notable changes to WindieOS will be documented in this file.
   and delete the unused execution policy module, test, and reference page.
 - frontend/platform: inline Linux content-protection no-op dispatch and delete
   the separate `content_protection/linux.cjs` module.
+- backend/api: inline the empty post-terminal event gate in
+  `QueryExecutionService` and delete the unused terminal-policy helper module.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

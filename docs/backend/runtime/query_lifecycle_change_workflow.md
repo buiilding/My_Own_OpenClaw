@@ -70,7 +70,7 @@ Query lifecycle changes must preserve these invariants:
 - Stop requests can cancel an already registered task or be consumed by a query that starts shortly after the stop request.
 - `QueryExecutionService` validates query text before entering the agent loop.
 - A query stream should emit a terminal completion or error path even when the model stream exits without a terminal event.
-- Post-terminal events are ignored unless explicitly allowed by terminal policy.
+- Post-terminal events are ignored by `QueryExecutionService`.
 - Completion text precedence is deterministic: terminal final response, chunk accumulation, assistant full text, then fallback.
 - TTS work cannot block or corrupt text transport.
 - Cancellation reconciles already staged tool calls with synthetic tool outputs but does not synthesize assistant text.
@@ -152,7 +152,7 @@ Change `backend/src/api/processing/*` and `backend/src/api/contracts/*` when the
 - context envelope fields.
 - completion/chunk event formatting.
 - TTS concurrency around text chunks.
-- allowed post-terminal event families.
+- terminal event gating.
 
 Validation:
 

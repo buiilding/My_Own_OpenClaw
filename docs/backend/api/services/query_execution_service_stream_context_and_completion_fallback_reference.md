@@ -15,7 +15,6 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`
 - `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
 - `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
-- `backend/src/api/services/query_execution_support/query_execution_terminal_policy.py`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/query.py`
@@ -126,12 +125,12 @@ Execution tracks:
 
 Loop gate semantics:
 
-- once `saw_terminal_event=True`, only helper-approved post-terminal side effects continue through the pipeline; all other later events in the same stream iteration are ignored and debug-logged
+- once `saw_terminal_event=True`, later events in the same stream iteration are ignored and debug-logged
 - `streaming-complete` marks terminal, resolves completion text, emits backfill completion path, and skips direct pipeline forwarding of the original event
 - `error` marks terminal and is still forwarded once through `process_pipeline_event(...)`
 
-Current post-terminal allowlist is empty. Completed-turn memory writes are
-SDK-owned local side effects, not backend post-terminal websocket events.
+Completed-turn memory writes are SDK-owned local side effects, not backend
+post-terminal websocket events.
 
 ### Event extraction helpers
 
