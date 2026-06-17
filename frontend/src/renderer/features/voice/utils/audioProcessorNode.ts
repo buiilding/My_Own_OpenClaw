@@ -2,11 +2,11 @@
  * Provides the audio processor node module for the renderer UI.
  */
 
-const CAPTURE_WORKLET_NAME = 'windieos-capture-processor';
+const CAPTURE_WORKLET_NAME = 'desktop-agent-capture-processor';
 const workletLoadedContexts = new WeakSet<AudioContext>();
 
 const WORKLET_SOURCE = `
-class WindieOSCaptureProcessor extends AudioWorkletProcessor {
+class DesktopAgentCaptureProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     const requestedChunkSize = Number(options?.processorOptions?.chunkSize);
@@ -37,7 +37,7 @@ class WindieOSCaptureProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('${CAPTURE_WORKLET_NAME}', WindieOSCaptureProcessor);
+registerProcessor('${CAPTURE_WORKLET_NAME}', DesktopAgentCaptureProcessor);
 `;
 
 let workletSourceUrl: string | null = null;

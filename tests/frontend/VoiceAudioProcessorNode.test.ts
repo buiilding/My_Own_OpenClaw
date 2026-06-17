@@ -40,7 +40,7 @@ describe('voice audio processor node', () => {
   });
 
   test('uses AudioWorklet path when available and forwards worklet chunks', async () => {
-    (URL as any).createObjectURL = jest.fn(() => 'blob:windieos-audio-worklet');
+    (URL as any).createObjectURL = jest.fn(() => 'blob:desktop-agent-audio-worklet');
     const createdNodes: MockWorkletNodeInstance[] = [];
     class MockAudioWorkletNode {
       connect = jest.fn<void, [unknown]>();
@@ -85,7 +85,7 @@ describe('voice audio processor node', () => {
   });
 
   test('loads worklet module only once per audio context', async () => {
-    (URL as any).createObjectURL = jest.fn(() => 'blob:windieos-audio-worklet');
+    (URL as any).createObjectURL = jest.fn(() => 'blob:desktop-agent-audio-worklet');
     class MockAudioWorkletNode {
       connect = jest.fn<void, [unknown]>();
       disconnect = jest.fn<void, []>();

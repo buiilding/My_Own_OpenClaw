@@ -14,6 +14,8 @@ All notable changes to WindieOS will be documented in this file.
   runtime commands.
 - frontend/renderer: route onboarding, chat empty-state, send/replay failure,
   and live-turn fallback copy through the WindieOS renderer skin config.
+- frontend/renderer: rename voice capture worklet internals to generic desktop
+  agent terms so product naming stays in the renderer skin.
 - frontend/main: route browser and macOS automation permission copy through the
   WindieOS main host skin config so the Electron composition root stays focused
   on host adapters.

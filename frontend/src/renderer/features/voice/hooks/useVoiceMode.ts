@@ -24,7 +24,7 @@ function getReconnectDelayMs(attempt: number): number {
 
 /**
  * Custom hook for managing voice mode functionality.
- * Connects to the backend-owned WindieOS transcription WebSocket, captures audio,
+ * Connects to the backend-owned transcription WebSocket, captures audio,
  * and handles transcription.
  * 
  * @param {boolean} enabled - Whether voice mode is enabled

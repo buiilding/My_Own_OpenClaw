@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `454acd07e` (`refactor(sdk): keep unused helpers private`)
+- Latest inspected plan checkpoint: `e145d3335` (`test(sdk): guard private helper exports`)
 
 ## Inspection Log
 
@@ -142,6 +142,17 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: the CJS package output no longer publishes those helper symbols, while public session, manifest stamping, and compacted replay snapshot APIs remain exported.
 - Validation: focused package-boundary/private-export tests pass.
 
+### 2026-06-16 Renderer Voice Naming Slice
+
+- Worktree recovery: new SDK context-enrichment export cleanup edits were present and treated as unrelated to this renderer slice.
+- Finding: renderer voice capture internals still used WindieOS naming in an AudioWorklet processor id/class and a voice hook comment.
+- Decision: rename those internals to generic desktop-agent terms without changing voice capture behavior.
+- Change: the audio capture worklet processor id/class now uses generic desktop-agent naming.
+- Change: the voice mode hook describes the backend transcription websocket without product naming.
+- Change: renderer skin boundary tests now cover voice capture internals.
+- Validation: focused renderer skin, voice runtime boundary, and audio processor tests pass.
+- Fresh inspection: `frontend/src/renderer` product naming now appears only in `windieDesktopSkin.js`.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -157,6 +168,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Bundled wakeword and sidecar reinstall guidance reads from the host skin on app paths.
 - [x] Local browser warmup and OAuth callback copy reads from the host skin on app paths.
 - [x] SDK deep modules keep unused internal helpers private.
+- [x] Renderer voice capture internals use generic naming.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -201,11 +213,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "WindieOS|Return to WindieOS|Open the WindieOS browser|Windie Browser" frontend/src/main -g "*.cjs"` found only `main_host_skin.cjs`.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkPrivateExports.test.cjs ../tests/frontend/WindieSdkPackageBoundary.test.ts` passed.
 - `rg -n "summarizeAgentDefinitionCapabilities|compactedReplayFromEvent|normalizeWsUrl" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found those helpers only inside their owning modules plus the private-export boundary test.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/RendererSkinConfigBoundary.test.cjs ../tests/frontend/RendererVoiceRuntimeBoundary.test.ts ../tests/frontend/VoiceAudioProcessorNode.test.ts` passed.
+- `rg -n "WindieOS|Windie Browser|Welcome to WindieOS|WindieOS Demo|Start WindieOS|WindieOS onboarding|WindieOS runtime|WindieOS isn't connected|WindieOS could not|WindieOS is still loading|windieos-capture-processor|WindieOSCaptureProcessor" frontend/src/renderer -g "*.js" -g "*.jsx" -g "*.ts" -g "*.tsx"` found only `windieDesktopSkin.js`.
 
 ## Remaining Findings
 
 - Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
 - Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
 - Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
+- Renderer product naming is now skin-owned in live renderer source. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
 - Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, layer-log prefixes, bundled wakeword/sidecar reinstall guidance, local browser warmup, and OAuth callback copy now read related product copy from a host skin. Fresh inspection found WindieOS product naming only in `main_host_skin.cjs` under `frontend/src/main`.
 - SDK deep-module export cleanup is underway: unused helper exports are private, while broader public SDK API naming still intentionally uses Windie-branded class/type names.

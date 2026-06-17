@@ -79,6 +79,19 @@ describe('renderer skin/config boundary', () => {
     }
   });
 
+  test('voice capture internals do not embed product naming', () => {
+    const consumers = [
+      'features/voice/utils/audioProcessorNode.ts',
+      'features/voice/hooks/useVoiceMode.ts',
+    ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
+
+    for (const source of consumers) {
+      expect(source).not.toContain('WindieOS');
+      expect(source).not.toContain('windieos-capture-processor');
+      expect(source).not.toContain('WindieOSCaptureProcessor');
+    }
+  });
+
   test('settings components do not expose sidecar execution targets as user-facing labels', () => {
     const source = read('AgentSettingsTab.jsx');
 
