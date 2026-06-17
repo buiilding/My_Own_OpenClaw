@@ -42,7 +42,7 @@ const SIDECAR_SOURCE_STAMP_FILES = [
   'local_backend.py',
   'local_backend_memory_handlers.py',
 ];
-const SIDECAR_LOG_PREFIXES = [
+const LOCAL_RUNTIME_LOG_PREFIXES = [
   '[SidecarDaemon]',
   '[LocalSidecar]',
   '[LocalBackend]',
@@ -84,7 +84,7 @@ function resolveSidecarSourceStamp(launchTarget) {
   };
 }
 
-function buildSidecarDaemonEnv({
+function buildLocalRuntimeDaemonEnv({
   isPackaged = false,
   backendEndpoints,
   permissionStatePath,
@@ -141,17 +141,17 @@ function buildSidecarLaunchContextFromEnv(env = {}) {
   return normalized;
 }
 
-function writeSidecarDaemonLogLine(line, {
+function writeLocalRuntimeDaemonLogLine(line, {
   filter = true,
   stream = process.stderr,
   writeLayerLogLine = appendLayerLogLine,
 } = {}) {
   const text = String(line || '').trim();
-  const hasSidecarPrefix = SIDECAR_LOG_PREFIXES.some((prefix) => text.startsWith(prefix));
-  if (!text || (filter && !hasSidecarPrefix && !shouldForwardStderrLine(text))) {
+  const hasLocalRuntimePrefix = LOCAL_RUNTIME_LOG_PREFIXES.some((prefix) => text.startsWith(prefix));
+  if (!text || (filter && !hasLocalRuntimePrefix && !shouldForwardStderrLine(text))) {
     return false;
   }
-  const formatted = text.startsWith('[') ? text : `[SidecarDaemon] ${text}`;
+  const formatted = text.startsWith('[') ? text : `[LocalRuntimeDaemon] ${text}`;
   writeLayerLogLine('sidecar', formatted);
   stream?.write?.(`${formatted}\n`);
   return true;
@@ -182,7 +182,7 @@ function createDesktopLocalRuntimeLaunchPlan({
       launchTarget,
     };
   }
-  const env = buildSidecarDaemonEnv({
+  const env = buildLocalRuntimeDaemonEnv({
     backendEndpoints,
     isPackaged,
     permissionStatePath,
@@ -211,8 +211,8 @@ function createDesktopLocalRuntimeLaunchPlan({
           `[Main][LocalRuntimeLaunch] spawned local runtime command=${JSON.stringify(command)} cwd=${JSON.stringify(cwd)}`,
         );
       },
-      onStdoutLine: (line) => writeSidecarDaemonLogLine(line, { filter: false }),
-      onStderrLine: (line) => writeSidecarDaemonLogLine(line),
+      onStdoutLine: (line) => writeLocalRuntimeDaemonLogLine(line, { filter: false }),
+      onStderrLine: (line) => writeLocalRuntimeDaemonLogLine(line),
     },
     launchTarget,
   };

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime daemon helper naming
+
+- Finding: Electron main's local-runtime launch-options helper still used
+  sidecar-daemon-specific internal names and added `[SidecarDaemon]` to
+  unprefixed daemon output lines.
+- Change: renamed the main-only helper names to local-runtime-daemon wording
+  and changed the main-added fallback log prefix to `[LocalRuntimeDaemon]`
+  while preserving concrete sidecar daemon prefixes emitted by Python.
+- Validation: focused launch-options Jest test, stale helper-name scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. The daemon script, discovery file,
+  environment variables, process output passthrough, and SDK `autoSidecar`
+  option are unchanged.
+
 ### 2026-06-17 Architecture docs desktopAgent bridge wording
 
 - Finding: architecture docs still taught renderer feature code to call the

@@ -23,6 +23,18 @@ describe('sdk local runtime launch options', () => {
     expect(typeof bridgeUtilsModule.withLocalRuntimeNodeOptions).toBe('function');
   });
 
+  test('uses local-runtime daemon helper names in launch source', () => {
+    const source = fs.readFileSync(
+      path.join(__dirname, '../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('buildLocalRuntimeDaemonEnv');
+    expect(source).toContain('writeLocalRuntimeDaemonLogLine');
+    expect(source).not.toContain('buildSidecarDaemonEnv');
+    expect(source).not.toContain('writeSidecarDaemonLogLine');
+  });
+
   test('uses host skin copy for packaged missing Python guidance', () => {
     const plan = createDesktopLocalRuntimeLaunchPlan({
       isPackaged: true,
@@ -97,7 +109,7 @@ describe('sdk local runtime launch options', () => {
     );
   });
 
-  test('sidecar daemon lines write to sidecar log layer and stderr stream', () => {
+  test('local runtime daemon lines write to sidecar log layer and stderr stream', () => {
     const originalEnv = process.env;
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-sidecar-log-'));
     const logFile = path.join(tempDir, 'sidecar.log');
@@ -118,15 +130,16 @@ describe('sdk local runtime launch options', () => {
       plan.options.onStdoutLine('[LocalBackend] legacy ready');
       plan.options.onStderrLine('[SidecarDaemon] listening pid=123');
 
-      expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] daemon ready\n');
+      expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntimeDaemon] daemon ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[LocalSidecar] ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[LocalBackend] legacy ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] listening pid=123\n');
       const log = fs.readFileSync(logFile, 'utf8');
-      expect(log).toContain('[SidecarDaemon] daemon ready');
+      expect(log).toContain('[LocalRuntimeDaemon] daemon ready');
       expect(log).toContain('[LocalSidecar] ready');
       expect(log).toContain('[LocalBackend] legacy ready');
       expect(log).toContain('[SidecarDaemon] listening pid=123');
+      expect(log).not.toContain('[SidecarDaemon] daemon ready');
     } finally {
       stderrWrite.mockRestore();
       process.env = originalEnv;

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed Electron main local-runtime daemon launch helpers and main-added log prefix away from sidecar-daemon wording. No persisted-data migration is required.
+
 - Updated architecture docs to route renderer SDK commands through window.desktopAgent while keeping windie:invoke as the IPC wire channel. No persisted-data migration is required.
 
 - Recorded the Python sidecar core hosted-SDK facade deletion in the general agent UI runtime-boundary plan. No persisted-data migration is required.
