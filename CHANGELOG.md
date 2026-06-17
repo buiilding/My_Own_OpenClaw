@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: rename the local runtime readiness helper away from backend-ready terminology.
+
 - frontend/main: rename local status broadcaster internals to local-runtime terminology while preserving local-backend status channel compatibility.
 
 - frontend/renderer: describe voice mode as a desktop transcription gateway consumer while preserving backend provider ownership.

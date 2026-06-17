@@ -462,3 +462,15 @@ Each completed slice should report:
   stale-name scan for the retired helper names.
 - Compatibility: no migration required. IPC channel names, status payload
   shape, lifecycle diagnostics, and renderer readiness behavior are unchanged.
+
+### 2026-06-17 main local runtime ready helper naming
+
+- Finding: `local_backend_bridge.cjs` still named the helper that marks the SDK
+  local runtime supervisor ready as backend-ready.
+- Change: renamed the helper and focused lifecycle test title to local-runtime
+  readiness terminology.
+- Validation: focused Jest run for `LocalBackendBridge.lifecycle`;
+  `git diff --check`; and a stale-name scan for the retired helper/test wording.
+- Compatibility: no migration required. Status supervisor behavior,
+  `local-backend-status` payloads, and SDK runtime bootstrap behavior are
+  unchanged.

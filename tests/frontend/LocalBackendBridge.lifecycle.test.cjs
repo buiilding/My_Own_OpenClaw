@@ -28,7 +28,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     });
   });
 
-  test('status bootstrap wakes the lazy SDK local runtime and marks local backend ready', async () => {
+  test('status bootstrap wakes the lazy SDK local runtime and marks local runtime ready', async () => {
     const localRuntime = {
       executeTool: jest.fn(async () => ({ success: true, data: {} })),
       rpc: jest.fn(async () => ({ success: true })),

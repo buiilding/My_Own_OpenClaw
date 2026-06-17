@@ -115,7 +115,7 @@ function publishLocalRuntimeStatus(mainWindow, diagnostic = {}) {
   return payload;
 }
 
-function markBackendReady(mainWindow, diagnostic = {}) {
+function markLocalRuntimeReady(mainWindow, diagnostic = {}) {
   localRuntimeStatusSupervisor.markReady();
   return publishLocalRuntimeStatus(mainWindow, {
     stage: 'status_broadcast',
@@ -190,7 +190,7 @@ function rememberSdkLocalRuntime(runtime, {
     localRuntimeStatusSupervisor.attachProcess({ kind: 'sdk-local-runtime' });
   }
   if (sdkStatusMainWindow) {
-    markBackendReady(sdkStatusMainWindow);
+    markLocalRuntimeReady(sdkStatusMainWindow);
   }
   return runtime;
 }
