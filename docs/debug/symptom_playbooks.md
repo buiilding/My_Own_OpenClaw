@@ -72,7 +72,7 @@ Inspect:
 - `packages/windie-sdk-js/src/runtime`
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/registry.py`
 
 Docs:

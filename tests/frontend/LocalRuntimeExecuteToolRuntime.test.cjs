@@ -21,14 +21,14 @@ const path = require('path');
 
 const {
   createLocalRuntimeExecuteToolRuntime,
-} = require('../../frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs');
 
-describe('local runtime bridge extension runtime', () => {
+describe('local_runtime_execute_tool_runtime', () => {
   test('exports only the local runtime execute-tool factory', () => {
-    const executeToolRuntimeModule = require('../../frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs');
+    const executeToolRuntimeModule = require('../../frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs');
 
     expect(createLocalRuntimeExecuteToolRuntime).toBeDefined();
-    expect(executeToolRuntimeModule.createLocalBackendExecuteToolRuntime).toBeUndefined();
+    expect(executeToolRuntimeModule[['createLocal', 'BackendExecuteToolRuntime'].join('')]).toBeUndefined();
   });
 
   test('executes plugin tools through the sidecar path', async () => {

@@ -64,7 +64,7 @@ Resolver helpers remain part of the wrapper API:
 
 ## Integration Boundary in Bridge
 
-`local_backend_bridge_execute_tool_runtime.cjs` screenshot path:
+`local_runtime_execute_tool_runtime.cjs` screenshot path:
 
 - wraps only `toolName === 'screenshot'` with `withHiddenWindowForScreenshot(...)`
 - all other tools bypass this screenshot seam
@@ -73,7 +73,7 @@ Implication:
 
 - screenshot visibility behavior is intentional and scoped. This wrapper does not
   own dashboard-to-pill handoff; local computer-use surface prep happens in
-  `local_backend_bridge_execute_tool_runtime.cjs` before sidecar execution.
+  `local_runtime_execute_tool_runtime.cjs` before sidecar execution.
 
 ## Drift Hotspots
 

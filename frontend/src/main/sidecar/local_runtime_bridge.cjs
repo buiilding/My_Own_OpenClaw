@@ -19,7 +19,7 @@ const {
 } = require('./local_backend_bridge_utils.cjs');
 const {
   createLocalRuntimeExecuteToolRuntime,
-} = require('./local_backend_bridge_execute_tool_runtime.cjs');
+} = require('./local_runtime_execute_tool_runtime.cjs');
 const {
   broadcastConversationMetadataInvalidation,
   buildLocalRuntimeStatusPayload,

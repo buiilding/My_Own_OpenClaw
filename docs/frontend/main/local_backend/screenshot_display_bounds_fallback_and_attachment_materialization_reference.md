@@ -130,7 +130,7 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 - temporary screenshot file is deleted after handling
 - unowned screenshot temp paths are rejected without upload, inline read, or deletion
 
-`tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`:
+`tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs`:
 
 - non-screenshot MCP tool results do not materialize, read, or delete returned `screenshot_path` values
 

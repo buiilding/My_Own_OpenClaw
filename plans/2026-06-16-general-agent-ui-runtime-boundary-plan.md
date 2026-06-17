@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime execute-tool module
+
+- Finding: Electron main local-tool execution was already coordinated by the
+  SDK local-runtime bridge, but the private execute-tool helper and focused
+  Jest suite still lived under local-backend bridge names.
+- Change: renamed the helper module and focused test to local-runtime
+  execute-tool paths, updated the bridge import, host-boundary coverage, and
+  docs that route tool execution through this adapter.
+- Validation: focused execute-tool, bridge RPC, display-bounds, and
+  host-boundary Jest tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  and test path rename; local tool execution, screenshot materialization, and
+  permission verification behavior are unchanged.
+
 ### 2026-06-17 local-runtime bridge composition module
 
 - Finding: Electron main's SDK local-runtime bridge composition root still used
@@ -702,7 +716,7 @@ Each completed slice should report:
 - Finding: Electron main still exported `initializeLocalBackendBridge`,
   `stopLocalBackend`, `getLocalBackendStatus`,
   the backend-named supervisor factory, and
-  `createLocalBackendExecuteToolRuntime` as compatibility aliases after the
+  the backend-named execute-tool factory as compatibility aliases after the
   local-runtime bridge names became canonical.
 - Change: removed the local-backend-named exports from the bridge, supervisor,
   and execute-tool runtime modules, updated focused tests to assert the aliases
@@ -3707,11 +3721,11 @@ Each completed slice should report:
 ### 2026-06-17 main local runtime execute-tool factory
 
 - Finding: the Electron main local-runtime bridge still constructed its
-  execute-tool adapter through `createLocalBackendExecuteToolRuntime`, even
-  though the adapter coordinates SDK local runtime tool execution for the host.
+  execute-tool adapter through the backend-named factory, even though the
+  adapter coordinates SDK local runtime tool execution for the host.
 - Change: promoted `createLocalRuntimeExecuteToolRuntime` as the canonical
   factory, switched the active bridge and focused tests to it, and kept
-  `createLocalBackendExecuteToolRuntime` as a compatibility alias.
+  the backend-named factory as a compatibility alias.
 - Validation: focused local-runtime extension-runtime and main host boundary
   tests, docs listing, active factory scan, and `git diff --check`.
 - Compatibility: no migration required. The old factory export remains an alias

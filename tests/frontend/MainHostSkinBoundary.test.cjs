@@ -26,7 +26,7 @@ const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_runtime_bridge
 const localBackendBridgeModulePaths = [
   localBackendBridgePath,
   path.join(mainRoot, 'sidecar/local_runtime_display_bounds.cjs'),
-  path.join(mainRoot, 'sidecar/local_backend_bridge_execute_tool_runtime.cjs'),
+  path.join(mainRoot, 'sidecar/local_runtime_execute_tool_runtime.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_rpc_mappers.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_screenshot_attachment.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_timeout_policy.cjs'),
@@ -265,14 +265,14 @@ describe('main host skin/config boundary', () => {
       'utf8',
     );
     const executeToolRuntimeSource = fs.readFileSync(
-      path.join(mainRoot, 'sidecar/local_backend_bridge_execute_tool_runtime.cjs'),
+      path.join(mainRoot, 'sidecar/local_runtime_execute_tool_runtime.cjs'),
       'utf8',
     );
 
     expect(supervisorSource).toContain('function createLocalRuntimeSupervisor');
     expect(supervisorSource).not.toContain(['createLocal', 'BackendSupervisor'].join(''));
     expect(executeToolRuntimeSource).toContain('function createLocalRuntimeExecuteToolRuntime');
-    expect(executeToolRuntimeSource).not.toContain('createLocalBackendExecuteToolRuntime');
+    expect(executeToolRuntimeSource).not.toContain(['createLocal', 'BackendExecuteToolRuntime'].join(''));
     expect(bridgeSource).toContain('function initializeLocalRuntimeBridge');
     expect(bridgeSource).toContain('function stopLocalRuntime');
     expect(bridgeSource).toContain('async function getLocalRuntimeStatus');

@@ -21,7 +21,7 @@ flowchart LR
     B --> C["Backend streams tool-call event"]
     C --> D["SDK main runtime tool router"]
     D --> E["Electron main sidecar bridge"]
-    E --> F["local_backend_bridge_execute_tool_runtime.cjs"]
+    E --> F["local_runtime_execute_tool_runtime.cjs"]
     F --> G["local_backend_bridge_tool_args.cjs"]
     G --> H["Python sidecar execute_tool JSON-RPC"]
     H --> I["ToolRegistry.execute_tool"]
@@ -47,7 +47,7 @@ flowchart LR
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
 | Tool is missing from prompt or has the wrong argument schema | Backend tool schema/catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/filesystem/schemas.py`, `backend/src/tools/system/schemas.py` | [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md), backend schema tests |
-| Tool is visible but never reaches the sidecar | SDK conversation runtime/tool coordinator or sidecar bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
+| Tool is visible but never reaches the sidecar | SDK conversation runtime/tool coordinator or sidecar bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
 | `run_shell_command` uses the wrong sudo prompt behavior | Sidecar shell runtime | `frontend/src/main/python/tools/system/shell_tool.py` | `tests/sidecar/test_shell_process_tool.py` |
 | Shell command runs in the wrong directory | Sidecar shell path resolution plus selected workspace state | `frontend/src/main/python/tools/system/shell_tool.py` | workspace-context docs/tests and bridge payload tests |
 | Shell output is truncated, malformed, or missing metadata | Sidecar shell formatter | `frontend/src/main/python/tools/system/shell_output_formatting.py`, `frontend/src/main/python/tools/system/shell_response_payloads.py` | `tests/sidecar/test_shell_output_formatting.py`, renderer message formatter tests |
@@ -76,7 +76,7 @@ flowchart LR
    - SDK tool coordinator: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
    - Electron internal adapter: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
      exposes `executeToolForBackend(...)` for SDK/main tool routing.
-   - Tool execution runtime: `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`.
+   - Tool execution runtime: `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`.
    - Argument mapper: `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`.
 
 4. Verify sidecar executable registration and schema.
@@ -147,7 +147,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 2. Check the streamed `tool-call` event reaches the SDK main-runtime tool router.
 3. Check `AgentClient.wakeUp(...)` provides the SDK local runtime client and `agent.conversation(...)` dispatches the local runtime call through the SDK tool coordinator.
 4. Check `local_runtime_bridge.cjs` exposes `executeToolForBackend(...)`.
-5. Check `local_backend_bridge_execute_tool_runtime.cjs` sends `execute_tool` with `tool_name` and normalized `args`.
+5. Check `local_runtime_execute_tool_runtime.cjs` sends `execute_tool` with `tool_name` and normalized `args`.
 6. Check sidecar `ToolRegistry.execute_tool` has the executable name registered.
 7. Add or update one test at the failing boundary, then one adjacent contract test if drift is possible.
 

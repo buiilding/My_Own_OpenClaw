@@ -18,13 +18,13 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
-- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/RuntimeEndpointStore.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
-- `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
+- `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs`
 
 ## Screenshot Invocation and Display-Bounds Injection
 
@@ -144,7 +144,7 @@ Backend-bound tool result shaping is split across:
   `tool-result`/`tool-bundle-result` envelopes
 - `packages/windie-sdk-js/src/transport/backendPayloadContract.ts` for
   backend-bound payload field filtering and capture metadata normalization
-- `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs` for
+- `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` for
   Electron main sidecar execution and result normalization
 
 Current payload cleanup rules:
@@ -200,14 +200,14 @@ before backend relay:
 
 - query screenshot requests are sent as SDK resources, not renderer captures
 
-`tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` verify:
+`tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` verify:
 
 - envelope type + payload key contracts for single-tool and bundle sends
 - single computer-use tools merge one post-action screenshot into tool result data
 - bundled computer-use execution captures once after all steps
 - explicit bundle screenshot steps are promoted instead of duplicated
 
-`tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` verifies:
+`tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` verifies:
 
 - main runtime prepares the desktop surface before computer-use sidecar execution
 

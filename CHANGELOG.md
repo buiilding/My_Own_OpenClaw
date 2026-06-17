@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed the Electron main local-runtime execute-tool helper and focused Jest suite from local-backend bridge names to `local_runtime_execute_tool_runtime.cjs` / `LocalRuntimeExecuteToolRuntime`. No migration is required.
+
 - Renamed the Electron main local-runtime display-bounds helper and focused Jest suite from local-backend bridge paths to `local_runtime_display_bounds.cjs` / `LocalRuntimeDisplayBounds`. No migration is required.
 
 - Renamed the private Electron main local-runtime bridge composition root from `local_backend_bridge.cjs` to `local_runtime_bridge.cjs` while preserving exported bridge APIs, status payloads, and IPC channel strings. No migration is required.
