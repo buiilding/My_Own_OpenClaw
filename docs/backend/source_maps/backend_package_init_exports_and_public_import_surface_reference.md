@@ -37,7 +37,6 @@ concrete modules directly.
 - `backend/src/core/container/__init__.py`
 - `backend/src/core/events/__init__.py`
 - `backend/src/core/infrastructure/__init__.py`
-- `backend/src/core/interfaces/__init__.py`
 - `backend/src/core/observability/__init__.py`
 - `backend/src/core/security/__init__.py`
 - `backend/src/core/services/__init__.py`
@@ -82,6 +81,10 @@ callers import concrete modules directly, including `backend.src.agent`,
 non-exporting subpackages. Do not add a package `__init__.py` only for a
 docstring or compatibility path.
 
+- `backend/src/core/interfaces/__init__.py` is intentionally absent; import
+  interface contracts from concrete modules such as
+  `backend.src.core.interfaces.tool` or
+  `backend.src.core.interfaces.embedding`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
