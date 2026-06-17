@@ -11,7 +11,7 @@ function resolveFetchImplementation(fetchImpl) {
     if (typeof globalThis.fetch === 'function') {
         return globalThis.fetch.bind(globalThis);
     }
-    throw new Error('WindieSdkClient requires a fetch implementation');
+    throw new Error('Agent SDK HTTP client requires a fetch implementation');
 }
 function normalizeHttpBaseUrl(httpBaseUrl) {
     return httpBaseUrl.replace(/\/+$/, '');

@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWindieSdkBackendSocket = createWindieSdkBackendSocket;
 function createWindieSdkBackendSocket({ WebSocketImpl, wsUrl, wsOrigin, headers, }) {
     if (!WebSocketImpl) {
-        throw new Error('createWindieSdkBackendSocket requires WebSocketImpl');
+        throw new Error('Agent SDK backend socket requires WebSocketImpl');
     }
     if (!wsUrl) {
-        throw new Error('createWindieSdkBackendSocket requires wsUrl');
+        throw new Error('Agent SDK backend socket requires wsUrl');
     }
     return new WebSocketImpl(wsUrl, {
         origin: wsOrigin,

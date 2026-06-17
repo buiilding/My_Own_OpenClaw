@@ -488,6 +488,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "Windie stream failed|Agent stream failed" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend/WindieSdkConversationRuntime.test.ts -g "*.ts" -g "*.js"` found only the new generic JS SDK fallback wording and assertion.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts -t "createWindieLocalRuntimeProvider reports generic discovery timeout wording|createWindieLocalRuntimeProvider reuses discovery metadata directly"` passed.
 - `rg -n "Windie sidecar daemon|local sidecar daemon discovery|existing local sidecar daemon|existing Windie sidecar" packages/windie-sdk-js/src packages/windie-sdk-js/cjs frontend/src/main/python tests/frontend/WindieSdkClient.test.ts -g "*.ts" -g "*.js" -g "*.py"` found only the new generic sidecar timeout wording and assertion.
+- Finding: the SDK hosted HTTP client, local sidecar HTTP client, and backend
+  websocket factory still reported missing transport dependencies with
+  Windie-specific constructor/helper names, even though these are generic
+  SDK-owned transport boundaries.
+- Change: updated those dependency diagnostics to generic Agent SDK wording
+  while preserving the exported Windie SDK class/function names.
 
 ## Remaining Findings
 
@@ -551,3 +557,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK local-runtime auto-start discovery and stop timeout diagnostics now use
   generic local sidecar daemon wording. Public SDK/Python package names remain
   unchanged.
+- SDK hosted HTTP, local-runtime HTTP, and backend websocket construction
+  failures now use generic Agent SDK dependency diagnostics. Exported
+  `WindieSdkClient` and `createWindieSdkBackendSocket` names remain unchanged.

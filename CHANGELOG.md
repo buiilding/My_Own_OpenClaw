@@ -75,6 +75,8 @@ All notable changes to WindieOS will be documented in this file.
   projections when backend/runtime errors omit a message.
 - sdk/js, frontend/sidecar: use generic local sidecar daemon wording for SDK
   auto-start discovery and stop timeout failures.
+- sdk/js: use generic Agent SDK dependency diagnostics for hosted HTTP,
+  local-runtime HTTP, and backend websocket transport construction.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

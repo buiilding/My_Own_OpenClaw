@@ -8,6 +8,7 @@ import * as path from 'path';
 
 import {
   buildAgentDefinition,
+  createWindieSdkBackendSocket,
   createWindieAgentBackendTransport,
   createWindieAgentSession,
   createConversationEvent,
@@ -136,6 +137,42 @@ describe('WindieSdkClient', () => {
   beforeEach(() => {
     FakeWebSocket.reset();
     mockFetch.mockReset();
+  });
+
+  test('transport constructors use generic agent SDK dependency diagnostics', () => {
+    const originalFetch = globalThis.fetch;
+    Object.defineProperty(globalThis, 'fetch', {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+
+    try {
+      expect(() => new WindieSdkClient({
+        httpBaseUrl: 'https://api.windieos.com',
+      })).toThrow('Agent SDK HTTP client requires a fetch implementation');
+
+      expect(() => new SidecarDaemonHttpClient({
+        baseUrl: 'http://127.0.0.1:8765',
+        token: 'test-token',
+      })).toThrow('Agent SDK local runtime client requires a fetch implementation');
+    } finally {
+      Object.defineProperty(globalThis, 'fetch', {
+        value: originalFetch,
+        configurable: true,
+        writable: true,
+      });
+    }
+
+    expect(() => createWindieSdkBackendSocket({
+      WebSocketImpl: undefined as any,
+      wsUrl: 'ws://backend.test/ws',
+    })).toThrow('Agent SDK backend socket requires WebSocketImpl');
+
+    expect(() => createWindieSdkBackendSocket({
+      WebSocketImpl: FakeWebSocket as any,
+      wsUrl: '',
+    })).toThrow('Agent SDK backend socket requires wsUrl');
   });
 
   test('builds data-only agent definitions with capability metadata', () => {
