@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: describe renderer UI status and voice runtime failures with runtime transport terminology instead of backend transport wording.
+
 - frontend/renderer: rename AppConfig connection snapshot state to runtime terminology while preserving settings sync behavior.
 
 - tests/frontend: rename AppConfig provider listener helpers to IPC/settings terminology instead of backend-prefixed test utility names.

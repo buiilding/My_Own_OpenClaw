@@ -725,7 +725,7 @@ describe('ChatInterface wiring', () => {
     expect(screen.queryByRole('button', { name: 'Close window' })).not.toBeInTheDocument();
   });
 
-  test('does not render a connection warning when backend transport disconnects', () => {
+  test('does not render a connection warning when runtime transport disconnects', () => {
     render(<ChatInterface />);
     expect(screen.queryByText('Cannot connect to server right now, try again later.')).not.toBeInTheDocument();
 

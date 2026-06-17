@@ -59,7 +59,7 @@ describe('AppStatusProvider', () => {
     expect(result.current.saveStatus).toBe(expectedStatus);
   }
 
-  test('setSaving transitions to error then idle when backend does not reply', () => {
+  test('setSaving transitions to error then idle when settings runtime does not reply', () => {
     const { result } = renderHook(() => useAppStatusContext(), { wrapper });
 
     expect(result.current.saveStatus).toBe('idle');

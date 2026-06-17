@@ -24,7 +24,7 @@ describe('DesktopVoiceRuntimeClient', () => {
     expect(mockInvokeWindieCommand).toHaveBeenCalledWith('wakeword.detected', {});
   });
 
-  test('returns backend transport failures to the caller', async () => {
+  test('returns runtime transport failures to the caller', async () => {
     mockInvokeWindieCommand.mockRejectedValueOnce(new Error('backend unavailable'));
 
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).rejects.toThrow(

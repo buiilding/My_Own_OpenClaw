@@ -417,3 +417,18 @@ Each completed slice should report:
 - Compatibility: no migration required. IPC status payloads, backend URL
   metadata, settings sync behavior, and deferred model-selection behavior are
   unchanged.
+
+### 2026-06-17 renderer UI runtime transport test wording
+
+- Finding: renderer UI tests described `ipc-status` presentation behavior and
+  desktop runtime facade failures as backend transport behavior, even when they
+  were not exercising the SDK `BackendTransport` contract.
+- Change: renamed the focused test titles to runtime transport/settings runtime
+  wording while leaving backend-shaped mock errors and SDK transport tests
+  unchanged.
+- Validation: focused Jest run for `ChatLoopUiStateHook`,
+  `ChatInterfaceWiring`, `AppStatusProvider`, and
+  `DesktopVoiceRuntimeClient`; `git diff --check`; and a stale-title scan.
+- Compatibility: no migration required. This is test-only wording cleanup; UI
+  state, IPC status handling, voice runtime commands, and save-status timing are
+  unchanged.

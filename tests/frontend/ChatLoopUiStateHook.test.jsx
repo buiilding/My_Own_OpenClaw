@@ -82,7 +82,7 @@ describe('useChatLoopUiState', () => {
     jest.useRealTimers();
   });
 
-  test('drops to idle when backend transport disconnects during an active loop', () => {
+  test('drops to idle when runtime transport disconnects during an active loop', () => {
     render(<LoopStateProbe phase="tool-call" isSending={false} />);
 
     expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
