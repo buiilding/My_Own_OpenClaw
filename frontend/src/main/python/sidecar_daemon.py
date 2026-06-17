@@ -1479,7 +1479,7 @@ async def run_daemon(
         discovery_file, host=host, port=actual_port, token=daemon.token
     )
     print(
-        f"[SidecarDaemon] listening base_url=http://{host}:{actual_port} pid={os.getpid()}",
+        f"[LocalRuntimeDaemon] listening base_url=http://{host}:{actual_port} pid={os.getpid()}",
         file=sys.stderr,
         flush=True,
     )
@@ -1487,7 +1487,7 @@ async def run_daemon(
         await shutdown_event.wait()
     finally:
         print(
-            f"[SidecarDaemon] stopping pid={os.getpid()}",
+            f"[LocalRuntimeDaemon] stopping pid={os.getpid()}",
             file=sys.stderr,
             flush=True,
         )

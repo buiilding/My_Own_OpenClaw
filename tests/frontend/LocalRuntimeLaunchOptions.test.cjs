@@ -134,18 +134,20 @@ describe('desktop local runtime launch options', () => {
       plan.options.onStdoutLine('daemon ready');
       plan.options.onStdoutLine('[LocalRuntime] ready');
       plan.options.onStderrLine('[LocalBackend] legacy ready');
-      plan.options.onStderrLine('[SidecarDaemon] listening pid=123');
+      plan.options.onStderrLine('[SidecarDaemon] legacy daemon ready');
+      plan.options.onStderrLine('[LocalRuntimeDaemon] listening pid=123');
 
       expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntimeDaemon] daemon ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntime] ready\n');
       expect(stderrWrite).not.toHaveBeenCalledWith('[LocalBackend] legacy ready\n');
-      expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] listening pid=123\n');
+      expect(stderrWrite).not.toHaveBeenCalledWith('[SidecarDaemon] legacy daemon ready\n');
+      expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntimeDaemon] listening pid=123\n');
       const log = fs.readFileSync(logFile, 'utf8');
       expect(log).toContain('[LocalRuntimeDaemon] daemon ready');
       expect(log).toContain('[LocalRuntime] ready');
       expect(log).not.toContain('[LocalBackend] legacy ready');
-      expect(log).toContain('[SidecarDaemon] listening pid=123');
-      expect(log).not.toContain('[SidecarDaemon] daemon ready');
+      expect(log).not.toContain('[SidecarDaemon] legacy daemon ready');
+      expect(log).toContain('[LocalRuntimeDaemon] listening pid=123');
     } finally {
       stderrWrite.mockRestore();
       process.env = originalEnv;

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local runtime daemon lifecycle log prefix
+
+- Finding: the Python sidecar daemon still emitted `[SidecarDaemon]`
+  lifecycle lines, and Electron main forwarded that prefix through the generic
+  local-runtime launch log filter. That left concrete sidecar wording on a
+  host-visible local-runtime diagnostic surface.
+- Change: changed daemon listening/stopping lifecycle lines to
+  `[LocalRuntimeDaemon]`, updated the Electron launch log allowlist, and locked
+  focused tests so the old lifecycle prefix is no longer forwarded.
+- Validation: focused local-runtime launch-option Jest coverage, focused
+  sidecar daemon pytest coverage, stale-prefix scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. The daemon class name, discovery-file
+  schema, HTTP routes, JSON-RPC payloads, tool schemas, and stored diagnostics
+  remain unchanged; only new lifecycle log lines use the generic prefix.
+
 ### 2026-06-17 Python SDK local runtime option boundary
 
 - Finding: the Python `AgentSdkClient` still exposed injected local execution

@@ -43,7 +43,7 @@ const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
   'local_backend_memory_handlers.py',
 ];
 const LOCAL_RUNTIME_LOG_PREFIXES = [
-  '[SidecarDaemon]',
+  '[LocalRuntimeDaemon]',
   '[LocalRuntime]',
   '[Tool]',
   '[MCP]',
