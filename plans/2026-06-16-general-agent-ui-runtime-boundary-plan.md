@@ -4607,21 +4607,3 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing local-backend bridge imports
   still resolve to the same functions; IPC channel strings and status payloads
   remain unchanged.
-
-### 2026-06-17 backend LLM stream helper wrapper removal
-
-- Finding: `LLMProvider` still exposed private stream-helper wrapper methods
-  that only delegated to `stream_event_pipeline.py`, keeping compatibility names
-  alive after the shared stream loop had a dedicated owner.
-- Change: removed the base-provider wrapper methods, routed standard stream
-  parameter setup directly through `enable_stream_with_usage`, and made
-  `OnlineLLMProvider` call `stream_text_content_events` or
-  `stream_thinking_and_text_events` directly with provider extraction callbacks.
-- Validation: provider files compile with `scripts\python-in-env backend python
-  -m py_compile`, docs listing, and `git diff --check`. Focused backend pytest
-  collection could not run because the repo's `jarvis` conda env is unavailable
-  in this shell and fallback Python is missing backend dependencies including
-  `litellm` and `fastapi`.
-- Compatibility: no migration required. These were private backend provider
-  wrappers; concrete provider stream behavior and emitted stream events are
-  unchanged.
