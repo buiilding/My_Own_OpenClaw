@@ -6,12 +6,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgentSession = void 0;
+exports.AgentSession = exports.WindieAgentSession = exports.createWindieAgentBackendTransport = exports.createWindieAgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
 exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
-exports.createWindieAgentSession = createWindieAgentSession;
-exports.createWindieAgentBackendTransport = createWindieAgentBackendTransport;
+exports.createAgentSession = createAgentSession;
+exports.createAgentBackendTransport = createAgentBackendTransport;
 exports.mergeQueryAgentDefinition = mergeQueryAgentDefinition;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const backendPayloadContract_js_1 = require("./backendPayloadContract.js");
@@ -49,7 +49,7 @@ function createMessageId() {
     }
     return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
-function createWindieAgentSession(options) {
+function createAgentSession(options) {
     const wsUrl = options.wsUrl
         ? normalizeWsUrl(options.wsUrl)
         : deriveWsUrl(options.backendUrl);
@@ -64,6 +64,7 @@ function createWindieAgentSession(options) {
         agent_definition: options.agentDefinition,
     });
 }
+exports.createWindieAgentSession = createAgentSession;
 function attachSocketListener(socket, event, listener) {
     if (typeof socket.addEventListener === 'function') {
         socket.addEventListener(event, listener);
@@ -244,7 +245,8 @@ class WindieAgentSession {
     }
 }
 exports.WindieAgentSession = WindieAgentSession;
-function createWindieAgentBackendTransport(session, conversationRef, agentDefinition) {
+exports.AgentSession = WindieAgentSession;
+function createAgentBackendTransport(session, conversationRef, agentDefinition) {
     return {
         connect: async () => session.waitForOpen(),
         handshake: async () => undefined,
@@ -306,6 +308,7 @@ function createWindieAgentBackendTransport(session, conversationRef, agentDefini
         close: async () => session.close(1000, 'conversation-runtime-close'),
     };
 }
+exports.createWindieAgentBackendTransport = createAgentBackendTransport;
 function cloneJsonRecord(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return {};

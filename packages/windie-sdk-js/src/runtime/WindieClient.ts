@@ -21,15 +21,15 @@ import {
   type AgentBuiltinToolSet,
 } from '../tools/builtins.js';
 import {
-  createWindieAgentSession,
+  createAgentSession,
   createMessageId,
   type WebSocketConstructor,
   type WebSocketLike,
-  type WindieAgentSessionRuntime,
+  type AgentSessionRuntime,
 } from '../transport/WindieAgentSession.js';
 import {
-  createManagedWindieAgentSession,
-  type WindieManagedBackendEndpoint,
+  createManagedAgentSession,
+  type ManagedAgentBackendEndpoint,
 } from '../transport/ManagedWindieAgentSession.js';
 import {
   WindieSdkClient,
@@ -80,7 +80,7 @@ export type WindieClientOptions = {
   wsUrl?: string;
   wsOrigin?: string;
   backendSession?: 'direct' | 'managed';
-  backendEndpoints?: WindieManagedBackendEndpoint[];
+  backendEndpoints?: ManagedAgentBackendEndpoint[];
   reconnectIntervalMs?: number;
   connectTimeoutMs?: number;
   idleDisconnectTimeoutMs?: number;
@@ -98,7 +98,7 @@ export type WindieClientOptions = {
   onBackendHandshakeError?: (error: unknown) => void;
   onBackendMessageError?: (error: unknown) => void;
   onBackendSend?: (type: string) => void;
-  onBackendFallback?: (endpoint: WindieManagedBackendEndpoint) => void;
+  onBackendFallback?: (endpoint: ManagedAgentBackendEndpoint) => void;
   log?: (message: string) => void;
   fetchImpl?: FetchLike;
   WebSocketImpl?: WebSocketConstructor;
@@ -334,10 +334,10 @@ export class WindieClient {
     userId: string;
     operatingSystem: string;
     agentDefinition: JsonRecord;
-  }): WindieAgentSessionRuntime {
+  }): AgentSessionRuntime {
     const headers = installToken ? { Authorization: `Bearer ${installToken}` } : undefined;
     if (this.defaultOptions.backendSession === 'managed') {
-      return createManagedWindieAgentSession({
+      return createManagedAgentSession({
         backendUrl,
         wsUrl: this.defaultOptions.wsUrl,
         wsOrigin: this.defaultOptions.wsOrigin,
@@ -363,7 +363,7 @@ export class WindieClient {
         log: this.defaultOptions.log,
       });
     }
-    return createWindieAgentSession({
+    return createAgentSession({
       backendUrl,
       wsUrl: this.defaultOptions.wsUrl,
       WebSocketImpl: this.defaultOptions.WebSocketImpl,

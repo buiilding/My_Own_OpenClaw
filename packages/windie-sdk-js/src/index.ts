@@ -33,11 +33,18 @@ export * from './tools/toolCorrelationIds.js';
 export * from './tools/builtins.js';
 export * from './settings/modelSelection.js';
 export {
+  AgentSession,
+  createAgentBackendTransport,
+  createAgentSession,
   createWindieAgentBackendTransport,
   createWindieAgentSession,
   WindieAgentSession,
 } from './transport/WindieAgentSession.js';
 export type {
+  AgentQueryInput,
+  AgentSessionOptions,
+  AgentSessionRuntime,
+  AgentStopInput,
   WindieAgentSessionOptions,
   WebSocketConstructor,
   WebSocketLike,

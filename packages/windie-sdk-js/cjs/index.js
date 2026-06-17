@@ -17,7 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = void 0;
+exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.AgentSession = exports.createAgentSession = exports.createAgentBackendTransport = void 0;
 __exportStar(require("./conversation/types.js"), exports);
 __exportStar(require("./conversation/events.js"), exports);
 __exportStar(require("./conversation/metadata.js"), exports);
@@ -49,6 +49,9 @@ __exportStar(require("./tools/toolCorrelationIds.js"), exports);
 __exportStar(require("./tools/builtins.js"), exports);
 __exportStar(require("./settings/modelSelection.js"), exports);
 var WindieAgentSession_js_1 = require("./transport/WindieAgentSession.js");
+Object.defineProperty(exports, "createAgentBackendTransport", { enumerable: true, get: function () { return WindieAgentSession_js_1.createAgentBackendTransport; } });
+Object.defineProperty(exports, "createAgentSession", { enumerable: true, get: function () { return WindieAgentSession_js_1.createAgentSession; } });
+Object.defineProperty(exports, "AgentSession", { enumerable: true, get: function () { return WindieAgentSession_js_1.AgentSession; } });
 Object.defineProperty(exports, "createWindieAgentBackendTransport", { enumerable: true, get: function () { return WindieAgentSession_js_1.createWindieAgentBackendTransport; } });
 Object.defineProperty(exports, "createWindieAgentSession", { enumerable: true, get: function () { return WindieAgentSession_js_1.createWindieAgentSession; } });
 Object.defineProperty(exports, "WindieAgentSession", { enumerable: true, get: function () { return WindieAgentSession_js_1.WindieAgentSession; } });

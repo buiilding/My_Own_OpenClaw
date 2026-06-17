@@ -1464,3 +1464,20 @@ Each completed slice should report:
   source scans for the compatibility alias boundary.
 - Compatibility: no migration required. Provider behavior and options are
   unchanged; existing `createWindieLocalRuntimeProvider` imports keep working.
+
+### 2026-06-17 SDK agent session transport aliases
+
+- Finding: SDK hosted websocket/session transport still exposed only
+  Windie-prefixed type and factory names even though this is a reusable agent
+  runtime boundary used by SDK callers, Electron main, and future hosts.
+- Change: added generic `AgentSession*` transport contracts,
+  `createAgentSession`, `createAgentBackendTransport`,
+  `ManagedAgentSession*`, and `createManagedAgentSession`, switched SDK source
+  and checked-in CommonJS internals to those names, and kept all matching
+  Windie-prefixed names as compatibility aliases.
+- Validation: focused SDK package-boundary Jest coverage, SDK no-emit
+  TypeScript check, CJS export smoke, docs listing, `git diff --check`, and
+  source scans showing Windie-prefixed session names remain compatibility
+  aliases.
+- Compatibility: no migration required. Websocket payloads, managed-session
+  behavior, and existing Windie-prefixed imports are unchanged.

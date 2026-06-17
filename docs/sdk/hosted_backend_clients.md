@@ -76,6 +76,14 @@ The important boundary is that a host renders rows and forwards user commands.
 It should not own a separate backend websocket command router, tool-result loop,
 or display-row projection.
 
+For advanced hosts that need the lower transport directly, the SDK exposes
+generic agent-session contracts such as `AgentSessionRuntime`,
+`createAgentSession`, `createAgentBackendTransport`,
+`ManagedAgentSession`, and `createManagedAgentSession`. Windie-prefixed
+transport names remain compatibility aliases, but new app-builder code should
+prefer the generic names because the hosted websocket transport is an SDK agent
+runtime concern rather than WindieOS renderer skin state.
+
 `WindieClient.wakeUp(...)` can run on the SDK managed backend session. A host may
 pass backend endpoints and lifecycle hooks to the client when it needs fallback,
 connection status, or idle-close policy:

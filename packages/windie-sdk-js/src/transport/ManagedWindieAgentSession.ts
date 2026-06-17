@@ -13,9 +13,9 @@ import {
   resolveWebSocketImplementation,
   type WebSocketConstructor,
   type WebSocketLike,
-  type WindieAgentQueryInput,
-  type WindieAgentStopInput,
-  type WindieAgentSessionRuntime,
+  type AgentQueryInput,
+  type AgentStopInput,
+  type AgentSessionRuntime,
 } from './WindieAgentSession.js';
 import {
   createManagedBackendSession,
@@ -37,7 +37,7 @@ type AgentSessionEventMap = {
 type AgentSessionEventName = keyof AgentSessionEventMap;
 type AgentSessionListener<T> = (payload: T) => void;
 
-export type WindieManagedBackendEndpoint = {
+export type ManagedAgentBackendEndpoint = {
   backendUrl?: string;
   httpBaseUrl?: string;
   wsUrl?: string;
@@ -45,13 +45,15 @@ export type WindieManagedBackendEndpoint = {
   headers?: Record<string, string>;
 };
 
-export type ManagedWindieAgentSessionOptions = {
+export type WindieManagedBackendEndpoint = ManagedAgentBackendEndpoint;
+
+export type ManagedAgentSessionOptions = {
   backendUrl: string;
   wsUrl?: string;
   wsOrigin?: string;
   WebSocketImpl?: WebSocketConstructor;
   headers?: Record<string, string>;
-  endpoints?: WindieManagedBackendEndpoint[];
+  endpoints?: ManagedAgentBackendEndpoint[];
   userId: string;
   operatingSystem?: string;
   agentDefinition?: JsonRecord;
@@ -75,10 +77,12 @@ export type ManagedWindieAgentSessionOptions = {
   onHandshakeError?: (error: unknown) => void;
   onMessageError?: (error: unknown) => void;
   onSend?: (type: string) => void;
-  onFallback?: (endpoint: WindieManagedBackendEndpoint) => void;
+  onFallback?: (endpoint: ManagedAgentBackendEndpoint) => void;
 };
 
-function resolveEndpointWsUrl(endpoint: WindieManagedBackendEndpoint): string {
+export type ManagedWindieAgentSessionOptions = ManagedAgentSessionOptions;
+
+function resolveEndpointWsUrl(endpoint: ManagedAgentBackendEndpoint): string {
   if (endpoint.wsUrl) {
     return endpoint.wsUrl.replace(/\/+$/, '');
   }
@@ -89,13 +93,13 @@ function resolveEndpointWsUrl(endpoint: WindieManagedBackendEndpoint): string {
   return deriveWsUrl(backendUrl);
 }
 
-export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
+export class ManagedAgentSession implements AgentSessionRuntime {
   private readonly listeners = new Map<AgentSessionEventName, Set<AgentSessionListener<unknown>>>();
-  private readonly endpoints: WindieManagedBackendEndpoint[];
+  private readonly endpoints: ManagedAgentBackendEndpoint[];
   private activeEndpointIndex = 0;
   private readonly session: ManagedBackendSession;
 
-  constructor(options: ManagedWindieAgentSessionOptions) {
+  constructor(options: ManagedAgentSessionOptions) {
     this.endpoints = normalizeEndpoints(options);
     const WebSocketImpl = resolveWebSocketImplementation(options.WebSocketImpl);
     this.session = createManagedBackendSession({
@@ -181,7 +185,7 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
     };
   }
 
-  async query(payload: WindieAgentQueryInput): Promise<string> {
+  async query(payload: AgentQueryInput): Promise<string> {
     return this.sendBackendMessage('query', {
       ...(payload.rawPayload ?? {}),
       text: payload.text,
@@ -196,7 +200,7 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
     }, payload.turnRef ?? undefined);
   }
 
-  async stopQuery(input: WindieAgentStopInput | null = null): Promise<string> {
+  async stopQuery(input: AgentStopInput | null = null): Promise<string> {
     return this.sendBackendMessage('stop-query', {
       conversation_ref: input?.conversation_ref ?? input?.conversationRef ?? null,
       turn_ref: input?.turn_ref ?? input?.turnRef ?? null,
@@ -255,7 +259,7 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
     return id;
   }
 
-  private currentEndpoint(): WindieManagedBackendEndpoint {
+  private currentEndpoint(): ManagedAgentBackendEndpoint {
     return this.endpoints[this.activeEndpointIndex] ?? this.endpoints[0];
   }
 
@@ -281,7 +285,7 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
   }
 }
 
-function normalizeEndpoints(options: ManagedWindieAgentSessionOptions): WindieManagedBackendEndpoint[] {
+function normalizeEndpoints(options: ManagedAgentSessionOptions): ManagedAgentBackendEndpoint[] {
   const endpoints = options.endpoints && options.endpoints.length > 0
     ? options.endpoints
     : [{
@@ -296,8 +300,12 @@ function normalizeEndpoints(options: ManagedWindieAgentSessionOptions): WindieMa
   }));
 }
 
-export function createManagedWindieAgentSession(
-  options: ManagedWindieAgentSessionOptions,
-): ManagedWindieAgentSession {
-  return new ManagedWindieAgentSession(options);
+export function createManagedAgentSession(
+  options: ManagedAgentSessionOptions,
+): ManagedAgentSession {
+  return new ManagedAgentSession(options);
 }
+
+export type ManagedWindieAgentSession = ManagedAgentSession;
+export const ManagedWindieAgentSession = ManagedAgentSession;
+export const createManagedWindieAgentSession = createManagedAgentSession;

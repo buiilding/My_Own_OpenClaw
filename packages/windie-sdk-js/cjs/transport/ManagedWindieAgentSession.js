@@ -3,8 +3,8 @@
  * Provides the managed windie agent session module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ManagedWindieAgentSession = void 0;
-exports.createManagedWindieAgentSession = createManagedWindieAgentSession;
+exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.ManagedAgentSession = void 0;
+exports.createManagedAgentSession = createManagedAgentSession;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const WindieAgentSession_js_1 = require("./WindieAgentSession.js");
 const ManagedBackendSession_js_1 = require("./ManagedBackendSession.js");
@@ -20,7 +20,7 @@ function resolveEndpointWsUrl(endpoint) {
     }
     return (0, WindieAgentSession_js_1.deriveWsUrl)(backendUrl);
 }
-class ManagedWindieAgentSession {
+class ManagedAgentSession {
     constructor(options) {
         this.listeners = new Map();
         this.activeEndpointIndex = 0;
@@ -183,7 +183,8 @@ class ManagedWindieAgentSession {
         });
     }
 }
-exports.ManagedWindieAgentSession = ManagedWindieAgentSession;
+exports.ManagedAgentSession = ManagedAgentSession;
+exports.ManagedWindieAgentSession = ManagedAgentSession;
 function normalizeEndpoints(options) {
     const endpoints = options.endpoints && options.endpoints.length > 0
         ? options.endpoints
@@ -198,6 +199,7 @@ function normalizeEndpoints(options) {
         backendUrl: endpoint.backendUrl ?? endpoint.httpBaseUrl ?? options.backendUrl,
     }));
 }
-function createManagedWindieAgentSession(options) {
-    return new ManagedWindieAgentSession(options);
+function createManagedAgentSession(options) {
+    return new ManagedAgentSession(options);
 }
+exports.createManagedWindieAgentSession = createManagedAgentSession;

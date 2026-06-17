@@ -22,9 +22,9 @@ import type {
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
 import {
-  createWindieAgentBackendTransport,
-  type WindieAgentQueryInput,
-  type WindieAgentSessionRuntime,
+  createAgentBackendTransport,
+  type AgentQueryInput,
+  type AgentSessionRuntime,
 } from '../transport/WindieAgentSession.js';
 import {
   WindieSdkClient,
@@ -72,7 +72,7 @@ import {
   type AgentStreamEvent,
 } from './AgentStreamEvents.js';
 
-export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & {
+export type WindieAgentQueryOptions = Partial<Omit<AgentQueryInput, 'text' | 'conversationRef'>> & {
   conversationRef?: string;
   model?: AgentModelSelection;
 };
@@ -214,7 +214,7 @@ export type WindiePrepareRetryTurnOptions = RetryTurnInput & {
 export class WindieAgent {
   constructor(
     readonly id: string,
-    readonly session: WindieAgentSessionRuntime,
+    readonly session: AgentSessionRuntime,
     readonly agentDefinition: JsonRecord,
     private readonly sdkClient: WindieSdkClient,
     private readonly owner: WindieAgentOwner,
@@ -251,12 +251,12 @@ export class WindieAgent {
     return this.query(this.buildQueryInput(text, options));
   }
 
-  async query(payload: WindieAgentQueryInput): Promise<string> {
+  async query(payload: AgentQueryInput): Promise<string> {
     const enriched = await this.enrichAgentQueryInput(payload);
     return this.session.query(enriched);
   }
 
-  async run(input: string | WindieAgentQueryInput, options: WindieAgentQueryOptions = {}): Promise<string> {
+  async run(input: string | AgentQueryInput, options: WindieAgentQueryOptions = {}): Promise<string> {
     if (typeof input === 'string') {
       return this.ask(input, options);
     }
@@ -267,7 +267,7 @@ export class WindieAgent {
   }
 
   async *stream(
-    input: string | WindieAgentQueryInput,
+    input: string | AgentQueryInput,
     options: WindieAgentQueryOptions = {},
   ): AsyncIterableIterator<AgentStreamEvent> {
     const queryInput = typeof input === 'string' ? this.buildQueryInput(input, options) : input;
@@ -375,7 +375,7 @@ export class WindieAgent {
       conversationRef,
       revisionId: options.revisionId,
       store: options.store ?? this.defaultConversationStore,
-      transport: createWindieAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
+      transport: createAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
       localRuntime: resolvedLocalRuntime,
       sdkClient: this.sdkClient,
       userId: this.userId,
@@ -1092,7 +1092,7 @@ export class WindieAgent {
     return unwrapLocalRuntimeRpcData(result, `Local runtime RPC failed for ${method}`);
   }
 
-  private buildQueryInput(text: string, options: WindieAgentQueryOptions): WindieAgentQueryInput {
+  private buildQueryInput(text: string, options: WindieAgentQueryOptions): AgentQueryInput {
     const { model: _model, ...queryOptions } = options;
     return {
       ...queryOptions,
@@ -1101,7 +1101,7 @@ export class WindieAgent {
     };
   }
 
-  private async enrichAgentQueryInput(input: WindieAgentQueryInput): Promise<WindieAgentQueryInput> {
+  private async enrichAgentQueryInput(input: AgentQueryInput): Promise<AgentQueryInput> {
     const enriched = await enrichQueryPayload({
       text: input.text,
       conversationRef: input.conversationRef,

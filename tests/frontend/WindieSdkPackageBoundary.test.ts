@@ -11,9 +11,15 @@ import {
   ToolExecutionCoordinator,
   agentBuiltins,
   buildDisplayConversation,
+  createAgentBackendTransport,
   createAgentLocalRuntimeProvider,
+  createAgentSession,
   createConversationRuntime,
+  createManagedAgentSession,
   createWindieLocalRuntimeProvider,
+  createWindieAgentBackendTransport,
+  createWindieAgentSession,
+  createManagedWindieAgentSession,
   moduleTool,
   resolveModelFacingToolCallId,
   resolveToolCallCorrelationId,
@@ -22,8 +28,14 @@ import {
   resolveToolWaitId,
   windieBuiltins,
   type AgentLocalRuntimeClient,
+  type AgentQueryInput,
+  type AgentSessionRuntime,
+  type AgentStopInput,
   type AgentToolDefinition,
   type WindieLocalRuntimeClient,
+  type WindieAgentQueryInput,
+  type WindieAgentSessionRuntime,
+  type WindieAgentStopInput,
   type WindieToolDefinition,
 } from '../../packages/windie-sdk-js/src';
 
@@ -38,6 +50,9 @@ describe('@windie/sdk package boundary', () => {
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
     expect(windieBuiltins).toBe(agentBuiltins);
+    expect(createWindieAgentSession).toBe(createAgentSession);
+    expect(createWindieAgentBackendTransport).toBe(createAgentBackendTransport);
+    expect(createManagedWindieAgentSession).toBe(createManagedAgentSession);
     expect(createWindieLocalRuntimeProvider).toBe(createAgentLocalRuntimeProvider);
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveModelFacingToolCallId).toBeDefined();
@@ -54,6 +69,36 @@ describe('@windie/sdk package boundary', () => {
       execution_target: 'sidecar',
       argument_resolution: 'passthrough',
     });
+  });
+
+  test('exports generic agent session contract aliases', () => {
+    const query: AgentQueryInput = {
+      text: 'hello',
+      conversationRef: 'conv-1',
+    };
+    const compatibilityQuery: WindieAgentQueryInput = query;
+    const stop: AgentStopInput = { conversationRef: compatibilityQuery.conversationRef };
+    const compatibilityStop: WindieAgentStopInput = stop;
+    const runtime: AgentSessionRuntime = {
+      waitForOpen: async () => undefined,
+      isOpen: () => true,
+      on: () => () => undefined,
+      query: async payload => payload.conversationRef,
+      stopQuery: async input => input?.conversationRef ?? 'stopped',
+      updateSettings: async () => 'settings',
+      listModels: async () => 'models',
+      rehydrateConversation: async () => 'rehydrate',
+      compactHistory: async () => 'compact',
+      wakewordDetected: async () => 'wakeword',
+      sendToolResultPayload: async () => 'tool',
+      sendToolBundleResultPayload: async () => 'bundle',
+      close: () => undefined,
+    };
+    const compatibilityRuntime: WindieAgentSessionRuntime = runtime;
+
+    expect(compatibilityQuery.text).toBe('hello');
+    expect(compatibilityStop.conversationRef).toBe('conv-1');
+    expect(compatibilityRuntime.isOpen()).toBe(true);
   });
 
   test('exports generic local runtime contract aliases', () => {

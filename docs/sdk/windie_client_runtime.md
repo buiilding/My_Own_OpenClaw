@@ -56,12 +56,17 @@ Ownership rules:
   adapter exposes query, rehydrate, stop, tool-result, settings-update, and
   list-models websocket commands as one typed backend boundary.
 - the SDK transport module owns the websocket type surface. `WindieAgentSession.ts`
-  defines the public `WebSocketLike` and `WebSocketConstructor` structural
-  types used by `WindieClient`, `ManagedWindieAgentSession`, and
-  `BackendSocketFactory`. The package still depends on runtime `ws` for Node
-  sockets, but it no longer carries a local `src/types/ws.d.ts` ambient
-  declaration; TypeScript declaration output comes from the SDK-owned
-  websocket-like interfaces.
+  defines the public `AgentSessionOptions`, `AgentQueryInput`,
+  `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
+  `createAgentSession`, and `createAgentBackendTransport` contracts alongside
+  `WebSocketLike` and `WebSocketConstructor`. The Windie-prefixed session names
+  remain compatibility aliases. `ManagedWindieAgentSession.ts` exposes the same
+  pattern for managed hosted sessions through `ManagedAgentBackendEndpoint`,
+  `ManagedAgentSessionOptions`, `ManagedAgentSession`, and
+  `createManagedAgentSession`, with Windie-prefixed aliases kept for existing
+  callers. The package still depends on runtime `ws` for Node sockets, but it
+  no longer carries a local `src/types/ws.d.ts` ambient declaration; TypeScript
+  declaration output comes from the SDK-owned websocket-like interfaces.
 - Electron main exposes only non-tool typed websocket commands to app callers;
   backend tool-result sends are internal to SDK tool coordination after a
   claimed backend tool event.
@@ -740,8 +745,9 @@ For local tool calls:
 backend tool-call -> SDK conversation runtime -> sidecar /execute-tool -> backend tool-result
 ```
 
-`WindieAgentSession` is now transport-only. It connects, handshakes, sends
+`AgentSession` is now transport-only. It connects, handshakes, sends
 queries/results, and emits raw backend events. It does not execute local tools.
+`WindieAgentSession` is the compatibility export for the same constructor.
 `ManagedBackendSession` owns the reusable managed websocket lifecycle for hosts
 that need connection waiters, reconnect scheduling, endpoint fallback, idle
 disconnect, typed backend sends, and raw event parsing. Electron main consumes

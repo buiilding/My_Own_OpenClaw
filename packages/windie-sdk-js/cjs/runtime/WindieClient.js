@@ -162,7 +162,7 @@ class WindieClient {
     createAgentSession({ backendUrl, installToken, userId, operatingSystem, agentDefinition, }) {
         const headers = installToken ? { Authorization: `Bearer ${installToken}` } : undefined;
         if (this.defaultOptions.backendSession === 'managed') {
-            return (0, ManagedWindieAgentSession_js_1.createManagedWindieAgentSession)({
+            return (0, ManagedWindieAgentSession_js_1.createManagedAgentSession)({
                 backendUrl,
                 wsUrl: this.defaultOptions.wsUrl,
                 wsOrigin: this.defaultOptions.wsOrigin,
@@ -188,7 +188,7 @@ class WindieClient {
                 log: this.defaultOptions.log,
             });
         }
-        return (0, WindieAgentSession_js_1.createWindieAgentSession)({
+        return (0, WindieAgentSession_js_1.createAgentSession)({
             backendUrl,
             wsUrl: this.defaultOptions.wsUrl,
             WebSocketImpl: this.defaultOptions.WebSocketImpl,
