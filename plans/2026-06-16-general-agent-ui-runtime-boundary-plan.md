@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Permission manifest uses generic desktop-agent copy
+
+- Finding: the shared permission manifest still embedded WindieOS-specific
+  onboarding descriptions even though the permission contract is shared runtime
+  metadata and the product-specific host/onboarding copy already lives in the
+  main and renderer skins.
+- Change: made screen capture, input control, macOS automation, and browser
+  automation manifest descriptions product-neutral, documented the generic
+  manifest/product skin split, and added host-boundary coverage that prevents
+  WindieOS copy from returning to the shared manifest.
+- Validation: focused frontend host-skin, permission-service, and onboarding
+  tests, docs listing, source scan, and diff check.
+- Compatibility: no migration required. Permission ids, validation probes,
+  grant labels, OS scope, and stored permission state are unchanged.
+
 ### 2026-06-17 Python SDK exports AgentSdkClient
 
 - Finding: Python hosted-agent SDK docs and exports still exposed

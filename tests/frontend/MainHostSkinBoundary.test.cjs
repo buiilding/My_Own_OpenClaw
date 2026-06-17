@@ -42,6 +42,7 @@ const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/perm
 const inputControlPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_input_control.cjs');
 const microphonePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_microphone.cjs');
 const workspacePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_workspace.cjs');
+const permissionManifestPath = path.resolve(__dirname, '../../frontend/src/shared/permissions/permission_manifest.json');
 const mainMarkerConsumerPaths = [
   layerLogSinkPath,
   path.join(mainRoot, 'surfaces/main_window_overlay_runtime.cjs'),
@@ -87,6 +88,20 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('tokenExchangeFailure');
     expect(skinSource).toContain('loginFailure');
     expect(skinSource).toContain('logoutFailure');
+  });
+
+  test('shared permission manifest uses generic desktop-agent descriptions', () => {
+    const manifestSource = fs.readFileSync(permissionManifestPath, 'utf8');
+    const manifest = JSON.parse(manifestSource);
+
+    expect(manifestSource).not.toContain('WindieOS');
+    expect(manifestSource).not.toContain('WindieOS browser');
+    expect(manifest.permissions.find(permission => permission.permission_id === 'screen_capture')).toMatchObject({
+      description: expect.stringContaining('desktop agent'),
+    });
+    expect(manifest.permissions.find(permission => permission.permission_id === 'browser_automation')).toMatchObject({
+      description: expect.stringContaining('dedicated browser'),
+    });
   });
 
   test('hosted backend defaults live in host skin config', () => {
