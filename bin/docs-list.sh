@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the docs list workflow for the WindieOS.
+# Runs the docs list workflow for the WindieOS on Unix-like shells.
 
 set -euo pipefail
 

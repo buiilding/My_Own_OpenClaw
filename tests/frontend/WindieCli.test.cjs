@@ -35,6 +35,9 @@ describe('windie CLI', () => {
     expect(fs.existsSync(path.join(repoRoot, 'bin/windie'))).toBe(false);
     expect(fs.existsSync(path.join(repoRoot, 'bin/windie.cmd'))).toBe(true);
     expect(fs.existsSync(path.join(repoRoot, 'bin/windie.sh'))).toBe(true);
+    expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list'))).toBe(false);
+    expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list.cmd'))).toBe(true);
+    expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list.sh'))).toBe(true);
   });
 
   test('prints grouped help', () => {

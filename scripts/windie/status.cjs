@@ -22,6 +22,10 @@ function readJson(relativePath) {
   }
 }
 
+function hasPlatformShim(name) {
+  return exists(`bin/${name}.cmd`) && exists(`bin/${name}.sh`);
+}
+
 function checkCommand(name, args = ['--version']) {
   const result = capture(name, args, { cwd: REPO_ROOT });
   return {
@@ -89,7 +93,7 @@ function collectStatus({ all = false } = {}) {
     },
     {
       name: 'docs navigation',
-      ok: exists('docs/docs.json') && exists('bin/docs-list'),
+      ok: exists('docs/docs.json') && hasPlatformShim('docs-list'),
       detail: exists('docs/docs.json') ? 'docs/docs.json present' : 'docs/docs.json missing',
     },
     {
@@ -117,7 +121,7 @@ function collectStatus({ all = false } = {}) {
       sidecarPython,
     },
     files: {
-      docsList: exists('bin/docs-list'),
+      docsList: hasPlatformShim('docs-list'),
       runBackend: exists('scripts/run-backend'),
       runFrontend: exists('scripts/run-frontend-dev'),
       runDesktop: exists('scripts/run-frontend-electron'),
