@@ -9,6 +9,7 @@ import {
   SdkConversationRuntime,
   SDK_RUNTIME_COMMANDS,
   ToolExecutionCoordinator,
+  AgentChatSession,
   agentBuiltins,
   buildDisplayConversation,
   createAgentBackendTransport,
@@ -27,6 +28,8 @@ import {
   resolveToolOutputCorrelationId,
   resolveToolWaitId,
   windieBuiltins,
+  WindieChatSession,
+  type AgentChatSendInput,
   type AgentLocalRuntimeClient,
   type AgentQueryInput,
   type AgentSessionRuntime,
@@ -37,6 +40,7 @@ import {
   type WindieAgentSessionRuntime,
   type WindieAgentStopInput,
   type WindieToolDefinition,
+  type WindieChatSendInput,
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
@@ -53,6 +57,7 @@ describe('@windie/sdk package boundary', () => {
     expect(createWindieAgentSession).toBe(createAgentSession);
     expect(createWindieAgentBackendTransport).toBe(createAgentBackendTransport);
     expect(createManagedWindieAgentSession).toBe(createManagedAgentSession);
+    expect(WindieChatSession).toBe(AgentChatSession);
     expect(createWindieLocalRuntimeProvider).toBe(createAgentLocalRuntimeProvider);
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveModelFacingToolCallId).toBeDefined();
@@ -99,6 +104,13 @@ describe('@windie/sdk package boundary', () => {
     expect(compatibilityQuery.text).toBe('hello');
     expect(compatibilityStop.conversationRef).toBe('conv-1');
     expect(compatibilityRuntime.isOpen()).toBe(true);
+  });
+
+  test('exports generic chat session input aliases', () => {
+    const input: AgentChatSendInput = 'hello';
+    const compatibilityInput: WindieChatSendInput = input;
+
+    expect(compatibilityInput).toBe('hello');
   });
 
   test('exports generic local runtime contract aliases', () => {

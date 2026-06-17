@@ -1481,3 +1481,19 @@ Each completed slice should report:
   aliases.
 - Compatibility: no migration required. Websocket payloads, managed-session
   behavior, and existing Windie-prefixed imports are unchanged.
+
+### 2026-06-17 SDK chat session aliases
+
+- Finding: the SDK chat convenience wrapper was documented as reusable runtime
+  code but exported only `WindieChatSession` and Windie-prefixed chat input
+  types.
+- Change: added `AgentChatSession`, `AgentChatSendInput`,
+  `AgentChatEditInput`, and `AgentChatRetryInput` as the preferred generic
+  names, switched `WindieAgent.chat(...)` and checked-in CommonJS internals to
+  construct `AgentChatSession`, and kept the Windie-prefixed names as
+  compatibility aliases.
+- Validation: focused SDK package-boundary Jest coverage, SDK no-emit
+  TypeScript check, CJS export smoke, docs listing, `git diff --check`, and
+  source scans showing Windie-prefixed chat names remain compatibility aliases.
+- Compatibility: no migration required. Chat-session behavior and payloads are
+  unchanged, and existing `WindieChatSession` imports keep working.

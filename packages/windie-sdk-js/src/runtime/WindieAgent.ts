@@ -65,7 +65,7 @@ import {
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import { createDefaultTurnResourceResolvers } from './DefaultTurnResourceResolvers.js';
-import { WindieChatSession } from './WindieChatSession.js';
+import { AgentChatSession } from './WindieChatSession.js';
 import {
   toAgentStreamEvents,
   toolOutputStreamKeys,
@@ -416,9 +416,9 @@ export class WindieAgent {
     localRuntime?: AgentLocalRuntimeClient | null;
     localToolLifecycle?: LocalToolExecutionLifecycle | null;
     resourceResolvers?: TurnResourceResolverRegistry | null;
-  } = {}): WindieChatSession {
+  } = {}): AgentChatSession {
     const runtime = this.conversation(options);
-    return new WindieChatSession(options.conversationRef ?? `conv-${this.id}`, runtime);
+    return new AgentChatSession(options.conversationRef ?? `conv-${this.id}`, runtime);
   }
 
   sleep(): void {

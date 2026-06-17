@@ -23,15 +23,19 @@ import type {
   TurnResult,
 } from './ConversationRuntime.js';
 
-export type WindieChatSendInput = string | SendInput;
-export type WindieChatEditInput = EditAndResendInput;
-export type WindieChatRetryInput = RetryTurnInput;
+export type AgentChatSendInput = string | SendInput;
+export type AgentChatEditInput = EditAndResendInput;
+export type AgentChatRetryInput = RetryTurnInput;
 
-function normalizeSendInput(input: WindieChatSendInput): SendInput {
+export type WindieChatSendInput = AgentChatSendInput;
+export type WindieChatEditInput = AgentChatEditInput;
+export type WindieChatRetryInput = AgentChatRetryInput;
+
+function normalizeSendInput(input: AgentChatSendInput): SendInput {
   return typeof input === 'string' ? { text: input } : input;
 }
 
-export class WindieChatSession {
+export class AgentChatSession {
   constructor(readonly conversationRef: string, private readonly runtime: SdkConversationRuntime) {}
 
   subscribe(listener: ConversationListener): () => void {
@@ -50,11 +54,11 @@ export class WindieChatSession {
     return (await this.load()).display;
   }
 
-  async send(input: WindieChatSendInput): Promise<TurnResult> {
+  async send(input: AgentChatSendInput): Promise<TurnResult> {
     return this.runtime.send(normalizeSendInput(input));
   }
 
-  async *stream(input: WindieChatSendInput): AsyncIterableIterator<AgentStreamEvent> {
+  async *stream(input: AgentChatSendInput): AsyncIterableIterator<AgentStreamEvent> {
     const seenToolOutputs = new Set<string>();
     for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
       const streamEvents = toAgentStreamEvents(runtimeEvent);
@@ -74,11 +78,11 @@ export class WindieChatSession {
     }
   }
 
-  async editAndResend(input: WindieChatEditInput): Promise<TurnResult> {
+  async editAndResend(input: AgentChatEditInput): Promise<TurnResult> {
     return this.runtime.editAndResend(input);
   }
 
-  async retry(input: WindieChatRetryInput = {}): Promise<TurnResult> {
+  async retry(input: AgentChatRetryInput = {}): Promise<TurnResult> {
     return this.runtime.retryTurn(input);
   }
 
@@ -98,3 +102,6 @@ export class WindieChatSession {
     return this.onEvent(listener);
   }
 }
+
+export type WindieChatSession = AgentChatSession;
+export const WindieChatSession = AgentChatSession;

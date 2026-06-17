@@ -130,6 +130,11 @@ customer, not a separate agent runtime. Electron-specific adapters may implement
 SDK interfaces like `ConversationStore` and `LocalToolExecutionLifecycle`, but
 Electron must not reimplement SDK behavior separately.
 
+`agent.chat(...)` returns the generic `AgentChatSession` convenience wrapper
+over `SdkConversationRuntime`. `WindieChatSession` and the matching
+Windie-prefixed chat input types remain compatibility aliases for existing SDK
+callers, but new reusable host code should prefer the `AgentChat*` names.
+
 ## Desktop Host Startup
 
 Normal desktop hosts start one SDK-owned runtime and render the SDK

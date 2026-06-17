@@ -228,7 +228,7 @@ class WindieAgent {
     }
     chat(options = {}) {
         const runtime = this.conversation(options);
-        return new WindieChatSession_js_1.WindieChatSession(options.conversationRef ?? `conv-${this.id}`, runtime);
+        return new WindieChatSession_js_1.AgentChatSession(options.conversationRef ?? `conv-${this.id}`, runtime);
     }
     sleep() {
         this.session.close(1000, 'sleep');
