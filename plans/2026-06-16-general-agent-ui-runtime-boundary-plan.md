@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer query message id alias rejection
+
+- Finding: renderer query send still emitted or accepted duplicate turn id
+  spellings (`id`, `messageId`, `message_id`, and `queryMessageId`) alongside
+  canonical `query_message_id`, and Electron main still tolerated some removed
+  query id aliases while preparing backend query payloads.
+- Change: made the live-turn client emit only `query_message_id`, made the
+  renderer transport and Electron main query runtime reject removed query id
+  aliases, and updated focused transport/query tests.
+- Validation: focused DesktopAgentRuntimeTransport, DesktopLiveTurnRuntimeClient,
+  IpcQueryRuntime, IpcMainBridge.query, and IpcMainSdkRuntimeBoundary Jest tests,
+  docs index listing, and diff check.
+- Compatibility: no migration required for current first-party callers. Stale
+  renderer query callers using removed id aliases must switch to
+  `query_message_id`.
+
 ### 2026-06-17 local-runtime mapped IPC handler removal
 
 - Finding: Electron main still registered a compiled mapper layer for direct

@@ -58,7 +58,20 @@ async function sendQuery(
     'attachmentFilenames',
     'workspacePath',
     'turnRef',
+    'queryMessageId',
+    'messageId',
   ], 'conversation.send');
+  const removedSnakeCaseFields = ['message_id'].filter((field) => (
+    Object.prototype.hasOwnProperty.call(payload, field)
+  ));
+  if (removedSnakeCaseFields.length > 0) {
+    throw new Error(
+      `conversation.send received removed field(s): ${removedSnakeCaseFields.join(', ')}. Use query_message_id.`,
+    );
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'id')) {
+    throw new Error('conversation.send received removed id field. Use query_message_id.');
+  }
   const result = await invokeAgentSdkCommand<Record<string, unknown> | null>(
     SDK_RUNTIME_COMMANDS.CONVERSATION_SEND,
     {

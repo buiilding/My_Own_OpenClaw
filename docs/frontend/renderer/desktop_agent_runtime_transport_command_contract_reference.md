@@ -1,12 +1,12 @@
 ---
-summary: "Renderer and Electron main desktop agent runtime transport command contract for DesktopAgentRuntimeTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
+summary: "Renderer and Electron main desktop agent runtime transport command contract for DesktopAgentRuntimeTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed query-payload aliases."
 read_when:
   - When changing `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
   - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeAgentSdkCommand`, Electron main `handleAgentSdkInvoke`, its internal `buildAgentSdkCommandHandlers` table, or shared SDK-shaped command names.
   - When resolving stale references to the removed renderer `windieCommandInvokeClient.ts` file or `invokeWindieCommand(...)` helper; the current generic renderer helper is `agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`.
   - When resolving stale references to the removed `handleWindieSdkInvoke` or `buildWindieSdkCommandHandlers` helper names; the current generic Electron-host helper names are `handleAgentSdkInvoke` and `buildAgentSdkCommandHandlers`.
   - When searching for main ipc buildWindieSdkCommandHandlers SDK_RUNTIME_COMMANDS conversation.send command-shape routing; this transport contract is the current owner.
-  - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
+  - When debugging removed query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
 title: "Desktop Agent Runtime Transport Command Contract Reference"
 ---
 
@@ -101,13 +101,16 @@ canonical snake_case command contract:
 - `workspace_path`
 - `memory_retrieval_enabled`
 
-The transport rejects removed camelCase aliases such as
+The transport and Electron main query command boundary reject removed aliases such as
 `conversationRef`, `screenshotRef`, `screenshotUrl`, `screenshotRefs`,
-`attachmentContext`, `attachmentFilenames`, `workspacePath`, or `turnRef`.
+`attachmentContext`, `attachmentFilenames`, `workspacePath`, `turnRef`,
+`queryMessageId`, `messageId`, `message_id`, or `id`.
 
-If a caller passes camelCase aliases into `desktopAgentRuntimeTransport`, those
-fields fail fast. Fix the caller to send the canonical snake_case runtime shape
-instead of reintroducing alias fallback in the transport.
+If a caller passes removed aliases into `desktopAgentRuntimeTransport` or
+directly through `windie:invoke`, those fields fail fast. Fix the caller to send
+the canonical snake_case runtime shape and use `query_message_id` for the turn
+identifier instead of reintroducing alias fallback in the transport or main
+query runtime.
 
 ## Command Return and Error Contract
 
@@ -126,7 +129,8 @@ the snake_case `turn_ref` when present. Removed `turnRef` aliases are rejected.
 
 ## Drift Hotspots
 
-1. Re-adding camelCase fallback in `desktopAgentRuntimeTransport` keeps duplicate
+1. Re-adding query alias fallback in `desktopAgentRuntimeTransport` or
+   `ipc_query_runtime.cjs` keeps duplicate
    renderer command authorities alive and hides callers that failed to normalize
    at the SDK/runtime boundary.
 2. Moving query enrichment into this adapter duplicates Electron main ownership.

@@ -23,6 +23,22 @@ function normalizeQueryMessageId(value) {
   return normalizeOptionalString(value);
 }
 
+function rejectRemovedRendererQueryAliases(payload) {
+  const removed = [
+    'queryMessageId',
+    'turn_ref',
+    'turnRef',
+    'id',
+    'messageId',
+    'message_id',
+  ].filter(key => Object.prototype.hasOwnProperty.call(payload, key));
+  if (removed.length > 0) {
+    throw new Error(
+      `Renderer query command requires query_message_id; removed field(s): ${removed.join(', ')}.`,
+    );
+  }
+}
+
 const BACKEND_QUERY_PAYLOAD_KEYS = Object.freeze([
   'text',
   'conversation_ref',
@@ -78,18 +94,16 @@ function prepareRendererQueryPayload(payload, currentConversationRef, resolveCon
   const nextPayload = (
     payload && typeof payload === 'object' && !Array.isArray(payload)
   ) ? { ...payload } : {};
+  rejectRemovedRendererQueryAliases(nextPayload);
   const attachmentContext = (
     typeof nextPayload.attachment_context === 'string' && nextPayload.attachment_context.trim().length > 0
   ) ? nextPayload.attachment_context : null;
   const normalizedAttachmentFilenames = normalizeAttachmentFilenames(nextPayload.attachment_filenames);
   const queryMessageId = normalizeQueryMessageId(
-    nextPayload.query_message_id || nextPayload.queryMessageId,
+    nextPayload.query_message_id,
   );
 
   delete nextPayload.query_message_id;
-  delete nextPayload.queryMessageId;
-  delete nextPayload.turn_ref;
-  delete nextPayload.turnRef;
 
   if (normalizedAttachmentFilenames.length > 0) {
     nextPayload.attachment_filenames = normalizedAttachmentFilenames;

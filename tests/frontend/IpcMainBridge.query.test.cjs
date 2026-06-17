@@ -184,6 +184,25 @@ describe('ipc.cjs bridge query handling', () => {
     expect(lastMessage.payload).not.toHaveProperty('query_context');
   });
 
+  test('rejects removed renderer query id aliases before backend dispatch', async () => {
+    const { handlers, ws } = await setupQueryBridge();
+
+    await expect(sendQuery(handlers, {
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      messageId: 'turn-message',
+      message_id: 'turn-snake',
+    })).resolves.toEqual({
+      ok: true,
+      data: {
+        ok: false,
+        error: 'Renderer query command requires query_message_id; removed field(s): messageId, message_id.',
+      },
+    });
+
+    expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
+  });
+
   test('attaches locally resolved AGENTS.md layers to outbound query agent definition', async () => {
     const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-query-agents-'));
     fs.mkdirSync(path.join(repoRoot, '.git'));

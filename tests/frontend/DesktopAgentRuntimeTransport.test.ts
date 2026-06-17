@@ -82,6 +82,39 @@ describe('desktopAgentRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
+  test('rejects removed query message id payload aliases', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-1',
+    });
+
+    const transport = createDesktopAgentRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      queryMessageId: 'turn-camel',
+      messageId: 'turn-message',
+    })).rejects.toThrow(
+      'conversation.send received removed camelCase field(s): queryMessageId, messageId. Use canonical snake_case fields.',
+    );
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      message_id: 'turn-snake',
+    })).rejects.toThrow(
+      'conversation.send received removed field(s): message_id. Use query_message_id.',
+    );
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      id: 'turn-id',
+    })).rejects.toThrow(
+      'conversation.send received removed id field. Use query_message_id.',
+    );
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
   test('rejects removed camelCase stop payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
 

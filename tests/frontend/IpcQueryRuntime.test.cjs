@@ -63,7 +63,6 @@ describe('ipc_query_runtime', () => {
         attachment_filenames: [' notes.txt ', '', 42, 'todo.md'],
         memory_retrieval_enabled: false,
         query_message_id: ' turn-transport ',
-        turn_ref: 'legacy-turn',
       },
       'conv-current',
       jest.fn(() => 'conv-resolved'),
@@ -82,6 +81,35 @@ describe('ipc_query_runtime', () => {
       memoryRetrievalEnabled: false,
       queryMessageId: 'turn-transport',
     });
+  });
+
+  test('prepareRendererQueryPayload rejects removed query id aliases', () => {
+    expect(() => prepareRendererQueryPayload(
+      {
+        text: 'hello',
+        conversation_ref: 'conv-1',
+        queryMessageId: 'turn-camel',
+        messageId: 'turn-message',
+      },
+      'conv-current',
+      jest.fn(() => 'conv-1'),
+    )).toThrow(
+      'Renderer query command requires query_message_id; removed field(s): queryMessageId, messageId.',
+    );
+    expect(() => prepareRendererQueryPayload(
+      {
+        text: 'hello',
+        conversation_ref: 'conv-1',
+        id: 'turn-id',
+        message_id: 'turn-snake',
+        turnRef: 'turn-ref',
+        turn_ref: 'turn-snake-ref',
+      },
+      'conv-current',
+      jest.fn(() => 'conv-1'),
+    )).toThrow(
+      'Renderer query command requires query_message_id; removed field(s): turn_ref, turnRef, id, message_id.',
+    );
   });
 
   test('prepareRendererQueryPayload rejects missing conversation ref', () => {

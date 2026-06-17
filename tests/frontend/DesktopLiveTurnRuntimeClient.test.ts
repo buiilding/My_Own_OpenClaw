@@ -78,9 +78,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       metadata: {
         attachmentFilenames: ['notes.txt'],
       },
-      id: 'turn-explicit',
-      messageId: 'turn-explicit',
-      message_id: 'turn-explicit',
       query_message_id: 'turn-explicit',
       memory_retrieval_enabled: true,
     });
