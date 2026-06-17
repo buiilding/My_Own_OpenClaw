@@ -24,7 +24,6 @@ concrete modules directly.
 - `backend/src/agent/tools/sending/__init__.py`
 - `backend/src/agent/tools/waiting/__init__.py`
 - `backend/src/api/handlers/__init__.py`
-- `backend/src/api/infrastructure/__init__.py`
 - `backend/src/api/processing/__init__.py`
 - `backend/src/api/processing/formatters/__init__.py`
 - `backend/src/api/processing/tts/__init__.py`
@@ -101,6 +100,9 @@ docstring or compatibility path.
 - `backend/src/api/auth/__init__.py` is intentionally absent; import install
   auth routes/services from concrete modules such as
   `backend.src.api.auth.router` and `backend.src.api.auth.service`.
+- `backend/src/api/infrastructure/__init__.py` is intentionally absent; import
+  handler, registry, and error helpers from concrete modules under
+  `backend.src.api.infrastructure`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`

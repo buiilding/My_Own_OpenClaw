@@ -36,6 +36,8 @@ All notable changes to WindieOS will be documented in this file.
   exports so storage callers use concrete storage modules.
 - backend/api: remove the unused `api.auth` package export and register install
   auth through the concrete auth router module.
+- backend/api: remove the unused `api.infrastructure` package export so handler
+  infrastructure callers use concrete modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
