@@ -14,7 +14,7 @@ title: "Backend Event Consumer Matrix Reference"
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
+- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/main/ipc.cjs`

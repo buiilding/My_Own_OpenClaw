@@ -306,3 +306,18 @@ Each completed slice should report:
   renderer transport name.
 - Compatibility: no migration required. This is an internal renderer module
   rename; SDK transport type names and IPC command strings remain unchanged.
+
+### 2026-06-17 renderer audio chunk event parser naming
+
+- Finding: the renderer chat audio parser still used backend-prefixed naming,
+  making a generic chat utility read as if it owned backend event semantics
+  instead of validating the renderer `audio-chunk` side-channel payload.
+- Change: renamed the parser and focused test/docs references to
+  `audioChunkEvents` / `AudioChunkEvents` while preserving the
+  `audio-chunk` event name, payload shape, and playback listener path.
+- Validation: focused Jest run for `AudioChunkEvents` and
+  `ChatInterfaceWiring`, docs listing, `git diff --check`, and a source scan
+  for the retired parser name.
+- Compatibility: no migration required. This is an internal renderer module
+  rename; websocket event names, IPC channels, and playback behavior are
+  unchanged.

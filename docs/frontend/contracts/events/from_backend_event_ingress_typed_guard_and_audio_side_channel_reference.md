@@ -17,7 +17,7 @@ title: "Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference"
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
+- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
 
 ## Ingress Path
 
@@ -116,7 +116,7 @@ No single global consumer owns all backend event types.
 
 `audio-chunk` handling is intentionally separate from typed union:
 
-- parser location: `backendAudioEvents.js`
+- parser location: `audioChunkEvents.js`
 - required shape:
   - `type === "audio-chunk"`
   - `payload.audio` string

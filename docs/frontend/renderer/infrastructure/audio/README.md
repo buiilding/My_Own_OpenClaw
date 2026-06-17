@@ -16,5 +16,5 @@ title: "Frontend Renderer Infrastructure Audio Docs Hub"
 
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
+- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
 - `tests/frontend/PlayerService.test.ts`

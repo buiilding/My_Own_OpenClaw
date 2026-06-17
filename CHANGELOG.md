@@ -1,10 +1,12 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
 ### Changed
+
+- frontend/renderer: rename the chat audio chunk parser from backend-prefixed wording to audio chunk event terminology while preserving the `audio-chunk` payload contract.
 
 - frontend/renderer: rename the SDK command transport facade from desktop backend transport to desktop agent runtime transport while preserving the SDK transport type and IPC command strings.
 

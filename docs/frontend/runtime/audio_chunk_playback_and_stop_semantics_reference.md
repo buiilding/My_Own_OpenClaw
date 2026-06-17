@@ -15,7 +15,7 @@ title: "Audio Chunk Playback and Stop Semantics Reference"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
-- `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
+- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`

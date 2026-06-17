@@ -4,7 +4,7 @@
 
 import { useEffect } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
+import { extractAudioChunkPayload } from '../utils/audioChunkEvents';
 import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agentStopShortcut';
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {

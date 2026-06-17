@@ -1,5 +1,5 @@
 /**
- * Provides the backend audio events module for the renderer UI.
+ * Provides audio chunk event parsing for the renderer UI.
  */
 
 export function extractAudioChunkPayload(data) {

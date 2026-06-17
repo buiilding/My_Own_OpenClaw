@@ -200,7 +200,7 @@ jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSes
 
 const mockExtractAudioChunkPayload = jest.fn(() => null);
 
-jest.mock('../../frontend/src/renderer/features/chat/utils/backendAudioEvents', () => ({
+jest.mock('../../frontend/src/renderer/features/chat/utils/audioChunkEvents', () => ({
   extractAudioChunkPayload: (...args) => mockExtractAudioChunkPayload(...args),
 }));
 

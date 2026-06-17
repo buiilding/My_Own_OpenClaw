@@ -1,10 +1,10 @@
 /**
- * Covers backend audio events. behavior in the frontend test suite.
+ * Covers audio chunk event parsing behavior in the frontend test suite.
  */
 
-import { extractAudioChunkPayload } from '../../frontend/src/renderer/features/chat/utils/backendAudioEvents';
+import { extractAudioChunkPayload } from '../../frontend/src/renderer/features/chat/utils/audioChunkEvents';
 
-describe('backendAudioEvents', () => {
+describe('audioChunkEvents', () => {
   test('returns normalized audio chunk payload for valid audio-chunk events', () => {
     expect(
       extractAudioChunkPayload({
