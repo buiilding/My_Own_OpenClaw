@@ -504,7 +504,7 @@ describe('windie docs index', () => {
     expect(findDocs('queryDiagnosticEvents app diagnostics CLI inspection')[0].path).toBe(
       expectedPath,
     );
-    expect(findDocs('inspectDiagnosticTrace diagnosticsDatabasePath windieUserDataRoot')[0].path).toBe(
+    expect(findDocs('inspectDiagnosticTrace diagnosticsDatabasePath appUserDataRoot')[0].path).toBe(
       expectedPath,
     );
     expect(findDocs('listDiagnosticPathDefinitions diagnostic paths')[0].path).toBe(

@@ -1066,3 +1066,20 @@ Each completed slice should report:
 - Validation: docs listing, `git diff --check`, and source scan for active
   "Windie SDK command" wording.
 - Compatibility: no migration required. Documentation-only copy alignment.
+
+### 2026-06-17 main diagnostics user-data helper
+
+- Finding: the generic Electron main diagnostics store still exported its
+  default app-data path helper as `windieUserDataRoot`, even though the helper
+  belongs to main diagnostics rather than the WindieOS skin/runtime specifics.
+- Change: renamed the helper to `appUserDataRoot` and updated diagnostics docs
+  plus docs-index routing tests. The persisted `windieos` app-data directory
+  and `WINDIE_USER_DATA_DIR` override remain unchanged as product compatibility
+  surfaces.
+- Validation: direct Node export smoke test, focused docs-index Jest route,
+  docs listing, `git diff --check`, and stale scan for the renamed helper.
+  Focused `AppDiagnosticsStore` remains blocked in this environment because
+  the `sqlite3` CLI is unavailable (`spawnSync sqlite3 ENOENT`).
+- Compatibility: no migration required. This is an internal helper/export name
+  used by diagnostics commands and docs routing; storage paths and environment
+  variables are unchanged.

@@ -229,10 +229,10 @@ function diagnosticsDatabasePath() {
   if (process.env.WINDIE_APP_DIAGNOSTICS_DB) {
     return process.env.WINDIE_APP_DIAGNOSTICS_DB;
   }
-  return path.join(windieUserDataRoot(), 'diagnostics', 'diagnostics.db');
+  return path.join(appUserDataRoot(), 'diagnostics', 'diagnostics.db');
 }
 
-function windieUserDataRoot() {
+function appUserDataRoot() {
   if (process.env.WINDIE_USER_DATA_DIR) {
     return process.env.WINDIE_USER_DATA_DIR;
   }
@@ -566,9 +566,9 @@ module.exports = {
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
+  appUserDataRoot,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
   listDiagnosticPathDefinitions,
   queryDiagnosticEvents,
-  windieUserDataRoot,
 };
