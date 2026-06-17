@@ -10,7 +10,7 @@ const {
 } = require('../ipc/ipc_desktop_agent_channels.cjs');
 
 function sendLocalRuntimeStatus(mainWindow, payload) {
-  mainWindow?.webContents.send('local-backend-status', payload);
+  mainWindow?.webContents.send(DESKTOP_AGENT_ON_CHANNELS.LOCAL_RUNTIME_STATUS, payload);
 }
 
 function buildLocalRuntimeStatusPayload({

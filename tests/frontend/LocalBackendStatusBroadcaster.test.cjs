@@ -37,9 +37,10 @@ describe('local_backend_status_broadcaster', () => {
 
     sendLocalRuntimeStatus(mainWindow, { ready: true });
 
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
-      ready: true,
-    });
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      DESKTOP_AGENT_ON_CHANNELS.LOCAL_RUNTIME_STATUS,
+      { ready: true },
+    );
   });
 
   test('broadcasts conversation metadata invalidations only to live windows', () => {

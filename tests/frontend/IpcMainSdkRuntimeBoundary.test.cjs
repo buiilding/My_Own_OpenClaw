@@ -72,6 +72,28 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('Failed to send query through WindieAgent');
   });
 
+  test('local runtime status IPC uses shared generic channel constants in main bridge code', async () => {
+    const bridgeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/sidecar/local_backend_bridge.cjs'),
+      'utf8',
+    );
+    const broadcasterSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/sidecar/local_backend_status_broadcaster.cjs'),
+      'utf8',
+    );
+    const channelSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_agent_channels.cjs'),
+      'utf8',
+    );
+
+    expect(channelSource).toContain('GET_LOCAL_RUNTIME_STATUS: IPC_CHANNELS.INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS');
+    expect(channelSource).toContain('LOCAL_RUNTIME_STATUS: IPC_CHANNELS.ON_CHANNELS.LOCAL_RUNTIME_STATUS');
+    expect(bridgeSource).toContain('DESKTOP_AGENT_INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS');
+    expect(broadcasterSource).toContain('DESKTOP_AGENT_ON_CHANNELS.LOCAL_RUNTIME_STATUS');
+    expect(bridgeSource).not.toContain("ipcMain.handle('get-local-backend-status'");
+    expect(broadcasterSource).not.toContain("webContents.send('local-backend-status'");
+  });
+
   test('electron main exposes SDK-shaped user commands through a strict invoke allowlist', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),

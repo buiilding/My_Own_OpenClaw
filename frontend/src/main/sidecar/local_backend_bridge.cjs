@@ -26,6 +26,9 @@ const {
   sendLocalRuntimeStatus,
 } = require('./local_backend_status_broadcaster.cjs');
 const {
+  DESKTOP_AGENT_INVOKE_CHANNELS,
+} = require('../ipc/ipc_desktop_agent_channels.cjs');
+const {
   loadInstallAuthStateFromDisk,
 } = require('../ipc/ipc_install_auth_state.cjs');
 const {
@@ -544,7 +547,10 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
       throw error;
     }
   });
-  ipcMain.handle('get-local-backend-status', async () => wakeSdkLocalRuntimeForStatus(mainWindow));
+  ipcMain.handle(
+    DESKTOP_AGENT_INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS,
+    async () => wakeSdkLocalRuntimeForStatus(mainWindow),
+  );
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();
   runtimeExecuteTool = async (payload = {}) => executeToolRuntime.executeTool(null, payload);

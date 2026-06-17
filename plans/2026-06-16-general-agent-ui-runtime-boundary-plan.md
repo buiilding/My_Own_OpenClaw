@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime status channel constants
+
+- Finding: Electron main local-runtime bridge code still hardcoded the
+  compatibility `get-local-backend-status` and `local-backend-status` IPC wire
+  strings even though the shared registry exposes generic local-runtime keys.
+- Change: routed the bridge handler and status broadcaster through shared
+  `GET_LOCAL_RUNTIME_STATUS` / `LOCAL_RUNTIME_STATUS` constants and added main
+  boundary coverage so raw compatibility strings do not return to bridge code.
+- Validation: focused main SDK runtime-boundary and status-broadcaster Jest
+  tests, source scan, and diff check.
+- Compatibility: no migration required. The IPC wire channel values are
+  unchanged in the shared registry; this only removes hardcoded compatibility
+  strings from main bridge implementation code.
+
 ### 2026-06-17 diagnostics local-runtime lifecycle path
 
 - Finding: Electron main diagnostics still emitted local-runtime lifecycle rows
