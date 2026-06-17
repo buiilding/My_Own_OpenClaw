@@ -91,7 +91,7 @@ def _ensure_index(action: str, index: Optional[int]) -> None:
 
 class BrowserConnectArgs(BrowserActionArgsBase):
     action: Literal["connect"] = Field(
-        ..., description="Connect to the Windie browser."
+        ..., description="Connect to the dedicated browser."
     )
 
 
@@ -103,7 +103,7 @@ class BrowserStatusArgs(BrowserActionArgsBase):
 
 class BrowserProfilesArgs(BrowserActionArgsBase):
     action: Literal["profiles"] = Field(
-        ..., description="List available Windie browser profiles."
+        ..., description="List available dedicated browser profiles."
     )
 
 

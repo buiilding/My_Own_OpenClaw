@@ -105,7 +105,7 @@ TOOL_DESCRIPTIONS = {
         "- For large changes, split them into multiple focused edit calls section-by-section."
     ),
     "browser": (
-        "Control the WindieOS browser instance for navigation, extraction, page "
+        "Control the dedicated browser instance for navigation, extraction, page "
         "interaction, tab management, and screenshots."
     ),
 }

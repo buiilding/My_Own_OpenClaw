@@ -9,11 +9,13 @@ from pydantic import ValidationError
 from windie_shared.browser_contract import (
     BROWSER_ACTION_CONTRACTS,
     BROWSER_CANONICAL_ACTIONS,
+    BrowserConnectArgs,
     BrowserClickArgs,
     BrowserControlArgs,
     BrowserFindTextArgs,
     BrowserInputArgs,
     BrowserNavigateArgs,
+    BrowserProfilesArgs,
     BrowserReplaceFileArgs,
     BrowserScrollArgs,
     BrowserSnapshotArgs,
@@ -30,6 +32,7 @@ from backend.src.tools.browser.schemas import (
     BrowserControlArgs as BackendBrowserControlArgs,
 )
 from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
+from tools.manifest import build_sidecar_tool_manifest
 
 EXPLANATION = "Advance the active user task."
 NATIVE_BROWSER_USE_AGENT_ACTIONS = {
@@ -114,6 +117,23 @@ def test_sidecar_browser_control_args_reuses_backend_model() -> None:
     assert "oneOf" not in schema
     assert "url" in schema["properties"]
     assert "text" in schema["properties"]
+
+
+def test_browser_tool_descriptions_stay_product_neutral() -> None:
+    manifest = build_sidecar_tool_manifest({"browser"})
+    [browser_tool] = manifest["tools"]
+
+    assert browser_tool["description"] == (
+        "Control the dedicated browser instance for navigation, extraction, page "
+        "interaction, tab management, and screenshots."
+    )
+    assert "Windie" not in browser_tool["description"]
+    assert BrowserConnectArgs.model_json_schema()["properties"]["action"][
+        "description"
+    ] == "Connect to the dedicated browser."
+    assert BrowserProfilesArgs.model_json_schema()["properties"]["action"][
+        "description"
+    ] == "List available dedicated browser profiles."
 
 
 def test_action_model_schemas_stay_flat_for_grouped_schema_builder() -> None:

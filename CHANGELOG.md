@@ -77,6 +77,8 @@ All notable changes to WindieOS will be documented in this file.
   auto-start discovery and stop timeout failures.
 - sdk/js: use generic Agent SDK dependency diagnostics for hosted HTTP,
   local-runtime HTTP, and backend websocket transport construction.
+- frontend/sidecar: use generic dedicated-browser wording in executable
+  browser tool descriptions and shared browser action metadata.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

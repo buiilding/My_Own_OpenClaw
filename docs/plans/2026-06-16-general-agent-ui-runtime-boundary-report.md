@@ -494,6 +494,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   SDK-owned transport boundaries.
 - Change: updated those dependency diagnostics to generic Agent SDK wording
   while preserving the exported Windie SDK class/function names.
+- Finding: the sidecar browser executable manifest and shared connect/profiles
+  action metadata still described the local authority surface as the
+  Windie/WindieOS browser, even though the current contract boundary is the
+  dedicated browser runtime/profile.
+- Change: changed model-visible executable browser descriptions and shared
+  browser action metadata to generic dedicated-browser wording without changing
+  action names, validation, or Browser Use ownership.
 
 ## Remaining Findings
 
@@ -560,3 +567,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK hosted HTTP, local-runtime HTTP, and backend websocket construction
   failures now use generic Agent SDK dependency diagnostics. Exported
   `WindieSdkClient` and `createWindieSdkBackendSocket` names remain unchanged.
+- Sidecar browser tool descriptions now refer to the dedicated browser runtime
+  instead of embedding Windie/WindieOS product naming in executable tool
+  metadata. Browser docs still intentionally describe WindieOS ownership and
+  trust boundaries.
