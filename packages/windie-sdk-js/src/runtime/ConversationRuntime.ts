@@ -37,7 +37,7 @@ import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
 import { ToolExecutionCoordinator } from '../tools/ToolExecutionCoordinator.js';
 import {
   buildModelSettingsPatch,
-  type WindieModelSelection,
+  type AgentModelSelection,
 } from '../settings/modelSelection.js';
 import {
   storeCompletedTurnMemory,
@@ -85,7 +85,7 @@ export type SendInput = {
   payload?: JsonRecord;
   resources?: TurnInputResource[] | null;
   metadata?: JsonRecord | null;
-  model?: WindieModelSelection;
+  model?: AgentModelSelection;
 };
 
 export type TurnResult = {
@@ -98,21 +98,21 @@ export type EditAndResendInput = {
   text: string;
   turnRef?: string;
   payload?: JsonRecord;
-  model?: WindieModelSelection;
+  model?: AgentModelSelection;
 };
 
 export type RetryTurnInput = {
   messageId?: string;
   turnRef?: string;
   payload?: JsonRecord;
-  model?: WindieModelSelection;
+  model?: AgentModelSelection;
 };
 
 export type PreparedReplayTurn = {
   text: string;
   turnRef?: string;
   payload: JsonRecord;
-  model?: WindieModelSelection;
+  model?: AgentModelSelection;
 };
 
 export type CompactHistoryInput = {
@@ -1359,7 +1359,7 @@ export class SdkConversationRuntime {
     await this.options.transport?.connect();
   }
 
-  async setModel(selection: WindieModelSelection): Promise<string | void> {
+  async setModel(selection: AgentModelSelection): Promise<string | void> {
     if (!this.options.transport) {
       throw new Error('ConversationRuntime.setModel requires a backend transport');
     }

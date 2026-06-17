@@ -1394,3 +1394,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing SDK callers can continue to
   import `windieBuiltins` and `WindieBuiltin*`; new docs prefer
   `agentBuiltins`.
+
+### 2026-06-17 SDK model selection type alias
+
+- Finding: the SDK model-selection helper exposed only `WindieModelSelection`
+  even though the selection shape is a generic agent runtime API contract.
+- Change: added `AgentModelSelection` as the generic type name, switched SDK
+  runtime internals to use it, and kept `WindieModelSelection` as a
+  compatibility alias.
+- Validation: focused model-selection Jest coverage, SDK no-emit TypeScript
+  check, docs listing, `git diff --check`, and source scans showing the
+  Windie-prefixed type remains only as the compatibility alias.
+- Compatibility: no migration required. Existing callers can keep importing
+  `WindieModelSelection`; new docs prefer `AgentModelSelection`.

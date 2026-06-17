@@ -4,7 +4,7 @@
 
 import {
   buildModelSettingsPatch,
-  type WindieModelSelection,
+  type AgentModelSelection,
 } from '../settings/modelSelection.js';
 import type {
   ConversationStore,
@@ -67,7 +67,7 @@ export type WindieWakeUpOptions = {
   conversationRef?: string;
   agentId?: string;
   name?: string;
-  model?: WindieModelSelection;
+  model?: AgentModelSelection;
   operatingSystem?: string;
   localToolLifecycle?: LocalToolExecutionLifecycle;
   memory?: WindieRuntimeFeatureOption;

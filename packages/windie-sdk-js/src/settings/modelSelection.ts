@@ -4,13 +4,15 @@
 
 import type { JsonRecord } from '../conversation/types.js';
 
-export type WindieModelSelection = {
+export type AgentModelSelection = {
   modelId: string;
   modelProvider?: string;
   provider?: string;
   modelMode?: string;
   interactionMode?: string;
 };
+
+export type WindieModelSelection = AgentModelSelection;
 
 function coerceNonEmptyString(value: unknown): string | null {
   if (typeof value !== 'string') {
@@ -21,7 +23,7 @@ function coerceNonEmptyString(value: unknown): string | null {
 }
 
 export function buildModelSettingsPatch(
-  selection: WindieModelSelection,
+  selection: AgentModelSelection,
   owner = 'agent.setModel',
 ): JsonRecord {
   const modelId = coerceNonEmptyString(selection.modelId);

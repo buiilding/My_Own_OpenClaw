@@ -2,16 +2,23 @@
  * Covers windie sdk model selection. behavior in the frontend test suite.
  */
 
-import { buildModelSettingsPatch } from '../../packages/windie-sdk-js/src/settings/modelSelection';
+import {
+  buildModelSettingsPatch,
+  type AgentModelSelection,
+  type WindieModelSelection,
+} from '../../packages/windie-sdk-js/src/settings/modelSelection';
 
 describe('buildModelSettingsPatch', () => {
   test('maps SDK model selection fields to backend settings keys', () => {
-    expect(buildModelSettingsPatch({
+    const selection: AgentModelSelection = {
       modelId: ' gpt-5.4@@gpt-5-4-high-thinking ',
       modelProvider: ' openai ',
       modelMode: ' high ',
       interactionMode: ' agent ',
-    })).toEqual({
+    };
+    const compatibilitySelection: WindieModelSelection = selection;
+
+    expect(buildModelSettingsPatch(compatibilitySelection)).toEqual({
       selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
       model_provider: 'openai',
       model_mode: 'high',

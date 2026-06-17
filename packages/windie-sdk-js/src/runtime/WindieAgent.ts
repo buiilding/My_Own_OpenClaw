@@ -41,7 +41,7 @@ import {
 } from '../transport/HostedBackendHttpClient.js';
 import {
   buildModelSettingsPatch,
-  type WindieModelSelection,
+  type AgentModelSelection,
 } from '../settings/modelSelection.js';
 import type {
   WindieLocalRuntimeClient,
@@ -76,7 +76,7 @@ import {
 
 export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & {
   conversationRef?: string;
-  model?: WindieModelSelection;
+  model?: AgentModelSelection;
 };
 
 export type WindieAgentStopOptions = {
@@ -436,7 +436,7 @@ export class WindieAgent {
     return this.session.updateSettings(config);
   }
 
-  async setModel(selection: WindieModelSelection): Promise<string> {
+  async setModel(selection: AgentModelSelection): Promise<string> {
     return this.updateSettings(buildModelSettingsPatch(selection));
   }
 
