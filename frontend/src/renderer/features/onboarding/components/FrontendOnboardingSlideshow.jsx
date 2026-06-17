@@ -60,7 +60,7 @@ function FrontendOnboardingSlideshow({
       setActiveSlideIndex(totalSlides - 1);
     }
   }, [activeSlideIndex, totalSlides]);
-  const canStartWindieOs = bootstrapped && !isLoading;
+  const canStartProduct = bootstrapped && !isLoading;
 
   useEffect(() => {
     if (isPermissionSlide && !bootstrapped && !isLoading) {
@@ -127,7 +127,7 @@ function FrontendOnboardingSlideshow({
             {error ? (
               <p className="frontend-onboarding-permission-error">{error}</p>
             ) : null}
-            {isLastSlide && !canStartWindieOs ? (
+            {isLastSlide && !canStartProduct ? (
               <p className="frontend-onboarding-permission-error">
                 {onboardingSkin.loadingPermissionsMessage}
               </p>
@@ -156,7 +156,7 @@ function FrontendOnboardingSlideshow({
               type="button"
               className="frontend-onboarding-button primary"
               onClick={handleComplete}
-              disabled={!canStartWindieOs}
+              disabled={!canStartProduct}
             >
               {onboardingSkin.startLabel}
             </button>

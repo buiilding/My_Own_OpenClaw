@@ -54,16 +54,16 @@ describe('useWakewordDetection', () => {
 
   beforeEach(() => {
     const globalWithWakewordGuard = globalThis as typeof globalThis & {
-      __windieWakewordCaptureGuard?: { missingDeviceLocked: boolean; nextRetryAt: number };
+      __desktopAgentWakewordCaptureGuard?: { missingDeviceLocked: boolean; nextRetryAt: number };
     };
-    if (!globalWithWakewordGuard.__windieWakewordCaptureGuard) {
-      globalWithWakewordGuard.__windieWakewordCaptureGuard = {
+    if (!globalWithWakewordGuard.__desktopAgentWakewordCaptureGuard) {
+      globalWithWakewordGuard.__desktopAgentWakewordCaptureGuard = {
         missingDeviceLocked: false,
         nextRetryAt: 0,
       };
     } else {
-      globalWithWakewordGuard.__windieWakewordCaptureGuard.missingDeviceLocked = false;
-      globalWithWakewordGuard.__windieWakewordCaptureGuard.nextRetryAt = 0;
+      globalWithWakewordGuard.__desktopAgentWakewordCaptureGuard.missingDeviceLocked = false;
+      globalWithWakewordGuard.__desktopAgentWakewordCaptureGuard.nextRetryAt = 0;
     }
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'log').mockImplementation(() => {});

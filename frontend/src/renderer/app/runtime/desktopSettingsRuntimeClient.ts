@@ -10,7 +10,7 @@ import { createDesktopBackendTransport } from './desktopBackendTransport';
 
 type RuntimeSettingsPatch = Record<string, unknown>;
 
-const DASHBOARD_MODEL_LIST_REQUEST_GUARD_KEY = '__windie_models_list_requested__';
+const DASHBOARD_MODEL_LIST_REQUEST_GUARD_KEY = '__desktop_agent_models_list_requested__';
 
 type DashboardModelListWindow = Window & {
   [DASHBOARD_MODEL_LIST_REQUEST_GUARD_KEY]?: boolean;

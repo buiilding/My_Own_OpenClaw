@@ -78,6 +78,8 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('WindieOS could not prepare');
       expect(source).not.toContain('WindieOS runtime');
       expect(source).not.toContain('dedicated Windie browser');
+      expect(source).not.toContain('canStartWindieOs');
+      expect(source).not.toContain('__windieReplayStep');
     }
   });
 
@@ -85,12 +87,14 @@ describe('renderer skin/config boundary', () => {
     const consumers = [
       'features/voice/utils/audioProcessorNode.ts',
       'features/voice/hooks/useVoiceMode.ts',
+      'features/voice/utils/wakewordCaptureGuard.ts',
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
 
     for (const source of consumers) {
       expect(source).not.toContain('WindieOS');
       expect(source).not.toContain('windieos-capture-processor');
       expect(source).not.toContain('WindieOSCaptureProcessor');
+      expect(source).not.toContain('__windieWakewordCaptureGuard');
     }
   });
 

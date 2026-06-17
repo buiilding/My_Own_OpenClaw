@@ -24,6 +24,9 @@ All notable changes to WindieOS will be documented in this file.
   longer matches sidecar daemon wording directly.
 - frontend/renderer: rename the SDK command invoke helper to generic agent SDK
   terms while preserving the existing `windie:invoke` wire contract.
+- frontend/renderer: rename internal onboarding, settings, wakeword, and replay
+  guard markers to generic desktop-agent terms while preserving runtime
+  behavior.
 - frontend/renderer: rename voice capture worklet internals to generic desktop
   agent terms so product naming stays in the renderer skin.
 - frontend/main: route browser and macOS automation permission copy through the

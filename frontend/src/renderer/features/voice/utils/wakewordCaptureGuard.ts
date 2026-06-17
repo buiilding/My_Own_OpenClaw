@@ -8,7 +8,7 @@ type WakewordCaptureGuard = {
 };
 
 const globalWithWakewordGuard = globalThis as typeof globalThis & {
-  __windieWakewordCaptureGuard?: WakewordCaptureGuard;
+  __desktopAgentWakewordCaptureGuard?: WakewordCaptureGuard;
 };
 
 const defaultGuard: WakewordCaptureGuard = {
@@ -17,10 +17,10 @@ const defaultGuard: WakewordCaptureGuard = {
 };
 
 export function getWakewordCaptureGuard(): WakewordCaptureGuard {
-  if (!globalWithWakewordGuard.__windieWakewordCaptureGuard) {
-    globalWithWakewordGuard.__windieWakewordCaptureGuard = { ...defaultGuard };
+  if (!globalWithWakewordGuard.__desktopAgentWakewordCaptureGuard) {
+    globalWithWakewordGuard.__desktopAgentWakewordCaptureGuard = { ...defaultGuard };
   }
-  return globalWithWakewordGuard.__windieWakewordCaptureGuard;
+  return globalWithWakewordGuard.__desktopAgentWakewordCaptureGuard;
 }
 
 export function clearWakewordCaptureGuard(guard: WakewordCaptureGuard): void {

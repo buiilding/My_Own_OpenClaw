@@ -93,7 +93,9 @@ export function registerAppConfigProviderSuiteLifecycle() {
     jest.clearAllMocks();
     listeners.clear();
     window.history.pushState({}, '', '/');
-    delete (window as Window & { __windie_models_list_requested__?: boolean }).__windie_models_list_requested__;
+    delete (window as Window & {
+      __desktop_agent_models_list_requested__?: boolean;
+    }).__desktop_agent_models_list_requested__;
     removeBackendListener = jest.fn();
     loadFrontendConfigResponse = null;
     clientUserIdResponse = null;
