@@ -8,7 +8,6 @@ jest.mock('electron', () => ({
 }));
 
 const {
-  normalizeIconFileName,
   resolveAppIconNativeImage,
   resolveAppIconPathRuntime,
   resolveTrayIconNativeImage,
@@ -27,9 +26,22 @@ describe('main_window_icon_runtime', () => {
     })).toBe(require('path').join('/cwd', 'src', 'main', 'assets', 'icons', 'brand.app.png'));
   });
 
-  test('normalizeIconFileName keeps icon resolution inside the icon asset folder', () => {
-    expect(normalizeIconFileName('../brand.png')).toBe('brand.png');
-    expect(normalizeIconFileName('')).toBe('app.png');
+  test('resolveAppIconPathRuntime keeps configured icon resolution inside the icon asset folder', () => {
+    const existsSync = jest.fn((candidate) => String(candidate).endsWith(
+      require('path').join('icons', 'brand.png'),
+    ));
+
+    const resolvedPath = resolveAppIconPathRuntime({
+      existsSync,
+      resourcesPath: '',
+      cwd: '/cwd',
+      iconFileName: '../brand.png',
+    });
+
+    expect(resolvedPath).toEqual(expect.stringContaining(
+      require('path').join('assets', 'icons', 'brand.png'),
+    ));
+    expect(resolvedPath).not.toContain('..');
   });
 
   test('resolveAppIconNativeImage returns null when no path resolves', () => {

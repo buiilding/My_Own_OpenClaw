@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime bridge prose cleanup
+
+- Finding: a current test title and two current docs still described validation
+  or removed behavior with local-backend bridge wording after the Electron main
+  adapter moved to local-runtime names.
+- Change: updated that current prose to local-runtime/backend-named wording while
+  leaving historical notes about removed exports intact.
+- Validation: focused LocalRuntimeBridge lifecycle Jest test, stale current
+  prose scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a docs/test wording cleanup;
+  bridge APIs, IPC channels, and runtime behavior are unchanged.
+
 ### 2026-06-17 local-runtime bridge legacy assertion scan
 
 - Finding: current Electron main boundary tests still contained exact

@@ -577,5 +577,4 @@ module.exports = {
   emitMainWindowOpenTarget,
   normalizeMainWindowOpenTarget,
   prepareOverlayQueryCaptureFocus,
-  resolveHostSkinIconPathResolver,
 };

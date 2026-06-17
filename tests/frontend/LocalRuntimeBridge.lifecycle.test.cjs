@@ -102,7 +102,7 @@ describe('local_runtime_bridge SDK sidecar lifecycle', () => {
     }));
   });
 
-  test('legacy local backend bridge exports are removed', () => {
+  test('legacy backend-named bridge exports are removed', () => {
     const { bridge } = initBridge();
 
     expect(bridge.initializeLocalRuntimeBridge).toBeDefined();

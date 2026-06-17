@@ -7,7 +7,7 @@ const DEFAULT_PROVIDER_MODEL_DISPLAY = Object.freeze({
   strengths: Object.freeze(['Reasoning', 'General', 'Productivity', 'Flexible']),
 });
 
-export const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
+const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
   Object.freeze({
     patterns: Object.freeze(['openai']),
     description: 'OpenAI flagship model family for chat, coding, and agent workflows.',
@@ -45,7 +45,7 @@ export const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
   }),
 ]);
 
-export const PROVIDER_LABEL_OVERRIDES = Object.freeze({
+const PROVIDER_LABEL_OVERRIDES = Object.freeze({
   openai: 'OpenAI',
   openrouter: 'OpenRouter',
 });

@@ -49,7 +49,7 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
 The old Electron sudo auth-mode bridge was deleted. There is no
 `agent_sudo_access_handler`, `AgentSudoAccessHandler.test.cjs`, backend
 `system_use_shell_auth_mode` message field, renderer sudo auth mode setting, or
-local-backend bridge argument that selects a separate shell authentication mode.
+local-runtime bridge argument that selects a separate shell authentication mode.
 The exact stale query `agent_sudo_access_handler removed` belongs here because
 the replacement runtime behavior is sidecar shell execution with Linux `pkexec`
 prompt routing.

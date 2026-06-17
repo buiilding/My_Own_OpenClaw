@@ -72,7 +72,6 @@ function resolveAppIconNativeImage({
 }
 
 module.exports = {
-  normalizeIconFileName,
   resolveAppIconNativeImage,
   resolveAppIconPathRuntime,
   resolveTrayIconNativeImage,

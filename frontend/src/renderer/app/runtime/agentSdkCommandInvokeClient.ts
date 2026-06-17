@@ -5,13 +5,13 @@
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_AGENT_INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
 
-export type AgentSdkCommandResult<T = unknown> = {
+type AgentSdkCommandResult<T = unknown> = {
   ok?: boolean;
   data?: T;
   error?: string;
 };
 
-export type DesktopAgentCommandBridge = {
+type DesktopAgentCommandBridge = {
   invoke: (
     command: string,
     payload?: Record<string, unknown>,
@@ -24,7 +24,7 @@ declare global {
   }
 }
 
-export function getDesktopAgentCommandBridge(): DesktopAgentCommandBridge | null {
+function getDesktopAgentCommandBridge(): DesktopAgentCommandBridge | null {
   if (typeof window === 'undefined') {
     return null;
   }

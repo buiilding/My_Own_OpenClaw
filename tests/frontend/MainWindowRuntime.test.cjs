@@ -13,7 +13,6 @@ const {
   createResponseWindow,
   createTray,
   prepareOverlayQueryCaptureFocus,
-  resolveHostSkinIconPathResolver,
 } = require('../../frontend/src/main/surfaces/main_window_runtime.cjs');
 
 describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
@@ -827,22 +826,5 @@ describe('main_window_runtime createTray', () => {
 
     expect(nativeImage.createFromDataURL).toHaveBeenCalledTimes(1);
     expect(deps.warn).toHaveBeenCalled();
-  });
-});
-
-describe('main_window_runtime host skin icon resolver', () => {
-  test('prefers injected icon path resolver over host skin asset defaults', () => {
-    const injected = jest.fn(() => '/tmp/injected.png');
-    const resolver = resolveHostSkinIconPathResolver({
-      mainHostSkin: {
-        assets: {
-          appIconFileName: 'brand.app.png',
-        },
-      },
-      resolveAppIconPath: injected,
-    });
-
-    expect(resolver()).toBe('/tmp/injected.png');
-    expect(injected).toHaveBeenCalledTimes(1);
   });
 });

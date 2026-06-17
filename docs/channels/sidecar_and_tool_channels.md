@@ -130,7 +130,7 @@ Use the narrowest test set for the changed boundary:
 - backend schema/policy/formatter/tool-result tests for model-facing changes
 - SDK desktop-agent tests for backend tool-call routing/result projection changes
 - renderer chat-stream tests for display-only event behavior
-- main-process IPC/local-backend bridge tests for channel mapping changes
+- main-process IPC/local-runtime bridge tests for channel mapping changes
 - sidecar pytest tests for executable tool behavior
 - parity tests when backend schema and sidecar executable payloads must stay aligned
 
