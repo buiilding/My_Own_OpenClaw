@@ -38,7 +38,7 @@ SSH deploy user needs:
   default `system` scope as a non-root user
 
 For user-level services installed by
-`scripts/cloudflared/install-backend-user-service`, set
+`scripts/cloudflared/install-backend-user-service.sh`, set
 `WINDIE_BACKEND_SYSTEMD_SCOPE=user`.
 
 ## GitHub Secrets

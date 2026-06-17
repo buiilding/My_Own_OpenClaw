@@ -8,7 +8,7 @@ usage() {
 Install a user-level systemd service that runs the WindieOS backend.
 
 Usage:
-  scripts/cloudflared/install-backend-user-service [options]
+  scripts/cloudflared/install-backend-user-service.sh [options]
 
 Options:
   --service-name NAME       systemd unit name without suffix (default: windieos-backend)
@@ -20,8 +20,8 @@ Options:
   -h, --help                Show this help
 
 Examples:
-  scripts/cloudflared/install-backend-user-service
-  scripts/cloudflared/install-backend-user-service --backend-env jarvis --env-file ~/.config/windieos/backend.env
+  scripts/cloudflared/install-backend-user-service.sh
+  scripts/cloudflared/install-backend-user-service.sh --backend-env jarvis --env-file ~/.config/windieos/backend.env
 EOF
 }
 
@@ -104,7 +104,7 @@ if [[ ! -d "$REPO_ROOT" ]]; then
   exit 1
 fi
 
-BACKEND_LAUNCH_SCRIPT="${REPO_ROOT}/scripts/run-backend"
+BACKEND_LAUNCH_SCRIPT="${REPO_ROOT}/scripts/run-backend.sh"
 if [[ ! -x "$BACKEND_LAUNCH_SCRIPT" ]]; then
   echo "Backend launch script missing or not executable: $BACKEND_LAUNCH_SCRIPT" >&2
   exit 1

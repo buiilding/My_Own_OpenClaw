@@ -7,8 +7,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 (
   cd "$ROOT"
-  "$ROOT/scripts/test-backend"
-  "$ROOT/scripts/test-sidecar"
+  "$ROOT/scripts/test-backend.sh"
+  "$ROOT/scripts/test-sidecar.sh"
 )
 
 if [ -d "$ROOT/frontend" ]; then

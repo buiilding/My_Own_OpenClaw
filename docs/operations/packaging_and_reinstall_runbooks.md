@@ -21,7 +21,7 @@ Run from `frontend/`:
 | `bin/windie package mac` | macOS DMG and ZIP | Must run on macOS |
 | `bin/windie package win` | Windows NSIS installer | Must run on Windows |
 | `bin/windie package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
-| `bin/windie build sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime` |
+| `bin/windie build sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime.sh` |
 
 Compatibility aliases:
 
@@ -35,7 +35,7 @@ These currently forward to the platform package commands.
 
 Primary files:
 
-- `scripts/build-sidecar-runtime`
+- `scripts/build-sidecar-runtime.sh`
 - `frontend/src/main/python/requirements.runtime.txt`
 - `frontend/electron-builder.bundled-python.yml`
 - `frontend/src/main/app/runtime_paths.cjs`
@@ -69,7 +69,7 @@ bin/windie reinstall mac
 What it does:
 
 - Requires macOS and `npm`.
-- Resolves the frontend Python build interpreter through `./scripts/python-in-env frontend python` unless `WINDIE_PYTHON_BUILD` is set.
+- Resolves the frontend Python build interpreter through `./scripts/python-in-env.sh frontend python` unless `WINDIE_PYTHON_BUILD` is set.
 - Stops running installed WindieOS app processes.
 - Resets known TCC/privacy grants for the app and helper bundle ids.
 - Removes installed app copies and local app state under Application Support, Caches, WebKit, HTTPStorages, Saved Application State, and the packaged-run log.

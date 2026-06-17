@@ -42,14 +42,15 @@ Use this hub when you are about to edit code. It routes a change to the right su
 Repo-root scripts:
 
 - `bin/windie docs list` or `bin/windie docs list`
-- `./scripts/python-in-env <backend|sidecar|frontend> <cmd...>`
+- Windows PowerShell: `scripts\python-in-env.cmd <backend|sidecar|frontend> <cmd...>`
+- Unix-like shells: `./scripts/python-in-env.sh <backend|sidecar|frontend> <cmd...>`
 - `bin/windie test all`
 - `bin/windie test backend`
 - `bin/windie test sidecar`
 - `bin/windie start backend`
 - `bin/windie start frontend`
 - `bin/windie start desktop`
-- `./scripts/build-sidecar-runtime`
+- `./scripts/build-sidecar-runtime.sh`
 - `./scripts/committer "<subject>" --body "<body>" -- <files...>`
 
 Frontend scripts:

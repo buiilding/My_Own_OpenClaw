@@ -201,7 +201,8 @@ Conda environments:
 
 Prefer the wrapper over manual environment activation:
 
-- `./scripts/python-in-env <backend|frontend|sidecar> <cmd...>`
+- Windows PowerShell: `scripts\python-in-env.cmd <backend|frontend|sidecar> <cmd...>`
+- Unix-like shells: `./scripts/python-in-env.sh <backend|frontend|sidecar> <cmd...>`
 
 If the expected conda environment is missing, the script falls back to the
 current shell environment.
@@ -223,7 +224,7 @@ Dev startup troubleshooting:
   Vite side first: run `<windie> logs vite --no-follow --tail 120` and check
   `lsof -nP -iTCP:5173 -sTCP:LISTEN` before changing Electron code or manually
   activating conda.
-- `<windie> start dev` starts Vite through `scripts/python-in-env frontend`,
+- `<windie> start dev` starts Vite through the platform Python env wrapper,
   then waits for the Vite URL before launching Electron. Cold `conda run` or
   npm startup can be slow; use `WINDIE_FRONTEND_READY_TIMEOUT_MS=<ms>` only
   when a machine needs a longer readiness window.
@@ -273,13 +274,13 @@ Commit policy:
 - Prefer small, frequent commits.
 - Amend only when asked.
 - Update `CHANGELOG.md` before committing repo-visible changes.
-- Preferred helper: `./scripts/committer` or `committer`.
+- Preferred helper: `./scripts/committer.sh` or `committer`.
 - `--body` is required for every commit.
 - Commit bodies should follow the Architecture Rules completion-artifacts
   guidance. Avoid repeating the subject, summarizing files one by one, or
   describing what changed without why it belongs in that layer.
 - On Windows PowerShell, prefer Git Bash or plain `git add` and `git commit`
-  instead of invoking `./scripts/committer` directly.
+  instead of invoking `./scripts/committer.sh` directly.
 
 Use Conventional Commits with a body section.
 

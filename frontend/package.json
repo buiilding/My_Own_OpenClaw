@@ -13,7 +13,7 @@
   "main": "src/main/index.cjs",
   "scripts": {
     "dev": "vite",
-    "prebuild": "../scripts/python-in-env frontend python ../scripts/generate-builtin-tool-manifest",
+    "prebuild": "bash ../scripts/python-in-env.sh frontend python ../scripts/generate-builtin-tool-manifest.py",
     "build": "vite build",
     "package": "npm run release:check && npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml",
     "package:win": "npm run release:check && npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --win nsis",
@@ -22,7 +22,7 @@
     "package:win:bundled-python": "npm run package:win",
     "package:mac:bundled-python": "npm run package:mac",
     "package:linux:bundled-python": "npm run package:linux",
-    "build:sidecar-runtime": "bash ../scripts/build-sidecar-runtime",
+    "build:sidecar-runtime": "bash ../scripts/build-sidecar-runtime.sh",
     "typecheck": "tsc --noEmit -p tsconfig.eslint.json",
     "lint": "eslint . --ext js,jsx,cjs,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:audit": "npm run lint:audit:react && npm run lint:audit:deprecation",

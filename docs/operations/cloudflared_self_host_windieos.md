@@ -46,7 +46,7 @@ Install/start backend service:
 
 ```bash
 cd /path/to/windieos
-scripts/cloudflared/install-backend-user-service \
+scripts/cloudflared/install-backend-user-service.sh \
   --repo-root "$(pwd)" \
   --backend-env jarvis \
   --env-file "$HOME/.config/windieos/backend.env"
@@ -62,7 +62,7 @@ curl -fsSL http://127.0.0.1:8765/api/embeddings/health
 
 ```bash
 cd /path/to/windieos
-scripts/cloudflared/install-cloudflared-user
+scripts/cloudflared/install-cloudflared-user.sh
 ```
 
 If needed, add `~/.local/bin` to `PATH`.
@@ -71,7 +71,7 @@ If needed, add `~/.local/bin` to `PATH`.
 
 ```bash
 cd /path/to/windieos
-scripts/cloudflared/setup-windieos-tunnel \
+scripts/cloudflared/setup-windieos-tunnel.sh \
   --domain windieos.com \
   --hostname api.windieos.com \
   --tunnel-name windieos-backend \
@@ -134,7 +134,7 @@ For fresh setup on one machine:
 
 ```bash
 cd /path/to/windieos
-scripts/cloudflared/bootstrap-windieos-host
+scripts/cloudflared/bootstrap-windieos-host.sh
 ```
 
 ## 6) Keep running after logout/reboot

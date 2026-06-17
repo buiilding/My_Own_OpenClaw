@@ -8,7 +8,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const repoRoot = path.resolve(__dirname, '../..');
-const pythonInEnvPath = path.join(repoRoot, 'scripts/python-in-env');
+const pythonInEnvPath = path.join(repoRoot, 'scripts/python-in-env.sh');
 
 function makeFakeConda(tempDir) {
   const fakePython = path.join(tempDir, 'frontend_jarvis', 'bin', 'python3');
@@ -40,15 +40,16 @@ function makeFakeConda(tempDir) {
   return { condaPath, fakePython };
 }
 
-describe('scripts/python-in-env', () => {
+describe('scripts/python-in-env.sh', () => {
   test('exports frontend env python as WINDIE_PYTHON_PATH over stale parent value', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-python-in-env-'));
     const { fakePython } = makeFakeConda(tempDir);
 
     try {
       const result = spawnSync(
-        pythonInEnvPath,
+        'bash',
         [
+          pythonInEnvPath,
           'frontend',
           process.execPath,
           '-e',

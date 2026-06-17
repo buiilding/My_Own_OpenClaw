@@ -31,7 +31,7 @@ frontend app and do not need Python installed system-wide.
 - Runtime dependency set:
   - `frontend/src/main/python/requirements.runtime.txt`
 - Runtime build helper:
-  - `scripts/build-sidecar-runtime`
+  - `scripts/build-sidecar-runtime.sh`
 - Bundled-python packaging profile:
   - `frontend/electron-builder.bundled-python.yml`
 - Generated SDK runtime consumed by Electron main:
@@ -54,7 +54,7 @@ Do not reuse one OS runtime for another OS release.
 From repo root:
 
 ```bash
-bash scripts/build-sidecar-runtime
+bash scripts/build-sidecar-runtime.sh
 ```
 
 This creates:

@@ -26,6 +26,12 @@ function hasPlatformShim(name) {
   return exists(`bin/${name}.cmd`) && exists(`bin/${name}.sh`);
 }
 
+function platformPythonInEnvPath() {
+  return process.platform === 'win32'
+    ? repoPath('scripts/python-in-env.cmd')
+    : repoPath('scripts/python-in-env.sh');
+}
+
 function checkCommand(name, args = ['--version']) {
   const result = capture(name, args, { cwd: REPO_ROOT });
   return {
@@ -37,7 +43,7 @@ function checkCommand(name, args = ['--version']) {
 
 function checkPython(target) {
   const result = capture(
-    repoPath('scripts/python-in-env'),
+    platformPythonInEnvPath(),
     [target, 'python', '-c', 'import sys; print(sys.version.split()[0])'],
     { cwd: REPO_ROOT },
   );
@@ -99,14 +105,14 @@ function collectStatus({ all = false } = {}) {
     {
       name: 'launch scripts',
       ok:
-        exists('scripts/run-backend') &&
-        exists('scripts/run-frontend-dev') &&
-        exists('scripts/run-frontend-electron'),
+        exists('scripts/run-backend.sh') &&
+        exists('scripts/run-frontend-dev.sh') &&
+        exists('scripts/run-frontend-electron.sh'),
       detail: 'backend, frontend, desktop launch wrappers',
     },
     {
       name: 'test scripts',
-      ok: exists('scripts/test-backend') && exists('scripts/test-sidecar') && !!frontendScripts.test,
+      ok: exists('scripts/test-backend.sh') && exists('scripts/test-sidecar.sh') && !!frontendScripts.test,
       detail: 'backend, sidecar, frontend test wrappers',
     },
   ];
@@ -122,14 +128,14 @@ function collectStatus({ all = false } = {}) {
     },
     files: {
       docsList: hasPlatformShim('docs-list'),
-      runBackend: exists('scripts/run-backend'),
-      runFrontend: exists('scripts/run-frontend-dev'),
-      runDesktop: exists('scripts/run-frontend-electron'),
-      backendLogs: exists('scripts/dev/backend-logs'),
-      deployRemoteBackend: exists('scripts/deploy/update-remote-backend'),
+      runBackend: exists('scripts/run-backend.sh'),
+      runFrontend: exists('scripts/run-frontend-dev.sh'),
+      runDesktop: exists('scripts/run-frontend-electron.sh'),
+      backendLogs: exists('scripts/dev/backend-logs.sh'),
+      deployRemoteBackend: exists('scripts/deploy/update-remote-backend.sh'),
       mockBackend: exists('scripts/mock-backend.cjs'),
       createExtension: exists('scripts/create-windie-extension.cjs'),
-      generateManifest: exists('scripts/generate-builtin-tool-manifest'),
+      generateManifest: exists('scripts/generate-builtin-tool-manifest.py'),
     },
     frontendScripts: all ? frontendScripts : undefined,
   };

@@ -7,4 +7,4 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
 echo "[WindieOS] Developer launcher -> npm run electron:dev"
-exec "$ROOT/scripts/python-in-env" frontend npm --prefix "$ROOT/frontend" run electron:dev -- "$@"
+exec "$ROOT/scripts/python-in-env.sh" frontend npm --prefix "$ROOT/frontend" run electron:dev -- "$@"

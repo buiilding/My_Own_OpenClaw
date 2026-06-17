@@ -8,7 +8,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const repoRoot = path.resolve(__dirname, '../..');
-const committerPath = path.join(repoRoot, 'scripts', 'committer');
+const committerPath = path.join(repoRoot, 'scripts', 'committer.sh');
 
 function createTempGitRepo() {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-committer-'));
@@ -26,7 +26,8 @@ function createTempGitRepo() {
 }
 
 function runCommitter(cwd, body) {
-  return spawnSync(committerPath, [
+  return spawnSync('bash', [
+    committerPath,
     'docs(test): commit body format',
     '--body',
     body,

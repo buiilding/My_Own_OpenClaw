@@ -8,7 +8,7 @@ usage() {
 Install cloudflared into a user-local bin directory (no sudo required).
 
 Usage:
-  scripts/cloudflared/install-cloudflared-user [--install-dir DIR] [--version VERSION]
+  scripts/cloudflared/install-cloudflared-user.sh [--install-dir DIR] [--version VERSION]
 
 Options:
   --install-dir DIR   Install target directory (default: $HOME/.local/bin)
@@ -16,9 +16,9 @@ Options:
   -h, --help          Show this help
 
 Examples:
-  scripts/cloudflared/install-cloudflared-user
-  scripts/cloudflared/install-cloudflared-user --install-dir "$HOME/bin"
-  scripts/cloudflared/install-cloudflared-user --version 2026.2.0
+  scripts/cloudflared/install-cloudflared-user.sh
+  scripts/cloudflared/install-cloudflared-user.sh --install-dir "$HOME/bin"
+  scripts/cloudflared/install-cloudflared-user.sh --version 2026.2.0
 EOF
 }
 

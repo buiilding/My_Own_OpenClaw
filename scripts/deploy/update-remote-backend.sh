@@ -12,7 +12,7 @@ over SSH. It fetches the configured branch, updates the local checkout, restarts
 the systemd service, then checks service and HTTP health.
 
 Usage:
-  scripts/deploy/update-remote-backend [options]
+  scripts/deploy/update-remote-backend.sh [options]
 
 Options:
   --repo-root PATH              Remote WindieOS checkout (default: /opt/windieos-live)
@@ -29,8 +29,8 @@ Options:
   -h, --help                    Show this help
 
 Examples:
-  scripts/deploy/update-remote-backend --repo-root /opt/windieos-live
-  scripts/deploy/update-remote-backend --scope user --strategy ff-only
+  scripts/deploy/update-remote-backend.sh --repo-root /opt/windieos-live
+  scripts/deploy/update-remote-backend.sh --scope user --strategy ff-only
 EOF
 }
 

@@ -38,6 +38,23 @@ describe('windie CLI', () => {
     expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list'))).toBe(false);
     expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list.cmd'))).toBe(true);
     expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list.sh'))).toBe(true);
+    for (const scriptName of [
+      'build-sidecar-runtime',
+      'committer',
+      'create-windie-extension',
+      'generate-builtin-tool-manifest',
+      'python-in-env',
+      'run-backend',
+      'run-frontend-dev',
+      'run-frontend-electron',
+      'test',
+      'test-backend',
+      'test-sidecar',
+    ]) {
+      expect(fs.existsSync(path.join(repoRoot, 'scripts', scriptName))).toBe(false);
+    }
+    expect(fs.existsSync(path.join(repoRoot, 'scripts/python-in-env.cmd'))).toBe(true);
+    expect(fs.existsSync(path.join(repoRoot, 'scripts/python-in-env.sh'))).toBe(true);
   });
 
   test('prints grouped help', () => {
@@ -80,26 +97,26 @@ describe('windie CLI', () => {
 
   test('routes lifecycle commands to existing scripts', () => {
     expect(getSpawnPlan(['start', 'backend'])).toMatchObject({
-      command: path.join(repoRoot, 'scripts/run-backend'),
+      command: path.join(repoRoot, 'scripts/run-backend.sh'),
       args: [],
       cwd: repoRoot,
     });
     expect(getSpawnPlan(['start', 'frontend'])).toMatchObject({
       concurrent: [
-        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot, logLayer: 'vite' },
+        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev.sh'), cwd: repoRoot, logLayer: 'vite' },
       ],
     });
     expect(getSpawnPlan(['start', 'desktop'])).toMatchObject({
-      command: path.join(repoRoot, 'scripts/run-frontend-electron'),
+      command: path.join(repoRoot, 'scripts/run-frontend-electron.sh'),
       args: [],
       cwd: repoRoot,
     });
     expect(getSpawnPlan(['start', 'dev'])).toMatchObject({
       concurrent: [
-        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot, logLayer: 'vite' },
+        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev.sh'), cwd: repoRoot, logLayer: 'vite' },
         {
           label: 'desktop',
-          command: path.join(repoRoot, 'scripts/run-frontend-electron'),
+          command: path.join(repoRoot, 'scripts/run-frontend-electron.sh'),
           cwd: repoRoot,
           waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 90000 },
         },
@@ -107,7 +124,7 @@ describe('windie CLI', () => {
     });
     expect(getSpawnPlan(['start', 'customer'])).toMatchObject({
       concurrent: [
-        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot, logLayer: 'vite' },
+        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev.sh'), cwd: repoRoot, logLayer: 'vite' },
         {
           label: 'customer',
           command: 'npm',
@@ -140,13 +157,13 @@ describe('windie CLI', () => {
   test('routes test commands without requiring callers to cd frontend', () => {
     expect(getSpawnPlan(['test', 'backend', '--', 'tests/backend/test_websocket_route.py', '-q']))
       .toMatchObject({
-        command: path.join(repoRoot, 'scripts/test-backend'),
+        command: path.join(repoRoot, 'scripts/test-backend.sh'),
         args: ['tests/backend/test_websocket_route.py', '-q'],
         cwd: repoRoot,
       });
     expect(getSpawnPlan(['test', 'sidecar', '--', 'tests/sidecar/test_tool_registry.py', '-q']))
       .toMatchObject({
-        command: path.join(repoRoot, 'scripts/test-sidecar'),
+        command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
         args: ['tests/sidecar/test_tool_registry.py', '-q'],
         cwd: repoRoot,
       });

@@ -48,10 +48,10 @@ For hosted install-token identity and endpoint/auth troubleshooting, also read:
 - `docs/operations/operational_troubleshooting.md`
 
 Supporting scripts in this repo:
-- `scripts/cloudflared/install-cloudflared-user`
-- `scripts/cloudflared/install-backend-user-service`
-- `scripts/cloudflared/setup-windieos-tunnel`
-- `scripts/cloudflared/bootstrap-windieos-host`
+- `scripts/cloudflared/install-cloudflared-user.sh`
+- `scripts/cloudflared/install-backend-user-service.sh`
+- `scripts/cloudflared/setup-windieos-tunnel.sh`
+- `scripts/cloudflared/bootstrap-windieos-host.sh`
 - `bin/windie backend deploy --host <host>`
 
 For automatic backend refresh after pushes to `main`, use the GitHub Actions

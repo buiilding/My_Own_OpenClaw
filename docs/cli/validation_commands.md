@@ -11,7 +11,9 @@ title: "Validation Commands"
 Pick validation based on the owner boundary you changed. WindieOS does not currently have one mandatory all-in-one check that replaces focused tests.
 
 Commands below use `<windie>` for the active platform shim: `bin\windie.cmd` on
-Windows PowerShell and `bin/windie.sh` on Unix-like shells.
+Windows PowerShell and `bin/windie.sh` on Unix-like shells. Focused Python
+commands use `<python-in-env>` for `scripts\python-in-env.cmd` on Windows
+PowerShell and `./scripts/python-in-env.sh` on Unix-like shells.
 
 ## Baseline
 
@@ -30,10 +32,10 @@ Windows PowerShell and `bin/windie.sh` on Unix-like shells.
 
 | Change | Start with |
 | --- | --- |
-| backend route/schema/handler | `./scripts/python-in-env backend python -m pytest tests/backend/<focused_test>.py -q` |
+| backend route/schema/handler | `<python-in-env> backend python -m pytest tests/backend/<focused_test>.py -q` |
 | backend agent/session/history/tool loop | focused backend pytest for the touched module, then `<windie> test backend` when shared state changes |
 | provider/model catalog | focused backend provider/model tests plus `<windie> docs list` |
-| sidecar JSON-RPC/tool | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/<focused_test>.py -q` |
+| sidecar JSON-RPC/tool | `<python-in-env> sidecar python -m pytest tests/sidecar/<focused_test>.py -q` |
 | frontend renderer/hook/store | `<windie> test frontend -- <test_file>` |
 | Electron main/IPC | focused Jest/CJS test under `tests/frontend`, then `<windie> test frontend` if shared |
 | tool schema parity | backend schema tests plus sidecar parity tests |
@@ -42,11 +44,17 @@ Windows PowerShell and `bin/windie.sh` on Unix-like shells.
 
 ## Environment Launcher
 
-Use `./scripts/python-in-env` instead of manually activating conda:
+Use `<python-in-env>` instead of manually activating conda:
 
 ```sh
-./scripts/python-in-env backend python -m pytest tests/backend/test_session_manager.py -q
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_registry.py -q
+./scripts/python-in-env.sh backend python -m pytest tests/backend/test_session_manager.py -q
+./scripts/python-in-env.sh sidecar python -m pytest tests/sidecar/test_tool_registry.py -q
+<windie> test frontend -- ToolRunnerHook.events.test.ts
+```
+
+```powershell
+scripts\python-in-env.cmd backend python -m pytest tests/backend/test_session_manager.py -q
+scripts\python-in-env.cmd sidecar python -m pytest tests/sidecar/test_tool_registry.py -q
 <windie> test frontend -- ToolRunnerHook.events.test.ts
 ```
 

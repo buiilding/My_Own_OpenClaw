@@ -6,4 +6,4 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
-"$ROOT/scripts/python-in-env" sidecar python -m pytest tests/sidecar "$@"
+"$ROOT/scripts/python-in-env.sh" sidecar python -m pytest tests/sidecar "$@"

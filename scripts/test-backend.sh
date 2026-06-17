@@ -6,4 +6,4 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
-"$ROOT/scripts/python-in-env" backend python -m pytest tests/backend "$@"
+"$ROOT/scripts/python-in-env.sh" backend python -m pytest tests/backend "$@"

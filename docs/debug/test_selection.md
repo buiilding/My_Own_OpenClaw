@@ -20,7 +20,7 @@ cd frontend && npm run lint
 ```
 
 `bin/windie test backend` and `bin/windie test sidecar` use
-`scripts/python-in-env`, so do not manually activate conda environments. Use
+the platform `scripts/python-in-env` wrapper, so do not manually activate conda environments. Use
 `bin/windie test pick <area>` to find common focused validation commands.
 
 ## By Runtime

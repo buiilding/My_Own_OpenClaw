@@ -14,7 +14,7 @@ This script:
 4) optionally installs/enables a user-level systemd cloudflared service
 
 Usage:
-  scripts/cloudflared/setup-windieos-tunnel [options]
+  scripts/cloudflared/setup-windieos-tunnel.sh [options]
 
 Options:
   --domain DOMAIN              Base domain (default: windieos.com)
@@ -30,8 +30,8 @@ Options:
   -h, --help                   Show this help
 
 Examples:
-  scripts/cloudflared/setup-windieos-tunnel
-  scripts/cloudflared/setup-windieos-tunnel --hostname api.windieos.com --backend-origin http://127.0.0.1:8765
+  scripts/cloudflared/setup-windieos-tunnel.sh
+  scripts/cloudflared/setup-windieos-tunnel.sh --hostname api.windieos.com --backend-origin http://127.0.0.1:8765
 EOF
 }
 

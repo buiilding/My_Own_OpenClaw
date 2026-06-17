@@ -10,7 +10,9 @@ title: "Local Development"
 
 Use `bin/windie ...` from the repository root instead of manually activating
 conda environments or invoking lower-level launch scripts directly.
-`./scripts/python-in-env` remains the low-level Python environment adapter for
+`scripts\python-in-env.cmd` on Windows PowerShell and
+`./scripts/python-in-env.sh` on Unix-like shells remain the low-level Python
+environment adapters for
 focused Python commands.
 
 Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for backend/frontend/sidecar implementation, but not for bundled runtime, installed app path, signing, or OS permission validation.

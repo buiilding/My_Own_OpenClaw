@@ -11,7 +11,7 @@ This is a developer/operator helper. It does not expose logs through a
 WindieOS HTTP/WebSocket API; access remains controlled by SSH.
 
 Usage:
-  scripts/dev/backend-logs [options]
+  scripts/dev/backend-logs.sh [options]
 
 Options:
   --service NAME     Log stream to view: backend, tunnel, or both (default: backend)
@@ -22,10 +22,10 @@ Options:
   -h, --help        Show this help
 
 Examples:
-  WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs
-  scripts/dev/backend-logs --host windie-prod --service both --tail 500
-  scripts/dev/backend-logs --service tunnel --no-follow
-  scripts/dev/backend-logs --scope user --service backend
+  WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs.sh
+  scripts/dev/backend-logs.sh --host windie-prod --service both --tail 500
+  scripts/dev/backend-logs.sh --service tunnel --no-follow
+  scripts/dev/backend-logs.sh --scope user --service backend
 
 Allowed remote systemd units:
   system/backend -> windieos-backend.service
@@ -93,8 +93,8 @@ if [[ -z "$SSH_HOST" ]]; then
 Missing backend SSH host.
 
 Set WINDIE_BACKEND_SSH_HOST or pass --host:
-  WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs
-  scripts/dev/backend-logs --host user@example.com
+  WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs.sh
+  scripts/dev/backend-logs.sh --host user@example.com
 EOF
   exit 1
 fi

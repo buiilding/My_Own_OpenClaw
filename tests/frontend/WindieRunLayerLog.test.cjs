@@ -5,10 +5,36 @@ const os = require('os');
 const path = require('path');
 
 const {
+  commandForPlatform,
   runConcurrent,
 } = require('../../scripts/windie/run.cjs');
 
 describe('windie concurrent runner layer logs', () => {
+  test('routes shell scripts through bash on Windows', () => {
+    const scriptPath = path.join(path.resolve(__dirname, '../..'), 'scripts/run-backend.sh');
+    const resolved = commandForPlatform(scriptPath, ['--help']);
+
+    if (process.platform === 'win32') {
+      expect(resolved).toEqual({ command: 'bash.exe', args: [scriptPath, '--help'] });
+    } else {
+      expect(resolved).toEqual({ command: scriptPath, args: ['--help'] });
+    }
+  });
+
+  test('routes cmd scripts through cmd on Windows', () => {
+    const scriptPath = path.join(path.resolve(__dirname, '../..'), 'scripts/python-in-env.cmd');
+    const resolved = commandForPlatform(scriptPath, ['frontend', 'node', '--version']);
+
+    if (process.platform === 'win32') {
+      expect(resolved).toEqual({
+        command: 'cmd.exe',
+        args: ['/d', '/s', '/c', scriptPath, 'frontend', 'node', '--version'],
+      });
+    } else {
+      expect(resolved).toEqual({ command: scriptPath, args: ['frontend', 'node', '--version'] });
+    }
+  });
+
   test('writes Vite child stdout and stderr to the Vite layer log', async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-vite-run-log-'));
     const logFile = path.join(tempDir, 'vite.log');

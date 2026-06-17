@@ -77,10 +77,10 @@ The self-host path uses a local backend origin plus a Cloudflare tunnel. The ins
 
 | Need | Start here |
 | --- | --- |
-| bootstrap backend user service | `scripts/cloudflared/bootstrap-windieos-host` |
-| install backend service | `scripts/cloudflared/install-backend-user-service` |
-| install cloudflared user service | `scripts/cloudflared/install-cloudflared-user` |
-| configure WindieOS tunnel | `scripts/cloudflared/setup-windieos-tunnel` |
+| bootstrap backend user service | `scripts/cloudflared/bootstrap-windieos-host.sh` |
+| install backend service | `scripts/cloudflared/install-backend-user-service.sh` |
+| install cloudflared user service | `scripts/cloudflared/install-cloudflared-user.sh` |
+| configure WindieOS tunnel | `scripts/cloudflared/setup-windieos-tunnel.sh` |
 | debug hosted 502/tunnel failures | [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 
 User-service checks:

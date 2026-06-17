@@ -21,7 +21,7 @@ Windows behavior is mostly implemented through Electron main window policy, side
 
 - Do not add capture-time hide/show behavior for minimal chat pill or response overlay on Windows.
 - Content protection should be active only during active loop phases and off during idle/terminal phases.
-- PowerShell should not invoke `./scripts/committer` directly; use Git Bash or plain `git add`/`git commit`.
+- PowerShell should not invoke `./scripts/committer.sh` directly; use Git Bash or plain `git add`/`git commit`.
 - Keep Windows package checks separate from Linux/macOS package assumptions.
 - Treat Developer Mode, PowerShell execution policy, and NSIS install behavior as packaging concerns before changing app runtime code.
 - Host-window switching belongs in the sidecar Win32 adapter; WindieOS overlay policy belongs in Electron main.

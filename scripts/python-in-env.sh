@@ -4,7 +4,7 @@
 set -euo pipefail
 
 if [ "$#" -lt 2 ]; then
-  echo "Usage: scripts/python-in-env <backend|sidecar|frontend> <command> [args...]" >&2
+  echo "Usage: scripts/python-in-env.sh <backend|sidecar|frontend> <command> [args...]" >&2
   exit 2
 fi
 

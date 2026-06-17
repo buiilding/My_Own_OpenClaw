@@ -1085,7 +1085,7 @@ async function runDoctor(args) {
       detail: backendPortOpen ? '127.0.0.1:8765 is accepting connections' : '127.0.0.1:8765 is closed',
     });
     const sidecarImport = capture(
-      script('scripts/python-in-env'),
+      script(process.platform === 'win32' ? 'scripts/python-in-env.cmd' : 'scripts/python-in-env.sh'),
       [
         'sidecar',
         'python',
@@ -1117,29 +1117,29 @@ async function runDoctor(args) {
 
 function runStart(target) {
   if (target === 'backend') {
-    return runForeground(script('scripts/run-backend'), [], { cwd: REPO_ROOT });
+    return runForeground(script('scripts/run-backend.sh'), [], { cwd: REPO_ROOT });
   }
   if (target === 'frontend') {
     return runConcurrent([
-      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+      { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
     ]).then((code) => process.exit(code));
   }
   if (target === 'desktop') {
-    return runForeground(script('scripts/run-frontend-electron'), [], { cwd: REPO_ROOT });
+    return runForeground(script('scripts/run-frontend-electron.sh'), [], { cwd: REPO_ROOT });
   }
   if (target === 'dev') {
     return runConcurrent([
-      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+      { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
       afterFrontendReady({
         label: 'desktop',
-        command: script('scripts/run-frontend-electron'),
+        command: script('scripts/run-frontend-electron.sh'),
         cwd: REPO_ROOT,
       }),
     ]).then((code) => process.exit(code));
   }
   if (target === 'customer') {
     return runConcurrent([
-      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+      { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
       afterFrontendReady({
         label: 'customer',
         command: 'npm',
@@ -1150,9 +1150,9 @@ function runStart(target) {
   }
   if (target === 'all') {
     return runConcurrent([
-      { label: 'backend', command: script('scripts/run-backend'), cwd: REPO_ROOT },
-      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
-      { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
+      { label: 'backend', command: script('scripts/run-backend.sh'), cwd: REPO_ROOT },
+      { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
+      { label: 'desktop', command: script('scripts/run-frontend-electron.sh'), cwd: REPO_ROOT },
     ]).then((code) => process.exit(code));
   }
   throw new Error('Usage: windie start backend|frontend|desktop|dev|customer|all');
@@ -1193,7 +1193,7 @@ function runLogs(args) {
     if (noFollow) {
       forwarded.push('--no-follow');
     }
-    return runForeground(script('scripts/dev/backend-logs'), forwarded, { cwd: REPO_ROOT });
+    return runForeground(script('scripts/dev/backend-logs.sh'), forwarded, { cwd: REPO_ROOT });
   }
   if (['frontend', 'vite', 'main', 'renderer', 'sidecar', 'desktop'].includes(target)) {
     const verbose = normalizeWindieLogTarget(target) === 'renderer' && hasFlag(args.slice(1), '--verbose');
@@ -1208,10 +1208,10 @@ function runTest(args) {
   const target = args[0];
   const rest = stripSeparator(args.slice(1));
   if (target === 'backend') {
-    return runForeground(script('scripts/test-backend'), rest, { cwd: REPO_ROOT });
+    return runForeground(script('scripts/test-backend.sh'), rest, { cwd: REPO_ROOT });
   }
   if (target === 'sidecar') {
-    return runForeground(script('scripts/test-sidecar'), rest, { cwd: REPO_ROOT });
+    return runForeground(script('scripts/test-sidecar.sh'), rest, { cwd: REPO_ROOT });
   }
   if (target === 'frontend') {
     return runForeground('npm', ['--prefix', FRONTEND_DIR, 'run', 'test:ci', '--', ...rest], {
@@ -1219,7 +1219,7 @@ function runTest(args) {
     });
   }
   if (target === 'all') {
-    return runForeground(script('scripts/test'), rest, { cwd: REPO_ROOT });
+    return runForeground(script('scripts/test.sh'), rest, { cwd: REPO_ROOT });
   }
   if (target === 'pick') {
     const area = rest.join(' ').trim();
@@ -1442,13 +1442,13 @@ async function runBackend(args) {
       const remoteCommand = [
         'cd /opt/windieos-live',
         '&&',
-        'scripts/deploy/update-remote-backend',
+        'scripts/deploy/update-remote-backend.sh',
         ...forwarded.map((value) => `'${String(value).replace(/'/g, "'\\''")}'`),
       ].join(' ');
       return runForeground('ssh', [host, remoteCommand], { cwd: REPO_ROOT });
     }
     if (local) {
-      return runForeground(script('scripts/deploy/update-remote-backend'), forwarded, {
+      return runForeground(script('scripts/deploy/update-remote-backend.sh'), forwarded, {
         cwd: REPO_ROOT,
       });
     }
@@ -1504,24 +1504,24 @@ async function runEndpoint(args) {
 function runSelfHost(args) {
   const action = args[0];
   if (action === 'bootstrap') {
-    return runForeground(script('scripts/cloudflared/bootstrap-windieos-host'), args.slice(1), {
+    return runForeground(script('scripts/cloudflared/bootstrap-windieos-host.sh'), args.slice(1), {
       cwd: REPO_ROOT,
     });
   }
   if (action === 'tunnel' && args[1] === 'setup') {
-    return runForeground(script('scripts/cloudflared/setup-windieos-tunnel'), args.slice(2), {
+    return runForeground(script('scripts/cloudflared/setup-windieos-tunnel.sh'), args.slice(2), {
       cwd: REPO_ROOT,
     });
   }
   if (action === 'service') {
     const serviceAction = args[1];
     if (serviceAction === 'install-backend') {
-      return runForeground(script('scripts/cloudflared/install-backend-user-service'), args.slice(2), {
+      return runForeground(script('scripts/cloudflared/install-backend-user-service.sh'), args.slice(2), {
         cwd: REPO_ROOT,
       });
     }
     if (serviceAction === 'install-cloudflared') {
-      return runForeground(script('scripts/cloudflared/install-cloudflared-user'), args.slice(2), {
+      return runForeground(script('scripts/cloudflared/install-cloudflared-user.sh'), args.slice(2), {
         cwd: REPO_ROOT,
       });
     }
@@ -1555,7 +1555,7 @@ function runExtension(args) {
 
 function runTools(args) {
   if (args[0] === 'manifest' && args[1] === 'generate') {
-    return runForeground(script('scripts/generate-builtin-tool-manifest'), args.slice(2), {
+    return runForeground('python', [script('scripts/generate-builtin-tool-manifest.py'), ...args.slice(2)], {
       cwd: REPO_ROOT,
     });
   }
@@ -1633,25 +1633,25 @@ function getSpawnPlan(argv) {
   const args = [...argv];
   const command = args.shift();
   if (command === 'start' && args[0] === 'backend') {
-    return { command: script('scripts/run-backend'), args: [], cwd: REPO_ROOT };
+    return { command: script('scripts/run-backend.sh'), args: [], cwd: REPO_ROOT };
   }
   if (command === 'start' && args[0] === 'frontend') {
     return {
       concurrent: [
-        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+        { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
       ],
     };
   }
   if (command === 'start' && args[0] === 'desktop') {
-    return { command: script('scripts/run-frontend-electron'), args: [], cwd: REPO_ROOT };
+    return { command: script('scripts/run-frontend-electron.sh'), args: [], cwd: REPO_ROOT };
   }
   if (command === 'start' && args[0] === 'dev') {
     return {
       concurrent: [
-        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+        { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
         {
           label: 'desktop',
-          command: script('scripts/run-frontend-electron'),
+          command: script('scripts/run-frontend-electron.sh'),
           cwd: REPO_ROOT,
           waitFor: frontendReadyPlan(),
         },
@@ -1661,7 +1661,7 @@ function getSpawnPlan(argv) {
   if (command === 'start' && args[0] === 'customer') {
     return {
       concurrent: [
-        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT, logLayer: 'vite' },
+        { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
         {
           label: 'customer',
           command: 'npm',
@@ -1673,10 +1673,10 @@ function getSpawnPlan(argv) {
     };
   }
   if (command === 'test' && args[0] === 'backend') {
-    return { command: script('scripts/test-backend'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
+    return { command: script('scripts/test-backend.sh'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
   }
   if (command === 'test' && args[0] === 'sidecar') {
-    return { command: script('scripts/test-sidecar'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
+    return { command: script('scripts/test-sidecar.sh'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
   }
   if (command === 'test' && args[0] === 'frontend') {
     return {

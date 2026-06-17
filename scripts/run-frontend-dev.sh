@@ -6,4 +6,4 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
-exec "$ROOT/scripts/python-in-env" frontend npm --prefix "$ROOT/frontend" run dev -- "$@"
+exec "$ROOT/scripts/python-in-env.sh" frontend npm --prefix "$ROOT/frontend" run dev -- "$@"

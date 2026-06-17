@@ -13,10 +13,16 @@ const {
 function commandForPlatform(command, args = []) {
   if (process.platform === 'win32') {
     if (command === 'npm') {
-      return { command: 'npm.cmd', args };
+      return { command: 'cmd.exe', args: ['/d', '/s', '/c', 'npm.cmd', ...args] };
     }
     if (command === 'powershell') {
       return { command: 'powershell.exe', args };
+    }
+    if (['.cmd', '.bat'].includes(path.extname(command).toLowerCase())) {
+      return { command: 'cmd.exe', args: ['/d', '/s', '/c', command, ...args] };
+    }
+    if (path.extname(command) === '.sh' && fs.existsSync(command)) {
+      return { command: 'bash.exe', args: [command, ...args] };
     }
     if (path.extname(command) === '' && fs.existsSync(command)) {
       return { command: 'bash.exe', args: [command, ...args] };
@@ -210,6 +216,7 @@ function runConcurrent(processes) {
 }
 
 module.exports = {
+  commandForPlatform,
   capture,
   runConcurrent,
   runForeground,

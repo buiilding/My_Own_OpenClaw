@@ -56,7 +56,7 @@ import plugin, skill, or MCP files.
 Use the scaffold command:
 
 ```bash
-scripts/create-windie-extension repo-agent --name "Repo Agent" --tool inspect_repo
+bin/windie extension create repo-agent --name "Repo Agent" --tool inspect_repo
 ```
 
 It creates:

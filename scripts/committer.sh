@@ -6,7 +6,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/committer "<subject>" --body "<text>" [--body "<text>"]... [--no-verify] -- <files...>
+  scripts/committer.sh "<subject>" --body "<text>" [--body "<text>"]... [--no-verify] -- <files...>
 
 Stages only the listed paths before creating the commit.
 Commit bodies are required and must use this exact section structure:

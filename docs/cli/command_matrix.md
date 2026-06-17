@@ -117,7 +117,7 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> extension create <id>` | Scaffold a Windie extension package. |
 | `<windie> tools manifest generate` | Generate the executable tool manifest. |
 | `<windie> mock backend` | Start the local SDK mock backend. |
-| `./scripts/committer "<subject>" --body "<body>" -- <paths...>` | Stage listed files and create a scoped commit. |
+| `./scripts/committer.sh "<subject>" --body "<body>" -- <paths...>` | Stage listed files and create a scoped commit. |
 
 Read [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) before running or changing these scripts.
 

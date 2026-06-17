@@ -11,7 +11,7 @@ Bootstrap WindieOS self-hosting on this machine:
 3) create/configure tunnel + DNS + tunnel user-service
 
 Usage:
-  scripts/cloudflared/bootstrap-windieos-host [options]
+  scripts/cloudflared/bootstrap-windieos-host.sh [options]
 
 Options:
   --domain DOMAIN           Base domain (default: windieos.com)
@@ -24,8 +24,8 @@ Options:
   -h, --help                Show this help
 
 Examples:
-  scripts/cloudflared/bootstrap-windieos-host
-  scripts/cloudflared/bootstrap-windieos-host --hostname api.windieos.com --backend-env jarvis
+  scripts/cloudflared/bootstrap-windieos-host.sh
+  scripts/cloudflared/bootstrap-windieos-host.sh --hostname api.windieos.com --backend-env jarvis
 EOF
 }
 
@@ -94,23 +94,23 @@ run_cmd() {
   "$@"
 }
 
-if [[ ! -x "${ROOT}/scripts/cloudflared/install-cloudflared-user" ]]; then
-  echo "Missing executable: scripts/cloudflared/install-cloudflared-user" >&2
+if [[ ! -x "${ROOT}/scripts/cloudflared/install-cloudflared-user.sh" ]]; then
+  echo "Missing executable: scripts/cloudflared/install-cloudflared-user.sh" >&2
   exit 1
 fi
-if [[ ! -x "${ROOT}/scripts/cloudflared/install-backend-user-service" ]]; then
-  echo "Missing executable: scripts/cloudflared/install-backend-user-service" >&2
+if [[ ! -x "${ROOT}/scripts/cloudflared/install-backend-user-service.sh" ]]; then
+  echo "Missing executable: scripts/cloudflared/install-backend-user-service.sh" >&2
   exit 1
 fi
-if [[ ! -x "${ROOT}/scripts/cloudflared/setup-windieos-tunnel" ]]; then
-  echo "Missing executable: scripts/cloudflared/setup-windieos-tunnel" >&2
+if [[ ! -x "${ROOT}/scripts/cloudflared/setup-windieos-tunnel.sh" ]]; then
+  echo "Missing executable: scripts/cloudflared/setup-windieos-tunnel.sh" >&2
   exit 1
 fi
 
-run_cmd "${ROOT}/scripts/cloudflared/install-cloudflared-user"
+run_cmd "${ROOT}/scripts/cloudflared/install-cloudflared-user.sh"
 
 BACKEND_ARGS=(
-  "${ROOT}/scripts/cloudflared/install-backend-user-service"
+  "${ROOT}/scripts/cloudflared/install-backend-user-service.sh"
   "--repo-root" "${ROOT}"
   "--backend-env" "${BACKEND_ENV_NAME}"
 )
@@ -120,7 +120,7 @@ fi
 run_cmd "${BACKEND_ARGS[@]}"
 
 TUNNEL_ARGS=(
-  "${ROOT}/scripts/cloudflared/setup-windieos-tunnel"
+  "${ROOT}/scripts/cloudflared/setup-windieos-tunnel.sh"
   "--domain" "${DOMAIN}"
   "--hostname" "${HOSTNAME}"
   "--tunnel-name" "${TUNNEL_NAME}"

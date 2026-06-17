@@ -8,7 +8,7 @@ FRONTEND_DIR="${ROOT_DIR}/frontend"
 RUNTIME_DIR="${FRONTEND_DIR}/python-runtime"
 RUNTIME_ARCHIVE="${FRONTEND_DIR}/python-runtime.tar.gz"
 RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
-RUNTIME_BUILD_SCRIPT="${ROOT_DIR}/scripts/build-sidecar-runtime"
+RUNTIME_BUILD_SCRIPT="${ROOT_DIR}/scripts/build-sidecar-runtime.sh"
 RUNTIME_BUILD_STAMP="${FRONTEND_DIR}/.windie-python-runtime-build-stamp"
 BUNDLE_ID="${WINDIE_BUNDLE_ID:-com.windieos.desktop}"
 DEFAULT_BUNDLE_IDS=(
@@ -81,7 +81,7 @@ cleanup() {
 trap cleanup EXIT
 
 run_frontend_local_build_cmd() {
-  "${ROOT_DIR}/scripts/python-in-env" frontend env \
+  "${ROOT_DIR}/scripts/python-in-env.sh" frontend env \
     -u APPLE_ID \
     -u APPLE_APP_SPECIFIC_PASSWORD \
     -u APPLE_TEAM_ID \
@@ -209,7 +209,7 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 if [[ -z "${PYTHON_BUILD}" ]]; then
-  PYTHON_BUILD="$("${ROOT_DIR}/scripts/python-in-env" frontend python -c 'import sys; print(sys.executable)')"
+  PYTHON_BUILD="$("${ROOT_DIR}/scripts/python-in-env.sh" frontend python -c 'import sys; print(sys.executable)')"
 fi
 
 if [[ ! -x "${PYTHON_BUILD}" ]]; then
