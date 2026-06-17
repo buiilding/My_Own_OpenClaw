@@ -8,6 +8,7 @@ import {
 } from '../../../../infrastructure/transcript/toolCallMessageState';
 import { buildToolCallChatMessageState } from '../../../../infrastructure/transcript/toolCallChatMessageState';
 import { buildToolOutputEnvelopeMessage } from '../toolOutputMessages';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './sourceChannels';
 
 function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -31,7 +32,7 @@ function buildBaseMessageFields(entry, currentTurnProjection) {
   return {
     id: entry.id,
     sourceEventType: entry.sourceEventType || null,
-    sourceChannel: entry.sourceChannel || 'windie:current-turn',
+    sourceChannel: entry.sourceChannel || SDK_CURRENT_TURN_SOURCE_CHANNEL,
     turnRef: entry.turnRef || currentTurnProjection?.turnRef || undefined,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
@@ -155,7 +156,7 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
     ...buildToolOutputEnvelopeMessage({
       outputText: text,
       sourceEventType: entry.sourceEventType || 'tool_output',
-      sourceChannel: entry.sourceChannel || 'windie:current-turn',
+      sourceChannel: entry.sourceChannel || SDK_CURRENT_TURN_SOURCE_CHANNEL,
       screenshot: normalizeOptionalText(payload.screenshot) || normalizeOptionalText(toolDetails.screenshot),
       screenshotRef: normalizeOptionalText(payload.screenshotRef) || normalizeOptionalText(toolDetails.screenshot_ref),
       screenshotUrl: normalizeOptionalText(payload.screenshotUrl) || normalizeOptionalText(toolDetails.screenshot_url),

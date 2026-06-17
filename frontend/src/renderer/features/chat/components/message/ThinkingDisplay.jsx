@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../utils/devUiFlag';
+import { SDK_CONVERSATION_EVENT_SOURCE_CHANNEL } from '../../utils/message/sourceChannels';
 import { resolveSourceTag } from '../../utils/message/sourceTags';
 import '../../../../styles/ThinkingDisplay.css';
 
@@ -61,7 +62,7 @@ function ThinkingDisplay({ status, sourceEventType = null }) {
   }
 
   const sourceTag = isDevUiEnabled()
-    ? resolveSourceTag(sourceEventType || 'llm-thought', 'windie:conversation-event')
+    ? resolveSourceTag(sourceEventType || 'llm-thought', SDK_CONVERSATION_EVENT_SOURCE_CHANNEL)
     : null;
 
   return (

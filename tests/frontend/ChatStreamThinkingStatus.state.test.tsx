@@ -1206,7 +1206,7 @@ describe('useChatStream state + stream handling', () => {
             isComplete: true,
             turnRef: 'turn-provider',
             sourceEventType: 'streaming-complete',
-            sourceChannel: 'windie:conversation-event',
+            sourceChannel: 'sdk:conversation-event',
           },
         ],
       });

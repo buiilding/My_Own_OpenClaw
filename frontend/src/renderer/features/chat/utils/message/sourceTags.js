@@ -2,6 +2,8 @@
  * Provides the source tags module for the renderer UI.
  */
 
+import { SDK_CONVERSATION_EVENT_SOURCE_CHANNEL } from './sourceChannels';
+
 const SOURCE_EVENT_LABELS = {
   'llm-thought': 'thinking-token API',
   'streaming-response': 'normal-text API',
@@ -26,7 +28,7 @@ const SOURCE_EVENT_LABELS = {
 };
 
 const SOURCE_CHANNEL_LABELS = {
-  'windie:conversation-event': 'windie:conversation-event',
+  [SDK_CONVERSATION_EVENT_SOURCE_CHANNEL]: 'sdk:conversation-event',
   'renderer-local': 'renderer-local',
   'sdk-local-runtime': 'sdk-local-runtime',
   transcript: 'transcript',

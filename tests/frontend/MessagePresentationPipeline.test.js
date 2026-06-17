@@ -51,7 +51,7 @@ describe('messagePresentationPipeline', () => {
         sender: 'assistant',
         text: 'tool call',
         type: 'tool-call',
-        sourceChannel: 'windie:current-turn',
+        sourceChannel: 'sdk:current-turn',
       },
     ];
 
@@ -82,7 +82,7 @@ describe('messagePresentationPipeline', () => {
         type: 'llm-text',
         thinkingText: 'Checking the project structure.',
         thinkingSourceEventType: 'reasoning_delta',
-        sourceChannel: 'windie:current-turn',
+        sourceChannel: 'sdk:current-turn',
         turnRef: 'turn-1',
       },
     ];
@@ -115,7 +115,7 @@ describe('messagePresentationPipeline', () => {
             type: 'thinking',
             text: 'Thinking about files.',
             sourceEventType: 'reasoning_delta',
-            sourceChannel: 'windie:current-turn',
+            sourceChannel: 'sdk:current-turn',
             turnRef: 'turn-1',
           },
           {
@@ -123,7 +123,7 @@ describe('messagePresentationPipeline', () => {
             type: 'llm-text',
             text: 'Projected answer',
             sourceEventType: 'assistant_delta',
-            sourceChannel: 'windie:current-turn',
+            sourceChannel: 'sdk:current-turn',
             turnRef: 'turn-1',
           },
         ],
@@ -239,7 +239,7 @@ describe('messagePresentationPipeline', () => {
         type: 'llm-text',
         thinkingText: 'Checking the project structure.',
         thinkingSourceEventType: 'reasoning_delta',
-        sourceChannel: 'windie:current-turn',
+        sourceChannel: 'sdk:current-turn',
         turnRef: 'turn-1',
       },
     ];
@@ -261,7 +261,7 @@ describe('messagePresentationPipeline', () => {
         text: '',
         type: 'llm-text',
         thinkingText: 'Old turn thinking.',
-        sourceChannel: 'windie:current-turn',
+        sourceChannel: 'sdk:current-turn',
         turnRef: 'turn-1',
       },
     ];

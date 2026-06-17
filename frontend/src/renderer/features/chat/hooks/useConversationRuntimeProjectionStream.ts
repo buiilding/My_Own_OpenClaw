@@ -17,6 +17,7 @@ import {
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { logRendererLiveSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../utils/message/sourceChannels';
 import {
   applyCurrentTurnProjectionSideEffects,
   buildProjectionCursorKey,
@@ -206,7 +207,7 @@ export function useConversationRuntimeProjectionStream(): void {
         })
       );
       logRendererLiveSurfaceTrace('renderer.current_turn.applied', {
-        source: 'windie:current-turn',
+        source: SDK_CURRENT_TURN_SOURCE_CHANNEL,
         turnRef: currentTurn.turnRef ?? null,
         conversationRef,
         phase: currentTurn.phase,

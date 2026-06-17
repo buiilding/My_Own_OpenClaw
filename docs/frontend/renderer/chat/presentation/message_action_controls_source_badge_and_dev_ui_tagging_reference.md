@@ -98,6 +98,9 @@ Source fallback normalization:
 Badge label is resolved via `resolveSourceTag(sourceEventType, sourceChannel)`:
 
 - known event/channel names map to fixed labels
+- renderer presentation metadata uses `sdk:conversation-event` and
+  `sdk:current-turn` for SDK-derived rows; these are dev/source labels, not IPC
+  channel names
 - unknown event types use `<event> API` fallback
 - unknown channels use raw normalized channel fallback
 

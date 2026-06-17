@@ -510,7 +510,7 @@ describe('ChatBoxResponse state behavior', () => {
         sender: 'assistant',
         type: 'search-source',
         sourceEventType: 'web-search-progress',
-        sourceChannel: 'windie:conversation-event',
+        sourceChannel: 'sdk:conversation-event',
       },
       {
         id: 'search-2',
@@ -518,7 +518,7 @@ describe('ChatBoxResponse state behavior', () => {
         sender: 'assistant',
         type: 'search-source',
         sourceEventType: 'web-search-progress',
-        sourceChannel: 'windie:conversation-event',
+        sourceChannel: 'sdk:conversation-event',
       },
     ]);
 
@@ -1166,7 +1166,7 @@ describe('ChatBoxResponse state behavior', () => {
               type: 'llm-text',
               text: 'sdk presentation response',
               sourceEventType: 'assistant_delta',
-              sourceChannel: 'windie:current-turn',
+              sourceChannel: 'sdk:current-turn',
               turnRef: 'turn-sdk',
             },
           ],

@@ -106,7 +106,7 @@ function currentTurnWithPresentation() {
         type: 'llm-text',
         text: 'Live answer',
         sourceEventType: 'assistant_delta',
-        sourceChannel: 'windie:current-turn',
+        sourceChannel: 'sdk:current-turn',
         turnRef: 'msg-1',
       }],
       overlayIntent: {
@@ -217,7 +217,7 @@ describe('pending-turn live surface integration', () => {
     const dashboardMessages = buildThreadPresentationMessages(state.messages, {
       currentTurnProjection,
       activeConversationRef: 'conv_msg-1',
-    }).filter((message) => message.sourceChannel === 'windie:current-turn');
+    }).filter((message) => message.sourceChannel === 'sdk:current-turn');
     const overlayMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
     expect(dashboardMessages).toEqual(overlayMessages);
     expect(overlayMessages).toEqual([

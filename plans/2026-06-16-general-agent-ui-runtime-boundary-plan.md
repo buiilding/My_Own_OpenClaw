@@ -932,3 +932,19 @@ Each completed slice should report:
 - Compatibility: no migration required. App diagnostics are append-only
   transient records, and current producers/consumers now use
   `localRuntimeReady`; older stored diagnostic payloads are historical data.
+
+### 2026-06-17 renderer presentation source channels
+
+- Finding: renderer message presentation metadata reused product-named
+  `windie:*` IPC channel names as dev/source labels for SDK current-turn and
+  conversation-event rows.
+- Change: introduced generic renderer source-channel constants
+  `sdk:current-turn` and `sdk:conversation-event`, updated current-turn
+  projections, dev source badges, and presentation tests to use them, while
+  leaving actual IPC wire channels unchanged.
+- Validation: focused chat presentation/source badge Jest run, docs listing,
+  `git diff --check`, and source scan confirming product-named channel labels
+  remain only where they describe real IPC channels or historical plan notes.
+- Compatibility: no migration required. These labels are renderer presentation
+  metadata and dev UI text; IPC names, persisted transcript payloads, SDK
+  events, and backend contracts are unchanged.

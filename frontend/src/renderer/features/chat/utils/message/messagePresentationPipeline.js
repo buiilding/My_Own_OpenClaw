@@ -3,6 +3,7 @@
  */
 
 import { buildCurrentTurnMessagesFromPresentation } from './liveTurnPresentationMessages';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './sourceChannels';
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -54,7 +55,7 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
 
 function isTextlessCurrentTurnThinkingMessage(message) {
   return (
-    message?.sourceChannel === 'windie:current-turn'
+    message?.sourceChannel === SDK_CURRENT_TURN_SOURCE_CHANNEL
     && message?.sender === 'assistant'
     && (!message.type || message.type === 'llm-text')
     && !normalizeText(message.text)
@@ -64,7 +65,7 @@ function isTextlessCurrentTurnThinkingMessage(message) {
 
 function isVisibleCurrentTurnMessage(message) {
   return (
-    message?.sourceChannel === 'windie:current-turn'
+    message?.sourceChannel === SDK_CURRENT_TURN_SOURCE_CHANNEL
     && message?.sender === 'assistant'
     && (
       normalizeText(message.text)
@@ -117,7 +118,7 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
   const liveText = normalizeText(liveMessage?.text);
   const liveThinkingText = normalizeText(liveMessage?.thinkingText);
   return messages.some((message) => {
-    if (!message || message.sourceChannel === 'windie:current-turn') {
+    if (!message || message.sourceChannel === SDK_CURRENT_TURN_SOURCE_CHANNEL) {
       return false;
     }
     if (liveId && message.id === liveId) {

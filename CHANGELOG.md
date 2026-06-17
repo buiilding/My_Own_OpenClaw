@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer: use generic SDK presentation source channels for current-turn and conversation-event message metadata.
+
 - Main: remove the legacy localBackendReady diagnostics payload field after local-runtime readiness adoption.
 
 - Renderer: rename the local SDK facade to a generic desktop agent path and refresh mock backend SDK event identity coverage.
@@ -1623,6 +1625,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer: use generic SDK presentation source channels for current-turn and conversation-event message metadata.
+
 - Main: remove the legacy localBackendReady diagnostics payload field after local-runtime readiness adoption.
 
 - Renderer: rename the local SDK facade to a generic desktop agent path and refresh mock backend SDK event identity coverage.
@@ -3139,6 +3143,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer: use generic SDK presentation source channels for current-turn and conversation-event message metadata.
+
 - Main: remove the legacy localBackendReady diagnostics payload field after local-runtime readiness adoption.
 
 - Renderer: rename the local SDK facade to a generic desktop agent path and refresh mock backend SDK event identity coverage.
@@ -3309,6 +3315,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Renderer: use generic SDK presentation source channels for current-turn and conversation-event message metadata.
 
 - Main: remove the legacy localBackendReady diagnostics payload field after local-runtime readiness adoption.
 
@@ -3510,6 +3518,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Renderer: use generic SDK presentation source channels for current-turn and conversation-event message metadata.
 
 - Main: remove the legacy localBackendReady diagnostics payload field after local-runtime readiness adoption.
 
@@ -5667,6 +5677,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Renderer: use generic SDK presentation source channels for current-turn and conversation-event message metadata.
 
 - Main: remove the legacy localBackendReady diagnostics payload field after local-runtime readiness adoption.
 
