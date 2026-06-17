@@ -20,14 +20,26 @@ def test_extract_tool_call_details_reads_function_arguments_and_thought_signatur
     assert thought_signature == "sig-1"
 
 
-def test_extract_tool_call_details_reads_top_level_arguments_alias():
+def test_extract_tool_call_details_reads_top_level_args():
+    tool_name, arguments, tool_call_id, thought_signature = extract_tool_call_details(
+        content='{"name":"replace","args":{"path":"/tmp/a.txt"}}',
+        fallback_tool_name="fallback",
+    )
+
+    assert tool_name == "replace"
+    assert arguments == {"path": "/tmp/a.txt"}
+    assert tool_call_id is None
+    assert thought_signature is None
+
+
+def test_extract_tool_call_details_ignores_top_level_arguments_alias():
     tool_name, arguments, tool_call_id, thought_signature = extract_tool_call_details(
         content='{"name":"replace","arguments":{"path":"/tmp/a.txt"}}',
         fallback_tool_name="fallback",
     )
 
     assert tool_name == "replace"
-    assert arguments == {"path": "/tmp/a.txt"}
+    assert arguments == {}
     assert tool_call_id is None
     assert thought_signature is None
 

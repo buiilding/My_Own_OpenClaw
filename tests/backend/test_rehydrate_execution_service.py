@@ -744,7 +744,7 @@ def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_c
     known_tool_call_ids = set()
     entry = SimpleNamespace(
         role="tool",
-        content='{"id":"call-1","name":"browser","arguments":{"action":"snapshot"},"thought_signature":"sig-123"}',
+        content='{"id":"call-1","name":"browser","args":{"action":"snapshot"},"thought_signature":"sig-123"}',
         message_type="tool-call",
         tool_name=None,
         correlation_id=None,

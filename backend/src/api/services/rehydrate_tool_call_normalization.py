@@ -58,8 +58,6 @@ def extract_tool_call_details(
     parsed_arguments = payload.get("args")
     if isinstance(parsed_arguments, dict):
         arguments = dict(parsed_arguments)
-    elif isinstance(payload.get("arguments"), dict):
-        arguments = dict(payload["arguments"])
     elif function_payload is not None:
         function_arguments = function_payload.get("arguments")
         if isinstance(function_arguments, dict):

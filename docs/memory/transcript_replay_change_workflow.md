@@ -32,7 +32,10 @@ flowchart LR
 - SDK projection/runtime code owns visible chat projection, local replay snapshots, and the rehydrate payload assembled from stored conversation events.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
 - The sidecar owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs.
-- Backend rehydrate owns conversion from stored transcript entries into model-compatible backend history. It may normalize, repair, prune, or synthesize tool linkage only to preserve provider-valid history.
+- Backend rehydrate owns conversion from stored transcript entries into
+  model-compatible backend history. It normalizes current transcript
+  projections and rejects missing or stale tool linkage instead of repairing or
+  synthesizing provider history.
 - Backend active history is not the source of dashboard conversation list truth. Do not patch backend history to make a missing sidebar conversation appear.
 - Semantic memory is derived from transcript/interaction rows. Do not edit semantic memory as a shortcut for fixing replay or visible transcript bugs.
 - `conversationRef`/`conversation_id`, `userId`/`user_id`, role, message type, timestamp, message index, tool identifiers, and screenshot refs must survive any row that can be replayed or rehydrated later.
@@ -80,7 +83,9 @@ flowchart LR
 5. Preserve rehydrate shape.
    - SDK `buildRehydrateSnapshot(...)` should emit backend-compatible entries from stored conversation events.
    - Backend rehydrate should normalize message roles, structured tool payloads, transparency rows, screenshot refs, and tool-call/tool-output linkage.
-   - Provider-strict history should be repaired at the backend rehydrate layer, not by hiding rows in the dashboard.
+   - Provider-strict history should be rejected at the backend rehydrate layer when
+     current transcript projections omit required tool linkage or structured tool
+     payloads.
 
 6. Update docs next to behavior.
    - Update this workflow when transcript/replay ownership or sequencing changes.

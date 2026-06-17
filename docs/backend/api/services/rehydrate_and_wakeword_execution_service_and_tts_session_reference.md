@@ -49,7 +49,8 @@ Per-entry fields normalized:
 For tool-call-like rows:
 
 - require an explicit or parsed tool call id
-- parse JSON content for `name` and `args/arguments`
+- parse JSON content for `name`, `id`, and `args`; structured tool-call
+  payloads carry canonical `arguments`
 - emit assistant entry with `tool_calls=[{id,name,arguments}]`
 - update `known_tool_call_ids` and `pending_tool_call_ids`
 
@@ -132,9 +133,12 @@ This provides consistent setup/teardown for both query and wakeword service flow
 ## Drift Hotspots
 
 1. allowing fallback tool-call ids can reintroduce provider-history rows that never existed in the transcript.
-2. accepting unknown tool-output ids can orphan tool rows.
-3. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
-4. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
+2. accepting top-level JSON-content `arguments` can reintroduce old transcript
+   parser aliases; use `args` in content fallbacks or structured tool-call
+   payloads instead.
+3. accepting unknown tool-output ids can orphan tool rows.
+4. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
+5. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
 
 ## Related Pages
 
