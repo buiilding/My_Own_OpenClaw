@@ -1,6 +1,6 @@
 """Covers logging utils shared behavior in the backend test suite."""
 
-from backend.src.agent.tools.shared import short_id
+from backend.src.agent.tools.shared.logging_utils import short_id
 
 
 def test_short_id_truncates_to_default_length():

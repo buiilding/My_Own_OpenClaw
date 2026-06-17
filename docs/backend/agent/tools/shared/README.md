@@ -1,7 +1,7 @@
 ---
 summary: "Backend agent tool shared-utility docs sub-hub for request-id shortener helper contracts used across preparation and orchestration logging paths."
 read_when:
-  - When changing `backend/src/agent/tools/shared/logging_utils.py` or shared exports in `backend/src/agent/tools/shared/__init__.py`.
+  - When changing `backend/src/agent/tools/shared/logging_utils.py`.
   - When debugging inconsistent request-id formatting in tool-preparation/execution logs.
 title: "Backend Agent Tools Shared-Utility Docs Hub"
 ---
@@ -20,7 +20,6 @@ title: "Backend Agent Tools Shared-Utility Docs Hub"
 
 ## Code Scope
 
-- `backend/src/agent/tools/shared/__init__.py`
 - `backend/src/agent/tools/shared/logging_utils.py`
 - `backend/src/agent/tools/preparation/helpers/preparation_helper.py`
 - `backend/src/agent/tools/preparation/helpers/coordinate_resolution_helper.py`

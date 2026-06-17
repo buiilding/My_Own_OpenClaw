@@ -16,6 +16,7 @@ REMOVED_MARKERS = [
     "backend/src/agent/history/__init__.py",
     "backend/src/agent/llm/__init__.py",
     "backend/src/agent/tools/__init__.py",
+    "backend/src/agent/tools/shared/__init__.py",
     "backend/src/api/__init__.py",
     "backend/src/api/contracts/__init__.py",
     "backend/src/api/services/__init__.py",

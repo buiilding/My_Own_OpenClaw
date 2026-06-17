@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/agent-tools: remove the unused `agent.tools.shared` package export so
+  callers import shared helpers from their owner modules.
+
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
 - frontend/main: describe app diagnostics browser and lifecycle ownership as local sidecar bridge ownership while preserving local-backend diagnostic ids and fields.

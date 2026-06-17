@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for shared short_id helper behavior: stable request-id truncation, unknown fallback semantics, and import-surface contract for agent/tools orchestration logging."
+summary: "Deep reference for shared short_id helper behavior: stable request-id truncation, unknown fallback semantics, and direct utility import contract for agent/tools orchestration logging."
 read_when:
   - When modifying `short_id` behavior or deciding whether to add formatting/validation around request/bundle IDs.
   - When debugging tool orchestration logs where request or bundle identifiers appear truncated or missing.
@@ -11,7 +11,6 @@ title: "Request-ID Shortener Utility and Logging Contract Reference"
 ## Canonical Modules
 
 - `backend/src/agent/tools/shared/logging_utils.py`
-- `backend/src/agent/tools/shared/__init__.py`
 - `backend/src/tools/single_tool_execution.py`
 - `backend/src/tools/bundle_execution.py`
 - `backend/src/agent/tools/preparation/preparer.py`
@@ -35,14 +34,9 @@ No side effects; pure string helper.
 
 Used for both per-tool request ids and atomic bundle ids.
 
-## Export Surface
-
-`backend/src/agent/tools/shared/__init__.py` re-exports `short_id` via `__all__`.
-
-Callers may import from either:
+## Import Surface
 
 - `backend.src.agent.tools.shared.logging_utils`
-- `backend.src.agent.tools.shared`
 
 ## Usage Semantics in Runtime
 
