@@ -5,7 +5,7 @@
 import {
   DEFAULT_PROVIDER_API_KEYS,
   PROVIDER_API_KEY_SPECS,
-} from '../../../../app/skin/providerCredentialSettings';
+} from '../../../../app/skin/desktopAgentConfig';
 
 export { PROVIDER_API_KEY_SPECS };
 

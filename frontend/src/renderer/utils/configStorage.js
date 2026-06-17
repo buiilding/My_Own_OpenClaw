@@ -3,11 +3,11 @@
  */
 
 import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/shortcuts/agentStopShortcut';
-import { DEFAULT_MODEL_SELECTION } from '../app/skin/modelSelectionDefaults';
 import {
+  DEFAULT_MODEL_SELECTION,
   DEFAULT_PROVIDER_API_KEYS,
   DEFAULT_PROVIDER_OAUTH,
-} from '../app/skin/providerCredentialSettings';
+} from '../app/skin/desktopAgentConfig';
 
 /**
  * Local storage utilities for configuration persistence.

@@ -2,7 +2,7 @@
  * Provides the chat model options module for the renderer UI.
  */
 
-import { formatProviderDisplayLabel } from '../../../app/skin/providerModelDisplaySettings';
+import { formatProviderDisplayLabel } from '../../../app/skin/desktopAgentConfig';
 import { getCurrentModels } from '../../dashboard/utils/modelSelectionUtils';
 
 const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];

@@ -9,6 +9,7 @@ const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const appPath = path.join(rendererRoot, 'app/App.jsx');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
 const skinFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentSkin.js');
+const skinConfigFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentConfig.js');
 const skinCssFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentSkin.css');
 const skinCssPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.css');
 const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css');
@@ -139,6 +140,7 @@ describe('renderer skin/config boundary', () => {
   });
 
   test('provider credential defaults live in renderer skin config', () => {
+    const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
     const providerSkinSource = fs.readFileSync(providerCredentialSettingsPath, 'utf8');
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
     const apiKeysSource = fs.readFileSync(
@@ -146,27 +148,34 @@ describe('renderer skin/config boundary', () => {
       'utf8',
     );
 
+    expect(configFacadeSource).toContain("from './providerCredentialSettings'");
     expect(providerSkinSource).toContain('DEFAULT_PROVIDER_API_KEYS');
     expect(providerSkinSource).toContain('PROVIDER_API_KEY_SPECS');
-    expect(configStorageSource).toContain('providerCredentialSettings');
-    expect(apiKeysSource).toContain('providerCredentialSettings');
+    expect(configStorageSource).toContain('desktopAgentConfig');
+    expect(configStorageSource).not.toContain('providerCredentialSettings');
+    expect(apiKeysSource).toContain('desktopAgentConfig');
+    expect(apiKeysSource).not.toContain('providerCredentialSettings');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
     expect(apiKeysSource).not.toContain('OpenAI API Key');
   });
 
   test('default model selection lives in renderer skin config', () => {
+    const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
     const modelDefaultsSource = fs.readFileSync(modelSelectionDefaultsPath, 'utf8');
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
 
+    expect(configFacadeSource).toContain("from './modelSelectionDefaults'");
     expect(modelDefaultsSource).toContain('DEFAULT_MODEL_SELECTION');
     expect(modelDefaultsSource).toContain("provider: 'openai'");
     expect(modelDefaultsSource).toContain("modelId: 'gpt-5.4@@gpt-5-4-none-thinking'");
-    expect(configStorageSource).toContain('modelSelectionDefaults');
+    expect(configStorageSource).toContain('desktopAgentConfig');
+    expect(configStorageSource).not.toContain('modelSelectionDefaults');
     expect(configStorageSource).not.toContain("model_provider: 'openai'");
     expect(configStorageSource).not.toContain("selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking'");
   });
 
   test('provider model display fallbacks live in renderer skin config', () => {
+    const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
     const providerDisplaySource = fs.readFileSync(providerModelDisplaySettingsPath, 'utf8');
     const modelCardDataSource = fs.readFileSync(
       path.join(dashboardSectionsRoot, 'modelCardData.js'),
@@ -177,11 +186,14 @@ describe('renderer skin/config boundary', () => {
       'utf8',
     );
 
+    expect(configFacadeSource).toContain("from './providerModelDisplaySettings'");
     expect(providerDisplaySource).toContain('PROVIDER_MODEL_DISPLAY_FALLBACKS');
     expect(providerDisplaySource).toContain('PROVIDER_LABEL_OVERRIDES');
     expect(providerDisplaySource).toContain('OpenAI flagship model family');
-    expect(modelCardDataSource).toContain('providerModelDisplaySettings');
-    expect(chatModelOptionsSource).toContain('providerModelDisplaySettings');
+    expect(modelCardDataSource).toContain('desktopAgentConfig');
+    expect(modelCardDataSource).not.toContain('providerModelDisplaySettings');
+    expect(chatModelOptionsSource).toContain('desktopAgentConfig');
+    expect(chatModelOptionsSource).not.toContain('providerModelDisplaySettings');
     expect(modelCardDataSource).not.toContain("provider.includes('openai')");
     expect(modelCardDataSource).not.toContain('OpenAI flagship model family');
     expect(modelCardDataSource).not.toContain('Agentic coding model');

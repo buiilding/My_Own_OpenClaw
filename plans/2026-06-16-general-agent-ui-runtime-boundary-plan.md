@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer active skin config facade
+
+- Finding: generic renderer config storage, provider-key helpers, model cards,
+  and chat model labels still imported individual WindieOS skin/config modules
+  for model selection and provider display defaults.
+- Change: added `desktopAgentConfig` as the generic active renderer skin/config
+  facade, routed config storage and dashboard/chat model helpers through it,
+  and documented the facade in frontend architecture notes.
+- Validation: focused renderer skin, settings section, and chat model option
+  Jest runs; product-config import scan; docs listing; and diff check.
+- Compatibility: no migration required. Persisted frontend config keys, default
+  values, provider labels, and rendered model/provider copy are unchanged.
+
 ### 2026-06-17 renderer brand icon generic CSS token
 
 - Finding: after the brand icon asset moved into the WindieOS renderer skin,

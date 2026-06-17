@@ -2,7 +2,7 @@
  * Provides the model card data module for the renderer UI.
  */
 
-import { resolveProviderModelDisplay } from '../../../../app/skin/providerModelDisplaySettings';
+import { resolveProviderModelDisplay } from '../../../../app/skin/desktopAgentConfig';
 
 function buildModelDescription(model) {
   if (typeof model?.description === 'string' && model.description.trim()) {
