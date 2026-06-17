@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 tool screenshot result alias removal
+
+- Finding: the SDK tool execution coordinator still rewrote camelCase
+  `screenshotRef` and `screenshotUrl` local tool result fields into backend
+  screenshot metadata, which blurred the local execution result boundary.
+- Change: made the coordinator reject camelCase screenshot result aliases before
+  artifact materialization or backend delivery, keeping local tool screenshot
+  outputs on `screenshot_ref`, `screenshot_url`, and `screenshot_content_type`.
+- Validation: focused SDK conversation-runtime tool coordinator tests for
+  camelCase screenshot aliases and camelCase-only screenshot aliases.
+- Compatibility: local tool implementations using `screenshotRef` or
+  `screenshotUrl` in SDK tool results must migrate to snake_case screenshot
+  fields. No persisted-data, wire, storage, settings, credential, permission,
+  IPC-channel, or tool-execution trust-boundary migration is required.
+
 ### 2026-06-17 renderer runtime command alias rejection
 
 - Finding: the renderer desktop-agent runtime transport still allowed removed
