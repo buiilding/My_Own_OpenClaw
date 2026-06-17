@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Isolated legacy local-backend IPC channel constants behind local-runtime aliases in the renderer status store.
+
 - Reworded Electron main local bridge commentary and process-health docs to describe the generic local runtime bridge.
 
 - Renamed new local-runtime availability diagnostics errors from sidecar_unavailable to local_runtime_unavailable.
@@ -1793,6 +1795,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Isolated legacy local-backend IPC channel constants behind local-runtime aliases in the renderer status store.
+
 - Reworded Electron main local bridge commentary and process-health docs to describe the generic local runtime bridge.
 
 - Renamed new local-runtime availability diagnostics errors from sidecar_unavailable to local_runtime_unavailable.
@@ -3479,6 +3483,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Isolated legacy local-backend IPC channel constants behind local-runtime aliases in the renderer status store.
+
 - Reworded Electron main local bridge commentary and process-health docs to describe the generic local runtime bridge.
 
 - Renamed new local-runtime availability diagnostics errors from sidecar_unavailable to local_runtime_unavailable.
@@ -3819,6 +3825,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Isolated legacy local-backend IPC channel constants behind local-runtime aliases in the renderer status store.
 
 - Reworded Electron main local bridge commentary and process-health docs to describe the generic local runtime bridge.
 
@@ -4190,6 +4198,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Isolated legacy local-backend IPC channel constants behind local-runtime aliases in the renderer status store.
 
 - Reworded Electron main local bridge commentary and process-health docs to describe the generic local runtime bridge.
 
@@ -6517,6 +6527,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Isolated legacy local-backend IPC channel constants behind local-runtime aliases in the renderer status store.
 
 - Reworded Electron main local bridge commentary and process-health docs to describe the generic local runtime bridge.
 

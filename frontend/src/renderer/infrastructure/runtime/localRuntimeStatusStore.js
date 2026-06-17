@@ -9,6 +9,8 @@ const EMPTY_LOCAL_RUNTIME_STATUS = Object.freeze({
   status: 'stopped',
   error: '',
 });
+const GET_LOCAL_RUNTIME_STATUS_CHANNEL = INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS;
+const LOCAL_RUNTIME_STATUS_CHANNEL = ON_CHANNELS.LOCAL_BACKEND_STATUS;
 
 let currentSnapshot = EMPTY_LOCAL_RUNTIME_STATUS;
 let removeIpcListener = null;
@@ -53,7 +55,7 @@ function ensureIpcSubscription() {
     return;
   }
 
-  removeIpcListener = IpcBridge.on(ON_CHANNELS.LOCAL_BACKEND_STATUS, (payload = {}) => {
+  removeIpcListener = IpcBridge.on(LOCAL_RUNTIME_STATUS_CHANNEL, (payload = {}) => {
     liveStatusRevision += 1;
     applySnapshot(normalizeLocalRuntimeStatus(payload));
   });
@@ -65,7 +67,7 @@ function ensureBootstrapStatusRead() {
   }
 
   const bootstrapStartRevision = liveStatusRevision;
-  bootstrapPromise = IpcBridge.invoke(INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS)
+  bootstrapPromise = IpcBridge.invoke(GET_LOCAL_RUNTIME_STATUS_CHANNEL)
     .then((payload = {}) => {
       if (liveStatusRevision !== bootstrapStartRevision) {
         return;

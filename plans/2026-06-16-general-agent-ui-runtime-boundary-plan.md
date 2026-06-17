@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer local runtime status channel aliases
+
+- Finding: renderer `localRuntimeStatusStore` was named for local runtime state
+  but called the legacy local-backend IPC channel constants directly at each
+  subscribe/bootstrap use site.
+- Change: bound the compatibility channel constants once to local-runtime
+  aliases inside the store and routed the store through those aliases, with a
+  focused source assertion to keep the compatibility detail at the transport
+  boundary.
+- Validation: focused local-runtime status store Jest assertion, channel-use
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. IPC channel string values and preload
+  allowlists are unchanged.
+
 ### 2026-06-17 local runtime bridge utility wording
 
 - Finding: the Electron main sidecar utility docstring and process health

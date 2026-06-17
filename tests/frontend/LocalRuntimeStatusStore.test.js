@@ -84,4 +84,19 @@ describe('localRuntimeStatusStore', () => {
 
     unsubscribe();
   });
+
+  test('keeps legacy IPC channel names at the local runtime transport boundary', () => {
+    const source = require('fs').readFileSync(
+      require('path').resolve(
+        __dirname,
+        '../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js',
+      ),
+      'utf8',
+    );
+
+    expect(source).toContain('const GET_LOCAL_RUNTIME_STATUS_CHANNEL = INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS;');
+    expect(source).toContain('const LOCAL_RUNTIME_STATUS_CHANNEL = ON_CHANNELS.LOCAL_BACKEND_STATUS;');
+    expect(source).not.toContain('IpcBridge.on(ON_CHANNELS.LOCAL_BACKEND_STATUS');
+    expect(source).not.toContain('IpcBridge.invoke(INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS');
+  });
 });
