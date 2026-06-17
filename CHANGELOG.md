@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: rename AppConfig provider listener helpers to IPC/settings terminology instead of backend-prefixed test utility names.
+
 - frontend/renderer: rename app config settings event routing away from backend-prefixed helper names while preserving settings channel contracts.
 
 - frontend/renderer: rename browser session local-runtime status variables away from backend-prefixed wording.

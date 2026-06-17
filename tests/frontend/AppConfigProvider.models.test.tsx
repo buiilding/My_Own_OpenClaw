@@ -6,8 +6,8 @@ import {
   act,
   DesktopSettingsRuntimeClient,
   flushAsyncEffects,
-  getBackendHandler,
-  getRemoveBackendListenerMock,
+  getIpcListener,
+  getRemoveIpcListenerMock,
   INVOKE_CHANNELS,
   IpcBridge,
   mockDesktopSettingsListModels,
@@ -31,13 +31,13 @@ describe('AppConfigProvider model + config wiring', () => {
     mockUseSettingsManagement.mockReturnValue(settingsHandlers);
     renderAppConfigContext();
 
-    const backendHandler = getBackendHandler(ON_CHANNELS.BACKEND_SETTINGS_EVENT);
-    expect(backendHandler).toEqual(expect.any(Function));
+    const settingsEventListener = getIpcListener(ON_CHANNELS.BACKEND_SETTINGS_EVENT);
+    expect(settingsEventListener).toEqual(expect.any(Function));
 
-    return { settingsHandlers, backendHandler };
+    return { settingsHandlers, settingsEventListener };
   }
 
-  test('registers backend listener before requesting model list on dashboard startup', () => {
+  test('registers settings event listener before requesting model list on dashboard startup', () => {
     renderAppConfigContext();
 
     expect(IpcBridge.on).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe('AppConfigProvider model + config wiring', () => {
     firstRender.unmount();
     renderAppConfigContext();
     act(() => {
-      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
+      getIpcListener(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
     });
 
     expect(mockDesktopSettingsRequestStartupModels).toHaveBeenCalledTimes(2);
@@ -80,10 +80,10 @@ describe('AppConfigProvider model + config wiring', () => {
   });
 
   test('routes models-listed event to settings handler', () => {
-    const { settingsHandlers, backendHandler } = setupModelsListedHandlerHarness();
+    const { settingsHandlers, settingsEventListener } = setupModelsListedHandlerHarness();
 
     act(() => {
-      backendHandler?.({
+      settingsEventListener?.({
         type: 'models-listed',
         payload: {
           local_models: ['local-a'],
@@ -97,11 +97,11 @@ describe('AppConfigProvider model + config wiring', () => {
     );
   });
 
-  test('ignores unsupported backend events', () => {
-    const { settingsHandlers, backendHandler } = setupModelsListedHandlerHarness();
+  test('ignores unsupported settings events', () => {
+    const { settingsHandlers, settingsEventListener } = setupModelsListedHandlerHarness();
 
     act(() => {
-      backendHandler?.({
+      settingsEventListener?.({
         type: 'status-updated',
         payload: { status: 'ok' },
       });
@@ -125,12 +125,12 @@ describe('AppConfigProvider model + config wiring', () => {
     expect(((DesktopSettingsRuntimeClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
 
-  test('removes backend listener on unmount', () => {
+  test('removes IPC listener on unmount', () => {
     const { unmount } = renderAppConfigContext();
 
     unmount();
 
-    expect(getRemoveBackendListenerMock()).toHaveBeenCalled();
+    expect(getRemoveIpcListenerMock()).toHaveBeenCalled();
   });
 
   test('keeps updateConfig callback stable across config updates', () => {

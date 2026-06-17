@@ -38,10 +38,10 @@ describe('AppStatusProvider', () => {
     delete (window as any).ipc;
   });
 
-  function emitBackendEvent(data: any): void {
+  function emitSettingsEvent(data: any): void {
     const handler = listeners.get(ON_CHANNELS.BACKEND_SETTINGS_EVENT);
     if (!handler) {
-      throw new Error('backend listener is not registered');
+      throw new Error('settings event listener is not registered');
     }
     act(() => {
       handler(data);
@@ -82,16 +82,16 @@ describe('AppStatusProvider', () => {
     });
     expect(result.current.saveStatus).toBe('saving');
 
-    emitBackendEvent({ type: 'settings-updated' });
+    emitSettingsEvent({ type: 'settings-updated' });
     expect(result.current.saveStatus).toBe('success');
 
     expectStatusAfterAdvance(result, 5001, 'idle');
   });
 
-  test('matching backend error sets error then resets to idle', () => {
+  test('matching settings-update error sets error then resets to idle', () => {
     const { result } = renderHook(() => useAppStatusContext(), { wrapper });
 
-    emitBackendEvent({
+    emitSettingsEvent({
       type: 'error',
       payload: { message: 'Failed to update settings: write failed' },
     });
@@ -100,10 +100,10 @@ describe('AppStatusProvider', () => {
     expectStatusAfterAdvance(result, 3000, 'idle');
   });
 
-  test('ignores backend errors that are not settings-update errors', () => {
+  test('ignores errors that are not settings-update errors', () => {
     const { result } = renderHook(() => useAppStatusContext(), { wrapper });
 
-    emitBackendEvent({
+    emitSettingsEvent({
       type: 'error',
       payload: { message: 'Database timeout' },
     });
@@ -111,10 +111,10 @@ describe('AppStatusProvider', () => {
     expect(result.current.saveStatus).toBe('idle');
   });
 
-  test('ignores unsupported backend event types', () => {
+  test('ignores unsupported settings event types', () => {
     const { result } = renderHook(() => useAppStatusContext(), { wrapper });
 
-    emitBackendEvent({ type: 'models-listed', payload: {} });
+    emitSettingsEvent({ type: 'models-listed', payload: {} });
 
     expect(result.current.saveStatus).toBe('idle');
   });

@@ -6,7 +6,7 @@ import {
   act,
   DesktopSettingsRuntimeClient,
   flushAsyncEffects,
-  getBackendHandler,
+  getIpcListener,
   INVOKE_CHANNELS,
   IpcBridge,
   mockDesktopSettingsUpdateSettings,
@@ -285,7 +285,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   test('updates transcript session from IPC status events with userId', () => {
     renderAppConfigContext();
 
-    const ipcStatusHandler = getBackendHandler(ON_CHANNELS.IPC_STATUS);
+    const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
     expect(ipcStatusHandler).toEqual(expect.any(Function));
 
     act(() => {
@@ -298,7 +298,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   test('sets artifact backend http URL from IPC status payload', () => {
     renderAppConfigContext();
 
-    const ipcStatusHandler = getBackendHandler(ON_CHANNELS.IPC_STATUS);
+    const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
     expect(ipcStatusHandler).toEqual(expect.any(Function));
 
     act(() => {
@@ -311,7 +311,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   test('syncs current config to backend when IPC status reports connected', () => {
     renderAppConfigContext();
 
-    const ipcStatusHandler = getBackendHandler(ON_CHANNELS.IPC_STATUS);
+    const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
     expect(ipcStatusHandler).toEqual(expect.any(Function));
 
     act(() => {
@@ -351,7 +351,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   test('does not sync config when IPC status reports disconnected', () => {
     renderAppConfigContext();
 
-    const ipcStatusHandler = getBackendHandler(ON_CHANNELS.IPC_STATUS);
+    const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
     expect(ipcStatusHandler).toEqual(expect.any(Function));
 
     act(() => {
@@ -364,7 +364,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   test('ignores IPC status events when userId is invalid', () => {
     renderAppConfigContext();
 
-    const ipcStatusHandler = getBackendHandler(ON_CHANNELS.IPC_STATUS);
+    const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
     expect(ipcStatusHandler).toEqual(expect.any(Function));
 
     act(() => {
@@ -394,7 +394,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     const { result } = renderAppConfigContext();
     expect(result.current.wakewordActive).toBe(true);
 
-    const wakewordHandler = getBackendHandler(ON_CHANNELS.WAKEWORD_TOGGLE);
+    const wakewordHandler = getIpcListener(ON_CHANNELS.WAKEWORD_TOGGLE);
     expect(wakewordHandler).toEqual(expect.any(Function));
 
     act(() => {
@@ -575,7 +575,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     const { result } = renderAppConfigContext();
     await flushAsyncEffects();
 
-    const ipcStatusHandler = getBackendHandler(ON_CHANNELS.IPC_STATUS);
+    const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
     expect(ipcStatusHandler).toEqual(expect.any(Function));
 
     act(() => {

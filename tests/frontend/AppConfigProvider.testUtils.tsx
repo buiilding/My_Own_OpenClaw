@@ -45,7 +45,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient'
 
 export const listeners = new Map<string, (data: any) => void>();
 
-let removeBackendListener: jest.Mock;
+let removeIpcListener: jest.Mock;
 let loadFrontendConfigResponse: any = null;
 let clientUserIdResponse: any = null;
 
@@ -74,11 +74,11 @@ export function setClientUserIdResponse(response: any) {
   clientUserIdResponse = response;
 }
 
-export function getRemoveBackendListenerMock() {
-  return removeBackendListener;
+export function getRemoveIpcListenerMock() {
+  return removeIpcListener;
 }
 
-export function getBackendHandler(channel: string) {
+export function getIpcListener(channel: string) {
   return listeners.get(channel);
 }
 
@@ -96,7 +96,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
     delete (window as Window & {
       __desktop_agent_models_list_requested__?: boolean;
     }).__desktop_agent_models_list_requested__;
-    removeBackendListener = jest.fn();
+    removeIpcListener = jest.fn();
     loadFrontendConfigResponse = null;
     clientUserIdResponse = null;
 
@@ -109,7 +109,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
     jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
     jest.spyOn(IpcBridge, 'on').mockImplementation((channel: any, handler: any) => {
       listeners.set(channel, handler);
-      return removeBackendListener;
+      return removeIpcListener;
     });
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
       if (channel === INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG) {

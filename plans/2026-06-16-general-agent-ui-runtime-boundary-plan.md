@@ -388,3 +388,17 @@ Each completed slice should report:
   stale-name scan for the retired callback/router names.
 - Compatibility: no migration required. Settings channel name, event payloads,
   settings ACK behavior, and model-list handling are unchanged.
+
+### 2026-06-17 renderer app config IPC listener test naming
+
+- Finding: shared AppConfig provider test utilities used backend-prefixed
+  listener names even when capturing generic renderer IPC channels such as
+  status and wakeword events.
+- Change: renamed the shared test listener helpers to IPC-listener terminology
+  and renamed settings-event emitters/titles in AppStatus coverage while
+  preserving channel constants and payloads.
+- Validation: focused Jest run for `AppConfigProvider.models`,
+  `AppConfigProvider.storageAndIpc`, and `AppStatusProvider`; `git diff
+  --check`; and a stale-name scan for the retired test helper names.
+- Compatibility: no migration required. This is test-only naming cleanup; IPC
+  channels, provider behavior, and settings status transitions are unchanged.
