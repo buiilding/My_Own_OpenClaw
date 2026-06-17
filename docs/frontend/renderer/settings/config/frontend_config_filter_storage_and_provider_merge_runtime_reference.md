@@ -33,11 +33,18 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `speech_mode_enabled`
 - `wakeword_enabled`
 - `wakeword_stt_enabled`
+- `show_tool_logs`
+- `agent_custom_instructions`
+- `agent_disabled_local_tools`
+- `agent_disabled_remote_tools`
+- `agent_enabled_mcp_servers`
 - `browser_automation_enabled`
 - `global_agent_stop_shortcut`
 - `include_query_screenshot`
 - `provider_api_keys`
 - `provider_oauth`
+- `appearance_mode`
+- `appearance_theme`
 
 Intentionally excluded backend-owned speech/transcription runtime policy:
 
@@ -47,8 +54,8 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 `filterFrontendConfig(config)` behavior:
 
 - non-object input -> `{}`
-- includes only keys in allowlist
-- ignores extra backend/config fields
+- includes only keys in the frontend-owned allowlist
+- ignores extra runtime, backend-owned, or sidecar-owned config fields
 
 ## Local Config Persistence (`configStorage`)
 

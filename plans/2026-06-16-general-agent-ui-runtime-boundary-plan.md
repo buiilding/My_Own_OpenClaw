@@ -2831,3 +2831,19 @@ Each completed slice should report:
   `localRuntimeDaemon`/`sidecarDaemon` references.
 - Compatibility: no migration required. Existing `sidecarDaemon` callers keep
   working; new callers can use `localRuntimeDaemon`.
+
+### 2026-06-17 renderer config runtime wording
+
+- Finding: renderer config filter/storage comments and the renderer folder map
+  still described frontend config as a subset of backend configuration and as
+  syncing directly with the backend, even though the renderer owns local config
+  filtering/persistence and talks through the desktop settings runtime.
+- Change: reworded those comments and docs to the frontend-owned runtime
+  settings boundary, refreshed the config reference allowlist, and added
+  renderer skin/config boundary coverage so backend-config wording does not
+  return to the helper comments.
+- Validation: focused renderer skin/config boundary test, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. This is documentation/comment-only;
+  config storage keys, filters, settings payloads, and ACK behavior are
+  unchanged.

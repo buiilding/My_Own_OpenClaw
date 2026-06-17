@@ -14,8 +14,8 @@ import {
  * 
  * Implements optimistic state pattern:
  * - Loads from localStorage immediately on startup (zero-latency)
- * - Syncs with backend on connection (handshake)
- * - Persists to localStorage when backend confirms changes
+ * - Syncs through the desktop settings runtime on connection
+ * - Persists to localStorage when runtime settings changes are acknowledged
  */
 
 const CONFIG_STORAGE_KEY = 'desktop-assistant-config';

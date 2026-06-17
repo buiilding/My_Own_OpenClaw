@@ -30,7 +30,7 @@ frontend/src/renderer/
 │   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
-│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs frontend config to backend on connect/startup
+│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs frontend config through the desktop settings runtime on connect/startup
 │       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
 │       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)

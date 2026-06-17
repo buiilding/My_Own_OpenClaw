@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: describe config filtering and storage through the desktop settings runtime boundary.
+
 - sdk: add localRuntimeDaemon as the preferred AgentClient option while keeping sidecarDaemon as a compatibility alias.
 
 - sdk: prefer generic agent SDK metadata keys when loading local-runtime conversation events while preserving Windie metadata fallbacks.

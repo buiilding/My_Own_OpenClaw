@@ -18,6 +18,7 @@ const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/provide
 const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
+const configFilterPath = path.join(rendererRoot, 'utils/configFilter.js');
 const configStoragePath = path.join(rendererRoot, 'utils/configStorage.js');
 
 function read(relativePath) {
@@ -199,5 +200,18 @@ describe('renderer skin/config boundary', () => {
     expect(modelCardDataSource).not.toContain('Agentic coding model');
     expect(chatModelOptionsSource).not.toContain("lowerProvider === 'openai'");
     expect(chatModelOptionsSource).not.toContain("return 'OpenRouter'");
+  });
+
+  test('renderer config helpers describe the settings runtime boundary', () => {
+    const configFilterSource = fs.readFileSync(configFilterPath, 'utf8');
+    const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
+
+    expect(configFilterSource).toContain('frontend-owned subset of runtime settings');
+    expect(configFilterSource).not.toContain('subset of the backend configuration');
+    expect(configFilterSource).not.toContain('configuration object from backend');
+    expect(configStorageSource).toContain('desktop settings runtime');
+    expect(configStorageSource).toContain('runtime settings changes are acknowledged');
+    expect(configStorageSource).not.toContain('Syncs with backend on connection');
+    expect(configStorageSource).not.toContain('when backend confirms changes');
   });
 });

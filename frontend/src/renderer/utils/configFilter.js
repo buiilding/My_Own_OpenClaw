@@ -1,6 +1,6 @@
 /**
  * Utility functions for filtering frontend configuration.
- * The frontend only needs a subset of the backend configuration.
+ * The renderer only persists the frontend-owned subset of runtime settings.
  */
 
 /**
@@ -31,7 +31,7 @@ const FRONTEND_CONFIG_FIELDS = [
 /**
  * Filters a configuration object to only include fields that the frontend manages.
  * 
- * @param {Object} config - The full configuration object from backend
+ * @param {Object} config - Full runtime settings/config object
  * @returns {Object} - Filtered configuration with only frontend-managed fields
  */
 export function filterFrontendConfig(config) {
