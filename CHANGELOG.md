@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the stale `thread_pool.py` entry from the sidecar source topology map in favor of the active `core/executors.py` module. No migration is required.
+
 - Updated current routing and troubleshooting docs to say Electron local-runtime bridge where they point at SDK-owned local-runtime paths. No migration is required.
 
 - Updated frontend inventory and routing docs to describe the Electron main local-runtime bridge as SDK-owned lifecycle plus host adapters instead of a local sidecar bridge. No migration is required.

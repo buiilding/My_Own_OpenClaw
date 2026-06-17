@@ -18,7 +18,7 @@ frontend/src/main/python/
 │   ├── ipc_protocol.py                # JSONRPCProtocol - JSON-RPC 2.0 protocol handler for stdin/stdout communication
 │   ├── remote_semantic_client.py      # RemoteSemanticClient - HTTP client for backend semantic summarization API
 │   ├── system_state.py                # get_system_state() - Cross-platform system state collection (active window, mouse, clipboard, stats)
-│   ├── thread_pool.py                 # Global ThreadPoolExecutor - Shared thread pool for blocking operations
+│   ├── executors.py                   # Shared interactive/background ThreadPoolExecutor lifecycle for blocking operations
 │   │
 │   └── platform/                       # Platform-specific abstractions
 │       ├── __init__.py                # Platform detection and WindowManager export (Windows/macOS/Linux)
