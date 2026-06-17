@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime launch config variable naming
+
+- Finding: Electron main still stored desktop local-runtime launch overrides in
+  `desktopAutoSidecarLaunchConfig`, even though the host path now builds a
+  desktop local-runtime launch plan.
+- Change: renamed the internal variable to `desktopLocalRuntimeLaunchConfig`
+  and added main SDK runtime boundary coverage so the old auto-sidecar variable
+  name stays absent. The SDK `autoSidecar` option remains unchanged.
+- Validation: focused main SDK runtime boundary Jest test, stale-name scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is an internal Electron main
+  variable rename; SDK launch options and IPC behavior are unchanged.
+
 ### 2026-06-17 SDK websocket handshake OS field deletion
 
 - Finding: SDK websocket transports still emitted `operating_system` as a
