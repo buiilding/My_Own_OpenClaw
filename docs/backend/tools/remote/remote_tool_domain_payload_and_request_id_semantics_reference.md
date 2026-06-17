@@ -171,7 +171,8 @@ Each remote class sets `args_model` to backend schema models:
 - computer schemas in `backend/src/tools/computer/schemas.py`
 - system schemas in `backend/src/tools/system/schemas.py`
 - filesystem schemas in `backend/src/tools/filesystem/schemas.py`
-- browser schema in `backend/src/tools/browser/schemas.py`
+- browser schema in the shared browser contract loaded by
+  `backend/src/tools/browser/shared_contract_loader.py`
 
 This enforces backend-side parse constraints before remote envelope creation.
 

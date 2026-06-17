@@ -89,7 +89,7 @@ export type AgentLocalRuntimeHttpClientOptions = {
   WebSocketImpl?: EventWebSocketConstructor;
 };
 
-type SidecarLaunchEnvironment = Record<string, string | undefined>;
+type LocalRuntimeLaunchEnvironment = Record<string, string | undefined>;
 
 type AgentLocalRuntimeDiscovery = AgentLocalRuntimeHttpClientOptions & {
   launch?: Record<string, string> | null;
@@ -103,7 +103,7 @@ export type AgentAutoSidecarOptions = {
   pythonCommand?: string;
   pythonArgs?: string[];
   cwd?: string;
-  env?: SidecarLaunchEnvironment;
+  env?: LocalRuntimeLaunchEnvironment;
   envMode?: 'merge' | 'replace';
   launchContext?: Record<string, string | undefined> | null;
   host?: string;
@@ -412,7 +412,7 @@ async function importNodeModule<TModule>(specifier: string): Promise<TModule> {
   return import(/* @vite-ignore */ specifier) as Promise<TModule>;
 }
 
-async function loadNodeSidecarModules(): Promise<{
+async function loadNodeLocalRuntimeModules(): Promise<{
   fs: NodeFsLike;
   os: NodeOsLike;
   path: NodePathLike;
@@ -616,14 +616,14 @@ function resolveDaemonScript(options: AgentAutoSidecarOptions, fs: NodeFsLike, p
   );
 }
 
-function resolveProcessEnv(): SidecarLaunchEnvironment {
+function resolveProcessEnv(): LocalRuntimeLaunchEnvironment {
   const processLike = (globalThis as unknown as {
-    process?: { env?: SidecarLaunchEnvironment };
+    process?: { env?: LocalRuntimeLaunchEnvironment };
   }).process;
   return processLike?.env ?? {};
 }
 
-function buildSpawnEnv(options: AgentAutoSidecarOptions): SidecarLaunchEnvironment {
+function buildSpawnEnv(options: AgentAutoSidecarOptions): LocalRuntimeLaunchEnvironment {
   if (options.envMode === 'replace') {
     return { ...(options.env ?? {}) };
   }
@@ -676,9 +676,9 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     if (cachedRuntime) {
       return cachedRuntime;
     }
-    let modules: Awaited<ReturnType<typeof loadNodeSidecarModules>>;
+    let modules: Awaited<ReturnType<typeof loadNodeLocalRuntimeModules>>;
     try {
-      modules = await loadNodeSidecarModules();
+      modules = await loadNodeLocalRuntimeModules();
     } catch (error) {
       throw new Error(
         `Agent SDK local tools require a Node local runtime provider: ${error instanceof Error ? error.message : String(error)}`,

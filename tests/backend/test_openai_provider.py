@@ -28,9 +28,13 @@ from backend.src.llm.providers.openai_responses_payload import (
 from backend.src.llm.providers.openai_responses_runtime import (
     stream_openai_responses_events,
 )
-from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
+from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
 from backend.src.tools.web_search.source_normalization import (
     extract_openai_web_search_sources,
+)
+
+build_browser_tool_parameters_schema = (
+    load_shared_browser_contract().build_browser_tool_parameters_schema
 )
 
 

@@ -147,13 +147,14 @@ CONCRETE_MODULES = [
     "backend.src.services.vision.providers.base",
     "backend.src.services.vision.vision_service",
     "backend.src.services.vm_run_control_support.vm_run_control_helpers",
-    "backend.src.tools.browser.schemas",
+    "backend.src.tools.browser.shared_contract_loader",
     "backend.src.tools.remote_tools.base",
     "backend.src.tools.web_search.tool",
 ]
 
 REMOVED_MODULE_FACADES = [
     "backend/src/core/infrastructure/cache.py",
+    "backend/src/tools/browser/schemas.py",
     "backend/src/tools/remote.py",
 ]
 

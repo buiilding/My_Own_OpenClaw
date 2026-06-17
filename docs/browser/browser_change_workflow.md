@@ -15,7 +15,8 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 ## Runtime Invariants
 
 - The backend owns model-facing browser tool exposure and validation.
-- The shared Python browser contract is the schema source used by backend wrappers and sidecar runtime validation.
+- The shared Python browser contract is the schema source used by the backend
+  remote browser tool and sidecar runtime validation.
 - The sidecar owns Browser Use invocation, browser-local file helpers, and WindieOS result normalization.
 - Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric element indexes, snapshots, and browser action mechanics.
 - Electron main relays `execute_tool` requests and does not inspect Playwright objects.
@@ -29,7 +30,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | Change shape | First owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
 | Browser tool visible/missing from model | Backend tool catalog/policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/browser/**` | `tests/backend/test_browser_remote_tool.py`, tool policy/schema tests | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
-| Browser action schema, fields, or action literals | Shared browser contract plus backend wrappers | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/**`, `frontend/src/main/python/tools/browser/browser_tool.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
+| Browser action schema, fields, or action literals | Shared browser contract plus backend remote tool | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/shared_contract_loader.py`, `backend/src/tools/remote_tools/browser.py`, `frontend/src/main/python/tools/browser/browser_tool.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
 | Browser action runtime behavior | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `browser_tool.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_use_engine.py` | [Browser Control](browser_control.md) |
 | CDP launch, executable detection, or profile path | Sidecar Chrome launcher/detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `browser_use_engine.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_use_engine.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
 | Snapshot text and Browser Use element indexes | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |

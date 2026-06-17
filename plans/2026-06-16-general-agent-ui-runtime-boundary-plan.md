@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime node helper naming
+
+- Finding: the TypeScript SDK local-runtime module still used sidecar-named
+  internal Node launch helper/type names even though the public contract is now
+  the SDK local runtime.
+- Change: renamed the internal launch environment type and Node module loader
+  helper to local-runtime names, regenerated SDK CommonJS output, and added
+  focused source/CJS assertions so the sidecar-named helper does not return.
+- Validation: SDK package build, focused SDK client test, stale helper scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. Public `autoSidecar` options,
+  sidecar-daemon env/discovery contracts, and module paths remain unchanged.
+
 ### 2026-06-17 Desktop-agent event registry key rename
 
 - Finding: the shared IPC registry still exposed SDK display/status/current-turn

@@ -7,20 +7,22 @@ from unittest import mock
 import pytest
 from pydantic import ValidationError
 
-from backend.src.tools.browser.schemas import (
-    BROWSER_CANONICAL_ACTIONS,
-    BrowserClickArgs,
-    BrowserControlArgs,
-    BrowserEvaluateArgs,
-    BrowserExtractArgs,
-    BrowserInputArgs,
-    BrowserSnapshotArgs,
-    BrowserSwitchArgs,
-    build_browser_tool_parameters_schema,
-)
+from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
 from backend.src.tools.remote_tools.browser import RemoteBrowserTool
 
 EXPLANATION = "Advance the active user task."
+_browser_contract = load_shared_browser_contract()
+BROWSER_CANONICAL_ACTIONS = _browser_contract.BROWSER_CANONICAL_ACTIONS
+BrowserClickArgs = _browser_contract.BrowserClickArgs
+BrowserControlArgs = _browser_contract.BrowserControlArgs
+BrowserEvaluateArgs = _browser_contract.BrowserEvaluateArgs
+BrowserExtractArgs = _browser_contract.BrowserExtractArgs
+BrowserInputArgs = _browser_contract.BrowserInputArgs
+BrowserSnapshotArgs = _browser_contract.BrowserSnapshotArgs
+BrowserSwitchArgs = _browser_contract.BrowserSwitchArgs
+build_browser_tool_parameters_schema = (
+    _browser_contract.build_browser_tool_parameters_schema
+)
 
 
 class TestRemoteBrowserTool:

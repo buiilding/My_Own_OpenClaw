@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the backend browser schema re-export wrapper so backend and sidecar browser validation load the shared browser contract directly. No persisted-data migration is required.
+
 - Renamed shared desktop-agent send/on IPC registry keys away from Windie-prefixed names while preserving the windie:* wire channel strings. No persisted-data migration is required.
 
 - Renamed the shared desktop-agent invoke IPC registry key from WINDIE_INVOKE to DESKTOP_AGENT_INVOKE while preserving the windie:invoke wire channel. No persisted-data migration is required.

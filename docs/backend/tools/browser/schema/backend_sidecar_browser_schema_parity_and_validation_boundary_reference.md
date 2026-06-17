@@ -10,7 +10,7 @@ title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 
 ## Canonical Modules and Tests
 
-- `backend/src/tools/browser/schemas.py`
+- `backend/src/tools/browser/shared_contract_loader.py`
 - `backend/src/tools/remote_tools/browser.py`
 - `frontend/src/main/python/windie_shared/browser_contract*.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
@@ -55,7 +55,7 @@ Result:
 
 When changing browser actions, verify four layers:
 
-1. backend action literals (`schemas.py`)
+1. backend-loaded shared contract action literals
 2. shared browser action catalog order (`BROWSER_ACTION_CONTRACTS`)
 3. sidecar tool validation and engine mapping (`browser_tool.py`, `browser_use_engine.py`)
 4. Browser Use runtime handler coverage
@@ -65,7 +65,7 @@ When changing browser actions, verify four layers:
 `tests/sidecar/tools/test_browser_schemas.py` and the Browser Use engine tests enforce:
 
 - `BrowserControlArgs` enforces the shared strict grouped action contract
-- backend wrappers and sidecar validation stay aligned around the same action surface
+- backend remote-tool validation and sidecar validation stay aligned around the same action surface
 - `BrowserUseEngineRuntime` covers the supported Browser Use action set
 
 `tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and strict payload projection behavior.

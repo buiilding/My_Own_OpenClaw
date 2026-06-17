@@ -20,7 +20,9 @@ from backend.src.tools.computer.schemas import (
     ScreenshotToolArgs as BackendScreenshotToolArgs,
     ScrollControlArgs as BackendScrollControlArgs,
 )
-from backend.src.tools.browser.schemas import BrowserControlArgs as BackendBrowserControlArgs
+from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
+
+BackendBrowserControlArgs = load_shared_browser_contract().BrowserControlArgs
 
 
 # Exact parity is only valid for models backed by a shared/generated contract.

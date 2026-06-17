@@ -11,7 +11,9 @@ from backend.src.simulation.mock_llm_browser_client import (
     MockLLMBrowserClient,
     get_mock_llm_browser_client,
 )
-from backend.src.tools.browser.schemas import BrowserControlArgs
+from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
+
+BrowserControlArgs = load_shared_browser_contract().BrowserControlArgs
 
 
 class TestMockLLMBrowserClient:

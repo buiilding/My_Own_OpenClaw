@@ -11,12 +11,14 @@ title: "Browser Control Unified Schema Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/windie_shared/browser_contract.py`
-- `backend/src/tools/browser/schemas.py`
+- `backend/src/tools/browser/shared_contract_loader.py`
+- `backend/src/tools/remote_tools/browser.py`
 
 ## Layer 1: Literal Type Surface
 
-The shared browser contract defines browser vocabulary and field enums, and
-`schemas.py` re-exports them for backend callers:
+The shared browser contract defines browser vocabulary and field enums. Backend
+code loads that contract through `shared_contract_loader.py` and the remote
+browser tool consumes it directly:
 
 - navigation state: `load | domcontentloaded | networkidle | commit`
 - mouse button: `left | right | middle`

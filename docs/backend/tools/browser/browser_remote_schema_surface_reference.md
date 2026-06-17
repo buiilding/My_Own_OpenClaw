@@ -16,8 +16,8 @@ This page documents the canonical backend browser contract in:
 
 ## Browser Action Surface
 
-`schemas.py` re-exports the canonical grouped browser actions from the shared
-browser contract:
+`RemoteBrowserTool` loads the canonical grouped browser actions from the shared
+browser contract via `shared_contract_loader.py`:
 
 - `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `select_dropdown`, `upload_file`, `hover`, `save_as_pdf`, `get_text`, `get_value`, `get_attributes`, `get_bbox`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `close`
 
@@ -25,7 +25,9 @@ There are no removed-alias actions or compatibility-only browser fields in the b
 
 ## Canonical Schema Source
 
-`schemas.py` is the backend wrapper around the shared browser contract authority.
+The shared browser contract is the browser schema authority. Backend code loads
+it through `backend/src/tools/browser/shared_contract_loader.py`; there is no
+separate backend schema re-export wrapper.
 
 The shared contract module defines:
 
@@ -36,7 +38,7 @@ The shared contract module defines:
 - flat action model JSON schemas only; nullable `anyOf` cleanup is the sole
   schema normalization step before property merging, and non-nullable `anyOf`
   shapes fail schema generation instead of being passed through
-- implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and sidecar re-export wrappers
+- implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and sidecar callers
 
 Important boundary:
 

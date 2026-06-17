@@ -17,7 +17,7 @@ title: "Grouped Schema and Action Validation Boundary Reference"
 ## Schema Model Topology
 
 `frontend/src/main/python/windie_shared/browser_contract.py` exposes the browser
-contract consumed directly by the sidecar and backend wrappers:
+contract consumed directly by the sidecar and backend remote browser tool:
 
 - `BrowserControlArgs` discriminated grouped union
 - `BROWSER_ACTION_CONTRACTS` action catalog used for model-facing schema projection
@@ -88,7 +88,7 @@ There is no browser-specific backend/sidecar schema split anymore.
 Practical rule:
 
 - frontend/sidecar code must never import backend code or rely on `backend.src.*`
-- browser schema parity is maintained by keeping backend wrappers and sidecar
+- browser schema parity is maintained by keeping backend remote-tool loading and sidecar
   validation aligned around the shared contract without violating that boundary
 - the production safeguard against drift is backend-vs-sidecar schema parity testing before release, not direct frontend imports of backend modules
 
@@ -96,7 +96,7 @@ Practical rule:
 
 `tests/sidecar/tools/test_browser_schemas.py` verifies:
 
-- strict grouped contract parity with backend wrappers
+- strict grouped contract parity with backend remote-tool validation
 - canonical-only action set
 - strict field validation through `BrowserControlArgs`
 - sidecar browser runtime modules do not import the backend package

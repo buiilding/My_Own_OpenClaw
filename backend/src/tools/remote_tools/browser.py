@@ -8,13 +8,16 @@ from typing import Any
 
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
-from backend.src.tools.browser.schemas import (
-    BrowserControlArgs,
-    build_browser_tool_parameters_schema,
-)
+from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 from backend.src.tools.tool_specs import build_function_tool_spec
+
+_browser_contract = load_shared_browser_contract()
+BrowserControlArgs = _browser_contract.BrowserControlArgs
+build_browser_tool_parameters_schema = (
+    _browser_contract.build_browser_tool_parameters_schema
+)
 
 
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):

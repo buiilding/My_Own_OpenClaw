@@ -13,7 +13,7 @@ from backend.src.agent.tools.preparation.types.resolved_tool_call import (
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
-from backend.src.tools.browser.schemas import BrowserControlArgs
+from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
 from backend.src.tools.computer.schemas import (
     GroundedMouseActionArgs,
     GroundedScrollActionArgs,
@@ -22,6 +22,8 @@ from backend.src.tools.computer.schemas import (
 )
 from backend.src.tools.system.schemas import GetOpenWindowsArgs
 from backend.src.tools.web_search.schemas import WebSearchArgs
+
+BrowserControlArgs = load_shared_browser_contract().BrowserControlArgs
 
 
 class DummySession:

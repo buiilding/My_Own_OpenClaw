@@ -269,7 +269,7 @@ function attachProcessLineReader(stream, onLine) {
 async function importNodeModule(specifier) {
     return Promise.resolve(`${specifier}`).then(s => __importStar(require(s)));
 }
-async function loadNodeSidecarModules() {
+async function loadNodeLocalRuntimeModules() {
     const [fs, os, path, childProcess] = await Promise.all([
         importNodeModule('node:fs'),
         importNodeModule('node:os'),
@@ -485,7 +485,7 @@ function createAgentLocalRuntimeProvider(options = {}) {
         }
         let modules;
         try {
-            modules = await loadNodeSidecarModules();
+            modules = await loadNodeLocalRuntimeModules();
         }
         catch (error) {
             throw new Error(`Agent SDK local tools require a Node local runtime provider: ${error instanceof Error ? error.message : String(error)}`);

@@ -28,13 +28,15 @@ from windie_shared.browser_contract import (
 )
 from windie_shared.browser_contract_schema import _clean_schema
 
-from backend.src.tools.browser.schemas import (
-    BrowserControlArgs as BackendBrowserControlArgs,
-)
-from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
+from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
 from tools.manifest import build_sidecar_tool_manifest
 
 EXPLANATION = "Advance the active user task."
+_backend_browser_contract = load_shared_browser_contract()
+BackendBrowserControlArgs = _backend_browser_contract.BrowserControlArgs
+build_browser_tool_parameters_schema = (
+    _backend_browser_contract.build_browser_tool_parameters_schema
+)
 NATIVE_BROWSER_USE_AGENT_ACTIONS = {
     "done",
     "search",

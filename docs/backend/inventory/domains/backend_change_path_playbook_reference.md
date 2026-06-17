@@ -28,7 +28,7 @@ Validation:
 
 ### 2) Modify tool-call payload shape
 
-1. Update backend tool arg schema source (`backend/src/tools/**/schemas.py` or browser args schema files).
+1. Update backend tool arg schema source (`backend/src/tools/{computer,filesystem,system}/schemas.py` or browser shared contract files under `frontend/src/main/python/windie_shared/browser_contract*.py`).
 2. Update `backend/src/tools/schema_registry.py` if declaration normalization changes.
 3. Update tool-call formatter (`api/processing/formatters/tool_call.py`) if stream payload fields change.
 4. Update incoming tool-result schemas if correlation/id semantics changed.

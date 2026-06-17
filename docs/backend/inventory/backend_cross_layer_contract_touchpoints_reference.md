@@ -33,7 +33,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 
 | Backend owner | Contract files | Frontend/sidecar owners | Contract note |
 | --- | --- | --- | --- |
-| Backend tool arg schemas | `backend/src/tools/{computer,filesystem,system,browser}/schemas.py` | Sidecar tool arg schemas (`frontend/src/main/python/tools/schemas.py`) and shared browser contract (`frontend/src/main/python/windie_shared/browser_contract*.py`) | Must maintain field/literal parity for runtime execution |
+| Backend tool arg schemas | `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser shared contract loader + remote tool | Sidecar tool arg schemas (`frontend/src/main/python/tools/schemas.py`) and shared browser contract (`frontend/src/main/python/windie_shared/browser_contract*.py`) | Must maintain field/literal parity for runtime execution |
 | Unified tool schema registry | `backend/src/tools/registry.py`, `schema_registry.py` | Renderer tool runner + backend parser | Exposed schemas define model-call surface |
 | Tool-result ingress schema | `incoming.py` (`ToolResultMessage`, `ToolBundleResultMessage`) | Renderer `ToolExecutionPayloads.ts` + main IPC relay | Single/bundle result field names must match |
 | Pending result resolution | `agent/tools/waiting/storage/result_storage.py` | Renderer correlation IDs from tool runner | Request/bundle IDs must be stable across turn |
@@ -42,7 +42,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 
 | Backend owner | Contract files | Sidecar owners | Contract note |
 | --- | --- | --- | --- |
-| Browser unified args | `backend/src/tools/browser/schemas.py` | `frontend/src/main/python/windie_shared/browser_contract*.py` and sidecar `browser_tool.py` | Action names + optional fields must stay aligned |
+| Browser unified args | `backend/src/tools/browser/shared_contract_loader.py`, `backend/src/tools/remote_tools/browser.py` | `frontend/src/main/python/windie_shared/browser_contract*.py` and sidecar `browser_tool.py` | Action names + optional fields must stay aligned |
 | Remote browser stub payload | `backend/src/tools/remote_tools/browser.py` | Sidecar `browser_tool.py`, `browser_use_engine.py` | Payload transport keys must preserve action/args shape |
 
 ## Memory + Artifact Contract Touchpoints

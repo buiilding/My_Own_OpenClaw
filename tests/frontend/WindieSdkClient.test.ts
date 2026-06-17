@@ -2783,6 +2783,12 @@ describe('Agent SDK client behavior', () => {
     }
     expect(runtimeSource).not.toContain('SidecarDaemonClientOptions');
     expect(runtimeSource).not.toContain('SidecarDaemonDiscovery');
+    expect(runtimeSource).not.toContain('SidecarLaunchEnvironment');
+    expect(runtimeSource).not.toContain('loadNodeSidecarModules');
+    expect(runtimeSource).toContain('LocalRuntimeLaunchEnvironment');
+    expect(runtimeSource).toContain('loadNodeLocalRuntimeModules');
+    expect(runtimeCjsSource).not.toContain('loadNodeSidecarModules');
+    expect(runtimeCjsSource).toContain('loadNodeLocalRuntimeModules');
     expect(runtimeSource).toContain('Node local runtime provider');
     expect(runtimeCjsSource).toContain('Node local runtime provider');
     expect(runtimeSource).not.toContain('Node sidecar runtime provider');

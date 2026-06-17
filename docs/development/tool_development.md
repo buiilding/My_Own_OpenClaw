@@ -109,7 +109,7 @@ Create/update the args model in the domain schema module, e.g.:
 - `backend/src/tools/system/schemas.py`
 - `backend/src/tools/filesystem/schemas.py`
 - `backend/src/tools/computer/schemas.py`
-- `backend/src/tools/browser/schemas.py`
+- browser actions in `frontend/src/main/python/windie_shared/browser_contract*.py`
 
 Use `ConfigDict(extra='forbid')` for strict payload validation.
 
