@@ -314,7 +314,7 @@ class WindieClient {
             throw new Error(`Agent SDK local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
         }
         if (!this.autoLocalRuntimeProvider) {
-            this.autoLocalRuntimeProvider = (0, LocalSidecarRuntime_js_1.createWindieLocalRuntimeProvider)({
+            this.autoLocalRuntimeProvider = (0, LocalSidecarRuntime_js_1.createAgentLocalRuntimeProvider)({
                 fetchImpl: this.defaultOptions.fetchImpl,
                 ...(this.defaultOptions.autoSidecar ?? {}),
             });

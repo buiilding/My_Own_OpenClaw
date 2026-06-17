@@ -680,7 +680,7 @@ function resolveDaemonLaunchCommand(
   };
 }
 
-export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
+export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
   options: AgentAutoSidecarOptions = {},
 ): AgentLocalRuntimeProvider<TWakeUpOptions> {
   let cachedRuntime: AgentLocalRuntimeClient | undefined;
@@ -824,3 +824,5 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
     }
   };
 }
+
+export const createWindieLocalRuntimeProvider = createAgentLocalRuntimeProvider;

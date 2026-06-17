@@ -700,9 +700,10 @@ Non-Electron SDK hosts can override that behavior with:
   `agent.conversation()` use the sidecar-backed default conversation store so
   chat event history survives process restart.
 
-`AgentToolDefinition`, `AgentLocalRuntimeClient`, and related `Agent*` local
-runtime types are the generic SDK contract names. The matching `Windie*` local
-runtime types remain exported as compatibility aliases for existing callers.
+`AgentToolDefinition`, `AgentLocalRuntimeClient`, `createAgentLocalRuntimeProvider`,
+and related `Agent*` local-runtime names are the generic SDK contract surface.
+The matching `Windie*` local-runtime names remain exported as compatibility
+aliases for existing callers.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly

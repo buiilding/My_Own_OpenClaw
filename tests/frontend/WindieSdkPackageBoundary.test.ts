@@ -11,7 +11,9 @@ import {
   ToolExecutionCoordinator,
   agentBuiltins,
   buildDisplayConversation,
+  createAgentLocalRuntimeProvider,
   createConversationRuntime,
+  createWindieLocalRuntimeProvider,
   moduleTool,
   resolveModelFacingToolCallId,
   resolveToolCallCorrelationId,
@@ -36,6 +38,7 @@ describe('@windie/sdk package boundary', () => {
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
     expect(windieBuiltins).toBe(agentBuiltins);
+    expect(createWindieLocalRuntimeProvider).toBe(createAgentLocalRuntimeProvider);
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveModelFacingToolCallId).toBeDefined();
     expect(resolveToolCallCorrelationId).toBeDefined();

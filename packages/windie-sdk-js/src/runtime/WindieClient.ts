@@ -40,7 +40,7 @@ import {
 import { WindieAgent } from './WindieAgent.js';
 import { stampAgentDefinitionCapabilityMetadata } from './CapabilityManifest.js';
 import {
-  createWindieLocalRuntimeProvider,
+  createAgentLocalRuntimeProvider,
   SidecarDaemonHttpClient,
   type SidecarDaemonClientOptions,
   type AgentAutoSidecarOptions,
@@ -514,7 +514,7 @@ export class WindieClient {
       throw new Error(`Agent SDK local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
     }
     if (!this.autoLocalRuntimeProvider) {
-      this.autoLocalRuntimeProvider = createWindieLocalRuntimeProvider<WindieWakeUpOptions>({
+      this.autoLocalRuntimeProvider = createAgentLocalRuntimeProvider<WindieWakeUpOptions>({
         fetchImpl: this.defaultOptions.fetchImpl,
         ...(this.defaultOptions.autoSidecar ?? {}),
       });

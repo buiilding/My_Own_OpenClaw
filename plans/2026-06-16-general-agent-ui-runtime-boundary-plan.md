@@ -1450,3 +1450,17 @@ Each completed slice should report:
   Windie-prefixed local-runtime types remain compatibility aliases.
 - Compatibility: no migration required. Runtime payloads and public option
   shapes are unchanged; existing `Windie*` type imports continue to type-check.
+
+### 2026-06-17 SDK local runtime provider factory alias
+
+- Finding: after local-runtime contract types moved to generic `Agent*` names,
+  SDK internals still created auto sidecar providers through
+  `createWindieLocalRuntimeProvider`.
+- Change: added `createAgentLocalRuntimeProvider` as the preferred runtime
+  factory, switched source and checked-in CommonJS client internals to use it,
+  and kept `createWindieLocalRuntimeProvider` as a compatibility alias.
+- Validation: focused SDK package-boundary Jest coverage, SDK no-emit
+  TypeScript check, CJS export smoke, docs listing, `git diff --check`, and
+  source scans for the compatibility alias boundary.
+- Compatibility: no migration required. Provider behavior and options are
+  unchanged; existing `createWindieLocalRuntimeProvider` imports keep working.
