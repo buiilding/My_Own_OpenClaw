@@ -1,5 +1,5 @@
 /**
- * Implements the windie client integration for the TypeScript SDK runtime.
+ * Implements the hosted/local agent client integration for the TypeScript SDK runtime.
  */
 
 import {

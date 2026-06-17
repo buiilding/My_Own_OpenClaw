@@ -1204,3 +1204,17 @@ Each completed slice should report:
   `git diff --check`, and stale service-label scan.
 - Compatibility: no migration required. JSON-RPC method names, daemon routes,
   status fields, tool execution, and SDK local-runtime behavior are unchanged.
+
+### 2026-06-17 SDK runtime header copy
+
+- Finding: generic SDK transport/runtime modules still described themselves
+  with product-specific generated header copy, even though their public
+  `Windie*` names are compatibility API and the module roles are generic SDK
+  contracts.
+- Change: updated the selected SDK runtime file headers to backend-session,
+  reusable-agent, reusable-chat, and hosted/local-agent wording, and added a
+  source-boundary test for the retired header phrases.
+- Validation: focused SDK runtime header Jest coverage, docs listing,
+  `git diff --check`, and stale header-copy scan.
+- Compatibility: no migration required. Public SDK exports, filenames,
+  runtime behavior, and package import paths are unchanged.

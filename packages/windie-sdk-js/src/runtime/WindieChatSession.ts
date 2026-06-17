@@ -1,5 +1,5 @@
 /**
- * Provides the windie chat session module for the TypeScript SDK runtime.
+ * Provides the reusable chat session module for the TypeScript SDK runtime.
  */
 
 import type {

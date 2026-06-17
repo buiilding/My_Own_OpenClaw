@@ -1,5 +1,5 @@
 /**
- * Provides the windie agent module for the TypeScript SDK runtime.
+ * Provides the reusable agent API module for the TypeScript SDK runtime.
  */
 
 import { createConversationEvent, createRuntimeId } from '../conversation/events.js';

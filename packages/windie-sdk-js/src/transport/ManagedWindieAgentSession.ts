@@ -1,5 +1,5 @@
 /**
- * Provides the managed windie agent session module for the TypeScript SDK runtime.
+ * Provides managed backend agent session transport for the TypeScript SDK runtime.
  */
 
 import {
