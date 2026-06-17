@@ -8,14 +8,6 @@ export * from './conversation/metadata.js';
 export * from './stores/InMemoryConversationStore.js';
 export * from './stores/FileConversationStore.js';
 export * from './stores/LocalRuntimeConversationStore.js';
-export {
-  SidecarConversationStore,
-} from './stores/SidecarConversationStore.js';
-export type {
-  SidecarConversationStoreEventWriteContext,
-  SidecarConversationStoreEventWriteParams,
-  SidecarConversationStoreOptions,
-} from './stores/SidecarConversationStore.js';
 export * from './projections/conversationProjections.js';
 export * from './runtime/conversationReducer.js';
 export * from './runtime/conversationEventScope.js';

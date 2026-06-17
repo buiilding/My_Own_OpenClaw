@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the SDK `SidecarConversationStore` compatibility module so conversation persistence imports use `LocalRuntimeConversationStore` directly.
+
 - Reworded frontend protocol and Electron-main routing docs around the SDK local-runtime bridge boundary.
 
 - Removed the SDK `sidecarDaemon` option and `SidecarDaemonHttpClient` aliases so JS and Python callers use `localRuntimeDaemon` and `AgentLocalRuntimeHttpClient` directly.

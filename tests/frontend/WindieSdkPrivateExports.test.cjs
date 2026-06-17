@@ -1,5 +1,8 @@
 /** @jest-environment node */
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 describe('@windie/sdk private helper exports', () => {
   test('transport module keeps websocket URL normalization private', () => {
     const canonicalModule = require('../../packages/windie-sdk-js/cjs/transport/AgentSession.js');
@@ -24,14 +27,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(replayModule.compactedReplayFromEvent).toBeUndefined();
   });
 
-  test('sidecar store module remains a compatibility wrapper for local runtime store', () => {
+  test('sidecar store compatibility module is removed', () => {
     const canonicalModule = require('../../packages/windie-sdk-js/cjs/stores/LocalRuntimeConversationStore.js');
-    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/stores/SidecarConversationStore.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/stores/SidecarConversationStore.js',
+    );
 
     expect(canonicalModule.LocalRuntimeConversationStore).toBeDefined();
     expect(canonicalModule.SidecarConversationStore).toBeUndefined();
-    expect(compatibilityModule.LocalRuntimeConversationStore).toBe(canonicalModule.LocalRuntimeConversationStore);
-    expect(compatibilityModule.SidecarConversationStore).toBe(canonicalModule.LocalRuntimeConversationStore);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('managed Windie session module remains a compatibility wrapper for managed agent session', () => {

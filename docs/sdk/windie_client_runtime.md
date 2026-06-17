@@ -515,9 +515,6 @@ records for query, rehydrate, stop, tool-result, and local-runtime operations.
 Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store factory:
 
 `stores/LocalRuntimeConversationStore` is the canonical module path.
-`stores/SidecarConversationStore` remains a compatibility wrapper for callers
-that adopted the current sidecar-backed store name before the generic
-local-runtime store surface existed.
 
 - canonical SDK events are stored in the sidecar `conversation_events` table as the
   storage truth for desktop display and backend rehydrate

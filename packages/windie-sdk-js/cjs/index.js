@@ -17,15 +17,13 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.windieBuiltins = exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.WindieSdkClient = exports.createWindieSdkBackendSocket = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = exports.SidecarConversationStore = void 0;
+exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.windieBuiltins = exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.WindieSdkClient = exports.createWindieSdkBackendSocket = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = void 0;
 __exportStar(require("./conversation/types.js"), exports);
 __exportStar(require("./conversation/events.js"), exports);
 __exportStar(require("./conversation/metadata.js"), exports);
 __exportStar(require("./stores/InMemoryConversationStore.js"), exports);
 __exportStar(require("./stores/FileConversationStore.js"), exports);
 __exportStar(require("./stores/LocalRuntimeConversationStore.js"), exports);
-var SidecarConversationStore_js_1 = require("./stores/SidecarConversationStore.js");
-Object.defineProperty(exports, "SidecarConversationStore", { enumerable: true, get: function () { return SidecarConversationStore_js_1.SidecarConversationStore; } });
 __exportStar(require("./projections/conversationProjections.js"), exports);
 __exportStar(require("./runtime/conversationReducer.js"), exports);
 __exportStar(require("./runtime/conversationEventScope.js"), exports);
