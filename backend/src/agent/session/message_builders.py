@@ -13,22 +13,17 @@ def normalize_message_type(
     role: Optional[Any],
     message_type: Optional[Any],
 ) -> MessageType:
-    normalized = str(message_type or "").strip().lower().replace("-", "_")
-    if normalized in {"tool", "tool_output", "tool_call"}:
-        return MessageType.TOOL_OUTPUT
-    if normalized in {"context_compaction", "compaction", "context_summary"}:
-        return MessageType.CONTEXT_COMPACTION
-    if normalized in {"assistant", "assistant_response", "llm_text", "error"}:
-        return MessageType.ASSISTANT_RESPONSE
-    if normalized in {"user", "user_query", "query"}:
-        return MessageType.USER_QUERY
-
-    normalized_role = str(role or "").strip().lower()
-    if normalized_role == "assistant":
-        return MessageType.ASSISTANT_RESPONSE
-    if normalized_role == "tool":
-        return MessageType.TOOL_OUTPUT
-    return MessageType.USER_QUERY
+    if isinstance(message_type, MessageType):
+        return message_type
+    if isinstance(message_type, str):
+        normalized = message_type.strip()
+        for candidate in MessageType:
+            if normalized == candidate.value:
+                return candidate
+    raise ValueError(
+        f"Stored history entry has unsupported message_type={message_type!r}; "
+        "rehydrate entries must be normalized before replacing history."
+    )
 
 
 def _build_structured_multimodal_content(

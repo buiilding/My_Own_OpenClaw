@@ -369,7 +369,7 @@ def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
     assert len(entries) == 1
     normalized_entry = entries[0]
     assert normalized_entry["role"] == "assistant"
-    assert normalized_entry["message_type"] == "llm-text"
+    assert normalized_entry["message_type"] == "assistant_response"
     assert "tool_calls" not in normalized_entry
     assert known_tool_call_ids == set()
 
@@ -398,12 +398,12 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
     assert len(entries) == 1
     normalized_entry = entries[0]
     assert normalized_entry["role"] == "assistant"
-    assert normalized_entry["message_type"] == "llm-text"
+    assert normalized_entry["message_type"] == "assistant_response"
     assert "tool_calls" not in normalized_entry
     assert known_tool_call_ids == set()
 
 
-def test_normalize_rehydrated_entry_canonicalizes_bundle_aliases_before_routing():
+def test_normalize_rehydrated_entry_sanitizes_bundled_tool_name_trace():
     known_tool_call_ids = set()
     entry = SimpleNamespace(
         role="tool",
@@ -427,7 +427,7 @@ def test_normalize_rehydrated_entry_canonicalizes_bundle_aliases_before_routing(
     assert len(entries) == 1
     normalized_entry = entries[0]
     assert normalized_entry["role"] == "assistant"
-    assert normalized_entry["message_type"] == "llm-text"
+    assert normalized_entry["message_type"] == "assistant_response"
     assert "tool_calls" not in normalized_entry
     assert known_tool_call_ids == set()
 
@@ -623,7 +623,7 @@ def test_normalize_rehydrated_entry_preserves_structured_tool_content():
                     "image_url": {"url": "data:image/png;base64,abc123"},
                 },
             ],
-            "message_type": "tool-output",
+            "message_type": "tool_output",
             "tool_name": "read_file",
             "correlation_id": None,
             "timestamp": "2026-02-26T00:00:01Z",
@@ -880,16 +880,16 @@ async def test_execute_rejects_multi_tool_turn_with_one_missing_output():
     assert manager.session.calls == []
 
 
-def test_normalize_stored_message_type_collapses_context_summary_variants():
+def test_normalize_stored_message_type_emits_canonical_history_values():
     assert (
         RehydrateEntryNormalizer.normalize_stored_message_type("context_summary")
-        == "context-compaction"
+        is None
     )
     assert (
         RehydrateEntryNormalizer.normalize_stored_message_type("context-compaction")
-        == "context-compaction"
+        == "context_compaction"
     )
     assert (
         RehydrateEntryNormalizer.normalize_stored_message_type("assistant-message")
-        == "assistant-message"
+        == "assistant_response"
     )

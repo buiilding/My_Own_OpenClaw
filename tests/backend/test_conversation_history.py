@@ -1,6 +1,7 @@
 """Covers conversation history behavior in the backend test suite."""
 
 import backend.src.services.token_service as token_service
+import pytest
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
@@ -344,19 +345,19 @@ def test_replace_with_entries_rehydrates_order_and_images():
             {
                 "role": "user",
                 "content": "u1",
-                "message_type": "user",
+                "message_type": "user_query",
                 "image_data": "img-1",
             },
             {
                 "role": "tool",
                 "content": "tool-1",
-                "message_type": "tool-output",
+                "message_type": "tool_output",
                 "image_data": "img-2",
             },
             {
                 "role": "assistant",
                 "content": "a1",
-                "message_type": "llm-text",
+                "message_type": "assistant_response",
             },
         ]
     )
@@ -381,7 +382,7 @@ def test_replace_with_entries_preserves_structured_tool_content_for_llm_replay()
                         "image_url": {"url": "data:image/png;base64,abc123"},
                     },
                 ],
-                "message_type": "tool-output",
+                "message_type": "tool_output",
                 "tool_call_id": "call_1",
             },
         ]
@@ -448,7 +449,7 @@ def test_replace_with_entries_preserves_assistant_tool_call_rows():
             {
                 "role": "assistant",
                 "content": "",
-                "message_type": "tool-call",
+                "message_type": "assistant_response",
                 "tool_calls": [
                     {
                         "id": "call_1",
@@ -460,7 +461,7 @@ def test_replace_with_entries_preserves_assistant_tool_call_rows():
             {
                 "role": "tool",
                 "content": "ok",
-                "message_type": "tool-output",
+                "message_type": "tool_output",
                 "tool_call_id": "call_1",
             },
         ]
@@ -493,7 +494,7 @@ def test_replace_with_entries_normalizes_structured_assistant_content():
                     {"type": "output_text", "text": "Visible answer."},
                     {"type": "refusal", "refusal": "Cannot share that."},
                 ],
-                "message_type": "llm-text",
+                "message_type": "assistant_response",
             },
         ]
     )
@@ -526,7 +527,7 @@ def test_replace_with_entries_drops_empty_assistant_rows_with_only_unsupported_c
                 "content": [
                     {"type": "thinking", "text": "private reasoning"},
                 ],
-                "message_type": "llm-text",
+                "message_type": "assistant_response",
             },
         ]
     )
@@ -559,17 +560,32 @@ def test_replace_with_stored_messages_replaces_history_atomically():
     assert stored[1].content == "latest user"
 
 
-def test_replace_with_entries_normalizes_context_compaction_message_type():
+def test_replace_with_entries_accepts_canonical_context_compaction_message_type():
     history = ConversationHistory()
     history.replace_with_entries(
         [
             {
                 "role": "assistant",
                 "content": "summary",
-                "message_type": "context-compaction",
+                "message_type": "context_compaction",
             }
         ]
     )
 
     stored = history.get_stored_messages()
     assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
+
+
+def test_replace_with_entries_rejects_old_message_type_aliases():
+    history = ConversationHistory()
+
+    with pytest.raises(ValueError, match="unsupported message_type"):
+        history.replace_with_entries(
+            [
+                {
+                    "role": "tool",
+                    "content": "tool output",
+                    "message_type": "tool-output",
+                }
+            ]
+        )

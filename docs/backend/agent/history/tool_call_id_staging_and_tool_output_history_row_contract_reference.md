@@ -88,11 +88,16 @@ On tool output:
 - assistant tool-call rows keep `tool_calls`
 - user rows rehydrate `user_query_raw` from `<user_query>...</user_query>` when present
 
-Message-type compatibility in rehydrate path comes from `normalize_message_type(...)`:
+Message-type normalization is split by boundary:
 
-- tool aliases and legacy forms map to `TOOL_OUTPUT`
-- compaction aliases map to `CONTEXT_COMPACTION`
-- unknown types fall back by role
+- API rehydrate converts current frontend labels such as `tool-output` and
+  `tool-call` into canonical stored `MessageType` values before replacing
+  history.
+- `ConversationHistory.replace_with_entries(...)` accepts only canonical stored
+  values (`user_query`, `assistant_response`, `tool_output`,
+  `context_compaction`).
+- Unknown or old stored message-type aliases raise instead of falling back by
+  role.
 
 This allows restored history to survive provider normalization without dropping tool linkage.
 

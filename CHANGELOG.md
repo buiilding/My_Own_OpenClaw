@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/history: remove stored-history message-type alias fallbacks so rehydrate normalizes frontend labels before strict conversation-history replacement.
+
 - Main: moved the WindieOS app icon filename into host skin assets while keeping window and tray icon resolution generic.
 
 - Main: renamed the no-Electron install-auth fallback directory to generic desktop-agent wording while keeping Electron userData persistence unchanged.

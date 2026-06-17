@@ -111,7 +111,9 @@ This preserves strict provider tool-message linkage while keeping screenshot con
 Normalization includes:
 
 - role normalization (`tool`, `assistant`, fallback user)
-- message_type normalization (`tool-output`, `tool-call`, `llm-text`, `user`, etc.)
+- API rehydrate boundary normalization from current frontend labels
+  (`tool-output`, `tool-call`, `llm-text`, `user`, etc.) into canonical stored
+  `MessageType` values
 - preservation of assistant tool-call rows with `tool_calls`
 - preservation of tool rows with `tool_call_id`
 - structured transparency restore:
@@ -126,13 +128,17 @@ Normalization includes:
 - tool-call content parsing/normalization logic is delegated to `rehydrate_tool_call_normalization.py` so entry-level rehydrate routing stays isolated from JSON/tool-call shape handling
 - transparency/system-prompt/full-content restoration helpers are delegated to `rehydrate_transparency_resolution.py` so entry normalizer state/routing stays decoupled from content-source precedence logic
 
-`normalize_message_type(role, message_type)` compatibility aliases:
+`ConversationHistory.replace_with_entries(...)` requires canonical stored
+`MessageType` values:
 
-- tool variants (`tool`, `tool_output`, `tool_call`) -> `TOOL_OUTPUT`
-- compaction variants (`context_compaction`, `compaction`, `context_summary`) -> `CONTEXT_COMPACTION`
-- assistant variants (`assistant`, `assistant_response`, `llm_text`, `error`) -> `ASSISTANT_RESPONSE`
-- user variants (`user`, `user_query`, `query`) -> `USER_QUERY`
-- fallback by role when `message_type` is absent/unknown (`assistant` -> assistant response, `tool` -> tool output, else user query)
+- `user_query`
+- `assistant_response`
+- `tool_output`
+- `context_compaction`
+
+The API rehydrate normalizer owns frontend label conversion before entries
+reach history. Unknown or old stored message-type aliases are rejected instead
+of falling back by role.
 
 Key outcome: rehydrated history can be passed through provider normalization without dropping linked tool messages.
 

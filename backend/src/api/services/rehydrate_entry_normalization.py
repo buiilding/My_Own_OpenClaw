@@ -21,6 +21,7 @@ from backend.src.api.services.rehydrate_transparency_resolution import (
 from backend.src.api.services.rehydrate_transparency_resolution import (
     resolve_rehydrated_content as resolve_rehydrated_content_helper,
 )
+from backend.src.core.types.enums import MessageType
 
 _TOOL_CALL_MESSAGE_TYPES = frozenset({"tool-call", "tool-bundle"})
 _TOOL_OUTPUT_MESSAGE_TYPES = frozenset({"tool-output", "tool-result"})
@@ -211,7 +212,7 @@ class RehydrateEntryNormalizer:
                 content,
                 role="assistant",
             ),
-            "message_type": "llm-text",
+            "message_type": MessageType.ASSISTANT_RESPONSE.value,
             "tool_name": None,
             "correlation_id": None,
             "timestamp": timestamp,
@@ -222,16 +223,26 @@ class RehydrateEntryNormalizer:
     def normalize_message_type(message_type: Optional[str]) -> str:
         if not isinstance(message_type, str):
             return ""
-        return message_type.strip().lower().replace("_", "-")
+        return message_type.strip().lower()
 
     @classmethod
     def normalize_stored_message_type(
         cls, message_type: Optional[str]
     ) -> Optional[str]:
         normalized = cls.normalize_message_type(message_type)
-        if normalized in {"context-compaction", "context-summary"}:
-            return "context-compaction"
-        return message_type
+        if normalized in {"tool-output", "tool-result"}:
+            return MessageType.TOOL_OUTPUT.value
+        if normalized in {"tool-call", "tool-bundle"}:
+            return MessageType.ASSISTANT_RESPONSE.value
+        if normalized in {"llm-text", "assistant-message", "assistant"}:
+            return MessageType.ASSISTANT_RESPONSE.value
+        if normalized in {"user-message", "user"}:
+            return MessageType.USER_QUERY.value
+        if normalized == "context-compaction":
+            return MessageType.CONTEXT_COMPACTION.value
+        if normalized in {message_type.value for message_type in MessageType}:
+            return normalized
+        return None
 
     @staticmethod
     def is_internal_bundle_trace(
