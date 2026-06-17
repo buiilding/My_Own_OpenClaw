@@ -18,7 +18,7 @@ for method registration and payload-shape changes after the daemon is reachable.
 ```mermaid
 flowchart LR
   AppBootstrap["Electron app bootstrap"] --> BridgeInit["initializeLocalRuntimeBridge"]
-  BridgeInit --> LaunchOptions["sdk_sidecar_launch_options"]
+  BridgeInit --> LaunchOptions["local_runtime_launch_options"]
   LaunchOptions --> SDKProvider["SDK local runtime provider"]
   SDKProvider --> Daemon["sidecar_daemon.py"]
   Daemon --> LocalBackend["LocalBackend"]
@@ -39,7 +39,7 @@ readiness/status broadcasts.
 | --- | --- | --- |
 | Bridge composition | `frontend/src/main/sidecar/local_backend_bridge.cjs` | Wires SDK local runtime provider access, status broadcasts, host helper IPC, and sidecar RPC mappers. |
 | Supervisor state | `frontend/src/main/sidecar/local_backend_supervisor.cjs` | Tracks renderer-visible daemon status, ready flag, generation, and last error. |
-| Launch options | `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs` | Resolves desktop daemon command/args/cwd/env/launch context before passing them to the SDK. |
+| Launch options | `frontend/src/main/sidecar/local_runtime_launch_options.cjs` | Resolves desktop daemon command/args/cwd/env/launch context before passing them to the SDK. |
 | Timeout policy | `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |
 | Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
@@ -51,7 +51,7 @@ readiness/status broadcasts.
 
 | Symptom or request | Primary owner | Continue into |
 | --- | --- | --- |
-| Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `sdk_sidecar_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
+| Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `local_runtime_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
 | `local-runtime-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
@@ -137,11 +137,11 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 
 | Failure | First proof | Next file |
 | --- | --- | --- |
-| SDK provider cannot start daemon | Check launch target, missing command/script errors, launch context, and SDK provider error. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `LocalRuntime.ts` |
+| SDK provider cannot start daemon | Check launch target, missing command/script errors, launch context, and SDK provider error. | `runtime_paths.cjs`, `local_runtime_launch_options.cjs`, `LocalRuntime.ts` |
 | Daemon starts but helper RPC fails | Check SDK `/rpc` unwrapping and daemon `LocalBackend.protocol.handle_request(...)`. | `LocalRuntime.ts`, `sidecar_daemon.py`, `local_backend.py` |
 | Ready event reaches main but renderer still disabled | Check `get-local-runtime-status` bootstrap invoke and `local-runtime-status` listener cleanup. | `localRuntimeStatusStore.js` |
 | Browser controls stuck | Check browser session readiness handler and the first browser status/sync request after readiness. | `browserSessionStore.js` |
-| Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `docs/operations/release_packaging_change_workflow.md` |
+| Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `local_runtime_launch_options.cjs`, `docs/operations/release_packaging_change_workflow.md` |
 
 ## Test Matrix
 

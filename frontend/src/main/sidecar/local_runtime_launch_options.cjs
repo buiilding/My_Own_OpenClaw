@@ -37,7 +37,7 @@ const DAEMON_LAUNCH_CONTEXT_ENV_KEYS = [
   'WINDIE_SIDECAR_SOURCE_STAMP',
 ];
 
-const SIDECAR_SOURCE_STAMP_FILES = [
+const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
   'sidecar_daemon.py',
   'local_backend.py',
   'local_backend_memory_handlers.py',
@@ -58,7 +58,7 @@ function createMissingCommandError({ isPackaged, copy = {} } = {}) {
   return 'Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the frontend_jarvis Python executable.';
 }
 
-function resolveSidecarSourceStamp(launchTarget) {
+function resolveLocalRuntimeSourceStamp(launchTarget) {
   const resolvedPath = typeof launchTarget?.resolvedPath === 'string'
     ? launchTarget.resolvedPath
     : '';
@@ -69,7 +69,7 @@ function resolveSidecarSourceStamp(launchTarget) {
     };
   }
   const sourceDir = path.dirname(resolvedPath);
-  const stampParts = SIDECAR_SOURCE_STAMP_FILES.map((fileName) => {
+  const stampParts = LOCAL_RUNTIME_SOURCE_STAMP_FILES.map((fileName) => {
     const filePath = path.join(sourceDir, fileName);
     try {
       const stat = fs.statSync(filePath);
@@ -94,7 +94,7 @@ function buildLocalRuntimeDaemonEnv({
   const endpointConfig = backendEndpoints || resolveBackendEndpoints(process.env, {
     isPackaged,
   });
-  const sourceIdentity = resolveSidecarSourceStamp(launchTarget);
+  const sourceIdentity = resolveLocalRuntimeSourceStamp(launchTarget);
   const backendEnv = withLocalRuntimeNodeOptions({
     ...process.env,
     PYTHONUNBUFFERED: '1',
@@ -133,7 +133,7 @@ function buildLocalRuntimeDaemonEnv({
   return backendEnv;
 }
 
-function buildSidecarLaunchContextFromEnv(env = {}) {
+function buildLocalRuntimeLaunchContextFromEnv(env = {}) {
   const normalized = {};
   for (const key of DAEMON_LAUNCH_CONTEXT_ENV_KEYS) {
     normalized[key] = typeof env[key] === 'string' ? env[key].trim() : '';
@@ -198,7 +198,7 @@ function createDesktopLocalRuntimeLaunchPlan({
       discoveryFile,
       env,
       envMode: 'replace',
-      launchContext: buildSidecarLaunchContextFromEnv(env),
+      launchContext: buildLocalRuntimeLaunchContextFromEnv(env),
       reuseExisting: false,
       startTimeoutMs: DEFAULT_DAEMON_START_TIMEOUT_MS,
       pollIntervalMs: DEFAULT_DAEMON_POLL_INTERVAL_MS,

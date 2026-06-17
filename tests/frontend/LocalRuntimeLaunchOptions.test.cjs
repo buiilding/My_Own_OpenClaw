@@ -6,14 +6,14 @@ const path = require('path');
 
 const {
   createDesktopLocalRuntimeLaunchPlan,
-} = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
-const launchOptionsModule = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
+const launchOptionsModule = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const bridgeUtilsModule = require('../../frontend/src/main/sidecar/local_backend_bridge_utils.cjs');
 const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
-describe('sdk local runtime launch options', () => {
+describe('desktop local runtime launch options', () => {
   test('removes the legacy auto-sidecar launch plan export', () => {
     expect(launchOptionsModule.createDesktopAutoSidecarLaunchPlan).toBeUndefined();
   });
@@ -25,14 +25,20 @@ describe('sdk local runtime launch options', () => {
 
   test('uses local-runtime daemon helper names in launch source', () => {
     const source = fs.readFileSync(
-      path.join(__dirname, '../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs'),
+      path.join(__dirname, '../../frontend/src/main/sidecar/local_runtime_launch_options.cjs'),
       'utf8',
     );
 
     expect(source).toContain('buildLocalRuntimeDaemonEnv');
     expect(source).toContain('writeLocalRuntimeDaemonLogLine');
+    expect(source).toContain('LOCAL_RUNTIME_SOURCE_STAMP_FILES');
+    expect(source).toContain('resolveLocalRuntimeSourceStamp');
+    expect(source).toContain('buildLocalRuntimeLaunchContextFromEnv');
     expect(source).not.toContain('buildSidecarDaemonEnv');
     expect(source).not.toContain('writeSidecarDaemonLogLine');
+    expect(source).not.toContain(['SIDECAR', 'SOURCE', 'STAMP', 'FILES'].join('_'));
+    expect(source).not.toContain(['resolveSidecar', 'SourceStamp'].join(''));
+    expect(source).not.toContain(['buildSidecar', 'LaunchContextFromEnv'].join(''));
   });
 
   test('uses host skin copy for packaged missing Python guidance', () => {

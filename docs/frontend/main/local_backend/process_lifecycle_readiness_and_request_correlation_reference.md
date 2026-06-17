@@ -11,7 +11,7 @@ title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 ## Canonical Modules
 
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
-- `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`
+- `frontend/src/main/sidecar/local_runtime_launch_options.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`

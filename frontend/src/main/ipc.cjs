@@ -157,7 +157,7 @@ const {
 } = require('./agent/desktop_agent_definition_inputs.cjs');
 const {
   createDesktopLocalRuntimeLaunchPlan,
-} = require('./sidecar/sdk_sidecar_launch_options.cjs');
+} = require('./sidecar/local_runtime_launch_options.cjs');
 const {
   AgentClient,
   buildAgentDefinition,

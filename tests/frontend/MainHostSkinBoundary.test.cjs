@@ -21,7 +21,7 @@ const mainWindowRuntimePath = path.join(mainRoot, 'surfaces/main_window_runtime.
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
-const sidecarLaunchOptionsPath = path.join(mainRoot, 'sidecar/sdk_sidecar_launch_options.cjs');
+const localRuntimeLaunchOptionsPath = path.join(mainRoot, 'sidecar/local_runtime_launch_options.cjs');
 const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_backend_bridge.cjs');
 const localBackendBridgeModulePaths = [
   localBackendBridgePath,
@@ -191,7 +191,7 @@ describe('main host skin/config boundary', () => {
   test('bundled runtime helpers use generic defaults instead of product reinstall copy', () => {
     const sources = [
       fs.readFileSync(wakewordRuntimePath, 'utf8'),
-      fs.readFileSync(sidecarLaunchOptionsPath, 'utf8'),
+      fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8'),
     ];
 
     for (const source of sources) {

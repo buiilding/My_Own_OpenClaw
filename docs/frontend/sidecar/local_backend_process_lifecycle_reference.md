@@ -11,7 +11,7 @@ title: "SDK-Owned Sidecar Lifecycle Reference"
 ## Canonical Modules
 
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
-- `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs`
+- `frontend/src/main/sidecar/local_runtime_launch_options.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
@@ -116,7 +116,7 @@ Additional mapped handlers are registered through compiled mapper definitions (`
 
 If sidecar shows ready=false indefinitely:
 
-1. verify `sdk_sidecar_launch_options.cjs` can build a valid daemon launch plan
+1. verify `local_runtime_launch_options.cjs` can build a valid daemon launch plan
 2. inspect SDK auto-local-runtime discovery context and daemon `/status` failures
 3. inspect daemon stderr lines forwarded through `autoLocalRuntime.onStderrLine`
 

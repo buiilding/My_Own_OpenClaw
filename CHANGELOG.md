@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed Electron main desktop local-runtime launch options from the sidecar-named module path to `local_runtime_launch_options.cjs` and moved private launch helper identifiers to local-runtime wording. No migration is required.
+
 - Renamed the Electron main desktop-agent IPC channel owner wording from channel aliases to channel groups. No migration is required.
 
 - Completed Electron main endpoint loopback fallback naming by renaming the host/port override and candidate locals away from local-backend wording. No migration is required.

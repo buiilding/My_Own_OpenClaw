@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 desktop local-runtime launch options module
+
+- Finding: Electron main's desktop local-runtime launch option builder still
+  lived in a sidecar-named module path, making the host adapter boundary read as
+  sidecar-specific even after the exported launch-plan API moved to
+  local-runtime names.
+- Change: renamed the module and focused Jest suite to
+  `local_runtime_launch_options.cjs` / `LocalRuntimeLaunchOptions`, updated main
+  imports plus current docs, and kept daemon/env/path behavior unchanged.
+- Validation: focused launch/main-boundary tests, stale module-path scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  path/test rename; public env vars, daemon discovery files, sidecar process
+  names, and SDK launch contracts are unchanged.
+
 ### 2026-06-17 main desktop-agent channel group wording
 
 - Finding: the Electron main desktop-agent IPC channel owner module still called
@@ -1451,7 +1466,7 @@ Each completed slice should report:
   the Electron sidecar log allowlist, kept `[LocalBackend]` accepted for legacy
   helper output, and updated logging docs/tests to prefer local-sidecar wording.
 - Validation: focused sidecar daemon source-copy pytest, focused
-  `SdkSidecarLaunchOptions` Jest coverage, docs listing, `git diff --check`,
+  `LocalRuntimeLaunchOptions` Jest coverage, docs listing, `git diff --check`,
   and source scan for emitted legacy status-prefix usage.
 - Compatibility: no migration required. Environment flag names, diagnostic path
   ids, sidecar launch behavior, and legacy `[LocalBackend]` log forwarding
