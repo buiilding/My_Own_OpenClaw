@@ -1015,7 +1015,7 @@ describe('ChatGptDashboardShell', () => {
     expect(hasSdkCommandCall('conversations.list', { userId: 'user-live' })).toBe(true);
   });
 
-  test('retries recent chats on startup when local backend is not ready', async () => {
+  test('retries recent chats on startup when local runtime is not ready', async () => {
     jest.useFakeTimers();
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
@@ -1025,7 +1025,7 @@ describe('ChatGptDashboardShell', () => {
         if (listCallCount === 1) {
           return {
             success: false,
-            error: 'Local backend not ready',
+            error: 'Local runtime not ready',
           };
         }
         return {

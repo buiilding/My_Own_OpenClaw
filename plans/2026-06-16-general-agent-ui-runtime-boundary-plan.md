@@ -226,3 +226,15 @@ Each completed slice should report:
   for the old phrase.
 - Compatibility: no migration required. This is user-facing copy only; event
   payload shape and send-failure behavior are unchanged.
+
+### 2026-06-17 dashboard startup retry terminology
+
+- Finding: the dashboard integration test for startup conversation retries used
+  the legacy local-backend readiness phrase as its primary scenario even though
+  the renderer facade now prefers local-runtime readiness.
+- Change: updated the dashboard test name and simulated startup error to
+  local-runtime wording while retaining legacy phrase compatibility coverage in
+  the conversation library facade tests.
+- Validation: focused Jest run for `ChatGptDashboardShell`; the suite passed
+  with existing React `act(...)` warnings.
+- Compatibility: no migration required. Test-only terminology alignment.
