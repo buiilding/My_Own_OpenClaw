@@ -66,6 +66,7 @@ __exportStar(require("./tools/builtins.js"), exports);
 var WindieBuiltins_js_1 = require("./tools/WindieBuiltins.js");
 Object.defineProperty(exports, "windieBuiltins", { enumerable: true, get: function () { return WindieBuiltins_js_1.windieBuiltins; } });
 __exportStar(require("./settings/modelSelection.js"), exports);
+__exportStar(require("./settings/WindieModelSelection.js"), exports);
 var AgentSession_js_1 = require("./transport/AgentSession.js");
 Object.defineProperty(exports, "AgentSession", { enumerable: true, get: function () { return AgentSession_js_1.AgentSession; } });
 Object.defineProperty(exports, "createAgentBackendTransport", { enumerable: true, get: function () { return AgentSession_js_1.createAgentBackendTransport; } });

@@ -118,6 +118,9 @@ export type {
   WindieBuiltinToolSet,
 } from './tools/WindieBuiltins.js';
 export * from './settings/modelSelection.js';
+export type {
+  WindieModelSelection,
+} from './settings/WindieModelSelection.js';
 export {
   AgentSession,
   createAgentBackendTransport,

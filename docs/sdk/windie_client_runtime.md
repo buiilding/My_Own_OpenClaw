@@ -858,8 +858,8 @@ hand-shaped renderer payloads. `updateSettings(config)` remains available for
 host applications that own a broader settings surface.
 
 `AgentModelSelection` is the generic SDK type for that camelCase selection.
-`WindieModelSelection` remains exported as a compatibility alias for existing
-callers.
+`WindieModelSelection.ts` remains the compatibility wrapper for existing
+Windie-prefixed model selection type callers.
 
 Desktop model changes now route through the renderer settings runtime facade
 before they reach the low-level IPC adapter. Chat features should call

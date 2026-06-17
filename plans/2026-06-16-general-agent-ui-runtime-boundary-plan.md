@@ -2714,3 +2714,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level builtin imports
   still resolve, and direct compatibility-module imports can use
   `WindieBuiltins`.
+
+### 2026-06-17 modelSelection module compatibility wrapper
+
+- Finding: the canonical SDK model-selection module still exported the
+  historical `WindieModelSelection` type alias directly, so the generic model
+  settings helper owned product-prefixed type naming.
+- Change: moved `WindieModelSelection` to the `WindieModelSelection`
+  compatibility module and package boundary, leaving `modelSelection` as the
+  canonical module for `AgentModelSelection`.
+- Validation: focused SDK model-selection, package-boundary/private-export
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  canonical model-selection module no longer exports Windie-prefixed
+  compatibility names.
+- Compatibility: no migration required. Existing package-level model selection
+  type imports still resolve, and direct compatibility-module imports can use
+  `WindieModelSelection`.

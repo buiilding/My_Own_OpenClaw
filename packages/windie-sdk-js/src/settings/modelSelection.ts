@@ -12,8 +12,6 @@ export type AgentModelSelection = {
   interactionMode?: string;
 };
 
-export type WindieModelSelection = AgentModelSelection;
-
 function coerceNonEmptyString(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;

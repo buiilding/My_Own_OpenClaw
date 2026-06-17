@@ -5,8 +5,10 @@
 import {
   buildModelSettingsPatch,
   type AgentModelSelection,
-  type WindieModelSelection,
 } from '../../packages/windie-sdk-js/src/settings/modelSelection';
+import type {
+  WindieModelSelection,
+} from '../../packages/windie-sdk-js/src/settings/WindieModelSelection';
 
 describe('buildModelSettingsPatch', () => {
   test('maps SDK model selection fields to backend settings keys', () => {
