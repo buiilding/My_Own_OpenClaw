@@ -1,5 +1,5 @@
 /**
- * Bridges local backend screenshot attachment behavior for the Electron main process.
+ * Bridges local sidecar screenshot attachment behavior for the Electron main process.
  */
 
 const fsPromises = require('fs/promises');

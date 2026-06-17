@@ -1,5 +1,5 @@
 /**
- * Bridges local backend timeout policy behavior for the Electron main process.
+ * Bridges local sidecar timeout policy behavior for the Electron main process.
  */
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 60000;

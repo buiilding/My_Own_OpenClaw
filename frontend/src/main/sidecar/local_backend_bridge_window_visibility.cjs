@@ -1,5 +1,5 @@
 /**
- * Bridges local backend window visibility behavior for the Electron main process.
+ * Bridges local sidecar window visibility behavior for the Electron main process.
  */
 
 function createWindowResolvers(getWindows) {

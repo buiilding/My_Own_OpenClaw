@@ -1,5 +1,5 @@
 /**
- * Coordinates the local backend bridge execute tool runtime for the Electron main process.
+ * Coordinates local sidecar tool execution for the Electron main process.
  */
 
 const fs = require('fs');

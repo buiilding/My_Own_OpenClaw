@@ -1,5 +1,5 @@
 /**
- * Provides the local backend status broadcaster module for the Electron main process.
+ * Provides local sidecar status broadcasting for the Electron main process.
  */
 
 const {

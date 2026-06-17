@@ -1,5 +1,5 @@
 /**
- * Provides the local backend supervisor module for the Electron main process.
+ * Provides local sidecar process supervision for the Electron main process.
  */
 
 function createLocalBackendSupervisor({

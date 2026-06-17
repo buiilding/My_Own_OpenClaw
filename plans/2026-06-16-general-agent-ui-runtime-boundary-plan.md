@@ -201,3 +201,16 @@ Each completed slice should report:
   for the old helper-copy phrases.
 - Compatibility: no migration required. This is source copy only; tool schemas
   and runtime behavior are unchanged.
+
+### 2026-06-17 main sidecar adapter headers
+
+- Finding: Electron main sidecar adapter modules still introduced themselves as
+  local-backend bridges even when their responsibility is host-side sidecar
+  process, status, tool, screenshot, and window adaptation.
+- Change: updated adapter module headers to local-sidecar/runtime terminology
+  while preserving filenames, exported function names, IPC channel names, and
+  diagnostic labels.
+- Validation: focused Jest run for `MainHostSkinBoundary` plus a sidecar module
+  header scan for the old wording.
+- Compatibility: no migration required. Public bridge compatibility names and
+  runtime behavior remain unchanged.

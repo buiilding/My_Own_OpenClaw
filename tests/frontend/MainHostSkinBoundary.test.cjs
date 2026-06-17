@@ -16,6 +16,19 @@ const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
 const sidecarLaunchOptionsPath = path.join(mainRoot, 'sidecar/sdk_sidecar_launch_options.cjs');
 const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_backend_bridge.cjs');
+const localBackendBridgeModulePaths = [
+  localBackendBridgePath,
+  path.join(mainRoot, 'sidecar/local_backend_bridge_display_bounds.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_bridge_execute_tool_runtime.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_bridge_rpc_mappers.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_bridge_screenshot_attachment.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_bridge_timeout_policy.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_bridge_tool_args.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_bridge_utils.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_bridge_window_visibility.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_status_broadcaster.cjs'),
+  path.join(mainRoot, 'sidecar/local_backend_supervisor.cjs'),
+];
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
 const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_screen_capture.cjs');
@@ -163,6 +176,15 @@ describe('main host skin/config boundary', () => {
 
     expect(skinSource).toContain('local runtime is not ready');
     expect(skinSource).not.toContain('local backend is not ready');
+  });
+
+  test('main sidecar adapter headers use local-runtime boundary wording', () => {
+    for (const modulePath of localBackendBridgeModulePaths) {
+      const header = fs.readFileSync(modulePath, 'utf8').split('\n').slice(0, 3).join('\n');
+
+      expect(header).toMatch(/local sidecar|local-runtime|local runtime/i);
+      expect(header).not.toContain('local backend');
+    }
   });
 
   test('main-private host markers use generic desktop-agent naming', () => {

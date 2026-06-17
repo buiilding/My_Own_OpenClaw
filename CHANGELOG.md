@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: describe Electron sidecar adapter module headers as local sidecar runtime boundaries while preserving existing local backend bridge compatibility names.
+
 - frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 
 - backend/api: make `api.services` a marker package and require service imports
@@ -1417,6 +1419,8 @@ All notable changes to WindieOS will be documented in this file.
   empty-stream abort.
 
 ### Changed
+
+- frontend/main: describe Electron sidecar adapter module headers as local sidecar runtime boundaries while preserving existing local backend bridge compatibility names.
 
 - frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 
@@ -2858,6 +2862,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: describe Electron sidecar adapter module headers as local sidecar runtime boundaries while preserving existing local backend bridge compatibility names.
+
 - frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 
 - feat(hosted-install-auth-and-remote-embeddings): add no-login install registration plus install-token auth for hosted REST and websocket flows, stop trusting client-owned `user_id` on the hosted path, scope session cleanup to the final active connection per authenticated user, extract embeddings behind a remote HTTP provider/service option with bounded concurrency, and thread auth headers through the Electron main process and sidecar backend clients; add focused backend/frontend/sidecar coverage and refresh the API/transport docs for the new hosted contract.
@@ -2952,6 +2958,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- frontend/main: describe Electron sidecar adapter module headers as local sidecar runtime boundaries while preserving existing local backend bridge compatibility names.
 
 - frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 - chore(backend-dev-tool-selection): enable the backend dev tool-selection allowlist with a manual-only mouse coordinate method for local tool-contract testing.
@@ -3077,6 +3085,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- frontend/main: describe Electron sidecar adapter module headers as local sidecar runtime boundaries while preserving existing local backend bridge compatibility names.
 
 - frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 - docs(frontend-transcript-runtime): refresh renderer transcript, chat-stream, and tool-runner runtime references to document the extracted transcript session/runtime and entry-persistence modules plus the shared transcript tool-output persistence helper used by both backend-stream and frontend-executed tool outputs.
@@ -5158,6 +5168,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- frontend/main: describe Electron sidecar adapter module headers as local sidecar runtime boundaries while preserving existing local backend bridge compatibility names.
 
 - frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 - fix(browser-runtime): harden native `wait_seconds` handling by requiring Browser Use session context for Browser Use wait execution and falling back to deterministic timer wait when no browser is connected or Browser Use wait errors, preventing `'NoneType' object has no attribute 'logger'` failures

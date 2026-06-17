@@ -1,5 +1,5 @@
 /**
- * Bridges local backend rpc mappers behavior for the Electron main process.
+ * Bridges local sidecar RPC mapper behavior for the Electron main process.
  */
 
 function getPayloadObject(payload = {}) {
