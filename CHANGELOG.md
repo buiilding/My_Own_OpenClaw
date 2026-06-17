@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the stale renderer API `index.ts` entry from frontend architecture maps after the unused renderer API barrel was deleted. No migration is required.
+
 - Moved the diagnostics fallback app-data directory name into the Electron main host skin config. No migration is required.
 
 - Removed stale backend core topology entries for deleted package marker files. No migration is required.

@@ -178,9 +178,8 @@ frontend/src/renderer/
 │
 ├── infrastructure/                        # Core infrastructure services
 │   │
-│   ├── api/                              # Hosted SDK client exports
-│   │   ├── agentSdkClient.ts            # Renderer SDK facade for hosted transport wrappers, runtime contracts, and app imports
-│   │   └── index.ts                     # Stable renderer API export surface for SDK client contracts
+│   ├── api/                              # Hosted SDK client access
+│   │   └── agentSdkClient.ts            # Renderer SDK facade for hosted transport wrappers, runtime contracts, and app imports
 │   │
 │   ├── audio/                            # Audio services
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)

@@ -53,7 +53,6 @@ frontend/src/
 │   ├── features/dashboard                 # Sidebar, memory/models/settings/usage/search panels
 │   ├── features/voice                     # Voice mode + wakeword capture hooks
 │   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
-│       └── api/index.ts                   # Stable renderer API export surface for ApiClient + Agent SDK client helpers
 │       └── api/agentSdkClient.ts          # Developer-facing backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
 └── landing/                               # Marketing/landing surface
 ```
