@@ -139,7 +139,7 @@ Transitions:
 
 Cleanup:
 
-- clears backend listener and both timers on unmount
+- clears settings-event listener and both timers on unmount
 
 ## Wakeword Suppression Wiring
 

@@ -502,3 +502,17 @@ Each completed slice should report:
 - Compatibility: no migration required. `windie:conversation-event` channel,
   SDK conversation-event payloads, turn gating, and transcript behavior are
   unchanged.
+
+### 2026-06-17 renderer provider settings listener wording
+
+- Finding: the App provider coordinator reference still described save-status
+  cleanup with backend-prefixed listener wording even though the renderer
+  subscribes to the settings-event IPC channel through the app runtime facade.
+- Change: updated the provider reference to settings-event listener terminology
+  while keeping backend settings acknowledgement ownership explicit elsewhere.
+- Validation: focused Jest run for `AppStatusProvider` and
+  `AppConfigProvider.models`; docs listing; `git diff --check`; and a stale
+  provider-doc phrase scan for the retired listener wording.
+- Compatibility: no migration required. `backend-settings-event` channel names,
+  save-status timers, settings acknowledgement routing, and model-list handling
+  are unchanged.
