@@ -46,7 +46,7 @@ backend/src/core/
 │   └── schemas.py                     # TypedDict schemas: LLMMessage, MultimodalContent, ToolResultDict, MemoryItem, etc.
 │
 ├── validation/                        # Input validation framework
-│   ├── __init__.py                    # Re-exports validation functions
+│   ├── settings_update_rules.py       # AppConfig settings patch validation rules
 │   └── validators.py                  # ValidationError, validate_message(), validate_dict(), validate_user_id(), etc.
 │
 ├── config/                            # Configuration management system
@@ -90,7 +90,6 @@ backend/src/core/
 │   └── executor.py                    # ToolExecutor - abstract base class, DirectToolExecutor, and runtime executor registry
 │
 ├── observability/                     # Observability and metrics
-│   ├── __init__.py                    # Package exports
 │   └── trust_boundary_metrics.py     # MetricsService - tracks trust boundary violations and security events
 │
 └── utils/                             # Shared pure utility helpers

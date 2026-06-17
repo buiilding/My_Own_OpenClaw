@@ -22,6 +22,8 @@ All notable changes to WindieOS will be documented in this file.
   boundary metrics are imported from the concrete metrics module.
 - backend/core: remove the unused `core.services` package export so service
   contracts resolve through concrete service modules.
+- backend/core: remove the unused `core.validation` package export so validation
+  helpers resolve through concrete validation modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

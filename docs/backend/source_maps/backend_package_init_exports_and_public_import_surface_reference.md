@@ -38,7 +38,6 @@ concrete modules directly.
 - `backend/src/core/events/__init__.py`
 - `backend/src/core/infrastructure/__init__.py`
 - `backend/src/core/security/__init__.py`
-- `backend/src/core/validation/__init__.py`
 - `backend/src/embeddings/__init__.py`
 - `backend/src/llm/__init__.py`
 - `backend/src/llm/models/__init__.py`
@@ -89,6 +88,9 @@ docstring or compatibility path.
   services from concrete modules such as
   `backend.src.core.services.context_factory` or
   `backend.src.core.services.speech_service`.
+- `backend/src/core/validation/__init__.py` is intentionally absent; import
+  validation helpers from `backend.src.core.validation.validators` or
+  `backend.src.core.validation.settings_update_rules`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
