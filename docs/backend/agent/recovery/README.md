@@ -21,7 +21,6 @@ title: "Backend Agent Recovery Docs Hub"
 ## Code Scope
 
 - `backend/src/agent/execution/interaction_loop.py`
-- `backend/src/agent/execution/policies.py`
 - `backend/src/api/processing/formatters/tool_call.py`
 - `backend/src/api/processing/formatters/tool_output.py`
 - `tests/backend/test_interaction_loop.py`

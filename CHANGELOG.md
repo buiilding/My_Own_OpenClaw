@@ -121,6 +121,8 @@ All notable changes to WindieOS will be documented in this file.
   inspection path and its config/policy wiring from the tool-result wait layer.
 - backend/docs: delete the stale misspelled `backend/src/agent/folder_stucture.md`
   source-map file and its architecture-doc link.
+- backend/agent: inline the single bundle-count policy in `InteractionLoop`
+  and delete the unused execution policy module, test, and reference page.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

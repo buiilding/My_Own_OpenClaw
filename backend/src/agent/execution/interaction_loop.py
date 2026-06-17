@@ -19,9 +19,6 @@ from backend.src.agent.execution.tool_call_bridge import (
     to_parsed_response,
 )
 from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
-from backend.src.agent.execution.policies import (
-    ToolExecutionPolicy,
-)
 from backend.src.agent.session.capability_application import (
     capability_revision_from_agent_definition,
     final_tool_schema_source_counts,
@@ -130,7 +127,6 @@ class InteractionLoop:
         """
         iteration = 0
         compaction_recovery_attempts = 0
-        tool_execution_policy = ToolExecutionPolicy()
 
         while True:
             iteration += 1
@@ -456,7 +452,6 @@ class InteractionLoop:
                 is_bundle = self._commit_assistant_tool_turn(
                     llm_response_text=llm_response_text,
                     parsed_response=parsed_response,
-                    tool_execution_policy=tool_execution_policy,
                 )
 
                 # Yield all resolution events (ToolBundleEvent or ToolCallEvent)
@@ -675,7 +670,6 @@ class InteractionLoop:
         *,
         llm_response_text: str,
         parsed_response: ParsedResponse,
-        tool_execution_policy: ToolExecutionPolicy,
     ) -> bool:
         """Persist the assistant tool-call turn and stage tool ids for outputs."""
         history_tool_calls = to_history_tool_calls(parsed_response.tool_calls)
@@ -683,7 +677,7 @@ class InteractionLoop:
             llm_response_text,
             tool_calls=history_tool_calls,
         )
-        is_bundle = tool_execution_policy.is_bundle(len(parsed_response.tool_calls))
+        is_bundle = len(parsed_response.tool_calls) > 1
         self.session.history.stage_tool_call_ids(
             extract_history_tool_call_ids(history_tool_calls),
             consume_all_on_next_output=is_bundle,

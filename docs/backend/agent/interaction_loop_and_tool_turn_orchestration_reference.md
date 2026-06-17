@@ -14,7 +14,6 @@ title: "Interaction Loop and Tool-Turn Orchestration Reference"
 - `backend/src/agent/execution/completion_side_effects.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/execution/tool_call_bridge.py`
-- `backend/src/agent/execution/policies.py`
 - `backend/src/agent/llm/conversation_context.py`
 - `backend/src/agent/llm/llm_stream_processor.py`
 - `backend/src/agent/llm/event_presenter.py`
@@ -217,7 +216,6 @@ Validated by:
 
 ## Related Docs
 
-- [Execution Policy Iteration, Parse-Recovery, and Bundle Gate Reference](execution_policy_iteration_parse_recovery_and_bundle_gate_reference.md)
 - [Native Tool-Call Bridge and History Mapping Reference](native_tool_call_bridge_and_history_mapping_reference.md)
 - [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
 - [History Compaction Engine Decision, Strategy, and Event Contract Reference](history_compaction_engine_decision_strategy_and_event_contract_reference.md)

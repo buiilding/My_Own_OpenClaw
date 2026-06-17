@@ -57,13 +57,8 @@ Recent backend-agent refactors split mutable session/runtime concerns into focus
 - `backend/src/agent/session/runtime_state.py` — `SessionRuntimeState` owns screenshot state, resolved-call storage, tool-result storage, current `system_state`, and OCR completion signaling.
 - `backend/src/agent/session/runtime_state.py` also tracks session-scoped background tasks for deterministic shutdown.
 - `backend/src/agent/session/config_runtime.py` — `SessionConfigRuntime` applies live config updates (LLM client, prompt constructor, parser, and loop dependencies) in one place.
-- `backend/src/agent/session/lifecycle.py` — `SessionLifecycle` centralizes best-effort cleanup for runtime stores and legacy futures.
-
-Interaction-loop control policies were also extracted from `InteractionLoop`:
-
-- `backend/src/agent/execution/policies.py`:
-  - `ParseRecoveryPolicy` (parser-error corrective messaging)
-  - `ToolExecutionPolicy` (bundle-vs-single decision)
+- `backend/src/agent/session/lifecycle.py` — `SessionLifecycle` centralizes best-effort cleanup for runtime stores and background tasks.
+- `backend/src/agent/execution/interaction_loop.py` owns parse recovery, bundle-vs-single staging, and loop termination policy directly.
 
 Tool preparation metadata now uses a typed execution reference:
 

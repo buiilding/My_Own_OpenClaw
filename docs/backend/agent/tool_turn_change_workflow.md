@@ -101,7 +101,6 @@ Primary files:
 - `backend/src/agent/llm/llm_stream_processor.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/execution/tool_call_bridge.py`
-- `backend/src/agent/execution/policies.py`
 - `backend/src/core/types/schemas.py`
 - `backend/src/llm/parser_types.py`
 

@@ -56,7 +56,7 @@ To reduce feature-change friction in `backend/src/agent`, session and tool-orche
 
 - **Session runtime state is centralized** in `backend/src/agent/session/runtime_state.py` (`SessionRuntimeState`) for screenshots, resolved calls, tool results, and system state.
 - **Session config updates are isolated** in `backend/src/agent/session/config_runtime.py` and **cleanup is isolated** in `backend/src/agent/session/lifecycle.py`.
-- **Interaction-loop policies were extracted** to `backend/src/agent/execution/policies.py` (iteration, parse recovery, and tool execution policy objects).
+- **Interaction-loop control is centralized** in `backend/src/agent/execution/interaction_loop.py`; the loop owns bundle staging, parse recovery, and termination policy directly.
 - **Tool execution metadata is normalized** with `backend/src/agent/tools/preparation/types/execution_ref.py`, then reused by bundle detection and result processing.
 - **Screenshot OCR task ownership is explicit** via active-task tracking in screenshot state/manager and wait-side coordination.
 
