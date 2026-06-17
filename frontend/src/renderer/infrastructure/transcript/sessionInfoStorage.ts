@@ -6,6 +6,18 @@ import type { SessionInfo } from './types';
 
 const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
 
+function hasRemovedSessionIdentityKey(value: unknown): boolean {
+  return Boolean(
+    value
+      && typeof value === 'object'
+      && !Array.isArray(value)
+      && (
+        Object.prototype.hasOwnProperty.call(value, 'sessionId')
+        || Object.prototype.hasOwnProperty.call(value, 'session_id')
+      ),
+  );
+}
+
 export function readSessionInfoFromStorage(): SessionInfo {
   if (typeof window === 'undefined') {
     return { conversationRef: null, userId: null };
@@ -18,6 +30,9 @@ export function readSessionInfoFromStorage(): SessionInfo {
     }
 
     const parsed = JSON.parse(raw);
+    if (hasRemovedSessionIdentityKey(parsed)) {
+      return { conversationRef: null, userId: null };
+    }
     return {
       conversationRef: typeof parsed?.conversationRef === 'string' ? parsed.conversationRef : null,
       userId: typeof parsed?.userId === 'string' ? parsed.userId : null,

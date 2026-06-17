@@ -49,6 +49,7 @@ Transcript session identity includes:
 
 - lazy bootstrap from `sessionStorage` key `transcript-session-info`
 - stored identity must use `conversationRef`; `sessionId` is not accepted as a chat identity alias
+- stored payloads containing removed `sessionId` or `session_id` keys are discarded instead of partially reused
 - after bootstrap, reads are in-memory
 
 Update semantics:

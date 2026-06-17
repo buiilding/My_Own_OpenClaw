@@ -38,7 +38,7 @@ describe('transcript session info storage', () => {
     });
   });
 
-  test('ignores sessionId aliases because conversationRef owns chat identity', () => {
+  test('rejects stored sessionId aliases because conversationRef owns chat identity', () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
       JSON.stringify({ sessionId: 'session-1', userId: 'user-1' }),
@@ -46,7 +46,7 @@ describe('transcript session info storage', () => {
 
     expect(readSessionInfoFromStorage()).toEqual({
       conversationRef: null,
-      userId: 'user-1',
+      userId: null,
     });
   });
 

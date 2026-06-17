@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed transcript session storage tolerance for removed `sessionId`/`session_id` identity keys so stale sessionStorage payloads are discarded instead of partially reusing `userId`. No migration is required; the current renderer writes canonical `conversationRef`/`userId` storage payloads and malformed storage already resets to null session info.
+
 - Changed SDK local-runtime daemon discovery to reject discovery files containing the removed camelCase `baseUrl` key even when canonical `base_url` is present. The public `localRuntimeDaemon.baseUrl` option is unchanged; no persisted-data, storage, settings, credential, permission, IPC, or backend wire migration is required.
 
 - Changed the Python sidecar daemon to reject removed camelCase MCP server-spec and execution metadata fields instead of silently ignoring them. Callers must use canonical snake_case daemon payload fields; no persisted-data, storage, settings, credential, permission, or backend wire migration is required.
