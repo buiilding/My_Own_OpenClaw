@@ -358,7 +358,7 @@ async function getSystemStateFromBackend(fields) {
   }
 }
 
-function stopLocalBackend() {
+function stopLocalRuntime() {
   runtimeExecuteTool = createStoppedToolExecutor();
   clearSdkLocalRuntime();
   localRuntimeStatusSupervisor.clear({
@@ -382,7 +382,7 @@ async function loadArtifactUploadHeaders() {
   };
 }
 
-function initializeLocalBackendBridge(getWindows, options = {}) {
+function initializeLocalRuntimeBridge(getWindows, options = {}) {
   const isPackaged = options.isPackaged === true;
   const nextLocalRuntimeCopy = options.mainHostSkin?.localRuntime || options.copy || {};
   localRuntimeCopy = Object.freeze({
@@ -564,7 +564,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   }
 }
 
-async function getLocalBackendStatus() {
+async function getLocalRuntimeStatus() {
   const result = await sendRequestOrError('get_status');
   if (result && result.success === false) {
     return result;
@@ -646,9 +646,9 @@ async function warmBrowserAutomation() {
   };
 }
 
-const initializeLocalRuntimeBridge = initializeLocalBackendBridge;
-const stopLocalRuntime = stopLocalBackend;
-const getLocalRuntimeStatus = getLocalBackendStatus;
+const initializeLocalBackendBridge = initializeLocalRuntimeBridge;
+const stopLocalBackend = stopLocalRuntime;
+const getLocalBackendStatus = getLocalRuntimeStatus;
 
 module.exports = {
   initializeLocalRuntimeBridge,

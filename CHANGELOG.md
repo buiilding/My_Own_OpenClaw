@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: make local runtime bridge functions canonical while preserving local-backend aliases.
+
 - frontend/main: prefer the local runtime execute-tool factory in the Electron sidecar adapter.
 
 - frontend/main: prefer the local runtime supervisor factory in the Electron sidecar adapter.

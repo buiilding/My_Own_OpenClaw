@@ -2891,3 +2891,19 @@ Each completed slice should report:
 - Compatibility: no migration required. The old factory export remains an alias
   to the same implementation; local tool execution, screenshot materialization,
   and permission verification behavior are unchanged.
+
+### 2026-06-17 main local runtime bridge canonical functions
+
+- Finding: the Electron main local-runtime bridge exported generic
+  `initializeLocalRuntimeBridge`, `stopLocalRuntime`, and `getLocalRuntimeStatus`
+  names first, but the implementation still defined the legacy
+  `initializeLocalBackendBridge`, `stopLocalBackend`, and
+  `getLocalBackendStatus` functions as the canonical code path.
+- Change: flipped the bridge definitions to local-runtime names, kept the old
+  local-backend names as direct compatibility aliases, and updated focused
+  lifecycle/host-boundary tests and the bridge harness to use the generic API.
+- Validation: focused bridge lifecycle and main host boundary tests, docs
+  listing, canonical-function source scan, and `git diff --check`.
+- Compatibility: no migration required. Existing local-backend bridge imports
+  still resolve to the same functions; IPC channel strings and status payloads
+  remain unchanged.

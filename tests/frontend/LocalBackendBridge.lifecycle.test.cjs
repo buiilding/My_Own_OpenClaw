@@ -102,7 +102,15 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     }));
   });
 
-  test('stopLocalBackend stops bridge execution without shutting down the SDK-owned runtime', async () => {
+  test('legacy local backend bridge exports remain compatibility aliases', () => {
+    const { bridge } = initBridge();
+
+    expect(bridge.initializeLocalBackendBridge).toBe(bridge.initializeLocalRuntimeBridge);
+    expect(bridge.stopLocalBackend).toBe(bridge.stopLocalRuntime);
+    expect(bridge.getLocalBackendStatus).toBe(bridge.getLocalRuntimeStatus);
+  });
+
+  test('stopLocalRuntime stops bridge execution without shutting down the SDK-owned runtime', async () => {
     const { bridge, handlers, sdkRuntime } = initBridge();
 
     const rpcPromise = handlers['list-episodic-memories'](null, { userId: 'user-1' });
@@ -110,7 +118,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     resolveNextSdkRuntimeRequest({ success: true });
     await expect(rpcPromise).resolves.toEqual({ success: true });
 
-    bridge.stopLocalBackend();
+    bridge.stopLocalRuntime();
 
     expect(sdkRuntime.shutdown).not.toHaveBeenCalled();
     await expect(bridge.executeToolForBackend({

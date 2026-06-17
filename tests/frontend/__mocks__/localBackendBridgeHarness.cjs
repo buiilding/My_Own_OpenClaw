@@ -153,7 +153,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     responseWindow,
   };
   electron.BrowserWindow.fromWebContents.mockImplementation(() => currentMainWindow);
-  bridge.initializeLocalBackendBridge(() => currentWindowState, {
+  bridge.initializeLocalRuntimeBridge(() => currentWindowState, {
     getArtifactUploadHeaders: options.getArtifactUploadHeaders,
     getKnownLocalRuntime: options.getKnownLocalRuntime,
     ensureLocalRuntime,

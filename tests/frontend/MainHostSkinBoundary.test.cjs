@@ -265,6 +265,15 @@ describe('main host skin/config boundary', () => {
     expect(executeToolRuntimeSource).toContain(
       'const createLocalBackendExecuteToolRuntime = createLocalRuntimeExecuteToolRuntime',
     );
+    expect(bridgeSource).toContain('function initializeLocalRuntimeBridge');
+    expect(bridgeSource).toContain('function stopLocalRuntime');
+    expect(bridgeSource).toContain('async function getLocalRuntimeStatus');
+    expect(bridgeSource).toContain('const initializeLocalBackendBridge = initializeLocalRuntimeBridge');
+    expect(bridgeSource).toContain('const stopLocalBackend = stopLocalRuntime');
+    expect(bridgeSource).toContain('const getLocalBackendStatus = getLocalRuntimeStatus');
+    expect(bridgeSource).not.toContain('function initializeLocalBackendBridge');
+    expect(bridgeSource).not.toContain('function stopLocalBackend');
+    expect(bridgeSource).not.toContain('async function getLocalBackendStatus');
     expect(bridgeSource).toContain('createLocalRuntimeSupervisor');
     expect(bridgeSource).not.toContain('createLocalBackendSupervisor');
     expect(bridgeSource).toContain('createLocalRuntimeExecuteToolRuntime');
