@@ -14,10 +14,6 @@ async function read(relativePath: string): Promise<string> {
 describe('modular sdk refactor completion boundary', () => {
   test('electron main uses WindieClient wakeUp instead of a desktop wrapper', async () => {
     const ipcSource = await read('frontend/src/main/ipc.cjs');
-    const hostExists = await fs.access(path.join(repoRoot, 'frontend/src/main/windie_agent_host.cjs'))
-      .then(() => true, () => false);
-
-    expect(hostExists).toBe(false);
     expect(ipcSource).toContain('new WindieClient({');
     expect(ipcSource).toContain('client.wakeUp({');
     expect(ipcSource).toContain('agent.conversation({');
@@ -26,8 +22,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('windieAgentWebSocketImpl');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(ipcSource).not.toContain('WindieAgent.startDesktop');
-    expect(ipcSource).not.toContain("require('./windie_agent_host.cjs')");
-    expect(ipcSource).not.toContain('createWindieAgentHost');
+    expect(ipcSource).not.toMatch(/require\(['"].*agent_host\.cjs['"]\)/);
+    expect(ipcSource).not.toMatch(/create\w*AgentHost/);
     expect(ipcSource).not.toContain('createWindieSdkMainRuntime');
     expect(ipcSource).not.toContain('sendSdkRuntimeCommand');
     expect(ipcSource).not.toContain('getWindieSdkRuntime');

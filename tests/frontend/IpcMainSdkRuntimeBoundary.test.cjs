@@ -19,11 +19,6 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
       'utf8',
     );
-    const wrapperExists = await fs.access(
-      path.resolve(__dirname, '../../frontend/src/main/windie_agent_host.cjs'),
-    ).then(() => true, () => false);
-
-    expect(wrapperExists).toBe(false);
     expect(source).toContain('new WindieClient({');
     expect(source).toContain('client.wakeUp({');
     expect(source).toContain('agent.conversation({');
@@ -34,8 +29,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('WindieAgent.startDesktop');
     expect(source).not.toContain('ensureDaemonBackedLocalRuntime');
     expect(source).not.toContain('ensureLocalRuntime: ensureDaemonBackedLocalRuntime');
-    expect(source).not.toContain('createWindieAgentHost');
-    expect(source).not.toContain("require('./windie_agent_host.cjs')");
+    expect(source).not.toMatch(/create\w*AgentHost/);
+    expect(source).not.toMatch(/require\(['"].*agent_host\.cjs['"]\)/);
     expect(source).not.toContain('createWindieSdkMainRuntime');
     expect(source).not.toContain('createManagedBackendSession');
     expect(source).not.toContain('sendSdkRuntimeCommand');

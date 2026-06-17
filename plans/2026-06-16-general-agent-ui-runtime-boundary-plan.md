@@ -989,3 +989,17 @@ Each completed slice should report:
 - Validation: docs listing, `git diff --check`, and a stale-path scan for the
   retired renderer facade filename.
 - Compatibility: no migration required. This is documentation routing only.
+
+### 2026-06-17 main wrapper tombstone test cleanup
+
+- Finding: main-runtime boundary tests still probed the retired
+  `windie_agent_host.cjs` wrapper path directly, keeping a product-named
+  tombstone in active test setup even though IPC already asserts that no wrapper
+  is imported.
+- Change: removed the explicit nonexistent-file access checks and kept the
+  active boundary assertions around direct `WindieClient.wakeUp(...)` startup
+  plus absence of wrapper imports.
+- Validation: focused main SDK boundary Jest coverage, docs listing,
+  `git diff --check`, and stale scan for the retired wrapper path.
+- Compatibility: no migration required. Test-only cleanup; runtime startup is
+  unchanged.
