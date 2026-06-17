@@ -25,7 +25,6 @@ concrete modules directly.
 - `backend/src/agent/tools/waiting/__init__.py`
 - `backend/src/api/handlers/__init__.py`
 - `backend/src/api/processing/__init__.py`
-- `backend/src/api/processing/formatters/__init__.py`
 - `backend/src/api/routes/memory/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
@@ -55,9 +54,6 @@ Compatibility implication:
 Major aggregator files:
 
 - `backend/src/api/handlers/__init__.py`: handler base + concrete websocket handlers
-- `backend/src/api/processing/formatters/__init__.py`: formatter package
-  exports for all websocket event formatter classes, covered by
-  `tests/backend/test_formatter_package_exports.py`
 - `backend/src/core/config/__init__.py`: runtime config models + loader/manager/runtime policy exports
 - `backend/src/core/infrastructure/__init__.py`: bus/cache/exceptions umbrella surface
 - `backend/src/core/events/__init__.py`: base + bus + streaming event model exports
@@ -109,6 +105,9 @@ docstring or compatibility path.
   TTS manager and processor types from
   `backend.src.api.processing.tts.manager` and
   `backend.src.api.processing.tts.processor`.
+- `backend/src/api/processing/formatters/__init__.py` is intentionally absent;
+  import formatter classes from their concrete modules under
+  `backend.src.api.processing.formatters`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
