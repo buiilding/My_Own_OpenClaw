@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: add localRuntimeDaemon as the preferred AgentClient option while keeping sidecarDaemon as a compatibility alias.
+
 - sdk: prefer generic agent SDK metadata keys when loading local-runtime conversation events while preserving Windie metadata fallbacks.
 
 - frontend/renderer: clarify settings runtime facade IPC wording so it points callers at SDK command IPC instead of backend IPC.

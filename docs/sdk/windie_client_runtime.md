@@ -736,11 +736,12 @@ Non-Electron SDK hosts can override that behavior with:
   an `AgentLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.
 - `sidecar`: a custom `AgentLocalRuntimeClient` implementation.
-- `sidecarDaemon`: public client option for an already-known daemon `baseUrl`
+- `localRuntimeDaemon`: public client option for an already-known daemon `baseUrl`
   and per-process `token`; `AgentClient` creates an `AgentLocalRuntimeHttpClient`
   and uses `/status`, registration endpoints, `/tools`, and `/execute-tool`.
   This camelCase `baseUrl` option does not change the daemon discovery-file
   contract, which remains canonical `base_url`.
+- `sidecarDaemon`: compatibility alias for `localRuntimeDaemon`.
 - `memory`: enabled by default. When enabled, the SDK obtains backend embeddings,
   asks the sidecar memory index for relevant local memories, injects them into
   model-facing user content, and stores completed turns as episodic memory.
@@ -755,7 +756,7 @@ The matching `Windie*` local-runtime names are isolated in the
 package root for existing callers.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
-`sidecar`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly
+`sidecar`, `localRuntimeDaemon`, or `ensureLocalRuntime` explicitly
 when they need local execution.
 
 After any SDK path resolves a local runtime, `AgentClient.status()`,

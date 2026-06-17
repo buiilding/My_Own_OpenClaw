@@ -2817,3 +2817,17 @@ Each completed slice should report:
   `git diff --check`, and source scans for the metadata fallback keys.
 - Compatibility: no migration required. Current rows still use `event_payload`;
   older rows with Windie-prefixed metadata continue to load.
+
+### 2026-06-17 AgentClient local runtime daemon option
+
+- Finding: the reusable SDK `AgentClient` still exposed the already-known local
+  runtime daemon HTTP client option primarily as `sidecarDaemon`, even after the
+  canonical local-runtime client types moved to generic `Agent*` names.
+- Change: added `localRuntimeDaemon` as the preferred `AgentClient` option,
+  resolved it ahead of `sidecarDaemon`, kept `sidecarDaemon` as a compatibility
+  alias, and updated SDK/local-sidecar docs and behavior tests.
+- Validation: focused Agent SDK client behavior coverage, docs listing,
+  `git diff --check`, CJS parity update, and source scan for
+  `localRuntimeDaemon`/`sidecarDaemon` references.
+- Compatibility: no migration required. Existing `sidecarDaemon` callers keep
+  working; new callers can use `localRuntimeDaemon`.

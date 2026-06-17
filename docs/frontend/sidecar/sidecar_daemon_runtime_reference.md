@@ -44,8 +44,9 @@ ${TMPDIR}/desktop-agent/sidecar-daemon.json
 Discovery metadata is daemon-authored and snake_case. SDK discovery readers
 require `base_url` and `token`; stale camelCase discovery files using `baseUrl`
 are ignored and replaced through the normal launch/reuse flow. The public SDK
-`sidecarDaemon.baseUrl` option is a client constructor option, not a discovery
-file field.
+`localRuntimeDaemon.baseUrl` is a client constructor option, not a discovery
+file field. The older `sidecarDaemon.baseUrl` option remains a compatibility
+alias for existing SDK hosts.
 
 Every endpoint requires the token in either:
 

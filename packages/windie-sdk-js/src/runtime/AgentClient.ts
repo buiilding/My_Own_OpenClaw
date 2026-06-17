@@ -122,6 +122,7 @@ export type AgentClientOptions = {
   installAuth?: AgentInstallAuthOptions;
   sidecar?: AgentLocalRuntimeClient;
   localToolLifecycle?: LocalToolExecutionLifecycle;
+  localRuntimeDaemon?: AgentLocalRuntimeHttpClientOptions;
   sidecarDaemon?: AgentLocalRuntimeHttpClientOptions;
   ensureLocalRuntime?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
@@ -464,10 +465,11 @@ export class AgentClient {
     if (explicitRuntime) {
       return explicitRuntime;
     }
-    if (this.defaultOptions.sidecarDaemon) {
+    const daemonOptions = this.defaultOptions.localRuntimeDaemon ?? this.defaultOptions.sidecarDaemon;
+    if (daemonOptions) {
       return new AgentLocalRuntimeHttpClient({
-        ...this.defaultOptions.sidecarDaemon,
-        fetchImpl: this.defaultOptions.sidecarDaemon.fetchImpl ?? this.defaultOptions.fetchImpl,
+        ...daemonOptions,
+        fetchImpl: daemonOptions.fetchImpl ?? this.defaultOptions.fetchImpl,
       });
     }
     return undefined;

@@ -274,10 +274,11 @@ class AgentClient {
         if (explicitRuntime) {
             return explicitRuntime;
         }
-        if (this.defaultOptions.sidecarDaemon) {
+        const daemonOptions = this.defaultOptions.localRuntimeDaemon ?? this.defaultOptions.sidecarDaemon;
+        if (daemonOptions) {
             return new LocalSidecarRuntime_js_1.AgentLocalRuntimeHttpClient({
-                ...this.defaultOptions.sidecarDaemon,
-                fetchImpl: this.defaultOptions.sidecarDaemon.fetchImpl ?? this.defaultOptions.fetchImpl,
+                ...daemonOptions,
+                fetchImpl: daemonOptions.fetchImpl ?? this.defaultOptions.fetchImpl,
             });
         }
         return undefined;

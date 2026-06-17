@@ -2141,7 +2141,7 @@ describe('Agent SDK client behavior', () => {
     });
   });
 
-  test('wakeUp can attach to a configured sidecar daemon HTTP runtime', async () => {
+  test('wakeUp can attach to a configured local runtime daemon HTTP runtime', async () => {
     mockFetch.mockImplementation(async (url, init) => {
       const parsedUrl = String(url);
       if (parsedUrl.endsWith('/status')) {
@@ -2175,7 +2175,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecarDaemon: {
+      localRuntimeDaemon: {
         baseUrl: 'http://127.0.0.1:43123',
         token: 'daemon-token',
       },
@@ -2205,6 +2205,32 @@ describe('Agent SDK client behavior', () => {
     expect((statusCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
     expect(registerCall?.[1]?.method).toBe('POST');
     expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
+  });
+
+  test('sidecarDaemon remains a compatibility alias for local runtime daemon options', async () => {
+    mockFetch.mockImplementation(async (url) => {
+      const parsedUrl = String(url);
+      if (parsedUrl.endsWith('/status')) {
+        return jsonResponse({ status: 'ok' }) as any;
+      }
+      return jsonResponse({ version: 1, tools: [] }) as any;
+    });
+    const client = new AgentClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecarDaemon: {
+        baseUrl: 'http://127.0.0.1:43124',
+        token: 'legacy-daemon-token',
+      },
+    });
+
+    await expect(client.localStatus()).resolves.toEqual({ status: 'ok' });
+
+    const statusCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/status'));
+    expect(statusCall?.[0]).toBe('http://127.0.0.1:43124/status');
+    expect((statusCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('legacy-daemon-token');
   });
 
   test('wakeUp can expose desktop builtin tools from the sidecar manifest', async () => {
