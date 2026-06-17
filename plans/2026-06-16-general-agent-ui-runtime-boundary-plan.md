@@ -238,3 +238,16 @@ Each completed slice should report:
 - Validation: focused Jest run for `ChatGptDashboardShell`; the suite passed
   with existing React `act(...)` warnings.
 - Compatibility: no migration required. Test-only terminology alignment.
+
+### 2026-06-17 Python sidecar runtime copy
+
+- Finding: Python sidecar runtime docstrings and lifecycle logs still described
+  the process as a local backend service even though it is the local sidecar
+  runtime boundary for tools, system state, memory, and wake-word operations.
+- Change: updated sidecar runtime, memory-handler, and core package copy to
+  local-sidecar-runtime terminology while preserving the `LocalBackend` class
+  and file names as compatibility surfaces.
+- Validation: focused pytest for the sidecar runtime source-copy guard plus a
+  source scan for the old lifecycle phrases.
+- Compatibility: no migration required. Protocol names, class names, file names,
+  and runtime behavior are unchanged.

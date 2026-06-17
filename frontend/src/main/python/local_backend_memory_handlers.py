@@ -59,7 +59,7 @@ def requires_memory_store(
 
 
 class LocalBackendMemoryHandlersMixin:
-    """Memory RPC handlers shared by the local backend service."""
+    """Memory RPC handlers shared by the local sidecar runtime service."""
 
     def _conversation_history_db_path(self) -> str:
         return self.memory_store.history_db_path

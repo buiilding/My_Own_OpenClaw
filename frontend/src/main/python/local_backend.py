@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Local Backend Service for Desktop Assistant.
+Local backend service for WindieOS.
 
 Handles tool execution, system state collection, memory operations,
 and wake-word detection. Communicates with Electron main process
@@ -111,7 +111,7 @@ _active_backend: Optional["LocalBackend"] = None
 
 class LocalBackend(LocalBackendMemoryHandlersMixin):
     """
-    Main local backend service.
+    Main local sidecar runtime service.
 
     Handles tool execution, system state, memory, and wake-word operations.
     """
@@ -258,8 +258,8 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         )
 
     async def initialize(self) -> None:
-        """Initialize the backend services."""
-        logger.info("Initializing local backend...")
+        """Initialize the sidecar runtime services."""
+        logger.info("Initializing local sidecar runtime...")
 
         try:
             configure_event_loop_default_executor(asyncio.get_running_loop())
@@ -272,9 +272,12 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             # Note: Wake-word detection is kept as separate subprocess for now
             # due to binary protocol requirements. Can be integrated later.
 
-            logger.info("Local backend initialized successfully")
+            logger.info("Local sidecar runtime initialized successfully")
         except Exception as e:
-            logger.error(f"Failed to initialize local backend: {e}", exc_info=True)
+            logger.error(
+                f"Failed to initialize local sidecar runtime: {e}",
+                exc_info=True,
+            )
             raise
 
     def _start_memory_runtime_initialization(self) -> None:
@@ -729,7 +732,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
     async def run(self) -> None:
         """Run the main event loop."""
         self.running = True
-        logger.info("Starting local backend main loop...")
+        logger.info("Starting local sidecar runtime main loop...")
 
         try:
             while self.running:
@@ -764,7 +767,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
     async def shutdown(self) -> None:
         """Shutdown the service gracefully."""
-        logger.info("Shutting down local backend...")
+        logger.info("Shutting down local sidecar runtime...")
         self.running = False
 
         if self._summarizer:
@@ -785,7 +788,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         shutdown_all_executors(wait=True)
 
-        logger.info("Local backend shutdown complete")
+        logger.info("Local sidecar runtime shutdown complete")
 
 
 def signal_handler(signum, frame):

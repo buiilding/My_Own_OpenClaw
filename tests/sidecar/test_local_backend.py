@@ -1,8 +1,9 @@
 """Covers local backend behavior in the sidecar test suite."""
 
 import asyncio
-import signal
 import logging
+import signal
+from pathlib import Path
 
 import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
@@ -10,9 +11,26 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 import local_backend as local_backend_module  # noqa: E402
+import local_backend_memory_handlers as memory_handlers_module  # noqa: E402
 from local_backend import LocalBackend  # noqa: E402
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
+
+
+def test_local_backend_runtime_copy_uses_sidecar_boundary_terms():
+    sources = "\n".join(
+        Path(module_path).read_text(encoding="utf-8")
+        for module_path in [
+            local_backend_module.__file__,
+            memory_handlers_module.__file__,
+            Path(local_backend_module.__file__).parent / "core" / "__init__.py",
+        ]
+    )
+
+    assert "local sidecar runtime" in sources
+    assert "Main local backend service" not in sources
+    assert "Initializing local backend" not in sources
+    assert "Shutting down local backend" not in sources
 
 
 class DummyRegistry:
