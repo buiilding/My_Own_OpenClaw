@@ -6,15 +6,18 @@ from fastapi import APIRouter
 
 from backend.src.api.auth.router import router as auth_router
 
-from . import artifacts, runs, sdk, transcription, websocket
+from . import sdk, websocket
+from .artifacts.router import router as artifacts_router
 from .memory import embeddings, semantic
+from .runs.router import router as runs_router
+from .transcription.router import router as transcription_router
 
 API_ROUTERS: tuple[APIRouter, ...] = (
     auth_router,
     websocket.router,
-    transcription.router,
-    runs.router,
-    artifacts.router,
+    transcription_router,
+    runs_router,
+    artifacts_router,
     sdk.router,
     embeddings.router,
     semantic.router,

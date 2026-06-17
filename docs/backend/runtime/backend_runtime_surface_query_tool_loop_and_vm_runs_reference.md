@@ -35,8 +35,8 @@ Canonical files:
 `API_ROUTERS` currently includes:
 
 1. `websocket.router`
-2. `runs.router`
-3. `artifacts.router`
+2. `runs_router` from `backend.src.api.routes.runs.router`
+3. `artifacts_router` from `backend.src.api.routes.artifacts.router`
 4. `memory.embeddings.router`
 5. `memory.semantic.router`
 

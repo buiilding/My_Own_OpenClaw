@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `/api/runs` Pydantic request/response schemas, endpoint-to-model bindings, and package route-registration surface."
+summary: "Deep reference for `/api/runs` Pydantic request/response schemas, endpoint-to-model bindings, and direct router registration."
 read_when:
   - When changing `/api/runs` request/response fields, validation constraints, or response model bindings in `models.py` and `router.py`.
   - When debugging route-registration imports or 422 validation failures from hosted VM run-control endpoints.
@@ -12,7 +12,6 @@ title: "Runs Route Models Reference"
 
 - `backend/src/api/routes/runs/models.py`
 - `backend/src/api/routes/runs/router.py`
-- `backend/src/api/routes/runs/__init__.py`
 - `tests/backend/test_run_control_routes.py`
 
 ## Package Split Contract
@@ -22,11 +21,9 @@ title: "Runs Route Models Reference"
 - `models.py`: Pydantic request/response schemas and literal-enforced enums.
 - `router.py`: FastAPI endpoint handlers that bind those schemas to `VmRunControlService`.
 - `support.py`: shared route helpers (service singleton, API key guard, run/event helper guards).
-- `__init__.py`: route-registration surface that exports only `router`.
-
 Import ownership contract:
 
-- Route registration may use `from backend.src.api.routes import runs` and then `runs.router`.
+- Route registration imports `router` from `backend.src.api.routes.runs.router`.
 - Route handlers are imported from `backend.src.api.routes.runs.router`.
 - Request/response models are imported from `backend.src.api.routes.runs.models`.
 - Service/auth helpers are imported from `backend.src.api.routes.runs.support`.
@@ -140,7 +137,7 @@ Import ownership contract:
 ## Drift Hotspots
 
 1. Changing fields in `models.py` without matching router payload construction can cause model instantiation failures at runtime.
-2. Adding model, handler, or helper re-exports to `runs/__init__.py` recreates a second import surface for run-control internals.
+2. Reintroducing `runs/__init__.py` recreates a second import surface for run-control internals.
 3. Changing literal enums (`RunControlRequest`, control mode literals) without syncing frontend worker/control send paths can create 422 regressions.
 4. Returning raw run dicts (including `events`) instead of `RunView` projection inflates payload size and breaks endpoint shape consistency.
 

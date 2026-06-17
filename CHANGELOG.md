@@ -52,6 +52,8 @@ All notable changes to WindieOS will be documented in this file.
   callers use manager and processor modules directly.
 - backend/api: remove the unused formatter package export so event formatter
   callers use concrete formatter modules.
+- backend/api: remove unused artifact, runs, and transcription route package
+  exports so API route registration imports concrete router modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

@@ -52,7 +52,7 @@ Route-level helper/auth/bootstrap details are documented separately in:
 
 Registered in `backend/src/api/routes/__init__.py` as:
 
-- `runs.router` mounted at `/api/runs`
+- `runs_router` imported from `backend.src.api.routes.runs.router` and mounted at `/api/runs`
 
 Shared-key auth:
 

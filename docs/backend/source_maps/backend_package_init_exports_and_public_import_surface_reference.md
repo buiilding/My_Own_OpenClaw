@@ -108,6 +108,14 @@ docstring or compatibility path.
 - `backend/src/api/processing/formatters/__init__.py` is intentionally absent;
   import formatter classes from their concrete modules under
   `backend.src.api.processing.formatters`.
+- `backend/src/api/routes/artifacts/__init__.py` is intentionally absent;
+  route registration imports `router` from
+  `backend.src.api.routes.artifacts.router`.
+- `backend/src/api/routes/runs/__init__.py` is intentionally absent; route
+  registration imports `router` from `backend.src.api.routes.runs.router`.
+- `backend/src/api/routes/transcription/__init__.py` is intentionally absent;
+  route registration imports `router` from
+  `backend.src.api.routes.transcription.router`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`

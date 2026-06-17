@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from backend.src.api.deps import get_session_manager
-from backend.src.api.routes.transcription import router as transcription_router
+from backend.src.api.routes.transcription.router import router as transcription_router
 from backend.src.api.services.transcription.audio_frames import (
     build_gateway_audio_frame,
     parse_gateway_audio_frame,

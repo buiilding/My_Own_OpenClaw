@@ -1,8 +1,8 @@
 ---
-summary: "Backend API deep reference for artifacts route package split: router/models ownership, package route-registration surface, and route-level upload/lookup error contracts."
+summary: "Backend API deep reference for artifacts route package split: router/models ownership, direct router registration, and route-level upload/lookup error contracts."
 read_when:
   - When changing files under `backend/src/api/routes/artifacts/*`.
-  - When debugging import drift between package-level route registration and module-level router/model symbols used by tests.
+  - When debugging import drift between route registration and module-level router/model symbols used by tests.
 title: "Artifacts Route Package Split Reference"
 ---
 
@@ -10,7 +10,6 @@ title: "Artifacts Route Package Split Reference"
 
 ## Canonical Modules
 
-- `backend/src/api/routes/artifacts/__init__.py`
 - `backend/src/api/routes/artifacts/router.py`
 - `backend/src/api/routes/artifacts/models.py`
 - `backend/src/api/routes/__init__.py`
@@ -24,27 +23,23 @@ Artifacts route internals are split by responsibility:
 
 - `router.py`: FastAPI handlers for upload and fetch endpoints plus HTTP error-mapping boundary.
 - `models.py`: API response model (`ArtifactUploadResponse`).
-- `__init__.py`: package route-registration seam; it exports only `router`.
 
 `backend/src/services/artifacts/store.py` remains storage/runtime owner (validation, content-type handling, path resolution).
 
 ## Router Registration Contract
 
-Route registration remains package-level:
+Route registration uses the concrete router module directly:
 
-1. `backend/src/api/routes/__init__.py` imports `artifacts`.
-2. `API_ROUTERS` includes `artifacts.router`.
+1. `backend/src/api/routes/__init__.py` imports `artifacts_router` from
+   `backend.src.api.routes.artifacts.router`.
+2. `API_ROUTERS` includes `artifacts_router`.
 
 Public endpoints stay unchanged:
 
 - `POST /api/artifacts/`
 - `GET /api/artifacts/{artifact_id}`
 
-## Package Export Surface
-
-`artifacts/__init__.py` exports:
-
-- `router`
+## Import Surface
 
 Implementation symbols stay in their owner modules:
 
@@ -97,7 +92,7 @@ Error boundary:
 
 ## Drift Hotspots
 
-1. Adding implementation re-exports to `artifacts/__init__.py` recreates a second import surface for route internals.
+1. Reintroducing `artifacts/__init__.py` recreates a second import surface for route internals.
 2. Moving URL construction away from `request.base_url` can desynchronize frontend artifact URL assumptions.
 3. Returning raw exception details from fetch path can leak storage internals over HTTP.
 4. Registering routes from non-canonical symbols can bypass package ownership assumptions.
