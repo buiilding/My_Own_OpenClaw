@@ -148,7 +148,7 @@ Normalized payload nuance:
 
 Implementation note:
 
-- stream event aggregation (`Chunk/Thinking/Error/FullResponse`) and payload normalization are delegated to `stream_processor_helpers.py`.
+- stream event aggregation (`Chunk/Thinking/Error/FullResponse`), API-error message mapping, prompt fingerprinting, prompt-continuity classification, and payload normalization are delegated to `stream_processor_helpers.py`.
 
 ## Prompt Continuity and Cache Diagnostics
 
@@ -171,7 +171,7 @@ Fingerprint behavior:
 
 Implementation note:
 
-- continuity classification (`cold_start`/`append_only`/`history_shortened`/`prefix_mutated`) is computed in shared helper logic, with `LLMStreamProcessor` retaining logging responsibility.
+- `LLMStreamProcessor` calls shared helper functions directly and retains only logging/state responsibility for prompt-continuity diagnostics.
 
 ## Prompt Cache Key Steering (Provider-Specific)
 

@@ -69,6 +69,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/js: keep context-enrichment render helpers, tool-output content shapes,
   capability summaries, and internal diagnostic types private while testing
   escaping through the enrichment pipeline entrypoint.
+- backend/llm: remove obsolete `LLMStreamProcessor` helper wrappers now that
+  stream aggregation, API-error mapping, and prompt fingerprinting live in the
+  shared helper module.
 - sdk/js: use generic default agent display names in agent-definition and
   wake-up helpers while letting hosts pass product identity explicitly.
 - docs/sdk: document the generic SDK agent display defaults so host skin/config

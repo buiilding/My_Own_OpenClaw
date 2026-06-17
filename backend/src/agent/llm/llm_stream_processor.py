@@ -17,10 +17,7 @@ from backend.src.agent.llm.retry_policy import (
 from backend.src.agent.llm.stream_processor_helpers import (
     apply_stream_event,
     build_llm_api_error_message,
-    common_prefix_length,
-    compact_for_fingerprint,
     derive_prompt_continuity,
-    fingerprint_message,
     fingerprint_prompt,
     normalize_stream_response_payload,
     resolve_prompt_cache_key_for_provider,
@@ -278,7 +275,7 @@ class LLMStreamProcessor:
                 if isinstance(e.metadata, dict):
                     metadata.update(e.metadata)
                 error_event = ErrorEvent(
-                    content=self._build_llm_api_error_message(e),
+                    content=build_llm_api_error_message(e),
                     metadata=metadata,
                 )
                 retry_decision = should_retry_provider_error(
@@ -451,7 +448,7 @@ class LLMStreamProcessor:
         """
         self._llm_turn_counter += 1
         turn = self._llm_turn_counter
-        current_fingerprints = self._fingerprint_prompt(prompt)
+        current_fingerprints = fingerprint_prompt(prompt)
         previous_fingerprints = self._last_prompt_fingerprints
         self._last_prompt_fingerprints = current_fingerprints
 
@@ -508,32 +505,6 @@ class LLMStreamProcessor:
             diagnostics.get("total_tokens"),
             diagnostics.get("reason"),
         )
-
-    @staticmethod
-    def _build_llm_api_error_message(error: LLMAPIError) -> str:
-        """Return a concise user-facing error for known API failure classes."""
-        return build_llm_api_error_message(error)
-
-    @staticmethod
-    def _common_prefix_length(first: List[str], second: List[str]) -> int:
-        """Return number of leading messages that are identical."""
-        return common_prefix_length(first, second)
-
-    def _fingerprint_prompt(self, prompt: List[LLMMessage]) -> List[str]:
-        """Generate stable message fingerprints for continuity comparison."""
-        return fingerprint_prompt(prompt)
-
-    @staticmethod
-    def _fingerprint_message(message: LLMMessage) -> str:
-        """Generate a short hash for one prompt message."""
-        return fingerprint_message(message)
-
-    @staticmethod
-    def _compact_for_fingerprint(value: Any) -> Any:
-        """
-        Compact potentially huge content (for example base64 images) before hashing.
-        """
-        return compact_for_fingerprint(value)
 
     async def _count_tokens(
         self,
