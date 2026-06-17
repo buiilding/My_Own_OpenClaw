@@ -139,8 +139,6 @@ export type AgentRuntimeEvent =
       snapshot?: ConversationSnapshot;
     };
 
-export type WindieRuntimeEvent = AgentRuntimeEvent;
-
 export type ConversationRuntimeOptions = {
   conversationRef: string;
   revisionId?: string;

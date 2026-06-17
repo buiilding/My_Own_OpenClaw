@@ -2682,3 +2682,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level hosted client
   imports still resolve, and direct compatibility-module imports can use
   `WindieHostedBackendHttpClient`.
+
+### 2026-06-17 ConversationRuntime module compatibility wrapper
+
+- Finding: the canonical SDK conversation runtime module still exported the
+  historical `WindieRuntimeEvent` type alias directly, so the generic
+  conversation runtime module owned product-prefixed type naming.
+- Change: moved `WindieRuntimeEvent` to the `WindieConversationRuntime`
+  compatibility module and package boundary, leaving `ConversationRuntime` as
+  the canonical runtime module for `AgentRuntimeEvent`.
+- Validation: focused SDK package-boundary/private-export coverage,
+  conversation-runtime coverage, docs listing, `git diff --check`, and source
+  scans confirming the canonical conversation runtime module no longer exports
+  Windie-prefixed compatibility names.
+- Compatibility: no migration required. Existing package-level runtime event
+  type imports still resolve, and direct compatibility-module imports can use
+  `WindieConversationRuntime`.
