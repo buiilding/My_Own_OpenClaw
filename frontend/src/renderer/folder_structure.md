@@ -170,7 +170,7 @@ frontend/src/renderer/
 │       │   └── VoiceStatus.jsx          # VoiceStatus - Displays voice mode status (recording, error, connected)
 │       │
 │       ├── hooks/                       # Voice business logic hooks
-│       │   ├── useVoiceMode.ts          # useVoiceMode - Manages backend transcription WebSocket connection and audio capture
+│       │   ├── useVoiceMode.ts          # useVoiceMode - Uses desktop voice runtime gateway connection and audio capture
 │       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword detection via openWakeWord (audio capture + IPC)
 │       │
 │       └── utils/                       # Voice utility helpers
@@ -349,7 +349,7 @@ frontend/src/renderer/
            ↓
 2. VOICE MODE HOOK
    └─> features/voice/hooks/useVoiceMode.ts
-       ├─> Connect to backend transcription WebSocket (/ws/transcription)
+       ├─> Connect through DesktopVoiceRuntimeClient to transcription gateway (/ws/transcription)
        ├─> Request microphone access (getUserMedia)
        ├─> Create AudioContext and required AudioWorklet capture processor
        ├─> Capture audio chunks (Float32Array → Int16Array)
@@ -467,7 +467,7 @@ frontend/src/renderer/
 
 11. **Bundle Execution**: Atomic tool bundles executed sequentially with fail-fast behavior
 
-12. **Voice Integration**: Backend-owned transcription WebSocket for real-time transcription with utterance end detection
+12. **Voice Integration**: Desktop voice runtime gateway for real-time transcription with backend-owned provider policy and utterance end detection
 
 13. **Wakeword Detection**: openWakeWord integration via Python subprocess with audio chunk streaming
 

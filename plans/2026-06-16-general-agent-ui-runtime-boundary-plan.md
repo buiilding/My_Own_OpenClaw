@@ -546,3 +546,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Public bridge filenames, exported
   bridge functions, IPC channel names, and compatibility payload fields are
   unchanged.
+
+### 2026-06-17 renderer voice gateway docs boundary
+
+- Finding: renderer voice references still described `useVoiceMode` as owning a
+  backend transcription websocket directly even though the hook delegates
+  gateway URL resolution, socket creation, protocol messages, and inbound
+  normalization to `DesktopVoiceRuntimeClient`.
+- Change: updated renderer voice docs and the renderer folder map to describe
+  the desktop voice runtime gateway as the renderer boundary while keeping
+  backend provider-policy ownership explicit.
+- Validation: focused Jest run for `RendererVoiceRuntimeBoundary` and
+  `DesktopVoiceRuntimeClient`; docs listing; `git diff --check`; and a stale
+  phrase scan for the retired direct-backend websocket wording.
+- Compatibility: no migration required. Gateway URL shape, websocket protocol,
+  audio framing, wakeword IPC, and backend provider routing are unchanged.

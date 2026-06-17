@@ -36,12 +36,14 @@ Renderer runs two independent voice paths:
 
 They share microphone primitives but have different transport paths:
 
-- transcription path: renderer -> WindieOS backend transcription WebSocket (`<backend>/ws/transcription`)
+- transcription path: renderer -> desktop voice runtime facade -> transcription gateway WebSocket (`<backend>/ws/transcription`)
 - wakeword path: renderer -> Electron IPC -> main wakeword bridge -> Python wakeword service
 
 Backend ownership detail:
 
 - renderer never chooses the live STT provider
+- renderer obtains the gateway URL, socket factory, language payloads, and
+  inbound normalization through `DesktopVoiceRuntimeClient`
 - backend route `/ws/transcription` owns the app-facing protocol
 - backend config selects `stt_provider="nova"` (proxy to external Nova-Voice) or `stt_provider="openai"` (translate to OpenAI Realtime)
 - when `stt_provider="openai"`, backend connects with `openai_realtime_session_model` and sends `openai_realtime_transcription_model` in `session.update`
@@ -82,7 +84,7 @@ Shared callbacks:
 
 Hook lifecycle:
 
-1. enable -> open gateway WebSocket
+1. enable -> ask `DesktopVoiceRuntimeClient` to open the gateway WebSocket
 2. `onopen` -> send `{"type":"set_langs","source_language":"en","target_language":"en"}`
 3. `status` message -> store `client_id`
 4. `realtime` message -> use `translation` or `text`, push to transcription callback
@@ -96,7 +98,7 @@ callbacks.
 
 Gateway endpoint resolution:
 
-- default URL is derived from the active backend HTTP endpoint
+- default URL is resolved by `DesktopVoiceRuntimeClient` from the active backend HTTP endpoint
 - path is fixed to `/ws/transcription`
 - renderer contract stays the same even when backend swaps providers behind that route
 
