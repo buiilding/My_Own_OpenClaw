@@ -250,9 +250,8 @@ WebSocket Response
   futures via running-loop or event-loop fallback paths to keep sync-context
   tests and cleanup flows stable on newer asyncio runtimes.
 - Semantic request list bounds in
-  `backend/src/api/routes/memory/semantic/router.py` now use Pydantic v2
-  `min_length`/`max_length` fields, removing deprecated `min_items`/
-  `max_items` warnings without changing endpoint validation intent.
+  `backend/src/api/routes/memory/semantic/models.py` use Pydantic v2
+  `min_length`/`max_length` fields to preserve endpoint validation intent.
 - OCR utility helpers (`is_cuda_error`, screenshot payload decode, OCR field
   normalization) now live in `backend/src/services/ocr/helpers.py`, reducing
   `ocr_service.py` size and keeping service orchestration separate from pure
