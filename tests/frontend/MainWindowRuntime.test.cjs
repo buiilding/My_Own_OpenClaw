@@ -13,6 +13,7 @@ const {
   createResponseWindow,
   createTray,
   prepareOverlayQueryCaptureFocus,
+  resolveHostSkinIconPathResolver,
 } = require('../../frontend/src/main/surfaces/main_window_runtime.cjs');
 
 describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
@@ -624,6 +625,34 @@ describe('main_window_runtime createMainWindow', () => {
     expect(options.icon).toBe(icon);
   });
 
+  test('uses host skin app icon asset filename for default dashboard icon resolution', () => {
+    const { nativeImage } = require('electron');
+    const fs = require('fs');
+    const existsSyncSpy = jest.spyOn(fs, 'existsSync')
+      .mockImplementation((candidate) => String(candidate).includes('brand.app.png'));
+    const icon = { isEmpty: () => false };
+    try {
+      nativeImage.createFromPath.mockReturnValueOnce(icon);
+      const { deps, BrowserWindow } = createDeps({
+        mainHostSkin: {
+          assets: {
+            appIconFileName: 'brand.app.png',
+          },
+        },
+      });
+
+      createMainWindow(deps);
+
+      const options = BrowserWindow.mock.calls[0][0];
+      expect(nativeImage.createFromPath).toHaveBeenCalledWith(
+        expect.stringContaining(`assets${require('path').sep}icons${require('path').sep}brand.app.png`),
+      );
+      expect(options.icon).toBe(icon);
+    } finally {
+      existsSyncSpy.mockRestore();
+    }
+  });
+
   test('adds vm_mode query flag when VM mode is enabled', () => {
     const { deps, mainWindow } = createDeps({
       vmMode: true,
@@ -799,5 +828,22 @@ describe('main_window_runtime createTray', () => {
 
     expect(nativeImage.createFromDataURL).toHaveBeenCalledTimes(1);
     expect(deps.warn).toHaveBeenCalled();
+  });
+});
+
+describe('main_window_runtime host skin icon resolver', () => {
+  test('prefers injected icon path resolver over host skin asset defaults', () => {
+    const injected = jest.fn(() => '/tmp/injected.png');
+    const resolver = resolveHostSkinIconPathResolver({
+      mainHostSkin: {
+        assets: {
+          appIconFileName: 'brand.app.png',
+        },
+      },
+      resolveAppIconPath: injected,
+    });
+
+    expect(resolver()).toBe('/tmp/injected.png');
+    expect(injected).toHaveBeenCalledTimes(1);
   });
 });

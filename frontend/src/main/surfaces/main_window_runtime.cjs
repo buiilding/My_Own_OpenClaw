@@ -166,6 +166,18 @@ function hideMainWindowWithoutChatPill({
   mainWindow.hide();
 }
 
+function resolveHostSkinIconPathResolver({
+  mainHostSkin = {},
+  resolveAppIconPath = null,
+} = {}) {
+  if (typeof resolveAppIconPath === 'function') {
+    return resolveAppIconPath;
+  }
+  return () => resolveAppIconPathRuntime({
+    iconFileName: mainHostSkin?.assets?.appIconFileName,
+  });
+}
+
 function createMainWindow({
   BrowserWindow,
   path,
@@ -196,14 +208,18 @@ function createMainWindow({
   setMainWindow,
   syncWindowDisplayAffinity = () => {},
   mainHostSkin = {},
-  resolveAppIconPath = resolveAppIconPathRuntime,
+  resolveAppIconPath = null,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
   warn = console.warn,
 }) {
   const allowDevTools = Boolean(enableDevTransparencyUi);
-  const appIcon = resolveAppIcon({
+  const appIconPathResolver = resolveHostSkinIconPathResolver({
+    mainHostSkin,
     resolveAppIconPath,
+  });
+  const appIcon = resolveAppIcon({
+    resolveAppIconPath: appIconPathResolver,
     warn,
   });
   const mainWindow = new BrowserWindow({
@@ -331,7 +347,7 @@ function createChatWindow({
   applyOverlayWindowPolicy = null,
   syncWindowDisplayAffinity = () => {},
   mainHostSkin = {},
-  resolveAppIconPath = resolveAppIconPathRuntime,
+  resolveAppIconPath = null,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
   warn = console.warn,
@@ -339,8 +355,12 @@ function createChatWindow({
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
     ? applyOverlayWindowPolicy
     : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
-  const appIcon = resolveAppIcon({
+  const appIconPathResolver = resolveHostSkinIconPathResolver({
+    mainHostSkin,
     resolveAppIconPath,
+  });
+  const appIcon = resolveAppIcon({
+    resolveAppIconPath: appIconPathResolver,
     warn,
   });
   const chatWindow = createOverlayBrowserWindow({
@@ -426,7 +446,7 @@ function createResponseWindow({
   setResponseWindow,
   applyOverlayWindowPolicy = null,
   mainHostSkin = {},
-  resolveAppIconPath = resolveAppIconPathRuntime,
+  resolveAppIconPath = null,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
   warn = console.warn,
@@ -434,8 +454,12 @@ function createResponseWindow({
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
     ? applyOverlayWindowPolicy
     : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
-  const appIcon = resolveAppIcon({
+  const appIconPathResolver = resolveHostSkinIconPathResolver({
+    mainHostSkin,
     resolveAppIconPath,
+  });
+  const appIcon = resolveAppIcon({
+    resolveAppIconPath: appIconPathResolver,
     warn,
   });
   const responseWindow = createOverlayBrowserWindow({
@@ -508,12 +532,16 @@ function createTray({
   Menu,
   showMainWindow,
   app,
-  resolveTrayIconPath = resolveAppIconPathRuntime,
+  resolveTrayIconPath = null,
   warn = console.warn,
   mainHostSkin = {},
 }) {
+  const trayIconPathResolver = resolveHostSkinIconPathResolver({
+    mainHostSkin,
+    resolveAppIconPath: resolveTrayIconPath,
+  });
   const icon = resolveTrayIconNativeImage({
-    iconPath: resolveTrayIconPath(),
+    iconPath: trayIconPathResolver(),
     warn,
   });
   const tray = new Tray(icon);
@@ -551,4 +579,5 @@ module.exports = {
   emitMainWindowOpenTarget,
   normalizeMainWindowOpenTarget,
   prepareOverlayQueryCaptureFocus,
+  resolveHostSkinIconPathResolver,
 };

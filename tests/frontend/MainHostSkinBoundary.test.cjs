@@ -12,6 +12,8 @@ const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const openAICodexOAuthPath = path.join(mainRoot, 'app/openai_codex_oauth.cjs');
 const openAICodexOAuthHandlersPath = path.join(mainRoot, 'ipc/ipc_openai_codex_oauth_handlers.cjs');
+const mainWindowIconRuntimePath = path.join(mainRoot, 'surfaces/main_window_icon_runtime.cjs');
+const mainWindowRuntimePath = path.join(mainRoot, 'surfaces/main_window_runtime.cjs');
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
@@ -50,6 +52,8 @@ describe('main host skin/config boundary', () => {
 
     expect(skinSource).toContain("const productName = 'WindieOS'");
     expect(skinSource).toContain('identity');
+    expect(skinSource).toContain('assets');
+    expect(skinSource).toContain('appIconFileName');
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
@@ -88,6 +92,17 @@ describe('main host skin/config boundary', () => {
     expect(backendEndpointSource).toContain('mainHostSkin.hostedBackend');
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
+  });
+
+  test('main window icon asset filename lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const iconSource = fs.readFileSync(mainWindowIconRuntimePath, 'utf8');
+    const windowRuntimeSource = fs.readFileSync(mainWindowRuntimePath, 'utf8');
+
+    expect(skinSource).toContain("appIconFileName: 'windieos.app.png'");
+    expect(iconSource).toContain("DEFAULT_APP_ICON_FILE_NAME = 'app.png'");
+    expect(iconSource).not.toContain('windieos.app.png');
+    expect(windowRuntimeSource).toContain('mainHostSkin?.assets?.appIconFileName');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {

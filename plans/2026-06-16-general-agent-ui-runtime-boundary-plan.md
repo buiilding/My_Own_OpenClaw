@@ -732,3 +732,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime Electron callers still use
   `app.getPath('userData')`, so persisted install auth state remains in the same
   app data directory.
+
+### 2026-06-17 main icon asset skin config
+
+- Finding: the generic main window icon runtime still hardcoded the WindieOS app
+  icon filename while resolving dashboard, overlay, and tray icons.
+- Change: moved the WindieOS icon filename into the main host skin assets config,
+  made icon path resolution generic by configured filename, and kept explicit
+  test overrides ahead of skin defaults.
+- Validation: focused main-window icon/runtime and host-skin boundary tests,
+  docs listing, `git diff --check`, and source scan for the retired hardcoded
+  icon filename in the generic resolver.
+- Compatibility: no migration required. Packaged/source icon lookup order is
+  unchanged for the WindieOS skin because it supplies the same
+  `windieos.app.png` asset filename.

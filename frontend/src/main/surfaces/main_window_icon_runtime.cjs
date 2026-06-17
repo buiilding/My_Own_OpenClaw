@@ -6,18 +6,28 @@ const { nativeImage } = require('electron');
 const fs = require('fs');
 const nodePath = require('path');
 
-const APP_ICON_RELATIVE_PATH = nodePath.join('src', 'main', 'assets', 'icons', 'windieos.app.png');
+const DEFAULT_APP_ICON_FILE_NAME = 'app.png';
 const TRAY_ICON_FALLBACK_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+function normalizeIconFileName(iconFileName) {
+  if (typeof iconFileName !== 'string' || !iconFileName.trim()) {
+    return DEFAULT_APP_ICON_FILE_NAME;
+  }
+  return nodePath.basename(iconFileName.trim());
+}
 
 function resolveAppIconPathRuntime({
   existsSync = fs.existsSync,
   resourcesPath = process.resourcesPath,
   cwd = process.cwd(),
+  iconFileName = DEFAULT_APP_ICON_FILE_NAME,
 } = {}) {
+  const normalizedIconFileName = normalizeIconFileName(iconFileName);
+  const appIconRelativePath = nodePath.join('src', 'main', 'assets', 'icons', normalizedIconFileName);
   const candidates = [
-    nodePath.join(__dirname, '..', 'assets', 'icons', 'windieos.app.png'),
-    resourcesPath ? nodePath.join(resourcesPath, APP_ICON_RELATIVE_PATH) : null,
-    cwd ? nodePath.join(cwd, APP_ICON_RELATIVE_PATH) : null,
+    nodePath.join(__dirname, '..', 'assets', 'icons', normalizedIconFileName),
+    resourcesPath ? nodePath.join(resourcesPath, appIconRelativePath) : null,
+    cwd ? nodePath.join(cwd, appIconRelativePath) : null,
   ];
 
   for (const candidate of candidates) {
@@ -62,6 +72,7 @@ function resolveAppIconNativeImage({
 }
 
 module.exports = {
+  normalizeIconFileName,
   resolveAppIconNativeImage,
   resolveAppIconPathRuntime,
   resolveTrayIconNativeImage,

@@ -20,6 +20,10 @@ const hostedBackend = Object.freeze({
   wsUrl: 'wss://api.windieos.com/ws',
 });
 
+const assets = Object.freeze({
+  appIconFileName: 'windieos.app.png',
+});
+
 const browserAutomation = Object.freeze({
   localRuntimeNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
@@ -110,6 +114,7 @@ const openAICodexOAuth = Object.freeze({
 const mainHostSkin = Object.freeze({
   productName,
   identity,
+  assets,
   hostedBackend,
   queryEvents,
   bundledRuntime,
