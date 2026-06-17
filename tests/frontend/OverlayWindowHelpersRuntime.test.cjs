@@ -1,4 +1,4 @@
-/** @jest-environment node */
+﻿/** @jest-environment node */
 
 const { createOverlayWindowHelpersRuntime } = require('../../frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs');
 
@@ -9,18 +9,12 @@ describe('overlay_window_helpers_runtime', () => {
       getBounds: jest.fn(() => ({ x: 200, y: 700, width: 520, height: 116 })),
     };
     const getOverlayResponseWindowBounds = jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 }));
-    const getOverlayContextLabelWindowBounds = jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 }));
 
     const runtime = createOverlayWindowHelpersRuntime({
       screen: {},
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds,
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
       chatVisualAnchorHeight: 96,
     });
 
@@ -40,41 +34,6 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
-  test('applies compact visual anchor offset when computing context label bounds', () => {
-    const chatWindow = {
-      isDestroyed: jest.fn(() => false),
-      getBounds: jest.fn(() => ({ x: 100, y: 680, width: 520, height: 116 })),
-    };
-    const getOverlayResponseWindowBounds = jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 }));
-    const getOverlayContextLabelWindowBounds = jest.fn(() => ({ x: 111, y: 222, width: 280, height: 26 }));
-
-    const runtime = createOverlayWindowHelpersRuntime({
-      screen: {},
-      getChatWindow: () => chatWindow,
-      getOverlayChatWindowBounds: jest.fn(),
-      getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds,
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
-      chatVisualAnchorHeight: 96,
-    });
-
-    const bounds = runtime.getContextLabelWindowBounds();
-
-    expect(bounds).toEqual({ x: 111, y: 222, width: 280, height: 26 });
-    const [firstCall] = getOverlayContextLabelWindowBounds.mock.calls[0] || [];
-    expect(firstCall.chatBounds).toEqual(
-      expect.objectContaining({
-        x: 100,
-        y: 700,
-        width: 520,
-        height: 96,
-      }),
-    );
-  });
-
   test('passes configured response gap override for tighter chat/response spacing', () => {
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
@@ -87,11 +46,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
       chatVisualAnchorHeight: 96,
       responseGap: 2,
     });
@@ -120,11 +74,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
       chatVisualAnchorHeight: 96,
       getChatVisualAnchorHeight,
     });
@@ -155,11 +104,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
       chatVisualAnchorHeight: 96,
     });
 
@@ -190,11 +134,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(() => ({ x: 300, y: 800, width: 520, height: currentHeight })),
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     expect(runtime.resizeChatWindowForVisualAnchorHeight(96)).toBe(false);
@@ -220,11 +159,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     expect(runtime.setChatWindowBoundsForVisualAnchorHeight(200)).toBe(true);
@@ -249,11 +183,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     expect(runtime.resizeChatWindowForVisualAnchorHeight(Infinity)).toBe(true);
@@ -289,11 +218,6 @@ describe('overlay_window_helpers_runtime', () => {
       getResponseOverlayVisible: () => true,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     runtime.ensureResponseOverlayFallbackBounds();
@@ -329,11 +253,6 @@ describe('overlay_window_helpers_runtime', () => {
       getResponseOverlayVisible: () => true,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     runtime.positionResponseWindow();
@@ -374,11 +293,6 @@ describe('overlay_window_helpers_runtime', () => {
       getResponseOverlayVisible: () => true,
       getOverlayChatWindowBounds: jest.fn(),
       getOverlayResponseWindowBounds,
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     runtime.ensureResponseOverlayFallbackBounds();
@@ -411,11 +325,6 @@ describe('overlay_window_helpers_runtime', () => {
         height: 116,
       })),
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     runtime.positionChatWindow();
@@ -456,11 +365,6 @@ describe('overlay_window_helpers_runtime', () => {
         height: currentHeight,
       })),
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     runtime.setManualChatWindowPosition({ x: 2100, y: 120 });
@@ -495,11 +399,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds,
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     runtime.positionChatWindow();
@@ -540,11 +439,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.requireActual('../../frontend/src/main/surfaces/overlay_bounds.cjs').getChatWindowBounds,
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
     });
 
     runtime.positionChatWindow();
@@ -569,11 +463,6 @@ describe('overlay_window_helpers_runtime', () => {
       getChatWindow: () => chatWindow,
       getOverlayChatWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 520, height: 116 })),
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
-      contextLabelWidth: 280,
-      contextLabelHeight: 26,
-      contextLabelOffsetX: 14,
-      contextLabelGapAboveChatbox: -6,
       warn: jest.fn(),
     });
 

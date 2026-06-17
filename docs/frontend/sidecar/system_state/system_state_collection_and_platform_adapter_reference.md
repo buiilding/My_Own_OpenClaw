@@ -157,8 +157,6 @@ SDK/main query preparation requests:
 
 Current runtime note:
 
-- The old context-label renderer route/component has been removed from the current frontend runtime.
-- no active renderer polling path currently requests `active_window` for context-label rendering.
 
 ## Failure and Fallback Behavior Across Layers
 

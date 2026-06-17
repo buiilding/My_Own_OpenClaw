@@ -107,7 +107,6 @@ function createWindowBootstrapRuntime(deps) {
         deps.getState().setResponseOverlayVisible(nextVisible);
       },
       setResponseOverlayVisibilityState: deps.setResponseOverlayVisibilityState,
-      syncContextLabelWindowVisibility: deps.syncContextLabelWindowVisibility,
       setResponseWindow: deps.setResponseWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,

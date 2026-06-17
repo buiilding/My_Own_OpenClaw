@@ -22,8 +22,6 @@ describe('overlay_chatbox_handler move runtime', () => {
       positionChatWindow: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
       positionResponseWindow: jest.fn(),
-      positionContextLabelWindow: jest.fn(),
-      syncContextLabelWindowVisibility: jest.fn(),
       warn: jest.fn(),
       ...overrides,
     };
@@ -47,9 +45,7 @@ describe('overlay_chatbox_handler move runtime', () => {
     expect(deps.setManualChatWindowPosition).toHaveBeenCalledWith({ x: 101, y: 50, monitorId: 'display-2' });
     expect(deps.positionChatWindow).toHaveBeenCalledTimes(1);
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(deps.chatWindow);
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
     expect(deps.positionResponseWindow).not.toHaveBeenCalled();
-    expect(deps.positionContextLabelWindow).not.toHaveBeenCalled();
     expect(deps.setActiveDisplayAffinity.mock.invocationCallOrder[0]).toBeLessThan(
       deps.setManualChatWindowPosition.mock.invocationCallOrder[0],
     );
@@ -139,6 +135,5 @@ describe('overlay_chatbox_handler move runtime', () => {
 
     expect(deps.chatWindow.setPosition).toHaveBeenCalledWith(10, 20, false);
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
-    expect(deps.positionContextLabelWindow).toHaveBeenCalledTimes(1);
   });
 });

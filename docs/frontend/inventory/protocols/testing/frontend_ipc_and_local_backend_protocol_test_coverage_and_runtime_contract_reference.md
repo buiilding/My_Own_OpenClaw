@@ -193,7 +193,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 
 - Overlay runtime registers only phase-owned overlay channels.
 - Deprecated channels (`set-overlay-ignore-mouse`, `set-overlay-focusable`, `prepare-overlay-tool-focus`) remain unregistered.
-- `set-chatbox-visual-anchor-height` updates propagate to response/context-label positioning sync.
+- `set-chatbox-visual-anchor-height` updates propagate to response positioning sync.
 
 `tests/frontend/WindowControlsIpcRuntime.test.cjs` validates:
 

@@ -126,7 +126,7 @@ Debug mode behavior:
 Close behavior:
 
 - intercepted to hide overlay + clear response visibility state
-- on closed, response reference reset and context-label sync callback invoked
+- on closed, response reference reset and overlay visibility state cleared
 
 ## Open-Target + Tray Helpers
 

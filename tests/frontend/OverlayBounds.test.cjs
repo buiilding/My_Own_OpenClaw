@@ -3,7 +3,6 @@
 const {
   getChatWindowBounds,
   getResponseWindowBounds,
-  getContextLabelWindowBounds,
 } = require('../../frontend/src/main/surfaces/overlay_bounds.cjs');
 
 describe('overlay_bounds', () => {
@@ -181,58 +180,4 @@ describe('overlay_bounds', () => {
     });
   });
 
-  test('context label bounds use fallback chat position when chat bounds missing', () => {
-    expect(
-      getContextLabelWindowBounds({
-        screen,
-        labelWidth: 280,
-        labelHeight: 26,
-        offsetX: 14,
-        gapAbove: -6,
-      }),
-    ).toEqual({
-      x: 660,
-      y: 880,
-      width: 280,
-      height: 26,
-    });
-  });
-
-  test('context label fallback bounds use active display affinity when chat bounds are missing', () => {
-    expect(
-      getContextLabelWindowBounds({
-        screen,
-        displayAffinity: {
-          workArea: { x: 1920, y: 40, width: 2560, height: 1400 },
-        },
-        labelWidth: 280,
-        labelHeight: 26,
-        offsetX: 14,
-        gapAbove: -6,
-      }),
-    ).toEqual({
-      x: 3060,
-      y: 1370,
-      width: 280,
-      height: 26,
-    });
-  });
-
-  test('context label bounds anchor to chat bounds when chat exists', () => {
-    expect(
-      getContextLabelWindowBounds({
-        screen,
-        chatBounds: { x: 250, y: 700, width: 520, height: 96 },
-        labelWidth: 280,
-        labelHeight: 26,
-        offsetX: 14,
-        gapAbove: -6,
-      }),
-    ).toEqual({
-      x: 264,
-      y: 680,
-      width: 280,
-      height: 26,
-    });
-  });
 });

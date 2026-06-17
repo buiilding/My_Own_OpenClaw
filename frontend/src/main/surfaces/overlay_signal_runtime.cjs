@@ -49,11 +49,9 @@ function setResponseOverlayVisibilityState(visible, deps = {}) {
   const {
     setResponseOverlayVisible = () => {},
     broadcastResponseOverlayVisibility = () => {},
-    syncContextLabelWindowVisibility = () => {},
   } = deps;
   setResponseOverlayVisible(Boolean(visible));
   broadcastResponseOverlayVisibility(Boolean(visible));
-  syncContextLabelWindowVisibility();
 }
 
 module.exports = {

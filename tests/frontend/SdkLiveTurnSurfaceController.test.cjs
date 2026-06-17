@@ -72,7 +72,6 @@ function createDeps(overrides = {}) {
     showResponseWindowInactive: jest.fn(() => {
       responseWindow.showInactive();
     }),
-    syncContextLabelWindowVisibility: jest.fn(),
     log: jest.fn(),
     warn: jest.fn(),
     ...overrides,
@@ -190,7 +189,6 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(deps.syncContextLabelWindowVisibility).not.toHaveBeenCalled();
   });
 
   test('rejects non-positive response dimensions before native window mutation', () => {
@@ -220,7 +218,6 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
     expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(deps.syncContextLabelWindowVisibility).not.toHaveBeenCalled();
   });
 
   test('suppresses visible SDK overlay intent when floating surface does not own presentation', () => {
@@ -251,7 +248,6 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
     expect(responseWindow.hide).toHaveBeenCalledTimes(1);
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('skips repeated identical awaiting intent after the native window is already visible', () => {

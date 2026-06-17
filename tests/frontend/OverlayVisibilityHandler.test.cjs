@@ -184,7 +184,6 @@ describe('overlay_visibility_handler', () => {
     const showResponseWindowInactive = jest.fn();
     const ensureResponseOverlayFallbackBounds = jest.fn();
     const setResponseOverlayVisibilityState = jest.fn();
-    const syncContextLabelWindowVisibility = jest.fn();
 
     const result = handleRestoreSurfaceAfterScreenshot(
       { hiddenSurface: 'response' },
@@ -195,7 +194,6 @@ describe('overlay_visibility_handler', () => {
         showResponseWindowInactive,
         ensureResponseOverlayFallbackBounds,
         setResponseOverlayVisibilityState,
-        syncContextLabelWindowVisibility,
       },
     );
 
@@ -203,14 +201,12 @@ describe('overlay_visibility_handler', () => {
     expect(setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
     expect(ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
     expect(showResponseWindowInactive).toHaveBeenCalledTimes(1);
-    expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('restore-surface-after-screenshot suppresses response-only restore when floating surface is not owner', () => {
     const showResponseWindowInactive = jest.fn();
     const ensureResponseOverlayFallbackBounds = jest.fn();
     const setResponseOverlayVisibilityState = jest.fn();
-    const syncContextLabelWindowVisibility = jest.fn();
     const responseWindow = {
       isDestroyed: () => false,
       isVisible: jest.fn(() => true),
@@ -224,7 +220,6 @@ describe('overlay_visibility_handler', () => {
         showResponseWindowInactive,
         ensureResponseOverlayFallbackBounds,
         setResponseOverlayVisibilityState,
-        syncContextLabelWindowVisibility,
         canShowFloatingResponseOverlay: jest.fn(() => false),
       },
     );
@@ -239,7 +234,6 @@ describe('overlay_visibility_handler', () => {
     expect(responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('restore-surface-after-screenshot restores dashboard when needed', () => {
@@ -348,11 +342,6 @@ describe('overlay_visibility_handler', () => {
       hide: jest.fn(),
       webContents: { id: 'response-webcontents' },
     };
-    const contextLabelWindow = {
-      isDestroyed: () => false,
-      isVisible: () => true,
-      hide: jest.fn(),
-    };
     const broadcastResponseOverlayVisibility = jest.fn();
 
     const result = await handlePrepareSurfaceForScreenshot(
@@ -366,7 +355,6 @@ describe('overlay_visibility_handler', () => {
             webContents: { id: 'chat-webcontents' },
           },
           responseWindow,
-          contextLabelWindow,
           mainWindow: {
             isDestroyed: () => false,
             isVisible: () => false,
@@ -377,14 +365,12 @@ describe('overlay_visibility_handler', () => {
         hideMainWindow,
         waitInMain,
         responseWindow,
-        contextLabelWindow,
         broadcastResponseOverlayVisibility,
       },
     );
 
     expect(result.hiddenSurface).toBe('response');
     expect(responseWindow.hide).toHaveBeenCalledTimes(1);
-    expect(contextLabelWindow.hide).toHaveBeenCalledTimes(1);
     expect(broadcastResponseOverlayVisibility).toHaveBeenCalledWith(false);
     expect(hideChatWindow).not.toHaveBeenCalled();
     expect(hideMainWindow).not.toHaveBeenCalled();

@@ -60,7 +60,6 @@ function showChatWindow(options = {}, deps = {}) {
     ensureResponseOverlayFallbackBounds = () => {},
     showResponseWindowInactive = () => {},
     broadcastResponseOverlayVisibility = () => {},
-    syncContextLabelWindowVisibility = () => {},
     syncChatboxHitTestState = () => {},
     syncWakewordToggleForChatVisibility = () => {},
     getResponseOverlayPhase = () => null,
@@ -115,7 +114,6 @@ function showChatWindow(options = {}, deps = {}) {
     responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible(),
   );
   broadcastResponseOverlayVisibility(responseIsVisible);
-  syncContextLabelWindowVisibility();
   logChatPillMainTrace({
     source: 'window-visibility',
     action: 'show-chat-window',
@@ -138,7 +136,6 @@ function hideChatWindow(deps = {}) {
   const {
     chatWindow,
     responseWindow,
-    contextLabelWindow,
     broadcastResponseOverlayVisibility = () => {},
     syncWakewordToggleForChatVisibility = () => {},
     getResponseOverlayPhase = () => null,
@@ -147,14 +144,12 @@ function hideChatWindow(deps = {}) {
   const overlayWindowsAvailable = (
     safeWindowVisible(chatWindow) !== null
     || safeWindowVisible(responseWindow) !== null
-    || safeWindowVisible(contextLabelWindow) !== null
   );
   if (!overlayWindowsAvailable) {
     return { success: false, reason: 'Chat window not available' };
   }
   hideWindowIfVisible(chatWindow);
   hideWindowIfVisible(responseWindow);
-  hideWindowIfVisible(contextLabelWindow);
   broadcastResponseOverlayVisibility(false);
   syncWakewordToggleForChatVisibility();
   logChatPillMainTrace({
@@ -231,7 +226,6 @@ function showMainWindow(options = {}, deps = {}) {
     mainWindow,
     chatWindow,
     responseWindow,
-    contextLabelWindow,
     platform = process.platform,
     syncWindowDisplayAffinity = () => {},
     setActiveDisplayAffinity = () => {},
@@ -252,7 +246,6 @@ function showMainWindow(options = {}, deps = {}) {
   const overlaySurfaceVisible = (
     safeWindowVisible(chatWindow)
     || safeWindowVisible(responseWindow)
-    || safeWindowVisible(contextLabelWindow)
   );
   if (overlaySurfaceVisible) {
     const handoffReason = typeof options?.reason === 'string' && options.reason.trim()

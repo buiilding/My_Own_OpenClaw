@@ -102,7 +102,6 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
     showResponseWindowInactive,
     ensureResponseOverlayFallbackBounds = () => {},
     setResponseOverlayVisibilityState = () => {},
-    syncContextLabelWindowVisibility = () => {},
     canShowFloatingResponseOverlay = () => true,
     responseWindow,
   } = deps;
@@ -131,7 +130,6 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
       if (typeof responseWindow.isVisible === 'function' && responseWindow.isVisible()) {
         responseWindow.hide();
       }
-      syncContextLabelWindowVisibility();
       return {
         success: true,
         restored: false,
@@ -142,7 +140,6 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
     setResponseOverlayVisibilityState(true);
     ensureResponseOverlayFallbackBounds();
     showResponseWindowInactive();
-    syncContextLabelWindowVisibility();
     return { success: true, restored: true };
   }
   if (hiddenSurface === 'main-window') {
@@ -215,7 +212,6 @@ async function handlePrepareSurfaceForScreenshot(
     hideChatWindow,
     hideMainWindow,
     responseWindow,
-    contextLabelWindow,
     broadcastResponseOverlayVisibility = () => {},
     waitInMain = (waitMs) => new Promise((resolve) => setTimeout(resolve, waitMs)),
   } = deps;
@@ -247,9 +243,6 @@ async function handlePrepareSurfaceForScreenshot(
     } else if (hiddenSurface === 'response') {
       if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
         responseWindow.hide();
-      }
-      if (contextLabelWindow && !contextLabelWindow.isDestroyed() && contextLabelWindow.isVisible()) {
-        contextLabelWindow.hide();
       }
       broadcastResponseOverlayVisibility(false);
       hideResult = { success: true, hidden: true };

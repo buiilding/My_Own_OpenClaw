@@ -26,12 +26,6 @@ describe('overlay_responsebox_handler', () => {
         isVisible: jest.fn().mockReturnValue(false),
         getBounds: jest.fn().mockReturnValue({ x: 0, y: 0, width: 1000, height: 700 }),
       },
-      contextLabelWindow: {
-        isDestroyed: jest.fn().mockReturnValue(false),
-        isVisible: jest.fn().mockReturnValue(true),
-        getBounds: jest.fn().mockReturnValue({ x: 120, y: 180, width: 220, height: 28 }),
-        isFocusable: jest.fn().mockReturnValue(false),
-      },
       BrowserWindow: {
         fromWebContents: jest.fn(() => ({
           isDestroyed: jest.fn().mockReturnValue(false),
@@ -141,13 +135,6 @@ describe('overlay_responsebox_handler', () => {
           destroyed: false,
           focusable: true,
           bounds: { x: 100, y: 200, width: 300, height: 400 },
-        },
-        contextLabelWindow: {
-          label: 'context label',
-          visible: true,
-          destroyed: false,
-          focusable: false,
-          bounds: { x: 120, y: 180, width: 220, height: 28 },
         },
       });
       expect(snapshots[1]).toMatchObject({
@@ -309,7 +296,6 @@ describe('overlay_responsebox_handler', () => {
       },
       getActiveResponseOverlayGuardRef: jest.fn(() => 'turn-live'),
       canShowFloatingResponseOverlay: jest.fn(() => false),
-      syncContextLabelWindowVisibility: jest.fn(),
     });
 
     const result = await handleSetResponseboxSize({
@@ -331,7 +317,6 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
     expect(deps.showResponseWindowForLiveTurnIntent).not.toHaveBeenCalled();
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('passes compact hover flag through to response bounds helper', async () => {

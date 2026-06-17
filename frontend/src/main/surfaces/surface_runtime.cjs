@@ -93,11 +93,6 @@ function createSurfaceRuntime({
   syncActiveDisplayAffinityForWindow,
   getOverlayChatWindowBounds,
   getOverlayResponseWindowBounds,
-  getOverlayContextLabelWindowBounds,
-  contextLabelWidth,
-  contextLabelHeight,
-  contextLabelOffsetX,
-  contextLabelGapAboveChatbox,
   responseGap,
   initialChatVisualAnchorHeight = 64,
   responseOverlayPhaseEnum,
@@ -117,7 +112,6 @@ function createSurfaceRuntime({
     mainWindow: null,
     chatWindow: null,
     responseWindow: null,
-    contextLabelWindow: null,
     vmWorkerRuntime: null,
     mainProcessIpcHandlersInitialized: false,
     responseOverlayVisible: false,
@@ -140,7 +134,6 @@ function createSurfaceRuntime({
       mainWindow: state.mainWindow,
       chatWindow: state.chatWindow,
       responseWindow: state.responseWindow,
-      contextLabelWindow: state.contextLabelWindow,
     };
   }
 
@@ -215,15 +208,9 @@ function createSurfaceRuntime({
     getActiveDisplayAffinity,
     getChatWindow: () => state.chatWindow,
     getResponseWindow: () => state.responseWindow,
-    getContextLabelWindow: () => state.contextLabelWindow,
     getResponseOverlayVisible: () => state.responseOverlayVisible,
     getOverlayChatWindowBounds,
     getOverlayResponseWindowBounds,
-    getOverlayContextLabelWindowBounds,
-    contextLabelWidth,
-    contextLabelHeight,
-    contextLabelOffsetX,
-    contextLabelGapAboveChatbox,
     responseGap,
     getChatVisualAnchorHeight: () => state.chatVisualAnchorHeight,
     warn,
@@ -392,7 +379,6 @@ function createSurfaceRuntime({
     for (const [win, windowLabel] of [
       [state.chatWindow, 'chat box'],
       [state.responseWindow, 'response overlay'],
-      [state.contextLabelWindow, 'context label'],
     ]) {
       safeSetWindowPointerPolicy(win, {
         ignoreMouseEvents: true,
@@ -405,16 +391,6 @@ function createSurfaceRuntime({
       state.pointerControlLeaseCount = Math.max(0, state.pointerControlLeaseCount - 1);
       syncChatboxHitTestState();
       syncResponseboxHitTestState();
-      for (const [win, windowLabel] of [
-        [state.contextLabelWindow, 'context label'],
-      ]) {
-        safeSetWindowPointerPolicy(win, {
-          ignoreMouseEvents: true,
-          focusable: false,
-          windowLabel,
-          reason: 'pointer-lease-release-restore-overlay-pass-through',
-        });
-      }
       logLiveSurfaceTrace('tool_lease.pointer.release', {
         source: 'surface-runtime',
         reason: 'local-tool-finally',
@@ -569,7 +545,6 @@ function createSurfaceRuntime({
         state.mainWindow,
         state.chatWindow,
         state.responseWindow,
-        state.contextLabelWindow,
       ],
     });
   }
@@ -580,7 +555,6 @@ function createSurfaceRuntime({
         state.responseOverlayVisible = Boolean(nextVisible);
       },
       broadcastResponseOverlayVisibility,
-      syncContextLabelWindowVisibility: overlayHelpers.syncContextLabelWindowVisibility,
     });
   }
 
@@ -695,7 +669,6 @@ function createSurfaceRuntime({
       ensureResponseOverlayFallbackBounds: overlayHelpers.ensureResponseOverlayFallbackBounds,
       showResponseWindowInactive: overlayHelpers.showResponseWindowInactive,
       broadcastResponseOverlayVisibility,
-      syncContextLabelWindowVisibility: overlayHelpers.syncContextLabelWindowVisibility,
       syncWakewordToggleForChatVisibility,
       syncWindowDisplayAffinity,
       syncChatboxHitTestState,
@@ -771,7 +744,6 @@ function createSurfaceRuntime({
     const result = hideChatWindowRuntime({
       chatWindow: state.chatWindow,
       responseWindow: state.responseWindow,
-      contextLabelWindow: state.contextLabelWindow,
       broadcastResponseOverlayVisibility,
       syncWakewordToggleForChatVisibility,
       getResponseOverlayPhase: () => state.responseOverlayPhase,
@@ -803,7 +775,6 @@ function createSurfaceRuntime({
       mainWindow: state.mainWindow,
       chatWindow: state.chatWindow,
       responseWindow: state.responseWindow,
-      contextLabelWindow: state.contextLabelWindow,
       syncWindowDisplayAffinity,
       setActiveDisplayAffinity,
       getActiveDisplayAffinity,
@@ -866,11 +837,9 @@ function createSurfaceRuntime({
       setResponseOverlayVisibilityState,
       responseWindow: state.responseWindow,
       chatWindow: state.chatWindow,
-      contextLabelWindow: state.contextLabelWindow,
       ensureResponseOverlayFallbackBounds: overlayHelpers.ensureResponseOverlayFallbackBounds,
       showResponseWindowWhenChatVisible: overlayHelpers.showResponseWindowWhenChatVisible,
       showResponseWindowInactive: overlayHelpers.showResponseWindowInactive,
-      syncContextLabelWindowVisibility: overlayHelpers.syncContextLabelWindowVisibility,
       warn,
     });
   }
@@ -904,7 +873,6 @@ function createSurfaceRuntime({
     emitWakewordSttTrigger,
     enableContentProtectionSafely,
     getChatWindow: () => state.chatWindow,
-    getContextLabelWindow: () => state.contextLabelWindow,
     getMainWindow: () => state.mainWindow,
     getMainWindowMode,
     getPrimarySurface,
@@ -925,9 +893,6 @@ function createSurfaceRuntime({
     setChatVisualAnchorHeight,
     setChatWindow: (nextWindow) => {
       state.chatWindow = nextWindow;
-    },
-    setContextLabelWindow: (nextWindow) => {
-      state.contextLabelWindow = nextWindow;
     },
     setMainWindow: (nextWindow) => {
       state.mainWindow = nextWindow;

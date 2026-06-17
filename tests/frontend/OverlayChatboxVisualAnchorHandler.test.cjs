@@ -10,7 +10,6 @@ describe('overlay_chatbox_visual_anchor_handler', () => {
     const setChatWindowBoundsForVisualAnchorHeight = jest.fn(() => false);
     const resizeChatWindowForVisualAnchorHeight = jest.fn(() => false);
     const positionResponseWindow = jest.fn();
-    const positionContextLabelWindow = jest.fn();
 
     const result = handleSetChatboxVisualAnchorHeight(
       { height: 116 },
@@ -19,8 +18,6 @@ describe('overlay_chatbox_visual_anchor_handler', () => {
         setChatWindowBoundsForVisualAnchorHeight,
         resizeChatWindowForVisualAnchorHeight,
         positionResponseWindow,
-        positionContextLabelWindow,
-        syncContextLabelWindowVisibility: jest.fn(),
       },
     );
 
@@ -38,7 +35,7 @@ describe('overlay_chatbox_visual_anchor_handler', () => {
     ).toBeLessThan(positionResponseWindow.mock.invocationCallOrder[0]);
     expect(
       resizeChatWindowForVisualAnchorHeight.mock.invocationCallOrder[0],
-    ).toBeLessThan(positionContextLabelWindow.mock.invocationCallOrder[0]);
+    ).toBeLessThan(positionResponseWindow.mock.invocationCallOrder[0]);
   });
 
   test('does not reposition when the visual anchor height is unchanged', () => {
@@ -51,7 +48,6 @@ describe('overlay_chatbox_visual_anchor_handler', () => {
         setChatVisualAnchorHeight: jest.fn(() => false),
         setChatWindowBoundsForVisualAnchorHeight,
         positionResponseWindow,
-        syncContextLabelWindowVisibility: jest.fn(),
       },
     );
 

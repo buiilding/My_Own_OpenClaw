@@ -59,7 +59,6 @@ Provider stack docs place this boundary around all renderer root surfaces:
 - default app
 - minimal chat pill overlay app
 - response overlay app
-- context-label overlay app
 
 This gives one crash containment boundary per window surface.
 

@@ -46,7 +46,6 @@ describe('response_overlay_phase_handler', () => {
       ensureResponseOverlayFallbackBounds: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
       showResponseWindowInactive: jest.fn(),
-      syncContextLabelWindowVisibility: jest.fn(),
       ...overrides,
     };
   }
@@ -185,7 +184,6 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('streaming phase does not force overlay click-through when hit-test is active', () => {
@@ -223,7 +221,6 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
 
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('terminal phase does not restore overlay when floating surface is not owner', () => {
@@ -235,10 +232,9 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
 
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
-  test('terminal phase still syncs context label when overlay is not visible', () => {
+  test('terminal phase does not restore overlay when overlay is not visible', () => {
     const deps = createDeps({
       getResponseOverlayVisible: jest.fn().mockReturnValue(false),
     });
@@ -246,7 +242,6 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.ERROR }, deps);
 
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('terminal phases restore only when the cached response shell is safely visible', () => {
@@ -255,7 +250,6 @@ describe('response_overlay_phase_handler', () => {
     });
     handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
 
     const hiddenChatDeps = createDeps({
       getResponseOverlayVisible: jest.fn().mockReturnValue(true),
@@ -265,7 +259,6 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, hiddenChatDeps);
 
     expect(hiddenChatDeps.showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(hiddenChatDeps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('ignores stale terminal phases from a previous response correlation', () => {

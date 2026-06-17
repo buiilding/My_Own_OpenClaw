@@ -27,8 +27,6 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     positionChatWindow,
     getActiveDisplayAffinity = () => null,
     positionResponseWindow,
-    positionContextLabelWindow,
-    syncContextLabelWindowVisibility,
     syncWindowDisplayAffinity = () => {},
     setManualChatWindowPosition,
     setChatVisualAnchorHeight,
@@ -59,8 +57,6 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       resizeChatWindowForVisualAnchorHeight,
       positionChatWindow,
       positionResponseWindow,
-      positionContextLabelWindow,
-      syncContextLabelWindowVisibility,
       warn,
     });
   });
@@ -98,19 +94,16 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       positionChatWindow,
       syncWindowDisplayAffinity,
       positionResponseWindow,
-      positionContextLabelWindow,
-      syncContextLabelWindowVisibility,
       warn,
     });
   });
 
   ipcMain.handle('set-responsebox-size', async (_event, args = {}) => {
-    const { responseWindow, chatWindow, mainWindow, contextLabelWindow } = getWindows();
+    const { responseWindow, chatWindow, mainWindow } = getWindows();
     return handleSetResponseboxSize(args, {
       responseWindow,
       chatWindow,
       mainWindow,
-      contextLabelWindow,
       BrowserWindow,
       screen,
       getActiveDisplayAffinity,
@@ -120,7 +113,6 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       getActiveResponseOverlayGuardRef,
       setActiveResponseOverlayGuardRef,
       dismissResponseOverlayGuardRef,
-      syncContextLabelWindowVisibility,
       canShowFloatingResponseOverlay,
       getResponseOverlayVisible: () => {
         const currentResponseWindow = getWindows().responseWindow;
@@ -182,7 +174,6 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       hideChatWindow,
       hideMainWindow,
       responseWindow: getWindows().responseWindow,
-      contextLabelWindow: getWindows().contextLabelWindow,
       broadcastResponseOverlayVisibility,
     });
   });
@@ -194,7 +185,6 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       showResponseWindowInactive,
       ensureResponseOverlayFallbackBounds: deps.ensureResponseOverlayFallbackBounds,
       setResponseOverlayVisibilityState,
-      syncContextLabelWindowVisibility,
       canShowFloatingResponseOverlay,
       responseWindow: getWindows().responseWindow,
     });

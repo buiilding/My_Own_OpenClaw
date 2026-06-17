@@ -140,40 +140,7 @@ function getResponseWindowBounds({
   };
 }
 
-function getContextLabelWindowBounds({
-  screen,
-  displayAffinity = null,
-  chatBounds = null,
-  labelWidth,
-  labelHeight,
-  offsetX,
-  gapAbove,
-}) {
-  if (!chatBounds) {
-    const fallback = getChatWindowBounds({
-      screen,
-      width: labelWidth,
-      height: labelHeight,
-      displayAffinity,
-    });
-    return {
-      x: fallback.x,
-      y: fallback.y - labelHeight - gapAbove,
-      width: labelWidth,
-      height: labelHeight,
-    };
-  }
-
-  return {
-    x: chatBounds.x + offsetX,
-    y: chatBounds.y - labelHeight - gapAbove,
-    width: labelWidth,
-    height: labelHeight,
-  };
-}
-
 module.exports = {
   getChatWindowBounds,
   getResponseWindowBounds,
-  getContextLabelWindowBounds,
 };

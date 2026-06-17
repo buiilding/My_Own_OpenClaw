@@ -88,7 +88,6 @@ function logResponseOverlayDismissSnapshot({
   responseOverlayVisible,
   responseWindow,
   chatWindow,
-  contextLabelWindow,
 }) {
   logLiveSurfaceTrace('response_overlay.dismiss.native_snapshot', {
     source: 'responsebox-size',
@@ -100,7 +99,6 @@ function logResponseOverlayDismissSnapshot({
     responseOverlayVisible,
     responseWindow: summarizeNativeWindowForDismiss(responseWindow, 'response overlay'),
     chatWindow: summarizeNativeWindowForDismiss(chatWindow, 'chat box'),
-    contextLabelWindow: summarizeNativeWindowForDismiss(contextLabelWindow, 'context label'),
   });
 }
 
@@ -167,7 +165,6 @@ async function handleSetResponseboxSize(
     responseWindow,
     chatWindow,
     mainWindow,
-    contextLabelWindow = null,
     screen,
     BrowserWindow,
     webContents = null,
@@ -180,7 +177,6 @@ async function handleSetResponseboxSize(
     getActiveResponseOverlayGuardRef = () => null,
     setActiveResponseOverlayGuardRef = () => {},
     dismissResponseOverlayGuardRef = () => false,
-    syncContextLabelWindowVisibility = () => {},
     canShowFloatingResponseOverlay = () => true,
   } = deps;
 
@@ -252,7 +248,6 @@ async function handleSetResponseboxSize(
         responseOverlayVisible: getResponseOverlayVisible(),
         responseWindow,
         chatWindow,
-        contextLabelWindow,
       });
       return {
         success: true,
@@ -281,7 +276,6 @@ async function handleSetResponseboxSize(
       responseOverlayVisible: getResponseOverlayVisible(),
       responseWindow,
       chatWindow,
-      contextLabelWindow,
     });
     if (responseWindow.isVisible()) {
       responseWindow.hide();
@@ -303,7 +297,6 @@ async function handleSetResponseboxSize(
       responseOverlayVisible: getResponseOverlayVisible(),
       responseWindow,
       chatWindow,
-      contextLabelWindow,
     });
     appendSurfaceVisibilityDiagnostic({
       action: 'hide-from-size',
@@ -350,7 +343,6 @@ async function handleSetResponseboxSize(
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
     }
-    syncContextLabelWindowVisibility();
     appendSurfaceVisibilityDiagnostic({
       action: 'suppress-size-show-for-surface-owner',
       phase: getResponseOverlayPhase(),

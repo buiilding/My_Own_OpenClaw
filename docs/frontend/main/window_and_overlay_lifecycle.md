@@ -34,7 +34,6 @@ Window set:
 - `mainWindow`: dashboard/settings surface (`frame: false`, hidden on start)
 - `chatWindow`: bottom-center overlay input pill (`transparent`, `alwaysOnTop`)
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
-- `contextLabelWindow`: dormant context-label shell window hooks remain in main process, but window is not currently instantiated in startup flow
 - macOS chat/response overlays use the capturable `floating` topmost level in
   normal operation; screenshot exclusion is handled only by the SDK screenshot
   lease
@@ -45,7 +44,7 @@ Window set:
 
 Shared ownership model:
 
-- `surfaces/surface_runtime.cjs` is the single main-process owner for `mainWindow`, `chatWindow`, `responseWindow`, `contextLabelWindow`, response-overlay visibility, and response phase.
+- `surfaces/surface_runtime.cjs` is the single main-process owner for `mainWindow`, `chatWindow`, `responseWindow`, response-overlay visibility, and response phase.
 - it also owns the high-level surface state:
   - `primarySurface`: `onboarding|dashboard|chat`
   - `mainWindowMode`: `onboarding|dashboard`
@@ -60,7 +59,6 @@ Shared ownership model:
 - `chat_pill_trace_runtime.cjs` is the gated main-process trace helper for chat-pill / response-overlay transitions (`[ChatPillTrace][main]`).
 - `index.cjs` now wires those owners together and passes their narrow callbacks into bootstrap/lifecycle/IPC modules instead of mutating window state directly.
 
-For deeper context-label runtime details, see [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md).
 
 ## Creation and Startup Flow
 
@@ -294,7 +292,7 @@ Main bridge fanout channel (`ipc.cjs`):
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
 - supports awaiting-first-chunk view and final/error markdown pane
-- main-process response/context-label positioning now anchors to compact visual chat-pill height (instead of full transparent chat window height), preventing vertical drift when compact pill is shorter than the fixed overlay window.
+- main-process response positioning now anchors to compact visual chat-pill height (instead of full transparent chat window height), preventing vertical drift when compact pill is shorter than the fixed overlay window.
 
 For renderer-only deep dives:
 

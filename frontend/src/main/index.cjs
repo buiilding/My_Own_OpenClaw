@@ -71,7 +71,6 @@ const { initializePermissionHandlersRuntime } = require('./permissions/permissio
 const {
   getChatWindowBounds: getOverlayChatWindowBounds,
   getResponseWindowBounds: getOverlayResponseWindowBounds,
-  getContextLabelWindowBounds: getOverlayContextLabelWindowBounds,
 } = require('./surfaces/overlay_bounds.cjs');
 const {
   getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
@@ -117,10 +116,6 @@ const WAKEWORD_HOTKEY = process.platform === 'win32'
   : 'Super+Alt+W';
 const MAIN_WINDOW_OPEN_TARGET_CHANNEL = 'main-window-open-target';
 const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'onboarding', 'settings']);
-const CONTEXT_LABEL_WIDTH = 280;
-const CONTEXT_LABEL_HEIGHT = 26;
-const CONTEXT_LABEL_OFFSET_X = 14;
-const CONTEXT_LABEL_GAP_ABOVE_CHATBOX = -6;
 const RESPONSE_OVERLAY_CHAT_GAP = 8;
 const CHATBOX_VISUAL_ANCHOR_HEIGHT = 64;
 const RESPONSE_OVERLAY_PHASE = createResponseOverlayPhaseEnum();
@@ -164,11 +159,6 @@ const surfaceRuntime = createSurfaceRuntime({
   syncActiveDisplayAffinityForWindow: syncActiveDisplayAffinityForWindowRuntime,
   getOverlayChatWindowBounds,
   getOverlayResponseWindowBounds,
-  getOverlayContextLabelWindowBounds,
-  contextLabelWidth: CONTEXT_LABEL_WIDTH,
-  contextLabelHeight: CONTEXT_LABEL_HEIGHT,
-  contextLabelOffsetX: CONTEXT_LABEL_OFFSET_X,
-  contextLabelGapAboveChatbox: CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
   responseGap: RESPONSE_OVERLAY_CHAT_GAP,
   initialChatVisualAnchorHeight: CHATBOX_VISUAL_ANCHOR_HEIGHT,
   responseOverlayPhaseEnum: RESPONSE_OVERLAY_PHASE,
@@ -203,10 +193,8 @@ const electronToolSurfaceLifecycle = createElectronToolSurfaceLifecycle(surfaceR
 const {
   getResponseWindowBounds,
   positionChatWindow,
-  positionContextLabelWindow,
   positionResponseWindow,
   setManualChatWindowPosition,
-  syncContextLabelWindowVisibility,
 } = surfaceRuntime.overlayHelpers;
 const sdkLiveTurnSurfaceState = createSdkLiveTurnSurfaceState();
 
@@ -245,7 +233,6 @@ function syncSdkLiveTurnSurfaceIntent(currentTurn) {
     setActiveResponseOverlayGuardRef: surfaceRuntime.setActiveResponseOverlayGuardRef,
     setResponseOverlayVisibilityState: surfaceRuntime.setResponseOverlayVisibilityState,
     showResponseWindowInactive: surfaceRuntime.overlayHelpers.showResponseWindowInactive,
-    syncContextLabelWindowVisibility,
     canShowFloatingResponseOverlay: surfaceRuntime.canShowFloatingResponseOverlay,
     surfaceState: sdkLiveTurnSurfaceState,
     log: (...args) => console.log(...args),
@@ -303,7 +290,6 @@ const {
   positionResponseWindow,
   showResponseWindowInactive: surfaceRuntime.overlayHelpers.showResponseWindowInactive,
   syncWakewordToggleForChatVisibility: surfaceRuntime.syncWakewordToggleForChatVisibility,
-  syncContextLabelWindowVisibility,
   setResponseOverlayVisibilityState: surfaceRuntime.setResponseOverlayVisibilityState,
   enableContentProtectionSafely: surfaceRuntime.enableContentProtectionSafely,
   applyOverlayWindowPolicy: surfaceRuntime.applyOverlayWindowPolicy,
@@ -392,8 +378,6 @@ function initializeMainProcessIpc() {
       getState: surfaceRuntime.getState,
       positionChatWindow,
       positionResponseWindow,
-      positionContextLabelWindow,
-      syncContextLabelWindowVisibility,
       syncWindowDisplayAffinity: surfaceRuntime.syncWindowDisplayAffinity,
       setManualChatWindowPosition,
       setChatVisualAnchorHeight: surfaceRuntime.setChatVisualAnchorHeight,

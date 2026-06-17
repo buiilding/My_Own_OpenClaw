@@ -372,7 +372,6 @@ describe('main_window_runtime createResponseWindow', () => {
       showResponseWindowInactive: jest.fn(),
       setResponseOverlayVisible: jest.fn(),
       setResponseOverlayVisibilityState: jest.fn(),
-      syncContextLabelWindowVisibility: jest.fn(),
       setResponseWindow: jest.fn(),
       applyOverlayWindowPolicy: jest.fn(),
       applyContentProtection: jest.fn(),

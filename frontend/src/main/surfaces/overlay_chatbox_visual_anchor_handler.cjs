@@ -14,8 +14,6 @@ function handleSetChatboxVisualAnchorHeight(
     setChatWindowBoundsForVisualAnchorHeight,
     resizeChatWindowForVisualAnchorHeight,
     positionResponseWindow,
-    positionContextLabelWindow,
-    syncContextLabelWindowVisibility,
     warn = console.warn,
   } = deps;
 
@@ -50,10 +48,8 @@ function handleSetChatboxVisualAnchorHeight(
         : false;
       if (!boundsChanged || resized) {
         positionResponseWindow?.();
-        positionContextLabelWindow?.();
       }
     }
-    syncContextLabelWindowVisibility?.();
     return {
       success: true,
       height: nextHeight,

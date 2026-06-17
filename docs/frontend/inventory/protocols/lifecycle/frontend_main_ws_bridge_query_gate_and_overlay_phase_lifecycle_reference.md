@@ -256,7 +256,6 @@ Permission lifecycle contracts:
 
 - Stores in-memory `responseOverlayVisible` state.
 - Broadcasts `response-overlay-visibility` payload `{ visible: boolean }` to all overlay/main windows.
-- Triggers context-label visibility sync each time visibility flips.
 
 Call sites include:
 

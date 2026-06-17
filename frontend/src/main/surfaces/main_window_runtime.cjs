@@ -442,7 +442,6 @@ function createResponseWindow({
   showResponseWindowInactive,
   setResponseOverlayVisible,
   setResponseOverlayVisibilityState,
-  syncContextLabelWindowVisibility,
   setResponseWindow,
   applyOverlayWindowPolicy = null,
   mainHostSkin = {},
@@ -521,7 +520,6 @@ function createResponseWindow({
     log('[Main][Window] closed name=response-overlay');
     setResponseWindow(null);
     setResponseOverlayVisible(false);
-    syncContextLabelWindowVisibility();
   });
 
   return responseWindow;

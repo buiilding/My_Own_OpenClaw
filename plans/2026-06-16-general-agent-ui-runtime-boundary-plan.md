@@ -873,3 +873,18 @@ Each completed slice should report:
   stale scan for retired product-named palette variables.
 - Compatibility: no migration required. The custom properties are runtime CSS
   implementation details and do not affect stored appearance settings.
+
+### 2026-06-17 main context-label surface removal
+
+- Finding: after the renderer context-label route was removed, Electron main
+  still carried dormant context-label window state, geometry, visibility, and
+  z-order helpers through the generic surface runtime.
+- Change: removed the context-label window from main surface ownership,
+  overlay helper wiring, IPC/window visibility handlers, bounds helpers, tests,
+  and docs. The active main overlay set is now main, chat pill, and response
+  overlay only.
+- Validation: focused overlay/main Jest suite, docs listing, `git diff
+  --check`, and stale scan for context-label runtime symbols.
+- Compatibility: no migration required. No context-label window is created in
+  the active startup path, and accidental old renderer URLs already fall back to
+  the default route.

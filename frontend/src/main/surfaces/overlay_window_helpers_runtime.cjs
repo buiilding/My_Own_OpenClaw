@@ -70,15 +70,9 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     getActiveDisplayAffinity = () => null,
     getChatWindow = () => null,
     getResponseWindow = () => null,
-    getContextLabelWindow = () => null,
     getResponseOverlayVisible = () => false,
     getOverlayChatWindowBounds,
     getOverlayResponseWindowBounds,
-    getOverlayContextLabelWindowBounds,
-    contextLabelWidth,
-    contextLabelHeight,
-    contextLabelOffsetX,
-    contextLabelGapAboveChatbox,
     responseGap = 10,
     platform = process.platform,
     getChatVisualAnchorHeight = null,
@@ -194,25 +188,6 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     });
   }
 
-  function getContextLabelWindowBounds() {
-    const chatWindow = getChatWindow();
-    const chatBounds = chatWindow
-      && !chatWindow.isDestroyed()
-      && typeof chatWindow.getBounds === 'function'
-      ? chatWindow.getBounds()
-      : null;
-    const anchoredChatBounds = getAnchoredChatBounds(chatBounds);
-    return getOverlayContextLabelWindowBounds({
-      screen,
-      displayAffinity: getActiveDisplayAffinity(),
-      chatBounds: anchoredChatBounds,
-      labelWidth: contextLabelWidth,
-      labelHeight: contextLabelHeight,
-      offsetX: contextLabelOffsetX,
-      gapAbove: contextLabelGapAboveChatbox,
-    });
-  }
-
   function positionResponseWindow() {
     const responseWindow = getResponseWindow();
     if (!responseWindow || responseWindow.isDestroyed() || !getResponseOverlayVisible()) {
@@ -223,15 +198,6 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     const height = normalizePositiveDimension(heightRaw);
     const bounds = getResponseWindowBounds(width, height);
     responseWindow.setBounds(bounds, false);
-  }
-
-  function positionContextLabelWindow() {
-    const contextLabelWindow = getContextLabelWindow();
-    if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
-      return;
-    }
-    const bounds = getContextLabelWindowBounds();
-    contextLabelWindow.setBounds(bounds, false);
   }
 
   function positionChatWindow() {
@@ -247,7 +213,6 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     const { x, y } = resolveChatWindowPositionForHeight(width, height);
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
-    positionContextLabelWindow();
   }
 
   function resizeChatWindowForVisualAnchorHeight(anchorHeight, options = {}) {
@@ -336,7 +301,6 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       chatWindow.setBounds(targetBounds, false);
       chatWindowHeightOverride = nextHeight;
       positionResponseWindow();
-      positionContextLabelWindow();
       return true;
     }
 
@@ -355,7 +319,6 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
         chatWindow.setPosition(Math.round(nextBounds.x), Math.round(nextBounds.y), false);
       }
       positionResponseWindow();
-      positionContextLabelWindow();
       return true;
     }
 
@@ -450,22 +413,6 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     }
   }
 
-  function ensureContextLabelWindowOnTop() {
-    const contextLabelWindow = getContextLabelWindow();
-    if (!contextLabelWindow || contextLabelWindow.isDestroyed() || !contextLabelWindow.isVisible()) {
-      return;
-    }
-    const promoted = setOverlayAlwaysOnTop({
-      targetWindow: contextLabelWindow,
-      platform,
-      warn,
-      windowLabel: 'context label',
-    });
-    if (promoted && typeof contextLabelWindow.moveTop === 'function') {
-      contextLabelWindow.moveTop();
-    }
-  }
-
   function showResponseWindowInactive() {
     const responseWindow = getResponseWindow();
     if (!responseWindow || responseWindow.isDestroyed()) {
@@ -487,42 +434,6 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     showResponseWindowInactive();
   }
 
-  function showContextLabelWindowInactive() {
-    const contextLabelWindow = getContextLabelWindow();
-    if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
-      return;
-    }
-    positionContextLabelWindow();
-    if (typeof contextLabelWindow.showInactive === 'function') {
-      contextLabelWindow.showInactive();
-    } else {
-      contextLabelWindow.show();
-    }
-    ensureContextLabelWindowOnTop();
-  }
-
-  function syncContextLabelWindowVisibility() {
-    const contextLabelWindow = getContextLabelWindow();
-    if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
-      return;
-    }
-    const chatWindow = getChatWindow();
-    const shouldShow = Boolean(
-      chatWindow
-        && !chatWindow.isDestroyed()
-        && chatWindow.isVisible()
-        && !getResponseOverlayVisible(),
-    );
-
-    if (!shouldShow) {
-      if (contextLabelWindow.isVisible()) {
-        contextLabelWindow.hide();
-      }
-      return;
-    }
-    showContextLabelWindowInactive();
-  }
-
   return {
     ensureResponseOverlayFallbackBounds,
     positionChatWindow,
@@ -531,16 +442,11 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     setManualChatWindowPosition,
     getChatWindowBounds,
     getResponseWindowBounds,
-    getContextLabelWindowBounds,
     positionResponseWindow,
-    positionContextLabelWindow,
     ensureChatWindowOnTop,
     ensureResponseWindowOnTop,
-    ensureContextLabelWindowOnTop,
     showResponseWindowInactive,
     showResponseWindowWhenChatVisible,
-    showContextLabelWindowInactive,
-    syncContextLabelWindowVisibility,
   };
 }
 

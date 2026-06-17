@@ -28,11 +28,6 @@ function createSurfaceDeps() {
     syncActiveDisplayAffinityForWindow: jest.fn(),
     getOverlayChatWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 520, height: 116 })),
     getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 520, height: 48 })),
-    getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 280, height: 26 })),
-    contextLabelWidth: 280,
-    contextLabelHeight: 26,
-    contextLabelOffsetX: 14,
-    contextLabelGapAboveChatbox: -6,
     responseGap: 2,
     initialChatVisualAnchorHeight: 64,
     responseOverlayPhaseEnum: {
@@ -69,7 +64,6 @@ describe('surface_runtime', () => {
       mainWindow,
       chatWindow,
       responseWindow: null,
-      contextLabelWindow: null,
     }));
 
     const initializer = jest.fn();
@@ -112,10 +106,8 @@ describe('surface_runtime', () => {
     });
     const chatWindow = createWindow({ visible: true });
     const responseWindow = createWindow({ visible: true });
-    const contextLabelWindow = createWindow({ visible: true });
     runtime.setChatWindow(chatWindow);
     runtime.setResponseWindow(responseWindow);
-    runtime.setContextLabelWindow(contextLabelWindow);
     runtime.setChatboxHitTestActive(true);
     runtime.setResponseboxHitTestActive(true);
 
@@ -124,7 +116,6 @@ describe('surface_runtime', () => {
     expect(chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
     expect(chatWindow.setFocusable).toHaveBeenCalledWith(false);
     expect(responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
-    expect(contextLabelWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
 
     await release();
 
@@ -132,7 +123,6 @@ describe('surface_runtime', () => {
     expect(chatWindow.setFocusable).toHaveBeenLastCalledWith(true);
     expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
     expect(responseWindow.setFocusable).toHaveBeenLastCalledWith(true);
-    expect(contextLabelWindow.setFocusable).toHaveBeenLastCalledWith(false);
   });
 
   test('pointer-control lease keeps hover sync from restoring focusability before release', async () => {

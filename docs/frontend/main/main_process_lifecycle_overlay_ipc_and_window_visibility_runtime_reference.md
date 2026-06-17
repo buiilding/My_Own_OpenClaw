@@ -131,13 +131,13 @@ Behavior:
 - optionally restore response overlay if active stream/visible flag says so
 - non-focusing restores (`focus=false`) do not auto-restore response overlay even when stream phase is active
 - emit chatbox focus event
-- sync wakeword toggle and context-label visibility
+- sync wakeword toggle visibility
 
 ### `hideChatWindow(deps)`
 
 Behavior:
 
-- hide chat, response, and context-label windows when visible
+- hide chat and response windows when visible
 - broadcast response overlay visibility false
 - sync wakeword toggle
 

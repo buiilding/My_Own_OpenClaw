@@ -28,7 +28,7 @@ rather than the React component that happens to render the symptom.
   `mouse_control` / `scroll_control` use a pointer-control lease, and
   `screenshot` uses a screenshot-capture lease.
 - During pointer-control leases, Electron main keeps the chat pill, response
-  overlay, and context label non-focusable and click-through, then restores
+  overlay non-focusable and click-through, then restores
   normal pill and response-overlay hit-testing and focusability in `finally`.
 - During screenshot-capture leases, Linux hides visible WindieOS overlay
   surfaces and restores them afterward; macOS and Windows use content
@@ -87,7 +87,7 @@ sequenceDiagram
 Start by identifying the contract being changed:
 
 - Phase contract: phase names, metadata keys, parser behavior, IPC payload shape.
-- Main window policy: response overlay window visibility and context label
+- Main window policy: response overlay window visibility
   visibility.
 - Tool-surface leases: click-through, focusability, screenshot hide/restore,
   and content protection around local tool execution.

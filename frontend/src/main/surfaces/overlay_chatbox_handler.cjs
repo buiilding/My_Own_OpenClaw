@@ -26,8 +26,6 @@ function handleMoveChatboxTo(
     positionChatWindow,
     syncWindowDisplayAffinity = () => {},
     positionResponseWindow,
-    positionContextLabelWindow,
-    syncContextLabelWindowVisibility,
     warn = console.warn,
   } = deps;
 
@@ -67,11 +65,9 @@ function handleMoveChatboxTo(
     } else {
       chatWindow.setPosition(nextX, nextY, false);
       positionResponseWindow?.();
-      positionContextLabelWindow?.();
     }
 
     syncWindowDisplayAffinity(chatWindow);
-    syncContextLabelWindowVisibility();
   } catch (error) {
     warn('[Main] Failed to move chatbox:', error?.message || error);
   }

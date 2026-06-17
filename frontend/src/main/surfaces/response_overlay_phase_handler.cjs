@@ -37,7 +37,6 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     setResponseOverlayVisibilityState = () => {},
     responseWindow,
     showResponseWindowInactive = () => {},
-    syncContextLabelWindowVisibility = () => {},
     phase = null,
     source = null,
     usePhaseVisibilityFallback = false,
@@ -160,7 +159,6 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
           responseWindow: summarizeWindow(responseWindow, 'response overlay'),
         });
       }
-      syncContextLabelWindowVisibility();
       appendSurfaceVisibilityDiagnostic({
         action: 'suppress-phase-show-for-surface-owner',
         mode,
@@ -242,7 +240,6 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
         responseWindow,
       }, deps);
     }
-    syncContextLabelWindowVisibility();
   }
 }
 
@@ -286,7 +283,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     responseWindow,
     chatWindow,
     showResponseWindowInactive = () => {},
-    syncContextLabelWindowVisibility = () => {},
     getResponseOverlayPhase = () => null,
     getActiveResponseOverlayCorrelationId = () => null,
     setActiveResponseOverlayCorrelationId = () => {},
@@ -384,7 +380,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     responseWindow,
     chatWindow,
     showResponseWindowInactive,
-    syncContextLabelWindowVisibility,
     phase: nextPhase,
     source: event?.source || null,
     usePhaseVisibilityFallback,

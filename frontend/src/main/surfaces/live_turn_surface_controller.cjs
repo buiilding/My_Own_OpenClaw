@@ -194,7 +194,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     setActiveResponseOverlayGuardRef = () => {},
     setResponseOverlayVisibilityState = () => {},
     showResponseWindowInactive = () => {},
-    syncContextLabelWindowVisibility = () => {},
     canShowFloatingResponseOverlay = () => true,
     surfaceState = null,
   } = deps;
@@ -300,7 +299,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
     }
-    syncContextLabelWindowVisibility();
     appendSurfaceVisibilityDiagnostic({
       action: 'hide-from-sdk-overlay-intent',
       phase: getResponseOverlayPhase(),
@@ -351,7 +349,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
         responseWindow: summarizeWindow(responseWindow, 'response overlay'),
       });
     }
-    syncContextLabelWindowVisibility();
     appendSurfaceVisibilityDiagnostic({
       action: 'suppress-sdk-overlay-intent-for-surface-owner',
       phase: getResponseOverlayPhase(),
@@ -487,7 +484,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     guardRef: intent.staleGuardRef,
     responseWindow: summarizeWindow(responseWindow, 'response overlay'),
   });
-  syncContextLabelWindowVisibility();
   appendSurfaceVisibilityDiagnostic({
     action: 'show-from-sdk-overlay-intent',
     phase: getResponseOverlayPhase(),

@@ -26,8 +26,6 @@ describe('overlay_phase_ipc_runtime', () => {
       getWindows: () => ({}),
       positionChatWindow: jest.fn(),
       positionResponseWindow: jest.fn(),
-      positionContextLabelWindow: jest.fn(),
-      syncContextLabelWindowVisibility: jest.fn(),
       syncChatboxHitTestState: jest.fn(),
       syncResponseboxHitTestState: jest.fn(),
       setChatWindowBoundsForVisualAnchorHeight: jest.fn(() => false),
@@ -176,16 +174,12 @@ describe('overlay_phase_ipc_runtime', () => {
   test('routes chatbox visual anchor updates to positioning runtime', async () => {
     const positionChatWindow = jest.fn();
     const positionResponseWindow = jest.fn();
-    const positionContextLabelWindow = jest.fn();
-    const syncContextLabelWindowVisibility = jest.fn();
     const setChatVisualAnchorHeight = jest.fn(() => true);
     const setChatWindowBoundsForVisualAnchorHeight = jest.fn(() => false);
     const resizeChatWindowForVisualAnchorHeight = jest.fn(() => false);
     const { invokeHandlers } = createRuntime({
       positionChatWindow,
       positionResponseWindow,
-      positionContextLabelWindow,
-      syncContextLabelWindowVisibility,
       setChatVisualAnchorHeight,
       setChatWindowBoundsForVisualAnchorHeight,
       resizeChatWindowForVisualAnchorHeight,
@@ -204,8 +198,6 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(resizeChatWindowForVisualAnchorHeight).toHaveBeenCalledWith(116, {});
     expect(positionChatWindow).not.toHaveBeenCalled();
     expect(positionResponseWindow).toHaveBeenCalledTimes(1);
-    expect(positionContextLabelWindow).toHaveBeenCalledTimes(1);
-    expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
     expect(
       setChatWindowBoundsForVisualAnchorHeight.mock.invocationCallOrder[0],
     ).toBeLessThan(positionResponseWindow.mock.invocationCallOrder[0]);
