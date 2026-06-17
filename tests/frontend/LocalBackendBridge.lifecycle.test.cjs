@@ -102,12 +102,15 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     }));
   });
 
-  test('legacy local backend bridge exports remain compatibility aliases', () => {
+  test('legacy local backend bridge exports are removed', () => {
     const { bridge } = initBridge();
 
-    expect(bridge.initializeLocalBackendBridge).toBe(bridge.initializeLocalRuntimeBridge);
-    expect(bridge.stopLocalBackend).toBe(bridge.stopLocalRuntime);
-    expect(bridge.getLocalBackendStatus).toBe(bridge.getLocalRuntimeStatus);
+    expect(bridge.initializeLocalRuntimeBridge).toBeDefined();
+    expect(bridge.stopLocalRuntime).toBeDefined();
+    expect(bridge.getLocalRuntimeStatus).toBeDefined();
+    expect(bridge.initializeLocalBackendBridge).toBeUndefined();
+    expect(bridge.stopLocalBackend).toBeUndefined();
+    expect(bridge.getLocalBackendStatus).toBeUndefined();
   });
 
   test('stopLocalRuntime stops bridge execution without shutting down the SDK-owned runtime', async () => {

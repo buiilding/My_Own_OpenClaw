@@ -260,24 +260,17 @@ describe('main host skin/config boundary', () => {
     );
 
     expect(supervisorSource).toContain('function createLocalRuntimeSupervisor');
-    expect(supervisorSource).toContain('const createLocalBackendSupervisor = createLocalRuntimeSupervisor');
+    expect(supervisorSource).not.toContain('createLocalBackendSupervisor');
     expect(executeToolRuntimeSource).toContain('function createLocalRuntimeExecuteToolRuntime');
-    expect(executeToolRuntimeSource).toContain(
-      'const createLocalBackendExecuteToolRuntime = createLocalRuntimeExecuteToolRuntime',
-    );
+    expect(executeToolRuntimeSource).not.toContain('createLocalBackendExecuteToolRuntime');
     expect(bridgeSource).toContain('function initializeLocalRuntimeBridge');
     expect(bridgeSource).toContain('function stopLocalRuntime');
     expect(bridgeSource).toContain('async function getLocalRuntimeStatus');
-    expect(bridgeSource).toContain('const initializeLocalBackendBridge = initializeLocalRuntimeBridge');
-    expect(bridgeSource).toContain('const stopLocalBackend = stopLocalRuntime');
-    expect(bridgeSource).toContain('const getLocalBackendStatus = getLocalRuntimeStatus');
-    expect(bridgeSource).not.toContain('function initializeLocalBackendBridge');
-    expect(bridgeSource).not.toContain('function stopLocalBackend');
-    expect(bridgeSource).not.toContain('async function getLocalBackendStatus');
+    expect(bridgeSource).not.toContain('initializeLocalBackendBridge');
+    expect(bridgeSource).not.toContain('stopLocalBackend');
+    expect(bridgeSource).not.toContain('getLocalBackendStatus');
     expect(bridgeSource).toContain('createLocalRuntimeSupervisor');
-    expect(bridgeSource).not.toContain('createLocalBackendSupervisor');
     expect(bridgeSource).toContain('createLocalRuntimeExecuteToolRuntime');
-    expect(bridgeSource).not.toContain('createLocalBackendExecuteToolRuntime');
   });
 
   test('main composition root consumes local runtime bridge names', () => {

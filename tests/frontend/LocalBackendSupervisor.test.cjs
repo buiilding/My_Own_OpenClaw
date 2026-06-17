@@ -1,14 +1,15 @@
 /** @jest-environment node */
 
 const {
-  createLocalBackendSupervisor,
   createLocalRuntimeSupervisor,
 } = require('../../frontend/src/main/sidecar/local_backend_supervisor.cjs');
 
 describe('local_backend_supervisor', () => {
-  test('exports the local runtime supervisor as the canonical factory', () => {
+  test('exports only the local runtime supervisor factory', () => {
+    const supervisorModule = require('../../frontend/src/main/sidecar/local_backend_supervisor.cjs');
+
     expect(createLocalRuntimeSupervisor).toBeDefined();
-    expect(createLocalBackendSupervisor).toBe(createLocalRuntimeSupervisor);
+    expect(supervisorModule.createLocalBackendSupervisor).toBeUndefined();
   });
 
   test('tracks starting ready stopping and error states with generation bumps', () => {

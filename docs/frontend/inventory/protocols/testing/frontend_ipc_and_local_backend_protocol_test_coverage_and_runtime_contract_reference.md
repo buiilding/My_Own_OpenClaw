@@ -140,7 +140,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - sidecar exit/error rejects pending internal tool execution requests with standardized unavailable errors
 - non-zero exit broadcasts `local-backend-status` with `{ready:false,error:<message>}`
 - stale readiness timeout/retry callbacks from previous process generation are ignored
-- delayed force-kill timer from `stopLocalBackend` cannot kill a newly restarted process
+- delayed force-kill timer from `stopLocalRuntime` cannot kill a newly restarted process
 
 `tests/frontend/LocalBackendBridge.rpc.test.cjs` enforces IPC-to-JSON-RPC mapping:
 

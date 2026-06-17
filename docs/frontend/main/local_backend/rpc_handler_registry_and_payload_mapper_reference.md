@@ -22,9 +22,8 @@ title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
 
 ## Handler Registration Topology
 
-`initializeLocalRuntimeBridge(getWindows)` registers these handlers.
-`initializeLocalBackendBridge(...)` remains a compatibility alias for older
-imports.
+`initializeLocalRuntimeBridge(getWindows)` registers these handlers. The old
+`initializeLocalBackendBridge(...)` export has been removed.
 
 Direct handlers:
 

@@ -44,8 +44,8 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 
 `local_backend_bridge.cjs` no longer exports `getSystemState(fields)`.
 System-state access is the `get-system-state` IPC handler registered by
-`initializeLocalRuntimeBridge(...)`; `initializeLocalBackendBridge(...)` remains
-a compatibility alias. The focused behavior reference is
+`initializeLocalRuntimeBridge(...)`; the old `initializeLocalBackendBridge(...)`
+export has been removed. The focused behavior reference is
 [System-State Collection and Removed getSystemState Bridge Export Reference](../sidecar/system_state/system_state_collection_and_platform_adapter_reference.md).
 
 ## Canonical Modules

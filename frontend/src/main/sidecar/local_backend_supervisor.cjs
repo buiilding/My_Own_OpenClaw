@@ -93,9 +93,6 @@ function createLocalRuntimeSupervisor({
   };
 }
 
-const createLocalBackendSupervisor = createLocalRuntimeSupervisor;
-
 module.exports = {
-  createLocalBackendSupervisor,
   createLocalRuntimeSupervisor,
 };

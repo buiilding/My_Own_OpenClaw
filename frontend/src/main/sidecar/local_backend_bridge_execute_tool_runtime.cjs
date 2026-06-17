@@ -221,9 +221,6 @@ function createLocalRuntimeExecuteToolRuntime({
   };
 }
 
-const createLocalBackendExecuteToolRuntime = createLocalRuntimeExecuteToolRuntime;
-
 module.exports = {
-  createLocalBackendExecuteToolRuntime,
   createLocalRuntimeExecuteToolRuntime,
 };

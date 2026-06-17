@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed Electron main local-backend compatibility exports so host code uses the canonical local-runtime bridge, supervisor, status, and execute-tool factory names directly.
+
 - Removed the SDK `WindieClient` and `WindieAgent` compatibility modules so TypeScript hosts import `AgentClient`, `Agent`, and canonical `Agent*` option/result types directly. No persisted-data migration is required.
 
 - Removed the SDK `WindieChatSession` and `WindieLocalSidecarRuntime` compatibility modules so hosts use the canonical `AgentChat*` and `Agent*` local-runtime contracts directly. No migration is required beyond updating callers that still imported the removed aliases.

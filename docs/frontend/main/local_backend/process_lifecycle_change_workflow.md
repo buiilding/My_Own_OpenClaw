@@ -67,7 +67,7 @@ readiness/status broadcasts.
 5. The `get-local-backend-status` bootstrap read is a readiness probe: when a valid SDK local runtime provider exists and no runtime client has been resolved yet, it wakes the SDK local runtime and then returns the current status payload.
 6. A resolved SDK local runtime provider emits `local-backend-status` with `ready:true` and the full normalized status payload.
 7. SDK provider failures keep `ready:false`, publish `status:"error"` with a short sanitized error, and helper calls fail closed.
-8. `stopLocalRuntime()` shuts down the resolved SDK runtime when present and clears the local status snapshot. `stopLocalBackend()` remains a compatibility alias for older callers.
+8. `stopLocalRuntime()` shuts down the resolved SDK runtime when present and clears the local status snapshot. The old `stopLocalBackend()` export has been removed.
 
 ## Status Payload Contract
 

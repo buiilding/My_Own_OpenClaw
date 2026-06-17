@@ -71,7 +71,7 @@ normalizes host-only arguments before execution:
 `stopLocalRuntime()` switches backend tool execution to a stopped executor,
 calls `sdkLocalRuntime.shutdown()` when a runtime has been resolved, clears the
 SDK runtime handle, and resets the local status snapshot to stopped.
-`stopLocalBackend()` remains a compatibility alias for older bridge imports.
+The old `stopLocalBackend()` export has been removed.
 
 ## Validation
 

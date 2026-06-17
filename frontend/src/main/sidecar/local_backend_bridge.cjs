@@ -646,19 +646,12 @@ async function warmBrowserAutomation() {
   };
 }
 
-const initializeLocalBackendBridge = initializeLocalRuntimeBridge;
-const stopLocalBackend = stopLocalRuntime;
-const getLocalBackendStatus = getLocalRuntimeStatus;
-
 module.exports = {
   initializeLocalRuntimeBridge,
   stopLocalRuntime,
   getLocalRuntimeStatus,
-  initializeLocalBackendBridge,
-  stopLocalBackend,
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
   executeToolForBackend: async (payload) => runtimeExecuteTool(payload),
-  getLocalBackendStatus,
   installBrowserChromium,
   determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,

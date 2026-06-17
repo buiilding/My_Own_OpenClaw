@@ -98,7 +98,7 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_COMPACT_HISTORY');
   });
 
-  test('SDK command invoke client resolves the generic desktop agent bridge before compatibility aliases', async () => {
+  test('SDK command invoke client resolves the generic desktop agent bridge', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/agentSdkCommandInvokeClient.ts'),
       'utf8',
