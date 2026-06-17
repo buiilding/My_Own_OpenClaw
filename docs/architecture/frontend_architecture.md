@@ -127,7 +127,9 @@ This section distinguishes current behavior from target behavior and known migra
 
 ### SDK-Shaped Renderer Commands
 
-Renderer feature code expresses user intent through `window.windie.invoke(command, payload)`.
+Renderer feature code expresses user intent through
+`window.desktopAgent.invoke(command, payload)`, which sends over the existing
+`windie:invoke` IPC wire channel.
 The command names are SDK-shaped, for example `conversation.send`,
 `conversation.stop`, `conversation.rehydrate`, `conversation.compact`,
 `settings.update`, `models.list`, `wakeword.detected`, `memories.clearAll`,
@@ -141,8 +143,8 @@ Those names may still exist below the SDK boundary as local-runtime/store
 implementation details.
 
 Renderer app-runtime transport facades that implement SDK runtime interfaces
-should also use SDK-shaped commands through `windie:invoke`. They should not
-revive the retired direct runtime IPC channel family.
+should also use SDK-shaped commands through `window.desktopAgent.invoke(...)`.
+They should not revive the retired direct runtime IPC channel family.
 
 ### Stream Receive Flow
 

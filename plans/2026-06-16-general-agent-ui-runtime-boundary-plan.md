@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Architecture docs desktopAgent bridge wording
+
+- Finding: architecture docs still taught renderer feature code to call the
+  removed `window.windie.invoke(...)` browser global even though preload now
+  exposes the generic `window.desktopAgent` bridge.
+- Change: updated frontend architecture and communication-flow docs to route
+  renderer SDK-shaped commands through `window.desktopAgent.invoke(...)` while
+  keeping `windie:invoke` documented as the existing IPC wire channel.
+- Validation: docs listing, stale browser-global scan, and diff check.
+- Compatibility: no migration required. This is documentation only; the
+  `window.desktopAgent` preload bridge and `windie:invoke` IPC channel are
+  unchanged.
+
 ### 2026-06-17 Python SDK core re-export facade deletion
 
 - Finding: the Python sidecar still kept a `core` package hosted-SDK facade

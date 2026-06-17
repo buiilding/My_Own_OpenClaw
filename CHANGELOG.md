@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated architecture docs to route renderer SDK commands through window.desktopAgent while keeping windie:invoke as the IPC wire channel. No persisted-data migration is required.
+
 - Recorded the Python sidecar core hosted-SDK facade deletion in the general agent UI runtime-boundary plan. No persisted-data migration is required.
 
 - Removed the Python sidecar `core` SDK re-export surfaces so callers use the public `windie` package and concrete core modules directly. No persisted-data migration is required.

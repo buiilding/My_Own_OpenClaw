@@ -108,7 +108,7 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 ### IPC Implementation
 
 **Preload Script** (`src/preload.js`):
-- Exposes `window.ipc` for host/native commands and `window.windie` for
+- Exposes `window.ipc` for host/native commands and `window.desktopAgent` for
   SDK-shaped runtime commands
 - Whitelists allowed channels
 - Provides secure IPC bridge
@@ -461,7 +461,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 4. If captured/pasted, screenshot artifact(s) uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`/`screenshot_refs`
    ↓
-5. window.windie.invoke('conversation.send', { screenshot_ref, screenshot_refs?, ... })
+5. window.desktopAgent.invoke('conversation.send', { screenshot_ref, screenshot_refs?, ... })
    ↓
 6. Main process receives IPC message
    ↓
