@@ -57,6 +57,21 @@ describe('ipc_transcript_session_sync', () => {
     expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
+  test('rejects snake_case sync aliases without broadcasting', () => {
+    const broadcastToRenderers = jest.fn();
+
+    expect(() => applyTranscriptSessionSync({
+      payload: { conversation_ref: 'conv-next', user_id: 'user-next' },
+      currentConversationRef: 'conv-current',
+      currentUserId: 'user-current',
+      broadcastToRenderers,
+    })).toThrow(
+      'Transcript session sync payloads must use conversationRef and userId; conversation_ref and user_id are not supported.',
+    );
+
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
+  });
+
   test('broadcasts resolved conversation ref when payload only changes user id', () => {
     const broadcastToRenderers = jest.fn();
 

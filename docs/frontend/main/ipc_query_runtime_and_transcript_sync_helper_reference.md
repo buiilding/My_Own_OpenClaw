@@ -78,8 +78,12 @@ Used by `ipc_automated_query_dispatcher.cjs`.
 
 Accepted identity keys:
 
-- conversation: `conversationRef`, `conversation_ref`
-- user: `userId`, `user_id`
+- conversation: `conversationRef`
+- user: `userId`
+
+Removed transcript-session sync aliases `conversation_ref` and `user_id` are
+rejected. Those snake_case keys belong to renderer query payloads and backend
+transport envelopes, not this renderer/main UI-session sync channel.
 
 Normalization semantics:
 
@@ -87,6 +91,8 @@ Normalization semantics:
 - preserve explicit `null`
 - output `undefined` for missing keys (no update intent)
 - reject payloads with no recognized conversation/user keys
+- reject payloads containing removed `conversation_ref` or `user_id` sync
+  aliases
 
 ### `applyTranscriptSessionSync({ ... })`
 

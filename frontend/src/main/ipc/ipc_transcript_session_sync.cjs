@@ -18,6 +18,9 @@ function rejectRemovedSessionIdentityKeys(payload) {
   if (hasOwnProperty(payload, 'sessionId') || hasOwnProperty(payload, 'session_id')) {
     throw new Error('Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.');
   }
+  if (hasOwnProperty(payload, 'conversation_ref') || hasOwnProperty(payload, 'user_id')) {
+    throw new Error('Transcript session sync payloads must use conversationRef and userId; conversation_ref and user_id are not supported.');
+  }
 }
 
 function normalizeTranscriptSessionSyncPayload(payload = {}) {
@@ -27,34 +30,26 @@ function normalizeTranscriptSessionSyncPayload(payload = {}) {
 
   rejectRemovedSessionIdentityKeys(payload);
 
-  const hasConversationRef = (
-    hasOwnProperty(payload, 'conversationRef')
-    || hasOwnProperty(payload, 'conversation_ref')
-  );
-  const hasUserId = hasOwnProperty(payload, 'userId') || hasOwnProperty(payload, 'user_id');
+  const hasConversationRef = hasOwnProperty(payload, 'conversationRef');
+  const hasUserId = hasOwnProperty(payload, 'userId');
 
   if (!hasConversationRef && !hasUserId) {
     return null;
   }
 
-  const rawConversationRef = hasOwnProperty(payload, 'conversationRef')
-    ? payload.conversationRef
-    : payload.conversation_ref;
-  const rawUserId = hasOwnProperty(payload, 'userId') ? payload.userId : payload.user_id;
-
   return {
     conversationRef: hasConversationRef
       ? (
-        rawConversationRef === null
+        payload.conversationRef === null
           ? null
-          : normalizeOptionalString(rawConversationRef)
+          : normalizeOptionalString(payload.conversationRef)
       )
       : undefined,
     userId: hasUserId
       ? (
-        rawUserId === null
+        payload.userId === null
           ? null
-          : normalizeOptionalString(rawUserId)
+          : normalizeOptionalString(payload.userId)
       )
       : undefined,
   };

@@ -66,7 +66,9 @@ Session info is persisted/emitted only when changed:
 - dispatches browser event `transcript-session-update`
 - sends IPC event `transcript-session-sync` so main process session snapshots track renderer transcript identity
 - inbound `transcript-session-sync` packets are normalized by `extractTranscriptSessionSyncPayload(...)` before state updates:
-  - accepts first-class identity keys (`conversationRef|conversation_ref`, `userId|user_id`)
+  - accepts first-class identity keys (`conversationRef`, `userId`)
+  - rejects removed snake_case sync aliases (`conversation_ref`, `user_id`);
+    those keys belong to backend query transport envelopes
   - trims/normalizes text and converts blank values to `null`
   - supports partial updates (one field may be `undefined`)
 - inbound sync updates apply with rebroadcast disabled to avoid renderer/main loopback storms

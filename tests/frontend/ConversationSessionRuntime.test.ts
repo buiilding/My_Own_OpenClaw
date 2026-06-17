@@ -208,8 +208,8 @@ describe('conversationSessionRuntime', () => {
 
     await expect(hydrateConversationSessionFromMainSnapshot({
       loadMainSessionSnapshot: async () => ({
-        conversation_ref: ' conv-main ',
-        user_id: ' user-main ',
+        conversationRef: ' conv-main ',
+        userId: ' user-main ',
       }),
       setTranscriptConversationRef,
       setChatConversationRef,
@@ -222,6 +222,29 @@ describe('conversationSessionRuntime', () => {
     expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-main');
     expect(setChatConversationRef).toHaveBeenCalledWith('conv-main');
     expect(updateTranscriptSession).toHaveBeenCalledWith('conv-main', 'user-main');
+  });
+
+  test('hydrateConversationSessionFromMainSnapshot ignores removed snake_case snapshot aliases', async () => {
+    const setTranscriptConversationRef = jest.fn();
+    const setChatConversationRef = jest.fn();
+    const updateTranscriptSession = jest.fn();
+
+    await expect(hydrateConversationSessionFromMainSnapshot({
+      loadMainSessionSnapshot: async () => ({
+        conversation_ref: ' conv-main ',
+        user_id: ' user-main ',
+      }),
+      setTranscriptConversationRef,
+      setChatConversationRef,
+      updateTranscriptSession,
+    })).resolves.toEqual({
+      conversationRef: null,
+      userId: null,
+    });
+
+    expect(setTranscriptConversationRef).not.toHaveBeenCalled();
+    expect(setChatConversationRef).not.toHaveBeenCalled();
+    expect(updateTranscriptSession).not.toHaveBeenCalled();
   });
 
   test('hydrateConversationSessionFromMainSnapshot returns empty snapshot and reports errors', async () => {

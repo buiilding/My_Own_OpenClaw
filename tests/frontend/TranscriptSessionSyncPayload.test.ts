@@ -21,14 +21,13 @@ describe('extractTranscriptSessionSyncPayload', () => {
     });
   });
 
-  test('supports snake_case conversation and user identifiers', () => {
-    expect(extractTranscriptSessionSyncPayload({
+  test('rejects snake_case conversation and user aliases', () => {
+    expect(() => extractTranscriptSessionSyncPayload({
       conversation_ref: 'conv-2',
       user_id: 'user-2',
-    })).toEqual({
-      conversationRef: 'conv-2',
-      userId: 'user-2',
-    });
+    })).toThrow(
+      'Transcript session sync payloads must use conversationRef and userId; conversation_ref and user_id are not supported.',
+    );
   });
 
   test('rejects session aliases because conversationRef owns chat identity', () => {
@@ -52,7 +51,7 @@ describe('extractTranscriptSessionSyncPayload', () => {
 
   test('supports partial payload updates', () => {
     expect(extractTranscriptSessionSyncPayload({
-      conversation_ref: 'conv-3',
+      conversationRef: 'conv-3',
     })).toEqual({
       conversationRef: 'conv-3',
       userId: undefined,

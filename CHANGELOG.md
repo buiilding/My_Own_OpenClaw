@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed snake_case transcript-session sync aliases from the renderer/main UI identity channel so `conversationRef` and `userId` are the only accepted sync fields; backend query transport continues to use `conversation_ref`. No migration is required for current first-party callers.
+
 - Removed camelCase metadata-row fallbacks from `LocalRuntimeConversationStore` so sidecar list/search rows must use canonical snake_case fields; no migration required for current sidecar-produced metadata rows.
 
 - Removed the `user_id` Electron main SDK command input alias so conversation-library commands validate only canonical `userId`; no migration required because renderer facades already send `userId`.

@@ -65,10 +65,10 @@ function normalizeMainSessionSnapshot(payload: unknown): MainSessionSnapshot {
 
   return {
     conversationRef: normalizeConversationRef(
-      source.conversationRef ?? source.conversation_ref,
+      source.conversationRef,
     ),
     userId: normalizeConversationRef(
-      source.userId ?? source.user_id,
+      source.userId,
     ),
   };
 }

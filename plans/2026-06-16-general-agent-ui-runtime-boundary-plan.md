@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 transcript-session sync snake_case alias rejection
+
+- Finding: renderer/main transcript-session sync still accepted
+  `conversation_ref` and `user_id` aliases, blurring the UI session identity
+  channel with the separate snake_case backend query transport contract.
+- Change: made Electron main sync normalization, renderer inbound sync
+  normalization, and main-session snapshot hydration use only `conversationRef`
+  and `userId`, with focused tests proving snake_case sync packets fail closed.
+- Validation: focused transcript-session sync, payload normalization, and
+  conversation-session runtime tests, docs listing, and diff check.
+- Compatibility: no migration required for current first-party callers; they
+  emit camelCase transcript-session sync payloads. Stale callers using
+  `conversation_ref` or `user_id` on the UI sync channel must switch to
+  `conversationRef` and `userId`.
+
 ### 2026-06-17 SDK metadata row alias rejection
 
 - Finding: `LocalRuntimeConversationStore` still accepted camelCase metadata-row
