@@ -1,24 +1,24 @@
 ---
-summary: "Final WindieClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, AgentStreamEvents extractToolResultAttachments attachment projection, and tool-result routing."
+summary: "Final AgentClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, AgentStreamEvents extractToolResultAttachments attachment projection, and tool-result routing."
 read_when:
-  - When changing `WindieClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
+  - When changing `AgentClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
   - When debugging whether a query should use the hosted backend websocket, the local sidecar daemon, or both.
   - When changing SDK websocket implementation selection, `WebSocketLike`/`WebSocketConstructor` types, the `ws` package dependency, or stale references to the removed `src/types/ws.d.ts` ambient declaration.
   - When changing SDK `agent.stream(...)` tool-output attachment extraction, `AgentStreamEvents.ts`, or stale `extractToolResultAttachments` parent-parameter references.
   - When debugging stale `builtinTools` wakeUp option calls, the removed builtinTools wake guard, or current `builtins` agent setup.
   - When adding SDK, CLI, Electron, plugin, MCP, or module-tool entrypoints.
   - When debugging Python SDK camelCase `toolName`/`requestId`/`bundleId` payloads that are ignored because Python local tool execution reads backend-wire snake_case fields.
-title: "WindieClient Runtime Contract"
+title: "AgentClient Runtime Contract"
 ---
 
-# WindieClient Runtime Contract
+# AgentClient Runtime Contract
 
 ## Runtime Boundary
 
-`WindieClient` is the canonical agent client runtime. New reusable SDK host
-code may import the same constructor as `AgentClient`; the returned agent object
-is also exported as the generic `Agent` alias. `WindieClient` and `WindieAgent`
-remain compatibility and product-branded exports.
+`AgentClient` is the canonical agent client runtime. `WindieClient` remains a
+compatibility and product-branded constructor alias, and the returned agent
+object is exported as the generic `Agent` class. `WindieAgent` remains the
+matching compatibility alias for that high-level agent object.
 
 ```text
 Electron main / future CLI / SDK users
@@ -41,11 +41,11 @@ Query routing boundary:
 - Local desktop authority is delegated to the SDK local runtime and sidecar
   daemon for executable tools, local memory, screenshots, shell/filesystem,
   browser, computer-use, and sidecar status calls.
-- `WindieClient.wakeUp(...)` is the path that combines both: it connects the
+- `AgentClient.wakeUp(...)` is the path that combines both: it connects the
   hosted backend conversation session, starts or reuses the local runtime when
   needed, contributes the client tool manifest, and returns local tool results
   to the backend agent loop.
-- `WindieClient.localRuntime(...)` is local-only. It can execute sidecar tools
+- `AgentClient.localRuntime(...)` is local-only. It can execute sidecar tools
   and inspect status without creating a hosted backend websocket, agent
   conversation, or model turn.
 
@@ -91,7 +91,7 @@ Ownership rules:
   auto-start/reuse, sidecar event subscriptions, sidecar-backed conversation
   storage, builtin desktop tool selection, memory/title RPC helpers, and
   `moduleTool(...)` registration helpers.
-- the SDK `WindieClient` runtime module owns wake-up orchestration, websocket
+- the SDK `AgentClient` / `WindieClient` runtime module owns wake-up orchestration, websocket
   session creation, initial model selection, local-runtime startup/reuse, and
   conversion of local tool/plugin/MCP definitions into the client manifest.
   TypeScript callers that omit `workspacePath` get a runtime-derived workspace:
@@ -120,10 +120,10 @@ Ownership rules:
 Local runtime facts must not unlock backend capabilities. In particular, coordinate methods are backend policy/provider outputs. The client can report or narrow local executable tools; it cannot grant OCR, vision, prediction, or paid backend capabilities.
 
 SDK consumers can use local runtime/tool execution independently from the agent
-loop. `WindieClient.localRuntime(...)`, `executeTool(...)`, `rpc(...)`,
+loop. `AgentClient.localRuntime(...)`, `executeTool(...)`, `rpc(...)`,
 `listLocalTools(...)`, and `localStatus(...)` start or reuse the SDK-owned local
 runtime without creating an `Agent`, backend websocket, conversation, or
-model turn. Use `WindieClient.wakeUp(...)` when the caller wants the full agent
+model turn. Use `AgentClient.wakeUp(...)` when the caller wants the full agent
 conversation path: agent definition, websocket/session, local-runtime manifest,
 tool-result return, and store wiring.
 
@@ -163,9 +163,9 @@ Normal desktop hosts start one SDK-owned runtime and render the SDK
 conversation projection:
 
 ```ts
-import { WindieClient } from "@windie/sdk";
+import { AgentClient } from "@windie/sdk";
 
-const client = new WindieClient({
+const client = new AgentClient({
   backendUrl: "https://api.windieos.com",
   backendSession: "managed",
   installToken: process.env.WINDIE_INSTALL_TOKEN
@@ -257,7 +257,7 @@ ipcMain.handle('windie:invoke', async (_event, { command, payload }) => {
 ```
 
 The command allowlist belongs in Electron main. The behavior and semantics
-belong in public SDK methods on `WindieAgent`, `ConversationRuntime`, or SDK
+belong in public SDK methods on `Agent`, `ConversationRuntime`, or SDK
 stores.
 
 The `localToolLifecycle` callback is SDK-owned in timing and host-owned in
@@ -270,9 +270,9 @@ tool-result return.
 ## Public API
 
 ```ts
-import { WindieClient, agentBuiltins, moduleTool } from "@windie/sdk";
+import { AgentClient, agentBuiltins, moduleTool } from "@windie/sdk";
 
-const client = new WindieClient();
+const client = new AgentClient();
 
 const simpleAgent = await client.wakeUp({
   systemPrompt: "You are a helpful assistant. Be concise. This text-only client has no callable tools.",
@@ -312,7 +312,7 @@ const agent = await client.wakeUp({
 groups. Valid current shapes are `"default"`, `"none"`, or an array such as
 `["filesystem", "shell"]`. The old `builtinTools` option is removed and no
 longer has a dedicated wake guard or compatibility error branch in
-`WindieClient.wakeUp(...)`; callers must move to `builtins` instead of expecting
+`AgentClient.wakeUp(...)`; callers must move to `builtins` instead of expecting
 the SDK runtime to special-case stale `builtinTools` input.
 
 await agent.ask("Read the repo instructions and summarize the tests.");
@@ -442,7 +442,7 @@ Standalone local tool callers should use the root client instead of creating an
 agent solely to reach the sidecar:
 
 ```ts
-const client = new WindieClient({ autoSidecar });
+const client = new AgentClient({ autoSidecar });
 await client.executeTool({
   toolName: "browser",
   args: {
@@ -686,12 +686,12 @@ one.
 
 ## Local Runtime Options
 
-`WindieClient.localRuntime()` and `WindieClient.wakeUp()` resolve the local
+`AgentClient.localRuntime()` and `AgentClient.wakeUp()` resolve the local
 runtime through the same SDK manager. Electron main does not create a daemon
 HTTP client or a second local-runtime provider for the desktop daemon path.
 Instead, Electron computes desktop launch options (Python or packaged daemon
 command, args, cwd, environment, auth/permission paths, discovery path, and
-launch context), passes them as `autoSidecar` to one shared `WindieClient`, and
+launch context), passes them as `autoSidecar` to one shared `AgentClient`, and
 hands `client.getKnownLocalRuntime()` / `client.localRuntime({ reason })`
 resolvers to host IPC facades such as browser control and local-backend status.
 
@@ -716,13 +716,13 @@ Non-Electron SDK hosts can override that behavior with:
   and optional `pythonArgs` launcher prefix for the default Node provider.
   Repo-local examples use this to run `scripts/python-in-env sidecar python`
   while leaving daemon discovery, registration, JSON-RPC unwrapping, and
-  shutdown with `WindieClient`.
+  shutdown with `AgentClient`.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
   an `AgentLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.
 - `sidecar`: a custom `AgentLocalRuntimeClient` implementation.
 - `sidecarDaemon`: public client option for an already-known daemon `baseUrl`
-  and per-process `token`; `WindieClient` creates a `SidecarDaemonHttpClient`
+  and per-process `token`; `AgentClient` creates a `SidecarDaemonHttpClient`
   and uses `/status`, registration endpoints, `/tools`, and `/execute-tool`.
   This camelCase `baseUrl` option does not change the daemon discovery-file
   contract, which remains canonical `base_url`.
@@ -742,12 +742,12 @@ The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly
 when they need local execution.
 
-After any SDK path resolves a local runtime, `WindieClient.status()`,
-`WindieClient.listTools()`, `WindieClient.getKnownLocalRuntime()`, and
-`WindieClient.shutdownLocalRuntime()` operate on that known runtime. `status()`
+After any SDK path resolves a local runtime, `AgentClient.status()`,
+`AgentClient.listTools()`, `AgentClient.getKnownLocalRuntime()`, and
+`AgentClient.shutdownLocalRuntime()` operate on that known runtime. `status()`
 and `listTools()` remain non-starting inspection helpers. Use
 `localStatus()` and `listLocalTools()` when the caller intentionally wants to
-start/reuse the local runtime for inspection. The returned `WindieAgent` exposes
+start/reuse the local runtime for inspection. The returned `Agent` exposes
 the same local-runtime status/tool-list/shutdown helpers, so SDK hosts can keep
 using the agent object after wake-up instead of retaining the root client.
 These agent helpers do not auto-start a daemon just to inspect status.
@@ -848,7 +848,7 @@ callers.
 Desktop model changes now route through the renderer settings runtime facade
 before they reach the low-level IPC adapter. Chat features should call
 `DesktopSettingsRuntimeClient.setModel(...)`; that facade builds the same SDK
-model-selection patch used by public `WindieClient` callers. Feature code
+model-selection patch used by public `AgentClient` callers. Feature code
 should not shape `update-settings` payloads, route model sync through the
 live-turn facade, or call the backend API adapter directly.
 
@@ -899,7 +899,7 @@ seed. Use `FileConversationStore` when a Node CLI or custom UI needs durable
 local JSON state without Electron.
 
 For a minimal non-Electron consumer, see `examples/cli-agent`. It uses
-`WindieClient.wakeUp`, `agent.conversation`, `FileConversationStore`, and
+`AgentClient.wakeUp`, `agent.conversation`, `FileConversationStore`, and
 `conversation.stream()` against a mock websocket backend.
 
 For the simplest interactive chat script against the remote backend, see
@@ -907,7 +907,7 @@ For the simplest interactive chat script against the remote backend, see
 terminal input, and streams assistant text to stdout.
 
 The frontend SDK test suite includes a mock-backend end-to-end contract that
-starts `scripts/mock-backend.cjs`, wakes `WindieClient`, registers a module tool
+starts `scripts/mock-backend.cjs`, wakes `AgentClient`, registers a module tool
 through a fake local runtime, streams a turn, returns the local tool result over
 the websocket transport, and verifies the completed conversation projection.
 

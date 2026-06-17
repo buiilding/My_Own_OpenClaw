@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK generic agent client class
+
+- Finding: Electron main and reusable callers could import the generic
+  `AgentClient` alias, but the SDK client implementation and docs still treated
+  `WindieClient` as the canonical runtime class.
+- Change: made `AgentClient` the canonical SDK client class, kept
+  `WindieClient` as the compatibility value/type alias, regenerated CJS output,
+  and updated SDK runtime docs to teach the generic client path.
+- Validation: focused SDK package-boundary/type/CJS checks, docs listing, CJS
+  alias smoke, and diff check.
+- Compatibility: no migration required. Existing `WindieClient` imports and
+  `new WindieClient(...)` calls continue to construct the same SDK client.
+
 ### 2026-06-17 SDK generic high-level agent class
 
 - Finding: `WindieClient` and package callers could use the generic `Agent`

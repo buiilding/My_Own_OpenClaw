@@ -3,7 +3,7 @@
  * Implements the hosted/local agent client integration for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AgentClient = exports.WindieClient = void 0;
+exports.WindieClient = exports.AgentClient = void 0;
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const SidecarConversationStore_js_1 = require("../stores/SidecarConversationStore.js");
@@ -14,7 +14,7 @@ const HostedBackendHttpClient_js_1 = require("../transport/HostedBackendHttpClie
 const WindieAgent_js_1 = require("./WindieAgent.js");
 const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
 const LocalSidecarRuntime_js_1 = require("./LocalSidecarRuntime.js");
-class WindieClient {
+class AgentClient {
     constructor(options = {}) {
         this.activeAgents = new Map();
         this.defaultOptions = options;
@@ -382,8 +382,8 @@ class WindieClient {
         return dedupeManifestTools([...registeredRuntimeTools, ...selectedBuiltinTools, ...explicitTools]);
     }
 }
-exports.WindieClient = WindieClient;
-exports.AgentClient = WindieClient;
+exports.AgentClient = AgentClient;
+exports.WindieClient = AgentClient;
 function featureEnabled(value, fallback) {
     if (typeof value === 'boolean') {
         return value;

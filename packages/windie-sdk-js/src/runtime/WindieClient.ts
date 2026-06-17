@@ -152,7 +152,7 @@ type NormalizedAgentRuntimeFeatures = {
   persistence: boolean;
 };
 
-export class WindieClient {
+export class AgentClient {
   private readonly defaultOptions: AgentClientOptions;
   private readonly activeAgents = new Map<string, Agent>();
   private autoLocalRuntimeProvider?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
@@ -611,7 +611,8 @@ export class WindieClient {
   }
 }
 
-export { WindieClient as AgentClient };
+export type WindieClient = AgentClient;
+export const WindieClient = AgentClient;
 
 function featureEnabled(value: AgentRuntimeFeatureOption | undefined, fallback: boolean): boolean {
   if (typeof value === 'boolean') {
