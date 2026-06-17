@@ -19,12 +19,6 @@ export * from './runtime/ConversationContinuityService.js';
 export * from './runtime/AgentDefinition.js';
 export * from './runtime/SdkRuntimeCommands.js';
 export * from './runtime/AgentStreamEvents.js';
-export type {
-  WindieAgentStreamEvent,
-  WindieAgentStreamState,
-  WindieAgentToolCall,
-  WindieAgentToolOutput,
-} from './runtime/WindieAgentStreamEvents.js';
 export * from './runtime/AgentChatSession.js';
 export {
   WindieChatSession,
@@ -98,11 +92,6 @@ export {
   createAgentBackendTransport,
   createAgentSession,
 } from './transport/AgentSession.js';
-export {
-  createWindieAgentBackendTransport,
-  createWindieAgentSession,
-  WindieAgentSession,
-} from './transport/WindieAgentSession.js';
 export type {
   AgentQueryInput,
   AgentSessionOptions,
@@ -111,12 +100,6 @@ export type {
   WebSocketConstructor,
   WebSocketLike,
 } from './transport/AgentSession.js';
-export type {
-  WindieAgentSessionOptions,
-  WindieAgentQueryInput,
-  WindieAgentSessionRuntime,
-  WindieAgentStopInput,
-} from './transport/WindieAgentSession.js';
 
 export type {
   BackendEvent,

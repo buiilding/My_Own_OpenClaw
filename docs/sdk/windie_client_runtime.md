@@ -64,8 +64,7 @@ Ownership rules:
   `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
   `createAgentSession`, and `createAgentBackendTransport` contracts alongside
   `WebSocketLike` and `WebSocketConstructor`. `AgentSession.ts` is the
-  canonical websocket session module; `WindieAgentSession.ts` is the
-  compatibility wrapper for historical Windie-prefixed session names.
+  canonical websocket session module.
   `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`.
   `ManagedAgentSession.ts` is the canonical managed
@@ -781,8 +780,6 @@ backend tool-call -> SDK conversation runtime -> sidecar /execute-tool -> backen
 
 `AgentSession` is now transport-only. It connects, handshakes, sends
 queries/results, and emits raw backend events. It does not execute local tools.
-`WindieAgentSession` remains available from the compatibility module and
-package boundary for the same constructor.
 `ManagedBackendSession` owns the reusable managed websocket lifecycle for hosts
 that need connection waiters, reconnect scheduling, endpoint fallback, idle
 disconnect, typed backend sends, and raw event parsing. Electron main consumes
@@ -866,8 +863,7 @@ consumer-ready `state`, `reasoning_delta`, `assistant_delta`,
 tool calls and bundled tool outputs stay bundled on the backend transport and
 conversation history path, but the public stream exposes them as plural tool
 call/output arrays so CLI and custom UI callers do not need bundle-specific
-rendering branches. `WindieAgentStreamEvents.ts` remains the compatibility
-wrapper for historical Windie-prefixed stream event type names.
+rendering branches.
 
 `AgentStreamEvents.ts` owns display-safe public tool-output extraction for
 `agent.stream(...)`. `extractToolResultAttachments(...)` walks nested arrays and

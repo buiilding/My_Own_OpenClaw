@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the SDK `WindieAgentSession` compatibility module so hosted transport callers use `AgentSession` and `createAgentSession` directly.
+
+- Removed the SDK `WindieAgentStreamEvents` compatibility module so TypeScript callers use `AgentStreamEvent` types directly.
+
 - Removed the SDK `ManagedWindieAgentSession` compatibility module so managed hosted-session callers use `ManagedAgentSession` and `createManagedAgentSession` directly.
 
 - Removed the SDK `WindieBackendSocketFactory` compatibility module so websocket callers use `createAgentBackendSocket` and `AgentBackendSocketOptions` directly.
