@@ -12,7 +12,7 @@ import {
   createWindieAgentBackendTransport,
   createWindieAgentSession,
   createConversationEvent,
-  createWindieLocalRuntimeProvider,
+  createAgentLocalRuntimeProvider,
   AgentLocalRuntimeHttpClient,
   InMemoryConversationStore,
   LocalRuntimeConversationStore,
@@ -2697,7 +2697,7 @@ describe('WindieSdkClient', () => {
     expect((listCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('auto-token');
   });
 
-  test('createWindieLocalRuntimeProvider reuses discovery metadata directly', async () => {
+  test('createAgentLocalRuntimeProvider reuses discovery metadata directly', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     await fsPromises.writeFile(
@@ -2710,7 +2710,7 @@ describe('WindieSdkClient', () => {
     );
     mockFetch.mockResolvedValue(jsonResponse({ status: 'ok' }) as any);
 
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       discoveryFile,
       fetchImpl: mockFetch,
       reuseExisting: true,
@@ -2731,7 +2731,7 @@ describe('WindieSdkClient', () => {
     expect(headers.get('x-windie-sidecar-token')).toBe('provider-token');
   });
 
-  test('createWindieLocalRuntimeProvider reports generic discovery timeout wording', async () => {
+  test('createAgentLocalRuntimeProvider reports generic discovery timeout wording', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-timeout-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
@@ -2741,7 +2741,7 @@ describe('WindieSdkClient', () => {
       'utf8',
     );
 
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       command: process.execPath,
       args: [launcherScript],
       discoveryFile,
@@ -2756,7 +2756,7 @@ describe('WindieSdkClient', () => {
     })).rejects.toThrow(`Timed out waiting for local sidecar daemon discovery at ${discoveryFile}`);
   });
 
-  test('createWindieLocalRuntimeProvider source keeps generic default discovery path', async () => {
+  test('createAgentLocalRuntimeProvider source keeps generic default discovery path', async () => {
     const runtimeSource = await fsPromises.readFile(
       path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts'),
       'utf8',
@@ -2772,7 +2772,7 @@ describe('WindieSdkClient', () => {
     }
   });
 
-  test('createWindieLocalRuntimeProvider ignores camelCase discovery metadata', async () => {
+  test('createAgentLocalRuntimeProvider ignores camelCase discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-discovery-alias-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
@@ -2809,7 +2809,7 @@ describe('WindieSdkClient', () => {
       return jsonResponse({ ok: true }) as any;
     });
 
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       command: process.execPath,
       args: [launcherScript],
       discoveryFile,
@@ -2833,7 +2833,7 @@ describe('WindieSdkClient', () => {
     await runtime?.shutdown?.();
   });
 
-  test('createWindieLocalRuntimeProvider ignores non-loopback discovery metadata', async () => {
+  test('createAgentLocalRuntimeProvider ignores non-loopback discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-loopback-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
@@ -2867,7 +2867,7 @@ describe('WindieSdkClient', () => {
       return jsonResponse({ ok: true }) as any;
     });
 
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       command: process.execPath,
       args: [launcherScript],
       discoveryFile,
@@ -2890,7 +2890,7 @@ describe('WindieSdkClient', () => {
     await runtime?.shutdown?.();
   });
 
-  test('createWindieLocalRuntimeProvider restarts a discovered daemon by default', async () => {
+  test('createAgentLocalRuntimeProvider restarts a discovered daemon by default', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-restart-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
@@ -2916,8 +2916,6 @@ describe('WindieSdkClient', () => {
       ].join('\n'),
       'utf8',
     );
-    await fsPromises.chmod(launcherScript, 0o755);
-
     let oldStatusCalls = 0;
     mockFetch.mockImplementation(async (input) => {
       const url = String(input);
@@ -2939,10 +2937,11 @@ describe('WindieSdkClient', () => {
       return jsonResponse({ ok: true }) as any;
     });
 
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       discoveryFile,
       daemonScript,
-      pythonCommand: launcherScript,
+      pythonCommand: process.execPath,
+      pythonArgs: [launcherScript],
       pollIntervalMs: 1,
       startTimeoutMs: 2000,
       fetchImpl: mockFetch,
@@ -2965,7 +2964,7 @@ describe('WindieSdkClient', () => {
     await runtime?.shutdown?.();
   });
 
-  test('createWindieLocalRuntimeProvider starts a desktop command with explicit env, cwd, and launch context', async () => {
+  test('createAgentLocalRuntimeProvider starts a desktop command with explicit env, cwd, and launch context', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-command-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
@@ -2994,7 +2993,7 @@ describe('WindieSdkClient', () => {
       return jsonResponse({ ok: true }) as any;
     });
 
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       command: process.execPath,
       args: [launcherScript, '--desktop-launch'],
       cwd: tempDir,
@@ -3030,7 +3029,7 @@ describe('WindieSdkClient', () => {
     await runtime?.shutdown?.();
   });
 
-  test('createWindieLocalRuntimeProvider replaces stale launch-context discovery before reuse', async () => {
+  test('createAgentLocalRuntimeProvider replaces stale launch-context discovery before reuse', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-stale-launch-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
@@ -3076,7 +3075,7 @@ describe('WindieSdkClient', () => {
       return jsonResponse({ ok: true }) as any;
     });
 
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       command: process.execPath,
       args: [launcherScript],
       discoveryFile,
@@ -3581,7 +3580,7 @@ describe('WindieSdkClient', () => {
     }));
   });
 
-  test('createWindieLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
+  test('createAgentLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-launcher-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
@@ -3600,13 +3599,12 @@ describe('WindieSdkClient', () => {
       ].join('\n'),
       'utf8',
     );
-    await fsPromises.chmod(launcherScript, 0o755);
     mockFetch.mockResolvedValue(jsonResponse({ status: 'ok' }) as any);
-    const provider = createWindieLocalRuntimeProvider({
+    const provider = createAgentLocalRuntimeProvider({
       discoveryFile,
       daemonScript,
-      pythonCommand: launcherScript,
-      pythonArgs: ['sidecar', 'python'],
+      pythonCommand: process.execPath,
+      pythonArgs: [launcherScript, 'sidecar', 'python'],
       pollIntervalMs: 1,
       startTimeoutMs: 2000,
       fetchImpl: mockFetch,

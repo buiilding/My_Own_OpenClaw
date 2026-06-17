@@ -2447,3 +2447,20 @@ Each completed slice should report:
   docs/frontend/renderer/desktop_agent_runtime_transport_command_contract_reference.md
   plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
 - Compatibility: no migration required. This is docs-only terminology cleanup.
+
+### 2026-06-17 Agent local runtime provider test path
+
+- Finding: SDK client behavior coverage still exercised the historical
+  `createWindieLocalRuntimeProvider` factory name even though
+  `createAgentLocalRuntimeProvider` is now the canonical local-runtime provider
+  and the Windie-prefixed factory is covered as a package-boundary alias.
+- Change: switched local-runtime provider behavior tests to import and call
+  `createAgentLocalRuntimeProvider`, leaving the compatibility alias assertion
+  in the package-boundary test. The launcher-style provider cases now execute
+  their temporary Node helpers through `process.execPath` so the same
+  local-runtime argument contract is covered on Windows and POSIX hosts.
+- Validation: focused provider Jest coverage, SDK package-boundary Jest
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  legacy factory name no longer appears in SDK client behavior coverage.
+- Compatibility: no migration required. `createWindieLocalRuntimeProvider`
+  remains a public compatibility alias.
