@@ -21,38 +21,7 @@ export * from './runtime/SdkRuntimeCommands.js';
 export * from './runtime/AgentStreamEvents.js';
 export * from './runtime/AgentChatSession.js';
 export * from './runtime/Agent.js';
-export {
-  WindieAgent,
-} from './runtime/WindieAgent.js';
-export type {
-  WindieAgentOwner,
-  WindieAgentQueryOptions,
-  WindieAgentRegisterMcpOptions,
-  WindieAgentStopOptions,
-  WindieAgentTraceOptions,
-  WindieClearConversationsOptions,
-  WindieClearMemoriesResult,
-  WindieDeleteMemoryResult,
-  WindieMemoryListResult,
-  WindieMemoryQuery,
-  WindieMemoryType,
-  WindiePrepareEditAndResendOptions,
-  WindiePrepareRetryTurnOptions,
-  WindieStoreMemoryInput,
-  WindieStoreMemoryResult,
-} from './runtime/WindieAgent.js';
 export * from './runtime/AgentClient.js';
-export {
-  WindieClient,
-} from './runtime/WindieClient.js';
-export type {
-  WindieClientOptions,
-  WindieInstallAuthOptions,
-  WindieInstallAuthState,
-  WindieLocalRuntimeRequest,
-  WindieRuntimeFeatureOption,
-  WindieWakeUpOptions,
-} from './runtime/WindieClient.js';
 export * from './runtime/LocalSidecarRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './transport/BackendSocketFactory.js';

@@ -7,8 +7,6 @@ import {
   Agent,
   AgentHostedBackendClient,
   AgentSession,
-  WindieAgent,
-  WindieClient,
   InMemoryConversationStore,
   LocalRuntimeConversationStore,
   SdkConversationRuntime,
@@ -55,23 +53,12 @@ import {
   type AgentSessionRuntime,
   type AgentStopInput,
   type AgentToolDefinition,
-  type WindieClientOptions,
-  type WindieInstallAuthOptions,
-  type WindieLocalRuntimeRequest,
-  type WindieMemoryQuery,
-  type WindieAgentQueryOptions,
-  type WindieAgentStopOptions,
-  type WindieAgentTraceOptions,
-  type WindieRuntimeFeatureOption,
-  type WindieStoreMemoryInput,
-  type WindieWakeUpOptions,
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
   test('exports the public agent runtime surface', () => {
-    expect(WindieClient).toBeDefined();
-    expect(WindieClient).toBe(AgentClient);
-    expect(WindieAgent).toBe(Agent);
+    expect(AgentClient).toBeDefined();
+    expect(Agent).toBeDefined();
     expect(AgentHostedBackendClient).toBeDefined();
     expect(InMemoryConversationStore).toBeDefined();
     expect(LocalRuntimeConversationStore).toBeDefined();
@@ -158,29 +145,24 @@ describe('@windie/sdk package boundary', () => {
     expect(input).toBe('hello');
   });
 
-  test('exports generic agent API option aliases', () => {
+  test('exports generic agent API option types', () => {
     const queryOptions: AgentQueryOptions = {
       conversationRef: 'conv-1',
       screenshotRef: 'shot-1',
     };
-    const compatibilityQueryOptions: WindieAgentQueryOptions = queryOptions;
-    const stopOptions: AgentStopOptions = { conversationRef: compatibilityQueryOptions.conversationRef };
-    const compatibilityStopOptions: WindieAgentStopOptions = stopOptions;
+    const stopOptions: AgentStopOptions = { conversationRef: queryOptions.conversationRef };
     const memoryQuery: AgentMemoryQuery = { query: 'preferences', memoryType: 'semantic' };
-    const compatibilityMemoryQuery: WindieMemoryQuery = memoryQuery;
     const storeMemory: AgentStoreMemoryInput = {
       userQuery: 'What should I remember?',
       assistantResponse: 'Remember the workspace preference.',
       memoryType: 'episodic',
     };
-    const compatibilityStoreMemory: WindieStoreMemoryInput = storeMemory;
     const traceOptions: AgentTraceOptions = { conversationRef: 'conv-1' };
-    const compatibilityTraceOptions: WindieAgentTraceOptions = traceOptions;
 
-    expect(compatibilityStopOptions.conversationRef).toBe('conv-1');
-    expect(compatibilityMemoryQuery.memoryType).toBe('semantic');
-    expect(compatibilityStoreMemory.memoryType).toBe('episodic');
-    expect(compatibilityTraceOptions.conversationRef).toBe('conv-1');
+    expect(stopOptions.conversationRef).toBe('conv-1');
+    expect(memoryQuery.memoryType).toBe('semantic');
+    expect(storeMemory.memoryType).toBe('episodic');
+    expect(traceOptions.conversationRef).toBe('conv-1');
   });
 
   test('exports generic agent stream event types', () => {
@@ -194,29 +176,24 @@ describe('@windie/sdk package boundary', () => {
     expect(event.state).toBe('thinking');
   });
 
-  test('exports generic client runtime option aliases', () => {
+  test('exports generic client runtime option types', () => {
     const feature: AgentRuntimeFeatureOption = { enabled: true };
-    const compatibilityFeature: WindieRuntimeFeatureOption = feature;
     const installAuth: AgentInstallAuthOptions = { userId: 'user-1', installToken: 'token-1' };
-    const compatibilityInstallAuth: WindieInstallAuthOptions = installAuth;
     const wakeUp: AgentWakeUpOptions = {
       name: 'Agent',
-      memory: compatibilityFeature,
-      installAuth: compatibilityInstallAuth,
+      memory: feature,
+      installAuth,
     };
-    const compatibilityWakeUp: WindieWakeUpOptions = wakeUp;
     const clientOptions: AgentClientOptions = {
       backendSession: 'managed',
       installAuth,
       memory: feature,
     };
-    const compatibilityClientOptions: WindieClientOptions = clientOptions;
     const localRuntimeRequest: AgentLocalRuntimeRequest = { reason: 'test' };
-    const compatibilityLocalRuntimeRequest: WindieLocalRuntimeRequest = localRuntimeRequest;
 
-    expect(compatibilityWakeUp.installAuth?.userId).toBe('user-1');
-    expect(compatibilityClientOptions.backendSession).toBe('managed');
-    expect(compatibilityLocalRuntimeRequest.reason).toBe('test');
+    expect(wakeUp.installAuth?.userId).toBe('user-1');
+    expect(clientOptions.backendSession).toBe('managed');
+    expect(localRuntimeRequest.reason).toBe('test');
   });
 
   test('exports generic hosted backend client types', () => {

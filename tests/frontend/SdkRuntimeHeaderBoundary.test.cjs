@@ -9,8 +9,6 @@ const SDK_RUNTIME_HEADER_FILES = [
   'packages/windie-sdk-js/src/runtime/Agent.ts',
   'packages/windie-sdk-js/src/runtime/AgentChatSession.ts',
   'packages/windie-sdk-js/src/runtime/AgentClient.ts',
-  'packages/windie-sdk-js/src/runtime/WindieAgent.ts',
-  'packages/windie-sdk-js/src/runtime/WindieClient.ts',
 ];
 
 describe('sdk runtime header boundary', () => {

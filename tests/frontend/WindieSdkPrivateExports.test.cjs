@@ -68,14 +68,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie client module remains a compatibility wrapper for agent client runtime', () => {
+  test('Windie client compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
-    const compatibilityModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/WindieClient.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/runtime/WindieClient.js',
+    );
 
     expect(canonicalModule.AgentClient).toBeDefined();
     expect(canonicalModule.WindieClient).toBeUndefined();
-    expect(compatibilityModule.AgentClient).toBe(canonicalModule.AgentClient);
-    expect(compatibilityModule.WindieClient).toBe(canonicalModule.AgentClient);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('Windie local sidecar runtime compatibility module is removed', () => {
@@ -90,14 +92,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie agent module remains a compatibility wrapper for agent runtime', () => {
+  test('Windie agent compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/Agent.js');
-    const compatibilityModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/WindieAgent.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/runtime/WindieAgent.js',
+    );
 
     expect(canonicalModule.Agent).toBeDefined();
     expect(canonicalModule.WindieAgent).toBeUndefined();
-    expect(compatibilityModule.Agent).toBe(canonicalModule.Agent);
-    expect(compatibilityModule.WindieAgent).toBe(canonicalModule.Agent);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('Windie agent stream events compatibility module is removed', () => {

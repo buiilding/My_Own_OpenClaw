@@ -15,11 +15,10 @@ title: "AgentClient Runtime Contract"
 
 ## Runtime Boundary
 
-`AgentClient` is the canonical agent client runtime. `WindieClient.ts` remains
-the compatibility wrapper for the historical product-branded constructor alias,
-and the returned agent object is exported as the generic `Agent` class.
-`WindieAgent.ts` remains the matching compatibility wrapper for that high-level
-agent object and Windie-prefixed agent type aliases.
+`AgentClient` is the canonical agent client runtime, and the returned agent
+object is exported as the generic `Agent` class. The old Windie-prefixed client
+and agent wrapper modules have been removed so reusable hosts import the
+generic SDK names directly.
 
 ```text
 Electron main / future CLI / SDK users
@@ -93,8 +92,6 @@ Ownership rules:
 - the SDK `AgentClient` runtime module owns wake-up orchestration, websocket
   session creation, initial model selection, local-runtime startup/reuse, and
   conversion of local tool/plugin/MCP definitions into the client manifest.
-  `WindieClient.ts` is the compatibility wrapper for historical
-  Windie-prefixed client imports.
   TypeScript callers that omit `workspacePath` get a runtime-derived workspace:
   `process.cwd()` first, then the best available home-directory environment
   path.
@@ -104,8 +101,7 @@ Ownership rules:
   refreshed local tool manifest, sends a backend `update-settings` command with
   `tools.mode = replace_client_manifest`, mutates the SDK agent definition, and
   includes that updated client manifest on the next `ask`, `run`, `stream`, or
-  conversation send. `WindieAgent.ts` is the compatibility wrapper for
-  historical Windie-prefixed agent imports.
+  conversation send.
 - the SDK agent stream-event module owns the public event projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
@@ -113,8 +109,7 @@ Ownership rules:
   `ask`, `run`, `stream`, `chat`, model updates, conversation creation,
   conversation listing/search/loading/deletion over a store adapter, memory
   commands, title commands, system prompt/tool-schema commands, and artifact
-  helpers. `Agent` is the canonical high-level SDK class; `WindieAgent.ts`
-  remains the compatibility wrapper for existing callers.
+  helpers.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
@@ -150,14 +145,10 @@ session module; the old Windie-prefixed chat session module has been removed so
 host code uses the `AgentChat*` names directly.
 Likewise, public agent API option and result shapes use generic `Agent*` names
 such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
-`AgentMemoryQuery`, and `AgentStoreMemoryInput`; the matching Windie-prefixed
-type names remain compatibility aliases only.
-Client-level runtime options follow the same rule: prefer `AgentClientOptions`,
-`AgentWakeUpOptions`, `AgentLocalRuntimeRequest`, `AgentRuntimeFeatureOption`,
-and `AgentInstallAuthOptions` in reusable SDK code, while Windie-prefixed type
-names remain compatibility aliases. The high-level agent instance follows that
-same naming pattern: reusable TypeScript hosts should prefer `Agent`, while
-`WindieAgent.ts` remains a compatibility wrapper.
+`AgentMemoryQuery`, and `AgentStoreMemoryInput`. Client-level runtime options
+follow the same rule: use `AgentClientOptions`, `AgentWakeUpOptions`,
+`AgentLocalRuntimeRequest`, `AgentRuntimeFeatureOption`, and
+`AgentInstallAuthOptions` in reusable SDK code.
 
 ## Desktop Host Startup
 
