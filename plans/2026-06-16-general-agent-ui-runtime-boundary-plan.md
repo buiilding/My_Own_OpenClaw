@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 conversation metadata diagnostics local runtime field
+
+- Finding: the generic Agent SDK command handler still emitted
+  `sidecarReady` in active conversation metadata diagnostics even though current
+  diagnostics already use local-runtime readiness wording.
+- Change: changed the active `conversations.list` diagnostic producer to emit
+  `localRuntimeReady`, updated runtime trace docs, and added main SDK boundary
+  coverage to prevent the backend/sidecar readiness name from returning to that
+  producer.
+- Validation: focused main SDK runtime boundary Jest run, diagnostics field
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. The diagnostics store still allows
+  historical `sidecarReady` data, while new conversation metadata rows use the
+  generic local-runtime field.
+
 ### 2026-06-17 renderer active skin config facade
 
 - Finding: generic renderer config storage, provider-key helpers, model cards,

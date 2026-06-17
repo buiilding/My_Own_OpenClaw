@@ -225,7 +225,7 @@ function buildAgentSdkCommandHandlers({
           runtime: 'electron-main',
           data: {
             backendConnected: Boolean(deps.getState().isConnected),
-            sidecarReady: true,
+            localRuntimeReady: true,
           },
         });
         return agent.listConversations({
@@ -250,7 +250,7 @@ function buildAgentSdkCommandHandlers({
           data: {
             hasUserId: Boolean(normalizeOptionalString(payload.userId || payload.user_id)),
             backendConnected: Boolean(deps.getState().isConnected),
-            sidecarReady: Boolean(deps.getState().agent),
+            localRuntimeReady: Boolean(deps.getState().agent),
           },
           error,
         });

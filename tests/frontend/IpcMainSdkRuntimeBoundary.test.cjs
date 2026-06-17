@@ -101,6 +101,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MODELS_LIST]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED]');
+    expect(source).toContain('localRuntimeReady: true');
+    expect(source).toContain('localRuntimeReady: Boolean(deps.getState().agent)');
+    expect(source).not.toContain('sidecarReady:');
     expect(source).toContain('agent.listMemories(');
     expect(source).toContain('agent.deleteMemory(');
     expect(source).toContain('agent.clearMemories(');

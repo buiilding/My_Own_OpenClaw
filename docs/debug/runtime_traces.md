@@ -219,7 +219,7 @@ renderer dashboard load
 Rows are sanitized app/runtime events with `traceId`, `spanId`, `path`,
 `stage`, `status`, `runtime`, `requestId`, timestamps, duration, and allowlisted
 metadata. They may include booleans and counts such as `hasUserId`, `limit`,
-`resultCount`, `backendConnected`, `sidecarReady`,
+`resultCount`, `backendConnected`, `localRuntimeReady`,
 and `canonicalHistoryDbExists`.
 
 `browser.session_control` rows may include local-runtime readiness booleans,
