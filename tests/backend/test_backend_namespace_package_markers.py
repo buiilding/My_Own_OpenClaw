@@ -27,6 +27,7 @@ REMOVED_MARKERS = [
     "backend/src/tools/__init__.py",
     "backend/src/tools/browser/__init__.py",
     "backend/src/tools/remote_tools/__init__.py",
+    "backend/src/tools/web_search/__init__.py",
 ]
 
 CONCRETE_MODULES = [
@@ -43,6 +44,7 @@ CONCRETE_MODULES = [
     "backend.src.services.vm_run_control_support.vm_run_control_helpers",
     "backend.src.tools.browser.schemas",
     "backend.src.tools.remote_tools.base",
+    "backend.src.tools.web_search.tool",
 ]
 
 
