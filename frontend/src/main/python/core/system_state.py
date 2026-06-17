@@ -219,7 +219,7 @@ async def _get_active_window_macos() -> Optional[str]:
     """Get active window on macOS."""
     try:
         def _get_window_title():
-            from core.platform import WindowManager
+            from core.platform.window_manager import WindowManager
 
             manager = WindowManager()
             active_window = manager.get_active_window()
@@ -316,7 +316,7 @@ async def get_screen_resolution() -> Optional[str]:
 async def _get_all_open_windows() -> list:
     """Get list of all open window titles."""
     try:
-        from core.platform import WindowManager
+        from core.platform.window_manager import WindowManager
         
         def _get_windows():
             manager = WindowManager()

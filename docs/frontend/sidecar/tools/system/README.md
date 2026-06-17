@@ -27,7 +27,7 @@ title: "Frontend Sidecar System Tools Docs Hub"
 - `frontend/src/main/python/tools/system/stats_tool.py`
 - `frontend/src/main/python/tools/system/open_app_tool.py`
 - `frontend/src/main/python/core/system_metrics.py`
-- `frontend/src/main/python/core/platform/__init__.py`
+- `frontend/src/main/python/core/platform/window_manager.py`
 - `frontend/src/main/python/core/platform/base.py`
 - `frontend/src/main/python/core/platform/linux.py`
 - `frontend/src/main/python/core/platform/windows.py`

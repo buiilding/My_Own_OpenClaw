@@ -8,7 +8,7 @@ import re
 from typing import Dict, Any
 
 from core.executors import get_interactive_executor
-from core.platform import WindowManager
+from core.platform.window_manager import WindowManager
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)

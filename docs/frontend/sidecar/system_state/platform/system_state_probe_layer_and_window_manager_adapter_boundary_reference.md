@@ -11,7 +11,7 @@ title: "System-State Probe Layer and Window-Manager Adapter Boundary Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/core/system_state.py`
-- `frontend/src/main/python/core/platform/__init__.py`
+- `frontend/src/main/python/core/platform/window_manager.py`
 - `frontend/src/main/python/core/platform/base.py`
 - `frontend/src/main/python/core/platform/windows.py`
 - `frontend/src/main/python/core/platform/macos.py`

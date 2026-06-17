@@ -30,9 +30,10 @@ Maintenance rule:
 
 ## Sidecar Package `__init__` Surface Contract
 
-`core/__init__.py` is intentionally absent. Import core helpers from concrete
-modules such as `core.remote_semantic_client`, and import the hosted Python SDK
-from the public `windie` package.
+`core/__init__.py` and `core/platform/__init__.py` are intentionally absent.
+Import core helpers from concrete modules such as `core.remote_semantic_client`
+and `core.platform.window_manager`, and import the hosted Python SDK from the
+public `windie` package.
 
 Marker-only files are intentionally absent for `tools/`, tool category
 subpackages, `core/`, and `windie_shared/`. Import tool and shared

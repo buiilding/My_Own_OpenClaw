@@ -21,7 +21,7 @@ frontend/src/main/python/
 │   ├── executors.py                   # Shared interactive/background ThreadPoolExecutor lifecycle for blocking operations
 │   │
 │   └── platform/                       # Platform-specific abstractions
-│       ├── __init__.py                # Platform detection and WindowManager export (Windows/macOS/Linux)
+│       ├── window_manager.py          # Platform detection and WindowManager selection
 │       ├── base.py                    # BaseWindowManager - Abstract base class for window management
 │       ├── windows.py                 # WindowsWindowManager - Windows implementation using win32gui
 │       ├── macos.py                   # MacOSWindowManager - macOS implementation using AppKit
@@ -191,7 +191,7 @@ frontend/src/main/python/
            ├─> _get_mouse_position() - pyautogui.position()
            ├─> _get_clipboard_preview() - pyperclip.paste()
            ├─> get_screen_resolution() - pyautogui.size()
-           ├─> _get_all_open_windows() - core.platform.WindowManager
+           ├─> _get_all_open_windows() - core.platform.window_manager.WindowManager
            └─> _get_system_stats() - psutil (CPU, memory, battery)
            ↓
 3. AGGREGATION
@@ -206,7 +206,7 @@ frontend/src/main/python/
        └─> switch_to_window() or get_open_windows()
            ↓
 2. PLATFORM DETECTION
-   └─> core/platform/__init__.py
+   └─> core/platform/window_manager.py
        ├─> Detect platform (Windows/macOS/Linux)
        └─> Import appropriate WindowManager
            ├─> Windows: WindowsWindowManager (win32gui)

@@ -12,7 +12,7 @@ title: "System-State Collection and Removed getSystemState Bridge Export Referen
 ## Canonical Modules
 
 - `frontend/src/main/python/core/system_state.py`
-- `frontend/src/main/python/core/platform/__init__.py`
+- `frontend/src/main/python/core/platform/window_manager.py`
 - `frontend/src/main/python/core/platform/windows.py`
 - `frontend/src/main/python/core/platform/macos.py`
 - `frontend/src/main/python/core/platform/linux.py`
@@ -99,7 +99,7 @@ Per-field post-processing:
 
 ### `windows`
 
-- source: `core.platform.WindowManager().get_windows()`
+- source: `core.platform.window_manager.WindowManager().get_windows()`
 - sidecar returns title list only
 - default on failure: `[]`
 
@@ -142,7 +142,7 @@ Per-field post-processing:
 
 Platform bootstrap:
 
-- `core/platform/__init__.py` selects `WindowManager` class by OS.
+- `core/platform/window_manager.py` selects `WindowManager` class by OS.
 
 ## Consumer-Specific Field Usage
 

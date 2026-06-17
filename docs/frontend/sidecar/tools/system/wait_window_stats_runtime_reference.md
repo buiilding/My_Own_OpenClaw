@@ -64,7 +64,7 @@ Test-backed semantics:
 ### Shared runtime model
 
 - `window_tool` keeps a lazy global `_window_manager`
-- first use resolves platform implementation through `core.platform.WindowManager`
+- first use resolves platform implementation through `core.platform.window_manager.WindowManager`
 - window operations execute inside a thread executor
 
 ### `switch_window` behavior
@@ -105,7 +105,7 @@ Semantics:
 
 ## Platform Window Manager Semantics
 
-`core/platform/__init__.py` selects implementation by OS:
+`core/platform/window_manager.py` selects implementation by OS:
 
 - Windows -> `WindowsWindowManager`
 - macOS -> `MacOSWindowManager`

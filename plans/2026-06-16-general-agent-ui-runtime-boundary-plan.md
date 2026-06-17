@@ -4857,3 +4857,19 @@ Each completed slice should report:
 - Compatibility: no migration required. These were backend-internal helper
   exports with no live source callers; recovery event payloads, history
   staging, and structured metadata keys are unchanged.
+
+### 2026-06-17 sidecar platform window-manager package export
+
+- Finding: `core/platform/__init__.py` remained as a sidecar package-root
+  selector for `WindowManager`, even though sidecar package policy keeps runtime
+  imports on concrete owner modules and the public `windie` package is the only
+  remaining SDK-facing `__init__.py` export surface.
+- Change: moved platform window-manager selection into
+  `core.platform.window_manager`, rewired system-state and window-tool callers
+  to the concrete module, deleted the package-root marker, and updated
+  sidecar docs/tests to guard the removed package export.
+- Validation: focused sidecar py_compile and pytest, stale package-root import
+  scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This is a sidecar-internal import-path
+  cleanup; JSON-RPC methods, tool schemas, window-manager behavior, and
+  platform-specific adapter implementations are unchanged.
