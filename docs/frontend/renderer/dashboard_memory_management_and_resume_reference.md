@@ -23,7 +23,7 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
 
 ## Runtime Surfaces
 

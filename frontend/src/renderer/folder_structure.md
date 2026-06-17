@@ -280,7 +280,7 @@ frontend/src/renderer/
        └─> DesktopLiveTurnRuntimeClient.sendQuery() - Send through the renderer runtime facade
            ↓
 3. SDK RUNTIME TRANSPORT
-   └─> app/runtime/desktopBackendTransport.ts
+   └─> app/runtime/desktopAgentRuntimeTransport.ts
        └─> invokeAgentSdkCommand('conversation.send', payload)
            └─> Main process (`src/main/ipc.cjs`) allowlists the SDK-shaped command and hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```

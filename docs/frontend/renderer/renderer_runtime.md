@@ -115,7 +115,7 @@ Primary hooks/components:
 
 Core modules:
 
-- `app/runtime/desktopBackendTransport.ts`: typed backend command surface
+- `app/runtime/desktopAgentRuntimeTransport.ts`: typed SDK command transport
 - `infrastructure/ipc/bridge.ts`: typed IPC wrapper over preload API
 - `infrastructure/services/*`: tool execution/capture/payload services
 - `app/runtime/desktopConversationContinuityService.ts`, `app/runtime/desktopConversationLibraryClient.js`, and `infrastructure/transcript/*`: SDK-backed transcript display projection, conversation store access, and session storage
@@ -148,7 +148,7 @@ Backend remains source of truth for non-frontend runtime fields.
 ## Related Docs
 
 - [Frontend Renderer Docs Hub](README.md)
-- [Desktop Backend Transport Command Contract Reference](desktop_backend_transport_command_contract_reference.md)
+- [Desktop Agent Runtime Transport Command Contract Reference](desktop_agent_runtime_transport_command_contract_reference.md)
 - [App Startup VM-Mode and Frontend Onboarding Runtime Reference](app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
 - [Renderer Permissions Docs Hub](permissions/README.md)
 - [Frontend Renderer Provider Docs Hub](providers/README.md)

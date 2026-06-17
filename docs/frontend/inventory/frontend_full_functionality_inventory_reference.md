@@ -278,7 +278,7 @@ Functionality:
 
 Primary files:
 
-- Desktop backend transport: `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
+- Desktop agent runtime transport: `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
 - IPC bridge/channels: `frontend/src/renderer/infrastructure/ipc/*`
 - Transcript writer/session/queues: `frontend/src/renderer/infrastructure/transcript/*`
 - Tool execution stack: `frontend/src/renderer/infrastructure/services/*`

@@ -20,7 +20,7 @@ import {
   loadDesktopTraceTimeline,
   type DesktopTraceTimelineOptions,
 } from '../../infrastructure/transcript/desktopConversationStore';
-import { createDesktopBackendTransport } from './desktopBackendTransport';
+import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
@@ -56,7 +56,7 @@ function optionalString(value: unknown): string | null {
 
 const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
-  transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
+  transportFactory: ({ workspacePath }) => createDesktopAgentRuntimeTransport(workspacePath ?? null),
 });
 
 function metadataToDashboardConversation(metadata: ConversationMetadata) {

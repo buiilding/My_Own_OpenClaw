@@ -1,8 +1,8 @@
 /**
- * Covers desktop backend transport. behavior in the frontend test suite.
+ * Covers desktop agent runtime transport behavior in the frontend test suite.
  */
 
-import { createDesktopBackendTransport } from '../../frontend/src/renderer/app/runtime/desktopBackendTransport';
+import { createDesktopAgentRuntimeTransport } from '../../frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
@@ -11,7 +11,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
 
 const mockInvokeWindieCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
-describe('desktopBackendTransport', () => {
+describe('desktopAgentRuntimeTransport', () => {
   afterEach(() => {
     mockInvokeWindieCommand.mockReset();
     jest.restoreAllMocks();
@@ -20,15 +20,15 @@ describe('desktopBackendTransport', () => {
   test('rejects sendQuery when main reports a query dispatch failure', async () => {
     mockInvokeWindieCommand.mockResolvedValue({
       ok: false,
-      error: 'Failed to send query to backend',
+      error: 'Failed to send query through agent runtime',
     });
 
-    const transport = createDesktopBackendTransport('/repo');
+    const transport = createDesktopAgentRuntimeTransport('/repo');
 
     await expect(transport.sendQuery({
       text: 'retry this',
       conversation_ref: 'conv-1',
-    })).rejects.toThrow('Failed to send query to backend');
+    })).rejects.toThrow('Failed to send query through agent runtime');
     expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
       text: 'retry this',
       conversation_ref: 'conv-1',
@@ -42,7 +42,7 @@ describe('desktopBackendTransport', () => {
       messageId: 'msg-1',
     });
 
-    const transport = createDesktopBackendTransport(null);
+    const transport = createDesktopAgentRuntimeTransport(null);
 
     await expect(transport.sendQuery({
       text: 'hello',
@@ -64,7 +64,7 @@ describe('desktopBackendTransport', () => {
       messageId: 'msg-1',
     });
 
-    const transport = createDesktopBackendTransport(null);
+    const transport = createDesktopAgentRuntimeTransport(null);
 
     await expect(transport.sendQuery({
       text: 'hello',
@@ -91,7 +91,7 @@ describe('desktopBackendTransport', () => {
 
   test('routes runtime commands through SDK-shaped command invoke', async () => {
     mockInvokeWindieCommand.mockResolvedValue({});
-    const transport = createDesktopBackendTransport('/repo');
+    const transport = createDesktopAgentRuntimeTransport('/repo');
 
     await transport.rehydrateConversation({
       conversation_ref: 'conv-r',

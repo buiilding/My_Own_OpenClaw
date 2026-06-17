@@ -110,7 +110,7 @@ Dashboard handoff affordance:
   rehydrates the active conversation through the normalized store path when a
   conversation ref exists, then asks `DesktopConversationContinuityService` to run
   SDK conversation-runtime compaction with payload `{ force: true }`. The
-  desktop backend transport maps that SDK command to backend `compact-history`.
+  desktop agent runtime transport maps that SDK command to backend `compact-history`.
 - this is intended for validating compaction-status UI without waiting for token-threshold auto triggers.
 
 ## Click-Through Control Model

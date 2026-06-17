@@ -54,13 +54,13 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain('INVOKE_CHANNELS.GET_CHAT_EVENTS');
   });
 
-  test('live-turn and backend transport facades use SDK-shaped command invoke for SDK runtime commands', async () => {
+  test('live-turn and agent runtime transport facades use SDK-shaped command invoke for SDK runtime commands', async () => {
     const liveTurnSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopLiveTurnRuntimeClient.ts'),
       'utf8',
     );
-    const backendTransportSource = await fs.readFile(
-      path.join(appRoot, 'runtime/desktopBackendTransport.ts'),
+    const agentRuntimeTransportSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopAgentRuntimeTransport.ts'),
       'utf8',
     );
 
@@ -70,18 +70,18 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).not.toContain('WINDIE_SEND');
     expect(liveTurnSource).not.toContain('WINDIE_STOP');
 
-    expect(backendTransportSource).toContain('invokeAgentSdkCommand');
-    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
-    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
-    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE');
-    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT');
-    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
-    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
-    expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
-    expect(backendTransportSource).not.toContain('WINDIE_SEND');
-    expect(backendTransportSource).not.toContain('WINDIE_STOP');
-    expect(backendTransportSource).not.toContain('WINDIE_REHYDRATE');
-    expect(backendTransportSource).not.toContain('WINDIE_COMPACT_HISTORY');
+    expect(agentRuntimeTransportSource).toContain('invokeAgentSdkCommand');
+    expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
+    expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
+    expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE');
+    expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT');
+    expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
+    expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
+    expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
+    expect(agentRuntimeTransportSource).not.toContain('WINDIE_SEND');
+    expect(agentRuntimeTransportSource).not.toContain('WINDIE_STOP');
+    expect(agentRuntimeTransportSource).not.toContain('WINDIE_REHYDRATE');
+    expect(agentRuntimeTransportSource).not.toContain('WINDIE_COMPACT_HISTORY');
   });
 
   test('app provider code uses runtime facades for transcript session helpers', async () => {

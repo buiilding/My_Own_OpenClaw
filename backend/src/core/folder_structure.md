@@ -72,8 +72,8 @@ backend/src/core/
 │   └── session_factory.py             # AgentSessionFactory - creates AgentSession instances with all dependencies injected
 │
 ├── interfaces/                        # Protocol definitions (interfaces/contracts)
+│   ├── __init__.py                    # Package exports
 │   ├── embedding.py                   # EmbeddingProvider - embedding provider abstract base class
-│   ├── ocr.py                         # IOcrProvider - OCR provider interface protocol
 │   ├── tool.py                        # ToolResult - backend tool-result value object
 │   └── vision.py                      # IVisionProvider - vision provider interface protocol
 │

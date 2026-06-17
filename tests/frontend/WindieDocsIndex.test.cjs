@@ -1090,17 +1090,17 @@ describe('windie docs index', () => {
     expect(findDocs('sdk display screenshot projection')[0].path).toBe(expectedPath);
   });
 
-  test('routes renderer backend transport command-shape queries to the transport contract', () => {
+  test('routes renderer agent runtime transport command-shape queries to the transport contract', () => {
     const expectedPath = path.join(
       'docs',
       'frontend',
       'renderer',
-      'desktop_backend_transport_command_contract_reference.md',
+      'desktop_agent_runtime_transport_command_contract_reference.md',
     );
 
     expect(findDocs('camelCase query payload')[0].path).toBe(expectedPath);
     expect(findDocs('snake_case command contract')[0].path).toBe(expectedPath);
-    expect(findDocs('DesktopBackendTransport')[0].path).toBe(expectedPath);
+    expect(findDocs('DesktopAgentRuntimeTransport')[0].path).toBe(expectedPath);
     expect(
       findDocs('SDK_RUNTIME_COMMANDS conversation.send conversations.list memories.list diagnostics.append')[0].path,
     ).toBe(expectedPath);

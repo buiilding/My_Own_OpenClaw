@@ -17,7 +17,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
-- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`

@@ -6,7 +6,7 @@ import {
   buildModelSettingsPatch,
   type WindieModelSelection,
 } from '../../infrastructure/api/windieSdkClient';
-import { createDesktopBackendTransport } from './desktopBackendTransport';
+import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
 
 type RuntimeSettingsPatch = Record<string, unknown>;
 
@@ -35,7 +35,7 @@ function getDashboardModelListWindow(): DashboardModelListWindow | null {
  */
 export const DesktopSettingsRuntimeClient = {
   listModels(): Promise<void> {
-    return createDesktopBackendTransport(null).listModels().then(() => undefined);
+    return createDesktopAgentRuntimeTransport(null).listModels().then(() => undefined);
   },
 
   requestDashboardStartupModelList(): boolean {
@@ -56,11 +56,11 @@ export const DesktopSettingsRuntimeClient = {
   },
 
   updateSettings(config: RuntimeSettingsPatch): void {
-    void createDesktopBackendTransport(null).updateSettings(config);
+    void createDesktopAgentRuntimeTransport(null).updateSettings(config);
   },
 
   setModel(selection: WindieModelSelection): void {
-    void createDesktopBackendTransport(null).updateSettings(
+    void createDesktopAgentRuntimeTransport(null).updateSettings(
       buildModelSettingsPatch(selection, 'DesktopSettingsRuntimeClient.setModel'),
     );
   },

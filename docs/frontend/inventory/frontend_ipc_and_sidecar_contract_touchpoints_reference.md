@@ -15,7 +15,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 | Renderer owner | Main owner | Contract files | Drift symptoms |
 | --- | --- | --- | --- |
 | IPC bridge wrappers | IPC handlers | `renderer/infrastructure/ipc/{bridge,channels}.ts`, `main/ipc.cjs` | Invoke/send fails, unknown channel errors |
-| Query send API | Backend relay path | `renderer/app/runtime/desktopBackendTransport.ts`, `main/ipc.cjs` | Query never sent or missing ACK gating |
+| Query send API | Backend relay path | `renderer/app/runtime/desktopAgentRuntimeTransport.ts`, `main/ipc.cjs` | Query never sent or missing ACK gating |
 | Overlay controls | Overlay handlers | Renderer overlay listeners + `main/overlay_*_handler.cjs` | Chatbox/response overlay misbehavior |
 | Wakeword toggle/events | Wakeword bridge lifecycle | Voice hooks + `main/wakeword_bridge.cjs` + `main/wakeword_bridge_runtime.cjs` | No detection or duplicate wakeword triggers |
 

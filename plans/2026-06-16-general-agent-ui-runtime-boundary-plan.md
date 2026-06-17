@@ -289,3 +289,20 @@ Each completed slice should report:
   phrases; the only remaining `Local backend not ready` mention in this slice
   is the explicit legacy transient-error compatibility note.
 - Compatibility: no migration required. Documentation-only boundary alignment.
+
+### 2026-06-17 renderer agent runtime transport naming
+
+- Finding: the renderer SDK-command adapter was still named
+  `desktopBackendTransport`, making generic UI/runtime code read as if it owned
+  backend transport semantics instead of adapting UI calls into SDK runtime
+  commands.
+- Change: renamed the renderer facade and focused tests/docs to
+  `desktopAgentRuntimeTransport` / `DesktopAgentRuntimeTransport` while
+  preserving the SDK `BackendTransport` type and `windie:invoke` wire contract.
+- Validation: focused Jest runs for `DesktopAgentRuntimeTransport`,
+  `RendererApiClientBoundary`, `RendererAppRuntimeBoundary`,
+  `DesktopSettingsRuntimeClient`, `DesktopVoiceRuntimeClient`, targeted
+  `WindieDocsIndex` routing, docs listing, and a source scan for the retired
+  renderer transport name.
+- Compatibility: no migration required. This is an internal renderer module
+  rename; SDK transport type names and IPC command strings remain unchanged.

@@ -1,5 +1,5 @@
 /**
- * Provides the desktop backend transport module for the renderer UI.
+ * Provides the desktop agent runtime transport module for the renderer UI.
  */
 
 import {
@@ -56,7 +56,7 @@ async function sendQuery(
   if (result && typeof result === 'object' && result.ok === false) {
     const message = typeof result.error === 'string' && result.error.trim().length > 0
       ? result.error
-      : 'Failed to send query to backend';
+      : 'Failed to send query through agent runtime';
     throw new Error(message);
   }
   if (
@@ -105,7 +105,7 @@ async function sendListModels(): Promise<void> {
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.MODELS_LIST);
 }
 
-export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
+export function createDesktopAgentRuntimeTransport(workspacePath: string | null = null): BackendTransport {
   const normalizedWorkspacePath = optionalString(workspacePath);
   return {
     connect: async () => undefined,

@@ -123,6 +123,6 @@ Core hooks/components:
 Common dependencies:
 
 - `infrastructure/ipc` for renderer/main transport
-- `app/runtime/desktopBackendTransport.ts` for backend message dispatch
+- `app/runtime/desktopAgentRuntimeTransport.ts` for SDK command transport
 - `infrastructure/services/*` for tool execution and capture
 - `infrastructure/transcript/*` for persisted conversation records

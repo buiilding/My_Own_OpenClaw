@@ -20,7 +20,7 @@ describe('DesktopSettingsRuntimeClient', () => {
     DesktopSettingsRuntimeClient.resetDashboardStartupModelListForTests();
   });
 
-  test('requests model lists through the desktop backend transport', () => {
+  test('requests model lists through the desktop agent runtime transport', () => {
     DesktopSettingsRuntimeClient.listModels();
 
     expect(mockInvokeWindieCommand).toHaveBeenCalledWith('models.list');
@@ -56,7 +56,7 @@ describe('DesktopSettingsRuntimeClient', () => {
     warnSpy.mockRestore();
   });
 
-  test('sends settings patches through the desktop backend transport', () => {
+  test('sends settings patches through the desktop agent runtime transport', () => {
     DesktopSettingsRuntimeClient.updateSettings({
       speech_mode_enabled: true,
     });
