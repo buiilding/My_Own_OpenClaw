@@ -681,7 +681,7 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
       modules = await loadNodeSidecarModules();
     } catch (error) {
       throw new Error(
-        `Agent SDK local tools require a Node sidecar runtime provider: ${error instanceof Error ? error.message : String(error)}`,
+        `Agent SDK local tools require a Node local runtime provider: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
     const { fs, os, path, childProcess } = modules;

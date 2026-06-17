@@ -2783,6 +2783,10 @@ describe('Agent SDK client behavior', () => {
     }
     expect(runtimeSource).not.toContain('SidecarDaemonClientOptions');
     expect(runtimeSource).not.toContain('SidecarDaemonDiscovery');
+    expect(runtimeSource).toContain('Node local runtime provider');
+    expect(runtimeCjsSource).toContain('Node local runtime provider');
+    expect(runtimeSource).not.toContain('Node sidecar runtime provider');
+    expect(runtimeCjsSource).not.toContain('Node sidecar runtime provider');
   });
 
   test('createAgentLocalRuntimeProvider ignores camelCase discovery metadata', async () => {

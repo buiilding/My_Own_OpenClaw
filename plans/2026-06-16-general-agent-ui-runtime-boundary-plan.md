@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 TypeScript SDK Node local-runtime provider error wording
+
+- Finding: the TypeScript SDK local-runtime provider still reported Node module
+  loading failures as requiring a "Node sidecar runtime provider".
+- Change: changed that caller-facing failure to "Node local runtime provider"
+  and added SDK source/CJS boundary coverage so the old sidecar-runtime wording
+  stays absent.
+- Validation: SDK package build, focused SDK client Jest test, stale error scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This changes only SDK error wording;
+  Node module loading, daemon startup, discovery files, and `autoSidecar`
+  options are unchanged.
+
 ### 2026-06-17 Python SDK local-runtime method validation wording
 
 - Finding: the Python SDK local-runtime HTTP helper still raised
