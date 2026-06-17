@@ -164,10 +164,8 @@ const {
   isDefaultAgentDefinition,
   TraceRecorder,
   createConversationEvent,
+  normalizeBackendEventToConversationEvent,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
-const {
-  buildConversationEventFromBackendEvent,
-} = require('./ipc/ipc_conversation_event_broadcast.cjs');
 const { logChatPillMainTrace } = require('./debug/chat_pill_trace_runtime.cjs');
 const {
   logLiveSurfaceTrace,
@@ -1265,6 +1263,17 @@ function buildIpcStatusPayload(connected) {
     backendHttpUrl: backendEndpointState.getHttpUrl(),
     globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
+}
+
+function buildConversationEventFromBackendEvent(event, options = {}) {
+  if (!event || typeof event !== 'object' || Array.isArray(event)) {
+    return null;
+  }
+  return normalizeBackendEventToConversationEvent(event, {
+    fallbackConversationRef: options.fallbackConversationRef,
+    fallbackRevisionId: options.fallbackRevisionId,
+    fallbackTurnRef: options.fallbackTurnRef,
+  });
 }
 
 function broadcastConnectionStatus(connected) {

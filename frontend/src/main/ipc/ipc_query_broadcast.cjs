@@ -3,8 +3,8 @@
  */
 
 const {
-  buildConversationEventFromBackendEvent,
-} = require('./ipc_conversation_event_broadcast.cjs');
+  normalizeBackendEventToConversationEvent,
+} = require('../../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
 const {
   DESKTOP_AGENT_ON_CHANNELS,
 } = require('./ipc_desktop_agent_channels.cjs');
@@ -28,7 +28,7 @@ function broadcastQuerySendFailure({
     currentUserId,
   });
 
-  const conversationEvent = buildConversationEventFromBackendEvent(queryFailure, {
+  const conversationEvent = normalizeBackendEventToConversationEvent(queryFailure, {
     fallbackConversationRef: conversationRef,
   });
   if (conversationEvent) {
