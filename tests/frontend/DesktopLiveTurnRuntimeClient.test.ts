@@ -3,10 +3,10 @@
  */
 
 const mockGetActiveConversationRef = jest.fn(() => null);
-const mockInvokeWindieCommand = jest.fn();
+const mockInvokeAgentSdkCommand = jest.fn();
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
-  invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeWindieCommand(...args),
+  invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
@@ -26,8 +26,8 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     jest.resetModules();
     mockGetActiveConversationRef.mockReset();
     mockGetActiveConversationRef.mockReturnValue(null);
-    mockInvokeWindieCommand.mockReset();
-    mockInvokeWindieCommand.mockResolvedValue({ ok: true, messageId: 'turn-accepted' });
+    mockInvokeAgentSdkCommand.mockReset();
+    mockInvokeAgentSdkCommand.mockResolvedValue({ ok: true, messageId: 'turn-accepted' });
   });
 
   test('sendQuery routes query payloads through SDK-shaped command invoke', async () => {
@@ -58,7 +58,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       turnRef: ' turn-explicit ',
     });
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', {
       text: 'hello',
       conversation_ref: 'conv-send',
       screenshot_ref: 'artifact-main',
@@ -84,7 +84,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       query_message_id: 'turn-explicit',
       memory_retrieval_enabled: true,
     });
-    expect(mockInvokeWindieCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
   test('stop routes through SDK-shaped command invoke with the active turn ref', async () => {
@@ -94,7 +94,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
 
     await DesktopLiveTurnRuntimeClient.stop('conv-stop', ' turn-stop ');
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.stop', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.stop', {
       conversation_ref: 'conv-stop',
       turn_ref: 'turn-stop',
     });
@@ -108,7 +108,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
 
     await DesktopLiveTurnRuntimeClient.stop();
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.stop', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.stop', {
       conversation_ref: 'conv-active',
       turn_ref: null,
     });

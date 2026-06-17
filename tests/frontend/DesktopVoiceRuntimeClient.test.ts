@@ -4,28 +4,28 @@
 
 import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
 
-const mockInvokeWindieCommand = jest.fn(async () => undefined);
+const mockInvokeAgentSdkCommand = jest.fn(async () => undefined);
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => {
   return {
-    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeWindieCommand(...args),
+    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
   };
 });
 
 describe('DesktopVoiceRuntimeClient', () => {
   beforeEach(() => {
-    mockInvokeWindieCommand.mockReset();
-    mockInvokeWindieCommand.mockResolvedValue(undefined);
+    mockInvokeAgentSdkCommand.mockReset();
+    mockInvokeAgentSdkCommand.mockResolvedValue(undefined);
   });
 
   test('sends wakeword notifications through the desktop agent runtime transport', async () => {
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).resolves.toBeUndefined();
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('wakeword.detected', {});
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('wakeword.detected', {});
   });
 
   test('returns runtime transport failures to the caller', async () => {
-    mockInvokeWindieCommand.mockRejectedValueOnce(new Error('backend unavailable'));
+    mockInvokeAgentSdkCommand.mockRejectedValueOnce(new Error('backend unavailable'));
 
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).rejects.toThrow(
       'backend unavailable',

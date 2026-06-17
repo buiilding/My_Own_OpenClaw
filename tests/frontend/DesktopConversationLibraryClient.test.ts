@@ -9,15 +9,15 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
   invokeAgentSdkCommand: jest.fn(),
 }));
 
-const mockInvokeWindieCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
+const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 describe('DesktopConversationLibraryClient', () => {
   beforeEach(() => {
-    mockInvokeWindieCommand.mockReset();
+    mockInvokeAgentSdkCommand.mockReset();
   });
 
   test('lists, searches, deletes, and loads through SDK-shaped commands', async () => {
-    mockInvokeWindieCommand.mockImplementation(async (command) => {
+    mockInvokeAgentSdkCommand.mockImplementation(async (command) => {
       if (command === 'diagnostics.append') {
         return { stored: true };
       }
@@ -71,7 +71,7 @@ describe('DesktopConversationLibraryClient', () => {
       { id: 'row-1', conversationRef: 'conv-1', role: 'assistant', type: 'assistant', content: 'hello' },
     ]);
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.list', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversations.list', {
       userId: 'user-1',
       limit: 10,
       _diagnostics: expect.objectContaining({
@@ -80,7 +80,7 @@ describe('DesktopConversationLibraryClient', () => {
         requestId: expect.stringMatching(/^req_/),
       }),
     });
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
       stage: 'requested',
       status: 'succeeded',
       runtime: 'renderer',
@@ -89,7 +89,7 @@ describe('DesktopConversationLibraryClient', () => {
         limit: 10,
       }),
     }));
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
       stage: 'normalized',
       status: 'succeeded',
       runtime: 'renderer',
@@ -97,16 +97,16 @@ describe('DesktopConversationLibraryClient', () => {
         resultCount: 1,
       }),
     }));
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.search', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversations.search', {
       userId: 'user-1',
       query: 'hit',
       limit: 5,
     });
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.delete', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversations.delete', {
       userId: 'user-1',
       conversationRef: 'conv-1',
     });
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.loadDisplay', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.loadDisplay', {
       userId: 'user-1',
       conversationRef: 'conv-1',
     });
@@ -125,7 +125,7 @@ describe('DesktopConversationLibraryClient', () => {
       },
     );
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
       _diagnostics: expect.objectContaining({
         traceId: 'diag-1',
         requestId: 'req-1',
@@ -156,7 +156,7 @@ describe('DesktopConversationLibraryClient', () => {
   });
 
   test('filters loaded display rows to the requested conversation', async () => {
-    mockInvokeWindieCommand.mockResolvedValueOnce({
+    mockInvokeAgentSdkCommand.mockResolvedValueOnce({
       displayRows: [
         { id: 'row-1', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo' },
         { id: 'row-old', conversationRef: 'conv-old', role: 'assistant', type: 'assistant_message', content: 'old' },

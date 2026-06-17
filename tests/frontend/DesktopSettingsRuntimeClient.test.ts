@@ -4,18 +4,18 @@
 
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 
-const mockInvokeWindieCommand = jest.fn(async () => undefined);
+const mockInvokeAgentSdkCommand = jest.fn(async () => undefined);
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => {
   return {
-    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeWindieCommand(...args),
+    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
   };
 });
 
 describe('DesktopSettingsRuntimeClient', () => {
   beforeEach(() => {
-    mockInvokeWindieCommand.mockReset();
-    mockInvokeWindieCommand.mockResolvedValue(undefined);
+    mockInvokeAgentSdkCommand.mockReset();
+    mockInvokeAgentSdkCommand.mockResolvedValue(undefined);
     window.history.replaceState({}, '', '/');
     DesktopSettingsRuntimeClient.resetDashboardStartupModelListForTests();
   });
@@ -23,15 +23,15 @@ describe('DesktopSettingsRuntimeClient', () => {
   test('requests model lists through the desktop agent runtime transport', () => {
     DesktopSettingsRuntimeClient.listModels();
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('models.list');
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('models.list');
   });
 
   test('requests dashboard startup model list only once per renderer session', () => {
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(true);
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledTimes(1);
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('models.list');
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledTimes(1);
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('models.list');
   });
 
   test('skips dashboard startup model list from secondary renderer views', () => {
@@ -39,12 +39,12 @@ describe('DesktopSettingsRuntimeClient', () => {
 
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
 
-    expect(mockInvokeWindieCommand).not.toHaveBeenCalled();
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
   test('does not throw when startup model list request fails', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    mockInvokeWindieCommand.mockRejectedValueOnce(new Error('ipc unavailable'));
+    mockInvokeAgentSdkCommand.mockRejectedValueOnce(new Error('ipc unavailable'));
 
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(true);
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -61,7 +61,7 @@ describe('DesktopSettingsRuntimeClient', () => {
       speech_mode_enabled: true,
     });
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('settings.update', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('settings.update', {
       speech_mode_enabled: true,
     });
   });
@@ -72,7 +72,7 @@ describe('DesktopSettingsRuntimeClient', () => {
       modelProvider: ' openai ',
     });
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('settings.update', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('settings.update', {
       selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
       model_provider: 'openai',
     });

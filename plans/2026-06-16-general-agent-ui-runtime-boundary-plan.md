@@ -1016,3 +1016,16 @@ Each completed slice should report:
   listing, `git diff --check`, and stale-path scan for the old module name.
 - Compatibility: no migration required. This is an internal main-process module
   path; IPC names and renderer command payloads are unchanged.
+
+### 2026-06-17 SDK command test mock terminology
+
+- Finding: renderer/main SDK command tests still named their generic
+  `invokeAgentSdkCommand(...)` mocks and helpers as `WindieCommand`, keeping
+  stale product-specific terminology in active test code.
+- Change: renamed the affected test-local mocks and helper functions to
+  `AgentSdkCommand` wording without changing command payloads or IPC channels.
+- Validation: focused renderer runtime-client and selected main IPC Jest suites,
+  `git diff --check`, and stale-helper scan. `IpcMainConversationRuntimeRegistry`
+  still times out in its pre-existing active-send scenario when run in
+  isolation; this slice only renames that test's local command helper.
+- Compatibility: no migration required. Test-only terminology cleanup.

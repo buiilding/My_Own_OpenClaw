@@ -66,7 +66,7 @@ describe('ipc.cjs bridge query handling', () => {
     });
   }
 
-  function invokeWindieCommand(handlers, command, payload = {}, sender = null) {
+  function invokeAgentSdkCommandHandler(handlers, command, payload = {}, sender = null) {
     return handlers['windie:invoke']({ sender }, {
       command,
       payload,
@@ -492,7 +492,7 @@ describe('ipc.cjs bridge query handling', () => {
   test('waits for pending renderer update-settings ack before sending query', async () => {
     const { handlers, ws } = await setupQueryBridge();
 
-    const settingsPromise = invokeWindieCommand(handlers, 'settings.update', { interaction_mode: 'agent' });
+    const settingsPromise = invokeAgentSdkCommandHandler(handlers, 'settings.update', { interaction_mode: 'agent' });
 
     const updateSettingsMessage = await waitForSentMessageType(ws, 'update-settings');
     expect(updateSettingsMessage.type).toBe('update-settings');
@@ -515,7 +515,7 @@ describe('ipc.cjs bridge query handling', () => {
   test('connects before sending renderer update-settings', async () => {
     const bridge = initIpc();
 
-    const settingsPromise = invokeWindieCommand(bridge.handlers, 'settings.update', { interaction_mode: 'agent' });
+    const settingsPromise = invokeAgentSdkCommandHandler(bridge.handlers, 'settings.update', { interaction_mode: 'agent' });
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     expect(ws.sent).toHaveLength(0);

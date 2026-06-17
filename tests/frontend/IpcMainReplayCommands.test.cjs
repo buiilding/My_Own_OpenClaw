@@ -65,7 +65,7 @@ describe('ipc.cjs replay command handling', () => {
     };
   }
 
-  function invokeWindieCommand(handlers, command, payload = {}) {
+  function invokeAgentSdkCommandHandler(handlers, command, payload = {}) {
     return handlers['windie:invoke']({ sender: null }, {
       command,
       payload,
@@ -80,7 +80,7 @@ describe('ipc.cjs replay command handling', () => {
     const sdk = installMockWindieClient();
     const bridge = initIpc();
 
-    const response = await invokeWindieCommand(
+    const response = await invokeAgentSdkCommandHandler(
       bridge.handlers,
       'conversation.prepareEditAndResend',
       {
@@ -147,7 +147,7 @@ describe('ipc.cjs replay command handling', () => {
     const sdk = installMockWindieClient();
     const bridge = initIpc();
 
-    await expect(invokeWindieCommand(
+    await expect(invokeAgentSdkCommandHandler(
       bridge.handlers,
       'conversation.prepareEditAndResend',
       {
@@ -158,7 +158,7 @@ describe('ipc.cjs replay command handling', () => {
       },
     )).resolves.toEqual(expect.objectContaining({ ok: true }));
 
-    const staleResponse = await invokeWindieCommand(
+    const staleResponse = await invokeAgentSdkCommandHandler(
       bridge.handlers,
       'conversation.prepareEditAndResend',
       {
@@ -180,7 +180,7 @@ describe('ipc.cjs replay command handling', () => {
     const sdk = installMockWindieClient();
     const bridge = initIpc();
 
-    const response = await invokeWindieCommand(
+    const response = await invokeAgentSdkCommandHandler(
       bridge.handlers,
       'conversation.prepareRetryTurn',
       {

@@ -9,33 +9,33 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
   invokeAgentSdkCommand: jest.fn(),
 }));
 
-const mockInvokeWindieCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
+const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 describe('DesktopMemoryRuntimeClient', () => {
   beforeEach(() => {
-    mockInvokeWindieCommand.mockReset();
+    mockInvokeAgentSdkCommand.mockReset();
   });
 
   test('lists episodic and semantic memories through SDK-shaped commands', async () => {
-    mockInvokeWindieCommand
+    mockInvokeAgentSdkCommand
       .mockResolvedValueOnce({ memories: [{ id: 'ep-1' }] })
       .mockResolvedValueOnce({ memories: [{ id: 'sem-1' }] });
 
     await expect(DesktopMemoryRuntimeClient.listEpisodicMemories(25)).resolves.toEqual([{ id: 'ep-1' }]);
     await expect(DesktopMemoryRuntimeClient.listSemanticMemories(10)).resolves.toEqual([{ id: 'sem-1' }]);
 
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'memories.list', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(1, 'memories.list', {
       type: 'episodic',
       limit: 25,
     });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'memories.list', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(2, 'memories.list', {
       type: 'semantic',
       limit: 10,
     });
   });
 
   test('maps delete requests by memory kind and rejects failed deletes', async () => {
-    mockInvokeWindieCommand
+    mockInvokeAgentSdkCommand
       .mockResolvedValueOnce({ deleted: true })
       .mockResolvedValueOnce({ deleted: false });
 
@@ -49,26 +49,26 @@ describe('DesktopMemoryRuntimeClient', () => {
       kind: 'episodic',
     })).rejects.toThrow('episodic memory was not deleted');
 
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'memories.delete', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(1, 'memories.delete', {
       type: 'semantic',
       memoryId: 'sem-1',
     });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'memories.delete', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(2, 'memories.delete', {
       type: 'episodic',
       memoryId: 'ep-1',
     });
   });
 
   test('clears memory and chat history through SDK-shaped commands', async () => {
-    mockInvokeWindieCommand
+    mockInvokeAgentSdkCommand
       .mockResolvedValueOnce({ deleted: 3 })
       .mockResolvedValueOnce({ deleted: 4 });
 
     await expect(DesktopMemoryRuntimeClient.clearLocalMemory()).resolves.toEqual({ deleted: 3 });
     await expect(DesktopMemoryRuntimeClient.clearChatHistory('user-1')).resolves.toEqual({ deleted: 4 });
 
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'memories.clearAll', {});
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'conversations.clearAll', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(1, 'memories.clearAll', {});
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(2, 'conversations.clearAll', {
       userId: 'user-1',
     });
   });

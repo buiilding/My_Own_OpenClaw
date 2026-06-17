@@ -9,16 +9,16 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
   invokeAgentSdkCommand: jest.fn(),
 }));
 
-const mockInvokeWindieCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
+const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 describe('desktopAgentRuntimeTransport', () => {
   afterEach(() => {
-    mockInvokeWindieCommand.mockReset();
+    mockInvokeAgentSdkCommand.mockReset();
     jest.restoreAllMocks();
   });
 
   test('rejects sendQuery when main reports a query dispatch failure', async () => {
-    mockInvokeWindieCommand.mockResolvedValue({
+    mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: false,
       error: 'Failed to send query through agent runtime',
     });
@@ -29,7 +29,7 @@ describe('desktopAgentRuntimeTransport', () => {
       text: 'retry this',
       conversation_ref: 'conv-1',
     })).rejects.toThrow('Failed to send query through agent runtime');
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
       text: 'retry this',
       conversation_ref: 'conv-1',
       workspace_path: '/repo',
@@ -37,7 +37,7 @@ describe('desktopAgentRuntimeTransport', () => {
   });
 
   test('resolves sendQuery when main accepts the query dispatch', async () => {
-    mockInvokeWindieCommand.mockResolvedValue({
+    mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,
       messageId: 'msg-1',
     });
@@ -50,16 +50,16 @@ describe('desktopAgentRuntimeTransport', () => {
     }, {
       messageId: 'turn-1',
     })).resolves.toBe('msg-1');
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
       text: 'hello',
       conversation_ref: 'conv-1',
       query_message_id: 'turn-1',
     }));
-    expect(mockInvokeWindieCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
   test('does not map removed camelCase query payload aliases', async () => {
-    mockInvokeWindieCommand.mockResolvedValue({
+    mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,
       messageId: 'msg-1',
     });
@@ -77,7 +77,7 @@ describe('desktopAgentRuntimeTransport', () => {
       attachmentFilenames: ['shot.png'],
       workspacePath: '/repo',
     })).resolves.toBe('msg-1');
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
       text: 'hello',
       conversation_ref: '',
       screenshot_ref: null,
@@ -90,7 +90,7 @@ describe('desktopAgentRuntimeTransport', () => {
   });
 
   test('routes runtime commands through SDK-shaped command invoke', async () => {
-    mockInvokeWindieCommand.mockResolvedValue({});
+    mockInvokeAgentSdkCommand.mockResolvedValue({});
     const transport = createDesktopAgentRuntimeTransport('/repo');
 
     await transport.rehydrateConversation({
@@ -109,24 +109,24 @@ describe('desktopAgentRuntimeTransport', () => {
       turn_ref: 'turn-stop',
     });
 
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversation.rehydrate', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(1, 'conversation.rehydrate', {
       conversation_ref: 'conv-r',
       messages: [{ role: 'user', content: 'hello' }],
       rehydrate_mode: 'replace',
       workspace_path: '/repo',
     });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'conversation.compact', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(2, 'conversation.compact', {
       force: false,
       conversation_ref: 'conv-c',
     });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(3, 'wakeword.detected', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(3, 'wakeword.detected', {
       turn_ref: 'turn-wake',
     });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(4, 'settings.update', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(4, 'settings.update', {
       model: 'model-1',
     });
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(5, 'models.list');
-    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(6, 'conversation.stop', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(5, 'models.list');
+    expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(6, 'conversation.stop', {
       conversation_ref: 'conv-stop',
       turn_ref: 'turn-stop',
     });

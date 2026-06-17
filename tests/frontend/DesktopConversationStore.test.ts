@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Covers desktop conversation store. behavior in the frontend test suite.
  */
 
@@ -15,7 +15,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
   invokeAgentSdkCommand: jest.fn(),
 }));
 
-const mockInvokeWindieCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
+const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 const defaultRevision = {
   conversationRef: 'conv-1',
@@ -25,8 +25,8 @@ const defaultRevision = {
 
 describe('desktop conversation store factory', () => {
   beforeEach(() => {
-    mockInvokeWindieCommand.mockReset();
-    mockInvokeWindieCommand.mockImplementation(async (command, payload) => {
+    mockInvokeAgentSdkCommand.mockReset();
+    mockInvokeAgentSdkCommand.mockImplementation(async (command, payload) => {
       if (command === 'conversation.getRevision') {
         return {
           ...defaultRevision,
@@ -70,7 +70,7 @@ describe('desktop conversation store factory', () => {
 
     await store.appendEvent(event);
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.appendEvent', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.appendEvent', {
       userId: 'user-1',
       conversationRef: 'conv-1',
       event,
@@ -87,14 +87,14 @@ describe('desktop conversation store factory', () => {
       timestamp: '2026-05-15T12:00:00.000Z',
       payload: { text: 'from sdk event' },
     });
-    mockInvokeWindieCommand.mockResolvedValueOnce({
+    mockInvokeAgentSdkCommand.mockResolvedValueOnce({
       state: { events: [event] },
     } as never);
 
     const events = await store.loadEvents('conv-1');
 
     expect(events).toEqual([event]);
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.load', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.load', {
       userId: 'user-1',
       conversationRef: 'conv-1',
     });
@@ -127,7 +127,7 @@ describe('desktop conversation store factory', () => {
       turnRef: 'turn-1',
       payload: { text: 'hello' },
     });
-    mockInvokeWindieCommand.mockResolvedValueOnce({
+    mockInvokeAgentSdkCommand.mockResolvedValueOnce({
       state: { events: [visibleEvent, traceEvent] },
     } as never);
 
@@ -144,7 +144,7 @@ describe('desktop conversation store factory', () => {
         status: 'succeeded',
       }),
     ]);
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.load', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.load', {
       userId: 'user-1',
       conversationRef: 'conv-1',
     });
@@ -172,7 +172,7 @@ describe('desktop conversation store factory', () => {
 
     await store.replaceCompactedReplay(snapshot);
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.replaceCompactedReplay', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.replaceCompactedReplay', {
       userId: 'user-1',
       conversationRef: 'conv-compact',
       snapshot,
@@ -201,7 +201,7 @@ describe('desktop conversation store factory', () => {
 
     await store.rewriteConversation(plan);
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.rewrite', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.rewrite', {
       userId: 'user-1',
       conversationRef: 'conv-edit',
       plan,
@@ -213,7 +213,7 @@ describe('desktop conversation store factory', () => {
 
     await store.deleteConversation('conv-delete');
 
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.delete', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversations.delete', {
       userId: 'user-1',
       conversationRef: 'conv-delete',
     });
@@ -235,10 +235,10 @@ describe('desktop conversation store factory', () => {
         matchedRole: null,
       },
     ];
-    mockInvokeWindieCommand.mockResolvedValueOnce(metadata as never);
+    mockInvokeAgentSdkCommand.mockResolvedValueOnce(metadata as never);
 
     await expect(store.listMetadata({ limit: 25 })).resolves.toEqual(metadata);
-    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.list', {
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversations.list', {
       userId: 'user-1',
       limit: 25,
     });

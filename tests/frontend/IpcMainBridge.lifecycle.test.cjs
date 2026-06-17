@@ -29,7 +29,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     return ws;
   }
 
-  function invokeWindieCommand(handlers, command, payload = {}, sender = null) {
+  function invokeAgentSdkCommandHandler(handlers, command, payload = {}, sender = null) {
     return handlers['windie:invoke']({ sender }, {
       command,
       payload,
@@ -37,7 +37,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   }
 
   function sendQuery(handlers, payload = {}, sender = null) {
-    return invokeWindieCommand(handlers, 'conversation.send', payload, sender);
+    return invokeAgentSdkCommandHandler(handlers, 'conversation.send', payload, sender);
   }
 
   afterEach(() => {
@@ -46,7 +46,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
     const pending = Promise.resolve(
-      invokeWindieCommand(bridge.handlers, 'models.list', message),
+      invokeAgentSdkCommandHandler(bridge.handlers, 'models.list', message),
     ).catch((error) => error);
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
@@ -159,7 +159,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('connects before sending models.list through the SDK runtime', async () => {
     const bridge = initIpc();
 
-    const pendingRequest = invokeWindieCommand(bridge.handlers, 'models.list', { type: 'list-models' });
+    const pendingRequest = invokeAgentSdkCommandHandler(bridge.handlers, 'models.list', { type: 'list-models' });
     const pendingSocket = await waitForSocket(() => bridge.getWs());
     expect(pendingSocket.sent).toHaveLength(0);
 
@@ -487,7 +487,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('sends conversation.stop through the SDK runtime', async () => {
     const { handlers, ws } = await setupOpenedIpc();
 
-    const result = await invokeWindieCommand(handlers, 'conversation.stop', {
+    const result = await invokeAgentSdkCommandHandler(handlers, 'conversation.stop', {
       conversation_ref: 'conv-typed-stop',
       turn_ref: 'turn-typed-stop',
     });

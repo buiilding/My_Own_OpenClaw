@@ -112,7 +112,7 @@ describe('ipc.cjs conversation runtime registry', () => {
     };
   }
 
-  function invokeWindieCommand(handlers, command, payload = {}, sender = null) {
+  function invokeAgentSdkCommandHandler(handlers, command, payload = {}, sender = null) {
     return handlers['windie:invoke']({ sender }, {
       command,
       payload,
@@ -128,11 +128,11 @@ describe('ipc.cjs conversation runtime registry', () => {
     const bridge = initIpc();
     primeQueryContext(bridge.backendBridge);
 
-    await invokeWindieCommand(bridge.handlers, 'conversation.send', {
+    await invokeAgentSdkCommandHandler(bridge.handlers, 'conversation.send', {
       text: 'first chat',
       conversation_ref: 'conv-a',
     });
-    await invokeWindieCommand(bridge.handlers, 'conversation.send', {
+    await invokeAgentSdkCommandHandler(bridge.handlers, 'conversation.send', {
       text: 'second chat',
       conversation_ref: 'conv-b',
     });
@@ -188,7 +188,7 @@ describe('ipc.cjs conversation runtime registry', () => {
     const bridge = initIpc();
     primeQueryContext(bridge.backendBridge);
 
-    const firstSend = invokeWindieCommand(bridge.handlers, 'conversation.send', {
+    const firstSend = invokeAgentSdkCommandHandler(bridge.handlers, 'conversation.send', {
       text: 'first chat',
       conversation_ref: 'conv-active',
     });
@@ -197,7 +197,7 @@ describe('ipc.cjs conversation runtime registry', () => {
       await Promise.resolve();
     }
 
-    const secondSend = await invokeWindieCommand(bridge.handlers, 'conversation.send', {
+    const secondSend = await invokeAgentSdkCommandHandler(bridge.handlers, 'conversation.send', {
       text: 'overlap chat',
       conversation_ref: 'conv-active',
     });
