@@ -8,11 +8,7 @@ import {
 } from '../../../../infrastructure/transcript/toolCallMessageState';
 import { buildToolCallChatMessageState } from '../../../../infrastructure/transcript/toolCallChatMessageState';
 import { buildToolOutputEnvelopeMessage } from '../toolOutputMessages';
-import {
-  buildScreenshotAttachment,
-  resolveToolCallCorrelationId,
-  resolveToolOutputCorrelationId,
-} from '../chatStream/chatStreamEventUtils';
+import { buildScreenshotAttachment } from '../chatStream/chatStreamEventUtils';
 import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../message/sourceChannels';
 
 function asObject(value) {
@@ -41,16 +37,20 @@ function buildProjectedToolCallMessage({
   const toolCallDetails = structuredPayload || payload;
   const metadata = asObject(toolCallDetails.metadata);
   const args = asObject(payload.args) || asObject(payload.parameters) || asObject(toolCallDetails.parameters);
-  const toolName = readString(payload.toolName) || readString(payload.tool_name) || toolEvent.toolName || '';
-  const requestId = readString(payload.requestId) || readString(payload.request_id);
+  const toolName = readString(toolEvent.toolName) || readString(payload.toolName) || '';
+  const requestId = readString(toolEvent.requestId) || readString(payload.requestId);
   const correlationId = (
-    readString(payload.correlationId)
-    || readString(payload.correlation_id)
-    || resolveToolCallCorrelationId(toolCallDetails)
+    readString(toolEvent.correlationId)
+    || readString(payload.correlationId)
   );
 
-  if (toolName === 'tool_bundle' || readArray(toolCallDetails.tools)) {
-    const bundleState = buildToolBundleMessageState(toolCallDetails);
+  if (toolName === 'tool_bundle' || readArray(payload.tools) || readArray(toolCallDetails.tools)) {
+    const bundlePayload = {
+      ...toolCallDetails,
+      ...payload,
+      tools: readArray(payload.tools) || toolCallDetails.tools,
+    };
+    const bundleState = buildToolBundleMessageState(bundlePayload);
     return buildToolCallChatMessageState({
       id: `${baseId}:tool:${toolEvent.id}`,
       text: bundleState.text,
@@ -132,11 +132,10 @@ function buildProjectedToolOutputMessage({
   const screenshot = readString(payload.screenshot) || readString(toolOutputDetails.screenshot);
   const screenshotRefValue = readString(payload.screenshotRef) || readString(toolOutputDetails.screenshot_ref);
   const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(screenshotRefValue);
-  const requestId = readString(payload.requestId) || readString(toolOutputDetails.request_id);
+  const requestId = readString(toolEvent.requestId) || readString(payload.requestId);
   const correlationId = (
-    readString(payload.correlationId)
-    || readString(payload.correlation_id)
-    || resolveToolOutputCorrelationId(toolOutputDetails, toolEvent.id)
+    readString(toolEvent.correlationId)
+    || readString(payload.correlationId)
     || requestId
     || undefined
   );
@@ -149,7 +148,7 @@ function buildProjectedToolOutputMessage({
       screenshotRef,
       screenshotUrl,
       toolMetadata: asObject(toolOutputDetails.metadata),
-      toolName: toolEvent.toolName || readString(payload.toolName) || readString(toolOutputDetails.tool_name),
+      toolName: readString(toolEvent.toolName) || readString(payload.toolName),
       executionTime: typeof toolOutputDetails.execution_time === 'number' ? toolOutputDetails.execution_time : null,
       success: typeof toolOutputDetails.success === 'boolean' ? toolOutputDetails.success : null,
       correlationId,

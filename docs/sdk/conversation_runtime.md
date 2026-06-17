@@ -628,6 +628,8 @@ Current-turn live presentation entries mirror the same SDK-shaped identity
 fields (`toolName`, `requestId`, `correlationId`, and `bundleId`) so renderer
 UI code can render live tool rows without re-reading backend-wire aliases from
 `structuredPayload`.
+The underlying `currentTurn.toolEvents` projection exposes those identity fields
+for hosts that still render directly from tool events.
 Claimed SDK-shaped events execute the local runtime, send the result back
 through the transport, and append the corresponding normalized output event
 through the same store/projection path.

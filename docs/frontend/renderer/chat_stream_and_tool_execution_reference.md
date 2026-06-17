@@ -282,6 +282,10 @@ SDK dispatch behavior:
     builders consume those fields and camelCase payload fields, leaving
     `structuredPayload` for detailed backend metadata instead of re-reading raw
     backend identity aliases.
+  - response overlay fallback rows built from `currentTurnProjection.toolEvents`
+    follow the same rule: `toolName`, `requestId`, and `correlationId` come from
+    SDK tool-event fields or camelCase payload fields, while backend
+    `structuredPayload` remains detail-only.
   - SDK rehydrate groups progress-only OpenAI native search rows into one
     synthetic Windie `web_search` tool-call/tool-output pair for later model
     history.

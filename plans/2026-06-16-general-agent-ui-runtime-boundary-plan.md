@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 chat response tool-event identity boundary
+
+- Finding: `ChatBoxResponse` fallback current-turn state still decoded tool
+  names, request ids, and correlation ids from backend snake_case payload
+  aliases while rendering SDK `currentTurn.toolEvents`.
+- Change: made the fallback row builder consume SDK tool-event identity fields
+  and camelCase payload fields only, preserving backend `structuredPayload` for
+  output text, screenshots, and detailed metadata.
+- Validation: focused ChatBoxResponse state coverage, docs listing, source
+  scans, and `git diff --check`.
+- Compatibility: no migration required. Backend wire payloads and transcript
+  storage are unchanged; this only tightens a renderer live-state fallback.
+
 ### 2026-06-17 live presentation tool identity boundary
 
 - Finding: renderer live-turn presentation still recovered tool identity from

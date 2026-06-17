@@ -21,6 +21,7 @@ import {
   setChatState,
   useChatStore,
 } from './ChatBoxResponse.testUtils';
+import { buildCurrentTurnMessagesFromProjection } from '../../frontend/src/renderer/features/chat/utils/state/chatBoxResponseState';
 
 describe('ChatBoxResponse state behavior', () => {
   beforeEach(() => {
@@ -204,6 +205,47 @@ describe('ChatBoxResponse state behavior', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
+  });
+
+  test('buildCurrentTurnMessagesFromProjection uses SDK tool-event identity fields', () => {
+    const messages = buildCurrentTurnMessagesFromProjection({
+      conversationRef: 'conv-test',
+      turnRef: 'turn-live',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+        requestId: 'req-read',
+        correlationId: 'corr-read',
+        payload: {
+          toolName: 'read_file',
+          requestId: 'req-read',
+          correlationId: 'corr-read',
+          args: { path: 'README.md' },
+          structuredPayload: {
+            tool_name: 'wrong_backend_tool',
+            request_id: 'wrong-request',
+            correlation_id: 'wrong-correlation',
+            parameters: { path: 'wrong.md' },
+          },
+        },
+      }],
+    });
+
+    const toolMessage = messages.find(message => message.type === 'tool-call');
+    expect(toolMessage).toEqual(expect.objectContaining({
+      correlationId: 'corr-read',
+      modelFacingToolCall: expect.objectContaining({
+        id: 'req-read',
+        name: 'read_file',
+      }),
+    }));
+    expect(toolMessage.text).toContain('"name": "read_file"');
+    expect(toolMessage.text).not.toContain('wrong_backend_tool');
   });
 
   test('logs when the awaiting typing indicator is actually rendered and removed', async () => {
