@@ -40,7 +40,6 @@ backend/src/core/
 │   └── converters.py                  # content_to_message_content() - converts between LLM and internal message formats
 │
 ├── types/                             # Type definitions for type safety
-│   ├── __init__.py                    # Re-exports all types
 │   ├── enums.py                       # Enum classes: MessageRole, MessageType, StreamingEventType, ContentType, MouseAction, etc.
 │   └── schemas.py                     # TypedDict schemas: LLMMessage, MultimodalContent, ToolResultDict, MemoryItem, etc.
 │

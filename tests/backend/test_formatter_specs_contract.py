@@ -1,7 +1,7 @@
 """Covers formatter specs contract behavior in the backend test suite."""
 
 from backend.src.api.contracts.formatter_specs import get_formatter_specs
-from backend.src.core.types import StreamingEventType
+from backend.src.core.types.enums import StreamingEventType
 
 
 def test_get_formatter_specs_returns_cached_tuple():

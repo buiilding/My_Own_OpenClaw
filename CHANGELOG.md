@@ -98,6 +98,8 @@ All notable changes to WindieOS will be documented in this file.
   types are imported from concrete SDK modules.
 - backend/core: remove the unused core security package export so policy
   and executor primitives are imported from concrete security modules.
+- backend/core: remove the unused core types package export so enums and
+  typed schemas are imported from concrete type modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import TypeAlias
 
-from backend.src.core.types import StreamingEventType
+from backend.src.core.types.enums import StreamingEventType
 
 FormatterSpec: TypeAlias = tuple[type, str, type]
 

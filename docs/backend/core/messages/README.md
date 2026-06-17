@@ -24,6 +24,7 @@ title: "Backend Core Messages Docs Hub"
 
 - `backend/src/core/messages/structures.py`
 - `backend/src/core/messages/converters.py`
-- `backend/src/core/types/__init__.py`
+- `backend/src/core/types/enums.py`
+- `backend/src/core/types/schemas.py`
 - `tests/backend/test_messages_and_converters.py`
 - `tests/backend/test_interaction_loop.py`

@@ -70,6 +70,9 @@ docstring or compatibility path.
   services from concrete modules such as
   `backend.src.core.services.context_factory` or
   `backend.src.core.services.speech_service`.
+- `backend/src/core/types/__init__.py` is intentionally absent; import core
+  enums and typed schemas from `backend.src.core.types.enums` and
+  `backend.src.core.types.schemas`.
 - `backend/src/core/validation/__init__.py` is intentionally absent; import
   validation helpers from `backend.src.core.validation.validators` or
   `backend.src.core.validation.settings_update_rules`.
