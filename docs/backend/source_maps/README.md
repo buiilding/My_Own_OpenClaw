@@ -1,8 +1,8 @@
 ---
-summary: "Backend source-maps docs sub-hub for in-repo folder topology references and package `__init__` export-surface contracts across agent/api/core/llm/services modules."
+summary: "Backend source-maps docs sub-hub for in-repo folder topology references and namespace-package import-boundary contracts across agent/api/core/llm/services modules."
 read_when:
   - When reorganizing backend package layout or import boundaries.
-  - When changing `backend/src/**/__init__.py` exports or maintaining backward-compatible import surfaces.
+  - When changing backend package layout, namespace-package boundaries, or concrete owner-module import paths.
 title: "Backend Source Maps Docs Hub"
 ---
 
@@ -23,4 +23,4 @@ title: "Backend Source Maps Docs Hub"
 
 - `backend/src/api/folder_structure.md`
 - `backend/src/core/folder_structure.md`
-- `backend/src/**/__init__.py`
+- backend namespace-package directories and concrete owner modules

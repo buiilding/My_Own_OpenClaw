@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: describe backend source-map package guidance as namespace-package owner-module boundaries now that compatibility export facades are gone.
+
 - backend/core: remove the final core config package export so config callers import models, managers, loaders, runtime policy, and defaults from owner modules.
 
 - Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.

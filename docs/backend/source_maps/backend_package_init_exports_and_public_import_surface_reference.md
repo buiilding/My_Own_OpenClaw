@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for backend package entrypoint exports: behavior and compatibility expectations for remaining curated `backend/src/**/__init__.py` re-export surfaces."
+summary: "Deep reference for backend namespace-package boundaries and the no package-level compatibility facade rule for `backend/src/**` modules."
 read_when:
-  - When adding/removing symbols from backend package `__init__.py` files.
+  - When adding/removing backend package marker files or changing concrete owner-module import paths.
   - When debugging import-path breakages after backend refactors or package moves.
 title: "Backend Package `__init__` Exports and Public Import Surface Reference"
 ---
