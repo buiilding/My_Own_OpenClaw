@@ -6,8 +6,6 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- main: Use local-runtime bridge naming through main-window bootstrap wiring.
-
 - main: Route app lifecycle shutdown through a local-runtime dependency name.
 
 - docs: Route docs-search results through normalized runtime-owner paths on Windows.
@@ -123,6 +121,8 @@ All notable changes to WindieOS will be documented in this file.
   handlers are imported from concrete handler modules.
 - backend/core: remove the unused core infrastructure package export so
   bus, cache, and exception primitives are imported from concrete modules.
+- backend/core: remove the unused core container package export so the
+  runtime container facade is imported from its owner module.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
@@ -1555,8 +1555,6 @@ All notable changes to WindieOS will be documented in this file.
   empty-stream abort.
 
 ### Changed
-
-- main: Use local-runtime bridge naming through main-window bootstrap wiring.
 
 - main: Route app lifecycle shutdown through a local-runtime dependency name.
 
@@ -3030,8 +3028,6 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- main: Use local-runtime bridge naming through main-window bootstrap wiring.
-
 - main: Route app lifecycle shutdown through a local-runtime dependency name.
 
 - docs: Route docs-search results through normalized runtime-owner paths on Windows.
@@ -3158,8 +3154,6 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
-
-- main: Use local-runtime bridge naming through main-window bootstrap wiring.
 
 - main: Route app lifecycle shutdown through a local-runtime dependency name.
 
@@ -3317,8 +3311,6 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
-
-- main: Use local-runtime bridge naming through main-window bootstrap wiring.
 
 - main: Route app lifecycle shutdown through a local-runtime dependency name.
 
@@ -5432,8 +5424,6 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
-
-- main: Use local-runtime bridge naming through main-window bootstrap wiring.
 
 - main: Route app lifecycle shutdown through a local-runtime dependency name.
 

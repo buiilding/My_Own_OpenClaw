@@ -12,7 +12,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket
 
 from backend.src.agent.session.manager import SessionManager
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
-from backend.src.core.container import Container
+from backend.src.core.container.facade import Container
 
 logger = logging.getLogger(__name__)
 

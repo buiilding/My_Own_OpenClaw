@@ -14,7 +14,6 @@ namespace packages are used for package directories whose callers import
 concrete modules directly.
 
 - `backend/src/core/config/__init__.py`
-- `backend/src/core/container/__init__.py`
 - `backend/src/core/events/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
 
@@ -126,6 +125,9 @@ docstring or compatibility path.
   `backend.src.core.infrastructure.bus`,
   `backend.src.core.infrastructure.cache`, and
   `backend.src.core.infrastructure.error_types`.
+- `backend/src/core/container/__init__.py` is intentionally absent; import the
+  runtime `Container` from `backend.src.core.container.facade` and concrete DI
+  containers from their owner modules under `backend.src.core.container`.
 - `backend/src/api/processing/tts/__init__.py` is intentionally absent; import
   TTS manager and processor types from
   `backend.src.api.processing.tts.manager` and

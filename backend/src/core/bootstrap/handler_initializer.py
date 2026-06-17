@@ -6,7 +6,7 @@ Handles WebSocket message handler initialization.
 import logging
 from typing import Optional
 
-from backend.src.core.container import Container
+from backend.src.core.container.facade import Container
 
 logger = logging.getLogger(__name__)
 

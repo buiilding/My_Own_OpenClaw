@@ -56,7 +56,6 @@ backend/src/core/
 │   └── subscriptions.py               # ConfigSubscriptionManager - manages subscribers to config change events
 │
 ├── container/                         # Dependency injection container system
-│   ├── __init__.py                    # Re-exports ApplicationContainer and Container
 │   ├── application.py                 # ApplicationContainer - main DI container composing CoreContainer, ToolContainer, MemoryContainer
 │   ├── facade.py                      # Container - runtime facade around ApplicationContainer
 │   ├── core_container.py              # CoreContainer - provides config, LLM client, TTS, vision/OCR services, event bus

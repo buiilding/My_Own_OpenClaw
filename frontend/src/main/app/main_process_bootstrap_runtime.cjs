@@ -31,7 +31,7 @@ function createWindowBootstrapRuntime(deps) {
       initializeWakewordBridge: deps.initializeWakewordBridge,
       showChatWindow: deps.showChatWindow,
       emitWakewordSttTrigger: deps.emitWakewordSttTrigger,
-      initializeLocalRuntimeBridge: deps.initializeLocalRuntimeBridge,
+      initializeLocalBackendBridge: deps.initializeLocalBackendBridge,
       getKnownLocalRuntime: deps.getKnownLocalRuntime,
       ensureLocalRuntime: deps.ensureLocalRuntime,
       permissionStatePath: typeof deps.getPermissionStatePath === 'function'

@@ -276,7 +276,7 @@ const {
   initializeIpc,
   setAgentLoopStopShortcutEnabled: agentStopShortcutRuntime.setEnabled,
   initializeWakewordBridge,
-  initializeLocalRuntimeBridge: initializeLocalBackendBridge,
+  initializeLocalBackendBridge,
   getKnownLocalRuntime: getKnownAgentLocalRuntime,
   ensureLocalRuntime: ensureAgentLocalRuntime,
   getPermissionStatePath,
