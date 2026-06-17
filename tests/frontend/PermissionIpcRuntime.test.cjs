@@ -194,6 +194,53 @@ describe('permission_ipc_runtime', () => {
     }));
   });
 
+  test('ignores removed snake_case permission trace context aliases', async () => {
+    const traceEvents = [];
+    const appDiagnostics = [];
+    const permissionStateStore = {
+      get: jest.fn(async () => null),
+      set: jest.fn(async (_permissionId, entry) => entry),
+      delete: jest.fn(async () => true),
+    };
+    const { invokeHandlers } = createRuntime({
+      permissionStateStore,
+      emitTraceEvent: jest.fn(async (event) => {
+        traceEvents.push(event);
+      }),
+      emitAppDiagnosticEvent: jest.fn(async (event) => {
+        appDiagnostics.push(event);
+      }),
+    });
+
+    const result = await invokeHandlers['run-permission-probe'](null, {
+      permissionId: 'filesystem_workspace_access',
+      conversation_ref: 'conv-snake',
+      turn_ref: 'turn-snake',
+      _trace: {
+        conversation_ref: 'conv-nested-snake',
+        turn_ref: 'turn-nested-snake',
+      },
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'filesystem_workspace_access',
+          status: 'needs-action',
+          granted: false,
+        }),
+      },
+    });
+    expect(traceEvents).toHaveLength(0);
+    expect(appDiagnostics.map((event) => `${event.stage}:${event.status}`)).toEqual([
+      'probe:started',
+      'probe:succeeded',
+    ]);
+    expect(JSON.stringify(appDiagnostics)).not.toContain('conv-snake');
+    expect(JSON.stringify(appDiagnostics)).not.toContain('turn-snake');
+  });
+
   test('passes browser warmup dependency through request-permission runtime wiring', async () => {
     const warmBrowserAutomationPermission = jest.fn(async () => ({
       success: true,

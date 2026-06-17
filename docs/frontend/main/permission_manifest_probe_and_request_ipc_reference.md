@@ -170,6 +170,13 @@ Response wrapper contract:
 - always `{ success: true, data: ... }` for handler-level success
 - per-permission probe/request failures represented inside status payload (`status: error`), not as handler throw
 
+Permission probe/request trace context is an Electron-main helper input, not a
+backend wire payload. Conversation-scoped permission traces read only
+`conversationRef` and `turnRef` from the top-level options object or nested
+`_trace` object. Removed snake_case helper aliases such as `conversation_ref`
+and `turn_ref` are ignored, so callers using those fields fall back to app
+diagnostics instead of conversation trace rows.
+
 ## Preload/Channel Boundary
 
 Permission invoke channels must remain aligned across:

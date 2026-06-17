@@ -84,15 +84,11 @@ function initializePermissionHandlersRuntime(deps = {}) {
     return {
       conversationRef: normalizeTraceString(
         options?.conversationRef
-          || options?.conversation_ref
-          || nestedTrace.conversationRef
-          || nestedTrace.conversation_ref,
+          || nestedTrace.conversationRef,
       ),
       turnRef: normalizeTraceString(
         options?.turnRef
-          || options?.turn_ref
-          || nestedTrace.turnRef
-          || nestedTrace.turn_ref,
+          || nestedTrace.turnRef,
       ),
     };
   };

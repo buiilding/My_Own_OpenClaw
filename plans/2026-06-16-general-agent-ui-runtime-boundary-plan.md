@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 permission trace context alias removal
+
+- Finding: Electron main permission IPC trace routing still accepted
+  snake_case helper fields such as `conversation_ref` and `turn_ref`, even
+  though permission trace context is an internal host helper object.
+- Change: made permission trace context read only canonical `conversationRef`
+  and `turnRef` from top-level options or nested `_trace`, and documented that
+  snake_case helper aliases now fall back to app diagnostics instead of
+  conversation traces.
+- Validation: focused PermissionIpcRuntime Jest coverage, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Backend/query payload fields are
+  unchanged; this only removes internal permission helper input aliases.
+
 ### 2026-06-17 app diagnostics input alias removal
 
 - Finding: Electron main app diagnostics helpers still accepted snake_case

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: remove snake_case permission trace-context helper aliases so permission probes use `conversationRef` and `turnRef` for conversation trace routing; snake_case-only helper inputs now fall back to app diagnostics. No migration is required because backend/query payload fields are unchanged.
+
 - frontend/main: remove snake_case app diagnostics helper input aliases so Electron main diagnostics helpers and surface visibility callers use canonical camelCase fields; SQLite diagnostic columns remain unchanged. No migration is required because persisted diagnostic rows keep the same schema.
 
 - frontend/main: keep renderer rehydrate and compact runtime commands on canonical backend-transport `conversation_ref` while SDK library commands continue to require `conversationRef`; removed camelCase transport aliases now fail fast. No migration is required for first-party callers.
