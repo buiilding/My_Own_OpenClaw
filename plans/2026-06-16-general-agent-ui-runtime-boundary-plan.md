@@ -1260,3 +1260,19 @@ Each completed slice should report:
 - Compatibility: no persisted data migration required. Existing dedicated
   Chrome profile paths remain unchanged; an already-running legacy Browser Use
   session can still be selected with `WINDIE_BROWSER_USE_SESSION=windieos`.
+
+### 2026-06-17 sidecar browser file root default
+
+- Finding: browser-owned file actions still defaulted to `~/.windieos/browser`
+  inside the sidecar browser file store, even though the helper is generic
+  local executor storage rather than product skin or hosted backend policy.
+- Change: changed the default browser file root to `~/.desktop-agent/browser`,
+  added focused sidecar coverage for the generic default, and documented
+  `WINDIE_BROWSER_FILES_DIR=~/.windieos/browser` for callers that intentionally
+  want to reuse files written under the legacy root.
+- Validation: focused browser file-store tests, docs listing,
+  `git diff --check`, and source scans for the retired default root.
+- Compatibility: no automatic migration. Browser-owned file paths are local
+  sidecar scratch/artifact paths and the existing environment override can
+  select the legacy root when needed; absolute-path and parent-escape
+  protections are unchanged.
