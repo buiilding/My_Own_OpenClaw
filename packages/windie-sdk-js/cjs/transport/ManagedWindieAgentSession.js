@@ -16,7 +16,7 @@ function resolveEndpointWsUrl(endpoint) {
     }
     const backendUrl = endpoint.backendUrl ?? endpoint.httpBaseUrl;
     if (!backendUrl) {
-        throw new Error('Managed Windie agent endpoint requires backendUrl or wsUrl');
+        throw new Error('Managed agent endpoint requires backendUrl or wsUrl');
     }
     return (0, WindieAgentSession_js_1.deriveWsUrl)(backendUrl);
 }

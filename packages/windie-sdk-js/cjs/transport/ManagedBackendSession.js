@@ -193,7 +193,12 @@ class ManagedBackendSession {
             };
             this.connectWaiters.add(waiter);
         });
-        this.connect({ force: true });
+        try {
+            this.connect({ force: true });
+        }
+        catch (error) {
+            this.rejectConnectWaiters(error);
+        }
         await waitPromise;
         this.syncIdleTimer(`connected:${reason}`);
         return true;

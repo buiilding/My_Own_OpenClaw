@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
   preserving public Windie SDK API names.
 - sdk/js: rename private transport listener helper types and session failure
   diagnostics to generic agent-session wording while preserving public exports.
+- sdk/js: reject managed endpoint configuration failures immediately without
+  leaving connection waiters alive, and use generic managed-agent endpoint
+  wording.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

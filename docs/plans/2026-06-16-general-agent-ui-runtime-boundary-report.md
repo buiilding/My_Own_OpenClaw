@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `83412b277` (`refactor(renderer): remove no-op tool stream handler`)
+- Latest inspected plan checkpoint: `c9a636cb1` (`refactor(sdk): genericize private transport listener names`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -22,7 +22,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer markdown cleanup no longer depends on provider identity, and the
   obsolete renderer no-op tool-stream shim has been removed. SDK private
   transport listener helpers and session failure diagnostics use generic
-  agent-session wording while public Windie transport exports remain stable.
+  agent-session wording while public Windie transport exports remain stable,
+  and managed endpoint configuration failures reject connection waiters
+  immediately with generic endpoint wording.
 
 ## Inspection Log
 
@@ -291,6 +293,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: `WindieAgentSession.ts` and `ManagedWindieAgentSession.ts` now use `AgentSessionEventMap`, `AgentSessionEventName`, and `AgentSessionListener` for private listener plumbing.
 - Change: checked-in CJS output now reports generic Agent SDK session failures for pre-handshake close and managed send failures.
 
+### 2026-06-16 SDK Managed Endpoint Validation Slice
+
+- Worktree recovery: after the SDK private transport naming commit, recent commits and remaining unrelated schema/docs/package worktree edits were inspected and preserved outside this SDK slice.
+- Finding: the managed session endpoint validation diagnostic still said "Managed Windie agent endpoint", and the invalid endpoint path left a managed-backend connection waiter timeout alive after synchronous socket creation failure.
+- Decision: keep public managed Windie session exports unchanged, make the endpoint diagnostic generic, and let the SDK managed-backend runtime reject connection waiters immediately when socket creation fails.
+- Change: managed endpoint validation now reports "Managed agent endpoint requires backendUrl or wsUrl".
+- Change: `ManagedBackendSession.ensureConnected(...)` now clears/rejects waiters when `connect({ force: true })` throws before a socket exists.
+- Change: the websocket contract test covers the invalid endpoint path and asserts the generic diagnostic without leaking an open connection waiter.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -322,6 +333,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Main IPC SDK customer internals use generic agent/client names while preserving public SDK APIs and wire contracts.
 - [x] SDK runtime diagnostics and local-runtime failures use generic Agent SDK wording while preserving public Windie API names.
 - [x] SDK private transport listener helpers use generic agent-session naming while preserving public exports.
+- [x] SDK managed endpoint validation rejects immediately with generic wording.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -408,6 +420,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkPackageBoundary.test.ts -t "createWindieAgentSession|managed backend|package boundary|WebSocket"` passed.
 - `rg -n "type WindieAgentEvent|WindieAgentListener|WindieAgentEventMap|Windie agent session|Windie managed agent session" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found no matches.
 - `git diff --check` passed.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/FrontendBackendWebsocketContract.test.cjs -t "managed agent session endpoint validation uses generic agent wording" --runInBand --detectOpenHandles` passed.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkManagedBackendSession.test.ts --runInBand` passed.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/FrontendBackendWebsocketContract.test.cjs --runInBand` was attempted and timed out with no output; the focused endpoint assertion and managed-backend session suite pass.
+- `rg -n "Managed Windie agent endpoint requires|Managed agent endpoint requires|Windie agent endpoint|Timed out connecting to backend for agent-session" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found only the new generic endpoint diagnostic and its focused assertion.
 
 ## Remaining Findings
 
@@ -456,3 +472,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `WindieClient`/`WindieAgent` API names remain unchanged.
 - SDK transport listener plumbing uses generic private agent-session type names.
   Exported Windie SDK transport names remain unchanged.
+- SDK managed endpoint validation now uses generic endpoint wording and rejects
+  invalid endpoint configuration without leaving connection waiters alive.

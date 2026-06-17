@@ -211,6 +211,20 @@ function extractSdkBackendPayloadKeysByType() {
 }
 
 describe('frontend/backend websocket incoming contract', () => {
+  test('managed agent session endpoint validation uses generic agent wording', async () => {
+    const session = createManagedWindieAgentSession({
+      endpoints: [{}],
+      WebSocketImpl: FakeSocket,
+      userId: 'user-1',
+    });
+
+    try {
+      await expect(session.waitForOpen()).rejects.toThrow('Managed agent endpoint requires backendUrl or wsUrl');
+    } finally {
+      session.close('test-cleanup');
+    }
+  });
+
   test('backend-owned fixture covers every frontend command family sent over websocket', () => {
     expect(Object.keys(incomingContract.payloads)).toEqual([
       'query',
