@@ -6,15 +6,15 @@ const path = require('path');
 
 const {
   createDesktopLocalRuntimeLaunchPlan,
-  createDesktopAutoSidecarLaunchPlan,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
+const launchOptionsModule = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
 const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('sdk local runtime launch options', () => {
-  test('keeps the legacy auto-sidecar export as a local runtime launch alias', () => {
-    expect(createDesktopAutoSidecarLaunchPlan).toBe(createDesktopLocalRuntimeLaunchPlan);
+  test('removes the legacy auto-sidecar launch plan export', () => {
+    expect(launchOptionsModule.createDesktopAutoSidecarLaunchPlan).toBeUndefined();
   });
 
   test('uses host skin copy for packaged missing Python guidance', () => {

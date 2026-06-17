@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime launch plan alias deletion
+
+- Finding: Electron main still exported
+  `createDesktopAutoSidecarLaunchPlan` as a compatibility alias after
+  `createDesktopLocalRuntimeLaunchPlan` became the canonical desktop launch
+  plan builder.
+- Change: removed the legacy auto-sidecar-named export and updated launch-plan
+  tests to assert the alias stays absent. The SDK `autoSidecar` option remains
+  unchanged because it is the active SDK launch contract.
+- Validation: focused SDK sidecar launch-options Jest test, stale-reference
+  scan, docs listing, and diff check.
+- Compatibility: no migration required for first-party code. Main-process
+  callers must use `createDesktopLocalRuntimeLaunchPlan`.
+
 ### 2026-06-17 Renderer conversation-list local-runtime retry cleanup
 
 - Finding: the renderer conversation library facade still treated legacy

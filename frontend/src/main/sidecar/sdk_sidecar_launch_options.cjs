@@ -218,9 +218,6 @@ function createDesktopLocalRuntimeLaunchPlan({
   };
 }
 
-const createDesktopAutoSidecarLaunchPlan = createDesktopLocalRuntimeLaunchPlan;
-
 module.exports = {
   createDesktopLocalRuntimeLaunchPlan,
-  createDesktopAutoSidecarLaunchPlan,
 };

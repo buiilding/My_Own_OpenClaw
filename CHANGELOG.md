@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the Electron main `createDesktopAutoSidecarLaunchPlan` compatibility export so local-runtime launch callers use `createDesktopLocalRuntimeLaunchPlan` directly.
+
 - Removed the renderer conversation-list retry matcher for legacy `Local backend not ready` text so retry policy follows active local-runtime readiness wording.
 
 - Removed legacy renderer interaction debug `__WINDIE_*` window flag reads so diagnostics use the canonical `__DESKTOP_AGENT_*` globals only.
