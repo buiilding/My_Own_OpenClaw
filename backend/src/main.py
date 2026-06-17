@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
 
 
 app = create_api_app(
-    title="Desktop Assistant",
+    title="WindieOS",
     lifespan=lifespan,
 )
 app.middleware("http")(install_auth_http_middleware)

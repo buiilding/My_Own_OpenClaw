@@ -30,6 +30,8 @@ All notable changes to WindieOS will be documented in this file.
   marker files while keeping concrete module imports intact.
 - backend: remove the stale top-level package marker that only described the
   old Personal Assistant package name.
+- backend/sidecar: replace stale Desktop Assistant and Personal Assistant
+  source labels with WindieOS wording.
 - cli: add a Windows `bin\windie.cmd` wrapper and route `docs list` through
   Node directly so PowerShell does not trigger the file-association picker for
   extensionless Unix shims; document the Windows spelling in `AGENTS.md`.

@@ -1,5 +1,5 @@
 """
-Tool Result Orchestrator for the Desktop Assistant.
+Tool result orchestrator for WindieOS.
 
 This module coordinates tool execution requests by waiting for local-runtime
 tool results and assembling tool result objects for the agent loop.

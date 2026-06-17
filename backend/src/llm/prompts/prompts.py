@@ -1,5 +1,5 @@
 """
-System prompts and prompt templates for the Desktop Assistant.
+System prompts and prompt templates for WindieOS.
 
 Uses a singleton PromptManager that loads prompts at startup (not at import time)
 to prevent import-time crashes and ensure fail-fast behavior.

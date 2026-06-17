@@ -1,5 +1,5 @@
 """
-Response Parser for the Desktop Assistant.
+Response parser for WindieOS.
 
 SECURITY: This module is a TRUST BOUNDARY.
 - All inputs are treated as HOSTILE/UNTRUSTED

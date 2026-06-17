@@ -1,7 +1,7 @@
 {
     "name": "example_tool",
     "version": "1.0.0",
-    "description": "An example tool template for the Desktop Assistant",
+    "description": "An example tool template for WindieOS",
     "author": "Your Name",
     "entry_point": "tool.py",
     "dependencies": [],

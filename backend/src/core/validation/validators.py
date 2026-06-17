@@ -1,5 +1,5 @@
 """
-Centralized Validation Framework for the Desktop Assistant.
+Centralized validation framework for WindieOS.
 
 Provides Pydantic-based validation for all API inputs with consistent error handling.
 """

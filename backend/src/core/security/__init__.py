@@ -1,5 +1,5 @@
 """
-Security module for the Desktop Assistant.
+Security module for WindieOS.
 
 This module provides security-related functionality for tool execution,
 permissions, and trust boundaries.

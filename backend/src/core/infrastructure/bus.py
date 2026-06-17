@@ -1,5 +1,5 @@
 """
-Enhanced Event Bus for the Desktop Assistant.
+Enhanced event bus for WindieOS.
 
 Provides a robust event bus with priority support, filtering, error handling,
 and global listener capabilities for decoupling components.

@@ -1,5 +1,5 @@
 """
-Caching Layer for the Desktop Assistant.
+Caching layer for WindieOS.
 
 Provides in-memory caching with TTL support for:
 - Tool schemas

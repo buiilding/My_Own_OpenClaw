@@ -1,6 +1,6 @@
 # SDK Tool Template
 
-This is a template for creating new SDK tools for the Desktop Assistant.
+This is a template for creating new SDK tools for WindieOS.
 
 ## Quick Start
 
