@@ -110,7 +110,8 @@ Core handlers:
 - `run-browser-action`
 - `get-system-state`
 
-Additional mapped handlers are registered through compiled mapper definitions (`registerMappedRpcHandlers`).
+Direct chat/memory mapped handlers are no longer registered in Electron main;
+those capabilities use SDK-shaped commands and SDK local-runtime store calls.
 
 ## Debug Checklist
 

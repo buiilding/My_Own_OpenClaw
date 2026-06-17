@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs` + IPC helper modules, `index.cjs`, permission/wakeword handlers, local-runtime bridge, and mapped sidecar RPC channels."
+summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs` + IPC helper modules, `index.cjs`, permission/wakeword handlers, and scoped local-runtime bridge channels."
 read_when:
   - When adding/removing `ipcMain.on/handle` registrations, including permission onboarding channels.
   - When debugging renderer invoke/send calls that do not reach expected main/sidecar behavior.
@@ -31,7 +31,6 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
@@ -51,7 +50,7 @@ Main-process handler registration is split by responsibility:
 - permission registration: `permission_ipc_runtime.cjs` (wired by `index.cjs`)
 - chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
 - app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
-- Python sidecar tool + memory bridge: `local_runtime_bridge.cjs`
+- Python sidecar scoped host bridge: `local_runtime_bridge.cjs`
 - wakeword audio process bridge: `wakeword_bridge.cjs`
 
 ## Handler Ownership Matrix
@@ -184,20 +183,17 @@ Direct `ipcMain.handle`:
 - `run-browser-action`
 - `get-system-state`
 
-Mapped implementation-level `ipcMain.handle` registrations via
-`registerMappedRpcHandlers(...)`. These are for SDK/local-runtime or main
-internals; renderer feature code reaches conversation and memory behavior
-through SDK-shaped `windie:invoke` commands:
+Removed mapped chat/memory `ipcMain.handle` registrations:
 
-- `search-chat-conversations`
-- `list-chat-conversations`
-- `list-episodic-memories`
-- `get-chat-events`
-- `list-semantic-memories`
-- `delete-episodic-memory`
-- `delete-chat-conversation`
-- `delete-semantic-memory`
-- `store-chat-event`
+- Electron main no longer registers direct sidecar-named handlers such as
+  `search-chat-conversations`, `list-chat-conversations`,
+  `list-episodic-memories`, `get-chat-events`,
+  `list-semantic-memories`, `delete-episodic-memory`,
+  `delete-chat-conversation`, `delete-semantic-memory`, or
+  `store-chat-event`.
+- Renderer feature code reaches conversation and memory behavior through
+  SDK-shaped `windie:invoke` commands. SDK local-runtime store code owns the
+  sidecar JSON-RPC calls behind that command boundary.
 
 Notable behavior:
 
@@ -216,8 +212,6 @@ Notable behavior:
   - delete accepted temporary screenshot files and drop `screenshot_path` from returned payload
   - strip `screenshot_path` from non-screenshot tool results without reading or deleting the path
 - `screenshot` tool path uses hidden-window guard wrapper
-- all mapped handlers call `sendRequestOrError(...)` and return normalized error payloads
-
 ### `wakeword_bridge.cjs`
 
 `ipcMain.on`:
@@ -234,29 +228,11 @@ Notable behavior:
   - `wakeword_bridge_runtime.cjs` owns stderr status parsing/noisy-line suppression
   - `wakeword_bridge_runtime.cjs` owns startup/process error text normalization and audio-chunk payload normalization
 
-## RPC Mapper Contract Details
-
-`COMPILED_RPC_HANDLER_DEFINITIONS` in `local_runtime_rpc_mappers.cjs` defines channel -> JSON-RPC method + payload mapping.
-
-Examples of non-trivial mappings:
-
-- `get-chat-events` and `delete-chat-conversation`:
-  - `conversation_id` derived from `conversationId` with explicit `null`
-    fallback for internal bridge callers
-- `store-chat-event`:
-  - maps SDK/main bridge camelCase keys into sidecar snake_case fields
-    (`conversation_ref`, `message_type`, `tool_name`, etc.)
-
-Mapper behavior:
-
-- non-object payloads normalize to empty object
-- every target key is present in mapped object (possibly `undefined`/`null`)
-
 ## Drift Hotspots
 
 1. channel exposed in preload/channels constants but missing `ipcMain` registration
 2. handler moved between files (or helper split added) without docs/constants updates
-3. RPC mapper field rename breaks backend method params silently
+3. SDK local-runtime store field rename breaks sidecar method params silently
 4. channel name typo (`-` vs `_`) between renderer constants and `ipcMain` registration
 
 ## Debug Checklist
@@ -265,12 +241,12 @@ If renderer `invoke` resolves with "not handled"/unexpected response:
 
 1. locate owner file for channel in matrix above
 2. verify `ipcMain.handle` registration path is executed at startup
-3. if sidecar-mapped channel, inspect RPC mapper target keys/method name
+3. if a sidecar-backed helper is involved, inspect the SDK/local-runtime target keys and method name
 
 If sidecar memory operations return wrong filters:
 
-1. verify mapper source keys (`userId`, `conversationId`, `recordKind`, etc.)
-2. inspect JSON-RPC method name in compiled definitions
+1. verify SDK local-runtime source keys (`userId`, `conversationId`, `recordKind`, etc.)
+2. inspect the JSON-RPC method name used by the SDK local-runtime store
 
 ## Related Pages
 

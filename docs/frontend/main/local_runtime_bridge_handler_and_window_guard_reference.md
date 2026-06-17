@@ -1,8 +1,8 @@
 ---
-summary: "Electron main local-runtime bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility ownership references."
+summary: "Electron main local-runtime bridge overview covering startup/handler boundaries, with links to focused lifecycle, scoped handler, and screenshot visibility ownership references."
 read_when:
   - When changing `frontend/src/main/sidecar/local_runtime*.cjs` and deciding where local-runtime bridge documentation belongs.
-  - When tracing local-runtime issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.
+  - When tracing local-runtime issues across process lifecycle, scoped host handler, and screenshot visibility ownership boundaries.
   - When resolving removed `local_runtime_bridge.getSystemState` export references.
 title: "Local Runtime Bridge Overview and Window Guard Index"
 ---
@@ -21,7 +21,7 @@ local-runtime names.
 
 - [Frontend Main Local-Runtime Docs Hub](local_backend/README.md)
 - [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
-- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_backend/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Local-Runtime Windows Docs Hub](local_backend/windows/README.md)
@@ -39,8 +39,8 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_runtime_bridge.cjs`:
 
 1. assemble desktop launch options and resolve the SDK local runtime provider
 2. publish renderer-visible readiness through `local-runtime-status`
-3. map renderer IPC channels to sidecar JSON-RPC methods through the SDK runtime
-4. normalize error payloads for renderer callers
+3. route scoped host IPC channels through the SDK local runtime when Electron authority is required
+4. normalize error payloads for host-channel callers
 5. route screenshot tool calls through host-owned display bounds and artifact materialization; Linux hide/show ownership lives in SDK/main surface prep and renderer attachment capture orchestration
 
 ## Removed System-State Direct Export
@@ -55,7 +55,6 @@ export has been removed. The focused behavior reference is
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_runtime_utils.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`

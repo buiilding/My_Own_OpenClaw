@@ -58,12 +58,14 @@ Validation:
 
 1. Update sidecar method signature in `main/python/local_backend.py`.
 2. Update method registration and validation path if needed.
-3. Update main bridge request mapper (`local_runtime_rpc_mappers.cjs`).
-4. Update renderer invoker/client payload shape.
+3. Update the SDK local-runtime caller or scoped host bridge that builds the
+   sidecar JSON-RPC params.
+4. Update renderer invoker/client payload shape when the command contract
+   changes.
 
 Validation:
 
-- JSON-RPC mapper tests.
+- SDK local-runtime caller or scoped bridge tests.
 - Sidecar method tests.
 - Renderer invoke path tests.
 

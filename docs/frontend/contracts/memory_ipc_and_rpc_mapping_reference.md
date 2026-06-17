@@ -15,29 +15,17 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/local_backend_memory_handlers.py`
 - `frontend/src/main/python/memory/chat_event_store.py`
 - `frontend/src/main/python/memory/local_store.py`
 
-## Active Local-Runtime Bridge Handlers
+## Active Local-Runtime Command Path
 
-These names are internal Electron-main local-runtime bridge handler names, not
-direct renderer preload `invoke` channels. Renderer feature code enters through
-SDK-shaped `window.desktopAgent.invoke(...)` commands.
-
-Chat-event storage and continuity local-runtime bridge handlers:
-
-- `store-chat-event`
-- `list-chat-conversations`
-- `search-chat-conversations`
-- `get-chat-events`
-- `get-chat-conversation-revision`
-- `delete-chat-conversation`
-- `replace-chat-conversation`
-- `rewrite-chat-conversation-after-event`
-- `clear-chat-history`
+Renderer feature code enters through SDK-shaped
+`window.desktopAgent.invoke(...)` commands. Electron main no longer registers
+direct sidecar-named chat or memory IPC handlers for conversation and memory
+storage.
 
 Memory storage and retrieval:
 
@@ -46,35 +34,30 @@ Memory storage and retrieval:
   `window.desktopAgent.invoke`.
 - Electron main maps those commands to public SDK agent APIs.
 - Sidecar memory RPC names remain implementation details behind the SDK local
-  runtime and Electron main local-runtime bridge.
+  runtime.
 - Chat clear uses SDK-shaped `conversations.clearAll`.
 
 Chat history is stored in `conversation_events`, not as memory rows. Memory rows are for episodic interaction memory and semantic memory.
 
-## Channel to JSON-RPC Method Map
+## SDK Local-Runtime to JSON-RPC Method Map
 
-Chat-event channels:
+The SDK local-runtime store calls these sidecar JSON-RPC methods behind public
+SDK command names:
 
-- `store-chat-event` -> `store_chat_event`
-- `list-chat-conversations` -> `list_chat_conversations`
-- `search-chat-conversations` -> `search_chat_conversations`
-- `get-chat-events` -> `get_chat_events`
-- `delete-chat-conversation` -> `delete_chat_conversation`
-
-Memory local-runtime channels:
-
-- `list-episodic-memories` -> `list_episodic_memories`
-- `list-semantic-memories` -> `list_semantic_memories`
-- `delete-episodic-memory` -> `delete_episodic_memory`
-- `delete-semantic-memory` -> `delete_semantic_memory`
-- `clear-local-memory` -> `clear_local_memory`
-
-Chat clear local-runtime channel:
-
-- `clear-chat-history` -> `clear_chat_history`
-- `replace-chat-conversation` -> `replace_chat_conversation`
-- `rewrite-chat-conversation-after-event` -> `rewrite_chat_conversation_after_event`
-- `get-chat-conversation-revision` -> `get_chat_conversation_revision`
+- `store_chat_event`
+- `list_chat_conversations`
+- `search_chat_conversations`
+- `get_chat_events`
+- `get_chat_conversation_revision`
+- `delete_chat_conversation`
+- `replace_chat_conversation`
+- `rewrite_chat_conversation_after_event`
+- `clear_chat_history`
+- `list_episodic_memories`
+- `list_semantic_memories`
+- `delete_episodic_memory`
+- `delete_semantic_memory`
+- `clear_local_memory`
 
 Removed text-query memory search:
 
@@ -83,7 +66,7 @@ Removed text-query memory search:
 - prompt memory search uses SDK-owned backend embeddings and
   `search_memory_by_embedding`.
 
-Renderer camelCase to sidecar snake_case conversions include:
+SDK/local-runtime camelCase to sidecar snake_case conversions include:
 
 - `userId` -> `user_id`
 - `conversationId` / `conversationRef` -> `conversation_id`
@@ -120,7 +103,8 @@ Sidecar memory handlers return:
 - success: `{ "success": true, "data": { ... } }`
 - failure: `{ "success": false, "error": "<message>" }`
 
-The main-process bridge forwards mapped responses to the renderer unchanged.
+SDK local-runtime callers normalize responses before crossing public renderer
+command boundaries.
 
 ## Key Handler Semantics
 
@@ -174,7 +158,7 @@ If chats do not reload:
    `conversation.load`
 2. inspect Electron main `windie:invoke` command handling
 3. if the SDK command reaches local persistence but data is missing, inspect
-   mapper output in `local_runtime_rpc_mappers.cjs`
+   the SDK local-runtime store params sent to the sidecar
 4. verify sidecar memory store is initialized and `conversation_events` rows exist
 
 If memory injection is empty:

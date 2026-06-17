@@ -11,7 +11,7 @@ describe('local_runtime_bridge SDK sidecar lifecycle', () => {
   registerBridgeSuiteLifecycleHooks();
 
   test('missing SDK local runtime resolver reports failure without spawning a standalone sidecar', async () => {
-    const { handlers, mainWindow, spawn } = initBridge({
+    const { bridge, mainWindow, spawn } = initBridge({
       ensureLocalRuntime: null,
       getKnownLocalRuntime: null,
     });
@@ -22,7 +22,10 @@ describe('local_runtime_bridge SDK sidecar lifecycle', () => {
       status: 'error',
       error: 'Agent SDK local runtime resolver is unavailable.',
     }));
-    await expect(handlers['list-episodic-memories'](null, { userId: 'user-1' })).resolves.toEqual({
+    await expect(bridge.executeToolForBackend({
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    })).resolves.toEqual({
       success: false,
       error: 'Agent SDK local runtime resolver is not initialized.',
     });
@@ -116,10 +119,16 @@ describe('local_runtime_bridge SDK sidecar lifecycle', () => {
   test('stopLocalRuntime stops bridge execution without shutting down the SDK-owned runtime', async () => {
     const { bridge, handlers, sdkRuntime } = initBridge();
 
-    const rpcPromise = handlers['list-episodic-memories'](null, { userId: 'user-1' });
+    const rpcPromise = bridge.executeToolForBackend({
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    });
     await Promise.resolve();
     resolveNextSdkRuntimeRequest({ success: true });
-    await expect(rpcPromise).resolves.toEqual({ success: true });
+    await expect(rpcPromise).resolves.toEqual({
+      success: true,
+      data: { success: true },
+    });
 
     bridge.stopLocalRuntime();
 
@@ -143,10 +152,13 @@ describe('local_runtime_bridge SDK sidecar lifecycle', () => {
     const ensureLocalRuntime = jest.fn(async () => {
       throw new Error('daemon unavailable');
     });
-    const { handlers, spawn } = initBridge({ ensureLocalRuntime });
+    const { bridge, spawn } = initBridge({ ensureLocalRuntime });
 
     expect(spawn).not.toHaveBeenCalled();
-    await expect(handlers['list-episodic-memories'](null, { userId: 'user-1' })).resolves.toEqual({
+    await expect(bridge.executeToolForBackend({
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    })).resolves.toEqual({
       success: false,
       error: 'daemon unavailable',
     });

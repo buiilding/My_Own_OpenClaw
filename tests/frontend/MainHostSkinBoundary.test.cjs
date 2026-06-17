@@ -27,7 +27,6 @@ const localRuntimeBridgeModulePaths = [
   localRuntimeBridgePath,
   path.join(mainRoot, 'sidecar/local_runtime_display_bounds.cjs'),
   path.join(mainRoot, 'sidecar/local_runtime_execute_tool_runtime.cjs'),
-  path.join(mainRoot, 'sidecar/local_runtime_rpc_mappers.cjs'),
   path.join(mainRoot, 'sidecar/local_runtime_screenshot_attachment.cjs'),
   path.join(mainRoot, 'sidecar/local_runtime_timeout_policy.cjs'),
   path.join(mainRoot, 'sidecar/local_runtime_tool_args.cjs'),

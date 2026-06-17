@@ -135,11 +135,12 @@ The command names are SDK-shaped, for example `conversation.send`,
 and `conversations.clearAll`.
 Electron main owns only the IPC hop and strict command allowlist. The handler
 calls public `Agent` / `ConversationRuntime` methods on the live SDK
-runtime. Renderer code must not call sidecar RPC names such as
+runtime. Renderer code must not call sidecar RPC names or removed direct IPC
+aliases such as
 `clear-chat-history`, `clear-local-memory`, `list-chat-conversations`,
 `conversation_events`, or `conversation_revisions` for user-facing SDK concepts.
-Those names may still exist below the SDK boundary as local-runtime/store
-implementation details.
+Sidecar method names may still exist below the SDK boundary as
+local-runtime/store implementation details.
 
 Renderer app-runtime transport facades that implement SDK runtime interfaces
 should also use SDK-shaped commands through `window.desktopAgent.invoke(...)`.
@@ -344,7 +345,7 @@ Primary modules:
   - Renderer-facing current-conversation reader that prefers transcript session state and falls back to projected chat-store selection.
   - Keeps dashboard/chat controls from independently choosing between transcript session and `chatStore.activeConversationRef`.
 - `main/sidecar/local_runtime_bridge.cjs`:
-  - Registers scoped host IPC handlers for screenshot attachment, browser controls, system state, memory, and mapped local sidecar RPCs.
+  - Registers scoped host IPC handlers for screenshot attachment, browser controls, and system state.
   - Uses `AgentClient` local-runtime resolvers from `ipc.cjs` as the only sidecar daemon lifecycle and RPC transport path.
   - Uses `local_runtime_supervisor.cjs` only for renderer-visible local-runtime readiness/status snapshots.
   - Keeps Electron-only screenshot display bounds, artifact upload, and window visibility behavior out of the SDK.

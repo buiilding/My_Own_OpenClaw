@@ -133,7 +133,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - optional attachment context renders as `<attached_file_context> ... </attached_file_context>`
 - memory search failures fall back to `None` memory sections
 
-## Local Runtime Bridge Lifecycle and RPC Mapping Contract
+## Local Runtime Bridge Lifecycle and Scoped RPC Contract
 
 `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` enforces process-generation safety:
 
@@ -142,21 +142,13 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - stale readiness timeout/retry callbacks from previous process generation are ignored
 - delayed force-kill timer from `stopLocalRuntime` cannot kill a newly restarted process
 
-`tests/frontend/LocalRuntimeBridge.rpc.test.cjs` enforces IPC-to-JSON-RPC mapping:
+`tests/frontend/LocalRuntimeBridge.rpc.test.cjs` enforces scoped host
+IPC-to-JSON-RPC behavior:
 
 - internal tool execution success/error response normalization
-- resolved backend HTTP URL export in child-process env (`WINDIE_BACKEND_HTTP_URL`)
-- `NODE_OPTIONS` augmentation with `--no-deprecation`
-- suppression of known noisy deprecation stderr lines while preserving meaningful logs
-- key mapping coverage for:
-  - `list-chat-conversations`
-  - `list-semantic-memories`
-  - `get-chat-events`
-  - `delete-chat-conversation`
-  - `delete-episodic-memory`
-  - `delete-semantic-memory`
-  - `store-chat-event`
-- malformed/non-object IPC payloads normalize to safe empty param objects for mapped handlers
+- scoped host channel mapping for attachment reads, browser controls,
+  screenshots, and system state
+- removed mapped chat/memory IPC channels are not registered
 
 ## Wakeword Bridge Protocol Contract
 

@@ -1,19 +1,19 @@
 ---
-summary: "Canonical frontend protocol matrix: preload allowlisted channels, main-process IPC handler ownership, and local-runtime JSON-RPC method mappings with timeout/readiness behavior."
+summary: "Canonical frontend protocol matrix: preload allowlisted channels, main-process IPC handler ownership, and SDK local-runtime JSON-RPC methods with timeout/readiness behavior."
 read_when:
   - When adding/changing renderer `window.ipc` channels.
-  - When updating main-process local-runtime bridge methods, parameter mapping, or timeout policies.
+  - When updating main-process local-runtime bridge helpers, SDK local-runtime methods, parameter mapping, or timeout policies.
 title: "Frontend IPC and Local Runtime Protocol Surface Matrix Reference"
 ---
 
 # Frontend IPC and Local-Runtime Protocol Surface Matrix Reference
 
-## Renderer Invoke Channel Counts and Compiled RPC Mapper Definitions Snapshot (2026-06-16)
+## Renderer Invoke Channel Counts and Local-Runtime Mapper Snapshot (2026-06-17)
 
 - Renderer `send` channels: `8`
 - Renderer `invoke` channels: `41`
 - Renderer `on/once` channels: `23`
-- Compiled JSON-RPC mapper definitions: `14` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+- Compiled JSON-RPC mapper definitions: `0` (direct chat/memory IPC mapper removed)
 
 ## Scope and Sources
 
@@ -25,7 +25,7 @@ sidecar local runtime:
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs` + `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
-- Main-to-sidecar JSON-RPC bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
+- Main-to-sidecar scoped host bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Renderer `window.ipc` Contract
@@ -177,32 +177,31 @@ Transport:
 - Request correlation by UUID `id` in `pendingRequests` map.
 - Default timeout `60000ms`; local browser tool execution uses `120000ms`.
 
-### JSON-RPC Method Map (bridge handler channel -> sidecar method)
+### SDK Local-Runtime JSON-RPC Method Map
 
-These names are compiled main-process bridge handler definitions in
-`local_runtime_rpc_mappers.cjs`. They are not direct renderer preload
-`invoke` channels unless they also appear in `frontend/src/shared/ipcChannels.json`.
-Renderer feature code reaches conversation and memory operations through
-SDK-shaped commands on `windie:invoke`.
+Electron main no longer registers direct chat/memory bridge handler channels for
+these methods. Renderer feature code reaches conversation and memory operations
+through SDK-shaped commands on `windie:invoke`; SDK local-runtime store code
+builds the sidecar method and params behind that boundary.
 
-| IPC channel | JSON-RPC method | Param mapping notes |
+| Owner path | JSON-RPC method | Param mapping notes |
 |---|---|---|
-| `list-episodic-memories` | `list_episodic_memories` | `userId -> user_id` |
-| `list-semantic-memories` | `list_semantic_memories` | `userId -> user_id` |
-| `delete-episodic-memory` | `delete_episodic_memory` | `memoryId -> memory_id` |
-| `delete-semantic-memory` | `delete_semantic_memory` | `memoryId -> memory_id` |
-| `clear-local-memory` | `clear_local_memory` | `userId -> user_id`; clears local memory records for the user scope |
-| `clear-chat-history` | `clear_chat_history` | `userId -> user_id`; clears chat-history records for the user scope |
-| `store-chat-event` | `store_chat_event` | transcript metadata pass-through map (`messageType -> message_type`, etc.) |
-| `replace-chat-conversation` | `replace_chat_conversation` | replacement event payload plus conversation/user/record-kind normalization |
-| `rewrite-chat-conversation-after-event` | `rewrite_chat_conversation_after_event` | conversation/user/anchor-event normalization for replay truncation and rewrite |
-| `list-chat-conversations` | `list_chat_conversations` | `userId -> user_id`, `recordKind -> record_kind` |
-| `search-chat-conversations` | `search_chat_conversations` | `userId -> user_id` with query/limit passthrough |
-| `get-chat-events` | `get_chat_events` | `conversationId -> conversation_id` (`null` when missing), `recordKind -> record_kind` |
-| `get-chat-conversation-revision` | `get_chat_conversation_revision` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
-| `delete-chat-conversation` | `delete_chat_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `list_episodic_memories` | `userId -> user_id` |
+| SDK local-runtime store | `list_semantic_memories` | `userId -> user_id` |
+| SDK local-runtime store | `delete_episodic_memory` | `memoryId -> memory_id` |
+| SDK local-runtime store | `delete_semantic_memory` | `memoryId -> memory_id` |
+| SDK local-runtime store | `clear_local_memory` | `userId -> user_id`; clears local memory records for the user scope |
+| SDK local-runtime store | `clear_chat_history` | `userId -> user_id`; clears chat-history records for the user scope |
+| SDK local-runtime store | `store_chat_event` | transcript metadata (`messageType -> message_type`, etc.) |
+| SDK local-runtime store | `replace_chat_conversation` | replacement event payload plus conversation/user/record-kind normalization |
+| SDK local-runtime store | `rewrite_chat_conversation_after_event` | conversation/user/anchor-event normalization for replay truncation and rewrite |
+| SDK local-runtime store | `list_chat_conversations` | `userId -> user_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `search_chat_conversations` | `userId -> user_id` with query/limit passthrough |
+| SDK local-runtime store | `get_chat_events` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `get_chat_conversation_revision` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `delete_chat_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
 | readiness probe (internal) | `ping` | Startup readiness checks |
-| diagnostics (registered in sidecar) | `get_status` | Not currently wired to renderer IPC |
+| diagnostics (registered in sidecar) | `get_status` | Read through SDK local-runtime status helpers |
 
 ### Sidecar Method Registry (`local_backend.py`)
 
@@ -247,7 +246,7 @@ Registered callable surface:
 
 - Preload allowlists and renderer constants should remain in strict parity.
 - IPC handler registration is split across `ipc.cjs`, `surfaces/overlay_phase_ipc_runtime.cjs`, `surfaces/window_controls_ipc_runtime.cjs`, `permissions/permission_ipc_runtime.cjs`, `sidecar/local_runtime_bridge.cjs`, and `wakeword/wakeword_bridge.cjs` (with helper split in `wakeword_bridge_runtime.cjs`); ownership drift often appears when adding channels without updating all surfaces.
-- JSON-RPC channel maps are centralized in `local_runtime_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
+- Chat/memory JSON-RPC params are centralized behind SDK local-runtime store code; direct ad-hoc renderer/main IPC mappings should be avoided.
 
 ## Recompute Surface Commands
 
@@ -261,10 +260,9 @@ Use these commands to refresh protocol counts:
   - `}`
   - `NODE`
 - JSON-RPC mapper definition count:
-  - `node - <<'NODE'`
-  - `const { COMPILED_RPC_HANDLER_DEFINITIONS } = require('./frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs');`
-  - `console.log('compiled_rpc_handler_definitions', COMPILED_RPC_HANDLER_DEFINITIONS.length);`
-  - `NODE`
+  - direct compiled mapper definitions are intentionally `0`; verify
+    `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` does not exist
+    and `local_runtime_bridge.cjs` does not import it.
 
 ## Related Deep Dive
 

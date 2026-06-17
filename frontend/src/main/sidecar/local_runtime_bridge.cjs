@@ -8,10 +8,6 @@ const {
   resolveBackendEndpoints,
 } = require('../app/backend_endpoints.cjs');
 const {
-  COMPILED_RPC_HANDLER_DEFINITIONS,
-  registerMappedRpcHandlers,
-} = require('./local_runtime_rpc_mappers.cjs');
-const {
   createWindowResolvers,
 } = require('./local_runtime_window_visibility.cjs');
 const {
@@ -466,15 +462,6 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
     });
   }
 
-  const registerRpcHandler = (channel, method, mapParams) => {
-    ipcMain.handle(channel, async (event, payload = {}) => (
-      sendRequestOrError(
-        method,
-        mapParams(payload || {}),
-      )
-    ));
-  };
-
   ipcMain.handle('capture-screenshot-attachment', async (event, payload = {}) => (
     executeToolRuntime.executeTool(event, {
       toolName: 'screenshot',
@@ -558,8 +545,6 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
   ipcMain.handle('get-system-state', async (event, { fields } = {}) => {
     return getSystemStateFromBackend(fields);
   });
-
-  registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS);
 
   appendLocalRuntimeLifecycleDiagnostic({
     action: 'bridge_initialized',

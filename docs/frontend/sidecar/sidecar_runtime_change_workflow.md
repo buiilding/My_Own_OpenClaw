@@ -16,7 +16,7 @@ The sidecar is not the model-facing policy owner. Backend owns model-visible too
 
 | Symptom or request | Sidecar owner | First source roots | First tests | First docs |
 | --- | --- | --- | --- | --- |
-| Add or change a sidecar JSON-RPC method | Python sidecar method registry and protocol | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` | `tests/sidecar/test_json_rpc_protocol.py`, `tests/sidecar/test_local_backend.py`, focused `LocalRuntimeBridge*.test.cjs` | [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md), [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md), [Main Process Change Workflow](../main/main_process_change_workflow.md) |
+| Add or change a sidecar JSON-RPC method | Python sidecar method registry and protocol | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`, SDK local-runtime caller code when renderer-visible | `tests/sidecar/test_json_rpc_protocol.py`, `tests/sidecar/test_local_backend.py`, focused SDK/local-runtime caller tests | [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md), [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md), [Main Process Change Workflow](../main/main_process_change_workflow.md) |
 | Tool exists in renderer/main but sidecar rejects or executes it incorrectly | Tool registry and executable tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools`, `frontend/src/main/python/tools/result.py` | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_result.py`, focused tool tests | [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md), [Sidecar Tool Catalog](tool_catalog_and_execution_model.md) |
 | Tool schema parity drift or exposed executable fields change | Sidecar tool schema/export contract | `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/*` | `tests/sidecar/test_tool_schemas.py`, `tests/sidecar/test_shared_tool_schema_parity.py` | [Tool Registry Exposed Schema](tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | Filesystem read/replace behavior changes | Filesystem tools and path resolution | `frontend/src/main/python/tools/filesystem/*`, `frontend/src/main/python/tools/path_resolution.py` | `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, filesystem tool tests | [Filesystem Read and Replace](tools/filesystem_read_replace_runtime_reference.md) |
@@ -54,12 +54,12 @@ The sidecar is not the model-facing policy owner. Backend owns model-visible too
 When adding or changing a method:
 
 - Register the method in `LocalBackend._initialize_methods`.
-- If renderer code will call it, add the IPC channel to `frontend/src/shared/ipcChannels.json` and map it in `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`.
+- If renderer code will call it, add or extend an SDK-shaped command/facade and keep the sidecar JSON-RPC call behind SDK local-runtime code rather than exposing a sidecar-named IPC channel.
 - Validate params through handler signatures and explicit type checks.
-- Add or update Electron main mapper definitions when renderer IPC reaches the method.
+- Add or update Electron main bridge code only for scoped host channels that require Electron authority.
 - Keep snake_case sidecar params and document any camelCase bridge mapping.
 - Return stable JSON-serializable payloads.
-- Add sidecar protocol tests and main bridge mapper tests when the Electron payload changes.
+- Add sidecar protocol tests and SDK/local-runtime caller tests when the renderer-visible payload changes.
 
 ## Tool Runtime Checklist
 

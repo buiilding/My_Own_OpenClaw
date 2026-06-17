@@ -21,7 +21,6 @@ title: "Query Payload and Relay Reference"
 - `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`

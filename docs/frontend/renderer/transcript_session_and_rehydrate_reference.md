@@ -36,7 +36,6 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 
 ## Session Identity Model
 
@@ -126,7 +125,7 @@ store commands.
 
 Direct `store-chat-event` calls and replay append mutation are not renderer
 feature-code surfaces; sidecar chat-event RPC names remain inside SDK
-store/local-runtime and Electron main bridge internals.
+store/local-runtime internals.
 
 ## Call-Site Wiring Across Renderer
 
@@ -171,7 +170,7 @@ Renderer transcript rows remain visible projections and do not execute tools.
 5. set active transcript conversation/session info
 6. replace renderer chat store with projected SDK display messages
 
-Search modal uses the same open path after `search-chat-conversations` results.
+Search modal uses the same open path after SDK `conversations.search` results.
 
 `ensureConversationInferenceSessionHydrated(...)` uses the continuity service
 for the backend rehydrate payload. The local snapshot loader still supplies

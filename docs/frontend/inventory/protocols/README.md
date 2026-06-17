@@ -1,8 +1,8 @@
 ---
-summary: "Frontend inventory protocol sub-hub for renderer/main IPC channels, local-runtime JSON-RPC method mappings, and cross-process control-path ownership boundaries."
+summary: "Frontend inventory protocol sub-hub for renderer/main IPC channels, SDK local-runtime JSON-RPC methods, and cross-process control-path ownership boundaries."
 read_when:
   - When changing preload allowlists, IPC handler ownership, or renderer channel constants.
-  - When changing Electron main local-runtime JSON-RPC method maps, request timeout/readiness behavior, or main-to-renderer control-path gating.
+  - When changing SDK local-runtime JSON-RPC methods, request timeout/readiness behavior, or main-to-renderer control-path gating.
 title: "Frontend Inventory Protocols Hub"
 ---
 
@@ -33,7 +33,6 @@ title: "Frontend Inventory Protocols Hub"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`

@@ -33,7 +33,6 @@ title: "Frontend Sidecar Memory Docs Hub"
 - `frontend/src/main/python/memory/watermark_state.py`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/local_backend_memory_handlers.py`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `tests/sidecar/test_memory_summarizer.py`
 - `tests/sidecar/test_conversation_search_helpers.py`

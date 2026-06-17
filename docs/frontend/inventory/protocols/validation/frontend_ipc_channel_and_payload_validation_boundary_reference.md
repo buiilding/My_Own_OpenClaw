@@ -1,8 +1,8 @@
 ---
-summary: "Frontend validation boundary reference for protocol surfaces: preload IPC allowlists, typed bridge runtime checks, backend payload normalization, user-id sanitization, query XML escaping, and local-runtime RPC mapping fallbacks."
+summary: "Frontend validation boundary reference for protocol surfaces: preload IPC allowlists, typed bridge runtime checks, backend payload normalization, user-id sanitization, query XML escaping, and SDK local-runtime parameter shaping."
 read_when:
   - When changing `preload.js`, renderer `IpcBridge`, or main-process websocket payload assembly.
-  - When modifying local-runtime RPC payload mappers or query content enrichment input sanitation.
+  - When modifying SDK local-runtime payload shaping or query content enrichment input sanitation.
 title: "Frontend IPC Channel and Payload Validation Boundary Reference"
 ---
 
@@ -13,7 +13,7 @@ title: "Frontend IPC Channel and Payload Validation Boundary Reference"
 - Renderer `send` channels: `5`
 - Renderer `invoke` channels: `33`
 - Renderer `on/once` channels: `11`
-- Compiled local-runtime mapper definitions: `10` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+- Compiled local-runtime mapper definitions: `0` (direct chat/memory IPC mapper removed)
 
 ## Scope and Sources
 
@@ -23,7 +23,7 @@ Validation boundary sources:
 - Renderer typed channel/bridge checks: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - SDK query content escaping and fallback handling: `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
-- Local-runtime RPC mapping utilities: `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
+- SDK local-runtime store/client code owns chat and memory RPC parameter shaping.
 
 ## Channel Validation Layers
 
@@ -108,23 +108,25 @@ Role:
 
 - prevent malformed XML-like prompt context assembly from raw strings.
 
-## RPC Mapper Validation/Fallback Boundary
+## SDK Local-Runtime Validation Boundary
 
-`local_runtime_rpc_mappers.cjs` safeguards:
-
-- non-object payload coerced to `{}` by `getPayloadObject(...)`.
-- mapper supports:
-  - direct source key mapping,
-  - function-based field transforms.
+Direct chat and memory IPC mapper fallbacks have been removed. Current
+validation belongs at the SDK command/facade boundary and in SDK local-runtime
+store calls that build sidecar JSON-RPC params.
 
 Examples:
 
-- `get-chat-events`/`delete-chat-conversation`: `conversationId` normalized to `conversation_id` with explicit `null` default.
-- transcript mapper preserves optional metadata fields while normalizing key names.
+- conversation and memory command payloads stay SDK-shaped at the renderer
+  boundary.
+- SDK local-runtime store code normalizes fields such as `conversationId`,
+  `memoryId`, and `recordKind` into sidecar snake_case params.
+- sidecar handler signatures provide the final JSON-RPC `INVALID_PARAMS`
+  validation for missing or unexpected params.
 
 Role:
 
-- stabilize cross-layer naming differences without brittle per-call manual transforms.
+- stabilize cross-layer naming differences without reviving direct
+  sidecar-named renderer IPC channels.
 
 ## Validation Drift Risks
 
@@ -134,7 +136,7 @@ High-risk drift points to monitor:
 - `IpcBridge` dev-time validation drift masking production no-op behavior.
 - outbound normalization rules diverging from backend schema updates.
 - user-id sanitization assumptions diverging from backend validation rules.
-- mapper source keys drifting from canonical renderer payload shapes.
+- SDK local-runtime store source keys drifting from canonical command payload shapes.
 
 ## Validation Control-Path Index
 
@@ -145,7 +147,7 @@ High-risk drift points to monitor:
 | outbound websocket payload normalization | `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
 | handshake user-id identity | `frontend/src/main/ipc/ipc_install_auth_state.cjs` + `AgentClient.wakeUp(...)` | sends authenticated install identity instead of synthetic OS username fallback |
 | query XML/context sanitization fallback | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | escapes XML-sensitive content and guarantees structured fallback blocks |
-| local-runtime mapper transforms | `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` | canonical renderer field mapping and safe default object coercion |
+| SDK local-runtime transforms | SDK local-runtime store/client code | canonical command-to-sidecar field mapping |
 
 ## Recompute Validation Surface Commands
 
@@ -160,11 +162,8 @@ Use these commands to refresh validation-surface counts:
   - `    print(name, len([line for line in block.splitlines() if ':' in line]))`
   - `PY`
 - JSON-RPC mapper definition count:
-  - `python - <<'PY'`
-  - `import pathlib,re`
-  - `text=pathlib.Path('frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs').read_text()`
-  - `print('compiled_rpc_handler_definitions', len(re.findall(r\"\\{\\s*channel:\", text)))`
-  - `PY`
+  - direct compiled mapper definitions are intentionally `0`; verify
+    `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` does not exist.
 
 ## Related Deep Dives
 

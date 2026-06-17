@@ -154,23 +154,19 @@ memory user actions instead of these sidecar names.
 - `run-browser-action`
 - `get-system-state`
 
-Mapped JSON-RPC bridge handler channels in
-`local_runtime_rpc_mappers.cjs`:
+Removed direct chat/memory JSON-RPC bridge channels:
 
-- `list-chat-conversations`
-- `search-chat-conversations`
-- `list-episodic-memories`
-- `get-chat-events`
-- `get-chat-conversation-revision`
-- `list-semantic-memories`
-- `delete-episodic-memory`
-- `delete-chat-conversation`
-- `delete-semantic-memory`
-- `clear-local-memory`
-- `clear-chat-history`
-- `store-chat-event`
-- `replace-chat-conversation`
-- `rewrite-chat-conversation-after-event`
+- Electron main no longer registers direct sidecar-named IPC handlers such as
+  `list-chat-conversations`, `search-chat-conversations`,
+  `list-episodic-memories`, `get-chat-events`,
+  `get-chat-conversation-revision`, `list-semantic-memories`,
+  `delete-episodic-memory`, `delete-chat-conversation`,
+  `delete-semantic-memory`, `clear-local-memory`, `clear-chat-history`,
+  `store-chat-event`, `replace-chat-conversation`, or
+  `rewrite-chat-conversation-after-event`.
+- Conversation and memory user actions use SDK-shaped `windie:invoke`
+  commands; SDK local-runtime code owns the sidecar JSON-RPC calls behind that
+  boundary.
 
 Local tool runtime nuances:
 

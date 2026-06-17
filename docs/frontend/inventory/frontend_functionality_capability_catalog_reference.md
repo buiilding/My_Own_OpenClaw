@@ -88,7 +88,6 @@ Capabilities:
 Primary files:
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_utils.cjs`
 - `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
@@ -98,7 +97,8 @@ Primary files:
 Capabilities:
 
 - Starts and supervises the SDK local-runtime sidecar daemon, ping-readiness, and JSON-RPC request correlation.
-- Executes sidecar-exposed tool and memory/transcript RPC handlers through typed mapper layer.
+- Executes sidecar-exposed tools through scoped host helpers; memory and
+  transcript persistence use SDK local-runtime store calls.
 - Routes screenshot tool execution through the local-runtime window-visibility path.
 - Streams wakeword audio binary frames and receives framed detection payloads.
 - Delegates wakeword stderr readiness/error parsing, startup/process error mapping, and audio chunk normalization to helper runtime module.

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the unused Electron local-runtime mapped IPC handler layer so chat and memory persistence no longer register direct sidecar-named bridge channels. SDK-shaped commands and SDK local-runtime store calls remain the supported path; no migration required because renderer preload already rejects those direct channels.
+
 - Removed `turn_ref` and `message_id` Electron main SDK edit/retry command aliases so those command inputs use canonical `turnRef` and `messageId`; no migration is required because current renderer facades already send camelCase fields.
 
 - Removed snake_case `AgentSessionRuntime.stopQuery(...)` input aliases so low-level SDK stop inputs use `conversationRef` and `turnRef` while backend transport adapters still emit `conversation_ref`/`turn_ref`; low-level callers using the removed aliases must switch to camelCase.

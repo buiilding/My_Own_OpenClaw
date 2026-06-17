@@ -1,8 +1,8 @@
 ---
-summary: "Workflow for adding, changing, or debugging WindieOS local-runtime JSON-RPC methods across SDK local-runtime bridge mappings, Python sidecar method registration, payload normalization, timeouts, readiness, and tests."
+summary: "Workflow for adding, changing, or debugging WindieOS local-runtime JSON-RPC methods across SDK local-runtime callers, Python sidecar method registration, payload normalization, timeouts, readiness, and tests."
 read_when:
   - When adding, renaming, deleting, or changing a Python sidecar JSON-RPC method.
-  - When a renderer IPC call reaches Electron main but does not reach the expected sidecar method, maps payload keys incorrectly, times out, or returns the wrong success/error envelope.
+  - When an SDK local-runtime call reaches Electron main or the daemon but does not reach the expected sidecar method, maps payload keys incorrectly, times out, or returns the wrong success/error envelope.
 title: "Local Runtime JSON-RPC Change Workflow"
 ---
 
@@ -15,12 +15,12 @@ JSON-RPC envelopes through the SDK local runtime provider to the sidecar daemon
 system-state collection, browser runtime setup, and a small set of local
 permission/runtime utility calls.
 
-This workflow is narrower than the general [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md). Start here when the work is specifically about a JSON-RPC method name, method params, Electron bridge mapper, request timeout, readiness behavior, or response envelope.
+This workflow is narrower than the general [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md). Start here when the work is specifically about a JSON-RPC method name, method params, SDK local-runtime caller, request timeout, readiness behavior, or response envelope.
 
 ## Boundary Rules
 
-- Renderer code must call the typed IPC bridge; it must not talk to the Python sidecar directly.
-- Electron main owns channel registration, camelCase-to-snake_case payload mapping, request correlation, process readiness, timeouts, and screenshot/artifact wrappers.
+- Renderer code must call SDK-shaped `window.desktopAgent.invoke(...)` commands or typed host IPC channels; it must not talk to the Python sidecar directly.
+- Electron main owns scoped host channel registration, request correlation, process readiness, timeouts, and screenshot/artifact wrappers.
 - Python sidecar owns method registration, handler signatures, local validation, tool dispatch, memory storage, system-state collection, and local utility calls.
 - Backend owns model-facing tool schemas and prompt policy. Do not import backend code into the sidecar to reuse those schemas.
 - JSON-RPC method params must be JSON objects. Arrays, strings, and other non-object params are rejected by `JSONRPCProtocol`.
@@ -31,12 +31,12 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 
 | Change or symptom | First owner | Code roots | Tests |
 | --- | --- | --- | --- |
-| Add a renderer-visible sidecar method | Electron IPC registry and mapper plus sidecar method registry | `frontend/src/shared/ipcChannels.json`, `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`, `frontend/src/main/python/local_backend.py` | preload/IPC tests, `tests/frontend/LocalRuntimeBridge*.test.cjs`, `tests/sidecar/test_local_backend.py` |
+| Add a renderer-visible local-runtime capability | SDK command/facade plus sidecar method registry | SDK runtime command owner, renderer facade, `frontend/src/main/python/local_backend.py` | SDK command tests, focused renderer facade tests, sidecar handler tests |
 | Add a main-only sidecar helper | main bridge helper plus sidecar method registry | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, sidecar handler tests |
 | Change JSON-RPC protocol validation | protocol core | `frontend/src/main/python/core/ipc_protocol.py` | `tests/sidecar/test_json_rpc_protocol.py` |
 | Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client tests and local-runtime bridge tests |
 | Change sidecar readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, sidecar daemon tests |
-| Change memory method payloads | RPC mapper plus memory mixin | `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`, sidecar memory/conversation tests |
+| Change memory method payloads | SDK local-runtime store plus memory mixin | SDK local-runtime store code, `frontend/src/main/python/local_backend_memory_handlers.py` | SDK local-runtime store tests, sidecar memory/conversation tests |
 | Change `execute_tool` behavior | SDK/main local tool runtime plus sidecar tool registry | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, sidecar tool tests |
 | Change browser runtime install/warmup methods | main bridge helper plus local-runtime browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-runtime tests |
 | Change macOS automation permission method | main permission bridge plus sidecar platform helper | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation sidecar tests |
@@ -56,40 +56,44 @@ or local tool runtime code rather than the compiled mapper table.
 | browser install helper | `install_browser_chromium` | `_handle_install_browser_chromium` | Main helper uses a long timeout for feature-pack/browser provisioning. |
 | permission helper | `determine_macos_system_events_automation_permission` | `_handle_determine_macos_system_events_automation_permission` | Used by permission runtime for macOS System Events automation checks. |
 
-### Compiled Mapper Calls
+### Removed Direct Chat/Memory IPC Mapper Calls
 
-These renderer-visible channels are registered by `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS)`.
+Electron main no longer registers a compiled mapper table for renderer-visible
+chat or memory sidecar methods. Removed direct channels include
+`search-chat-conversations`, `list-chat-conversations`,
+`list-episodic-memories`, `get-chat-events`,
+`list-semantic-memories`, `delete-episodic-memory`,
+`delete-chat-conversation`, `delete-semantic-memory`,
+`clear-local-memory`, `clear-chat-history`, and `store-chat-event`.
 
-| IPC channel | JSON-RPC method | Primary sidecar owner |
-| --- | --- | --- |
-| `search-chat-conversations` | `search_chat_conversations` | `LocalBackendMemoryHandlersMixin` |
-| `list-chat-conversations` | `list_chat_conversations` | `LocalBackendMemoryHandlersMixin` |
-| `list-episodic-memories` | `list_episodic_memories` | `LocalBackendMemoryHandlersMixin` |
-| `get-chat-events` | `get_chat_events` | `LocalBackendMemoryHandlersMixin` |
-| `list-semantic-memories` | `list_semantic_memories` | `LocalBackendMemoryHandlersMixin` |
-| `delete-episodic-memory` | `delete_episodic_memory` | `LocalBackendMemoryHandlersMixin` |
-| `delete-chat-conversation` | `delete_chat_conversation` | `LocalBackendMemoryHandlersMixin` |
-| `delete-semantic-memory` | `delete_semantic_memory` | `LocalBackendMemoryHandlersMixin` |
-| `clear-local-memory` | `clear_local_memory` | `LocalBackendMemoryHandlersMixin` |
-| `clear-chat-history` | `clear_chat_history` | `LocalBackendMemoryHandlersMixin` |
-| `store-chat-event` | `store_chat_event` | `LocalBackendMemoryHandlersMixin` |
+Renderer-visible chat and memory actions enter through SDK-shaped commands such
+as `conversations.list`, `conversations.search`, `conversation.load`,
+`conversation.delete`, `conversations.clearAll`, `memories.list`,
+`memories.delete`, and `memories.clearAll`. The SDK local-runtime store owns the
+sidecar JSON-RPC calls behind those commands.
 
 Completed-turn memory writes are SDK-owned and call the sidecar directly through
 `store_memory_by_embedding`; there is no renderer-visible `store-memory` IPC
 channel.
 
-## Add a Renderer-Visible JSON-RPC Method
+## Add a Renderer-Visible Local-Runtime Capability
 
-1. Add the renderer channel to `frontend/src/shared/ipcChannels.json` under `INVOKE_CHANNELS`.
-2. Confirm `frontend/src/renderer/infrastructure/ipc/channels.ts` exposes the channel through the typed constants used by renderer code.
-3. Add a compiled mapper entry in `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`.
-4. Use camelCase source keys for renderer payloads and snake_case target keys for sidecar params.
-5. Register the Python method in `LocalBackend._initialize_methods`.
-6. Implement the handler in `local_backend.py`, `local_backend_memory_handlers.py`, or a focused sidecar module.
-7. Keep the handler signature explicit so `JSONRPCProtocol` can reject missing or unexpected params before execution.
-8. Return a stable result envelope and avoid leaking tracebacks or local paths unless that is already the contract for the method.
-9. Add frontend mapper/IPC tests and sidecar handler/protocol tests.
-10. Link the new method from [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md) and the relevant domain doc.
+1. Add or extend a typed SDK runtime command/facade for the renderer-visible
+   action.
+2. Keep renderer payloads in the SDK command contract; do not expose sidecar
+   JSON-RPC method names as renderer invoke channels.
+3. Add or update the SDK local-runtime store/client call that builds the
+   sidecar JSON-RPC method and params.
+4. Register the Python method in `LocalBackend._initialize_methods`.
+5. Implement the handler in `local_backend.py`,
+   `local_backend_memory_handlers.py`, or a focused sidecar module.
+6. Keep the handler signature explicit so `JSONRPCProtocol` can reject missing
+   or unexpected params before execution.
+7. Return a stable result envelope and avoid leaking tracebacks or local paths
+   unless that is already the contract for the method.
+8. Add SDK command/store tests, renderer facade tests when applicable, and
+   sidecar handler/protocol tests.
+9. Link the new method from [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md) and the relevant domain doc.
 
 ## Add a Main-Only JSON-RPC Helper
 
@@ -105,21 +109,20 @@ Use this path when renderer does not need a general IPC channel, but Electron ma
 
 ## Payload Mapping Rules
 
-`createPayloadMapper(fieldMap)` supports:
+Preserve these payload guarantees:
 
-- direct source keys: `{ user_id: "userId" }`
-- function mappers: `{ conversation_id: ({ conversationId }) => conversationId ?? null }`
+- renderer-facing SDK command fields usually stay camelCase.
+- sidecar JSON-RPC method params stay snake_case.
+- non-object or malformed renderer payloads should fail at the SDK command
+  boundary rather than being silently coerced into sidecar params.
+- string payload values that cross into Python should be sanitized at the
+  owning SDK/store boundary when that method accepts user-authored text.
+- use fallback aliases only when both names are intentionally public and
+  tested.
 
-Preserve these mapper guarantees:
-
-- non-object renderer payloads normalize to `{}`.
-- mapped params include each declared target key.
-- string payload values are sanitized for known mojibake and lone surrogate issues before crossing into Python.
-- renderer-facing fields usually stay camelCase.
-- sidecar method params stay snake_case.
-- use fallback arrays only when both names are intentionally supported.
-
-Do not silently rename payload keys in only the renderer or only the mapper. If a key changes, update renderer caller, mapper, sidecar handler signature, tests, and docs together.
+Do not silently rename payload keys in only the renderer or only the SDK
+local-runtime caller. If a key changes, update renderer caller, SDK command,
+sidecar handler signature, tests, and docs together.
 
 ## Protocol and Readiness Rules
 
@@ -167,14 +170,14 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 
 | Symptom | Check first |
 | --- | --- |
-| Renderer says invalid invoke channel | `frontend/src/shared/ipcChannels.json`, preload channel injection, renderer `channels.ts` |
-| IPC handler runs but sidecar method not found | `COMPILED_RPC_HANDLER_DEFINITIONS`, `LocalBackend._initialize_methods`, method name spelling |
-| Sidecar returns `INVALID_PARAMS` | mapper target keys, handler signature, params object shape |
+| Renderer says invalid invoke channel | SDK command allowlist, preload channel injection, renderer facade call site |
+| SDK local-runtime call runs but sidecar method not found | SDK local-runtime method name, `LocalBackend._initialize_methods`, method name spelling |
+| Sidecar returns `INVALID_PARAMS` | SDK local-runtime params, handler signature, params object shape |
 | Request times out | sidecar readiness, long-running handler, timeout policy, stuck tool/browser/memory call |
 | Sidecar process exits and requests fail | stderr logs, runtime dependency warnings, packaged sidecar launch target |
 | JSON parse errors in main | Python stdout pollution, non-JSON output, partial/large response parsing |
 | Method works in source but fails packaged | runtime dependency packaging, `WINDIE_PACKAGED_APP`, feature-pack availability, Python path resolution |
-| Memory channel maps wrong user/conversation | camelCase-to-snake_case mapper, fallback keys, sidecar memory handler defaults |
+| Memory command maps wrong user/conversation | SDK local-runtime store params, fallback keys, sidecar memory handler defaults |
 | Tool result shape differs from renderer expectation | `ToolResult`, local tool runtime normalization, screenshot materialization wrapper |
 
 ## Validation Matrix
@@ -183,8 +186,8 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | --- | --- |
 | JSON-RPC protocol validation | `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py` |
 | LocalBackend method registry or handler | `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py` plus focused sidecar tests |
-| Memory RPC method or mapper | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` and `cd frontend && npm run test -- LocalRuntimeBridge.rpc` |
-| Electron bridge mapper | `cd frontend && npm run test -- LocalRuntimeBridge.rpc` |
+| Memory RPC method or SDK local-runtime caller | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` plus focused SDK local-runtime store tests |
+| Electron bridge handler | `cd frontend && npm run test -- LocalRuntimeBridge.rpc` |
 | Execute-tool bridge behavior | `cd frontend && npm run test -- LocalRuntimeBridge ToolExecution` plus focused sidecar tool tests |
 | Preload/renderer IPC channel addition | `cd frontend && npm run test -- PreloadIpcChannels IpcBridge` |
 | Sidecar process lifecycle/readiness | local-runtime bridge lifecycle tests and `tests/sidecar/test_runtime_shutdown.py` when shutdown changes |

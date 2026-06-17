@@ -51,7 +51,7 @@ Do not let every consumer implement its own alias parser.
 Current boundary examples:
 
 - Renderer transcript and settings calls use camelCase values such as `userId`, `conversationRef`, `messageIndex`, and `structuredPayload`.
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` maps those values into sidecar JSON-RPC params such as `user_id`, `conversation_ref`, `message_index`, and `structured_payload`.
+- SDK local-runtime store code maps those values into sidecar JSON-RPC params such as `user_id`, `conversation_ref`, `message_index`, and `structured_payload`.
 - Query websocket payloads are validated by `backend/src/api/schemas/incoming.py` as snake_case payload fields, including required `conversation_ref`.
 - Tool-result websocket payloads are validated as `request_id`, `success`, `data`, and `error`; bundle results use `bundle_id`, `status`, `step_results`, and optional capture fields.
 - Backend outgoing events may carry tool call payloads without the same names the sidecar executes. The renderer must preserve backend correlation keys instead of manufacturing replacement IDs.
@@ -104,7 +104,7 @@ sequenceDiagram
 | `request_id` | backend `tool-call` to SDK conversation/tool runtime, then SDK `tool-result` back to backend | may appear as transcript `correlation_id` or structured payload linkage | `backend/src/api/schemas/incoming.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | sidecar result appears in UI but backend loop does not continue |
 | `bundle_id` | backend `tool-bundle`, SDK bundle execution, backend `tool-bundle-result` | transcript bundle row plus step results | `backend/src/api/schemas/outgoing.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | bundle hangs, partial results are lost, or failure is not model-visible |
 | `tool_call_id` | provider-native assistant/tool history | backend history and rehydrate entries | `backend/src/agent/history`, `backend/src/llm/parser_types.py` | provider rejects replay or tool output is detached from assistant tool call |
-| `correlation_id` | SDK/display projection local key | transcript rows and tool output display | `packages/windie-sdk-js/src/index.ts`, `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` | visible transcript has orphan tool rows even when backend request IDs are valid |
+| `correlation_id` | SDK/display projection local key | transcript rows and tool output display | `packages/windie-sdk-js/src/index.ts`, SDK local-runtime store code | visible transcript has orphan tool rows even when backend request IDs are valid |
 
 Do not replace a missing backend `request_id` with a newly generated renderer `correlation_id`. That makes the UI look consistent while guaranteeing the backend waiter cannot match the result.
 

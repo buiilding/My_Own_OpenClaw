@@ -1,7 +1,7 @@
 ---
-summary: "Local-runtime JSON-RPC reference for SDK daemon-backed sidecar calls: request envelope, registered methods, removed search_memory text-query RPC behavior, bridge mapping, and timeout/error semantics."
+summary: "Local-runtime JSON-RPC reference for SDK daemon-backed sidecar calls: request envelope, registered methods, removed direct chat/memory IPC mappings, and timeout/error semantics."
 read_when:
-  - When adding/changing sidecar JSON-RPC methods or bridge payload mappers.
+  - When adding/changing sidecar JSON-RPC methods or SDK local-runtime callers.
   - When debugging execute_tool, removed search-memory text-query calls, embedding-backed memory search, or chat-event persistence failures between Electron and Python sidecar.
 title: "Local Runtime JSON-RPC Reference"
 ---
@@ -15,7 +15,6 @@ dispatches them through `LocalBackend.protocol.handle_request(...)`.
 ## Core Modules
 
 - Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- IPC->method mappers: `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - Sidecar daemon: `frontend/src/main/python/sidecar_daemon.py`
 - LocalBackend implementation: `frontend/src/main/python/local_backend.py`
 - Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
@@ -91,22 +90,21 @@ Direct bridge handlers:
 - scoped host channels and `executeToolForBackend(...)` -> `execute_tool`
 - `get-system-state` -> `get_system_state`
 
-Mapped bridge handlers:
+Removed direct chat/memory IPC mappings:
 
-- `store-chat-event` -> `store_chat_event`
-- `list-chat-conversations` -> `list_chat_conversations`
-- `search-chat-conversations` -> `search_chat_conversations`
-- `get-chat-events` -> `get_chat_events`
-- `delete-chat-conversation` -> `delete_chat_conversation`
-- `list-episodic-memories` -> `list_episodic_memories`
-- `list-semantic-memories` -> `list_semantic_memories`
-- `delete-episodic-memory` -> `delete_episodic_memory`
-- `delete-semantic-memory` -> `delete_semantic_memory`
-- `clear-local-memory` -> `clear_local_memory`
-- `clear-chat-history` -> `clear_chat_history`
-- `replace-chat-conversation` -> `replace_chat_conversation`
-- `rewrite-chat-conversation-after-event` -> `rewrite_chat_conversation_after_event`
-- `get-chat-conversation-revision` -> `get_chat_conversation_revision`
+- Electron main no longer registers direct `store-chat-event`,
+  `list-chat-conversations`, `search-chat-conversations`,
+  `get-chat-events`, `delete-chat-conversation`,
+  `list-episodic-memories`, `list-semantic-memories`,
+  `delete-episodic-memory`, `delete-semantic-memory`,
+  `clear-local-memory`, `clear-chat-history`,
+  `replace-chat-conversation`, `rewrite-chat-conversation-after-event`, or
+  `get-chat-conversation-revision` IPC handlers.
+- Renderer-visible chat and memory actions use SDK-shaped
+  `window.desktopAgent.invoke(...)` commands. The SDK local runtime store calls
+  sidecar JSON-RPC methods directly behind that public command boundary.
+- The deleted mapper module must not be reintroduced for compatibility aliases;
+  add a typed SDK command or a main-only helper at the owning boundary instead.
 
 Removed direct memory-search bridge:
 
@@ -137,4 +135,5 @@ retry rewrites from reporting an old preserved event revision.
 - invalid method or params return JSON-RPC errors
 - memory handlers return `{ success:false, error:"Memory store not initialized" }` when the memory runtime is unavailable
 - bridge timeouts are owned by `local_runtime_timeout_policy.cjs`
-- mapped responses are forwarded to renderer unchanged
+- SDK local-runtime responses are normalized by their SDK/main owner before
+  crossing renderer-facing command boundaries

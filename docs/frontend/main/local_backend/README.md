@@ -1,8 +1,8 @@
 ---
-summary: "Frontend Electron-main local-runtime docs sub-hub for SDK local-runtime host/status context, readiness, request correlation timeouts, and mapped JSON-RPC handler contracts."
+summary: "Frontend Electron-main local-runtime docs sub-hub for SDK local-runtime host/status context, readiness, request correlation timeouts, and scoped JSON-RPC handler contracts."
 read_when:
-  - When changing `frontend/src/main/sidecar/local_runtime*.cjs` request routing, readiness probes, or sidecar IPC handler registration.
-  - When debugging pending-request timeouts, stale readiness callbacks, or renderer invoke payload mapping drift.
+  - When changing `frontend/src/main/sidecar/local_runtime*.cjs` request routing, readiness probes, or scoped host IPC handler registration.
+  - When debugging pending-request timeouts, stale readiness callbacks, or SDK local-runtime payload drift.
 title: "Frontend Main Local-Runtime Docs Hub"
 ---
 
@@ -22,9 +22,9 @@ title: "Frontend Main Local-Runtime Docs Hub"
 | Task | Start doc |
 | --- | --- |
 | Change sidecar process startup, readiness, shutdown, status, request timeout, stdout/stderr, or packaged launch behavior | [Local-Runtime Process Lifecycle Change Workflow](process_lifecycle_change_workflow.md) |
-| Add or change a Python JSON-RPC method or payload mapper | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
+| Add or change a Python JSON-RPC method or SDK local-runtime caller | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
 | Debug sidecar lifecycle races or pending request correlation | [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md) |
-| Debug mapped invoke payload keys or sidecar method names | [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md) |
+| Debug scoped host payload keys or sidecar method names | [Local-Runtime RPC Handler Registry Reference](rpc_handler_registry_and_payload_mapper_reference.md) |
 
 ## Related Pages
 
@@ -37,7 +37,6 @@ title: "Frontend Main Local-Runtime Docs Hub"
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`

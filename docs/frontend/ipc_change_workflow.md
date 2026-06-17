@@ -21,13 +21,13 @@ flowchart LR
   Bridge --> Preload["preload.js allowlist"]
   Preload --> Main["ipcMain.handle/on owner"]
   Main --> MainHelper["Focused main helper module"]
-  MainHelper --> LocalRuntimeBridge["Optional local runtime bridge mapper"]
+  MainHelper --> LocalRuntimeBridge["Optional local runtime bridge helper"]
   LocalRuntimeBridge --> Sidecar["Python sidecar JSON-RPC method"]
   Main --> Broadcast["Optional webContents.send broadcaster"]
   Broadcast --> RendererListener["Renderer IpcBridge.on cleanup"]
 ```
 
-The shared channel registry is the naming source of truth, but it is not a handler registry. A channel is complete only when the registry, renderer caller/listener, preload allowlist, main-process registration, payload mapper, docs, and focused tests all agree.
+The shared channel registry is the naming source of truth, but it is not a handler registry. A channel is complete only when the registry, renderer caller/listener, preload allowlist, main-process registration, owner payload shaping, docs, and focused tests all agree.
 
 ## Source of Truth
 
@@ -38,7 +38,7 @@ The shared channel registry is the naming source of truth, but it is not a handl
 | Renderer constants | `frontend/src/renderer/infrastructure/ipc/channels.ts` | Typed channel constants derived from the shared JSON registry. |
 | Renderer wrapper | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | Typed `IpcBridge` helper used by renderer features and infrastructure. |
 | Main handler surface | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/*.cjs`, `frontend/src/main/*_ipc_runtime.cjs` | Registers handlers, backend relay, overlay channels, settings sync, memory, artifacts, permissions, lifecycle, and query events. |
-| Local runtime bridge | `frontend/src/main/sidecar/local_runtime*.cjs` | Maps invoke handlers to Python JSON-RPC where local execution is required. |
+| Local runtime bridge | `frontend/src/main/sidecar/local_runtime*.cjs` | Hosts scoped local tool/status IPC helpers; chat and memory persistence stay behind SDK local-runtime stores. |
 
 ## Fast Owner Map
 
@@ -48,7 +48,8 @@ The shared channel registry is the naming source of truth, but it is not a handl
 | Backend stream ingress or synthetic query events | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | renderer chat stream handlers, app status, transcript writer | stream/event consumer tests plus `IpcMainBridge.*` |
 | Overlay phase, chatbox, response overlay, screenshot prep | `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_*` | chat pill, response overlay | `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/IpcOverlayPhase*.test.cjs` |
 | Main-window controls and display inventory | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/surfaces/main_window_controls_handler.cjs`, `frontend/src/main/surfaces/display_query_handler.cjs` | dashboard shell, app root, settings display picker | `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/MainWindowControlsHandler.test.cjs` |
-| Local tool execution, memory, transcript storage | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` | tool execution service, transcript writer, memory panels | `tests/frontend/LocalRuntimeBridge*.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py`, related sidecar tests |
+| Local tool execution and local-runtime status | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` | tool execution service, browser controls, attachment reads, status panels | `tests/frontend/LocalRuntimeBridge*.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py`, related sidecar tests |
+| Conversation and memory persistence | SDK local-runtime store and renderer runtime facades | transcript writer, memory panels | SDK conversation/memory store tests plus related sidecar memory tests |
 | Artifact and image helpers | `frontend/src/main/ipc/ipc_artifact_fetch.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs` | message renderer, artifact fetch/upload bridge, image menus | `tests/frontend/IpcArtifactFetch.test.cjs`, `tests/frontend/IpcClipboardImageHandler.test.cjs`, `tests/frontend/IpcImageContextMenuHandler.test.cjs` |
 | Wakeword/audio bridge | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | voice hooks, wakeword supervisor, Python wakeword subprocess | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/voice/WakewordDetectionHook.test.ts` |
 | Frontend config, model/settings sync, OAuth compatibility | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_frontend_config.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/app/openai_codex_oauth.cjs` | app config provider, settings tabs, model settings | `tests/frontend/AppConfigProvider*.test.tsx`, `tests/frontend/IpcSettingsSync.test.cjs`, settings tests |
@@ -84,7 +85,7 @@ Prefer one focused channel over a generic "do-anything" channel. The preload all
 3. Add or update renderer helper code so feature components call `IpcBridge` or a domain service instead of raw `window.ipc`.
 4. Register the main handler or broadcaster in the owning main-process module from the fast owner map.
 5. Return a structured payload from invoke handlers, usually `{ success, ... }` or a domain-specific object already used by nearby handlers. Avoid returning bare booleans for new behavior.
-6. If the channel reaches Python, add or update mapper code in `local_runtime_rpc_mappers.cjs` or the local-runtime bridge module that owns the behavior.
+6. If the channel reaches Python, prefer an SDK local-runtime command/store path; only add Electron main bridge code for scoped host channels that truly need Electron authority.
 7. Read [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) before changing sidecar method names, handler params, timeouts, readiness, or JSON-RPC response envelopes.
 8. Add tests for registry/preload parity plus the handler, broadcaster, mapper, or renderer consumer behavior.
 9. Update docs for the affected domain, not only this workflow.
@@ -95,12 +96,12 @@ Prefer one focused channel over a generic "do-anything" channel. The preload all
 | --- | --- |
 | Keep channel payloads plain JSON-compatible values. | Payloads may cross sandbox, Electron, tests, and JSON-RPC boundaries. |
 | Normalize at the owner boundary, not in every caller. | Callers should not duplicate validation or shape coercion. |
-| Name fields by local convention at each boundary. | Renderer can use camelCase; sidecar JSON-RPC mappers convert to snake_case where the Python method expects it. |
+| Name fields by local convention at each boundary. | Renderer can use camelCase; SDK local-runtime callers convert to snake_case where the Python method expects it. |
 | Include explicit ids for replay, correlation, or stale-event filtering. | IPC and websocket events can arrive after a renderer state transition. |
 | Strip privileged Electron event objects before renderer callbacks. | `preload.js` intentionally passes only payload args to `on` and `once` callbacks. |
 | Do not leak secrets through IPC payloads or logs. | IPC is local, but renderer state and test logs are easier to expose than main-process internals. |
 
-For sidecar-mapped invoke channels, inspect `COMPILED_RPC_HANDLER_DEFINITIONS` in `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`. The mapper should be the only place that translates renderer field names into Python JSON-RPC params. If more than one caller performs the same translation, move that normalization into the mapper or a focused helper and test it there.
+Do not add direct sidecar-named IPC channels for chat or memory compatibility. Use SDK-shaped `windie:invoke` commands and keep the renderer-to-sidecar translation behind the SDK local-runtime store or a focused main-only helper.
 
 ## Change or Remove a Channel
 
@@ -147,7 +148,7 @@ Before committing:
 | Handler never runs | Missing `ipcMain.handle`/`ipcMain.on` registration or wrong channel family. |
 | Event listener gets stale data | Main broadcaster, replay state, or renderer cleanup leak. |
 | Packaged app differs from dev | Main process channel registry injection or preload path/build packaging. |
-| Sidecar tool call returns unexpected payload | Local-runtime bridge mapper or Python JSON-RPC handler. |
+| Sidecar tool call returns unexpected payload | Local-runtime bridge helper, SDK local-runtime caller, or Python JSON-RPC handler. |
 | Renderer receives Electron event-like data | `preload.js` listener wrapper is bypassed or a custom bridge leaked privileged fields. |
 | Multiple duplicate stream/status events after navigation | Renderer listener cleanup is missing or a provider re-registers listeners without unmount cleanup. |
 | Invoke hangs or times out only for local tools | Local-runtime readiness, request correlation, timeout policy, or sidecar JSON-RPC response shape. |
@@ -160,7 +161,7 @@ Before committing:
 | --- | --- | --- |
 | Registry/preload mismatch | Inspect `frontend/src/shared/ipcChannels.json`, `frontend/src/renderer/infrastructure/ipc/channels.ts`, and `tests/frontend/PreloadIpcChannels.test.cjs`. | [Preload Allowlist and Channel-Constant Parity Reference](contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md) |
 | Missing main handler | Search `ipcMain.handle('<channel>'` or `ipcMain.on('<channel>'`; confirm registration module is wired by `index.cjs` or `ipc.cjs`. | [Main-Process IPC Handler Ownership and RPC Mapper Reference](contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md) |
-| Bad sidecar payload | Inspect `local_runtime_rpc_mappers.cjs`, method names, mapped keys, and sidecar handler params. | [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) |
+| Bad sidecar payload | Inspect the SDK local-runtime caller or scoped main helper, method names, mapped keys, and sidecar handler params. | [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) |
 | Backend relay drift | Inspect typed chat IPC, remaining non-chat `to-backend` send path, settings sync gate, query payload builder, and websocket send. | [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) |
 | Renderer stale event | Inspect `IpcBridge.on` cleanup, stream turn refs, transcript session refs, and replay state. | [Renderer State Change Workflow](renderer/renderer_state_change_workflow.md) |
 | Security concern | Inspect preload exposure, credential handling, permission gates, and sidecar authority. | [Security Change Playbook](../security/security_change_playbook.md) |

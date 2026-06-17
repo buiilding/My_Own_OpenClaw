@@ -102,7 +102,6 @@ Primary files:
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_runtime_launch_options.cjs`
 - `frontend/src/main/sidecar/local_runtime_supervisor.cjs`
-- `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_runtime_utils.cjs`
@@ -114,8 +113,9 @@ Functionality:
 - Builds desktop launch facts and host context for the SDK local runtime provider.
 - Wakes/resolves the SDK-owned sidecar daemon and publishes renderer-visible
   `local-runtime-status` snapshots.
-- Registers mapped helper IPC handlers for memory/transcript/system APIs and
-  routes them through SDK local-runtime `/rpc`.
+- Registers scoped host IPC handlers for attachment, browser, screenshot, and
+  system-state helpers, and routes them through SDK local-runtime `/rpc` when
+  needed.
 - Executes local tools through SDK `executeTool(...)` while preserving
   Electron-only screenshot, artifact, display, and window-visibility adapters.
 - Keeps Python `LocalBackend` method execution inside the sidecar daemon.

@@ -44,11 +44,12 @@ Sidecar-facing IPC channels are documented in [IPC Channel and Handler Reference
 
 Common local channels:
 
-- `execute-tool`: run a sidecar executable tool
+- SDK local tool execution: runs sidecar executable tools through the SDK local
+  runtime rather than a renderer-callable `execute-tool` IPC channel
 - `get-system-state`: collect local OS/window/runtime state
-- `search-chat-conversations`: query local chat-event history
-- `store-chat-event` and list/delete memory channels are local-runtime
-  implementation details, not renderer-facing user command APIs
+- conversation and memory actions use SDK-shaped commands such as
+  `conversations.search` and `memories.list`; direct sidecar-named IPC channels
+  are removed
 
 Renderer code should call the typed IPC bridge instead of raw Electron APIs.
 
