@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated Electron main lifecycle docs to present local-runtime bridge APIs as canonical while documenting local-backend names as compatibility aliases.
+
 - Promoted the Python SDK local runtime HTTP client to `AgentLocalRuntimeHttpClient` while keeping `SidecarDaemonHttpClient` as a compatibility alias.
 
 - frontend/main: make local runtime bridge functions canonical while preserving local-backend aliases.

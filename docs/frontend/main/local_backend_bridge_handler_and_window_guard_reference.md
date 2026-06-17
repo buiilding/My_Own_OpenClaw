@@ -3,14 +3,16 @@ read_when:
   - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
   - When tracing local-backend issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.
   - When resolving removed `local_backend_bridge.getSystemState` export references.
-title: "Local Backend Bridge Overview and Window Guard Index"
+title: "Local Runtime Bridge Overview and Window Guard Index"
 ---
 
-# Local Backend Bridge Overview and Window Guard Index
+# Local Runtime Bridge Overview and Window Guard Index
 
 ## Scope
 
-This page is the entrypoint for Electron-main local-backend bridge behavior. Detailed implementation docs now live under the dedicated local-backend subfolder.
+This page is the entrypoint for Electron-main local-runtime bridge behavior.
+Detailed implementation docs now live under the dedicated local-backend
+subfolder because the file names remain compatibility names.
 
 ## Local-Backend Docs (Detailed)
 
@@ -32,17 +34,18 @@ This page is the entrypoint for Electron-main local-backend bridge behavior. Det
 
 Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 
-1. spawn/monitor Python sidecar process
-2. gate request sending on readiness (`isPythonReady`)
-3. map renderer IPC channels to sidecar JSON-RPC methods
+1. assemble desktop launch options and resolve the SDK local runtime provider
+2. publish renderer-visible readiness through `local-backend-status`
+3. map renderer IPC channels to sidecar JSON-RPC methods through the SDK runtime
 4. normalize error payloads for renderer callers
-5. route screenshot tool calls through `withHiddenWindowForScreenshot(...)`, which currently runs the sidecar screenshot task directly; Linux hide/show ownership lives in SDK/main surface prep and renderer attachment capture orchestration
+5. route screenshot tool calls through host-owned display bounds and artifact materialization; Linux hide/show ownership lives in SDK/main surface prep and renderer attachment capture orchestration
 
 ## Removed System-State Direct Export
 
 `local_backend_bridge.cjs` no longer exports `getSystemState(fields)`.
 System-state access is the `get-system-state` IPC handler registered by
-`initializeLocalBackendBridge(...)`; the focused behavior reference is
+`initializeLocalRuntimeBridge(...)`; `initializeLocalBackendBridge(...)` remains
+a compatibility alias. The focused behavior reference is
 [System-State Collection and Removed getSystemState Bridge Export Reference](../sidecar/system_state/system_state_collection_and_platform_adapter_reference.md).
 
 ## Canonical Modules

@@ -35,7 +35,7 @@ title: "SDK-Owned Sidecar Lifecycle Reference"
 
 Entrypoint:
 
-- `initializeLocalBackendBridge(getWindows)`
+- `initializeLocalRuntimeBridge(getWindows)`
 
 SDK daemon startup sequence:
 
@@ -83,11 +83,14 @@ On SDK provider failure:
 3. status remains not ready until a future bridge initialization or SDK wake-up
    resolves the provider successfully
 
-`stopLocalBackend()` shutdown path:
+`stopLocalRuntime()` shutdown path:
 
 - switches backend tool execution to a stopped executor
 - calls `sdkLocalRuntime.shutdown()` when a runtime has been resolved
 - clears the SDK runtime handle and local status snapshot
+
+`initializeLocalBackendBridge(...)` and `stopLocalBackend()` remain
+compatibility aliases for older bridge imports.
 
 ## Window Handling for Linux Screenshot Tool
 

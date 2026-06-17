@@ -10,7 +10,7 @@ title: "Frontend Main Local-Backend Docs Hub"
 
 ## Deep Pages
 
-- [Local-Backend Process Lifecycle Change Workflow](process_lifecycle_change_workflow.md)
+- [Local Runtime Process Lifecycle Change Workflow](process_lifecycle_change_workflow.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)

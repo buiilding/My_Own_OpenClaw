@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main local-runtime lifecycle docs
+
+- Finding: active Electron-main lifecycle docs still presented
+  `initializeLocalBackendBridge(...)` and `stopLocalBackend()` as the primary
+  bridge API even though main now calls the canonical local-runtime functions.
+- Change: reworded lifecycle, readiness, RPC-handler, and bridge overview docs
+  to use `initializeLocalRuntimeBridge(...)` and `stopLocalRuntime()` as the
+  main path, leaving the backend-named functions documented only as
+  compatibility aliases.
+- Validation: docs listing, focused docs index test, bridge function wording
+  scan, and diff check.
+- Compatibility: no migration required. The legacy exported names remain
+  aliases for older imports.
+
 ### 2026-06-17 Python SDK local-runtime HTTP client alias
 
 - Finding: the Python SDK still defined and constructed the sidecar daemon HTTP

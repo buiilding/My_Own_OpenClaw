@@ -3,10 +3,10 @@ summary: "Workflow for changing WindieOS SDK-owned sidecar daemon lifecycle, rea
 read_when:
   - When changing desktop sidecar daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged sidecar launch options.
   - When debugging sidecar startup failures, `local-backend-status` drift, browser controls waiting forever, SDK sidecar `/rpc` failures, or packaged app sidecar launch failures.
-title: "SDK-Owned Sidecar Lifecycle Change Workflow"
+title: "SDK-Owned Local Runtime Lifecycle Change Workflow"
 ---
 
-# Local-Backend Process Lifecycle Change Workflow
+# Local Runtime Process Lifecycle Change Workflow
 
 Use this workflow when desktop needs to start/reuse the Python sidecar daemon,
 report readiness, or route Electron helper calls through the SDK local runtime.
@@ -17,7 +17,7 @@ for method registration and payload-shape changes after the daemon is reachable.
 
 ```mermaid
 flowchart LR
-  AppBootstrap["Electron app bootstrap"] --> BridgeInit["initializeLocalBackendBridge"]
+  AppBootstrap["Electron app bootstrap"] --> BridgeInit["initializeLocalRuntimeBridge"]
   BridgeInit --> LaunchOptions["sdk_sidecar_launch_options"]
   LaunchOptions --> SDKProvider["SDK local runtime provider"]
   SDKProvider --> Daemon["sidecar_daemon.py"]
@@ -60,14 +60,14 @@ readiness/status broadcasts.
 
 ## Lifecycle Contract
 
-1. `initializeLocalBackendBridge(...)` resolves windows and creates an SDK local runtime provider from desktop launch options.
+1. `initializeLocalRuntimeBridge(...)` resolves windows and creates an SDK local runtime provider from desktop launch options.
 2. The bridge must not spawn `local_backend.py` as a standalone Electron-owned process.
 3. Launch target resolution must prefer packaged binaries/runtime paths in packaged mode and source Python paths in development mode.
 4. Startup env must preserve `PYTHONUNBUFFERED=1`, `WINDIE_BACKEND_HTTP_URL`, `WINDIE_BACKEND_AUTH_STATE_PATH` when provided, `WINDIE_PERMISSION_STATE_PATH` when provided, `WINDIE_PACKAGED_APP`, `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`, and packaged Python isolation variables when applicable.
 5. The `get-local-backend-status` bootstrap read is a readiness probe: when a valid SDK local runtime provider exists and no runtime client has been resolved yet, it wakes the SDK local runtime and then returns the current status payload.
 6. A resolved SDK local runtime provider emits `local-backend-status` with `ready:true` and the full normalized status payload.
 7. SDK provider failures keep `ready:false`, publish `status:"error"` with a short sanitized error, and helper calls fail closed.
-8. `stopLocalBackend()` shuts down the resolved SDK runtime when present and clears the local status snapshot.
+8. `stopLocalRuntime()` shuts down the resolved SDK runtime when present and clears the local status snapshot. `stopLocalBackend()` remains a compatibility alias for older callers.
 
 ## Status Payload Contract
 
