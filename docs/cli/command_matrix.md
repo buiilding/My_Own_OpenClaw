@@ -52,7 +52,7 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> restart desktop` | Restart the Electron development app. |
 | `<windie> logs backend` | Tail local or configured backend logs. |
 | `<windie> logs backend --remote --host windie-prod` | Tail remote backend logs through SSH. |
-| `<windie> logs frontend` | Tail `.windie/logs/frontend.log`, the captured Electron main/frontend desktop stream. |
+| `<windie> logs frontend` | Tail `.desktop-agent/logs/frontend.log`, the captured Electron main/frontend desktop stream. |
 | `<windie> logs frontend --tail 500 --no-follow` | Print the last 500 captured frontend log lines and exit. |
 | `<windie> logs vite` | Tail the captured Vite dev-server log stream. |
 | `<windie> logs main` | Tail Electron main-process logs. |

@@ -35,14 +35,14 @@ LOG_LEVEL=DEBUG bin/windie test backend tests/backend/test_websocket_route.py -q
 
 ## Electron Main Logs
 
-Electron main uses `console.log`, `console.warn`, and `console.error`. The launcher in `frontend/scripts/electron-launcher.cjs` forwards Electron stdout, filters a small set of known Chromium stderr warnings, and appends the forwarded stream to `.windie/logs/frontend.log`.
+Electron main uses `console.log`, `console.warn`, and `console.error`. The launcher in `frontend/scripts/electron-launcher.cjs` forwards Electron stdout, filters a small set of known Chromium stderr warnings, and appends the forwarded stream to `.desktop-agent/logs/frontend.log`.
 Main-process console mirroring must not crash the app during shutdown: closed
 stdout/stderr transport errors such as `EPIPE` are treated as terminal pipe
 teardown both when console writes throw synchronously and when stdout/stderr
-emit asynchronous stream errors. The layer-owned `.windie/logs/main.log` write
+emit asynchronous stream errors. The layer-owned `.desktop-agent/logs/main.log` write
 remains the durable record.
 
-Treat `.windie/logs/frontend.log` as an aggregate launcher stream, not as the
+Treat `.desktop-agent/logs/frontend.log` as an aggregate launcher stream, not as the
 owner for every frontend-layer event. Prefer the layer-owned files and app
 diagnostic paths when proving what a runtime emitted; the aggregate stream is
 useful for quick startup context, but it should not be parsed to reassign events
@@ -69,6 +69,11 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 WINDIE_FRONTEND_LOG_FILE=/tmp/windie-frontend.log bin/windie start desktop
 npm --prefix frontend run test:ghost-cursor
 ```
+
+The default `.desktop-agent/logs/*` directory is repo-local desktop-agent
+scratch space. Set the `WINDIE_<LAYER>_LOG_FILE` or
+`WINDIE_RENDERER_VERBOSE_LOG_FILE` overrides when a run must keep writing to a
+legacy or externally managed path.
 
 Important main-process flags:
 

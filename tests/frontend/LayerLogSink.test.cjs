@@ -17,7 +17,9 @@ describe('layer_log_sink', () => {
   test('resolves layer log files and environment overrides', () => {
     const repoRoot = path.resolve(__dirname, '../..');
 
-    expect(resolveLayerLogFile('main', {})).toBe(path.join(repoRoot, '.windie', 'logs', 'main.log'));
+    expect(resolveLayerLogFile('main', {})).toBe(
+      path.join(repoRoot, '.desktop-agent', 'logs', 'main.log'),
+    );
     expect(resolveLayerLogFile('renderer', { WINDIE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
       .toBe('/tmp/renderer.log');
     expect(resolveLayerLogFile('vite', { WINDIE_VITE_LOG_FILE: 'logs/vite.log' }))

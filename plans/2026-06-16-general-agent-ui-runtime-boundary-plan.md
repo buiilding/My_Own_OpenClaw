@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main layer log default path
+
+- Finding: generic Electron main layer-log resolution still defaulted to the
+  product-specific `.windie/logs` repo directory even though the log sink is a
+  desktop-agent host utility.
+- Change: changed the default layer log directory to `.desktop-agent/logs`,
+  aligned launcher/CLI/log-sink tests, and updated developer docs to describe
+  the generic default plus existing environment overrides for legacy or
+  externally managed paths.
+- Validation: focused frontend log sink, launcher, and CLI tests plus docs
+  listing and diff checks.
+- Compatibility: no automatic migration. Existing `WINDIE_<LAYER>_LOG_FILE`
+  and `WINDIE_RENDERER_VERBOSE_LOG_FILE` overrides can continue to point at
+  `.windie/logs` or any other managed path; log payloads and CLI commands are
+  unchanged.
+
 ### 2026-06-17 main sidecar bridge console labels
 
 - Finding: Electron main sidecar bridge modules still emitted

@@ -222,7 +222,7 @@ describe('windie CLI', () => {
   });
 
   test('resolves frontend log tail arguments', () => {
-    const defaultLog = path.join(repoRoot, '.windie', 'logs', 'frontend.log');
+    const defaultLog = path.join(repoRoot, '.desktop-agent', 'logs', 'frontend.log');
     expect(resolveFrontendLogFile({})).toBe(defaultLog);
     expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '/tmp/frontend.log' }))
       .toBe('/tmp/frontend.log');
@@ -243,7 +243,7 @@ describe('windie CLI', () => {
   });
 
   test('resolves layer-owned log tail arguments', () => {
-    const logsDir = path.join(repoRoot, '.windie', 'logs');
+    const logsDir = path.join(repoRoot, '.desktop-agent', 'logs');
     expect(normalizeWindieLogTarget('desktop')).toBe('main');
     expect(resolveWindieLogFile('vite', {})).toBe(path.join(logsDir, 'vite.log'));
     expect(resolveWindieLogFile('main', {})).toBe(path.join(logsDir, 'main.log'));
