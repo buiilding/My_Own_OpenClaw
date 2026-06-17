@@ -22,7 +22,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).toContain('client.wakeUp({');
     expect(ipcSource).toContain('agent.conversation({');
     expect(ipcSource).toContain('localToolLifecycle');
-    expect(ipcSource).toContain('windieAgentWebSocketImpl');
+    expect(ipcSource).toContain('agentWebSocketImpl');
+    expect(ipcSource).not.toContain('windieAgentWebSocketImpl');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(ipcSource).not.toContain('WindieAgent.startDesktop');
     expect(ipcSource).not.toContain("require('./windie_agent_host.cjs')");

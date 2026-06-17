@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `39c8b2a2e` (`refactor(main): genericize local runtime bridge errors`)
+- Latest inspected plan checkpoint: `d8987539d` (`refactor(backend): require current venus dependencies`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +244,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: backend connection, wake-up success, and query-send failure logs now say "Agent SDK runtime".
 - Change: the main SDK runtime boundary test now prevents those old branded main-host log strings from returning.
 
+### 2026-06-16 Main IPC SDK Customer Identifier Slice
+
+- Worktree recovery: unrelated backend vision/tool-execution edits were present while this slice was in progress and were preserved outside the main IPC commit.
+- Finding: main IPC had already moved behavior behind generic SDK command boundaries, but its local client/agent lifecycle variables and exported local-runtime resolver helpers still used Windie-specific names.
+- Decision: rename only Electron-main-local identifiers to generic agent/client terms while preserving public `WindieClient`/`WindieAgent` SDK APIs, the `windie:*` IPC wire contract, backend endpoints, and host skin identity.
+- Change: main IPC now uses `agentClient`, `activeAgent`, `pendingAgentStartPromise`, `agentWebSocketImpl`, `createDesktopAgentClient`, `getAgentClient`, `startAgent`, `ensureAgent`, `getKnownAgentLocalRuntime`, and `ensureAgentLocalRuntime`.
+- Change: the SDK command helper diagnostic state now receives a generic `agent` readiness field.
+- Change: main IPC boundary tests now assert the generic local names and prevent old Windie-specific local identifiers from returning.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -270,6 +279,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Main-private log, renderer-console, collapse, and screenshot-suppression markers use generic desktop-agent naming.
 - [x] Main local-runtime bridge fallback wording is generic while preserving SDK-owned runtime lifecycle.
 - [x] Main IPC SDK runtime logs use generic Agent SDK wording while preserving public SDK APIs.
+- [x] Main IPC SDK customer internals use generic agent/client names while preserving public SDK APIs and wire contracts.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -344,6 +354,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "Windie SDK local runtime|Agent SDK local runtime" frontend/src/main/sidecar tests/frontend docs -g "*.cjs" -g "*.js" -g "*.ts" -g "*.md"` found the new generic bridge/test wording and the old wording only in the main host boundary assertion that bans it.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/IpcQueryRuntime.test.cjs` passed.
 - `rg -n "Windie SDK runtime|WindieClient wakeUp runtime started|Failed to send query through WindieAgent|Agent SDK runtime|Agent SDK wakeUp" frontend/src/main/ipc.cjs tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs docs/plans/2026-06-16-general-agent-ui-runtime-boundary-report.md` found the new generic main IPC wording and the old wording only in boundary assertions/report history.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs ../tests/frontend/ModularRefactorCompletionBoundary.test.ts ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcMainReplayCommands.test.cjs` passed.
+- `rg -n "windieAgent|windieClient|pendingWindieAgentStartPromise|windieAgentWebSocketImpl|createDesktopWindieClient|getWindieClient|startWindieAgent|ensureWindieAgent|getKnownWindieLocalRuntime|ensureWindieLocalRuntime|handleWindieAgent" frontend/src/main tests/frontend -g "*.cjs" -g "*.ts"` found old local names only in boundary assertions that ban them.
 
 ## Remaining Findings
 
@@ -359,6 +371,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Main IPC connection, wake-up, and query-send fallback logs now describe the
   generic Agent SDK runtime while preserving public `WindieClient`/`WindieAgent`
   SDK API names.
+- Main IPC local SDK customer state now uses generic agent/client identifiers,
+  while public SDK API names and `windie:*` wire channels remain unchanged.
 - Dashboard recent-chat retry state no longer matches sidecar daemon wording in feature utilities; the desktop conversation library facade owns runtime-specific transient metadata-list error classification.
 - Main Electron adapter fallback errors for sidecar launch and artifact-image trust are generic outside the host skin.
 - Main's strict SDK command allowlist now exposes generic internal helper/dependency names (`handleAgentSdkInvoke`, `buildAgentSdkCommandHandlers`, `ensureAgent`) while keeping the `windie:invoke` IPC channel as the existing wire contract.

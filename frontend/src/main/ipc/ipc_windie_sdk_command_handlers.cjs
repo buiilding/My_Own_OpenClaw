@@ -250,7 +250,7 @@ function buildAgentSdkCommandHandlers({
           data: {
             hasUserId: Boolean(normalizeOptionalString(payload.userId || payload.user_id)),
             backendConnected: Boolean(deps.getState().isConnected),
-            sidecarReady: Boolean(deps.getState().windieAgent),
+            sidecarReady: Boolean(deps.getState().agent),
           },
           error,
         });

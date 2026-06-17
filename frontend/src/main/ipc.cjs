@@ -195,12 +195,12 @@ let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
 let localToolLifecycle = null;
 let syncSdkLiveTurnSurfaceIntent = null;
-let windieAgentWebSocketImpl = null;
+let agentWebSocketImpl = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
-let windieClient = null;
-let windieAgent = null;
-let pendingWindieAgentStartPromise = null;
+let agentClient = null;
+let activeAgent = null;
+let pendingAgentStartPromise = null;
 let pendingStartupMcpRefreshPromise = null;
 let latestCurrentTurnProjection = null;
 let latestPendingTurn = null;
@@ -601,7 +601,7 @@ function resolveWorkspacePathForAgent(payload = {}) {
   );
 }
 
-function handleWindieAgentConnection(event = {}) {
+function handleAgentConnection(event = {}) {
   if (event.type === 'open') {
     const handshakeUserId = event.handshake && typeof event.handshake.user_id === 'string'
       ? event.handshake.user_id
@@ -646,7 +646,7 @@ function handleWindieAgentConnection(event = {}) {
   }
 }
 
-function handleWindieAgentBackendFallback(endpointPayload = {}) {
+function handleAgentBackendFallback(endpointPayload = {}) {
   const candidates = backendEndpointState.getCandidates();
   const fallbackIndex = candidates.findIndex(candidate => (
     candidate.wsUrl === endpointPayload.wsUrl
@@ -736,7 +736,7 @@ function buildDesktopAutoSidecarOptionsForAgent() {
       httpUrl: backendEndpointState.getHttpUrl(),
     },
     copy: mainHostSkin.bundledRuntime,
-    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
+    ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
   });
   if (plan.ok !== true) {
     throw new Error(plan.error || 'Desktop sidecar daemon launch is unavailable.');
@@ -750,7 +750,7 @@ function buildDesktopLocalRuntimeOptions() {
     : { autoSidecar: buildDesktopAutoSidecarOptionsForAgent() };
 }
 
-function createDesktopWindieClient() {
+function createDesktopAgentClient() {
   logMainRuntime(`[Main][SDK] creating_client backend=${backendEndpointState.getHttpUrl()}`);
   return new WindieClient({
     backendUrl: backendEndpointState.getHttpUrl(),
@@ -762,26 +762,26 @@ function createDesktopWindieClient() {
     reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
     idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
-    ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
+    ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
     ...buildDesktopLocalRuntimeOptions(),
-    onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
-    onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
-    onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
-    onBackendHandshakeError: error => handleWindieAgentConnection({ type: 'handshake-error', error }),
-    onBackendMessageError: error => handleWindieAgentConnection({ type: 'message-error', error }),
+    onBackendOpen: payload => handleAgentConnection({ type: 'open', ...payload }),
+    onBackendClose: payload => handleAgentConnection({ type: 'close', ...payload }),
+    onBackendError: payload => handleAgentConnection({ type: 'error', ...payload }),
+    onBackendHandshakeError: error => handleAgentConnection({ type: 'handshake-error', error }),
+    onBackendMessageError: error => handleAgentConnection({ type: 'message-error', error }),
     onBackendSend: type => {
-      windieAgent?.noteBackendTraffic?.(`send:${type}`);
+      activeAgent?.noteBackendTraffic?.(`send:${type}`);
     },
-    onBackendFallback: endpoint => handleWindieAgentBackendFallback(endpoint),
+    onBackendFallback: endpoint => handleAgentBackendFallback(endpoint),
   });
 }
 
-function getWindieClient() {
-  if (!windieClient) {
+function getAgentClient() {
+  if (!agentClient) {
     logMainRuntime('[Main][SDK] client_initialized');
-    windieClient = createDesktopWindieClient();
+    agentClient = createDesktopAgentClient();
   }
-  return windieClient;
+  return agentClient;
 }
 
 function createDirectWakeUpAgentAdapter({
@@ -1131,10 +1131,10 @@ function createDirectWakeUpAgentAdapter({
   };
 }
 
-async function startWindieAgent({ reason = 'request', workspacePath = null } = {}) {
+async function startAgent({ reason = 'request', workspacePath = null } = {}) {
   await ensureInstallAuthState();
   const resolvedWorkspacePath = workspacePath || resolveWorkspacePathForAgent() || undefined;
-  const client = getWindieClient();
+  const client = getAgentClient();
   const agent = await client.wakeUp({
     installAuth: buildDesktopInstallAuth(),
     name: mainHostSkin.identity.sdkAgentName,
@@ -1161,42 +1161,42 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
   return adapter;
 }
 
-async function ensureWindieAgent({ reason = 'request', workspacePath = null } = {}) {
-  if (windieAgent) {
-    return windieAgent;
+async function ensureAgent({ reason = 'request', workspacePath = null } = {}) {
+  if (activeAgent) {
+    return activeAgent;
   }
-  if (!pendingWindieAgentStartPromise) {
-    pendingWindieAgentStartPromise = startWindieAgent({
+  if (!pendingAgentStartPromise) {
+    pendingAgentStartPromise = startAgent({
       reason,
       workspacePath,
     })
       .then((agent) => {
-        windieAgent = agent;
+        activeAgent = agent;
         return agent;
       })
       .finally(() => {
-        pendingWindieAgentStartPromise = null;
+        pendingAgentStartPromise = null;
       });
   }
-  return pendingWindieAgentStartPromise;
+  return pendingAgentStartPromise;
 }
 
 function syncBackendIdleDisconnectTimer(reason = 'idle-sync') {
-  windieAgent?.syncBackendIdleTimer(reason);
+  activeAgent?.syncBackendIdleTimer(reason);
 }
 
 function noteBackendTraffic(reason = 'traffic') {
-  windieAgent?.noteBackendTraffic(reason);
+  activeAgent?.noteBackendTraffic(reason);
 }
 
-function getKnownWindieLocalRuntime() {
-  return windieClient?.getKnownLocalRuntime?.() || windieAgent?.localRuntime || null;
+function getKnownAgentLocalRuntime() {
+  return agentClient?.getKnownLocalRuntime?.() || activeAgent?.localRuntime || null;
 }
 
-async function ensureWindieLocalRuntime({ reason = 'local-runtime' } = {}) {
+async function ensureAgentLocalRuntime({ reason = 'local-runtime' } = {}) {
   logMainRuntime(`[Main][SDK] local_runtime_ensure_start reason=${reason}`);
   try {
-    const runtime = await getWindieClient().localRuntime({ reason });
+    const runtime = await getAgentClient().localRuntime({ reason });
     logMainRuntime(`[Main][SDK] local_runtime_ready reason=${reason}`);
     return runtime;
   } catch (error) {
@@ -1206,11 +1206,11 @@ async function ensureWindieLocalRuntime({ reason = 'local-runtime' } = {}) {
 }
 
 function isBackendRuntimeConnected() {
-  return isConnected && Boolean(windieAgent?.isConnected());
+  return isConnected && Boolean(activeAgent?.isConnected());
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
-  const agent = await ensureWindieAgent({
+  const agent = await ensureAgent({
     reason,
     conversationRef: currentConversationRef,
   });
@@ -1224,7 +1224,7 @@ async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_C
 async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
   const config = getFrontendConfigForMcpRegistry();
   if (process.env.NODE_ENV !== 'test') {
-    const agent = await ensureWindieAgent({ reason });
+    const agent = await ensureAgent({ reason });
     if (typeof agent.refreshMcpServers === 'function') {
       return agent.refreshMcpServers({ config });
     }
@@ -1455,7 +1455,7 @@ function handleAgentBackendEvent(rendererData) {
 
 function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
   isConnected = false;
-  windieAgent?.markInferenceContextsStale?.();
+  activeAgent?.markInferenceContextsStale?.();
   resetSettingsSyncState();
   const activePhase = responseOverlayPhaseState.getPhase();
   const hadInterruptedQuery = Boolean(
@@ -1509,16 +1509,16 @@ function shutdownIpcForTests() {
   setGlobalAgentStopShortcutAccelerator = null;
   localToolLifecycle = null;
   syncSdkLiveTurnSurfaceIntent = null;
-  windieAgentWebSocketImpl = null;
+  agentWebSocketImpl = null;
   pendingInstallAuthStatePromise = null;
   isConnected = false;
-  pendingWindieAgentStartPromise = null;
+  pendingAgentStartPromise = null;
   pendingStartupMcpRefreshPromise = null;
   latestPendingTurn = null;
-  void windieClient?.shutdownLocalRuntime?.();
-  windieClient = null;
-  windieAgent?.close();
-  windieAgent = null;
+  void agentClient?.shutdownLocalRuntime?.();
+  agentClient = null;
+  activeAgent?.close();
+  activeAgent = null;
   desktopAutoSidecarLaunchConfig = null;
 }
 
@@ -1546,7 +1546,7 @@ function initializeIpc(win, options = {}) {
   syncSdkLiveTurnSurfaceIntent = typeof options.syncSdkLiveTurnSurfaceIntent === 'function'
     ? options.syncSdkLiveTurnSurfaceIntent
     : null;
-  windieAgentWebSocketImpl = typeof options.WebSocketImpl === 'function'
+  agentWebSocketImpl = typeof options.WebSocketImpl === 'function'
     ? options.WebSocketImpl
     : null;
   desktopAutoSidecarLaunchConfig = {
@@ -1619,11 +1619,11 @@ function initializeIpc(win, options = {}) {
       }),
       resolveLocalRuntime: process.env.NODE_ENV === 'test'
         ? null
-        : async () => (await ensureWindieAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
+        : async () => (await ensureAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
       clientInfo: mainHostSkin.identity.mcpClientInfo,
     });
     if (result?.success === true && process.env.NODE_ENV !== 'test') {
-      const agent = await ensureWindieAgent({ reason: 'mcp-manifest-refresh' });
+      const agent = await ensureAgent({ reason: 'mcp-manifest-refresh' });
       const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() });
       await agent.registerMcps?.(enabledSpecs, { replace: true });
       result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-sdk-refresh');
@@ -1812,9 +1812,9 @@ function initializeIpc(win, options = {}) {
           currentSessionId,
           currentUserId,
           isConnected,
-          windieAgent,
+          agent: activeAgent,
         }),
-        ensureAgent: ensureWindieAgent,
+        ensureAgent,
         resolveWorkspacePathForAgent,
         sendSettingsUpdate,
         requestModelListThroughSdkAgent,
@@ -1838,7 +1838,7 @@ async function sendQueryThroughSdkAgent({ payload = {}, messageId = null } = {})
     const backendPayload = { ...sourcePayload };
     delete backendPayload.resources;
     delete backendPayload.metadata;
-    const agent = await ensureWindieAgent({
+    const agent = await ensureAgent({
       reason: 'query',
       conversationRef: resolveConversationRefFromPayload(backendPayload),
       workspacePath: resolveWorkspacePathForAgent(backendPayload),
@@ -1859,7 +1859,7 @@ async function sendQueryThroughSdkAgent({ payload = {}, messageId = null } = {})
 }
 
 async function stopQueryThroughSdkAgent(payload = {}) {
-  if (!windieAgent) {
+  if (!activeAgent) {
     return false;
   }
   const stopTurnRef = payload && typeof payload.turn_ref === 'string'
@@ -1871,7 +1871,7 @@ async function stopQueryThroughSdkAgent(payload = {}) {
     turnRef: stopTurnRef,
     broadcast: true,
   });
-  await windieAgent.stop({
+  await activeAgent.stop({
     conversation_ref: stopConversationRef,
     turn_ref: stopTurnRef,
   });
@@ -1879,17 +1879,17 @@ async function stopQueryThroughSdkAgent(payload = {}) {
 }
 
 async function updateSettingsThroughSdkAgent(payload = {}) {
-  const agent = await ensureWindieAgent({ reason: 'update-settings' });
+  const agent = await ensureAgent({ reason: 'update-settings' });
   return agent.updateSettings(payload);
 }
 
 async function requestModelListThroughSdkAgent() {
-  const agent = await ensureWindieAgent({ reason: 'list-models' });
+  const agent = await ensureAgent({ reason: 'list-models' });
   return agent.requestModelList();
 }
 
 async function sendWakewordDetectedThroughSdkAgent(payload = {}) {
-  const agent = await ensureWindieAgent({ reason: 'wakeword-detected' });
+  const agent = await ensureAgent({ reason: 'wakeword-detected' });
   return agent.wakewordDetected(payload);
 }
 
@@ -1915,7 +1915,7 @@ async function appendMainProcessTraceEvent(input = {}) {
   if (!turnRef) {
     return { stored: false, reason: 'missing_turn_ref' };
   }
-  const agent = await ensureWindieAgent({
+  const agent = await ensureAgent({
     reason: 'main-process-trace',
     conversationRef,
   });
@@ -2180,8 +2180,8 @@ module.exports = {
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
   BACKEND_RECONNECT_INTERVAL_MS,
   getBackendConnectionState,
-  getKnownWindieLocalRuntime,
-  ensureWindieLocalRuntime,
+  getKnownAgentLocalRuntime,
+  ensureAgentLocalRuntime,
   getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,
