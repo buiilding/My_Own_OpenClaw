@@ -104,7 +104,7 @@ ACK resolution paths:
 - backend message `type='error'` + matching `id` => failure
 - timeout => failure
 
-## Local Backend Bridge Error Surface (`local_runtime_bridge.cjs`)
+## Local Runtime Bridge Error Surface (`local_runtime_bridge.cjs`)
 
 ### JSON-RPC request-level failures
 

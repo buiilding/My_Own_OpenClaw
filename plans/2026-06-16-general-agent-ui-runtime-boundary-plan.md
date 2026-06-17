@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime bridge docs wording
+
+- Finding: several current workflow and index docs still described the Electron
+  adapter as a local-backend bridge even after source paths, tests, and the
+  bridge overview route moved to local-runtime terminology.
+- Change: updated current docs wording to local-runtime bridge/error/dependency
+  language while leaving historical reports and old-name absence assertions
+  intact.
+- Validation: stale current-doc wording scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a docs wording cleanup only;
+  source APIs, tests, IPC channels, and runtime behavior are unchanged.
+
 ### 2026-06-17 local-runtime bridge docs entrypoint
 
 - Finding: the Electron main local-runtime bridge overview page title and

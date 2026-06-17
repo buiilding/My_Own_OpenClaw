@@ -164,7 +164,7 @@ Failure behavior:
 - retrieval injection disabled skips memory lookup and renders only attachment context plus the escaped user query
 - enrichment failures degrade to escaped user content instead of blocking query send
 
-## Local Backend Bridge Dependencies
+## Local Runtime Bridge Dependencies
 
 The SDK local runtime provides query-enrichment dependencies:
 
