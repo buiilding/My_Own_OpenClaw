@@ -30,7 +30,6 @@ concrete modules directly.
 - `backend/src/core/infrastructure/__init__.py`
 - `backend/src/core/security/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
-- `backend/src/sdk/__init__.py`
 
 ## Import-Surface Contract
 
@@ -154,6 +153,9 @@ docstring or compatibility path.
 - `backend/src/llm/models/__init__.py` is intentionally absent; import
   `ModelService` from `backend.src.llm.models.model_service` and model catalog
   constants from `backend.src.llm.models.models_config`.
+- `backend/src/sdk/__init__.py` is intentionally absent; import backend SDK
+  tool/context types from concrete modules such as `backend.src.sdk.tool` and
+  `backend.src.sdk.context`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.

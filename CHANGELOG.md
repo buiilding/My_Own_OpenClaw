@@ -94,6 +94,8 @@ All notable changes to WindieOS will be documented in this file.
   model selection imports provider classes from concrete modules.
 - backend/llm: remove unused LLM and model package exports so client and model
   service callers use concrete LLM modules.
+- backend/sdk: remove the unused backend SDK package export so tool/context
+  types are imported from concrete SDK modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
