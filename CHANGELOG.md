@@ -30,6 +30,8 @@ All notable changes to WindieOS will be documented in this file.
   keeping the extension MCP runtime default generic.
 - frontend/main: route layer-log product prefixes through main host skin config
   while keeping the shared log sink default generic.
+- frontend/main: route bundled wakeword and sidecar reinstall guidance through
+  main host skin config while keeping launch helpers generic.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

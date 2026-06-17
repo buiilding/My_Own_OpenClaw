@@ -85,10 +85,18 @@ const queryEvents = Object.freeze({
   interruptedBeforeAccept: `${productName} lost connection before confirming the message was received. Retry this message after reconnecting.`,
 });
 
+const bundledRuntime = Object.freeze({
+  missingPythonRuntime: `Bundled Python runtime not found in app resources. Please reinstall ${productName}.`,
+  missingWakewordExecutable: command => (
+    `Bundled wakeword executable '${command}' not found. Reinstall ${productName}.`
+  ),
+});
+
 const mainHostSkin = Object.freeze({
   productName,
   identity,
   queryEvents,
+  bundledRuntime,
   permissions: Object.freeze({
     browserAutomation,
     macAutomation,

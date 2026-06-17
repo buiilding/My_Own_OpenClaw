@@ -255,6 +255,8 @@ function createMainWindow({
     if (result?.success) {
       emitWakewordSttTrigger();
     }
+  }, {
+    bundledRuntimeCopy: mainHostSkin?.bundledRuntime,
   });
   initializeLocalBackendBridge(getWindows, {
     getKnownLocalRuntime,

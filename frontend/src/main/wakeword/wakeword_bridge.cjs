@@ -59,7 +59,7 @@ function recordWakewordLifecycle(input = {}) {
 /**
  * Start Python wakeword service
  */
-function startWakewordService(mainWindow, onWakewordDetected) {
+function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
   if (pythonProcess) {
     recordWakewordLifecycle({
       action: 'start_ignored',
@@ -75,7 +75,11 @@ function startWakewordService(mainWindow, onWakewordDetected) {
   const packagedApp = Boolean(app && app.isPackaged);
   stderrBuffer = '';
 
-  const startErrorMessage = resolveWakewordStartErrorMessage({ launchTarget, packagedApp });
+  const startErrorMessage = resolveWakewordStartErrorMessage({
+    launchTarget,
+    packagedApp,
+    copy: options.bundledRuntimeCopy,
+  });
   if (startErrorMessage) {
     recordWakewordLifecycle({
       action: 'start_failed',
@@ -263,7 +267,11 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     pythonProcess = null;
     wakewordSupervisor.clear({
       status: 'error',
-      error: resolveWakewordProcessErrorMessage({ launchTarget, error }),
+      error: resolveWakewordProcessErrorMessage({
+        launchTarget,
+        error,
+        copy: options.bundledRuntimeCopy,
+      }),
     });
     stderrBuffer = '';
     clearResultBuffer();
@@ -431,7 +439,7 @@ function stopWakewordService() {
 /**
  * Initialize wakeword bridge IPC handlers
  */
-function initializeWakewordBridge(mainWindow, onWakewordDetected) {
+function initializeWakewordBridge(mainWindow, onWakewordDetected, options = {}) {
   wakewordDetectedCallback = onWakewordDetected;
   // Service is started lazily on explicit wakeword-enable.
 
@@ -492,7 +500,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
     });
     if (!pythonProcess) {
       writeWakewordLog('log', '[Wakeword] Starting Python service...');
-      startWakewordService(mainWindow, wakewordDetectedCallback);
+      startWakewordService(mainWindow, wakewordDetectedCallback, options);
     } else if (wakewordSupervisor.getSnapshot().ready) {
       // Service already ready, send status immediately (silently, renderer will handle it)
       emitWakewordStatus(mainWindow, { ready: true });

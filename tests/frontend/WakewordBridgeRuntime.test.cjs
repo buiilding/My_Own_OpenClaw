@@ -7,6 +7,9 @@ const {
   resolveWakewordProcessErrorMessage,
   resolveWakewordStartErrorMessage,
 } = require('../../frontend/src/main/wakeword/wakeword_bridge_runtime.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('wakeword_bridge_runtime', () => {
   test('maps missing launch command to packaged and dev-facing startup errors', () => {
@@ -18,7 +21,15 @@ describe('wakeword_bridge_runtime', () => {
     expect(resolveWakewordStartErrorMessage({
       launchTarget: { kind: 'python', command: null },
       packagedApp: true,
+      copy: mainHostSkin.bundledRuntime,
     })).toContain('Bundled Python runtime not found');
+  });
+
+  test('uses generic packaged startup fallback without host skin copy', () => {
+    expect(resolveWakewordStartErrorMessage({
+      launchTarget: { kind: 'python', command: null },
+      packagedApp: true,
+    })).toContain('Please reinstall this app');
   });
 
   test('normalizes audio chunks from supported payload types', () => {
@@ -131,11 +142,19 @@ describe('wakeword_bridge_runtime', () => {
     expect(resolveWakewordProcessErrorMessage({
       launchTarget: { kind: 'binary', command: 'wakeword-bin' },
       error: { code: 'ENOENT', message: 'spawn ENOENT' },
+      copy: mainHostSkin.bundledRuntime,
     })).toContain("Bundled wakeword executable 'wakeword-bin' not found");
 
     expect(resolveWakewordProcessErrorMessage({
       launchTarget: { kind: 'python', command: 'python3' },
       error: { code: 'ENOENT', message: 'spawn ENOENT' },
     })).toContain("Python executable 'python3' not found");
+  });
+
+  test('uses generic bundled executable fallback without host skin copy', () => {
+    expect(resolveWakewordProcessErrorMessage({
+      launchTarget: { kind: 'binary', command: 'wakeword-bin' },
+      error: { code: 'ENOENT', message: 'spawn ENOENT' },
+    })).toContain('Reinstall this app');
   });
 });

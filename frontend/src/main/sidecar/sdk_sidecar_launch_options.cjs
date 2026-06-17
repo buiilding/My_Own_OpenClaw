@@ -49,9 +49,10 @@ const SIDECAR_LOG_PREFIXES = [
   '[MCP]',
 ];
 
-function createMissingCommandError({ isPackaged } = {}) {
+function createMissingCommandError({ isPackaged, copy = {} } = {}) {
   if (isPackaged) {
-    return 'Bundled Python runtime not found in app resources. Please reinstall WindieOS.';
+    return copy.missingPythonRuntime
+      || 'Bundled Python runtime not found in app resources. Please reinstall this app.';
   }
   return 'Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the frontend_jarvis Python executable.';
 }
@@ -162,12 +163,13 @@ function createDesktopAutoSidecarLaunchPlan({
   permissionStatePath,
   authStatePath,
   WebSocketImpl,
+  copy = {},
 } = {}) {
   const launchTarget = resolveSidecarLaunchTarget('sidecar_daemon.py');
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     return {
       ok: false,
-      error: createMissingCommandError({ isPackaged }),
+      error: createMissingCommandError({ isPackaged, copy }),
       launchTarget,
     };
   }
@@ -216,4 +218,5 @@ function createDesktopAutoSidecarLaunchPlan({
 
 module.exports = {
   createDesktopAutoSidecarLaunchPlan,
+  createMissingCommandError,
 };

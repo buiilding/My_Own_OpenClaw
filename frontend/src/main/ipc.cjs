@@ -735,6 +735,7 @@ function buildDesktopAutoSidecarOptionsForAgent() {
     backendEndpoints: {
       httpUrl: backendEndpointState.getHttpUrl(),
     },
+    copy: mainHostSkin.bundledRuntime,
     ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
   });
   if (plan.ok !== true) {

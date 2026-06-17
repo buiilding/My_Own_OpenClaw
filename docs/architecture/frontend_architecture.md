@@ -289,6 +289,9 @@ Primary modules:
     refreshes extension MCP tools; the MCP runtime default remains generic.
   - Layer-log product prefixes should be supplied by this boundary on app/script
     paths; the shared log sink default remains generic.
+  - Bundled wakeword and sidecar reinstall guidance should read from this
+    boundary on WindieOS app paths; reusable launch helpers keep generic
+    fallback wording.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.

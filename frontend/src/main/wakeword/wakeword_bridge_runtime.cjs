@@ -98,19 +98,22 @@ function handleWakewordStderrLine({
   }
 }
 
-function resolveWakewordStartErrorMessage({ launchTarget, packagedApp }) {
+function resolveWakewordStartErrorMessage({ launchTarget, packagedApp, copy = {} }) {
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     return packagedApp
-      ? 'Bundled Python runtime not found in app resources. Please reinstall WindieOS.'
+      ? copy.missingPythonRuntime
+        || 'Bundled Python runtime not found in app resources. Please reinstall this app.'
       : 'Python executable not found. Please install Python 3 or ensure it is in your PATH.';
   }
   return null;
 }
 
-function resolveWakewordProcessErrorMessage({ launchTarget, error }) {
+function resolveWakewordProcessErrorMessage({ launchTarget, error, copy = {} }) {
   if (error.code === 'ENOENT') {
     return launchTarget.kind === 'binary'
-      ? `Bundled wakeword executable '${launchTarget.command}' not found. Reinstall WindieOS.`
+      ? typeof copy.missingWakewordExecutable === 'function'
+        ? copy.missingWakewordExecutable(launchTarget.command)
+        : `Bundled wakeword executable '${launchTarget.command}' not found. Reinstall this app.`
       : `Python executable '${launchTarget.command}' not found. Please install Python 3 or ensure it is in your PATH.`;
   }
   return error.message;

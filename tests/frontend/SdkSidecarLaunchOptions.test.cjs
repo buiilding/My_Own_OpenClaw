@@ -6,9 +6,25 @@ const path = require('path');
 
 const {
   createDesktopAutoSidecarLaunchPlan,
+  createMissingCommandError,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('sdk sidecar launch options', () => {
+  test('uses host skin copy for packaged missing Python guidance', () => {
+    expect(createMissingCommandError({
+      isPackaged: true,
+      copy: mainHostSkin.bundledRuntime,
+    })).toBe('Bundled Python runtime not found in app resources. Please reinstall WindieOS.');
+  });
+
+  test('uses generic packaged missing Python fallback without host skin copy', () => {
+    expect(createMissingCommandError({ isPackaged: true }))
+      .toBe('Bundled Python runtime not found in app resources. Please reinstall this app.');
+  });
+
   test('includes source identity in daemon launch context', () => {
     const plan = createDesktopAutoSidecarLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },

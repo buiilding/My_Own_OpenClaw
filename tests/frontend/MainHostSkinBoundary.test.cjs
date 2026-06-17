@@ -11,6 +11,8 @@ const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
+const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
+const sidecarLaunchOptionsPath = path.join(mainRoot, 'sidecar/sdk_sidecar_launch_options.cjs');
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
 const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_screen_capture.cjs');
@@ -41,6 +43,9 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('osPrivacyRemediation');
     expect(skinSource).toContain('folderPickerTitle');
     expect(skinSource).toContain('queryEvents');
+    expect(skinSource).toContain('bundledRuntime');
+    expect(skinSource).toContain('missingPythonRuntime');
+    expect(skinSource).toContain('missingWakewordExecutable');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {
@@ -100,5 +105,18 @@ describe('main host skin/config boundary', () => {
 
     expect(source).toContain("DEFAULT_LOG_PREFIX = '[Desktop Agent]'");
     expect(source).not.toContain('[WindieOS]');
+  });
+
+  test('bundled runtime helpers use generic defaults instead of product reinstall copy', () => {
+    const sources = [
+      fs.readFileSync(wakewordRuntimePath, 'utf8'),
+      fs.readFileSync(sidecarLaunchOptionsPath, 'utf8'),
+    ];
+
+    for (const source of sources) {
+      expect(source).toContain('Please reinstall this app');
+      expect(source).not.toContain('Please reinstall WindieOS');
+      expect(source).not.toContain('Reinstall WindieOS');
+    }
   });
 });

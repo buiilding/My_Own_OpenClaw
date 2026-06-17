@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest commit for this plan: `d2f27710d` (`refactor(frontend): skin mcp client identity`)
+- Latest inspected plan checkpoint: `c3ee4b549` (`refactor(frontend): skin main log prefixes`)
 
 ## Inspection Log
 
@@ -114,6 +114,16 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: layer log sink tests now pass app-specific prefixes explicitly, and the host boundary test guards that the reusable sink no longer embeds `[WindieOS]`.
 - Validation gap: `WindieCli.test.cjs` was attempted but this environment lacks `sqlite3`, which its conversation export tests require.
 
+### 2026-06-16 Main Bundled Runtime Guidance Skin Slice
+
+- Compaction recovery: recent commits and the current worktree were inspected before continuing. Existing backend/sdk deletions and docs updates were present and treated as unrelated work.
+- Finding: wakeword and SDK sidecar launch helpers still embedded WindieOS reinstall guidance for missing packaged Python/runtime assets.
+- Decision: keep launch helpers generic and inject WindieOS packaged-runtime copy from `mainHostSkin` through main composition paths.
+- Change: bundled Python and wakeword executable reinstall guidance now lives in `mainHostSkin.bundledRuntime`.
+- Change: wakeword startup/process-error helpers and SDK sidecar launch options use generic app fallbacks unless host copy is provided.
+- Change: main window wakeword wiring and SDK sidecar launch planning pass the WindieOS bundled-runtime copy on app paths.
+- Validation: focused wakeword, sidecar launch, main-window runtime, and host-skin boundary tests pass.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -126,6 +136,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK agent name and tray tooltip read product identity from the host skin.
 - [x] MCP client identity reads product identity from the host skin on the app path.
 - [x] Layer log product prefix reads product identity from the host skin on app/script paths.
+- [x] Bundled wakeword and sidecar reinstall guidance reads from the host skin on app paths.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -164,10 +175,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/LayerLogSink.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/WindieRunLayerLog.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs` passed.
 - `git diff --check` passed.
 - `rg -n "\\[WindieOS\\]|DEFAULT_LOG_PREFIX|logPrefix" frontend/src/main/logging/layer_log_sink.cjs frontend/src/main/app/main_host_skin.cjs frontend/src/main/index.cjs frontend/src/main/surfaces tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/LayerLogSink.test.cjs scripts/windie` found expected skin/script/test matches and generic log sink default.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WakewordBridgeRuntime.test.cjs ../tests/frontend/SdkSidecarLaunchOptions.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs` passed.
+- `rg -n "Reinstall WindieOS|Please reinstall WindieOS|Bundled Python runtime not found|Bundled wakeword executable|Please reinstall this app" frontend/src/main/wakeword frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs frontend/src/main/app/main_host_skin.cjs tests/frontend/WakewordBridgeRuntime.test.cjs tests/frontend/SdkSidecarLaunchOptions.test.cjs tests/frontend/MainHostSkinBoundary.test.cjs` found expected skin/test matches plus generic helper fallbacks only.
 
 ## Remaining Findings
 
 - Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
 - Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
 - Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
-- Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, and layer-log prefixes now read related product copy from a host skin. Remaining main-boundary candidates include wakeword/sidecar reinstall messages, browser onboarding explanation copy, OAuth return copy, and other product-specific host defaults that may belong in a broader main host config.
+- Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, layer-log prefixes, and bundled wakeword/sidecar reinstall guidance now read related product copy from a host skin. Remaining main-boundary candidates include browser onboarding explanation copy, OAuth return copy, and other product-specific host defaults that may belong in a broader main host config.
