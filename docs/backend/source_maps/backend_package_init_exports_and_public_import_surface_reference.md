@@ -24,8 +24,6 @@ concrete modules directly.
 - `backend/src/agent/tools/sending/__init__.py`
 - `backend/src/agent/tools/waiting/__init__.py`
 - `backend/src/api/handlers/__init__.py`
-- `backend/src/api/processing/__init__.py`
-- `backend/src/api/routes/memory/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
 - `backend/src/core/events/__init__.py`
@@ -108,6 +106,9 @@ docstring or compatibility path.
 - `backend/src/api/processing/formatters/__init__.py` is intentionally absent;
   import formatter classes from their concrete modules under
   `backend.src.api.processing.formatters`.
+- `backend/src/api/processing/__init__.py` is intentionally absent; import
+  `StreamPipeline` from `backend.src.api.processing.pipeline` and
+  `ResponseFormatter` from `backend.src.api.processing.formatter`.
 - `backend/src/api/routes/artifacts/__init__.py` is intentionally absent;
   route registration imports `router` from
   `backend.src.api.routes.artifacts.router`.
@@ -116,6 +117,15 @@ docstring or compatibility path.
 - `backend/src/api/routes/transcription/__init__.py` is intentionally absent;
   route registration imports `router` from
   `backend.src.api.routes.transcription.router`.
+- `backend/src/api/routes/memory/__init__.py` is intentionally absent; import
+  memory health helpers from `backend.src.api.routes.memory.health` and route
+  routers from concrete memory route modules.
+- `backend/src/api/routes/memory/embeddings/__init__.py` is intentionally
+  absent; route registration imports `router` from
+  `backend.src.api.routes.memory.embeddings.router`.
+- `backend/src/api/routes/memory/semantic/__init__.py` is intentionally
+  absent; route registration imports `router` from
+  `backend.src.api.routes.memory.semantic.router`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`

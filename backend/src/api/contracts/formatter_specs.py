@@ -18,7 +18,43 @@ FormatterSpec: TypeAlias = tuple[type, str, type]
 def get_formatter_specs() -> tuple[FormatterSpec, ...]:
     """Return canonical event->formatter specs for ResponseFormatter."""
 
-    from backend.src.api.processing import formatters as formatter_module
+    from backend.src.api.processing.formatters.assistant_message import (
+        AssistantMessageFullEventFormatter,
+    )
+    from backend.src.api.processing.formatters.chunk import ChunkEventFormatter
+    from backend.src.api.processing.formatters.complete import (
+        StreamingCompleteEventFormatter,
+    )
+    from backend.src.api.processing.formatters.context_compaction_completed import (
+        ContextCompactionCompletedEventFormatter,
+    )
+    from backend.src.api.processing.formatters.context_compaction_failed import (
+        ContextCompactionFailedEventFormatter,
+    )
+    from backend.src.api.processing.formatters.context_compaction_started import (
+        ContextCompactionStartedEventFormatter,
+    )
+    from backend.src.api.processing.formatters.error import ErrorEventFormatter
+    from backend.src.api.processing.formatters.system_prompt import (
+        SystemPromptEventFormatter,
+    )
+    from backend.src.api.processing.formatters.thinking import ThinkingEventFormatter
+    from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
+    from backend.src.api.processing.formatters.tool_bundle import (
+        ToolBundleEventFormatter,
+    )
+    from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
+    from backend.src.api.processing.formatters.tool_output import ToolOutputEventFormatter
+    from backend.src.api.processing.formatters.tool_schemas import (
+        ToolSchemasEventFormatter,
+    )
+    from backend.src.api.processing.formatters.trace_event import TraceEventFormatter
+    from backend.src.api.processing.formatters.user_message import (
+        UserMessageFullEventFormatter,
+    )
+    from backend.src.api.processing.formatters.web_search_progress import (
+        WebSearchProgressEventFormatter,
+    )
     from backend.src.core.events import (
         AssistantMessageFullEvent,
         ChunkEvent,
@@ -43,86 +79,86 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         (
             ThinkingEvent,
             StreamingEventType.LLM_THOUGHT.value,
-            formatter_module.ThinkingEventFormatter,
+            ThinkingEventFormatter,
         ),
         (
             ChunkEvent,
             StreamingEventType.STREAMING_RESPONSE.value,
-            formatter_module.ChunkEventFormatter,
+            ChunkEventFormatter,
         ),
         (
             ErrorEvent,
             StreamingEventType.ERROR.value,
-            formatter_module.ErrorEventFormatter,
+            ErrorEventFormatter,
         ),
         (
             StreamingCompleteEvent,
             StreamingEventType.STREAMING_COMPLETE.value,
-            formatter_module.StreamingCompleteEventFormatter,
+            StreamingCompleteEventFormatter,
         ),
         (
             ToolCallEvent,
             StreamingEventType.TOOL_CALL.value,
-            formatter_module.ToolCallEventFormatter,
+            ToolCallEventFormatter,
         ),
         (
             ToolOutputEvent,
             StreamingEventType.TOOL_OUTPUT.value,
-            formatter_module.ToolOutputEventFormatter,
+            ToolOutputEventFormatter,
         ),
         (
             WebSearchProgressEvent,
             StreamingEventType.WEB_SEARCH_PROGRESS.value,
-            formatter_module.WebSearchProgressEventFormatter,
+            WebSearchProgressEventFormatter,
         ),
         (
             SystemPromptEvent,
             StreamingEventType.SYSTEM_PROMPT.value,
-            formatter_module.SystemPromptEventFormatter,
+            SystemPromptEventFormatter,
         ),
         (
             ToolSchemasEvent,
             StreamingEventType.TOOL_SCHEMAS.value,
-            formatter_module.ToolSchemasEventFormatter,
+            ToolSchemasEventFormatter,
         ),
         (
             UserMessageFullEvent,
             StreamingEventType.USER_MESSAGE_FULL.value,
-            formatter_module.UserMessageFullEventFormatter,
+            UserMessageFullEventFormatter,
         ),
         (
             AssistantMessageFullEvent,
             StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
-            formatter_module.AssistantMessageFullEventFormatter,
+            AssistantMessageFullEventFormatter,
         ),
         (
             TokenCountEvent,
             StreamingEventType.TOKEN_COUNT.value,
-            formatter_module.TokenCountEventFormatter,
+            TokenCountEventFormatter,
         ),
         (
             ContextCompactionStartedEvent,
             StreamingEventType.CONTEXT_COMPACTION_STARTED.value,
-            formatter_module.ContextCompactionStartedEventFormatter,
+            ContextCompactionStartedEventFormatter,
         ),
         (
             ContextCompactionCompletedEvent,
             StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
-            formatter_module.ContextCompactionCompletedEventFormatter,
+            ContextCompactionCompletedEventFormatter,
         ),
         (
             ContextCompactionFailedEvent,
             StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
-            formatter_module.ContextCompactionFailedEventFormatter,
+            ContextCompactionFailedEventFormatter,
         ),
         (
             ToolBundleEvent,
             StreamingEventType.TOOL_BUNDLE.value,
-            formatter_module.ToolBundleEventFormatter,
+            ToolBundleEventFormatter,
         ),
         (
             TraceEvent,
             StreamingEventType.TRACE_EVENT.value,
-            formatter_module.TraceEventFormatter,
+            TraceEventFormatter,
         ),
     )

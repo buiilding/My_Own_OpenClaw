@@ -58,6 +58,10 @@ All notable changes to WindieOS will be documented in this file.
   callers use concrete formatter modules.
 - backend/api: remove unused artifact, runs, and transcription route package
   exports so API route registration imports concrete router modules.
+- backend/api: remove unused memory route package exports so embeddings and
+  semantic route registration imports concrete router modules.
+- backend/api: remove the unused processing package export and point formatter
+  specs at concrete formatter modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

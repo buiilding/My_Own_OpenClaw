@@ -16,7 +16,7 @@ from tests.backend.websocket_route_test_utils import (
 
 _original_deps = install_route_deps_shim()
 
-from backend.src.api.routes.memory import health as health_routes
+import backend.src.api.routes.memory.health as health_routes
 from backend.src.api.routes.memory.embeddings.models import EmbeddingRequest
 from backend.src.api.routes.memory.embeddings.router import (
     generate_embedding,

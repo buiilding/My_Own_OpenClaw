@@ -61,7 +61,7 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | Transcript/replay/display rows | `bin/windie test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
 | Artifact refs and URLs | `bin/windie test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `bin/windie test frontend -- BackendEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
 | SDK HTTP/trace helpers | `bin/windie test backend -- tests/backend/test_sdk_routes.py -q` plus `bin/windie test frontend -- WindieSdkClient.test.ts` |
-| Frontend CLI command routing and package exports | `bin/windie test frontend -- WindieCli.test.cjs` plus `bin/windie test backend -- tests/backend/test_formatter_package_exports.py -q` |
+| Frontend CLI command routing and formatter contracts | `bin/windie test frontend -- WindieCli.test.cjs` plus `bin/windie test backend -- tests/backend/test_formatter_specs_contract.py -q` |
 
 ## When To Run Full Suites
 

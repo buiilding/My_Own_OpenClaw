@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for backend memory embeddings package split: router/models/service ownership boundaries, package route export surface, and helper-level error/health contracts."
+summary: "Deep reference for backend memory embeddings package split: router/models/service ownership boundaries, direct route registration, and helper-level error/health contracts."
 read_when:
   - When changing files under `backend/src/api/routes/memory/embeddings/*`.
-  - When debugging import drift between package-level `embeddings` exports and module-level `embeddings.router` or `embeddings.service` helpers.
+  - When debugging import drift between route registration and module-level `embeddings.router` or `embeddings.service` helpers.
 title: "Embeddings Route Package Split and Export Contract Reference"
 ---
 
@@ -10,12 +10,10 @@ title: "Embeddings Route Package Split and Export Contract Reference"
 
 ## Canonical Modules
 
-- `backend/src/api/routes/memory/embeddings/__init__.py`
 - `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/embeddings/models.py`
 - `backend/src/api/routes/memory/embeddings/service.py`
 - `backend/src/api/routes/memory/health.py`
-- `backend/src/api/routes/memory/__init__.py`
 - `backend/src/api/routes/__init__.py`
 - `tests/backend/test_memory_routes.py`
 - `tests/backend/test_embeddings_service.py`
@@ -28,24 +26,17 @@ Embeddings route internals are split by responsibility:
 - `models.py`: request/response Pydantic contracts (`EmbeddingRequest`, `EmbeddingResponse`).
 - `service.py`: pure helper behavior for vector serialization, route response shaping, health probe payload construction, and sanitized error raise helper.
 
-`embeddings/__init__.py` is the package route seam used by API router registration.
-
 ## Router Registration Contract
 
-Memory package registration remains stable:
+Memory route registration uses the concrete router module directly:
 
-1. `backend/src/api/routes/memory/__init__.py` exports `embeddings` and `semantic`.
-2. `backend/src/api/routes/__init__.py` imports `from .memory import embeddings, semantic`.
-3. `API_ROUTERS` appends `embeddings.router`.
+1. `backend/src/api/routes/__init__.py` imports `embeddings_router` from
+   `backend.src.api.routes.memory.embeddings.router`.
+2. `API_ROUTERS` appends `embeddings_router`.
 
 Public API path is unchanged: `/api/embeddings/*`.
 
-## Package Export Surface
-
-`embeddings/__init__.py` re-exports:
-
-- route object:
-  - `router`
+## Import Surface
 
 Route handlers, models, and service helpers are imported from their owner modules: `router.py`, `models.py`, and `service.py`.
 
@@ -89,10 +80,10 @@ Helper boundaries in `service.py`:
 
 ## Drift Hotspots
 
-1. Reintroducing handler/model re-exports in `embeddings/__init__.py` can blur router/model ownership.
+1. Reintroducing `embeddings/__init__.py` can blur router/model ownership.
 2. Inlining service helper logic back into router functions weakens helper-level unit-test coverage and increases route coupling.
 3. Changing helper error message text without route-doc/test updates can desynchronize client-visible error expectations.
-4. Registering routes from non-canonical symbols can bypass the package route seam.
+4. Registering routes from non-canonical symbols can bypass the concrete route owner.
 
 ## Related Pages
 

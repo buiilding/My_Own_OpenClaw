@@ -11,7 +11,6 @@ title: "Memory Route Validation and Fallback Reference"
 ## Canonical Modules
 
 - `backend/src/api/routes/memory/embeddings/router.py`
-- `backend/src/api/routes/memory/semantic/__init__.py`
 - `backend/src/api/routes/memory/semantic/router.py`
 - `backend/src/api/routes/memory/semantic/models.py`
 - `backend/src/api/routes/memory/semantic/service.py`
@@ -25,7 +24,7 @@ title: "Memory Route Validation and Fallback Reference"
 
 Memory HTTP routes are mounted via:
 
-- `backend/src/api/routes/__init__.py` (`embeddings.router`, `semantic.router`)
+- `backend/src/api/routes/__init__.py` (`embeddings_router`, `semantic_router`)
 - then attached by `register_api_routes(...)` in `api/app_assembly.py`
 
 Public prefixes:
@@ -33,35 +32,20 @@ Public prefixes:
 - `/api/embeddings`
 - `/api/semantic`
 
-## Embeddings Package-Split Import Surface
+## Memory Route Import Surface
 
-`backend/src/api/routes/memory/embeddings/` is now a package. Route registration still
-uses `embeddings.router` via package exports.
+`backend/src/api/routes/memory/embeddings/` and
+`backend/src/api/routes/memory/semantic/` are namespace packages whose route
+registration imports concrete router modules directly:
 
-Package contract from `embeddings/__init__.py`:
-
-- re-exports `router`
-- route handlers live in `embeddings/router.py`
-- Pydantic models live in `embeddings/models.py`
-
-Route tests import handlers and models from their owner modules while route registration still appends `embeddings.router`.
-
-## Semantic Package-Split Import Surface
-
-`backend/src/api/routes/memory/semantic/` is now a package (not a flat single module). The
-runtime route object remains `semantic.router` through package exports:
-
-- route registration keeps importing `from .memory import embeddings, semantic`
-- `API_ROUTERS` still appends `semantic.router`
-
-Package contract from `semantic/__init__.py`:
-
-- re-exports `router` only
-- route handlers live in `backend/src/api/routes/memory/semantic/router.py`
-- parser helpers live in `backend/src/api/routes/memory/semantic/parser.py`
+- embeddings routes live in `backend/src/api/routes/memory/embeddings/router.py`
+- embeddings Pydantic models live in `backend/src/api/routes/memory/embeddings/models.py`
+- semantic routes live in `backend/src/api/routes/memory/semantic/router.py`
+- semantic parser helpers live in `backend/src/api/routes/memory/semantic/parser.py`
 - `SemanticSummarizationService` and `FALLBACK_TITLE` live in `backend/src/api/routes/memory/semantic/service.py`
 
-Route tests import the route module directly, while parser/service tests import owner modules directly.
+Route tests import route modules directly, while parser/service tests import
+owner modules directly.
 
 ## `/api/embeddings` Contract
 

@@ -37,8 +37,8 @@ Canonical files:
 1. `websocket.router`
 2. `runs_router` from `backend.src.api.routes.runs.router`
 3. `artifacts_router` from `backend.src.api.routes.artifacts.router`
-4. `memory.embeddings.router`
-5. `memory.semantic.router`
+4. `embeddings_router` from `backend.src.api.routes.memory.embeddings.router`
+5. `semantic_router` from `backend.src.api.routes.memory.semantic.router`
 
 This means VM run-control APIs are part of the same canonical backend app registration path as `/ws`.
 

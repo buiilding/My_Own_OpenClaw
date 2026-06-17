@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for backend memory semantic package split: router/models/parser/service ownership boundaries and package route-registration surface."
+summary: "Deep reference for backend memory semantic package split: router/models/parser/service ownership boundaries and direct route registration."
 read_when:
   - When changing module boundaries under `backend/src/api/routes/memory/semantic/*`.
-  - When debugging import/monkeypatch drift between package-level route registration and semantic owner modules.
+  - When debugging import/monkeypatch drift between route registration and semantic owner modules.
 title: "Semantic Route Package Split Reference"
 ---
 
@@ -10,8 +10,6 @@ title: "Semantic Route Package Split Reference"
 
 ## Canonical Modules
 
-- `backend/src/api/routes/memory/__init__.py`
-- `backend/src/api/routes/memory/semantic/__init__.py`
 - `backend/src/api/routes/memory/semantic/router.py`
 - `backend/src/api/routes/memory/semantic/models.py`
 - `backend/src/api/routes/memory/semantic/parser.py`
@@ -29,21 +27,17 @@ Semantic route internals are split by responsibility:
 - `parser.py`: model-output parsing helpers for summary/fact extraction.
 - `service.py`: config resolution, LLM call flow, prompt building, title parsing, and sanitized error handling.
 
-`semantic/__init__.py` is the package route-registration seam, not a second runtime owner.
-
 ## Router Registration Contract
 
-Memory route package wiring stays stable:
+Memory route registration uses the concrete router module directly:
 
-1. `backend/src/api/routes/memory/__init__.py` exports `embeddings` and `semantic`.
-2. `backend/src/api/routes/__init__.py` imports `from .memory import embeddings, semantic`.
-3. `API_ROUTERS` appends `semantic.router`.
+1. `backend/src/api/routes/__init__.py` imports `semantic_router` from
+   `backend.src.api.routes.memory.semantic.router`.
+2. `API_ROUTERS` appends `semantic_router`.
 
 Result: switching to package internals does not change public API prefixes (`/api/semantic/*`).
 
-## Package Export Surface
-
-`semantic/__init__.py` exports only `router`.
+## Import Surface
 
 Implementation symbols stay in their owner modules:
 
@@ -85,9 +79,9 @@ No global singleton service instance is retained across requests.
 
 ## Drift Hotspots
 
-1. Adding implementation re-exports to `semantic/__init__.py` recreates a second import surface for route internals.
+1. Reintroducing `semantic/__init__.py` recreates a second import surface for route internals.
 2. Moving handler/service imports without updating constructor callables can disable test monkeypatch seams silently.
-3. Registering routes from a non-canonical symbol (not `semantic.router`) can bypass package ownership assumptions.
+3. Registering routes from a non-canonical symbol can bypass package ownership assumptions.
 4. Reintroducing flat legacy files alongside package modules can hide import errors and create split behavior at runtime.
 
 ## Related Pages

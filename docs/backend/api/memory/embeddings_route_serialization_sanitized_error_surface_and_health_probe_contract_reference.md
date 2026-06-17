@@ -10,7 +10,6 @@ title: "Embeddings Route Serialization, Sanitized Error Surface, and Health-Prob
 
 ## Canonical Modules
 
-- `backend/src/api/routes/memory/embeddings/__init__.py`
 - `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/embeddings/models.py`
 - `backend/src/api/routes/memory/embeddings/service.py`
@@ -32,17 +31,6 @@ Response (`EmbeddingResponse`):
 - `dimension: int`
 - `embedding_space_version: str`, built from provider/model identity and the
   returned vector dimension
-
-## Package Export Compatibility Surface
-
-`embeddings/__init__.py` re-exports:
-
-- `router`, `generate_embedding`, `health_check`
-- `EmbeddingRequest`, `EmbeddingResponse`
-- `logger`
-
-This preserves package-level import compatibility for existing route tests and callers while
-keeping helper logic split into `embeddings/service.py`.
 
 ## Embedding Serialization Helper
 
