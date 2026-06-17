@@ -26,7 +26,6 @@ concrete modules directly.
 - `backend/src/api/handlers/__init__.py`
 - `backend/src/api/processing/__init__.py`
 - `backend/src/api/processing/formatters/__init__.py`
-- `backend/src/api/processing/tts/__init__.py`
 - `backend/src/api/routes/memory/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
@@ -106,6 +105,10 @@ docstring or compatibility path.
 - `backend/src/core/bootstrap/__init__.py` is intentionally absent; import
   startup coordinators and entrypoints from concrete modules under
   `backend.src.core.bootstrap`.
+- `backend/src/api/processing/tts/__init__.py` is intentionally absent; import
+  TTS manager and processor types from
+  `backend.src.api.processing.tts.manager` and
+  `backend.src.api.processing.tts.processor`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`

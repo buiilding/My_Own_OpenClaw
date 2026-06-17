@@ -42,6 +42,8 @@ All notable changes to WindieOS will be documented in this file.
   infrastructure callers use concrete modules.
 - backend/api-core: remove unused `api.transport` and `core.bootstrap` package
   exports so transport and startup callers use concrete modules.
+- backend/api: remove the unused `api.processing.tts` package export so TTS
+  callers use manager and processor modules directly.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
