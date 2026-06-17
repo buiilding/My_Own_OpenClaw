@@ -164,7 +164,7 @@ export function buildToolCallMessageState({
 }
 
 export function buildToolBundleMessageState(payload) {
-  const bundleId = normalizeOptionalString(payload?.bundle_id) || null;
+  const bundleId = normalizeOptionalString(payload?.bundleId) || normalizeOptionalString(payload?.bundle_id) || null;
   const normalizedTools = (Array.isArray(payload?.tools) ? payload.tools : []).map((tool) => (
     buildNormalizedToolCall({
       rawToolCall: cloneObject(tool?.metadata?.model_facing_tool_call),

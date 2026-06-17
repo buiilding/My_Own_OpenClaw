@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/renderer: expose SDK-shaped live presentation tool identity (`requestId`, `correlationId`, `bundleId`) and make renderer live tool rows consume those fields instead of raw backend snake_case identity aliases. No migration is required because backend wire payloads and persisted transcript details are unchanged.
+
 - frontend/main: remove snake_case pending-turn clear helper aliases so `windie:pending-turn` clear filters use only `conversationRef` and `turnRef`; clear payloads containing removed snake_case fields are ignored. No migration is required because renderer pending-turn IPC already sends camelCase fields and backend stop-query payloads remain separate.
 
 - packages/sdk-js: align the checked-in CJS AgentDefinition builder with the TypeScript source so removed `agents_md` SDK input aliases are rejected while generated backend wire `agents_md` remains unchanged. No migration is required for first-party callers; CJS SDK callers must use `agentsMd`.

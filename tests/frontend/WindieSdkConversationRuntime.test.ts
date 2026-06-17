@@ -801,10 +801,12 @@ describe('Agent SDK conversation runtime core', () => {
         expect.objectContaining({
           kind: 'tool_call',
           toolName: 'read_file',
+          requestId: 'req-read',
         }),
         expect.objectContaining({
           kind: 'tool_output',
           toolName: 'read_file',
+          requestId: 'req-read',
           text: 'README contents',
           status: 'success',
         }),
@@ -868,10 +870,11 @@ describe('Agent SDK conversation runtime core', () => {
       event('turn_started', {}),
       event('user_message', { text: 'inspect files' }),
       event('reasoning_delta', { text: 'Checking the workspace.' }),
-      event('tool_call', { toolName: 'read_file', requestId: 'req-read' }),
+      event('tool_call', { toolName: 'read_file', requestId: 'req-read', correlationId: 'corr-read' }),
       event('tool_output', {
         toolName: 'read_file',
         requestId: 'req-read',
+        correlationId: 'corr-read',
         output: 'README contents',
         success: true,
       }),
@@ -885,8 +888,20 @@ describe('Agent SDK conversation runtime core', () => {
       isBusy: true,
       entries: [
         expect.objectContaining({ type: 'thinking', sourceChannel: 'sdk:current-turn' }),
-        expect.objectContaining({ type: 'tool-call', text: 'Using read_file', sourceChannel: 'sdk:current-turn' }),
-        expect.objectContaining({ type: 'tool-output', text: 'README contents', sourceChannel: 'sdk:current-turn' }),
+        expect.objectContaining({
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceChannel: 'sdk:current-turn',
+          requestId: 'req-read',
+          correlationId: 'corr-read',
+        }),
+        expect.objectContaining({
+          type: 'tool-output',
+          text: 'README contents',
+          sourceChannel: 'sdk:current-turn',
+          requestId: 'req-read',
+          correlationId: 'corr-read',
+        }),
         expect.objectContaining({ type: 'llm-text', text: 'Done.', sourceChannel: 'sdk:current-turn' }),
       ],
     });

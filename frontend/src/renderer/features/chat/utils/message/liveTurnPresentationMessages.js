@@ -86,12 +86,16 @@ function buildErrorMessage(entry, currentTurnProjection) {
 function buildToolCallMessage(entry, currentTurnProjection) {
   const payload = asRecord(entry.payload) || {};
   const toolName = normalizeOptionalText(entry.toolName)
-    || normalizeOptionalText(payload.toolName)
-    || normalizeOptionalText(payload.tool_name);
+    || normalizeOptionalText(payload.toolName);
   const text = normalizeText(entry.text) || (toolName ? `Using ${toolName}` : 'Using tool');
   const toolDetails = asRecord(payload.structuredPayload) || payload;
-  if (toolName === 'tool_bundle' || Array.isArray(toolDetails.tools)) {
-    const bundleState = buildToolBundleMessageState(toolDetails);
+  if (toolName === 'tool_bundle' || Array.isArray(payload.tools) || Array.isArray(toolDetails.tools)) {
+    const bundlePayload = {
+      ...toolDetails,
+      ...payload,
+      tools: Array.isArray(payload.tools) ? payload.tools : toolDetails.tools,
+    };
+    const bundleState = buildToolBundleMessageState(bundlePayload);
     return buildToolCallChatMessageState({
       ...buildBaseMessageFields(entry, currentTurnProjection),
       text: bundleState.text || text,
@@ -109,14 +113,14 @@ function buildToolCallMessage(entry, currentTurnProjection) {
   const toolCallState = buildToolCallMessageState({
     rawToolCall: asRecord(metadata?.model_facing_tool_call),
     fallbackToolName: toolName,
-    fallbackToolCallId: normalizeOptionalText(payload.requestId)
-      || normalizeOptionalText(payload.request_id)
+    fallbackToolCallId: normalizeOptionalText(entry.requestId)
+      || normalizeOptionalText(payload.requestId)
       || entry.id,
     fallbackArguments: args,
     metadata,
     toolCallDetails: toolDetails,
-    correlationId: normalizeOptionalText(payload.correlationId)
-      || normalizeOptionalText(payload.correlation_id),
+    correlationId: normalizeOptionalText(entry.correlationId)
+      || normalizeOptionalText(payload.correlationId),
   });
 
   return buildToolCallChatMessageState({
@@ -148,9 +152,7 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
   const payload = asRecord(entry.payload) || {};
   const toolDetails = asRecord(payload.structuredPayload) || payload;
   const toolName = normalizeOptionalText(entry.toolName)
-    || normalizeOptionalText(payload.toolName)
-    || normalizeOptionalText(payload.tool_name)
-    || normalizeOptionalText(toolDetails.tool_name);
+    || normalizeOptionalText(payload.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   return {
     ...buildToolOutputEnvelopeMessage({
@@ -166,9 +168,8 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
       toolName,
       executionTime: typeof toolDetails.execution_time === 'number' ? toolDetails.execution_time : null,
       success: typeof toolDetails.success === 'boolean' ? toolDetails.success : null,
-      correlationId: normalizeOptionalText(payload.correlationId)
-        || normalizeOptionalText(payload.correlation_id)
-        || normalizeOptionalText(toolDetails.correlation_id),
+      correlationId: normalizeOptionalText(entry.correlationId)
+        || normalizeOptionalText(payload.correlationId),
       toolOutputDetails: toolDetails,
       turnRef: entry.turnRef || currentTurnProjection?.turnRef || null,
       modelContext: {

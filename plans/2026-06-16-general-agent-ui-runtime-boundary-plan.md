@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 live presentation tool identity boundary
+
+- Finding: renderer live-turn presentation still recovered tool identity from
+  raw backend snake_case payload aliases even though current-turn presentation
+  is an SDK projection surface.
+- Change: added explicit `requestId`, `correlationId`, and `bundleId` identity
+  fields to SDK live tool presentation entries and made renderer live-row
+  builders consume SDK-shaped entry/camelCase payload fields for identity while
+  keeping `structuredPayload` as backend detail metadata.
+- Validation: focused SDK current-turn projection and renderer message/tool
+  presentation Jest coverage, docs listing, source scans, and `git diff --check`.
+- Compatibility: no migration required. Backend wire payloads and persisted
+  transcript details are unchanged; this only tightens live UI projection input.
+
 ### 2026-06-17 pending-turn clear alias removal
 
 - Finding: Electron main pending-turn clear helpers still accepted

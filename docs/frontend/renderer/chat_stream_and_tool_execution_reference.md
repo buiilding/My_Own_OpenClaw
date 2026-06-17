@@ -277,6 +277,11 @@ SDK dispatch behavior:
   send/thinking state for active tool rows. The dashboard transcript renders SDK
   display rows, including retained OpenAI-native `tool_progress` search trace
   rows.
+  - live presentation entries carry SDK-shaped tool identity fields
+    (`toolName`, `requestId`, `correlationId`, `bundleId`). Renderer live-row
+    builders consume those fields and camelCase payload fields, leaving
+    `structuredPayload` for detailed backend metadata instead of re-reading raw
+    backend identity aliases.
   - SDK rehydrate groups progress-only OpenAI native search rows into one
     synthetic Windie `web_search` tool-call/tool-output pair for later model
     history.

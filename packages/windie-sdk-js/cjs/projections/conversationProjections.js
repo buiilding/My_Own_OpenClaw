@@ -637,6 +637,9 @@ function currentTurnToolEventFrom(event) {
         id: event.eventId,
         kind,
         toolName,
+        requestId: (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId'),
+        correlationId: (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId'),
+        bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId'),
         ...(outputText ? { text: outputText } : {}),
         status: statusFromToolPayload(event.payload),
         payload: event.payload,
@@ -735,6 +738,9 @@ function buildLiveTurnPresentation(projection) {
             sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
             turnRef: projection.turnRef,
             toolName: toolEvent.toolName ?? null,
+            requestId: toolEvent.requestId ?? null,
+            correlationId: toolEvent.correlationId ?? null,
+            bundleId: toolEvent.bundleId ?? null,
             payload: toolEvent.payload,
         });
     });

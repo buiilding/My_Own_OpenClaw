@@ -624,6 +624,10 @@ optional `toolCallId`. `ToolExecutionCoordinator` consumes only that SDK-shaped
 event contract. Direct `tool_call` or `tool_bundle_call` events with snake_case
 payload keys such as `tool_name`, `request_id`, `bundle_id`, or step
 `tool_call_id` are malformed for coordinator execution and remain unclaimed.
+Current-turn live presentation entries mirror the same SDK-shaped identity
+fields (`toolName`, `requestId`, `correlationId`, and `bundleId`) so renderer
+UI code can render live tool rows without re-reading backend-wire aliases from
+`structuredPayload`.
 Claimed SDK-shaped events execute the local runtime, send the result back
 through the transport, and append the corresponding normalized output event
 through the same store/projection path.

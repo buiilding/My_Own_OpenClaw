@@ -347,6 +347,9 @@ export type CurrentTurnToolEvent = {
   id: string;
   kind: CurrentTurnToolEventKind;
   toolName?: string | null;
+  requestId?: string | null;
+  correlationId?: string | null;
+  bundleId?: string | null;
   text?: string;
   status?: string | null;
   payload: JsonRecord;
@@ -368,6 +371,9 @@ export type LiveTurnPresentationEntry = {
   sourceChannel?: string | null;
   turnRef?: string | null;
   toolName?: string | null;
+  requestId?: string | null;
+  correlationId?: string | null;
+  bundleId?: string | null;
   modelId?: string | null;
   modelProvider?: string | null;
   isComplete?: boolean;

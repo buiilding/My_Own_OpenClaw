@@ -149,6 +149,64 @@ describe('messagePresentationPipeline', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages uses SDK live-entry fields for tool identity', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool:tool-1',
+          type: 'tool-call',
+          text: '',
+          sourceEventType: 'tool_call',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          requestId: 'req-read',
+          correlationId: 'corr-read',
+          payload: {
+            toolName: 'read_file',
+            requestId: 'req-read',
+            correlationId: 'corr-read',
+            args: { path: 'README.md' },
+            structuredPayload: {
+              tool_name: 'wrong_backend_tool',
+              request_id: 'wrong-request',
+              correlation_id: 'wrong-correlation',
+              parameters: { path: 'wrong.md' },
+            },
+          },
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered[1]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'tool-call',
+      text: expect.stringContaining('"name": "read_file"'),
+      correlationId: 'corr-read',
+      modelFacingToolCall: expect.objectContaining({
+        id: 'req-read',
+        name: 'read_file',
+      }),
+    }));
+    expect(rendered[1].text).not.toContain('wrong_backend_tool');
+    expect(rendered[1].correlationId).not.toBe('wrong-correlation');
+  });
+
   test('buildThreadPresentationMessages ignores current-turn entries for another conversation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

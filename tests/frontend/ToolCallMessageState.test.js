@@ -138,4 +138,25 @@ describe('toolCallMessageState', () => {
       correlationId: 'bundle-1',
     });
   });
+
+  test('normalizes SDK-shaped bundle ids for live presentation payloads', () => {
+    expect(buildToolBundleMessageState({
+      bundleId: 'bundle-sdk',
+      tools: [
+        {
+          name: 'read_file',
+          args: { path: 'README.md' },
+        },
+      ],
+    })).toEqual(expect.objectContaining({
+      text: JSON.stringify({
+        bundle_id: 'bundle-sdk',
+        tools: [{
+          name: 'read_file',
+          arguments: { path: 'README.md' },
+        }],
+      }, null, 2),
+      correlationId: 'bundle-sdk',
+    }));
+  });
 });
