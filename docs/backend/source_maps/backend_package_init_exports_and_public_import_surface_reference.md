@@ -33,7 +33,6 @@ concrete modules directly.
 - `backend/src/llm/models/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
 - `backend/src/sdk/__init__.py`
-- `backend/src/services/vision/__init__.py`
 
 ## Import-Surface Contract
 
@@ -53,7 +52,6 @@ Major aggregator files:
 - `backend/src/core/config/__init__.py`: runtime config models + loader/manager/runtime policy exports
 - `backend/src/core/infrastructure/__init__.py`: bus/cache/exceptions umbrella surface
 - `backend/src/core/events/__init__.py`: base + bus + streaming event model exports
-- `backend/src/services/vision/__init__.py`: provider/types/coordinate utility exports
 
 ## Minimal/Marker Entrypoints
 
@@ -147,6 +145,9 @@ docstring or compatibility path.
   `backend.src.embeddings.openai_provider`,
   `backend.src.embeddings.remote_provider`, and
   `backend.src.embeddings.limited_provider`.
+- `backend/src/services/vision/__init__.py` is intentionally absent; import
+  vision service, providers, coordinates, and utilities from concrete modules
+  under `backend.src.services.vision`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.

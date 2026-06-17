@@ -9,7 +9,7 @@ import pytest
 
 from backend.src.core.inference.errors import ProviderRequestError
 from backend.src.services.ocr.remote_provider import RemoteHttpOcrProvider
-from backend.src.services.vision import RemoteHttpVisionProvider
+from backend.src.services.vision.remote_provider import RemoteHttpVisionProvider
 
 
 def _build_transport(handler):

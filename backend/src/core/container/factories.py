@@ -199,7 +199,7 @@ def _create_vision_service(config: AppConfig):
             config.vision_backend,
         )
         return None
-    from backend.src.services.vision import VisionService
+    from backend.src.services.vision.vision_service import VisionService
 
     return VisionService(model_name=config.vision_model_name)
 
@@ -260,7 +260,7 @@ def _create_vision_provider(config: AppConfig, service=None):
     if config.vision_backend == "local":
         if service is None:
             return None
-        from backend.src.services.vision import LocalVisionProvider
+        from backend.src.services.vision.provider import LocalVisionProvider
 
         return LocalVisionProvider(service)
     if config.vision_backend == "remote-http":
@@ -272,7 +272,7 @@ def _create_vision_provider(config: AppConfig, service=None):
                 "Vision backend remote-http requires vision_remote_service_url"
             )
             return None
-        from backend.src.services.vision import RemoteHttpVisionProvider
+        from backend.src.services.vision.remote_provider import RemoteHttpVisionProvider
 
         return RemoteHttpVisionProvider(
             service_url=config.vision_remote_service_url,
