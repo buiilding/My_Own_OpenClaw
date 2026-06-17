@@ -77,6 +77,15 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.WindieAgent).toBe(canonicalModule.Agent);
   });
 
+  test('Windie agent stream events module remains a compatibility wrapper for agent stream events', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/runtime/AgentStreamEvents.js');
+    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/runtime/WindieAgentStreamEvents.js');
+
+    expect(canonicalModule.toAgentStreamEvents).toBeDefined();
+    expect(compatibilityModule.toAgentStreamEvents).toBe(canonicalModule.toAgentStreamEvents);
+    expect(compatibilityModule.toolOutputStreamKeys).toBe(canonicalModule.toolOutputStreamKeys);
+  });
+
   test('capability manifest module keeps summarization behind stamping API', () => {
     const manifestModule = require('../../packages/windie-sdk-js/cjs/runtime/CapabilityManifest.js');
 

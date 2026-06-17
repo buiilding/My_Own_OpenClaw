@@ -2633,3 +2633,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level and
   `WindieAgent` module imports still resolve to the same agent runtime object
   and types.
+
+### 2026-06-17 AgentStreamEvents module compatibility wrapper
+
+- Finding: the canonical SDK stream-event projection module still exported
+  Windie-prefixed stream state, tool call/output, and stream event type aliases
+  directly, so the generic projection module owned historical product naming.
+- Change: moved the Windie-prefixed stream-event type aliases to the
+  `WindieAgentStreamEvents` compatibility module and package boundary, leaving
+  `AgentStreamEvents` as the canonical stream projection module.
+- Validation: focused SDK package-boundary/private-export coverage,
+  conversation-runtime stream projection coverage, docs listing,
+  `git diff --check`, and source scans confirming the canonical stream-events
+  module no longer exports Windie-prefixed compatibility names.
+- Compatibility: no migration required. Existing package-level stream event
+  type imports still resolve, and direct compatibility-module imports can use
+  `WindieAgentStreamEvents`.

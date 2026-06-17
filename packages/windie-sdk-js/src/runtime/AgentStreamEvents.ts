@@ -112,11 +112,6 @@ export type AgentStreamEvent =
       turnRef: string | null;
     };
 
-export type WindieAgentStreamState = AgentStreamState;
-export type WindieAgentToolCall = AgentToolCall;
-export type WindieAgentToolOutput = AgentToolOutput;
-export type WindieAgentStreamEvent = AgentStreamEvent;
-
 type ConversationLocator = {
   conversationRef: string;
   turnRef: string | null;

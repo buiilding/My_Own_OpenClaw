@@ -27,6 +27,12 @@ export * from './runtime/ConversationContinuityService.js';
 export * from './runtime/AgentDefinition.js';
 export * from './runtime/SdkRuntimeCommands.js';
 export * from './runtime/AgentStreamEvents.js';
+export type {
+  WindieAgentStreamEvent,
+  WindieAgentStreamState,
+  WindieAgentToolCall,
+  WindieAgentToolOutput,
+} from './runtime/WindieAgentStreamEvents.js';
 export * from './runtime/AgentChatSession.js';
 export {
   WindieChatSession,

@@ -53,6 +53,7 @@ import {
   type AgentQueryOptions,
   type AgentRuntimeFeatureOption,
   type AgentSdkQueryOptions,
+  type AgentStreamEvent,
   type AgentStopOptions,
   type AgentStoreMemoryInput,
   type AgentTraceOptions,
@@ -71,6 +72,7 @@ import {
   type WindieLocalRuntimeClient,
   type WindieAgentQueryInput,
   type WindieAgentSessionRuntime,
+  type WindieAgentStreamEvent,
   type WindieAgentStopInput,
   type WindieToolDefinition,
   type WindieChatSendInput,
@@ -186,6 +188,18 @@ describe('@windie/sdk package boundary', () => {
     expect(compatibilityMemoryQuery.memoryType).toBe('semantic');
     expect(compatibilityStoreMemory.memoryType).toBe('episodic');
     expect(compatibilityTraceOptions.conversationRef).toBe('conv-1');
+  });
+
+  test('exports generic agent stream event aliases', () => {
+    const event: AgentStreamEvent = {
+      type: 'state',
+      state: 'thinking',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    };
+    const compatibilityEvent: WindieAgentStreamEvent = event;
+
+    expect(compatibilityEvent.state).toBe('thinking');
   });
 
   test('exports generic client runtime option aliases', () => {

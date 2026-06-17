@@ -875,8 +875,8 @@ consumer-ready `state`, `reasoning_delta`, `assistant_delta`,
 tool calls and bundled tool outputs stay bundled on the backend transport and
 conversation history path, but the public stream exposes them as plural tool
 call/output arrays so CLI and custom UI callers do not need bundle-specific
-rendering branches. `WindieAgentStreamEvent` remains exported as a compatibility
-alias for existing callers.
+rendering branches. `WindieAgentStreamEvents.ts` remains the compatibility
+wrapper for historical Windie-prefixed stream event type names.
 
 `AgentStreamEvents.ts` owns display-safe public tool-output extraction for
 `agent.stream(...)`. `extractToolResultAttachments(...)` walks nested arrays and
