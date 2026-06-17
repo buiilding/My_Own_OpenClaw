@@ -13,7 +13,6 @@ curated import contracts. Empty marker-only `__init__.py` files are not kept;
 namespace packages are used for package directories whose callers import
 concrete modules directly.
 
-- `backend/src/agent/session/__init__.py`
 - `backend/src/api/handlers/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
@@ -107,6 +106,10 @@ docstring or compatibility path.
 - `backend/src/agent/tools/preparation/types/__init__.py` is intentionally
   absent; import `ExecutionRef` and `ResolvedToolCall` from their concrete
   modules under `backend.src.agent.tools.preparation.types`.
+- `backend/src/agent/session/__init__.py` is intentionally absent; import
+  session runtime classes from concrete modules such as
+  `backend.src.agent.session.session`, `backend.src.agent.session.manager`, and
+  `backend.src.agent.session.state`.
 - `backend/src/api/auth/__init__.py` is intentionally absent; import install
   auth routes/services from concrete modules such as
   `backend.src.api.auth.router` and `backend.src.api.auth.service`.

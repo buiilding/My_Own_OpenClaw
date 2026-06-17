@@ -111,6 +111,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/agent-tools: remove unused tool-preparation package exports so
   preparation, coordinate, OCR, screenshot, helper, and type components
   are imported from concrete owner modules.
+- backend/agent-session: remove the unused session package export so
+  session runtime classes are imported from concrete session modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
