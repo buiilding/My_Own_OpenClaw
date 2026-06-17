@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for local-backend screenshot routing in Electron main: display-bounds fallback resolution, screenshot-path artifact materialization, inline fallback behavior, and temp-file cleanup guarantees."
 read_when:
-  - When changing screenshot tool routing in `frontend/src/main/sidecar/local_backend_bridge*.cjs`.
+  - When changing screenshot tool routing in `frontend/src/main/sidecar/local_runtime*.cjs`.
   - When debugging missing `screenshot_ref`/`screenshot_url`, wrong monitor capture, or leaked temporary screenshot files.
 title: "Screenshot Display-Bounds Fallback and Attachment Materialization Reference"
 ---
@@ -15,7 +15,7 @@ title: "Screenshot Display-Bounds Fallback and Attachment Materialization Refere
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `frontend/src/main/surfaces/display_affinity_runtime.cjs`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 - `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
 - `tests/frontend/LocalRuntimeToolArgs.test.cjs`
 
@@ -123,7 +123,7 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 - prefers visible sender-window affinity over active query fallback
 - falls back to active query affinity when sender window is hidden
 
-`tests/frontend/LocalBackendBridge.rpc.test.cjs`:
+`tests/frontend/LocalRuntimeBridge.rpc.test.cjs`:
 
 - successful artifact upload returns `screenshot_ref` + `screenshot_url`
 - failed upload falls back to inline base64 screenshot

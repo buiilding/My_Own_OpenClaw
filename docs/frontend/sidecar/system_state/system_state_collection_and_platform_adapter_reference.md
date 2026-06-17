@@ -167,7 +167,7 @@ Current runtime note:
 
 ## Test-Backed Anchors
 
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
   - `get-system-state` returns `null` when sidecar response is unsuccessful
 - `tests/frontend/IpcMainBridge.query.test.cjs`
   - query payload falls back to `<active_window>Unknown</active_window>` when system-state fetch fails

@@ -78,7 +78,7 @@ Likely code:
 - `frontend/src/renderer/infrastructure/ipc`
 - `frontend/src/main/ipc.cjs`
 - owning `frontend/src/main/*_ipc_runtime.cjs` or `frontend/src/main/ipc/*.cjs` helper
-- `frontend/src/main/sidecar/local_backend_bridge*.cjs` when the channel reaches the Python sidecar
+- `frontend/src/main/sidecar/local_runtime*.cjs` when the channel reaches the Python sidecar
 
 Validate preload/registry parity, the owning main-process handler, and the renderer consumer or sidecar mapper. Do not add generic renderer IPC access to bypass the preload allowlist.
 

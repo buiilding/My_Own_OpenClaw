@@ -16,14 +16,14 @@ title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
 - `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 - `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
 - `tests/frontend/LocalRuntimeToolArgs.test.cjs`
 
 ## Handler Registration Topology
 
 `initializeLocalRuntimeBridge(getWindows)` registers these handlers. The old
-`initializeLocalBackendBridge(...)` export has been removed.
+`initializeLocalRuntimeBridge(...)` export has been removed.
 
 Direct handlers:
 
@@ -168,7 +168,7 @@ Removed mapping:
 
 ## Test-Backed Invariants
 
-From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
+From `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`:
 
 - mapped channels send expected JSON-RPC method names and param keys
 - non-object payloads do not crash mapper paths (`list-chat-conversations` sends `{}`)

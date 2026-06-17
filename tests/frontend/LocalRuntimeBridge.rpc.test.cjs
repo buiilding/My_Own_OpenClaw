@@ -13,7 +13,7 @@ const {
   rejectNextSdkRuntimeRequest,
   resolveNextSdkRuntimeRequest,
   registerBridgeSuiteLifecycleHooks,
-} = require('./__mocks__/localBackendBridgeHarness.cjs');
+} = require('./__mocks__/localRuntimeBridgeHarness.cjs');
 const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
@@ -30,7 +30,7 @@ function createOwnedScreenshotTempPath(
   );
 }
 
-describe('local_backend_bridge RPC handlers', () => {
+describe('local_runtime_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
 
   function emitRpcResult(_stdoutHandler, result) {

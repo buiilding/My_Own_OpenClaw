@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime bridge focused suites
+
+- Finding: the Electron main local-runtime bridge lifecycle/RPC focused Jest
+  suites and shared harness still used LocalBackendBridge names after the bridge
+  root and helper modules moved to local-runtime paths.
+- Change: renamed the lifecycle/RPC suites and shared harness to
+  LocalRuntimeBridge names and updated current docs that route validation to
+  those suites.
+- Validation: focused LocalRuntimeBridge lifecycle/RPC tests, host-boundary
+  tests, stale test-name scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a test/docs/harness path rename;
+  bridge APIs, IPC channels, JSON-RPC payloads, and runtime behavior are
+  unchanged.
+
 ### 2026-06-17 local-runtime RPC mappers module
 
 - Finding: Electron main renderer-to-sidecar RPC mapper registration was a
@@ -794,7 +808,7 @@ Each completed slice should report:
 
 ### 2026-06-17 Main local-runtime bridge alias deletion
 
-- Finding: Electron main still exported `initializeLocalBackendBridge`,
+- Finding: Electron main still exported `initializeLocalRuntimeBridge`,
   `stopLocalBackend`, `getLocalBackendStatus`,
   the backend-named supervisor factory, and
   the backend-named execute-tool factory as compatibility aliases after the
@@ -1014,7 +1028,7 @@ Each completed slice should report:
 ### 2026-06-17 main local-runtime lifecycle docs
 
 - Finding: active Electron-main lifecycle docs still presented
-  `initializeLocalBackendBridge(...)` and `stopLocalBackend()` as the primary
+  `initializeLocalRuntimeBridge(...)` and `stopLocalBackend()` as the primary
   bridge API even though main now calls the canonical local-runtime functions.
 - Change: reworded lifecycle, readiness, RPC-handler, and bridge overview docs
   to use `initializeLocalRuntimeBridge(...)` and `stopLocalRuntime()` as the
@@ -1596,7 +1610,7 @@ Each completed slice should report:
 ### 2026-06-17 main sidecar bridge console labels
 
 - Finding: Electron main sidecar bridge modules still emitted
-  `[Main][LocalBackendBridge]` console labels even though the host adapter now
+  `[Main][LocalRuntimeBridge]` console labels even though the host adapter now
   represents a generic sidecar/local-runtime bridge.
 - Change: changed new console output from the bridge, tool-execution, and
   screenshot materialization helpers to `[Main][SidecarBridge]` at this point;
@@ -2004,7 +2018,7 @@ Each completed slice should report:
   call sites to local-runtime terminology while preserving the compatibility
   filename, then-current status channel, and payload fields.
 - Validation: focused Jest run for `LocalRuntimeStatusBroadcaster` and
-  `LocalBackendBridge.lifecycle`; docs listing; `git diff --check`; and a
+  `LocalRuntimeBridge.lifecycle`; docs listing; `git diff --check`; and a
   stale-name scan for the retired helper names.
 - Compatibility: no migration required. Status payload shape, lifecycle
   diagnostics, and renderer readiness behavior are unchanged.
@@ -2015,7 +2029,7 @@ Each completed slice should report:
   local runtime supervisor ready as backend-ready.
 - Change: renamed the helper and focused lifecycle test title to local-runtime
   readiness terminology.
-- Validation: focused Jest run for `LocalBackendBridge.lifecycle`;
+- Validation: focused Jest run for `LocalRuntimeBridge.lifecycle`;
   `git diff --check`; and a stale-name scan for the retired helper/test wording.
 - Compatibility: no migration required. Status supervisor behavior, status
   payload shape, and SDK runtime bootstrap behavior are unchanged.
@@ -2026,7 +2040,7 @@ Each completed slice should report:
   runtime bridge failures as local-backend bridge failures.
 - Change: updated initialization/stopped fallback error copy and focused
   lifecycle expectations to local-runtime bridge terminology.
-- Validation: focused Jest run for `LocalBackendBridge.lifecycle`; `git diff
+- Validation: focused Jest run for `LocalRuntimeBridge.lifecycle`; `git diff
   --check`; and a stale-phrase scan for the retired error strings.
 - Compatibility: no migration required. Public bridge method names, status
   payload shape, and failure control flow are unchanged.
@@ -2159,7 +2173,7 @@ Each completed slice should report:
 ### 2026-06-17 main window bootstrap local runtime bridge dependency
 
 - Finding: generic main-window/bootstrap runtime wiring still passed
-  `initializeLocalBackendBridge` through the window creation surface, even
+  `initializeLocalRuntimeBridge` through the window creation surface, even
   though the local-backend name belongs at the sidecar bridge adapter edge.
 - Change: renamed the bootstrap and main-window dependency to
   `initializeLocalRuntimeBridge`, adapted the existing compatibility bridge
@@ -2842,7 +2856,7 @@ Each completed slice should report:
 ### 2026-06-17 main local runtime bridge dependency names
 
 - Finding: the Electron main composition root still imported
-  `initializeLocalBackendBridge`, `stopLocalBackend`, and
+  `initializeLocalRuntimeBridge`, `stopLocalBackend`, and
   `getLocalBackendStatus` from the sidecar adapter, then aliased them into the
   already-generic lifecycle/window runtime dependency shape.
 - Change: added generic local-runtime export aliases at the sidecar bridge
@@ -3818,7 +3832,7 @@ Each completed slice should report:
 - Finding: the Electron main local-runtime bridge exported generic
   `initializeLocalRuntimeBridge`, `stopLocalRuntime`, and `getLocalRuntimeStatus`
   names first, but the implementation still defined the legacy
-  `initializeLocalBackendBridge`, `stopLocalBackend`, and
+  `initializeLocalRuntimeBridge`, `stopLocalBackend`, and
   `getLocalBackendStatus` functions as the canonical code path.
 - Change: flipped the bridge definitions to local-runtime names, kept the old
   local-backend names as direct compatibility aliases, and updated focused

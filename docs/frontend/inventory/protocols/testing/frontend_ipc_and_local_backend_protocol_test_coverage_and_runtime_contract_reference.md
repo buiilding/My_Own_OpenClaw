@@ -37,8 +37,8 @@ Primary protocol tests:
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcQueryRuntime.test.cjs`
 - `tests/frontend/WindieSdkContextEnrichment.test.ts`
-- `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
 - `tests/frontend/WakewordBridgeRuntime.test.cjs`
 - `tests/frontend/PermissionService.test.cjs`
@@ -59,8 +59,8 @@ Primary protocol tests:
 | outbound payload normalization | SDK `filterBackendPayload(...)` + Electron `ipc_backend_payload_contract.cjs` | backend websocket contract tests and screenshot-strip tests | known command payloads are filtered to backend contract keys; client-supplied `screenshot_url` is removed from outbound payloads while keeping supported screenshot refs |
 | query-context enrichment + escaping | SDK `ContextEnrichmentPipeline.ts` | `WindieSdkContextEnrichment.test.ts` + query relay tests | memories, attachment context, and user query render into XML-like content; XML-sensitive values are escaped; disabled or unavailable memory retrieval has explicit fallback behavior |
 | conversation-ref fallback lifecycle | `currentConversationRef` handling (`ipc.cjs`) | conversation-ref tests in `IpcMainBridge.query.test.cjs` | backend-streamed `conversation_ref` backfills local echo + outbound query; reconnect clears stale fallback before next turn |
-| SDK local-runtime readiness safety | runtime state/reset + readiness status (`local_runtime_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | local-runtime provider failures resolve with standardized errors; stale status snapshots do not clobber current runtime state |
-| local runtime RPC shape mapping | handler registration + mapper utilities (`local_runtime_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
+| SDK local-runtime readiness safety | runtime state/reset + readiness status (`local_runtime_bridge.cjs`) | `LocalRuntimeBridge.lifecycle.test.cjs` | local-runtime provider failures resolve with standardized errors; stale status snapshots do not clobber current runtime state |
+| local runtime RPC shape mapping | handler registration + mapper utilities (`local_runtime_bridge.cjs`) | `LocalRuntimeBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
 | overlay IPC registrar ownership boundary | `overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` | overlay phase module registers only overlay-owned channels (`set-responsebox-size`, `set-chatbox-visual-anchor-height`, `show-chatbox`, `hide-chatbox`, `move-chatbox-to`) and does not own deprecated focus/interactivity channels |
 | window-control IPC registrar + display mapping | `window_controls_ipc_runtime.cjs`, `display_query_handler.cjs` | `WindowControlsIpcRuntime.test.cjs`, `DisplayQueryHandler.test.cjs` | `show-main-window` normalization/route emit stays in window-control module; display inventory payload is mapped to stable `{ id, label, isPrimary, bounds, scaleFactor }` |
 | permission IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
@@ -84,7 +84,7 @@ Primary protocol tests:
 | permission IPC runtime channel ownership | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
-| local runtime RPC mapping | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
+| local runtime RPC mapping | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | `LocalRuntimeBridge.rpc.test.cjs`, `LocalRuntimeBridge.lifecycle.test.cjs` |
 
 ## Renderer IPC Validation Contract
 
@@ -133,16 +133,16 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - optional attachment context renders as `<attached_file_context> ... </attached_file_context>`
 - memory search failures fall back to `None` memory sections
 
-## Local Backend Bridge Lifecycle and RPC Mapping Contract
+## Local Runtime Bridge Lifecycle and RPC Mapping Contract
 
-`tests/frontend/LocalBackendBridge.lifecycle.test.cjs` enforces process-generation safety:
+`tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` enforces process-generation safety:
 
 - sidecar exit/error rejects pending internal tool execution requests with standardized unavailable errors
 - non-zero exit broadcasts `local-runtime-status` with `{ready:false,error:<message>}`
 - stale readiness timeout/retry callbacks from previous process generation are ignored
 - delayed force-kill timer from `stopLocalRuntime` cannot kill a newly restarted process
 
-`tests/frontend/LocalBackendBridge.rpc.test.cjs` enforces IPC-to-JSON-RPC mapping:
+`tests/frontend/LocalRuntimeBridge.rpc.test.cjs` enforces IPC-to-JSON-RPC mapping:
 
 - internal tool execution success/error response normalization
 - resolved backend HTTP URL export in child-process env (`WINDIE_BACKEND_HTTP_URL`)
@@ -225,8 +225,8 @@ Use this command to inspect protocol-test breadth:
 - `  'tests/frontend/IpcMainBridge.query.test.cjs',`
 - `  'tests/frontend/IpcMainBridge.lifecycle.test.cjs',`
 - `  'tests/frontend/IpcQueryRuntime.test.cjs',`
-- `  'tests/frontend/LocalBackendBridge.lifecycle.test.cjs',`
-- `  'tests/frontend/LocalBackendBridge.rpc.test.cjs',`
+- `  'tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs',`
+- `  'tests/frontend/LocalRuntimeBridge.rpc.test.cjs',`
 - `  'tests/frontend/WakewordBridge.test.cjs',`
 - `  'tests/frontend/WakewordBridgeRuntime.test.cjs',`
 - `  'tests/frontend/PermissionService.test.cjs',`

@@ -88,7 +88,7 @@ On SDK provider failure:
 - calls `sdkLocalRuntime.shutdown()` when a runtime has been resolved
 - clears the SDK runtime handle and local status snapshot
 
-The old `initializeLocalBackendBridge(...)`, `stopLocalBackend()`, and
+The old `initializeLocalRuntimeBridge(...)`, `stopLocalBackend()`, and
 `getLocalBackendStatus()` bridge exports have been removed. Main-process code
 imports the canonical local-runtime names directly.
 

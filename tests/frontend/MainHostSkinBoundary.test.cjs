@@ -22,9 +22,9 @@ const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
 const localRuntimeLaunchOptionsPath = path.join(mainRoot, 'sidecar/local_runtime_launch_options.cjs');
-const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_runtime_bridge.cjs');
-const localBackendBridgeModulePaths = [
-  localBackendBridgePath,
+const localRuntimeBridgePath = path.join(mainRoot, 'sidecar/local_runtime_bridge.cjs');
+const localRuntimeBridgeModulePaths = [
+  localRuntimeBridgePath,
   path.join(mainRoot, 'sidecar/local_runtime_display_bounds.cjs'),
   path.join(mainRoot, 'sidecar/local_runtime_execute_tool_runtime.cjs'),
   path.join(mainRoot, 'sidecar/local_runtime_rpc_mappers.cjs'),
@@ -202,15 +202,15 @@ describe('main host skin/config boundary', () => {
   });
 
   test('local runtime and OAuth helpers consume host copy with generic defaults', () => {
-    const localBackendSource = fs.readFileSync(localBackendBridgePath, 'utf8');
+    const localRuntimeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
     const oauthSource = fs.readFileSync(openAICodexOAuthPath, 'utf8');
     const oauthHandlerSource = fs.readFileSync(openAICodexOAuthHandlersPath, 'utf8');
 
-    expect(localBackendSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
-    expect(localBackendSource).toContain('localRuntimeCopy.browserWarmupExplanation');
-    expect(localBackendSource).toContain('Agent SDK local runtime resolver is unavailable.');
-    expect(localBackendSource).not.toContain('Windie SDK local runtime');
-    expect(localBackendSource).not.toContain('Open the WindieOS browser');
+    expect(localRuntimeSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
+    expect(localRuntimeSource).toContain('localRuntimeCopy.browserWarmupExplanation');
+    expect(localRuntimeSource).toContain('Agent SDK local runtime resolver is unavailable.');
+    expect(localRuntimeSource).not.toContain('Windie SDK local runtime');
+    expect(localRuntimeSource).not.toContain('Open the WindieOS browser');
     expect(oauthSource).toContain('Return to the app for details');
     expect(oauthSource).toContain('copy.loginFailure');
     expect(oauthSource).not.toContain('Return to WindieOS');
@@ -229,7 +229,7 @@ describe('main host skin/config boundary', () => {
   });
 
   test('main sidecar adapter headers use local-runtime boundary wording', () => {
-    for (const modulePath of localBackendBridgeModulePaths) {
+    for (const modulePath of localRuntimeBridgeModulePaths) {
       const header = fs.readFileSync(modulePath, 'utf8').split('\n').slice(0, 3).join('\n');
 
       expect(header).toMatch(/local sidecar|local-runtime|local runtime/i);
@@ -238,28 +238,28 @@ describe('main host skin/config boundary', () => {
   });
 
   test('main sidecar adapter console labels use local-runtime bridge naming', () => {
-    for (const modulePath of localBackendBridgeModulePaths) {
+    for (const modulePath of localRuntimeBridgeModulePaths) {
       const source = fs.readFileSync(modulePath, 'utf8');
 
       expect(source).not.toContain('[Main][LocalBackendBridge]');
       expect(source).not.toContain('[Main][SidecarBridge]');
     }
 
-    const joinedSource = localBackendBridgeModulePaths
+    const joinedSource = localRuntimeBridgeModulePaths
       .map(modulePath => fs.readFileSync(modulePath, 'utf8'))
       .join('\n');
     expect(joinedSource).toContain('[Main][LocalRuntimeBridge]');
   });
 
   test('main sidecar adapter debug stdout flag uses local-runtime wording', () => {
-    const bridgeSource = fs.readFileSync(localBackendBridgePath, 'utf8');
+    const bridgeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
 
     expect(bridgeSource).toContain('WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT');
     expect(bridgeSource).not.toContain('WINDIE_DEBUG_LOCAL_BACKEND_STDOUT');
   });
 
   test('main sidecar adapter active dependencies use local-runtime names', () => {
-    const bridgeSource = fs.readFileSync(localBackendBridgePath, 'utf8');
+    const bridgeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
     const supervisorSource = fs.readFileSync(
       path.join(mainRoot, 'sidecar/local_runtime_supervisor.cjs'),
       'utf8',

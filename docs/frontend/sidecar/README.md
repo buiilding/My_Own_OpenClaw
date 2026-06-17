@@ -57,7 +57,7 @@ title: "Frontend Sidecar Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/python/*`
-- `frontend/src/main/sidecar/local_backend_bridge*.cjs`
+- `frontend/src/main/sidecar/local_runtime*.cjs`
 - `frontend/src/main/python/memory/*`
 - `frontend/src/main/python/tools/*`
 

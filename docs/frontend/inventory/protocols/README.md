@@ -43,7 +43,7 @@ title: "Frontend Inventory Protocols Hub"
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
-- `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
 - `tests/frontend/WakewordBridgeRuntime.test.cjs`

@@ -170,7 +170,7 @@ Wakeword detection runs as a separate Python subprocess:
   - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local sidecar imports)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Bridge regression coverage:
-  - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs` validates SDK local-runtime bootstrap and readiness/status transitions.
+  - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` validates SDK local-runtime bootstrap and readiness/status transitions.
   - `tests/frontend/WakewordBridge.test.cjs` validates stale partial wakeword `stderr` buffers are cleared across stop/start restart.
 - Shell command sessions:
   - Use `open_app` for detached GUI launches that should survive sidecar/agent exit.

@@ -148,8 +148,8 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 | Changed behavior | Minimum focused tests |
 | --- | --- |
 | Supervisor generation/status semantics | `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeSupervisor.test.cjs` |
-| SDK provider readiness, unavailable launch plan, shutdown, fail-closed helpers | `cd frontend && npm run test -- ../tests/frontend/LocalBackendBridge.lifecycle.test.cjs` |
-| Helper RPC mapping, tool routing, screenshot host shaping, JSON-RPC errors | `cd frontend && npm run test -- ../tests/frontend/LocalBackendBridge.rpc.test.cjs` |
+| SDK provider readiness, unavailable launch plan, shutdown, fail-closed helpers | `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` |
+| Helper RPC mapping, tool routing, screenshot host shaping, JSON-RPC errors | `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeBridge.rpc.test.cjs` |
 | Renderer status subscription and browser readiness gating | `cd frontend && npm run test -- ../tests/frontend/ChatBrowserSessionControl.test.jsx` plus any direct status-store tests |
 | Daemon protocol behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_sidecar_daemon.py tests/sidecar/test_local_backend.py` |
 | Packaged path/runtime changes | focused runtime path tests plus package/reinstall smoke from [Release and Packaging Change Workflow](../../../operations/release_packaging_change_workflow.md) |

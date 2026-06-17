@@ -20,8 +20,8 @@ title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`
-- `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 
 ## Runtime Contract
 
@@ -77,6 +77,6 @@ The old `stopLocalBackend()` export has been removed.
 
 Run these focused checks after changing this path:
 
-- `cd frontend && npm run test -- ../tests/frontend/LocalBackendBridge.lifecycle.test.cjs ../tests/frontend/LocalBackendBridge.rpc.test.cjs --runInBand`
+- `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs ../tests/frontend/LocalRuntimeBridge.rpc.test.cjs --runInBand`
 - `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeStatusBroadcaster.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs --runInBand`
 - `bin/windie docs list`

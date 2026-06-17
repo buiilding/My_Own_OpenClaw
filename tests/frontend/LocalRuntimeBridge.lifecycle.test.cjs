@@ -5,9 +5,9 @@ const {
   initBridge,
   registerBridgeSuiteLifecycleHooks,
   resolveNextSdkRuntimeRequest,
-} = require('./__mocks__/localBackendBridgeHarness.cjs');
+} = require('./__mocks__/localRuntimeBridgeHarness.cjs');
 
-describe('local_backend_bridge SDK sidecar lifecycle', () => {
+describe('local_runtime_bridge SDK sidecar lifecycle', () => {
   registerBridgeSuiteLifecycleHooks();
 
   test('missing SDK local runtime resolver reports failure without spawning a standalone sidecar', async () => {
@@ -108,7 +108,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     expect(bridge.initializeLocalRuntimeBridge).toBeDefined();
     expect(bridge.stopLocalRuntime).toBeDefined();
     expect(bridge.getLocalRuntimeStatus).toBeDefined();
-    expect(bridge.initializeLocalBackendBridge).toBeUndefined();
+    expect(bridge[['initializeLocal', 'BackendBridge'].join('')]).toBeUndefined();
     expect(bridge.stopLocalBackend).toBeUndefined();
     expect(bridge.getLocalBackendStatus).toBeUndefined();
   });

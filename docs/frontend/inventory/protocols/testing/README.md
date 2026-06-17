@@ -25,8 +25,8 @@ title: "Frontend Protocol Testing Hub"
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcQueryRuntime.test.cjs`
-- `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
 - `tests/frontend/WakewordBridgeRuntime.test.cjs`
 - `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`

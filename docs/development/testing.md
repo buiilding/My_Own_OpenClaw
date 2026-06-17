@@ -58,7 +58,7 @@ npm run audit:knip
   - `tests/sidecar` runs with `frontend_jarvis`
 - `scripts\python-in-env.cmd` on Windows and `scripts/python-in-env.sh` on Unix-like shells use `conda run` when envs exist, otherwise fall back to the current shell env (CI-friendly).
 - Sidecar protocol output normalization is covered by `tests/sidecar/test_stdout_json.py` (shared JSON-line writer).
-- Local backend bridge restart/readiness handling is covered by `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`.
+- Local backend bridge restart/readiness handling is covered by `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`.
 - Wakeword bridge stale-buffer/stale-process restart behavior is covered by `tests/frontend/WakewordBridge.test.cjs`.
 - For CI parity: `bin/windie test frontend`.
 - Frontend tests use Jest + React Testing Library.

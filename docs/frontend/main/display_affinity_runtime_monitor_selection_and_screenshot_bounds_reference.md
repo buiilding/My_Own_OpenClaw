@@ -19,7 +19,7 @@ title: "Display-Affinity Monitor Selection and Screenshot Bounds Reference"
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `tests/frontend/DisplayAffinityRuntime.test.cjs`
 - `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 
 ## Display-Affinity Shape
 

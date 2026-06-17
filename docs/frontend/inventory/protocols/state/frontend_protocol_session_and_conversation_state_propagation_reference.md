@@ -41,7 +41,7 @@ Primary test sources:
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
 - `tests/frontend/IpcTranscriptSessionSync.test.cjs`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 
 ## State Ownership Matrix
 
@@ -229,7 +229,7 @@ This is protocol state propagation because a renderer config bit changes sidecar
 
 Locked by:
 
-- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 
 ## Drift Checks
 

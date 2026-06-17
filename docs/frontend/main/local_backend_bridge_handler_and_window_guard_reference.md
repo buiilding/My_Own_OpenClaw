@@ -1,6 +1,6 @@
 summary: "Electron main local-runtime bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility ownership references."
 read_when:
-  - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
+  - When changing `frontend/src/main/sidecar/local_runtime*.cjs` and deciding where local-backend behavior documentation belongs.
   - When tracing local-backend issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.
   - When resolving removed `local_runtime_bridge.getSystemState` export references.
 title: "Local Runtime Bridge Overview and Window Guard Index"
@@ -44,7 +44,7 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_runtime_bridge.cjs`:
 
 `local_runtime_bridge.cjs` no longer exports `getSystemState(fields)`.
 System-state access is the `get-system-state` IPC handler registered by
-`initializeLocalRuntimeBridge(...)`; the old `initializeLocalBackendBridge(...)`
+`initializeLocalRuntimeBridge(...)`; the old `initializeLocalRuntimeBridge(...)`
 export has been removed. The focused behavior reference is
 [System-State Collection and Removed getSystemState Bridge Export Reference](../sidecar/system_state/system_state_collection_and_platform_adapter_reference.md).
 
