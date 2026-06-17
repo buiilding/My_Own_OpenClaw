@@ -73,7 +73,7 @@ Current durable traced paths:
   bundle spans with tool/bundle ids, tool names, argument key counts, step
   counts, screenshot-ref presence, delivery failure state, and duration. It
   does not persist tool arguments, outputs, screenshots, or file contents.
-- `sidecar.rpc`: SDK local-runtime RPC wrappers record method names,
+- `local_runtime.rpc`: SDK local-runtime RPC wrappers record method names,
   params/response key counts, success flags, request ids, and duration without
   persisting params, returned title text, or user content.
 - `artifact.upload`: SDK resource/tool upload paths record upload mode,

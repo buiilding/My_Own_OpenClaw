@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime RPC trace path
+
+- Finding: SDK conversation runtime RPC wrappers still emitted durable trace
+  rows under the sidecar-specific `sidecar.rpc` path.
+- Change: routed conversation-runtime local RPC traces through the
+  `local_runtime.rpc` path, updated the focused conversation-runtime assertion,
+  and revised runtime trace docs.
+- Validation: focused SDK conversation-runtime test, trace-path scan, docs
+  listing, and diff check.
+- Compatibility: persisted trace rows from earlier builds keep the old path;
+  new SDK local RPC trace rows use `local_runtime.rpc`. No storage migration is
+  required because trace paths are append-only diagnostics.
+
 ### 2026-06-17 SDK memory local-runtime diagnostic stages
 
 - Finding: SDK memory retrieval and completed-turn memory diagnostics still

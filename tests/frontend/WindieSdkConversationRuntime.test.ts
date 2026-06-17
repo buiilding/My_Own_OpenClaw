@@ -4910,7 +4910,7 @@ describe('Windie SDK conversation runtime core', () => {
     expect(events.map(storedEvent => storedEvent.type)).toContain('turn_completed');
     const timeline = buildTraceTimeline(events, {
       turnRef: 'turn-title',
-      path: 'sidecar.rpc',
+      path: 'local_runtime.rpc',
     });
     expect(timeline.map(entry => `${entry.data?.method}:${entry.status}`)).toEqual([
       'get_conversation_title_state:started',
