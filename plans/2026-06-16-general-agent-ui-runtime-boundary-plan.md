@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime routing docs label cleanup
+
+- Finding: top-level docs navigation, routing hubs, help/developer guides, and
+  browser/runtime references still used local-backend or local-sidecar labels
+  for Electron-facing local runtime and Python sidecar daemon paths.
+- Change: updated visible labels and descriptions to local-runtime or Python
+  sidecar terminology while preserving historical `local_backend*` filenames
+  and explicit local-backend deployment wording where it names a backend origin.
+- Validation: docs listing, focused stale-label scan, and diff check.
+- Compatibility: no migration required. This is documentation cleanup only;
+  local-runtime daemon startup, JSON-RPC methods, IPC channels, and backend
+  endpoint selection are unchanged.
+
 ### 2026-06-17 Agent stop option alias removal
 
 - Finding: the public SDK `Agent.stop` helper still accepted backend-shaped

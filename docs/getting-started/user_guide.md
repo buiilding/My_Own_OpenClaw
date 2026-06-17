@@ -58,7 +58,7 @@ Default section on open: **Chat**.
 - Shows streaming responses, tool output, and screenshots.
 - Right-click any screenshot shown in the chat thread to open a small context menu with **Copy image**.
 - Mode badge shows **Chat** or **Agent**.
-- The header shows a browser control button to the left of the workspace chip. It waits for the local sidecar runtime to finish starting, shows **Starting local runtime...** until ready, reports **Browser unavailable** if startup fails, then connects the dedicated Windie browser, shows the current controlled tab as **Browser Tab**, and opens a tab carousel plus disconnect action.
+- The header shows a browser control button to the left of the workspace chip. It waits for the local runtime to finish starting, shows **Starting local runtime...** until ready, reports **Browser unavailable** if startup fails, then connects the dedicated Windie browser, shows the current controlled tab as **Browser Tab**, and opens a tab carousel plus disconnect action.
 - Changing tabs from that header carousel only changes WindieOS's internal controlled tab. It does not bring that tab to the foreground in the visible browser window.
 - The tab carousel updates live as tabs open/close, and moving left or right should update in place without flashing the header control.
 - The header shows the active workspace. Click it to change the default folder WindieOS uses for file reads, shell commands, and repo-aware work.

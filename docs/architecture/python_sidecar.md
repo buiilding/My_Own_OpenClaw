@@ -60,7 +60,7 @@ The bridge:
   filters the Chromium `SetApplicationIsDaemon ... paramErr` LaunchServices warning
   emitted by child processes during startup so real app/runtime errors remain visible
   in dev logs.
-- Marks the local backend ready only after the SDK local runtime provider
+- Marks the local runtime ready only after the SDK local runtime provider
   resolves a usable daemon client.
 - Workspace-aware path resolution now lives in one shared sidecar helper so shell and filesystem tools resolve relative paths from the same selected workspace base instead of each tool re-implementing permission-state parsing.
 

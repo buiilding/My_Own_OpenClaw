@@ -43,9 +43,9 @@ frontend/src/
 │   ├── index.cjs      # Electron entry
 │   ├── ipc.cjs        # IPC bridge
 │   ├── wakeword_bridge.cjs  # Wakeword service bridge
-│   ├── local_runtime_bridge.cjs  # Local backend bridge
+│   ├── local_runtime_bridge.cjs  # Local runtime bridge
 │   └── python/        # Python sidecar
-│       ├── local_backend.py  # Local backend service
+│       ├── local_backend.py  # Python sidecar runtime service
 │       ├── core/      # Core utilities
 │       ├── tools/     # Tool implementations
 │       └── memory/    # Memory storage

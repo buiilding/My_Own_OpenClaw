@@ -18,7 +18,7 @@ For browser changes that can cross schema, sidecar runtime, Electron bridge, ren
 | --- | --- |
 | Backend | Exposes model-facing `browser` tool schema, validates action payloads, and sends executable browser requests. |
 | Renderer | Shows browser connection/status controls and renders SDK-projected tool status. |
-| SDK runtime and main process | Route backend tool requests to the local runtime adapter, relay execution to the sidecar local backend, and handle dedicated-browser process integration. |
+| SDK runtime and main process | Route backend tool requests to the local runtime adapter, relay execution to the Python sidecar runtime, and handle dedicated-browser process integration. |
 | Sidecar | Validates the canonical WindieOS browser payload, invokes the Browser Use CLI daemon, and normalizes Browser Use output back into WindieOS tool results. |
 | Browser Use | Owns browser session lifecycle, CDP/Playwright edge cases, state snapshots, element indexing, browser interactions, tab commands, screenshots, and browser recovery behavior. |
 

@@ -1,8 +1,8 @@
 ---
-summary: "Final AgentClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, local sidecar daemon registration, builtins wakeUp option selection, removed builtinTools wake guard behavior, AgentStreamEvents extractToolResultAttachments attachment projection, and tool-result routing."
+summary: "Final AgentClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, Python sidecar daemon registration through the local runtime, builtins wakeUp option selection, removed builtinTools wake guard behavior, AgentStreamEvents extractToolResultAttachments attachment projection, and tool-result routing."
 read_when:
-  - When changing `AgentClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or local sidecar daemon integration.
-  - When debugging whether a query should use the hosted backend websocket, the local sidecar daemon, or both.
+  - When changing `AgentClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or Python sidecar daemon integration through the local runtime.
+  - When debugging whether a query should use the hosted backend websocket, the local runtime daemon, or both.
   - When changing SDK websocket implementation selection, `WebSocketLike`/`WebSocketConstructor` types, the `ws` package dependency, or stale references to the removed `src/types/ws.d.ts` ambient declaration.
   - When changing SDK `agent.stream(...)` tool-output attachment extraction, `AgentStreamEvents.ts`, or stale `extractToolResultAttachments` parent-parameter references.
   - When debugging stale `builtinTools` wakeUp option calls, the removed builtinTools wake guard, or current `builtins` agent setup.
@@ -27,7 +27,7 @@ Electron main / future CLI / SDK users
 TS Agent SDK runtime
         |---------------- hosted backend HTTP/WebSocket
         |
-        |---------------- local sidecar daemon HTTP/WebSocket
+        |---------------- local runtime daemon HTTP/WebSocket
                               |
                               |-- built-in tools
                               |-- module-path tools
@@ -691,7 +691,7 @@ Instead, Electron computes desktop launch options (Python or packaged daemon
 command, args, cwd, environment, auth/permission paths, discovery path, and
 launch context), passes them as `autoLocalRuntime` to one shared `AgentClient`, and
 hands `client.getKnownLocalRuntime()` / `client.localRuntime({ reason })`
-resolvers to host IPC facades such as browser control and local-backend status.
+resolvers to host IPC facades such as browser control and local-runtime status.
 
 The SDK auto-local-runtime provider reads the daemon discovery file, validates launch
 context when one is provided, starts or reuses `sidecar_daemon.py`, owns
