@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 sidecar executor folder map cleanup
+
+- Finding: the Python sidecar folder-structure reference still listed the old
+  `core/thread_pool.py` module after executor lifecycle ownership moved to
+  `core/executors.py`.
+- Change: updated the folder map to point at `executors.py` and describe the
+  shared interactive/background executor lifecycle.
+- Validation: source-path existence check, stale `thread_pool.py` docs/source
+  scan, and diff check.
+- Compatibility: no migration required. This is a docs-only sidecar source-map
+  cleanup; executor behavior and environment variables are unchanged.
+
 ### 2026-06-17 current-doc local-runtime bridge wording
 
 - Finding: current routing and troubleshooting docs still used Electron/main
