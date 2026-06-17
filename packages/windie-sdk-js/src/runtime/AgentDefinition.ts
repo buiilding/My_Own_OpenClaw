@@ -19,7 +19,6 @@ export type BuildAgentDefinitionOptions = {
   promptLayers?: unknown;
   skills?: unknown;
   agentsMd?: unknown;
-  agents_md?: unknown;
   plugins?: unknown;
   workspacePath?: unknown;
   operatingSystem?: unknown;
@@ -96,6 +95,10 @@ function clientManifestHasTools(clientToolManifest: JsonRecord | null): boolean 
 }
 
 export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}): JsonRecord {
+  if (Object.prototype.hasOwnProperty.call(options, 'agents_md')) {
+    throw new Error('buildAgentDefinition accepts agentsMd; snake_case agents_md input is not supported.');
+  }
+
   const includeToolManifest = options.includeToolManifest !== false;
   const clientToolManifest = includeToolManifest
     ? (isJsonRecord(options.clientToolManifest) ? options.clientToolManifest : { version: 1, tools: [] })
@@ -110,7 +113,7 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
     ...(Array.isArray(options.promptLayers) ? options.promptLayers : []),
   ]);
   const skills = normalizePromptLayers(options.skills);
-  const agentsMd = normalizePromptLayers(options.agentsMd || options.agents_md);
+  const agentsMd = normalizePromptLayers(options.agentsMd);
   const plugins = Array.isArray(options.plugins) ? options.plugins : [];
 
   const systemPromptContent = normalizeString(options.systemPrompt);

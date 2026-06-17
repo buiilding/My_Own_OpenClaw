@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK/main agent definition AGENTS.md input alias rejection
+
+- Finding: SDK `buildAgentDefinition(...)` and Electron main agent-definition
+  input collection still accepted the backend-wire `agents_md` spelling as an
+  input alias, keeping SDK/public builder inputs blurred with wire payload
+  fields.
+- Change: made both builders reject removed snake_case `agents_md` input and
+  kept the generated `agent_definition.agents_md` wire field unchanged.
+- Validation: focused SDK builder test, focused Electron main input collector
+  test, docs listing, and diff check.
+- Compatibility: no migration required for current Electron callers; they pass
+  `agentsMd` into the builder. External SDK callers using `agents_md` as a
+  builder input must switch to `agentsMd`.
+
 ### 2026-06-17 renderer message sender clipboard image alias rejection
 
 - Finding: renderer chat send payload normalization still quietly ignored the

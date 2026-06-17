@@ -88,7 +88,8 @@ Split boundary:
 - `desktop_agent_definition_inputs.cjs` owns Electron-only collection of custom
   instructions, extension prompt layers, AGENTS.md layers, workspace path, and
   OS facts. The SDK package owns the final `agent_definition` object shape and
-  capability metadata stamping.
+  capability metadata stamping. Its input contract uses `agentsMd`; the
+  generated backend wire field remains `agent_definition.agents_md`.
 - See [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md) for per-module contract details.
 
 ## Query Payload Enrichment

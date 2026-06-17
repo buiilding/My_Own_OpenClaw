@@ -4,7 +4,16 @@
 
 const { loadExtensionSkillPromptLayers } = require('../extensions/extension_manifest.cjs');
 
+function rejectRemovedInputKeys(options, keys, label) {
+  const present = keys.filter((key) => Object.prototype.hasOwnProperty.call(options, key));
+  if (present.length > 0) {
+    throw new Error(`${label} received removed input field(s): ${present.join(', ')}.`);
+  }
+}
+
 function buildDesktopAgentDefinitionInputs(options = {}) {
+  rejectRemovedInputKeys(options, ['agents_md'], 'desktop agent definition inputs');
+
   const extensionPromptLayers = options.includeExtensionPromptLayers === false
     ? []
     : loadExtensionSkillPromptLayers({ contributionsDir: options.contributionsDir });
@@ -21,7 +30,7 @@ function buildDesktopAgentDefinitionInputs(options = {}) {
       ...(Array.isArray(options.promptLayers) ? options.promptLayers : []),
     ],
     skills: options.skills,
-    agentsMd: options.agentsMd || options.agents_md,
+    agentsMd: options.agentsMd,
     plugins: options.plugins,
     systemPrompt: options.systemPrompt,
     workspacePath: options.workspacePath,

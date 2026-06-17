@@ -273,6 +273,13 @@ describe('Agent SDK client behavior', () => {
     expect(isDefaultAgentDefinition(null)).toBe(false);
   });
 
+  test('buildAgentDefinition rejects removed AGENTS.md input aliases', () => {
+    expect(() => buildAgentDefinition({
+      // @ts-expect-error snake_case agents_md is the backend wire field, not the SDK builder input
+      agents_md: [{ id: 'repo', type: 'agents_md', priority: 10, content: 'Repo rules.' }],
+    })).toThrow('buildAgentDefinition accepts agentsMd; snake_case agents_md input is not supported.');
+  });
+
   test('builds introspection requests against the existing sdk routes', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       config: {
