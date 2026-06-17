@@ -378,7 +378,7 @@ initializeMainProcessLifecycleRuntime({
   getMainWindowMode: surfaceRuntime.getMainWindowMode,
   getChatWindow: surfaceRuntime.getChatWindow,
   getResponseWindow: surfaceRuntime.getResponseWindow,
-  stopLocalBackend,
+  stopLocalRuntime: stopLocalBackend,
   stopVmWorker: surfaceRuntime.stopVmWorker,
 });
 

@@ -165,7 +165,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     getResponseWindow = () => null,
     installApplicationMenu = () => {},
     syncWindowDisplayAffinity = () => {},
-    stopLocalBackend,
+    stopLocalRuntime = () => {},
     stopVmWorker = () => {},
     log = console.log,
     warn = console.warn,
@@ -399,8 +399,8 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       action: 'before_quit',
       status: 'succeeded',
     });
-    log('[Main][Shutdown] before_quit cleanup=subprocesses');
-    stopLocalBackend();
+    log('[Main][Shutdown] before_quit cleanup=local-runtime,vm-worker');
+    stopLocalRuntime();
     stopVmWorker();
   });
 

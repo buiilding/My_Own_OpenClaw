@@ -594,3 +594,19 @@ Each completed slice should report:
 - Compatibility: no migration required. This changes only docs-search routing
   and documentation metadata/headings; runtime behavior and docs paths are
   unchanged.
+
+### 2026-06-17 main lifecycle local runtime shutdown dependency
+
+- Finding: the generic main-process lifecycle runtime still depended on a
+  `stopLocalBackend` shutdown hook and logged `cleanup=subprocesses`, even
+  though the lifecycle boundary should only know that it is stopping the SDK
+  local runtime bridge and VM worker runtime.
+- Change: renamed the lifecycle dependency to `stopLocalRuntime`, adapted the
+  existing bridge export at `index.cjs`, updated shutdown logging/tests, and
+  aligned the lifecycle reference with SDK local runtime shutdown wording.
+- Validation: focused Jest run for `MainProcessLifecycleRuntime`; stale-name
+  scan confirming `stopLocalBackend` remains only at the bridge adapter edge;
+  docs listing; and `git diff --check`.
+- Compatibility: no migration required. The bridge export name and shutdown
+  behavior are unchanged; only the generic lifecycle dependency name and log
+  copy changed.

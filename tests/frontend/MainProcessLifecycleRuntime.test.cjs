@@ -47,7 +47,7 @@ function createRuntimeDeps(overrides = {}) {
     getChatWindow: jest.fn(() => null),
     getResponseWindow: jest.fn(() => null),
     syncWindowDisplayAffinity: jest.fn(),
-    stopLocalBackend: jest.fn(),
+    stopLocalRuntime: jest.fn(),
     log: jest.fn(),
     warn: jest.fn(),
     appendDesktopStartupDiagnostic: jest.fn(),
@@ -382,7 +382,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.log).toHaveBeenCalledWith('[Main][Window] all_closed quitting=true vm_mode=false');
   });
 
-  test('logs app shutdown phases and stops local subprocesses', async () => {
+  test('logs app shutdown phases and stops local runtime services', async () => {
     const { deps, app, appEvents } = createRuntimeDeps();
 
     initializeMainProcessLifecycleRuntime(deps);
@@ -392,9 +392,9 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     appEvents['will-quit']();
 
     expect(app.isQuitting).toBe(true);
-    expect(deps.log).toHaveBeenCalledWith('[Main][Shutdown] before_quit cleanup=subprocesses');
+    expect(deps.log).toHaveBeenCalledWith('[Main][Shutdown] before_quit cleanup=local-runtime,vm-worker');
     expect(deps.log).toHaveBeenCalledWith('[Main][Shutdown] will_quit unregister_global_shortcuts');
-    expect(deps.stopLocalBackend).toHaveBeenCalledTimes(1);
+    expect(deps.stopLocalRuntime).toHaveBeenCalledTimes(1);
     expect(deps.globalShortcut.unregisterAll).toHaveBeenCalledTimes(1);
   });
 
