@@ -210,7 +210,7 @@ let pendingAgentStartPromise = null;
 let pendingStartupMcpRefreshPromise = null;
 let latestCurrentTurnProjection = null;
 let latestPendingTurn = null;
-let desktopAutoSidecarLaunchConfig = null;
+let desktopLocalRuntimeLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
@@ -737,7 +737,7 @@ function buildManagedBackendEndpoints() {
 
 function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
   const plan = createDesktopLocalRuntimeLaunchPlan({
-    ...(desktopAutoSidecarLaunchConfig || {}),
+    ...(desktopLocalRuntimeLaunchConfig || {}),
     backendEndpoints: {
       httpUrl: backendEndpointState.getHttpUrl(),
     },
@@ -1525,7 +1525,7 @@ function shutdownIpcForTests() {
   agentClient = null;
   activeAgent?.close();
   activeAgent = null;
-  desktopAutoSidecarLaunchConfig = null;
+  desktopLocalRuntimeLaunchConfig = null;
 }
 
 function initializeIpc(win, options = {}) {
@@ -1555,7 +1555,7 @@ function initializeIpc(win, options = {}) {
   agentWebSocketImpl = typeof options.WebSocketImpl === 'function'
     ? options.WebSocketImpl
     : null;
-  desktopAutoSidecarLaunchConfig = {
+  desktopLocalRuntimeLaunchConfig = {
     isPackaged: options.isPackaged === true,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,

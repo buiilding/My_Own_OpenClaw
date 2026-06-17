@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the Electron main `desktopAutoSidecarLaunchConfig` variable name so local-runtime launch state no longer carries legacy sidecar wording. No persisted-data migration is required.
+
 - Removed the SDK websocket transport's top-level `operating_system` handshake emission; direct and managed sessions now place OS facts under `agent_definition.runtime.operating_system`. No persisted-data migration is required.
 
 - Removed the renderer preload `window.windie` SDK command bridge alias; first-party renderer commands now use `window.desktopAgent.invoke(...)` while the existing `windie:invoke` IPC wire channel remains unchanged.
