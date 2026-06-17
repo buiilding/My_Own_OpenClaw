@@ -131,7 +131,7 @@ const backend = await createMockBackend();
 const client = new AgentClient({
   backendUrl: backend.backendUrl,
   WebSocketImpl,
-  autoSidecar: {
+  autoLocalRuntime: {
     pythonCommand: path.join(repoRoot, 'scripts/python-in-env'),
     pythonArgs: ['sidecar', 'python'],
     startTimeoutMs: 15000,

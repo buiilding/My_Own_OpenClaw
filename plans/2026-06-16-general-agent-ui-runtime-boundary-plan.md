@@ -123,8 +123,8 @@ Each completed slice should report:
 ### 2026-06-17 AgentClient auto local runtime option
 
 - Finding: the reusable SDK `AgentClient` still exposed automatic local runtime
-  startup through the `autoSidecar` option and `AgentAutoSidecarOptions` type,
-  even though the public host contract is local-runtime launch configuration.
+  startup through sidecar-named option and type surfaces even though the public
+  host contract is local-runtime launch configuration.
 - Change: renamed the option to `autoLocalRuntime`, renamed the SDK option type
   to `AgentAutoLocalRuntimeOptions`, updated Electron main to pass the generic
   option, regenerated CommonJS output, and refreshed active SDK/frontend docs.
@@ -195,8 +195,9 @@ Each completed slice should report:
   focused source/CJS assertions so the sidecar-named helper does not return.
 - Validation: SDK package build, focused SDK client test, stale helper scan,
   docs listing, and diff check.
-- Compatibility: no migration required. Public `autoSidecar` options,
-  sidecar-daemon env/discovery contracts, and module paths remain unchanged.
+- Compatibility: no migration required. Public `autoLocalRuntime` options,
+  sidecar-daemon env/discovery contracts, and module paths are the current
+  launch surface.
 
 ### 2026-06-17 Desktop-agent event registry key rename
 
@@ -253,8 +254,8 @@ Each completed slice should report:
 - Validation: focused launch-options Jest test, stale helper-name scan, docs
   listing, and diff check.
 - Compatibility: no migration required. The daemon script, discovery file,
-  environment variables, process output passthrough, and SDK `autoSidecar`
-  option are unchanged.
+  environment variables, process output passthrough, and SDK
+  `autoLocalRuntime` option are the active launch contract.
 
 ### 2026-06-17 Architecture docs desktopAgent bridge wording
 
@@ -293,8 +294,8 @@ Each completed slice should report:
 - Validation: SDK package build, focused SDK client Jest test, stale error scan,
   docs listing, and diff check.
 - Compatibility: no migration required. This changes only SDK error wording;
-  Node module loading, daemon startup, discovery files, and `autoSidecar`
-  options are unchanged.
+  Node module loading, daemon startup, discovery files, and
+  `autoLocalRuntime` options are unchanged.
 
 ### 2026-06-17 Python SDK local-runtime method validation wording
 
@@ -334,7 +335,7 @@ Each completed slice should report:
 - Validation: focused SDK sidecar launch-options Jest test, stale error scan,
   docs listing, and diff check.
 - Compatibility: no migration required. The launch target, daemon script file,
-  discovery file, and SDK `autoSidecar` option are unchanged; only the
+  discovery file, and SDK `autoLocalRuntime` option are unchanged; only the
   Electron main launch-plan error text changed.
 
 ### 2026-06-17 SDK local-runtime error wording
@@ -350,7 +351,7 @@ Each completed slice should report:
   retry, renderer runtime-boundary, and Python SDK tests; SDK package build;
   stale public-error scan; docs listing; and diff check.
 - Compatibility: no migration required. The existing daemon script file,
-  environment variables, discovery file contract, and `autoSidecar` option
+  environment variables, discovery file contract, and `autoLocalRuntime` option
   remain unchanged; only caller-facing error text and renderer retry matching
   moved to local-runtime wording.
 
@@ -361,7 +362,7 @@ Each completed slice should report:
   desktop local-runtime launch plan.
 - Change: renamed the internal variable to `desktopLocalRuntimeLaunchConfig`
   and added main SDK runtime boundary coverage so the old auto-sidecar variable
-  name stays absent. The SDK `autoSidecar` option remains unchanged.
+  name stays absent. The SDK launch option is now `autoLocalRuntime`.
 - Validation: focused main SDK runtime boundary Jest test, stale-name scan,
   docs listing, and diff check.
 - Compatibility: no migration required. This is an internal Electron main
@@ -461,8 +462,8 @@ Each completed slice should report:
   `createDesktopLocalRuntimeLaunchPlan` became the canonical desktop launch
   plan builder.
 - Change: removed the legacy auto-sidecar-named export and updated launch-plan
-  tests to assert the alias stays absent. The SDK `autoSidecar` option remains
-  unchanged because it is the active SDK launch contract.
+  tests to assert the alias stays absent. The SDK launch option is now
+  `autoLocalRuntime`.
 - Validation: focused SDK sidecar launch-options Jest test, stale-reference
   scan, docs listing, and diff check.
 - Compatibility: no migration required for first-party code. Main-process
@@ -2103,7 +2104,7 @@ Each completed slice should report:
 
 - Finding: the generic Electron desktop launch-plan builder still defaulted its
   sidecar daemon discovery file under a WindieOS-specific temp directory.
-- Change: changed the Electron desktop `autoSidecar.discoveryFile` default to
+- Change: changed the Electron desktop `autoLocalRuntime.discoveryFile` default to
   `${os.tmpdir()}/desktop-agent/sidecar-daemon.json` and added focused launch
   option coverage. Standalone SDK/Python daemon defaults are documented as a
   separate compatibility path.
@@ -3001,7 +3002,7 @@ Each completed slice should report:
 - Validation: focused launch-helper and IPC boundary Jest coverage, docs
   listing, `git diff --check`, and source scans for intentional compatibility
   alias usage.
-- Compatibility: no migration required. The SDK `autoSidecar` option shape,
+- Compatibility: no migration required. The SDK `autoLocalRuntime` option shape,
   daemon script target, discovery file, and sidecar log routing are unchanged.
 
 ### 2026-06-17 Agent SDK conversation runtime test label

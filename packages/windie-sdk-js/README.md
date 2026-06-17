@@ -75,7 +75,7 @@ daemon discovery and startup:
 ```ts
 const client = new AgentClient({
   backendUrl: 'https://api.windieos.com',
-  autoSidecar: {
+  autoLocalRuntime: {
     pythonCommand: './scripts/python-in-env',
     pythonArgs: ['sidecar', 'python'],
   },

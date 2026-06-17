@@ -12,7 +12,7 @@ node examples/local-tool-extension/run.mjs
 
 The script starts a mock backend, builds the local TypeScript SDK package from
 `packages/windie-sdk-js`, and lets `AgentClient` own sidecar daemon discovery
-and startup through `autoSidecar`. It registers `save_local_note` with
+and startup through `autoLocalRuntime`. It registers `save_local_note` with
 `moduleTool(...)`, streams one agent request, executes the local Python tool,
 sends the tool result back to the backend, and prints the final response. It then calls
 `agent.stop(...)` to show that local tool examples can use the same SDK runtime
