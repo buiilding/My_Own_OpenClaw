@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK conversation store local-runtime app diagnostics
+
+- Finding: SDK conversation metadata listing emitted SDK-owned app diagnostic
+  stages as `sidecar_rpc` even though the store calls the SDK local-runtime RPC
+  contract and only forwards sidecar-origin diagnostics separately.
+- Change: routed the SDK-origin start/success/failure diagnostics through the
+  `local_runtime_rpc` stage while preserving forwarded sidecar diagnostic
+  stages and runtime markers.
+- Validation: focused SDK conversation-store API test, diagnostic-stage scan,
+  docs listing, and diff check.
+- Compatibility: this changes newly emitted SDK app diagnostic stage values for
+  conversation metadata list RPC attempts. Existing stored diagnostics keep
+  their old stage strings; no migration is required.
+
 ### 2026-06-17 SDK local-runtime RPC trace path
 
 - Finding: SDK conversation runtime RPC wrappers still emitted durable trace

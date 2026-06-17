@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- SDK conversation metadata list diagnostics now emit `local_runtime_rpc` for SDK-origin local-runtime RPC attempts.
+
 - SDK conversation runtime RPC traces now emit under `local_runtime.rpc` instead of the older sidecar-specific trace path.
 
 - SDK memory failure diagnostics now emit `local_runtime_search_failed` and `local_runtime_store_failed` stage values.
@@ -1809,6 +1811,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- SDK conversation metadata list diagnostics now emit `local_runtime_rpc` for SDK-origin local-runtime RPC attempts.
+
 - SDK conversation runtime RPC traces now emit under `local_runtime.rpc` instead of the older sidecar-specific trace path.
 
 - SDK memory failure diagnostics now emit `local_runtime_search_failed` and `local_runtime_store_failed` stage values.
@@ -3511,6 +3515,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- SDK conversation metadata list diagnostics now emit `local_runtime_rpc` for SDK-origin local-runtime RPC attempts.
+
 - SDK conversation runtime RPC traces now emit under `local_runtime.rpc` instead of the older sidecar-specific trace path.
 
 - SDK memory failure diagnostics now emit `local_runtime_search_failed` and `local_runtime_store_failed` stage values.
@@ -3867,6 +3873,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- SDK conversation metadata list diagnostics now emit `local_runtime_rpc` for SDK-origin local-runtime RPC attempts.
 
 - SDK conversation runtime RPC traces now emit under `local_runtime.rpc` instead of the older sidecar-specific trace path.
 
@@ -4254,6 +4262,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- SDK conversation metadata list diagnostics now emit `local_runtime_rpc` for SDK-origin local-runtime RPC attempts.
 
 - SDK conversation runtime RPC traces now emit under `local_runtime.rpc` instead of the older sidecar-specific trace path.
 
@@ -6597,6 +6607,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- SDK conversation metadata list diagnostics now emit `local_runtime_rpc` for SDK-origin local-runtime RPC attempts.
 
 - SDK conversation runtime RPC traces now emit under `local_runtime.rpc` instead of the older sidecar-specific trace path.
 

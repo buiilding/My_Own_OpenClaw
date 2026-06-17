@@ -308,7 +308,7 @@ describe('SidecarConversationStore event payload write params', () => {
     });
     expect(diagnostics).toEqual([
       expect.objectContaining({
-        stage: 'sidecar_rpc',
+        stage: 'local_runtime_rpc',
         status: 'started',
         runtime: 'sdk',
       }),
@@ -321,7 +321,7 @@ describe('SidecarConversationStore event payload write params', () => {
         },
       }),
       expect.objectContaining({
-        stage: 'sidecar_rpc',
+        stage: 'local_runtime_rpc',
         status: 'succeeded',
         runtime: 'sdk',
         data: expect.objectContaining({

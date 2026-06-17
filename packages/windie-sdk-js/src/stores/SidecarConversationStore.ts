@@ -30,6 +30,7 @@ import type { AgentLocalRuntimeClient } from '../runtime/LocalSidecarRuntime.js'
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
+const LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE = 'local_runtime_rpc';
 
 export type SidecarConversationStoreEventWriteContext = {
   event: ConversationEvent;
@@ -386,7 +387,7 @@ export class SidecarConversationStore implements ConversationStore {
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
     const startedAt = Date.now();
     await emitAppDiagnostic(options, {
-      stage: 'sidecar_rpc',
+      stage: LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE,
       status: 'started',
       runtime: 'sdk',
       data: {
@@ -422,7 +423,7 @@ export class SidecarConversationStore implements ConversationStore {
         .filter((entry): entry is ConversationMetadata => Boolean(entry))
         .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
       await emitAppDiagnostic(options, {
-        stage: 'sidecar_rpc',
+        stage: LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE,
         status: 'succeeded',
         runtime: 'sdk',
         durationMs: Date.now() - startedAt,
@@ -434,7 +435,7 @@ export class SidecarConversationStore implements ConversationStore {
       return applyConversationMetadataPagination(metadata, options);
     } catch (error) {
       await emitAppDiagnostic(options, {
-        stage: 'sidecar_rpc',
+        stage: LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE,
         status: 'failed',
         runtime: 'sdk',
         durationMs: Date.now() - startedAt,
