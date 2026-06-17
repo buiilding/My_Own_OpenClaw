@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 preload desktop-agent invoke channel alias
+
+- Finding: the preload bridge exposed the generic `desktopAgent` command API but
+  still sent through `INVOKE_CHANNELS.WINDIE_INVOKE` directly inside that bridge.
+- Change: added a preload-local `DESKTOP_AGENT_INVOKE_CHANNELS` alias, switched
+  the bridge to it, and added source-boundary coverage so bridge code cannot
+  reach into the Windie-prefixed registry key directly.
+- Validation: focused preload IPC channel coverage, docs listing, source scan,
+  and diff check.
+- Compatibility: no migration required. The exposed `desktopAgent` and
+  compatibility `windie` globals still use the same underlying IPC channel.
+
 ### 2026-06-17 SDK generic agent client class
 
 - Finding: Electron main and reusable callers could import the generic

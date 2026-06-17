@@ -1,5 +1,8 @@
 /** @jest-environment node */
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 describe('preload IPC channel registry', () => {
   let exposedIpc;
   let exposedDesktopAgent;
@@ -101,6 +104,18 @@ describe('preload IPC channel registry', () => {
       'Invalid Agent SDK command',
     );
     expect(ipcRendererMock.invoke).not.toHaveBeenCalledWith('windie:invoke', expect.anything());
+  });
+
+  test('desktop agent bridge uses the generic invoke channel alias internally', () => {
+    const source = fs.readFileSync(
+      path.join(__dirname, '../../frontend/src/preload.js'),
+      'utf8',
+    );
+    const bridgeSource = source.slice(source.indexOf('const desktopAgentBridge'));
+
+    expect(source).toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
+    expect(bridgeSource).toContain('DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE');
+    expect(bridgeSource).not.toContain('INVOKE_CHANNELS.WINDIE_INVOKE');
   });
 
   test('allows shared send channels from the central registry', () => {
