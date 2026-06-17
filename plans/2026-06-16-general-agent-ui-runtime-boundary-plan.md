@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK hosted backend client wrapper deletion
+
+- Finding: the SDK still exposed `WindieHostedBackendHttpClient` and root
+  `WindieSdkClient` compatibility exports after `AgentHostedBackendClient`
+  became the canonical hosted HTTP client contract.
+- Change: deleted the Windie-prefixed hosted client module, removed the root
+  compatibility exports and types, updated SDK docs, and switched package
+  boundary tests to the generic hosted client names with removed-wrapper
+  coverage.
+- Validation: focused SDK package-boundary and private-export Jest tests,
+  stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. TypeScript SDK
+  callers must import `AgentHostedBackendClient` and `Agent*` hosted-client
+  types directly.
+
 ### 2026-06-17 SDK conversation runtime wrapper deletion
 
 - Finding: the SDK still exposed a `WindieConversationRuntime` compatibility

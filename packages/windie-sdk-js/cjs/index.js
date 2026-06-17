@@ -17,7 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.WindieSdkClient = exports.createWindieSdkBackendSocket = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = void 0;
+exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.createWindieSdkBackendSocket = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = void 0;
 __exportStar(require("./conversation/types.js"), exports);
 __exportStar(require("./conversation/events.js"), exports);
 __exportStar(require("./conversation/metadata.js"), exports);
@@ -52,8 +52,6 @@ __exportStar(require("./transport/BackendSocketFactory.js"), exports);
 var WindieBackendSocketFactory_js_1 = require("./transport/WindieBackendSocketFactory.js");
 Object.defineProperty(exports, "createWindieSdkBackendSocket", { enumerable: true, get: function () { return WindieBackendSocketFactory_js_1.createWindieSdkBackendSocket; } });
 __exportStar(require("./transport/HostedBackendHttpClient.js"), exports);
-var WindieHostedBackendHttpClient_js_1 = require("./transport/WindieHostedBackendHttpClient.js");
-Object.defineProperty(exports, "WindieSdkClient", { enumerable: true, get: function () { return WindieHostedBackendHttpClient_js_1.WindieSdkClient; } });
 __exportStar(require("./transport/ManagedBackendSession.js"), exports);
 __exportStar(require("./transport/ManagedAgentSession.js"), exports);
 var ManagedWindieAgentSession_js_1 = require("./transport/ManagedWindieAgentSession.js");

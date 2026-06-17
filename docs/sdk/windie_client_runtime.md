@@ -89,9 +89,7 @@ Ownership rules:
   request contracts. TypeScript callers should prefer the generic
   `AgentHostedBackendClient`, `AgentHostedBackendClientOptions`,
   `AgentSdkQueryOptions`, and `AgentInstallIdentityResponse` names for
-  reusable SDK host code. `WindieHostedBackendHttpClient.ts` is the
-  compatibility wrapper for `WindieSdkClient` and matching Windie-prefixed
-  hosted client types.
+  reusable SDK host code.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
   auto-start/reuse, sidecar event subscriptions, sidecar-backed conversation
   storage, builtin desktop tool selection, memory/title RPC helpers, and

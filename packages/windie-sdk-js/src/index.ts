@@ -93,14 +93,6 @@ export type {
   WindieSdkBackendSocketOptions,
 } from './transport/WindieBackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';
-export {
-  WindieSdkClient,
-} from './transport/WindieHostedBackendHttpClient.js';
-export type {
-  WindieInstallIdentityResponse,
-  WindieSdkClientOptions,
-  WindieSdkQueryOptions,
-} from './transport/WindieHostedBackendHttpClient.js';
 export * from './transport/ManagedBackendSession.js';
 export * from './transport/ManagedAgentSession.js';
 export {
