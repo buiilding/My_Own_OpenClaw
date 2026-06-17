@@ -257,7 +257,7 @@ describe('local_backend_bridge RPC handlers', () => {
     }
   });
 
-  test('screenshot host channel accepts legacy filename prefix in current temp directory', async () => {
+  test('screenshot host channel rejects removed legacy filename prefix in current temp directory', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
@@ -273,7 +273,7 @@ describe('local_backend_bridge RPC handlers', () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        artifact_id: 'legacy-prefix-artifact-1',
+        artifact_id: 'should-not-upload',
       }),
     });
 
@@ -294,18 +294,17 @@ describe('local_backend_bridge RPC handlers', () => {
         success: true,
         data: {
           screenshot_content_type: 'image/jpeg',
-          screenshot_ref: 'legacy-prefix-artifact-1',
-          screenshot_url: 'https://api.windieos.com/api/artifacts/legacy-prefix-artifact-1',
         },
       });
-      await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
+      expect(global.fetch).not.toHaveBeenCalled();
+      await expect(fsPromises.access(screenshotPath)).resolves.toBeUndefined();
     } finally {
       global.fetch = originalFetch;
       await fsPromises.rm(screenshotPath, { force: true });
     }
   });
 
-  test('screenshot host channel accepts legacy owned temp directory and filename prefix', async () => {
+  test('screenshot host channel rejects removed legacy owned temp directory and filename prefix', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
@@ -321,7 +320,7 @@ describe('local_backend_bridge RPC handlers', () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        artifact_id: 'legacy-artifact-1',
+        artifact_id: 'should-not-upload',
       }),
     });
 
@@ -342,11 +341,10 @@ describe('local_backend_bridge RPC handlers', () => {
         success: true,
         data: {
           screenshot_content_type: 'image/jpeg',
-          screenshot_ref: 'legacy-artifact-1',
-          screenshot_url: 'https://api.windieos.com/api/artifacts/legacy-artifact-1',
         },
       });
-      await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
+      expect(global.fetch).not.toHaveBeenCalled();
+      await expect(fsPromises.access(screenshotPath)).resolves.toBeUndefined();
     } finally {
       global.fetch = originalFetch;
       await fsPromises.rm(screenshotPath, { force: true });

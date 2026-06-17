@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed legacy screenshot temp path acceptance in the Electron local-runtime bridge; screenshot materialization now accepts only `desktop-agent-screenshots` files with the `desktop-agent-shot-` prefix. No persisted-data migration is required.
+
 - Removed the Electron main `createDesktopAutoSidecarLaunchPlan` compatibility export so local-runtime launch callers use `createDesktopLocalRuntimeLaunchPlan` directly.
 
 - Removed the renderer conversation-list retry matcher for legacy `Local backend not ready` text so retry policy follows active local-runtime readiness wording.

@@ -72,9 +72,7 @@ It only runs when all are true:
 - `result.data` is an object
 - `result.data.screenshot_path` is a non-empty string
 - `result.data.screenshot_path` is an absolute direct child of the owned temp directory `${os.tmpdir()}/desktop-agent-screenshots`
-- legacy direct children of `${os.tmpdir()}/windieos-screenshots` remain accepted for compatibility
 - the filename starts with `desktop-agent-shot-`
-- legacy `windie-shot-` filenames remain accepted for compatibility
 - the path is a regular file, not a symlink
 
 Paths that fail this ownership check are rejected before upload, inline fallback, or cleanup. Electron main drops `data.screenshot_path` from the returned payload but does not read or unlink the unowned path.
