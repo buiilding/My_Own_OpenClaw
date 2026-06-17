@@ -140,6 +140,8 @@ All notable changes to WindieOS will be documented in this file.
   `QueryExecutionService` and delete the unused terminal-policy helper module.
 - backend/api: remove the remaining `QueryExecutionService` helper wrappers so
   stream-context and cancellation reconciliation call their support modules directly.
+- backend/docs: replace the stale `QueryExecutionService._resolve_screenshot`
+  breadcrumb with the current multi-screenshot runtime helper contract.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead
