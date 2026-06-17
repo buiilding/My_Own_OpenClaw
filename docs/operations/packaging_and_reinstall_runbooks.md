@@ -23,14 +23,6 @@ Run from `frontend/`:
 | `bin/windie package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
 | `bin/windie build sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime.sh` |
 
-Compatibility aliases:
-
-- `package:win:bundled-python`
-- `package:mac:bundled-python`
-- `package:linux:bundled-python`
-
-These currently forward to the platform package commands.
-
 ## Runtime Build Ownership
 
 Primary files:
@@ -117,7 +109,7 @@ What it does:
 - Removes leftover install roots.
 - Resets local app state unless `-SkipDataReset` is set.
 - Cleans `dist`, `release`, `python-runtime`, and `python-runtime.tar.gz`.
-- Runs `bin/windie package win:bundled-python`.
+- Runs `bin/windie package win`.
 - Installs the newest `*Setup*.exe` silently.
 - Launches the installed app unless `-SkipLaunch` is set.
 

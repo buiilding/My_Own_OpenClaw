@@ -351,7 +351,7 @@ function Invoke-BuildPackage {
   [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_SIDECAR_STDERR", "0", "Process")
 
   try {
-    & npm --prefix $FrontendDir run package:win:bundled-python
+    & npm --prefix $FrontendDir run package:win
     if ($LASTEXITCODE -ne 0) {
       throw "Windows packaging failed with exit code $LASTEXITCODE"
     }

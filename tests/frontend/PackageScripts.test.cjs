@@ -25,4 +25,10 @@ describe('frontend package scripts', () => {
       );
     },
   );
+
+  test('does not keep bundled-python package compatibility aliases', () => {
+    expect(packageJson.scripts).not.toHaveProperty('package:win:bundled-python');
+    expect(packageJson.scripts).not.toHaveProperty('package:mac:bundled-python');
+    expect(packageJson.scripts).not.toHaveProperty('package:linux:bundled-python');
+  });
 });
