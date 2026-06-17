@@ -48,6 +48,9 @@ All notable changes to WindieOS will be documented in this file.
   product copy through main host skin config with generic helper fallbacks.
 - frontend/main: use generic Electron-host fallback wording for sidecar launch
   and trusted artifact-image errors outside the WindieOS host skin.
+- frontend/main: rename the strict SDK command invoke helper/dependencies to
+  generic agent SDK terms while preserving the existing `windie:invoke` wire
+  contract.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

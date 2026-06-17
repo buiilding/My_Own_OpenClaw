@@ -121,7 +121,7 @@ describe('DesktopConversationLibraryClient', () => {
       },
       {
         status: 'failed',
-        error: new Error('Windie SDK command requires an active user id.'),
+        error: new Error('Agent SDK command requires an active user id.'),
       },
     );
 
@@ -135,7 +135,7 @@ describe('DesktopConversationLibraryClient', () => {
       runtime: 'renderer',
       error: {
         code: 'active_user_id_required',
-        message: 'Windie SDK command requires an active user id.',
+        message: 'Agent SDK command requires an active user id.',
       },
     }));
   });

@@ -2,7 +2,9 @@
 summary: "Renderer and Electron main desktop backend transport command contract for DesktopBackendTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
 read_when:
   - When changing `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
-  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, Electron main `handleWindieSdkInvoke`, its internal `buildWindieSdkCommandHandlers` table, or shared SDK-shaped command names.
+  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, Electron main `handleAgentSdkInvoke`, its internal `buildAgentSdkCommandHandlers` table, or shared SDK-shaped command names.
+  - When resolving stale references to the removed `handleWindieSdkInvoke` or `buildWindieSdkCommandHandlers` helper names; the current generic Electron-host helper names are `handleAgentSdkInvoke` and `buildAgentSdkCommandHandlers`.
+  - When searching for main ipc buildWindieSdkCommandHandlers SDK_RUNTIME_COMMANDS conversation.send command-shape routing; this transport contract is the current owner.
   - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
 title: "Desktop Backend Transport Command Contract Reference"
 ---
@@ -50,12 +52,19 @@ library, transcript, memory, and diagnostics commands such as
 `conversations.list`, `conversation.loadDisplay`, `memories.list`,
 `memories.delete`, `conversations.clearAll`, and `diagnostics.append`.
 
-Electron main exports `handleWindieSdkInvoke(...)` as the `windie:invoke`
+Electron main exports `handleAgentSdkInvoke(...)` as the `windie:invoke`
 boundary. Its internal command table uses those same `SDK_RUNTIME_COMMANDS`
 members as computed handler keys. The string values remain the wire contract on
-`windie:invoke`, but the source of truth for adding or renaming a supported
+`windie:invoke`, but the helper itself takes generic Electron-host dependencies
+such as `ensureAgent`; the source of truth for adding or renaming a supported
 SDK-shaped command is
 `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`.
+
+The previous internal helper names `handleWindieSdkInvoke(...)` and
+`buildWindieSdkCommandHandlers(...)` were removed from the Electron main
+boundary. Stale searches for those names should route here and update callers to
+the generic `handleAgentSdkInvoke(...)` and `buildAgentSdkCommandHandlers(...)`
+names.
 
 It does not talk to the backend websocket directly and does not execute tools.
 Electron main remains responsible for settings gates, query enrichment,

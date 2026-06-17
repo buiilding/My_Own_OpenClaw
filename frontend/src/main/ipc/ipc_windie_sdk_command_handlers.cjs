@@ -35,7 +35,7 @@ function normalizePositiveInteger(value) {
 function normalizeMemoryType(value) {
   const type = normalizeOptionalString(value);
   if (type !== 'episodic' && type !== 'semantic') {
-    throw new Error('Windie SDK command requires memory type episodic or semantic.');
+    throw new Error('Agent SDK command requires memory type episodic or semantic.');
   }
   return type;
 }
@@ -43,10 +43,10 @@ function normalizeMemoryType(value) {
 function requireCommandUserId(payload = {}, currentUserId = null) {
   const userId = normalizeOptionalString(payload.userId || payload.user_id);
   if (!userId || userId === 'default_user') {
-    throw new Error('Windie SDK command requires an active user id.');
+    throw new Error('Agent SDK command requires an active user id.');
   }
   if (currentUserId && userId !== currentUserId) {
-    throw new Error('Windie SDK command user id does not match the active user.');
+    throw new Error('Agent SDK command user id does not match the active user.');
   }
   return userId;
 }
@@ -54,7 +54,7 @@ function requireCommandUserId(payload = {}, currentUserId = null) {
 function requireAuthenticatedCommandUserId(currentUserId = null) {
   const userId = normalizeOptionalString(currentUserId);
   if (!userId || userId === 'default_user') {
-    throw new Error('Windie SDK command requires an authenticated user.');
+    throw new Error('Agent SDK command requires an authenticated user.');
   }
   return userId;
 }
@@ -66,7 +66,7 @@ function optionalCommandConversationRef(payload = {}) {
 function requireCommandConversationRef(payload = {}) {
   const conversationRef = optionalCommandConversationRef(payload);
   if (!conversationRef) {
-    throw new Error('Windie SDK command requires a conversation reference.');
+    throw new Error('Agent SDK command requires a conversation reference.');
   }
   return conversationRef;
 }
@@ -74,7 +74,7 @@ function requireCommandConversationRef(payload = {}) {
 function requireCommandString(payload = {}, key, label) {
   const value = normalizeOptionalString(payload[key]);
   if (!value) {
-    throw new Error(`Windie SDK command requires ${label}.`);
+    throw new Error(`Agent SDK command requires ${label}.`);
   }
   return value;
 }
@@ -129,7 +129,7 @@ function appendRendererAppDiagnostic(payload = {}, deps = {}) {
   });
 }
 
-function buildWindieSdkCommandHandlers({
+function buildAgentSdkCommandHandlers({
   event,
   handleRendererChatQuery,
   handleRendererStopQuery,
@@ -139,7 +139,7 @@ function buildWindieSdkCommandHandlers({
     [SDK_RUNTIME_COMMANDS.CONVERSATION_SEND]: async (payload = {}) => handleRendererChatQuery(event, payload),
     [SDK_RUNTIME_COMMANDS.CONVERSATION_STOP]: async (payload = {}) => handleRendererStopQuery(payload),
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE]: async (payload = {}) => {
-      const agent = await deps.ensureWindieAgent({
+      const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.rehydrate',
         conversationRef: optionalCommandConversationRef(payload),
         workspacePath: deps.resolveWorkspacePathForAgent(payload),
@@ -147,7 +147,7 @@ function buildWindieSdkCommandHandlers({
       return agent.rehydrateMessages(payload);
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT]: async (payload = {}) => {
-      const agent = await deps.ensureWindieAgent({
+      const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.compact',
         conversationRef: optionalCommandConversationRef(payload),
       });
@@ -170,7 +170,7 @@ function buildWindieSdkCommandHandlers({
       return deps.sendWakewordDetectedThroughSdkAgent(payload);
     },
     [SDK_RUNTIME_COMMANDS.MEMORIES_LIST]: async (payload = {}) => {
-      const agent = await deps.ensureWindieAgent({ reason: 'sdk-command:memories.list' });
+      const agent = await deps.ensureAgent({ reason: 'sdk-command:memories.list' });
       requireAuthenticatedCommandUserId(deps.getState().currentUserId);
       return agent.listMemories({
         type: normalizeMemoryType(payload.type),
@@ -178,7 +178,7 @@ function buildWindieSdkCommandHandlers({
       });
     },
     [SDK_RUNTIME_COMMANDS.MEMORIES_DELETE]: async (payload = {}) => {
-      const agent = await deps.ensureWindieAgent({ reason: 'sdk-command:memories.delete' });
+      const agent = await deps.ensureAgent({ reason: 'sdk-command:memories.delete' });
       requireAuthenticatedCommandUserId(deps.getState().currentUserId);
       return agent.deleteMemory({
         type: normalizeMemoryType(payload.type),
@@ -186,7 +186,7 @@ function buildWindieSdkCommandHandlers({
       });
     },
     [SDK_RUNTIME_COMMANDS.MEMORIES_CLEAR_ALL]: async () => {
-      const agent = await deps.ensureWindieAgent({ reason: 'sdk-command:memories.clearAll' });
+      const agent = await deps.ensureAgent({ reason: 'sdk-command:memories.clearAll' });
       requireAuthenticatedCommandUserId(deps.getState().currentUserId);
       return agent.clearMemories();
     },
@@ -217,7 +217,7 @@ function buildWindieSdkCommandHandlers({
             userIdMatchesActive: !deps.getState().currentUserId || userId === deps.getState().currentUserId,
           },
         });
-        const agent = await deps.ensureWindieAgent({ reason: 'sdk-command:conversations.list' });
+        const agent = await deps.ensureAgent({ reason: 'sdk-command:conversations.list' });
         failureStage = 'sdk_list';
         recordConversationMetadataListDiagnostic(deps.appendAppDiagnostic, diagnostics, {
           stage: 'agent_ready',
@@ -259,7 +259,7 @@ function buildWindieSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const agent = await deps.ensureWindieAgent({ reason: 'sdk-command:conversations.search' });
+      const agent = await deps.ensureAgent({ reason: 'sdk-command:conversations.search' });
       return agent.searchConversations({
         query: typeof payload.query === 'string' ? payload.query : '',
         limit: normalizePositiveInteger(payload.limit),
@@ -267,7 +267,7 @@ function buildWindieSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const agent = await deps.ensureWindieAgent({ reason: 'sdk-command:conversations.delete' });
+      const agent = await deps.ensureAgent({ reason: 'sdk-command:conversations.delete' });
       await agent.deleteConversation({
         conversationRef: requireCommandConversationRef(payload),
       });
@@ -275,13 +275,13 @@ function buildWindieSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const agent = await deps.ensureWindieAgent({ reason: 'sdk-command:conversations.clearAll' });
+      const agent = await deps.ensureAgent({ reason: 'sdk-command:conversations.clearAll' });
       await agent.clearConversations();
       return { deleted: true };
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const agent = await deps.ensureWindieAgent({
+      const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.load',
         conversationRef: optionalCommandConversationRef(payload),
       });
@@ -291,7 +291,7 @@ function buildWindieSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const agent = await deps.ensureWindieAgent({
+      const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.loadDisplay',
         conversationRef: optionalCommandConversationRef(payload),
       });
@@ -306,7 +306,7 @@ function buildWindieSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_REHYDRATE]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const agent = await deps.ensureWindieAgent({
+      const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.loadRehydrate',
         conversationRef: optionalCommandConversationRef(payload),
       });
@@ -319,7 +319,7 @@ function buildWindieSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_GET_REVISION]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const agent = await deps.ensureWindieAgent({
+      const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.getRevision',
         conversationRef: optionalCommandConversationRef(payload),
       });
@@ -333,7 +333,7 @@ function buildWindieSdkCommandHandlers({
       if (!conversationEvent) {
         throw new Error('conversation.appendEvent requires an event payload');
       }
-      const runtimeRegistry = await deps.ensureWindieAgent({
+      const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.appendEvent',
         conversationRef: optionalCommandConversationRef(conversationEvent)
           || optionalCommandConversationRef(payload),
@@ -347,7 +347,7 @@ function buildWindieSdkCommandHandlers({
       if (!plan) {
         throw new Error('conversation.rewrite requires a plan payload');
       }
-      const runtimeRegistry = await deps.ensureWindieAgent({
+      const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.rewrite',
         conversationRef: optionalCommandConversationRef(plan) || optionalCommandConversationRef(payload),
       });
@@ -360,7 +360,7 @@ function buildWindieSdkCommandHandlers({
       if (!snapshot) {
         throw new Error('conversation.replaceCompactedReplay requires a snapshot payload');
       }
-      const runtimeRegistry = await deps.ensureWindieAgent({
+      const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.replaceCompactedReplay',
         conversationRef: optionalCommandConversationRef(snapshot) || optionalCommandConversationRef(payload),
       });
@@ -375,7 +375,7 @@ function buildWindieSdkCommandHandlers({
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireCommandConversationRef(payload);
       const workspacePath = deps.resolveWorkspacePathForAgent(payload) || null;
-      const runtimeRegistry = await deps.ensureWindieAgent({
+      const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.prepareEditAndResend',
         conversationRef,
         workspacePath,
@@ -398,7 +398,7 @@ function buildWindieSdkCommandHandlers({
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireCommandConversationRef(payload);
       const workspacePath = deps.resolveWorkspacePathForAgent(payload) || null;
-      const runtimeRegistry = await deps.ensureWindieAgent({
+      const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.prepareRetryTurn',
         conversationRef,
         workspacePath,
@@ -420,10 +420,10 @@ function buildWindieSdkCommandHandlers({
   };
 }
 
-async function handleWindieSdkInvoke(event, input = {}, dependencies = {}) {
+async function handleAgentSdkInvoke(event, input = {}, dependencies = {}) {
   const command = normalizeOptionalString(input?.command);
   const payload = isPlainObject(input?.payload) ? input.payload : {};
-  const handlers = buildWindieSdkCommandHandlers({
+  const handlers = buildAgentSdkCommandHandlers({
     event,
     handleRendererChatQuery: dependencies.handleRendererChatQuery,
     handleRendererStopQuery: dependencies.handleRendererStopQuery,
@@ -432,18 +432,18 @@ async function handleWindieSdkInvoke(event, input = {}, dependencies = {}) {
   try {
     const handler = command ? handlers[command] : null;
     if (!handler) {
-      throw new Error(`Unsupported Windie SDK command: ${command || 'unknown'}`);
+      throw new Error(`Unsupported agent SDK command: ${command || 'unknown'}`);
     }
     const data = await handler(payload);
     return { ok: true, data };
   } catch (error) {
     return {
       ok: false,
-      error: error?.message || `Windie SDK command failed: ${command || 'unknown'}`,
+      error: error?.message || `Agent SDK command failed: ${command || 'unknown'}`,
     };
   }
 }
 
 module.exports = {
-  handleWindieSdkInvoke,
+  handleAgentSdkInvoke,
 };

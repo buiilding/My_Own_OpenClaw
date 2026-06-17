@@ -211,8 +211,9 @@ Owns frontend-config IPC handler registration:
 `ipc_windie_sdk_command_handlers.cjs` owns the strict `windie:invoke` command
 allowlist and routes conversation commands such as `conversation.send` and
 `conversation.stop` into the live SDK runtime. `ipc.cjs` registers the IPC
-handler and injects Electron-main state, settings gates, diagnostics, and SDK
-agent functions:
+handler through `handleAgentSdkInvoke(...)` and injects Electron-main state,
+settings gates, diagnostics, and SDK agent functions through generic
+dependencies such as `ensureAgent`:
 
 - backend connection gating
 - initial settings sync waiting

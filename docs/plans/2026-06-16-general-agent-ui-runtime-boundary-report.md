@@ -193,6 +193,16 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: clipboard/image context-menu artifact URL validation now reports "trusted artifact image" without Windie branding.
 - Validation: focused clipboard image, image context menu, and main host skin boundary tests pass.
 
+### 2026-06-16 Main Agent SDK Command Helper Slice
+
+- Concurrent-work recovery: unrelated backend remote-tool/schema docs changes appeared in the worktree and were treated as out of scope.
+- Finding: the strict `windie:invoke` command allowlist helper and dependency surface still used Windie-specific internal names and validation copy even though it is a generic Electron-host adapter over SDK commands.
+- Decision: preserve the existing `windie:invoke` wire contract and SDK command constants, but rename the internal helper/dependency surface to generic agent SDK terms.
+- Change: Electron main now imports `handleAgentSdkInvoke(...)` and injects its product-specific `ensureWindieAgent(...)` function as the generic `ensureAgent` dependency.
+- Change: the command helper's internal table is now `buildAgentSdkCommandHandlers(...)`, validation/fallback errors say "Agent SDK command", and stale helper-name docs route to the current command transport contract.
+- Validation: focused SDK IPC boundary, replay command, desktop conversation library, and touched docs-index routing tests pass.
+- Validation gap: the full `WindieDocsIndex.test.cjs` suite was attempted and still has unrelated routing failures outside this slice; the single touched docs-index case passes.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -213,6 +223,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Chat browser-session copy reads from the renderer skin.
 - [x] Dashboard recent-chat retry policy consumes app-runtime transient error classification instead of matching sidecar text directly.
 - [x] Reusable main-process adapter errors avoid product-specific fallback wording.
+- [x] Main SDK command helper internals use generic agent SDK naming while preserving the `windie:invoke` wire contract.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -269,6 +280,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "sidecar daemon|local backend not ready|failed to list stored conversations" frontend/src/renderer/features/dashboard/utils frontend/src/renderer/features/dashboard/hooks frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js` found runtime-specific matches only in `desktopConversationLibraryClient.js`.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/IpcClipboardImageHandler.test.cjs ../tests/frontend/IpcImageContextMenuHandler.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs` passed.
 - `rg -n "trusted Windie artifact|Windie sidecar daemon|WindieOS local backend|Click Grant to install Chromium for WindieOS|Reinstall WindieOS|Failed to open the WindieOS browser|WindieOS could not" frontend/src/main -g "*.cjs"` found no matches outside the host skin/test guard scope.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs ../tests/frontend/IpcMainReplayCommands.test.cjs ../tests/frontend/DesktopConversationLibraryClient.test.ts` passed.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieDocsIndex.test.cjs -t "routes renderer backend transport command-shape queries"` passed.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieDocsIndex.test.cjs` was attempted and failed on unrelated docs-search routing cases outside this slice.
+- `rg -n "handleWindieSdkInvoke|buildWindieSdkCommandHandlers|Windie SDK command|deps\\.ensureWindieAgent" frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs docs/frontend tests/frontend -g "*.cjs" -g "*.ts" -g "*.md"` found only intentional stale-name routing docs/tests plus unrelated preload validation wording.
 
 ## Remaining Findings
 
@@ -276,6 +291,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, layer-log prefixes, bundled wakeword/sidecar reinstall guidance, local browser warmup, and OAuth callback copy now read related product copy from a host skin. Fresh inspection found WindieOS product naming only in `main_host_skin.cjs` under `frontend/src/main`.
 - Dashboard recent-chat retry state no longer matches sidecar daemon wording in feature utilities; the desktop conversation library facade owns runtime-specific transient metadata-list error classification.
 - Main Electron adapter fallback errors for sidecar launch and artifact-image trust are generic outside the host skin.
+- Main's strict SDK command allowlist now exposes generic internal helper/dependency names (`handleAgentSdkInvoke`, `buildAgentSdkCommandHandlers`, `ensureAgent`) while keeping the `windie:invoke` IPC channel as the existing wire contract.
 - Voice capture internals now use generic desktop-agent naming. The remaining
   renderer voice references are intentional feature/runtime names, not product
   skin copy.

@@ -109,7 +109,7 @@ const {
   createChatQueryHandlers,
 } = require('./ipc/ipc_chat_query_handlers.cjs');
 const {
-  handleWindieSdkInvoke,
+  handleAgentSdkInvoke,
 } = require('./ipc/ipc_windie_sdk_command_handlers.cjs');
 const {
   trackRendererWindow: trackRendererWindowRuntime,
@@ -1803,7 +1803,7 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.handle('windie:invoke', async (event, payload = {}) => (
-    handleWindieSdkInvoke(event, payload, {
+    handleAgentSdkInvoke(event, payload, {
       handleRendererChatQuery,
       handleRendererStopQuery,
       deps: {
@@ -1814,7 +1814,7 @@ function initializeIpc(win, options = {}) {
           isConnected,
           windieAgent,
         }),
-        ensureWindieAgent,
+        ensureAgent: ensureWindieAgent,
         resolveWorkspacePathForAgent,
         sendSettingsUpdate,
         requestModelListThroughSdkAgent,

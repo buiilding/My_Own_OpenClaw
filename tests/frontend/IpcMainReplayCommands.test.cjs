@@ -171,7 +171,7 @@ describe('ipc.cjs replay command handling', () => {
 
     expect(staleResponse).toEqual({
       ok: false,
-      error: 'Windie SDK command user id does not match the active user.',
+      error: 'Agent SDK command user id does not match the active user.',
     });
     expect(sdk.runtime.prepareEditAndResend).toHaveBeenCalledTimes(1);
   });

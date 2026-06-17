@@ -77,9 +77,10 @@ describe('main ipc sdk runtime boundary', () => {
     );
 
     expect(mainSource).toContain("ipcMain.handle('windie:invoke'");
-    expect(mainSource).toContain('handleWindieSdkInvoke(event, payload');
-    expect(mainSource).not.toContain('function buildWindieSdkCommandHandlers');
-    expect(source).toContain('buildWindieSdkCommandHandlers');
+    expect(mainSource).toContain('handleAgentSdkInvoke(event, payload');
+    expect(mainSource).toContain('ensureAgent: ensureWindieAgent');
+    expect(mainSource).not.toContain('function buildAgentSdkCommandHandlers');
+    expect(source).toContain('buildAgentSdkCommandHandlers');
     expect(source).toContain('SDK_RUNTIME_COMMANDS');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MEMORIES_LIST]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MEMORIES_DELETE]');
@@ -109,10 +110,10 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('requireCommandUserId');
     expect(source).toContain('requireAuthenticatedCommandUserId');
     expect(source).toContain("userId === 'default_user'");
-    expect(mainSource).not.toContain('handleWindieSdkInvoke(event, payload, { method');
+    expect(mainSource).not.toContain('handleAgentSdkInvoke(event, payload, { method');
     const sdkCommandModule = require('../../frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs');
-    expect(sdkCommandModule.buildWindieSdkCommandHandlers).toBeUndefined();
-    expect(typeof sdkCommandModule.handleWindieSdkInvoke).toBe('function');
+    expect(sdkCommandModule.buildAgentSdkCommandHandlers).toBeUndefined();
+    expect(typeof sdkCommandModule.handleAgentSdkInvoke).toBe('function');
 
     const memoryHandlers = source.match(/MEMORIES_LIST[\s\S]*?CONVERSATIONS_LIST/)?.[0] || '';
     expect(memoryHandlers).toContain('requireAuthenticatedCommandUserId(deps.getState().currentUserId);');
