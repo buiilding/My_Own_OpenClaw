@@ -12,7 +12,11 @@ from tests.backend.websocket_route_test_utils import (
 _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.websocket import message_handler as mh
-from backend.src.api.schemas import QueryMessage, ToolBundleResultMessage, ToolResultMessage
+from backend.src.api.schemas.incoming import (
+    QueryMessage,
+    ToolBundleResultMessage,
+    ToolResultMessage,
+)
 from backend.src.core.infrastructure.user_facing_errors import (
     INTERNAL_SERVER_ERROR_MESSAGE,
 )

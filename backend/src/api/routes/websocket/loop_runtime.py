@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Awaitable, Callable
 
-from backend.src.api.schemas import IncomingMessage
+from backend.src.api.schemas.incoming import IncomingMessage
 from backend.src.api.transport.websocket import SafeWebSocket
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.routes.websocket.task_manager import TaskManager

@@ -10,7 +10,7 @@ from typing import Optional
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.infrastructure.errors import send_error_response, sanitize_error_message
 from backend.src.api.transport.websocket import SafeWebSocket
-from backend.src.api.schemas import IncomingMessage
+from backend.src.api.schemas.incoming import IncomingMessage
 from backend.src.api.routes.websocket.json_parse import (
     DEFAULT_JSON_PARSE_OFFLOAD_BYTES,
     parse_json_object_payload,

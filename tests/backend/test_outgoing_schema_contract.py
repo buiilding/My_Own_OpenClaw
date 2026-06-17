@@ -17,7 +17,7 @@ from backend.src.api.processing.formatters.system_prompt import (
 )
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
 from backend.src.api.processing.formatters.trace_event import TraceEventFormatter
-from backend.src.api.schemas import (
+from backend.src.api.schemas.outgoing import (
     ContextCompactionCompletedMessage,
     ContextCompactionFailedMessage,
     ContextCompactionStartedMessage,
@@ -34,7 +34,6 @@ from backend.src.api.schemas import (
     WebSearchProgressMessage,
     WebSearchProgressPayload,
 )
-import backend.src.api.schemas as schemas
 from backend.src.core.events.streaming_events import (
     ContextCompactionCompletedEvent,
     ContextCompactionFailedEvent,
@@ -46,14 +45,7 @@ from backend.src.core.events.streaming_events import (
 )
 
 
-def test_outgoing_public_package_exports_include_progress_schemas() -> None:
-    assert QueryAcceptedMessage.__name__ in schemas.__all__
-    assert QueryAcceptedPayload.__name__ in schemas.__all__
-    assert WebSearchProgressMessage.__name__ in schemas.__all__
-    assert WebSearchProgressPayload.__name__ in schemas.__all__
-    assert TraceEventMessage.__name__ in schemas.__all__
-    assert TraceEventPayload.__name__ in schemas.__all__
-
+def test_outgoing_progress_schemas_validate_concrete_messages() -> None:
     accepted = QueryAcceptedMessage.model_validate(
         {
             "type": "query-accepted",

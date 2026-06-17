@@ -13,7 +13,7 @@ from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.processing.pipeline import StreamPipeline
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.processing.tts.processor import TTSProcessor
-from backend.src.api.schemas import QueryMessage
+from backend.src.api.schemas.incoming import QueryMessage
 from backend.src.api.services.query_event_extraction import (
     extract_assistant_full_text,
     extract_event_type,

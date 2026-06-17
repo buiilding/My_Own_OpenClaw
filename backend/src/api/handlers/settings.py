@@ -14,7 +14,7 @@ from backend.src.api.infrastructure.errors import (
     send_success_response,
 )
 from backend.src.api.transport.protocol import WebSocketSender
-from backend.src.api.schemas import (
+from backend.src.api.schemas.incoming import (
     LoadSettingsMessage,
     ListModelsMessage,
     UpdateSettingsMessage,

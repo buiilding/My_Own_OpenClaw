@@ -14,7 +14,7 @@ from backend.src.api.services.query_execution_support.query_execution_runtime im
 from backend.src.services.artifacts.store import ArtifactStore
 
 if TYPE_CHECKING:
-    from backend.src.api.schemas import QueryMessage
+    from backend.src.api.schemas.incoming import QueryMessage
 
 
 @dataclass(frozen=True)

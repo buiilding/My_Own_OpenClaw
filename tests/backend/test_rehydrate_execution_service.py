@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from backend.src.api.schemas import RehydrateConversationMessage
+from backend.src.api.schemas.incoming import RehydrateConversationMessage
 from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateEntryNormalizer,
 )

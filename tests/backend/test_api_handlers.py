@@ -26,7 +26,7 @@ from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.processing.formatter import ResponseFormatter
-from backend.src.api.schemas import (
+from backend.src.api.schemas.incoming import (
     ListModelsMessage,
     LoadSettingsMessage,
     QueryMessage,

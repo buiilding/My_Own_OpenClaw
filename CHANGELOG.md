@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the backend API schema package re-export facade so handlers, websocket routes, services, and tests import concrete schema owner modules directly. No persisted-data migration is required.
+
 - Removed the Electron main `desktopAutoSidecarLaunchConfig` variable name so local-runtime launch state no longer carries legacy sidecar wording. No persisted-data migration is required.
 
 - Removed the SDK websocket transport's top-level `operating_system` handshake emission; direct and managed sessions now place OS facts under `agent_definition.runtime.operating_system`. No persisted-data migration is required.

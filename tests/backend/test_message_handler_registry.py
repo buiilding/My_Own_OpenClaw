@@ -8,7 +8,7 @@ import pytest
 
 from backend.src.api.infrastructure.handler import MessageHandler
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
-from backend.src.api.schemas import QueryMessage
+from backend.src.api.schemas.incoming import QueryMessage
 
 
 def _build_query_message() -> QueryMessage:

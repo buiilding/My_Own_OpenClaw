@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from backend.src.api.infrastructure.handler import MessageHandler
 from backend.src.api.transport.protocol import WebSocketSender
-from backend.src.api.schemas import (
-    BaseMessage,
-    ToolResultMessage,
+from backend.src.api.schemas.common import BaseMessage
+from backend.src.api.schemas.incoming import (
     ToolBundleResultMessage,
+    ToolResultMessage,
 )
 
 if TYPE_CHECKING:

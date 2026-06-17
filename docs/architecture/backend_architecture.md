@@ -64,7 +64,7 @@ To reduce feature-change friction in `backend/src/agent`, session and tool-orche
 
 To reduce feature-change friction in `backend/src/api`, WebSocket + semantic API internals were split into smaller seams:
 
-- **Schemas are split by concern** in `backend/src/api/schemas/common.py`, `backend/src/api/schemas/incoming.py`, and `backend/src/api/schemas/outgoing.py`. Backend code imports the first-class schema package directly; the old compatibility re-export module is gone.
+- **Schemas are split by concern** in `backend/src/api/schemas/common.py`, `backend/src/api/schemas/incoming.py`, and `backend/src/api/schemas/outgoing.py`. Backend code imports the first-class schema modules directly; the old compatibility re-export module is gone.
 - **Query and wakeword orchestration moved to services** in `backend/src/api/services/query_execution.py` and `backend/src/api/services/wakeword_execution.py`, with shared TTS lifecycle handling in `backend/src/api/services/tts_session.py`.
 - **Semantic summarization parsing/orchestration moved out of route handlers** into `backend/src/api/routes/memory/semantic/parser.py` and `backend/src/api/routes/memory/semantic/service.py`, leaving `semantic.py` as a thin HTTP layer.
 - **FastAPI dependency resolution now prefers app scope** in `backend/src/api/deps.py` (`app.state.container` first, global fallback second) so tests and request-scoped integrations can use a single container source.

@@ -23,7 +23,7 @@ This page maps the live websocket protocol owned by backend runtime code:
 - Incoming parsing/validation: `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/message_parse_runtime.py`, `backend/src/api/routes/websocket/json_parse.py`
 - Receive-loop timeout/task scheduling helpers: `backend/src/api/routes/websocket/loop_runtime.py`, `backend/src/api/routes/websocket/task_manager.py`
 - Message envelope primitives: `backend/src/api/schemas/common.py`
-- Incoming/outgoing schema unions: `backend/src/api/schemas/incoming.py`, `backend/src/api/schemas/outgoing.py`, `backend/src/api/schemas/__init__.py`
+- Incoming/outgoing schema unions: `backend/src/api/schemas/incoming.py`, `backend/src/api/schemas/outgoing.py`
 - Canonical message type constants: `backend/src/api/contracts/message_types.py`
 - Incoming route table: `backend/src/core/container/incoming_routing.py`
 - Handler registry wiring: `backend/src/core/container/api_container.py`, `backend/src/api/infrastructure/registry.py`

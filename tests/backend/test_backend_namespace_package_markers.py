@@ -45,6 +45,7 @@ REMOVED_MARKERS = [
     "backend/src/api/routes/sdk/__init__.py",
     "backend/src/api/routes/transcription/__init__.py",
     "backend/src/api/routes/websocket/__init__.py",
+    "backend/src/api/schemas/__init__.py",
     "backend/src/api/services/__init__.py",
     "backend/src/api/services/query_execution_support/__init__.py",
     "backend/src/api/services/transcription/__init__.py",

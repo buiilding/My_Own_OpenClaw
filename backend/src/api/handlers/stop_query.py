@@ -11,7 +11,7 @@ from backend.src.api.infrastructure.errors import (
     send_success_response,
 )
 from backend.src.api.infrastructure.handler import TypedMessageHandler
-from backend.src.api.schemas import StopQueryMessage
+from backend.src.api.schemas.incoming import StopQueryMessage
 from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:

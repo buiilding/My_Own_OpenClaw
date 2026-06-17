@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Annotated, Any, Literal, Mapping, get_args, get_origin
 
-from backend.src.api.schemas import IncomingMessage
+from backend.src.api.schemas.incoming import IncomingMessage
 
 
 @dataclass(frozen=True)

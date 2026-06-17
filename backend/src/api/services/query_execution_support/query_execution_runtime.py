@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List, Optional, Type
 
-from backend.src.api.schemas import QueryMessage
+from backend.src.api.schemas.incoming import QueryMessage
 from backend.src.api.transport.envelope import StreamEventSequencer
 from backend.src.services.artifacts.store import ArtifactStore
 

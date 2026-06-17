@@ -8,7 +8,7 @@ import logging
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.infrastructure.errors import send_success_response
 from backend.src.api.processing.tts.manager import TTSManager
-from backend.src.api.schemas import WakewordDetectedMessage
+from backend.src.api.schemas.incoming import WakewordDetectedMessage
 from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.core.services.wakeword_service import WakewordService

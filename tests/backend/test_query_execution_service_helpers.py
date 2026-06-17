@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from backend.src.api.schemas import QueryMessage
+from backend.src.api.schemas.incoming import QueryMessage
 from backend.src.api.services.query_execution import (
     EMPTY_FINAL_RESPONSE_FALLBACK,
     QueryExecutionService,
