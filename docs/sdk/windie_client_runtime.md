@@ -15,7 +15,9 @@ title: "WindieClient Runtime Contract"
 
 ## Runtime Boundary
 
-`WindieClient` is the canonical agent client runtime.
+`WindieClient` is the canonical agent client runtime. New reusable SDK host
+code may import the same constructor as `AgentClient`; `WindieClient` remains
+the compatibility and product-branded export.
 
 ```text
 Electron main / future CLI / SDK users
@@ -138,6 +140,10 @@ Likewise, public agent API option and result shapes use generic `Agent*` names
 such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
 `AgentMemoryQuery`, and `AgentStoreMemoryInput`; the matching Windie-prefixed
 type names remain compatibility aliases only.
+Client-level runtime options follow the same rule: prefer `AgentClientOptions`,
+`AgentWakeUpOptions`, `AgentLocalRuntimeRequest`, `AgentRuntimeFeatureOption`,
+and `AgentInstallAuthOptions` in reusable SDK code, while Windie-prefixed type
+names remain compatibility aliases.
 
 ## Desktop Host Startup
 

@@ -52,11 +52,31 @@ import {
   type AgentToolDefinition,
 } from './LocalSidecarRuntime.js';
 
-export type WindieWakeUpOptions = {
+export type AgentRuntimeFeatureOption = boolean | {
+  enabled?: boolean;
+};
+
+export type WindieRuntimeFeatureOption = AgentRuntimeFeatureOption;
+
+export type AgentInstallAuthState = {
+  userId: string;
+  installId?: string;
+  installToken: string;
+};
+
+export type WindieInstallAuthState = AgentInstallAuthState;
+
+export type AgentInstallAuthOptions = Partial<AgentInstallAuthState> & {
+  autoRegister?: boolean;
+};
+
+export type WindieInstallAuthOptions = AgentInstallAuthOptions;
+
+export type AgentWakeUpOptions = {
   backendUrl?: string;
   userId?: string;
   installToken?: string;
-  installAuth?: WindieInstallAuthOptions;
+  installAuth?: AgentInstallAuthOptions;
   systemPrompt?: string;
   workspacePath?: string;
   tools?: AgentToolDefinition[];
@@ -70,11 +90,13 @@ export type WindieWakeUpOptions = {
   model?: AgentModelSelection;
   operatingSystem?: string;
   localToolLifecycle?: LocalToolExecutionLifecycle;
-  memory?: WindieRuntimeFeatureOption;
-  persistence?: WindieRuntimeFeatureOption;
+  memory?: AgentRuntimeFeatureOption;
+  persistence?: AgentRuntimeFeatureOption;
 };
 
-export type WindieClientOptions = {
+export type WindieWakeUpOptions = AgentWakeUpOptions;
+
+export type AgentClientOptions = {
   backendUrl?: string;
   httpBaseUrl?: string;
   wsUrl?: string;
@@ -105,52 +127,42 @@ export type WindieClientOptions = {
   operatingSystem?: string;
   defaultUserId?: string;
   installToken?: string;
-  installAuth?: WindieInstallAuthOptions;
+  installAuth?: AgentInstallAuthOptions;
   sidecar?: AgentLocalRuntimeClient;
   localToolLifecycle?: LocalToolExecutionLifecycle;
   sidecarDaemon?: SidecarDaemonClientOptions;
-  ensureLocalRuntime?: AgentLocalRuntimeProvider<WindieWakeUpOptions>;
+  ensureLocalRuntime?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
   autoSidecar?: AgentAutoSidecarOptions;
-  memory?: WindieRuntimeFeatureOption;
-  persistence?: WindieRuntimeFeatureOption;
+  memory?: AgentRuntimeFeatureOption;
+  persistence?: AgentRuntimeFeatureOption;
 };
 
-export type WindieLocalRuntimeRequest = {
+export type WindieClientOptions = AgentClientOptions;
+
+export type AgentLocalRuntimeRequest = {
   reason?: string;
   require?: boolean;
 };
 
-export type WindieRuntimeFeatureOption = boolean | {
-  enabled?: boolean;
-};
+export type WindieLocalRuntimeRequest = AgentLocalRuntimeRequest;
 
-type NormalizedWindieRuntimeFeatures = {
+type NormalizedAgentRuntimeFeatures = {
   memory: boolean;
   persistence: boolean;
 };
 
-export type WindieInstallAuthState = {
-  userId: string;
-  installId?: string;
-  installToken: string;
-};
-
-export type WindieInstallAuthOptions = Partial<WindieInstallAuthState> & {
-  autoRegister?: boolean;
-};
-
 export class WindieClient {
-  private readonly defaultOptions: WindieClientOptions;
+  private readonly defaultOptions: AgentClientOptions;
   private readonly activeAgents = new Map<string, WindieAgent>();
-  private autoLocalRuntimeProvider?: AgentLocalRuntimeProvider<WindieWakeUpOptions>;
+  private autoLocalRuntimeProvider?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
   private activeLocalRuntime?: AgentLocalRuntimeClient;
 
-  constructor(options: WindieClientOptions = {}) {
+  constructor(options: AgentClientOptions = {}) {
     this.defaultOptions = options;
   }
 
-  async wakeUp(options: WindieWakeUpOptions = {}): Promise<WindieAgent> {
+  async wakeUp(options: AgentWakeUpOptions = {}): Promise<WindieAgent> {
     const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
     const initialModelSettings = options.model
       ? buildModelSettingsPatch(options.model, 'agentClient.wakeUp')
@@ -237,7 +249,7 @@ export class WindieClient {
     return this.resolveKnownLocalRuntime() ?? null;
   }
 
-  async localRuntime(options: WindieLocalRuntimeRequest = {}): Promise<AgentLocalRuntimeClient> {
+  async localRuntime(options: AgentLocalRuntimeRequest = {}): Promise<AgentLocalRuntimeClient> {
     return this.ensureLocalRuntime({
       reason: options.reason ?? 'local-runtime',
       wakeUp: {},
@@ -247,7 +259,7 @@ export class WindieClient {
 
   async executeTool(
     call: { toolName: string; args: JsonRecord; timeoutMs?: number },
-    options: WindieLocalRuntimeRequest = {},
+    options: AgentLocalRuntimeRequest = {},
   ): Promise<LocalToolResult> {
     const runtime = await this.localRuntime({
       ...options,
@@ -264,7 +276,7 @@ export class WindieClient {
 
   async rpc(
     payload: { method: string; params?: JsonRecord; id?: string | number },
-    options: WindieLocalRuntimeRequest = {},
+    options: AgentLocalRuntimeRequest = {},
   ): Promise<JsonRecord> {
     const runtime = await this.localRuntime({
       ...options,
@@ -276,7 +288,7 @@ export class WindieClient {
     return runtime.rpc(payload);
   }
 
-  async listLocalTools(options: WindieLocalRuntimeRequest = {}): Promise<LocalToolManifest> {
+  async listLocalTools(options: AgentLocalRuntimeRequest = {}): Promise<LocalToolManifest> {
     const runtime = await this.localRuntime({
       ...options,
       reason: options.reason ?? 'list-local-tools',
@@ -287,7 +299,7 @@ export class WindieClient {
     return runtime.listTools() as Promise<LocalToolManifest>;
   }
 
-  async localStatus(options: WindieLocalRuntimeRequest = {}): Promise<JsonRecord> {
+  async localStatus(options: AgentLocalRuntimeRequest = {}): Promise<JsonRecord> {
     const runtime = await this.localRuntime({
       ...options,
       reason: options.reason ?? 'local-status',
@@ -377,8 +389,8 @@ export class WindieClient {
   private async resolveInstallAuthState(
     backendUrl: string,
     operatingSystem: string,
-    options: WindieWakeUpOptions,
-  ): Promise<WindieInstallAuthState | null> {
+    options: AgentWakeUpOptions,
+  ): Promise<AgentInstallAuthState | null> {
     const configured = options.installAuth ?? this.defaultOptions.installAuth ?? {};
     const installToken = (
       options.installToken
@@ -432,7 +444,7 @@ export class WindieClient {
   private async resolveInstallTokenIdentity(
     backendUrl: string,
     installToken: string,
-  ): Promise<Pick<WindieInstallAuthState, 'userId' | 'installId'> | null> {
+  ): Promise<Pick<AgentInstallAuthState, 'userId' | 'installId'> | null> {
     try {
       const identity = await new WindieSdkClient({
         httpBaseUrl: backendUrl,
@@ -490,7 +502,7 @@ export class WindieClient {
     reason,
     errorMessage,
   }: {
-    wakeUp: WindieWakeUpOptions;
+    wakeUp: AgentWakeUpOptions;
     reason: string;
     errorMessage: string;
   }): Promise<AgentLocalRuntimeClient> {
@@ -514,7 +526,7 @@ export class WindieClient {
       throw new Error(`Agent SDK local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
     }
     if (!this.autoLocalRuntimeProvider) {
-      this.autoLocalRuntimeProvider = createAgentLocalRuntimeProvider<WindieWakeUpOptions>({
+      this.autoLocalRuntimeProvider = createAgentLocalRuntimeProvider<AgentWakeUpOptions>({
         fetchImpl: this.defaultOptions.fetchImpl,
         ...(this.defaultOptions.autoSidecar ?? {}),
       });
@@ -528,8 +540,8 @@ export class WindieClient {
   }
 
   private async resolveLocalRuntimeForWakeUp(
-    options: WindieWakeUpOptions,
-    runtimeFeatures: NormalizedWindieRuntimeFeatures,
+    options: AgentWakeUpOptions,
+    runtimeFeatures: NormalizedAgentRuntimeFeatures,
   ): Promise<AgentLocalRuntimeClient | undefined> {
     const knownRuntime = this.resolveKnownLocalRuntime();
     if (knownRuntime) {
@@ -546,8 +558,8 @@ export class WindieClient {
   }
 
   private needsLocalRuntime(
-    options: WindieWakeUpOptions,
-    runtimeFeatures: NormalizedWindieRuntimeFeatures,
+    options: AgentWakeUpOptions,
+    runtimeFeatures: NormalizedAgentRuntimeFeatures,
   ): boolean {
     const builtins = normalizeBuiltins(options);
     return Boolean(
@@ -561,7 +573,7 @@ export class WindieClient {
   }
 
   private async prepareLocalRuntime(
-    options: WindieWakeUpOptions,
+    options: AgentWakeUpOptions,
     localRuntime?: AgentLocalRuntimeClient,
   ): Promise<JsonRecord[]> {
     if (!localRuntime) {
@@ -599,7 +611,9 @@ export class WindieClient {
   }
 }
 
-function featureEnabled(value: WindieRuntimeFeatureOption | undefined, fallback: boolean): boolean {
+export { WindieClient as AgentClient };
+
+function featureEnabled(value: AgentRuntimeFeatureOption | undefined, fallback: boolean): boolean {
   if (typeof value === 'boolean') {
     return value;
   }
@@ -610,9 +624,9 @@ function featureEnabled(value: WindieRuntimeFeatureOption | undefined, fallback:
 }
 
 function normalizeRuntimeFeatures(
-  options: WindieWakeUpOptions,
-  defaults: WindieClientOptions,
-): NormalizedWindieRuntimeFeatures {
+  options: AgentWakeUpOptions,
+  defaults: AgentClientOptions,
+): NormalizedAgentRuntimeFeatures {
   return {
     memory: featureEnabled(options.memory ?? defaults.memory, true),
     persistence: featureEnabled(options.persistence ?? defaults.persistence, true),
@@ -642,7 +656,7 @@ function createDefaultConversationStore({
 
 function validateLocalRuntimeFeatures(
   localRuntime: AgentLocalRuntimeClient | undefined,
-  runtimeFeatures: NormalizedWindieRuntimeFeatures,
+  runtimeFeatures: NormalizedAgentRuntimeFeatures,
 ): void {
   if (runtimeFeatures.memory && !localRuntime?.rpc) {
     throw new Error('Agent SDK memory requires a local runtime with RPC support.');
@@ -652,7 +666,7 @@ function validateLocalRuntimeFeatures(
   }
 }
 
-function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRecord[]): JsonRecord {
+function buildWakeUpAgentDefinition(options: AgentWakeUpOptions, tools: JsonRecord[]): JsonRecord {
   const definition: JsonRecord = {
     version: 1,
     id: options.agentId ?? `agent-${createMessageId()}`,
@@ -687,7 +701,7 @@ function isHostedDefaultBackendUrl(backendUrl: string): boolean {
   }
 }
 
-function normalizeBuiltins(options: WindieWakeUpOptions): AgentBuiltinToolSet[] {
+function normalizeBuiltins(options: AgentWakeUpOptions): AgentBuiltinToolSet[] {
   const selected = options.builtins;
   if (selected === 'none') {
     return [];

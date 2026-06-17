@@ -1513,3 +1513,22 @@ Each completed slice should report:
   Windie-prefixed agent API types remain compatibility aliases.
 - Compatibility: no migration required. Agent method payloads and results are
   unchanged, and existing Windie-prefixed type imports keep working.
+
+### 2026-06-17 SDK client runtime aliases
+
+- Finding: `WindieClient` wake-up, client construction, local-runtime request,
+  install-auth, and runtime feature option contracts still exposed only
+  Windie-prefixed type names even though they describe reusable SDK client
+  runtime behavior.
+- Change: added `AgentClient` as a runtime constructor alias plus generic
+  `AgentClientOptions`, `AgentWakeUpOptions`, `AgentLocalRuntimeRequest`,
+  `AgentRuntimeFeatureOption`, `AgentInstallAuthState`, and
+  `AgentInstallAuthOptions`; switched `WindieClient` source internals to those
+  generic type names; patched the checked-in CommonJS export; and kept the
+  Windie-prefixed names as compatibility aliases.
+- Validation: focused SDK package-boundary Jest coverage, SDK no-emit
+  TypeScript check, CJS export smoke, docs listing, `git diff --check`, and
+  source scans showing Windie-prefixed client runtime names remain
+  compatibility aliases.
+- Compatibility: no migration required. Client behavior, wake-up payloads, and
+  existing `WindieClient`/Windie-prefixed type imports keep working.

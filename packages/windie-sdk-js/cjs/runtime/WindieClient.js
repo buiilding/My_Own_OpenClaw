@@ -3,7 +3,7 @@
  * Implements the windie client integration for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieClient = void 0;
+exports.AgentClient = exports.WindieClient = void 0;
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const SidecarConversationStore_js_1 = require("../stores/SidecarConversationStore.js");
@@ -383,6 +383,7 @@ class WindieClient {
     }
 }
 exports.WindieClient = WindieClient;
+exports.AgentClient = WindieClient;
 function featureEnabled(value, fallback) {
     if (typeof value === 'boolean') {
         return value;
