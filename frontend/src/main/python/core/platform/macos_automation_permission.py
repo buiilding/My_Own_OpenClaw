@@ -159,7 +159,7 @@ def determine_system_events_automation_permission(
         return {
             "granted": False,
             "reason": (
-                "WindieOS still needs permission to control System Events. "
+                "This app still needs permission to control System Events. "
                 "Click Grant to show the macOS Automation prompt."
             ),
             "details": {
@@ -172,7 +172,7 @@ def determine_system_events_automation_permission(
         return {
             "granted": False,
             "reason": (
-                "System Events automation was denied. Re-enable WindieOS in "
+                "System Events automation was denied. Re-enable this app in "
                 "System Settings > Privacy & Security > Automation."
             ),
             "details": {

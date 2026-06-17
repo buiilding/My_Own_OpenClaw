@@ -99,6 +99,8 @@ All notable changes to WindieOS will be documented in this file.
   skin/config while keeping generic OAuth handler defaults provider-neutral.
 - frontend/sidecar: use generic bundled-app reinstall/restart guidance in
   packaged browser and wakeword runtime dependency failures.
+- frontend/sidecar: use generic app wording in macOS System Events automation
+  verifier fallback reasons.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

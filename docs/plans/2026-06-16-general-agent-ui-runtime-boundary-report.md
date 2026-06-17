@@ -553,6 +553,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: changed those sidecar runtime failures to generic bundled-app
   reinstall/restart wording while leaving host/product copy ownership outside
   the sidecar executables.
+- Finding: the sidecar macOS System Events automation verifier still embedded
+  WindieOS in fallback consent/denial reason strings even though product copy
+  should be supplied by host permission surfaces.
+- Change: changed the verifier fallback reasons to generic app wording and
+  added focused sidecar tests for consent-needed and denied states.
 
 ## Remaining Findings
 
@@ -644,3 +649,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Sidecar packaged runtime dependency failures now use generic bundled-app
   reinstall/restart copy instead of embedding WindieOS product naming in local
   executable paths.
+- Sidecar macOS System Events automation verifier fallback reasons now use
+  generic app wording; host permission copy remains the product-specific layer.
