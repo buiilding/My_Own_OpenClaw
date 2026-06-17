@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated overlay and main-process surface-prep docs from local-backend wording to SDK/main local-runtime ownership. No migration is required.
+
 - Restored corrupted documentation hub and release-packaging workflow text after a stale local-runtime wording pass rewrote readable words and links. No migration is required.
 
 - Updated frontend boundary tests to construct retired product SDK helper names and SidecarBridge log labels dynamically. No migration is required.

@@ -65,7 +65,7 @@ Shared ownership model:
 App-ready path (`app.whenReady()`):
 
 1. `initializeMainProcessLifecycleRuntime(...)` runs startup lifecycle listeners.
-2. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-backend/overlay phase coordination.
+2. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-runtime/overlay phase coordination.
 3. when VM mode is disabled, `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=minimal-chat-pill`).
 4. when VM mode is disabled, `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=minimal-response-overlay` or debug view).
 5. when VM mode is disabled, tray and global hotkey (`Super+Alt+W`) are initialized.

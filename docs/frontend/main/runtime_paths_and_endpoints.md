@@ -163,7 +163,7 @@ Read behavior (`loadFrontendConfigFromDisk`):
 - `BACKEND_HTTP_URL` for artifact upload route
 - `load-frontend-config` / `save-frontend-config` invoke handlers
 - VM worker HTTP calls to `/api/runs/*` consume resolved `backendHttpUrl`
-- local backend and wakeword bridges consume `resolveSidecarLaunchTarget(...)`
+- local-runtime and wakeword bridges consume `resolveSidecarLaunchTarget(...)`
 
 ## Operational Debug Checklist
 

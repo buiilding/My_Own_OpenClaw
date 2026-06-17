@@ -170,6 +170,19 @@ Each completed slice should report:
   only; SDK tool routing, Electron IPC channels, daemon JSON-RPC payloads, and
   persisted data are unchanged.
 
+### 2026-06-17 surface-prep local-runtime docs wording
+
+- Finding: overlay, display-affinity, runtime path, and window lifecycle docs
+  still described Electron main screenshot/surface prep and launch wiring as
+  local-backend paths.
+- Change: updated those current docs to say SDK/main surface prep,
+  local-runtime callers, and local-runtime launch coordination where the path is
+  owned by Electron main and the SDK local runtime.
+- Validation: docs listing, focused stale wording scan, and `git diff --check`.
+- Compatibility: no migration required. This is documentation terminology only;
+  screenshot capture, IPC channels, SDK/main local-runtime routing, and Python
+  sidecar execution are unchanged.
+
 ### 2026-06-17 frontend inventory local-runtime bridge wording
 
 - Finding: current frontend architecture and inventory docs still framed the

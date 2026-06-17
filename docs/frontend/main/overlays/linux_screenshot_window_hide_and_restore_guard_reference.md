@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for local-backend screenshot execution visibility: direct task behavior, main-process computer-use surface prep, and renderer attachment capture boundaries."
+summary: "Deep reference for local-runtime screenshot execution visibility: direct task behavior, main-process computer-use surface prep, and renderer attachment capture boundaries."
 read_when:
   - When changing `local_runtime_window_visibility.cjs`.
   - When debugging whether screenshot overlay hide/show is owned by Electron main process, SDK/main tool execution, or renderer attachment capture.

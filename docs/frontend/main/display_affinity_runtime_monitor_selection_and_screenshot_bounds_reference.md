@@ -86,7 +86,7 @@ Screenshot payload shape (`toScreenshotDisplayBounds(...)`):
 
 - reads `{ chatWindow, mainWindow }` from `getWindows()`
 - delegates to `resolveActiveSurfaceDisplayAffinity(...)` with the same sender/visible/stored precedence
-- used by IPC/local-backend callers to avoid duplicating chat/main window resolution logic
+- used by IPC/local-runtime callers to avoid duplicating chat/main window resolution logic
 
 ## Active Query Display-Affinity Lifecycle
 
