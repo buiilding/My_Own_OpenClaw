@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the renderer preload `window.windie` SDK command bridge alias; first-party renderer commands now use `window.desktopAgent.invoke(...)` while the existing `windie:invoke` IPC wire channel remains unchanged.
+
 - Removed legacy Windie-named conversation metadata event fallbacks from the JavaScript SDK local-runtime store; stored rows now load conversation events from canonical event payloads or generic agent SDK metadata keys only. No persisted-data migration is required.
 
 - Removed the TypeScript SDK `SidecarDaemonClientOptions` alias and renamed the internal local-runtime discovery type to `AgentLocalRuntimeDiscovery` so SDK client options stay on the generic agent-runtime contract.

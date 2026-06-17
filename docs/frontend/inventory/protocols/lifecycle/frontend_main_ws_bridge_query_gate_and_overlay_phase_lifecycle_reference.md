@@ -144,7 +144,7 @@ State flow:
 `ipcMain.handle('windie:invoke', ...)` behavior for query/settings/model
 commands:
 
-1. Validate SDK command envelope from `window.windie.invoke(command, payload)`.
+1. Validate SDK command envelope from `window.desktopAgent.invoke(command, payload)`.
 2. Route `settings.update` and `models.list` commands through the SDK agent
    settings/model paths.
 3. For `conversation.send` and `wakeword.detected`:

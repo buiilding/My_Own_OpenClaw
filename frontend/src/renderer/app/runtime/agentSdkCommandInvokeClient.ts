@@ -21,7 +21,6 @@ export type DesktopAgentCommandBridge = {
 declare global {
   interface Window {
     desktopAgent?: DesktopAgentCommandBridge;
-    windie?: DesktopAgentCommandBridge;
   }
 }
 
@@ -29,7 +28,7 @@ export function getDesktopAgentCommandBridge(): DesktopAgentCommandBridge | null
   if (typeof window === 'undefined') {
     return null;
   }
-  return window.desktopAgent ?? window.windie ?? null;
+  return window.desktopAgent ?? null;
 }
 
 export async function invokeAgentSdkCommand<T = unknown>(

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Renderer desktopAgent browser global alias deletion
+
+- Finding: preload still exposed the SDK command bridge as both
+  `window.desktopAgent` and `window.windie`, and the renderer command client
+  still fell back to the Windie-named global.
+- Change: removed the `window.windie` preload exposure and renderer fallback,
+  updated runtime/preload coverage to assert the old browser-global alias stays
+  absent, and refreshed renderer IPC docs to route SDK commands through
+  `window.desktopAgent.invoke(...)`.
+- Validation: focused preload IPC and renderer app runtime boundary Jest tests,
+  docs listing, stale `window.windie` scan, and diff check.
+- Compatibility: no migration required for first-party code. The browser global
+  is `window.desktopAgent`; the existing IPC wire channel remains
+  `windie:invoke`.
+
 ### 2026-06-17 LocalRuntimeConversationStore metadata fallback deletion
 
 - Finding: `LocalRuntimeConversationStore` still loaded Windie-prefixed
@@ -2485,16 +2500,15 @@ Each completed slice should report:
   agent UI boundary.
 - Change: added a generic `DesktopAgentCommandBridge` contract and
   `getDesktopAgentCommandBridge()` accessor, made the renderer prefer
-  `window.desktopAgent` with `window.windie` as a compatibility fallback, and
-  exposed the same preload bridge object under both `desktopAgent` and
-  `windie`.
+  `window.desktopAgent`, and initially exposed the same preload bridge object
+  under both `desktopAgent` and `windie`. The Windie-named browser-global alias
+  was removed in a later cleanup slice.
 - Validation: focused renderer runtime boundary coverage, preload IPC bridge
   coverage, docs listing, `git diff --check`, and source scans showing
-  `window.windie` remains only as the compatibility fallback inside the
-  desktop-agent bridge adapter.
-- Compatibility: no migration required. Existing preload consumers can keep
-  using `window.windie`; new generic renderer code can use `window.desktopAgent`
-  through the desktop-agent bridge accessor.
+  generic renderer code resolves the desktop-agent bridge accessor.
+- Compatibility: no migration required for first-party code. Renderer code uses
+  `window.desktopAgent` through the desktop-agent bridge accessor; the
+  low-level `windie:invoke` IPC channel string remains the wire contract.
 
 ### 2026-06-17 Renderer desktop agent IPC channel aliases
 

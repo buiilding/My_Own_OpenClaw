@@ -89,4 +89,3 @@ const desktopAgentBridge = {
 };
 
 contextBridge.exposeInMainWorld('desktopAgent', desktopAgentBridge);
-contextBridge.exposeInMainWorld('windie', desktopAgentBridge);

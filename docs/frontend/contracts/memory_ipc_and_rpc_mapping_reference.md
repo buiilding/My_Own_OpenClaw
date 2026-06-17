@@ -25,7 +25,7 @@ title: "Memory IPC and RPC Mapping Reference"
 
 These names are internal Electron-main to sidecar bridge handler names, not
 direct renderer preload `invoke` channels. Renderer feature code enters through
-SDK-shaped `window.windie.invoke(...)` commands.
+SDK-shaped `window.desktopAgent.invoke(...)` commands.
 
 Chat-event storage and continuity local-runtime bridge handlers:
 
@@ -43,7 +43,7 @@ Memory storage and retrieval:
 
 - Renderer-facing memory UI uses SDK-shaped `memories.list`,
   `memories.delete`, and `memories.clearAll` commands over
-  `window.windie.invoke`.
+  `window.desktopAgent.invoke`.
 - Electron main maps those commands to public SDK agent APIs.
 - Sidecar memory RPC names remain implementation details behind the SDK local
   runtime and Electron main local-runtime bridge.

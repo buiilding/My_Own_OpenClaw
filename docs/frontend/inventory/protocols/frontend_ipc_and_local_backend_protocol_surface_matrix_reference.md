@@ -48,7 +48,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 
 | Channel | Main owner | Notes |
 |---|---|---|
-| `windie:invoke` | `main/ipc.cjs` | Single SDK command router for renderer `window.windie.invoke(command, payload)`; handles query/stop and SDK-shaped local runtime commands instead of exposing memory/conversation implementation RPC names directly through preload |
+| `windie:invoke` | `main/ipc.cjs` | Single SDK command router for renderer `window.desktopAgent.invoke(command, payload)`; handles query/stop and SDK-shaped local runtime commands instead of exposing memory/conversation implementation RPC names directly through preload |
 | `capture-screenshot-attachment` | `main/sidecar/local_backend_bridge.cjs` | Maps renderer screenshot attachment capture to local `screenshot` execution |
 | `read-attachment-file` | `main/sidecar/local_backend_bridge.cjs` | Maps readable attachment context reads to local `read_file` execution |
 | `run-browser-action` | `main/sidecar/local_backend_bridge.cjs` | Maps browser session controls to local `browser` execution |
@@ -121,7 +121,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 Notes:
 
 - Renderer typed constants in `channels.ts` mirror `frontend/src/shared/ipcChannels.json`; drift here creates runtime rejection in preload.
-- `from-backend` and `to-backend` are not current preload channels. Renderer code should use the SDK-shaped `window.windie.invoke(...)` command router and typed projection events above.
+- `from-backend` and `to-backend` are not current preload channels. Renderer code should use the SDK-shaped `window.desktopAgent.invoke(...)` command router and typed projection events above.
 
 ## Control-Path Contract Index (Main -> Renderer)
 

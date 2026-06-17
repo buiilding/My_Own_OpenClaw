@@ -39,7 +39,7 @@ They are consumed by app/provider-specific listeners, not typed stream hooks.
 Flow:
 
 1. renderer requests models through `DesktopSettingsRuntimeClient.listModels()`
-2. `desktopAgentRuntimeTransport.ts` sends `window.windie.invoke("models.list")`
+2. `desktopAgentRuntimeTransport.ts` sends `window.desktopAgent.invoke("models.list")`
 3. Electron main `ipc.cjs` routes the command to the SDK agent model-list path
 4. backend `ListModelsHandler` responds with `type: "models-listed"`
 5. `ipc_backend_event_channels.cjs` routes the event to
