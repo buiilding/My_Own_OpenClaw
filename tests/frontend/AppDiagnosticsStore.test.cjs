@@ -381,7 +381,7 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('do not store');
   });
 
-  test('persists sanitized local backend lifecycle diagnostics', () => {
+  test('persists sanitized local sidecar lifecycle diagnostics', () => {
     appendDiagnosticEvent({
       traceId: 'local-backend-diag-test',
       path: LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,

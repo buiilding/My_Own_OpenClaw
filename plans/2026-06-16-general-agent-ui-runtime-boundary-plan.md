@@ -262,3 +262,16 @@ Each completed slice should report:
   the old module/doc phrases.
 - Compatibility: no migration required. Entrypoint filename and JSON-RPC
   protocol behavior are unchanged.
+
+### 2026-06-17 diagnostics sidecar owner copy
+
+- Finding: main-process diagnostics registry copy still described browser and
+  lifecycle diagnostics as owned by a local-backend bridge even though the
+  Electron host is adapting the local sidecar runtime.
+- Change: updated diagnostics owner and purpose copy to local-sidecar bridge
+  terminology while preserving diagnostic path names and payload fields.
+- Validation: source scan for the old diagnostics owner/purpose phrases. The
+  focused `AppDiagnosticsStore` Jest suite could not run in this environment
+  because the `sqlite3` CLI is not installed (`spawnSync sqlite3 ENOENT`).
+- Compatibility: no migration required. Diagnostic path ids, event payloads,
+  and persisted field names are unchanged.
