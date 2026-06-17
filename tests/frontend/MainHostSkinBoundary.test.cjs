@@ -9,6 +9,7 @@ const mainRoot = path.resolve(__dirname, '../../frontend/src/main');
 const indexPath = path.join(mainRoot, 'index.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
+const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
 const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_screen_capture.cjs');
@@ -24,6 +25,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('identity');
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
+    expect(skinSource).toContain('mcpClientInfo');
     expect(skinSource).toContain('browserAutomation');
     expect(skinSource).toContain('macAutomation');
     expect(skinSource).toContain('localBackendNotReady');
@@ -82,5 +84,12 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('WindieOS');
     expect(source).not.toContain("WindieOS isn't connected");
     expect(source).not.toContain('WindieOS lost connection');
+  });
+
+  test('MCP runtime uses generic defaults instead of product identity', () => {
+    const source = fs.readFileSync(mcpRuntimePath, 'utf8');
+
+    expect(source).toContain("name: 'Desktop Agent'");
+    expect(source).not.toContain("name: 'WindieOS'");
   });
 });

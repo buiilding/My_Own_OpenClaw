@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest commit for this plan: `14451e1e0` (`refactor(frontend): skin query event fallback copy`)
+- Latest commit for this plan: `27a157a12` (`refactor(frontend): skin main host identity`)
 
 ## Inspection Log
 
@@ -94,7 +94,16 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Decision: add host identity copy to `mainHostSkin` and thread it through existing main/bootstrap dependencies.
 - Change: SDK `wakeUp` agent name now reads `mainHostSkin.identity.sdkAgentName`.
 - Change: tray tooltip now reads `mainHostSkin.identity.trayTooltip` with a generic fallback in the window runtime.
-- Deliberate deferral: MCP runtime still has a default `WindieOS` client name; move that in a later extension-runtime slice because it has separate caller/config implications.
+- Follow-up: MCP runtime identity had separate extension-runtime caller implications and was handled in the next slice.
+
+### 2026-06-16 Main MCP Identity Skin Slice
+
+- Finding: the extension MCP runtime default client info still embedded WindieOS identity.
+- Decision: make the MCP runtime default generic, add `mainHostSkin.identity.mcpClientInfo`, and thread that copy through main's MCP refresh/toggle paths.
+- Change: MCP stdio client initialization now uses generic default client info unless app code injects a product identity.
+- Change: Electron main supplies `mainHostSkin.identity.mcpClientInfo` when refreshing MCP servers directly or through the SDK agent adapter.
+- Change: MCP runtime tests now prove configured client info reaches the initialize request.
+- Validation gap: `McpControl.test.cjs` was attempted but this environment lacks `sqlite3`, which that test's diagnostics helper requires.
 
 ## Checklist
 
@@ -106,6 +115,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Remaining OS permission services consume injected host skin copy.
 - [x] Query failure/interruption event builders consume injected host skin copy.
 - [x] SDK agent name and tray tooltip read product identity from the host skin.
+- [x] MCP client identity reads product identity from the host skin on the app path.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -136,10 +146,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "WindieOS isn't connected|WindieOS lost connection|Your message wasn't sent because WindieOS" frontend/src/main/ipc frontend/src/main/app/main_host_skin.cjs tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/IpcQueryRuntime.test.cjs` found expected test fixture matches only.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs` passed.
 - `rg -n "name: 'WindieOS'|tray\\.setToolTip\\('WindieOS'\\)|setToolTip\\('WindieOS'\\)|sdkAgentName|trayTooltip" frontend/src/main tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs tests/frontend/MainWindowRuntime.test.cjs` found expected skin/test matches plus the deferred MCP default.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/McpControl.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs` failed only in `McpControl.test.cjs` because local `sqlite3` is unavailable for its diagnostics reader.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs` passed.
+- `git diff --check` passed.
+- `rg -n "name: 'WindieOS'|mcpClientInfo|Desktop Agent|clientInfo: mainHostSkin.identity.mcpClientInfo" frontend/src/main tests/frontend/MainHostSkinBoundary.test.cjs tests/frontend/McpRuntime.test.cjs` found expected skin/test matches and generic MCP runtime default.
 
 ## Remaining Findings
 
 - Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
 - Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
 - Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
-- Main process composition root, permission services, query event builders, SDK agent name, and tray tooltip now read related product copy from a host skin. Remaining main-boundary candidates include MCP client identity, wakeword/sidecar reinstall messages, logging prefixes, browser onboarding explanation copy, and other product-specific host defaults that may belong in a broader main host config.
+- Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, and MCP client identity now read related product copy from a host skin. Remaining main-boundary candidates include wakeword/sidecar reinstall messages, logging prefixes, browser onboarding explanation copy, OAuth return copy, and other product-specific host defaults that may belong in a broader main host config.

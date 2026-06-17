@@ -12,8 +12,8 @@ const { loadExtensionMcpServers } = require('./extension_manifest.cjs');
 const DEFAULT_MCP_PROTOCOL_VERSION = '2024-11-05';
 const DEFAULT_MCP_REQUEST_TIMEOUT_MS = 15000;
 const DEFAULT_MCP_CLIENT_INFO = Object.freeze({
-  name: 'WindieOS',
-  version: '0.6.23',
+  name: 'Desktop Agent',
+  version: '0.0.0',
 });
 
 const clientCache = new Map();
@@ -207,13 +207,17 @@ function loadMcpServerSpecs(options = {}) {
     .filter((server) => server && isMcpServerEnabled(server, enabledMcpIds));
 }
 
-function cacheKeyForServer(server) {
+function cacheKeyForServer(server, options = {}) {
   const envEntries = Object.keys(server.env || {})
     .sort()
     .map((key) => [key, String(server.env[key])]);
+  const clientInfo = normalizeObject(options.clientInfo || DEFAULT_MCP_CLIENT_INFO);
   const envFingerprint = crypto
     .createHash('sha256')
-    .update(JSON.stringify(envEntries))
+    .update(JSON.stringify({
+      env: envEntries,
+      clientInfo,
+    }))
     .digest('hex');
   return [
     server.id,
@@ -530,7 +534,7 @@ function getMcpClient(server, options = {}) {
   if (typeof options.createClient === 'function') {
     return options.createClient(server);
   }
-  const cacheKey = cacheKeyForServer(server);
+  const cacheKey = cacheKeyForServer(server, options);
   if (!clientCache.has(cacheKey)) {
     clientCache.set(cacheKey, new McpStdioClient(server, options));
   }

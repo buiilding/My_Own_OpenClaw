@@ -8,6 +8,10 @@ const identity = Object.freeze({
   appName: productName,
   sdkAgentName: productName,
   trayTooltip: productName,
+  mcpClientInfo: Object.freeze({
+    name: productName,
+    version: '0.6.23',
+  }),
 });
 
 const browserAutomation = Object.freeze({

@@ -1110,6 +1110,7 @@ function createDirectWakeUpAgentAdapter({
       refreshMcpServersForConfig({
         config,
         localRuntime: agent.localRuntime || null,
+        clientInfo: mainHostSkin.identity.mcpClientInfo,
       })
     ),
     close: () => {
@@ -1227,7 +1228,10 @@ async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
       return agent.refreshMcpServers({ config });
     }
   }
-  return refreshMcpServersForConfig({ config });
+  return refreshMcpServersForConfig({
+    config,
+    clientInfo: mainHostSkin.identity.mcpClientInfo,
+  });
 }
 
 function refreshEnabledMcpServersAfterStartup(config) {
@@ -1615,6 +1619,7 @@ function initializeIpc(win, options = {}) {
       resolveLocalRuntime: process.env.NODE_ENV === 'test'
         ? null
         : async () => (await ensureWindieAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
+      clientInfo: mainHostSkin.identity.mcpClientInfo,
     });
     if (result?.success === true && process.env.NODE_ENV !== 'test') {
       const agent = await ensureWindieAgent({ reason: 'mcp-manifest-refresh' });

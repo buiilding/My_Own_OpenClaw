@@ -26,6 +26,8 @@ All notable changes to WindieOS will be documented in this file.
   host skin config while keeping query event builders generic.
 - frontend/main: route SDK agent name and tray tooltip product identity through
   main host skin config.
+- frontend/main: route MCP client identity through main host skin config while
+  keeping the extension MCP runtime default generic.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

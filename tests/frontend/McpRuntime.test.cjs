@@ -56,6 +56,65 @@ describe('MCP runtime', () => {
     ]);
   });
 
+  test('passes configured client info to MCP initialize requests', async () => {
+    const rawMessages = [];
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.stdin = {
+      write: jest.fn((rawMessage) => {
+        rawMessages.push(String(rawMessage));
+        const message = JSON.parse(String(rawMessage).trim());
+        if (message.method === 'initialize') {
+          setImmediate(() => {
+            proc.stdout.emit('data', `${JSON.stringify({
+              jsonrpc: '2.0',
+              id: message.id,
+              result: {
+                protocolVersion: '2024-11-05',
+                capabilities: {},
+                serverInfo: { name: 'test' },
+              },
+            })}\n`);
+          });
+          return;
+        }
+        if (message.method === 'tools/list') {
+          setImmediate(() => {
+            proc.stdout.emit('data', `${JSON.stringify({
+              jsonrpc: '2.0',
+              id: message.id,
+              result: { tools: [] },
+            })}\n`);
+          });
+        }
+      }),
+    };
+    proc.kill = jest.fn();
+
+    await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [{
+        id: 'identity',
+        command: 'node',
+        args: ['server.cjs'],
+      }],
+      clientInfo: {
+        name: 'WindieOS',
+        version: '0.6.23',
+      },
+      spawnImpl: jest.fn(() => proc),
+    });
+
+    const initializeMessage = rawMessages
+      .map((rawMessage) => JSON.parse(rawMessage.trim()))
+      .find((message) => message.method === 'initialize');
+    expect(initializeMessage.params.clientInfo).toEqual({
+      name: 'WindieOS',
+      version: '0.6.23',
+    });
+  });
+
   test('keeps user-gated MCP specs out of discovery unless explicitly enabled', async () => {
     const client = createClient();
     const toolName = createMcpToolName('memory', 'search');

@@ -316,6 +316,7 @@ async function refreshMcpServersForConfig({
   createClient = undefined,
   spawnImpl = undefined,
   diagnostics = undefined,
+  clientInfo = undefined,
 } = {}) {
   const sidecarResult = await refreshMcpServersThroughSidecar({
     config,
@@ -334,6 +335,7 @@ async function refreshMcpServersForConfig({
     enabledMcpServers: enabledServers,
     createClient,
     spawnImpl,
+    clientInfo,
     diagnostics: diagnostics || createMcpDiscoveryDiagnostics(),
   });
   const nextStatusByServerId = new Map();
@@ -383,6 +385,7 @@ async function updateMcpServerEnablementForConfig({
   spawnImpl = undefined,
   diagnostics = undefined,
   enablementDiagnostics = undefined,
+  clientInfo = undefined,
 } = {}) {
   const normalizedServerId = normalizeString(serverId);
   const enablementTrace = enablementDiagnostics || createMcpEnablementDiagnostics();
@@ -497,6 +500,7 @@ async function updateMcpServerEnablementForConfig({
         localRuntime: resolvedLocalRuntime,
         createClient,
         spawnImpl,
+        clientInfo,
         diagnostics,
       })
       : listMcpServersForConfig({ config: nextConfig, contributionsDir });
