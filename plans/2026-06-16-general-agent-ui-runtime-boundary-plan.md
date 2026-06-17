@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main diagnostics local runtime export
+
+- Finding: main diagnostics still exported the unused
+  `appendLocalBackendLifecycleDiagnostic` alias even though active sidecar
+  bridge code already calls `appendLocalRuntimeLifecycleDiagnostic`.
+- Change: removed the backend-named diagnostics export and added focused
+  diagnostics runtime coverage for the generic local-runtime helper.
+- Validation: targeted diagnostics Jest assertion, direct Node export smoke,
+  alias source scan, docs listing, and diff check.
+- Compatibility: no migration required. Active callers already use the generic
+  export, diagnostic path compatibility remains in the store constants, and
+  persisted diagnostic rows are unchanged.
+
 ### 2026-06-17 renderer conversation-list local runtime error code
 
 - Finding: the renderer conversation library facade classified active

@@ -219,6 +219,13 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('/Users/peter/private');
   });
 
+  test('diagnostics runtime exports local runtime lifecycle helper without backend alias', () => {
+    const runtime = require('../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs');
+
+    expect(typeof runtime.appendLocalRuntimeLifecycleDiagnostic).toBe('function');
+    expect(runtime.appendLocalBackendLifecycleDiagnostic).toBeUndefined();
+  });
+
   test('persists sanitized surface visibility diagnostics', () => {
     appendDiagnosticEvent({
       traceId: 'surface-diag-test',

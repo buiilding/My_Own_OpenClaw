@@ -194,8 +194,6 @@ function appendLocalRuntimeLifecycleDiagnostic(input = {}, options = {}) {
   }, options);
 }
 
-const appendLocalBackendLifecycleDiagnostic = appendLocalRuntimeLifecycleDiagnostic;
-
 function appendSurfaceVisibilityDiagnostic(input = {}, options = {}) {
   const action = normalizeString(input.action) || 'unknown';
   const phase = normalizeString(input.phase);
@@ -268,7 +266,6 @@ module.exports = {
   appendFrontendInteractionDiagnostic,
   appendIpcBridgeDiagnostic,
   appendLocalRuntimeLifecycleDiagnostic,
-  appendLocalBackendLifecycleDiagnostic,
   appendSurfaceVisibilityDiagnostic,
   appendWakewordLifecycleDiagnostic,
 };
