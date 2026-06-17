@@ -89,36 +89,11 @@ class SessionManager(ConfigSubscriber):
         """Return the effective user config after applying user-scoped overrides."""
         return self._config_service.get_effective_config(user_id)
 
-    def _resolve_default_conversation_ref(
-        self,
-        user_id: str,
-    ) -> Optional[str]:
-        return self._registry.resolve_default_conversation_ref(user_id)
-
     @staticmethod
     def _normalize_optional_conversation_ref(
         conversation_ref: Optional[str],
     ) -> Optional[str]:
         return normalize_optional_conversation_ref(conversation_ref)
-
-    def _register_pending_stop_request(
-        self,
-        user_id: str,
-        conversation_ref: Optional[str] = None,
-    ) -> None:
-        """Store a short-lived stop intent for races before query registration."""
-        self._active_queries.register_pending_stop_request(user_id, conversation_ref)
-
-    def _consume_pending_stop_request(
-        self,
-        user_id: str,
-        conversation_ref: Optional[str] = None,
-    ) -> bool:
-        """Consume a pending stop request if still valid."""
-        return self._active_queries.consume_pending_stop_request(
-            user_id,
-            conversation_ref,
-        )
 
     @staticmethod
     def _normalize_frontend_operating_system(

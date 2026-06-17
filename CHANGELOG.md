@@ -81,6 +81,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/agent: remove private `InteractionLoop` relay methods for tool-call
   bridge conversion and recoverable-output formatting so the bridge remains the
   single helper owner.
+- backend/session: remove unused private `SessionManager` pending-stop/default
+  conversation pass-throughs now that `ActiveQueryTracker` and
+  `SessionRegistry` own those paths directly.
 - sdk/js: use generic default agent display names in agent-definition and
   wake-up helpers while letting hosts pass product identity explicitly.
 - docs/sdk: document the generic SDK agent display defaults so host skin/config
