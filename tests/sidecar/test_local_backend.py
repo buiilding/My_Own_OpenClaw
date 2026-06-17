@@ -27,7 +27,7 @@ def test_local_backend_runtime_copy_uses_sidecar_boundary_terms():
         ]
     )
 
-    assert "local sidecar runtime" in sources
+    assert "Python sidecar runtime" in sources
     assert "Local backend service for WindieOS" not in sources
     assert "Main local backend service" not in sources
     assert "Initializing local backend" not in sources

@@ -125,7 +125,7 @@ def test_sidecar_tool_helper_copy_is_runtime_neutral():
         path.read_text(encoding="utf-8") for path in SIDECAR_TOOL_HELPER_PATHS
     )
 
-    assert "local sidecar runtime" in sources
+    assert "Python sidecar runtime" in sources
     assert "Windie-owned" not in sources
     assert "DEFAULT_WINDIE_CDP" not in sources
     assert "terminate_windie_chrome" not in sources

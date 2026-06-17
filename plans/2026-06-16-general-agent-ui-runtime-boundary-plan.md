@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 sidecar source-copy guard test alignment
+
+- Finding: sidecar tests still expected the retired local-sidecar-runtime and
+  local-sidecar-daemon phrases after the source copy moved to Python sidecar
+  runtime/daemon wording.
+- Change: updated the guard assertions to require Python sidecar runtime and
+  Python sidecar daemon labels.
+- Validation: focused sidecar tests for local backend source copy, browser
+  helper copy, and sidecar daemon identity copy.
+- Compatibility: no migration required. This is test expectation alignment
+  only; sidecar runtime behavior and JSON-RPC contracts are unchanged.
+
 ### 2026-06-17 browser docs legacy session reuse cleanup
 
 - Finding: browser docs still suggested using `WINDIE_BROWSER_USE_SESSION=windieos`

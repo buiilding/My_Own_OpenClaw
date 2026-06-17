@@ -27,7 +27,7 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     retired_local_sidecar_prefix = "[Local" + "Sidecar]"
 
     assert "Desktop Agent sidecar" in source
-    assert "Run the local sidecar daemon." in source
+    assert "Run the Python sidecar daemon." in source
     assert 'emit_sidecar_layer_log("[LocalRuntime]", "status requested")' in source
     assert "WindieOS sidecar" not in source
     assert "Run the WindieOS sidecar daemon." not in source
