@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer agent runtime transport alias
+
+- Finding: the renderer desktop-agent runtime transport module had been renamed
+  away from backend wording, but its exported factory still returned the
+  backend-named SDK `BackendTransport` type.
+- Change: added the generic SDK `AgentRuntimeTransport` alias for host/runtime
+  adapters and switched the renderer transport factory plus SDK docs/tests to
+  use the generic alias while leaving hosted backend session code on backend
+  transport names.
+- Validation: focused renderer runtime boundary and SDK package-boundary tests,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is a TypeScript SDK contract alias
+  and renderer type cleanup only; backend wire payloads, IPC channels, storage,
+  settings, credentials, permissions, and tool execution are unchanged.
+
 ### 2026-06-17 extension manifest alias rejection
 
 - Finding: extension contribution manifest loading still ignored removed alias

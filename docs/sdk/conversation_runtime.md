@@ -22,7 +22,7 @@ host, so its app runtime facades may use lower-level SDK runtime pieces such as
 conversation-runtime factories, managed backend sessions, and tool coordination
 modules. The boundary rule is that Electron must not reimplement those SDK
 semantics separately, and Electron-only adapters must remain isolated behind
-SDK interfaces such as `ConversationStore` and `BackendTransport`.
+SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 
 `AgentRuntimeEvent` is the generic SDK stream event union emitted by
 `conversation.stream(...)`.
@@ -439,13 +439,13 @@ store.loadForRehydrate(conversationRef)
   -> backendTransport.rehydrateConversation(...)
 ```
 
-Electron may provide a sidecar-backed store adapter and backend transport, but
+Electron may provide a sidecar-backed store adapter and agent runtime transport, but
 it should not duplicate projection, provider-history filtering, compacted
 replay, or delete orchestration in feature code. Desktop facades can expose
 commands such as `loadForDisplay`, `rehydrateFromStore`, and
 `deleteConversation`, but those commands should delegate to the SDK continuity
 service. Manual compaction follows the same boundary: callers use
-`SdkConversationRuntime.compactHistory(...)`, and the host backend transport
+`SdkConversationRuntime.compactHistory(...)`, and the host agent runtime transport
 maps that SDK command to the backend `compact-history` control message.
 
 Responsibility split:

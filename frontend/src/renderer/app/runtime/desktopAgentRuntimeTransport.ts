@@ -4,7 +4,7 @@
 
 import {
   SDK_RUNTIME_COMMANDS,
-  type BackendTransport,
+  type AgentRuntimeTransport,
 } from '../../infrastructure/api/agentSdkClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
@@ -131,7 +131,7 @@ async function sendListModels(): Promise<void> {
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.MODELS_LIST);
 }
 
-export function createDesktopAgentRuntimeTransport(workspacePath: string | null = null): BackendTransport {
+export function createDesktopAgentRuntimeTransport(workspacePath: string | null = null): AgentRuntimeTransport {
   const normalizedWorkspacePath = optionalString(workspacePath);
   return {
     connect: async () => undefined,

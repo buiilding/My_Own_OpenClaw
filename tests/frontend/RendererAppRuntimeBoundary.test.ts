@@ -95,6 +95,8 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
+    expect(agentRuntimeTransportSource).toContain('AgentRuntimeTransport');
+    expect(agentRuntimeTransportSource).not.toContain('BackendTransport');
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_SEND');
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_STOP');
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_REHYDRATE');

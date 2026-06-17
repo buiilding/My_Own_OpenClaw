@@ -44,6 +44,7 @@ import {
   type AgentBackendSocketOptions,
   type AgentBuiltinSelection,
   type AgentBuiltinToolSelection,
+  type AgentRuntimeTransport,
   type AgentStopOptions,
   type AgentStoreMemoryInput,
   type AgentTraceOptions,
@@ -94,7 +95,7 @@ describe('@windie/sdk package boundary', () => {
     });
   });
 
-  test('exports generic agent session contracts', () => {
+  test('exports generic agent session contracts', async () => {
     const query: AgentQueryInput = {
       text: 'hello',
       conversationRef: 'conv-1',
@@ -115,9 +116,25 @@ describe('@windie/sdk package boundary', () => {
       sendToolBundleResultPayload: async () => 'bundle',
       close: () => undefined,
     };
+    const transport: AgentRuntimeTransport = {
+      connect: async () => undefined,
+      handshake: async () => undefined,
+      sendQuery: async () => 'message-1',
+      sendToolResult: async () => undefined,
+      sendToolBundleResult: async () => undefined,
+      rehydrateConversation: async () => undefined,
+      compactHistory: async () => 'compact',
+      wakewordDetected: async () => 'wakeword',
+      updateSettings: async () => 'settings',
+      listModels: async () => 'models',
+      stop: async () => undefined,
+      subscribe: () => () => undefined,
+      close: async () => undefined,
+    };
     expect(query.text).toBe('hello');
     expect(stop.conversationRef).toBe('conv-1');
     expect(runtime.isOpen()).toBe(true);
+    expect(await transport.sendQuery({ text: 'hello', conversation_ref: 'conv-1' })).toBe('message-1');
   });
 
   test('exports generic backend socket factory helpers', () => {

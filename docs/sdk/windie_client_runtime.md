@@ -874,12 +874,12 @@ storage, display projections, rehydrate snapshots, stop handling, streaming,
 and edit/retry revision operations.
 
 `createConversationRuntime(options)` is the host-adapter factory for clients
-that already have a `ConversationStore` and `BackendTransport`. Electron uses
-this lower-level SDK boundary for desktop-specific storage and IPC transport
-injection. Renderer feature modules should still call the desktop conversation
-runtime facade; the facade is allowed to use SDK runtime internals so Electron
-does not duplicate conversation, projection, edit/resend, retry, or rehydrate
-semantics.
+that already have a `ConversationStore` and `AgentRuntimeTransport`. Electron
+uses this lower-level SDK boundary for desktop-specific storage and IPC
+transport injection. Renderer feature modules should still call the desktop
+conversation runtime facade; the facade is allowed to use SDK runtime internals
+so Electron does not duplicate conversation, projection, edit/resend, retry, or
+rehydrate semantics.
 
 `conversation.stream(input)` is the preferred custom-client loop API. It emits
 normalized SDK runtime events, updates the configured conversation store, and
