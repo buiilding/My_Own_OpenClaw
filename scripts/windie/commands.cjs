@@ -485,6 +485,7 @@ function normalizeTailLines(value, fallback = '200') {
 function ensureWindieLayerLogFile(target, logFile, { verbose = false } = {}) {
   const normalizedTarget = normalizeWindieLogTarget(target);
   const displayTarget = normalizedTarget === 'renderer' && verbose ? 'renderer verbose' : normalizedTarget;
+  const windieCommand = process.platform === 'win32' ? 'bin\\windie.cmd' : 'bin/windie.sh';
   if (!logFile) {
     const envKey = normalizedTarget === 'renderer' && verbose
       ? 'WINDIE_RENDERER_VERBOSE_LOG_FILE'
@@ -495,7 +496,7 @@ function ensureWindieLayerLogFile(target, logFile, { verbose = false } = {}) {
     logPrefix: '[WindieOS]',
     initialLines: [
       `[WindieOS] ${displayTarget} log file initialized.`,
-      'Start a desktop run with: bin/windie start dev',
+      `Start a desktop run with: ${windieCommand} start dev`,
       '',
     ],
   });

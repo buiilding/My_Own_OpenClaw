@@ -31,6 +31,12 @@ function runCli(args, env = {}) {
 }
 
 describe('windie CLI', () => {
+  test('uses platform-specific windie shims instead of an extensionless Windows trap', () => {
+    expect(fs.existsSync(path.join(repoRoot, 'bin/windie'))).toBe(false);
+    expect(fs.existsSync(path.join(repoRoot, 'bin/windie.cmd'))).toBe(true);
+    expect(fs.existsSync(path.join(repoRoot, 'bin/windie.sh'))).toBe(true);
+  });
+
   test('prints grouped help', () => {
     const result = runCli(['--help']);
 

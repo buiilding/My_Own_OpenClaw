@@ -31,20 +31,20 @@ Before coding or answering implementation questions:
   follow this file; use docs and code for implementation details and runtime
   behavior.
 - Search local docs by feature or symptom when orientation is incomplete:
-  `bin/windie docs search <query>` or the shorthand `bin/windie docs <query>`.
-  On Windows PowerShell, use `bin\windie.cmd ...`; the extensionless
-  `bin/windie` shim is for Unix-like shells.
+  `<windie> docs search <query>` or the shorthand `<windie> docs <query>`.
+  Use `bin\windie.cmd` on Windows PowerShell and `bin/windie.sh` on
+  Unix-like shells; examples below use `<windie>` for the platform shim.
 - Read the nearest `read_when` docs until the domain and behavior are clear.
-- When finding or fixing a bug, check `bin/windie --help` and the command
+- When finding or fixing a bug, check `<windie> --help` and the command
   registry behind it for existing commands tied to the affected runtime or
-  failing path. Prefer the relevant `bin/windie` diagnostics, logs, trace,
+  failing path. Prefer the relevant `<windie>` diagnostics, logs, trace,
   conversation, docs, start, and `test pick` commands for reproduction,
   inspection, and validation before inventing ad hoc shell commands. If no
   existing command, diagnostic, trace, or log exposes the bug, add a focused,
   sanitized diagnostic or command at the owning runtime as part of the fix so
   the same failure can be reproduced and validated deterministically later.
 - Inspect recent related commits for the files, symbols, or subsystem you are
-  touching. Start with `bin/windie commits search <query>` for symptom,
+  touching. Start with `<windie> commits search <query>` for symptom,
   ownership, or subsystem lookup; use `git log`, `git show`, and `git blame`
   when you need exact file history, patch details, or line-level origin. Use
   the history to understand what changed recently, why the current behavior
@@ -81,18 +81,18 @@ Core WindieOS feature areas:
 
 Fast routing queries:
 
-- `bin/windie docs minimal chat pill`
-- `bin/windie docs overlay phase`
-- `bin/windie docs tool schema policy`
-- `bin/windie docs sidecar tool`
-- `bin/windie docs conversation runtime`
-- `bin/windie docs memory replay`
-- `bin/windie docs provider change`
-- `bin/windie docs websocket event`
-- `bin/windie docs runs api`
-- `bin/windie docs extension`
-- `bin/windie docs screenshot overlay`
-- `bin/windie docs test selection`
+- `<windie> docs minimal chat pill`
+- `<windie> docs overlay phase`
+- `<windie> docs tool schema policy`
+- `<windie> docs sidecar tool`
+- `<windie> docs conversation runtime`
+- `<windie> docs memory replay`
+- `<windie> docs provider change`
+- `<windie> docs websocket event`
+- `<windie> docs runs api`
+- `<windie> docs extension`
+- `<windie> docs screenshot overlay`
+- `<windie> docs test selection`
 
 Architecture rules:
 
@@ -210,29 +210,29 @@ Install and run:
 
 - Backend deps: `pip install -r backend/requirements.txt`
 - Frontend deps: `cd frontend && npm install`
-- Backend dev server: `bin/windie start backend`
-- Desktop dev loop: `bin/windie start dev`
-- Focused Vite dev server: `bin/windie start frontend`
-- Focused Electron dev app: `bin/windie start desktop`
+- Backend dev server: `<windie> start backend`
+- Desktop dev loop: `<windie> start dev`
+- Focused Vite dev server: `<windie> start frontend`
+- Focused Electron dev app: `<windie> start desktop`
 - Electron customer app: `cd frontend && npm run electron`
 
 Dev startup troubleshooting:
 
-- If `bin/windie start dev` prints
+- If `<windie> start dev` prints
   `[desktop] waiting for http://localhost:5173/` and then times out, debug the
-  Vite side first: run `bin/windie logs vite --no-follow --tail 120` and check
+  Vite side first: run `<windie> logs vite --no-follow --tail 120` and check
   `lsof -nP -iTCP:5173 -sTCP:LISTEN` before changing Electron code or manually
   activating conda.
-- `bin/windie start dev` starts Vite through `scripts/python-in-env frontend`,
+- `<windie> start dev` starts Vite through `scripts/python-in-env frontend`,
   then waits for the Vite URL before launching Electron. Cold `conda run` or
   npm startup can be slow; use `WINDIE_FRONTEND_READY_TIMEOUT_MS=<ms>` only
   when a machine needs a longer readiness window.
 
 Validation:
 
-- Backend tests: `bin/windie test backend`
-- Sidecar tests: `bin/windie test sidecar`
-- Frontend tests: `bin/windie test frontend`
+- Backend tests: `<windie> test backend`
+- Sidecar tests: `<windie> test sidecar`
+- Frontend tests: `<windie> test frontend`
 - Frontend lint: `cd frontend && npm run lint`
 
 Docs and testing policy:

@@ -118,7 +118,9 @@ For WindieOS repository work:
 
 - Prefer local docs over public docs or memory.
 - Start with `docs/docs.json`, `docs/getting-started/docs_directory.md`, and
-  `bin/windie docs list` when orientation is needed.
+  the Windie CLI docs listing when orientation is needed: use
+  `bin\windie.cmd docs list` on Windows PowerShell or
+  `bin/windie.sh docs list` on Unix-like shells.
 - Use local code, tests, and runtime behavior as the source of truth.
 
 ## Communication Style

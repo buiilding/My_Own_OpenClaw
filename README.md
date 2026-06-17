@@ -157,14 +157,22 @@ cd ..
 Start the backend:
 
 ```bash
-bin/windie start backend
+# Windows PowerShell:
+bin\windie.cmd start backend
+
+# Unix-like shells:
+bin/windie.sh start backend
 ```
 
 In another terminal, start the desktop dev loop. This starts the Vite renderer
 dev server and Electron dev app together; Ctrl-C stops both.
 
 ```bash
-bin/windie start dev
+# Windows PowerShell:
+bin\windie.cmd start dev
+
+# Unix-like shells:
+bin/windie.sh start dev
 ```
 
 By default, the Electron client talks to the configured WindieOS backend. Use

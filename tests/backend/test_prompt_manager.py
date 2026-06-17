@@ -279,7 +279,8 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "Respect applicable `AGENTS.md` instructions" in content
     assert "docs/docs.json" in content
     assert "docs/getting-started/docs_directory.md" in content
-    assert "bin/windie docs list" in content
+    assert "bin\\windie.cmd docs list" in content
+    assert "bin/windie.sh docs list" in content
     assert "Provided operating system:" not in content
     assert "Provided workspace:" not in content
     assert (

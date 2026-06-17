@@ -1,4 +1,0 @@
-#!/usr/bin/env node
-// Runs the windie workflow for the WindieOS.
-
-require('../scripts/windie-cli.cjs');
