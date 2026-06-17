@@ -1,5 +1,5 @@
 /**
- * Covers windie sdk client. behavior in the frontend test suite.
+ * Covers Agent SDK client behavior in the frontend test suite.
  */
 
 import { promises as fsPromises } from 'fs';

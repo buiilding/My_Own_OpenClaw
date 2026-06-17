@@ -2362,6 +2362,19 @@ Each completed slice should report:
   `git diff --check`, and source scans for the stale test header/suite text.
 - Compatibility: no migration required. This is test-only terminology cleanup.
 
+### 2026-06-17 Agent SDK client and package-boundary test headers
+
+- Finding: SDK client and package-boundary tests still had generated headers
+  that described their reusable coverage as "windie sdk" behavior even though
+  the preferred test surface now names Agent SDK contracts and keeps Windie
+  names only for public compatibility assertions.
+- Change: updated those generated headers to Agent SDK client/package-boundary
+  wording without changing the intentional `@windie/sdk` package name or
+  Windie compatibility alias checks.
+- Validation: focused SDK client/package-boundary Jest coverage, docs listing,
+  `git diff --check`, and source scans for stale generated header text.
+- Compatibility: no migration required. This is test-only terminology cleanup.
+
 ### 2026-06-17 Agent SDK focused test headers
 
 - Finding: focused Agent SDK tests for model selection, managed backend
