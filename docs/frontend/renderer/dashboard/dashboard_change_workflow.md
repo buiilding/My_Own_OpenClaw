@@ -26,7 +26,7 @@ the owner map before changing code.
   conversation, delete, pin, rename-local-state, workspace binding, and chat
   session handoff.
 - Section components own only their panel-level UI and immediate renderer
-  actions. Persistence and backend sync stay in shared providers/IPC helpers.
+  actions. Persistence and runtime sync stay in shared providers/IPC helpers.
 - Chat resume must go through transcript/session helpers and local snapshot
   loading. Do not rebuild backend history directly from dashboard UI code.
 - Memory panels must use renderer IPC/main bridge channels; do not import or

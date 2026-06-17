@@ -2,7 +2,7 @@
 summary: "Workflow for changing WindieOS dashboard settings surfaces across tab routing, config patches, retired agent sudo access settings, permission actions, workspace selection, browser automation, memory resets, Electron IPC, backend settings sync, and tests."
 read_when:
   - When adding, removing, renaming, or debugging a dashboard settings tab or control.
-  - When a setting persists locally but does not affect runtime behavior, reappears after reload, fails backend sync, triggers the wrong permission action, or calls the wrong memory/workspace/browser IPC path.
+  - When a setting persists locally but does not affect runtime behavior, reappears after reload, fails runtime sync, triggers the wrong permission action, or calls the wrong memory/workspace/browser IPC path.
   - When deciding whether a settings change belongs to renderer settings UI, AppConfig persistence, Electron main IPC/config, backend update-settings validation, permission services, sidecar memory actions, or workspace access.
   - When searching for the retired agent sudo access setting or removed dashboard sudo access control.
 title: "Settings Surface Change Workflow"

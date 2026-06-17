@@ -334,3 +334,18 @@ Each completed slice should report:
   `git diff --check`, and a source scan for the retired model-options wording.
 - Compatibility: no migration required. Model metadata fields, settings sync,
   and selected-model behavior are unchanged.
+
+### 2026-06-17 renderer app config runtime sync naming
+
+- Finding: the renderer app config helper and tests were still named
+  backend-sync even though the renderer boundary filters config for the desktop
+  settings runtime facade and defers model selection to query-time commands.
+- Change: renamed the helper/test to `appConfigRuntimeSync`, renamed immediate
+  config helpers to runtime-sync terminology, updated renderer imports/docs,
+  and tightened stale storage-test expectations around `saveConfigToStorage`.
+- Validation: focused Jest run for `AppConfigRuntimeSync`,
+  `ManualCompactionRuntime`, `RendererSettingsRuntimeBoundary`, and
+  `AppConfigProvider.storageAndIpc`; docs listing; `git diff --check`; and a
+  source scan for the retired helper name and sync option names.
+- Compatibility: no migration required. Settings payload fields, IPC channels,
+  backend ACK events, and selected-model behavior are unchanged.

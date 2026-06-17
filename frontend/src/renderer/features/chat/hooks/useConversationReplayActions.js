@@ -9,7 +9,7 @@ import {
   resolveReplayScreenshotState,
 } from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
-import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigBackendSync';
+import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigRuntimeSync';
 import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,

@@ -1,5 +1,5 @@
 /**
- * Defines app config backend sync configuration for the renderer UI.
+ * Defines app config runtime sync helpers for the renderer UI.
  */
 
 const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
@@ -54,14 +54,14 @@ export function buildDeferredQueryModelSelection(config) {
   };
 }
 
-export function buildImmediateBackendConfig(config) {
+export function buildImmediateRuntimeConfig(config) {
   return pickConfigKeys(config, (key) => (
     !DEFERRED_QUERY_MODEL_CONFIG_KEYS.has(key)
     && !LOCAL_ONLY_FRONTEND_CONFIG_KEYS.has(key)
   ));
 }
 
-export function hasImmediateBackendConfigChanges(previousConfig, nextConfig) {
+export function hasImmediateRuntimeConfigChanges(previousConfig, nextConfig) {
   const previous = isPlainObject(previousConfig) ? previousConfig : {};
   const next = isPlainObject(nextConfig) ? nextConfig : {};
   const keys = new Set([

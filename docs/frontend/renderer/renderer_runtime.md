@@ -27,7 +27,7 @@ Provider responsibilities:
 - `AppConfigProvider`:
   - frontend-owned config state
   - model list loading/refresh
-  - backend settings sync
+  - runtime settings sync
   - one-shot `list-models` request guard in main dashboard renderer only
   - IPC status snapshot projection (`backendHttpUrl`, transcript user/session wiring, global stop-shortcut fallback status)
   - disk/localStorage sync
@@ -131,7 +131,7 @@ Desktop transcript projection runtime guarantees:
 
 ## Config Ownership Boundary
 
-Frontend-managed settings are filtered/sanitized before backend sync.
+Frontend-managed settings are filtered/sanitized before runtime settings sync.
 
 Typical keys:
 

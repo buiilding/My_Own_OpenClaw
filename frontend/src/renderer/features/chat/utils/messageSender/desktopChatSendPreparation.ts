@@ -3,7 +3,7 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
-import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
+import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigRuntimeSync';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';

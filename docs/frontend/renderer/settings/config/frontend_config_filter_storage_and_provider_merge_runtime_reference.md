@@ -148,7 +148,7 @@ This is the central dedupe guard preventing redundant writes and backend updates
 3. optional save-status callback fire
 4. persist localStorage (`saveConfigToStorage`)
 5. async disk save (`SAVE_FRONTEND_CONFIG`) with redacted provider credential fields
-6. backend sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
+6. runtime sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
 
 Deferred backend fields:
 

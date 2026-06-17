@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const settingsRuntimeFiles = [
-  '../../frontend/src/renderer/app/providers/appConfigBackendSync.js',
+  '../../frontend/src/renderer/app/providers/appConfigRuntimeSync.js',
   '../../frontend/src/renderer/app/providers/AppConfigProvider.jsx',
   '../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx',
 ].map((relativePath) => path.resolve(__dirname, relativePath));

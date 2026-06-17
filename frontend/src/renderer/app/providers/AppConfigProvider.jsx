@@ -19,9 +19,9 @@ import {
   sanitizeFrontendProviderConfig,
 } from './appConfigPersistence';
 import {
-  buildImmediateBackendConfig,
-  hasImmediateBackendConfigChanges,
-} from './appConfigBackendSync';
+  buildImmediateRuntimeConfig,
+  hasImmediateRuntimeConfigChanges,
+} from './appConfigRuntimeSync';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 
@@ -76,12 +76,12 @@ export function AppConfigProvider({ children }) {
   const saveStatusCallbackRef = useRef(null);
   const backendConnectedRef = useRef(false);
 
-  const syncCurrentConfigToBackend = useCallback(() => {
+  const syncCurrentConfigToRuntime = useCallback(() => {
     const currentConfig = configRef.current;
     if (currentConfig && typeof currentConfig === 'object') {
-      const immediateBackendConfig = buildImmediateBackendConfig(currentConfig);
-      if (immediateBackendConfig) {
-        DesktopSettingsRuntimeClient.updateSettings(immediateBackendConfig);
+      const immediateRuntimeConfig = buildImmediateRuntimeConfig(currentConfig);
+      if (immediateRuntimeConfig) {
+        DesktopSettingsRuntimeClient.updateSettings(immediateRuntimeConfig);
       }
     }
   }, [configRef]);
@@ -97,7 +97,7 @@ export function AppConfigProvider({ children }) {
       notifySaving = false,
       persistToStorage = true,
       persistToDisk = true,
-      syncBackend = true,
+      syncRuntime = true,
     } = options;
 
     if (notifySaving && saveStatusCallbackRef.current) {
@@ -115,13 +115,13 @@ export function AppConfigProvider({ children }) {
       });
     }
 
-    if (!syncBackend) {
+    if (!syncRuntime) {
       return;
     }
 
-    const immediateBackendConfig = buildImmediateBackendConfig(nextConfig);
-    if (immediateBackendConfig && hasImmediateBackendConfigChanges(previousConfig, nextConfig)) {
-      DesktopSettingsRuntimeClient.updateSettings(immediateBackendConfig);
+    const immediateRuntimeConfig = buildImmediateRuntimeConfig(nextConfig);
+    if (immediateRuntimeConfig && hasImmediateRuntimeConfigChanges(previousConfig, nextConfig)) {
+      DesktopSettingsRuntimeClient.updateSettings(immediateRuntimeConfig);
     }
   }, [saveStatusCallbackRef]);
 
@@ -186,13 +186,13 @@ export function AppConfigProvider({ children }) {
     });
     setBackendHttpUrl(data?.backendHttpUrl);
     if (backendConnectedRef.current) {
-      syncCurrentConfigToBackend();
+      syncCurrentConfigToRuntime();
     }
   }, [
     applyFrontendConfigPatch,
     configRef,
     globalAgentStopShortcutStatusRef,
-    syncCurrentConfigToBackend,
+    syncCurrentConfigToRuntime,
   ]);
 
   useEffect(() => {
@@ -234,7 +234,7 @@ export function AppConfigProvider({ children }) {
       const filteredConfig = buildMergedFrontendConfig(diskConfig);
       applyResolvedConfig(filteredConfig, {
         persistToDisk: false,
-        syncBackend: backendConnectedRef.current,
+        syncRuntime: backendConnectedRef.current,
       });
     }).catch((error) => {
       console.warn('[Config] Failed to load config from disk:', error?.message || error);
@@ -263,7 +263,7 @@ export function AppConfigProvider({ children }) {
       applyResolvedConfig(filteredConfig, {
         persistToStorage: false,
         persistToDisk: false,
-        syncBackend: false,
+        syncRuntime: false,
       });
     };
 

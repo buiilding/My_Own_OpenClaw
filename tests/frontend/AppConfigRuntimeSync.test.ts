@@ -1,14 +1,14 @@
 /**
- * Covers app config backend sync. behavior in the frontend test suite.
+ * Covers app config runtime sync behavior in the frontend test suite.
  */
 
 import {
   buildDeferredQueryModelSelection,
-  buildImmediateBackendConfig,
-  hasImmediateBackendConfigChanges,
-} from '../../frontend/src/renderer/app/providers/appConfigBackendSync';
+  buildImmediateRuntimeConfig,
+  hasImmediateRuntimeConfigChanges,
+} from '../../frontend/src/renderer/app/providers/appConfigRuntimeSync';
 
-describe('appConfigBackendSync', () => {
+describe('appConfigRuntimeSync', () => {
   test('builds deferred model selection for SDK setModel callers', () => {
     expect(buildDeferredQueryModelSelection({
       selected_model_id: ' claude-sonnet-4-5 ',
@@ -29,7 +29,7 @@ describe('appConfigBackendSync', () => {
   });
 
   test('keeps model selection out of immediate settings sync', () => {
-    expect(buildImmediateBackendConfig({
+    expect(buildImmediateRuntimeConfig({
       selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
       model_provider: 'openai',
       speech_mode_enabled: true,
@@ -37,7 +37,7 @@ describe('appConfigBackendSync', () => {
       speech_mode_enabled: true,
     });
 
-    expect(hasImmediateBackendConfigChanges(
+    expect(hasImmediateRuntimeConfigChanges(
       {
         selected_model_id: 'old-model',
         model_provider: 'openai',

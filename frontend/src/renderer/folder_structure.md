@@ -449,7 +449,7 @@ frontend/src/renderer/
 
 2. **Split Contexts**: AppConfigContext (infrequent changes) and AppStatusContext (frequent changes) separated to minimize re-renders
 
-3. **Optimistic State**: Config loaded from localStorage immediately (zero latency) before backend sync
+3. **Optimistic State**: Config loaded from localStorage immediately (zero latency) before runtime settings sync
 
 4. **Hook-Based Logic**: Business logic extracted into custom hooks (useChatStream, useVoiceMode, etc.)
 

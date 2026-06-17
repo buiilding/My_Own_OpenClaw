@@ -2,7 +2,7 @@
  * Covers manual compaction runtime. behavior in the frontend test suite.
  */
 
-import { buildDeferredQueryModelSelection } from '../../frontend/src/renderer/app/providers/appConfigBackendSync';
+import { buildDeferredQueryModelSelection } from '../../frontend/src/renderer/app/providers/appConfigRuntimeSync';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import {
@@ -11,7 +11,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
 import { runManualCompaction } from '../../frontend/src/renderer/features/chat/utils/session/manualCompactionRuntime';
 
-jest.mock('../../frontend/src/renderer/app/providers/appConfigBackendSync', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/appConfigRuntimeSync', () => ({
   buildDeferredQueryModelSelection: jest.fn(),
 }));
 

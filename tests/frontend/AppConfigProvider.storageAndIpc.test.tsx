@@ -50,7 +50,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
         selected_model_id: 'model-x',
         model_provider: 'openai',
       }),
-      expect.any(Number),
     );
     expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
@@ -324,7 +323,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
-  test('does not include local-only tool log visibility in backend sync payloads', async () => {
+  test('does not include local-only tool log visibility in runtime sync payloads', async () => {
     mockLoadConfigFromStorage.mockReturnValue({
       show_tool_logs: true,
     });
@@ -409,7 +408,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(result.current.wakewordActive).toBe(false);
   });
 
-  test('setWakewordEnabled persists through config storage and backend sync', async () => {
+  test('setWakewordEnabled persists through config storage and runtime sync', async () => {
     const { result } = renderAppConfigContext();
 
     act(() => {
@@ -422,7 +421,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       expect.objectContaining({
         wakeword_enabled: false,
       }),
-      expect.any(Number),
     );
     expect(IpcBridge.invoke).toHaveBeenCalledWith(
       INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
@@ -518,7 +516,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
           }),
         }),
       }),
-      expect.any(Number),
     );
 
     expect(IpcBridge.invoke).toHaveBeenCalledWith(
@@ -546,7 +543,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
-  test('persists global stop shortcut locally without syncing it to backend settings', async () => {
+  test('persists global stop shortcut locally without syncing it to runtime settings', async () => {
     const { result } = renderAppConfigContext();
 
     act(() => {
@@ -560,7 +557,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       expect.objectContaining({
         global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
       }),
-      expect.any(Number),
     );
     expect(IpcBridge.invoke).toHaveBeenCalledWith(
       INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
@@ -609,7 +605,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       expect.objectContaining({
         global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
       }),
-      expect.any(Number),
     );
     expect(IpcBridge.invoke).toHaveBeenCalledWith(
       INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,

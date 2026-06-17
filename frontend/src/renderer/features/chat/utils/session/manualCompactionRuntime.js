@@ -2,7 +2,7 @@
  * Coordinates the manual compaction runtime for the renderer UI.
  */
 
-import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
+import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigRuntimeSync';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import {

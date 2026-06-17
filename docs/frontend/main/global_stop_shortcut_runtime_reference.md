@@ -18,7 +18,7 @@ the SDK-shaped query runtime:
    emits `onConfigChange({ global_agent_stop_shortcut })`.
 2. Renderer config storage normalizes the selected accelerator through
    `agentStopShortcut.js` and persists it locally.
-3. `appConfigBackendSync.js` and the main settings sync path strip
+3. `appConfigRuntimeSync.js` and the main settings sync path strip
    `global_agent_stop_shortcut` before sending backend `update-settings`
    payloads. This is local desktop state, not backend model/session config.
 4. `ipc_frontend_config_handlers.cjs` and `ipc_startup_state.cjs` pass the
