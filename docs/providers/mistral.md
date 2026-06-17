@@ -16,7 +16,7 @@ WindieOS routes Mistral through the shared online provider path with provider re
 | --- | --- |
 | Provider class | `backend/src/llm/providers/mistral.py` |
 | Shared online provider | `backend/src/llm/providers/online.py` |
-| Provider factory registration | `backend/src/llm/providers/__init__.py` |
+| Provider factory registration | `backend/src/llm/providers/factory.py` |
 | Model catalog | `backend/src/llm/models/models_config.py` |
 | Credential loading | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` |
 

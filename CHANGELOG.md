@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: move provider factory/runtime selection out of `backend.src.llm.providers` package root into `backend.src.llm.providers.factory` and remove the provider package marker; no migration is required because provider ids, cache keys, API payloads, and config payloads are unchanged.
+
 - renderer/chat: make ChatBoxResponse current-turn tool-event fallback rows consume SDK `toolName`, `requestId`, and `correlationId` fields instead of backend snake_case identity aliases. No migration is required because backend wire payloads and transcript storage are unchanged.
 
 - sdk/renderer: expose SDK-shaped live presentation tool identity (`requestId`, `correlationId`, `bundleId`) and make renderer live tool rows consume those fields instead of raw backend snake_case identity aliases. No migration is required because backend wire payloads and persisted transcript details are unchanged.

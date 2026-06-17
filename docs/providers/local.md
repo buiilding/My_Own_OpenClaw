@@ -15,7 +15,7 @@ WindieOS supports local LLM providers for Ollama and LM Studio. They are registe
 | Concern | Files |
 | --- | --- |
 | Local provider base class | `backend/src/llm/providers/local.py` |
-| Provider factory registration | `backend/src/llm/providers/__init__.py` |
+| Provider factory registration | `backend/src/llm/providers/factory.py` |
 | Config defaults | `backend/src/core/config/models.py` |
 | Runtime API key policy | `backend/src/core/config/loader.py` |
 | Model listing service | `backend/src/llm/models/model_service.py` |

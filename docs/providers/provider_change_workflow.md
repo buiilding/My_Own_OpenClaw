@@ -15,7 +15,7 @@ WindieOS provider work is backend-owned first. The renderer can display provider
 
 | Layer | Code roots | Owns |
 | --- | --- | --- |
-| Provider factory | `backend/src/llm/providers/__init__.py` | Provider registration, provider id routing, local/cloud provider construction. |
+| Provider factory | `backend/src/llm/providers/factory.py` | Provider registration, provider id routing, local/cloud provider construction. |
 | Provider base/runtime | `backend/src/llm/providers/base.py`, `online.py`, provider-specific modules | Common request/stream contract, API key handling, tool-call streaming, response parsing. |
 | Provider utilities | `message_normalization.py`, `stream_event_pipeline.py`, `streaming_tool_call_aggregation.py`, `provider_native_reasoning.py`, `usage_diagnostics.py`, `error_mapping.py` | Shared normalization and cross-provider behavior. |
 | Model catalog | `backend/src/llm/models/models_config.py`, `model_service.py` | Display metadata, runtime ids, capabilities, thinking/reasoning variants, model-list output. |
@@ -26,7 +26,7 @@ WindieOS provider work is backend-owned first. The renderer can display provider
 
 1. Decide provider id, env var names, base URL defaults, and whether the provider is generic OpenAI-compatible or needs custom request/stream behavior.
 2. Add the provider runtime class under `backend/src/llm/providers/`.
-3. Register provider construction in `backend/src/llm/providers/__init__.py`.
+3. Register provider construction in `backend/src/llm/providers/factory.py`.
 4. Add credential/config fields in `backend/src/core/config/models.py`, `app_config.py`, and `loader.py` when the provider needs new env vars or frontend-managed settings.
 5. Add model catalog entries in `backend/src/llm/models/models_config.py`.
 6. Add provider docs, credentials docs, model docs, and frontend settings docs if the user can select or configure the provider.

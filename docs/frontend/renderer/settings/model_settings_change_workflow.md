@@ -93,7 +93,7 @@ Read:
 
 - `backend/src/llm/models/models_config.py`
 - `backend/src/llm/models/model_service.py`
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - provider implementation under `backend/src/llm/providers`
 
 Catalog rules:

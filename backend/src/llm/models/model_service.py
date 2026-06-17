@@ -465,7 +465,7 @@ class ModelService:
             return []
 
         # Lazy import to avoid circular dependency
-        from backend.src.llm.providers import create_provider_factory
+        from backend.src.llm.providers.factory import create_provider_factory
 
         local_models: List[Dict[str, Any]] = []
         provider_failures: List[tuple[str, str]] = []

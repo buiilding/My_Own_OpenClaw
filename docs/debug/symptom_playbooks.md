@@ -42,7 +42,7 @@ Likely boundary: backend provider registration, model catalog, credentials, or f
 
 Inspect:
 
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - `backend/src/llm/models/models_config.py`
 - `backend/src/llm/models/model_service.py`
 - `backend/src/core/config/loader.py`

@@ -22,7 +22,7 @@ If the owner is still unclear, use [Triage Routes](triage_routes.md). If the iss
 ## Model or Provider Is Missing
 
 - Check the relevant API key env var or frontend override.
-- Check provider factory registration in `backend/src/llm/providers/__init__.py`.
+- Check provider factory registration in `backend/src/llm/providers/factory.py`.
 - Check model metadata in `backend/src/llm/models/models_config.py`.
 - Read [Models and LLM Providers](../providers/models.md).
 

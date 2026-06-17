@@ -12,7 +12,7 @@ title: "Model Listing and Connection Pooling Reference"
 
 - `backend/src/llm/providers/local.py`
 - `backend/src/llm/providers/online.py`
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - `tests/backend/test_local_llm_providers.py`
 
 ## Local Provider Request Parameters
@@ -78,7 +78,7 @@ Edge-case compatibility:
 
 ## Factory Coupling and Cache-Key Stability
 
-Provider factory (`providers/__init__.py`) always attempts to register local providers regardless of API key.
+Provider factory (`providers/factory.py`) always attempts to register local providers regardless of API key.
 
 Canonicalized URL values are used in factory cache keys, so equivalent trailing-slash forms reuse provider instances.
 

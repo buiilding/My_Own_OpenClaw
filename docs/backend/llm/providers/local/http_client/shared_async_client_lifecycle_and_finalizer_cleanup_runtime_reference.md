@@ -11,7 +11,7 @@ title: "Shared Async Client Lifecycle and Finalizer Cleanup Runtime Reference"
 ## Canonical Modules
 
 - `backend/src/llm/providers/local.py`
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - `tests/backend/test_local_llm_providers.py`
 - `tests/backend/test_provider_factory_helpers.py`
 
@@ -100,7 +100,7 @@ Current local-provider runtime mainly relies on finalizer for GC-driven cleanup;
 
 ## Provider Factory Cache Coupling
 
-Provider instances come from cached factory creation in `providers/__init__.py`.
+Provider instances come from cached factory creation in `providers/factory.py`.
 
 Cache-key normalization includes:
 

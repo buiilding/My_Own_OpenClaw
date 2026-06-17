@@ -62,7 +62,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 
 | Runtime flow | Entry module | Core orchestrators | Completion/exit modules |
 | --- | --- | --- | --- |
-| Provider selection and factory cache | `backend/src/llm/providers/__init__.py` | Provider classes in `backend/src/llm/providers/*.py` | Bound provider instance |
+| Provider selection and factory cache | `backend/src/llm/providers/factory.py` | Provider classes in `backend/src/llm/providers/*.py` | Bound provider instance |
 | Provider stream aggregation + diagnostics | `backend/src/llm/providers/stream_event_pipeline.py` | `backend/src/llm/providers/{streaming_tool_call_aggregation,response_parsing,usage_diagnostics,thinking_extraction}.py` | Normalized tool-calls/metrics/thinking payloads |
 | Model discovery/listing | `backend/src/llm/models/model_service.py` | Models config in `backend/src/llm/models/models_config.py` | Models API payload |
 | Token counting diagnostics | `backend/src/services/token_service.py` | `backend/src/agent/llm/token_counting.py` | `token-count` stream event |

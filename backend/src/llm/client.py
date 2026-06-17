@@ -21,7 +21,7 @@ from backend.src.llm.client_response_normalization import (
     normalize_tool_call_entry,
     normalize_tool_calls,
 )
-from backend.src.llm.providers import get_provider
+from backend.src.llm.providers.factory import get_provider
 from backend.src.llm.request_kwargs import build_tool_transport_kwargs
 
 if TYPE_CHECKING:

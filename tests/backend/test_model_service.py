@@ -111,7 +111,7 @@ def _parallel_state() -> dict:
 
 async def _get_local_models_with_factory(monkeypatch, factory: dict):
     monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
+        "backend.src.llm.providers.factory.create_provider_factory",
         lambda _cfg: factory,
     )
     service = ModelService(AppConfig(model_mode="local"))
@@ -228,7 +228,7 @@ async def test_get_local_models_skips_provider_discovery_in_online_mode(monkeypa
         )
 
     monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
+        "backend.src.llm.providers.factory.create_provider_factory",
         _should_not_be_called,
     )
     service = ModelService(AppConfig(model_mode="online"))

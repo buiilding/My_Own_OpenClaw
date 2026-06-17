@@ -56,7 +56,7 @@ Validation:
 ### 4) Add new LLM provider behavior
 
 1. Implement provider logic in `backend/src/llm/providers/<provider>.py`.
-2. Wire provider factory in `backend/src/llm/providers/__init__.py`.
+2. Wire provider factory in `backend/src/llm/providers/factory.py`.
 3. Align request kwargs behavior in `backend/src/llm/request_kwargs.py` if needed.
 4. Confirm parser/stream expectations in `llm/parser*.py` and `agent/llm/llm_stream_processor.py`.
 

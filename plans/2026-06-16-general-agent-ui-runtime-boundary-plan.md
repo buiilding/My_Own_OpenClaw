@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend provider factory package facade removal
+
+- Finding: backend LLM provider selection still lived in
+  `backend/src/llm/providers/__init__.py`, contradicting the backend
+  namespace-package rule that package roots should not publish compatibility
+  facades.
+- Change: moved provider-factory/runtime-selection helpers into the concrete
+  `backend.src.llm.providers.factory` owner module, updated runtime callers,
+  docs, and tests, and removed the provider package marker.
+- Validation: focused backend provider/model/namespace tests, docs listing,
+  import-path scans, and `git diff --check`.
+- Compatibility: no migration required for runtime behavior. Internal imports
+  now use the concrete provider factory module; provider ids, cache keys, and
+  API/config payloads are unchanged.
+
 ### 2026-06-17 chat response tool-event identity boundary
 
 - Finding: `ChatBoxResponse` fallback current-turn state still decoded tool

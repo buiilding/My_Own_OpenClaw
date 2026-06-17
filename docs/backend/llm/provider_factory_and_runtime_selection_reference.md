@@ -12,7 +12,7 @@ title: "Provider Factory and Runtime Selection Reference"
 
 - `backend/src/llm/client.py`
 - `backend/src/llm/client_response_normalization.py`
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - `backend/src/llm/providers/base.py`
 - `backend/src/llm/models/model_service.py`
 - `backend/src/llm/models/models_config.py`

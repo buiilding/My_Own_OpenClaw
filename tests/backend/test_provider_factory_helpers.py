@@ -2,7 +2,7 @@
 
 import pytest
 
-import backend.src.llm.providers as providers_module
+import backend.src.llm.providers.factory as providers_module
 from backend.src.core.config.models import (
     AppConfig,
     KimiCodingConfig,

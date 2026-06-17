@@ -12,7 +12,7 @@ WindieOS separates provider runtime classes from model catalog metadata.
 
 ## Runtime Providers
 
-Provider instances are created in `backend/src/llm/providers/__init__.py`. Cloud providers require API keys; local providers are always registered but can fail at runtime if their local server is not running.
+Provider instances are created in `backend/src/llm/providers/factory.py`. Cloud providers require API keys; local providers are always registered but can fail at runtime if their local server is not running.
 
 | Provider | Runtime class | Default credential/config |
 | --- | --- | --- |

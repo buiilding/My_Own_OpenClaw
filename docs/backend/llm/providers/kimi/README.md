@@ -22,5 +22,5 @@ title: "Backend Kimi Provider Docs Hub"
 
 - `backend/src/llm/providers/kimi_coding.py`
 - `backend/src/llm/providers/online.py`
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - `tests/backend/test_kimi_coding_provider.py`

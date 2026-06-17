@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
-from backend.src.llm.providers import stream_event_pipeline
+import backend.src.llm.providers.stream_event_pipeline as stream_event_pipeline
 from backend.src.llm.providers.stream_event_pipeline import (
     enable_stream_with_usage,
     stream_text_content_events,

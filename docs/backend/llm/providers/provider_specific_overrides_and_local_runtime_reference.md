@@ -19,7 +19,7 @@ title: "Provider-Specific Overrides and Local Runtime Reference"
 - `backend/src/llm/providers/openrouter.py`
 - `backend/src/llm/providers/local.py`
 - `backend/src/llm/providers/kimi_coding.py`
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - `backend/src/llm/models/model_service.py`
 - `tests/backend/test_kimi_coding_provider.py`
 - `tests/backend/test_local_llm_providers.py`
@@ -201,7 +201,7 @@ Detailed local-provider runtime behavior:
 
 ## Provider Factory and Key Normalization
 
-Provider factory normalization from `providers/__init__.py`:
+Provider factory normalization from `providers/factory.py`:
 
 - provider keys:
   - `kimi-coding`, `kimi_coding` -> `kimi-coding`

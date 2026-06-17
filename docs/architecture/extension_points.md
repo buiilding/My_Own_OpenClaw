@@ -39,7 +39,7 @@ Add a new provider by implementing `LLMProvider` in:
 
 - `backend/src/llm/providers/`
 
-and wiring it into the provider factory in `backend/src/llm/providers/__init__.py`.
+and wiring it into the provider factory in `backend/src/llm/providers/factory.py`.
 
 ## 4) Inference Capability Providers
 

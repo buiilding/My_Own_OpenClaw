@@ -15,7 +15,7 @@ WindieOS treats OpenRouter as an online OpenAI-compatible provider with a config
 | Concern | Files |
 | --- | --- |
 | Provider class | `backend/src/llm/providers/openrouter.py` |
-| Provider factory URL normalization | `backend/src/llm/providers/__init__.py` |
+| Provider factory URL normalization | `backend/src/llm/providers/factory.py` |
 | Model catalog/variants | `backend/src/llm/models/models_config.py` |
 | Credential/base URL config | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py` |
 | Web-search fallback planning | `backend/src/tools/web_search` |

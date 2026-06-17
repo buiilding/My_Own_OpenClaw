@@ -193,6 +193,9 @@ docstring or compatibility path.
 - `backend/src/llm/models/__init__.py` is intentionally absent; import
   `ModelService` from `backend.src.llm.models.model_service` and model catalog
   constants from `backend.src.llm.models.models_config`.
+- `backend/src/llm/providers/__init__.py` is intentionally absent; import
+  provider factory helpers from `backend.src.llm.providers.factory` and provider
+  implementations from their concrete modules.
 - `backend/src/llm/prompts/__init__.py` is intentionally absent; import
   prompt construction from `backend.src.llm.prompts.prompt_constructor`,
   metadata dataclasses from `backend.src.llm.prompts.prompt_metadata`, prompt

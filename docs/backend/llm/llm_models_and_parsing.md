@@ -27,7 +27,7 @@ Capabilities:
 
 Factory module:
 
-- `llm/providers/__init__.py`
+- `llm/providers/factory.py`
 
 Key behavior:
 

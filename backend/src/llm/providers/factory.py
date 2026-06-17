@@ -1,4 +1,4 @@
-"""Provides the init module for the backend."""
+"""Provider factory and runtime selection helpers."""
 
 from functools import lru_cache
 import logging

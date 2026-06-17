@@ -23,6 +23,6 @@ title: "Backend Local Provider Docs Hub"
 ## Code Scope
 
 - `backend/src/llm/providers/local.py`
-- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/providers/factory.py`
 - `tests/backend/test_local_llm_providers.py`
 - `tests/backend/test_provider_factory_helpers.py`

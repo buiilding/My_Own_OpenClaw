@@ -17,7 +17,7 @@ The model catalog is not just display text. It controls provider routing, visibl
 | --- | --- | --- |
 | Catalog definitions | `backend/src/llm/models/models_config.py` | Source of truth for model metadata and capability flags. |
 | Model listing service | `backend/src/llm/models/model_service.py` | Converts catalog/config/provider availability into model-list responses. |
-| Provider runtime routing | `backend/src/llm/providers/__init__.py` and provider modules | Provider id must resolve to a concrete runtime provider. |
+| Provider runtime routing | `backend/src/llm/providers/factory.py` and provider modules | Provider id must resolve to a concrete runtime provider. |
 | Default selected model | `backend/src/core/config/app_config.py`, config docs | Defaults must be valid catalog ids. |
 | Frontend selected model state | Renderer settings/app config providers | Should consume backend metadata and persist user choice. |
 | Model picker rendering | `frontend/src/renderer/features/settings`, chat model controls | Should not invent capabilities missing from backend metadata. |

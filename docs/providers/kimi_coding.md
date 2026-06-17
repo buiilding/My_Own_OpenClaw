@@ -16,7 +16,7 @@ WindieOS treats Kimi Coding as an Anthropic-compatible online provider with Kimi
 | Concern | Files |
 | --- | --- |
 | Provider class | `backend/src/llm/providers/kimi_coding.py` |
-| Provider factory routing | `backend/src/llm/providers/__init__.py` |
+| Provider factory routing | `backend/src/llm/providers/factory.py` |
 | Config provider fields and env fallback | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py` |
 | Model catalog/variants | `backend/src/llm/models/models_config.py` |
 | Streamed tool-call aggregation | `backend/src/llm/providers/streaming_tool_call_aggregation.py` |
