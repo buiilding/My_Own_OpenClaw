@@ -24,7 +24,7 @@ matching compatibility alias for that high-level agent object.
 Electron main / future CLI / SDK users
         |
         v
-TS Windie SDK runtime
+TS Agent SDK runtime
         |---------------- hosted backend HTTP/WebSocket
         |
         |---------------- local sidecar daemon HTTP/WebSocket

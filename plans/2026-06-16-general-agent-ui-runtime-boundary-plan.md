@@ -2375,6 +2375,18 @@ Each completed slice should report:
   `git diff --check`, and source scans for stale generated header text.
 - Compatibility: no migration required. This is test-only terminology cleanup.
 
+### 2026-06-17 AgentClient runtime diagram wording
+
+- Finding: the AgentClient runtime contract identified `AgentClient` as the
+  canonical runtime, but its boundary diagram still labeled the reusable
+  TypeScript layer as `TS Windie SDK runtime`.
+- Change: updated the diagram label to `TS Agent SDK runtime` while preserving
+  the `@windie/sdk` package name and Windie-prefixed compatibility alias
+  explanations.
+- Validation: docs listing, `git diff --check`, and a focused docs scan for
+  stale `TS Windie SDK runtime` wording.
+- Compatibility: no migration required. This is docs-only terminology cleanup.
+
 ### 2026-06-17 Agent SDK focused test headers
 
 - Finding: focused Agent SDK tests for model selection, managed backend
