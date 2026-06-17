@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Changed Python SDK local-runtime unsupported-method validation to say local runtime instead of sidecar. No persisted-data migration is required.
+
 - Removed the backend `core.infrastructure.error_types` package re-export facade so runtime code and tests import concrete exception owner modules directly. No persisted-data migration is required.
 
 - Changed Python SDK local-runtime HTTP client failures to say local runtime returned instead of sidecar daemon returned. No persisted-data migration is required.
