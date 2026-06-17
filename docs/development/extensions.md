@@ -108,6 +108,9 @@ Rules:
   when the backend prepares executable sidecar arguments.
 - Plugin tools always execute in the Python sidecar.
 - Plugin entrypoints must return native `tools.result.ToolResult` values.
+- Sidecar-generated Python module names for loaded entrypoint files are
+  internal loader details; extension contracts are `name`, `schema`, and
+  `entrypoint`.
 - Do not put a `tools/` folder under plugins; schema files live under
   `schemas/`.
 

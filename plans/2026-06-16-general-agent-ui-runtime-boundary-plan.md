@@ -1166,3 +1166,16 @@ Each completed slice should report:
   override, browser session name, and launch behavior are unchanged; only
   internal helper names and the browser result scope label moved to generic
   dedicated-browser terminology.
+
+### 2026-06-17 sidecar plugin entrypoint module names
+
+- Finding: sidecar extension loading still generated product-named Python
+  module keys for plugin entrypoint imports even though plugin execution is a
+  local sidecar runtime concern.
+- Change: renamed the generated import namespace to `sidecar_plugin_*` and
+  documented that these module keys are internal loader details, while the
+  extension contract remains `name`, `schema`, and `entrypoint`.
+- Validation: focused sidecar plugin manifest test, docs listing,
+  `git diff --check`, and stale namespace scan.
+- Compatibility: no migration required. Plugin manifests, tool names,
+  schemas, entrypoint paths, and execution behavior are unchanged.
