@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for interaction-loop recovery from malformed model tool-call payloads: recoverable error classification, synthetic tool-call/tool-output emission order, history replay injection, and cleanup semantics."
 read_when:
-  - When changing recoverable error marker matching, tool-call id/name extraction, or synthetic ToolCallEvent/ToolOutputEvent payload shape.
+  - When changing recoverable error marker matching, structured tool-call recovery metadata extraction, or synthetic ToolCallEvent/ToolOutputEvent payload shape.
   - When debugging loops that unexpectedly abort after stream errors, or frontend tool runner behavior for `skip_frontend_execution` metadata.
 title: "Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference"
 ---
@@ -81,7 +81,7 @@ Upstream source:
 
 `ToolCallEvent` fields:
 
-- `tool_name`: extracted from error text via name regex or fallback `invalid_tool_call`
+- `tool_name`: extracted from `metadata.llm_tool_name` or fallback `invalid_tool_call`
 - `parameters`: `{}`
 - `request_id`: synthetic/extracted id
 - `metadata`: synthetic flags above

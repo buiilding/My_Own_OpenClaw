@@ -8,14 +8,6 @@ from backend.src.core.utils.string_normalization import normalize_non_empty_stri
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 
-_LLM_TOOL_ERROR_ID_PATTERN = re.compile(
-    r"(?:\bid\b|\btool_call_id\b)\s*[:=]\s*['\"]?([A-Za-z0-9_.:/-]+)",
-    re.IGNORECASE,
-)
-_LLM_TOOL_ERROR_NAME_PATTERN = re.compile(
-    r"(?:\bname\b|\btool_name\b)\s*[:=]\s*['\"]?([A-Za-z0-9_.:/-]+)",
-    re.IGNORECASE,
-)
 _RECOVERABLE_TOOL_CALL_ERROR_MARKERS = (
     "failed to parse streamed tool-call arguments",
     "failed to parse streamed tool call arguments",
@@ -25,8 +17,6 @@ _RECOVERABLE_TOOL_CALL_ERROR_MARKERS = (
     "invalid tool_calls type",
 )
 _TOOL_OUTPUT_ERROR_PREVIEW_CHARS = 600
-_RAW_TOOL_CALL_PREVIEW_MARKER = "Raw tool call preview:"
-_RAW_ARGUMENTS_PREVIEW_MARKER = "Raw arguments preview:"
 _FILE_PATH_JSON_PATTERN = re.compile(
     r'"file_path"\s*:\s*"([^"\n]+)"'
 )
@@ -174,11 +164,6 @@ def to_history_tool_calls(
     return history_calls
 
 
-def extract_tool_call_ids(parsed_tool_calls: List[ParsedToolCall]) -> List[str]:
-    """Collect tool-call ids in emission order for tool-result linkage."""
-    return extract_history_tool_call_ids(to_history_tool_calls(parsed_tool_calls))
-
-
 def extract_history_tool_call_ids(history_tool_calls: List[Dict[str, Any]]) -> List[str]:
     """Collect persisted assistant-history tool-call ids in emission order."""
     tool_call_ids: List[str] = []
@@ -208,69 +193,6 @@ def is_recoverable_llm_tool_call_error(error_msg: str) -> bool:
     if not has_tool_context or not has_format_context:
         return False
     return any(marker in normalized for marker in _RECOVERABLE_TOOL_CALL_ERROR_MARKERS)
-
-
-def extract_tool_name_from_error(error_msg: str) -> str:
-    """Best-effort extraction of tool name from provider error text."""
-    match = _LLM_TOOL_ERROR_NAME_PATTERN.search(error_msg)
-    if match:
-        candidate = (match.group(1) or "").strip().strip(".,;:()[]{}")
-        if candidate:
-            return candidate
-    return "invalid_tool_call"
-
-
-def extract_tool_call_id_from_error(error_msg: str) -> str:
-    """Best-effort extraction of tool call id from provider error text."""
-    match = _LLM_TOOL_ERROR_ID_PATTERN.search(error_msg)
-    if match:
-        return (match.group(1) or "").strip().strip(".,;:()[]{}")
-    return ""
-
-
-def extract_raw_arguments_preview_from_error(error_msg: str) -> str:
-    """Best-effort extraction of raw streamed tool arguments preview from error text."""
-    marker_index = error_msg.find(_RAW_ARGUMENTS_PREVIEW_MARKER)
-    if marker_index < 0:
-        return ""
-
-    preview = error_msg[marker_index + len(_RAW_ARGUMENTS_PREVIEW_MARKER):].strip()
-    if not preview:
-        return ""
-
-    if preview[0] in {"'", '"'}:
-        quote = preview[0]
-        preview = preview[1:]
-        if preview.endswith(quote):
-            preview = preview[:-1]
-    return preview.strip()
-
-
-def extract_raw_tool_call_preview_from_error(error_msg: str) -> str:
-    """Best-effort extraction of raw streamed tool-call preview from error text."""
-    marker_index = error_msg.find(_RAW_TOOL_CALL_PREVIEW_MARKER)
-    if marker_index < 0:
-        return ""
-
-    preview = error_msg[marker_index + len(_RAW_TOOL_CALL_PREVIEW_MARKER):].strip()
-    if not preview:
-        return ""
-
-    if preview[0] in {"'", '"'}:
-        quote = preview[0]
-        preview = preview[1:]
-        if preview.endswith(quote):
-            preview = preview[:-1]
-    return preview.strip()
-
-
-def extract_tool_call_parse_error_from_error(error_msg: str) -> str:
-    """Extract a concise parse-error summary from recoverable tool-call error text."""
-    marker_index = error_msg.find(_RAW_TOOL_CALL_PREVIEW_MARKER)
-    if marker_index < 0:
-        marker_index = error_msg.find(_RAW_ARGUMENTS_PREVIEW_MARKER)
-    summary = error_msg[:marker_index] if marker_index >= 0 else error_msg
-    return " ".join(summary.split()).strip()
 
 
 def _extract_target_file_path(raw_arguments_preview: str | None) -> str:

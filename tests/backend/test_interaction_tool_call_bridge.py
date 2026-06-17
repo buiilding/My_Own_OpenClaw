@@ -3,12 +3,6 @@
 from backend.src.agent.execution.tool_call_bridge import (
     build_recoverable_tool_output_message,
     extract_history_tool_call_ids,
-    extract_raw_arguments_preview_from_error,
-    extract_raw_tool_call_preview_from_error,
-    extract_tool_call_parse_error_from_error,
-    extract_tool_call_id_from_error,
-    extract_tool_call_ids,
-    extract_tool_name_from_error,
     is_recoverable_llm_tool_call_error,
     to_history_tool_calls,
     to_parsed_response,
@@ -153,22 +147,36 @@ def test_tool_call_bridge_preserves_thought_signature_between_shapes():
     ]
 
 
-def test_extract_tool_call_ids_matches_persisted_history_ids_with_fallbacks():
-    ids = extract_tool_call_ids(
+def test_history_tool_call_ids_match_persisted_history_ids_with_fallbacks():
+    history_calls = to_history_tool_calls(
         [
-            ParsedToolCall(tool_name="a", parameters={}, metadata={"tool_call_id": "ok_1"}),
+            ParsedToolCall(
+                tool_name="a",
+                parameters={},
+                metadata={"tool_call_id": "ok_1"},
+            ),
             ParsedToolCall(tool_name="b", parameters={}, metadata={"tool_call_id": ""}),
             ParsedToolCall(tool_name="c", parameters={}, metadata={"tool_call_id": 123}),
             ParsedToolCall(tool_name="d", parameters={}, metadata=None),
-            ParsedToolCall(tool_name="e", parameters={}, metadata={"tool_call_id": "ok_2"}),
+            ParsedToolCall(
+                tool_name="e",
+                parameters={},
+                metadata={"tool_call_id": "ok_2"},
+            ),
         ]
     )
 
-    assert ids == ["ok_1", "tool_call_1", "tool_call_2", "tool_call_3", "ok_2"]
+    assert extract_history_tool_call_ids(history_calls) == [
+        "ok_1",
+        "tool_call_1",
+        "tool_call_2",
+        "tool_call_3",
+        "ok_2",
+    ]
 
 
-def test_extract_tool_call_ids_ignores_whitespace_only_ids():
-    ids = extract_tool_call_ids(
+def test_history_tool_call_ids_ignore_whitespace_only_ids():
+    history_calls = to_history_tool_calls(
         [
             ParsedToolCall(tool_name="a", parameters={}, metadata={"tool_call_id": "  "}),
             ParsedToolCall(tool_name="b", parameters={}, metadata={"tool_call_id": "\n"}),
@@ -176,7 +184,11 @@ def test_extract_tool_call_ids_ignores_whitespace_only_ids():
         ]
     )
 
-    assert ids == ["tool_call_0", "tool_call_1", "ok_3"]
+    assert extract_history_tool_call_ids(history_calls) == [
+        "tool_call_0",
+        "tool_call_1",
+        "ok_3",
+    ]
 
 
 def test_extract_history_tool_call_ids_filters_invalid_history_ids():
@@ -215,9 +227,6 @@ def test_recoverable_error_detection_and_message_formatting():
     )
 
     assert is_recoverable_llm_tool_call_error(error_msg) is True
-    assert extract_tool_call_id_from_error(error_msg) == "call_bad"
-    assert extract_tool_name_from_error(error_msg) == "replace"
-
     formatted = build_recoverable_tool_output_message(
         "replace",
         error_msg,
@@ -228,27 +237,6 @@ def test_recoverable_error_detection_and_message_formatting():
     assert "retry_guidance: retry the same tool with smaller argument payload chunks." in formatted
     assert "target_file: /tmp/demo.txt" in formatted
     assert "status: failed" in formatted
-
-
-def test_extract_raw_arguments_preview_and_parse_error_summary():
-    error_msg = (
-        "Unexpected system error: [LLM_API_ERROR] Invalid response from stream: "
-        "failed to parse streamed tool-call arguments for id=tool_bad name=run_shell_command. "
-        "Raw tool call preview: '{\"id\":\"tool_bad\",\"name\":\"run_shell_command\",\"arguments\":\"{\\\"command\\\":\\\"cat > index.html << \\\\\\\"EOF\\\\\\\"\\\"}...[truncated]\"}' "
-        "Raw arguments preview: '{\"command\":\"cat > index.html << \\\"EOF\\\"\\\\n<!DOCTYPE html>...\"...[truncated]'"
-    )
-
-    raw_tool_call_preview = extract_raw_tool_call_preview_from_error(error_msg)
-    preview = extract_raw_arguments_preview_from_error(error_msg)
-    summary = extract_tool_call_parse_error_from_error(error_msg)
-
-    assert raw_tool_call_preview.startswith('{"id":"tool_bad"')
-    assert '"name":"run_shell_command"' in raw_tool_call_preview
-    assert preview.startswith("{\"command\"")
-    assert preview.endswith("...[truncated]")
-    assert "failed to parse streamed tool-call arguments" in summary
-    assert "Raw tool call preview" not in summary
-    assert "Raw arguments preview" not in summary
 
 
 def test_build_raw_tool_call_preview_serializes_raw_arguments_string():

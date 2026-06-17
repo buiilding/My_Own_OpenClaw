@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/agent: remove unused tool-call recovery helpers that parsed ids,
+  names, raw previews, parse summaries, and history ids from legacy error-string
+  surfaces; no migration is required because structured LLM error metadata,
+  recovery events, and history staging are unchanged.
 - backend/query: remove the unused query image-data collapse helper now that query input shaping keeps inline screenshots and artifact refs separate; no migration is required because query payload fields, screenshot ref normalization, prompt image resolution, API events, and storage are unchanged.
 
 - docs/frontend: remove stale chat-stream correlation-wrapper references after renderer helpers moved to direct SDK correlation imports. No migration is required because this is documentation-only cleanup.

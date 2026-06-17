@@ -1,8 +1,9 @@
 ---
-summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, provider-payload preservation, whitespace-safe tool-call-id handling, history tool-call shaping, recoverable-error helper contracts, and removed raw-preview builder relay behavior."
+summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, provider-payload preservation, whitespace-safe tool-call-id handling, history tool-call shaping, structured recoverable-error helper contracts, and removed raw-preview builder relay behavior."
 read_when:
   - When changing `backend/src/agent/execution/tool_call_bridge.py` conversion behavior or metadata extraction.
   - When debugging mismatches between provider-native `tool_calls` payloads and downstream parsed/history tool-call shapes.
+  - When stale imports reference `tool_call_bridge.extract_*_from_error`; recovery diagnostics now come from structured LLM error metadata in `interaction_loop.py`.
   - When stale imports reference `tool_call_bridge.build_raw_tool_call_preview`; raw preview construction belongs to `backend/src/core/utils/raw_tool_call_preview.py`.
 title: "Native Tool-Call Bridge and History Mapping Reference"
 ---
@@ -27,7 +28,7 @@ Primary bridge functions:
 - `to_parsed_response(normalized_response)`
 - `to_parsed_tool_call(tool_call)`
 - `to_history_tool_calls(parsed_tool_calls)`
-- `extract_tool_call_ids(parsed_tool_calls)`
+- `extract_history_tool_call_ids(history_tool_calls)`
 
 This lets `InteractionLoop` consume provider-native `tool_calls` without running JSON-text parser extraction for normal tool turns.
 
@@ -87,10 +88,6 @@ No wrapper normalization happens in this bridge:
 - otherwise `arguments`: parsed `parameters` copy
 - `thought_signature`: included when metadata contains non-empty signature
 
-`extract_tool_call_ids(...)` derives ids from the same history shaping path,
-preserving emission order and including deterministic `tool_call_<index>`
-fallbacks when metadata ids are missing or blank.
-
 `extract_history_tool_call_ids(...)` collects ids from an already-rendered
 assistant-history `tool_calls` payload. The interaction loop uses this helper
 after rendering history calls once, so the staged ids exactly match the ids
@@ -106,13 +103,13 @@ Deep-copy boundary:
 `tool_call_bridge.py` also hosts helper functions used by interaction-loop recoverable tool-call error handling:
 
 - `is_recoverable_llm_tool_call_error(...)`
-- `extract_tool_name_from_error(...)`
-- `extract_tool_call_id_from_error(...)`
-- `extract_raw_arguments_preview_from_error(...)`
-- `extract_tool_call_parse_error_from_error(...)`
 - `build_recoverable_tool_output_message(...)`
 
-These helpers provide deterministic classification + synthetic message formatting for malformed streamed tool-call arguments.
+These helpers provide deterministic marker classification and synthetic message
+formatting for malformed streamed tool-call arguments. Tool name, id, raw
+preview, and parse-summary diagnostics come from structured LLM error metadata
+read by `interaction_loop.py`; the bridge no longer reverse-parses those values
+from provider error text.
 
 Raw preview construction is not owned by `tool_call_bridge.py`. Consumers import
 `build_raw_tool_call_preview(...)` directly from
@@ -127,10 +124,9 @@ Recoverable marker matching requires:
 - argument/tool-call format context present
 - one configured marker match (for example invalid tool-call arguments / failed parse variants)
 
-Extraction helpers:
+Recovery helper behavior:
 
-- id/name regexes accept both `id=`/`tool_call_id=` and `name=`/`tool_name=` forms
-- raw arguments preview parses suffix after literal marker `Raw arguments preview:`
+- malformed tool-call classification still requires tool context, format context, and one configured recoverable marker
 - target file extraction supports:
   - JSON `file_path`
   - escaped JSON `file_path`
@@ -145,8 +141,8 @@ Extraction helpers:
 - history argument deep-copy immutability
 - direct native tool-call preservation behavior
 - thought-signature preservation across parsed/history shapes
-- whitespace-only tool-call id handling in both `extract_tool_call_ids(...)` and history id fallback
-- recoverable error marker detection and parse-summary extraction
+- whitespace-only tool-call id handling in history id fallback and rendered history id extraction
+- recoverable error marker detection
 - target-file extraction from raw-arguments preview
 - retry message includes file-target/edit-strategy hints when file path can be extracted
 

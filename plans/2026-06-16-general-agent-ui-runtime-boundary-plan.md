@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python SDK local runtime option boundary
+
+- Finding: the Python `AgentSdkClient` still exposed injected local execution
+  and daemon startup through sidecar-named constructor fields, and the Node
+  auto-local-runtime provider still looked at a sidecar-named daemon-script env
+  override. This leaked the concrete sidecar implementation through the SDK
+  local-runtime contract.
+- Change: moved Python public client options and stored lifecycle state to
+  `local_runtime`, `local_runtime_discovery_file`, and
+  `local_runtime_daemon_script`, renamed the Python default discovery constants
+  and probe helper to local-runtime terms, and changed the Node/Python daemon
+  script env override to `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`.
+- Validation: focused Python SDK sidecar tests, focused TypeScript SDK client
+  tests, docs listing, stale-name scans, and diff checks.
+- Compatibility: no migration required for backend wire payloads, sidecar
+  discovery-file metadata, tool schemas, transcript storage, or persisted
+  settings. Direct Python callers that passed the removed `sidecar`,
+  `sidecar_discovery_file`, or `sidecar_daemon_script` helper names should use
+  the local-runtime names.
+
 ### 2026-06-17 query image-data collapse helper removal
 
 - Finding: `query_execution_inputs.py` still exported `build_query_image_data`,
@@ -4804,3 +4824,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing local-backend bridge imports
   still resolve to the same functions; IPC channel strings and status payloads
   remain unchanged.
+
+### 2026-06-17 backend tool-call recovery string extractors
+
+- Finding: `tool_call_bridge.py` still exported helper functions that reverse
+  parsed tool-call ids, names, raw previews, and parse summaries out of provider
+  error strings, plus a parsed-call id wrapper, even though recovery now reads
+  those diagnostics from structured LLM error metadata and the interaction loop
+  stages ids from already-rendered history calls.
+- Change: removed the unused error-string extractor helpers and parsed-call id
+  wrapper, kept the live recoverable marker classifier and synthetic output
+  formatter, and updated bridge/recovery docs and focused tests to the
+  structured-metadata recovery path.
+- Validation: focused bridge py_compile and pytest, stale extractor scan,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. These were backend-internal helper
+  exports with no live source callers; recovery event payloads, history
+  staging, and structured metadata keys are unchanged.
