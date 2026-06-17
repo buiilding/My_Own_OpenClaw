@@ -247,18 +247,22 @@ function toolArgsFromModelCall(call) {
 function toolCallIdFromModelCall(call) {
     return stringField(call ?? {}, 'id', 'toolCallId', 'tool_call_id');
 }
-function toolCallFromPayload(payload, index) {
+function toolCallNameFromPayload(payload, options) {
+    return stringField(payload, 'toolName')
+        ?? (options.allowStepName ? stringField(payload, 'name') : null);
+}
+function toolCallFromPayload(payload, index, options = {}) {
     const modelFacing = modelFacingCallFromRecord(payload);
     return {
         toolName: toolNameFromModelCall(modelFacing)
-            ?? stringField(payload, 'toolName', 'tool_name', 'name')
+            ?? toolCallNameFromPayload(payload, options)
             ?? 'unknown_tool',
         args: toolArgsFromModelCall(modelFacing)
-            ?? recordField(payload, 'args', 'parameters', 'arguments')
+            ?? recordField(payload, 'args', 'arguments')
             ?? {},
-        requestId: stringField(payload, 'requestId', 'request_id'),
+        requestId: stringField(payload, 'requestId'),
         toolCallId: toolCallIdFromModelCall(modelFacing)
-            ?? stringField(payload, 'toolCallId', 'tool_call_id'),
+            ?? stringField(payload, 'toolCallId'),
         index,
     };
 }
@@ -269,7 +273,7 @@ function bundleToolCallsFromPayload(payload) {
     return (tools.length > 0 ? tools : structuredTools)
         .map(recordFromUnknown)
         .filter((tool) => Boolean(tool))
-        .map((tool, index) => toolCallFromPayload(tool, index));
+        .map((tool, index) => toolCallFromPayload(tool, index, { allowStepName: true }));
 }
 function resultFromPayload(payload) {
     if ('result' in payload)
@@ -370,16 +374,20 @@ function successFromPayload(payload) {
     }
     return null;
 }
-function toolOutputFromPayload(payload, index) {
+function toolOutputNameFromPayload(payload, options) {
+    return stringField(payload, 'toolName')
+        ?? (options.allowStepToolName ? stringField(payload, 'tool', 'name') : null);
+}
+function toolOutputFromPayload(payload, index, options = {}) {
     const extractedResult = extractToolResultAttachments(resultFromPayload(payload));
     return {
-        toolName: stringField(payload, 'toolName', 'tool_name', 'tool', 'name') ?? 'unknown_tool',
+        toolName: toolOutputNameFromPayload(payload, options) ?? 'unknown_tool',
         result: extractedResult.result,
         attachments: extractedResult.attachments,
         success: successFromPayload(payload),
         error: stringField(payload, 'error'),
-        requestId: stringField(payload, 'requestId', 'request_id'),
-        toolCallId: stringField(payload, 'toolCallId', 'tool_call_id'),
+        requestId: stringField(payload, 'requestId'),
+        toolCallId: stringField(payload, 'toolCallId'),
         index,
     };
 }
@@ -392,5 +400,5 @@ function bundleToolOutputsFromPayload(payload) {
     return (steps.length > 0 ? steps : structuredSteps)
         .map(recordFromUnknown)
         .filter((step) => Boolean(step))
-        .map((step, index) => toolOutputFromPayload(step, index));
+        .map((step, index) => toolOutputFromPayload(step, index, { allowStepToolName: true }));
 }

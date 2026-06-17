@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK public stream tool identity boundary
+
+- Finding: `AgentStreamEvents` still recovered public `agent.stream(...)` tool
+  identity from direct backend snake_case aliases on SDK conversation-event
+  payloads, even though backend websocket normalization is the ownership
+  boundary for converting wire payloads into SDK-shaped events.
+- Change: made single tool call/output stream projection consume SDK-shaped
+  top-level fields for `toolName`, `requestId`, and `toolCallId`, while keeping
+  provider/model-facing metadata and normalized bundle step rows as valid
+  sources for provider ids, arguments, and step names.
+- Validation: focused SDK conversation-runtime and AgentClient stream coverage,
+  docs listing, source scans, and `git diff --check`.
+- Compatibility: no migration required for backend wire payloads or local tool
+  execution. Directly constructed SDK tool events using removed snake_case
+  aliases no longer provide public stream identity; callers should emit
+  canonical SDK fields or go through the backend-event normalizer.
+
 ### 2026-06-17 Kimi Coding stale label cleanup
 
 - Finding: renderer provider credential copy and the LLM architecture overview

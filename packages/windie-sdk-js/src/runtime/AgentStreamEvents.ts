@@ -373,18 +373,31 @@ function toolCallIdFromModelCall(call: JsonRecord | null): string | null {
   return stringField(call ?? {}, 'id', 'toolCallId', 'tool_call_id');
 }
 
-function toolCallFromPayload(payload: JsonRecord, index: number): AgentToolCall {
+type ToolCallProjectionOptions = {
+  allowStepName?: boolean;
+};
+
+function toolCallNameFromPayload(payload: JsonRecord, options: ToolCallProjectionOptions): string | null {
+  return stringField(payload, 'toolName')
+    ?? (options.allowStepName ? stringField(payload, 'name') : null);
+}
+
+function toolCallFromPayload(
+  payload: JsonRecord,
+  index: number,
+  options: ToolCallProjectionOptions = {},
+): AgentToolCall {
   const modelFacing = modelFacingCallFromRecord(payload);
   return {
     toolName: toolNameFromModelCall(modelFacing)
-      ?? stringField(payload, 'toolName', 'tool_name', 'name')
+      ?? toolCallNameFromPayload(payload, options)
       ?? 'unknown_tool',
     args: toolArgsFromModelCall(modelFacing)
-      ?? recordField(payload, 'args', 'parameters', 'arguments')
+      ?? recordField(payload, 'args', 'arguments')
       ?? {},
-    requestId: stringField(payload, 'requestId', 'request_id'),
+    requestId: stringField(payload, 'requestId'),
     toolCallId: toolCallIdFromModelCall(modelFacing)
-      ?? stringField(payload, 'toolCallId', 'tool_call_id'),
+      ?? stringField(payload, 'toolCallId'),
     index,
   };
 }
@@ -396,7 +409,7 @@ function bundleToolCallsFromPayload(payload: JsonRecord): AgentToolCall[] {
   return (tools.length > 0 ? tools : structuredTools)
     .map(recordFromUnknown)
     .filter((tool): tool is JsonRecord => Boolean(tool))
-    .map((tool, index) => toolCallFromPayload(tool, index));
+    .map((tool, index) => toolCallFromPayload(tool, index, { allowStepName: true }));
 }
 
 function resultFromPayload(payload: JsonRecord): unknown {
@@ -520,16 +533,29 @@ function successFromPayload(payload: JsonRecord): boolean | null {
   return null;
 }
 
-function toolOutputFromPayload(payload: JsonRecord, index: number): AgentToolOutput {
+type ToolOutputProjectionOptions = {
+  allowStepToolName?: boolean;
+};
+
+function toolOutputNameFromPayload(payload: JsonRecord, options: ToolOutputProjectionOptions): string | null {
+  return stringField(payload, 'toolName')
+    ?? (options.allowStepToolName ? stringField(payload, 'tool', 'name') : null);
+}
+
+function toolOutputFromPayload(
+  payload: JsonRecord,
+  index: number,
+  options: ToolOutputProjectionOptions = {},
+): AgentToolOutput {
   const extractedResult = extractToolResultAttachments(resultFromPayload(payload));
   return {
-    toolName: stringField(payload, 'toolName', 'tool_name', 'tool', 'name') ?? 'unknown_tool',
+    toolName: toolOutputNameFromPayload(payload, options) ?? 'unknown_tool',
     result: extractedResult.result,
     attachments: extractedResult.attachments,
     success: successFromPayload(payload),
     error: stringField(payload, 'error'),
-    requestId: stringField(payload, 'requestId', 'request_id'),
-    toolCallId: stringField(payload, 'toolCallId', 'tool_call_id'),
+    requestId: stringField(payload, 'requestId'),
+    toolCallId: stringField(payload, 'toolCallId'),
     index,
   };
 }
@@ -543,5 +569,5 @@ function bundleToolOutputsFromPayload(payload: JsonRecord): AgentToolOutput[] {
   return (steps.length > 0 ? steps : structuredSteps)
     .map(recordFromUnknown)
     .filter((step): step is JsonRecord => Boolean(step))
-    .map((step, index) => toolOutputFromPayload(step, index));
+    .map((step, index) => toolOutputFromPayload(step, index, { allowStepToolName: true }));
 }

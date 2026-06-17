@@ -1405,6 +1405,56 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('agent stream projection ignores direct snake_case SDK tool identity aliases', () => {
+    const toolCallEvents = toAgentStreamEvents({
+      type: 'conversation_event',
+      event: event('tool_call', {
+        tool_name: 'read_file',
+        request_id: 'req-snake',
+        tool_call_id: 'call-snake',
+        parameters: { path: 'README.md' },
+      }),
+    } as any);
+
+    expect(toolCallEvents).toContainEqual(expect.objectContaining({
+      type: 'tool_calls',
+      calls: [
+        {
+          toolName: 'unknown_tool',
+          args: {},
+          requestId: null,
+          toolCallId: null,
+          index: 0,
+        },
+      ],
+    }));
+
+    const toolOutputEvents = toAgentStreamEvents({
+      type: 'conversation_event',
+      event: event('tool_output', {
+        tool_name: 'read_file',
+        request_id: 'req-snake',
+        tool_call_id: 'call-snake',
+        output: 'README contents',
+        success: true,
+      }),
+    } as any);
+
+    expect(toolOutputEvents).toContainEqual(expect.objectContaining({
+      type: 'tool_outputs',
+      outputs: [
+        expect.objectContaining({
+          toolName: 'unknown_tool',
+          result: 'README contents',
+          requestId: null,
+          toolCallId: null,
+          success: true,
+          index: 0,
+        }),
+      ],
+    }));
+  });
+
   test('agent stream projection exposes injected user message content', () => {
     const streamEvents = toAgentStreamEvents({
       type: 'conversation_event',

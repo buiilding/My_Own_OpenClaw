@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- packages/sdk-js: make public `agent.stream(...)` tool call/output projection consume SDK-shaped `toolName`, `requestId`, and `toolCallId` fields instead of direct backend snake_case identity aliases. No migration is required for backend wire payloads; direct SDK tool events must use canonical SDK identity fields or pass through backend-event normalization.
 - frontend/renderer: replace stale Kimi Code provider labels with Kimi Coding wording in credential UI copy and provider docs; no migration is required because provider ids, credential keys, and config fields are unchanged.
 
 - backend/llm: move provider factory/runtime selection out of `backend.src.llm.providers` package root into `backend.src.llm.providers.factory` and remove the provider package marker; no migration is required because provider ids, cache keys, API payloads, and config payloads are unchanged.

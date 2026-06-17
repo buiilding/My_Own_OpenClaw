@@ -608,8 +608,13 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   `role: "tool"` entries keyed by each step's `tool_call_id` instead of
   replaying an internal bundle trace row.
 - public agent stream projection uses the same identity set for tool-output
-  dedupe and includes provider-safe `tool_call_id` on synthetic tool-call
-  events.
+  dedupe and exposes provider-safe `toolCallId` on synthetic tool-call events.
+  Its top-level tool call/output inputs are SDK-shaped fields such as
+  `toolName`, `requestId`, and `toolCallId`; direct backend-wire aliases such
+  as `tool_name`, `request_id`, `tool_call_id`, and `parameters` are not public
+  stream inputs. Provider/model-facing metadata and normalized bundle step rows
+  remain valid sources for provider ids, function arguments, and bundle step
+  names.
 - SDK tool correlation helpers own display/projection alias resolution for
   `requestId`, `toolCallId`, `correlationId`, and `bundleId` across camelCase
   SDK events and snake_case backend payloads. The runtime reducer also uses
@@ -621,9 +626,10 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   (`requestId`, `toolCallId`, `correlationId`, `bundleId`) before emitting
   backend wire payloads.
 - the TypeScript SDK backend-event normalizer owns backend snake_case to
-  SDK-shaped tool event conversion before local execution. Field-level
-  coordinator payload rules live in `conversation_runtime.md`; direct
-  snake_case SDK tool events are unclaimable.
+  SDK-shaped tool event conversion before local execution or public stream
+  projection. Field-level coordinator payload rules live in
+  `conversation_runtime.md`; direct snake_case SDK tool events are unclaimable
+  and do not provide public stream identity.
 - the Python SDK websocket session treats backend `tool-call` and `tool-bundle`
   payloads as backend-wire snake_case. It reads `tool_name`, `request_id`,
   `correlation_id`, `tool_call_id`, `bundle_id`, and bundle step `name` /

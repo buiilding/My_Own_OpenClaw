@@ -624,6 +624,11 @@ optional `toolCallId`. `ToolExecutionCoordinator` consumes only that SDK-shaped
 event contract. Direct `tool_call` or `tool_bundle_call` events with snake_case
 payload keys such as `tool_name`, `request_id`, `bundle_id`, or step
 `tool_call_id` are malformed for coordinator execution and remain unclaimed.
+The high-level `agent.stream(...)` projection mirrors that boundary: single
+tool call/output events read top-level SDK fields such as `toolName`,
+`requestId`, and `toolCallId`; backend-wire aliases must be converted by the
+backend-event normalizer first. Normalized bundle step rows still use `name` for
+call steps and `tool` for output steps.
 Current-turn live presentation entries mirror the same SDK-shaped identity
 fields (`toolName`, `requestId`, `correlationId`, and `bundleId`) so renderer
 UI code can render live tool rows without re-reading backend-wire aliases from
