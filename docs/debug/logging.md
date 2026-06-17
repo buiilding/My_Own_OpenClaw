@@ -81,7 +81,7 @@ Important main-process flags:
 | `WINDIE_DEBUG_IPC_STDOUT=1` | Mirrors compact IPC bridge diagnostics and generic bridge status to stdout as `[IPC Bridge]` / `[ElectronTrace]` lines. |
 | `WINDIE_DEBUG_STARTUP_STDOUT=1` | Mirrors desktop startup diagnostics to stdout as `[Main][StartupMetrics]` lines. |
 | `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors wakeword lifecycle diagnostics to stdout as `[Wakeword]` lines. |
-| `WINDIE_DEBUG_LOCAL_BACKEND_STDOUT=1` | Mirrors local-backend lifecycle diagnostics to stdout as `[LocalBackend]` lines. |
+| `WINDIE_DEBUG_LOCAL_BACKEND_STDOUT=1` | Mirrors local-runtime lifecycle diagnostics on the compatibility `local_backend.lifecycle` path to stdout. |
 | `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors surface visibility and frontend interaction diagnostics to stdout as compact lines. |
 | `WINDIE_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer durable `backend.compaction` trace rows for turn-scoped evidence. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
@@ -169,7 +169,7 @@ The Python sidecar logs to stderr in `frontend/src/main/python/local_backend.py`
 | --- | --- |
 | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises sidecar Python logs to DEBUG. |
 | `WINDIE_VERBOSE_SIDECAR_STDERR=0` | Used by packaged reinstall flows to reduce sidecar stderr noise. |
-| `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables the local semantic summarizer for focused local-backend debugging. |
+| `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables the local semantic summarizer for focused local-runtime debugging. |
 | `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` | Prevents sidecar browser feature-pack auto-install while debugging runtime availability. |
 
 Useful command:

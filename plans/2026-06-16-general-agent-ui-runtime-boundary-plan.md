@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local sidecar log prefix
+
+- Finding: the sidecar daemon still emitted a `[LocalBackend]` layer log for
+  daemon status requests, and Electron launch-option tests/docs treated that as
+  the primary sidecar log prefix.
+- Change: changed the daemon status log to `[LocalSidecar]`, added the prefix to
+  the Electron sidecar log allowlist, kept `[LocalBackend]` accepted for legacy
+  helper output, and updated logging docs/tests to prefer local-sidecar wording.
+- Validation: focused sidecar daemon source-copy pytest, focused
+  `SdkSidecarLaunchOptions` Jest coverage, docs listing, `git diff --check`,
+  and source scan for emitted legacy status-prefix usage.
+- Compatibility: no migration required. Environment flag names, diagnostic path
+  ids, sidecar launch behavior, and legacy `[LocalBackend]` log forwarding
+  remain unchanged.
+
 ### 2026-06-17 SDK hosted default endpoint helper
 
 - Finding: SDK auto-registration used an internal

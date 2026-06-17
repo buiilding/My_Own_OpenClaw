@@ -27,8 +27,10 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
 
     assert "Desktop Agent sidecar" in source
     assert "Run the local sidecar daemon." in source
+    assert 'emit_sidecar_layer_log("[LocalSidecar]", "status requested")' in source
     assert "WindieOS sidecar" not in source
     assert "Run the WindieOS sidecar daemon." not in source
+    assert 'emit_sidecar_layer_log("[LocalBackend]", "status requested")' not in source
 
 
 def test_sidecar_daemon_default_discovery_path_is_generic():

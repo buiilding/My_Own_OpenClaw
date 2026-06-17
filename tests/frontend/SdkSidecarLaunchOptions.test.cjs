@@ -88,15 +88,18 @@ describe('sdk sidecar launch options', () => {
 
       expect(plan.ok).toBe(true);
       plan.options.onStdoutLine('daemon ready');
-      plan.options.onStdoutLine('[LocalBackend] ready');
+      plan.options.onStdoutLine('[LocalSidecar] ready');
+      plan.options.onStdoutLine('[LocalBackend] legacy ready');
       plan.options.onStderrLine('[SidecarDaemon] listening pid=123');
 
       expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] daemon ready\n');
-      expect(stderrWrite).toHaveBeenCalledWith('[LocalBackend] ready\n');
+      expect(stderrWrite).toHaveBeenCalledWith('[LocalSidecar] ready\n');
+      expect(stderrWrite).toHaveBeenCalledWith('[LocalBackend] legacy ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] listening pid=123\n');
       const log = fs.readFileSync(logFile, 'utf8');
       expect(log).toContain('[SidecarDaemon] daemon ready');
-      expect(log).toContain('[LocalBackend] ready');
+      expect(log).toContain('[LocalSidecar] ready');
+      expect(log).toContain('[LocalBackend] legacy ready');
       expect(log).toContain('[SidecarDaemon] listening pid=123');
     } finally {
       stderrWrite.mockRestore();

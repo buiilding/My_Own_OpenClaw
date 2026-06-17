@@ -44,6 +44,7 @@ const SIDECAR_SOURCE_STAMP_FILES = [
 ];
 const SIDECAR_LOG_PREFIXES = [
   '[SidecarDaemon]',
+  '[LocalSidecar]',
   '[LocalBackend]',
   '[Tool]',
   '[MCP]',
