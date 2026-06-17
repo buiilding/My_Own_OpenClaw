@@ -11,7 +11,6 @@ import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 const CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH = 'conversation.metadata.list';
 const LOCAL_RUNTIME_AVAILABILITY_ERROR_PATTERNS = Object.freeze([
   'local runtime not ready',
-  'local backend not ready',
   'sidecar daemon request failed',
   'timed out waiting for sidecar daemon',
 ]);

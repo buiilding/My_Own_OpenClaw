@@ -116,7 +116,7 @@ ACK resolution paths:
 
 Failure causes include:
 
-- local backend not ready,
+- local runtime not ready,
 - request timeout,
 - JSON-RPC error responses,
 - stdin write failures.

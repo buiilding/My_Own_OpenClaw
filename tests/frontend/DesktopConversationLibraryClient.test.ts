@@ -173,7 +173,7 @@ describe('DesktopConversationLibraryClient', () => {
     )).toBe(true);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'Local backend not ready',
-    )).toBe(true);
+    )).toBe(false);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'hard validation failure',
     )).toBe(false);

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Renderer conversation-list local-runtime retry cleanup
+
+- Finding: the renderer conversation library facade still treated legacy
+  `Local backend not ready` text as a transient retry signal even though active
+  producers now report local-runtime readiness failures.
+- Change: removed the legacy local-backend retry matcher, updated focused
+  renderer tests and dashboard docs, and kept transient retry classification
+  behind the desktop conversation library facade.
+- Validation: focused desktop conversation library, dashboard sidebar, and
+  renderer runtime boundary Jest tests, docs listing, stale phrase scan, and
+  diff check.
+- Compatibility: no migration required. Renderer conversation-list retry logic
+  now expects local-runtime readiness wording from active producers.
+
 ### 2026-06-17 Renderer interaction debug flag alias deletion
 
 - Finding: the renderer interaction logger still read legacy `__WINDIE_*`

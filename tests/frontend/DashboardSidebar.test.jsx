@@ -135,7 +135,7 @@ describe('DashboardSidebar collapsed header controls', () => {
       <DashboardSidebar
         {...buildProps({
           sidebarOpen: true,
-          recentConversationsError: 'Local backend not ready',
+          recentConversationsError: 'Local runtime not ready',
         })}
       />,
     );

@@ -232,7 +232,7 @@ If first query lacks expected settings:
 If query content misses memory or attachment context:
 
 1. verify `buildQueryPayload(...)` returns the expected backend query fields, then check SDK context enrichment diagnostics
-2. inspect local runtime bridge readiness (`Local runtime not ready` errors; legacy `Local backend not ready` text is still treated as transient compatibility input)
+2. inspect local runtime bridge readiness (`Local runtime not ready` errors)
 3. verify SDK memory search traces include `search_memory_by_embedding` with the expected conversation exclusion key
 4. verify sidecar episodic grouping/pairing behavior from `memory.operations` when retrieval text is unexpectedly user-only
 

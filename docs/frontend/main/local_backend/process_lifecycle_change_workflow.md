@@ -117,7 +117,7 @@ overwrite the newer event snapshot.
 | --- | --- |
 | Browser session store | Disconnects and clears busy state while the local runtime is not ready; syncs browser session after readiness becomes true. |
 | Browser controls | Wait for readiness before issuing browser tool calls; the bootstrap status read is allowed to wake the SDK local runtime so the control does not wait forever on a runtime it never starts. |
-| Dashboard conversation retry paths | Treat local-runtime-not-ready as retryable while keeping legacy local-backend-not-ready compatibility where the facade owns that matching. |
+| Dashboard conversation retry paths | Treat local-runtime-not-ready as retryable through the desktop conversation library facade. |
 | Permission/browser probes | Use Electron main permission service and local-backend status helpers rather than direct process checks. |
 
 ## Browser Session Diagnostics

@@ -42,12 +42,18 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 
 This prevents older async results from overwriting newer user/session state.
 
-## Startup Retry Policy for Transient Local-Backend Errors
+## Startup Retry Policy for Transient Local-Runtime Errors
 
 Transient errors are currently recognized by normalized message substring match:
 
-- `local backend not ready`
+- `local runtime not ready`
+- `sidecar daemon request failed`
+- `timed out waiting for sidecar daemon`
 - `request timed out`
+- `failed to list stored conversations`
+- `failed to fetch`
+- `fetch failed`
+- `econnrefused`
 
 Retry behavior:
 

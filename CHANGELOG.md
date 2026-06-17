@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the renderer conversation-list retry matcher for legacy `Local backend not ready` text so retry policy follows active local-runtime readiness wording.
+
 - Removed legacy renderer interaction debug `__WINDIE_*` window flag reads so diagnostics use the canonical `__DESKTOP_AGENT_*` globals only.
 
 - Renamed the Electron main local-runtime status diagnostic payload from `sidecarDaemon` to `localRuntime` so the host status contract no longer leaks sidecar implementation naming.
