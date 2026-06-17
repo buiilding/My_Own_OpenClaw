@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer command docs payload correction
+
+- Finding: the SDK runtime contract doc still showed renderer-facing
+  `windie:invoke` conversation command examples reading `payload.conversationRef`
+  and `payload.turnRef` after the renderer transport moved to canonical
+  snake_case command payloads.
+- Change: updated those examples to use `conversation_ref` and `turn_ref` at the
+  renderer IPC command boundary while preserving camelCase for public SDK
+  method options such as `agent.stop(...)` and `agent.conversation(...)`.
+- Validation: docs listing, focused stale example scan, and diff check.
+- Compatibility: no migration required. This is documentation cleanup only; the
+  renderer transport already rejects removed camelCase command payload aliases.
+
 ### 2026-06-17 tool screenshot result alias removal
 
 - Finding: the SDK tool execution coordinator still rewrote camelCase

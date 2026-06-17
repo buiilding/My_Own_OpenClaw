@@ -219,14 +219,16 @@ ipcMain.handle('windie:invoke', (_event, { command, payload }) => {
     return conversation.send(payload);
   }
   if (command === 'conversation.stop') {
-    return conversation.stop(payload?.turnRef ?? null);
+    return conversation.stop(payload?.turn_ref ?? null);
   }
   throw new Error(`Unsupported Agent SDK command: ${command}`);
 });
 ```
 
-Renderer-facing user commands that are SDK concepts should use the same shape
-instead of sidecar RPC names:
+Renderer-facing user commands that are SDK concepts should use SDK command
+names with the renderer command payload contract instead of sidecar RPC names.
+Conversation command payloads use canonical snake_case fields at this IPC
+boundary:
 
 ```js
 ipcMain.handle('windie:invoke', async (_event, { command, payload }) => {
@@ -236,11 +238,11 @@ ipcMain.handle('windie:invoke', async (_event, { command, payload }) => {
     case 'conversations.clearAll':
       return agent.clearConversations(payload);
     case 'conversation.send':
-      return agent.conversation({ conversationRef: payload.conversationRef })
+      return agent.conversation({ conversationRef: payload.conversation_ref })
         .send(payload);
     case 'conversation.stop':
-      return agent.conversation({ conversationRef: payload.conversationRef })
-        .stop(payload.turnRef ?? null);
+      return agent.conversation({ conversationRef: payload.conversation_ref })
+        .stop(payload.turn_ref ?? null);
     case 'conversation.rehydrate':
       return agent.rehydrateMessages(payload);
     case 'conversation.compact':
