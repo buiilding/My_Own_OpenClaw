@@ -98,6 +98,20 @@ describe('ipc_openai_codex_oauth_handlers', () => {
     });
   });
 
+  test('returns host-copy login fallback when login fails without a message', async () => {
+    const { handlers } = createHarness({
+      copy: { loginFailure: 'Host login failed.' },
+      loginOpenAICodexOAuth: jest.fn(async () => {
+        throw null;
+      }),
+    });
+
+    await expect(handlers['openai-codex-oauth-login']()).resolves.toEqual({
+      success: false,
+      error: 'Host login failed.',
+    });
+  });
+
   test('returns normalized logout failure payload', async () => {
     const { handlers } = createHarness({
       logoutOpenAICodexOAuth: jest.fn(async () => {
@@ -108,6 +122,19 @@ describe('ipc_openai_codex_oauth_handlers', () => {
     await expect(handlers['openai-codex-oauth-logout']()).resolves.toEqual({
       success: false,
       error: 'unlink failed',
+    });
+  });
+
+  test('returns generic logout fallback when logout fails without a message', async () => {
+    const { handlers } = createHarness({
+      logoutOpenAICodexOAuth: jest.fn(async () => {
+        throw null;
+      }),
+    });
+
+    await expect(handlers['openai-codex-oauth-logout']()).resolves.toEqual({
+      success: false,
+      error: 'OAuth sign-out failed.',
     });
   });
 });

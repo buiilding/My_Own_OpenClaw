@@ -98,6 +98,8 @@ const localBackend = Object.freeze({
 
 const openAICodexOAuth = Object.freeze({
   tokenExchangeFailure: `Token exchange failed. Return to ${productName} for details.`,
+  loginFailure: 'OpenAI Codex OAuth login failed.',
+  logoutFailure: 'OpenAI Codex OAuth sign-out failed.',
 });
 
 const mainHostSkin = Object.freeze({

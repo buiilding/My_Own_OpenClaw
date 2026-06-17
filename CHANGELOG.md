@@ -95,6 +95,8 @@ All notable changes to WindieOS will be documented in this file.
   through shared skin metadata.
 - frontend/renderer: move default model selection values into renderer
   skin/config so config storage initializes from skin-owned defaults.
+- frontend/main: move OpenAI Codex OAuth IPC fallback copy into main host
+  skin/config while keeping generic OAuth handler defaults provider-neutral.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

@@ -60,6 +60,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('browserWarmupExplanation');
     expect(skinSource).toContain('openAICodexOAuth');
     expect(skinSource).toContain('tokenExchangeFailure');
+    expect(skinSource).toContain('loginFailure');
+    expect(skinSource).toContain('logoutFailure');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {
@@ -148,6 +150,9 @@ describe('main host skin/config boundary', () => {
     expect(oauthSource).toContain('Return to the app for details');
     expect(oauthSource).not.toContain('Return to WindieOS');
     expect(oauthHandlerSource).toContain('copy ? { copy } : {}');
+    expect(oauthHandlerSource).toContain('oauthCopy.loginFailure');
+    expect(oauthHandlerSource).not.toContain('OpenAI Codex OAuth login failed.');
+    expect(oauthHandlerSource).not.toContain('OpenAI Codex OAuth sign-out failed.');
   });
 
   test('main-private host markers use generic desktop-agent naming', () => {

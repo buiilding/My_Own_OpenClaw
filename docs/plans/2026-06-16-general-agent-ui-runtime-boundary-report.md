@@ -542,6 +542,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: moved default model selection values into renderer skin/config and
   made config storage initialize from those skin-owned defaults without
   changing the persisted settings shape.
+- Finding: the OpenAI Codex OAuth IPC handler still embedded provider-specific
+  fallback failure copy inside the generic handler despite already receiving
+  main host skin copy for the login flow.
+- Change: moved OAuth login/logout fallback copy into main host skin/config and
+  made the IPC handler use provider-neutral defaults when no host copy is
+  supplied.
 
 ## Remaining Findings
 
@@ -628,3 +634,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Renderer default model selection values now live in renderer skin/config;
   config storage still emits the same `model_mode`, `model_provider`, and
   `selected_model_id` settings fields.
+- Main OpenAI Codex OAuth IPC fallback copy now comes from main host skin/config
+  with generic OAuth defaults in the handler itself.
