@@ -83,7 +83,7 @@ Wrapper guarantee:
 
 - the shared turn-scoped wrapper keeps callback identity stable across rerenders
   while reading the latest handler logic, so `useChatStream` does not resubscribe
-  the backend listener when config/model metadata changes.
+  the conversation event listener when config/model metadata changes.
 
 Unguarded event:
 

@@ -486,3 +486,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Public bridge method names,
   `local-backend-status` compatibility channel names, and failure control flow
   are unchanged.
+
+### 2026-06-17 renderer chat conversation event listener wording
+
+- Finding: renderer chat tests/docs still described `useChatStream`'s
+  `windie:conversation-event` subscription with backend-prefixed listener
+  wording even though backend websocket packets are normalized before renderer
+  ingress.
+- Change: renamed focused test/docs wording to conversation-event listener
+  terminology while leaving SDK/backend transport tests and backend-shaped
+  fixtures unchanged.
+- Validation: focused Jest run for `ChatStreamThinkingStatus.transcript`, docs
+  listing, `git diff --check`, and a stale-phrase scan for the retired renderer
+  listener wording.
+- Compatibility: no migration required. `windie:conversation-event` channel,
+  SDK conversation-event payloads, turn gating, and transcript behavior are
+  unchanged.

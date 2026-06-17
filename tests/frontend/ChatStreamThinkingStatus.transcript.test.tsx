@@ -19,7 +19,7 @@ describe('useChatStream live SDK event ownership', () => {
     resetChatStreamTestState();
   });
 
-  test('uses latest model metadata without re-subscribing backend listener', () => {
+  test('uses latest model metadata without re-subscribing conversation event listener', () => {
     const { rerender, onSpy, emitBackendEvent } = renderBackendListenerWithSpy(true);
 
     expect(onSpy).toHaveBeenCalledTimes(1);

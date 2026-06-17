@@ -69,7 +69,7 @@ Result:
 
 ## Integration Point in `useChatStream`
 
-Event flow inside backend listener:
+Event flow inside the conversation event listener:
 
 1. receive the SDK `ConversationEvent` on `windie:conversation-event`
 2. reject events without `conversationRef`
