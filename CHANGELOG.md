@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: remove the unused prompts package export so prompt callers import constructor, metadata, manager, and repo-instruction helpers from owner modules.
+
 - Frontend docs: route user-message projection and tool-result delivery through the SDK runtime boundary, with a boundary test denying stale renderer/main ownership wording.
 
 - backend/core: remove the unused core events package export so callers import bus and streaming events from their owner modules.

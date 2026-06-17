@@ -14,7 +14,6 @@ namespace packages are used for package directories whose callers import
 concrete modules directly.
 
 - `backend/src/core/config/__init__.py`
-- `backend/src/llm/prompts/__init__.py`
 
 ## Import-Surface Contract
 
@@ -191,6 +190,11 @@ docstring or compatibility path.
 - `backend/src/llm/models/__init__.py` is intentionally absent; import
   `ModelService` from `backend.src.llm.models.model_service` and model catalog
   constants from `backend.src.llm.models.models_config`.
+- `backend/src/llm/prompts/__init__.py` is intentionally absent; import
+  prompt construction from `backend.src.llm.prompts.prompt_constructor`,
+  metadata dataclasses from `backend.src.llm.prompts.prompt_metadata`, prompt
+  manager helpers from `backend.src.llm.prompts.prompts`, and repo instruction
+  helpers from `backend.src.llm.prompts.repo_instructions`.
 - `backend/src/sdk/__init__.py` is intentionally absent; import backend SDK
   tool/context types from concrete modules such as `backend.src.sdk.tool` and
   `backend.src.sdk.context`.

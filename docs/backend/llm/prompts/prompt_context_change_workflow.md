@@ -16,7 +16,7 @@ Do not patch prompt problems in renderer display code or sidecar runtime argumen
 
 | Symptom or request | Prompt owner | First source roots | First tests | First docs |
 | --- | --- | --- | --- | --- |
-| System prompt text or base instruction behavior changes | Prompt manager and system prompt asset | `backend/src/llm/prompts/system_prompt.txt`, `backend/src/llm/prompts/prompts.py` | `tests/backend/test_prompt_manager.py`, prompt package export tests | [Prompt Manager and System Prompt Lifecycle](prompt_manager_and_system_prompt_lifecycle_reference.md) |
+| System prompt text or base instruction behavior changes | Prompt manager and system prompt asset | `backend/src/llm/prompts/system_prompt.txt`, `backend/src/llm/prompts/prompts.py` | `tests/backend/test_prompt_manager.py` | [Prompt Manager and System Prompt Lifecycle](prompt_manager_and_system_prompt_lifecycle_reference.md) |
 | Prompt message assembly, user content, history, memory, screenshots, or tool inclusion changes | Prompt constructor | `backend/src/llm/prompts/prompt_constructor.py`, `backend/src/llm/prompts/prompt_metadata.py` | `tests/backend/test_prompt_constructor_utils.py`, query/context tests | [Prompt Constructor and Transparency Metadata](prompt_constructor_and_transparency_metadata_reference.md), [Prompt and Tool Context](../../../concepts/prompt_and_tool_context.md) |
 | Repo instructions are missing, duplicated, or in wrong order | Repo instruction discovery/injection | `backend/src/llm/prompts/repo_instructions.py`, Electron repo instruction runtime when forwarded from desktop | `tests/backend/test_repo_instructions.py`, frontend repo instruction tests when forwarding changes | [Prompt and Tool Context](../../../concepts/prompt_and_tool_context.md), [Main Process Change Workflow](../../../frontend/main/main_process_change_workflow.md) |
 | Tool schema missing, too broad, malformed, or different from capability policy | Backend tool registry, policy, prompt constructor, formatter metadata | `backend/src/tools`, `backend/src/tools/tool_selection.py`, `backend/src/llm/prompts/prompt_constructor.py`, `backend/src/api/processing/formatters/tool_schemas.py` | schema/policy tests, `tests/backend/test_system_tool_schema_contract.py`, `tests/backend/test_outgoing_schema_contract.py` | [Tool Policy Profiles and Capabilities](../../../tools/tool_policy_profiles_and_capabilities.md), [Tool Contracts](../../../tools/tool_contracts.md) |
@@ -71,7 +71,8 @@ When changing `system_prompt.txt` or prompt manager behavior:
 
 - Keep behavioral rules precise and current with implemented tools.
 - Avoid documenting future capabilities as current model instructions.
-- Update prompt manager tests and any prompt package export tests.
+- Update prompt manager tests and focused direct-module import checks when
+  changing prompt helper module boundaries.
 - Regenerate prompt/schema snapshots if the generated artifact includes changed instructions.
 - Update concept/tool docs when model-facing instruction semantics change.
 
@@ -122,7 +123,7 @@ Before adding a mapper, layer, or fallback:
 
 | Changed surface | Focused validation |
 | --- | --- |
-| System prompt/prompt manager | `./scripts/python-in-env backend pytest tests/backend/test_prompt_manager.py tests/backend/test_prompt_package_exports.py` |
+| System prompt/prompt manager | `./scripts/python-in-env backend pytest tests/backend/test_prompt_manager.py` |
 | Prompt constructor/metadata | `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py` plus focused interaction-loop tests |
 | Repo instructions | `./scripts/python-in-env backend pytest tests/backend/test_repo_instructions.py` plus frontend repo-instruction tests if desktop forwarding changes |
 | Tool schema visibility | backend schema/policy tests plus `tests/backend/test_outgoing_schema_contract.py` when transparency changes |

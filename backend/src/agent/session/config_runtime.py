@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from backend.src.agent.llm.conversation_context import ConversationContext
-from backend.src.llm.prompts import PromptConstructor
+from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

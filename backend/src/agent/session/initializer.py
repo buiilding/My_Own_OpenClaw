@@ -8,7 +8,7 @@ from backend.src.agent.session.state import ConversationHistory
 from backend.src.agent.tools.waiting.handler import ToolResultHandler
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.core.infrastructure.bus import EventBus
-from backend.src.llm.prompts import PromptConstructor
+from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
 

@@ -17,7 +17,7 @@ from backend.src.core.events.streaming_events import (
     UserMessageFullEvent,
 )
 from backend.src.core.types.schemas import ToolSchema
-from backend.src.llm.prompts import PromptMetadata
+from backend.src.llm.prompts.prompt_metadata import PromptMetadata
 
 
 logger = logging.getLogger(__name__)

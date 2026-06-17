@@ -42,7 +42,7 @@ from backend.src.core.events.streaming_events import (
 )
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.llm.client import LLMClient
-from backend.src.llm.prompts import PromptConstructor
+from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 if TYPE_CHECKING:

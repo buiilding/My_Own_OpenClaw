@@ -11,11 +11,11 @@ import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from backend.src.core.types.schemas import LLMMessage
-from backend.src.llm.prompts import PromptMetadata
+from backend.src.llm.prompts.prompt_metadata import PromptMetadata
 
 if TYPE_CHECKING:
     from backend.src.agent.session.state import ConversationHistory
-    from backend.src.llm.prompts import PromptConstructor
+    from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 
 logger = logging.getLogger(__name__)
 
