@@ -1363,3 +1363,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Explicit caller-provided agent ids,
   names, and conversation refs are unchanged; public `WindieSdkClient` package
   and class names remain compatibility API.
+
+### 2026-06-17 main local runtime bridge dependency names
+
+- Finding: the Electron main composition root still imported
+  `initializeLocalBackendBridge`, `stopLocalBackend`, and
+  `getLocalBackendStatus` from the sidecar adapter, then aliased them into the
+  already-generic lifecycle/window runtime dependency shape.
+- Change: added generic local-runtime export aliases at the sidecar bridge
+  adapter edge, switched `index.cjs` to consume those names directly, and kept
+  the backend-prefixed exports as compatibility API for focused bridge tests and
+  any remaining adapter-edge consumers.
+- Validation: focused main host skin/boundary test coverage, docs listing,
+  `git diff --check`, and source scans for retired backend-prefixed names in the
+  main composition root.
+- Compatibility: no migration required. IPC payload compatibility fields such
+  as `backend_status` remain unchanged; only private main-process dependency
+  names moved to local-runtime wording.

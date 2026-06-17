@@ -646,7 +646,14 @@ async function warmBrowserAutomation() {
   };
 }
 
+const initializeLocalRuntimeBridge = initializeLocalBackendBridge;
+const stopLocalRuntime = stopLocalBackend;
+const getLocalRuntimeStatus = getLocalBackendStatus;
+
 module.exports = {
+  initializeLocalRuntimeBridge,
+  stopLocalRuntime,
+  getLocalRuntimeStatus,
   initializeLocalBackendBridge,
   stopLocalBackend,
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),

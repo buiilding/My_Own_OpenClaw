@@ -42,9 +42,9 @@ const {
 } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword/wakeword_bridge.cjs');
 const {
-  initializeLocalBackendBridge,
-  stopLocalBackend,
-  getLocalBackendStatus,
+  initializeLocalRuntimeBridge,
+  stopLocalRuntime,
+  getLocalRuntimeStatus,
   installBrowserChromium,
   determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
@@ -263,7 +263,7 @@ const {
   initializeIpc,
   setAgentLoopStopShortcutEnabled: agentStopShortcutRuntime.setEnabled,
   initializeWakewordBridge,
-  initializeLocalRuntimeBridge: initializeLocalBackendBridge,
+  initializeLocalRuntimeBridge,
   getKnownLocalRuntime: getKnownAgentLocalRuntime,
   ensureLocalRuntime: ensureAgentLocalRuntime,
   getPermissionStatePath,
@@ -364,7 +364,7 @@ initializeMainProcessLifecycleRuntime({
   getMainWindowMode: surfaceRuntime.getMainWindowMode,
   getChatWindow: surfaceRuntime.getChatWindow,
   getResponseWindow: surfaceRuntime.getResponseWindow,
-  stopLocalRuntime: stopLocalBackend,
+  stopLocalRuntime,
   stopVmWorker: surfaceRuntime.stopVmWorker,
 });
 
@@ -483,7 +483,7 @@ function initializeMainProcessIpc() {
         getLatestFrontendConfig()?.browser_automation_enabled === true
       ),
       verifyBrowserAutomationCapability: async () => {
-        const localRuntimeStatus = await getLocalBackendStatus();
+        const localRuntimeStatus = await getLocalRuntimeStatus();
         if (!localRuntimeStatus || localRuntimeStatus.success !== true || typeof localRuntimeStatus.data !== 'object') {
           return {
             granted: false,

@@ -229,6 +229,17 @@ describe('main host skin/config boundary', () => {
     expect(joinedSource).toContain('[Main][SidecarBridge]');
   });
 
+  test('main composition root consumes local runtime bridge names', () => {
+    const source = fs.readFileSync(indexPath, 'utf8');
+
+    expect(source).toContain('initializeLocalRuntimeBridge');
+    expect(source).toContain('stopLocalRuntime');
+    expect(source).toContain('getLocalRuntimeStatus');
+    expect(source).not.toContain('initializeLocalBackendBridge');
+    expect(source).not.toContain('stopLocalBackend');
+    expect(source).not.toContain('getLocalBackendStatus');
+  });
+
   test('main-private host markers use generic desktop-agent naming', () => {
     const bannedMarkers = [
       '__windieConsoleStreamErrorGuardInstalled',
