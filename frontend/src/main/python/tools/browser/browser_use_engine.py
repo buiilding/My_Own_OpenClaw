@@ -1065,7 +1065,7 @@ class BrowserUseEngineRuntime:
 
 
 async def shutdown_browser_runtime() -> dict[str, Any]:
-    """Close the live Browser Use session and Windie-owned Chrome process.
+    """Close the live Browser Use session and sidecar-managed Chrome process.
 
     This intentionally leaves the dedicated Chrome profile directory in place so
     cookies and login state persist across SDK/sidecar restarts.

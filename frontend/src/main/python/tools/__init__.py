@@ -1,1 +1,1 @@
-"""Tool implementations for local backend."""
+"""Tool implementations for the local sidecar runtime."""

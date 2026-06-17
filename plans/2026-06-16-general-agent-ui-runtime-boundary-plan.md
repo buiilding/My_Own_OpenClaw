@@ -190,3 +190,14 @@ Each completed slice should report:
 - Validation: focused Jest run for `MainHostSkinBoundary`.
 - Compatibility: no migration required. Main-process injection keys remain
   unchanged.
+
+### 2026-06-17 sidecar browser helper copy
+
+- Finding: reusable sidecar browser/tool helper docstrings still described the
+  helper layer as Windie-owned or local-backend-specific.
+- Change: updated helper copy to local-sidecar-runtime terminology and added a
+  source-boundary test for the selected helper modules.
+- Validation: focused pytest run for `test_browser_registry` plus a source scan
+  for the old helper-copy phrases.
+- Compatibility: no migration required. This is source copy only; tool schemas
+  and runtime behavior are unchanged.

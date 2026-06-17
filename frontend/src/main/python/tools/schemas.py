@@ -1,5 +1,5 @@
 """
-Pydantic schemas for local backend tools.
+Pydantic schemas for local sidecar runtime tools.
 
 Provides type-safe argument validation for all tools.
 """

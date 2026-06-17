@@ -1,6 +1,4 @@
-"""
-Standardized tool result types for local backend.
-"""
+"""Standardized tool result types for local sidecar runtime tools."""
 
 from typing import Any, Dict, Optional
 from dataclasses import dataclass

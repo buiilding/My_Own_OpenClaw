@@ -1,4 +1,4 @@
-"""Windie-owned browser-local file helpers."""
+"""Browser-local file helpers for sidecar browser actions."""
 
 from __future__ import annotations
 

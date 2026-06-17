@@ -1,4 +1,4 @@
-"""Windie-owned HTML-to-markdown helpers for browser actions."""
+"""HTML-to-markdown helpers for sidecar browser actions."""
 
 from __future__ import annotations
 

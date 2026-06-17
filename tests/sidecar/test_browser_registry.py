@@ -4,8 +4,41 @@ Tests for browser tool registration in the registry.
 
 import pytest
 from unittest import mock
+from pathlib import Path
 
 from tools.registry import ToolRegistry
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SIDECAR_TOOL_HELPER_PATHS = [
+    REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "__init__.py",
+    REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "result.py",
+    REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "schemas.py",
+    REPO_ROOT
+    / "frontend"
+    / "src"
+    / "main"
+    / "python"
+    / "tools"
+    / "browser"
+    / "browser_use_engine.py",
+    REPO_ROOT
+    / "frontend"
+    / "src"
+    / "main"
+    / "python"
+    / "tools"
+    / "browser"
+    / "content_extraction.py",
+    REPO_ROOT
+    / "frontend"
+    / "src"
+    / "main"
+    / "python"
+    / "tools"
+    / "browser"
+    / "file_store.py",
+]
 
 
 def _is_missing_playwright_import(error: ImportError) -> bool:
@@ -78,3 +111,14 @@ def test_browser_import_guard_only_skips_missing_playwright():
             name="tools.browser.internal_missing",
         )
     ) is False
+
+
+def test_sidecar_tool_helper_copy_is_runtime_neutral():
+    sources = "\n".join(
+        path.read_text(encoding="utf-8") for path in SIDECAR_TOOL_HELPER_PATHS
+    )
+
+    assert "local sidecar runtime" in sources
+    assert "Windie-owned" not in sources
+    assert "local backend tools" not in sources
+    assert "local backend." not in sources

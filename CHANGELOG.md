@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
+
 - backend/api: make `api.services` a marker package and require service imports
   from owner modules, removing the unused package-level compatibility exports.
 - backend/core: remove empty `core.utils` and `simulation` package marker
@@ -1413,6 +1415,8 @@ All notable changes to WindieOS will be documented in this file.
   empty-stream abort.
 
 ### Changed
+
+- frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 
 - frontend/logging: remove the unreachable duplicate frontend-log environment
   branch so layer log file resolution uses the single `WINDIE_FRONTEND_LOG_FILE`
@@ -2852,6 +2856,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
+
 - feat(hosted-install-auth-and-remote-embeddings): add no-login install registration plus install-token auth for hosted REST and websocket flows, stop trusting client-owned `user_id` on the hosted path, scope session cleanup to the final active connection per authenticated user, extract embeddings behind a remote HTTP provider/service option with bounded concurrency, and thread auth headers through the Electron main process and sidecar backend clients; add focused backend/frontend/sidecar coverage and refresh the API/transport docs for the new hosted contract.
 - refactor(formatter-spec-contract): make formatter classes own their websocket `message_type` so formatter specs now register only the backend event class plus canonical event type instead of restating a separate outgoing type layer.
 - refactor(stream-event-contract): canonicalize backend streamed event names to match the websocket/renderer transport vocabulary directly, keep legacy dict-event alias normalization for compatibility, and refresh the contract docs/tests around that single event naming surface.
@@ -2944,6 +2950,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 - chore(backend-dev-tool-selection): enable the backend dev tool-selection allowlist with a manual-only mouse coordinate method for local tool-contract testing.
 - docs(hosted-memory-and-cloudflared): refresh high-level API, memory, sidecar, communication-flow, and self-hosting docs so they reflect `/api/semantic/title`, hosted backend defaults, route-ingress diagnostics, and the preferred persistent backend+tunnel setup for serving `api.windieos.com`.
 - refactor(frontend-renderer-conversation-selection): route dashboard open, replay, reset, and new-chat selection changes through one renderer conversation-selection helper so transcript session updates and chat-store active-conversation projection no longer need to be hand-kept in sync at each call site.
@@ -3067,6 +3075,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 - docs(frontend-transcript-runtime): refresh renderer transcript, chat-stream, and tool-runner runtime references to document the extracted transcript session/runtime and entry-persistence modules plus the shared transcript tool-output persistence helper used by both backend-stream and frontend-executed tool outputs.
 - refactor(frontend-transcript-and-tool-output-persistence): unify the chat-stream transcript model-context contract with the shared tool-output message helpers, route chat-stream and tool-runner transcript tool-output writes through one persistence helper, and split `TranscriptWriter` session/runtime and entry-persistence responsibilities into smaller renderer modules; refresh focused frontend transcript/chat-stream regressions and shared test utilities to match the extracted async persistence path.
 - docs(openai-native-computer-projection): clarify that OpenAI native `computer` projection is recalculated on every query from the prompt being sent for that request, is disabled whenever that prompt contains multiple user/system image inputs, and can return on later eligible prompts instead of staying permanently off for the whole conversation.
@@ -5146,6 +5156,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- frontend/sidecar: describe reusable tool and browser helper modules as local sidecar runtime code instead of Windie-owned local backend code.
 - fix(browser-runtime): harden native `wait_seconds` handling by requiring Browser Use session context for Browser Use wait execution and falling back to deterministic timer wait when no browser is connected or Browser Use wait errors, preventing `'NoneType' object has no attribute 'logger'` failures
 - refactor(browser-runtime): resolve Browser Use extraction LLM from WindieOS model orchestration settings by default (`WINDIE_BROWSER_USE_EXTRACTION_PROVIDER` + `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID` with optional API key/base URL overrides) while retaining explicit Browser Use model-name override support via `WINDIE_BROWSER_USE_EXTRACTION_MODEL`
 - chore(browser-use-runtime): make `scripts/check-browser-use-vendor` auto-clean vendored `__pycache__`/`*.pyc` artifacts before parity diff so packaging checks only fail on real source drift
