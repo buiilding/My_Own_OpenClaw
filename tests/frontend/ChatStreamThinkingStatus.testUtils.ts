@@ -111,8 +111,8 @@ function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void
 
 function createEmitRawBackendEvent(handlers: Record<string, (data: unknown) => void>) {
   return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
-    const backendHandler = handlers[ON_CHANNELS.WINDIE_CONVERSATION_EVENT];
-    if (!backendHandler) {
+    const conversationEventHandler = handlers[ON_CHANNELS.WINDIE_CONVERSATION_EVENT];
+    if (!conversationEventHandler) {
       return;
     }
     if (options.injectConversationRef !== false && event && typeof event === 'object' && !Array.isArray(event)) {
@@ -122,7 +122,7 @@ function createEmitRawBackendEvent(handlers: Record<string, (data: unknown) => v
         ...withBackendEventIdentity(eventRecord),
       } as any);
       if (conversationEvent) {
-        backendHandler(conversationEvent);
+        conversationEventHandler(conversationEvent);
       }
       return;
     }
@@ -131,7 +131,7 @@ function createEmitRawBackendEvent(handlers: Record<string, (data: unknown) => v
       : event;
     const conversationEvent = normalizeBackendEventToConversationEvent(eventRecord as any);
     if (conversationEvent) {
-      backendHandler(conversationEvent);
+      conversationEventHandler(conversationEvent);
     }
   };
 }

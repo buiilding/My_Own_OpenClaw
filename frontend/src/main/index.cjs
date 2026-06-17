@@ -499,18 +499,18 @@ function initializeMainProcessIpc() {
         getLatestFrontendConfig()?.browser_automation_enabled === true
       ),
       verifyBrowserAutomationCapability: async () => {
-        const backendStatus = await getLocalBackendStatus();
-        if (!backendStatus || backendStatus.success !== true || typeof backendStatus.data !== 'object') {
+        const localRuntimeStatus = await getLocalBackendStatus();
+        if (!localRuntimeStatus || localRuntimeStatus.success !== true || typeof localRuntimeStatus.data !== 'object') {
           return {
             granted: false,
             reason: browserAutomationCopy.localBackendNotReady,
             details: {
-              backend_status: backendStatus,
+              backend_status: localRuntimeStatus,
             },
           };
         }
 
-        const payload = backendStatus.data;
+        const payload = localRuntimeStatus.data;
         const registeredTools = Array.isArray(payload.registered_tools) ? payload.registered_tools : [];
         const hasBrowserTool = registeredTools.includes('browser');
         const featurePackAvailable = payload.browser_feature_pack_available === true;

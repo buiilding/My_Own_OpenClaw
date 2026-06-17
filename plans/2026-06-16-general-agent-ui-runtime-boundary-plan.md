@@ -516,3 +516,20 @@ Each completed slice should report:
 - Compatibility: no migration required. `backend-settings-event` channel names,
   save-status timers, settings acknowledgement routing, and model-list handling
   are unchanged.
+
+### 2026-06-17 main local runtime readiness naming
+
+- Finding: browser automation capability verification stored the local runtime
+  bridge readiness response in a backend-prefixed local variable, and the
+  lifecycle reference still described quit cleanup as stopping a local backend
+  sidecar process.
+- Change: renamed the immediate runtime-readiness variable to local-runtime
+  terminology, renamed the chat stream test utility's conversation-event
+  handler variable, and updated the main lifecycle reference to describe SDK
+  local runtime bridge shutdown.
+- Validation: focused Jest run for `MainHostSkinBoundary` and
+  `ChatStreamThinkingStatus.transcript`; docs listing; `git diff --check`; and
+  stale-name scans for the retired local handler/status wording.
+- Compatibility: no migration required. `get-local-backend-status`,
+  `local-backend-status`, and `backend_status` compatibility payload names are
+  unchanged.
