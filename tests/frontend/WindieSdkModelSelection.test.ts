@@ -1,5 +1,5 @@
 /**
- * Covers windie sdk model selection. behavior in the frontend test suite.
+ * Covers Agent SDK model selection behavior in the frontend test suite.
  */
 
 import {

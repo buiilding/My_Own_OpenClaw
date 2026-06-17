@@ -1,5 +1,5 @@
 ﻿/**
- * Covers windie sdk file conversation store. behavior in the frontend test suite.
+ * Covers Agent SDK file conversation store behavior in the frontend test suite.
  */
 
 import { promises as fsPromises } from 'fs';

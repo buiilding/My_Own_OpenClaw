@@ -2047,6 +2047,31 @@ Each completed slice should report:
   plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
 - Compatibility: no migration required. This is docs-only terminology cleanup.
 
+### 2026-06-17 Agent SDK focused test headers
+
+- Finding: focused Agent SDK tests for model selection, managed backend
+  sessions, file conversation storage, and context enrichment still had
+  generated file headers that described them as "windie sdk" coverage.
+- Change: updated those headers to Agent SDK wording without changing the
+  intentional compatibility type assertions inside the tests.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/WindieSdkModelSelection.test.ts
+  ../tests/frontend/WindieSdkManagedBackendSession.test.ts
+  ../tests/frontend/WindieSdkFileConversationStore.test.ts
+  ../tests/frontend/WindieSdkContextEnrichment.test.ts`; `bin\windie docs
+  list`; `git diff --check -- tests/frontend/WindieSdkModelSelection.test.ts
+  tests/frontend/WindieSdkManagedBackendSession.test.ts
+  tests/frontend/WindieSdkFileConversationStore.test.ts
+  tests/frontend/WindieSdkContextEnrichment.test.ts
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`; `rg -n
+  "Covers windie sdk|windie sdk .* behavior"
+  tests/frontend/WindieSdkModelSelection.test.ts
+  tests/frontend/WindieSdkManagedBackendSession.test.ts
+  tests/frontend/WindieSdkFileConversationStore.test.ts
+  tests/frontend/WindieSdkContextEnrichment.test.ts`.
+- Compatibility: no migration required. Test behavior and compatibility
+  assertions are unchanged.
+
 ### 2026-06-17 Agent SDK host wording in runtime docs
 
 - Finding: current streaming, frontend architecture, Electron main, query
