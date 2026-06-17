@@ -3,7 +3,10 @@
 import pytest
 
 from backend.src.core.config.models import SecurityLimits
-from backend.src.core.infrastructure.error_types import InputSizeLimitError, ParseValidationError
+from backend.src.core.infrastructure.error_types.trust_boundary import (
+    InputSizeLimitError,
+    ParseValidationError,
+)
 from tests.backend.response_parser_test_utils import DummyTool, make_response_parser
 
 

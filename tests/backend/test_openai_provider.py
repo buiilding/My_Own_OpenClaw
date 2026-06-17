@@ -14,7 +14,7 @@ from backend.src.core.events.streaming_events import (
     ThinkingEvent,
     WebSearchProgressEvent,
 )
-from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openai_responses_input import (

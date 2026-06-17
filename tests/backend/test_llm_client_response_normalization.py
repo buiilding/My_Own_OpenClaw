@@ -2,7 +2,7 @@
 
 import pytest
 
-from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.llm.client_response_normalization import (
     normalize_content,
     normalize_finish_reason,

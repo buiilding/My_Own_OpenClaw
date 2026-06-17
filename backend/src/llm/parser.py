@@ -27,7 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Optional
 
 from backend.src.core.config.models import AppConfig
-from backend.src.core.infrastructure.error_types import (
+from backend.src.core.infrastructure.error_types.trust_boundary import (
     InputSizeLimitError,
     ParseTimeoutError,
     ParseValidationError,

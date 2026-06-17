@@ -7,7 +7,7 @@ import json
 import logging
 from typing import Any, Dict, List
 
-from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.core.messages.tool_call_thought_signature import (
     apply_tool_call_thought_signature,
     extract_tool_call_thought_signature,

@@ -10,7 +10,6 @@ title: "Exception Hierarchy and Metadata Propagation Reference"
 
 ## Canonical Modules
 
-- `backend/src/core/infrastructure/error_types/__init__.py`
 - `backend/src/core/infrastructure/error_types/base.py`
 - `backend/src/core/infrastructure/error_types/configuration.py`
 - `backend/src/core/infrastructure/error_types/llm.py`
@@ -22,15 +21,17 @@ title: "Exception Hierarchy and Metadata Propagation Reference"
 
 ## Export Surface
 
-Canonical exception definitions live under `core.infrastructure.error_types`.
+Canonical exception definitions live under the concrete modules in
+`core.infrastructure.error_types`.
 
 Use these first-class import paths:
 
-- public exception classes: `backend.src.core.infrastructure.error_types`
+- base exception class: `backend.src.core.infrastructure.error_types.base`
 - domain-specific implementations: `backend.src.core.infrastructure.error_types.*`
-- package-level convenience exports: `backend.src.core.infrastructure`
 
-The old `core.infrastructure.exceptions` compatibility facade has been removed. Runtime code and tests should not import it.
+The old `core.infrastructure.exceptions` compatibility facade and the
+`core.infrastructure.error_types` package re-export surface have been removed.
+Runtime code and tests should import concrete owner modules directly.
 
 ## Hierarchy Map
 

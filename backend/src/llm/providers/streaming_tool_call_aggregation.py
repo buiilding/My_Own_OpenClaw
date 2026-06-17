@@ -5,7 +5,7 @@ import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent, ThinkingEvent
-from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.llm.providers.base import LLMProvider

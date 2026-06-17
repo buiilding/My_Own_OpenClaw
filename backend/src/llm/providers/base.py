@@ -10,7 +10,7 @@ import litellm
 from litellm import exceptions as litellm_exceptions
 
 from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
-from backend.src.core.infrastructure.error_types import (
+from backend.src.core.infrastructure.error_types.llm import (
     LLMAPIError,
     LLMError,
     LLMRateLimitError,

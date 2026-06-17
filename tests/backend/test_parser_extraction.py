@@ -5,7 +5,7 @@ import time
 import pytest
 
 from backend.src.core.config.models import SecurityLimits
-from backend.src.core.infrastructure.error_types import (
+from backend.src.core.infrastructure.error_types.trust_boundary import (
     InputSizeLimitError,
     ParseTimeoutError,
     ParseValidationError,

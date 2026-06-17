@@ -8,7 +8,7 @@ from PIL import Image
 
 from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.cache_manager import CacheManager
-from backend.src.core.infrastructure.error_types import InputSizeLimitError
+from backend.src.core.infrastructure.error_types.trust_boundary import InputSizeLimitError
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType

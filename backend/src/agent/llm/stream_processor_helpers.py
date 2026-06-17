@@ -13,7 +13,7 @@ from backend.src.core.events.streaming_events import (
     ThinkingEvent,
     WebSearchProgressEvent,
 )
-from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 
 

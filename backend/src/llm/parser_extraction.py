@@ -5,7 +5,7 @@ import re
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.core.infrastructure.error_types import (
+from backend.src.core.infrastructure.error_types.trust_boundary import (
     InputSizeLimitError,
     ParseTimeoutError,
     ParseValidationError,

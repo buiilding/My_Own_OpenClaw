@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the backend `core.infrastructure.error_types` package re-export facade so runtime code and tests import concrete exception owner modules directly. No persisted-data migration is required.
+
 - Changed Python SDK local-runtime HTTP client failures to say local runtime returned instead of sidecar daemon returned. No persisted-data migration is required.
 
 - Changed Electron main desktop local-runtime launch-plan missing-script errors to say local runtime daemon script instead of sidecar daemon script. No persisted-data migration is required.

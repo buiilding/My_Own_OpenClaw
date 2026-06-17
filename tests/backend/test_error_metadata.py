@@ -1,9 +1,11 @@
 """Covers error metadata behavior in the backend test suite."""
 
-from backend.src.core.infrastructure.error_types import (
-    InputSizeLimitError,
+from backend.src.core.infrastructure.error_types.llm import (
     LLMAPIError,
     LLMRateLimitError,
+)
+from backend.src.core.infrastructure.error_types.trust_boundary import (
+    InputSizeLimitError,
     ParseTimeoutError,
 )
 

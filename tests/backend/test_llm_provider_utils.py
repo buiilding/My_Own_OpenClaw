@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.llm.client_response_normalization import normalize_response_payload
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,

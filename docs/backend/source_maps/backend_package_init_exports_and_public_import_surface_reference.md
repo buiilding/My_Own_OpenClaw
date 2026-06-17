@@ -113,7 +113,11 @@ docstring or compatibility path.
   infrastructure primitives from concrete modules such as
   `backend.src.core.infrastructure.bus`,
   `backend.src.core.infrastructure.cache`, and
-  `backend.src.core.infrastructure.error_types`.
+  `backend.src.core.infrastructure.error_types.base`.
+- `backend/src/core/infrastructure/error_types/__init__.py` is intentionally
+  absent; import exception classes from concrete domain modules such as
+  `backend.src.core.infrastructure.error_types.llm` or
+  `backend.src.core.infrastructure.error_types.trust_boundary`.
 - `backend/src/core/container/__init__.py` is intentionally absent; import the
   runtime `Container` from `backend.src.core.container.facade` and concrete DI
   containers from their owner modules under `backend.src.core.container`.

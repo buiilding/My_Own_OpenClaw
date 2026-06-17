@@ -57,6 +57,7 @@ REMOVED_MARKERS = [
     "backend/src/core/events/__init__.py",
     "backend/src/core/inference/__init__.py",
     "backend/src/core/infrastructure/__init__.py",
+    "backend/src/core/infrastructure/error_types/__init__.py",
     "backend/src/core/interfaces/__init__.py",
     "backend/src/core/messages/__init__.py",
     "backend/src/core/observability/__init__.py",

@@ -35,9 +35,7 @@ from backend.src.core.events.streaming_events import (
     ToolCallEvent,
     ToolOutputEvent,
 )
-from backend.src.core.infrastructure.error_types import (
-    LLMRateLimitError,
-)
+from backend.src.core.infrastructure.error_types.llm import LLMRateLimitError
 from backend.src.core.infrastructure.user_facing_errors import (
     INTERNAL_SERVER_ERROR_MESSAGE,
     sanitize_stream_error_message,

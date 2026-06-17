@@ -4,7 +4,7 @@ import pytest
 
 from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import ErrorEvent, ChunkEvent
-from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.llm.client import LiteLLMClient
 
 
