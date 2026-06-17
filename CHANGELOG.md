@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Recorded the Python sidecar core hosted-SDK facade deletion in the general agent UI runtime-boundary plan. No persisted-data migration is required.
+
 - Removed the Python sidecar `core` SDK re-export surfaces so callers use the public `windie` package and concrete core modules directly. No persisted-data migration is required.
 
 - Changed the TypeScript SDK local-runtime provider Node-module loading failure to say Node local runtime provider instead of Node sidecar runtime provider. No persisted-data migration is required.

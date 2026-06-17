@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python SDK core re-export facade deletion
+
+- Finding: the Python sidecar still kept a `core` package hosted-SDK facade
+  that re-exported the public `windie` SDK client, leaving two import surfaces
+  for the same hosted backend client contract.
+- Change: removed the `core` SDK facade files, routed tests and docs to the
+  public `windie` package, and kept sidecar `core` imports limited to concrete
+  local-runtime helper modules.
+- Validation: focused Python SDK and sidecar namespace tests, stale facade
+  reference scan, docs listing, and diff check.
+- Compatibility: no migration required for first-party code. Python hosted SDK
+  callers should import `AgentSdkClient` and `AgentLocalRuntimeHttpClient`
+  from `windie` or `windie.sdk`.
+
 ### 2026-06-17 TypeScript SDK Node local-runtime provider error wording
 
 - Finding: the TypeScript SDK local-runtime provider still reported Node module
