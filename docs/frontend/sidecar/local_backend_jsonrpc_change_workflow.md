@@ -145,7 +145,7 @@ Electron main readiness behavior:
 - marks the supervisor ready when ping succeeds.
 - rejects all pending requests on sidecar process exit/error.
 - parses stdout line by line; large JSON responses can be parsed in a worker thread.
-- forwards allowed stderr lines as `[LocalSidecar] ...` logs while continuing
+- forwards allowed stderr lines as `[LocalRuntime] ...` logs while continuing
   to accept legacy local-backend-prefixed lines from older helper output.
 
 When changing readiness, update process lifecycle docs and tests. Do not use arbitrary stdout logging from Python because it corrupts the JSON-RPC stream.

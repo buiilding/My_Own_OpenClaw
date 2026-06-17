@@ -2668,6 +2668,20 @@ Each completed slice should report:
   transient records, and current producers/consumers now use
   `localRuntimeReady`; older stored diagnostic payloads are historical data.
 
+### 2026-06-17 sidecar daemon local-runtime log prefix
+
+- Finding: the Python sidecar daemon still emitted status logs with a
+  `[LocalSidecar]` prefix, and Electron main still whitelisted that prefix in
+  the local-runtime launch log forwarder.
+- Change: renamed the active daemon status prefix to `[LocalRuntime]`, updated
+  the Electron main local-runtime log allowlist, and refreshed focused
+  main/sidecar tests plus the JSON-RPC workflow note.
+- Validation: focused main launch-option Jest coverage, focused sidecar daemon
+  pytest coverage, docs listing, `git diff --check`, and stale-prefix scans.
+- Compatibility: no migration required. This changes developer-facing log
+  labels only; daemon discovery, JSON-RPC payloads, IPC channels, and stored
+  data are unchanged.
+
 ### 2026-06-17 renderer presentation source channels
 
 - Finding: renderer message presentation metadata reused product-named

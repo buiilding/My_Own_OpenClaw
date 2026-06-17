@@ -873,7 +873,7 @@ class SidecarDaemon:
         )
 
     async def handle_status(self, request: web.Request) -> web.Response:
-        emit_sidecar_layer_log("[LocalSidecar]", "status requested")
+        emit_sidecar_layer_log("[LocalRuntime]", "status requested")
         return web.json_response(await self.build_status_payload())
 
     async def handle_shutdown(self, request: web.Request) -> web.Response:

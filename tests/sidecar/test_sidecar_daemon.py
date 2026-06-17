@@ -24,12 +24,14 @@ from sidecar_daemon import (  # noqa: E402
 
 def test_sidecar_daemon_identity_copy_is_product_neutral():
     source = Path(sidecar_daemon.__file__).read_text(encoding="utf-8")
+    retired_local_sidecar_prefix = "[Local" + "Sidecar]"
 
     assert "Desktop Agent sidecar" in source
     assert "Run the local sidecar daemon." in source
-    assert 'emit_sidecar_layer_log("[LocalSidecar]", "status requested")' in source
+    assert 'emit_sidecar_layer_log("[LocalRuntime]", "status requested")' in source
     assert "WindieOS sidecar" not in source
     assert "Run the WindieOS sidecar daemon." not in source
+    assert f'emit_sidecar_layer_log("{retired_local_sidecar_prefix}", "status requested")' not in source
     assert 'emit_sidecar_layer_log("[LocalBackend]", "status requested")' not in source
 
 

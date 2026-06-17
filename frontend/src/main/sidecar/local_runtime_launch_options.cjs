@@ -44,7 +44,7 @@ const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
 ];
 const LOCAL_RUNTIME_LOG_PREFIXES = [
   '[SidecarDaemon]',
-  '[LocalSidecar]',
+  '[LocalRuntime]',
   '[LocalBackend]',
   '[Tool]',
   '[MCP]',
