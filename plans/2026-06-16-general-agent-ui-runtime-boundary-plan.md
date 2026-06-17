@@ -120,6 +120,17 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 permission adapter diagnostic ownership label cleanup
+
+- Finding: the Electron main permission adapter wrapped macOS Automation
+  sidecar/local-runtime failures under a `backend_result` diagnostic key.
+- Change: renamed the diagnostic detail to `local_runtime_result` and added a
+  main host boundary assertion so the backend label does not return.
+- Validation: focused main host skin/boundary test and diff check.
+- Compatibility: no migration required. This diagnostic detail is internal
+  failure metadata; permission probing/request behavior and IPC envelopes are
+  unchanged.
+
 ### 2026-06-17 local-runtime docs hub and sidecar source label cleanup
 
 - Finding: frontend docs hubs, IPC/main/sidecar workflows, node maps,

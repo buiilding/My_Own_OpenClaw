@@ -583,7 +583,7 @@ function initializeMainProcessIpc() {
               ? probeResult.error
               : macAutomationCopy.probeFailure,
             details: {
-              backend_result: probeResult,
+              local_runtime_result: probeResult,
             },
           };
         }
@@ -599,7 +599,7 @@ function initializeMainProcessIpc() {
               ? requestResult.error
               : macAutomationCopy.requestFailure,
             details: {
-              backend_result: requestResult,
+              local_runtime_result: requestResult,
             },
           };
         }

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed macOS Automation permission adapter failure diagnostics from backend_result to local_runtime_result so local-runtime ownership is reflected in internal metadata. No migration is required.
+
 - Removed the `package:*:bundled-python` npm compatibility aliases; Windows reinstall and packaging docs now use the canonical platform package commands. No storage, API, wire-event, or persisted-data migration is required.
 
 - Removed the `package:*:bundled-python` npm compatibility aliases; Windows reinstall and packaging docs now use the canonical platform package commands. No storage, API, wire-event, or persisted-data migration is required.

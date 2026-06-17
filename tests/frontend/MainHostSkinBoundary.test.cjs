@@ -149,6 +149,8 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain(['backend', 'status'].join('_'));
     expect(source).toContain('macAutomationCopy.probeFailure');
     expect(source).toContain('macAutomationCopy.requestFailure');
+    expect(source).toContain('local_runtime_result');
+    expect(source).not.toContain('backend_result');
     expect(source).not.toContain('WindieOS local backend is not ready.');
     expect(source).not.toContain('WindieOS local runtime is not ready.');
     expect(source).not.toContain('Click Grant to install Chromium for WindieOS.');
