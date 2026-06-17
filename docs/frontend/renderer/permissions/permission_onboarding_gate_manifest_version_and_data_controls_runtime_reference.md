@@ -75,7 +75,6 @@ Response normalization:
 `permissionStorage.js` localStorage key:
 
 - `desktop-agent-permission-onboarding`
-- legacy read-compatible key: `windieos-permission-onboarding`
 
 Persisted fields:
 
@@ -141,7 +140,7 @@ Examples:
 1. Changing permission manifest schema without updating store mapping/evaluation fields.
 2. Forgetting to recompute gate state after status or onboarding-state writes.
 3. Diverging onboarding and settings permission actions into separate stores.
-4. Changing storage key/shape without compatibility handling for existing local state.
+4. Changing storage key/shape without an explicit reset plan can reset completion state unexpectedly.
 5. Reintroducing permission-specific config side effects directly inside onboarding view components will make permission behavior harder to reuse or test.
 
 ## Related Pages

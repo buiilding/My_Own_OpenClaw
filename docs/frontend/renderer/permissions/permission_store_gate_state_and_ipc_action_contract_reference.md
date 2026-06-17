@@ -153,10 +153,6 @@ On guard failure:
 
 - `desktop-agent-permission-onboarding`
 
-Legacy read compatibility:
-
-- `windieos-permission-onboarding`
-
 `loadPermissionOnboardingState()` fail-closes malformed/missing values to:
 
 - `manifest_version: ""`

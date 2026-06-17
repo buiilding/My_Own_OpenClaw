@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove permission onboarding reads from the old
+  `windieos-permission-onboarding` localStorage key so only the current
+  desktop-agent completion key can satisfy startup onboarding.
 - docs: Record the removed dormant context-label renderer route in the runtime boundary plan.
 
 - frontend/renderer: remove the dormant `chatbox-context-label` renderer route
