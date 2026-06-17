@@ -7,8 +7,11 @@ import pytest
 import weakref
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from backend.src.core.infrastructure.bus import EventBus, EventHandlerWrapper
-from backend.src.core.infrastructure.event_bus_registry import EventHandlerStore
+from backend.src.core.infrastructure.bus import EventBus
+from backend.src.core.infrastructure.event_bus_registry import (
+    EventHandlerStore,
+    EventHandlerWrapper,
+)
 from backend.src.core.events.base import Event
 
 

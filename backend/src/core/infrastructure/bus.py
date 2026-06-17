@@ -14,7 +14,6 @@ from typing import Awaitable, Callable, Dict, List, Optional, Type
 from backend.src.core.events.base import Event
 from backend.src.core.infrastructure.event_bus_registry import (
     EventHandler,
-    EventHandlerWrapper,
     EventHandlerStore,
 )
 

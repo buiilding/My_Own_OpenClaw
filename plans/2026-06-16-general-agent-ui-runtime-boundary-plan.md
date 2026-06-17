@@ -120,11 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Event bus registry export cleanup
+
+- Finding: `backend.src.core.infrastructure.bus` still imported
+  `EventHandlerWrapper` only so tests could reach the registry helper through
+  the bus module.
+- Change: removed that wrapper import from `bus.py`, switched focused tests to
+  import `EventHandlerWrapper` from `event_bus_registry.py`, and documented the
+  owner module.
+- Validation: direct focused pytest for `tests/backend/test_event_bus.py`,
+  `py_compile` for the bus/registry/test files, stale facade-import scan, and
+  diff check. The broader `bin\windie.cmd test backend ...` path still cannot
+  collect in this shell because the `jarvis` env is unavailable and fallback
+  Python lacks backend dependencies (`fastapi`, `litellm`).
+- Compatibility: no persisted-data, storage, API, wire, or settings migration is
+  required. Direct imports should use the registry helper module instead of the
+  bus runtime module.
+
 ### 2026-06-17 Electron main local-runtime overview cleanup
 
 - Finding: the current Electron main IPC overview still described the
-  local-runtime bridge as spawning local_backend.py and owning sidecar
-  request correlation, even after daemon lifetime and /rpc unwrapping moved
+  local-runtime bridge as spawning `local_backend.py` and owning sidecar
+  request correlation, even after daemon lifetime and `/rpc` unwrapping moved
   behind the SDK local runtime provider.
 - Change: updated the overview to describe Electron main as the SDK host for
   desktop launch facts, status broadcasts, host helper mapping, and

@@ -38,6 +38,9 @@ title: "Event Bus and Cache Infrastructure Reference"
 
 ### Handler wrapping semantics
 
+`EventHandlerWrapper` lives in `event_bus_registry.py`; `bus.py` owns only the
+`EventBus` runtime and does not re-export registry helpers.
+
 `EventHandlerWrapper` behavior:
 
 - bound methods are stored as `weakref.WeakMethod` (prevents leaking object instances through strong refs)
