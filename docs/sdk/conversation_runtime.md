@@ -619,6 +619,10 @@ payload keys such as `tool_name`, `request_id`, `bundle_id`, or step
 Claimed SDK-shaped events execute the local runtime, send the result back
 through the transport, and append the corresponding normalized output event
 through the same store/projection path.
+Local tool result screenshot metadata uses backend-facing snake_case fields
+(`screenshot_ref`, `screenshot_url`, and `screenshot_content_type`). The
+coordinator rejects camelCase screenshot result aliases instead of rewriting
+them.
 
 If local execution succeeds but backend delivery of `tool-result` or
 `tool-bundle-result` fails, the coordinator stores the output as an explicit

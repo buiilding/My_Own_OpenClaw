@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed SDK local-tool result support for camelCase `screenshotRef`/`screenshotUrl` aliases; tool results must use backend-facing `screenshot_ref`/`screenshot_url` fields. SDK callers using the removed aliases must migrate to snake_case; no persisted-data, wire, storage, settings, or event-payload migration is required.
+
 - Updated local-runtime routing and navigation docs to replace stale local-backend/local-sidecar labels on Electron-facing sidecar daemon paths while preserving historical filenames and explicit backend-origin wording. No runtime, JSON-RPC, IPC, endpoint, storage, or security migration is required.
 - Changed the renderer desktop-agent runtime transport to reject removed camelCase command aliases instead of silently ignoring them, keeping `conversation.send`, `conversation.stop`, and related command payloads on canonical snake_case fields. No persisted-data, wire, or storage migration is required.
 

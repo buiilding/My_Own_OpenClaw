@@ -241,15 +241,18 @@ function extractScreenshotDataFromData(data: unknown): JsonRecord | null {
   if (!isJsonRecord(data)) {
     return null;
   }
+  if ('screenshotRef' in data || 'screenshotUrl' in data) {
+    throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
+  }
   const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
     ? data.screenshot
     : null;
   const screenshotRef = typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim()
     ? data.screenshot_ref
-    : (typeof data.screenshotRef === 'string' && data.screenshotRef.trim() ? data.screenshotRef : null);
+    : null;
   const screenshotUrl = typeof data.screenshot_url === 'string' && data.screenshot_url.trim()
     ? data.screenshot_url
-    : (typeof data.screenshotUrl === 'string' && data.screenshotUrl.trim() ? data.screenshotUrl : null);
+    : null;
   if (!screenshot && !screenshotRef && !screenshotUrl) {
     return null;
   }
@@ -351,6 +354,9 @@ export class ToolExecutionCoordinator {
   }
 
   private async materializeScreenshotArtifact(data: JsonRecord): Promise<JsonRecord> {
+    if ('screenshotRef' in data || 'screenshotUrl' in data) {
+      throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
+    }
     const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
       ? data.screenshot.trim()
       : null;
@@ -358,14 +364,14 @@ export class ToolExecutionCoordinator {
       return data;
     }
 
-    const screenshotRef = stringPayloadField(data, 'screenshot_ref', 'screenshotRef');
+    const screenshotRef = stringPayloadField(data, 'screenshot_ref');
     if (screenshotRef) {
       const normalized: JsonRecord = {
         ...data,
         screenshot_ref: screenshotRef,
       };
       if (!normalized.screenshot_url) {
-        const screenshotUrl = stringPayloadField(data, 'screenshot_url', 'screenshotUrl');
+        const screenshotUrl = stringPayloadField(data, 'screenshot_url');
         if (screenshotUrl) {
           normalized.screenshot_url = screenshotUrl;
         } else if (this.options.artifactUploader?.url) {
@@ -373,8 +379,6 @@ export class ToolExecutionCoordinator {
         }
       }
       delete normalized.screenshot;
-      delete normalized.screenshotRef;
-      delete normalized.screenshotUrl;
       return normalized;
     }
 
@@ -408,8 +412,6 @@ export class ToolExecutionCoordinator {
           : contentType,
       };
       delete normalized.screenshot;
-      delete normalized.screenshotRef;
-      delete normalized.screenshotUrl;
       return normalized;
     } catch (error) {
       throw artifactUploadError(error);
@@ -724,7 +726,7 @@ export class ToolExecutionCoordinator {
           toolName: call.toolName,
           success: deliveryError ? false : success,
           deliveryFailed: Boolean(deliveryError),
-          hasScreenshotRef: Boolean(screenshotData?.screenshot_ref ?? screenshotData?.screenshotRef),
+          hasScreenshotRef: Boolean(screenshotData?.screenshot_ref),
         },
         error: deliveryError ?? (success ? null : result.error ?? 'Tool execution failed'),
       });

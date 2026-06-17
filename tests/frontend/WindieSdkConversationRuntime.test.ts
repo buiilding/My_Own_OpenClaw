@@ -3134,6 +3134,49 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator rejects camelCase screenshot aliases before artifact materialization', async () => {
+    const store = new InMemoryConversationStore();
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      artifactUploader: createMockArtifactUploader(),
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            output: 'Screenshot captured successfully.',
+            screenshot: INLINE_JPEG_BASE64,
+            screenshotRef: 'legacy-shot.jpg',
+            screenshotUrl: '/api/artifacts/legacy-shot.jpg',
+          },
+        })),
+      },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await expect(coordinator.execute(event('tool_call', {
+      toolName: 'screenshot',
+      requestId: 'req-camel-shot',
+      args: { explanation: 'Capture screen' },
+    }))).rejects.toThrow(
+      'Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.',
+    );
+
+    expect(sendToolResult).not.toHaveBeenCalled();
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-camel-shot',
+          success: false,
+          deliveryFailed: true,
+          error: expect.stringContaining('camelCase screenshot fields are not supported'),
+        }),
+      }),
+    ]);
+  });
+
   test('tool coordinator uploads post-action screenshots before backend delivery', async () => {
     const lifecycleCalls: string[] = [];
     const sendToolResult = jest.fn(async () => undefined);
@@ -3341,6 +3384,49 @@ describe('Agent SDK conversation runtime core', () => {
           success: false,
           deliveryFailed: true,
           error: expect.stringContaining('artifact_upload_failed'),
+        }),
+      }),
+    ]);
+  });
+
+  test('tool coordinator rejects camelCase-only screenshot result aliases', async () => {
+    const store = new InMemoryConversationStore();
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            output: 'Screenshot captured successfully.',
+            screenshotRef: 'legacy-shot',
+            screenshotUrl: '/api/artifacts/legacy-shot',
+          },
+        })),
+      },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await expect(coordinator.execute(event('tool_call', {
+      toolName: 'screenshot',
+      requestId: 'req-camel-shot',
+      args: { explanation: 'Capture screen' },
+    }))).rejects.toThrow(
+      'Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.',
+    );
+
+    expect(sendToolResult).not.toHaveBeenCalled();
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-camel-shot',
+          success: false,
+          deliveryFailed: true,
+          error: expect.stringContaining(
+            'Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.',
+          ),
         }),
       }),
     ]);
