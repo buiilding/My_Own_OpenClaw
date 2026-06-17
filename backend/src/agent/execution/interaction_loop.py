@@ -14,7 +14,6 @@ from uuid import uuid4
 from backend.src.agent.execution.tool_call_bridge import (
     build_recoverable_tool_output_message,
     extract_history_tool_call_ids,
-    extract_tool_call_ids,
     is_recoverable_llm_tool_call_error,
     to_history_tool_calls,
     to_parsed_response,
@@ -47,7 +46,7 @@ from backend.src.core.infrastructure.user_facing_errors import (
     sanitize_stream_error_message,
 )
 from backend.src.core.types.schemas import NormalizedLLMResponse
-from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
+from backend.src.llm.parser_types import ParsedResponse
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -402,7 +401,7 @@ class InteractionLoop:
             normalized_response = self.llm_handler.get_last_response_payload() or {
                 "content": llm_response_text
             }
-            parsed_response = self._to_parsed_response(normalized_response)
+            parsed_response = to_parsed_response(normalized_response)
             llm_response_text = parsed_response.text_content
 
             if self._is_empty_failed_response(normalized_response, parsed_response):
@@ -679,7 +678,7 @@ class InteractionLoop:
         tool_execution_policy: ToolExecutionPolicy,
     ) -> bool:
         """Persist the assistant tool-call turn and stage tool ids for outputs."""
-        history_tool_calls = self._to_history_tool_calls(parsed_response.tool_calls)
+        history_tool_calls = to_history_tool_calls(parsed_response.tool_calls)
         self.session.history.add_assistant_message(
             llm_response_text,
             tool_calls=history_tool_calls,
@@ -731,7 +730,7 @@ class InteractionLoop:
                 raw_arguments_preview=raw_arguments_preview,
             )
 
-        tool_output_message = self._build_recoverable_tool_output_message(
+        tool_output_message = build_recoverable_tool_output_message(
             tool_name,
             error_msg,
             raw_arguments_preview=raw_arguments_preview,
@@ -779,24 +778,6 @@ class InteractionLoop:
                 "metadata": metadata,
             },
         )
-
-    def _to_parsed_response(
-        self, normalized_response: NormalizedLLMResponse
-    ) -> ParsedResponse:
-        """Bridge native SDK tool calls into ParsedResponse shape."""
-        return to_parsed_response(normalized_response)
-
-    @staticmethod
-    def _to_history_tool_calls(
-        parsed_tool_calls: List[ParsedToolCall],
-    ) -> List[Dict[str, Any]]:
-        """Render parsed tool calls into assistant-history tool_calls format."""
-        return to_history_tool_calls(parsed_tool_calls)
-
-    @staticmethod
-    def _extract_tool_call_ids(parsed_tool_calls: List[ParsedToolCall]) -> List[str]:
-        """Collect tool-call ids in emission order for tool-result linkage."""
-        return extract_tool_call_ids(parsed_tool_calls)
 
     def _build_empty_final_response_fallback(self) -> str:
         """
@@ -900,19 +881,6 @@ class InteractionLoop:
         if isinstance(value, str) and value.strip():
             return value.strip()
         return ""
-
-    @staticmethod
-    def _build_recoverable_tool_output_message(
-        tool_name: str,
-        error_msg: str,
-        raw_arguments_preview: str | None = None,
-    ) -> str:
-        """Format synthetic tool output in standard tool-output message style."""
-        return build_recoverable_tool_output_message(
-            tool_name,
-            error_msg,
-            raw_arguments_preview=raw_arguments_preview,
-        )
 
     @staticmethod
     def _summary_preview(summary_text: str) -> str:
