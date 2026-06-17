@@ -28,7 +28,7 @@ returning to renderer:
 1. resolve fallback `display_bounds` for monitor-targeted capture
 2. materialize sidecar `screenshot_path` into durable attachment fields (`screenshot_ref`/`screenshot_url`) or inline fallback (`screenshot`)
 
-This behavior is local-backend bridge specific; non-screenshot tools do not run these paths. If a non-screenshot tool returns `screenshot_path`, Electron main strips that local path from the returned payload without reading or deleting it.
+This behavior is local-runtime bridge specific; non-screenshot tools do not run these paths. If a non-screenshot tool returns `screenshot_path`, Electron main strips that local path from the returned payload without reading or deleting it.
 
 ## Display-Bounds Fallback Resolution
 

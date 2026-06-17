@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for local-backend bridge handler registration, channel-to-method mapping, payload normalization rules, and test-backed IPC/JSON-RPC contract invariants."
+summary: "Deep reference for local-runtime bridge handler registration, channel-to-method mapping, payload normalization rules, and test-backed IPC/JSON-RPC contract invariants."
 read_when:
   - When adding/removing local-backend `ipcMain.handle` channels or changing `COMPILED_RPC_HANDLER_DEFINITIONS`.
   - When debugging renderer invoke payload keys that do not map to sidecar JSON-RPC params.

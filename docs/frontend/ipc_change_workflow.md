@@ -147,10 +147,10 @@ Before committing:
 | Handler never runs | Missing `ipcMain.handle`/`ipcMain.on` registration or wrong channel family. |
 | Event listener gets stale data | Main broadcaster, replay state, or renderer cleanup leak. |
 | Packaged app differs from dev | Main process channel registry injection or preload path/build packaging. |
-| Sidecar tool call returns unexpected payload | Local backend bridge mapper or Python JSON-RPC handler. |
+| Sidecar tool call returns unexpected payload | Local-runtime bridge mapper or Python JSON-RPC handler. |
 | Renderer receives Electron event-like data | `preload.js` listener wrapper is bypassed or a custom bridge leaked privileged fields. |
 | Multiple duplicate stream/status events after navigation | Renderer listener cleanup is missing or a provider re-registers listeners without unmount cleanup. |
-| Invoke hangs or times out only for local tools | Local backend process readiness, request correlation, timeout policy, or sidecar JSON-RPC response shape. |
+| Invoke hangs or times out only for local tools | Local-runtime readiness, request correlation, timeout policy, or sidecar JSON-RPC response shape. |
 | Screenshot/window IPC fails only on one OS | Platform window visibility, display affinity, content protection, or permission owner docs. |
 | Channel works in dev but not packaged app | `additionalArguments` registry injection, preload path, Electron Builder file inclusion, or main-process bootstrap order. |
 

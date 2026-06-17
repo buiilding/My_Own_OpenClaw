@@ -51,7 +51,7 @@ Validation:
 Validation:
 
 - SDK tool coordinator tests (single + bundle).
-- Main local backend bridge tests.
+- Main local-runtime bridge tests.
 - Sidecar tool schema/registry tests.
 
 ### 4) Modify sidecar JSON-RPC method payload

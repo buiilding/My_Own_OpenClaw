@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS Electron main-process behavior across IPC registration, windows, overlays, backend endpoint forwarding, permissions, local backend bridge, wakeword, and VM worker lifecycle."
+summary: "Workflow for changing WindieOS Electron main-process behavior across IPC registration, windows, overlays, backend endpoint forwarding, permissions, local-runtime bridge, wakeword, and VM worker lifecycle."
 read_when:
   - When changing Electron main-process startup, IPC handlers, preload channel exposure, window visibility, overlays, endpoint routing, SDK local-runtime host wiring, permission probes, wakeword bridge behavior, or VM worker mode.
   - When a renderer symptom may actually belong to Electron main orchestration, IPC transport, local-runtime host context, or platform window policy.
@@ -22,7 +22,7 @@ Main process code is a trust boundary. It receives renderer requests through pre
 | New, renamed, or failing IPC channel | Shared registry, preload allowlist, main handler registration | `frontend/src/shared/ipcChannels.json`, `frontend/src/preload.js`, `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/*.cjs` | `tests/frontend/PreloadIpcChannels.test.cjs`, `tests/frontend/IpcBridge*.test.*`, focused `Ipc*.test.cjs` | [IPC Change Workflow](../ipc_change_workflow.md), [IPC Channel and Handler Reference](../contracts/ipc_channel_and_handler_reference.md) |
 | Query payload, SDK agent send, stop query, transcript session sync, or event replay changes | Query IPC and SDK agent host | `frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_event_replay_state.cjs` | `tests/frontend/WindieSdkClient.test.ts`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, `tests/frontend/IpcQueryRuntime.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/IpcTranscriptSessionSync.test.cjs` | [Query Payload and Relay](query_payload_and_relay_reference.md), [IPC Event Replay and Transcript Sync](ipc_event_replay_and_transcript_session_sync_reference.md) |
 | Hosted/local/staging backend endpoint is wrong or sidecar sees stale URL | Endpoint resolution and forwarding | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/ipc/ipc_frontend_config.cjs`, `frontend/src/main/python/windie/_backend_config.py` | `tests/frontend/BackendEndpoints.test.cjs`, `tests/frontend/IpcSettingsSync.test.cjs`, `tests/sidecar/test_backend_config.py` | [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md), [Runtime Configuration Matrix](../../operations/runtime_configuration_matrix.md) |
-| Local tool, memory, shell, browser, screenshot, or sidecar call fails before reaching Python | SDK local-runtime bridge and mapper | `frontend/src/main/sidecar/local_backend_bridge*.cjs`, `frontend/src/main/sidecar/local_backend_supervisor.cjs`, `frontend/src/main/python/local_backend.py` | `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/frontend/LocalBackendSupervisor.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py` | [Main Local-Backend Hub](local_backend/README.md), [Local Backend Bridge Overview](local_backend_bridge_handler_and_window_guard_reference.md) |
+| Local tool, memory, shell, browser, screenshot, or sidecar call fails before reaching Python | SDK local-runtime bridge and mapper | `frontend/src/main/sidecar/local_backend_bridge*.cjs`, `frontend/src/main/sidecar/local_backend_supervisor.cjs`, `frontend/src/main/python/local_backend.py` | `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/frontend/LocalBackendSupervisor.test.cjs`, `tests/sidecar/test_json_rpc_protocol.py` | [Main Local-Backend Hub](local_backend/README.md), [Local Runtime Bridge Overview](local_backend_bridge_handler_and_window_guard_reference.md) |
 | Permission probe/request or onboarding permission status changes | Permission service and permission IPC runtime | `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/shared/permissions/permission_manifest.json` | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/permissionGrantEffects.test.js` | [Permission Manifest and IPC Contract](permission_manifest_probe_and_request_ipc_reference.md), [Permissions and Local Authority Workflow](../../security/permissions_and_local_authority_workflow.md) |
 | Screenshot capture hides the wrong surfaces or platform capture differs | Screenshot/window visibility seam | `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`, SDK/main screenshot resource handling | `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, platform tests | [Linux Screenshot Hide/Restore Guard](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md), [Screenshot and Overlay Policy](../../platforms/screenshot_overlay_policy.md) |
 | Wakeword startup, status, or bridge lifecycle changes | Wakeword bridge and supervisor | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`, `frontend/src/main/wakeword/wakeword_supervisor.cjs`, `frontend/src/main/python/wakeword_service.py` | `tests/frontend/WakewordBridge*.test.cjs`, `tests/frontend/WakewordSupervisor.test.cjs`, sidecar wakeword tests | [Wakeword Bridge Runtime Helper](wakeword_bridge_runtime_helper_reference.md), [Voice Audio Change Workflow](../../channels/voice_audio_change_workflow.md) |
@@ -34,7 +34,7 @@ Main process code is a trust boundary. It receives renderer requests through pre
 - Renderer components must not call Electron APIs directly. Renderer access goes through preload and the typed IPC bridge.
 - Preload must stay allowlist-driven by `frontend/src/shared/ipcChannels.json`; do not expose broad `ipcRenderer` handles.
 - Main process should not implement business logic that belongs to backend agent/session/model code.
-- Main process should not execute local tools directly when the sidecar owns execution. It should validate/map/transport the request to the local backend bridge.
+- Main process should not execute local tools directly when the sidecar owns execution. It should validate/map/transport the request to the SDK local-runtime bridge.
 - Main process owns native windows and platform side effects. Renderer should consume normalized state/events, not decide window flags, display placement, capture-time hiding, or OS permissions.
 - Packaged mode must not fall back to source-only paths for sidecar code or Python runtime.
 - VM worker mode should not accidentally create overlay windows, tray icons, or hotkeys meant for the interactive desktop app.
@@ -44,7 +44,7 @@ Main process code is a trust boundary. It receives renderer requests through pre
 1. **Classify the boundary.** Decide whether the behavior is renderer UI, preload exposure, main orchestration, sidecar execution, hosted backend, or platform OS policy.
 2. **Read the closest workflow.** For IPC changes, read [IPC Change Workflow](../ipc_change_workflow.md). For packaged path changes, read [Release and Packaging Change Workflow](../../operations/release_packaging_change_workflow.md). For platform authority changes, read [Permissions and Local Authority Workflow](../../security/permissions_and_local_authority_workflow.md).
 3. **Inspect the registrar or runtime module.** Main behavior is split across focused `*_runtime.cjs` and `src/main/ipc/*.cjs` modules; avoid adding new catch-all logic in `index.cjs`.
-4. **Update producer and consumer together.** Channel registry, preload bridge, renderer constants, main handler, local backend mapper, sidecar method, and docs must move together when the contract crosses boundaries.
+4. **Update producer and consumer together.** Channel registry, preload bridge, renderer constants, main handler, local-runtime mapper, sidecar method, and docs must move together when the contract crosses boundaries.
 5. **Keep platform differences explicit.** If macOS, Windows, and Linux differ, update platform adapters and tests rather than burying branches inside renderer code.
 6. **Validate the narrowest boundary first.** Use main-process unit tests for runtime modules before manual Electron checks.
 7. **Add packaged or manual smoke only when needed.** Window, permission, capture, and packaged path changes often need OS-level validation that Jest cannot prove.
@@ -57,7 +57,7 @@ When adding or changing a renderer-main channel:
 - Keep renderer channel constants in sync.
 - Use `invoke` for request/response or correlated work; use `send` only for fire-and-forget commands.
 - Register the main handler in the focused IPC module, not an unrelated module.
-- If Python is involved, update the local backend bridge mapper and sidecar JSON-RPC handler together.
+- If Python is involved, update the local-runtime bridge mapper and sidecar JSON-RPC handler together.
 - Add registry/preload parity tests and handler/mapper tests.
 - Update the domain doc that owns the behavior, not only the IPC workflow.
 
@@ -71,7 +71,7 @@ When changing native windows or overlays:
 - Avoid mixing focus, visibility, click-through, transport, and renderer phase changes in one patch unless the state machine requires it.
 - Add tests for hidden, visible, destroyed/missing window, target-display, and platform-specific behavior when relevant.
 
-## Local Backend Bridge Checklist
+## Local Runtime Bridge Checklist
 
 When changing main-to-sidecar behavior:
 
@@ -98,7 +98,7 @@ When changing endpoints or packaged paths:
 | Main query/backend relay | `cd frontend && npm run test -- IpcQueryRuntime IpcMainBridge` |
 | Overlay/window runtime | `cd frontend && npm run test -- MainWindow WindowVisibility Overlay SurfaceRuntime` |
 | Permission service/IPC | `cd frontend && npm run test -- PermissionService PermissionIpcRuntime permissionGrantEffects` |
-| Local backend bridge | `cd frontend && npm run test -- LocalBackendBridge LocalBackendSupervisor` plus focused sidecar JSON-RPC tests when Python payloads change |
+| Local runtime bridge | `cd frontend && npm run test -- LocalBackendBridge LocalBackendSupervisor` plus focused sidecar JSON-RPC tests when Python payloads change |
 | Wakeword bridge | `cd frontend && npm run test -- WakewordBridge WakewordSupervisor` plus sidecar wakeword tests when the Python service changes |
 | Runtime paths/packaged launch | `cd frontend && npm run test -- RuntimePaths` plus target OS package smoke |
 | Docs-only main workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
@@ -111,7 +111,7 @@ Before committing main-process work:
 - Did every IPC contract update the shared registry, preload exposure, renderer constants, main handler, and tests?
 - Did platform/window changes keep OS-specific behavior explicit?
 - Did packaged-mode changes avoid source-only fallbacks?
-- Did local backend bridge changes preserve request correlation and sidecar ownership?
+- Did local-runtime bridge changes preserve request correlation and sidecar ownership?
 - Did docs and `CHANGELOG.md` move with behavior or contract changes?
 
 ## Related Docs

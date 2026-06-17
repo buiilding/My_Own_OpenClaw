@@ -1,4 +1,4 @@
-summary: "Deep reference for local-backend bridge window-resolver input normalization and screenshot task wiring."
+summary: "Deep reference for local-runtime bridge window-resolver input normalization and screenshot task wiring."
 read_when:
   - When changing resolver input contracts in `local_backend_bridge_window_visibility.cjs`.
   - When changing screenshot task routing in local-backend execution wrappers.
@@ -60,7 +60,7 @@ Resolver helpers remain part of the wrapper API:
 
 - task errors are propagated to caller (not swallowed)
 - no main-process restore stage exists in this seam
-- timeout and JSON-RPC failure behavior remains owned by local-backend bridge request logic
+- timeout and JSON-RPC failure behavior remains owned by local-runtime bridge request logic
 
 ## Integration Boundary in Bridge
 

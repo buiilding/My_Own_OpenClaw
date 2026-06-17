@@ -34,7 +34,7 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 | Add a renderer-visible sidecar method | Electron IPC registry and mapper plus sidecar method registry | `frontend/src/shared/ipcChannels.json`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend.py` | preload/IPC tests, `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_local_backend.py` |
 | Add a main-only sidecar helper | main bridge helper plus sidecar method registry | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, sidecar handler tests |
 | Change JSON-RPC protocol validation | protocol core | `frontend/src/main/python/core/ipc_protocol.py` | `tests/sidecar/test_json_rpc_protocol.py` |
-| Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | SDK client tests and local-backend bridge tests |
+| Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | SDK client tests and local-runtime bridge tests |
 | Change sidecar readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, sidecar daemon tests |
 | Change memory method payloads | RPC mapper plus memory mixin | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/frontend/LocalBackendBridge.rpc.test.cjs`, sidecar memory/conversation tests |
 | Change `execute_tool` behavior | SDK/main local tool runtime plus sidecar tool registry | `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, sidecar tool tests |
@@ -186,7 +186,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Electron bridge mapper | `cd frontend && npm run test -- LocalBackendBridge.rpc` |
 | Execute-tool bridge behavior | `cd frontend && npm run test -- LocalBackendBridge ToolExecution` plus focused sidecar tool tests |
 | Preload/renderer IPC channel addition | `cd frontend && npm run test -- PreloadIpcChannels IpcBridge` |
-| Sidecar process lifecycle/readiness | local-backend bridge lifecycle tests and `tests/sidecar/test_runtime_shutdown.py` when shutdown changes |
+| Sidecar process lifecycle/readiness | local-runtime bridge lifecycle tests and `tests/sidecar/test_runtime_shutdown.py` when shutdown changes |
 | Docs-only JSON-RPC changes | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Documentation Checklist

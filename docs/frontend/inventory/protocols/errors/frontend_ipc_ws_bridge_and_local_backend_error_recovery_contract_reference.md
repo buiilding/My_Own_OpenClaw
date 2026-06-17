@@ -1,12 +1,12 @@
 ---
-summary: "Frontend protocol error contract covering preload IPC validation failures, websocket bridge reconnect and send-failure synthesis, settings ACK timeout behavior, local-backend JSON-RPC fallback responses, and wakeword subprocess/helper error status propagation."
+summary: "Frontend protocol error contract covering preload IPC validation failures, websocket bridge reconnect and send-failure synthesis, settings ACK timeout behavior, local-runtime JSON-RPC fallback responses, and wakeword subprocess/helper error status propagation."
 read_when:
   - When changing `preload.js`, `ipc.cjs`, `local_backend_bridge.cjs`, `wakeword_bridge.cjs`, or `wakeword_bridge_runtime.cjs` error behavior.
   - When debugging query send failures, settings-sync timeouts, or sidecar process startup failures.
-title: "Frontend IPC, WS Bridge, and Local Backend Error-Recovery Contract Reference"
+title: "Frontend IPC, WS Bridge, and Local Runtime Error-Recovery Contract Reference"
 ---
 
-# Frontend IPC, WS Bridge, and Local Backend Error-Recovery Contract Reference
+# Frontend IPC, WS Bridge, and Local Runtime Error-Recovery Contract Reference
 
 ## Coverage Snapshot (2026-02-27)
 
@@ -21,7 +21,7 @@ Primary sources:
 - Main websocket bridge/state: `frontend/src/main/ipc.cjs`
 - Settings-sync ACK timeout helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Synthetic query failure events: `frontend/src/main/ipc/ipc_query_events.cjs`
-- Local backend bridge + utils: `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
+- Local-runtime bridge + utils: `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - Wakeword subprocess bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 
 Primary error-path tests:

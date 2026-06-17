@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 frontend local-runtime bridge guidance wording
+
+- Finding: active frontend and Electron-main routing docs still described the
+  SDK/main sidecar adapter as a local-backend or local-sidecar bridge in owner
+  maps, error matrices, IPC workflows, and protocol inventories.
+- Change: reworded those docs and RPC mapper test titles to use
+  local-runtime bridge terminology while keeping real `local_backend_*` file
+  names and Python `LocalBackend` method references intact.
+- Validation: docs listing, focused RPC mapper Jest run, bridge wording scan,
+  and diff check.
+- Compatibility: no migration required. This is docs and test-title wording
+  only.
+
 ### 2026-06-17 renderer runtime endpoint wrapper deletion
 
 - Finding: the renderer had converged on `RuntimeEndpointStore`, but still kept

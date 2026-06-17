@@ -1,4 +1,4 @@
-summary: "Electron main local-backend bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility ownership references."
+summary: "Electron main local-runtime bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility ownership references."
 read_when:
   - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
   - When tracing local-backend issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.

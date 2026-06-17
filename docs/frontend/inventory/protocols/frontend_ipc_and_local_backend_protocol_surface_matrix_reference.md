@@ -1,12 +1,12 @@
 ---
-summary: "Canonical frontend protocol matrix: preload allowlisted channels, main-process IPC handler ownership, and local-backend JSON-RPC method mappings with timeout/readiness behavior."
+summary: "Canonical frontend protocol matrix: preload allowlisted channels, main-process IPC handler ownership, and local-runtime JSON-RPC method mappings with timeout/readiness behavior."
 read_when:
   - When adding/changing renderer `window.ipc` channels.
-  - When updating main-process local-backend bridge methods, parameter mapping, or timeout policies.
+  - When updating main-process local-runtime bridge methods, parameter mapping, or timeout policies.
 title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
 ---
 
-# Frontend IPC and Local-Backend Protocol Surface Matrix Reference
+# Frontend IPC and Local-Runtime Protocol Surface Matrix Reference
 
 ## Renderer Invoke Channel Counts and Compiled RPC Mapper Definitions Snapshot (2026-06-16)
 

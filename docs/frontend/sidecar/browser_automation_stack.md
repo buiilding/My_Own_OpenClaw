@@ -136,7 +136,7 @@ Where errors are normalized:
 
 - `BrowserUseEngineRuntime` raises `BrowserActionError` with stable error codes
 - browser tool converts failures into `ToolResult` failures with `error_code`
-- local backend bridge maps JSON-RPC failures to `{ success: false, error }`
+- local-runtime bridge maps JSON-RPC failures to `{ success: false, error }`
 
 ## Related Pages
 

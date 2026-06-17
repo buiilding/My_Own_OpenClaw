@@ -21,7 +21,7 @@ Guard helper:
 
 - `withHiddenWindowForScreenshot({ resolveWindows, resolveChatWindow, resolveResponseWindow, task })`
 
-Used in local backend bridge:
+Used in local-runtime bridge:
 
 - wrapped around `execute-tool` only for screenshot tool requests
 

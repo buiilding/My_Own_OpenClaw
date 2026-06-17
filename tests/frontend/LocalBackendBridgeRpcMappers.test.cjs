@@ -8,13 +8,13 @@ const {
 } = require('../../frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs');
 
 describe('local_backend_bridge_rpc_mappers', () => {
-  test('local backend bridge does not expose direct memory storage', () => {
+  test('local runtime bridge does not expose direct memory storage', () => {
     expect(
       COMPILED_RPC_HANDLER_DEFINITIONS.map(definition => definition.channel),
     ).not.toContain('store-memory');
   });
 
-  test('local backend bridge does not define memory field aliases inline', () => {
+  test('local runtime bridge does not define memory field aliases inline', () => {
     const bridgePath = path.join(
       __dirname,
       '../../frontend/src/main/sidecar/local_backend_bridge.cjs',

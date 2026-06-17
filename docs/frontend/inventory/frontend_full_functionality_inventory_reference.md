@@ -61,7 +61,7 @@ Functionality:
 - Centralizes show/hide/main-window maximize/focus visibility flow in dedicated window visibility runtime helper.
 - Hidden chat/main window show paths reuse stored active display affinity when explicit target display is omitted, preserving monitor continuity for tray/hotkey/startup/lifecycle opens.
 - Keeps overlay query-capture prep blur-only and avoids cross-app focus restoration.
-- Routes screenshot tool execution through the SDK/main local-backend bridge, while computer-use dashboard-to-pill prep happens before sidecar execution in Electron main.
+- Routes screenshot tool execution through the SDK/main local-runtime bridge, while computer-use dashboard-to-pill prep happens before sidecar execution in Electron main.
 - Registers global wakeword hotkey and open-target window routing.
 - Enables VM-mode renderer query-flag boot and optional VM worker runtime startup from env-gated mode helpers.
 
