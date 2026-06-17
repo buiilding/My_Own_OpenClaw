@@ -24,13 +24,13 @@ function getReconnectDelayMs(attempt: number): number {
 
 /**
  * Custom hook for managing voice mode functionality.
- * Connects to the backend-owned transcription WebSocket, captures audio,
+ * Connects to the desktop transcription gateway, captures audio,
  * and handles transcription.
  * 
  * @param {boolean} enabled - Whether voice mode is enabled
  * @param {Function} onTranscriptionUpdate - Callback when transcription text updates
  * @param {Function} onUtteranceEnd - Callback when utterance ends (silence detected)
- * @param {string} gatewayUrl - Backend transcription WebSocket URL
+ * @param {string} gatewayUrl - Transcription gateway WebSocket URL
  * @returns {Object} - Voice mode state and controls
  */
 export function useVoiceMode(
@@ -80,7 +80,7 @@ export function useVoiceMode(
     setIsConnected(false);
   }, []);
 
-  // Connect to the backend-owned transcription WebSocket
+  // Connect to the desktop transcription gateway.
   const connectWebSocket = useCallback(() => {
     if (
       websocketRef.current

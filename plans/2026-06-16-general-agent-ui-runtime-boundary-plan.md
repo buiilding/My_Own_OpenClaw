@@ -432,3 +432,19 @@ Each completed slice should report:
 - Compatibility: no migration required. This is test-only wording cleanup; UI
   state, IPC status handling, voice runtime commands, and save-status timing are
   unchanged.
+
+### 2026-06-17 renderer voice transcription gateway wording
+
+- Finding: the renderer voice hook and deep reference described voice mode as
+  connecting to a backend-owned transcription websocket even though the hook
+  now delegates gateway URL creation, websocket creation, protocol messages, and
+  inbound normalization to `DesktopVoiceRuntimeClient`.
+- Change: updated hook comments, voice runtime boundary test wording, and the
+  voice gateway reference to describe the renderer as a desktop transcription
+  gateway consumer while keeping backend provider-policy ownership explicit.
+- Validation: focused Jest run for `VoiceModeHook` and
+  `RendererVoiceRuntimeBoundary`; docs listing; `git diff --check`; and a
+  stale-phrase scan for the retired backend-owned websocket wording.
+- Compatibility: no migration required. Gateway URL shape, websocket protocol,
+  audio framing, reconnect behavior, and backend provider routing are
+  unchanged.
