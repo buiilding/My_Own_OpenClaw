@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated active frontend architecture and IPC docs to describe renderer readiness as SDK local-runtime status while preserving compatibility channel names. No persisted-data migration is required.
+
 - Renamed Electron main local-runtime bridge diagnostic log labels from SidecarBridge to LocalRuntimeBridge. No persisted-data migration is required.
 
 - Removed the backend browser schema re-export wrapper so backend and sidecar browser validation load the shared browser contract directly. No persisted-data migration is required.

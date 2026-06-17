@@ -44,7 +44,7 @@ readiness/status broadcasts.
 | Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
 | Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-backend-status` events. |
-| Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-backend readiness. |
+| Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-runtime readiness. |
 | Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Owns the app-session `LocalBackend`, `/rpc` endpoint, local tools, memory, and chat-event storage. |
 
 ## Change Decision Tree
@@ -107,7 +107,7 @@ passed to the SDK provider before changing Python sidecar code.
 
 ## Renderer Consumer Rules
 
-Renderer readiness consumers should subscribe to `localRuntimeStatusStore` instead of invoking local-backend status repeatedly.
+Renderer readiness consumers should subscribe to `localRuntimeStatusStore` instead of invoking local-runtime status repeatedly.
 The store installs the live `local-backend-status` listener before starting the
 bootstrap `get-local-backend-status` read. If a live event arrives while the
 bootstrap read is pending, the bootstrap response is treated as stale and cannot
@@ -118,13 +118,13 @@ overwrite the newer event snapshot.
 | Browser session store | Disconnects and clears busy state while the local runtime is not ready; syncs browser session after readiness becomes true. |
 | Browser controls | Wait for readiness before issuing browser tool calls; the bootstrap status read is allowed to wake the SDK local runtime so the control does not wait forever on a runtime it never starts. |
 | Dashboard conversation retry paths | Treat local-runtime-not-ready as retryable through the desktop conversation library facade. |
-| Permission/browser probes | Use Electron main permission service and local-backend status helpers rather than direct process checks. |
+| Permission/browser probes | Use Electron main permission service and local-runtime status helpers rather than direct process checks. |
 
 ## Browser Session Diagnostics
 
 Use the persistent app diagnostics path `browser.session_control` when the
 browser header is disabled, stuck, or failing before a conversation turn exists.
-Renderer events record local-backend status observations and suppressed connect
+Renderer events record local-runtime status observations and suppressed connect
 attempts. Electron main events record status bootstrap wake success/failure,
 `local-backend-status` broadcasts, and summarized `run-browser-action` results.
 Rows must stay sanitized: store booleans, action names, status strings, counts,

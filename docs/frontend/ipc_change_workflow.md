@@ -61,7 +61,7 @@ When a symptom spans rows, start at the producer row. For example, if a renderer
 | --- | --- | --- |
 | Renderer emits fire-and-forget command to main | `SEND_CHANNELS` | Use only when renderer does not need a result and main can tolerate duplicate or late delivery. |
 | Renderer asks main for a result | `INVOKE_CHANNELS` | Prefer for local tool execution, config loads, permission probes, memory operations, artifact upload/fetch, and window commands needing success/failure. |
-| Main broadcasts events to renderer | `ON_CHANNELS` | Use for backend stream ingress, local-backend status, overlay phase, wakeword status, workspace updates, and window open targets. |
+| Main broadcasts events to renderer | `ON_CHANNELS` | Use for backend stream ingress, local-runtime status, overlay phase, wakeword status, workspace updates, and window open targets. |
 
 If a request/response needs correlation, use `invoke` or include an explicit id in the payload. Do not rely on event ordering across unrelated channels.
 
@@ -128,7 +128,7 @@ During editing:
 2. Keep the channel string centralized in `frontend/src/shared/ipcChannels.json`; do not inline new strings in renderer code.
 3. Keep renderer cleanup functions returned by `IpcBridge.on` wired into hook/component cleanup.
 4. Guard missing or destroyed BrowserWindow instances in main handlers that touch windows.
-5. Use existing timeout/readiness helpers for local backend requests instead of ad hoc timers.
+5. Use existing timeout/readiness helpers for local-runtime requests instead of ad hoc timers.
 6. Add deterministic logs only when the existing domain has a trace or diagnostic gate.
 
 Before committing:

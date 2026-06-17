@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Frontend docs local-runtime status wording
+
+- Finding: active frontend architecture and IPC docs still described renderer
+  readiness and host IPC surfaces with the compatibility channel wording even
+  though the owner is the SDK local-runtime status path.
+- Change: updated current docs prose to name local-runtime readiness/status and
+  local-runtime invoke payloads while preserving compatibility channel strings
+  such as `get-local-backend-status` and `local-backend-status`.
+- Validation: docs listing, focused stale wording scan, and diff check.
+- Compatibility: no migration required. Documentation-only change; IPC channel
+  names, tests, and runtime behavior remain unchanged.
+
 ### 2026-06-17 Main local-runtime bridge log labels
 
 - Finding: Electron main local-runtime bridge modules still emitted active

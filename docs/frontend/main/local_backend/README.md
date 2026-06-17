@@ -1,5 +1,5 @@
 ---
-summary: "Frontend Electron-main local-backend docs sub-hub for SDK local-runtime host/status context, readiness, request correlation timeouts, and mapped JSON-RPC handler contracts."
+summary: "Frontend Electron-main local-runtime docs sub-hub for SDK local-runtime host/status context, readiness, request correlation timeouts, and mapped JSON-RPC handler contracts."
 read_when:
   - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` request routing, readiness probes, or sidecar IPC handler registration.
   - When debugging pending-request timeouts, stale readiness callbacks, or renderer invoke payload mapping drift.

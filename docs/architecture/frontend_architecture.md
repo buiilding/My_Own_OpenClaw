@@ -250,9 +250,9 @@ Current ownership boundary:
 5. settings-backed macOS permissions now use a simple onboarding loop: `Grant` triggers the OS handoff, onboarding enters `Waiting...`, and short-lived re-probes flip rows to granted when the user returns from Screen Recording / Accessibility / Automation settings.
 6. onboarding is a dedicated primary surface, separate from both the dashboard and minimal chat pill, so main-window close/focus behavior no longer depends on dashboard tab-target state.
 
-### Local Sidecar Status Flow
+### Local Runtime Status Flow
 
-1. Main `local_backend_bridge.cjs` owns renderer-visible readiness state through `local_backend_supervisor.cjs`; SDK `AgentClient` owns the actual local runtime lifecycle.
+1. Main `local_backend_bridge.cjs` owns renderer-visible local-runtime readiness state through `local_backend_supervisor.cjs`; SDK `AgentClient` owns the actual local runtime lifecycle.
 2. Main emits `local-backend-status` renderer events when startup/ready/error state changes and exposes `get-local-backend-status` for initial snapshot reads.
 3. Renderer features that depend on local host capabilities should subscribe to that shared readiness surface instead of racing scoped host IPC calls during startup.
 4. `localRuntimeStatusStore` subscribes to live events before starting the bootstrap read, and ignores bootstrap responses if a newer live event arrived first.
@@ -261,7 +261,7 @@ Current ownership boundary:
 ### Browser Header Session Flow
 
 1. `ChatBrowserSessionControl` is intentionally UI-only. It delegates connect, disconnect, tab switching, and live tab refresh to `useBrowserSessionControl()`.
-2. `browserSessionStore` subscribes to the shared local-backend status store, blocks browser tool calls until readiness is confirmed, and exposes one snapshot to all renderer consumers.
+2. `browserSessionStore` subscribes to the shared local-runtime status store, blocks browser tool calls until readiness is confirmed, and exposes one snapshot to all renderer consumers.
 3. While connected, the browser-session store polls browser status/tab state every 2 seconds by default, and tightens to 1 second while the tab carousel is open.
 4. Tab switching from the header uses browser `switch` with `activate=false`, so WindieOS changes the internally controlled tab without bringing that tab to the foreground in the visible browser window.
 
@@ -295,7 +295,7 @@ Primary modules:
     boundary on WindieOS app paths; reusable launch helpers keep generic
     fallback wording.
   - Local browser warmup and OpenAI Codex OAuth callback copy should read from
-    this boundary on WindieOS app paths; local backend and OAuth helper modules
+    this boundary on WindieOS app paths; local-runtime and OAuth helper modules
     keep generic fallback wording.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
@@ -347,7 +347,7 @@ Primary modules:
 - `main/sidecar/local_backend_bridge.cjs`:
   - Registers scoped host IPC handlers for screenshot attachment, browser controls, system state, memory, and mapped local sidecar RPCs.
   - Uses `AgentClient` local-runtime resolvers from `ipc.cjs` as the only sidecar daemon lifecycle and RPC transport path.
-  - Uses `local_backend_supervisor.cjs` only for renderer-visible local-backend readiness/status snapshots.
+  - Uses `local_backend_supervisor.cjs` only for renderer-visible local-runtime readiness/status snapshots.
   - Keeps Electron-only screenshot display bounds, artifact upload, and window visibility behavior out of the SDK.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
   - Screenshot args include virtual desktop bounds so sidecar screenshot capture can keep monitor targeting deterministic; Windows/Linux crop from all-displays captures when needed, while macOS uses direct bounded capture to avoid Retina scaling drift.
