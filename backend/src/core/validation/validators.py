@@ -7,7 +7,7 @@ Provides Pydantic-based validation for all API inputs with consistent error hand
 import logging
 from typing import Any, Callable, Dict, Literal, Optional, Type, TypeVar
 from pydantic import BaseModel, ConfigDict, ValidationError as PydanticValidationError
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.validation.settings_update_rules import (
     validate_settings_update_field,
 )

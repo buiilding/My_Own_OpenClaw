@@ -9,7 +9,7 @@ import logging
 import threading
 from typing import Callable, List, Protocol
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 logger = logging.getLogger(__name__)
 

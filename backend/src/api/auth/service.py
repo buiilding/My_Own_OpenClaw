@@ -13,7 +13,7 @@ from typing import Optional
 from uuid import uuid4
 
 from backend.src.api.auth.context import AuthenticatedInstallIdentity
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 
 def _utc_now_iso() -> str:

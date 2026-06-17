@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.services.elevenlabs_tts_service import ElevenLabsTTSService
 from backend.src.core.services.speech_service import SpeechService
 from backend.src.core.services.tts_service import TTSService

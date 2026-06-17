@@ -4,7 +4,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.tools.computer.grounding_contract import (
     DragDestinationGroundingArgsMixin,

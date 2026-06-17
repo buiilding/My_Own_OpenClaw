@@ -15,7 +15,7 @@ from backend.src.agent.session.conversation_refs import (
 from backend.src.agent.session.session import AgentSession
 from backend.src.agent.session.session_config_service import SessionConfigService
 from backend.src.agent.session.session_registry import SessionRegistry
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.config.loader import (
     get_default_tts_model_path,
     load_api_key_for_provider,

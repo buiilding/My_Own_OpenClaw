@@ -9,7 +9,7 @@ from backend.src.api.services.transcription.openai_realtime import (
     OpenAIRealtimeTranscriptionSession,
 )
 from backend.src.api.services.transcription.protocol import TranscriptionProviderSession
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 
 def create_transcription_provider_session(config: AppConfig) -> TranscriptionProviderSession:

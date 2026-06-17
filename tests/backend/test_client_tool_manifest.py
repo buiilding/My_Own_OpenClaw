@@ -1,6 +1,6 @@
 """Covers client tool manifest behavior in the backend test suite."""
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor

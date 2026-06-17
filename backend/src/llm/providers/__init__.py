@@ -5,7 +5,7 @@ import logging
 import math
 from typing import Any, Dict, Optional, Tuple, Type
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.llm.providers.anthropic import AnthropicProvider
 from backend.src.llm.providers.base import LLMProvider
 from backend.src.llm.providers.gemini import GeminiProvider

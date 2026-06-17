@@ -10,7 +10,7 @@ from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.core.config import AppConfig
+    from backend.src.core.config.models import AppConfig
 
 logger = logging.getLogger(__name__)
 

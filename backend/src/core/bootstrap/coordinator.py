@@ -10,7 +10,7 @@ from typing import List, Optional, Tuple
 
 from backend.src.agent.session.manager import SessionManager
 from backend.src.core.bootstrap.handler_initializer import HandlerInitializer
-from backend.src.core.config import ConfigManager, get_config_manager
+from backend.src.core.config.manager import ConfigManager, get_config_manager
 from backend.src.core.container.facade import Container
 
 logger = logging.getLogger(__name__)

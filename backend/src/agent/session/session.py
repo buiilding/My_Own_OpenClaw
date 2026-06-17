@@ -45,7 +45,7 @@ from backend.src.agent.session.prompt_layers import (
     prompt_layer_rejected_reason_sample,
     validate_client_prompt_layers,
 )
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,

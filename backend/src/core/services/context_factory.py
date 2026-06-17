@@ -10,7 +10,7 @@ import os
 import time
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.sdk.context import (
     ExecutionRuntime,
     SessionContext,

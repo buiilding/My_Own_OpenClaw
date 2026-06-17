@@ -183,7 +183,7 @@ def load_settings_from_file(reload_module: bool = False) -> AppConfig:
     """
     try:
         # Import the config module to get the APP_CONFIG
-        from backend.src.core.config import app_config as config_module
+        import backend.src.core.config.app_config as config_module
 
         # Reload module only if explicitly requested (for reload_config)
         if reload_module:

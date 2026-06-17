@@ -9,7 +9,7 @@ import os
 from typing import Any, AsyncGenerator, Dict, Optional
 from urllib.parse import urlencode
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 logger = logging.getLogger(__name__)
 

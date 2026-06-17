@@ -17,7 +17,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 _SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+\.(png|jpg|jpeg)$")
 

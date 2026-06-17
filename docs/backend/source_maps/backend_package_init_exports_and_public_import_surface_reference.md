@@ -8,28 +8,20 @@ title: "Backend Package `__init__` Exports and Public Import Surface Reference"
 
 # Backend Package `__init__` Exports and Public Import Surface Reference
 
-This page documents backend package entrypoint surfaces that still publish
-curated import contracts. Empty marker-only `__init__.py` files are not kept;
-namespace packages are used for package directories whose callers import
-concrete modules directly.
-
-- `backend/src/core/config/__init__.py`
+This page documents backend package entrypoint surfaces and the rule that
+backend packages should not publish compatibility import facades. Empty
+marker-only `__init__.py` files are not kept; namespace packages are used for
+package directories whose callers import concrete modules directly.
 
 ## Import-Surface Contract
 
-`__init__.py` modules in backend serve two roles:
-
-- curated import surface (`from ... import ...`, `__all__`) for stable consumer paths
-
-Compatibility implication:
-
-- changing symbol exports in these files can break upstream imports even when implementation modules remain unchanged
+Backend package `__init__.py` files should not expose curated import surfaces
+or marker-only package files. Callers should import concrete owner modules so
+implementation boundaries remain visible.
 
 ## High-Value Export Aggregators
 
-Major aggregator files:
-
-- `backend/src/core/config/__init__.py`: runtime config models + loader/manager/runtime policy exports
+There are currently no backend package `__init__.py` export aggregators.
 
 ## Minimal/Marker Entrypoints
 
@@ -125,6 +117,12 @@ docstring or compatibility path.
 - `backend/src/core/container/__init__.py` is intentionally absent; import the
   runtime `Container` from `backend.src.core.container.facade` and concrete DI
   containers from their owner modules under `backend.src.core.container`.
+- `backend/src/core/config/__init__.py` is intentionally absent; import config
+  models from `backend.src.core.config.models`, managers from
+  `backend.src.core.config.manager`, loaders from
+  `backend.src.core.config.loader`, runtime policy helpers from
+  `backend.src.core.config.runtime`, and checked-in defaults from
+  `backend.src.core.config.app_config`.
 - `backend/src/core/events/__init__.py` is intentionally absent; import bus
   events from `backend.src.core.events.bus_events`, streaming events from
   `backend.src.core.events.streaming_events`, and the base event class from
@@ -204,12 +202,10 @@ contract or route-registration surface.
 
 ## `__all__` Governance
 
-Where present, `__all__` is treated as the canonical public symbol list.
-
-Change policy:
-
-- adding exports is additive and usually safe
-- removing/renaming exports is a compatibility break and should be accompanied by docs/changelog notes and import-path migration guidance
+Backend packages should not add `__all__` export aggregators. If a package
+entrypoint appears necessary, prefer documenting the concrete owner module or
+creating a focused owner module with tests instead of reintroducing a
+compatibility facade.
 
 ## Refactor Safety Checklist
 

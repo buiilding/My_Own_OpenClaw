@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Optional
 from backend.src.core.events.base import Event
 
 if TYPE_CHECKING:
-    from backend.src.core.config import AppConfig
+    from backend.src.core.config.models import AppConfig
 
 
 @dataclass

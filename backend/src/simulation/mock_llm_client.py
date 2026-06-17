@@ -8,7 +8,7 @@ This allows the simulation to run the exact same backend flow without actual LLM
 import platform
 from typing import Any
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.types.schemas import NormalizedLLMResponse, NormalizedToolCall
 from backend.src.llm.client import LLMClient
 from backend.src.simulation.base_mock_llm_client import BaseSimulationLLMClient

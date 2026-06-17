@@ -5,7 +5,8 @@ from typing import Any, Optional
 
 from dependency_injector import providers
 
-from backend.src.core.config import AppConfig, ConfigManager, get_config_manager
+from backend.src.core.config.models import AppConfig
+from backend.src.core.config.manager import ConfigManager, get_config_manager
 from backend.src.core.container.api_runtime import ApiRuntimeBinder
 from backend.src.core.container.application import ApplicationContainer
 from backend.src.core.container.config_updater import ContainerConfigUpdater

@@ -39,7 +39,7 @@ from backend.src.api.routes.sdk.models import (
     VisionLocateResponse,
     VisionTargetModel,
 )
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.inference.errors import ProviderCapabilityError
 from backend.src.core.types.enums import MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor

@@ -7,7 +7,7 @@ import logging
 import random
 from typing import Any, Dict
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 logger = logging.getLogger(__name__)
 

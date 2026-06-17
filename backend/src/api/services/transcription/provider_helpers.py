@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 
 def resolve_openai_api_key(config: AppConfig) -> str:

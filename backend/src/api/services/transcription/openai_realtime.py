@@ -21,7 +21,7 @@ from backend.src.api.services.transcription.protocol import (
 from backend.src.api.services.transcription.provider_helpers import (
     resolve_openai_api_key,
 )
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 logger = logging.getLogger(__name__)
 

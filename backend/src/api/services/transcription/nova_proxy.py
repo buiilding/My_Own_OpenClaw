@@ -13,7 +13,7 @@ from backend.src.api.services.transcription.protocol import (
     GatewayEventSender,
     TranscriptionProviderSession,
 )
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 
 class NovaProxyTranscriptionSession(TranscriptionProviderSession):

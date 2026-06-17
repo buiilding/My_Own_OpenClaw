@@ -7,7 +7,7 @@ from typing import Optional
 
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.transport.protocol import WebSocketSender
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.services.speech_service import SpeechService
 
 

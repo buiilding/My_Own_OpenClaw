@@ -7,7 +7,7 @@ import json
 import logging
 from typing import AsyncGenerator, List
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.client import LLMClient

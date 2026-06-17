@@ -13,7 +13,7 @@ from backend.src.agent.session.capability_application import (
     capability_config_overrides,
 )
 from backend.src.agent.session.prompt_layers import validate_client_prompt_layers
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.llm.prompts.prompts import render_contextual_system_prompt
 from backend.src.tools.client_manifest import validate_client_tool_manifest
 from backend.src.tools.provider_health import merge_unavailable_capabilities

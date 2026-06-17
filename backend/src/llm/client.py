@@ -10,7 +10,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional, TYPE_CHECKING
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
 from backend.src.core.infrastructure.error_types import LLMAPIError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse

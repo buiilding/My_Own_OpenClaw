@@ -9,7 +9,7 @@ import logging
 import uuid
 from typing import TYPE_CHECKING, Any, Optional
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

@@ -8,7 +8,7 @@ import logging
 import os
 from typing import Optional
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.interfaces.embedding import EmbeddingProvider
 from backend.src.embeddings.limited_provider import CapacityLimitedEmbeddingProvider
 from backend.src.embeddings.remote_provider import RemoteHttpEmbeddingProvider

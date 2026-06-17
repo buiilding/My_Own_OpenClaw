@@ -12,7 +12,7 @@ import queue
 import time
 from typing import Any, AsyncGenerator, Dict, Optional
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.services.tts_audio import prepare_audio_data, send_audio_chunk
 from backend.src.core.services.tts_buffer import SentenceBuffer
 from backend.src.core.services.tts_cuda import format_truncated_error, is_cuda_error

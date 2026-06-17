@@ -9,7 +9,7 @@ Uses Browser Use-backed browser actions instead of computer-use tools.
 
 from typing import Any
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.types.schemas import NormalizedLLMResponse, NormalizedToolCall
 from backend.src.llm.client import LLMClient
 from backend.src.simulation.base_mock_llm_client import BaseSimulationLLMClient

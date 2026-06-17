@@ -11,7 +11,8 @@ import logging
 import threading
 from typing import Any, Callable, Optional
 
-from backend.src.core.config import AppConfig, ConfigManager
+from backend.src.core.config.models import AppConfig
+from backend.src.core.config.manager import ConfigManager
 from backend.src.core.config.subscriptions import (
     ConfigSubscriber,
     ConfigSubscriptionManager,

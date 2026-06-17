@@ -10,7 +10,7 @@ from typing import Optional
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.transport.protocol import WebSocketSender
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
 from backend.src.core.services.speech_service import SpeechService
 from backend.src.core.services.speech_service_factory import create_speech_service

@@ -13,7 +13,7 @@ from backend.src.core.config.models import AppConfig
 
 
 def _set_disabled_tts_module_state(monkeypatch) -> None:
-    from backend.src.core.config import app_config
+    import backend.src.core.config.app_config as app_config
 
     monkeypatch.setattr(
         app_config,

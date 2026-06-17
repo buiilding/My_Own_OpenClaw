@@ -118,7 +118,7 @@ export KIMI_API_KEY="your-api-key"
 
 ```python
 from backend.src.llm.client import get_llm_client
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 
 config = AppConfig(...)
 llm_client = get_llm_client(config)

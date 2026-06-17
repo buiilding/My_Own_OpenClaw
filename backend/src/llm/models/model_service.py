@@ -12,7 +12,7 @@ import logging
 from collections.abc import Iterable
 from typing import Any, Awaitable, Dict, List, Optional, Sequence, Tuple
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.llm.models.models_config import (
     LOCAL_VISION_MODELS,
     ONLINE_MODELS,

@@ -25,7 +25,7 @@ import re
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Type, Union
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.error_types import InputSizeLimitError
 from backend.src.core.messages.content_blocks import extract_text_from_content_part
 from backend.src.core.messages.converters import content_to_message_content

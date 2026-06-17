@@ -9,7 +9,7 @@ from typing import Any
 
 from dependency_injector import providers
 
-from backend.src.core.config import AppConfig
+from backend.src.core.config.models import AppConfig
 from backend.src.core.container.factories import (
     _create_embedder,
     _create_ocr_provider,

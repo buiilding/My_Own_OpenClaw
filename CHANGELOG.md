@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the final core config package export so config callers import models, managers, loaders, runtime policy, and defaults from owner modules.
+
 - Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.
 
 - Main host: move WindieOS hosted backend defaults into host skin config while preserving backend endpoint resolution behavior.
