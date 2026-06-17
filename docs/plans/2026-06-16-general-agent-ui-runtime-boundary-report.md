@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `ae80ba6be` (`refactor(sdk): genericize generated agent ids`)
+- Latest inspected plan checkpoint: `0eb116782` (`refactor(preload): genericize sdk command diagnostics`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -27,7 +27,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   immediately with generic endpoint wording. SDK-generated default agent IDs
   now use generic `agent-*` values while the existing backend mode remains
   unchanged. Preload SDK-command validation failures use generic Agent SDK
-  wording while the `window.windie` bridge contract remains stable.
+  wording while the `window.windie` bridge contract remains stable. Python SDK
+  stream and trace-query fallback failures also use generic Agent SDK wording.
 
 ## Inspection Log
 
@@ -322,6 +323,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: invalid command names now reject with "Invalid Agent SDK command".
 - Change: missing SDK invoke channel validation now reports "Agent SDK invoke channel is not available".
 
+### 2026-06-16 Python SDK Diagnostic Slice
+
+- Worktree recovery: recent commits and the clean worktree were inspected before continuing.
+- Finding: Python SDK stream and trace-query fallback failures still used Windie-specific SDK wording even though they are reusable SDK client diagnostics.
+- Decision: keep the public Python `windie` package/API names unchanged, but make fallback runtime diagnostics generic Agent SDK wording.
+- Change: stream errors without a backend message now fall back to "Agent SDK stream failed".
+- Change: trace query timeout errors now say "Agent SDK trace query timed out...".
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -356,6 +365,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK managed endpoint validation rejects immediately with generic wording.
 - [x] SDK-generated default agent IDs use generic values while preserving backend mode contracts.
 - [x] Preload SDK-command bridge diagnostics use generic Agent SDK wording while preserving wire contracts.
+- [x] Python SDK stream/trace fallback diagnostics use generic Agent SDK wording while preserving public package names.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -450,6 +460,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "windie-default|windie-agent-" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend/WindieSdkClient.test.ts docs/sdk/windie_client_runtime.md -g "*.ts" -g "*.js" -g "*.cjs" -g "*.md"` found no matches.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/PreloadIpcChannels.test.cjs` passed.
 - `rg -n "Invalid Windie SDK command|Windie SDK invoke channel|Invalid Agent SDK command|Agent SDK invoke channel" frontend/src/preload.js tests/frontend/PreloadIpcChannels.test.cjs docs/plans/2026-06-16-general-agent-ui-runtime-boundary-report.md` found only the new generic preload wording.
+- `scripts\python-in-env sidecar -m pytest tests/sidecar/test_windie_sdk_client.py::test_trace_query_times_out_and_closes_websocket -q` passed.
+- `rg -n "Windie SDK stream failed|Windie SDK trace query|Agent SDK stream failed|Agent SDK trace query" frontend/src/main/python tests/sidecar -g "*.py"` found only the new generic Python SDK fallback wording.
 
 ## Remaining Findings
 
@@ -506,3 +518,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Preload SDK-command validation diagnostics now use generic Agent SDK wording.
   The `window.windie` bridge and `windie:invoke` channel remain the existing
   wire contracts.
+- Python SDK stream and trace-query fallback diagnostics now use generic Agent
+  SDK wording. Public Python package names remain unchanged.

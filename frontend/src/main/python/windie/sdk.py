@@ -784,7 +784,7 @@ class WindieSdkAgentSession:
             if event["type"] == "complete":
                 final_response = str(event.get("final_response") or "")
             elif event["type"] == "error":
-                raise Exception(str(event.get("message") or "Windie SDK stream failed"))
+                raise Exception(str(event.get("message") or "Agent SDK stream failed"))
         return final_response
 
     async def stream(
@@ -1688,7 +1688,7 @@ class WindieSdkClient(RemoteApiClientBase):
                         }
         except asyncio.TimeoutError as err:
             raise Exception(
-                f"Windie SDK trace query timed out after {timeout_seconds} seconds"
+                f"Agent SDK trace query timed out after {timeout_seconds} seconds"
             ) from err
         finally:
             await session.close()

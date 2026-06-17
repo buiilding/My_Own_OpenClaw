@@ -1013,7 +1013,7 @@ async def test_trace_query_times_out_and_closes_websocket():
     client._session = session
 
     with pytest.raises(
-        Exception, match="Windie SDK trace query timed out after 0.01 seconds"
+        Exception, match="Agent SDK trace query timed out after 0.01 seconds"
     ):
         await client.trace_query(
             query={
