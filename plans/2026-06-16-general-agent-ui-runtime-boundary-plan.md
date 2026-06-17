@@ -1937,3 +1937,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing `createWindieSdkBackendSocket`
   imports keep working, socket options and behavior are unchanged, and the
   public package entrypoint still exports both names.
+
+### 2026-06-17 Frontend architecture Agent SDK wording
+
+- Finding: current frontend architecture docs still described the renderer API
+  export surface and local-runtime lifecycle ownership with Windie-prefixed SDK
+  client names, even though the implementation now routes those concepts
+  through generic Agent SDK modules.
+- Change: updated the architecture map to describe Agent SDK client helpers and
+  `AgentClient` lifecycle ownership while leaving compatibility docs and
+  historical plan/report references untouched.
+- Validation: `bin\windie docs list`; `rg -n
+  "WindieSdkClient|WindieClient owns"
+  docs/architecture/frontend_architecture.md`; `git diff --check --
+  docs/architecture/frontend_architecture.md
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
+- Compatibility: no migration required. This is docs-only terminology cleanup
+  for the current architecture boundary.

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend architecture docs to describe Agent SDK client helpers and AgentClient local-runtime ownership.
+
 - Updated TypeScript and Python SDK package descriptions to generic agent wording while keeping package names and compatibility exports unchanged.
 
 - Reworded backend SDK tool template and transcription audio helper copy to generic agent-backend wording.
@@ -1757,6 +1759,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend architecture docs to describe Agent SDK client helpers and AgentClient local-runtime ownership.
+
 - Updated TypeScript and Python SDK package descriptions to generic agent wording while keeping package names and compatibility exports unchanged.
 
 - Reworded backend SDK tool template and transcription audio helper copy to generic agent-backend wording.
@@ -3407,6 +3411,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend architecture docs to describe Agent SDK client helpers and AgentClient local-runtime ownership.
+
 - Updated TypeScript and Python SDK package descriptions to generic agent wording while keeping package names and compatibility exports unchanged.
 
 - Reworded backend SDK tool template and transcription audio helper copy to generic agent-backend wording.
@@ -3711,6 +3717,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Updated frontend architecture docs to describe Agent SDK client helpers and AgentClient local-runtime ownership.
 
 - Updated TypeScript and Python SDK package descriptions to generic agent wording while keeping package names and compatibility exports unchanged.
 
@@ -4046,6 +4054,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Updated frontend architecture docs to describe Agent SDK client helpers and AgentClient local-runtime ownership.
 
 - Updated TypeScript and Python SDK package descriptions to generic agent wording while keeping package names and compatibility exports unchanged.
 
@@ -6337,6 +6347,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Updated frontend architecture docs to describe Agent SDK client helpers and AgentClient local-runtime ownership.
 
 - Updated TypeScript and Python SDK package descriptions to generic agent wording while keeping package names and compatibility exports unchanged.
 

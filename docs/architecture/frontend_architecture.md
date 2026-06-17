@@ -53,7 +53,7 @@ frontend/src/
 │   ├── features/dashboard                 # Sidebar, memory/models/settings/usage/search panels
 │   ├── features/voice                     # Voice mode + wakeword capture hooks
 │   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
-│       └── api/index.ts                   # Stable renderer API export surface for ApiClient + WindieSdkClient
+│       └── api/index.ts                   # Stable renderer API export surface for ApiClient + Agent SDK client helpers
 │       └── api/agentSdkClient.ts          # Developer-facing backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
 └── landing/                               # Marketing/landing surface
 ```
@@ -250,7 +250,7 @@ Current ownership boundary:
 
 ### Local Sidecar Status Flow
 
-1. Main `local_backend_bridge.cjs` owns renderer-visible readiness state through `local_backend_supervisor.cjs`; SDK `WindieClient` owns the actual local runtime lifecycle.
+1. Main `local_backend_bridge.cjs` owns renderer-visible readiness state through `local_backend_supervisor.cjs`; SDK `AgentClient` owns the actual local runtime lifecycle.
 2. Main emits `local-backend-status` renderer events when startup/ready/error state changes and exposes `get-local-backend-status` for initial snapshot reads.
 3. Renderer features that depend on local host capabilities should subscribe to that shared readiness surface instead of racing scoped host IPC calls during startup.
 4. `localRuntimeStatusStore` subscribes to live events before starting the bootstrap read, and ignores bootstrap responses if a newer live event arrived first.
