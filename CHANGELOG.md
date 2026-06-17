@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Make the TypeScript SDK high-level Agent class canonical while keeping WindieAgent as a compatibility alias.
+
 - Make the TypeScript SDK websocket AgentSession class canonical while keeping Windie-prefixed session exports as compatibility aliases.
 
 - Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
@@ -1729,6 +1731,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Make the TypeScript SDK high-level Agent class canonical while keeping WindieAgent as a compatibility alias.
+
 - Make the TypeScript SDK websocket AgentSession class canonical while keeping Windie-prefixed session exports as compatibility aliases.
 
 - Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
@@ -3351,6 +3355,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Make the TypeScript SDK high-level Agent class canonical while keeping WindieAgent as a compatibility alias.
+
 - Make the TypeScript SDK websocket AgentSession class canonical while keeping Windie-prefixed session exports as compatibility aliases.
 
 - Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
@@ -3627,6 +3633,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Make the TypeScript SDK high-level Agent class canonical while keeping WindieAgent as a compatibility alias.
 
 - Make the TypeScript SDK websocket AgentSession class canonical while keeping Windie-prefixed session exports as compatibility aliases.
 
@@ -3934,6 +3942,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Make the TypeScript SDK high-level Agent class canonical while keeping WindieAgent as a compatibility alias.
 
 - Make the TypeScript SDK websocket AgentSession class canonical while keeping Windie-prefixed session exports as compatibility aliases.
 
@@ -6197,6 +6207,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Make the TypeScript SDK high-level Agent class canonical while keeping WindieAgent as a compatibility alias.
 
 - Make the TypeScript SDK websocket AgentSession class canonical while keeping Windie-prefixed session exports as compatibility aliases.
 

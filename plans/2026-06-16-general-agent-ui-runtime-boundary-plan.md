@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK generic high-level agent class
+
+- Finding: `WindieClient` and package callers could use the generic `Agent`
+  alias, but the high-level SDK runtime object was still declared as the
+  `WindieAgent` class.
+- Change: made `Agent` the canonical high-level SDK class, kept `WindieAgent`
+  as the compatibility value/type alias, regenerated CJS output, and reused the
+  package-boundary alias coverage.
+- Validation: focused SDK package-boundary/type/CJS checks, docs listing, CJS
+  alias smoke, and diff check.
+- Compatibility: no migration required. Existing `WindieAgent` imports and
+  `new WindieAgent(...)` calls continue to construct the same SDK agent object.
+
 ### 2026-06-17 SDK generic agent session class
 
 - Finding: the SDK transport factory exposed generic session type aliases, but

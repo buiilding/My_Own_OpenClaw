@@ -3,7 +3,7 @@
  * Provides the reusable agent API module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Agent = exports.WindieAgent = void 0;
+exports.WindieAgent = exports.Agent = void 0;
 const events_js_1 = require("../conversation/events.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const metadata_js_1 = require("../conversation/metadata.js");
@@ -56,7 +56,7 @@ function unwrapLocalRuntimeRpcData(response, fallbackMessage) {
     }
     return record;
 }
-class WindieAgent {
+class Agent {
     constructor(id, session, agentDefinition, sdkClient, owner, localRuntime, userId = 'local-sdk-user', defaultConversationStore = new InMemoryConversationStore_js_1.InMemoryConversationStore(), memoryEnabled = true, localToolLifecycle) {
         this.id = id;
         this.session = session;
@@ -863,5 +863,5 @@ class WindieAgent {
         };
     }
 }
-exports.WindieAgent = WindieAgent;
-exports.Agent = WindieAgent;
+exports.Agent = Agent;
+exports.WindieAgent = Agent;

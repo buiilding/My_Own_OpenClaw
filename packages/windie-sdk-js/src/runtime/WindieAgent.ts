@@ -241,7 +241,7 @@ export type AgentPrepareRetryTurnOptions = RetryTurnInput & {
 
 export type WindiePrepareRetryTurnOptions = AgentPrepareRetryTurnOptions;
 
-export class WindieAgent {
+export class Agent {
   constructor(
     readonly id: string,
     readonly session: AgentSessionRuntime,
@@ -1159,5 +1159,5 @@ export class WindieAgent {
 
 }
 
-export type Agent = WindieAgent;
-export const Agent = WindieAgent;
+export type WindieAgent = Agent;
+export const WindieAgent = Agent;

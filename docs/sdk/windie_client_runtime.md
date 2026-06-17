@@ -111,7 +111,8 @@ Ownership rules:
   `ask`, `run`, `stream`, `chat`, model updates, conversation creation,
   conversation listing/search/loading/deletion over a store adapter, memory
   commands, title commands, system prompt/tool-schema commands, and artifact
-  helpers.
+  helpers. `Agent` is the canonical high-level SDK class; `WindieAgent` remains
+  the compatibility value/type alias for existing callers.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
