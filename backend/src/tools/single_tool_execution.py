@@ -22,36 +22,33 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _coerce_resolved_call(
+def _resolved_call_to_parsed_call(
     resolved_call: Any,
-    fallback_call: ParsedToolCall,
+    original_call: ParsedToolCall,
 ) -> ParsedToolCall:
     """
-    Convert a resolved-call object into ParsedToolCall.
+    Convert a stored ResolvedToolCall into ParsedToolCall.
 
-    Uses the current ``ResolvedToolCall`` attribute contract
-    (tool_name, parameters, metadata) and falls back
-    field-by-field to the original parsed call if any attribute
-    is missing or invalid.
+    Resolved-call storage has one contract: the ResolvedToolCall shape.
+    Invalid storage entries fail before waiting for local-runtime execution.
     """
-    tool_name = getattr(resolved_call, "tool_name", fallback_call.tool_name)
+    original_resolved_call = getattr(resolved_call, "original_call", None)
+    if not isinstance(original_resolved_call, ParsedToolCall):
+        raise TypeError("resolved tool-call storage returned an invalid object")
+    if not isinstance(resolved_call.tool_name, str) or not resolved_call.tool_name.strip():
+        raise TypeError("resolved tool-call storage returned an invalid tool name")
+    if not isinstance(resolved_call.parameters, dict):
+        raise TypeError("resolved tool-call storage returned invalid parameters")
+    if resolved_call.metadata is not None and not isinstance(resolved_call.metadata, dict):
+        raise TypeError("resolved tool-call storage returned invalid metadata")
 
-    raw_parameters = getattr(resolved_call, "parameters", fallback_call.parameters)
-    parameters = dict(raw_parameters) if isinstance(raw_parameters, dict) else dict(
-        fallback_call.parameters or {}
-    )
-
-    raw_metadata = getattr(resolved_call, "metadata", fallback_call.metadata)
-    metadata = (
-        dict(raw_metadata)
-        if isinstance(raw_metadata, dict)
-        else (dict(fallback_call.metadata) if isinstance(fallback_call.metadata, dict) else None)
-    )
+    metadata = dict(resolved_call.metadata) if resolved_call.metadata is not None else None
 
     return ParsedToolCall(
-        tool_name=tool_name,
-        parameters=parameters,
-        confidence=fallback_call.confidence,
+        tool_name=resolved_call.tool_name.strip(),
+        parameters=dict(resolved_call.parameters),
+        raw_call=original_call.raw_call,
+        confidence=original_call.confidence,
         metadata=metadata,
     )
 
@@ -94,6 +91,17 @@ async def execute_single_tool(
     if session_ref:
         resolved_call = session_ref.get_resolved_tool_call(request_id)
     
+    if resolved_call and not isinstance(getattr(resolved_call, "original_call", None), ParsedToolCall):
+        error = "resolved tool-call storage returned an invalid object"
+        logger.error("[request_id=%s] %s", request_id_short, error)
+        invalid_resolved_result = ToolResult(
+            success=False,
+            error=error,
+            output=f"Error: {error}",
+            data={"status": "invalid_resolved_tool_call"},
+        )
+        return create_tool_result_object(tool_call, invalid_resolved_result, execution_time=0)
+
     # STALE SCREEN EXECUTION FIX: Verify screenshot is still valid before execution
     # If the screen changed since coordinate resolution, the coordinates might point
     # to the wrong UI element, causing dangerous unintended actions.
@@ -129,11 +137,21 @@ async def execute_single_tool(
             )
             return create_tool_result_object(tool_call, stale_screen_result, execution_time=0)
     
-    # Use resolved call if available, otherwise fall back to original
-    # The resolved call has the same structure but with resolved coordinates
-    effective_tool_call = (
-        _coerce_resolved_call(resolved_call, tool_call) if resolved_call else tool_call
-    )
+    if resolved_call:
+        try:
+            effective_tool_call = _resolved_call_to_parsed_call(resolved_call, tool_call)
+        except TypeError as exc:
+            error = str(exc)
+            logger.error("[request_id=%s] %s", request_id_short, error)
+            invalid_resolved_result = ToolResult(
+                success=False,
+                error=error,
+                output=f"Error: {error}",
+                data={"status": "invalid_resolved_tool_call"},
+            )
+            return create_tool_result_object(tool_call, invalid_resolved_result, execution_time=0)
+    else:
+        effective_tool_call = tool_call
 
     result_storage = session_ref.get_result_storage()
 

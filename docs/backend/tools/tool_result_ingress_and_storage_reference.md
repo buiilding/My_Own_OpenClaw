@@ -135,6 +135,8 @@ Important behavior:
 Special safety guard:
 
 - if resolved coordinates were computed from stale screenshot ID, returns immediate safety failure result
+- if resolved-call storage returns a malformed value, returns immediate failure
+  instead of falling back to the original parsed tool arguments
 
 ### Bundle wait (`execute_bundle`)
 

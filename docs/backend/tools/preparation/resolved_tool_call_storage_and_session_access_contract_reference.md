@@ -70,12 +70,17 @@ Per-request resolved-call retrieval remains single-tool execution focused. Bundl
 
 1. reads request id from tool call metadata
 2. fetches resolved call via `session.get_resolved_tool_call(request_id)`
-3. if present, coerces resolved-call object into `ParsedToolCall` fallback-safe shape
-4. applies stale-screen guard before waiting
+3. if present, requires the value to have the valid `ResolvedToolCall` shape
+4. converts that resolved call into the `ParsedToolCall` shape used by result
+   objects
+5. applies stale-screen guard before waiting
 
 Fallback behavior:
 
 - if no resolved call, original parsed call is used
+- if resolved-call storage returns an invalid object or invalid resolved fields,
+  execution returns an immediate failed `ToolResult` instead of falling back to
+  original parsed parameters
 
 ## Stale-Screen Safety Coupling
 
@@ -111,6 +116,7 @@ This cleanup runs even when transform/commit path fails, preventing unbounded ma
 
 - stale-screen mismatch from resolved metadata triggers immediate failure
 - matching screenshot id allows normal wait/result flow
+- invalid resolved-call storage fails before local-runtime wait
 
 ## Drift Hotspots
 

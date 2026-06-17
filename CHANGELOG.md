@@ -50,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
   to generic desktop-agent terms.
 - frontend/main: use generic Agent SDK runtime wording for main IPC connection,
   wake-up, and query-send fallback logs.
+- frontend/main: rename main IPC's local SDK customer variables and exported
+  local-runtime resolver helpers to generic agent/client terms while preserving
+  public Windie SDK APIs.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead
@@ -91,6 +94,9 @@ All notable changes to WindieOS will be documented in this file.
   replay instead of accepting the singular `toolCall` alias.
 - backend/vision: require current Venus `transformers` dependencies at import
   time and drop unused `AutoModel` / `AutoTokenizer` dependency checks.
+- backend/tools: require resolved tool-call storage to return valid
+  `ResolvedToolCall` objects instead of falling back field-by-field to original
+  parsed tool arguments.
 - docs/sidecar: rename the sidecar registry reference around the native result
   contract and remove stale troubleshooting guidance for legacy dict returns.
 - tests/frontend/sidecar: remove stale deprecated-warning and legacy/unused

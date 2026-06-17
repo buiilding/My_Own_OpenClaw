@@ -1,8 +1,7 @@
-"""Covers single tool execution behavior in the backend test suite."""
+import asyncio
+from types import SimpleNamespace
 
 import pytest
-from types import SimpleNamespace
-import asyncio
 
 from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
 from backend.src.core.interfaces.tool import ToolResult
@@ -33,6 +32,23 @@ def _parsed_tool_call(tool_name: str, parameters: dict | None = None, request_id
         parameters=parameters or {},
         raw_call="{}",
         metadata=metadata,
+    )
+
+
+def _resolved_tool_call(
+    original_call: ParsedToolCall,
+    *,
+    tool_name: str | None = None,
+    parameters: dict | None = None,
+    metadata: dict | None = None,
+):
+    return SimpleNamespace(
+        original_call=original_call,
+        tool_name=tool_name or original_call.tool_name,
+        parameters=dict(parameters if parameters is not None else original_call.parameters),
+        metadata=dict(metadata) if metadata is not None else (
+            dict(original_call.metadata) if original_call.metadata is not None else None
+        ),
     )
 
 
@@ -67,11 +83,12 @@ async def test_execute_single_tool_missing_request_id_fails_fast():
 
 @pytest.mark.asyncio
 async def test_execute_single_tool_stale_screen_fails_fast():
-    resolved_call = SimpleNamespace(
-        metadata={"coordinate_resolution_screenshot_id": "old-shot"}
+    tool_call = _parsed_tool_call("click", request_id="req-1")
+    resolved_call = _resolved_tool_call(
+        tool_call,
+        metadata={"coordinate_resolution_screenshot_id": "old-shot"},
     )
     session = DummySession(resolved_call=resolved_call, current_screenshot_id="new-shot")
-    tool_call = _parsed_tool_call("click", request_id="req-1")
 
     result_obj = await execute_single_tool(tool_call, session)
 
@@ -92,11 +109,11 @@ async def test_execute_single_tool_uses_pending_result():
 
 
 @pytest.mark.asyncio
-async def test_execute_single_tool_resolved_call_without_to_parsed_call():
-    resolved_call = SimpleNamespace(
-        tool_name="click",
+async def test_execute_single_tool_uses_resolved_tool_call_contract():
+    tool_call = _parsed_tool_call("click", {"x": 1, "y": 2}, request_id="req-1")
+    resolved_call = _resolved_tool_call(
+        tool_call,
         parameters={"x": 100, "y": 200},
-        raw_call='{"functionCall":{"name":"click","args":{"x":100,"y":200}}}',
         metadata={
             "request_id": "req-1",
             "coordinate_resolution_screenshot_id": "same-shot",
@@ -107,7 +124,6 @@ async def test_execute_single_tool_resolved_call_without_to_parsed_call():
         current_screenshot_id="same-shot",
     )
 
-    tool_call = _parsed_tool_call("click", {"x": 1, "y": 2}, request_id="req-1")
     pending_result = _store_pending_result(session, "req-1")
 
     result_obj = await execute_single_tool(tool_call, session)
@@ -116,6 +132,40 @@ async def test_execute_single_tool_resolved_call_without_to_parsed_call():
     _assert_pending_result_consumed(session, "req-1")
     assert result_obj.tool_call.parameters == {"x": 100, "y": 200}
     assert result_obj.tool_call.metadata == resolved_call.metadata
+
+
+@pytest.mark.asyncio
+async def test_execute_single_tool_rejects_invalid_resolved_call_object():
+    session = DummySession(
+        resolved_call=object(),
+        current_screenshot_id="same-shot",
+    )
+    tool_call = _parsed_tool_call("click", {"x": 1, "y": 2}, request_id="req-1")
+    _store_pending_result(session, "req-1")
+
+    result_obj = await execute_single_tool(tool_call, session)
+
+    assert result_obj.success is False
+    assert result_obj.result.data["status"] == "invalid_resolved_tool_call"
+    assert "invalid object" in (result_obj.result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_execute_single_tool_rejects_invalid_resolved_parameters():
+    tool_call = _parsed_tool_call("click", {"x": 1, "y": 2}, request_id="req-1")
+    resolved_call = _resolved_tool_call(tool_call)
+    resolved_call.parameters = "not-a-dict"
+    session = DummySession(
+        resolved_call=resolved_call,
+        current_screenshot_id="same-shot",
+    )
+    _store_pending_result(session, "req-1")
+
+    result_obj = await execute_single_tool(tool_call, session)
+
+    assert result_obj.success is False
+    assert result_obj.result.data["status"] == "invalid_resolved_tool_call"
+    assert "invalid parameters" in (result_obj.result.error or "")
 
 
 @pytest.mark.asyncio
