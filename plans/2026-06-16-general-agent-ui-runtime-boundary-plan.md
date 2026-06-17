@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main SDK edit/retry alias rejection
+
+- Finding: Electron main SDK edit/retry command handling still accepted
+  `turn_ref` and `message_id` aliases even though renderer command facades use
+  SDK-shaped `turnRef` and `messageId` fields.
+- Change: made edit/retry command validation reject removed snake_case aliases
+  before agent work starts, updated command contract docs, and kept backend
+  query/event payload snake_case handling separate.
+- Validation: focused main SDK runtime boundary test, docs listing, and diff
+  check.
+- Compatibility: no migration required for current renderer callers; they send
+  camelCase edit/retry command fields. Stale command callers using `turn_ref`
+  or `message_id` must switch to `turnRef` and `messageId`.
+
 ### 2026-06-17 SDK stopQuery input alias rejection
 
 - Finding: `Agent.stop(...)` had already rejected snake_case stop options, but

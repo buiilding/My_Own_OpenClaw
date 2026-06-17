@@ -66,6 +66,15 @@ function optionalCommandConversationRef(payload = {}) {
   return normalizeOptionalString(payload.conversationRef);
 }
 
+function rejectRemovedEditRetryAliases(payload = {}) {
+  const removed = ['turn_ref', 'message_id'].filter(key => (
+    Object.prototype.hasOwnProperty.call(payload, key)
+  ));
+  if (removed.length > 0) {
+    throw new Error(`Agent SDK edit/retry commands require camelCase fields; removed field(s): ${removed.join(', ')}.`);
+  }
+}
+
 function requireCommandConversationRef(payload = {}) {
   const conversationRef = optionalCommandConversationRef(payload);
   if (!conversationRef) {
@@ -377,6 +386,7 @@ function buildAgentSdkCommandHandlers({
     [SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireCommandConversationRef(payload);
+      rejectRemovedEditRetryAliases(payload);
       const workspacePath = deps.resolveWorkspacePathForAgent(payload) || null;
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.prepareEditAndResend',
@@ -387,7 +397,7 @@ function buildAgentSdkCommandHandlers({
         conversationRef,
         messageId: requireCommandString(payload, 'messageId', 'message id'),
         text: requireCommandString(payload, 'text', 'replacement text'),
-        turnRef: normalizeOptionalString(payload.turnRef || payload.turn_ref) || undefined,
+        turnRef: normalizeOptionalString(payload.turnRef) || undefined,
         payload: cloneJsonObject(payload.payload),
         model: isPlainObject(payload.model) ? payload.model : undefined,
       });
@@ -400,17 +410,18 @@ function buildAgentSdkCommandHandlers({
     [SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireCommandConversationRef(payload);
+      rejectRemovedEditRetryAliases(payload);
       const workspacePath = deps.resolveWorkspacePathForAgent(payload) || null;
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.prepareRetryTurn',
         conversationRef,
         workspacePath,
       });
-      const messageId = normalizeOptionalString(payload.messageId || payload.message_id);
+      const messageId = normalizeOptionalString(payload.messageId);
       const prepared = await runtimeRegistry.prepareRetryTurn({
         conversationRef,
         ...(messageId ? { messageId } : {}),
-        turnRef: normalizeOptionalString(payload.turnRef || payload.turn_ref) || undefined,
+        turnRef: normalizeOptionalString(payload.turnRef) || undefined,
         payload: cloneJsonObject(payload.payload),
         model: isPlainObject(payload.model) ? payload.model : undefined,
       });

@@ -245,4 +245,39 @@ describe('main ipc sdk runtime boundary', () => {
     });
     expect(ensureAgent).not.toHaveBeenCalled();
   });
+
+  test('electron main rejects removed edit and retry SDK command aliases', async () => {
+    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const ensureAgent = jest.fn(async () => ({
+      prepareRetryTurn: jest.fn(async () => ({})),
+    }));
+
+    const result = await handleAgentSdkInvoke(
+      null,
+      {
+        command: 'conversation.prepareRetryTurn',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-1',
+          message_id: 'message-1',
+          turn_ref: 'turn-1',
+        },
+      },
+      {
+        deps: {
+          ensureAgent,
+          appendAppDiagnostic: jest.fn(input => input),
+          getState: () => ({
+            currentUserId: 'user-1',
+          }),
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Agent SDK edit/retry commands require camelCase fields; removed field(s): turn_ref, message_id.',
+    });
+    expect(ensureAgent).not.toHaveBeenCalled();
+  });
 });

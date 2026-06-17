@@ -54,9 +54,10 @@ library, transcript, memory, and diagnostics commands such as
 `memories.delete`, `conversations.clearAll`, and `diagnostics.append`.
 Those SDK-shaped library commands use canonical SDK object fields such as
 `userId`, `conversationRef`, `messageId`, and `turnRef`; removed snake_case
-input aliases such as `user_id` and `conversation_ref` are rejected at the
-Electron main validation boundary. Query transport payloads are the separate
-snake_case command contract described below.
+input aliases such as `user_id`, `conversation_ref`, `message_id`, and
+`turn_ref` are rejected at the Electron main validation boundary. Query
+transport payloads are the separate snake_case command contract described
+below.
 
 Electron main exports `handleAgentSdkInvoke(...)` as the `windie:invoke`
 boundary. Its internal command table uses those same `SDK_RUNTIME_COMMANDS`

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed `turn_ref` and `message_id` Electron main SDK edit/retry command aliases so those command inputs use canonical `turnRef` and `messageId`; no migration is required because current renderer facades already send camelCase fields.
+
 - Removed snake_case `AgentSessionRuntime.stopQuery(...)` input aliases so low-level SDK stop inputs use `conversationRef` and `turnRef` while backend transport adapters still emit `conversation_ref`/`turn_ref`; low-level callers using the removed aliases must switch to camelCase.
 
 - Removed the `conversation_ref` Electron main SDK command input alias so conversation-library commands validate only canonical `conversationRef`; the separate query transport keeps using `conversation_ref`. No migration is required because current renderer facades already send `conversationRef`.
