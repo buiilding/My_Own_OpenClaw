@@ -501,6 +501,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: changed model-visible executable browser descriptions and shared
   browser action metadata to generic dedicated-browser wording without changing
   action names, validation, or Browser Use ownership.
+- Finding: the sidecar executable shell manifest still described default
+  command directory behavior as the "WindieOS workspace folder" even though the
+  local tool contract is selected workspace context.
+- Change: updated the sidecar shell tool manifest and generated builtin
+  manifest snapshot to use generic selected-workspace wording.
 
 ## Remaining Findings
 
@@ -571,3 +576,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   instead of embedding Windie/WindieOS product naming in executable tool
   metadata. Browser docs still intentionally describe WindieOS ownership and
   trust boundaries.
+- Sidecar shell tool descriptions now refer to the selected workspace folder
+  instead of embedding WindieOS product naming in executable tool metadata.

@@ -66,7 +66,7 @@ TOOL_DESCRIPTIONS = {
     ),
     "run_shell_command": (
         "This tool executes shell commands on the local system. "
-        "Commands are executed in the specified directory (or the user-selected WindieOS workspace folder "
+        "Commands are executed in the specified directory (or the selected workspace folder "
         "when configured, otherwise the OS user home directory if not specified).\n\n"
         "Execution Modes:\n"
         "- Foreground (run_in_background=False): Blocks until command completion and returns output. "

@@ -273,8 +273,8 @@ class RunShellCommandArgs(BaseModel):
         None,
         description=(
             "Working directory. Absolute paths are allowed, and relative paths resolve from the "
-            "user-selected workspace folder when configured, otherwise from the OS user home directory. "
-            "If omitted, WindieOS uses that default base directory directly."
+            "selected workspace folder when configured, otherwise from the OS user home directory. "
+            "If omitted, the tool uses that default base directory directly."
         ),
     )
     run_in_background: bool = Field(..., description="Run command in background")

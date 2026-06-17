@@ -79,6 +79,8 @@ All notable changes to WindieOS will be documented in this file.
   local-runtime HTTP, and backend websocket transport construction.
 - frontend/sidecar: use generic dedicated-browser wording in executable
   browser tool descriptions and shared browser action metadata.
+- frontend/sidecar: use generic selected-workspace wording in the executable
+  shell tool manifest.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

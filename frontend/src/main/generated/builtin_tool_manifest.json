@@ -827,7 +827,7 @@
     },
     {
       "argument_resolution": "passthrough",
-      "description": "This tool executes shell commands on the local system. Commands are executed in the specified directory (or the user-selected WindieOS workspace folder when configured, otherwise the OS user home directory if not specified).\n\nExecution Modes:\n- Foreground (run_in_background=False): Blocks until command completion and returns output. Use terminate_after_seconds to set a timeout (default 120 seconds). If timeout is reached, the command is terminated and current output is returned. Backend-owned history projection handles any model-facing truncation.\n- Background (run_in_background=True): Starts the command and returns immediately with execution confirmation. Does not block for output or completion.\n- Yield (yield_after_seconds): Returns early if the command runs longer than the yield time; the command continues in the background and can be managed through the returned session.\n\nOperational Guidance:\n- Prefer short commands focused on one step per tool call.\n- Do not embed large inline file content (HTML/JSON/source blobs) directly in shell command arguments.\n- For creating or updating file contents, prefer dedicated file-edit capabilities before running shell commands.\n- Split large workflows into multiple tool calls rather than one giant command payload.\n- For detached GUI app launches, prefer the dedicated app-launch capability when appropriate.\n- For shell jobs you need to poll or terminate, keep run_in_background=True and manage through the returned session.\n- After launch, capture a delayed screen image when visual verification matters.\n- Use exact known window titles and deterministic focus checks when window targeting matters.\n\nOptional post-execution delay: when provided, the tool pauses for that many seconds and captures a screen image after execution. This is useful when the command opens a GUI application or makes visual changes that need to be captured.\n\nReturns: Command output, exit code, execution time, and any errors.",
+      "description": "This tool executes shell commands on the local system. Commands are executed in the specified directory (or the selected workspace folder when configured, otherwise the OS user home directory if not specified).\n\nExecution Modes:\n- Foreground (run_in_background=False): Blocks until command completion and returns output. Use terminate_after_seconds to set a timeout (default 120 seconds). If timeout is reached, the command is terminated and current output is returned. Backend-owned history projection handles any model-facing truncation.\n- Background (run_in_background=True): Starts the command and returns immediately with execution confirmation. Does not block for output or completion.\n- Yield (yield_after_seconds): Returns early if the command runs longer than the yield time; the command continues in the background and can be managed through the returned session.\n\nOperational Guidance:\n- Prefer short commands focused on one step per tool call.\n- Do not embed large inline file content (HTML/JSON/source blobs) directly in shell command arguments.\n- For creating or updating file contents, prefer dedicated file-edit capabilities before running shell commands.\n- Split large workflows into multiple tool calls rather than one giant command payload.\n- For detached GUI app launches, prefer the dedicated app-launch capability when appropriate.\n- For shell jobs you need to poll or terminate, keep run_in_background=True and manage through the returned session.\n- After launch, capture a delayed screen image when visual verification matters.\n- Use exact known window titles and deterministic focus checks when window targeting matters.\n\nOptional post-execution delay: when provided, the tool pauses for that many seconds and captures a screen image after execution. This is useful when the command opens a GUI application or makes visual changes that need to be captured.\n\nReturns: Command output, exit code, execution time, and any errors.",
       "executable_schema": {
         "additionalProperties": false,
         "description": "Arguments for shell command tool.",
@@ -838,7 +838,7 @@
           },
           "directory": {
             "default": null,
-            "description": "Working directory. Absolute paths are allowed, and relative paths resolve from the user-selected workspace folder when configured, otherwise from the OS user home directory. If omitted, WindieOS uses that default base directory directly.",
+            "description": "Working directory. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when configured, otherwise from the OS user home directory. If omitted, the tool uses that default base directory directly.",
             "type": "string"
           },
           "env": {
@@ -897,7 +897,7 @@
           },
           "directory": {
             "default": null,
-            "description": "Working directory. Absolute paths are allowed, and relative paths resolve from the user-selected workspace folder when configured, otherwise from the OS user home directory. If omitted, WindieOS uses that default base directory directly.",
+            "description": "Working directory. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when configured, otherwise from the OS user home directory. If omitted, the tool uses that default base directory directly.",
             "type": "string"
           },
           "env": {
@@ -1275,7 +1275,7 @@
     },
     {
       "argument_resolution": "passthrough",
-      "description": "Control the WindieOS browser instance for navigation, extraction, page interaction, tab management, and screenshots.",
+      "description": "Control the dedicated browser instance for navigation, extraction, page interaction, tab management, and screenshots.",
       "executable_schema": {
         "additionalProperties": false,
         "description": "Canonical grouped browser action payload. Provide a top-level explanation and the fields for the selected action only. Action-specific field requirements are enforced by runtime validation.",

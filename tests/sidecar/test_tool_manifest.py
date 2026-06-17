@@ -84,6 +84,20 @@ def test_registry_tool_manifest_contains_builtin_schemas():
     assert all("executable_schema" in tool for tool in manifest["tools"])
 
 
+def test_build_sidecar_tool_manifest_uses_generic_workspace_description():
+    manifest = build_sidecar_tool_manifest({"run_shell_command"})
+    [shell_tool] = manifest["tools"]
+
+    assert "selected workspace folder" in shell_tool["description"]
+    assert "WindieOS workspace" not in shell_tool["description"]
+    for schema_key in ("schema", "executable_schema"):
+        directory_description = shell_tool[schema_key]["properties"]["directory"][
+            "description"
+        ]
+        assert "selected workspace folder" in directory_description
+        assert "WindieOS uses" not in directory_description
+
+
 def test_build_sidecar_tool_manifest_omits_unknown_schema_names():
     manifest = build_sidecar_tool_manifest({"read_file", "missing_tool"})
 
