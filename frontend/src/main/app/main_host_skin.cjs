@@ -16,7 +16,7 @@ const identity = Object.freeze({
 });
 
 const browserAutomation = Object.freeze({
-  localBackendNotReady: `${productName} local backend is not ready. Wait a moment and retry Enable.`,
+  localBackendNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
     'Browser automation is enabled, but no compatible Chrome or Chromium browser was found. '
     + `Click Grant to install Chromium for ${productName}.`

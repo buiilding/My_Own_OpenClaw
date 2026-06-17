@@ -124,6 +124,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: prefer local-runtime transient error wording in the
   desktop conversation library facade while retaining legacy local-backend
   retry matching.
+- frontend/main: update browser automation readiness copy to describe the local
+  runtime instead of the local backend.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

@@ -178,3 +178,15 @@ Each completed slice should report:
   `DashboardConversationLoad`.
 - Compatibility: no migration required. Existing local-backend error text still
   triggers retry behavior.
+
+### 2026-06-17 main browser automation readiness copy
+
+- Finding: the WindieOS host skin still presented browser automation startup
+  failure copy as "local backend" readiness even though the host adapter depends
+  on the SDK local runtime.
+- Change: updated the user-facing copy to local-runtime wording while preserving
+  the injected `localBackendNotReady` key used by existing permission adapter
+  wiring.
+- Validation: focused Jest run for `MainHostSkinBoundary`.
+- Compatibility: no migration required. Main-process injection keys remain
+  unchanged.

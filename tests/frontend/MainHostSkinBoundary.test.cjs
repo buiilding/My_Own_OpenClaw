@@ -73,6 +73,7 @@ describe('main host skin/config boundary', () => {
     expect(source).toContain('macAutomationCopy.probeFailure');
     expect(source).toContain('macAutomationCopy.requestFailure');
     expect(source).not.toContain('WindieOS local backend is not ready.');
+    expect(source).not.toContain('WindieOS local runtime is not ready.');
     expect(source).not.toContain('Click Grant to install Chromium for WindieOS.');
     expect(source).not.toContain('Reinstall WindieOS or install browser feature pack dependencies.');
     expect(source).not.toContain('Failed to open the WindieOS browser.');
@@ -155,6 +156,13 @@ describe('main host skin/config boundary', () => {
     expect(oauthHandlerSource).toContain('oauthCopy.loginFailure');
     expect(oauthHandlerSource).not.toContain('OpenAI Codex OAuth login failed.');
     expect(oauthHandlerSource).not.toContain('OpenAI Codex OAuth sign-out failed.');
+  });
+
+  test('host skin local readiness copy uses local-runtime wording', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+
+    expect(skinSource).toContain('local runtime is not ready');
+    expect(skinSource).not.toContain('local backend is not ready');
   });
 
   test('main-private host markers use generic desktop-agent naming', () => {
