@@ -120,6 +120,32 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK metadata row alias rejection
+
+- Finding: `LocalRuntimeConversationStore` still accepted camelCase metadata-row
+  aliases from sidecar conversation list/search responses even though the
+  local-runtime database emits canonical snake_case row fields.
+- Change: narrowed metadata row parsing to canonical sidecar fields such as
+  `conversation_id`, `revision_id`, `last_timestamp`, `entry_count`,
+  `workspace_path`, `workspace_name`, and `matched_role`, with checked-in CJS
+  parity and focused store API coverage for ignored camel-only rows.
+- Validation: focused Agent conversation store API test.
+- Compatibility: no migration required. Current sidecar-produced metadata rows
+  already use snake_case fields; stale camel-only rows are ignored at the SDK
+  store boundary.
+
+### 2026-06-17 main SDK command user alias rejection
+
+- Finding: Electron main SDK command validation still accepted the removed
+  `user_id` input alias even though renderer conversation-library command
+  facades send SDK-shaped `userId` payloads.
+- Change: made command user validation and diagnostics read only `userId`,
+  updated the command contract docs/tests, and kept the separate snake_case
+  query transport contract untouched.
+- Validation: focused main SDK runtime boundary test.
+- Compatibility: no migration required for current renderer callers; they send
+  `userId`. Stale command callers using `user_id` must switch to `userId`.
+
 ### 2026-06-17 SDK local-runtime title invalidation alias removal
 
 - Finding: SDK conversation continuity still normalized local-runtime
