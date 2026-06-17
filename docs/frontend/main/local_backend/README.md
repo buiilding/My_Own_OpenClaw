@@ -15,7 +15,7 @@ title: "Frontend Main Local-Backend Docs Hub"
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Local-Backend Windows Docs Hub](windows/README.md)
-- [Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Reference](windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
+- [Window Resolver Shapes and Screenshot Task Routing Reference](windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Start Here By Task
 
@@ -31,7 +31,7 @@ title: "Frontend Main Local-Backend Docs Hub"
 - [Local Backend Bridge Handler and Window Guard Reference](../local_backend_bridge_handler_and_window_guard_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](../display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Main Overlay Focus Docs Hub](../overlays/README.md)
-- [Linux Screenshot Window Visibility Runtime Dispatch Reference](../overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Linux Screenshot Window Visibility Reference](../overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 
 ## Code Scope
 

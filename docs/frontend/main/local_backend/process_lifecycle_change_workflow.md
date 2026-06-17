@@ -24,7 +24,7 @@ flowchart LR
   Daemon --> LocalBackend["LocalBackend"]
   SDKProvider --> Supervisor["local_backend_supervisor"]
   Supervisor --> Status["local-backend-status broadcast"]
-  Status --> RendererStore["localBackendStatusStore"]
+  Status --> RendererStore["localRuntimeStatusStore"]
   RendererStore --> Consumers["browser session, permissions, dashboard retries"]
   SDKProvider --> Rpc["SDK SidecarDaemonHttpClient /rpc"]
 ```
@@ -43,7 +43,7 @@ readiness/status broadcasts.
 | Timeout policy | `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |
 | Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
-| Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localBackendStatusStore.js` | Bootstraps current status and subscribes to `local-backend-status` events. |
+| Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-backend-status` events. |
 | Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-backend readiness. |
 | Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Owns the app-session `LocalBackend`, `/rpc` endpoint, local tools, memory, and chat-event storage. |
 
@@ -54,7 +54,7 @@ readiness/status broadcasts.
 | Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | SDK auto-sidecar launch options | `sdk_sidecar_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
 | `local-backend-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalBackendStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalSidecarRuntime.ts`, bridge lifecycle/RPC tests |
-| Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localBackendStatusStore.js`, `browserSessionStore.js`, browser control tests |
+| Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
 | Local tool result shape is wrong after sidecar executes | Tool execution contract, not lifecycle | [Sidecar Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
 
@@ -106,7 +106,7 @@ passed to the SDK provider before changing Python sidecar code.
 
 ## Renderer Consumer Rules
 
-Renderer readiness consumers should subscribe to `localBackendStatusStore` instead of invoking local-backend status repeatedly.
+Renderer readiness consumers should subscribe to `localRuntimeStatusStore` instead of invoking local-backend status repeatedly.
 The store installs the live `local-backend-status` listener before starting the
 bootstrap `get-local-backend-status` read. If a live event arrives while the
 bootstrap read is pending, the bootstrap response is treated as stale and cannot
@@ -138,7 +138,7 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 | --- | --- | --- |
 | SDK provider cannot start daemon | Check launch target, missing command/script errors, launch context, and SDK provider error. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `LocalSidecarRuntime.ts` |
 | Daemon starts but helper RPC fails | Check SDK `/rpc` unwrapping and daemon `LocalBackend.protocol.handle_request(...)`. | `LocalSidecarRuntime.ts`, `sidecar_daemon.py`, `local_backend.py` |
-| Ready event reaches main but renderer still disabled | Check `get-local-backend-status` bootstrap invoke and `local-backend-status` listener cleanup. | `localBackendStatusStore.js` |
+| Ready event reaches main but renderer still disabled | Check `get-local-backend-status` bootstrap invoke and `local-backend-status` listener cleanup. | `localRuntimeStatusStore.js` |
 | Browser controls stuck | Check browser session readiness handler and the first browser status/sync request after readiness. | `browserSessionStore.js` |
 | Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `docs/operations/release_packaging_change_workflow.md` |
 

@@ -110,6 +110,8 @@ All notable changes to WindieOS will be documented in this file.
   skin copy with provider-neutral OAuth defaults.
 - frontend/renderer: rename the local backend status store boundary to local
   runtime status while preserving existing IPC channel names.
+- docs/frontend: align local-runtime status store and screenshot task seam
+  references with the current renderer and Electron main module boundaries.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

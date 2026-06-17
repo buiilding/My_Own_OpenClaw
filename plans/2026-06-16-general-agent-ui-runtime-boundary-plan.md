@@ -131,3 +131,15 @@ Each completed slice should report:
   `BrowserSessionStore`, and `UseDashboardConversations`.
 - Compatibility: no migration required. IPC channel names and browser-session
   `localBackendReady` compatibility fields remain unchanged.
+
+### 2026-06-17 main screenshot task seam
+
+- Finding: Electron main still had a screenshot visibility platform module whose
+  only behavior was to call the provided task, leaving a duplicate ownership
+  hop in the local screenshot execution path.
+- Change: deleted the pass-through module and kept
+  `local_backend_bridge_window_visibility.cjs` as the direct screenshot task
+  seam while updating docs to describe the current owner.
+- Validation: focused Jest run for `LocalBackendBridgeWindowVisibility`.
+- Compatibility: no migration required. Screenshot tool routing and task error
+  propagation remain unchanged.
