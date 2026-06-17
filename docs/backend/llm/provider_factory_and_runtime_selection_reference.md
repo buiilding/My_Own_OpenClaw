@@ -42,7 +42,7 @@ Normalization behaviors:
 
 - Kimi provider names `kimi-coding` and `kimi_coding` collapse to
   `kimi-coding`; old `kimi-code` / `kimi_code` provider aliases are not
-  accepted
+  accepted and fail in provider-name normalization
 - provider names are lowercased and trimmed, but internal whitespace is not
   rewritten into provider-key punctuation
 - base URLs trimmed and trailing slash normalized
