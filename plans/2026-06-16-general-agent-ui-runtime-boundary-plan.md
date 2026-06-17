@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Backend tool descriptions use generic local-runtime copy
+
+- Finding: backend model-visible tool descriptions still referred to the
+  "WindieOS workspace", "WindieOS browser", and "hosted WindieOS backend" even
+  though these schemas describe generic local runtime workspace, dedicated
+  browser, and hosted-backend tool contracts.
+- Change: updated system, browser, and remote web-search tool descriptions plus
+  focused backend expectations to use generic workspace/browser/backend wording.
+- Validation: Python syntax compile, stale-copy source scan, and diff check.
+  The focused backend pytest command could not collect in this workspace because
+  the `jarvis` conda environment is unavailable and the fallback Python lacks
+  `fastapi`.
+- Compatibility: no migration required. Tool names, argument schemas,
+  validation probes, policy gates, and provider-visible field shapes are
+  unchanged.
+
 ### 2026-06-17 Current docs route to Agent runtime modules
 
 - Finding: current architecture, routing, debugging, and API docs still pointed

@@ -38,7 +38,7 @@ def test_run_shell_command_schema_is_direct_and_requires_explanation():
         in parameters["properties"]["command"]["description"]
     )
     assert (
-        "relative paths resolve from the user-selected WindieOS workspace folder"
+        "relative paths resolve from the user-selected workspace folder"
         in parameters["properties"]["directory"]["description"]
     )
 

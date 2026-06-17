@@ -20,7 +20,7 @@ from backend.src.tools.tool_specs import build_function_tool_spec
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
     name = "browser"
     description = (
-        "Control the WindieOS browser instance for navigation, extraction, page "
+        "Control the dedicated browser instance for navigation, extraction, page "
         "interaction, tab management, and screenshots."
     )
     args_model = BrowserControlArgs

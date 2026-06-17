@@ -14,7 +14,7 @@ def build_remote_tool_catalog(config: Any) -> dict[str, list[dict[str, Any]]]:
         "remote_tools": [
             {
                 "name": "web_search",
-                "description": "Search the web through the hosted WindieOS backend.",
+                "description": "Search the web through the hosted backend.",
                 "enabled": web_search_available,
                 "available": web_search_available,
                 "reason_unavailable": (

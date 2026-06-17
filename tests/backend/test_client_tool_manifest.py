@@ -550,7 +550,7 @@ def test_remote_tool_catalog_reports_web_search_availability(monkeypatch):
     assert catalog["remote_tools"] == [
         {
             "name": "web_search",
-            "description": "Search the web through the hosted WindieOS backend.",
+            "description": "Search the web through the hosted backend.",
             "enabled": False,
             "available": False,
             "reason_unavailable": "No native provider search mode or Brave fallback is available.",

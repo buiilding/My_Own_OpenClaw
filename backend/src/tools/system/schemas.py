@@ -32,8 +32,8 @@ class RunShellCommandArgs(BaseModel):
         None,
         description=(
             "(OPTIONAL) Working directory. Absolute paths are allowed, and relative paths "
-            "resolve from the user-selected WindieOS workspace folder when configured, "
-            "otherwise from the OS user home directory. If omitted, WindieOS uses that "
+            "resolve from the user-selected workspace folder when configured, "
+            "otherwise from the OS user home directory. If omitted, the runtime uses that "
             "default base directory directly."
         ),
     )
