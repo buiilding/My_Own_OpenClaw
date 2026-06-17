@@ -16,7 +16,7 @@ const identity = Object.freeze({
 });
 
 const browserAutomation = Object.freeze({
-  localBackendNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
+  localRuntimeNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
     'Browser automation is enabled, but no compatible Chrome or Chromium browser was found. '
     + `Click Grant to install Chromium for ${productName}.`
@@ -92,7 +92,7 @@ const bundledRuntime = Object.freeze({
   ),
 });
 
-const localBackend = Object.freeze({
+const localRuntime = Object.freeze({
   browserWarmupExplanation: `Open the ${productName} browser for onboarding and profile setup.`,
 });
 
@@ -107,7 +107,7 @@ const mainHostSkin = Object.freeze({
   identity,
   queryEvents,
   bundledRuntime,
-  localBackend,
+  localRuntime,
   openAICodexOAuth,
   permissions: Object.freeze({
     browserAutomation,

@@ -185,11 +185,10 @@ Each completed slice should report:
   failure copy as "local backend" readiness even though the host adapter depends
   on the SDK local runtime.
 - Change: updated the user-facing copy to local-runtime wording while preserving
-  the injected `localBackendNotReady` key used by existing permission adapter
-  wiring.
+  the then-current permission adapter wiring; a later main host skin slice
+  renames the injected key to local-runtime terminology.
 - Validation: focused Jest run for `MainHostSkinBoundary`.
-- Compatibility: no migration required. Main-process injection keys remain
-  unchanged.
+- Compatibility: no migration was required for that copy-only slice.
 
 ### 2026-06-17 sidecar browser helper copy
 
@@ -532,4 +531,18 @@ Each completed slice should report:
   stale-name scans for the retired local handler/status wording.
 - Compatibility: no migration required. `get-local-backend-status`,
   `local-backend-status`, and `backend_status` compatibility payload names are
+  unchanged.
+
+### 2026-06-17 main host skin local runtime copy
+
+- Finding: the WindieOS main host skin exposed local-runtime readiness and
+  browser warmup copy through backend-prefixed skin keys even though the main
+  process now adapts an SDK local runtime bridge.
+- Change: renamed the internal host-skin copy keys and bridge locals to
+  local-runtime terminology, and updated the host-skin boundary test to require
+  the new names.
+- Validation: focused Jest run for `MainHostSkinBoundary`; docs listing; `git
+  diff --check`; and stale-name scans for the retired skin/bridge copy names.
+- Compatibility: no migration required. Public bridge filenames, exported
+  bridge functions, IPC channel names, and compatibility payload fields are
   unchanged.

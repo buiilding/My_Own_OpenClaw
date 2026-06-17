@@ -503,7 +503,7 @@ function initializeMainProcessIpc() {
         if (!localRuntimeStatus || localRuntimeStatus.success !== true || typeof localRuntimeStatus.data !== 'object') {
           return {
             granted: false,
-            reason: browserAutomationCopy.localBackendNotReady,
+            reason: browserAutomationCopy.localRuntimeNotReady,
             details: {
               backend_status: localRuntimeStatus,
             },

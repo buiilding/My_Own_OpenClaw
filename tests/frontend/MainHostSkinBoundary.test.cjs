@@ -55,7 +55,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('logPrefix');
     expect(skinSource).toContain('browserAutomation');
     expect(skinSource).toContain('macAutomation');
-    expect(skinSource).toContain('localBackendNotReady');
+    expect(skinSource).toContain('localRuntimeNotReady');
     expect(skinSource).toContain('installBrowserPrompt');
     expect(skinSource).toContain('installDialogMessage');
     expect(skinSource).toContain('openProfileAction');
@@ -69,7 +69,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('bundledRuntime');
     expect(skinSource).toContain('missingPythonRuntime');
     expect(skinSource).toContain('missingWakewordExecutable');
-    expect(skinSource).toContain('localBackend');
+    expect(skinSource).toContain('localRuntime');
     expect(skinSource).toContain('browserWarmupExplanation');
     expect(skinSource).toContain('openAICodexOAuth');
     expect(skinSource).toContain('tokenExchangeFailure');
@@ -81,7 +81,7 @@ describe('main host skin/config boundary', () => {
     const source = fs.readFileSync(indexPath, 'utf8');
 
     expect(source).toContain("require('./app/main_host_skin.cjs')");
-    expect(source).toContain('browserAutomationCopy.localBackendNotReady');
+    expect(source).toContain('browserAutomationCopy.localRuntimeNotReady');
     expect(source).toContain('browserAutomationCopy.installBrowserPrompt');
     expect(source).toContain('macAutomationCopy.probeFailure');
     expect(source).toContain('macAutomationCopy.requestFailure');
@@ -152,13 +152,13 @@ describe('main host skin/config boundary', () => {
     }
   });
 
-  test('local backend and OAuth helpers consume host copy with generic defaults', () => {
+  test('local runtime and OAuth helpers consume host copy with generic defaults', () => {
     const localBackendSource = fs.readFileSync(localBackendBridgePath, 'utf8');
     const oauthSource = fs.readFileSync(openAICodexOAuthPath, 'utf8');
     const oauthHandlerSource = fs.readFileSync(openAICodexOAuthHandlersPath, 'utf8');
 
     expect(localBackendSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
-    expect(localBackendSource).toContain('localBackendCopy.browserWarmupExplanation');
+    expect(localBackendSource).toContain('localRuntimeCopy.browserWarmupExplanation');
     expect(localBackendSource).toContain('Agent SDK local runtime resolver is unavailable.');
     expect(localBackendSource).not.toContain('Windie SDK local runtime');
     expect(localBackendSource).not.toContain('Open the WindieOS browser');

@@ -58,7 +58,7 @@ let sdkLocalRuntimeSnapshot = null;
 let sdkStatusMainWindow = null;
 let getKnownLocalRuntime = null;
 let ensureLocalRuntime = null;
-let localBackendCopy = Object.freeze({
+let localRuntimeCopy = Object.freeze({
   browserWarmupExplanation: DEFAULT_BROWSER_WARMUP_EXPLANATION,
 });
 
@@ -382,10 +382,10 @@ async function loadArtifactUploadHeaders() {
 
 function initializeLocalBackendBridge(getWindows, options = {}) {
   const isPackaged = options.isPackaged === true;
-  const nextLocalBackendCopy = options.mainHostSkin?.localBackend || options.copy || {};
-  localBackendCopy = Object.freeze({
+  const nextLocalRuntimeCopy = options.mainHostSkin?.localRuntime || options.copy || {};
+  localRuntimeCopy = Object.freeze({
     browserWarmupExplanation: (
-      nextLocalBackendCopy.browserWarmupExplanation
+      nextLocalRuntimeCopy.browserWarmupExplanation
       || DEFAULT_BROWSER_WARMUP_EXPLANATION
     ),
   });
@@ -628,7 +628,7 @@ async function warmBrowserAutomation() {
       tool_name: 'browser',
       args: {
         action: 'connect',
-        explanation: localBackendCopy.browserWarmupExplanation,
+        explanation: localRuntimeCopy.browserWarmupExplanation,
       },
     },
     { timeoutMs: 120000 },
