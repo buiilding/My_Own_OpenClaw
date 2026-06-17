@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK websocket handshake OS field deletion
+
+- Finding: SDK websocket transports still emitted `operating_system` as a
+  top-level handshake field after backend capability input moved under
+  `agent_definition`.
+- Change: added a shared SDK handshake builder that writes OS facts to
+  `agent_definition.runtime.operating_system`, switched direct and managed
+  sessions to that shape, updated generated CJS parity output, and added
+  websocket contract coverage proving the top-level field is absent.
+- Validation: focused SDK client and frontend/backend websocket contract Jest
+  tests, SDK package build, docs listing, stale top-level capability scan, and
+  diff check. The first focused test attempt failed because it raced the SDK
+  build cleaning CJS output; rerunning after the build passed.
+- Compatibility: no migration required for first-party code. SDK handshakes now
+  send OS facts through `agent_definition.runtime.operating_system`.
+
 ### 2026-06-17 Renderer desktopAgent browser global alias deletion
 
 - Finding: preload still exposed the SDK command bridge as both
