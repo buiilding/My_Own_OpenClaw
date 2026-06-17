@@ -48,7 +48,7 @@ describe('SDK context enrichment pipeline', () => {
     expect(content).not.toContain('<hack>');
   });
 
-  test('uses backend embeddings and sidecar embedding search before backend query', async () => {
+  test('uses backend embeddings and local runtime search before backend query', async () => {
     const traceEvents: unknown[] = [];
     const sdkClient = {
       embeddings: {
@@ -131,7 +131,7 @@ describe('SDK context enrichment pipeline', () => {
         status: 'succeeded',
       }),
       expect.objectContaining({
-        path: 'memory.sidecar_search',
+        path: 'memory.local_runtime_search',
         stage: 'search',
         status: 'succeeded',
         data: expect.objectContaining({
@@ -191,7 +191,7 @@ describe('SDK context enrichment pipeline', () => {
     })).rejects.toThrow('SDK query payload no longer accepts attachmentContext');
   });
 
-  test('merges unwrapped sidecar search trace metadata into durable trace events', async () => {
+  test('merges unwrapped local runtime search trace metadata into durable trace events', async () => {
     const traceEvents: unknown[] = [];
     const sdkClient = {
       embeddings: {
@@ -230,7 +230,7 @@ describe('SDK context enrichment pipeline', () => {
 
     expect(traceEvents).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        path: 'memory.sidecar_search',
+        path: 'memory.local_runtime_search',
         status: 'succeeded',
         data: expect.objectContaining({
           method: 'search_memory_by_embedding',

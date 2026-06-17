@@ -37,9 +37,9 @@ tokens, credentials, raw SQL rows, or full stack traces in durable trace rows.
 Current durable traced paths:
 
 - `memory.retrieval`: SDK query enrichment records retrieval, embedding,
-  sidecar search, injection, and completion spans. The sidecar returns
-  sanitized search metadata such as searched memory types, limits, result
-  counts, embedding-space version, and duration.
+  local-runtime search, injection, and completion spans. The sidecar-backed
+  local runtime returns sanitized search metadata such as searched memory
+  types, limits, result counts, embedding-space version, and duration.
 - `screenshot.capture`: SDK query screenshot resource resolution records
   request, resolver, Electron main surface-preparation, sidecar capture,
   artifact upload, and backend query payload application spans. The sidecar

@@ -4673,7 +4673,7 @@ describe('WindieSdkClient', () => {
       expect.objectContaining({
         turnRef: 'turn-agent-trace',
         payload: expect.objectContaining({
-          path: 'memory.sidecar_search',
+          path: 'memory.local_runtime_search',
           status: 'succeeded',
           data: expect.objectContaining({
             method: 'search_memory_by_embedding',

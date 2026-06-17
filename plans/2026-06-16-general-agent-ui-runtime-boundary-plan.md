@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK memory local-runtime search trace path
+
+- Finding: SDK context enrichment emitted memory-search trace rows under
+  `memory.sidecar_search`, making reusable SDK query enrichment diagnostics
+  read like direct sidecar knowledge.
+- Change: routed memory search traces through the `memory.local_runtime_search`
+  path and updated focused enrichment/conversation assertions and trace docs to
+  describe the search as SDK local-runtime work.
+- Validation: focused SDK context-enrichment and conversation trace tests, trace
+  docs update, path scan, docs listing, and diff check.
+- Compatibility: persisted trace rows from earlier builds keep the old path;
+  new SDK memory-search trace rows use `memory.local_runtime_search`. No storage
+  migration is required because trace paths are append-only diagnostics.
+
 ### 2026-06-17 SDK local runtime lifecycle trace path
 
 - Finding: SDK `Agent` local-runtime helpers still emitted lifecycle trace rows

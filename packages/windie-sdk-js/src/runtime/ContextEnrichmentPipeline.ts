@@ -14,6 +14,8 @@ const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
   semanticMinScore: 0.2,
 });
 
+const MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH = 'memory.local_runtime_search';
+
 type ContextEnrichmentInput = {
   text: string;
   conversationRef: string;
@@ -303,7 +305,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
         message: 'Memory retrieval skipped because no local runtime RPC is available.',
       });
       await emitTrace(input, {
-        path: 'memory.sidecar_search',
+        path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
         stage: 'search',
         status: 'skipped',
         data: {
@@ -352,7 +354,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
         const searchStartedAtMs = nowMs();
         try {
           await emitTrace(input, {
-            path: 'memory.sidecar_search',
+            path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
             stage: 'search',
             status: 'started',
             data: {
@@ -386,7 +388,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
               error: rpcError,
             });
             await emitTrace(input, {
-              path: 'memory.sidecar_search',
+              path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
               stage: 'search',
               status: 'failed',
               durationMs: durationSince(searchStartedAtMs),
@@ -396,7 +398,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
             memories = normalizeMemories(searchResult);
             const searchTrace = normalizeMemorySearchTrace(searchResult);
             await emitTrace(input, {
-              path: 'memory.sidecar_search',
+              path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
               stage: 'search',
               status: 'succeeded',
               durationMs: durationSince(searchStartedAtMs),
@@ -422,7 +424,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
             error: errorMessage(error),
           });
           await emitTrace(input, {
-            path: 'memory.sidecar_search',
+            path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
             stage: 'search',
             status: 'failed',
             durationMs: durationSince(searchStartedAtMs),
