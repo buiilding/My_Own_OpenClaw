@@ -10,15 +10,15 @@ ensure_frontend_python_path()
 
 from core.windie_sdk_client import (  # noqa: E402
     AgentSdkClient as CoreAgentSdkClient,
-    WindieSdkClient as CoreWindieSdkClient,
 )
-from windie import AgentSdkClient, WindieSdkClient  # noqa: E402
+import windie  # noqa: E402
+from windie import AgentSdkClient  # noqa: E402
 
 
 def test_windie_package_exports_public_client():
     assert AgentSdkClient is CoreAgentSdkClient
-    assert WindieSdkClient is CoreWindieSdkClient
-    assert WindieSdkClient is AgentSdkClient
+    assert not hasattr(windie, "WindieSdkClient")
+    assert not hasattr(windie, "WindieSdkAgentSession")
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",

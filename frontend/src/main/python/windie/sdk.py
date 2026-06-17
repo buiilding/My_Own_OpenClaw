@@ -1694,7 +1694,3 @@ class AgentSdkClient(RemoteApiClientBase):
             ) from err
         finally:
             await session.close()
-
-
-WindieSdkAgentSession = AgentSdkAgentSession
-WindieSdkClient = AgentSdkClient

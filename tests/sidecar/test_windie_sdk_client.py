@@ -22,12 +22,10 @@ from core import windie_sdk_client as windie_sdk_client_module  # noqa: E402
 from core import (  # noqa: E402
     AgentLocalRuntimeHttpClient as ExportedAgentLocalRuntimeHttpClient,
     AgentSdkClient as ExportedAgentSdkClient,
-    WindieSdkClient as ExportedWindieSdkClient,
 )
 from core.windie_sdk_client import (  # noqa: E402
     AgentLocalRuntimeHttpClient,
     AgentSdkClient,
-    WindieSdkClient,
 )
 from windie import sdk as windie_sdk_module  # noqa: E402
 
@@ -87,7 +85,7 @@ def test_python_sdk_local_runtime_http_client_is_canonical():
 
 def test_python_sdk_generated_agent_identity_is_generic():
     definition = windie_sdk_module._build_python_wake_up_agent_definition()
-    session = windie_sdk_module.WindieSdkAgentSession(
+    session = windie_sdk_module.AgentSdkAgentSession(
         websocket=FakeWebSocket(),
         user_id="dev-user",
     )
@@ -198,7 +196,7 @@ async def test_get_system_prompt_builds_query_string():
         json_data={"config": {"model_provider": "openai"}, "system_prompt": "prompt"},
     )
     session = DummySession(response=response)
-    client = WindieSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://api.windieos.com")
     client._session = session
 
     result = await client.get_system_prompt(
@@ -225,7 +223,7 @@ async def test_get_query_plan_posts_payload_and_returns_json():
         },
     )
     session = DummySession(response=response)
-    client = WindieSdkClient(backend_url="http://localhost:8765")
+    client = AgentSdkClient(backend_url="http://localhost:8765")
     client._session = session
 
     payload = {
@@ -254,7 +252,7 @@ async def test_sdk_http_requests_filter_strict_backend_payloads():
         },
     )
     session = DummySession(response=response)
-    client = WindieSdkClient(backend_url="http://localhost:8765")
+    client = AgentSdkClient(backend_url="http://localhost:8765")
     client._session = session
 
     payload = {
@@ -308,7 +306,7 @@ async def test_sdk_http_requests_filter_strict_backend_payloads():
 async def test_sdk_http_ocr_vision_and_title_payloads_drop_unknown_fields():
     response = DummyResponse(200, json_data={"success": True})
     session = DummySession(response=response)
-    client = WindieSdkClient(backend_url="http://localhost:8765")
+    client = AgentSdkClient(backend_url="http://localhost:8765")
     client._session = session
 
     await client.ocr_inspect(
@@ -369,7 +367,7 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
             },
         )
     )
-    client = WindieSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://api.windieos.com")
     client._session = session
 
     result = await client.upload_artifact(
@@ -399,7 +397,7 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
     monkeypatch.setattr(windie_sdk_client_module.platform, "system", lambda: "Darwin")
     websocket = FakeWebSocket()
     session = DummyWsSession(websocket)
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
     )
@@ -462,7 +460,7 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
 @pytest.mark.asyncio
 async def test_python_agent_query_renders_attachment_content_without_query_context():
     websocket = FakeWebSocket()
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
     )
@@ -492,7 +490,7 @@ async def test_python_agent_query_renders_attachment_content_without_query_conte
 @pytest.mark.asyncio
 async def test_python_agent_update_settings_filters_backend_payload():
     websocket = FakeWebSocket()
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
     )
@@ -548,7 +546,7 @@ async def test_python_agent_update_settings_filters_backend_payload():
 
 @pytest.mark.asyncio
 async def test_wake_up_requires_user_id_when_no_default_is_configured():
-    client = WindieSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://api.windieos.com")
     client._session = DummyWsSession(FakeWebSocket())
 
     with pytest.raises(
@@ -559,7 +557,7 @@ async def test_wake_up_requires_user_id_when_no_default_is_configured():
 
 @pytest.mark.asyncio
 async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path):
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         auto_start_local_runtime=False,
@@ -584,7 +582,7 @@ async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path
 @pytest.mark.asyncio
 async def test_wake_up_registers_local_tools_plugins_and_mcps():
     sidecar = FakeSidecarRuntime()
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -652,7 +650,7 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
             }
         ]
     )
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -707,7 +705,7 @@ async def test_python_agent_session_ignores_camel_case_tool_call_payload():
             }
         ]
     )
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -756,7 +754,7 @@ async def test_python_agent_tool_result_strips_invalid_capture_meta():
         ]
     )
     sidecar = PartialCaptureSidecar()
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -814,7 +812,7 @@ async def test_python_agent_stream_and_run_match_high_level_sdk_shape():
         ]
     )
     sidecar = FakeSidecarRuntime()
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -879,7 +877,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
             }
         ]
     )
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -937,7 +935,7 @@ async def test_python_agent_session_ignores_camel_case_tool_bundle_payload():
             }
         ]
     )
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -987,7 +985,7 @@ async def test_python_agent_session_uses_sdk_bundle_step_status_contract():
             }
         ]
     )
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         sidecar=sidecar,
@@ -1038,7 +1036,7 @@ async def test_trace_query_collects_events_until_streaming_complete():
         ]
     )
     session = DummyWsSession(websocket)
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="http://localhost:8765",
         default_user_id="dev-user",
     )
@@ -1069,7 +1067,7 @@ async def test_trace_query_collects_events_until_streaming_complete():
 async def test_trace_query_times_out_and_closes_websocket():
     websocket = FakeWebSocket(messages=[], block_on_empty=True)
     session = DummyWsSession(websocket)
-    client = WindieSdkClient(
+    client = AgentSdkClient(
         backend_url="http://localhost:8765",
         default_user_id="dev-user",
     )
@@ -1094,11 +1092,14 @@ async def test_initialize_creates_single_session_and_close_resets(monkeypatch):
     await assert_client_initialize_reuses_session_and_close_resets(
         monkeypatch,
         windie_sdk_client_module.aiohttp,
-        WindieSdkClient(),
+        AgentSdkClient(),
     )
 
 
-def test_core_package_exports_windie_sdk_client():
+def test_core_package_exports_agent_sdk_client():
     assert ExportedAgentSdkClient is AgentSdkClient
-    assert ExportedWindieSdkClient is WindieSdkClient
-    assert WindieSdkClient is AgentSdkClient
+    assert ExportedAgentLocalRuntimeHttpClient is AgentLocalRuntimeHttpClient
+    assert not hasattr(windie_sdk_module, "WindieSdkClient")
+    assert not hasattr(windie_sdk_module, "WindieSdkAgentSession")
+    assert not hasattr(windie_sdk_client_module, "WindieSdkClient")
+    assert not hasattr(windie_sdk_client_module, "WindieSdkAgentSession")

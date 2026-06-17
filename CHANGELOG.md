@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the Python SDK `WindieSdkClient` and `WindieSdkAgentSession` compatibility aliases so Python callers use `AgentSdkClient` and `AgentSdkAgentSession` directly.
+
 - Removed Electron main local-backend compatibility exports so host code uses the canonical local-runtime bridge, supervisor, status, and execute-tool factory names directly.
 
 - Removed the SDK `WindieClient` and `WindieAgent` compatibility modules so TypeScript hosts import `AgentClient`, `Agent`, and canonical `Agent*` option/result types directly. No persisted-data migration is required.

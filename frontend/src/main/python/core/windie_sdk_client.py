@@ -5,8 +5,6 @@ from windie.sdk import (
     AgentSdkAgentSession,
     AgentSdkClient,
     AgentLocalRuntimeHttpClient,
-    WindieSdkAgentSession,
-    WindieSdkClient,
 )
 
 aiohttp = _sdk.aiohttp
@@ -16,8 +14,6 @@ __all__ = [
     "AgentSdkAgentSession",
     "AgentSdkClient",
     "AgentLocalRuntimeHttpClient",
-    "WindieSdkAgentSession",
-    "WindieSdkClient",
     "aiohttp",
     "platform",
 ]

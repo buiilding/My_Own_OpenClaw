@@ -4,14 +4,10 @@ from windie.sdk import (
     AgentSdkAgentSession,
     AgentSdkClient,
     AgentLocalRuntimeHttpClient,
-    WindieSdkAgentSession,
-    WindieSdkClient,
 )
 
 __all__ = [
     "AgentSdkAgentSession",
     "AgentSdkClient",
     "AgentLocalRuntimeHttpClient",
-    "WindieSdkAgentSession",
-    "WindieSdkClient",
 ]

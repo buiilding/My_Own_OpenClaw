@@ -114,7 +114,9 @@ The distribution name is `windie-sdk`; the import package is `windie`.
 The Python client mirrors hosted backend route access for sidecar/developer
 tooling. Agent sessions use `AgentSdkClient.wake_up(...)`, which builds the
 low-level `agent_definition` from first-class arguments before connecting to the
-hosted backend websocket.
+hosted backend websocket. The public package exports `AgentSdkClient` and
+`AgentSdkAgentSession`; the old `WindieSdkClient` and `WindieSdkAgentSession`
+compatibility aliases have been removed.
 
 When local module tools, plugins, or MCP servers are supplied, the Python client
 uses the same sidecar daemon contract as the TypeScript runtime: discover or

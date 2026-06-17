@@ -96,7 +96,9 @@ removed.
 Python callers should use `AgentSdkClient.wake_up(...)` followed by
 `agent.run(...)` or `agent.stream(...)` for the same high-level query shape. The
 Python package is still transport-oriented, but it should not force common
-callers down to raw websocket `query(...)` plus manual receive loops.
+callers down to raw websocket `query(...)` plus manual receive loops. The old
+Python `WindieSdkClient` and `WindieSdkAgentSession` compatibility aliases have
+been removed; use `AgentSdkClient` and `AgentSdkAgentSession` directly.
 
 ## Evidence Notes
 
