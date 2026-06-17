@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
+
 - Removed the renderer SDK facade's redundant WindieModelSelection-to-AgentModelSelection compatibility re-export so renderer code consumes the SDK generic type directly.
 
 - Added the generic Agent SDK export and switched AgentClient wake-up typing to that alias while preserving WindieAgent compatibility.
@@ -1725,6 +1727,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
+
 - Removed the renderer SDK facade's redundant WindieModelSelection-to-AgentModelSelection compatibility re-export so renderer code consumes the SDK generic type directly.
 
 - Added the generic Agent SDK export and switched AgentClient wake-up typing to that alias while preserving WindieAgent compatibility.
@@ -3343,6 +3347,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
+
 - Removed the renderer SDK facade's redundant WindieModelSelection-to-AgentModelSelection compatibility re-export so renderer code consumes the SDK generic type directly.
 
 - Added the generic Agent SDK export and switched AgentClient wake-up typing to that alias while preserving WindieAgent compatibility.
@@ -3615,6 +3621,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
 
 - Removed the renderer SDK facade's redundant WindieModelSelection-to-AgentModelSelection compatibility re-export so renderer code consumes the SDK generic type directly.
 
@@ -3918,6 +3926,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
 
 - Removed the renderer SDK facade's redundant WindieModelSelection-to-AgentModelSelection compatibility re-export so renderer code consumes the SDK generic type directly.
 
@@ -6177,6 +6187,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Route local runtime conversation metadata invalidation broadcasts through the generic desktop-agent IPC channel facade while preserving the existing wire channel.
 
 - Removed the renderer SDK facade's redundant WindieModelSelection-to-AgentModelSelection compatibility re-export so renderer code consumes the SDK generic type directly.
 

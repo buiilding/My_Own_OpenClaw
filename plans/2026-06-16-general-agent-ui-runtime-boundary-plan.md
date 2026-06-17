@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main local runtime metadata invalidation channel
+
+- Finding: the main local-runtime status broadcaster still sent conversation
+  metadata invalidation events on a literal `windie:conversation-metadata-invalidated`
+  string even though the generic main desktop-agent channel facade owns that
+  renderer-facing SDK event name.
+- Change: switched the broadcaster to `DESKTOP_AGENT_ON_CHANNELS` and updated
+  focused coverage to assert the generic channel alias.
+- Validation: focused local-runtime broadcaster and main host boundary tests,
+  docs listing, and diff check.
+- Compatibility: no migration required. The underlying IPC channel string is
+  unchanged.
+
 ### 2026-06-17 renderer SDK facade model-selection alias
 
 - Finding: the renderer SDK facade re-exported the compatibility
