@@ -54,6 +54,8 @@ All notable changes to WindieOS will be documented in this file.
   of exporting an unused module surface.
 - frontend/main: route local browser warmup and OpenAI Codex OAuth callback
   product copy through main host skin config with generic helper fallbacks.
+- frontend/main: use generic Agent SDK local-runtime fallback wording in the
+  local backend bridge while preserving SDK-owned runtime lifecycle behavior.
 - frontend/main: use generic Electron-host fallback wording for sidecar launch
   and trusted artifact-image errors outside the WindieOS host skin.
 - frontend/main: rename the strict SDK command invoke helper/dependencies to

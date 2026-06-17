@@ -209,11 +209,11 @@ async function ensureSdkLocalRuntime(reason = 'local-runtime') {
     return sdkLocalRuntime;
   }
   if (typeof ensureLocalRuntime !== 'function') {
-    throw new Error('Windie SDK local runtime resolver is not initialized.');
+    throw new Error('Agent SDK local runtime resolver is not initialized.');
   }
   const runtime = await ensureLocalRuntime({ reason });
   if (!runtime) {
-    throw new Error('Windie SDK local runtime resolver did not return a runtime.');
+    throw new Error('Agent SDK local runtime resolver did not return a runtime.');
   }
   return rememberSdkLocalRuntime(runtime, {
     source: 'sdk-client',
@@ -249,7 +249,7 @@ async function wakeSdkLocalRuntimeForStatus(mainWindow) {
       data: buildLocalRuntimeDiagnosticData({
         wakeSucceeded: false,
       }),
-      error: payload.error || 'Windie SDK local runtime resolver is unavailable.',
+      error: payload.error || 'Agent SDK local runtime resolver is unavailable.',
     });
     return payload;
   }
@@ -321,7 +321,7 @@ function createSdkRpcRequestId() {
 function sendRequest(method, params = {}) {
   return ensureSdkLocalRuntime(`rpc:${method}`).then((runtime) => {
     if (typeof runtime.rpc !== 'function') {
-      throw new Error(`Windie SDK local runtime does not support RPC method ${method}.`);
+      throw new Error(`Agent SDK local runtime does not support RPC method ${method}.`);
     }
     return runtime.rpc({
       id: createSdkRpcRequestId(),
@@ -414,7 +414,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
       executeTool: async (payload) => {
         const runtime = await ensureSdkLocalRuntime('execute_tool');
         if (typeof runtime.executeTool !== 'function') {
-          throw new Error('Windie SDK local runtime does not support tool execution.');
+          throw new Error('Agent SDK local runtime does not support tool execution.');
         }
         return runtime.executeTool(payload);
       },
@@ -447,16 +447,16 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     sdkLocalRuntimeSnapshot = {
       provider: 'sdk',
       hasClient: false,
-      error: 'Windie SDK local runtime resolver is unavailable.',
+      error: 'Agent SDK local runtime resolver is unavailable.',
     };
     localRuntimeStatusSupervisor.clear({
       status: 'error',
-      error: 'Windie SDK local runtime resolver is unavailable.',
+      error: 'Agent SDK local runtime resolver is unavailable.',
     });
     publishLocalBackendStatus(mainWindow, {
       stage: 'status_broadcast',
       status: 'failed',
-      error: 'Windie SDK local runtime resolver is unavailable.',
+      error: 'Agent SDK local runtime resolver is unavailable.',
     });
   }
 

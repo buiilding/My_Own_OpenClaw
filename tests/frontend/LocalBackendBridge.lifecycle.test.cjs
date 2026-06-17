@@ -20,11 +20,11 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
       ready: false,
       status: 'error',
-      error: 'Windie SDK local runtime resolver is unavailable.',
+      error: 'Agent SDK local runtime resolver is unavailable.',
     }));
     await expect(handlers['list-episodic-memories'](null, { userId: 'user-1' })).resolves.toEqual({
       success: false,
-      error: 'Windie SDK local runtime resolver is not initialized.',
+      error: 'Agent SDK local runtime resolver is not initialized.',
     });
   });
 

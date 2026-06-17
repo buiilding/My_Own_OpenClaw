@@ -142,6 +142,8 @@ describe('main host skin/config boundary', () => {
 
     expect(localBackendSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
     expect(localBackendSource).toContain('localBackendCopy.browserWarmupExplanation');
+    expect(localBackendSource).toContain('Agent SDK local runtime resolver is unavailable.');
+    expect(localBackendSource).not.toContain('Windie SDK local runtime');
     expect(localBackendSource).not.toContain('Open the WindieOS browser');
     expect(oauthSource).toContain('Return to the app for details');
     expect(oauthSource).not.toContain('Return to WindieOS');
