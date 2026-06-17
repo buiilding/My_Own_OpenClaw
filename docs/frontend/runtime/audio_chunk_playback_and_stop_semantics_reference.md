@@ -124,7 +124,7 @@ When user sends a new query:
 
 If text streams but no audio plays:
 
-1. verify `audio-chunk` events are arriving on `from-backend`
+1. verify `audio-chunk` events are arriving on the typed `audio-chunk` channel
 2. verify payload has both `audio` and `sample_rate`
 3. inspect decode/playback errors from `PlayerService`
 

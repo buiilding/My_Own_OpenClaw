@@ -84,7 +84,9 @@ Functionality:
 
 - Adapts IPC messages into the SDK runtime, which opens `/ws` and sends handshake with validated user id.
 - Tracks backend session/user/conversation identifiers from stream envelopes.
-- Broadcasts backend events to all renderer windows (`from-backend`).
+- Broadcasts SDK conversation events and typed backend side channels to
+  renderer windows (`windie:conversation-event`, `backend-settings-event`,
+  `agent-capability-event`, `audio-chunk`).
 - Maintains settings-sync ACK lifecycle with timeout protection via `ipc_settings_sync` helper module.
 - Gates first query behind initial settings sync attempt.
 - Builds query payload content with system-context XML + memory sections.

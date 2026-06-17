@@ -1,5 +1,5 @@
 ---
-summary: "Electron main backend relay reference for websocket handshake, renderer fan-out, per-connection settings ACK gating, and query send-failure synthesis."
+summary: "Electron main SDK websocket relay reference for handshake, typed renderer fan-out, per-connection settings ACK gating, and query send-failure synthesis."
 read_when:
   - When changing `ipc.cjs` websocket lifecycle, handshake identity handling, or reconnection behavior.
   - When debugging first-query settings drift, missing backend sends, or inconsistent renderer relay context fields.
@@ -100,14 +100,19 @@ On close:
 - `currentSessionId`: backend session id
 - `currentConversationRef`: last seen backend conversation ref
 
-Inbound backend messages update these fields opportunistically before renderer fan-out.
+Inbound backend messages update these fields opportunistically before typed
+renderer side-channel fan-out and SDK conversation projection fan-out.
 
 ## Renderer Fan-Out Contract
 
-All backend messages are broadcast via:
+Renderer-visible stream state is broadcast through typed channels:
 
-- `broadcastToRenderers('from-backend', data)`
-- implementation owner: `ipc_renderer_windows.cjs`
+- SDK conversation projections: `windie:conversation-event`,
+  `windie:current-turn`, `windie:pending-turn`, and `windie:rows`
+- backend settings/capability/audio side channels: `backend-settings-event`,
+  `agent-capability-event`, and `audio-chunk`
+- implementation owners: `ipc_renderer_windows.cjs`,
+  `ipc_backend_event_channels.cjs`, and the SDK conversation-runtime listeners
 
 Window-aware behavior:
 
@@ -115,7 +120,9 @@ Window-aware behavior:
 - optional source window exclusion for synthetic local events
 
 `trackRendererWindow(...)` also syncs latest overlay phase to windows after `did-finish-load`.
-When replay state has buffered events for the active turn, it then replays those events on `from-backend` after phase sync.
+When replay state has buffered backend events for the active turn, it rebuilds
+SDK conversation events and replays them on `windie:conversation-event` after
+phase sync.
 
 Overlay transition contract:
 
@@ -131,8 +138,9 @@ Backend local execution events are handled by the SDK runtime before renderer fa
 2. `ToolExecutionCoordinator` executes the local call through the SDK local-runtime client.
 3. The local runtime uses the local sidecar daemon-backed bridge.
 4. The SDK runtime sends `tool-result` or `tool-bundle-result` back over the SDK websocket.
-5. `ipc.cjs` receives only the renderer-safe copy for replay, session tracking, overlay state, and renderer fan-out.
-6. the renderer receives a display-only copy of the original backend event.
+5. `ipc.cjs` receives only the renderer-safe copy for replay, session tracking,
+   overlay state, typed side-channel fan-out, and SDK conversation projection.
+6. the renderer receives a display-only SDK conversation event for chat state.
 
 Display-only renderer events retain normal chat/transcript/overlay behavior but
 include:
@@ -199,7 +207,7 @@ If backend send fails for query path:
 - replay state cleared for that turn
 - synthetic error event built by `buildQuerySendFailure(...)`
 - event includes query context ids + user-facing failure message
-- broadcast to renderer on `from-backend`
+- broadcast to renderer through the SDK conversation-event channel
 
 This keeps renderer state consistent even when backend transport is unavailable.
 

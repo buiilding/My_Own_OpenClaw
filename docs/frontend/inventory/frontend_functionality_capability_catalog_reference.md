@@ -71,7 +71,9 @@ Primary files:
 Capabilities:
 
 - Adapts renderer/backend-bound work to the SDK runtime, which owns the backend websocket session and handshake to `/ws`.
-- Relays backend stream envelopes to renderer windows (`from-backend`).
+- Relays SDK conversation events and typed backend side channels to renderer
+  windows (`windie:conversation-event`, `backend-settings-event`,
+  `agent-capability-event`, `audio-chunk`).
 - Enforces first-query settings-sync ACK/timeout policy through `ipc_settings_sync` helpers.
 - Builds query payload with memory/system context sections.
 - Emits synthetic local-user-message and user-safe error fallbacks for send failures.
@@ -233,8 +235,11 @@ Capabilities:
 
 1. Renderer `DesktopLiveTurnRuntimeClient.sendQuery` sends query intent through the SDK conversation runtime and desktop agent runtime transport.
 2. Main process enriches payload and hands it to the SDK runtime for backend WebSocket transport.
-3. Backend stream envelopes relay from main to renderer `from-backend`.
-4. `useChatStream` updates chat state + transcript and tracks active turn phase.
+3. SDK conversation events relay from main to renderer
+   `windie:conversation-event`; backend settings/capability/audio side channels
+   use their typed renderer channels.
+4. `useChatStream` updates chat state + transcript from SDK projections and
+   tracks active turn phase.
 5. `tool-call`/`tool-bundle` events route through the SDK runtime to the local sidecar executor.
 6. Tool results route back to backend as `tool-result`/`tool-bundle-result`.
 

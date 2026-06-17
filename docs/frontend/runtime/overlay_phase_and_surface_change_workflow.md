@@ -105,7 +105,8 @@ before changing presentation code.
 Common phase producers:
 
 - query send accepted in `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
-- backend stream fan-out in `frontend/src/main/ipc.cjs`
+- SDK conversation-event and typed backend side-channel fan-out in
+  `frontend/src/main/ipc.cjs`
 - overlay phase helpers in `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
 - renderer stream state projection in `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - SDK tool routing in `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`

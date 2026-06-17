@@ -71,11 +71,14 @@ Clone safety:
 
 1. sends current `response-overlay-phase`
 2. requests replay snapshot
-3. re-emits each replay event on `from-backend`
+3. rebuilds SDK conversation events from the replay buffer and re-emits them on
+   `windie:conversation-event`
 
 Result:
 
-- late-mounted renderer windows can recover in-flight turn context (SDK user row + streamed packets) without waiting for new backend events.
+- late-mounted renderer windows can recover in-flight turn context (SDK user
+  row + streamed conversation projections) without waiting for new backend
+  events.
 
 ## Transcript Session Sync Channel Contract
 

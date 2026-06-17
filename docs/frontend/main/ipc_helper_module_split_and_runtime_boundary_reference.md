@@ -57,7 +57,7 @@ Owns cross-cutting utilities used by relay hot paths:
   - session/user/conversation state updates
   - settings ACK resolution (`settings-updated` / `error` by id)
   - applies response-overlay transitions resolved by `ipc_overlay_phase_events.cjs`
-  - renderer fan-out to `from-backend`
+  - typed backend side-channel fan-out through `ipc_backend_event_channels.cjs`
 
 ### `ipc_query_runtime.cjs`
 

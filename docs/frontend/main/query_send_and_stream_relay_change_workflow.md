@@ -73,15 +73,15 @@ sequenceDiagram
     T->>M: windie:invoke conversation.send(payload)
     M->>M: ensure initial settings ACK if needed
     M->>M: prepareRendererQuerySend(...)
-    M->>S: local-user-message optimistic event
+    M->>S: SDK user_message conversation event
     M->>L: get_system_state + search_memory_by_embedding
     M->>M: build content, runtime state, replay buffer, overlay phase
     M->>SDK: send query envelope
     SDK->>B: websocket query message
     B->>B: validate, bind session/conversation, execute agent loop
     B->>M: streaming events
-    M->>S: from-backend fan-out
-    S->>S: gate by conversation_ref + turn_ref, update rows/phase/transcript
+    M->>S: windie:conversation-event + typed side channels
+    S->>S: gate by conversation_ref + turn_ref, update rows/phase/transcript from SDK projection
 ```
 
 Send and stop/cancel follow the same app-runtime boundary. Chat UI calls

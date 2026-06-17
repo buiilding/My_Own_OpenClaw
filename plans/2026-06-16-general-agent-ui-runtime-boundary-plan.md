@@ -655,3 +655,20 @@ Each completed slice should report:
 - Compatibility: no migration required. The `backend-settings-event`
   compatibility channel, SDK list-models command, and model-list payload shape
   are unchanged.
+
+### 2026-06-17 frontend typed stream fan-out docs
+
+- Finding: several frontend inventory and runtime workflow docs still described
+  current stream delivery as generic raw backend fan-out, even though renderer
+  stream state now enters through SDK conversation-event projections and typed
+  backend side channels.
+- Change: updated the inventory, websocket/settings-sync, query-send,
+  overlay-phase, audio playback, IPC helper, and replay docs to describe
+  `windie:conversation-event`, SDK current-turn/pending-turn snapshots, and
+  typed settings/capability/audio side-channel delivery.
+- Validation: docs listing; `git diff --check`; stale scan for current-path raw
+  backend fan-out wording; code inspection of `ipc_renderer_windows.cjs`,
+  `ipc_runtime_helpers.cjs`, and `ipc_backend_event_channels.cjs`.
+- Compatibility: no migration required. Channel names, replay behavior,
+  settings/capability/audio side channels, and SDK projection payloads are
+  unchanged.
