@@ -1029,3 +1029,17 @@ Each completed slice should report:
   still times out in its pre-existing active-send scenario when run in
   isolation; this slice only renames that test's local command helper.
 - Compatibility: no migration required. Test-only terminology cleanup.
+
+### 2026-06-17 renderer model-selection type alias
+
+- Finding: generic renderer runtime facades imported the public SDK
+  `WindieModelSelection` type directly, leaking the product SDK type name into
+  UI-facing runtime code.
+- Change: added a renderer-local `AgentModelSelection` type alias in
+  `agentSdkClient.ts` and updated desktop live-turn, settings, continuity, and
+  send-preparation code to use it.
+- Validation: focused renderer runtime/send-preparation Jest coverage, docs
+  listing, `git diff --check`, and source scan for remaining renderer
+  `WindieModelSelection` imports.
+- Compatibility: no migration required. Type-only alias; public SDK exports and
+  runtime payloads are unchanged.

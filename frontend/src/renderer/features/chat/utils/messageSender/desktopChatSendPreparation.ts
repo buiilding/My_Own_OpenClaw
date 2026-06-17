@@ -7,7 +7,7 @@ import { buildDeferredQueryModelSelection } from '../../../../app/providers/appC
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import type { TurnInputResource, WindieModelSelection } from '../../../../infrastructure/api/agentSdkClient';
+import type { AgentModelSelection, TurnInputResource } from '../../../../infrastructure/api/agentSdkClient';
 import { fetchActiveWorkspaceSelection } from '../../../../infrastructure/workspace/workspaceAccess';
 import {
   getConversationWorkspaceBinding,
@@ -56,7 +56,7 @@ type PreparedDesktopChatTurn = {
   conversationRef: string;
   deferredQueryModelSelection: ReturnType<typeof buildDeferredQueryModelSelection>;
   metadata: Record<string, unknown> | null;
-  model: WindieModelSelection | null;
+  model: AgentModelSelection | null;
   resources: TurnInputResource[];
   screenshot: string | null;
   screenshotRef: string | null;

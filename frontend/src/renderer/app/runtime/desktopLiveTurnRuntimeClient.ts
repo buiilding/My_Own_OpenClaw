@@ -4,8 +4,8 @@
 
 import {
   SDK_RUNTIME_COMMANDS,
+  type AgentModelSelection,
   type TurnInputResource,
-  type WindieModelSelection,
 } from '../../infrastructure/api/agentSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
@@ -43,7 +43,7 @@ type SendConversationQueryInput = {
   workspacePath?: string | null;
   resources?: TurnInputResource[] | null;
   metadata?: Record<string, unknown> | null;
-  model?: WindieModelSelection | null;
+  model?: AgentModelSelection | null;
   turnRef?: string | null;
 };
 

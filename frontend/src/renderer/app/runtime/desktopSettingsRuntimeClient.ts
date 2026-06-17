@@ -4,7 +4,7 @@
 
 import {
   buildModelSettingsPatch,
-  type WindieModelSelection,
+  type AgentModelSelection,
 } from '../../infrastructure/api/agentSdkClient';
 import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
 
@@ -59,7 +59,7 @@ export const DesktopSettingsRuntimeClient = {
     void createDesktopAgentRuntimeTransport(null).updateSettings(config);
   },
 
-  setModel(selection: WindieModelSelection): void {
+  setModel(selection: AgentModelSelection): void {
     void createDesktopAgentRuntimeTransport(null).updateSettings(
       buildModelSettingsPatch(selection, 'DesktopSettingsRuntimeClient.setModel'),
     );

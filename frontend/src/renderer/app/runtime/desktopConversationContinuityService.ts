@@ -5,8 +5,8 @@
 import {
   ConversationContinuityService,
   SDK_RUNTIME_COMMANDS,
+  type AgentModelSelection,
   type JsonRecord,
-  type WindieModelSelection,
   type ListConversationOptions,
   type DisplayConversation,
   type SdkDisplayRow,
@@ -31,7 +31,7 @@ type RewriteAndResendInput = {
   messageId: string;
   text?: string;
   payload?: JsonRecord;
-  model?: WindieModelSelection | null;
+  model?: AgentModelSelection | null;
   workspacePath?: string | null;
 };
 
@@ -39,7 +39,7 @@ type PreparedReplayTurn = {
   conversationRef: string;
   text: string;
   payload: JsonRecord;
-  model?: WindieModelSelection | null;
+  model?: AgentModelSelection | null;
   workspacePath?: string | null;
   turnRef?: string | null;
 };
