@@ -2,6 +2,7 @@
  * Provides the chat model options module for the renderer UI.
  */
 
+import { formatProviderDisplayLabel } from '../../../app/skin/providerModelDisplaySettings';
 import { getCurrentModels } from '../../dashboard/utils/modelSelectionUtils';
 
 const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];
@@ -151,22 +152,7 @@ function buildModelGroupKey(provider, runtimeModelId, familyId) {
 }
 
 export function formatProviderLabel(providerValue) {
-  const provider = String(providerValue || '').trim();
-  if (!provider) {
-    return provider;
-  }
-  const lowerProvider = provider.toLowerCase();
-  if (lowerProvider === 'openai') {
-    return 'OpenAI';
-  }
-  if (lowerProvider === 'openrouter') {
-    return 'OpenRouter';
-  }
-  return provider
-    .split('-')
-    .filter(Boolean)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join('-');
+  return formatProviderDisplayLabel(providerValue);
 }
 
 export const getAvailableModelPool = getCurrentModels;

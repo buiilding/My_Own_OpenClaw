@@ -531,6 +531,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: moved provider model-card fallback descriptions and strengths into
   renderer skin/config and made the generic model-card mapper consume that
   resolver while preserving backend catalog metadata precedence.
+- Finding: the chat model picker still carried provider label overrides for
+  OpenAI/OpenRouter inside generic model-option utilities instead of sharing the
+  renderer provider display skin metadata.
+- Change: moved chat model provider label overrides into renderer skin/config
+  and kept the exported `formatProviderLabel(...)` helper as the generic UI
+  facade.
 
 ## Remaining Findings
 
@@ -612,3 +618,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer skin/config and are shared by config storage plus settings UI.
 - Renderer provider model-card fallback descriptions and strengths now live in
   renderer skin/config; backend catalog metadata still wins when present.
+- Renderer chat model provider label overrides now live in the shared provider
+  display skin config while the model picker keeps its existing formatter API.

@@ -45,6 +45,28 @@ export const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
   }),
 ]);
 
+export const PROVIDER_LABEL_OVERRIDES = Object.freeze({
+  openai: 'OpenAI',
+  openrouter: 'OpenRouter',
+});
+
+export function formatProviderDisplayLabel(providerValue) {
+  const provider = String(providerValue || '').trim();
+  if (!provider) {
+    return provider;
+  }
+  const lowerProvider = provider.toLowerCase();
+  const override = PROVIDER_LABEL_OVERRIDES[lowerProvider];
+  if (override) {
+    return override;
+  }
+  return provider
+    .split('-')
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join('-');
+}
+
 export function resolveProviderModelDisplay(provider) {
   const normalizedProvider = String(provider || '').trim().toLowerCase();
   const fallback = PROVIDER_MODEL_DISPLAY_FALLBACKS.find((entry) => (

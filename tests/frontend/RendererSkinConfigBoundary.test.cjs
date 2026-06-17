@@ -131,12 +131,20 @@ describe('renderer skin/config boundary', () => {
       path.join(dashboardSectionsRoot, 'modelCardData.js'),
       'utf8',
     );
+    const chatModelOptionsSource = fs.readFileSync(
+      path.join(rendererRoot, 'features/chat/utils/chatModelOptions.js'),
+      'utf8',
+    );
 
     expect(providerDisplaySource).toContain('PROVIDER_MODEL_DISPLAY_FALLBACKS');
+    expect(providerDisplaySource).toContain('PROVIDER_LABEL_OVERRIDES');
     expect(providerDisplaySource).toContain('OpenAI flagship model family');
     expect(modelCardDataSource).toContain('providerModelDisplaySettings');
+    expect(chatModelOptionsSource).toContain('providerModelDisplaySettings');
     expect(modelCardDataSource).not.toContain("provider.includes('openai')");
     expect(modelCardDataSource).not.toContain('OpenAI flagship model family');
     expect(modelCardDataSource).not.toContain('Agentic coding model');
+    expect(chatModelOptionsSource).not.toContain("lowerProvider === 'openai'");
+    expect(chatModelOptionsSource).not.toContain("return 'OpenRouter'");
   });
 });
