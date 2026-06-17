@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python SDK local-runtime HTTP error wording
+
+- Finding: the Python SDK `AgentLocalRuntimeHttpClient` still reported local
+  runtime HTTP failures as `Sidecar daemon returned ...`, leaking the daemon
+  implementation detail through the SDK client surface.
+- Change: changed HTTP-status and malformed-JSON failures to `Local runtime
+  returned ...` wording and added focused Python SDK coverage for both error
+  paths while preserving the daemon auth header contract.
+- Validation: focused Python SDK sidecar tests, stale error scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. The HTTP endpoints, token header,
+  daemon process, and `AgentLocalRuntimeHttpClient` API are unchanged; only
+  caller-facing Python SDK error text changed.
+
 ### 2026-06-17 Main local-runtime missing script error wording
 
 - Finding: Electron main's desktop local-runtime launch plan still returned

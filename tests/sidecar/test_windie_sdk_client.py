@@ -97,6 +97,38 @@ def test_python_sdk_generated_agent_identity_is_generic():
     assert session.default_conversation_ref == "conv-python-agent"
 
 
+@pytest.mark.asyncio
+async def test_agent_local_runtime_http_client_errors_use_generic_wording():
+    response = DummyResponse(503, text_data="not ready")
+    client = AgentLocalRuntimeHttpClient(
+        base_url="http://127.0.0.1:4001",
+        token="runtime-token",
+    )
+    client._session = DummySession(response=response)
+
+    with pytest.raises(Exception, match="Local runtime returned 503: not ready"):
+        await client.status()
+
+    _, _, headers = client._session.last_get
+    assert headers == {"x-windie-sidecar-token": "runtime-token"}
+
+
+@pytest.mark.asyncio
+async def test_agent_local_runtime_http_client_rejects_non_object_payload_generically():
+    response = DummyResponse(200, json_data=["not", "an", "object"])
+    client = AgentLocalRuntimeHttpClient(
+        base_url="http://127.0.0.1:4001",
+        token="runtime-token",
+    )
+    client._session = DummySession(response=response)
+
+    with pytest.raises(
+        Exception,
+        match="Local runtime returned a non-object JSON payload",
+    ):
+        await client.status()
+
+
 class FakeWsMessage:
     def __init__(self, data):
         self.data = data

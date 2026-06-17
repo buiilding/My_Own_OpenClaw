@@ -568,11 +568,11 @@ class AgentLocalRuntimeHttpClient:
             if response.status < 200 or response.status >= 300:
                 error_text = await response.text()
                 raise Exception(
-                    f"Sidecar daemon returned {response.status}: {error_text}"
+                    f"Local runtime returned {response.status}: {error_text}"
                 )
             data = await response.json()
             if not isinstance(data, dict):
-                raise Exception("Sidecar daemon returned a non-object JSON payload")
+                raise Exception("Local runtime returned a non-object JSON payload")
             return data
 
     async def status(self) -> dict[str, Any]:
