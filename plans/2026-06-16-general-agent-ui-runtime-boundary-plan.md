@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK builtin selection wrapper deletion
+
+- Finding: the SDK still exported the `WindieBuiltins` compatibility module and
+  root `windieBuiltins` alias after `agentBuiltins` became the canonical
+  built-in tool selection helper.
+- Change: deleted the Windie-prefixed builtins module, removed the root
+  compatibility export and type aliases, updated SDK docs, and switched focused
+  tests to the canonical `agentBuiltins` helper with removed-wrapper coverage.
+- Validation: focused SDK client, package-boundary, and private-export Jest
+  tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. SDK callers
+  must use `agentBuiltins` and `AgentBuiltin*` types directly.
+
 ### 2026-06-17 SDK model selection wrapper deletion
 
 - Finding: the SDK still exposed a `WindieModelSelection` compatibility module

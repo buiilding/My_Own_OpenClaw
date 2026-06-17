@@ -17,7 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.windieBuiltins = exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.WindieSdkClient = exports.createWindieSdkBackendSocket = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = void 0;
+exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.WindieSdkClient = exports.createWindieSdkBackendSocket = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = void 0;
 __exportStar(require("./conversation/types.js"), exports);
 __exportStar(require("./conversation/events.js"), exports);
 __exportStar(require("./conversation/metadata.js"), exports);
@@ -62,8 +62,6 @@ Object.defineProperty(exports, "createManagedWindieAgentSession", { enumerable: 
 __exportStar(require("./tools/ToolExecutionCoordinator.js"), exports);
 __exportStar(require("./tools/toolCorrelationIds.js"), exports);
 __exportStar(require("./tools/builtins.js"), exports);
-var WindieBuiltins_js_1 = require("./tools/WindieBuiltins.js");
-Object.defineProperty(exports, "windieBuiltins", { enumerable: true, get: function () { return WindieBuiltins_js_1.windieBuiltins; } });
 __exportStar(require("./settings/modelSelection.js"), exports);
 var AgentSession_js_1 = require("./transport/AgentSession.js");
 Object.defineProperty(exports, "AgentSession", { enumerable: true, get: function () { return AgentSession_js_1.AgentSession; } });

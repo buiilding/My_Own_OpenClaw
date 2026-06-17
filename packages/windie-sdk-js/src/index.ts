@@ -117,14 +117,6 @@ export type {
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './tools/toolCorrelationIds.js';
 export * from './tools/builtins.js';
-export {
-  windieBuiltins,
-} from './tools/WindieBuiltins.js';
-export type {
-  WindieBuiltinSelection,
-  WindieBuiltinToolSelection,
-  WindieBuiltinToolSet,
-} from './tools/WindieBuiltins.js';
 export * from './settings/modelSelection.js';
 export {
   AgentSession,

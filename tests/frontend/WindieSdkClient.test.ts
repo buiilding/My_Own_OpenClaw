@@ -21,7 +21,7 @@ import {
   Agent,
   AgentClient as AgentClientClass,
   AgentHostedBackendClient,
-  windieBuiltins,
+  agentBuiltins,
   type SdkPromptPreviewRequest,
   type SdkQueryPlanRequest,
   type AgentLocalRuntimeClient,
@@ -2228,7 +2228,7 @@ describe('Agent SDK client behavior', () => {
 
     const wakePromise = client.wakeUp({
       agentId: 'builtin-agent',
-      ...windieBuiltins.desktop(),
+      ...agentBuiltins.desktop(),
     });
     await new Promise(resolve => setTimeout(resolve, 0));
     FakeWebSocket.instances[0].emit('open', {});

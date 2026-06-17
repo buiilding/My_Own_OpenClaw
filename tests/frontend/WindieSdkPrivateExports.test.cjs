@@ -130,14 +130,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.createConversationRuntime).toBe(canonicalModule.createConversationRuntime);
   });
 
-  test('Windie builtins module remains a compatibility wrapper for builtins', () => {
+  test('Windie builtins compatibility module is removed', () => {
     const canonicalModule = require('../../packages/windie-sdk-js/cjs/tools/builtins.js');
-    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/tools/WindieBuiltins.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/tools/WindieBuiltins.js',
+    );
 
     expect(canonicalModule.agentBuiltins).toBeDefined();
     expect(canonicalModule.windieBuiltins).toBeUndefined();
-    expect(compatibilityModule.agentBuiltins).toBe(canonicalModule.agentBuiltins);
-    expect(compatibilityModule.windieBuiltins).toBe(canonicalModule.agentBuiltins);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('Windie model selection compatibility module is removed', () => {

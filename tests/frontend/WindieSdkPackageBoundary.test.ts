@@ -40,7 +40,6 @@ import {
   resolveToolEventCorrelationId,
   resolveToolOutputCorrelationId,
   resolveToolWaitId,
-  windieBuiltins,
   WindieChatSession,
   type AgentChatSendInput,
   type AgentClientOptions,
@@ -70,8 +69,6 @@ import {
   type WindieSdkBackendSocketOptions,
   type WindieSdkClientOptions,
   type WindieSdkQueryOptions,
-  type WindieBuiltinSelection,
-  type WindieBuiltinToolSelection,
   type WindieInstallAuthOptions,
   type WindieLocalRuntimeRequest,
   type WindieLocalRuntimeClient,
@@ -105,7 +102,6 @@ describe('@windie/sdk package boundary', () => {
     expect(createConversationRuntime).toBeDefined();
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
-    expect(windieBuiltins).toBe(agentBuiltins);
     expect(createWindieAgentSession).toBe(createAgentSession);
     expect(createWindieAgentBackendTransport).toBe(createAgentBackendTransport);
     expect(createWindieSdkBackendSocket).toBe(createAgentBackendSocket);
@@ -175,14 +171,12 @@ describe('@windie/sdk package boundary', () => {
     expect(createWindieSdkBackendSocket(compatibilityOptions)).toBeInstanceOf(FakeWebSocket);
   });
 
-  test('exports generic builtin selection aliases', () => {
+  test('exports generic builtin selection helpers', () => {
     const selection: AgentBuiltinSelection = ['browser'];
-    const compatibilitySelection: WindieBuiltinSelection = selection;
-    const toolSelection: AgentBuiltinToolSelection = { builtins: compatibilitySelection };
-    const compatibilityToolSelection: WindieBuiltinToolSelection = toolSelection;
+    const toolSelection: AgentBuiltinToolSelection = { builtins: selection };
 
-    expect(windieBuiltins.browser()).toEqual(agentBuiltins.browser());
-    expect(compatibilityToolSelection.builtins).toEqual(['browser']);
+    expect(agentBuiltins.browser()).toEqual({ builtins: ['browser'] });
+    expect(toolSelection.builtins).toEqual(['browser']);
   });
 
   test('exports generic chat session input aliases', () => {
