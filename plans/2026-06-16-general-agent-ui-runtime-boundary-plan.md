@@ -2494,3 +2494,17 @@ Each completed slice should report:
   behavior coverage.
 - Compatibility: no migration required. The Windie-prefixed factory exports
   remain public compatibility aliases.
+
+### 2026-06-17 Agent behavior test class path
+
+- Finding: SDK client behavior coverage still instantiated the high-level agent
+  helper as `WindieAgent` even after `Agent` became the canonical reusable SDK
+  class.
+- Change: switched those behavior tests and the public-command test title to
+  `Agent`, leaving `WindieAgent` compatibility coverage in the package-boundary
+  test.
+- Validation: focused SDK client Jest coverage, SDK package-boundary Jest
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  legacy class name no longer appears in SDK client behavior coverage.
+- Compatibility: no migration required. `WindieAgent` remains a public
+  compatibility alias.

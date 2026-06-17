@@ -17,7 +17,7 @@ import {
   InMemoryConversationStore,
   LocalRuntimeConversationStore,
   moduleTool,
-  WindieAgent,
+  Agent,
   WindieClient as WindieClientClass,
   WindieSdkClient,
   windieBuiltins,
@@ -1283,7 +1283,7 @@ describe('WindieSdkClient', () => {
         provider_tool_schemas: [],
       })),
     };
-    const agent = new WindieAgent(
+    const agent = new Agent(
       'feature-agent',
       { on: jest.fn(() => () => undefined), close: jest.fn() } as any,
       {},
@@ -3359,7 +3359,7 @@ describe('WindieSdkClient', () => {
     }));
   });
 
-  test('WindieAgent exposes SDK-owned clear memory and conversation commands', async () => {
+  test('Agent exposes SDK-owned clear memory and conversation commands', async () => {
     const localRuntimeRpc = jest.fn(async ({ method }) => {
       if (method === 'list_episodic_memories') {
         return {
@@ -3402,7 +3402,7 @@ describe('WindieSdkClient', () => {
         create: jest.fn(),
       },
     };
-    const agent = new WindieAgent(
+    const agent = new Agent(
       'agent-public-commands',
       session as any,
       {},
@@ -4644,7 +4644,7 @@ describe('WindieSdkClient', () => {
       on: jest.fn(() => () => undefined),
       close: jest.fn(),
     };
-    const agent = new WindieAgent(
+    const agent = new Agent(
       'agent-trace',
       session as any,
       {},
