@@ -563,7 +563,7 @@ class AgentLocalRuntimeHttpClient:
                 timeout=request_timeout,
             )
         else:
-            raise ValueError(f"Unsupported sidecar method: {method}")
+            raise ValueError(f"Unsupported local runtime method: {method}")
         async with request_context as response:
             if response.status < 200 or response.status >= 300:
                 error_text = await response.text()

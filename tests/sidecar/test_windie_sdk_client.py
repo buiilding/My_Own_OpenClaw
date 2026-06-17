@@ -129,6 +129,18 @@ async def test_agent_local_runtime_http_client_rejects_non_object_payload_generi
         await client.status()
 
 
+@pytest.mark.asyncio
+async def test_agent_local_runtime_http_client_rejects_unsupported_methods_generically():
+    client = AgentLocalRuntimeHttpClient(
+        base_url="http://127.0.0.1:4001",
+        token="runtime-token",
+    )
+    client._session = DummySession(response=DummyResponse(200, json_data={"ok": True}))
+
+    with pytest.raises(ValueError, match="Unsupported local runtime method: delete"):
+        await client._request_json(method="delete", path="/status")
+
+
 class FakeWsMessage:
     def __init__(self, data):
         self.data = data

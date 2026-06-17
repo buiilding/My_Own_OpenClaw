@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python SDK local-runtime method validation wording
+
+- Finding: the Python SDK local-runtime HTTP helper still raised
+  `Unsupported sidecar method` from its request boundary.
+- Change: changed the validation error to `Unsupported local runtime method`
+  and added focused Python SDK coverage for unsupported local-runtime request
+  methods.
+- Validation: focused Python SDK sidecar test, stale error scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. This is a caller-facing validation
+  message change only; HTTP methods, endpoints, headers, and runtime behavior
+  are unchanged.
+
 ### 2026-06-17 Python SDK local-runtime HTTP error wording
 
 - Finding: the Python SDK `AgentLocalRuntimeHttpClient` still reported local
