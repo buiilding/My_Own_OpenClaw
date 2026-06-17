@@ -87,6 +87,9 @@ All notable changes to WindieOS will be documented in this file.
   diagnostics and Browser Use adapter docstrings.
 - frontend/renderer: move provider credential defaults and API-key display
   specs into renderer skin/config so storage and settings share one source.
+- frontend/renderer: move provider model-card fallback descriptions and
+  strengths into renderer skin/config so generic model cards consume display
+  metadata instead of provider tables.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.
