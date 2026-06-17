@@ -7,7 +7,7 @@ import pytest
 from backend.src.agent.tools.processing.processor import ToolResultProcessor
 from backend.src.agent.tools.processing.transformer import ResultTransformer
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.tools.result_types import ToolExecutionBatch, ToolExecutionResult
 
 

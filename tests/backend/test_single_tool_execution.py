@@ -5,7 +5,7 @@ import pytest
 
 from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.tools.single_tool_execution import execute_single_tool
 
 

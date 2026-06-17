@@ -19,7 +19,7 @@ from backend.src.agent.tools.preparation.validation import (
     sanitize_resolved_tool_call,
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 
 
 class _StubScreenshotManager:

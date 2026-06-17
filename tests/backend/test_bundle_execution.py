@@ -6,7 +6,7 @@ import pytest
 
 from backend.src.api.schemas.incoming import ToolBundleStepResult
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedResponse, ParsedToolCall
+from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 from backend.src.tools.bundle_execution import execute_bundle
 from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
 

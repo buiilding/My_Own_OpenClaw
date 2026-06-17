@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
 
 from backend.src.core.services.context_factory import ContextFactory
-from backend.src.llm.parser import ParsedResponse
+from backend.src.llm.parser_types import ParsedResponse
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.result_helpers import create_empty_tool_results
 from backend.src.tools.result_types import ToolExecutionBatch

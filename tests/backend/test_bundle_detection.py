@@ -6,7 +6,7 @@ from backend.src.agent.tools.shared.bundle_detection import (
     is_atomic_bundle,
     is_atomic_bundle_from_results,
 )
-from backend.src.llm.parser import ParsedResponse, ParsedToolCall
+from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 
 
 def _make_call(bundle_id=None, request_id=None):

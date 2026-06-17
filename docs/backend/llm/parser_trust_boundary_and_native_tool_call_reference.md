@@ -48,6 +48,13 @@ Key nuance:
 - actively covered by backend tests (`tests/backend/test_response_parser*.py`)
 - available for parser-based ingestion paths and regression protection
 
+Import boundary:
+
+- `ResponseParser` lives in `backend.src.llm.parser`
+- `ParsedResponse`, `ParsedToolCall`, and `ToolCallSchema` live in
+  `backend.src.llm.parser_types`; `parser.py` should not be used as a type
+  re-export surface
+
 ## ResponseParser Trust-Boundary Guards
 
 `ResponseParser.parse_response(...)` enforces:

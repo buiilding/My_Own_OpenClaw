@@ -12,7 +12,7 @@ from backend.src.agent.tools.preparation.types.resolved_tool_call import (
     ResolvedToolCall,
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
 from backend.src.tools.computer.schemas import (
     GroundedMouseActionArgs,

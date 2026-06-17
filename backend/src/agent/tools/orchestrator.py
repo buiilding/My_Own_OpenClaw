@@ -7,7 +7,7 @@ import logging
 from typing import TYPE_CHECKING, AsyncGenerator
 
 from backend.src.core.events.streaming_events import AgentStreamingEvent
-from backend.src.llm.parser import ParsedResponse
+from backend.src.llm.parser_types import ParsedResponse
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

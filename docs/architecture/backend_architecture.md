@@ -320,7 +320,7 @@ Parses LLM responses and extracts tool calls.
 - Handle parsing errors
 
 **Structure**:
-- `llm/parser.py`: ResponseParser facade
+- `llm/parser.py`: ResponseParser trust-boundary parser
 - `llm/parser_types.py`: ParsedToolCall / ParsedResponse / ToolCallSchema
 - `llm/parser_validation.py`: ToolCallValidator
 - `llm/parser_extraction.py`: JSON extraction + removal helpers

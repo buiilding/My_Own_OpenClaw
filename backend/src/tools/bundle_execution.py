@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedResponse
+from backend.src.llm.parser_types import ParsedResponse
 from backend.src.tools.execution_timeout import resolve_bundle_wait_timeout_seconds
 from backend.src.tools.result_helpers import create_tool_result_object
 from backend.src.tools.result_types import ToolExecutionBatch

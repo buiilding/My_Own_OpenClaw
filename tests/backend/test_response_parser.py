@@ -4,8 +4,7 @@ import pytest
 
 from backend.src.core.config.models import SecurityLimits
 from backend.src.core.infrastructure.error_types.trust_boundary import ParseValidationError
-from backend.src.llm.parser import ParsedToolCall
-from backend.src.llm.parser_types import ToolCallSchema
+from backend.src.llm.parser_types import ParsedToolCall, ToolCallSchema
 from backend.src.tools.categorization import ToolDomain
 from tests.backend.response_parser_test_utils import DummyTool, make_response_parser
 

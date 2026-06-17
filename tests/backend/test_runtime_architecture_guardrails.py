@@ -35,3 +35,15 @@ def test_session_config_service_does_not_own_query_cancellation():
     assert "register_active_query_task" not in config_source
     assert "cancel_active_query_task" not in config_source
     assert "pending_stop_requests" not in config_source
+
+
+def test_parser_types_import_from_owner_module():
+    disallowed_import = "from backend.src.llm.parser import " + "Parsed"
+    for path in [
+        *REPO_ROOT.glob("backend/src/**/*.py"),
+        *REPO_ROOT.glob("tests/backend/**/*.py"),
+    ]:
+        if path.as_posix().endswith("backend/src/llm/parser.py"):
+            continue
+        source = path.read_text(encoding="utf-8")
+        assert disallowed_import not in source, path

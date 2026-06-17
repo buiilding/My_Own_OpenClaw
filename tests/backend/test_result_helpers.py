@@ -28,7 +28,7 @@ def success_tool_result():
 def failed_tool_result():
     """Create a failed tool result for testing."""
     return ToolResult(success=False, error="failed", output="Error: failed")
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 
 
 class TestCreateToolResultObject:

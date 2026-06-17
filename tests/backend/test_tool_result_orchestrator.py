@@ -3,7 +3,7 @@
 import pytest
 from types import SimpleNamespace
 
-from backend.src.llm.parser import ParsedResponse, ParsedToolCall
+from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 

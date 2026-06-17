@@ -8,7 +8,7 @@ No side effects beyond boolean checks.
 from typing import List
 
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
-from backend.src.llm.parser import ParsedResponse, ParsedToolCall
+from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 from backend.src.tools.result_types import ToolExecutionResult
 
 
