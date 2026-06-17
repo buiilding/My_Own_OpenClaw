@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime mapped IPC handler removal
+
+- Finding: Electron main still registered a compiled mapper layer for direct
+  sidecar-named chat and memory IPC handlers even though renderer-visible
+  chat/memory behavior had moved to SDK-shaped commands and SDK local-runtime
+  store calls.
+- Change: removed the mapper module and registration path, kept only scoped
+  local-runtime host handlers in Electron main, and updated docs/tests to assert
+  the direct chat/memory IPC channels remain gone.
+- Validation: focused LocalRuntimeBridge RPC/lifecycle, mapper-deletion,
+  host-boundary, preload-channel, dashboard, renderer app boundary tests, docs
+  listing, and diff check.
+- Compatibility: no migration required. Renderer preload already rejected the
+  removed direct channels; sidecar JSON-RPC method registration remains
+  available behind SDK local-runtime callers.
+
 ### 2026-06-17 main SDK edit/retry alias rejection
 
 - Finding: Electron main SDK edit/retry command handling still accepted
