@@ -1,8 +1,8 @@
 ---
-summary: "Frontend validation boundary reference for protocol surfaces: preload IPC allowlists, typed bridge runtime checks, backend payload normalization, user-id sanitization, query XML escaping, and local-backend RPC mapping fallbacks."
+summary: "Frontend validation boundary reference for protocol surfaces: preload IPC allowlists, typed bridge runtime checks, backend payload normalization, user-id sanitization, query XML escaping, and local-runtime RPC mapping fallbacks."
 read_when:
   - When changing `preload.js`, renderer `IpcBridge`, or main-process websocket payload assembly.
-  - When modifying local-backend RPC payload mappers or query content enrichment input sanitation.
+  - When modifying local-runtime RPC payload mappers or query content enrichment input sanitation.
 title: "Frontend IPC Channel and Payload Validation Boundary Reference"
 ---
 
@@ -13,7 +13,7 @@ title: "Frontend IPC Channel and Payload Validation Boundary Reference"
 - Renderer `send` channels: `5`
 - Renderer `invoke` channels: `33`
 - Renderer `on/once` channels: `11`
-- Compiled local-backend mapper definitions: `10` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+- Compiled local-runtime mapper definitions: `10` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
 
 ## Scope and Sources
 
@@ -23,7 +23,7 @@ Validation boundary sources:
 - Renderer typed channel/bridge checks: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - SDK query content escaping and fallback handling: `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
-- Local-backend RPC mapping utilities: `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
+- Local-runtime RPC mapping utilities: `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
 
 ## Channel Validation Layers
 
@@ -145,7 +145,7 @@ High-risk drift points to monitor:
 | outbound websocket payload normalization | `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
 | handshake user-id identity | `frontend/src/main/ipc/ipc_install_auth_state.cjs` + `AgentClient.wakeUp(...)` | sends authenticated install identity instead of synthetic OS username fallback |
 | query XML/context sanitization fallback | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | escapes XML-sensitive content and guarantees structured fallback blocks |
-| local-backend mapper transforms | `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` | canonical renderer field mapping and safe default object coercion |
+| local-runtime mapper transforms | `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs` | canonical renderer field mapping and safe default object coercion |
 
 ## Recompute Validation Surface Commands
 

@@ -1,5 +1,5 @@
 ---
-summary: "Reference for SDK-owned desktop sidecar daemon readiness, helper RPC routing, local-backend status snapshots, and Electron host-only sidecar helpers."
+summary: "Reference for SDK-owned desktop sidecar daemon readiness, helper RPC routing, local-runtime status snapshots, and Electron host-only sidecar helpers."
 read_when:
   - When changing SDK local runtime provider usage in `frontend/src/main/sidecar/local_runtime_bridge.cjs`.
   - When debugging desktop sidecar daemon startup, `local-runtime-status`, helper RPC failures, or screenshot helper routing.
@@ -35,7 +35,7 @@ Electron main owns only host-side behavior:
 
 - desktop launch facts: command, args, cwd, env, auth path, permission path,
   discovery file, and launch context
-- renderer-visible local-backend status snapshots
+- renderer-visible local-runtime status snapshots
 - BrowserWindow visibility, screenshot display bounds, artifact upload headers,
   and screenshot attachment materialization
 - narrow IPC handlers that map renderer/helper calls to SDK runtime `rpc` or

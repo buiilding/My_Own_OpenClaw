@@ -183,6 +183,19 @@ Each completed slice should report:
   screenshot capture, IPC channels, SDK/main local-runtime routing, and Python
   sidecar execution are unchanged.
 
+### 2026-06-17 RPC mapper local-runtime docs wording
+
+- Finding: current protocol validation and readiness docs still described
+  `local_runtime_rpc_mappers.cjs` and `local-runtime-status` snapshots as
+  local-backend mapper/status surfaces.
+- Change: updated those docs to use local-runtime mapper/status wording while
+  leaving Python `LocalBackend` implementation references intact.
+- Validation: docs listing, focused stale local-backend mapper/status wording
+  scan, and `git diff --check`.
+- Compatibility: no migration required. This is documentation terminology only;
+  mapper behavior, IPC channels, SDK local-runtime routing, and sidecar JSON-RPC
+  methods are unchanged.
+
 ### 2026-06-17 frontend inventory local-runtime bridge wording
 
 - Finding: current frontend architecture and inventory docs still framed the
