@@ -7,7 +7,7 @@ import type {
   JsonRecord,
 } from '../conversation/types.js';
 import { resolveToolOutputCorrelationKeys } from '../tools/toolCorrelationIds.js';
-import type { WindieRuntimeEvent } from './ConversationRuntime.js';
+import type { AgentRuntimeEvent } from './ConversationRuntime.js';
 
 export type WindieAgentStreamState =
   | 'idle'
@@ -128,7 +128,7 @@ export function toolOutputStreamKeys(event: ConversationEvent): string[] {
   return resolveToolOutputCorrelationKeys(event.payload);
 }
 
-export function toAgentStreamEvents(runtimeEvent: WindieRuntimeEvent): WindieAgentStreamEvent[] {
+export function toAgentStreamEvents(runtimeEvent: AgentRuntimeEvent): WindieAgentStreamEvent[] {
   if (runtimeEvent.type === 'turn_started') {
     return [];
   }
@@ -271,7 +271,7 @@ export function toAgentStreamEvents(runtimeEvent: WindieRuntimeEvent): WindieAge
   return [];
 }
 
-function locatorFromSnapshot(snapshot: WindieRuntimeEvent['snapshot']): ConversationLocator {
+function locatorFromSnapshot(snapshot: AgentRuntimeEvent['snapshot']): ConversationLocator {
   return {
     conversationRef: snapshot?.state.conversationRef ?? '',
     turnRef: snapshot?.state.activeTurnRef ?? null,

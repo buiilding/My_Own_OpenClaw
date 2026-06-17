@@ -24,6 +24,10 @@ modules. The boundary rule is that Electron must not reimplement those SDK
 semantics separately, and Electron-only adapters must remain isolated behind
 SDK interfaces such as `ConversationStore` and `BackendTransport`.
 
+`AgentRuntimeEvent` is the generic SDK stream event union emitted by
+`conversation.stream(...)`. `WindieRuntimeEvent` remains exported as a
+compatibility alias for existing callers.
+
 ## Ownership
 
 | Surface | Owner | Notes |

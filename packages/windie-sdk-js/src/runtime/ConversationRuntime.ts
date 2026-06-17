@@ -120,7 +120,7 @@ export type CompactHistoryInput = {
   payload?: JsonRecord;
 };
 
-export type WindieRuntimeEvent =
+export type AgentRuntimeEvent =
   | {
       type: 'turn_started';
       result: TurnResult;
@@ -136,6 +136,8 @@ export type WindieRuntimeEvent =
       error: unknown;
       snapshot?: ConversationSnapshot;
     };
+
+export type WindieRuntimeEvent = AgentRuntimeEvent;
 
 export type ConversationRuntimeOptions = {
   conversationRef: string;
@@ -779,8 +781,8 @@ export class SdkConversationRuntime {
     return { turnRef, queryMessageId };
   }
 
-  async *stream(input: SendInput): AsyncIterable<WindieRuntimeEvent> {
-    const queue: WindieRuntimeEvent[] = [];
+  async *stream(input: SendInput): AsyncIterable<AgentRuntimeEvent> {
+    const queue: AgentRuntimeEvent[] = [];
     let finished = false;
     let notify: (() => void) | null = null;
     let sendError: unknown = null;
@@ -788,7 +790,7 @@ export class SdkConversationRuntime {
       notify?.();
       notify = null;
     };
-    const push = (event: WindieRuntimeEvent) => {
+    const push = (event: AgentRuntimeEvent) => {
       if (finished) {
         return;
       }
@@ -798,7 +800,7 @@ export class SdkConversationRuntime {
       }
       wake();
     };
-    const next = async (): Promise<WindieRuntimeEvent | null> => {
+    const next = async (): Promise<AgentRuntimeEvent | null> => {
       while (queue.length === 0 && !finished) {
         await new Promise<void>(resolve => {
           notify = resolve;

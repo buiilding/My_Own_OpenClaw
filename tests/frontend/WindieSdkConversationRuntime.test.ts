@@ -22,6 +22,8 @@ import {
   toolOutputStreamKeys,
   type BackendTransport,
   type ConversationEvent,
+  type AgentRuntimeEvent,
+  type WindieRuntimeEvent,
 } from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 import { mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -1439,6 +1441,29 @@ describe('Windie SDK conversation runtime core', () => {
       }),
     ]);
     expect(streamEvents).not.toContainEqual(expect.objectContaining({ type: 'state', state: 'error' }));
+  });
+
+  test('agent runtime event type keeps Windie compatibility alias', () => {
+    const runtimeEvent: AgentRuntimeEvent = {
+      type: 'error',
+      error: new Error('projection failed'),
+    };
+    const compatibilityEvent: WindieRuntimeEvent = runtimeEvent;
+
+    expect(toAgentStreamEvents(compatibilityEvent)).toEqual([
+      {
+        type: 'state',
+        state: 'error',
+        conversationRef: '',
+        turnRef: null,
+      },
+      {
+        type: 'error',
+        message: 'projection failed',
+        conversationRef: '',
+        turnRef: null,
+      },
+    ]);
   });
 
   test('agent stream projection uses generic fallback error wording', () => {

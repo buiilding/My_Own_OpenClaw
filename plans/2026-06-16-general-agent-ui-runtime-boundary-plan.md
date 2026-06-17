@@ -1407,3 +1407,17 @@ Each completed slice should report:
   Windie-prefixed type remains only as the compatibility alias.
 - Compatibility: no migration required. Existing callers can keep importing
   `WindieModelSelection`; new docs prefer `AgentModelSelection`.
+
+### 2026-06-17 SDK runtime event type alias
+
+- Finding: the durable SDK conversation runtime emitted a public
+  `WindieRuntimeEvent` type even though the stream event union is a reusable
+  agent runtime contract.
+- Change: added `AgentRuntimeEvent` as the generic stream event type, switched
+  conversation runtime and agent stream projection internals to the generic
+  name, and kept `WindieRuntimeEvent` as a compatibility alias.
+- Validation: focused conversation runtime Jest coverage, SDK no-emit
+  TypeScript check, docs listing, `git diff --check`, and source scans showing
+  the Windie-prefixed event type remains only as the compatibility alias.
+- Compatibility: no migration required. Runtime event payloads are unchanged,
+  and existing `WindieRuntimeEvent` imports continue to type-check.
