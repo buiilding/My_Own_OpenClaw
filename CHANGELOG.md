@@ -6,8 +6,6 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- tests/frontend: name the Agent settings capability-event test callback after the runtime capability channel instead of a backend handler.
-
 - frontend/renderer: rename app config backend-sync helpers to runtime-sync terminology while preserving settings payloads and IPC contracts.
 
 - frontend/renderer: describe model option family ordering as runtime model catalog metadata instead of backend-owned UI state.
@@ -34,6 +32,8 @@ All notable changes to WindieOS will be documented in this file.
   contracts resolve through concrete message modules.
 - backend/agent-tools: remove unused preparation and waiting storage package
   exports so storage callers use concrete storage modules.
+- backend/api: remove the unused `api.auth` package export and register install
+  auth through the concrete auth router module.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

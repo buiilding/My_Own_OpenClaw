@@ -5,7 +5,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
-let capabilityEventHandler = null;
+let backendHandler = null;
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -29,9 +29,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
       errors: [],
     })),
     on: (_channel, handler) => {
-      capabilityEventHandler = handler;
+      backendHandler = handler;
       return () => {
-        capabilityEventHandler = null;
+        backendHandler = null;
       };
     },
   },
@@ -47,7 +47,7 @@ import AgentSettingsTab from '../../frontend/src/renderer/features/dashboard/com
 
 describe('AgentSettingsTab', () => {
   beforeEach(() => {
-    capabilityEventHandler = null;
+    backendHandler = null;
   });
 
   test('updates tool toggles and displays accepted schemas plus extensions', async () => {
@@ -69,7 +69,7 @@ describe('AgentSettingsTab', () => {
     });
 
     act(() => {
-      capabilityEventHandler({
+      backendHandler({
         type: 'client-tool-manifest',
         payload: {
           accepted: [{

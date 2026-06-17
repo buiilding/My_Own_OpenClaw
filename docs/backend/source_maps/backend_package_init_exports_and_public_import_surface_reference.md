@@ -98,6 +98,9 @@ docstring or compatibility path.
 - `backend/src/agent/tools/waiting/storage/__init__.py` is intentionally
   absent; import tool-result storage from
   `backend.src.agent.tools.waiting.storage.result_storage`.
+- `backend/src/api/auth/__init__.py` is intentionally absent; import install
+  auth routes/services from concrete modules such as
+  `backend.src.api.auth.router` and `backend.src.api.auth.service`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
