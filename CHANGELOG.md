@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the retired `[LocalBackend]` daemon log prefix from Electron main local-runtime stderr forwarding and refreshed local-runtime protocol docs. No migration is required.
+
 - Removed the stale backend mypy override for the deleted `backend.src.brain` package. No migration is required.
 
 - Renamed the stale `ChatGptDashboardShell.test.jsx` dashboard test path to `DashboardShell.test.jsx` and updated current dashboard docs to the active name. No migration is required.

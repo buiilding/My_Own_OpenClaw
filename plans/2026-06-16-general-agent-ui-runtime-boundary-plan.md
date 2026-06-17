@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime daemon log filter cleanup
+
+- Finding: Electron main still forwarded `[LocalBackend]` stderr as an allowed
+  local-runtime daemon prefix after the active sidecar status prefix moved to
+  `[LocalRuntime]`.
+- Change: removed the legacy log prefix from the local-runtime launch filter,
+  tightened the focused launch-options test to prove legacy daemon stderr is
+  dropped, and refreshed current Electron-facing docs that still named
+  local-runtime status/error/test surfaces as local-backend surfaces.
+- Validation: focused frontend launch-options test, docs listing, stale
+  `[LocalBackend]` launch-filter scan, stale local-backend wording scan for the
+  touched docs, and diff check.
+- Compatibility: no migration required. This only narrows host log forwarding
+  for retired daemon prefixes; SDK local-runtime startup, sidecar JSON-RPC,
+  IPC channels, persisted state, and Python `LocalBackend` implementation
+  names are unchanged.
+
 ### 2026-06-17 diagnostics app-data host skin cleanup
 
 - Finding: the generic Electron diagnostics store still hard-coded the

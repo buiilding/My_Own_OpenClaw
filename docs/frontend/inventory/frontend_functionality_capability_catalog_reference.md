@@ -83,7 +83,7 @@ Capabilities:
 - Query send gates first turn on config sync only when cached frontend config payload is object-valid; invalid payloads are dropped instead of sent.
 - Exposes OpenAI Codex OAuth login/logout IPC handlers backed by PKCE + local callback server flow.
 
-## 3) Main Local Sidecar + Permission/Privilege Bridges
+## 3) Main Local Runtime + Permission/Privilege Bridges
 
 Primary files:
 
@@ -97,9 +97,9 @@ Primary files:
 
 Capabilities:
 
-- Starts and supervises sidecar process, ping-readiness, and JSON-RPC request correlation.
+- Starts and supervises the SDK local-runtime sidecar daemon, ping-readiness, and JSON-RPC request correlation.
 - Executes sidecar-exposed tool and memory/transcript RPC handlers through typed mapper layer.
-- Routes screenshot tool execution through the local-backend window-visibility seam.
+- Routes screenshot tool execution through the local-runtime window-visibility path.
 - Streams wakeword audio binary frames and receives framed detection payloads.
 - Delegates wakeword stderr readiness/error parsing, startup/process error mapping, and audio chunk normalization to helper runtime module.
 - Provides permission list/check/request/probe IPC contracts for onboarding.

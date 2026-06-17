@@ -2,11 +2,11 @@
 summary: "Deep frontend protocol test reference mapping renderer IPC validation, websocket/query lifecycle behavior, split main-process IPC registrar ownership, local-runtime bridge contracts, and wakeword restart safety to concrete tests."
 read_when:
   - When changing `frontend/src/main/ipc.cjs` query send behavior, settings-ack gating, or outbound payload normalization.
-  - When changing renderer IPC channel guards, split main-process IPC registrars, local-backend JSON-RPC parameter mapping, or wakeword process/buffer lifecycle handling.
-title: "Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contract Reference"
+  - When changing renderer IPC channel guards, split main-process IPC registrars, local-runtime JSON-RPC parameter mapping, or wakeword process/buffer lifecycle handling.
+title: "Frontend IPC and Local Runtime Protocol Test Coverage and Runtime Contract Reference"
 ---
 
-# Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contract Reference
+# Frontend IPC and Local Runtime Protocol Test Coverage and Runtime Contract Reference
 
 ## Coverage Snapshot (2026-03-07)
 

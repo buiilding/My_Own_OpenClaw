@@ -133,17 +133,17 @@ describe('desktop local runtime launch options', () => {
       expect(plan.ok).toBe(true);
       plan.options.onStdoutLine('daemon ready');
       plan.options.onStdoutLine('[LocalRuntime] ready');
-      plan.options.onStdoutLine('[LocalBackend] legacy ready');
+      plan.options.onStderrLine('[LocalBackend] legacy ready');
       plan.options.onStderrLine('[SidecarDaemon] listening pid=123');
 
       expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntimeDaemon] daemon ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntime] ready\n');
-      expect(stderrWrite).toHaveBeenCalledWith('[LocalBackend] legacy ready\n');
+      expect(stderrWrite).not.toHaveBeenCalledWith('[LocalBackend] legacy ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[SidecarDaemon] listening pid=123\n');
       const log = fs.readFileSync(logFile, 'utf8');
       expect(log).toContain('[LocalRuntimeDaemon] daemon ready');
       expect(log).toContain('[LocalRuntime] ready');
-      expect(log).toContain('[LocalBackend] legacy ready');
+      expect(log).not.toContain('[LocalBackend] legacy ready');
       expect(log).toContain('[SidecarDaemon] listening pid=123');
       expect(log).not.toContain('[SidecarDaemon] daemon ready');
     } finally {
