@@ -176,12 +176,13 @@ await conversation.send({ text: "Find the longest line of code in this repo" });
 await conversation.stop();
 ```
 
-Electron main uses the same SDK shape and remains a shell customer. Its only
+Electron main uses the same SDK shape through the generic `AgentClient` alias
+and remains a shell customer. Its only
 desktop-specific tool hook is a narrow lifecycle callback around SDK-local tool
 execution:
 
 ```js
-const client = new WindieClient({
+const client = new AgentClient({
   backendUrl: backendEndpointState.getHttpUrl(),
   backendEndpoints: backendEndpointState.getCandidates(),
   backendSession: 'managed',

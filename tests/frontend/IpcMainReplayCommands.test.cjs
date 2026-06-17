@@ -54,6 +54,7 @@ describe('ipc.cjs replay command handling', () => {
 
     jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
       ...sdkActual,
+      AgentClient: WindieClient,
       WindieClient,
     }));
 

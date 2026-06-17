@@ -154,8 +154,8 @@ const {
   createDesktopAutoSidecarLaunchPlan,
 } = require('./sidecar/sdk_sidecar_launch_options.cjs');
 const {
+  AgentClient,
   buildAgentDefinition,
-  WindieClient,
   TraceRecorder,
   createConversationEvent,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
@@ -752,7 +752,7 @@ function buildDesktopLocalRuntimeOptions() {
 
 function createDesktopAgentClient() {
   logMainRuntime(`[Main][SDK] creating_client backend=${backendEndpointState.getHttpUrl()}`);
-  return new WindieClient({
+  return new AgentClient({
     backendUrl: backendEndpointState.getHttpUrl(),
     httpBaseUrl: backendEndpointState.getHttpUrl(),
     wsUrl: backendEndpointState.getWsUrl(),

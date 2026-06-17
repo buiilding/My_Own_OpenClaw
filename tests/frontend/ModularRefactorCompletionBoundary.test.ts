@@ -12,9 +12,9 @@ async function read(relativePath: string): Promise<string> {
 }
 
 describe('modular sdk refactor completion boundary', () => {
-  test('electron main uses WindieClient wakeUp instead of a desktop wrapper', async () => {
+  test('electron main uses AgentClient wakeUp instead of a desktop wrapper', async () => {
     const ipcSource = await read('frontend/src/main/ipc.cjs');
-    expect(ipcSource).toContain('new WindieClient({');
+    expect(ipcSource).toContain('new AgentClient({');
     expect(ipcSource).toContain('client.wakeUp({');
     expect(ipcSource).toContain('agent.conversation({');
     expect(ipcSource).toContain('localToolLifecycle');

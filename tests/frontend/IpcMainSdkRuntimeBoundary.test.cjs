@@ -14,12 +14,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source.match(directRuntimeSendPattern) || []).toEqual([]);
   });
 
-  test('electron main starts the SDK through WindieClient wakeUp directly', async () => {
+  test('electron main starts the SDK through AgentClient wakeUp directly', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
       'utf8',
     );
-    expect(source).toContain('new WindieClient({');
+    expect(source).toContain('new AgentClient({');
     expect(source).toContain('client.wakeUp({');
     expect(source).toContain('agent.conversation({');
     expect(source).toContain('localToolLifecycle');

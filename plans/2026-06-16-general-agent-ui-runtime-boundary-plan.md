@@ -1532,3 +1532,21 @@ Each completed slice should report:
   compatibility aliases.
 - Compatibility: no migration required. Client behavior, wake-up payloads, and
   existing `WindieClient`/Windie-prefixed type imports keep working.
+
+### 2026-06-17 Electron main SDK client alias
+
+- Finding: Electron main already acts as a generic SDK host but still
+  constructed the runtime through the product-branded `WindieClient` export.
+- Change: switched the desktop agent client factory to construct
+  `AgentClient`, updated main boundary tests and SDK mocks to enforce/provide
+  the generic constructor alias, and updated the SDK runtime doc's Electron
+  main example to use `AgentClient`.
+- Validation: focused main boundary Jest coverage and replay mock coverage
+  passed, docs listing passed, `git diff --check` passed, and source scans show
+  Electron main no longer constructs `WindieClient` directly. The broader
+  `IpcMainConversationRuntimeRegistry.test.cjs` suite was also attempted, but
+  its held-send concurrency test timed out while awaiting the mocked second
+  send; that path is outside the constructor alias change.
+- Compatibility: no migration required. `AgentClient` is the same SDK
+  constructor as `WindieClient`, so runtime behavior and test mocks stay
+  unchanged.

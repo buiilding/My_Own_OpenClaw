@@ -100,6 +100,7 @@ describe('ipc.cjs conversation runtime registry', () => {
 
     jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
       ...sdkActual,
+      AgentClient: WindieClient,
       WindieClient,
     }));
 
