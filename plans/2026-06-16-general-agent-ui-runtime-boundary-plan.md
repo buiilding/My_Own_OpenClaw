@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main trace input alias removal
+
+- Finding: Electron main trace helpers still accepted removed query/current-turn
+  alias fields even though frontend query tracing is passed explicit helper
+  fields and SDK current-turn projections are camelCase.
+- Change: made frontend query diagnostics read only `queryMessageId` and
+  `conversationRef`, made SDK current-turn stdout traces read only `turnRef`
+  and `conversationRef`, and kept backend event trace summaries on canonical
+  backend snake_case fields.
+- Validation: focused AssistantTrace Jest coverage, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. This affects diagnostic summaries only;
+  runtime query send, backend events, persisted data, credentials, and tool
+  schemas are unchanged.
+
 ### 2026-06-17 backend provider stream helper test/docs lock
 
 - Finding: the base provider stream-helper docs and online provider tests still

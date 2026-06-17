@@ -395,6 +395,11 @@ provider ids, and model ids without raw user text, assistant text, provider
 payloads, or secrets. Backend event trace summaries read canonical backend
 fields such as `turn_ref`, `conversation_ref`, `request_id`, `correlation_id`,
 `tool_name`, and `final_response`; removed camelCase aliases are ignored.
+Frontend query trace rows read the main-process query helper fields
+`queryMessageId` and `conversationRef`, not backend payload fallbacks such as
+`turn_ref` or `conversation_ref`. SDK current-turn stdout traces read the SDK
+projection fields `turnRef` and `conversationRef`; removed snake_case
+projection aliases are ignored.
 
 `[LiveSurfaceTrace]` is the verbose official ephemeral surface trace. Enable it
 with `WINDIE_DEBUG_LIVE_SURFACE=1` or the broader chat-pill debug flag when the

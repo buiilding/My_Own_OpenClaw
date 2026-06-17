@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: remove frontend query and SDK current-turn trace alias fallbacks so diagnostics read only canonical `queryMessageId`, `conversationRef`, and `turnRef` helper fields; backend event summaries remain on backend wire fields. No migration is required because this changes diagnostics only.
+
 - Removed a duplicate backend provider stream-helper cleanup note from the ongoing deletion plan. No migration required; this is plan documentation cleanup only.
 
 - Updated backend provider stream pipeline docs and focused provider tests to lock the removed base stream-helper wrappers and patch `stream_event_pipeline` directly. No migration is required because this is docs/test coverage for private helper ownership.

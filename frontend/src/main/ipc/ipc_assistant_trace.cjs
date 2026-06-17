@@ -113,16 +113,16 @@ function compactBackendSummary(data) {
 }
 
 function currentTurnTraceKey(currentTurn) {
-  const conversationRef = safeId(currentTurn?.conversationRef || currentTurn?.conversation_ref);
-  const turnRef = safeId(currentTurn?.turnRef || currentTurn?.turn_ref);
+  const conversationRef = safeId(currentTurn?.conversationRef);
+  const turnRef = safeId(currentTurn?.turnRef);
   return `${conversationRef}:${turnRef}`;
 }
 
 function currentTurnTraceSnapshot(currentTurn) {
   const toolEvents = Array.isArray(currentTurn?.toolEvents) ? currentTurn.toolEvents : [];
   return {
-    conversationRef: safeId(currentTurn?.conversationRef || currentTurn?.conversation_ref),
-    turnRef: safeId(currentTurn?.turnRef || currentTurn?.turn_ref),
+    conversationRef: safeId(currentTurn?.conversationRef),
+    turnRef: safeId(currentTurn?.turnRef),
     phase: safeString(currentTurn?.phase) || 'unknown',
     assistantLength: safeString(currentTurn?.assistantText).length,
     reasoningLength: safeString(currentTurn?.reasoningText).length,
@@ -312,8 +312,8 @@ function createElectronMainTraceLogger({
 
   function traceFrontendQuery(input = {}) {
     const payload = safeObject(input.payload);
-    const turnRef = safeId(input.queryMessageId || input.turnRef || payload.turn_ref);
-    const conversationRef = safeId(input.conversationRef || payload.conversation_ref);
+    const turnRef = safeId(input.queryMessageId);
+    const conversationRef = safeId(input.conversationRef);
     record({
       action: 'query.send',
       phase: 'frontend',

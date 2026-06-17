@@ -143,6 +143,39 @@ describe('assistant runtime trace logging', () => {
     expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('sk-secret');
   });
 
+  test('ignores removed frontend query trace id fallbacks', () => {
+    const messages = [];
+    const appendIpcBridgeDiagnostic = jest.fn();
+    const tracer = createElectronMainTraceLogger({
+      log: message => messages.push(message),
+      appendIpcBridgeDiagnostic,
+      stdoutEnabled: true,
+    });
+
+    tracer.traceFrontendQuery({
+      turnRef: 'turn-legacy',
+      payload: {
+        text: 'private user request',
+        turn_ref: 'turn-backend',
+        conversation_ref: 'conv-backend',
+        resources: [{ kind: 'screenshot' }],
+      },
+    });
+
+    expect(messages).toEqual([
+      '[ElectronTrace] frontend query.send turn=- conv=- text_len=20 resources=1',
+    ]);
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'query.send',
+      conversationRef: null,
+      turnRef: null,
+      requestId: null,
+      textLength: 20,
+      resourceCount: 1,
+    }));
+    expect(JSON.stringify(messages)).not.toContain('private user request');
+  });
+
   test('ignores removed camelCase backend event trace aliases', () => {
     const messages = [];
     const appendIpcBridgeDiagnostic = jest.fn();
@@ -241,6 +274,28 @@ describe('assistant runtime trace logging', () => {
       '[AssistantTrace][sdk] assistant text advanced delta_len=6 phase=streaming turn=turn-1 conv=conv-1 assistant_len=11 reasoning_len=0 tool_events=0',
       '[AssistantTrace][sdk] phase changed from=streaming to=complete phase=complete turn=turn-1 conv=conv-1 assistant_len=11 reasoning_len=0 tool_events=0',
       '[AssistantTrace][sdk] assistant complete phase=complete turn=turn-1 conv=conv-1 assistant_len=11 reasoning_len=0 tool_events=0',
+    ]);
+  });
+
+  test('ignores removed snake_case current-turn trace aliases', () => {
+    const messages = [];
+    const tracer = createCurrentTurnTraceLogger({
+      log: message => messages.push(message),
+    });
+
+    tracer.trace({
+      conversation_ref: 'conv-snake',
+      turn_ref: 'turn-snake',
+      phase: 'streaming',
+      assistantText: 'Hello',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    });
+
+    expect(messages).toEqual([
+      '[AssistantTrace][sdk] turn projection opened phase=streaming turn=- conv=- assistant_len=5 reasoning_len=0 tool_events=0',
+      '[AssistantTrace][sdk] assistant response started phase=streaming turn=- conv=- assistant_len=5 reasoning_len=0 tool_events=0',
     ]);
   });
 });
