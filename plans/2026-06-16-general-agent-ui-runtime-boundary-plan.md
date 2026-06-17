@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Agent stop option alias removal
+
+- Finding: the public SDK `Agent.stop` helper still accepted backend-shaped
+  `conversation_ref` and `turn_ref` option aliases even though the Agent API
+  boundary is documented and exported with camelCase option types.
+- Change: removed the snake_case aliases from `AgentStopOptions`, made
+  `Agent.stop` fail fast when callers pass the retired spellings, and preserved
+  the backend wire `stop-query` payload shape at the session transport boundary.
+- Validation: focused SDK client stop-option test and diff check.
+- Compatibility: SDK callers using `conversation_ref` or `turn_ref` with
+  `Agent.stop` must migrate to `conversationRef` and `turnRef`. No backend
+  wire, storage, persisted-data, or security migration is required.
+
 ### 2026-06-17 sidecar source-copy guard test alignment
 
 - Finding: sidecar tests still expected the retired local-sidecar-runtime and
