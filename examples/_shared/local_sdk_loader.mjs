@@ -17,8 +17,13 @@ function sdkPackageJson(repoRoot) {
 
 export function buildLocalWindieSdk(repoRoot) {
   const packageDir = sdkDir(repoRoot);
-  const tsc = path.join(packageDir, 'node_modules/.bin/tsc');
-  const result = spawnSync(tsc, ['-p', 'tsconfig.build.json'], {
+  const command = process.platform === 'win32'
+    ? process.env.ComSpec || 'cmd.exe'
+    : 'npm';
+  const args = process.platform === 'win32'
+    ? ['/d', '/c', 'npm.cmd run build:esm']
+    : ['run', 'build:esm'];
+  const result = spawnSync(command, args, {
     cwd: packageDir,
     stdio: 'inherit',
   });

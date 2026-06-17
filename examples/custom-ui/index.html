@@ -114,7 +114,7 @@
     <script type="module">
       import {
         InMemoryConversationStore,
-        WindieClient
+        AgentClient
       } from '/sdk/index.js';
 
       const messages = document.querySelector('#messages');
@@ -125,7 +125,7 @@
       const stop = document.querySelector('#stop');
       const composer = document.querySelector('#composer');
       const store = new InMemoryConversationStore();
-      const client = new WindieClient({
+      const client = new AgentClient({
         backendUrl: window.location.origin
       });
       const modelCatalog = await client.listModels({ userId: 'custom-ui-example-user' });

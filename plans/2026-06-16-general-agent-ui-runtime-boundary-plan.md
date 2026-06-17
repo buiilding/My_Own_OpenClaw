@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK docs and examples use AgentClient
+
+- Finding: after making `AgentClient` canonical, SDK-facing examples and
+  Electron-main docs still taught `WindieClient` / `WindieAgent` as the primary
+  runtime path instead of compatibility aliases.
+- Change: updated runnable SDK examples, custom UI import snippets, docs
+  navigation, and Electron-main runtime references to use `AgentClient` and
+  `Agent` terminology for reusable host guidance; also made the shared example
+  loader use the SDK package ESM build script so local SDK example smoke checks
+  can run on this workspace.
+- Validation: focused example smoke checks, docs index coverage, docs listing,
+  source scan, and diff check.
+- Compatibility: no migration required. Existing `WindieClient` and
+  `WindieAgent` exports remain available as compatibility aliases.
+
 ### 2026-06-17 preload desktop-agent invoke channel alias
 
 - Finding: the preload bridge exposed the generic `desktopAgent` command API but

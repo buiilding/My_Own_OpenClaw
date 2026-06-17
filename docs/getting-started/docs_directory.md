@@ -64,7 +64,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Browser Change Workflow](../browser/browser_change_workflow.md) - dedicated browser schema, runtime, bridge, UI, and tests.
 - [Browser Hub](../browser/README.md) - dedicated browser runtime, CDP session ownership, action schemas, snapshots, and debug routes.
 - [SDK Hub](../sdk/README.md) - hosted clients, query planning, OCR/vision, and tool authoring.
-- [WindieClient Runtime Contract](../sdk/windie_client_runtime.md) - SDK runtime ownership and public API.
+- [AgentClient Runtime Contract](../sdk/windie_client_runtime.md) - SDK runtime ownership and public API.
 - [Providers Hub](../providers/README.md) - LLM, inference, credential, STT, TTS, and search providers.
 - [Models and LLM Providers](../providers/models.md) - provider factory registration, model catalog metadata, reasoning variants, and capability flags.
 

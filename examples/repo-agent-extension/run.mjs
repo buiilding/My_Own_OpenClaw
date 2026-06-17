@@ -14,7 +14,7 @@ import {
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, '../..');
 const { WebSocketServer, WebSocketImpl } = loadSdkWebSocket(repoRoot);
-const { WindieClient } = await loadLocalWindieSdk(repoRoot);
+const { AgentClient } = await loadLocalWindieSdk(repoRoot);
 
 function send(socket, type, payload = {}, extra = {}) {
   socket.send(JSON.stringify({ type, payload, ...extra }));
@@ -129,7 +129,7 @@ function createMockBackend() {
 }
 
 const backend = await createMockBackend().listen();
-const client = new WindieClient({
+const client = new AgentClient({
   backendUrl: backend.backendUrl,
   WebSocketImpl,
   autoSidecar: {

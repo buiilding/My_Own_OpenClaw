@@ -32,7 +32,7 @@ npm install
 
 This example proves the intended public shape:
 
-- wake a `WindieClient`
+- wake an `AgentClient`
 - open a conversation runtime
 - change models through the SDK runtime
 - render SDK display projections

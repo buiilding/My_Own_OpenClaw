@@ -44,10 +44,10 @@ Common input normalization:
 Endpoint context for SDK agent calls:
 
 - websocket send target, origin, hosted defaults, and endpoint environment
-  overrides are owned by `WindieClient` managed backend options
+  overrides are owned by `AgentClient` managed backend options
 - socket construction, sidecar/tool runtime bootstrap, envelope sends,
   current-turn projection, and display-row projection are owned by
-  the SDK `WindieClient.wakeUp(...)` + `agent.conversation(...)` path;
+  the SDK `AgentClient.wakeUp(...)` + `agent.conversation(...)` path;
   `ipc.cjs` imports the SDK directly and only forwards SDK outputs to renderer
   windows
 - `get-client-user-id` snapshot includes resolved diagnostic `backendWsUrl` and

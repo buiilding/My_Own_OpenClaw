@@ -478,7 +478,7 @@ describe('windie docs index', () => {
     );
   });
 
-  test('routes SDK builtins wake option queries to the WindieClient runtime contract', () => {
+  test('routes SDK builtins wake option queries to the AgentClient runtime contract', () => {
     const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
 
     expect(findDocs('builtinTools wake guard')[0].path).toBe(expectedPath);
@@ -1068,7 +1068,7 @@ describe('windie docs index', () => {
     );
   });
 
-  test('routes SDK stream attachment extraction queries to WindieClient runtime', () => {
+  test('routes SDK stream attachment extraction queries to AgentClient runtime', () => {
     const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
 
     expect(
@@ -1124,7 +1124,7 @@ describe('windie docs index', () => {
     expect(findDocs('ChatGptDashboardShell css removed')[0].path).toBe(expectedPath);
   });
 
-  test('routes SDK websocket typing queries to the WindieClient runtime contract', () => {
+  test('routes SDK websocket typing queries to the AgentClient runtime contract', () => {
     const expectedPath = path.join('docs', 'sdk', 'windie_client_runtime.md');
 
     expect(findDocs('SDK websocket ws ambient declaration')[0].path).toBe(expectedPath);

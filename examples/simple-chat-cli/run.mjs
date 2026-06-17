@@ -12,14 +12,14 @@ import { loadLocalWindieSdk } from "../_shared/local_sdk_loader.mjs";
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, "../..");
 
-const { WindieClient } = await loadLocalWindieSdk(repoRoot);
+const { AgentClient } = await loadLocalWindieSdk(repoRoot);
 const installToken = process.env.WINDIE_INSTALL_TOKEN;
 
 if (!installToken) {
   throw new Error("Set WINDIE_INSTALL_TOKEN before running this example.");
 }
 
-const agent = await new WindieClient().wakeUp({
+const agent = await new AgentClient().wakeUp({
   installAuth: {
     userId: "peter",
     installToken,

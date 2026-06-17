@@ -113,15 +113,15 @@ function createMockBackend() {
 }
 
 const {
+  AgentClient,
   FileConversationStore,
-  WindieClient,
 } = await loadLocalWindieSdk(repoRoot);
 
 const backend = await createMockBackend();
 const store = new FileConversationStore({
   directory: path.join(os.tmpdir(), 'windie-cli-agent-example-store'),
 });
-const client = new WindieClient({
+const client = new AgentClient({
   backendUrl: backend.backendUrl,
   WebSocketImpl,
 });

@@ -123,12 +123,12 @@ function createMockBackend() {
 }
 
 const {
-  WindieClient,
+  AgentClient,
   moduleTool,
 } = await loadLocalWindieSdk(repoRoot);
 
 const backend = await createMockBackend();
-const client = new WindieClient({
+const client = new AgentClient({
   backendUrl: backend.backendUrl,
   WebSocketImpl,
   autoSidecar: {

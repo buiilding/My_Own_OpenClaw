@@ -64,7 +64,7 @@ Main modules:
 Responsibilities:
 
 - Adapts renderer IPC to the SDK main runtime.
-- Starts `WindieClient.wakeUp(...)` directly, uses the returned
+- Starts `AgentClient.wakeUp(...)` directly, uses the returned
   `agent.conversation(...)` runtime, and delegates backend websocket
   construction, local sidecar/tool runtime bootstrap, envelope sends, close,
   reconnect primitives, display rows, and current-turn projection to the SDK.
@@ -75,7 +75,7 @@ Responsibilities:
 
 Split boundary:
 
-- `ipc.cjs` is the SDK customer: it imports `WindieAgent`, starts the desktop
+- `ipc.cjs` is the SDK customer: it imports `Agent`, starts the desktop
   agent with only normal public startup inputs (`apiKey`, `workspace`,
   `appName`), subscribes to SDK rows/status/events/current-turn/connection
   outputs, and exposes thin `windie:*` IPC handlers that call SDK agent methods.

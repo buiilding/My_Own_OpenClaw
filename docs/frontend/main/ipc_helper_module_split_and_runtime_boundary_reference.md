@@ -88,7 +88,7 @@ Owns IPC startup state hydration:
 - initializes global stop-shortcut enabled state from the current response-overlay phase
 - treats disk-hydration failures as fail-open startup conditions
 
-### `WindieClient.wakeUp(...)` and `agent.conversation(...)`
+### `AgentClient.wakeUp(...)` and `agent.conversation(...)`
 
 Own Windie SDK runtime lifecycle construction:
 
@@ -266,7 +266,7 @@ Owns OpenAI Codex OAuth IPC handler registration:
 ### SDK Command Forwarding
 
 `ipc.cjs` forwards accepted SDK-shaped runtime commands through explicit
-`WindieAgent` and `ConversationRuntime` methods. It does not expose the retired
+`Agent` and `ConversationRuntime` methods. It does not expose the retired
 generic `to-backend` router or direct chat query IPC handlers.
 
 ## Delegation Flow in `ipc.cjs`
@@ -279,7 +279,7 @@ generic `to-backend` router or direct chat query IPC handlers.
 6. automated VM query dispatch delegates to `ipc_automated_query_dispatcher.cjs`.
 7. startup install-auth/config/shortcut hydration delegates to `ipc_startup_state.cjs`.
 8. SDK websocket runtime construction and backend event lifecycle delegate to
-   `WindieClient.wakeUp(...)` and `agent.conversation(...)`.
+   `AgentClient.wakeUp(...)` and `agent.conversation(...)`.
 9. backend endpoint candidate and active endpoint state delegates to
    `ipc_backend_endpoint_state.cjs`.
 10. settings ACK, initial sync, and queued list-models state delegate to

@@ -57,7 +57,7 @@ This means packaged-vs-dev fallback selection is determined at IPC bridge initia
 
 The SDK runtime is the canonical owner of backend websocket sessions. Electron main should use the SDK runtime for connect/reconnect, handshake, query, stop, settings, event parsing, event fan-out, and local tool-call routing. Electron-specific code remains responsible for windows, overlays, renderer IPC, settings UI, permission prompts, and platform display/screenshot integration.
 
-## SDK Connection Lifecycle (`WindieClient.wakeUp(...)`)
+## SDK Connection Lifecycle (`AgentClient.wakeUp(...)`)
 
 The SDK runtime owns connection demand, connect waiters, reconnect timers, idle
 disconnect timers, socket construction, handshake send, and backend message
