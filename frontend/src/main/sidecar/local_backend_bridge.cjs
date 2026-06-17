@@ -38,6 +38,7 @@ const {
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
+const DEFAULT_BROWSER_WARMUP_EXPLANATION = 'Open the browser for onboarding and profile setup.';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
   granted: false,
   reason: 'Local backend bridge is not initialized.',
@@ -57,6 +58,9 @@ let sdkLocalRuntimeSnapshot = null;
 let sdkStatusMainWindow = null;
 let getKnownLocalRuntime = null;
 let ensureLocalRuntime = null;
+let localBackendCopy = Object.freeze({
+  browserWarmupExplanation: DEFAULT_BROWSER_WARMUP_EXPLANATION,
+});
 
 function createBrowserSessionDiagnosticId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -378,6 +382,13 @@ async function loadArtifactUploadHeaders() {
 
 function initializeLocalBackendBridge(getWindows, options = {}) {
   const isPackaged = options.isPackaged === true;
+  const nextLocalBackendCopy = options.mainHostSkin?.localBackend || options.copy || {};
+  localBackendCopy = Object.freeze({
+    browserWarmupExplanation: (
+      nextLocalBackendCopy.browserWarmupExplanation
+      || DEFAULT_BROWSER_WARMUP_EXPLANATION
+    ),
+  });
   const backendEndpointCandidates = resolveBackendEndpointCandidates(process.env, { isPackaged });
   const backendEndpoints = backendEndpointCandidates[0] || resolveBackendEndpoints(process.env, { isPackaged });
   const {
@@ -617,7 +628,7 @@ async function warmBrowserAutomation() {
       tool_name: 'browser',
       args: {
         action: 'connect',
-        explanation: 'Open the WindieOS browser for onboarding and profile setup.',
+        explanation: localBackendCopy.browserWarmupExplanation,
       },
     },
     { timeoutMs: 120000 },

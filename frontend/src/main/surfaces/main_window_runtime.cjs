@@ -264,6 +264,7 @@ function createMainWindow({
     isPackaged: app.isPackaged,
     permissionStatePath,
     authStatePath: getInstallAuthStatePath(),
+    mainHostSkin,
   });
   initializeMainProcessIpc();
 

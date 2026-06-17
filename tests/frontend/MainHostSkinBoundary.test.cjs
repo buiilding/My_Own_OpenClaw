@@ -9,10 +9,13 @@ const mainRoot = path.resolve(__dirname, '../../frontend/src/main');
 const indexPath = path.join(mainRoot, 'index.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
+const openAICodexOAuthPath = path.join(mainRoot, 'app/openai_codex_oauth.cjs');
+const openAICodexOAuthHandlersPath = path.join(mainRoot, 'ipc/ipc_openai_codex_oauth_handlers.cjs');
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
 const sidecarLaunchOptionsPath = path.join(mainRoot, 'sidecar/sdk_sidecar_launch_options.cjs');
+const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_backend_bridge.cjs');
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
 const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_screen_capture.cjs');
@@ -46,6 +49,10 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('bundledRuntime');
     expect(skinSource).toContain('missingPythonRuntime');
     expect(skinSource).toContain('missingWakewordExecutable');
+    expect(skinSource).toContain('localBackend');
+    expect(skinSource).toContain('browserWarmupExplanation');
+    expect(skinSource).toContain('openAICodexOAuth');
+    expect(skinSource).toContain('tokenExchangeFailure');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {
@@ -118,5 +125,18 @@ describe('main host skin/config boundary', () => {
       expect(source).not.toContain('Please reinstall WindieOS');
       expect(source).not.toContain('Reinstall WindieOS');
     }
+  });
+
+  test('local backend and OAuth helpers consume host copy with generic defaults', () => {
+    const localBackendSource = fs.readFileSync(localBackendBridgePath, 'utf8');
+    const oauthSource = fs.readFileSync(openAICodexOAuthPath, 'utf8');
+    const oauthHandlerSource = fs.readFileSync(openAICodexOAuthHandlersPath, 'utf8');
+
+    expect(localBackendSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
+    expect(localBackendSource).toContain('localBackendCopy.browserWarmupExplanation');
+    expect(localBackendSource).not.toContain('Open the WindieOS browser');
+    expect(oauthSource).toContain('Return to the app for details');
+    expect(oauthSource).not.toContain('Return to WindieOS');
+    expect(oauthHandlerSource).toContain('copy ? { copy } : {}');
   });
 });

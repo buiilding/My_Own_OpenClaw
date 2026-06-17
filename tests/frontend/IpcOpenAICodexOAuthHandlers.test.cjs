@@ -60,6 +60,18 @@ describe('ipc_openai_codex_oauth_handlers', () => {
     });
   });
 
+  test('passes host copy through login handler when provided', async () => {
+    const copy = { tokenExchangeFailure: 'Return to the host app.' };
+    const { deps, handlers } = createHarness({ copy });
+
+    await handlers['openai-codex-oauth-login']();
+
+    expect(deps.loginOpenAICodexOAuth).toHaveBeenCalledWith({
+      openExternal: deps.openExternal,
+      copy,
+    });
+  });
+
   test('returns normalized logout success payload', async () => {
     const { deps, handlers } = createHarness();
 

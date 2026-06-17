@@ -7,11 +7,13 @@ function registerOpenAICodexOAuthHandlers({
   loginOpenAICodexOAuth,
   logoutOpenAICodexOAuth,
   openExternal,
+  copy = null,
 }) {
   ipcMain.handle('openai-codex-oauth-login', async () => {
     try {
       const result = await loginOpenAICodexOAuth({
         openExternal,
+        ...(copy ? { copy } : {}),
       });
       return {
         success: true,

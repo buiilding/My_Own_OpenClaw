@@ -13,6 +13,9 @@ const {
   resolveNextSdkRuntimeRequest,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/localBackendBridgeHarness.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 function createOwnedScreenshotTempPath(label) {
   return path.join(
@@ -134,7 +137,7 @@ describe('local_backend_bridge RPC handlers', () => {
   });
 
   test('browser warmup sends a valid connect payload with explanation', async () => {
-    const { bridge, stdoutHandler } = initBridge();
+    const { bridge, stdoutHandler } = initBridge({ mainHostSkin });
     markReady();
 
     const promise = bridge.warmBrowserAutomation();

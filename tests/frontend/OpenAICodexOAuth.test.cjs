@@ -5,6 +5,9 @@ const net = require('net');
 const {
   loginOpenAICodexOAuth,
 } = require('../../frontend/src/main/app/openai_codex_oauth.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 function createJwt(payload) {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
@@ -134,5 +137,32 @@ describe('openai_codex_oauth', () => {
     expect(callbackResponse.statusCode).toBe(400);
     expect(callbackResponse.body).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;');
     expect(callbackResponse.body).not.toContain(rawDescription);
+  });
+
+  test('loginOpenAICodexOAuth uses host skin copy for token exchange callback failures', async () => {
+    const fetchImpl = jest.fn(async () => ({
+      ok: false,
+      status: 500,
+      text: async () => 'token service failed',
+    }));
+    let callbackResponse = null;
+    const openExternal = jest.fn(async (authUrl) => {
+      const parsed = new URL(authUrl);
+      const state = parsed.searchParams.get('state');
+      expect(state).toBeTruthy();
+
+      callbackResponse = await requestCallback(
+        `/auth/callback?state=${encodeURIComponent(state)}&code=test-code`,
+      );
+    });
+
+    await expect(loginOpenAICodexOAuth({
+      openExternal,
+      fetchImpl,
+      copy: mainHostSkin.openAICodexOAuth,
+    })).rejects.toThrow('OpenAI OAuth token exchange failed (500): token service failed');
+
+    expect(callbackResponse.statusCode).toBe(500);
+    expect(callbackResponse.body).toContain('Return to WindieOS for details.');
   });
 });

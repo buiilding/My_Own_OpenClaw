@@ -165,7 +165,18 @@ function sendCallbackResponse(res, response, onComplete = null) {
   res.end(response.body);
 }
 
-async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, issuer, clientId, timeoutMs, fetchImpl, cancelSignal }) {
+async function waitForOAuthCallback({
+  server,
+  state,
+  codeVerifier,
+  redirectUri,
+  issuer,
+  clientId,
+  timeoutMs,
+  fetchImpl,
+  cancelSignal,
+  copy = {},
+}) {
   return await new Promise((resolve, reject) => {
     let settled = false;
     let timeoutHandle = null;
@@ -263,7 +274,10 @@ async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, 
           finish(null, tokenPayload);
         });
       } catch (error) {
-        const tokenError = createCallbackResponse('Token exchange failed. Return to WindieOS for details.', 500);
+        const tokenError = createCallbackResponse(
+          copy.tokenExchangeFailure || 'Token exchange failed. Return to the app for details.',
+          500,
+        );
         sendCallbackResponse(res, tokenError, () => {
           finish(error instanceof Error ? error : new Error(String(error)));
         });
@@ -275,6 +289,7 @@ async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, 
 async function loginOpenAICodexOAuth(options = {}) {
   const openExternal = options.openExternal;
   const fetchImpl = options.fetchImpl || fetch;
+  const copy = options.copy || {};
   if (typeof openExternal !== 'function') {
     throw new Error('Browser launcher is unavailable in Electron main process.');
   }
@@ -316,6 +331,7 @@ async function loginOpenAICodexOAuth(options = {}) {
     timeoutMs: OPENAI_CODEX_LOGIN_TIMEOUT_MS,
     fetchImpl,
     cancelSignal: callbackAbortController.signal,
+    copy,
   });
   waitForCallbackPromise.catch(() => {});
 

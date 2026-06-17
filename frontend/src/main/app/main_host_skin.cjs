@@ -92,11 +92,21 @@ const bundledRuntime = Object.freeze({
   ),
 });
 
+const localBackend = Object.freeze({
+  browserWarmupExplanation: `Open the ${productName} browser for onboarding and profile setup.`,
+});
+
+const openAICodexOAuth = Object.freeze({
+  tokenExchangeFailure: `Token exchange failed. Return to ${productName} for details.`,
+});
+
 const mainHostSkin = Object.freeze({
   productName,
   identity,
   queryEvents,
   bundledRuntime,
+  localBackend,
+  openAICodexOAuth,
   permissions: Object.freeze({
     browserAutomation,
     macAutomation,

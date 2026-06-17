@@ -34,6 +34,8 @@ All notable changes to WindieOS will be documented in this file.
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead
   of exporting an unused module surface.
+- frontend/main: route local browser warmup and OpenAI Codex OAuth callback
+  product copy through main host skin config with generic helper fallbacks.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

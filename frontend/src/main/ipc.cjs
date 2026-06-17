@@ -1683,6 +1683,7 @@ function initializeIpc(win, options = {}) {
     loginOpenAICodexOAuth,
     logoutOpenAICodexOAuth,
     openExternal: (url) => shell.openExternal(url),
+    copy: mainHostSkin.openAICodexOAuth,
   });
 
   ipcMain.on('transcript-session-sync', (event, payload = {}) => {

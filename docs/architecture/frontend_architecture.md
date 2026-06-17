@@ -292,6 +292,9 @@ Primary modules:
   - Bundled wakeword and sidecar reinstall guidance should read from this
     boundary on WindieOS app paths; reusable launch helpers keep generic
     fallback wording.
+  - Local browser warmup and OpenAI Codex OAuth callback copy should read from
+    this boundary on WindieOS app paths; local backend and OAuth helper modules
+    keep generic fallback wording.
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.
