@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer: moved the WindieOS dashboard brand icon URL into renderer skin CSS so the generic dashboard shell consumes a skin asset token.
+
 - backend/history: remove stored-history message-type alias fallbacks so rehydrate normalizes frontend labels before strict conversation-history replacement.
 
 - Main: moved the WindieOS app icon filename into host skin assets while keeping window and tray icon resolution generic.
@@ -1584,6 +1586,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer: moved the WindieOS dashboard brand icon URL into renderer skin CSS so the generic dashboard shell consumes a skin asset token.
+
 - Main: moved the WindieOS app icon filename into host skin assets while keeping window and tray icon resolution generic.
 
 - Main: renamed the no-Electron install-auth fallback directory to generic desktop-agent wording while keeping Electron userData persistence unchanged.
@@ -3074,6 +3078,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renderer: moved the WindieOS dashboard brand icon URL into renderer skin CSS so the generic dashboard shell consumes a skin asset token.
+
 - Main: moved the WindieOS app icon filename into host skin assets while keeping window and tray icon resolution generic.
 
 - Main: renamed the no-Electron install-auth fallback directory to generic desktop-agent wording while keeping Electron userData persistence unchanged.
@@ -3218,6 +3224,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Renderer: moved the WindieOS dashboard brand icon URL into renderer skin CSS so the generic dashboard shell consumes a skin asset token.
 
 - Main: moved the WindieOS app icon filename into host skin assets while keeping window and tray icon resolution generic.
 
@@ -3393,6 +3401,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Renderer: moved the WindieOS dashboard brand icon URL into renderer skin CSS so the generic dashboard shell consumes a skin asset token.
 
 - Main: moved the WindieOS app icon filename into host skin assets while keeping window and tray icon resolution generic.
 
@@ -5524,6 +5534,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Renderer: moved the WindieOS dashboard brand icon URL into renderer skin CSS so the generic dashboard shell consumes a skin asset token.
 
 - Main: moved the WindieOS app icon filename into host skin assets while keeping window and tray icon resolution generic.
 

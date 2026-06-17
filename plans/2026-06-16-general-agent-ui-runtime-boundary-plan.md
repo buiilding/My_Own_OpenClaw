@@ -746,3 +746,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Packaged/source icon lookup order is
   unchanged for the WindieOS skin because it supplies the same
   `windieos.app.png` asset filename.
+
+### 2026-06-17 renderer brand icon skin stylesheet
+
+- Finding: the generic dashboard shell stylesheet still referenced the WindieOS
+  app icon asset directly for the sidebar brand mark.
+- Change: moved the concrete WindieOS brand icon URL into a renderer skin
+  stylesheet and changed the generic dashboard shell CSS to consume the skin
+  custom property.
+- Validation: renderer skin boundary test, dashboard sidebar test, docs listing,
+  `git diff --check`, and source scan for the retired hardcoded asset reference
+  in the generic dashboard shell stylesheet.
+- Compatibility: no migration required. The WindieOS skin still points to the
+  same bundled app icon asset.

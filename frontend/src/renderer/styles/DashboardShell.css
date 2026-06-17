@@ -125,7 +125,7 @@ body.cg-scroll-locked,
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background-image: url("../../main/assets/icons/windieos.app.png");
+  background-image: var(--cg-brand-app-icon-url, var(--windie-desktop-brand-icon-url, none));
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;

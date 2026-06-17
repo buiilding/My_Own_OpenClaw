@@ -6,7 +6,10 @@ const fs = require('fs');
 const path = require('path');
 
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
+const appPath = path.join(rendererRoot, 'app/App.jsx');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
+const skinCssPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.css');
+const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css');
 const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
 const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
 const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
@@ -31,6 +34,18 @@ describe('renderer skin/config boundary', () => {
     expect(skinSource).toContain('web_search');
     expect(skinSource).toContain('run_shell_command');
     expect(skinSource).toContain('requireUserMessage');
+  });
+
+  test('renderer brand icon asset lives in the renderer skin stylesheet', () => {
+    const appSource = fs.readFileSync(appPath, 'utf8');
+    const skinCssSource = fs.readFileSync(skinCssPath, 'utf8');
+    const dashboardShellCssSource = fs.readFileSync(dashboardShellCssPath, 'utf8');
+
+    expect(appSource).toContain("import './skin/windieDesktopSkin.css'");
+    expect(skinCssSource).toContain('--windie-desktop-brand-icon-url');
+    expect(skinCssSource).toContain('windieos.app.png');
+    expect(dashboardShellCssSource).toContain('--windie-desktop-brand-icon-url');
+    expect(dashboardShellCssSource).not.toContain('windieos.app.png');
   });
 
   test('settings components consume skin copy instead of hard-coding product copy', () => {

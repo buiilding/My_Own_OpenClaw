@@ -1,0 +1,7 @@
+/*
+ * Defines WindieOS-specific renderer skin assets.
+ */
+
+:root {
+  --windie-desktop-brand-icon-url: url("../../../main/assets/icons/windieos.app.png");
+}
