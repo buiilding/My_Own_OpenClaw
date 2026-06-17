@@ -1,7 +1,7 @@
-summary: "Frontend main overlay docs sub-hub for query-capture blur/settle flow and screenshot visibility runtime ownership contracts."
+summary: "Frontend main overlay docs sub-hub for query-capture blur/settle flow and screenshot visibility ownership contracts."
 read_when:
   - When changing overlay blur/focus behavior before query screenshot capture.
-  - When debugging screenshot visibility ownership between renderer capture orchestration and main-process wrapper dispatch.
+  - When debugging screenshot visibility ownership between renderer capture orchestration and main-process screenshot task routing.
 title: "Frontend Main Overlay Focus Docs Hub"
 ---
 
@@ -10,7 +10,7 @@ title: "Frontend Main Overlay Focus Docs Hub"
 ## Deep Pages
 
 - [Overlay Query-Capture Blur and Settle Reference](external_focus_snapshot_restore_and_query_capture_reference.md)
-- [Linux Screenshot Window Visibility Runtime Dispatch Reference](linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Linux Screenshot Window Visibility Reference](linux_screenshot_window_hide_and_restore_guard_reference.md)
 
 ## Code Scope
 

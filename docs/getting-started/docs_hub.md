@@ -405,7 +405,7 @@ Likely code:
 - `frontend/src/main/overlay_*`
 - `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/**`
+- `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/renderer/app/ChatBox*.jsx`
 - `frontend/src/renderer/features/chat/**`
 - `frontend/src/renderer/features/overlays/**`

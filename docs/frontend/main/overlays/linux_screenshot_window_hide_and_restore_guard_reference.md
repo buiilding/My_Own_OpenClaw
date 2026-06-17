@@ -1,17 +1,16 @@
 ---
-summary: "Deep reference for screenshot visibility runtime dispatch used by local-backend screenshot execution: current platform pass-through behavior, main-process computer-use surface prep, and renderer attachment capture boundaries."
+summary: "Deep reference for local-backend screenshot execution visibility: direct task behavior, main-process computer-use surface prep, and renderer attachment capture boundaries."
 read_when:
-  - When changing `local_backend_bridge_window_visibility.cjs` or the platform screenshot visibility runtime.
+  - When changing `local_backend_bridge_window_visibility.cjs`.
   - When debugging whether screenshot overlay hide/show is owned by Electron main process, SDK/main tool execution, or renderer attachment capture.
-title: "Linux Screenshot Window Visibility Runtime Dispatch Reference"
+title: "Linux Screenshot Window Visibility Reference"
 ---
 
-# Linux Screenshot Window Visibility Runtime Dispatch Reference
+# Linux Screenshot Window Visibility Reference
 
 ## Canonical Modules
 
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/surfaces/main_window_runtime.cjs`
@@ -26,20 +25,13 @@ Used in local backend bridge:
 
 - wrapped around `execute-tool` only for screenshot tool requests
 
-Platform wrapper:
-
-- `createScreenshotWindowVisibilityRuntime(platform)` returns the shared
-  pass-through runtime.
-
 ## Current Behavior (All Platforms)
 
-Current platform runtime is a pass-through wrapper:
-
-- `index.cjs` -> `return task()`
+`withHiddenWindowForScreenshot(...)` currently calls `task()` directly.
 
 Implication:
 
-- no Electron-main window hide/restore is performed by this wrapper today
+- no Electron-main window hide/restore is performed by this seam today
 - SDK/main computer-use execution prepares the desktop surface before invoking the
   sidecar; dashboard-visible turns are handed to the minimal pill by Electron
   main before local execution starts
@@ -54,7 +46,7 @@ Implication:
 - `resolveResponseWindow`
 - `task`
 
-Current runtime ignores resolver arguments, but they remain part of the function contract for future runtime strategy changes.
+Current behavior ignores resolver arguments.
 
 ## Error and Cancellation Semantics
 
@@ -67,16 +59,15 @@ This means:
 
 ## Drift Hotspots
 
-1. Reintroducing wrapper-level hide/restore behavior without coordinating
+1. Reintroducing seam-level hide/restore behavior without coordinating
    SDK/main surface prep and renderer attachment capture docs can create
    double-hide races.
-2. Changing the platform runtime to use resolver arguments without updating wrapper call contracts can break screenshot execution paths.
-3. Assuming Linux-only behavior in callers is incorrect; wrapper is called for screenshot tool requests on every platform.
+2. Assuming Linux-only behavior in callers is incorrect; this seam is called for screenshot tool requests on every platform.
 
 ## Debug Checklist
 
 If Linux screenshots contain overlay UI:
 
-1. verify screenshot execute-tool path still wraps task via `withHiddenWindowForScreenshot(...)`
+1. verify screenshot execute-tool path still routes through `withHiddenWindowForScreenshot(...)`
 2. verify SDK/main computer-use surface prep ran before sidecar execution
-3. verify no legacy renderer or wrapper-level hide/restore assumptions remain in debugging scripts
+3. verify no legacy renderer or seam-level hide/restore assumptions remain in debugging scripts

@@ -92,7 +92,7 @@ Timeout tiers:
 
 Special wrapper:
 
-- `screenshot` runs inside `withHiddenWindowForScreenshot(...)` (platform runtime may no-op or apply hide/show guards)
+- `screenshot` runs inside `withHiddenWindowForScreenshot(...)`, which currently calls the sidecar task directly
 
 Response normalization:
 

@@ -2,10 +2,6 @@
  * Bridges local backend window visibility behavior for the Electron main process.
  */
 
-const {
-  createScreenshotWindowVisibilityRuntime,
-} = require('../platform/screenshot_window_visibility/index.cjs');
-
 function createWindowResolvers(getWindows) {
   const resolveWindowProvider = () => {
     if (typeof getWindows === 'function') {
@@ -63,19 +59,9 @@ function createWindowResolvers(getWindows) {
 }
 
 async function withHiddenWindowForScreenshot({
-  platform = process.platform,
-  resolveWindows,
-  resolveChatWindow,
-  resolveResponseWindow,
   task,
 }) {
-  const runtime = createScreenshotWindowVisibilityRuntime(platform);
-  return runtime({
-    resolveWindows,
-    resolveChatWindow,
-    resolveResponseWindow,
-    task,
-  });
+  return task();
 }
 
 module.exports = {

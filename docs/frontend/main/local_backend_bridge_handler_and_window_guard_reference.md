@@ -1,4 +1,4 @@
-summary: "Electron main local-backend bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility runtime ownership references."
+summary: "Electron main local-backend bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility ownership references."
 read_when:
   - When changing `frontend/src/main/sidecar/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
   - When tracing local-backend issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.
@@ -20,12 +20,12 @@ This page is the entrypoint for Electron-main local-backend bridge behavior. Det
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_backend/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Local-Backend Windows Docs Hub](local_backend/windows/README.md)
-- [Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Reference](local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
+- [Window Resolver Shapes and Screenshot Task Routing Reference](local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Window Guard Docs (Detailed)
 
 - [Main Overlay Focus Docs Hub](overlays/README.md)
-- [Linux Screenshot Window Visibility Runtime Dispatch Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Linux Screenshot Window Visibility Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 - [Overlay Query-Capture Blur and Settle Reference](overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 
 ## Bridge Boundary (Condensed)
@@ -36,7 +36,7 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 2. gate request sending on readiness (`isPythonReady`)
 3. map renderer IPC channels to sidecar JSON-RPC methods
 4. normalize error payloads for renderer callers
-5. route screenshot tool calls through platform screenshot visibility runtime wrapper (current runtime behavior is pass-through; Linux hide/show ownership lives in renderer capture orchestration)
+5. route screenshot tool calls through `withHiddenWindowForScreenshot(...)`, which currently runs the sidecar screenshot task directly; Linux hide/show ownership lives in SDK/main surface prep and renderer attachment capture orchestration
 
 ## Removed System-State Direct Export
 

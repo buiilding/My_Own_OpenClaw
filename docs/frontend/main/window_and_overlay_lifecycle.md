@@ -26,7 +26,6 @@ Primary modules:
 - `frontend/src/main/surfaces/window_suppression_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/platform/screenshot_window_visibility/*`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 
@@ -306,8 +305,8 @@ For renderer-only deep dives:
 
 `local_backend_bridge_window_visibility.cjs:withHiddenWindowForScreenshot(...)`:
 
-- calls the shared screenshot visibility pass-through runtime
-- current screenshot-window runtime is a pass-through wrapper for local tool execution; it does not perform a second hide/restore cycle around the sidecar screenshot task
+- calls the sidecar screenshot task directly without a platform visibility runtime
+- it does not perform a second hide/restore cycle around the sidecar screenshot task
 - result: dashboard-visible computer-use turns perform an explicit main-process dashboard-to-pill handoff before any computer-use sidecar execution runs; after handoff, main hides the dashboard and restores the pill/response-overlay surface, while renderer capture orchestration remains scoped to renderer-initiated attachment flows
 
 For deeper focus/capture guard internals:
