@@ -100,6 +100,8 @@ All notable changes to WindieOS will be documented in this file.
   and executor primitives are imported from concrete security modules.
 - backend/core: remove the unused core types package export so enums and
   typed schemas are imported from concrete type modules.
+- backend/agent-tools: remove the unused tool-sending package export so
+  the agent executor imports ToolSender from the concrete sender module.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

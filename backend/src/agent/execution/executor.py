@@ -34,7 +34,7 @@ from backend.src.agent.tools.processing import (
     ToolProcessingCoordinator,
     ToolResultProcessor,
 )
-from backend.src.agent.tools.sending import ToolSender
+from backend.src.agent.tools.sending.sender import ToolSender
 from backend.src.core.events import (
     AgentStreamingEvent,
     ContextCompactionCompletedEvent,
