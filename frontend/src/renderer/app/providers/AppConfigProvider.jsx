@@ -10,7 +10,7 @@ import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configSt
 import { AppConfigContext } from './AppConfigContext';
 import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
 import { extractTranscriptUserId, routeConfigSettingsEvent } from './appConfigEvents';
-import { setBackendHttpUrl } from '../../infrastructure/services/BackendEndpointStore';
+import { setRuntimeEndpointHttpUrl } from '../../infrastructure/services/RuntimeEndpointStore';
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 import {
   applyConfigIfChanged,
@@ -184,7 +184,7 @@ export function AppConfigProvider({ children }) {
       userId: extractTranscriptUserId(data),
       updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
     });
-    setBackendHttpUrl(data?.backendHttpUrl);
+    setRuntimeEndpointHttpUrl(data?.backendHttpUrl);
     if (runtimeConnectedRef.current) {
       syncCurrentConfigToRuntime();
     }

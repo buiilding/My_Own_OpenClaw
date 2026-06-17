@@ -17,7 +17,7 @@ import { useSettingsManagement } from '../../frontend/src/renderer/features/sett
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { setBackendHttpUrl } from '../../frontend/src/renderer/infrastructure/services/BackendEndpointStore';
+import { setRuntimeEndpointHttpUrl } from '../../frontend/src/renderer/infrastructure/services/RuntimeEndpointStore';
 
 jest.mock('../../frontend/src/renderer/features/settings/hooks/useSettingsManagement');
 jest.mock('../../frontend/src/renderer/utils/configFilter', () => ({
@@ -32,8 +32,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
     updateTranscriptSession: jest.fn(),
   },
 }));
-jest.mock('../../frontend/src/renderer/infrastructure/services/BackendEndpointStore', () => ({
-  setBackendHttpUrl: jest.fn(),
+jest.mock('../../frontend/src/renderer/infrastructure/services/RuntimeEndpointStore', () => ({
+  setRuntimeEndpointHttpUrl: jest.fn(),
 }));
 jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
   DesktopSettingsRuntimeClient: {
@@ -53,7 +53,7 @@ export const mockUseSettingsManagement = useSettingsManagement as jest.Mock;
 export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
-export const mockSetBackendHttpUrl = setBackendHttpUrl as jest.Mock;
+export const mockSetRuntimeEndpointHttpUrl = setRuntimeEndpointHttpUrl as jest.Mock;
 export const mockDesktopSettingsListModels = DesktopSettingsRuntimeClient.listModels as jest.Mock;
 export const mockDesktopSettingsRequestStartupModels = DesktopSettingsRuntimeClient.requestDashboardStartupModelList as jest.Mock;
 export const mockDesktopSettingsUpdateSettings = DesktopSettingsRuntimeClient.updateSettings as jest.Mock;

@@ -1,8 +1,8 @@
 ---
-summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `BackendEndpointStore` artifact URL handling through `setBackendHttpUrl` and `buildArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `RuntimeEndpointStore` artifact URL handling through `setRuntimeEndpointHttpUrl` and `buildRuntimeArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
-  - When changing renderer artifact URL base sync, `BackendEndpointStore`, `setBackendHttpUrl`, `buildArtifactUrl`, or backend endpoint propagation into artifact display URLs.
+  - When changing renderer artifact URL base sync, `RuntimeEndpointStore`, `setRuntimeEndpointHttpUrl`, `buildRuntimeArtifactUrl`, or backend endpoint propagation into artifact display URLs.
   - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`, `capture_meta`) before backend relay.
   - When searching for removed or deleted renderer capture/upload/formatter helpers such as `ArtifactUploader`, `ToolScreenshotDebugTrace`, `ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, `MessageFormatter`, `ToolExecutionPayloads.ts`, or `ToolExecutionBackendPayload.ts`.
 title: "Capture, Artifact URL, and Payload Normalization Reference"
@@ -14,14 +14,15 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
-- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
+- `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
+- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts` compatibility wrapper
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `tests/frontend/ChatMessageSender.test.tsx`
-- `tests/frontend/BackendEndpointStore.test.ts`
+- `tests/frontend/RuntimeEndpointStore.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
@@ -93,11 +94,13 @@ dispatching a turn. It submits typed SDK resources; SDK/main owns resource
 resolution, screenshot capture, artifact materialization, and backend-bound
 artifact refs.
 
-`setBackendHttpUrl(...)`:
+`setRuntimeEndpointHttpUrl(...)`:
 
 - accepts only valid `http/https` URLs
 - strips query/hash and normalizes trailing slashes
-- used by `buildArtifactUrl(artifactId)` for canonical `/api/artifacts/<id>` links
+- used by `buildRuntimeArtifactUrl(artifactId)` for canonical `/api/artifacts/<id>` links
+
+`BackendEndpointStore.ts` remains a compatibility wrapper for older imports.
 
 ## Content-Type Normalization
 
@@ -128,7 +131,7 @@ Current ownership:
 - Electron main owns sidecar screenshot invocation, selected-display bounds
   injection, and local bridge result normalization.
 - Renderer infrastructure owns artifact URL display helpers only
-  (`BackendEndpointStore` and `ArtifactImageUtils`).
+  (`RuntimeEndpointStore` and `ArtifactImageUtils`).
 - Renderer chat presentation consumes projected SDK/backend events; it does not
   construct model-facing result payloads or upload screenshot artifacts before
   dispatch.
@@ -211,9 +214,9 @@ before backend relay:
 
 - main runtime prepares the desktop surface before computer-use sidecar execution
 
-`tests/frontend/BackendEndpointStore.test.ts` and `ArtifactImageUtils.test.ts` verify:
+`tests/frontend/RuntimeEndpointStore.test.ts` and `ArtifactImageUtils.test.ts` verify:
 
-- backend URL normalization and artifact URL composition
+- runtime URL normalization and artifact URL composition
 - content-type/extension normalization defaults
 
 ## Drift Hotspots

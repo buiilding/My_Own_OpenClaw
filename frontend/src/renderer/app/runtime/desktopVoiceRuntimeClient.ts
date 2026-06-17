@@ -3,7 +3,7 @@
  */
 
 import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
-import { buildTranscriptionWebSocketUrl } from '../../infrastructure/services/BackendEndpointStore';
+import { buildRuntimeTranscriptionWebSocketUrl } from '../../infrastructure/services/RuntimeEndpointStore';
 
 const SET_LANGUAGE_PAYLOAD = JSON.stringify({
   type: 'set_langs',
@@ -42,10 +42,10 @@ export const DesktopVoiceRuntimeClient = {
   },
 
   getTranscriptionGatewayUrl(): string {
-    return buildTranscriptionWebSocketUrl();
+    return buildRuntimeTranscriptionWebSocketUrl();
   },
 
-  createTranscriptionWebSocket(gatewayUrl: string = buildTranscriptionWebSocketUrl()): WebSocket {
+  createTranscriptionWebSocket(gatewayUrl: string = buildRuntimeTranscriptionWebSocketUrl()): WebSocket {
     return new WebSocket(gatewayUrl);
   },
 

@@ -2,7 +2,7 @@
  * Provides the screenshot message state module for the renderer UI.
  */
 
-import { buildArtifactUrl } from './BackendEndpointStore';
+import { buildRuntimeArtifactUrl } from './RuntimeEndpointStore';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
 export function inferArtifactRefFromUrl(url) {
@@ -53,7 +53,7 @@ export function buildRemoteScreenshotAttachment(
     screenshotRef: normalizedRef,
     screenshotUrl: normalizedUrl || (
       normalizedRef && deriveUrlFromRef
-        ? buildArtifactUrl(normalizedRef)
+        ? buildRuntimeArtifactUrl(normalizedRef)
         : null
     ),
   };

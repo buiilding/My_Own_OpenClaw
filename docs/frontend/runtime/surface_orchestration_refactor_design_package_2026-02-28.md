@@ -17,7 +17,7 @@ Current code does not keep a renderer `SurfaceOrchestrator`, renderer
 `SystemStateCapture`, renderer `ToolComputerUseCatalog`, or renderer
 `toolExecution/ToolExecutionLogger` service. The renderer infrastructure service
 surface now consists of artifact URL/content-type helpers such as
-`BackendEndpointStore.ts` and `ArtifactImageUtils.ts`.
+`RuntimeEndpointStore.ts` and `ArtifactImageUtils.ts`.
 
 Current ownership:
 

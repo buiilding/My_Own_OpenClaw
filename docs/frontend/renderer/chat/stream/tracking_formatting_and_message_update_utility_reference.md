@@ -51,7 +51,7 @@ Core behavior:
 ## Event Utility Contracts (`chatStreamEventUtils.ts`)
 
 - `shouldIgnoreStreamError` suppresses known settings-update transport noise (`"Failed to update settings"`) from user-visible assistant error rows.
-- `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildArtifactUrl(ref)` when URL missing.
+- `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildRuntimeArtifactUrl(ref)` when URL missing.
 - `resolveToolOutputCorrelationId` precedence:
 1. `payload.request_id`
 2. `payload.tool_call_id`

@@ -42,7 +42,7 @@ the platform `scripts/python-in-env` wrapper, so do not manually activate conda 
 | SDK conversation runtime and stop flow | `bin/windie test frontend -- WindieSdkConversationRuntime.test.ts DesktopAgentRuntimeTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js StopQueryState.test.js` |
 | Renderer dashboard/settings | `bin/windie test frontend -- ChatGptDashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
 | Permissions/onboarding | `bin/windie test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx FrontendOnboardingSlideshow.test.jsx` |
-| Artifacts/screenshots | `bin/windie test frontend -- BackendEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts LocalBackendBridgeExtensionRuntime.test.cjs` |
+| Artifacts/screenshots | `bin/windie test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts LocalBackendBridgeExtensionRuntime.test.cjs` |
 | Voice/wakeword | `bin/windie test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
 | Sidecar protocol/tools | `bin/windie test sidecar -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
 | Sidecar filesystem/shell | `bin/windie test sidecar -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
@@ -59,7 +59,7 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | Tool result envelope | `bin/windie test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `bin/windie test frontend -- ToolResultEnvelope.test.ts ToolResultContractParity.test.ts` |
 | Response overlay phase names | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
 | Transcript/replay/display rows | `bin/windie test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
-| Artifact refs and URLs | `bin/windie test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `bin/windie test frontend -- BackendEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
+| Artifact refs and URLs | `bin/windie test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `bin/windie test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
 | SDK HTTP/trace helpers | `bin/windie test backend -- tests/backend/test_sdk_routes.py -q` plus `bin/windie test frontend -- WindieSdkClient.test.ts` |
 | Frontend CLI command routing and formatter contracts | `bin/windie test frontend -- WindieCli.test.cjs` plus `bin/windie test backend -- tests/backend/test_formatter_specs_contract.py -q` |
 

@@ -2777,3 +2777,18 @@ Each completed slice should report:
   and source scans for retired backend-shaped row fields.
 - Compatibility: no migration required. These fields are transient renderer row
   properties, and the SDK/runtime delete payload is unchanged.
+
+### 2026-06-17 renderer runtime endpoint store
+
+- Finding: renderer UI consumers imported `BackendEndpointStore` directly for
+  artifact and transcription URL composition, so display-only renderer helpers
+  depended on a backend-named local abstraction.
+- Change: added `RuntimeEndpointStore` as the canonical renderer endpoint
+  service, switched active renderer consumers and tests to runtime-named
+  helpers, and kept `BackendEndpointStore` as a compatibility wrapper.
+- Validation: focused runtime endpoint, app config, voice boundary, screenshot,
+  docs listing, `git diff --check`, and source scans confirming active
+  renderer consumers use the runtime endpoint store.
+- Compatibility: no migration required. Endpoint state is still in memory, the
+  IPC payload still carries `backendHttpUrl`, and old backend-named imports
+  continue to resolve through the wrapper.

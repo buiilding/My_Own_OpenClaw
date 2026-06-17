@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move artifact/transcription URL composition to the
+  RuntimeEndpointStore while keeping BackendEndpointStore as a compatibility wrapper.
+
 - frontend/renderer: rename dashboard memory row delete-routing fields to
   runtimeMemoryId/runtimeMemoryKind so UI state stays runtime-shaped.
 

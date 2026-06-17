@@ -42,7 +42,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | OCR | `/api/sdk/ocr/*`, `run_ocr`, OCR ranking/overlay helpers | `client.ocr.*` | `tests/backend/test_sdk_routes.py`, OCR service tests, `tests/frontend/WindieSdkClient.test.ts` |
 | Vision | `/api/sdk/vision/*`, vision locate/describe/overlay helpers | `client.vision.*` | SDK route tests, vision provider/service tests, client tests |
 | Prompt/debug | `/api/sdk/models`, `/tool-schemas`, `/tool-capabilities`, `/system-prompt`, `/prompt-preview`, `/query-plan` | `client.introspection.*`, `promptPreview`, `queryPlan` | SDK route tests, prompt/tool schema tests, client tests |
-| Artifacts | `/api/artifacts/*`, artifact source resolution, overlay upload | `client.artifacts.*`, `artifactUrl`, `uploadArtifact` | `tests/backend/test_artifact_routes.py`, `tests/frontend/BackendEndpointStore.test.ts`, client tests |
+| Artifacts | `/api/artifacts/*`, artifact source resolution, overlay upload | `client.artifacts.*`, `artifactUrl`, `uploadArtifact` | `tests/backend/test_artifact_routes.py`, `tests/frontend/RuntimeEndpointStore.test.ts`, client tests |
 | Agent runtime | `/ws` and hosted event stream | `AgentClient.wakeUp`, `agent.ask`, `agent.run`, `agent.stream` | websocket backend tests and TS `AgentClient` runtime tests |
 
 ## Payload Rules

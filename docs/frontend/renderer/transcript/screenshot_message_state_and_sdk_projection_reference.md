@@ -46,8 +46,8 @@ URLs such as `/api/artifacts/<id>`. That lets replay preserve a canonical
 1. parses inline screenshot data
 2. rejects `artifact://`, `http://`, and `https://` values as inline payloads
 3. builds remote state from explicit `screenshotRef` or artifact URL-derived ref
-4. derives `screenshotUrl` from `buildArtifactUrl(ref)` when a ref exists and no
-   URL was provided
+4. derives `screenshotUrl` from `buildRuntimeArtifactUrl(ref)` when a ref exists
+   and no URL was provided
 5. optionally drops inline screenshot bytes when remote metadata exists
 
 `buildMessageScreenshotState(...)` uses
@@ -74,7 +74,7 @@ Projection rules:
 - Remote metadata wins over inline screenshot bytes.
 - `screenshot_refs` becomes `screenshots[]` with one attachment per ref.
 - The first explicit `screenshotUrl` applies to the first attachment only;
-  remaining refs derive URLs from the active backend artifact URL builder.
+  remaining refs derive URLs from the active runtime artifact URL builder.
 - SDK display projection must not infer artifact ids from the old
   `screenshot` field.
 
@@ -84,7 +84,7 @@ If a replayed or resumed image is missing:
 
 1. inspect the SDK display row raw metadata for `screenshotRef`,
    `screenshotUrl`, or `screenshot_refs`
-2. verify `BackendEndpointStore` has the active backend HTTP URL before deriving
+2. verify `RuntimeEndpointStore` has the active runtime HTTP URL before deriving
    artifact URLs
 3. confirm `screenshot` is actual inline image data, not an artifact id
 4. check `useResolvedMessageScreenshots.js` fetch/cache behavior for remote

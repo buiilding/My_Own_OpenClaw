@@ -1,9 +1,9 @@
 ---
-summary: "Frontend renderer infrastructure docs hub for audio playback queue runtime, `BackendEndpointStore` capture/artifact URL behavior, SDK-backed transcript access, removed localConversationStore/displaySelection routing, incoming text normalization contracts, and chat markdown rendering owner routing."
+summary: "Frontend renderer infrastructure docs hub for audio playback queue runtime, `RuntimeEndpointStore` capture/artifact URL behavior, SDK-backed transcript access, removed localConversationStore/displaySelection routing, incoming text normalization contracts, and chat markdown rendering owner routing."
 read_when:
   - When changing `frontend/src/renderer/infrastructure/services/*` renderer-side services.
   - When changing `frontend/src/renderer/infrastructure/audio/*` playback queue or cleanup behavior.
-  - When debugging screenshot capture/artifact URL drift, `BackendEndpointStore` routing, display projection drift, malformed renderer-side service payloads, or chat markdown rendering owner routing.
+  - When debugging screenshot capture/artifact URL drift, `RuntimeEndpointStore` routing, display projection drift, malformed renderer-side service payloads, or chat markdown rendering owner routing.
   - When searching for removed renderer infrastructure modules such as `localConversationStore.ts`, `displaySelection.ts`, or `ToolExecutionInvoker.ts`.
 title: "Frontend Renderer Infrastructure Docs Hub"
 ---
@@ -24,7 +24,8 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
-- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts`
+- `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
+- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts` compatibility wrapper
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`

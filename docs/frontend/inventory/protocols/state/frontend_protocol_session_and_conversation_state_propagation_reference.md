@@ -102,7 +102,7 @@ Snapshot fields:
 `AppConfigProvider` state propagation on each snapshot:
 
 - `updateTranscriptSession(undefined, userId)` when user id resolves
-- `setBackendHttpUrl(backendHttpUrl)` for artifact URL routing
+- `setRuntimeEndpointHttpUrl(backendHttpUrl)` for artifact URL routing
 - `syncCurrentConfigToBackend()` when already connected
 
 Locked by:

@@ -12,7 +12,7 @@ import {
   mockDesktopSettingsUpdateSettings,
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
-  mockSetBackendHttpUrl,
+  mockSetRuntimeEndpointHttpUrl,
   mockUpdateTranscriptSession,
   ON_CHANNELS,
   registerAppConfigProviderSuiteLifecycle,
@@ -273,13 +273,13 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
-  test('sets artifact backend http URL when get-client-user-id includes endpoint metadata', async () => {
+  test('sets artifact runtime http URL when get-client-user-id includes endpoint metadata', async () => {
     setClientUserIdResponse({ backendHttpUrl: 'http://10.0.0.42:9001' });
 
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(mockSetBackendHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
+    expect(mockSetRuntimeEndpointHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
   });
 
   test('updates transcript session from IPC status events with userId', () => {
@@ -295,7 +295,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'ipc-user-1');
   });
 
-  test('sets artifact backend http URL from IPC status payload', () => {
+  test('sets artifact runtime http URL from IPC status payload', () => {
     renderAppConfigContext();
 
     const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
@@ -305,7 +305,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       ipcStatusHandler?.({ backendHttpUrl: 'http://10.0.0.42:9001' });
     });
 
-    expect(mockSetBackendHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
+    expect(mockSetRuntimeEndpointHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
   });
 
   test('syncs current config to settings runtime when IPC status reports connected', () => {

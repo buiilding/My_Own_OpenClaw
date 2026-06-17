@@ -3,7 +3,7 @@
  */
 
 import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
-import { buildArtifactUrl } from '../../../../infrastructure/services/BackendEndpointStore';
+import { buildRuntimeArtifactUrl } from '../../../../infrastructure/services/RuntimeEndpointStore';
 import {
   inferArtifactRefFromUrl,
   resolveScreenshotAttachmentState,
@@ -18,7 +18,7 @@ function resolveAttachmentSrc(attachment) {
     return attachment.screenshotUrl;
   }
   if (attachment.screenshotRef) {
-    return buildArtifactUrl(attachment.screenshotRef);
+    return buildRuntimeArtifactUrl(attachment.screenshotRef);
   }
   if (attachment.screenshot) {
     const contentType = normalizeArtifactImageContentType(attachment.screenshotContentType);
