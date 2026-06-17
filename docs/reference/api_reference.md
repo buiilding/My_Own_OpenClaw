@@ -342,9 +342,9 @@ These routes are for hosted backend use. They are not meant to require SDK consu
 ### TypeScript Client Example
 
 ```ts
-import { WindieClient, moduleTool } from '@windie/sdk';
+import { AgentClient, moduleTool } from '@windie/sdk';
 
-const client = new WindieClient();
+const client = new AgentClient();
 
 const agent = await client.wakeUp({
   backendUrl: 'https://api.windieos.com',
@@ -419,7 +419,7 @@ message_id = await agent.query(
 
 Agent runtime notes:
 
-- TypeScript agent sessions should be created through `WindieClient.wakeUp(...)`.
+- TypeScript agent sessions should be created through `AgentClient.wakeUp(...)`.
 - Python agent sessions should use `AgentSdkClient.wake_up(...)`; local module
   tools, plugins, and MCP servers are registered with the same sidecar daemon
   contract used by the TypeScript runtime.

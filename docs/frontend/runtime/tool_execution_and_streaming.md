@@ -32,8 +32,8 @@ The renderer displays tool events. It does not execute backend tool events.
 Current execution modules:
 
 - `packages/windie-sdk-js/src/index.ts`
-- `packages/windie-sdk-js/src/runtime/WindieClient.ts`
-- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
+- `packages/windie-sdk-js/src/runtime/AgentClient.ts`
+- `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`

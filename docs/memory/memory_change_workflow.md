@@ -15,7 +15,7 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 
 | Symptom or request | Primary owner | First code roots | Tests |
 | --- | --- | --- | --- |
-| Visible chat row is missing or duplicated | SDK projection store plus renderer display handlers | `packages/windie-sdk-js/src/projections`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, chat stream handlers | SDK/main projection tests, `ChatStream*.test.ts` |
+| Visible chat row is missing or duplicated | SDK projection store plus renderer display handlers | `packages/windie-sdk-js/src/projections`, `packages/windie-sdk-js/src/runtime/Agent.ts`, chat stream handlers | SDK/main projection tests, `ChatStream*.test.ts` |
 | Conversation list/search is wrong | Sidecar local memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Replay displays wrong messages | SDK replay/display projection | `packages/windie-sdk-js/src/projections`, desktop conversation store adapter, replay hooks | SDK projection tests, rehydrate projection tests |
 | Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, SDK rehydrate tests |
@@ -59,7 +59,7 @@ Read:
 Likely code:
 
 - `packages/windie-sdk-js/src/projections`
-- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
+- `packages/windie-sdk-js/src/runtime/Agent.ts`
 - desktop conversation store adapter
 - chat stream handler code that renders SDK projections
 

@@ -130,7 +130,7 @@ Inspect in order:
 
 1. `backend/src/tools/remote_tools/browser.py`
 2. `backend/src/tools/tool_policy.py`
-3. `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
+3. `packages/windie-sdk-js/src/runtime/Agent.ts`
 4. `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 5. `frontend/src/main/python/tools/browser/browser_tool.py`
 6. `frontend/src/main/python/tools/browser/browser_use_engine.py`

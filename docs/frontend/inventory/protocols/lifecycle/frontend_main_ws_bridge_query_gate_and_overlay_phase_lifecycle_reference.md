@@ -282,7 +282,7 @@ When changing this lifecycle, keep synchronized:
 
 | Lifecycle control path | Runtime owner | Lifecycle contract |
 |---|---|---|
-| websocket open/close transition | `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs` | SDK runtime owns socket construction, handshake send, connect waiters, reconnect scheduling, and idle close policy; IPC owns UI/session state callbacks |
+| websocket open/close transition | `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs` | SDK runtime owns socket construction, handshake send, connect waiters, reconnect scheduling, and idle close policy; IPC owns UI/session state callbacks |
 | first-query settings ACK gate | `frontend/src/main/ipc.cjs` | first query/wakeword send waits for settings sync outcome, with bounded timeout fallback |
 | query send bootstrap + SDK local user projection | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` | outbound query uses resolved conversation context; SDK emits `turn_started` and `user_message`, and Electron only synthesizes send-failure errors |
 | split IPC registrar bootstrap | `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` | invoke/event registration is one-shot and split by runtime ownership instead of monolithic main handler registration |

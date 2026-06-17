@@ -210,7 +210,7 @@ The `conversation.metadata.list` path covers:
 ```text
 renderer dashboard load
 -> Electron main `conversations.list`
--> SDK `WindieAgent.listConversations()`
+-> SDK `Agent.listConversations()`
 -> SDK `SidecarConversationStore.listMetadata()`
 -> sidecar `conversation.list`
 -> sidecar history SQLite read

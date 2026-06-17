@@ -15,7 +15,7 @@ Start by locating the layer. Most memory bugs are caused by assuming transcript,
 Inspect:
 
 - `packages/windie-sdk-js/src/projections`
-- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
+- `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `frontend/src/main/python/local_backend_memory_handlers.py`
 
 Validate:

@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Current docs route to Agent runtime modules
+
+- Finding: current architecture, routing, debugging, and API docs still pointed
+  maintainers at the old `WindieClient.ts` / `WindieAgent.ts` implementation
+  modules and taught `WindieClient.wakeUp(...)` in primary examples even after
+  the TypeScript SDK runtime moved to `AgentClient.ts` / `Agent.ts`.
+- Change: updated current docs to route to `AgentClient`, `Agent`, and the
+  generic runtime module paths while leaving compatibility mentions and
+  historical plan reports intact.
+- Validation: docs listing, stale-reference source scan, and diff check.
+- Compatibility: no migration required. This is documentation-only; the
+  Windie-prefixed SDK exports remain compatibility aliases.
+
 ### 2026-06-17 Permission manifest uses generic desktop-agent copy
 
 - Finding: the shared permission manifest still embedded WindieOS-specific

@@ -85,7 +85,7 @@ Protocol output notes:
 
 ## Sidecar Daemon HTTP Runtime
 
-The SDK-owned local runtime can also talk to `sidecar_daemon.py` over token-authenticated HTTP/WebSocket endpoints instead of raw JSON-RPC. This daemon is the sidecar boundary used by `WindieClient.wakeUp(...)` for local tools, plugins, MCP servers, and SDK examples:
+The SDK-owned local runtime can also talk to `sidecar_daemon.py` over token-authenticated HTTP/WebSocket endpoints instead of raw JSON-RPC. This daemon is the sidecar boundary used by `AgentClient.wakeUp(...)` for local tools, plugins, MCP servers, and SDK examples:
 
 - `GET /health`: daemon liveness, generic `sidecar_daemon` service label, pid, and creation time.
 - `GET /status`: local runtime diagnostics, daemon metadata, registered tool names, and the executable sidecar tool manifest.

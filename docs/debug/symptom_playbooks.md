@@ -17,7 +17,7 @@ Likely boundary: SDK desktop agent, Electron main query preparation, or hosted b
 Inspect:
 
 - `frontend/src/main/ipc.cjs`
-- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
+- `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/task_manager.py`
@@ -70,7 +70,7 @@ Inspect:
 - `backend/src/tools/tool_catalog.py`
 - `backend/src/agent/tools`
 - `packages/windie-sdk-js/src/runtime`
-- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
+- `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/registry.py`

@@ -66,7 +66,7 @@ Current runtime behavior also relies on these explicit seams:
 - **Local sidecar bridge is SDK-owned for lifecycle**:
   `sidecar/local_backend_bridge.cjs` is the composition root for scoped host IPC
   registration and Electron-only helper behavior. Desktop launch facts are built
-  in `ipc.cjs`, passed into one shared `WindieClient` as `autoSidecar`, and
+  in `ipc.cjs`, passed into one shared `AgentClient` as `autoSidecar`, and
   exposed to bridge code only through SDK `getKnownLocalRuntime` /
   `localRuntime({ reason })` resolvers. The SDK owns daemon startup/reuse, RPC
   unwrapping, and tool execution transport. Electron keeps host-only
@@ -133,7 +133,7 @@ The command names are SDK-shaped, for example `conversation.send`,
 `settings.update`, `models.list`, `wakeword.detected`, `memories.clearAll`,
 and `conversations.clearAll`.
 Electron main owns only the IPC hop and strict command allowlist. The handler
-calls public `WindieAgent` / `ConversationRuntime` methods on the live SDK
+calls public `Agent` / `ConversationRuntime` methods on the live SDK
 runtime. Renderer code must not call sidecar RPC names such as
 `clear-chat-history`, `clear-local-memory`, `list-chat-conversations`,
 `conversation_events`, or `conversation_revisions` for user-facing SDK concepts.
@@ -188,7 +188,7 @@ New-chat behavior:
    from SDK projections. Renderer does not persist duplicate live tool rows.
 
 Electron main does not own the local tool-routing algorithm.
-`ipc.cjs` starts `WindieClient.wakeUp(...)` directly with install auth, the
+`ipc.cjs` starts `AgentClient.wakeUp(...)` directly with install auth, the
 active workspace, default builtins, and Electron's local tool lifecycle hook.
 The SDK owns standalone local-runtime startup/reuse, executable tool manifest
 discovery, local tool execution, single and bundled tool-call coordination, display
@@ -314,7 +314,7 @@ Primary modules:
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Renderer-facing composition root for backend-bound work.
-  - Imports `WindieClient` directly, starts `client.wakeUp(...)`, and uses the
+  - Imports `AgentClient` directly, starts `client.wakeUp(...)`, and uses the
     returned `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
     disconnect, typed sends, local tool coordination, sidecar startup/reuse,
@@ -344,7 +344,7 @@ Primary modules:
   - Keeps dashboard/chat controls from independently choosing between transcript session and `chatStore.activeConversationRef`.
 - `main/sidecar/local_backend_bridge.cjs`:
   - Registers scoped host IPC handlers for screenshot attachment, browser controls, system state, memory, and mapped local sidecar RPCs.
-  - Uses `WindieClient` local-runtime resolvers from `ipc.cjs` as the only sidecar daemon lifecycle and RPC transport path.
+  - Uses `AgentClient` local-runtime resolvers from `ipc.cjs` as the only sidecar daemon lifecycle and RPC transport path.
   - Uses `local_backend_supervisor.cjs` only for renderer-visible local-backend readiness/status snapshots.
   - Keeps Electron-only screenshot display bounds, artifact upload, and window visibility behavior out of the SDK.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.

@@ -36,7 +36,7 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| Backend websocket handshake + relay | `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs`, `frontend/src/main/app/backend_endpoints.cjs` | SDK-managed `/ws` session and renderer-safe stream fan-out. |
+| Backend websocket handshake + relay | `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs`, `frontend/src/main/app/backend_endpoints.cjs` | SDK-managed `/ws` session and renderer-safe stream fan-out. |
 | First-query settings ACK gate | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc.cjs` | Runs timeout-bound settings ACK before first query send. |
 | IPC helper module split | `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
 | Query payload construction | `frontend/src/main/ipc/ipc_query_runtime.cjs` | Adds system/memory context and query metadata before send. |

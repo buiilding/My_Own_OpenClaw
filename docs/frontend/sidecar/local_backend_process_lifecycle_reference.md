@@ -20,7 +20,7 @@ title: "SDK-Owned Sidecar Lifecycle Reference"
 ## Process Startup Path
 
 - Electron main computes desktop launch options and passes them to
-  `WindieClient` as SDK `autoSidecar` options.
+  `AgentClient` as SDK `autoSidecar` options.
 - The SDK starts/reuses `sidecar_daemon.py`, owns `SidecarDaemonHttpClient`, and
   unwraps daemon JSON-RPC `/rpc` responses before callers see them.
 - The daemon owns the single `LocalBackend` / `LocalMemoryStore` instance for the
@@ -42,12 +42,12 @@ SDK daemon startup sequence:
 2. create SDK `autoSidecar` launch options from desktop paths/env/auth state
 3. register IPC handlers that lazily call the SDK local runtime provider for
    daemon-backed local JSON-RPC methods
-4. normal agent startup calls `WindieClient.wakeUp()`, which starts or reuses the
+4. normal agent startup calls `AgentClient.wakeUp()`, which starts or reuses the
    daemon through the SDK provider
 
 ## Readiness
 
-- `WindieClient.wakeUp()` or a direct Electron helper call resolves the SDK local
+- `AgentClient.wakeUp()` or a direct Electron helper call resolves the SDK local
   runtime provider.
 - A resolved provider means the daemon discovery file matched the expected launch
   context and `/status` succeeded.

@@ -88,7 +88,7 @@ Reason:
 Electron main resolves install auth state before starting the SDK runtime:
 
 - `ipc_install_auth_state.cjs` validates persisted install identity shape.
-- `WindieClient.wakeUp(...)` builds the authenticated SDK handshake from the
+- `AgentClient.wakeUp(...)` builds the authenticated SDK handshake from the
   resolved install auth user id.
 
 Role:
@@ -143,7 +143,7 @@ High-risk drift points to monitor:
 | preload channel allowlist gate | `frontend/src/preload.js` | unallowlisted channels never cross renderer->main boundary |
 | renderer development-time channel assertions | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | fail-fast on typos/drift in dev while production defers to preload policy |
 | outbound websocket payload normalization | `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
-| handshake user-id identity | `frontend/src/main/ipc/ipc_install_auth_state.cjs` + `WindieClient.wakeUp(...)` | sends authenticated install identity instead of synthetic OS username fallback |
+| handshake user-id identity | `frontend/src/main/ipc/ipc_install_auth_state.cjs` + `AgentClient.wakeUp(...)` | sends authenticated install identity instead of synthetic OS username fallback |
 | query XML/context sanitization fallback | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | escapes XML-sensitive content and guarantees structured fallback blocks |
 | local-backend mapper transforms | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs` | canonical renderer field mapping and safe default object coercion |
 
