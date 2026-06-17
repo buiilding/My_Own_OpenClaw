@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - backend/api: make `api.services` a marker package and require service imports
   from owner modules, removing the unused package-level compatibility exports.
+- backend/core: remove empty `core.utils` and `simulation` package marker
+  files now that callers import concrete modules directly.
 - cli: add a Windows `bin\windie.cmd` wrapper and route `docs list` through
   Node directly so PowerShell does not trigger the file-association picker for
   extensionless Unix shims; document the Windows spelling in `AGENTS.md`.

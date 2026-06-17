@@ -44,7 +44,6 @@ public re-export surfaces.
 - `backend/src/core/observability/__init__.py`
 - `backend/src/core/security/__init__.py`
 - `backend/src/core/services/__init__.py`
-- `backend/src/core/utils/__init__.py`
 - `backend/src/core/validation/__init__.py`
 - `backend/src/embeddings/__init__.py`
 - `backend/src/llm/__init__.py`
@@ -53,7 +52,6 @@ public re-export surfaces.
 - `backend/src/sdk/__init__.py`
 - `backend/src/services/ocr/__init__.py`
 - `backend/src/services/vision/__init__.py`
-- `backend/src/simulation/__init__.py`
 
 ## Import-Surface Contract
 
@@ -90,14 +88,13 @@ Some entrypoints intentionally expose little or nothing:
   `backend/src/agent/llm/__init__.py`, `backend/src/agent/tools/__init__.py`,
   `backend/src/core/__init__.py`, and `backend/src/embeddings/__init__.py` are
   mostly package-level docs/markers
-- `backend/src/simulation/__init__.py` and `backend/src/core/utils/__init__.py` are effectively empty markers
+- `backend/src/api/services/__init__.py` is a marker package; API services are
+  imported directly from their owning modules such as
+  `api.services.query_execution` and `api.services.wakeword_execution`
 - `backend/src/api/contracts/__init__.py` is a migration seam marker (API-owned contract adapter note)
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
-- `backend/src/api/services/__init__.py` is a marker package; API services are
-  imported directly from their owning modules such as
-  `api.services.query_execution` and `api.services.wakeword_execution`
 
 These files still matter for package discovery and should be retained unless package layout is intentionally reworked.
 

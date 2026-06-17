@@ -93,8 +93,10 @@ backend/src/core/
 │   ├── __init__.py                    # Package exports
 │   └── trust_boundary_metrics.py     # MetricsService - tracks trust boundary violations and security events
 │
-└── utils/                             # Utility functions (currently empty)
-    └── __init__.py                    # Package placeholder
+└── utils/                             # Shared pure utility helpers
+    ├── coordinate_methods.py          # Coordinate method normalization
+    ├── raw_tool_call_preview.py       # Bounded raw tool-call preview builder
+    └── string_normalization.py        # String normalization helpers
 ```
 
 ## Data Flow
