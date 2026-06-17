@@ -52,7 +52,7 @@ readiness/status broadcasts.
 | Symptom or request | Primary owner | Continue into |
 | --- | --- | --- |
 | Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | SDK auto-sidecar launch options | `sdk_sidecar_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
-| `local-backend-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalBackendStatusPayload`, renderer status store |
+| `local-backend-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalSidecarRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
@@ -73,7 +73,7 @@ readiness/status broadcasts.
 
 | Field | Producer | Consumer contract |
 | --- | --- | --- |
-| `ready` | `buildLocalBackendStatusPayload()` and direct status sends | Renderer treats only `true` as ready; everything else gates local-backend-dependent controls. |
+| `ready` | `buildLocalRuntimeStatusPayload()` and direct status sends | Renderer treats only `true` as ready; everything else gates local-runtime-dependent controls. |
 | `status` | `local_backend_supervisor` snapshot | Renderer defaults missing status to `ready` or `stopped` based on `ready`; keep values stable for debugging. |
 | `error` | launch failure, process error, non-zero exit, supervisor last error | Renderer stores string errors and shows dependent feature failures without inspecting process internals. |
 
