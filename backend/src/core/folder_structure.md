@@ -12,7 +12,6 @@ backend/src/core/
 │   ├── handler_initializer.py        # HandlerInitializer - validates WebSocket message handlers are registered via DI container
 │
 ├── infrastructure/                    # Cross-cutting infrastructure components
-│   ├── __init__.py                    # Public infrastructure exports
 │   ├── bus.py                         # EventBus - pub/sub event system with priority support and filtering
 │   ├── cache.py                       # Cache facade (re-exports store/manager/entry)
 │   ├── cache_entry.py                 # CacheEntry

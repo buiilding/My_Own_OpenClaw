@@ -16,7 +16,6 @@ concrete modules directly.
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
 - `backend/src/core/events/__init__.py`
-- `backend/src/core/infrastructure/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
 
 ## Import-Surface Contract
@@ -34,7 +33,6 @@ Compatibility implication:
 Major aggregator files:
 
 - `backend/src/core/config/__init__.py`: runtime config models + loader/manager/runtime policy exports
-- `backend/src/core/infrastructure/__init__.py`: bus/cache/exceptions umbrella surface
 - `backend/src/core/events/__init__.py`: base + bus + streaming event model exports
 
 ## Minimal/Marker Entrypoints
@@ -123,6 +121,11 @@ docstring or compatibility path.
 - `backend/src/core/bootstrap/__init__.py` is intentionally absent; import
   startup coordinators and entrypoints from concrete modules under
   `backend.src.core.bootstrap`.
+- `backend/src/core/infrastructure/__init__.py` is intentionally absent; import
+  infrastructure primitives from concrete modules such as
+  `backend.src.core.infrastructure.bus`,
+  `backend.src.core.infrastructure.cache`, and
+  `backend.src.core.infrastructure.error_types`.
 - `backend/src/api/processing/tts/__init__.py` is intentionally absent; import
   TTS manager and processor types from
   `backend.src.api.processing.tts.manager` and

@@ -117,6 +117,8 @@ All notable changes to WindieOS will be documented in this file.
   session runtime classes are imported from concrete session modules.
 - backend/api: remove the unused handler package export so websocket
   handlers are imported from concrete handler modules.
+- backend/core: remove the unused core infrastructure package export so
+  bus, cache, and exception primitives are imported from concrete modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
