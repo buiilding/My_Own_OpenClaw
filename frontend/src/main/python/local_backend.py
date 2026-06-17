@@ -111,7 +111,7 @@ _active_backend: Optional["LocalBackend"] = None
 
 class LocalBackend(LocalBackendMemoryHandlersMixin):
     """
-    Main local sidecar runtime service.
+    Main Python sidecar runtime service.
 
     Handles tool execution, system state, memory, and wake-word operations.
     """
@@ -259,7 +259,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
     async def initialize(self) -> None:
         """Initialize the sidecar runtime services."""
-        logger.info("Initializing local sidecar runtime...")
+        logger.info("Initializing Python sidecar runtime...")
 
         try:
             configure_event_loop_default_executor(asyncio.get_running_loop())
@@ -272,10 +272,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             # Note: Wake-word detection is kept as separate subprocess for now
             # due to binary protocol requirements. Can be integrated later.
 
-            logger.info("Local sidecar runtime initialized successfully")
+            logger.info("Python sidecar runtime initialized successfully")
         except Exception as e:
             logger.error(
-                f"Failed to initialize local sidecar runtime: {e}",
+                f"Failed to initialize Python sidecar runtime: {e}",
                 exc_info=True,
             )
             raise
@@ -732,7 +732,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
     async def run(self) -> None:
         """Run the main event loop."""
         self.running = True
-        logger.info("Starting local sidecar runtime main loop...")
+        logger.info("Starting Python sidecar runtime main loop...")
 
         try:
             while self.running:
@@ -767,7 +767,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
     async def shutdown(self) -> None:
         """Shutdown the service gracefully."""
-        logger.info("Shutting down local sidecar runtime...")
+        logger.info("Shutting down Python sidecar runtime...")
         self.running = False
 
         if self._summarizer:

@@ -1,4 +1,4 @@
-"""Browser tool entrypoint for the local sidecar runtime."""
+"""Browser tool entrypoint for the Python sidecar runtime."""
 
 from __future__ import annotations
 

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python sidecar runtime source label cleanup
+
+- Finding: Python sidecar docstrings, helper docs, and lifecycle log messages
+  still used local-sidecar-runtime wording, which blurred the newer split where
+  Electron/SDK expose the local runtime boundary and Python owns the sidecar
+  daemon implementation.
+- Change: updated those source labels to Python sidecar runtime while
+  preserving `LocalBackend` as the concrete internal implementation name.
+- Validation: focused source scan for stale local-sidecar-runtime wording and
+  Python compilation over the touched sidecar modules.
+- Compatibility: no migration required. This is comments, helper docs, and log
+  copy only; JSON-RPC methods, tool schemas, process lifecycle, and memory
+  behavior are unchanged.
+
 ### 2026-06-17 local-runtime screenshot and memory docs label cleanup
 
 - Finding: screenshot/window, memory, browser readiness, and IPC helper docs

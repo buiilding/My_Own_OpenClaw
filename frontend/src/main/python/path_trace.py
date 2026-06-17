@@ -1,5 +1,5 @@
 """
-Sanitized path trace helpers for the local sidecar runtime.
+Sanitized path trace helpers for the Python sidecar runtime.
 """
 
 from __future__ import annotations
