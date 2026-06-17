@@ -15,7 +15,6 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
-- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts` compatibility wrapper
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
@@ -99,8 +98,6 @@ artifact refs.
 - accepts only valid `http/https` URLs
 - strips query/hash and normalizes trailing slashes
 - used by `buildRuntimeArtifactUrl(artifactId)` for canonical `/api/artifacts/<id>` links
-
-`BackendEndpointStore.ts` remains a compatibility wrapper for older imports.
 
 ## Content-Type Normalization
 

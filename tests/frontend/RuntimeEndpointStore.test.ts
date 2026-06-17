@@ -7,10 +7,6 @@ import {
   buildRuntimeTranscriptionWebSocketUrl,
   setRuntimeEndpointHttpUrl,
 } from '../../frontend/src/renderer/infrastructure/services/RuntimeEndpointStore';
-import {
-  buildArtifactUrl,
-  setBackendHttpUrl,
-} from '../../frontend/src/renderer/infrastructure/services/BackendEndpointStore';
 
 describe('RuntimeEndpointStore', () => {
   beforeEach(() => {
@@ -40,10 +36,4 @@ describe('RuntimeEndpointStore', () => {
     expect(buildRuntimeTranscriptionWebSocketUrl()).toBe('wss://api.windieos.test/ws/transcription');
   });
 
-  test('BackendEndpointStore remains a compatibility wrapper', () => {
-    setBackendHttpUrl('https://compat.windieos.test/');
-
-    expect(buildArtifactUrl('art-2')).toBe('https://compat.windieos.test/api/artifacts/art-2');
-    expect(buildRuntimeArtifactUrl('art-2')).toBe('https://compat.windieos.test/api/artifacts/art-2');
-  });
 });

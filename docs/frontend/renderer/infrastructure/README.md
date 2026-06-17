@@ -25,7 +25,6 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
-- `frontend/src/renderer/infrastructure/services/BackendEndpointStore.ts` compatibility wrapper
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`

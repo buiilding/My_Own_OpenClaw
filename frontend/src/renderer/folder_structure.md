@@ -197,7 +197,6 @@ frontend/src/renderer/
 │   ├── services/                         # Business logic services
 │   │   ├── ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
 │   │   ├── RuntimeEndpointStore.ts      # RuntimeEndpointStore - Renderer runtime URL state and artifact/transcription URL builders
-│   │   ├── BackendEndpointStore.ts      # BackendEndpointStore - Compatibility wrapper for old backend-named imports
 │   │
 │   └── transcript/                       # SDK-backed transcript projection helpers
 │       ├── desktopConversationStore.ts  # desktopConversationStore - Direct SDK conversation command bridge
