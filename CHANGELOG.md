@@ -105,6 +105,8 @@ All notable changes to WindieOS will be documented in this file.
   tool catalog so callers use the client-executable name surface directly.
 - backend/tools: remove the unused single-entry built catalog lookup helper so
   tests and runtime use the same full-catalog build path.
+- backend/tools: remove the unused `ToolRegistry.get_all_tools()` method so
+  registry callers stay on the active lookup/declaration/capability APIs.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

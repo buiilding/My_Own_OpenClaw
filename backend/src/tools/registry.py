@@ -87,9 +87,6 @@ class ToolRegistry:
     def get_tool(self, name: str) -> Optional["SDKTool"]:
         return self.tools.get(name)
 
-    def get_all_tools(self) -> List["SDKTool"]:
-        return list(self.tools.values())
-
     def get_tool_names(self) -> List[str]:
         return sorted(self.tools.keys())
 
