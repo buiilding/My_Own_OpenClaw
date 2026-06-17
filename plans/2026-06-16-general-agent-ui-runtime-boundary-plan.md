@@ -1003,3 +1003,16 @@ Each completed slice should report:
   `git diff --check`, and stale scan for the retired wrapper path.
 - Compatibility: no migration required. Test-only cleanup; runtime startup is
   unchanged.
+
+### 2026-06-17 main SDK command handler module filename
+
+- Finding: the generic Electron main SDK command handler lived in a
+  product-named `ipc_windie_sdk_command_handlers.cjs` module even though the
+  helper already exposes generic agent SDK command names.
+- Change: renamed the internal helper module to
+  `ipc_agent_sdk_command_handlers.cjs` and updated main imports, tests, and
+  docs, while preserving the public `windie:invoke` IPC channel.
+- Validation: focused main SDK boundary and IPC bridge Jest coverage, docs
+  listing, `git diff --check`, and stale-path scan for the old module name.
+- Compatibility: no migration required. This is an internal main-process module
+  path; IPC names and renderer command payloads are unchanged.

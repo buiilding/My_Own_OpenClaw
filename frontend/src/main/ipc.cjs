@@ -110,7 +110,7 @@ const {
 } = require('./ipc/ipc_chat_query_handlers.cjs');
 const {
   handleAgentSdkInvoke,
-} = require('./ipc/ipc_windie_sdk_command_handlers.cjs');
+} = require('./ipc/ipc_agent_sdk_command_handlers.cjs');
 const {
   trackRendererWindow: trackRendererWindowRuntime,
   broadcastToRenderers: broadcastToRenderersRuntime,

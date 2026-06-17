@@ -55,7 +55,7 @@ Main modules:
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
-- `frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs`
+- `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
@@ -80,7 +80,7 @@ Split boundary:
   `appName`), subscribes to SDK rows/status/events/current-turn/connection
   outputs, and exposes thin `windie:*` IPC handlers that call SDK agent methods.
 - `ipc.cjs` owns renderer-facing lifecycle orchestration and IPC handler registration.
-- `ipc_windie_sdk_command_handlers.cjs` owns the strict SDK command allowlist
+- `ipc_agent_sdk_command_handlers.cjs` owns the strict SDK command allowlist
   behind `windie:invoke` and receives Electron-main state and SDK agent methods
   as injected dependencies.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.

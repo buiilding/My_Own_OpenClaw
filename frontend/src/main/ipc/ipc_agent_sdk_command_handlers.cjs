@@ -1,5 +1,5 @@
 /**
- * Handles SDK-shaped windie:invoke commands for the Electron main process.
+ * Handles SDK-shaped agent commands for the Electron main process.
  */
 
 const {

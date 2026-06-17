@@ -70,7 +70,7 @@ describe('main ipc sdk runtime boundary', () => {
       'utf8',
     );
     const source = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs'),
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
       'utf8',
     );
 
@@ -112,7 +112,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('requireAuthenticatedCommandUserId');
     expect(source).toContain("userId === 'default_user'");
     expect(mainSource).not.toContain('handleAgentSdkInvoke(event, payload, { method');
-    const sdkCommandModule = require('../../frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs');
+    const sdkCommandModule = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     expect(sdkCommandModule.buildAgentSdkCommandHandlers).toBeUndefined();
     expect(typeof sdkCommandModule.handleAgentSdkInvoke).toBe('function');
 
