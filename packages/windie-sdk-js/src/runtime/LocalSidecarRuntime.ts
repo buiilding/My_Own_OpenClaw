@@ -572,7 +572,7 @@ async function waitForDaemonStop(
     }
     await sleep(pollIntervalMs);
   }
-  throw new Error('Timed out waiting for existing Windie sidecar daemon to stop');
+  throw new Error('Timed out waiting for existing local sidecar daemon to stop');
 }
 
 async function shutdownDiscoveredDaemon(
@@ -791,7 +791,7 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
     }
     ownedProcess?.kill?.('SIGTERM');
     ownedProcess = null;
-    throw new Error(`Timed out waiting for Windie sidecar daemon discovery at ${discoveryFile}`);
+    throw new Error(`Timed out waiting for local sidecar daemon discovery at ${discoveryFile}`);
   }
 
   return async () => {

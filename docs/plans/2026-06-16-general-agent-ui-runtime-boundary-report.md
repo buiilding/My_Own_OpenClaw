@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `416320ebe` (`refactor(sidecar): genericize python sdk diagnostics`)
+- Latest inspected plan checkpoint: `ff47fbfac` (`refactor(sdk): genericize stream error fallback`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -30,7 +30,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   wording while the `window.windie` bridge contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
-  runtime errors omit a message.
+  runtime errors omit a message. SDK local-runtime auto-start discovery and
+  stop timeout diagnostics use generic local sidecar daemon wording.
 
 ## Inspection Log
 
@@ -341,6 +342,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: JS SDK stream error projection now falls back to "Agent stream failed".
 - Change: the SDK conversation-runtime projection test now covers the fallback path directly.
 
+### 2026-06-16 SDK Local Sidecar Timeout Diagnostic Slice
+
+- Worktree recovery: a concurrent SDK context-enrichment commit landed during the previous slice; recent commits and the clean worktree were inspected before continuing.
+- Finding: SDK local-runtime auto-start discovery and stale-daemon stop timeouts still said "Windie sidecar daemon" even though the SDK runtime owns generic local sidecar daemon startup/reuse.
+- Decision: keep public `createWindieLocalRuntimeProvider` and Python package names unchanged, but make timeout diagnostics generic local sidecar daemon wording.
+- Change: JS SDK local-runtime stop and discovery timeout errors now say "local sidecar daemon".
+- Change: Python SDK auto-start discovery timeout now says "local sidecar daemon".
+- Change: the SDK client test now covers the generic discovery timeout path.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -377,6 +387,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Preload SDK-command bridge diagnostics use generic Agent SDK wording while preserving wire contracts.
 - [x] Python SDK stream/trace fallback diagnostics use generic Agent SDK wording while preserving public package names.
 - [x] JS SDK stream projection fallback diagnostics use generic Agent wording while preserving public stream event names.
+- [x] SDK local-runtime sidecar timeout diagnostics use generic local sidecar daemon wording.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -475,6 +486,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "Windie SDK stream failed|Windie SDK trace query|Agent SDK stream failed|Agent SDK trace query" frontend/src/main/python tests/sidecar -g "*.py"` found only the new generic Python SDK fallback wording.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkConversationRuntime.test.ts -t "agent stream projection uses generic fallback error wording|agent stream projection exposes memory retrieval diagnostics"` passed.
 - `rg -n "Windie stream failed|Agent stream failed" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend/WindieSdkConversationRuntime.test.ts -g "*.ts" -g "*.js"` found only the new generic JS SDK fallback wording and assertion.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts -t "createWindieLocalRuntimeProvider reports generic discovery timeout wording|createWindieLocalRuntimeProvider reuses discovery metadata directly"` passed.
+- `rg -n "Windie sidecar daemon|local sidecar daemon discovery|existing local sidecar daemon|existing Windie sidecar" packages/windie-sdk-js/src packages/windie-sdk-js/cjs frontend/src/main/python tests/frontend/WindieSdkClient.test.ts -g "*.ts" -g "*.js" -g "*.py"` found only the new generic sidecar timeout wording and assertion.
 
 ## Remaining Findings
 
@@ -535,3 +548,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   SDK wording. Public Python package names remain unchanged.
 - JS SDK stream projection fallback diagnostics now use generic Agent stream
   wording. Public stream event and SDK package names remain unchanged.
+- SDK local-runtime auto-start discovery and stop timeout diagnostics now use
+  generic local sidecar daemon wording. Public SDK/Python package names remain
+  unchanged.

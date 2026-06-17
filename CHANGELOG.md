@@ -73,6 +73,8 @@ All notable changes to WindieOS will be documented in this file.
   trace-query fallback failures.
 - sdk/js: use generic Agent stream fallback wording in public stream
   projections when backend/runtime errors omit a message.
+- sdk/js, frontend/sidecar: use generic local sidecar daemon wording for SDK
+  auto-start discovery and stop timeout failures.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

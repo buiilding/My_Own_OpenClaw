@@ -405,7 +405,7 @@ async function waitForDaemonStop(discovery, fetchImpl, WebSocketImpl, timeoutMs 
         }
         await sleep(pollIntervalMs);
     }
-    throw new Error('Timed out waiting for existing Windie sidecar daemon to stop');
+    throw new Error('Timed out waiting for existing local sidecar daemon to stop');
 }
 async function shutdownDiscoveredDaemon(discovery, fetchImpl, WebSocketImpl, timeoutMs = 2000, pollIntervalMs = 100) {
     const existing = await probeDaemon(discovery, fetchImpl, WebSocketImpl);
@@ -583,7 +583,7 @@ function createWindieLocalRuntimeProvider(options = {}) {
         }
         ownedProcess?.kill?.('SIGTERM');
         ownedProcess = null;
-        throw new Error(`Timed out waiting for Windie sidecar daemon discovery at ${discoveryFile}`);
+        throw new Error(`Timed out waiting for local sidecar daemon discovery at ${discoveryFile}`);
     }
     return async () => {
         if (cachedRuntime) {
