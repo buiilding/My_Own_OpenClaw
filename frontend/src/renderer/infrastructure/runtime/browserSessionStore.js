@@ -5,9 +5,9 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { SDK_RUNTIME_COMMANDS } from '../api/windieSdkClient';
 import {
-  getLocalBackendStatusSnapshot,
-  subscribeLocalBackendStatusStore,
-} from './localBackendStatusStore';
+  getLocalRuntimeStatusSnapshot,
+  subscribeLocalRuntimeStatusStore,
+} from './localRuntimeStatusStore';
 
 const DEFAULT_CONNECTED_POLL_MS = 2000;
 const INTERACTIVE_CONNECTED_POLL_MS = 1000;
@@ -306,7 +306,7 @@ async function syncBrowserSession() {
 }
 
 function handleLocalBackendStatusChange() {
-  const backendStatus = getLocalBackendStatusSnapshot();
+  const backendStatus = getLocalRuntimeStatusSnapshot();
   emitBrowserSessionDiagnostic({
     stage: 'local_backend_status_observed',
     data: {
@@ -337,7 +337,7 @@ function ensureRuntimeSubscription() {
     return;
   }
 
-  localBackendUnsubscribe = subscribeLocalBackendStatusStore(() => {
+  localBackendUnsubscribe = subscribeLocalRuntimeStatusStore(() => {
     handleLocalBackendStatusChange();
   });
 
@@ -354,7 +354,7 @@ function disposeRuntimeSubscriptionIfIdle() {
   stopPolling();
   interactivePollingRequests = 0;
   applySnapshot(buildDisconnectedSnapshot({
-    localBackendReady: getLocalBackendStatusSnapshot().ready === true,
+    localBackendReady: getLocalRuntimeStatusSnapshot().ready === true,
     error: '',
   }));
 }

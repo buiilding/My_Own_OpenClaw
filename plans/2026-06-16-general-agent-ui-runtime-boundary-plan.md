@@ -117,3 +117,17 @@ Each completed slice should report:
 - what behavior changed, if any
 - validation performed
 - migration or compatibility note, including "no migration required"
+
+## Progress Notes
+
+### 2026-06-17 renderer local runtime status store
+
+- Finding: renderer browser-session and dashboard consumers still imported a
+  local backend status store even though they only need local runtime readiness.
+- Change: renamed the renderer status store and exports to local-runtime
+  terminology while preserving the existing IPC channel names and broader
+  browser-session snapshot fields.
+- Validation: focused Jest run for `LocalRuntimeStatusStore`,
+  `BrowserSessionStore`, and `UseDashboardConversations`.
+- Compatibility: no migration required. IPC channel names and browser-session
+  `localBackendReady` compatibility fields remain unchanged.

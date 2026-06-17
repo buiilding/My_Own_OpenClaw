@@ -6,9 +6,9 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { useDashboardConversations } from '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations';
 import { DesktopConversationLibraryClient } from '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient';
 import {
-  getLocalBackendStatusSnapshot,
-  subscribeLocalBackendStatusStore,
-} from '../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore';
+  getLocalRuntimeStatusSnapshot,
+  subscribeLocalRuntimeStatusStore,
+} from '../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
@@ -26,9 +26,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore', () => ({
-  getLocalBackendStatusSnapshot: jest.fn(),
-  subscribeLocalBackendStatusStore: jest.fn(),
+jest.mock('../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore', () => ({
+  getLocalRuntimeStatusSnapshot: jest.fn(),
+  subscribeLocalRuntimeStatusStore: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -104,8 +104,8 @@ function renderDashboardConversationsWithProps(initialProps = {}) {
 describe('useDashboardConversations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    getLocalBackendStatusSnapshot.mockReturnValue({ ready: false });
-    subscribeLocalBackendStatusStore.mockImplementation(() => jest.fn());
+    getLocalRuntimeStatusSnapshot.mockReturnValue({ ready: false });
+    subscribeLocalRuntimeStatusStore.mockImplementation(() => jest.fn());
     DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValue([]);
     DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
     IpcBridge.on.mockImplementation(() => jest.fn());
@@ -113,7 +113,7 @@ describe('useDashboardConversations', () => {
 
   test('reloads recent conversations when the local backend becomes ready', async () => {
     let statusSubscriber = null;
-    subscribeLocalBackendStatusStore.mockImplementation((subscriber) => {
+    subscribeLocalRuntimeStatusStore.mockImplementation((subscriber) => {
       statusSubscriber = subscriber;
       return jest.fn();
     });
@@ -136,7 +136,7 @@ describe('useDashboardConversations', () => {
     });
     expect(result.current.recentConversations).toEqual([]);
 
-    getLocalBackendStatusSnapshot.mockReturnValue({ ready: true });
+    getLocalRuntimeStatusSnapshot.mockReturnValue({ ready: true });
     await act(async () => {
       statusSubscriber();
     });

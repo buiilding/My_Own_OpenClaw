@@ -3,8 +3,8 @@
  */
 
 const mockInvoke = jest.fn();
-const mockSubscribeLocalBackendStatusStore = jest.fn(() => jest.fn());
-const mockGetLocalBackendStatusSnapshot = jest.fn(() => ({
+const mockSubscribeLocalRuntimeStatusStore = jest.fn(() => jest.fn());
+const mockGetLocalRuntimeStatusSnapshot = jest.fn(() => ({
   ready: true,
   status: 'ready',
   error: '',
@@ -20,9 +20,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore', () => ({
-  getLocalBackendStatusSnapshot: () => mockGetLocalBackendStatusSnapshot(),
-  subscribeLocalBackendStatusStore: (...args) => mockSubscribeLocalBackendStatusStore(...args),
+jest.mock('../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore', () => ({
+  getLocalRuntimeStatusSnapshot: () => mockGetLocalRuntimeStatusSnapshot(),
+  subscribeLocalRuntimeStatusStore: (...args) => mockSubscribeLocalRuntimeStatusStore(...args),
 }));
 
 function createDeferred() {
@@ -45,10 +45,10 @@ describe('browserSessionStore', () => {
   beforeEach(() => {
     jest.resetModules();
     mockInvoke.mockReset();
-    mockSubscribeLocalBackendStatusStore.mockReset();
-    mockSubscribeLocalBackendStatusStore.mockReturnValue(jest.fn());
-    mockGetLocalBackendStatusSnapshot.mockReset();
-    mockGetLocalBackendStatusSnapshot.mockReturnValue({
+    mockSubscribeLocalRuntimeStatusStore.mockReset();
+    mockSubscribeLocalRuntimeStatusStore.mockReturnValue(jest.fn());
+    mockGetLocalRuntimeStatusSnapshot.mockReset();
+    mockGetLocalRuntimeStatusSnapshot.mockReturnValue({
       ready: true,
       status: 'ready',
       error: '',
@@ -127,7 +127,7 @@ describe('browserSessionStore', () => {
   });
 
   test('suppresses browser connect actions until the local backend is ready', async () => {
-    mockGetLocalBackendStatusSnapshot.mockReturnValue({
+    mockGetLocalRuntimeStatusSnapshot.mockReturnValue({
       ready: false,
       status: 'starting',
       error: '',
@@ -165,11 +165,11 @@ describe('browserSessionStore', () => {
 
   test('syncs the browser session when the local backend becomes ready', async () => {
     let localBackendListener = null;
-    mockSubscribeLocalBackendStatusStore.mockImplementation((listener) => {
+    mockSubscribeLocalRuntimeStatusStore.mockImplementation((listener) => {
       localBackendListener = listener;
       return jest.fn();
     });
-    mockGetLocalBackendStatusSnapshot.mockReturnValue({
+    mockGetLocalRuntimeStatusSnapshot.mockReturnValue({
       ready: false,
       status: 'starting',
       error: '',
@@ -222,7 +222,7 @@ describe('browserSessionStore', () => {
       expect.objectContaining({ action: 'status' }),
     );
 
-    mockGetLocalBackendStatusSnapshot.mockReturnValue({
+    mockGetLocalRuntimeStatusSnapshot.mockReturnValue({
       ready: true,
       status: 'ready',
       error: '',

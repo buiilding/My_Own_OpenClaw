@@ -1,22 +1,22 @@
 /**
- * Stores and retrieves local backend status state for the renderer UI.
+ * Stores and retrieves local runtime status state for the renderer UI.
  */
 
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../ipc/bridge';
 
-const EMPTY_LOCAL_BACKEND_STATUS = Object.freeze({
+const EMPTY_LOCAL_RUNTIME_STATUS = Object.freeze({
   ready: false,
   status: 'stopped',
   error: '',
 });
 
-let currentSnapshot = EMPTY_LOCAL_BACKEND_STATUS;
+let currentSnapshot = EMPTY_LOCAL_RUNTIME_STATUS;
 let removeIpcListener = null;
 let bootstrapPromise = null;
 let liveStatusRevision = 0;
 const storeSubscribers = new Set();
 
-function normalizeLocalBackendStatus(payload = {}) {
+function normalizeLocalRuntimeStatus(payload = {}) {
   return Object.freeze({
     ready: payload?.ready === true,
     status: typeof payload?.status === 'string' && payload.status.trim()
@@ -55,7 +55,7 @@ function ensureIpcSubscription() {
 
   removeIpcListener = IpcBridge.on(ON_CHANNELS.LOCAL_BACKEND_STATUS, (payload = {}) => {
     liveStatusRevision += 1;
-    applySnapshot(normalizeLocalBackendStatus(payload));
+    applySnapshot(normalizeLocalRuntimeStatus(payload));
   });
 }
 
@@ -70,13 +70,13 @@ function ensureBootstrapStatusRead() {
       if (liveStatusRevision !== bootstrapStartRevision) {
         return;
       }
-      applySnapshot(normalizeLocalBackendStatus(payload));
+      applySnapshot(normalizeLocalRuntimeStatus(payload));
     })
     .catch(() => {
       if (liveStatusRevision !== bootstrapStartRevision) {
         return;
       }
-      applySnapshot(EMPTY_LOCAL_BACKEND_STATUS);
+      applySnapshot(EMPTY_LOCAL_RUNTIME_STATUS);
     })
     .finally(() => {
       bootstrapPromise = null;
@@ -92,11 +92,11 @@ function disposeIpcSubscriptionIfIdle() {
 
   removeIpcListener?.();
   removeIpcListener = null;
-  currentSnapshot = EMPTY_LOCAL_BACKEND_STATUS;
+  currentSnapshot = EMPTY_LOCAL_RUNTIME_STATUS;
   liveStatusRevision = 0;
 }
 
-export function subscribeLocalBackendStatusStore(onStoreChange) {
+export function subscribeLocalRuntimeStatusStore(onStoreChange) {
   storeSubscribers.add(onStoreChange);
   ensureIpcSubscription();
   void ensureBootstrapStatusRead();
@@ -107,6 +107,6 @@ export function subscribeLocalBackendStatusStore(onStoreChange) {
   };
 }
 
-export function getLocalBackendStatusSnapshot() {
+export function getLocalRuntimeStatusSnapshot() {
   return currentSnapshot;
 }

@@ -7,9 +7,9 @@ import { buildChatMessagesFromSdkDisplayRows } from '../../../infrastructure/tra
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
-  getLocalBackendStatusSnapshot,
-  subscribeLocalBackendStatusStore,
-} from '../../../infrastructure/runtime/localBackendStatusStore';
+  getLocalRuntimeStatusSnapshot,
+  subscribeLocalRuntimeStatusStore,
+} from '../../../infrastructure/runtime/localRuntimeStatusStore';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
@@ -377,13 +377,13 @@ function useDashboardConversations({
 
   useEffect(() => {
     const reloadWhenLocalBackendReady = () => {
-      const snapshot = getLocalBackendStatusSnapshot();
+      const snapshot = getLocalRuntimeStatusSnapshot();
       if (snapshot.ready === true) {
         void loadRecentConversations('local-backend-ready');
       }
     };
 
-    const unsubscribe = subscribeLocalBackendStatusStore(reloadWhenLocalBackendReady);
+    const unsubscribe = subscribeLocalRuntimeStatusStore(reloadWhenLocalBackendReady);
     reloadWhenLocalBackendReady();
     return unsubscribe;
   }, [loadRecentConversations]);

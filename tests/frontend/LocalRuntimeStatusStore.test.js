@@ -1,8 +1,8 @@
 /**
- * Covers local backend status store. behavior in the frontend test suite.
+ * Covers local runtime status store behavior in the frontend test suite.
  */
 
-describe('localBackendStatusStore', () => {
+describe('localRuntimeStatusStore', () => {
   function loadStoreWithDeferredBootstrap() {
     jest.resetModules();
     const listeners = new Map();
@@ -28,7 +28,7 @@ describe('localBackendStatusStore', () => {
       },
     }));
 
-    const store = require('../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore');
+    const store = require('../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore');
     return {
       ...store,
       invoke,
@@ -52,11 +52,11 @@ describe('localBackendStatusStore', () => {
     const store = loadStoreWithDeferredBootstrap();
     const onChange = jest.fn();
 
-    const unsubscribe = store.subscribeLocalBackendStatusStore(onChange);
+    const unsubscribe = store.subscribeLocalRuntimeStatusStore(onChange);
     store.resolveBootstrap({ ready: true, status: 'ready', error: '' });
     await flushPromises();
 
-    expect(store.getLocalBackendStatusSnapshot()).toEqual({
+    expect(store.getLocalRuntimeStatusSnapshot()).toEqual({
       ready: true,
       status: 'ready',
       error: '',
@@ -70,12 +70,12 @@ describe('localBackendStatusStore', () => {
     const store = loadStoreWithDeferredBootstrap();
     const onChange = jest.fn();
 
-    const unsubscribe = store.subscribeLocalBackendStatusStore(onChange);
+    const unsubscribe = store.subscribeLocalRuntimeStatusStore(onChange);
     store.listeners.get('local-backend-status')({ ready: true, status: 'ready', error: '' });
     store.resolveBootstrap({ ready: false, status: 'stopped', error: '' });
     await flushPromises();
 
-    expect(store.getLocalBackendStatusSnapshot()).toEqual({
+    expect(store.getLocalRuntimeStatusSnapshot()).toEqual({
       ready: true,
       status: 'ready',
       error: '',
