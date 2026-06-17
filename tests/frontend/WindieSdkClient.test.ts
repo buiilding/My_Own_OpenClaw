@@ -23,7 +23,7 @@ import {
   windieBuiltins,
   type SdkPromptPreviewRequest,
   type SdkQueryPlanRequest,
-  type WindieLocalRuntimeClient,
+  type AgentLocalRuntimeClient,
 } from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 
 const WindieClient = function WindieClient(
@@ -783,7 +783,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp enables memory and persistence by default and resolves the local runtime', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
@@ -830,7 +830,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp still resolves local runtime for builtins none when memory and persistence stay enabled', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
@@ -860,7 +860,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('localRuntime starts the SDK local runtime without creating an agent session', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({ version: 1, tools: [] })),
       executeTool: jest.fn(async () => ({ success: true, data: { connected: true } })),
@@ -888,7 +888,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('executeTool and rpc use standalone SDK local runtime execution', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       executeTool: jest.fn(async () => ({ success: true, data: { output: 'ran' } })),
       rpc: jest.fn(async ({ method }) => ({ success: true, data: { method } })),
     };
@@ -925,7 +925,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp reuses a standalone SDK local runtime instead of resolving another one', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({
@@ -987,7 +987,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('agent.chat uses local-runtime persistence by default', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
     };
     const client = new WindieClientClass({
@@ -1046,7 +1046,7 @@ describe('WindieSdkClient', () => {
         dimension: 3,
         embedding_space_version: 'test-space',
       }));
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       rpc: jest.fn(async ({ method }) => {
         if (method === 'search_memory_by_embedding') {
           return {
@@ -1127,7 +1127,7 @@ describe('WindieSdkClient', () => {
       dimension: 3,
       embedding_space_version: 'test-space',
     }));
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: { memories: {} } })),
     };
     const client = new WindieClientClass({
@@ -1157,7 +1157,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('explicit custom conversation store overrides the default local-runtime store', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
     };
     const customStore = {
@@ -1362,7 +1362,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('agent exposes prompt, schema, memory, title, and artifact facades', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       rpc: jest.fn(async ({ method }) => ({ success: true, method, data: {} })),
     };
     mockFetch
@@ -2201,7 +2201,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp can expose desktop builtin tools from the sidecar manifest', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
         version: 1,
@@ -2243,7 +2243,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp can expose selected builtin groups from the sidecar manifest', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
         version: 1,
@@ -2291,7 +2291,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp can expose computer builtin tools from the sidecar manifest', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
         version: 1,
@@ -2340,7 +2340,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp keeps MCP definitions local instead of sending unsupported handshake fields', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerMcp: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({ version: 1, tools: [] })),
@@ -2382,7 +2382,7 @@ describe('WindieSdkClient', () => {
         additionalProperties: false,
       },
     };
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerMcp: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
@@ -2440,7 +2440,7 @@ describe('WindieSdkClient', () => {
         additionalProperties: false,
       },
     };
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerMcp: jest.fn(async () => ({ success: true, registered_tools: [mcpTool] })),
       listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
@@ -2539,7 +2539,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp ensures a local runtime when module tools need sidecar execution', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({
@@ -2596,7 +2596,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('agent.shutdown closes backend session and local runtime together', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({
@@ -3625,7 +3625,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp registers local module tools and sends agent definition in handshake', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
       registerPlugin: jest.fn(async () => ({ success: true })),
@@ -3718,7 +3718,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('wakeUp registers local tools without making raw session queries execute tools', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({
@@ -3802,7 +3802,7 @@ describe('WindieSdkClient', () => {
 
   test('agent.stream yields normalized async events until completion', async () => {
     const lifecycleCalls: string[] = [];
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({
@@ -4044,7 +4044,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('chat.stream exposes bundled tools as plural calls and outputs', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({ version: 1, tools: [] })),
       executeTool: jest.fn(async (call) => ({
@@ -4207,7 +4207,7 @@ describe('WindieSdkClient', () => {
   test('chat.stream extracts large binary tool-output fields into attachments without changing backend transport', async () => {
     const screenImagePayload = 'a'.repeat(600);
     const nestedImagePayload = 'b'.repeat(650);
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({ version: 1, tools: [] })),
       executeTool: jest.fn(async () => ({

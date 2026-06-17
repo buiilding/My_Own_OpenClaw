@@ -2464,3 +2464,18 @@ Each completed slice should report:
   legacy factory name no longer appears in SDK client behavior coverage.
 - Compatibility: no migration required. `createWindieLocalRuntimeProvider`
   remains a public compatibility alias.
+
+### 2026-06-17 Agent local runtime client mock type path
+
+- Finding: SDK client behavior coverage still typed local-runtime mock clients
+  as `WindieLocalRuntimeClient`, leaving ordinary behavior tests coupled to the
+  compatibility type alias.
+- Change: switched those behavior-test mocks to the canonical
+  `AgentLocalRuntimeClient` type, leaving `WindieLocalRuntimeClient`
+  compatibility coverage in the package-boundary test.
+- Validation: focused SDK client Jest coverage, SDK package-boundary Jest
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  legacy local-runtime client type no longer appears in SDK client behavior
+  coverage.
+- Compatibility: no migration required. `WindieLocalRuntimeClient` remains a
+  public compatibility type alias.
