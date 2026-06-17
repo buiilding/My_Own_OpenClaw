@@ -592,7 +592,7 @@ describe('main_window_runtime createMainWindow', () => {
       ensureLocalRuntime: deps.ensureLocalRuntime,
       isPackaged: false,
       permissionStatePath: '/tmp/desktop-agent-permission-state.json',
-      authStatePath: expect.stringContaining(`${require('path').sep}windieos${require('path').sep}install-auth.json`),
+      authStatePath: expect.stringContaining(`${require('path').sep}desktop-agent${require('path').sep}install-auth.json`),
     }));
     expect(bridgeOptions).not.toHaveProperty('prepareComputerUseSurface');
   });

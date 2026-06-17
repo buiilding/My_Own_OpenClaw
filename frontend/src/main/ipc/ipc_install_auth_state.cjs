@@ -17,6 +17,7 @@ try {
 const INSTALL_AUTH_FILENAME = 'install-auth.json';
 const INSTALL_AUTH_FILE_MODE = 0o600;
 const INSTALL_AUTH_DIR_MODE = 0o700;
+const DEFAULT_INSTALL_AUTH_FALLBACK_DIR = 'desktop-agent';
 
 function shouldApplyPosixFileModes(platform = process.platform) {
   return platform !== 'win32';
@@ -25,7 +26,7 @@ function shouldApplyPosixFileModes(platform = process.platform) {
 function getInstallAuthStatePath() {
   const userDataPath = typeof electronApp?.getPath === 'function'
     ? electronApp.getPath('userData')
-    : path.join(os.tmpdir(), 'windieos');
+    : path.join(os.tmpdir(), DEFAULT_INSTALL_AUTH_FALLBACK_DIR);
   return path.join(userDataPath, INSTALL_AUTH_FILENAME);
 }
 

@@ -719,3 +719,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Packaged/source runtime callers pass
   `userDataPath` or explicit `statePath`, so persisted permission state paths
   are unchanged outside the no-user-data fallback.
+
+### 2026-06-17 main install auth fallback directory
+
+- Finding: the install-auth state helper still used a WindieOS-specific temp
+  fallback directory when Electron `userData` was unavailable.
+- Change: renamed that no-Electron fallback directory to generic
+  desktop-agent wording and added focused install-auth coverage for the fallback
+  path.
+- Validation: focused install-auth state test, docs listing, `git diff --check`,
+  and source scan for the retired fallback directory.
+- Compatibility: no migration required. Runtime Electron callers still use
+  `app.getPath('userData')`, so persisted install auth state remains in the same
+  app data directory.
