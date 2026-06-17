@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed Electron main local-runtime screenshot attachment and utility helpers from local-backend bridge paths to `local_runtime_screenshot_attachment.cjs` and `local_runtime_utils.cjs` while preserving artifact materialization, stderr filtering, node options, and error-message behavior. No migration is required.
+
 - Renamed Electron main local-runtime tool argument and timeout policy helpers from local-backend bridge paths to `local_runtime_tool_args.cjs` and `local_runtime_timeout_policy.cjs`. No migration is required.
 
 - Renamed the Electron main local-runtime execute-tool helper and focused Jest suite from local-backend bridge names to `local_runtime_execute_tool_runtime.cjs` / `LocalRuntimeExecuteToolRuntime`. No migration is required.

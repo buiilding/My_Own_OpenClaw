@@ -102,7 +102,7 @@ Primary files:
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
+- `frontend/src/main/sidecar/local_runtime_utils.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 

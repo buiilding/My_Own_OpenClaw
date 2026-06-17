@@ -13,7 +13,7 @@ title: "Screenshot Display-Bounds Fallback and Attachment Materialization Refere
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `frontend/src/main/surfaces/display_affinity_runtime.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`

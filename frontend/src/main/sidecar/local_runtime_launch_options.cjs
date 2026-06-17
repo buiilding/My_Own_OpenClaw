@@ -15,7 +15,7 @@ const {
 const {
   shouldForwardStderrLine,
   withLocalRuntimeNodeOptions,
-} = require('./local_backend_bridge_utils.cjs');
+} = require('./local_runtime_utils.cjs');
 const {
   appendLayerLogLine,
 } = require('../logging/layer_log_sink.cjs');

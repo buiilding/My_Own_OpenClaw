@@ -15,7 +15,7 @@ title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs`
 - `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `frontend/src/main/sidecar/local_runtime_supervisor.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`

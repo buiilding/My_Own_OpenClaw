@@ -16,7 +16,7 @@ const {
 } = require('./local_backend_bridge_window_visibility.cjs');
 const {
   getErrorMessage,
-} = require('./local_backend_bridge_utils.cjs');
+} = require('./local_runtime_utils.cjs');
 const {
   createLocalRuntimeExecuteToolRuntime,
 } = require('./local_runtime_execute_tool_runtime.cjs');

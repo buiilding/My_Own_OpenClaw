@@ -19,7 +19,7 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/RuntimeEndpointStore.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`

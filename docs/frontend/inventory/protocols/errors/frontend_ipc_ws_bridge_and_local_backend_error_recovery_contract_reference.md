@@ -21,7 +21,7 @@ Primary sources:
 - Main websocket bridge/state: `frontend/src/main/ipc.cjs`
 - Settings-sync ACK timeout helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Synthetic query failure events: `frontend/src/main/ipc/ipc_query_events.cjs`
-- Local-runtime bridge + utils: `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
+- Local-runtime bridge + utils: `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`
 - Wakeword subprocess bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 
 Primary error-path tests:

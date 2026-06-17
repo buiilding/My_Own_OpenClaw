@@ -120,6 +120,34 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime screenshot attachment module
+
+- Finding: Electron main screenshot attachment materialization was a
+  local-runtime helper, but the private module still lived under local-backend
+  bridge naming.
+- Change: renamed the helper module to `local_runtime_screenshot_attachment.cjs`
+  and updated execute-tool imports plus docs that route screenshot artifact
+  upload, inline payload, and temporary file cleanup through this adapter.
+- Validation: focused execute-tool, bridge RPC, screenshot artifact/materializer
+  tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  path rename; screenshot result payloads and artifact upload behavior are
+  unchanged.
+
+### 2026-06-17 local-runtime utilities module
+
+- Finding: shared Electron main local-runtime error and stderr utilities still
+  lived under a local-backend bridge module path even after their exported
+  helpers moved to local-runtime wording.
+- Change: renamed the utility module to `local_runtime_utils.cjs`, updated
+  bridge, execute-tool, launch-options, docs, and boundary references.
+- Validation: focused launch-options, execute-tool, bridge RPC, and
+  host-boundary Jest tests, stale module-path scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. This is a private Electron main module
+  path rename; stderr filtering, node options, error messages, IPC channels,
+  and payloads are unchanged.
+
 ### 2026-06-17 local-runtime timeout policy module
 
 - Finding: Electron main local-runtime request timeout policy was a private

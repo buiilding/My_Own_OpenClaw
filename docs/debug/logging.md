@@ -162,7 +162,7 @@ the renderer sends the `frontend-interaction` payload through `renderer-log`.
 | --- | --- | --- |
 | Stream trace | `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts` | URL has `debug_stream=1` or `debug_chat_pill=1` |
 | Chat pill trace | Same renderer trace module | URL has `debug_stream=1` or `debug_chat_pill=1` |
-| Tool screenshot trace | `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs` | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` |
+| Tool screenshot trace | `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` |
 
 Main injects these params through `frontend/src/main/surfaces/main_window_overlay_runtime.cjs` when the matching environment flags are set.
 

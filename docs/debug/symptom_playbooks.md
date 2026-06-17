@@ -97,7 +97,7 @@ Inspect:
 
 - `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
+- `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `frontend/src/main/python/tools/computer/screenshot_tool.py`
 - `backend/src/services/ocr`
 - `backend/src/services/vision`

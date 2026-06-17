@@ -15,10 +15,10 @@ const {
 } = require('./local_runtime_display_bounds.cjs');
 const {
   materializeScreenshotAttachment,
-} = require('./local_backend_bridge_screenshot_attachment.cjs');
+} = require('./local_runtime_screenshot_attachment.cjs');
 const {
   getErrorMessage,
-} = require('./local_backend_bridge_utils.cjs');
+} = require('./local_runtime_utils.cjs');
 const {
   DEFAULT_REQUEST_TIMEOUT_MS,
   resolveExecuteToolTimeoutMs,

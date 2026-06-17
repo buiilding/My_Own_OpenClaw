@@ -8,7 +8,7 @@ const {
   createDesktopLocalRuntimeLaunchPlan,
 } = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const launchOptionsModule = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
-const bridgeUtilsModule = require('../../frontend/src/main/sidecar/local_backend_bridge_utils.cjs');
+const localRuntimeUtilsModule = require('../../frontend/src/main/sidecar/local_runtime_utils.cjs');
 const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
@@ -19,8 +19,8 @@ describe('desktop local runtime launch options', () => {
   });
 
   test('removes the legacy local-backend node options helper export', () => {
-    expect(bridgeUtilsModule.withLocalBackendNodeOptions).toBeUndefined();
-    expect(typeof bridgeUtilsModule.withLocalRuntimeNodeOptions).toBe('function');
+    expect(localRuntimeUtilsModule.withLocalBackendNodeOptions).toBeUndefined();
+    expect(typeof localRuntimeUtilsModule.withLocalRuntimeNodeOptions).toBe('function');
   });
 
   test('uses local-runtime daemon helper names in launch source', () => {
