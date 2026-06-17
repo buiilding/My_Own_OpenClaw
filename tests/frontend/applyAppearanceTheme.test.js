@@ -36,8 +36,8 @@ describe('applyAppearanceTheme', () => {
     applyAppearanceTheme({ appearance_mode: 'light' }, lightTarget, matchMedia);
     applyAppearanceTheme({ appearance_mode: 'dark' }, darkTarget, matchMedia);
 
-    expect(lightTarget.dataset.windieTheme).toBe('light');
-    expect(darkTarget.dataset.windieTheme).toBe('dark');
+    expect(lightTarget.dataset.agentTheme).toBe('light');
+    expect(darkTarget.dataset.agentTheme).toBe('dark');
     expect(matchMedia).not.toHaveBeenCalled();
   });
 
@@ -50,8 +50,8 @@ describe('applyAppearanceTheme', () => {
     applyAppearanceTheme({ appearance_mode: 'system' }, lightTarget, () => lightMedia);
     applyAppearanceTheme({ appearance_mode: 'system' }, darkTarget, () => darkMedia);
 
-    expect(lightTarget.dataset.windieTheme).toBe('light');
-    expect(darkTarget.dataset.windieTheme).toBe('dark');
+    expect(lightTarget.dataset.agentTheme).toBe('light');
+    expect(darkTarget.dataset.agentTheme).toBe('dark');
   });
 
   test('applies explicit light mode attributes and theme variables', () => {
@@ -72,9 +72,9 @@ describe('applyAppearanceTheme', () => {
       },
     }, target, jest.fn());
 
-    expect(target.dataset.windieThemePreference).toBe('light');
-    expect(target.dataset.windieTheme).toBe('light');
-    expect(target.dataset.windieTranslucentSidebar).toBe('false');
+    expect(target.dataset.agentThemePreference).toBe('light');
+    expect(target.dataset.agentTheme).toBe('light');
+    expect(target.dataset.agentTranslucentSidebar).toBe('false');
     expect(target.style.colorScheme).toBe('light');
     expect(target.style.getPropertyValue('--windie-blue')).toBe('#007AFF');
     expect(target.style.getPropertyValue('--appearance-background')).toBe('#FAFCFF');
@@ -91,13 +91,13 @@ describe('applyAppearanceTheme', () => {
       appearance_mode: 'system',
     }, target, () => media);
 
-    expect(target.dataset.windieThemePreference).toBe('system');
-    expect(target.dataset.windieTheme).toBe('dark');
+    expect(target.dataset.agentThemePreference).toBe('system');
+    expect(target.dataset.agentTheme).toBe('dark');
     expect(target.style.colorScheme).toBe('dark');
 
     media.setMatches(true);
 
-    expect(target.dataset.windieTheme).toBe('light');
+    expect(target.dataset.agentTheme).toBe('light');
     expect(target.style.colorScheme).toBe('light');
 
     cleanup();

@@ -14,7 +14,7 @@ function readRepoFile(relativePath) {
 describe('chatbox response appearance CSS', () => {
   test('defines light-mode typing indicator tokens with visible dots', () => {
     const css = readRepoFile('frontend/src/renderer/styles/ChatBoxResponseOverlay.css');
-    const lightBlockStart = css.indexOf(":root[data-windie-theme='light'] .chatbox-response-shell-wrap");
+    const lightBlockStart = css.indexOf(":root[data-agent-theme='light'] .chatbox-response-shell-wrap");
     const lightBlockEnd = css.indexOf('.chatbox-response-shell-wrap.awaiting-only', lightBlockStart);
     const lightBlock = css.slice(lightBlockStart, lightBlockEnd);
 

@@ -31,7 +31,7 @@
   background: var(--ui-shell-bg);
 }
 
-:root[data-windie-theme='light'] .chat-container {
+:root[data-agent-theme='light'] .chat-container {
   --chat-utility-surface-bg: rgba(15, 23, 42, 0.07);
   --chat-utility-surface-bg-hover: rgba(0, 122, 255, 0.13);
   --chat-utility-surface-bg-active: rgba(0, 122, 255, 0.17);
@@ -764,7 +764,7 @@
   animation: chat-history-loading-spin 820ms linear infinite;
 }
 
-:root[data-windie-theme='light'] .chat-history-loading-spinner {
+:root[data-agent-theme='light'] .chat-history-loading-spinner {
   border-color: rgba(15, 23, 42, 0.14);
   border-top-color: var(--windie-blue);
 }

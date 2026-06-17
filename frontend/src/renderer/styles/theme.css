@@ -118,7 +118,7 @@
   --ui-toggle-thumb-on: var(--ui-neutral-white);
 }
 
-:root[data-windie-theme='light'] {
+:root[data-agent-theme='light'] {
   color-scheme: light;
   --windie-blue-hover: color-mix(in srgb, var(--windie-blue) 82%, #003c9d 18%);
   --windie-blue-soft: color-mix(in srgb, var(--windie-blue) 14%, transparent 86%);
@@ -211,7 +211,7 @@
   --ui-toggle-thumb-on: #ffffff;
 }
 
-:root[data-windie-translucent-sidebar='false'] {
+:root[data-agent-translucent-sidebar='false'] {
   --ui-backdrop-blur: 0px;
 }
 

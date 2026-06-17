@@ -77,7 +77,7 @@ function applyThemeVariables(target, theme) {
   target.style.setProperty('--appearance-contrast', String(theme.contrast));
   target.style.setProperty('--font-ui', theme.ui_font);
   target.style.setProperty('--font-mono', theme.code_font);
-  target.dataset.windieTranslucentSidebar = theme.translucent_sidebar ? 'true' : 'false';
+  target.dataset.agentTranslucentSidebar = theme.translucent_sidebar ? 'true' : 'false';
 }
 
 function subscribeToSystemTheme(matchMediaImpl, listener) {
@@ -122,8 +122,8 @@ export function applyAppearanceTheme(
 
   const apply = () => {
     const effectiveTheme = resolveEffectiveAppearanceTheme(preference, matchMediaImpl);
-    target.dataset.windieThemePreference = preference;
-    target.dataset.windieTheme = effectiveTheme;
+    target.dataset.agentThemePreference = preference;
+    target.dataset.agentTheme = effectiveTheme;
     target.style.colorScheme = effectiveTheme;
     applyThemeVariables(target, resolveThemeSection(config, effectiveTheme));
   };

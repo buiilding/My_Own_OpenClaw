@@ -847,3 +847,16 @@ Each completed slice should report:
   `git diff --check`, and stale scan for the retired `windie:new-chat` literal.
 - Compatibility: no migration required. This event is renderer-process local
   and does not cross preload, Electron main, SDK, or backend boundaries.
+
+### 2026-06-17 renderer appearance theme attributes
+
+- Finding: the generic renderer theme applier and CSS selectors still exposed
+  product-named `data-windie-theme*` DOM attributes for appearance state.
+- Change: renamed the internal DOM attributes to `data-agent-theme`,
+  `data-agent-theme-preference`, and `data-agent-translucent-sidebar`, then
+  updated the appearance CSS selectors and focused provider/theme tests.
+- Validation: focused appearance/theme/provider Jest run, docs listing,
+  `git diff --check`, and stale scan for the retired product-named theme
+  attributes.
+- Compatibility: no migration required. The attributes are runtime DOM state,
+  not persisted storage, IPC, SDK, or backend contracts.

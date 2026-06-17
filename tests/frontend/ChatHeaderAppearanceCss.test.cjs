@@ -14,7 +14,7 @@ function readRepoFile(relativePath) {
 describe('chat header appearance CSS', () => {
   test('defines visible light-mode utility controls for the top-right header', () => {
     const chatCss = readRepoFile('frontend/src/renderer/styles/ChatInterface.css');
-    const lightUtilityBlockStart = chatCss.indexOf(":root[data-windie-theme='light'] .chat-container");
+    const lightUtilityBlockStart = chatCss.indexOf(":root[data-agent-theme='light'] .chat-container");
     const lightUtilityBlockEnd = chatCss.indexOf('.chat-header', lightUtilityBlockStart);
     const lightUtilityBlock = chatCss.slice(lightUtilityBlockStart, lightUtilityBlockEnd);
 

@@ -46,8 +46,8 @@ describe('AppProvider', () => {
   });
 
   beforeEach(() => {
-    document.documentElement.removeAttribute('data-windie-theme');
-    document.documentElement.removeAttribute('data-windie-theme-preference');
+    document.documentElement.removeAttribute('data-agent-theme');
+    document.documentElement.removeAttribute('data-agent-theme-preference');
     document.documentElement.removeAttribute('style');
     mockConfigContext = {
       config: { interaction_mode: 'chat' },
@@ -89,8 +89,8 @@ describe('AppProvider', () => {
 
     renderProvider();
 
-    expect(document.documentElement.dataset.windieThemePreference).toBe('light');
-    expect(document.documentElement.dataset.windieTheme).toBe('light');
+    expect(document.documentElement.dataset.agentThemePreference).toBe('light');
+    expect(document.documentElement.dataset.agentTheme).toBe('light');
     expect(document.documentElement.style.getPropertyValue('--appearance-background')).toBe('#FFFFFF');
     expect(document.documentElement.style.getPropertyValue('--appearance-foreground')).toBe('#111827');
   });

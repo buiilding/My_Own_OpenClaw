@@ -22,8 +22,8 @@ describe('dashboard appearance CSS', () => {
   test('defines light-mode dashboard backgrounds without the dark hardcoded main gradient', () => {
     const themeCss = readRepoFile('frontend/src/renderer/styles/theme.css');
     const lightThemeBlock = themeCss.slice(
-      themeCss.indexOf(":root[data-windie-theme='light']"),
-      themeCss.indexOf(":root[data-windie-translucent-sidebar='false']"),
+      themeCss.indexOf(":root[data-agent-theme='light']"),
+      themeCss.indexOf(":root[data-agent-translucent-sidebar='false']"),
     );
 
     expect(lightThemeBlock).toContain('--ui-main-content-bg:');
