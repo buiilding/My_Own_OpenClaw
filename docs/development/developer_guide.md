@@ -471,9 +471,9 @@ const addMessage = useChatStore((state) => state.addMessage);
            ...
    ```
 
-2. **Export + Wire**:
-   - Export in `backend/src/services/vision/providers/__init__.py`
-   - Select in `backend/src/services/vision/vision_service.py`
+2. **Wire Selection**:
+   - Import the concrete provider module in `backend/src/services/vision/vision_service.py`
+   - Select it in the service model selection path
 
 ## Performance Optimization
 

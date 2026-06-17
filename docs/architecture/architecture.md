@@ -438,7 +438,6 @@ BaseException
 
 ### Vision Provider
 - Implement a provider under `backend/src/services/vision/providers/`
-- Export in `providers/__init__.py`
 - Select in `services/vision/vision_service.py`
 
 ### Custom LLM Provider

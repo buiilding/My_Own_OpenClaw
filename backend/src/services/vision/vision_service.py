@@ -8,12 +8,12 @@ import asyncio
 import logging
 from typing import Optional
 
-from backend.src.services.vision.providers import (
+from backend.src.services.vision.providers.base import (
     BaseVisionModel,
-    InternVLModel,
-    VenusVisionModel,
     VISION_MODELS_AVAILABLE,
 )
+from backend.src.services.vision.providers.internvl import InternVLModel
+from backend.src.services.vision.providers.ui_venus import VenusVisionModel
 from backend.src.services.vision.utils import normalize_model_name
 
 logger = logging.getLogger(__name__)

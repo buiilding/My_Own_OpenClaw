@@ -616,8 +616,7 @@ tests/backend/
 ### Vision Provider
 
 1. Add provider under `services/vision/providers/`
-2. Export it in `services/vision/providers/__init__.py`
-3. Wire selection logic in `services/vision/vision_service.py`
+2. Wire selection logic in `services/vision/vision_service.py`
 
 ### Custom LLM Provider
 

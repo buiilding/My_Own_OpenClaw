@@ -148,6 +148,9 @@ docstring or compatibility path.
 - `backend/src/services/vision/__init__.py` is intentionally absent; import
   vision service, providers, coordinates, and utilities from concrete modules
   under `backend.src.services.vision`.
+- `backend/src/services/vision/providers/__init__.py` is intentionally absent;
+  import vision provider base/classes from concrete modules under
+  `backend.src.services.vision.providers`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.
