@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend trace diagnostic alias removal
+
+- Finding: Electron main compact backend-event tracing still read camelCase
+  aliases such as `turnRef`, `conversationRef`, `requestId`, `correlationId`,
+  `toolName`, and `finalResponse` while summarizing backend websocket events.
+- Change: made backend event trace summaries read only canonical backend
+  snake_case fields, kept main-local frontend query trace arguments separate,
+  and added focused AssistantTrace regression coverage.
+- Validation: focused AssistantTrace Jest test, docs listing, and diff check.
+- Compatibility: no migration required. This changes diagnostic summarization
+  only; backend event payload contracts already use snake_case fields.
+
 ### 2026-06-17 renderer query message id alias rejection
 
 - Finding: renderer query send still emitted or accepted duplicate turn id

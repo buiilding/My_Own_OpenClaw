@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed camelCase backend-event alias reads from compact Electron trace diagnostics so `ipc.bridge` summaries use canonical backend fields such as `turn_ref`, `conversation_ref`, `request_id`, `tool_name`, and `final_response`. No migration is required because this changes diagnostic summarization only.
+
 - Removed duplicate renderer query turn-id aliases so `conversation.send` emits and accepts only `query_message_id`; direct `id`, `messageId`, `message_id`, `queryMessageId`, `turnRef`, and `turn_ref` query command fields now fail fast. No migration required for first-party callers, which already have a canonical turn id.
 
 - Removed the unused Electron local-runtime mapped IPC handler layer so chat and memory persistence no longer register direct sidecar-named bridge channels. SDK-shaped commands and SDK local-runtime store calls remain the supported path; no migration required because renderer preload already rejects those direct channels.

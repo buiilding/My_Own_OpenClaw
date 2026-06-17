@@ -71,23 +71,20 @@ function eventPayload(data) {
 
 function eventTurnRef(data) {
   const payload = eventPayload(data);
-  return safeId(data?.turn_ref || data?.turnRef || payload.turn_ref || payload.turnRef);
+  return safeId(data?.turn_ref || payload.turn_ref);
 }
 
 function eventConversationRef(data) {
   const payload = eventPayload(data);
-  return safeId(data?.conversation_ref || data?.conversationRef || payload.conversation_ref || payload.conversationRef);
+  return safeId(data?.conversation_ref || payload.conversation_ref);
 }
 
 function eventRequestId(data) {
   const payload = eventPayload(data);
   return safeId(
     data?.request_id
-    || data?.requestId
     || payload.request_id
-    || payload.requestId
     || payload.correlation_id
-    || payload.correlationId,
   );
 }
 
@@ -95,7 +92,6 @@ function eventToolName(data) {
   const payload = eventPayload(data);
   return safeId(
     payload.tool_name
-    || payload.toolName
     || payload.name
     || payload.tool?.name,
   );
@@ -110,7 +106,7 @@ function compactBackendSummary(data) {
     `request=${eventRequestId(data)}`,
     `tool=${eventToolName(data)}`,
     `text_len=${payloadStringLength(payload, ['text', 'delta', 'assistant_delta'])}`,
-    `final_len=${payloadStringLength(payload, ['final_response', 'finalResponse'])}`,
+    `final_len=${payloadStringLength(payload, ['final_response'])}`,
     `content_len=${payloadStringLength(payload, ['content', 'message', 'output'])}`,
     `success=${summarizeBoolean(payload.success)}`,
   ].join(' ');
@@ -316,8 +312,8 @@ function createElectronMainTraceLogger({
 
   function traceFrontendQuery(input = {}) {
     const payload = safeObject(input.payload);
-    const turnRef = safeId(input.queryMessageId || input.turnRef || payload.turn_ref || payload.turnRef);
-    const conversationRef = safeId(input.conversationRef || payload.conversation_ref || payload.conversationRef);
+    const turnRef = safeId(input.queryMessageId || input.turnRef || payload.turn_ref);
+    const conversationRef = safeId(input.conversationRef || payload.conversation_ref);
     record({
       action: 'query.send',
       phase: 'frontend',
@@ -372,7 +368,7 @@ function createElectronMainTraceLogger({
         turnRef: turnRef !== '-' ? turnRef : null,
         toolName: eventToolName(data) !== '-' ? eventToolName(data) : null,
         textLength: payloadStringLength(payload, ['text', 'delta', 'assistant_delta']),
-        finalLength: payloadStringLength(payload, ['final_response', 'finalResponse']),
+        finalLength: payloadStringLength(payload, ['final_response']),
         contentLength: payloadStringLength(payload, ['content', 'message', 'output']),
         success: typeof payload.success === 'boolean' ? payload.success : undefined,
       });
@@ -419,7 +415,7 @@ function createElectronMainTraceLogger({
         requestId: eventRequestId(data) !== '-' ? eventRequestId(data) : null,
         conversationRef: conversationRef !== '-' ? conversationRef : null,
         turnRef: turnRef !== '-' ? turnRef : null,
-        finalLength: payloadStringLength(payload, ['final_response', 'finalResponse']),
+        finalLength: payloadStringLength(payload, ['final_response']),
       });
       const message = emit('backend', 'complete', compactBackendSummary(data));
       if (message) {

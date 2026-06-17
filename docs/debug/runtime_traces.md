@@ -392,7 +392,9 @@ Inspect it with `bin/windie diagnostics list --path ipc.bridge --limit 50`.
 Set `WINDIE_DEBUG_IPC_STDOUT=1` only when the `[ElectronTrace]` stdout mirror is
 needed. The rows summarize ids, counts, text lengths, selected setting names,
 provider ids, and model ids without raw user text, assistant text, provider
-payloads, or secrets.
+payloads, or secrets. Backend event trace summaries read canonical backend
+fields such as `turn_ref`, `conversation_ref`, `request_id`, `correlation_id`,
+`tool_name`, and `final_response`; removed camelCase aliases are ignored.
 
 `[LiveSurfaceTrace]` is the verbose official ephemeral surface trace. Enable it
 with `WINDIE_DEBUG_LIVE_SURFACE=1` or the broader chat-pill debug flag when the

@@ -143,6 +143,54 @@ describe('assistant runtime trace logging', () => {
     expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('sk-secret');
   });
 
+  test('ignores removed camelCase backend event trace aliases', () => {
+    const messages = [];
+    const appendIpcBridgeDiagnostic = jest.fn();
+    const tracer = createElectronMainTraceLogger({
+      log: message => messages.push(message),
+      appendIpcBridgeDiagnostic,
+      stdoutEnabled: true,
+    });
+
+    tracer.traceBackendEvent({
+      type: 'tool-call',
+      turnRef: 'turn-camel',
+      conversationRef: 'conv-camel',
+      payload: {
+        requestId: 'req-camel',
+        correlationId: 'corr-camel',
+        toolName: 'run_shell_command',
+      },
+    });
+    tracer.traceBackendEvent({
+      type: 'streaming-complete',
+      payload: {
+        turnRef: 'turn-payload-camel',
+        conversationRef: 'conv-payload-camel',
+        finalResponse: 'private camel final',
+      },
+    });
+
+    expect(messages).toEqual([
+      '[ElectronTrace] backend tool_call type=tool-call turn=- conv=- request=- tool=- text_len=0 final_len=0 content_len=0 success=-',
+      '[ElectronTrace] backend complete type=streaming-complete turn=- conv=- request=- tool=- text_len=0 final_len=0 content_len=0 success=-',
+    ]);
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'tool_call',
+      requestId: null,
+      conversationRef: null,
+      turnRef: null,
+      toolName: null,
+    }));
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'complete',
+      conversationRef: null,
+      turnRef: null,
+      finalLength: 0,
+    }));
+    expect(JSON.stringify(messages)).not.toContain('private camel final');
+  });
+
   test('logs current-turn projection start, assistant progress, and completion', () => {
     const messages = [];
     const tracer = createCurrentTurnTraceLogger({
