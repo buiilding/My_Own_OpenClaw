@@ -948,3 +948,18 @@ Each completed slice should report:
 - Compatibility: no migration required. These labels are renderer presentation
   metadata and dev UI text; IPC names, persisted transcript payloads, SDK
   events, and backend contracts are unchanged.
+
+### 2026-06-17 SDK current-turn presentation source channel
+
+- Finding: the SDK live-turn presentation builder still emitted
+  `windie:current-turn` as `presentation.entries[*].sourceChannel`, leaking a
+  desktop IPC channel name into the reusable SDK projection contract.
+- Change: changed SDK current-turn presentation entries to emit
+  `sdk:current-turn`, documented the source-channel contract, and tightened
+  current-turn projection tests.
+- Validation: focused SDK conversation-runtime and renderer presentation Jest
+  runs, docs listing, `git diff --check`, and source scan for remaining
+  product-named source-channel literals.
+- Compatibility: no migration required. The field is presentation metadata on
+  in-memory current-turn projections; Electron IPC channels and persisted
+  conversation events remain unchanged.

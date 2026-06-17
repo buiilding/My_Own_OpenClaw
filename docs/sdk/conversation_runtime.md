@@ -116,6 +116,9 @@ UI adapters:
 - `presentation`: SDK-owned live-turn UI contract with ordered visible entries,
   `hasVisibleContent`, `typingVisible`, `overlayVisible`, `isBusy`, and
   `isTerminal`
+- `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
+  `sdk:current-turn`; host IPC channel names are adapter details and must not
+  leak into reusable SDK projections
 
 ### Removed Standalone Current Turn Projector
 

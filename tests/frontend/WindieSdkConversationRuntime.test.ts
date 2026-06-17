@@ -857,6 +857,7 @@ describe('Windie SDK conversation runtime core', () => {
           type: 'thinking',
           text: 'Checking the workspace.',
           sourceEventType: 'reasoning_delta',
+          sourceChannel: 'sdk:current-turn',
         }),
       ],
     });
@@ -881,10 +882,10 @@ describe('Windie SDK conversation runtime core', () => {
       overlayVisible: true,
       isBusy: true,
       entries: [
-        expect.objectContaining({ type: 'thinking' }),
-        expect.objectContaining({ type: 'tool-call', text: 'Using read_file' }),
-        expect.objectContaining({ type: 'tool-output', text: 'README contents' }),
-        expect.objectContaining({ type: 'llm-text', text: 'Done.' }),
+        expect.objectContaining({ type: 'thinking', sourceChannel: 'sdk:current-turn' }),
+        expect.objectContaining({ type: 'tool-call', text: 'Using read_file', sourceChannel: 'sdk:current-turn' }),
+        expect.objectContaining({ type: 'tool-output', text: 'README contents', sourceChannel: 'sdk:current-turn' }),
+        expect.objectContaining({ type: 'llm-text', text: 'Done.', sourceChannel: 'sdk:current-turn' }),
       ],
     });
 
@@ -902,7 +903,12 @@ describe('Windie SDK conversation runtime core', () => {
       isBusy: false,
       isTerminal: true,
       entries: [
-        expect.objectContaining({ type: 'llm-text', text: 'Done.', isComplete: true }),
+        expect.objectContaining({
+          type: 'llm-text',
+          text: 'Done.',
+          sourceChannel: 'sdk:current-turn',
+          isComplete: true,
+        }),
       ],
     });
   });
