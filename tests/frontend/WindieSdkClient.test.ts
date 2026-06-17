@@ -717,6 +717,22 @@ describe('WindieSdkClient', () => {
     );
   });
 
+  test('WindieClient source uses generic hosted default endpoint helper naming', async () => {
+    const sdkSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/WindieClient.ts'),
+      'utf8',
+    );
+    const sdkCjsSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/WindieClient.js'),
+      'utf8',
+    );
+
+    expect(sdkSource).toContain('isHostedDefaultBackendUrl');
+    expect(sdkCjsSource).toContain('isHostedDefaultBackendUrl');
+    expect(sdkSource).not.toContain('isHostedWindieBackendUrl');
+    expect(sdkCjsSource).not.toContain('isHostedWindieBackendUrl');
+  });
+
   test('WindieClient uses env backend URL and install token when constructor options omit them', async () => {
     const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
     const previousApiKey = process.env.WINDIE_API_KEY;

@@ -383,7 +383,7 @@ user-message ordinal fallbacks.
 
 1. Resolve the hosted backend URL.
 2. Resolve install auth from `installToken`; when the backend is the hosted
-   WindieOS endpoint and no caller-provided user identity is configured, the SDK
+   default endpoint and no caller-provided user identity is configured, the SDK
    registers a temporary install identity automatically.
 3. Normalize feature flags. `memory` and `persistence` both default to enabled.
 4. Ensure a sidecar runtime client is available when memory, persistence,

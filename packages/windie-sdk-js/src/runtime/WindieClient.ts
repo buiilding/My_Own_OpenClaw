@@ -396,7 +396,7 @@ export class WindieClient {
       };
     }
     const shouldAutoRegister = configured.autoRegister ?? (
-      !configuredUserId && isHostedWindieBackendUrl(backendUrl)
+      !configuredUserId && isHostedDefaultBackendUrl(backendUrl)
     );
     if (!shouldAutoRegister) {
       return null;
@@ -678,7 +678,7 @@ function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRec
   return definition;
 }
 
-function isHostedWindieBackendUrl(backendUrl: string): boolean {
+function isHostedDefaultBackendUrl(backendUrl: string): boolean {
   try {
     const hostname = new URL(backendUrl).hostname.toLowerCase();
     return hostname === 'api.windieos.com';

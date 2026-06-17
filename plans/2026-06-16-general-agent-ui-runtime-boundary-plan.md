@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK hosted default endpoint helper
+
+- Finding: SDK auto-registration used an internal
+  `isHostedWindieBackendUrl` helper name even though the check is for the
+  configured hosted default endpoint boundary.
+- Change: renamed the TypeScript source and checked-in CJS helper to
+  `isHostedDefaultBackendUrl`, updated SDK docs wording, and added a source
+  boundary test for the helper name.
+- Validation: focused `WindieSdkClient` hosted default helper and install-auth
+  Jest tests, docs listing, `git diff --check`, and source scan for the retired
+  helper name.
+- Compatibility: no migration required. The default URL, auto-registration
+  conditions, install-auth routes, and public SDK symbols are unchanged.
+
 ### 2026-06-17 SDK install auth error copy
 
 - Finding: SDK install-auth failures still used Windie-specific wording in

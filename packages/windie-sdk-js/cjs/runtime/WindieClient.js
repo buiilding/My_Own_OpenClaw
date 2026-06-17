@@ -213,7 +213,7 @@ class WindieClient {
                 userId: configuredUserId ?? identity?.userId ?? 'local-sdk-user',
             };
         }
-        const shouldAutoRegister = configured.autoRegister ?? (!configuredUserId && isHostedWindieBackendUrl(backendUrl));
+        const shouldAutoRegister = configured.autoRegister ?? (!configuredUserId && isHostedDefaultBackendUrl(backendUrl));
         if (!shouldAutoRegister) {
             return null;
         }
@@ -443,7 +443,7 @@ function buildWakeUpAgentDefinition(options, tools) {
     (0, CapabilityManifest_js_1.stampAgentDefinitionCapabilityMetadata)(definition);
     return definition;
 }
-function isHostedWindieBackendUrl(backendUrl) {
+function isHostedDefaultBackendUrl(backendUrl) {
     try {
         const hostname = new URL(backendUrl).hostname.toLowerCase();
         return hostname === 'api.windieos.com';
