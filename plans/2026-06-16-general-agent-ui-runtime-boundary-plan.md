@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer runtime command alias rejection
+
+- Finding: the renderer desktop-agent runtime transport still allowed removed
+  camelCase command fields to be silently dropped before invoking the SDK-shaped
+  main bridge.
+- Change: added a renderer transport guard that rejects removed camelCase
+  command aliases for conversation send/stop and related command payloads while
+  keeping Electron main on canonical snake_case command fields.
+- Validation: focused desktop-agent runtime transport test, docs search, and
+  stale-alias documentation scan.
+- Compatibility: renderer callers using camelCase command payload fields must
+  migrate to canonical snake_case fields. No persisted-data, wire, storage,
+  settings, event-payload, credential, permission, IPC-channel, or tool-execution
+  migration is required.
+
 ### 2026-06-17 local-runtime routing docs label cleanup
 
 - Finding: top-level docs navigation, routing hubs, help/developer guides, and
