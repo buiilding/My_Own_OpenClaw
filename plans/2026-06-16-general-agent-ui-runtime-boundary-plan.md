@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Backend templates and audio helpers use generic wording
+
+- Finding: the backend SDK tool template and transcription audio-frame helper
+  still described generic extension/template and audio parsing code as
+  WindieOS-specific.
+- Change: reworded the SDK tool template README/manifest and transcription
+  audio-frame helper docstring to generic agent-backend/transcription wording.
+- Validation: Python syntax compile for the audio helper, retired-copy source
+  scan, and diff check.
+- Compatibility: no migration required. This is documentation/template copy and
+  helper docstring text only.
+
 ### 2026-06-17 Backend module docstrings use role-based wording
 
 - Finding: several backend parser, validation, cache, event bus, transcription,

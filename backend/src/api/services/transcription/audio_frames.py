@@ -1,4 +1,4 @@
-"""Helpers for WindieOS transcription audio frame parsing and resampling."""
+"""Helpers for transcription audio frame parsing and resampling."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 # SDK Tool Template
 
-This is a template for creating new SDK tools for WindieOS.
+This is a template for creating new SDK tools for the agent backend.
 
 ## Quick Start
 
