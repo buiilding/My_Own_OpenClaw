@@ -23,6 +23,7 @@ __exportStar(require("./conversation/events.js"), exports);
 __exportStar(require("./conversation/metadata.js"), exports);
 __exportStar(require("./stores/InMemoryConversationStore.js"), exports);
 __exportStar(require("./stores/FileConversationStore.js"), exports);
+__exportStar(require("./stores/LocalRuntimeConversationStore.js"), exports);
 __exportStar(require("./stores/SidecarConversationStore.js"), exports);
 __exportStar(require("./projections/conversationProjections.js"), exports);
 __exportStar(require("./runtime/conversationReducer.js"), exports);

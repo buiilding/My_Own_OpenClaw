@@ -2536,3 +2536,18 @@ Each completed slice should report:
   legacy runtime client class no longer appears in SDK client behavior coverage.
 - Compatibility: no migration required. `WindieClient` remains a public
   compatibility alias.
+
+### 2026-06-17 LocalRuntimeConversationStore module path
+
+- Finding: the SDK durable local-runtime conversation store implementation still
+  lived in `SidecarConversationStore` modules, so canonical SDK code imported a
+  local-runtime class through a sidecar-named file.
+- Change: moved the implementation to `LocalRuntimeConversationStore` source
+  and CommonJS modules, switched `AgentClient` internals and package exports to
+  the canonical module, documented the module path, and kept
+  `SidecarConversationStore` modules as direct compatibility wrappers.
+- Validation: focused SDK client, package-boundary, private-export, and replay
+  integration Jest coverage; docs listing; `git diff --check`; and source scans
+  confirming SDK internals import the canonical store path.
+- Compatibility: no migration required. The old sidecar-named store module path
+  still exports both `SidecarConversationStore` and `LocalRuntimeConversationStore`.

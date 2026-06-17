@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move the local-runtime conversation store implementation to the canonical
+  LocalRuntimeConversationStore modules while keeping SidecarConversationStore
+  as a compatibility wrapper.
 - Switched the main SDK client behavior suite to the canonical AgentClient runtime while preserving WindieClient compatibility coverage.
 
 - Switched SDK hosted backend client behavior coverage to AgentHostedBackendClient while preserving WindieSdkClient compatibility coverage.
@@ -1837,6 +1840,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move the local-runtime conversation store implementation to the canonical
+  LocalRuntimeConversationStore modules while keeping SidecarConversationStore
+  as a compatibility wrapper.
 - Switched the main SDK client behavior suite to the canonical AgentClient runtime while preserving WindieClient compatibility coverage.
 
 - Switched SDK hosted backend client behavior coverage to AgentHostedBackendClient while preserving WindieSdkClient compatibility coverage.
@@ -3567,6 +3573,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move the local-runtime conversation store implementation to the canonical
+  LocalRuntimeConversationStore modules while keeping SidecarConversationStore
+  as a compatibility wrapper.
 - Switched the main SDK client behavior suite to the canonical AgentClient runtime while preserving WindieClient compatibility coverage.
 
 - Switched SDK hosted backend client behavior coverage to AgentHostedBackendClient while preserving WindieSdkClient compatibility coverage.
@@ -3952,6 +3961,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move the local-runtime conversation store implementation to the canonical
+  LocalRuntimeConversationStore modules while keeping SidecarConversationStore
+  as a compatibility wrapper.
 - Switched the main SDK client behavior suite to the canonical AgentClient runtime while preserving WindieClient compatibility coverage.
 
 - Switched SDK hosted backend client behavior coverage to AgentHostedBackendClient while preserving WindieSdkClient compatibility coverage.
@@ -4367,6 +4379,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move the local-runtime conversation store implementation to the canonical
+  LocalRuntimeConversationStore modules while keeping SidecarConversationStore
+  as a compatibility wrapper.
 - Switched the main SDK client behavior suite to the canonical AgentClient runtime while preserving WindieClient compatibility coverage.
 
 - Switched SDK hosted backend client behavior coverage to AgentHostedBackendClient while preserving WindieSdkClient compatibility coverage.
@@ -6738,6 +6753,9 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- sdk: move the local-runtime conversation store implementation to the canonical
+  LocalRuntimeConversationStore modules while keeping SidecarConversationStore
+  as a compatibility wrapper.
 - Switched the main SDK client behavior suite to the canonical AgentClient runtime while preserving WindieClient compatibility coverage.
 
 - Switched SDK hosted backend client behavior coverage to AgentHostedBackendClient while preserving WindieSdkClient compatibility coverage.

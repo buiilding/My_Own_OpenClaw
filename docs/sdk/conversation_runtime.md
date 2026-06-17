@@ -292,8 +292,10 @@ The SDK ships two reusable store adapters:
   operations do not lose events through read-modify-write races.
 - `LocalRuntimeConversationStore` for Node/Electron hosts that want durable
   local-runtime storage through the SDK store interface instead of renderer IPC
-  transcript helpers. `SidecarConversationStore` remains a compatibility alias
-  for the current sidecar-backed implementation. The Electron dashboard
+  transcript helpers. The canonical module path is
+  `stores/LocalRuntimeConversationStore`; `stores/SidecarConversationStore`
+  remains a compatibility wrapper for the current sidecar-backed
+  implementation. The Electron dashboard
   conversation library uses this store for metadata operations such as list,
   search, delete, and generated-title invalidation refreshes. The desktop
   conversation store adapter also delegates its read/projection conveniences to

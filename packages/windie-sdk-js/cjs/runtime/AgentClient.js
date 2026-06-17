@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieClient = exports.AgentClient = void 0;
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
-const SidecarConversationStore_js_1 = require("../stores/SidecarConversationStore.js");
+const LocalRuntimeConversationStore_js_1 = require("../stores/LocalRuntimeConversationStore.js");
 const builtins_js_1 = require("../tools/builtins.js");
 const AgentSession_js_1 = require("../transport/AgentSession.js");
 const ManagedAgentSession_js_1 = require("../transport/ManagedAgentSession.js");
@@ -406,7 +406,7 @@ function createDefaultConversationStore({ localRuntime, persistenceEnabled, user
     if (!localRuntime?.rpc) {
         throw new Error('Agent SDK persistence requires a local runtime with RPC support.');
     }
-    return new SidecarConversationStore_js_1.LocalRuntimeConversationStore({
+    return new LocalRuntimeConversationStore_js_1.LocalRuntimeConversationStore({
         userId,
         runtime: localRuntime,
     });

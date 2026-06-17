@@ -14,7 +14,7 @@ import type {
   LocalToolExecutionLifecycle,
 } from '../conversation/types.js';
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
-import { LocalRuntimeConversationStore } from '../stores/SidecarConversationStore.js';
+import { LocalRuntimeConversationStore } from '../stores/LocalRuntimeConversationStore.js';
 import {
   shouldIncludeBuiltinTool,
   type AgentBuiltinSelection,

@@ -16,6 +16,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(replayModule.compactedReplayFromEvent).toBeUndefined();
   });
 
+  test('sidecar store module remains a compatibility wrapper for local runtime store', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/stores/LocalRuntimeConversationStore.js');
+    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/stores/SidecarConversationStore.js');
+
+    expect(canonicalModule.LocalRuntimeConversationStore).toBeDefined();
+    expect(canonicalModule.SidecarConversationStore).toBeUndefined();
+    expect(compatibilityModule.LocalRuntimeConversationStore).toBe(canonicalModule.LocalRuntimeConversationStore);
+    expect(compatibilityModule.SidecarConversationStore).toBe(canonicalModule.LocalRuntimeConversationStore);
+  });
+
   test('capability manifest module keeps summarization behind stamping API', () => {
     const manifestModule = require('../../packages/windie-sdk-js/cjs/runtime/CapabilityManifest.js');
 
