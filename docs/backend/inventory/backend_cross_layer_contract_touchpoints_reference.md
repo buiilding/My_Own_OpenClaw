@@ -15,7 +15,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 | Backend contract owner | Contract files | Downstream consumers | Drift symptoms |
 | --- | --- | --- | --- |
 | Incoming message schemas | `backend/src/api/schemas/incoming.py` | Main process websocket sender (`frontend/src/main/ipc.cjs`) | Message rejected as invalid payload/type |
-| Outgoing message schemas | `backend/src/api/schemas/outgoing.py` | Renderer stream consumers (`renderer/types/backendEvents.ts`, `useChatStream.ts`) | Event silently ignored or malformed UI state |
+| Outgoing message schemas | `backend/src/api/schemas/outgoing.py` | SDK backend-event normalizer plus renderer `useChatStream.ts` conversation-event dispatch | Event silently ignored or malformed UI state |
 | Message type constants | `backend/src/api/contracts/message_types.py` | Main/renderer routing and typed guards | Handlers never invoked or wrong event branch |
 | Handler route table | `backend/src/core/container/incoming_routing.py` | API handler registry wiring | Message types accepted by schema but not dispatched |
 

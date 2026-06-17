@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for chat-stream backend ingress orchestration: projection/turn-map/transcript-sync ordering, best-effort failure isolation, and dispatch-continuation guarantees."
+summary: "Deep reference for chat-stream SDK conversation-event ingress orchestration: projection/turn-map/transcript-sync ordering, best-effort failure isolation, and dispatch-continuation guarantees."
 read_when:
   - When changing `desktopChatStreamIngressRuntime` behavior or `useChatStream` listener ingress ordering.
   - When debugging dropped stream side effects after projection/turn-map/transcript sync exceptions.
-title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
+title: "Conversation Event Ingress Fail-Safe and Dispatch Order Reference"
 ---
 
-# Backend Ingress Fail-Safe and Dispatch Order Reference
+# Conversation Event Ingress Fail-Safe and Dispatch Order Reference
 
 ## Canonical Modules
 
@@ -18,21 +18,18 @@ title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
 
 ## Ingress Ownership Boundary
 
-`handleBackendStreamIngress(...)` owns the full raw backend ingress envelope:
+`handleConversationEventIngress(...)` owns renderer pre-dispatch orchestration
+for SDK `ConversationEvent` payloads received on `windie:conversation-event`:
 
-- backend event validation
-- conversation resolution
-- SDK conversation-event normalization
-- renderer trace payload creation
-- pre-dispatch bookkeeping through `ingestBackendEvent(...)`
+- non-empty conversation identity validation
+- active conversation projection sync
+- `turnRef -> conversationRef` registration
+- transcript session sync
 - final SDK conversation-event dispatch
 
-`ingestBackendEvent(...)` centralizes pre-dispatch orchestration for each validated backend event:
-
-- active conversation projection sync
-- turn-to-conversation registration
-- transcript session sync
-- final event handler dispatch
+Raw backend event validation and SDK conversation-event normalization happen
+upstream before renderer chat hooks receive the event. This helper must not
+import raw backend event contracts or repeat backend normalization rules.
 
 It does not:
 
@@ -46,18 +43,19 @@ Those responsibilities stay in `useChatStream` handler wrappers and per-event ha
 
 Input:
 
-- `event`
-- resolved `conversationRef`
-- `IngressDeps` callbacks
+- SDK `ConversationEvent`
+- `HandleConversationEventIngressDeps` callbacks
 
 Execution order:
 
-1. `syncActiveConversationProjection(event, conversationRef)` (best-effort)
-2. `registerTurnConversationRef(event.turn_ref, conversationRef)` when both values exist (best-effort)
-3. transcript session sync when `enableTranscript=true`:
+1. reject null/non-object events and events without `conversationRef`
+2. apply active conversation projection from the SDK event (best-effort)
+3. `registerTurnConversationRef(event.turnRef, conversationRef)` when both values exist (best-effort)
+4. transcript session sync when `enableTranscript=true`:
   - `conversationRef` must be resolved before ingress dispatch
-  - `updateTranscriptSession(conversationRef, event.user_id)` (best-effort)
-4. `dispatchEvent(event)` (required)
+  - `updateTranscriptSession(...)` receives the active transcript conversation
+    preference plus event user id (best-effort)
+5. `dispatchConversationEvent(event, conversationRef)` (required)
 
 ## Fail-Safe Isolation Rules
 
@@ -67,9 +65,12 @@ Each pre-dispatch step is wrapped in local `try/catch` with intentional swallow 
 - turn-map registration exceptions do not block transcript sync or dispatch
 - transcript sync exceptions do not block dispatch
 
-`dispatchEvent(event)` is always attempted and is not wrapped by ingress helper catches.
+`dispatchConversationEvent(event, conversationRef)` is always attempted after a
+valid conversation identity resolves and is not wrapped by ingress helper
+catches.
 
-Result: side-channel failures (projection/registration/transcript bookkeeping) cannot suppress the primary stream event.
+Result: side-channel failures (projection/registration/transcript bookkeeping)
+cannot suppress the primary conversation event.
 
 ## Transcript Session Contract
 
@@ -87,9 +88,9 @@ When transcript sync is disabled:
 Listener flow:
 
 1. receive SDK-normalized `windie:conversation-event`
-2. call `handleBackendStreamIngress(...)` with store and handler callbacks
-3. app runtime validates, resolves, traces, and runs ingress bookkeeping
-4. ingress callback dispatches the SDK-normalized conversation event for the
+2. call `handleConversationEventIngress(...)` with store and handler callbacks
+3. app runtime validates conversation identity and runs ingress bookkeeping
+4. ingress dispatches the SDK-normalized conversation event for the
    resolved conversation/turn
 
 This keeps listener-level pre-dispatch behavior deterministic while keeping raw
@@ -100,21 +101,21 @@ backend event contracts out of chat hook modules.
 `tests/frontend/DesktopChatStreamIngressRuntime.test.ts` verifies:
 
 - normal path ordering: projection sync -> turn map -> transcript update -> dispatch
-- unresolved events are quarantined before projection, transcript sync, or dispatch
+- missing conversation identity is rejected before projection, transcript sync, or dispatch
 - turn-map registration skipped when turn or conversation ref is missing
 - projection-sync throw still dispatches event
 - turn-map throw still updates transcript and dispatches
 - transcript disabled skips transcript updates
 - transcript update throw still dispatches event
-- raw backend ingress is converted to SDK conversation events before chat hook
-  dispatch
+- SDK conversation events are dispatched only after non-empty conversation
+  identity resolves
 
 ## Drift Hotspots
 
 1. Removing fail-safe catches can allow transcript/projection errors to black-hole stream events.
 2. Reordering ingress steps can break turn-map availability for downstream events with missing `conversation_ref`.
 3. Dropping active transcript conversation precedence can desync transcript session routing during background conversation event ingress.
-4. Reintroducing backend event imports in chat hooks splits raw event ownership between feature code and app runtime.
+4. Reintroducing backend event imports in chat hooks splits raw event ownership between feature code and the SDK/main runtime.
 
 ## Related Pages
 

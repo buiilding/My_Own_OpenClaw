@@ -18,7 +18,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | SDK local-runtime bridge | `frontend/src/main/sidecar/local_backend_bridge*.cjs` | `main/runtime_paths.cjs`, mapper/util modules | renderer store logic |
 | Preload boundary | `frontend/src/preload.js` | renderer IPC bridge wrapper | main business logic edits |
 | Renderer app/provider composition | `renderer/app/**`, `renderer/components/**` | `renderer/infrastructure/ipc/*` | sidecar protocol files |
-| Renderer chat/tool UX runtime | `renderer/features/chat/**` | `renderer/infrastructure/services/*`, `renderer/types/backendEvents.ts` | main overlay bounds logic |
+| Renderer chat/tool UX runtime | `renderer/features/chat/**` | SDK conversation-event normalization, `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | main overlay bounds logic |
 | Renderer dashboard/settings/voice | `renderer/features/{dashboard,settings,voice}/**` | provider contexts + transcript infra | sidecar execution logic |
 | Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + sidecar method contracts | landing page modules |
 | Sidecar runtime core | `main/python/{local_backend,wakeword_service}.py`, `main/python/core/**` | `main/local_backend_bridge.cjs`, wakeword bridge | renderer UI components |
@@ -44,7 +44,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 ## Fast Triage Map
 
 - Query not reaching backend: start `main/ipc.cjs` + renderer API client.
-- Event visible in main but not UI: start `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` + `renderer/types/backendEvents.ts`.
+- Event visible in main but not UI: start with SDK backend-event normalization, then `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` and `useChatStream.ts` conversation-event dispatch.
 - Tool call issued but no result: start `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` + `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` + `main/python/tools/registry.py`.
 - Wakeword detected inconsistently: start `renderer/useWakewordDetection.ts` + `main/wakeword_bridge.cjs` + `main/python/wakeword_service.py`.
 - Memory search/summary drift: start `main/python/memory/local_store.py`, SDK embedding pipeline, remote semantic client, and dashboard memory hooks.

@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for `useChatStream` SDK event dispatch, stale-turn guard coverage, and error suppression boundaries before per-event side effects."
 read_when:
-  - When changing `useChatStream` event dispatch wiring or adding/removing backend event types.
+  - When changing `useChatStream` SDK conversation-event dispatch wiring or adding/removing conversation event types.
   - When debugging events that route to a conversation workspace but do not mutate UI/transcript state.
 title: "Stream Dispatch and Turn Guard Matrix Reference"
 ---
@@ -24,12 +24,12 @@ title: "Stream Dispatch and Turn Guard Matrix Reference"
 
 Listener flow in `desktopChatStreamIngressRuntime`:
 
-1. validate envelope with `isBackendEvent`
-2. resolve target workspace conversation identity
-3. optionally rebind active workspace projection (`local-user-message` or empty active projection + explicit conversation identity)
-4. register `turn_ref -> conversation_ref` mapping
+1. receive SDK `ConversationEvent` from `windie:conversation-event`
+2. require non-empty workspace conversation identity
+3. optionally rebind active workspace projection (`user_message` or empty active projection + explicit conversation identity)
+4. register `turnRef -> conversationRef` mapping
 5. update transcript session binding (`activeConversationRef || resolvedConversationRef`)
-6. dispatch SDK-owned event families from normalized conversation events through
+6. dispatch SDK-owned event families from conversation events through
    the chat hook callback
 
 ## Dispatch Wiring Contract
@@ -46,8 +46,8 @@ inside `useChatStreamTerminalHandlers` before transcript/error materialization.
 ## Active-Turn Guard Matrix
 
 `useChatStream` applies one shared stale-turn condition through
-`useTurnScopedBackendEventHandler(...)` for every mutable event family except
-`local-user-message`:
+`shouldIgnoreConversationEventForStaleTurn(...)` for every mutable event family
+except `user_message`:
 
 - if event has `turn_ref`
 - and target workspace has active turn
@@ -87,9 +87,9 @@ Wrapper guarantee:
 
 Unguarded event:
 
-- `local-user-message`
+- `user_message`
 
-Reason: local-user-message establishes turn/workspace state and seeds optimistic UI rows before subsequent guarded events arrive.
+Reason: `user_message` establishes turn/workspace state and seeds optimistic UI rows before subsequent guarded events arrive.
 
 ## Side-Effect Ownership After Dispatch
 
@@ -113,8 +113,8 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 
 ## Drift Hotspots
 
-1. Adding a new backend event type without SDK normalization or explicit local
-   fallback handling silently drops the event.
+1. Adding a new backend stream event without SDK normalization or a mapped SDK
+   conversation event silently drops the renderer side effect.
 2. Removing stale-turn guard from a mutable handler can leak old-turn output into the active workspace.
 3. Removing ignored-error filtering from either SDK current-turn projection or terminal transcript handling can reintroduce benign settings/recoverable parser errors.
 4. Adding renderer-side local memory writes would duplicate the SDK-owned completed-turn memory pipeline.

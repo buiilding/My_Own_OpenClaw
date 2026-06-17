@@ -225,5 +225,5 @@ Consumers:
 - [Query Send and Stream Relay Change Workflow](../main/query_send_and_stream_relay_change_workflow.md)
 - [Chat Stream and Tool Execution Reference](../renderer/chat_stream_and_tool_execution_reference.md)
 - [Frontend Renderer Chat Stream Docs Hub](../renderer/chat/stream/README.md)
-- [Backend Ingress Fail-Safe and Dispatch Order Reference](../renderer/chat/stream/backend_ingress_failsafe_and_dispatch_order_reference.md)
+- [Conversation Event Ingress Fail-Safe and Dispatch Order Reference](../renderer/chat/stream/conversation_event_ingress_failsafe_and_dispatch_order_reference.md)
 - [Chat Loop UI State Disconnect Recovery and Surface Projection Reference](../renderer/chat/loop_ui_state_disconnect_recovery_and_surface_projection_reference.md)

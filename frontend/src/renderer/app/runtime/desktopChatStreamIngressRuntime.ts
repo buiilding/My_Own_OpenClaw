@@ -25,6 +25,14 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function runBestEffort(callback: () => void): void {
+  try {
+    callback();
+  } catch {
+    // Ingress side channels must not suppress the primary conversation event.
+  }
+}
+
 function syncTranscriptSessionFromConversationEvent({
   eventType,
   eventUserId,
@@ -61,23 +69,29 @@ export function handleConversationEventIngress(
   if (!conversationRef) {
     return false;
   }
-  const activeConversationRef = deps.getActiveConversationRef();
-  applyEventChatConversationProjection({
-    eventType: event.type,
-    explicitConversationRef: event.conversationRef,
-    resolvedConversationRef: conversationRef,
-    activeConversationRef,
-    setChatConversationRef: deps.setActiveConversationRef,
+  runBestEffort(() => {
+    const activeConversationRef = deps.getActiveConversationRef();
+    applyEventChatConversationProjection({
+      eventType: event.type,
+      explicitConversationRef: event.conversationRef,
+      resolvedConversationRef: conversationRef,
+      activeConversationRef,
+      setChatConversationRef: deps.setActiveConversationRef,
+    });
   });
   if (event.turnRef) {
-    deps.registerTurnConversationRef(event.turnRef, conversationRef);
+    runBestEffort(() => {
+      deps.registerTurnConversationRef(event.turnRef as string, conversationRef);
+    });
   }
   if (deps.enableTranscript) {
-    syncTranscriptSessionFromConversationEvent({
-      eventType: event.type,
-      eventUserId: typeof event.payload?.userId === 'string' ? event.payload.userId : null,
-      resolvedConversationRef: conversationRef,
-      activeConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef(),
+    runBestEffort(() => {
+      syncTranscriptSessionFromConversationEvent({
+        eventType: event.type,
+        eventUserId: typeof event.payload?.userId === 'string' ? event.payload.userId : null,
+        resolvedConversationRef: conversationRef,
+        activeConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef(),
+      });
     });
   }
   return deps.dispatchConversationEvent(event, conversationRef);

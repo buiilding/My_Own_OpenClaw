@@ -561,3 +561,20 @@ Each completed slice should report:
   phrase scan for the retired direct-backend websocket wording.
 - Compatibility: no migration required. Gateway URL shape, websocket protocol,
   audio framing, wakeword IPC, and backend provider routing are unchanged.
+
+### 2026-06-17 renderer conversation-event ingress fail-safe
+
+- Finding: `desktopChatStreamIngressRuntime` had lost the documented
+  best-effort isolation around active-conversation projection, turn-map
+  registration, and transcript session sync after the SDK conversation-event
+  migration, so a side-channel exception could suppress primary event dispatch.
+- Change: restored best-effort isolation in the SDK `ConversationEvent` ingress
+  helper, added focused tests for projection/turn-map/transcript failures, and
+  renamed the stale backend-ingress reference to conversation-event ingress
+  terminology.
+- Validation: focused Jest run for `DesktopChatStreamIngressRuntime` and
+  `RendererChatRuntimeBoundary`; docs listing; `git diff --check`; and stale
+  scans for removed raw-backend ingress helper/doc references.
+- Compatibility: no migration required. `windie:conversation-event`,
+  `ConversationEvent` payload shape, transcript-session IPC, and chat store
+  workspace routing are unchanged.

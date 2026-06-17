@@ -3,6 +3,7 @@
  */
 
 import { handleConversationEventIngress } from '../../frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime';
+import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
@@ -23,6 +24,12 @@ function createDeps(overrides = {}) {
 }
 
 describe('desktopChatStreamIngressRuntime', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (DesktopTranscriptSessionRuntimeClient.getActiveConversationRef as jest.Mock).mockReturnValue('conv-active');
+    (DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock).mockReturnValue(undefined);
+  });
+
   test('promotes explicit user-message conversation refs through session projection', () => {
     const deps = createDeps({
       getActiveConversationRef: jest.fn(() => 'conv-current'),
@@ -84,5 +91,72 @@ describe('desktopChatStreamIngressRuntime', () => {
       'conv-rejected',
     );
     expect(missingConversationDeps.dispatchConversationEvent).not.toHaveBeenCalled();
+  });
+
+  test('dispatches conversation events when projection sync throws', () => {
+    const deps = createDeps({
+      getActiveConversationRef: jest.fn(() => 'conv-current'),
+      setActiveConversationRef: jest.fn(() => {
+        throw new Error('projection failed');
+      }),
+    });
+
+    expect(handleConversationEventIngress({
+      type: 'user_message',
+      conversationRef: 'conv-next',
+      turnRef: 'turn-1',
+      payload: {},
+    } as any, deps)).toBe(true);
+
+    expect(deps.registerTurnConversationRef).toHaveBeenCalledWith('turn-1', 'conv-next');
+    expect(deps.dispatchConversationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationRef: 'conv-next' }),
+      'conv-next',
+    );
+  });
+
+  test('dispatches conversation events when turn-map registration throws', () => {
+    const deps = createDeps({
+      registerTurnConversationRef: jest.fn(() => {
+        throw new Error('turn map failed');
+      }),
+    });
+
+    expect(handleConversationEventIngress({
+      type: 'assistant_message',
+      conversationRef: 'conv-stream',
+      turnRef: 'turn-1',
+      payload: {},
+    } as any, deps)).toBe(true);
+
+    expect(deps.dispatchConversationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationRef: 'conv-stream' }),
+      'conv-stream',
+    );
+  });
+
+  test('dispatches conversation events when transcript session sync throws', () => {
+    (DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock).mockImplementation(() => {
+      throw new Error('transcript sync failed');
+    });
+    const deps = createDeps({
+      enableTranscript: true,
+    });
+
+    expect(handleConversationEventIngress({
+      type: 'assistant_message',
+      conversationRef: 'conv-stream',
+      turnRef: 'turn-1',
+      payload: { userId: 'user-1' },
+    } as any, deps)).toBe(true);
+
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith(
+      'conv-active',
+      'user-1',
+    );
+    expect(deps.dispatchConversationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationRef: 'conv-stream' }),
+      'conv-stream',
+    );
   });
 });

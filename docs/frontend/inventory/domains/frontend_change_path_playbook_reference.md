@@ -26,17 +26,18 @@ Validation:
 - Main IPC handler tests.
 - End-to-end query/control flow tests.
 
-### 2) Add new backend stream event consumption in UI
+### 2) Add new SDK conversation-event consumption in UI
 
-1. Extend type guards in `renderer/types/backendEvents.ts`.
-2. Route event in `renderer/features/chat/hooks/useChatStream.ts` (or relevant feature hook).
-3. Update store mutation path in `chatStore.ts` if state model changes.
-4. Add/adjust presentation component.
+1. Add or confirm backend stream normalization in the SDK backend-event normalizer.
+2. Route the SDK `ConversationEvent` in `renderer/features/chat/hooks/useChatStream.ts` (or relevant feature hook).
+3. Keep pre-dispatch conversation identity, turn-map, and transcript sync in `renderer/app/runtime/desktopChatStreamIngressRuntime.ts`.
+4. Update store mutation path in `chatStore.ts` if state model changes.
+5. Add/adjust presentation component.
 
 Validation:
 
 - Stream hook unit tests.
-- Type guard tests.
+- SDK normalizer and renderer runtime boundary tests.
 - UI snapshot/interaction tests.
 
 ### 3) Change tool execution payload/behavior
