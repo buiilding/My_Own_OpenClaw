@@ -28,18 +28,6 @@ function toProviderHistoryMessages(messages) {
         .map(toProviderHistoryMessage)
         .filter((message) => Boolean(message));
 }
-function stringByKeys(record, keys) {
-    if (!record) {
-        return null;
-    }
-    for (const key of keys) {
-        const value = record[key];
-        if (typeof value === 'string' && value.trim()) {
-            return value.trim();
-        }
-    }
-    return null;
-}
 function conversationMetadataInvalidationFromLocalRuntimeEvent(event) {
     if (event.type !== 'conversation-title-updated') {
         return null;
@@ -50,11 +38,9 @@ function conversationMetadataInvalidationFromLocalRuntimeEvent(event) {
     return {
         type: 'conversation-metadata-invalidated',
         reason: 'conversation-title-updated',
-        conversationRef: stringByKeys(payload, ['conversation_id', 'conversationId', 'conversation_ref', 'conversationRef'])
-            ?? stringByKeys(event, ['conversation_id', 'conversationId', 'conversation_ref', 'conversationRef']),
-        title: stringByKeys(payload, ['title']) ?? stringByKeys(event, ['title']),
-        source: stringByKeys(payload, ['source', 'title_source', 'titleSource'])
-            ?? stringByKeys(event, ['source', 'title_source', 'titleSource']),
+        conversationRef: optionalString(payload.conversation_id),
+        title: optionalString(payload.title),
+        source: optionalString(payload.source),
         rawEvent: event,
     };
 }

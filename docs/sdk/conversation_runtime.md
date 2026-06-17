@@ -460,8 +460,12 @@ Responsibility split:
   the main-process boundary and broadcast public invalidations such as
   `windie:conversation-metadata-invalidated` to renderer UI. The SDK
   `conversationMetadataInvalidationFromLocalRuntimeEvent(...)` helper owns that
-  normalizer so host adapters do not invent sidecar payload parsing. UI adapters
-  reload metadata from the store instead of handling raw sidecar event payloads.
+  normalizer so host adapters do not invent sidecar payload parsing. It reads
+  the canonical sidecar payload fields `conversation_id`, `title`, and `source`;
+  removed top-level, camelCase, and `conversation_ref` aliases are ignored. UI
+  adapters reload metadata from the store instead of handling raw sidecar event
+  payloads. No persisted-data migration is required for alias removal because
+  title updates are transient local-runtime events.
 
 ## Compaction Rule
 

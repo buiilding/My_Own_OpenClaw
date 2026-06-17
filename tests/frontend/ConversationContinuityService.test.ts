@@ -52,6 +52,25 @@ describe('ConversationContinuityService', () => {
     })).toBeNull();
   });
 
+  test('ignores removed local runtime title update aliases', () => {
+    expect(conversationMetadataInvalidationFromLocalRuntimeEvent({
+      type: 'conversation-title-updated',
+      conversation_id: 'conv-top-level',
+      title: 'Top level title',
+      payload: {
+        conversationId: 'conv-camel',
+        conversation_ref: 'conv-ref',
+        conversationRef: 'conv-ref-camel',
+        titleSource: 'model',
+        title_source: 'heuristic',
+      },
+    })).toEqual(expect.objectContaining({
+      conversationRef: null,
+      title: null,
+      source: null,
+    }));
+  });
+
   test('searchMetadata delegates to store adapter search when available', async () => {
     const store = {
       ...createStore(),

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed SDK local-runtime title invalidation aliases so `conversation-title-updated` reads only canonical sidecar payload fields; no persisted-data migration required because the event is transient.
+
 - Removed the snake_case `agents_md` input alias from SDK and Electron main agent-definition builders while preserving the generated backend wire `agent_definition.agents_md` field. No migration is required for current Electron callers; external SDK callers using the removed builder input must use `agentsMd`.
 
 - Removed quiet handling for the removed singular `clipboardImage` chat send payload field so object sends containing that stale key are rejected before any text-only send can proceed. No migration is required; current composer and minimal-pill senders emit canonical `clipboardImages[]` arrays.
