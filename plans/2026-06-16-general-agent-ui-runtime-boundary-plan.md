@@ -2349,6 +2349,19 @@ Each completed slice should report:
 - Compatibility: no migration required. The SDK `autoSidecar` option shape,
   daemon script target, discovery file, and sidecar log routing are unchanged.
 
+### 2026-06-17 Agent SDK conversation runtime test label
+
+- Finding: the conversation runtime coverage file imported the new generic
+  Agent runtime and stream event aliases, but its file header and top-level
+  suite still described the reusable runtime as the Windie SDK conversation
+  runtime.
+- Change: updated the test header and top-level suite label to Agent SDK
+  conversation runtime wording while leaving public Windie compatibility alias
+  assertions intact.
+- Validation: focused conversation runtime Jest coverage, docs listing,
+  `git diff --check`, and source scans for the stale test header/suite text.
+- Compatibility: no migration required. This is test-only terminology cleanup.
+
 ### 2026-06-17 Agent SDK focused test headers
 
 - Finding: focused Agent SDK tests for model selection, managed backend

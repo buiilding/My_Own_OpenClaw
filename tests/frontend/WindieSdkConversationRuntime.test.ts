@@ -1,5 +1,5 @@
 ﻿/**
- * Covers windie sdk conversation runtime. behavior in the frontend test suite.
+ * Covers Agent SDK conversation runtime behavior in the frontend test suite.
  */
 
 import {
@@ -180,7 +180,7 @@ function normalizeBackendEventToConversationEvent(
   return normalizeBackendEventToConversationEventRaw(stampBackendEvent(event), options);
 }
 
-describe('Windie SDK conversation runtime core', () => {
+describe('Agent SDK conversation runtime core', () => {
   beforeEach(() => {
     testBackendEventSequences.clear();
   });
