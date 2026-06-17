@@ -47,7 +47,7 @@ def test_normalize_provider_name_accepts_current_kimi_forms_only():
     assert providers_module._normalize_provider_name(" kimi-coding ") == "kimi-coding"
     assert providers_module._normalize_provider_name("kimi_coding") == "kimi-coding"
     assert providers_module._normalize_provider_name(" KIMI_CODE ") == "kimi_code"
-    assert providers_module._normalize_provider_name("kimi code") == "kimi-code"
+    assert providers_module._normalize_provider_name("kimi code") == "kimi code"
     assert providers_module._normalize_provider_name("OpenAI") == "openai"
 
 
@@ -158,3 +158,15 @@ def test_get_provider_rejects_old_kimi_code_alias(monkeypatch):
 
     with pytest.raises(ValueError, match="kimi_code"):
         providers_module.get_provider(AppConfig(), "kimi_code")
+
+
+def test_get_provider_rejects_space_separated_provider_name(monkeypatch):
+    kimi_provider = object()
+    monkeypatch.setattr(
+        providers_module,
+        "create_provider_factory",
+        lambda _cfg: {"kimi-coding": kimi_provider},
+    )
+
+    with pytest.raises(ValueError, match="kimi code"):
+        providers_module.get_provider(AppConfig(), "kimi code")

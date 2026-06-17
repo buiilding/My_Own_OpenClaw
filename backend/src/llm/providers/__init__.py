@@ -27,8 +27,8 @@ def _normalize_base_url(base_url: Optional[str], default: str) -> str:
 
 
 def _normalize_provider_name(provider_name: str) -> str:
-    normalized = provider_name.lower().strip().replace(" ", "-")
-    if normalized in ("kimi-coding", "kimi_coding"):
+    normalized = provider_name.lower().strip()
+    if normalized == "kimi_coding":
         return "kimi-coding"
     return normalized
 

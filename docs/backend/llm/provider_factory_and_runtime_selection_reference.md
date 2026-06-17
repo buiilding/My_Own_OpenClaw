@@ -43,6 +43,8 @@ Normalization behaviors:
 - Kimi provider names `kimi-coding` and `kimi_coding` collapse to
   `kimi-coding`; old `kimi-code` / `kimi_code` provider aliases are not
   accepted
+- provider names are lowercased and trimmed, but internal whitespace is not
+  rewritten into provider-key punctuation
 - base URLs trimmed and trailing slash normalized
 - Kimi URL canonicalized to avoid duplicated cache keys for equivalent `/coding` vs `/coding/v1`
 - timeout converted safely with finite/range checks (min floor, max cap)

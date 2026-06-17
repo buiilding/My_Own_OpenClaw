@@ -74,6 +74,9 @@ All notable changes to WindieOS will be documented in this file.
   normalization.
 - frontend/sidecar: require native `ToolResult` from sidecar tool handlers and
   remove registry normalization for legacy mapping-shaped tool returns.
+- backend/llm: stop rewriting spaces inside provider names so stale Kimi
+  provider spellings fail under their original invalid names while retaining
+  canonical `kimi-coding` / `kimi_coding` handling.
 - docs/sidecar: rename the sidecar registry reference around the native result
   contract and remove stale troubleshooting guidance for legacy dict returns.
 - tests/frontend/sidecar: remove stale deprecated-warning and legacy/unused

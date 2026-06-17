@@ -204,6 +204,7 @@ Provider factory normalization from `providers/__init__.py`:
 - provider keys:
   - `kimi-coding`, `kimi_coding` -> `kimi-coding`
   - old `kimi-code` / `kimi_code` provider aliases are rejected
+  - internal whitespace is not rewritten into provider-key punctuation
 - trailing slash stripped from provider URLs for stable cache keys.
 - timeout conversion:
   - defaults invalid values,
