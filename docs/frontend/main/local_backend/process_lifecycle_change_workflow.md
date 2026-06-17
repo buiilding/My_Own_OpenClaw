@@ -76,6 +76,7 @@ readiness/status broadcasts.
 | `ready` | `buildLocalRuntimeStatusPayload()` and direct status sends | Renderer treats only `true` as ready; everything else gates local-runtime-dependent controls. |
 | `status` | `local_backend_supervisor` snapshot | Renderer defaults missing status to `ready` or `stopped` based on `ready`; keep values stable for debugging. |
 | `error` | launch failure, process error, non-zero exit, supervisor last error | Renderer stores string errors and shows dependent feature failures without inspecting process internals. |
+| `localRuntime` | SDK local runtime snapshot | Diagnostic snapshot for host/status tests. Renderer readiness consumers must not infer process state from this nested object. |
 
 If a new lifecycle state is added, update the supervisor tests, renderer normalization, docs, and any UI that displays or gates on status. Avoid making renderer code infer detailed process state from log text.
 

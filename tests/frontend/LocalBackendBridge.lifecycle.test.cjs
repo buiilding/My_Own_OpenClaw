@@ -45,7 +45,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     expect(result).toEqual(expect.objectContaining({
       ready: true,
       status: 'ready',
-      sidecarDaemon: expect.objectContaining({
+      localRuntime: expect.objectContaining({
         provider: 'sdk',
         hasClient: true,
       }),
@@ -89,7 +89,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     expect(result).toEqual(expect.objectContaining({
       ready: true,
       status: 'ready',
-      sidecarDaemon: expect.objectContaining({
+      localRuntime: expect.objectContaining({
         provider: 'sdk',
         hasClient: true,
         source: 'sdk-client-known',

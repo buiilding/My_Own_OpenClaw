@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Local runtime status payload field
+
+- Finding: Electron main built local runtime status payloads from a
+  `localRuntimeSnapshot` but published the nested diagnostic field as
+  `sidecarDaemon`, leaking the sidecar implementation detail through the host
+  status contract.
+- Change: renamed the nested payload field to `localRuntime`, updated focused
+  broadcaster and bridge lifecycle tests, and documented the status payload
+  contract.
+- Validation: focused local-runtime status broadcaster and bridge lifecycle
+  Jest tests, docs listing, stale-reference scan, and diff check.
+- Compatibility: no migration required for first-party UI. Renderer readiness
+  consumers already normalize only `ready`, `status`, and `error`; diagnostic
+  consumers should use `localRuntime`.
+
 ### 2026-06-17 Python SDK hosted client alias deletion
 
 - Finding: the Python SDK still exported `WindieSdkClient` and

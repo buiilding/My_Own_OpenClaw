@@ -22,7 +22,7 @@ function buildLocalRuntimeStatusPayload({
     ready: snapshot.ready === true,
     status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
     error: typeof snapshot.lastError === 'string' ? snapshot.lastError : '',
-    sidecarDaemon: localRuntimeSnapshot || null,
+    localRuntime: localRuntimeSnapshot || null,
   };
 }
 

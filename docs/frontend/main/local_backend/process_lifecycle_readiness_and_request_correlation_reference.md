@@ -49,7 +49,7 @@ Electron main owns only host-side behavior:
 2. cache the returned runtime
 3. subscribe to daemon events for conversation metadata invalidation
 4. attach a synthetic SDK daemon process ref to `local_backend_supervisor`
-5. emit `local-backend-status { ready:true }`
+5. emit `local-backend-status { ready:true, localRuntime }`
 
 If launch option construction or provider resolution fails, the bridge keeps
 status not-ready and helper calls return stable error envelopes where possible.

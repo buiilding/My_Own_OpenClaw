@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed the Electron main local-runtime status diagnostic payload from `sidecarDaemon` to `localRuntime` so the host status contract no longer leaks sidecar implementation naming.
+
 - Removed the Python SDK `WindieSdkClient` and `WindieSdkAgentSession` compatibility aliases so Python callers use `AgentSdkClient` and `AgentSdkAgentSession` directly.
 
 - Removed Electron main local-backend compatibility exports so host code uses the canonical local-runtime bridge, supervisor, status, and execute-tool factory names directly.

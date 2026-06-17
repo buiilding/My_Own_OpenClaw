@@ -24,7 +24,7 @@ describe('local_backend_status_broadcaster', () => {
       ready: true,
       status: 'ready',
       error: '',
-      sidecarDaemon: { provider: 'sdk', hasClient: true },
+      localRuntime: { provider: 'sdk', hasClient: true },
     });
   });
 
