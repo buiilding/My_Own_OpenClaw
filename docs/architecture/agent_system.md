@@ -82,5 +82,3 @@ The backend owns the preparation and result handling pipeline:
 `ToolPreparer` now exposes:
 
 - `prepare(...) -> PreparationResult` as the canonical structured API
-
-See `backend/src/agent/folder_stucture.md` for a full module map.

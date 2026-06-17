@@ -115,6 +115,8 @@ All notable changes to WindieOS will be documented in this file.
   registry callers stay on the active lookup/declaration/capability APIs.
 - backend/tools: remove the unused `ToolResultOrchestrator.get_available_tools`
   inspection path and its config/policy wiring from the tool-result wait layer.
+- backend/docs: delete the stale misspelled `backend/src/agent/folder_stucture.md`
+  source-map file and its architecture-doc link.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead
