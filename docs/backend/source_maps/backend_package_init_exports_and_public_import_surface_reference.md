@@ -14,12 +14,6 @@ namespace packages are used for package directories whose callers import
 concrete modules directly.
 
 - `backend/src/agent/session/__init__.py`
-- `backend/src/agent/tools/preparation/__init__.py`
-- `backend/src/agent/tools/preparation/coordinate_resolution/__init__.py`
-- `backend/src/agent/tools/preparation/helpers/__init__.py`
-- `backend/src/agent/tools/preparation/ocr/__init__.py`
-- `backend/src/agent/tools/preparation/screenshot/__init__.py`
-- `backend/src/agent/tools/preparation/types/__init__.py`
 - `backend/src/api/handlers/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
@@ -95,6 +89,24 @@ docstring or compatibility path.
   `backend.src.agent.tools.processing.processor`,
   `backend.src.agent.tools.processing.synthetic_factory`, and
   `backend.src.agent.tools.processing.transformer`.
+- `backend/src/agent/tools/preparation/__init__.py` is intentionally absent;
+  import `ToolPreparer` from
+  `backend.src.agent.tools.preparation.preparer`.
+- `backend/src/agent/tools/preparation/coordinate_resolution/__init__.py` is
+  intentionally absent; import coordinate resolvers from
+  `backend.src.agent.tools.preparation.coordinate_resolution.resolvers`.
+- `backend/src/agent/tools/preparation/helpers/__init__.py` is intentionally
+  absent; import preparation helpers from their concrete helper modules under
+  `backend.src.agent.tools.preparation.helpers`.
+- `backend/src/agent/tools/preparation/ocr/__init__.py` is intentionally
+  absent; import `OcrCoordinator` from
+  `backend.src.agent.tools.preparation.ocr.coordinator`.
+- `backend/src/agent/tools/preparation/screenshot/__init__.py` is intentionally
+  absent; import screenshot manager, processor, and state components from
+  concrete modules under `backend.src.agent.tools.preparation.screenshot`.
+- `backend/src/agent/tools/preparation/types/__init__.py` is intentionally
+  absent; import `ExecutionRef` and `ResolvedToolCall` from their concrete
+  modules under `backend.src.agent.tools.preparation.types`.
 - `backend/src/api/auth/__init__.py` is intentionally absent; import install
   auth routes/services from concrete modules such as
   `backend.src.api.auth.router` and `backend.src.api.auth.service`.

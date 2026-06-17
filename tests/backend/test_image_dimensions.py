@@ -2,7 +2,7 @@
 
 import struct
 
-from backend.src.agent.tools.preparation.helpers import image_dimensions as image_dims
+import backend.src.agent.tools.preparation.helpers.image_dimensions as image_dims
 
 
 def _jpeg_bytes(width: int, height: int) -> bytes:

@@ -25,9 +25,11 @@ from backend.src.tools.computer.grounding_contract import supports_source_ground
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
-    from backend.src.agent.tools.preparation.ocr import OcrCoordinator
-    from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
+    from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
+        CoordinateResolver,
+    )
+    from backend.src.agent.tools.preparation.ocr.coordinator import OcrCoordinator
+    from backend.src.agent.tools.preparation.screenshot.manager import ScreenshotManager
     from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
     from backend.src.core.interfaces.vision import IVisionProvider
 

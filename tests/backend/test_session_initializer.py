@@ -225,7 +225,7 @@ def test_init_tool_result_handler_wires_dependencies_and_initializes_runtime(
         DummyToolResultReceiver,
     )
     monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.screenshot.ScreenshotProcessor",
+        "backend.src.agent.tools.preparation.screenshot.processor.ScreenshotProcessor",
         DummyScreenshotProcessor,
     )
     monkeypatch.setattr(

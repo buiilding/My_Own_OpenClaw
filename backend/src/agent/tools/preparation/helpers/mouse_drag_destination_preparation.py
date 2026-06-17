@@ -23,8 +23,10 @@ from backend.src.tools.computer.grounding_contract import supports_drag_destinat
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
-    from backend.src.agent.tools.preparation.ocr import OcrCoordinator
+    from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
+        CoordinateResolver,
+    )
+    from backend.src.agent.tools.preparation.ocr.coordinator import OcrCoordinator
     from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
     from backend.src.core.interfaces.vision import IVisionProvider
 

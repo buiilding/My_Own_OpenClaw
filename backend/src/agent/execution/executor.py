@@ -20,14 +20,14 @@ from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
 from backend.src.agent.tools.orchestrator import (
     ToolOrchestrator as AgentToolOrchestrator,
 )
-from backend.src.agent.tools.preparation import ToolPreparer
-from backend.src.agent.tools.preparation.coordinate_resolution import (
+from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
     CoordinateResolver,
     OcrCoordinateResolver,
     VisionCoordinateResolver,
 )
-from backend.src.agent.tools.preparation.ocr import OcrCoordinator
-from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
+from backend.src.agent.tools.preparation.ocr.coordinator import OcrCoordinator
+from backend.src.agent.tools.preparation.preparer import ToolPreparer
+from backend.src.agent.tools.preparation.screenshot.manager import ScreenshotManager
 from backend.src.agent.tools.processing.coordinator import ToolProcessingCoordinator
 from backend.src.agent.tools.processing.processor import ToolResultProcessor
 from backend.src.agent.tools.processing.synthetic_factory import SyntheticResultFactory

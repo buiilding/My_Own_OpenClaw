@@ -79,7 +79,9 @@ def init_session_state(session) -> None:
 
 def init_tool_result_handler(session) -> None:
     """Initialize tool result routing and storage."""
-    from backend.src.agent.tools.preparation.screenshot import ScreenshotProcessor
+    from backend.src.agent.tools.preparation.screenshot.processor import (
+        ScreenshotProcessor,
+    )
     from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
     from backend.src.agent.tools.waiting.router import ToolResultRouter
 

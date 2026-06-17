@@ -14,7 +14,9 @@ import uuid
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
-from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
+from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
+    CoordinateResolver,
+)
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
     attach_coordinate_method_metadata,
     normalize_manual_coordinates,
@@ -25,8 +27,8 @@ from backend.src.agent.tools.preparation.helpers.preparation_helper import (
 from backend.src.agent.tools.preparation.helpers.vision_service_provider import (
     VisionServiceProvider,
 )
-from backend.src.agent.tools.preparation.ocr import OcrCoordinator
-from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
+from backend.src.agent.tools.preparation.ocr.coordinator import OcrCoordinator
+from backend.src.agent.tools.preparation.screenshot.manager import ScreenshotManager
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.agent.tools.preparation.types.resolved_tool_call import (
     ResolvedToolCall,

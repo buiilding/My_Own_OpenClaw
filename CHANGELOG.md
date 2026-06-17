@@ -108,6 +108,9 @@ All notable changes to WindieOS will be documented in this file.
   session initialization imports result waiting components directly.
 - backend/agent-tools: remove the unused tool-processing package export so
   processing components are imported from concrete owner modules.
+- backend/agent-tools: remove unused tool-preparation package exports so
+  preparation, coordinate, OCR, screenshot, helper, and type components
+  are imported from concrete owner modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
