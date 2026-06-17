@@ -23,7 +23,7 @@ function normalizeReplayEntries(value: unknown): Record<string, unknown>[] {
     : [];
 }
 
-export function compactedReplayFromEvent(event: ConversationEvent): CompactedReplaySnapshot | null {
+function compactedReplayFromEvent(event: ConversationEvent): CompactedReplaySnapshot | null {
   if (event.type !== 'compaction_applied') {
     return null;
   }

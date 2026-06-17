@@ -8,7 +8,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieAgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
-exports.normalizeWsUrl = normalizeWsUrl;
 exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
 exports.createWindieAgentSession = createWindieAgentSession;

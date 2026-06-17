@@ -54,7 +54,7 @@ export function stampAgentDefinitionCapabilityMetadata(
   return summary;
 }
 
-export function summarizeAgentDefinitionCapabilities(
+function summarizeAgentDefinitionCapabilities(
   agentDefinition: JsonRecord,
 ): CapabilityManifestSummary {
   const tools = agentDefinition.tools && typeof agentDefinition.tools === 'object' && !Array.isArray(agentDefinition.tools)

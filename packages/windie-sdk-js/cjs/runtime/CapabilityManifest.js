@@ -5,7 +5,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAgentDefinitionToolManifest = setAgentDefinitionToolManifest;
 exports.stampAgentDefinitionCapabilityMetadata = stampAgentDefinitionCapabilityMetadata;
-exports.summarizeAgentDefinitionCapabilities = summarizeAgentDefinitionCapabilities;
 function setAgentDefinitionToolManifest(agentDefinition, toolSchemas) {
     const tools = agentDefinition.tools && typeof agentDefinition.tools === 'object' && !Array.isArray(agentDefinition.tools)
         ? agentDefinition.tools

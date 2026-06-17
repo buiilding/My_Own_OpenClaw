@@ -107,7 +107,7 @@ export function resolveWebSocketImplementation(WebSocketImpl?: WebSocketConstruc
   return NodeWebSocket as unknown as WebSocketConstructor;
 }
 
-export function normalizeWsUrl(wsUrl: string): string {
+function normalizeWsUrl(wsUrl: string): string {
   return wsUrl.replace(/\/+$/, '');
 }
 

@@ -3,7 +3,6 @@
  * Provides the compacted replay events module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compactedReplayFromEvent = compactedReplayFromEvent;
 exports.latestCompactedReplayFromEvents = latestCompactedReplayFromEvents;
 function normalizeRecord(value) {
     return value && typeof value === 'object' && !Array.isArray(value)

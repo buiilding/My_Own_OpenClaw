@@ -62,6 +62,8 @@ All notable changes to WindieOS will be documented in this file.
   negative-cache fields from the in-memory cache primitive.
 - backend/sdk: delete unused sub-agent session builder and model override helper
   modules, leaving `AgentFactory.create_agent` as the sub-session path.
+- sdk/js: keep websocket URL normalization, capability summarization, and
+  compacted-replay event helpers private instead of exporting unused symbols.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the
