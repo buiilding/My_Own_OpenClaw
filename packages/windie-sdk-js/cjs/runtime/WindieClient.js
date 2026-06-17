@@ -60,7 +60,7 @@ class WindieClient {
             await session.updateSettings(initialModelSettings);
         }
         const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : (0, WindieAgentSession_js_1.createMessageId)();
-        const agent = new WindieAgent_js_1.WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime, userId, conversationStore, runtimeFeatures.memory, localToolLifecycle);
+        const agent = new WindieAgent_js_1.Agent(id, session, agentDefinition, sdkClient, this, localRuntime, userId, conversationStore, runtimeFeatures.memory, localToolLifecycle);
         this.activeAgents.set(id, agent);
         session.on('close', () => {
             this.activeAgents.delete(id);

@@ -16,8 +16,9 @@ title: "WindieClient Runtime Contract"
 ## Runtime Boundary
 
 `WindieClient` is the canonical agent client runtime. New reusable SDK host
-code may import the same constructor as `AgentClient`; `WindieClient` remains
-the compatibility and product-branded export.
+code may import the same constructor as `AgentClient`; the returned agent object
+is also exported as the generic `Agent` alias. `WindieClient` and `WindieAgent`
+remain compatibility and product-branded exports.
 
 ```text
 Electron main / future CLI / SDK users
@@ -95,8 +96,8 @@ Ownership rules:
   TypeScript callers that omit `workspacePath` get a runtime-derived workspace:
   `process.cwd()` first, then the best available home-directory environment
   path.
-- the SDK `WindieAgent` runtime module owns live MCP manifest refresh after an
-  agent is already awake. `WindieAgent.registerMcps([...], { replace: true })`
+- the SDK `Agent` / `WindieAgent` runtime module owns live MCP manifest refresh
+  after an agent is already awake. `Agent.registerMcps([...], { replace: true })`
   registers the requested MCP servers through the local runtime, reads the
   refreshed local tool manifest, sends a backend `update-settings` command with
   `tools.mode = replace_client_manifest`, mutates the SDK agent definition, and
@@ -105,7 +106,7 @@ Ownership rules:
 - the SDK agent stream-event module owns the public event projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
-- the SDK `WindieAgent` runtime module owns high-level agent helpers such as
+- the SDK `Agent` / `WindieAgent` runtime module owns high-level agent helpers such as
   `ask`, `run`, `stream`, `chat`, model updates, conversation creation,
   conversation listing/search/loading/deletion over a store adapter, memory
   commands, title commands, system prompt/tool-schema commands, and artifact
@@ -119,7 +120,7 @@ Local runtime facts must not unlock backend capabilities. In particular, coordin
 SDK consumers can use local runtime/tool execution independently from the agent
 loop. `WindieClient.localRuntime(...)`, `executeTool(...)`, `rpc(...)`,
 `listLocalTools(...)`, and `localStatus(...)` start or reuse the SDK-owned local
-runtime without creating a `WindieAgent`, backend websocket, conversation, or
+runtime without creating an `Agent`, backend websocket, conversation, or
 model turn. Use `WindieClient.wakeUp(...)` when the caller wants the full agent
 conversation path: agent definition, websocket/session, local-runtime manifest,
 tool-result return, and store wiring.
@@ -150,7 +151,9 @@ type names remain compatibility aliases only.
 Client-level runtime options follow the same rule: prefer `AgentClientOptions`,
 `AgentWakeUpOptions`, `AgentLocalRuntimeRequest`, `AgentRuntimeFeatureOption`,
 and `AgentInstallAuthOptions` in reusable SDK code, while Windie-prefixed type
-names remain compatibility aliases.
+names remain compatibility aliases. The high-level agent instance follows that
+same naming pattern: reusable TypeScript hosts should prefer `Agent`, while
+`WindieAgent` remains a compatibility alias.
 
 ## Desktop Host Startup
 

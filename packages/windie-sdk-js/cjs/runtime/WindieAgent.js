@@ -3,7 +3,7 @@
  * Provides the reusable agent API module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgent = void 0;
+exports.Agent = exports.WindieAgent = void 0;
 const events_js_1 = require("../conversation/events.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const metadata_js_1 = require("../conversation/metadata.js");
@@ -864,3 +864,4 @@ class WindieAgent {
     }
 }
 exports.WindieAgent = WindieAgent;
+exports.Agent = WindieAgent;

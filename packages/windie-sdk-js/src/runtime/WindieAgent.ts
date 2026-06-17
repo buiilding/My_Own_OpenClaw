@@ -1158,3 +1158,6 @@ export class WindieAgent {
   }
 
 }
+
+export type Agent = WindieAgent;
+export const Agent = WindieAgent;

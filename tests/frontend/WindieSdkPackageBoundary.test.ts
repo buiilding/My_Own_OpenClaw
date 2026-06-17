@@ -4,7 +4,9 @@
 
 import {
   AgentClient,
+  Agent,
   AgentHostedBackendClient,
+  WindieAgent,
   WindieClient,
   WindieSdkClient,
   InMemoryConversationStore,
@@ -77,6 +79,7 @@ describe('@windie/sdk package boundary', () => {
   test('exports the public agent runtime surface', () => {
     expect(WindieClient).toBeDefined();
     expect(WindieClient).toBe(AgentClient);
+    expect(WindieAgent).toBe(Agent);
     expect(WindieSdkClient).toBeDefined();
     expect(WindieSdkClient).toBe(AgentHostedBackendClient);
     expect(InMemoryConversationStore).toBeDefined();

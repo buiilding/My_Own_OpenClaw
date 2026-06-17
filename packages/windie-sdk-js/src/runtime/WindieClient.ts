@@ -37,7 +37,7 @@ import {
   type SdkModelsResponse,
   type AgentSdkQueryOptions,
 } from '../transport/HostedBackendHttpClient.js';
-import { WindieAgent } from './WindieAgent.js';
+import { Agent } from './WindieAgent.js';
 import { stampAgentDefinitionCapabilityMetadata } from './CapabilityManifest.js';
 import {
   createAgentLocalRuntimeProvider,
@@ -154,7 +154,7 @@ type NormalizedAgentRuntimeFeatures = {
 
 export class WindieClient {
   private readonly defaultOptions: AgentClientOptions;
-  private readonly activeAgents = new Map<string, WindieAgent>();
+  private readonly activeAgents = new Map<string, Agent>();
   private autoLocalRuntimeProvider?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
   private activeLocalRuntime?: AgentLocalRuntimeClient;
 
@@ -162,7 +162,7 @@ export class WindieClient {
     this.defaultOptions = options;
   }
 
-  async wakeUp(options: AgentWakeUpOptions = {}): Promise<WindieAgent> {
+  async wakeUp(options: AgentWakeUpOptions = {}): Promise<Agent> {
     const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
     const initialModelSettings = options.model
       ? buildModelSettingsPatch(options.model, 'agentClient.wakeUp')
@@ -204,7 +204,7 @@ export class WindieClient {
       await session.updateSettings(initialModelSettings);
     }
     const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : createMessageId();
-    const agent = new WindieAgent(
+    const agent = new Agent(
       id,
       session,
       agentDefinition,

@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK generic agent alias
+
+- Finding: the SDK had generic client, option, stream, chat, and hosted
+  transport aliases, but `AgentClient.wakeUp(...)` still returned only the
+  Windie-prefixed `WindieAgent` type.
+- Change: added `Agent` as the generic value/type alias for the high-level SDK
+  agent object, switched `WindieClient` internals and return typing to the
+  generic alias, and kept `WindieAgent` as a compatibility export.
+- Validation: focused SDK package-boundary/type/CJS checks and docs listing.
+- Compatibility: no migration required. Existing `WindieAgent` imports and
+  instances continue to work because `Agent` and `WindieAgent` reference the
+  same constructor.
+
 ### 2026-06-17 SDK hosted backend HTTP client aliases
 
 - Finding: SDK runtime internals still typed hosted HTTP route access through
