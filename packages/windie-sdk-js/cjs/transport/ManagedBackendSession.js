@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ManagedBackendSession = void 0;
 exports.createManagedBackendSession = createManagedBackendSession;
 const backendEvents_js_1 = require("../events/backendEvents.js");
-const WindieAgentSession_js_1 = require("./WindieAgentSession.js");
+const AgentSession_js_1 = require("./AgentSession.js");
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
 const DEFAULT_CONNECT_TIMEOUT_MS = 10000;
 const DEFAULT_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
@@ -213,7 +213,7 @@ class ManagedBackendSession {
             this.options.log?.('Cannot send message: user_id not set.');
             return null;
         }
-        const id = messageId || this.options.createMessageId?.() || (0, WindieAgentSession_js_1.createMessageId)();
+        const id = messageId || this.options.createMessageId?.() || (0, AgentSession_js_1.createMessageId)();
         const message = {
             id,
             type,

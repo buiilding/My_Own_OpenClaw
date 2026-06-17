@@ -25,7 +25,7 @@ import {
   createAgentBackendTransport,
   type AgentQueryInput,
   type AgentSessionRuntime,
-} from '../transport/WindieAgentSession.js';
+} from '../transport/AgentSession.js';
 import {
   AgentHostedBackendClient,
   type AgentInstallIdentityResponse,

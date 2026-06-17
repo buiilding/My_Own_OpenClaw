@@ -32,7 +32,7 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { normalizeBackendEventToConversationEvent } from '../transport/backendEventNormalizer.js';
-import { mergeQueryAgentDefinition } from '../transport/WindieAgentSession.js';
+import { mergeQueryAgentDefinition } from '../transport/AgentSession.js';
 import type { AgentHostedBackendClient } from '../transport/HostedBackendHttpClient.js';
 import { ToolExecutionCoordinator } from '../tools/ToolExecutionCoordinator.js';
 import {

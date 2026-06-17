@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK transport modules use AgentSession filenames
+
+- Finding: after `AgentSession` and `ManagedAgentSession` became canonical
+  runtime names, the SDK implementation still lived behind
+  `WindieAgentSession.ts` and `ManagedWindieAgentSession.ts`, and internal
+  imports depended on those compatibility module names.
+- Change: moved the transport implementations to `AgentSession.ts` and
+  `ManagedAgentSession.ts`, switched SDK internals and root exports to the
+  generic modules, kept Windie-prefixed files as compatibility re-exports, and
+  regenerated checked-in CommonJS output.
+- Validation: SDK package build, focused package/private export/websocket
+  contract tests, CJS alias smoke, docs listing, source scan, and diff check.
+- Compatibility: no migration required. Existing Windie-prefixed root exports
+  and private CJS compatibility module paths continue to resolve to the same
+  constructors and factories.
+
 ### 2026-06-17 SDK docs and examples use AgentClient
 
 - Finding: after making `AgentClient` canonical, SDK-facing examples and

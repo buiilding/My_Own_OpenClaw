@@ -58,7 +58,7 @@ Ownership rules:
   and the conversation transport adapter used by `ConversationRuntime`. That
   adapter exposes query, rehydrate, stop, tool-result, settings-update, and
   list-models websocket commands as one typed backend boundary.
-- the SDK transport module owns the websocket type surface. `WindieAgentSession.ts`
+- the SDK transport module owns the websocket type surface. `AgentSession.ts`
   defines the public `AgentSessionOptions`, `AgentQueryInput`,
   `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
   `createAgentSession`, and `createAgentBackendTransport` contracts alongside
@@ -67,7 +67,7 @@ Ownership rules:
   compatibility aliases. `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`, with
   `createWindieSdkBackendSocket` and `WindieSdkBackendSocketOptions` kept as
-  compatibility aliases. `ManagedWindieAgentSession.ts` exposes the same pattern
+  compatibility aliases. `ManagedAgentSession.ts` exposes the same pattern
   for managed hosted sessions through `ManagedAgentBackendEndpoint`,
   `ManagedAgentSessionOptions`, `ManagedAgentSession`, and
   `createManagedAgentSession`, with Windie-prefixed aliases kept for existing

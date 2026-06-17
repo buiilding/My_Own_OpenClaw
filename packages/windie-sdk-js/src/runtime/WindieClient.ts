@@ -26,11 +26,11 @@ import {
   type WebSocketConstructor,
   type WebSocketLike,
   type AgentSessionRuntime,
-} from '../transport/WindieAgentSession.js';
+} from '../transport/AgentSession.js';
 import {
   createManagedAgentSession,
   type ManagedAgentBackendEndpoint,
-} from '../transport/ManagedWindieAgentSession.js';
+} from '../transport/ManagedAgentSession.js';
 import {
   AgentHostedBackendClient,
   type FetchLike,

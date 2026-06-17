@@ -74,11 +74,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(repoAgent).toContain('agent.stop');
     expect(repoAgent).not.toContain('frontend/node_modules');
     expect(localSdkLoader).toContain('packages/windie-sdk-js');
-    expect(localSdkLoader).toContain('node_modules/.bin/tsc');
+    expect(localSdkLoader).toContain('build:esm');
     expect(localSdkLoader).not.toContain('frontend/node_modules');
   });
 
-  test('public examples stay on the high-level WindieClient surface', async () => {
+  test('public examples stay on the high-level AgentClient surface', async () => {
     const exampleFiles = [
       'examples/cli-agent/run.mjs',
       'examples/custom-ui/index.html',
@@ -103,7 +103,8 @@ describe('modular sdk refactor completion boundary', () => {
 
     for (const relativePath of exampleFiles) {
       const source = await read(relativePath);
-      expect(source).toContain('WindieClient');
+      expect(source).toContain('AgentClient');
+      expect(source).not.toContain('WindieClient');
       const matches = internalRuntimeNeedles.filter(needle => source.includes(needle));
       if (matches.length > 0) {
         offenders[relativePath] = matches;

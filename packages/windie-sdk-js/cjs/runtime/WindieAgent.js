@@ -7,7 +7,7 @@ exports.WindieAgent = exports.Agent = void 0;
 const events_js_1 = require("../conversation/events.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const metadata_js_1 = require("../conversation/metadata.js");
-const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
+const AgentSession_js_1 = require("../transport/AgentSession.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ConversationRuntime_js_1 = require("./ConversationRuntime.js");
 const TraceRecorder_js_1 = require("./TraceRecorder.js");
@@ -193,7 +193,7 @@ class Agent {
             conversationRef,
             revisionId: options.revisionId,
             store: options.store ?? this.defaultConversationStore,
-            transport: (0, WindieAgentSession_js_1.createAgentBackendTransport)(this.session, conversationRef, this.agentDefinition),
+            transport: (0, AgentSession_js_1.createAgentBackendTransport)(this.session, conversationRef, this.agentDefinition),
             localRuntime: resolvedLocalRuntime,
             sdkClient: this.sdkClient,
             userId: this.userId,

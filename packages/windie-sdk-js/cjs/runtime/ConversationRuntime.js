@@ -9,7 +9,7 @@ const events_js_1 = require("../conversation/events.js");
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const backendEventNormalizer_js_1 = require("../transport/backendEventNormalizer.js");
-const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
+const AgentSession_js_1 = require("../transport/AgentSession.js");
 const ToolExecutionCoordinator_js_1 = require("../tools/ToolExecutionCoordinator.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
@@ -379,7 +379,7 @@ class SdkConversationRuntime {
             const queryAgentDefinition = isJsonRecord(enrichedPayload.agent_definition)
                 ? enrichedPayload.agent_definition
                 : null;
-            const mergedAgentDefinition = (0, WindieAgentSession_js_1.mergeQueryAgentDefinition)(sdkAgentDefinition ?? undefined, queryAgentDefinition);
+            const mergedAgentDefinition = (0, AgentSession_js_1.mergeQueryAgentDefinition)(sdkAgentDefinition ?? undefined, queryAgentDefinition);
             const transportPayload = mergedAgentDefinition
                 ? {
                     ...enrichedPayload,

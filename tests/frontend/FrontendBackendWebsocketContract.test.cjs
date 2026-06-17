@@ -282,182 +282,229 @@ describe('frontend/backend websocket incoming contract', () => {
   test('managed agent session sends exact command payloads for control families', async () => {
     const { session, socket } = await createOpenSession();
 
-    await session.stopQuery({ conversation_ref: 'conv-1' });
-    await session.rehydrateConversation({
-      conversation_ref: 'conv-1',
-      messages: [{ role: 'user', content: 'hello' }],
-      rehydrate_mode: 'replace',
-    });
-    await session.updateSettings({
-      model_provider: 'openai',
-      selected_model_id: 'gpt-test',
-    });
-    await session.listModels();
-    await session.wakewordDetected();
-    await session.compactHistory({
-      force: true,
-      conversation_ref: 'conv-1',
-    });
+    try {
+      await session.stopQuery({ conversation_ref: 'conv-1' });
+      await session.rehydrateConversation({
+        conversation_ref: 'conv-1',
+        messages: [{ role: 'user', content: 'hello' }],
+        rehydrate_mode: 'replace',
+      });
+      await session.updateSettings({
+        model_provider: 'openai',
+        selected_model_id: 'gpt-test',
+      });
+      await session.listModels();
+      await session.wakewordDetected();
+      await session.compactHistory({
+        force: true,
+        conversation_ref: 'conv-1',
+      });
 
-    const sentTypes = socket.sent.map(message => JSON.parse(message).type);
-    expect(sentTypes).toEqual([
-      'stop-query',
-      'rehydrate-conversation',
-      'update-settings',
-      'list-models',
-      'wakeword-detected',
-      'compact-history',
-    ]);
+      const sentTypes = socket.sent.map(message => JSON.parse(message).type);
+      expect(sentTypes).toEqual([
+        'stop-query',
+        'rehydrate-conversation',
+        'update-settings',
+        'list-models',
+        'wakeword-detected',
+        'compact-history',
+      ]);
 
-    sentTypes.forEach((type, index) => {
-      assertPayloadMatchesContract(type, sentPayload(socket, index));
-    });
+      sentTypes.forEach((type, index) => {
+        assertPayloadMatchesContract(type, sentPayload(socket, index));
+      });
+    } finally {
+      session.close('test-cleanup');
+    }
   });
 
   test('managed agent session strips extra top-level fields before websocket send', async () => {
     const { session, socket } = await createOpenSession();
 
-    await session.stopQuery({
-      conversation_ref: 'conv-1',
-      turn_ref: 'payload-extra',
-    });
-    await session.rehydrateConversation({
-      conversation_ref: 'conv-1',
-      messages: [],
-      rehydrate_mode: 'replace',
-      agent_definition: { query_only: true },
-      turn_ref: 'payload-extra',
-    });
-    await session.updateSettings({
-      selected_model_id: 'gpt-test',
-      tools: {
-        mode: 'replace_client_manifest',
-        client_manifest: { version: 1, tools: [] },
-      },
-      provider_api_keys: {
-        openai: {
-          enabled: true,
-          api_key: 'sk-test',
-          renderer_only: true,
+    try {
+      await session.stopQuery({
+        conversation_ref: 'conv-1',
+        turn_ref: 'payload-extra',
+      });
+      await session.rehydrateConversation({
+        conversation_ref: 'conv-1',
+        messages: [],
+        rehydrate_mode: 'replace',
+        agent_definition: { query_only: true },
+        turn_ref: 'payload-extra',
+      });
+      await session.updateSettings({
+        selected_model_id: 'gpt-test',
+        tools: {
+          mode: 'replace_client_manifest',
+          client_manifest: { version: 1, tools: [] },
         },
-        future_provider: {
-          enabled: true,
-          api_key: 'future',
+        provider_api_keys: {
+          openai: {
+            enabled: true,
+            api_key: 'sk-test',
+            renderer_only: true,
+          },
+          future_provider: {
+            enabled: true,
+            api_key: 'future',
+          },
         },
-      },
-      provider_oauth: {
-        openai_codex: {
-          connected: true,
-          access_token: 'access',
-          refresh_token: 'refresh',
-          renderer_only: true,
+        provider_oauth: {
+          openai_codex: {
+            connected: true,
+            access_token: 'access',
+            refresh_token: 'refresh',
+            renderer_only: true,
+          },
+          future_oauth: {
+            connected: true,
+          },
         },
-        future_oauth: {
-          connected: true,
-        },
-      },
-      global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
-      appearance_theme: 'graphite',
-    });
-    await session.listModels();
-    await session.wakewordDetected({
-      turn_ref: 'payload-extra',
-    });
-    await session.compactHistory({
-      force: false,
-      conversation_ref: 'conv-1',
-      turn_ref: 'payload-extra',
-    });
+        global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
+        appearance_theme: 'graphite',
+      });
+      await session.listModels();
+      await session.wakewordDetected({
+        turn_ref: 'payload-extra',
+      });
+      await session.compactHistory({
+        force: false,
+        conversation_ref: 'conv-1',
+        turn_ref: 'payload-extra',
+      });
 
-    socket.sent.forEach((message) => {
-      const parsed = JSON.parse(message);
-      assertPayloadMatchesContract(parsed.type, parsed.payload);
-    });
-    expect(sentPayload(socket, 0)).toEqual({
-      conversation_ref: 'conv-1',
-      turn_ref: 'payload-extra',
-    });
-    expect(sentPayload(socket, 1)).toEqual({
-      conversation_ref: 'conv-1',
-      messages: [],
-      rehydrate_mode: 'replace',
-    });
-    expect(sentPayload(socket, 2)).toEqual({
-      selected_model_id: 'gpt-test',
-      tools: {
-        mode: 'replace_client_manifest',
-        client_manifest: { version: 1, tools: [] },
-      },
-      provider_api_keys: {
-        openai: {
-          enabled: true,
-          api_key: 'sk-test',
+      socket.sent.forEach((message) => {
+        const parsed = JSON.parse(message);
+        assertPayloadMatchesContract(parsed.type, parsed.payload);
+      });
+      expect(sentPayload(socket, 0)).toEqual({
+        conversation_ref: 'conv-1',
+        turn_ref: 'payload-extra',
+      });
+      expect(sentPayload(socket, 1)).toEqual({
+        conversation_ref: 'conv-1',
+        messages: [],
+        rehydrate_mode: 'replace',
+      });
+      expect(sentPayload(socket, 2)).toEqual({
+        selected_model_id: 'gpt-test',
+        tools: {
+          mode: 'replace_client_manifest',
+          client_manifest: { version: 1, tools: [] },
         },
-      },
-      provider_oauth: {
-        openai_codex: {
-          connected: true,
-          access_token: 'access',
-          refresh_token: 'refresh',
+        provider_api_keys: {
+          openai: {
+            enabled: true,
+            api_key: 'sk-test',
+          },
         },
-      },
-    });
-    expect(sentPayload(socket, 3)).toEqual({});
-    expect(sentPayload(socket, 4)).toEqual({});
-    expect(sentPayload(socket, 5)).toEqual({
-      force: false,
-      conversation_ref: 'conv-1',
-    });
+        provider_oauth: {
+          openai_codex: {
+            connected: true,
+            access_token: 'access',
+            refresh_token: 'refresh',
+          },
+        },
+      });
+      expect(sentPayload(socket, 3)).toEqual({});
+      expect(sentPayload(socket, 4)).toEqual({});
+      expect(sentPayload(socket, 5)).toEqual({
+        force: false,
+        conversation_ref: 'conv-1',
+      });
+    } finally {
+      session.close('test-cleanup');
+    }
   });
 
   test('managed agent session sends exact tool-result and bundle-result top-level payloads', async () => {
     const { session, socket } = await createOpenSession();
 
-    await session.sendToolResultPayload({
-      request_id: 'req-1',
-      success: true,
-      data: {
-        output: 'tool-specific extra field is allowed in data',
-      },
-    });
-    await session.sendToolBundleResultPayload({
-      bundle_id: 'bundle-1',
-      status: 'success',
-      screenshot_url: 'renderer-only-url',
-      step_results: [{
-        tool: 'read_file',
+    try {
+      await session.sendToolResultPayload({
+        request_id: 'req-1',
+        success: true,
+        data: {
+          output: 'tool-specific extra field is allowed in data',
+        },
+      });
+      await session.sendToolBundleResultPayload({
+        bundle_id: 'bundle-1',
         status: 'success',
-        output: 'ok',
-        debug: 'step-specific extra field is allowed',
-      }],
-    });
+        screenshot_url: 'renderer-only-url',
+        step_results: [{
+          tool: 'read_file',
+          status: 'success',
+          output: 'ok',
+          debug: 'step-specific extra field is allowed',
+        }],
+      });
 
-    const toolResultPayload = sentPayload(socket, 0);
-    const bundleResultPayload = sentPayload(socket, 1);
+      const toolResultPayload = sentPayload(socket, 0);
+      const bundleResultPayload = sentPayload(socket, 1);
 
-    assertPayloadMatchesContract('tool-result', toolResultPayload);
-    assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
-    expect(bundleResultPayload).not.toHaveProperty('screenshot_url');
+      assertPayloadMatchesContract('tool-result', toolResultPayload);
+      assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
+      expect(bundleResultPayload).not.toHaveProperty('screenshot_url');
+    } finally {
+      session.close('test-cleanup');
+    }
   });
 
   test('managed agent session strips invalid strict capture metadata', async () => {
     const { session, socket } = await createOpenSession();
 
-    await session.sendToolResultPayload({
-      request_id: 'req-1',
-      success: true,
-      data: {
-        output: 'done',
-        capture_meta: {
-          capture_engine: 'partial-only',
+    try {
+      await session.sendToolResultPayload({
+        request_id: 'req-1',
+        success: true,
+        data: {
+          output: 'done',
+          capture_meta: {
+            capture_engine: 'partial-only',
+          },
+          screenshot_content_type: 'image/jpeg',
         },
+      });
+      await session.sendToolBundleResultPayload({
+        bundle_id: 'bundle-1',
+        status: 'success',
+        capture_meta: {
+          source_w: 100,
+          source_h: 80,
+          crop_x: 0,
+          crop_y: 0,
+          crop_w: 100,
+          crop_h: 80,
+          timestamp: 123,
+          capture_engine: 'test',
+          desktop_virtual_bounds: {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 80,
+            ignored: true,
+          },
+          ignored: true,
+        },
+        step_results: [{
+          tool: 'screenshot',
+          status: 'success',
+          output: 'ok',
+        }],
+      });
+
+      const toolResultPayload = sentPayload(socket, 0);
+      const bundleResultPayload = sentPayload(socket, 1);
+
+      assertPayloadMatchesContract('tool-result', toolResultPayload);
+      assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
+      expect(toolResultPayload.data).toEqual({
+        output: 'done',
         screenshot_content_type: 'image/jpeg',
-      },
-    });
-    await session.sendToolBundleResultPayload({
-      bundle_id: 'bundle-1',
-      status: 'success',
-      capture_meta: {
+      });
+      expect(bundleResultPayload.capture_meta).toEqual({
         source_w: 100,
         source_h: 80,
         crop_x: 0,
@@ -471,42 +518,11 @@ describe('frontend/backend websocket incoming contract', () => {
           y: 0,
           width: 100,
           height: 80,
-          ignored: true,
         },
-        ignored: true,
-      },
-      step_results: [{
-        tool: 'screenshot',
-        status: 'success',
-        output: 'ok',
-      }],
-    });
-
-    const toolResultPayload = sentPayload(socket, 0);
-    const bundleResultPayload = sentPayload(socket, 1);
-
-    assertPayloadMatchesContract('tool-result', toolResultPayload);
-    assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
-    expect(toolResultPayload.data).toEqual({
-      output: 'done',
-      screenshot_content_type: 'image/jpeg',
-    });
-    expect(bundleResultPayload.capture_meta).toEqual({
-      source_w: 100,
-      source_h: 80,
-      crop_x: 0,
-      crop_y: 0,
-      crop_w: 100,
-      crop_h: 80,
-      timestamp: 123,
-      capture_engine: 'test',
-      desktop_virtual_bounds: {
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 80,
-      },
-    });
+      });
+    } finally {
+      session.close('test-cleanup');
+    }
   });
 
   test('contract validator catches extra top-level backend payload keys', () => {

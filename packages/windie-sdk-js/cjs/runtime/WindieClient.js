@@ -8,8 +8,8 @@ const modelSelection_js_1 = require("../settings/modelSelection.js");
 const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const SidecarConversationStore_js_1 = require("../stores/SidecarConversationStore.js");
 const builtins_js_1 = require("../tools/builtins.js");
-const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
-const ManagedWindieAgentSession_js_1 = require("../transport/ManagedWindieAgentSession.js");
+const AgentSession_js_1 = require("../transport/AgentSession.js");
+const ManagedAgentSession_js_1 = require("../transport/ManagedAgentSession.js");
 const HostedBackendHttpClient_js_1 = require("../transport/HostedBackendHttpClient.js");
 const WindieAgent_js_1 = require("./WindieAgent.js");
 const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
@@ -59,7 +59,7 @@ class AgentClient {
         if (initialModelSettings) {
             await session.updateSettings(initialModelSettings);
         }
-        const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : (0, WindieAgentSession_js_1.createMessageId)();
+        const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : (0, AgentSession_js_1.createMessageId)();
         const agent = new WindieAgent_js_1.Agent(id, session, agentDefinition, sdkClient, this, localRuntime, userId, conversationStore, runtimeFeatures.memory, localToolLifecycle);
         this.activeAgents.set(id, agent);
         session.on('close', () => {
@@ -162,7 +162,7 @@ class AgentClient {
     createAgentSession({ backendUrl, installToken, userId, operatingSystem, agentDefinition, }) {
         const headers = installToken ? { Authorization: `Bearer ${installToken}` } : undefined;
         if (this.defaultOptions.backendSession === 'managed') {
-            return (0, ManagedWindieAgentSession_js_1.createManagedAgentSession)({
+            return (0, ManagedAgentSession_js_1.createManagedAgentSession)({
                 backendUrl,
                 wsUrl: this.defaultOptions.wsUrl,
                 wsOrigin: this.defaultOptions.wsOrigin,
@@ -188,7 +188,7 @@ class AgentClient {
                 log: this.defaultOptions.log,
             });
         }
-        return (0, WindieAgentSession_js_1.createAgentSession)({
+        return (0, AgentSession_js_1.createAgentSession)({
             backendUrl,
             wsUrl: this.defaultOptions.wsUrl,
             WebSocketImpl: this.defaultOptions.WebSocketImpl,
@@ -422,7 +422,7 @@ function validateLocalRuntimeFeatures(localRuntime, runtimeFeatures) {
 function buildWakeUpAgentDefinition(options, tools) {
     const definition = {
         version: 1,
-        id: options.agentId ?? `agent-${(0, WindieAgentSession_js_1.createMessageId)()}`,
+        id: options.agentId ?? `agent-${(0, AgentSession_js_1.createMessageId)()}`,
         name: options.name ?? 'Agent',
         system_prompt: options.systemPrompt
             ? { mode: 'replace', content: options.systemPrompt }
