@@ -67,7 +67,7 @@ contextBridge.exposeInMainWorld('ipc', {
   },
 });
 
-contextBridge.exposeInMainWorld('windie', {
+const desktopAgentBridge = {
   invoke: (command, payload) => {
     if (typeof command !== 'string' || !command.trim()) {
       return Promise.reject(new Error('Invalid Agent SDK command'));
@@ -79,7 +79,10 @@ contextBridge.exposeInMainWorld('windie', {
       command,
       payload: payload && typeof payload === 'object' && !Array.isArray(payload)
         ? payload
-        : {},
+      : {},
     });
   },
-});
+};
+
+contextBridge.exposeInMainWorld('desktopAgent', desktopAgentBridge);
+contextBridge.exposeInMainWorld('windie', desktopAgentBridge);

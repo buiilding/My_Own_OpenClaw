@@ -84,6 +84,17 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_COMPACT_HISTORY');
   });
 
+  test('SDK command invoke client resolves the generic desktop agent bridge before compatibility aliases', async () => {
+    const source = await fs.readFile(
+      path.join(appRoot, 'runtime/agentSdkCommandInvokeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('getDesktopAgentCommandBridge');
+    expect(source).toContain('window.desktopAgent ?? window.windie ?? null');
+    expect(source).not.toContain('function getAgentSdkBridge');
+  });
+
   test('app provider code uses runtime facades for transcript session helpers', async () => {
     const files = await listSourceFiles(appRoot);
     const offenders: string[] = [];

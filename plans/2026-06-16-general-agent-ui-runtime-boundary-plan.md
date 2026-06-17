@@ -1550,3 +1550,21 @@ Each completed slice should report:
 - Compatibility: no migration required. `AgentClient` is the same SDK
   constructor as `WindieClient`, so runtime behavior and test mocks stay
   unchanged.
+
+### 2026-06-17 Renderer desktop agent bridge alias
+
+- Finding: renderer runtime code still resolved SDK command dispatch through
+  `window.windie` directly even though the app runtime is a generic desktop
+  agent UI boundary.
+- Change: added a generic `DesktopAgentCommandBridge` contract and
+  `getDesktopAgentCommandBridge()` accessor, made the renderer prefer
+  `window.desktopAgent` with `window.windie` as a compatibility fallback, and
+  exposed the same preload bridge object under both `desktopAgent` and
+  `windie`.
+- Validation: focused renderer runtime boundary coverage, preload IPC bridge
+  coverage, docs listing, `git diff --check`, and source scans showing
+  `window.windie` remains only as the compatibility fallback inside the
+  desktop-agent bridge adapter.
+- Compatibility: no migration required. Existing preload consumers can keep
+  using `window.windie`; new generic renderer code can use `window.desktopAgent`
+  through the desktop-agent bridge accessor.

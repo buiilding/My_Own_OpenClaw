@@ -2,6 +2,7 @@
 
 describe('preload IPC channel registry', () => {
   let exposedIpc;
+  let exposedDesktopAgent;
   let exposedWindie;
   let ipcRendererMock;
   let originalArgv;
@@ -9,6 +10,7 @@ describe('preload IPC channel registry', () => {
   beforeEach(() => {
     jest.resetModules();
     exposedIpc = null;
+    exposedDesktopAgent = null;
     exposedWindie = null;
     originalArgv = process.argv;
     ipcRendererMock = {
@@ -24,6 +26,9 @@ describe('preload IPC channel registry', () => {
         exposeInMainWorld: jest.fn((key, value) => {
           if (key === 'ipc') {
             exposedIpc = value;
+          }
+          if (key === 'desktopAgent') {
+            exposedDesktopAgent = value;
           }
           if (key === 'windie') {
             exposedWindie = value;
@@ -81,6 +86,8 @@ describe('preload IPC channel registry', () => {
   });
 
   test('exposes SDK-shaped command invoke over one IPC channel', async () => {
+    expect(exposedDesktopAgent).toBe(exposedWindie);
+    await expect(exposedDesktopAgent.invoke('memories.clearAll', {})).resolves.toBe('ok');
     await expect(exposedWindie.invoke('memories.clearAll', {})).resolves.toBe('ok');
 
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {

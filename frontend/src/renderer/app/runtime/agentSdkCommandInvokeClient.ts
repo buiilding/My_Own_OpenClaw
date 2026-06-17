@@ -4,13 +4,13 @@
 
 import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 
-type AgentSdkCommandResult<T = unknown> = {
+export type AgentSdkCommandResult<T = unknown> = {
   ok?: boolean;
   data?: T;
   error?: string;
 };
 
-type AgentSdkCommandBridge = {
+export type DesktopAgentCommandBridge = {
   invoke: (
     command: string,
     payload?: Record<string, unknown>,
@@ -19,22 +19,23 @@ type AgentSdkCommandBridge = {
 
 declare global {
   interface Window {
-    windie?: AgentSdkCommandBridge;
+    desktopAgent?: DesktopAgentCommandBridge;
+    windie?: DesktopAgentCommandBridge;
   }
 }
 
-function getAgentSdkBridge(): AgentSdkCommandBridge | null {
+export function getDesktopAgentCommandBridge(): DesktopAgentCommandBridge | null {
   if (typeof window === 'undefined') {
     return null;
   }
-  return window.windie ?? null;
+  return window.desktopAgent ?? window.windie ?? null;
 }
 
 export async function invokeAgentSdkCommand<T = unknown>(
   command: string,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
-  const bridge = getAgentSdkBridge();
+  const bridge = getDesktopAgentCommandBridge();
   const result = bridge
     ? await bridge.invoke(command, payload)
     : await IpcBridge.invoke<AgentSdkCommandResult<T>>(
