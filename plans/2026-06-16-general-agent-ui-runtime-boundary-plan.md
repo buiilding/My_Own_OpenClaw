@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime bridge legacy assertion scan
+
+- Finding: current Electron main boundary tests still contained exact
+  LocalBackendBridge/export strings only as negative assertions, which kept
+  stale-name scans noisy after the runtime bridge moved to local-runtime names.
+- Change: kept the negative assertions but built the removed legacy label/export
+  names dynamically in the focused lifecycle and host-boundary suites.
+- Validation: focused LocalRuntimeBridge lifecycle and host-boundary Jest tests,
+  stale current-code name scan, and diff check.
+- Compatibility: no migration required. This is a test-only assertion cleanup;
+  bridge APIs, log labels, IPC channels, and runtime behavior are unchanged.
+
 ### 2026-06-17 local-runtime bridge docs wording
 
 - Finding: several current workflow and index docs still described the Electron

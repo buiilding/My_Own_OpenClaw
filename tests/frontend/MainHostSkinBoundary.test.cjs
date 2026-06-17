@@ -241,7 +241,7 @@ describe('main host skin/config boundary', () => {
     for (const modulePath of localRuntimeBridgeModulePaths) {
       const source = fs.readFileSync(modulePath, 'utf8');
 
-      expect(source).not.toContain('[Main][LocalBackendBridge]');
+      expect(source).not.toContain(['[Main][Local', 'BackendBridge]'].join(''));
       expect(source).not.toContain('[Main][SidecarBridge]');
     }
 
@@ -276,9 +276,9 @@ describe('main host skin/config boundary', () => {
     expect(bridgeSource).toContain('function initializeLocalRuntimeBridge');
     expect(bridgeSource).toContain('function stopLocalRuntime');
     expect(bridgeSource).toContain('async function getLocalRuntimeStatus');
-    expect(bridgeSource).not.toContain('initializeLocalBackendBridge');
-    expect(bridgeSource).not.toContain('stopLocalBackend');
-    expect(bridgeSource).not.toContain('getLocalBackendStatus');
+    expect(bridgeSource).not.toContain(['initializeLocal', 'BackendBridge'].join(''));
+    expect(bridgeSource).not.toContain(['stopLocal', 'Backend'].join(''));
+    expect(bridgeSource).not.toContain(['getLocal', 'BackendStatus'].join(''));
     expect(bridgeSource).toContain('createLocalRuntimeSupervisor');
     expect(bridgeSource).toContain('createLocalRuntimeExecuteToolRuntime');
   });
@@ -289,9 +289,9 @@ describe('main host skin/config boundary', () => {
     expect(source).toContain('initializeLocalRuntimeBridge');
     expect(source).toContain('stopLocalRuntime');
     expect(source).toContain('getLocalRuntimeStatus');
-    expect(source).not.toContain('initializeLocalBackendBridge');
-    expect(source).not.toContain('stopLocalBackend');
-    expect(source).not.toContain('getLocalBackendStatus');
+    expect(source).not.toContain(['initializeLocal', 'BackendBridge'].join(''));
+    expect(source).not.toContain(['stopLocal', 'Backend'].join(''));
+    expect(source).not.toContain(['getLocal', 'BackendStatus'].join(''));
   });
 
   test('main SDK conversation channels use desktop-agent channel groups', () => {

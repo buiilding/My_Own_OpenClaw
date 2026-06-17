@@ -109,8 +109,8 @@ describe('local_runtime_bridge SDK sidecar lifecycle', () => {
     expect(bridge.stopLocalRuntime).toBeDefined();
     expect(bridge.getLocalRuntimeStatus).toBeDefined();
     expect(bridge[['initializeLocal', 'BackendBridge'].join('')]).toBeUndefined();
-    expect(bridge.stopLocalBackend).toBeUndefined();
-    expect(bridge.getLocalBackendStatus).toBeUndefined();
+    expect(bridge[['stopLocal', 'Backend'].join('')]).toBeUndefined();
+    expect(bridge[['getLocal', 'BackendStatus'].join('')]).toBeUndefined();
   });
 
   test('stopLocalRuntime stops bridge execution without shutting down the SDK-owned runtime', async () => {

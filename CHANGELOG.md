@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated Electron main local-runtime bridge boundary tests to construct removed LocalBackendBridge export/log names dynamically while preserving absence assertions. No migration is required.
+
 - Updated current docs to describe the Electron main adapter as the local-runtime bridge instead of the local-backend bridge. No migration is required.
 
 - Renamed the Electron main local-runtime bridge overview docs route from `local_backend_bridge_handler_and_window_guard_reference.md` to `local_runtime_bridge_handler_and_window_guard_reference.md`. No migration is required.
