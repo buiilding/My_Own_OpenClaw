@@ -15,25 +15,6 @@ from typing import Optional, Tuple
 from backend.src.services.ocr.helpers import decode_screenshot_payload
 
 
-def parse_screen_resolution(value: object) -> Optional[Tuple[int, int]]:
-    """Parse screen resolution from system_state (usually 'WIDTHxHEIGHT')."""
-    if isinstance(value, str):
-        raw = value.strip().lower()
-        if "x" not in raw:
-            return None
-        left, right = raw.split("x", 1)
-        try:
-            return int(left), int(right)
-        except ValueError:
-            return None
-    if isinstance(value, dict):
-        width = value.get("width")
-        height = value.get("height")
-        if isinstance(width, int) and isinstance(height, int) and width > 0 and height > 0:
-            return width, height
-    return None
-
-
 def get_image_dimensions_from_screenshot_b64(screenshot_b64: str) -> Optional[Tuple[int, int]]:
     """
     Return (width, height) for a base64 screenshot payload (JPEG/PNG).

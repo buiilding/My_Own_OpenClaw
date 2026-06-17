@@ -36,19 +36,6 @@ def _png_bytes(width: int, height: int) -> bytes:
     )
 
 
-def test_parse_screen_resolution_accepts_string_and_dict_formats():
-    assert image_dims.parse_screen_resolution("1920x1080") == (1920, 1080)
-    assert image_dims.parse_screen_resolution(" 2560X1440 ") == (2560, 1440)
-    assert image_dims.parse_screen_resolution({"width": 800, "height": 600}) == (800, 600)
-
-
-def test_parse_screen_resolution_rejects_invalid_shapes():
-    assert image_dims.parse_screen_resolution("1920") is None
-    assert image_dims.parse_screen_resolution("wxh") is None
-    assert image_dims.parse_screen_resolution({"width": 0, "height": 10}) is None
-    assert image_dims.parse_screen_resolution({"width": "800", "height": 600}) is None
-
-
 def test_get_image_dimensions_parses_png_from_decoded_payload(monkeypatch):
     monkeypatch.setattr(image_dims, "decode_screenshot_payload", lambda _payload, logger: _png_bytes(123, 45))
 

@@ -83,6 +83,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/session: remove unused `AgentSession` tool-result future facade
   methods so wait/execution paths use the owning `ToolResultStorage` surface
   directly.
+- backend/tools: delete the unused screen-resolution parser from image
+  dimension helpers now that coordinate normalization derives fallback metadata
+  from screenshot dimensions.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead
