@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the stale backend mypy override for the deleted `backend.src.brain` package. No migration is required.
+
 - Renamed the stale `ChatGptDashboardShell.test.jsx` dashboard test path to `DashboardShell.test.jsx` and updated current dashboard docs to the active name. No migration is required.
 
 - Updated protocol validation and readiness docs from local-backend mapper/status wording to local-runtime ownership. No migration is required.
