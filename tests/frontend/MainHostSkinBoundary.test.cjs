@@ -254,11 +254,21 @@ describe('main host skin/config boundary', () => {
       path.join(mainRoot, 'sidecar/local_backend_supervisor.cjs'),
       'utf8',
     );
+    const executeToolRuntimeSource = fs.readFileSync(
+      path.join(mainRoot, 'sidecar/local_backend_bridge_execute_tool_runtime.cjs'),
+      'utf8',
+    );
 
     expect(supervisorSource).toContain('function createLocalRuntimeSupervisor');
     expect(supervisorSource).toContain('const createLocalBackendSupervisor = createLocalRuntimeSupervisor');
+    expect(executeToolRuntimeSource).toContain('function createLocalRuntimeExecuteToolRuntime');
+    expect(executeToolRuntimeSource).toContain(
+      'const createLocalBackendExecuteToolRuntime = createLocalRuntimeExecuteToolRuntime',
+    );
     expect(bridgeSource).toContain('createLocalRuntimeSupervisor');
     expect(bridgeSource).not.toContain('createLocalBackendSupervisor');
+    expect(bridgeSource).toContain('createLocalRuntimeExecuteToolRuntime');
+    expect(bridgeSource).not.toContain('createLocalBackendExecuteToolRuntime');
   });
 
   test('main composition root consumes local runtime bridge names', () => {

@@ -21,9 +21,15 @@ const path = require('path');
 
 const {
   createLocalBackendExecuteToolRuntime,
+  createLocalRuntimeExecuteToolRuntime,
 } = require('../../frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs');
 
-describe('local backend bridge extension runtime', () => {
+describe('local runtime bridge extension runtime', () => {
+  test('exports the local runtime execute-tool factory as the canonical factory', () => {
+    expect(createLocalRuntimeExecuteToolRuntime).toBeDefined();
+    expect(createLocalBackendExecuteToolRuntime).toBe(createLocalRuntimeExecuteToolRuntime);
+  });
+
   test('executes plugin tools through the sidecar path', async () => {
     const sendRequest = jest.fn(async (_method, payload) => ({
       success: true,
@@ -32,7 +38,7 @@ describe('local backend bridge extension runtime', () => {
       },
     }));
 
-    const runtime = createLocalBackendExecuteToolRuntime({
+    const runtime = createLocalRuntimeExecuteToolRuntime({
       sendRequest,
       backendHttpUrl: 'http://127.0.0.1:8765',
       getArtifactUploadHeaders: async () => ({}),
@@ -71,7 +77,7 @@ describe('local backend bridge extension runtime', () => {
       },
     }));
 
-    const runtime = createLocalBackendExecuteToolRuntime({
+    const runtime = createLocalRuntimeExecuteToolRuntime({
       sendRequest,
       backendHttpUrl: 'http://127.0.0.1:8765',
       getArtifactUploadHeaders: async () => ({}),
@@ -117,7 +123,7 @@ describe('local backend bridge extension runtime', () => {
       },
     }));
 
-    const runtime = createLocalBackendExecuteToolRuntime({
+    const runtime = createLocalRuntimeExecuteToolRuntime({
       sendRequest,
       backendHttpUrl: 'http://127.0.0.1:8765',
       getArtifactUploadHeaders: async () => ({}),
@@ -156,7 +162,7 @@ describe('local backend bridge extension runtime', () => {
     }));
     const prepareComputerUseSurface = jest.fn(async () => ({ success: true }));
 
-    const runtime = createLocalBackendExecuteToolRuntime({
+    const runtime = createLocalRuntimeExecuteToolRuntime({
       sendRequest,
       backendHttpUrl: 'http://127.0.0.1:8765',
       getArtifactUploadHeaders: async () => ({}),

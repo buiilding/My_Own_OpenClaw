@@ -2877,3 +2877,17 @@ Each completed slice should report:
 - Compatibility: no migration required. The old factory export remains an alias
   to the same supervisor implementation; runtime state and status payloads are
   unchanged.
+
+### 2026-06-17 main local runtime execute-tool factory
+
+- Finding: the Electron main local-runtime bridge still constructed its
+  execute-tool adapter through `createLocalBackendExecuteToolRuntime`, even
+  though the adapter coordinates SDK local runtime tool execution for the host.
+- Change: promoted `createLocalRuntimeExecuteToolRuntime` as the canonical
+  factory, switched the active bridge and focused tests to it, and kept
+  `createLocalBackendExecuteToolRuntime` as a compatibility alias.
+- Validation: focused local-runtime extension-runtime and main host boundary
+  tests, docs listing, active factory scan, and `git diff --check`.
+- Compatibility: no migration required. The old factory export remains an alias
+  to the same implementation; local tool execution, screenshot materialization,
+  and permission verification behavior are unchanged.

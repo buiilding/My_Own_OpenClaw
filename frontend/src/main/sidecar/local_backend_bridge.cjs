@@ -18,7 +18,7 @@ const {
   getErrorMessage,
 } = require('./local_backend_bridge_utils.cjs');
 const {
-  createLocalBackendExecuteToolRuntime,
+  createLocalRuntimeExecuteToolRuntime,
 } = require('./local_backend_bridge_execute_tool_runtime.cjs');
 const {
   broadcastConversationMetadataInvalidation,
@@ -422,7 +422,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
       },
     }
   );
-  const executeToolRuntime = createLocalBackendExecuteToolRuntime({
+  const executeToolRuntime = createLocalRuntimeExecuteToolRuntime({
     sendRequest,
     backendHttpUrl: backendEndpoints.httpUrl,
     getArtifactUploadHeaders,

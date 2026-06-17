@@ -50,7 +50,7 @@ function stripUntrustedScreenshotPath(result) {
   return result;
 }
 
-function createLocalBackendExecuteToolRuntime({
+function createLocalRuntimeExecuteToolRuntime({
   sendRequest,
   backendHttpUrl,
   getArtifactUploadHeaders,
@@ -221,6 +221,9 @@ function createLocalBackendExecuteToolRuntime({
   };
 }
 
+const createLocalBackendExecuteToolRuntime = createLocalRuntimeExecuteToolRuntime;
+
 module.exports = {
   createLocalBackendExecuteToolRuntime,
+  createLocalRuntimeExecuteToolRuntime,
 };
