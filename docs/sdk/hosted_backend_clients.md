@@ -119,13 +119,16 @@ hosted backend websocket. The public package exports `AgentSdkClient` and
 compatibility aliases have been removed.
 
 When local module tools, plugins, or MCP servers are supplied, the Python client
-uses the same sidecar daemon contract as the TypeScript runtime: discover or
+uses the same local-runtime contract as the TypeScript runtime: discover or
 start the daemon, register local executable capabilities, include the daemon
 tool manifest in `agent_definition`, and route backend `tool-call` /
-`tool-bundle` events back through `/execute-tool`.
+`tool-bundle` events back through `/execute-tool`. Python SDK callers inject a
+custom executor with `local_runtime=...`, choose discovery through
+`local_runtime_discovery_file`, and override the daemon script with
+`local_runtime_daemon_script` or `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`.
 
 The Python runtime also exposes `status()`, `list_tools()`, and
-`shutdown_local_runtime()` for the resolved local daemon.
+`shutdown_local_runtime()` for the resolved local runtime.
 
 Python websocket agent sessions normalize backend-bound payloads before send:
 

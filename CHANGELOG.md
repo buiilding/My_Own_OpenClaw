@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: rename Python SDK local execution and daemon startup options to local-runtime names and use `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT` for Node/Python daemon-script overrides; no migration is required for backend wire payloads, sidecar discovery metadata, tool schemas, storage, or settings. Direct Python callers should use `local_runtime`, `local_runtime_discovery_file`, and `local_runtime_daemon_script`.
+
 - backend/agent: remove unused tool-call recovery helpers that parsed ids,
   names, raw previews, parse summaries, and history ids from legacy error-string
   surfaces; no migration is required because structured LLM error metadata,

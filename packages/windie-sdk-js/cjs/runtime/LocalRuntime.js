@@ -419,7 +419,7 @@ async function shutdownDiscoveredDaemon(discovery, fetchImpl, WebSocketImpl, tim
 function resolveDaemonScript(options, fs, path) {
     const processLike = globalThis.process;
     const explicit = options.daemonScript
-        ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_SCRIPT;
+        ?? processLike?.env?.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
     if (explicit) {
         return path.resolve(explicit);
     }
@@ -434,7 +434,7 @@ function resolveDaemonScript(options, fs, path) {
     if (found) {
         return found;
     }
-    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoLocalRuntime.daemonScript.');
+    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT or pass autoLocalRuntime.daemonScript.');
 }
 function resolveProcessEnv() {
     const processLike = globalThis.process;

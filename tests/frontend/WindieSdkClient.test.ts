@@ -778,8 +778,12 @@ describe('Agent SDK client behavior', () => {
     expect(sdkCjsSource).not.toContain('this.defaultOptions.autoSidecar');
     expect(localRuntimeSource).toContain('AgentAutoLocalRuntimeOptions');
     expect(localRuntimeSource).not.toContain('AgentAutoSidecarOptions');
+    expect(localRuntimeSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
+    expect(localRuntimeSource).not.toContain('WINDIE_SIDECAR_DAEMON_SCRIPT');
     expect(localRuntimeCjsSource).toContain('autoLocalRuntime.daemonScript');
     expect(localRuntimeCjsSource).not.toContain('autoSidecar.daemonScript');
+    expect(localRuntimeCjsSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
+    expect(localRuntimeCjsSource).not.toContain('WINDIE_SIDECAR_DAEMON_SCRIPT');
   });
 
   test('AgentClient uses env backend URL and install token when constructor options omit them', async () => {

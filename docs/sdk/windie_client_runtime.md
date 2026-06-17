@@ -727,7 +727,9 @@ Non-Electron SDK hosts can override that behavior with:
   and optional `pythonArgs` launcher prefix for the default Node provider.
   Repo-local examples use this to run `scripts/python-in-env sidecar python`
   while leaving daemon discovery, registration, JSON-RPC unwrapping, and
-  shutdown with `AgentClient`.
+  shutdown with `AgentClient`. Node and Python SDK hosts that rely on an
+  environment override use `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`; the older
+  sidecar-named env override is not part of the SDK local-runtime contract.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
   an `AgentLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.
@@ -748,6 +750,9 @@ Non-Electron SDK hosts can override that behavior with:
 and related `Agent*` local-runtime names are the generic SDK contract surface.
 The SDK no longer exposes the historical `Windie*` local-runtime aliases; SDK
 callers should import the `Agent*` local-runtime names directly.
+Python callers use the same boundary names for explicit local executors and
+daemon startup knobs: `local_runtime`, `local_runtime_discovery_file`, and
+`local_runtime_daemon_script`.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `localRuntime`, `localRuntimeDaemon`, or `ensureLocalRuntime` explicitly

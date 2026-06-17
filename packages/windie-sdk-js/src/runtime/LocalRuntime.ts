@@ -599,7 +599,7 @@ function resolveDaemonScript(options: AgentAutoLocalRuntimeOptions, fs: NodeFsLi
     process?: { cwd?: () => string; env?: Record<string, string | undefined> };
   }).process;
   const explicit = options.daemonScript
-    ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_SCRIPT;
+    ?? processLike?.env?.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
   if (explicit) {
     return path.resolve(explicit);
   }
@@ -615,7 +615,7 @@ function resolveDaemonScript(options: AgentAutoLocalRuntimeOptions, fs: NodeFsLi
     return found;
   }
   throw new Error(
-    'Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoLocalRuntime.daemonScript.',
+    'Agent SDK client could not locate the local runtime daemon script. Set WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT or pass autoLocalRuntime.daemonScript.',
   );
 }
 

@@ -69,8 +69,8 @@ def test_python_sdk_discovery_requires_canonical_base_url():
     ) is None
 
 
-def test_python_sdk_default_sidecar_discovery_path_is_generic():
-    assert windie_sdk_module.DEFAULT_SIDECAR_DISCOVERY_FILE == (
+def test_python_sdk_default_local_runtime_discovery_path_is_generic():
+    assert windie_sdk_module.DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE == (
         Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
     )
 
@@ -179,7 +179,7 @@ class DummyWsSession:
         return None
 
 
-class FakeSidecarRuntime:
+class FakeLocalRuntime:
     def __init__(self):
         self.status_calls = 0
         self.module_tools = []
@@ -604,7 +604,7 @@ async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
         auto_start_local_runtime=False,
-        sidecar_discovery_file=str(tmp_path / "missing-sidecar.json"),
+        local_runtime_discovery_file=str(tmp_path / "missing-sidecar.json"),
     )
 
     with pytest.raises(
@@ -627,15 +627,23 @@ def test_python_sdk_local_runtime_errors_use_generic_boundary_wording():
 
     assert "Timed out waiting for local runtime discovery" in source
     assert "Timed out waiting for local sidecar daemon discovery" not in source
+    assert "local_runtime: Any = None" in source
+    assert "local_runtime_discovery_file: Optional[str] = None" in source
+    assert "local_runtime_daemon_script: Optional[str] = None" in source
+    assert "sidecar: Any = None" not in source
+    assert "sidecar_discovery_file" not in source
+    assert "sidecar_daemon_script" not in source
+    assert "WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT" in source
+    assert "WINDIE_SIDECAR_DAEMON_SCRIPT" not in source
 
 
 @pytest.mark.asyncio
 async def test_wake_up_registers_local_tools_plugins_and_mcps():
-    sidecar = FakeSidecarRuntime()
+    local_runtime = FakeLocalRuntime()
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     websocket = FakeWebSocket()
     client._session = DummyWsSession(websocket)
@@ -653,11 +661,11 @@ async def test_wake_up_registers_local_tools_plugins_and_mcps():
         mcps=[{"id": "notes", "command": "fake-mcp"}],
     )
 
-    assert sidecar.status_calls == 1
-    assert sidecar.module_tools[0][0]["name"] == "save_note"
-    assert sidecar.module_tools[0][1] == "/tmp/project"
-    assert sidecar.plugins == [{"path": "/tmp/plugin"}]
-    assert sidecar.mcps == [{"id": "notes", "command": "fake-mcp"}]
+    assert local_runtime.status_calls == 1
+    assert local_runtime.module_tools[0][0]["name"] == "save_note"
+    assert local_runtime.module_tools[0][1] == "/tmp/project"
+    assert local_runtime.plugins == [{"path": "/tmp/plugin"}]
+    assert local_runtime.mcps == [{"id": "notes", "command": "fake-mcp"}]
     assert websocket.sent[0]["agent_definition"]["tools"] == {
         "mode": "default_plus_client",
         "client_manifest": {
@@ -679,13 +687,13 @@ async def test_wake_up_registers_local_tools_plugins_and_mcps():
     assert await client.status() == {"status": "ok"}
     assert (await client.list_tools())["tools"][0]["name"] == "save_note"
     await client.shutdown_local_runtime()
-    assert sidecar.shutdown_calls == 1
-    assert sidecar.close_calls == 1
+    assert local_runtime.shutdown_calls == 1
+    assert local_runtime.close_calls == 1
 
 
 @pytest.mark.asyncio
 async def test_python_agent_session_routes_tool_call_to_sidecar():
-    sidecar = FakeSidecarRuntime()
+    local_runtime = FakeLocalRuntime()
     websocket = FakeWebSocket(
         messages=[
             {
@@ -703,7 +711,7 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     client._session = DummyWsSession(websocket)
     agent = await client.wake_up(
@@ -719,7 +727,7 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
     event = await agent.receive_json()
 
     assert event["type"] == "tool-call"
-    assert sidecar.executions == [
+    assert local_runtime.executions == [
         (
             "save_note",
             {"text": "hello"},
@@ -740,7 +748,7 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
 
 @pytest.mark.asyncio
 async def test_python_agent_session_ignores_camel_case_tool_call_payload():
-    sidecar = FakeSidecarRuntime()
+    local_runtime = FakeLocalRuntime()
     websocket = FakeWebSocket(
         messages=[
             {
@@ -758,7 +766,7 @@ async def test_python_agent_session_ignores_camel_case_tool_call_payload():
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     client._session = DummyWsSession(websocket)
     agent = await client.wake_up(
@@ -774,13 +782,13 @@ async def test_python_agent_session_ignores_camel_case_tool_call_payload():
     event = await agent.receive_json()
 
     assert event["type"] == "tool-call"
-    assert sidecar.executions == []
+    assert local_runtime.executions == []
     assert all(message.get("type") != "tool-result" for message in websocket.sent)
 
 
 @pytest.mark.asyncio
 async def test_python_agent_tool_result_strips_invalid_capture_meta():
-    class PartialCaptureSidecar(FakeSidecarRuntime):
+    class PartialCaptureLocalRuntime(FakeLocalRuntime):
         async def execute_tool(self, *, tool_name, args, **metadata):
             await super().execute_tool(tool_name=tool_name, args=args, **metadata)
             return {
@@ -803,11 +811,11 @@ async def test_python_agent_tool_result_strips_invalid_capture_meta():
             }
         ]
     )
-    sidecar = PartialCaptureSidecar()
+    local_runtime = PartialCaptureLocalRuntime()
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     client._session = DummyWsSession(websocket)
     agent = await client.wake_up(
@@ -861,11 +869,11 @@ async def test_python_agent_stream_and_run_match_high_level_sdk_shape():
             },
         ]
     )
-    sidecar = FakeSidecarRuntime()
+    local_runtime = FakeLocalRuntime()
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     client._session = DummyWsSession(websocket)
     agent = await client.wake_up(
@@ -904,12 +912,12 @@ async def test_python_agent_stream_and_run_match_high_level_sdk_shape():
     assert websocket.sent[1]["payload"]["conversation_ref"] == "conv-python-stream"
     assert websocket.sent[-1]["type"] == "query"
     assert websocket.sent[-1]["payload"]["conversation_ref"] == "conv-python-agent"
-    assert sidecar.executions[0][0] == "save_note"
+    assert local_runtime.executions[0][0] == "save_note"
 
 
 @pytest.mark.asyncio
 async def test_python_agent_session_routes_tool_bundle_to_sidecar():
-    sidecar = FakeSidecarRuntime()
+    local_runtime = FakeLocalRuntime()
     websocket = FakeWebSocket(
         messages=[
             {
@@ -930,7 +938,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     client._session = DummyWsSession(websocket)
     agent = await client.wake_up(
@@ -946,7 +954,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
     event = await agent.receive_json()
 
     assert event["type"] == "tool-bundle"
-    assert sidecar.executions == [
+    assert local_runtime.executions == [
         (
             "save_note",
             {"text": "first"},
@@ -967,7 +975,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
 
 @pytest.mark.asyncio
 async def test_python_agent_session_ignores_camel_case_tool_bundle_payload():
-    sidecar = FakeSidecarRuntime()
+    local_runtime = FakeLocalRuntime()
     websocket = FakeWebSocket(
         messages=[
             {
@@ -988,7 +996,7 @@ async def test_python_agent_session_ignores_camel_case_tool_bundle_payload():
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     client._session = DummyWsSession(websocket)
     agent = await client.wake_up(
@@ -1004,7 +1012,7 @@ async def test_python_agent_session_ignores_camel_case_tool_bundle_payload():
     event = await agent.receive_json()
 
     assert event["type"] == "tool-bundle"
-    assert sidecar.executions == []
+    assert local_runtime.executions == []
     assert all(
         message.get("type") != "tool-bundle-result" for message in websocket.sent
     )
@@ -1012,12 +1020,12 @@ async def test_python_agent_session_ignores_camel_case_tool_bundle_payload():
 
 @pytest.mark.asyncio
 async def test_python_agent_session_uses_sdk_bundle_step_status_contract():
-    class FailingSidecarRuntime(FakeSidecarRuntime):
+    class FailingLocalRuntime(FakeLocalRuntime):
         async def execute_tool(self, *, tool_name, args, **metadata):
             self.executions.append((tool_name, args, metadata))
             return {"success": False, "error": "failed"}
 
-    sidecar = FailingSidecarRuntime()
+    local_runtime = FailingLocalRuntime()
     websocket = FakeWebSocket(
         messages=[
             {
@@ -1038,7 +1046,7 @@ async def test_python_agent_session_uses_sdk_bundle_step_status_contract():
     client = AgentSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        sidecar=sidecar,
+        local_runtime=local_runtime,
     )
     client._session = DummyWsSession(websocket)
     agent = await client.wake_up(

@@ -22,11 +22,11 @@ from windie._auth import get_authenticated_user_id
 from windie._remote_api_client_base import RemoteApiClientBase
 from windie._unicode_sanitizer import sanitize_surrogates
 
-DEFAULT_SIDECAR_DISCOVERY_FILE = (
+DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE = (
     Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
 )
-DEFAULT_SIDECAR_START_TIMEOUT_SECONDS = 10.0
-DEFAULT_SIDECAR_POLL_INTERVAL_SECONDS = 0.1
+DEFAULT_LOCAL_RUNTIME_START_TIMEOUT_SECONDS = 10.0
+DEFAULT_LOCAL_RUNTIME_POLL_INTERVAL_SECONDS = 0.1
 
 
 def _build_error_message(status: int, body_text: str) -> str:
@@ -659,7 +659,7 @@ def _read_daemon_discovery(path: Path) -> Optional[dict[str, str]]:
 def _resolve_daemon_script(explicit: Optional[str] = None) -> Path:
     if _clean_string(explicit):
         return Path(str(explicit)).expanduser().resolve()
-    env_value = _clean_string(os.environ.get("WINDIE_SIDECAR_DAEMON_SCRIPT"))
+    env_value = _clean_string(os.environ.get("WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT"))
     if env_value:
         return Path(env_value).expanduser().resolve()
     return Path(__file__).resolve().parents[1] / "sidecar_daemon.py"
@@ -1084,41 +1084,43 @@ class AgentSdkClient(RemoteApiClientBase):
         *,
         timeout_seconds: int = 60,
         default_user_id: Optional[str] = None,
-        sidecar: Any = None,
+        local_runtime: Any = None,
         auto_start_local_runtime: bool = True,
-        sidecar_discovery_file: Optional[str] = None,
-        sidecar_daemon_script: Optional[str] = None,
+        local_runtime_discovery_file: Optional[str] = None,
+        local_runtime_daemon_script: Optional[str] = None,
         python_command: Optional[str] = None,
     ) -> None:
         super().__init__(backend_url=backend_url, timeout_seconds=timeout_seconds)
         self.default_user_id = default_user_id
-        self.sidecar = sidecar
+        self.local_runtime = local_runtime
         self.auto_start_local_runtime = auto_start_local_runtime
-        self.sidecar_discovery_file = (
-            Path(sidecar_discovery_file).expanduser()
-            if sidecar_discovery_file
-            else DEFAULT_SIDECAR_DISCOVERY_FILE
+        self.local_runtime_discovery_file = (
+            Path(local_runtime_discovery_file).expanduser()
+            if local_runtime_discovery_file
+            else DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE
         )
-        self.sidecar_daemon_script = sidecar_daemon_script
+        self.local_runtime_daemon_script = local_runtime_daemon_script
         self.python_command = (
             python_command or os.environ.get("WINDIE_PYTHON") or "python3"
         )
-        self._owned_sidecar_process: asyncio.subprocess.Process | None = None
+        self._owned_local_runtime_process: asyncio.subprocess.Process | None = None
 
     async def close(self) -> None:
         await super().close()
-        if isinstance(self.sidecar, AgentLocalRuntimeHttpClient):
-            await self.sidecar.close()
+        if isinstance(self.local_runtime, AgentLocalRuntimeHttpClient):
+            await self.local_runtime.close()
         if (
-            self._owned_sidecar_process
-            and self._owned_sidecar_process.returncode is None
+            self._owned_local_runtime_process
+            and self._owned_local_runtime_process.returncode is None
         ):
-            self._owned_sidecar_process.terminate()
+            self._owned_local_runtime_process.terminate()
             try:
-                await asyncio.wait_for(self._owned_sidecar_process.wait(), timeout=2)
+                await asyncio.wait_for(
+                    self._owned_local_runtime_process.wait(), timeout=2
+                )
             except asyncio.TimeoutError:
-                self._owned_sidecar_process.kill()
-        self._owned_sidecar_process = None
+                self._owned_local_runtime_process.kill()
+        self._owned_local_runtime_process = None
 
     async def request_json(
         self,
@@ -1414,13 +1416,13 @@ class AgentSdkClient(RemoteApiClientBase):
         close = getattr(local_runtime, "close", None)
         if callable(close):
             await close()
-        self.sidecar = None
+        self.local_runtime = None
         if (
-            self._owned_sidecar_process
-            and self._owned_sidecar_process.returncode is None
+            self._owned_local_runtime_process
+            and self._owned_local_runtime_process.returncode is None
         ):
-            self._owned_sidecar_process.terminate()
-        self._owned_sidecar_process = None
+            self._owned_local_runtime_process.terminate()
+        self._owned_local_runtime_process = None
 
     async def wake_up(
         self,
@@ -1573,44 +1575,45 @@ class AgentSdkClient(RemoteApiClientBase):
         return manifest_tools
 
     async def _ensure_local_runtime(self) -> Any:
-        if self.sidecar is not None:
-            return self.sidecar
-        discovered = await self._probe_discovered_sidecar()
+        if self.local_runtime is not None:
+            return self.local_runtime
+        discovered = await self._probe_discovered_local_runtime()
         if discovered is not None:
-            self.sidecar = discovered
+            self.local_runtime = discovered
             return discovered
         if not self.auto_start_local_runtime:
             raise Exception(
                 "Agent SDK local runtime is required but auto-start is disabled"
             )
-        self.sidecar_discovery_file.parent.mkdir(parents=True, exist_ok=True)
-        daemon_script = _resolve_daemon_script(self.sidecar_daemon_script)
-        self._owned_sidecar_process = await asyncio.create_subprocess_exec(
+        self.local_runtime_discovery_file.parent.mkdir(parents=True, exist_ok=True)
+        daemon_script = _resolve_daemon_script(self.local_runtime_daemon_script)
+        self._owned_local_runtime_process = await asyncio.create_subprocess_exec(
             self.python_command,
             str(daemon_script),
             "--discovery-file",
-            str(self.sidecar_discovery_file),
+            str(self.local_runtime_discovery_file),
             stdin=asyncio.subprocess.DEVNULL,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.DEVNULL,
         )
-        deadline = time.monotonic() + DEFAULT_SIDECAR_START_TIMEOUT_SECONDS
+        deadline = time.monotonic() + DEFAULT_LOCAL_RUNTIME_START_TIMEOUT_SECONDS
         while time.monotonic() < deadline:
-            discovered = await self._probe_discovered_sidecar()
+            discovered = await self._probe_discovered_local_runtime()
             if discovered is not None:
-                self.sidecar = discovered
+                self.local_runtime = discovered
                 return discovered
-            await asyncio.sleep(DEFAULT_SIDECAR_POLL_INTERVAL_SECONDS)
-        if self._owned_sidecar_process.returncode is None:
-            self._owned_sidecar_process.terminate()
+            await asyncio.sleep(DEFAULT_LOCAL_RUNTIME_POLL_INTERVAL_SECONDS)
+        if self._owned_local_runtime_process.returncode is None:
+            self._owned_local_runtime_process.terminate()
         raise Exception(
-            f"Timed out waiting for local runtime discovery at {self.sidecar_discovery_file}"
+            "Timed out waiting for local runtime discovery at "
+            f"{self.local_runtime_discovery_file}"
         )
 
-    async def _probe_discovered_sidecar(
+    async def _probe_discovered_local_runtime(
         self,
     ) -> Optional[AgentLocalRuntimeHttpClient]:
-        discovery = _read_daemon_discovery(self.sidecar_discovery_file)
+        discovery = _read_daemon_discovery(self.local_runtime_discovery_file)
         if not discovery:
             return None
         client = AgentLocalRuntimeHttpClient(
@@ -1627,11 +1630,11 @@ class AgentSdkClient(RemoteApiClientBase):
             return None
 
     async def _resolve_known_local_runtime(self) -> Any:
-        if self.sidecar is not None:
-            return self.sidecar
-        discovered = await self._probe_discovered_sidecar()
+        if self.local_runtime is not None:
+            return self.local_runtime
+        discovered = await self._probe_discovered_local_runtime()
         if discovered is not None:
-            self.sidecar = discovered
+            self.local_runtime = discovered
             return discovered
         return None
 
