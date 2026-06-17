@@ -19,8 +19,11 @@ aiohttp = ensure_aiohttp_with_stubs()
 ensure_frontend_python_path()
 
 from core import windie_sdk_client as windie_sdk_client_module  # noqa: E402
-from core import WindieSdkClient as ExportedWindieSdkClient  # noqa: E402
-from core.windie_sdk_client import WindieSdkClient  # noqa: E402
+from core import (  # noqa: E402
+    AgentSdkClient as ExportedAgentSdkClient,
+    WindieSdkClient as ExportedWindieSdkClient,
+)
+from core.windie_sdk_client import AgentSdkClient, WindieSdkClient  # noqa: E402
 from windie import sdk as windie_sdk_module  # noqa: E402
 
 
@@ -1084,4 +1087,6 @@ async def test_initialize_creates_single_session_and_close_resets(monkeypatch):
 
 
 def test_core_package_exports_windie_sdk_client():
+    assert ExportedAgentSdkClient is AgentSdkClient
     assert ExportedWindieSdkClient is WindieSdkClient
+    assert WindieSdkClient is AgentSdkClient

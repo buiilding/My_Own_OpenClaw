@@ -112,7 +112,7 @@ Compatibility path: `frontend/src/main/python/core/windie_sdk_client.py`
 The distribution name is `windie-sdk`; the import package is `windie`.
 
 The Python client mirrors hosted backend route access for sidecar/developer
-tooling. Agent sessions use `WindieSdkClient.wake_up(...)`, which builds the
+tooling. Agent sessions use `AgentSdkClient.wake_up(...)`, which builds the
 low-level `agent_definition` from first-class arguments before connecting to the
 hosted backend websocket.
 

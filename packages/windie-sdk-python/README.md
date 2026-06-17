@@ -5,9 +5,9 @@ Python SDK boundary for waking Windie agents from external clients.
 The package installs as `windie-sdk` and imports as `windie`.
 
 ```python
-from windie import WindieSdkClient
+from windie import AgentSdkClient
 
-client = WindieSdkClient(
+client = AgentSdkClient(
     backend_url="https://api.windieos.com",
     default_user_id="dev-user",
 )

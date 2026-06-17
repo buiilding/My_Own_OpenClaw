@@ -665,7 +665,7 @@ def _resolve_daemon_script(explicit: Optional[str] = None) -> Path:
     return Path(__file__).resolve().parents[1] / "sidecar_daemon.py"
 
 
-class WindieSdkAgentSession:
+class AgentSdkAgentSession:
     """Minimal websocket session wrapper for the backend `/ws` channel."""
 
     def __init__(
@@ -1073,7 +1073,7 @@ class WindieSdkAgentSession:
         )
 
 
-class WindieSdkClient(RemoteApiClientBase):
+class AgentSdkClient(RemoteApiClientBase):
     """Python transport wrapper over `/api/artifacts/*`, `/api/sdk/*`, and `/ws`."""
 
     _aiohttp = aiohttp
@@ -1436,7 +1436,7 @@ class WindieSdkClient(RemoteApiClientBase):
         plugins: Optional[list[dict[str, Any]]] = None,
         agent_id: Optional[str] = None,
         name: Optional[str] = None,
-    ) -> WindieSdkAgentSession:
+    ) -> AgentSdkAgentSession:
         local_runtime = await self._prepare_local_runtime(
             tools=tools or [],
             plugins=plugins or [],
@@ -1472,7 +1472,7 @@ class WindieSdkClient(RemoteApiClientBase):
         user_id: Optional[str] = None,
         agent_definition: Optional[dict[str, Any]] = None,
         local_runtime: Any = None,
-    ) -> WindieSdkAgentSession:
+    ) -> AgentSdkAgentSession:
         if not self._session:
             await self.initialize()
 
@@ -1497,7 +1497,7 @@ class WindieSdkClient(RemoteApiClientBase):
                     headers=self._build_auth_headers(),
                     timeout=self.timeout_seconds,
                 )
-                session = WindieSdkAgentSession(
+                session = AgentSdkAgentSession(
                     websocket=websocket,
                     user_id=effective_user_id.strip(),
                     operating_system=_detect_operating_system(),
@@ -1692,3 +1692,7 @@ class WindieSdkClient(RemoteApiClientBase):
             ) from err
         finally:
             await session.close()
+
+
+WindieSdkAgentSession = AgentSdkAgentSession
+WindieSdkClient = AgentSdkClient

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python SDK exports AgentSdkClient
+
+- Finding: Python hosted-agent SDK docs and exports still exposed
+  `WindieSdkClient` as the only public client name, even though the implementation
+  copy and generated identity had already moved toward generic Agent SDK wording.
+- Change: added canonical `AgentSdkClient` and `AgentSdkAgentSession` exports,
+  kept `WindieSdkClient` / `WindieSdkAgentSession` as compatibility aliases,
+  updated package/core exports, README snippets, and current Python SDK docs.
+- Validation: Python syntax compile, targeted sidecar SDK/package tests, source
+  scan, and diff check. A broader `bin windie test sidecar -- ...` attempt
+  ignored the file narrowing and ran unrelated Windows/path-sensitive sidecar
+  tests that still fail in this workspace.
+- Compatibility: no migration required. Existing Windie-prefixed Python SDK
+  imports continue to resolve to the same classes.
+
 ### 2026-06-17 SDK runtime modules use Agent filenames
 
 - Finding: after `AgentClient`, `Agent`, and `AgentChatSession` became
