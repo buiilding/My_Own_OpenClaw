@@ -25,13 +25,11 @@ import {
   createAgentLocalRuntimeProvider,
   createAgentSession,
   ManagedAgentSession,
-  ManagedWindieAgentSession,
   createConversationRuntime,
   createManagedAgentSession,
   createWindieLocalRuntimeProvider,
   createWindieAgentBackendTransport,
   createWindieAgentSession,
-  createManagedWindieAgentSession,
   moduleTool,
   resolveModelFacingToolCallId,
   resolveToolCallCorrelationId,
@@ -97,8 +95,8 @@ describe('@windie/sdk package boundary', () => {
     expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
     expect(createWindieAgentSession).toBe(createAgentSession);
     expect(createWindieAgentBackendTransport).toBe(createAgentBackendTransport);
-    expect(ManagedWindieAgentSession).toBe(ManagedAgentSession);
-    expect(createManagedWindieAgentSession).toBe(createManagedAgentSession);
+    expect(ManagedAgentSession).toBeDefined();
+    expect(createManagedAgentSession).toBeDefined();
     expect(WindieAgentSession).toBe(AgentSession);
     expect(WindieChatSession).toBe(AgentChatSession);
     expect(createWindieLocalRuntimeProvider).toBe(createAgentLocalRuntimeProvider);

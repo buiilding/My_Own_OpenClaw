@@ -17,7 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = void 0;
+exports.WindieAgentSession = exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.createAgentSession = exports.createAgentBackendTransport = exports.AgentSession = exports.createWindieLocalRuntimeProvider = exports.WindieClient = exports.WindieAgent = exports.WindieChatSession = void 0;
 __exportStar(require("./conversation/types.js"), exports);
 __exportStar(require("./conversation/events.js"), exports);
 __exportStar(require("./conversation/metadata.js"), exports);
@@ -52,9 +52,6 @@ __exportStar(require("./transport/BackendSocketFactory.js"), exports);
 __exportStar(require("./transport/HostedBackendHttpClient.js"), exports);
 __exportStar(require("./transport/ManagedBackendSession.js"), exports);
 __exportStar(require("./transport/ManagedAgentSession.js"), exports);
-var ManagedWindieAgentSession_js_1 = require("./transport/ManagedWindieAgentSession.js");
-Object.defineProperty(exports, "ManagedWindieAgentSession", { enumerable: true, get: function () { return ManagedWindieAgentSession_js_1.ManagedWindieAgentSession; } });
-Object.defineProperty(exports, "createManagedWindieAgentSession", { enumerable: true, get: function () { return ManagedWindieAgentSession_js_1.createManagedWindieAgentSession; } });
 __exportStar(require("./tools/ToolExecutionCoordinator.js"), exports);
 __exportStar(require("./tools/toolCorrelationIds.js"), exports);
 __exportStar(require("./tools/builtins.js"), exports);

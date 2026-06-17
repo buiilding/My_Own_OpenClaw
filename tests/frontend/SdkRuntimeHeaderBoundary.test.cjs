@@ -7,7 +7,6 @@ const SDK_RUNTIME_HEADER_FILES = [
   'packages/windie-sdk-js/src/transport/AgentSession.ts',
   'packages/windie-sdk-js/src/transport/WindieAgentSession.ts',
   'packages/windie-sdk-js/src/transport/ManagedAgentSession.ts',
-  'packages/windie-sdk-js/src/transport/ManagedWindieAgentSession.ts',
   'packages/windie-sdk-js/src/runtime/Agent.ts',
   'packages/windie-sdk-js/src/runtime/AgentChatSession.ts',
   'packages/windie-sdk-js/src/runtime/AgentClient.ts',

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK managed session wrapper deletion
+
+- Finding: the SDK still exposed `ManagedWindieAgentSession` as a
+  compatibility module and root export after `ManagedAgentSession` became the
+  canonical managed hosted-session contract.
+- Change: deleted the Windie-prefixed managed-session module, removed the root
+  compatibility exports and type aliases, updated SDK docs and header
+  fixtures, and switched package-boundary tests to the generic managed-session
+  names with removed-wrapper coverage.
+- Validation: focused SDK package-boundary, private-export, and runtime-header
+  Jest tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. TypeScript SDK
+  callers must use `ManagedAgentSession`, `createManagedAgentSession`, and
+  `ManagedAgent*` types directly.
+
 ### 2026-06-17 SDK backend socket factory wrapper deletion
 
 - Finding: the SDK still exposed `WindieBackendSocketFactory` and root

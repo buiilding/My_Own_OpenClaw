@@ -80,9 +80,7 @@ For advanced hosts that need the lower transport directly, the SDK exposes
 generic agent-session contracts such as `AgentSessionRuntime`,
 `createAgentSession`, `createAgentBackendTransport`,
 `ManagedAgentSession`, and `createManagedAgentSession`. `AgentSession` and
-`ManagedAgentSession` are the canonical hosted-session modules;
-`WindieAgentSession` and `ManagedWindieAgentSession` remain compatibility
-modules for existing Windie-prefixed callers. New app-builder code should
+`ManagedAgentSession` are the canonical hosted-session modules. New app-builder code should
 prefer the generic names because the hosted websocket transport is an SDK agent
 runtime concern rather than WindieOS renderer skin state.
 
