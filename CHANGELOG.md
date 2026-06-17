@@ -78,6 +78,8 @@ All notable changes to WindieOS will be documented in this file.
   wiring imports OCR providers and service classes from concrete modules.
 - backend/core: remove the unused inference package export so routers and
   provider errors are imported from concrete inference modules.
+- backend/embeddings: remove the unused embedding provider package export so
+  provider selection imports concrete embedding provider modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

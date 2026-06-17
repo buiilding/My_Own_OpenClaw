@@ -162,7 +162,7 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
                 config.embedding_api_key_env,
             )
             return None
-        from backend.src.embeddings import OpenAIEmbeddingProvider
+        from backend.src.embeddings.openai_provider import OpenAIEmbeddingProvider
 
         provider = OpenAIEmbeddingProvider(
             api_key=api_key,

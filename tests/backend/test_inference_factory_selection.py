@@ -8,9 +8,10 @@ from backend.src.core.container.factories import (
     _create_vision_provider,
     _create_vision_service,
 )
+from backend.src.embeddings.openai_provider import OpenAIEmbeddingProvider
+from backend.src.embeddings.remote_provider import RemoteHttpEmbeddingProvider
 from backend.src.services.ocr.remote_provider import RemoteHttpOcrProvider
 from backend.src.services.vision import RemoteHttpVisionProvider
-from backend.src.embeddings import OpenAIEmbeddingProvider, RemoteHttpEmbeddingProvider
 
 
 def test_create_embedder_returns_remote_http_provider() -> None:

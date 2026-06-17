@@ -29,7 +29,6 @@ concrete modules directly.
 - `backend/src/core/events/__init__.py`
 - `backend/src/core/infrastructure/__init__.py`
 - `backend/src/core/security/__init__.py`
-- `backend/src/embeddings/__init__.py`
 - `backend/src/llm/__init__.py`
 - `backend/src/llm/models/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
@@ -143,6 +142,11 @@ docstring or compatibility path.
   `backend.src.core.inference.ocr_router`,
   `backend.src.core.inference.vision_router`, and
   `backend.src.core.inference.errors`.
+- `backend/src/embeddings/__init__.py` is intentionally absent; import
+  embedding providers from concrete modules such as
+  `backend.src.embeddings.openai_provider`,
+  `backend.src.embeddings.remote_provider`, and
+  `backend.src.embeddings.limited_provider`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.
