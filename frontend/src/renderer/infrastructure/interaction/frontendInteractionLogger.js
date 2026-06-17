@@ -10,11 +10,11 @@ const INTERACTION_SCHEMA_VERSION = 1;
 
 let installedCleanup = null;
 
-function isWindowFlagEnabled(name, legacyName) {
+function isWindowFlagEnabled(name) {
   if (typeof window === 'undefined') {
     return false;
   }
-  return window[name] === true || (legacyName && window[legacyName] === true);
+  return window[name] === true;
 }
 
 function normalizeText(value) {
@@ -141,10 +141,7 @@ function describeInteractionTarget(target) {
 }
 
 function isExplicitMessageTextDiagnosticEnabled() {
-  if (isWindowFlagEnabled(
-    '__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__',
-    '__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__',
-  )) {
+  if (isWindowFlagEnabled('__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__')) {
     return true;
   }
   if (typeof window === 'undefined') {
@@ -224,10 +221,7 @@ function formatFrontendInteractionSummary(entry = {}) {
 
 function logFrontendInteraction(action, details = {}) {
   const payload = createFrontendInteractionEntry(action, details);
-  if (isWindowFlagEnabled(
-    '__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__',
-    '__WINDIE_DEBUG_SURFACE_STDOUT__',
-  )) {
+  if (isWindowFlagEnabled('__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__')) {
     console.log(`[FrontendInteraction] ${formatFrontendInteractionSummary(payload)}`);
   }
   try {

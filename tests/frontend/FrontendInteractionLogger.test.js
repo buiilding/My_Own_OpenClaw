@@ -34,8 +34,6 @@ describe('frontendInteractionLogger', () => {
     cleanup = null;
     delete window.__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
     delete window.__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__;
-    delete window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
-    delete window.__WINDIE_DEBUG_SURFACE_STDOUT__;
     consoleSpy?.mockRestore();
   });
 
@@ -153,7 +151,7 @@ describe('frontendInteractionLogger', () => {
     }));
   });
 
-  test('accepts legacy interaction message-text diagnostic flag', () => {
+  test('ignores removed interaction message-text diagnostic flag', () => {
     window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ = true;
 
     logUserSentMessage({
@@ -166,10 +164,12 @@ describe('frontendInteractionLogger', () => {
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
       source: 'frontend-interaction',
       entry: expect.objectContaining({
-        messageText: 'show this message in logs',
-        messageTextRedacted: false,
+        messageText: '[redacted]',
+        messageTextRedacted: true,
       }),
     }));
+
+    delete window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
   });
 
   test('prints compact frontend interaction summaries only when debug stdout is enabled', () => {
@@ -187,7 +187,7 @@ describe('frontendInteractionLogger', () => {
     );
   });
 
-  test('accepts legacy debug stdout diagnostic flag', () => {
+  test('ignores removed debug stdout diagnostic flag', () => {
     window.__WINDIE_DEBUG_SURFACE_STDOUT__ = true;
 
     logUserSentMessage({
@@ -197,9 +197,9 @@ describe('frontendInteractionLogger', () => {
       textLength: 27,
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[FrontendInteraction] action=message_sent event=send-message view=main label="-" target=-',
-    );
+    expect(consoleSpy).not.toHaveBeenCalled();
+
+    delete window.__WINDIE_DEBUG_SURFACE_STDOUT__;
   });
 
   test('feature code does not write ad hoc frontend interaction logs', () => {

@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Renderer interaction debug flag alias deletion
+
+- Finding: the renderer interaction logger still read legacy `__WINDIE_*`
+  window debug flags after the generic `__DESKTOP_AGENT_*` flags became the
+  canonical browser-only diagnostics.
+- Change: removed legacy flag reads, updated interaction logger tests to assert
+  the old flags are ignored, and updated logging docs.
+- Validation: focused frontend interaction logger Jest test, docs listing,
+  stale flag scan, and diff check.
+- Compatibility: no migration required for first-party code. Browser debug
+  snippets must use `__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__`
+  and `__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__`.
+
 ### 2026-06-17 Local runtime status payload field
 
 - Finding: Electron main built local runtime status payloads from a
