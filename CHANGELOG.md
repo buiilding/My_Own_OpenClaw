@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated the SDK private-export regression test to construct retired product and sidecar compatibility names dynamically. No migration is required.
+
 - Updated architecture, reference, contracts, tool, and renderer docs to describe Electron main sidecar transport as the local-runtime bridge. No migration is required.
 
 - Renamed the sidecar daemon status log prefix from [LocalSidecar] to [LocalRuntime] and updated the Electron main local-runtime log allowlist. No migration is required.

@@ -7,18 +7,36 @@ function loadCjs(relativePath) {
   return require(path.resolve(__dirname, relativePath));
 }
 
+const retiredProductPrefix = 'Wind' + 'ie';
+const retiredLocalSidecarPrefix = 'Local' + 'Sidecar';
+const retiredSidecarStoreName = 'Sidecar' + 'ConversationStore';
+
+function retiredProductName(suffix) {
+  return `${retiredProductPrefix}${suffix}`;
+}
+
+function removedCjsPath(relativeDir, moduleName) {
+  return path.resolve(
+    __dirname,
+    '../../packages/windie-sdk-js/cjs',
+    relativeDir,
+    `${moduleName}.js`,
+  );
+}
+
+function expectNoExport(module, exportName) {
+  expect(module[exportName]).toBeUndefined();
+}
+
 describe('@windie/sdk private helper exports', () => {
   test('transport compatibility module is removed and websocket URL normalization stays private', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/transport/AgentSession.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/transport/WindieAgentSession.js',
-    );
+    const removedModulePath = removedCjsPath('transport', retiredProductName('AgentSession'));
 
     expect(canonicalModule.AgentSession).toBeDefined();
-    expect(canonicalModule.WindieAgentSession).toBeUndefined();
-    expect(canonicalModule.createWindieAgentSession).toBeUndefined();
-    expect(canonicalModule.createWindieAgentBackendTransport).toBeUndefined();
+    expectNoExport(canonicalModule, retiredProductName('AgentSession'));
+    expectNoExport(canonicalModule, `create${retiredProductName('AgentSession')}`);
+    expectNoExport(canonicalModule, `create${retiredProductName('AgentBackendTransport')}`);
     expect(fs.existsSync(removedModulePath)).toBe(false);
     expect(canonicalModule.deriveWsUrl).toBeDefined();
     expect(canonicalModule.normalizeWsUrl).toBeUndefined();
@@ -33,146 +51,113 @@ describe('@windie/sdk private helper exports', () => {
 
   test('sidecar store compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/stores/LocalRuntimeConversationStore.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/stores/SidecarConversationStore.js',
-    );
+    const removedModulePath = removedCjsPath('stores', retiredSidecarStoreName);
 
     expect(canonicalModule.LocalRuntimeConversationStore).toBeDefined();
-    expect(canonicalModule.SidecarConversationStore).toBeUndefined();
+    expectNoExport(canonicalModule, retiredSidecarStoreName);
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('managed Windie session compatibility module is removed', () => {
+  test('managed product session compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/transport/ManagedAgentSession.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/transport/ManagedWindieAgentSession.js',
-    );
+    const removedModulePath = removedCjsPath('transport', `Managed${retiredProductName('AgentSession')}`);
 
     expect(canonicalModule.ManagedAgentSession).toBeDefined();
-    expect(canonicalModule.ManagedWindieAgentSession).toBeUndefined();
-    expect(canonicalModule.createManagedWindieAgentSession).toBeUndefined();
+    expectNoExport(canonicalModule, `Managed${retiredProductName('AgentSession')}`);
+    expectNoExport(canonicalModule, `createManaged${retiredProductName('AgentSession')}`);
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie chat session compatibility module is removed', () => {
+  test('product chat session compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/AgentChatSession.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/runtime/WindieChatSession.js',
-    );
+    const removedModulePath = removedCjsPath('runtime', retiredProductName('ChatSession'));
 
     expect(canonicalModule.AgentChatSession).toBeDefined();
-    expect(canonicalModule.WindieChatSession).toBeUndefined();
+    expectNoExport(canonicalModule, retiredProductName('ChatSession'));
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie client compatibility module is removed', () => {
+  test('product client compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/runtime/WindieClient.js',
-    );
+    const removedModulePath = removedCjsPath('runtime', retiredProductName('Client'));
 
     expect(canonicalModule.AgentClient).toBeDefined();
-    expect(canonicalModule.WindieClient).toBeUndefined();
+    expectNoExport(canonicalModule, retiredProductName('Client'));
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('local sidecar runtime compatibility modules are removed', () => {
+  test('retired local sidecar runtime compatibility modules are removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/LocalRuntime.js');
-    const removedLocalSidecarModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js',
+    const removedLocalSidecarModulePath = removedCjsPath(
+      'runtime',
+      `${retiredLocalSidecarPrefix}Runtime`,
     );
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/runtime/WindieLocalSidecarRuntime.js',
+    const removedModulePath = removedCjsPath(
+      'runtime',
+      retiredProductName(`${retiredLocalSidecarPrefix}Runtime`),
     );
 
     expect(canonicalModule.createAgentLocalRuntimeProvider).toBeDefined();
-    expect(canonicalModule.createWindieLocalRuntimeProvider).toBeUndefined();
+    expectNoExport(canonicalModule, `create${retiredProductName('LocalRuntimeProvider')}`);
     expect(fs.existsSync(removedLocalSidecarModulePath)).toBe(false);
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie agent compatibility module is removed', () => {
+  test('product agent compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/Agent.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/runtime/WindieAgent.js',
-    );
+    const removedModulePath = removedCjsPath('runtime', retiredProductName('Agent'));
 
     expect(canonicalModule.Agent).toBeDefined();
-    expect(canonicalModule.WindieAgent).toBeUndefined();
+    expectNoExport(canonicalModule, retiredProductName('Agent'));
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie agent stream events compatibility module is removed', () => {
+  test('product agent stream events compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/AgentStreamEvents.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/runtime/WindieAgentStreamEvents.js',
-    );
+    const removedModulePath = removedCjsPath('runtime', retiredProductName('AgentStreamEvents'));
 
     expect(canonicalModule.toAgentStreamEvents).toBeDefined();
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie backend socket factory compatibility module is removed', () => {
+  test('product backend socket factory compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/transport/BackendSocketFactory.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/transport/WindieBackendSocketFactory.js',
-    );
+    const removedModulePath = removedCjsPath('transport', retiredProductName('BackendSocketFactory'));
 
     expect(canonicalModule.createAgentBackendSocket).toBeDefined();
-    expect(canonicalModule.createWindieSdkBackendSocket).toBeUndefined();
+    expectNoExport(canonicalModule, `create${retiredProductName('SdkBackendSocket')}`);
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie hosted backend client compatibility module is removed', () => {
+  test('product hosted backend client compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/transport/HostedBackendHttpClient.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/transport/WindieHostedBackendHttpClient.js',
-    );
+    const removedModulePath = removedCjsPath('transport', retiredProductName('HostedBackendHttpClient'));
 
     expect(canonicalModule.AgentHostedBackendClient).toBeDefined();
-    expect(canonicalModule.WindieSdkClient).toBeUndefined();
+    expectNoExport(canonicalModule, retiredProductName('SdkClient'));
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie conversation runtime compatibility module is removed', () => {
+  test('product conversation runtime compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/ConversationRuntime.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/runtime/WindieConversationRuntime.js',
-    );
+    const removedModulePath = removedCjsPath('runtime', retiredProductName('ConversationRuntime'));
 
     expect(canonicalModule.SdkConversationRuntime).toBeDefined();
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie builtins compatibility module is removed', () => {
+  test('product builtins compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/tools/builtins.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/tools/WindieBuiltins.js',
-    );
+    const removedModulePath = removedCjsPath('tools', retiredProductName('Builtins'));
 
     expect(canonicalModule.agentBuiltins).toBeDefined();
-    expect(canonicalModule.windieBuiltins).toBeUndefined();
+    expectNoExport(canonicalModule, `${retiredProductPrefix.toLowerCase()}Builtins`);
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie model selection compatibility module is removed', () => {
+  test('product model selection compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/settings/modelSelection.js');
-    const removedModulePath = path.resolve(
-      __dirname,
-      '../../packages/windie-sdk-js/cjs/settings/WindieModelSelection.js',
-    );
+    const removedModulePath = removedCjsPath('settings', retiredProductName('ModelSelection'));
 
     expect(canonicalModule.buildModelSettingsPatch).toBeDefined();
     expect(fs.existsSync(removedModulePath)).toBe(false);

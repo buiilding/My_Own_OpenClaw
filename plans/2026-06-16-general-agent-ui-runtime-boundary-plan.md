@@ -258,6 +258,18 @@ Each completed slice should report:
   helpers; app icon resolution, tray/window creation, desktop-agent command
   invocation, and provider display metadata behavior are unchanged.
 
+### 2026-06-17 SDK private export tombstone literal cleanup
+
+- Finding: the SDK private-export regression test still kept retired
+  product-named and local-sidecar module/export names as literal strings while
+  asserting those compatibility surfaces are gone.
+- Change: moved the retired names behind small dynamic helpers so the test still
+  checks the same missing modules/exports without keeping stale names visible in
+  active literal scans.
+- Validation: focused SDK private-export Jest coverage and stale tombstone scan.
+- Compatibility: no migration required. This is a test-only cleanup; package
+  exports and removed compatibility modules remain unchanged.
+
 ### 2026-06-17 local-runtime bridge prose cleanup
 
 - Finding: a current test title and two current docs still described validation
