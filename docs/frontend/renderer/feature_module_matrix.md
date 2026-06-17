@@ -77,7 +77,7 @@ Path:
 
 Current role:
 
-- settings management hook + backend-driven model list/event integration
+- settings management hook + runtime-driven model list/event integration
 
 Core hook:
 
