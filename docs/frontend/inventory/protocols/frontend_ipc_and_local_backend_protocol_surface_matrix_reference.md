@@ -3,7 +3,7 @@ summary: "Canonical frontend protocol matrix: preload allowlisted channels, main
 read_when:
   - When adding/changing renderer `window.ipc` channels.
   - When updating main-process local-runtime bridge methods, parameter mapping, or timeout policies.
-title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
+title: "Frontend IPC and Local Runtime Protocol Surface Matrix Reference"
 ---
 
 # Frontend IPC and Local-Runtime Protocol Surface Matrix Reference
@@ -17,7 +17,8 @@ title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
 
 ## Scope and Sources
 
-This page maps protocol surfaces across renderer, Electron main, and Python local backend:
+This page maps protocol surfaces across renderer, Electron main, and the Python
+sidecar local runtime:
 
 - Shared preload/main channel registry: `frontend/src/shared/ipcChannels.json`
 - Preload allowlist boundary: `frontend/src/preload.js`

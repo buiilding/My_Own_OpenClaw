@@ -1,8 +1,8 @@
 ---
-summary: "Frontend inventory protocol sub-hub for renderer/main IPC channels, local-backend JSON-RPC method mappings, and cross-process control-path ownership boundaries."
+summary: "Frontend inventory protocol sub-hub for renderer/main IPC channels, local-runtime JSON-RPC method mappings, and cross-process control-path ownership boundaries."
 read_when:
   - When changing preload allowlists, IPC handler ownership, or renderer channel constants.
-  - When changing Electron main to sidecar JSON-RPC method maps, request timeout/readiness behavior, or main-to-renderer control-path gating.
+  - When changing Electron main local-runtime JSON-RPC method maps, request timeout/readiness behavior, or main-to-renderer control-path gating.
 title: "Frontend Inventory Protocols Hub"
 ---
 
@@ -10,7 +10,7 @@ title: "Frontend Inventory Protocols Hub"
 
 ## Deep Pages
 
-- [Frontend IPC and Local-Backend Protocol Surface Matrix Reference](frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md)
+- [Frontend IPC and Local Runtime Protocol Surface Matrix Reference](frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md)
 - [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Frontend Protocol State Hub](state/README.md)
 - [Frontend Protocol Observability Hub](observability/README.md)

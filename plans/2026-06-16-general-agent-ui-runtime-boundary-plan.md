@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 protocol surface matrix local-runtime title cleanup
+
+- Finding: frontend inventory protocol hubs still surfaced the local-runtime
+  protocol matrix with local-backend link/title wording even though the matrix
+  content already maps Electron main through `local_runtime_bridge.cjs`.
+- Change: updated the visible matrix title, hub summaries, read_when guidance,
+  and related link labels to say local-runtime while leaving the historical file
+  path and Python `LocalBackend` implementation references unchanged.
+- Validation: docs listing, focused stale visible local-backend protocol title
+  scan, and diff check.
+- Compatibility: no migration required. This is documentation metadata and link
+  text only; IPC channels, JSON-RPC mappings, SDK local-runtime routing, and
+  sidecar implementation names are unchanged.
+
 ### 2026-06-17 local-runtime daemon log filter cleanup
 
 - Finding: Electron main still forwarded `[LocalBackend]` stderr as an allowed
