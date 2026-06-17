@@ -7,8 +7,10 @@ const path = require('path');
 
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
+const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
+const configStoragePath = path.join(rendererRoot, 'utils/configStorage.js');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(settingsRoot, relativePath), 'utf8');
@@ -104,5 +106,21 @@ describe('renderer skin/config boundary', () => {
     expect(source).toContain('formatToolAcceptanceRuntimeSummary');
     expect(source).not.toContain("execution_target || 'sidecar'");
     expect(source).not.toContain("acceptedTool.execution_target || 'sidecar'");
+  });
+
+  test('provider credential defaults live in renderer skin config', () => {
+    const providerSkinSource = fs.readFileSync(providerCredentialSettingsPath, 'utf8');
+    const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
+    const apiKeysSource = fs.readFileSync(
+      path.join(dashboardSectionsRoot, 'providerApiKeys.js'),
+      'utf8',
+    );
+
+    expect(providerSkinSource).toContain('DEFAULT_PROVIDER_API_KEYS');
+    expect(providerSkinSource).toContain('PROVIDER_API_KEY_SPECS');
+    expect(configStorageSource).toContain('providerCredentialSettings');
+    expect(apiKeysSource).toContain('providerCredentialSettings');
+    expect(configStorageSource).not.toContain('openai: { enabled: false');
+    expect(apiKeysSource).not.toContain('OpenAI API Key');
   });
 });

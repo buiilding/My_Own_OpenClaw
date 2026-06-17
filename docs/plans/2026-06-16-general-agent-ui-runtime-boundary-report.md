@@ -518,6 +518,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: updated browser launcher logs/errors/docstrings and Browser Use
   adapter docstrings to dedicated-browser wording without renaming the existing
   helper functions or environment variables.
+- Finding: renderer config storage and the models API-key section each carried
+  their own provider credential defaults, keeping provider display metadata in
+  generic storage/UI modules and risking drift from the WindieOS skin/config
+  boundary.
+- Change: added a renderer skin/config provider credential settings module and
+  made config storage plus the API-key UI consume that single source without
+  changing backend provider policy or persisted config shape.
 
 ## Remaining Findings
 
@@ -595,3 +602,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Sidecar browser launcher/runtime diagnostics now describe the dedicated
   browser CDP/profile boundary generically. Existing helper names and
   environment variables remain unchanged.
+- Renderer provider credential defaults and API-key display specs now live in
+  renderer skin/config and are shared by config storage plus settings UI.

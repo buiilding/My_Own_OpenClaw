@@ -3,6 +3,10 @@
  */
 
 import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/shortcuts/agentStopShortcut';
+import {
+  DEFAULT_PROVIDER_API_KEYS,
+  DEFAULT_PROVIDER_OAUTH,
+} from '../app/skin/providerCredentialSettings';
 
 /**
  * Local storage utilities for configuration persistence.
@@ -14,25 +18,6 @@ import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/s
  */
 
 const CONFIG_STORAGE_KEY = 'desktop-assistant-config';
-
-const DEFAULT_PROVIDER_API_KEYS = {
-  openai: { enabled: false, api_key: '' },
-  anthropic: { enabled: false, api_key: '' },
-  google: { enabled: false, api_key: '' },
-  openrouter: { enabled: false, api_key: '' },
-  mistral: { enabled: false, api_key: '' },
-  kimi_coding: { enabled: false, api_key: '' },
-};
-
-const DEFAULT_PROVIDER_OAUTH = {
-  openai_codex: {
-    connected: false,
-    access_token: '',
-    refresh_token: '',
-    expires_at: null,
-    profile_id: '',
-  },
-};
 
 export const DEFAULT_APPEARANCE_THEME = Object.freeze({
   light: Object.freeze({
