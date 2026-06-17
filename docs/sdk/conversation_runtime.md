@@ -290,25 +290,27 @@ The SDK ships two reusable store adapters:
   event logs without Electron sidecar storage. Same-conversation mutations are
   serialized inside the adapter so overlapping append/rewrite/replay/delete
   operations do not lose events through read-modify-write races.
-- `SidecarConversationStore` for Node/Electron hosts that want durable local
-  sidecar storage through the SDK store interface instead of renderer IPC
-  transcript helpers. The Electron dashboard conversation library uses this
-  store for metadata operations such as list, search, delete, and generated-title
-  invalidation refreshes. The desktop conversation store adapter also delegates
-  its read/projection conveniences to this SDK store. Desktop supplies
-  Electron-specific write enrichment such as workspace binding and attachment
-  extraction through the store's host write-params hook, while the SDK store
-  still owns the sidecar write RPC. Rewrites send `newRevisionId` as explicit
-  conversation revision metadata; the sidecar stores that revision separately
-  from preserved event rows so `getRevision()` and metadata listing advance even
-  when the rewrite keeps only old events or no events.
+- `LocalRuntimeConversationStore` for Node/Electron hosts that want durable
+  local-runtime storage through the SDK store interface instead of renderer IPC
+  transcript helpers. `SidecarConversationStore` remains a compatibility alias
+  for the current sidecar-backed implementation. The Electron dashboard
+  conversation library uses this store for metadata operations such as list,
+  search, delete, and generated-title invalidation refreshes. The desktop
+  conversation store adapter also delegates its read/projection conveniences to
+  this SDK store. Desktop supplies Electron-specific write enrichment such as
+  workspace binding and attachment extraction through the store's host
+  write-params hook, while the SDK store still owns the local-runtime write RPC.
+  Rewrites send `newRevisionId` as explicit conversation revision metadata; the
+  local runtime stores that revision separately from preserved event rows so
+  `getRevision()` and metadata listing advance even when the rewrite keeps only
+  old events or no events.
 
 `AgentClient.wakeUp(...)` enables persistence by default. When a sidecar
-runtime is available, the agent default store is `SidecarConversationStore`;
+runtime is available, the agent default store is `LocalRuntimeConversationStore`;
 callers only need to pass `store` when they intentionally want a non-default
 adapter. Set `persistence: false` for an in-memory session.
 
-`SidecarConversationStore` stores backend producer metadata separately from
+`LocalRuntimeConversationStore` stores backend producer metadata separately from
 local order. Backend events write `producer = "backend"`,
 `producer_event_id = eventId`, and `producer_sequence =
 payload.backendSequence`. SDK/sidecar-created events keep SDK-owned event ids.

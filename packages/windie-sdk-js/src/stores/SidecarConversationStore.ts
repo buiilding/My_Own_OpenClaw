@@ -1,5 +1,5 @@
 /**
- * Stores and retrieves sidecar conversation state for the TypeScript SDK runtime.
+ * Stores and retrieves local-runtime conversation state for the TypeScript SDK runtime.
  */
 
 import type {
@@ -32,22 +32,28 @@ import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 const LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE = 'local_runtime_rpc';
 
-export type SidecarConversationStoreEventWriteContext = {
+export type LocalRuntimeConversationStoreEventWriteContext = {
   event: ConversationEvent;
   defaultParams: JsonRecord;
 };
 
-export type SidecarConversationStoreEventWriteParams = (
-  context: SidecarConversationStoreEventWriteContext,
+export type SidecarConversationStoreEventWriteContext = LocalRuntimeConversationStoreEventWriteContext;
+
+export type LocalRuntimeConversationStoreEventWriteParams = (
+  context: LocalRuntimeConversationStoreEventWriteContext,
 ) => JsonRecord | null | undefined;
 
-export type SidecarConversationStoreOptions = {
+export type SidecarConversationStoreEventWriteParams = LocalRuntimeConversationStoreEventWriteParams;
+
+export type LocalRuntimeConversationStoreOptions = {
   userId: string;
   runtime: Pick<AgentLocalRuntimeClient, 'rpc'>;
   pageSize?: number;
   maxPages?: number;
-  eventWriteParams?: SidecarConversationStoreEventWriteParams;
+  eventWriteParams?: LocalRuntimeConversationStoreEventWriteParams;
 };
+
+export type SidecarConversationStoreOptions = LocalRuntimeConversationStoreOptions;
 
 function normalizeRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -78,7 +84,7 @@ async function emitAppDiagnostic(options: ListConversationOptions, event: AppDia
   try {
     await options.diagnostics?.emit?.(event);
   } catch {
-    // App diagnostics must never make sidecar-backed conversation reads fail.
+    // App diagnostics must never make local-runtime conversation reads fail.
   }
 }
 
@@ -261,11 +267,11 @@ function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | n
   };
 }
 
-export class SidecarConversationStore implements ConversationStore {
+export class LocalRuntimeConversationStore implements ConversationStore {
   private readonly pageSize: number;
   private readonly maxPages: number;
 
-  constructor(private readonly options: SidecarConversationStoreOptions) {
+  constructor(private readonly options: LocalRuntimeConversationStoreOptions) {
     this.pageSize = options.pageSize ?? 1000;
     this.maxPages = options.maxPages ?? 250;
   }
@@ -510,11 +516,11 @@ export class SidecarConversationStore implements ConversationStore {
 
   private async call(method: string, params: Record<string, unknown>): Promise<Record<string, unknown>> {
     if (!this.options.runtime.rpc) {
-      throw new Error('SidecarConversationStore requires a local runtime with rpc support');
+      throw new Error('LocalRuntimeConversationStore requires a local runtime with rpc support');
     }
     const response = await this.options.runtime.rpc({ method, params });
     if (response.success === false) {
-      throw new Error(String(response.error ?? `Sidecar RPC failed: ${method}`));
+      throw new Error(String(response.error ?? `Local runtime RPC failed: ${method}`));
     }
     return response;
   }
@@ -553,3 +559,6 @@ export class SidecarConversationStore implements ConversationStore {
     };
   }
 }
+
+export type SidecarConversationStore = LocalRuntimeConversationStore;
+export const SidecarConversationStore = LocalRuntimeConversationStore;

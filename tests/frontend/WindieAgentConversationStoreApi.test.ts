@@ -4,7 +4,7 @@
 
 import {
   Agent,
-  SidecarConversationStore,
+  LocalRuntimeConversationStore,
   createConversationEvent,
   type ConversationEvent,
   type ConversationRewritePlan,
@@ -176,7 +176,7 @@ describe('Agent public conversation store APIs', () => {
   });
 });
 
-describe('SidecarConversationStore event payload write params', () => {
+describe('LocalRuntimeConversationStore event payload write params', () => {
   test('normalizes sidecar metadata event counts before exposing conversation rows', async () => {
     const rpc = jest.fn(async ({ method }) => {
       if (method === 'conversation.list') {
@@ -220,7 +220,7 @@ describe('SidecarConversationStore event payload write params', () => {
       }
       return { success: true, data: {} };
     });
-    const store = new SidecarConversationStore({
+    const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
       runtime: { rpc },
     });
@@ -270,7 +270,7 @@ describe('SidecarConversationStore event payload write params', () => {
         ],
       },
     }));
-    const store = new SidecarConversationStore({
+    const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
       runtime: { rpc },
     });
@@ -332,9 +332,9 @@ describe('SidecarConversationStore event payload write params', () => {
     ]);
   });
 
-  test('extracts UI-supplied event payload metadata before calling sidecar RPC', async () => {
+  test('extracts UI-supplied event payload metadata before calling local runtime RPC', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: { message_index: 1 } }));
-    const store = new SidecarConversationStore({
+    const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
       runtime: { rpc },
     });
@@ -387,12 +387,12 @@ describe('SidecarConversationStore event payload write params', () => {
     });
   });
 
-  test('logs successful compaction event storage after sidecar RPC succeeds', async () => {
+  test('logs successful compaction event storage after local runtime RPC succeeds', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: { message_index: 7 } }));
     const previousDebugCompactionStdout = process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
     process.env.WINDIE_DEBUG_COMPACTION_STDOUT = '1';
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
-    const store = new SidecarConversationStore({
+    const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
       runtime: { rpc },
     });

@@ -23,6 +23,7 @@ function nowMs() {
 function durationSince(startedAtMs) {
     return Math.max(0, Date.now() - startedAtMs);
 }
+const LOCAL_RUNTIME_RPC_TRACE_PATH = 'local_runtime.rpc';
 function isCompactionStdoutEnabled() {
     const env = globalThis.process?.env;
     return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
@@ -1551,7 +1552,7 @@ class SdkConversationRuntime {
         const method = request.method;
         const params = isJsonRecord(request.params) ? request.params : {};
         await this.recordRuntimeTrace({
-            path: 'sidecar.rpc',
+            path: LOCAL_RUNTIME_RPC_TRACE_PATH,
             stage: 'request',
             status: 'started',
             requestId: typeof request.id === 'string' || typeof request.id === 'number'
@@ -1566,7 +1567,7 @@ class SdkConversationRuntime {
         try {
             const response = await localRuntime.rpc(request);
             await this.recordRuntimeTrace({
-                path: 'sidecar.rpc',
+                path: LOCAL_RUNTIME_RPC_TRACE_PATH,
                 stage: 'request',
                 status: 'succeeded',
                 requestId: typeof request.id === 'string' || typeof request.id === 'number'
@@ -1584,7 +1585,7 @@ class SdkConversationRuntime {
         }
         catch (error) {
             await this.recordRuntimeTrace({
-                path: 'sidecar.rpc',
+                path: LOCAL_RUNTIME_RPC_TRACE_PATH,
                 stage: 'request',
                 status: 'failed',
                 requestId: typeof request.id === 'string' || typeof request.id === 'number'

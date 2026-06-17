@@ -14,9 +14,9 @@ import {
   createConversationEvent,
   createWindieLocalRuntimeProvider,
   InMemoryConversationStore,
+  LocalRuntimeConversationStore,
   moduleTool,
   SidecarDaemonHttpClient,
-  SidecarConversationStore,
   WindieAgent,
   WindieClient as WindieClientClass,
   WindieSdkClient,
@@ -986,7 +986,7 @@ describe('WindieSdkClient', () => {
     expect(FakeWebSocket.instances).toHaveLength(0);
   });
 
-  test('agent.chat uses sidecar-backed persistence by default', async () => {
+  test('agent.chat uses local-runtime persistence by default', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
     };
@@ -1118,7 +1118,7 @@ describe('WindieSdkClient', () => {
     }));
   });
 
-  test('persistence disabled keeps chat events out of the sidecar conversation store', async () => {
+  test('persistence disabled keeps chat events out of the local-runtime conversation store', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       embedding: [0.4, 0.5, 0.6],
       provider_id: 'test-provider',
@@ -1156,7 +1156,7 @@ describe('WindieSdkClient', () => {
     }));
   });
 
-  test('explicit custom conversation store overrides the default sidecar store', async () => {
+  test('explicit custom conversation store overrides the default local-runtime store', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
     };
@@ -3253,7 +3253,7 @@ describe('WindieSdkClient', () => {
     })).rejects.toThrow('sidecar failed');
   });
 
-  test('SidecarConversationStore routes conversation commands through sidecar rpc', async () => {
+  test('LocalRuntimeConversationStore routes conversation commands through local runtime rpc', async () => {
     const rpc = jest.fn(async ({ method, params }) => {
       if (method === 'conversation.list') {
         return {
@@ -3294,7 +3294,7 @@ describe('WindieSdkClient', () => {
       }
       return { success: true, data: {} };
     });
-    const store = new SidecarConversationStore({
+    const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
       runtime: { rpc },
     });
@@ -3459,7 +3459,7 @@ describe('WindieSdkClient', () => {
     await expect(agent.listConversations()).resolves.toEqual([]);
   });
 
-  test('SidecarConversationStore keeps rewrite revision metadata for old or empty events', async () => {
+  test('LocalRuntimeConversationStore keeps rewrite revision metadata for old or empty events', async () => {
     const revisions = new Map<string, { revision_id: string; updated_at: string }>();
     const eventsByConversation = new Map<string, unknown[]>();
     const rpc = jest.fn(async ({ method, params }) => {
@@ -3487,7 +3487,7 @@ describe('WindieSdkClient', () => {
       }
       return { success: true, data: {} };
     });
-    const store = new SidecarConversationStore({
+    const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
       runtime: { rpc },
     });
@@ -3529,9 +3529,9 @@ describe('WindieSdkClient', () => {
     });
   });
 
-  test('SidecarConversationStore merges host write params before sidecar rpc', async () => {
+  test('LocalRuntimeConversationStore merges host write params before local runtime rpc', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: {} }));
-    const store = new SidecarConversationStore({
+    const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
       runtime: { rpc },
       eventWriteParams: ({ event, defaultParams }) => ({

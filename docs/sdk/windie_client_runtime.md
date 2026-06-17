@@ -422,7 +422,7 @@ user-message ordinal fallbacks.
 3. Normalize feature flags. `memory` and `persistence` both default to enabled.
 4. Ensure a sidecar runtime client is available when memory, persistence,
    builtins, module tools, plugins, or MCPs need local runtime support.
-5. Select the default conversation store: `SidecarConversationStore` when
+5. Select the default conversation store: `LocalRuntimeConversationStore` when
    persistence is enabled, otherwise `InMemoryConversationStore`.
 6. Register module/plugin/MCP tools with the sidecar daemon.
 7. Read the sidecar tool manifest.
@@ -503,7 +503,11 @@ SDK adapter contracts export named payload types for the core runtime boundary:
 implementations should use those types rather than accepting unstructured
 records for query, rehydrate, stop, tool-result, and local-runtime operations.
 
-Electron uses the SDK `SidecarConversationStore` through a desktop store factory:
+Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store factory:
+
+`SidecarConversationStore` remains a compatibility alias for callers that
+adopted the current sidecar-backed store name before the generic local-runtime
+store surface existed.
 
 - canonical SDK events are stored in the sidecar `conversation_events` table as the
   storage truth for desktop display and backend rehydrate
@@ -513,7 +517,7 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   events with complete generation payloads, not as hidden replay rows
 - desktop compaction replacement-history writes go through the desktop
   conversation continuity service into
-  `SidecarConversationStore.replaceCompactedReplay(...)` instead of stream
+  `LocalRuntimeConversationStore.replaceCompactedReplay(...)` instead of stream
   handlers or the live-turn facade directly mutating replay storage
 - compacted replay replacement appends a new generation with entry count and
   completion metadata; loaders keep using the previous complete generation if a
@@ -522,7 +526,7 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   instead of shaping messages directly from visible transcript rows
 - desktop recent-chat and open-chat loading use store metadata/display
   projections over canonical event rows only
-- desktop chat deletion goes through the SDK `SidecarConversationStore` and
+- desktop chat deletion goes through the SDK `LocalRuntimeConversationStore` and
   removes canonical `conversation_events` rows
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
   pass explicit `listMetadata({ limit, cursor })` options when they want bounded
@@ -534,7 +538,7 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
 - desktop edit/resend and try-again visible transcript rewrites are routed
   through `DesktopConversationContinuityService`, the desktop conversation
   store factory, and the SDK
-  `SidecarConversationStore`. The factory owns local transcript projection
+  `LocalRuntimeConversationStore`. The factory owns local transcript projection
   replacement, workspace metadata, rewritten row enrichment, and the rehydrate
   projection used before the resend turn. Replacement is one sidecar
   `replace_chat_conversation` call so local durable state is not deleted before

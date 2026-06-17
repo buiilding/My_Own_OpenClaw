@@ -1,13 +1,14 @@
 "use strict";
 /**
- * Stores and retrieves sidecar conversation state for the TypeScript SDK runtime.
+ * Stores and retrieves local-runtime conversation state for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SidecarConversationStore = void 0;
+exports.SidecarConversationStore = exports.LocalRuntimeConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
+const LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE = 'local_runtime_rpc';
 function normalizeRecord(value) {
     return value && typeof value === 'object' && !Array.isArray(value)
         ? value
@@ -36,7 +37,7 @@ async function emitAppDiagnostic(options, event) {
         await options.diagnostics?.emit?.(event);
     }
     catch {
-        // App diagnostics must never make sidecar-backed conversation reads fail.
+        // App diagnostics must never make local-runtime conversation reads fail.
     }
 }
 function serializeDiagnosticsContext(options) {
@@ -196,7 +197,7 @@ function metadataFromRow(row) {
         matchedRole: normalizeString(row.matched_role) ?? normalizeString(row.matchedRole),
     };
 }
-class SidecarConversationStore {
+class LocalRuntimeConversationStore {
     constructor(options) {
         this.options = options;
         this.pageSize = options.pageSize ?? 1000;
@@ -307,7 +308,7 @@ class SidecarConversationStore {
     async listMetadata(options = {}) {
         const startedAt = Date.now();
         await emitAppDiagnostic(options, {
-            stage: 'sidecar_rpc',
+            stage: LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE,
             status: 'started',
             runtime: 'sdk',
             data: {
@@ -343,7 +344,7 @@ class SidecarConversationStore {
                 .filter((entry) => Boolean(entry))
                 .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
             await emitAppDiagnostic(options, {
-                stage: 'sidecar_rpc',
+                stage: LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE,
                 status: 'succeeded',
                 runtime: 'sdk',
                 durationMs: Date.now() - startedAt,
@@ -356,7 +357,7 @@ class SidecarConversationStore {
         }
         catch (error) {
             await emitAppDiagnostic(options, {
-                stage: 'sidecar_rpc',
+                stage: LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE,
                 status: 'failed',
                 runtime: 'sdk',
                 durationMs: Date.now() - startedAt,
@@ -425,11 +426,11 @@ class SidecarConversationStore {
     }
     async call(method, params) {
         if (!this.options.runtime.rpc) {
-            throw new Error('SidecarConversationStore requires a local runtime with rpc support');
+            throw new Error('LocalRuntimeConversationStore requires a local runtime with rpc support');
         }
         const response = await this.options.runtime.rpc({ method, params });
         if (response.success === false) {
-            throw new Error(String(response.error ?? `Sidecar RPC failed: ${method}`));
+            throw new Error(String(response.error ?? `Local runtime RPC failed: ${method}`));
         }
         return response;
     }
@@ -464,4 +465,5 @@ class SidecarConversationStore {
         };
     }
 }
-exports.SidecarConversationStore = SidecarConversationStore;
+exports.LocalRuntimeConversationStore = LocalRuntimeConversationStore;
+exports.SidecarConversationStore = LocalRuntimeConversationStore;

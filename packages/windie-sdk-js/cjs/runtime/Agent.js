@@ -16,6 +16,7 @@ const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js")
 const DefaultTurnResourceResolvers_js_1 = require("./DefaultTurnResourceResolvers.js");
 const AgentChatSession_js_1 = require("./AgentChatSession.js");
 const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");
+const LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH = 'local_runtime.lifecycle';
 function logMemoryRetrievalDiagnostic(diagnostic) {
     const details = [
         `stage=${diagnostic.stage}`,
@@ -437,7 +438,7 @@ class Agent {
         const localRuntime = this.getKnownLocalRuntime();
         if (!localRuntime?.listTools) {
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'list_tools',
                 status: 'skipped',
                 runtime: 'sidecar',
@@ -448,7 +449,7 @@ class Agent {
             return null;
         }
         await this.recordAgentTrace({
-            path: 'sidecar.lifecycle',
+            path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
             stage: 'list_tools',
             status: 'started',
             runtime: 'sidecar',
@@ -456,7 +457,7 @@ class Agent {
         try {
             const response = await localRuntime.listTools();
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'list_tools',
                 status: 'succeeded',
                 runtime: 'sidecar',
@@ -470,7 +471,7 @@ class Agent {
         }
         catch (error) {
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'list_tools',
                 status: 'failed',
                 runtime: 'sidecar',
@@ -485,7 +486,7 @@ class Agent {
         const localRuntime = this.getKnownLocalRuntime();
         if (!localRuntime?.status) {
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'status',
                 status: 'skipped',
                 runtime: 'sidecar',
@@ -496,7 +497,7 @@ class Agent {
             return null;
         }
         await this.recordAgentTrace({
-            path: 'sidecar.lifecycle',
+            path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
             stage: 'status',
             status: 'started',
             runtime: 'sidecar',
@@ -504,7 +505,7 @@ class Agent {
         try {
             const response = await localRuntime.status();
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'status',
                 status: 'succeeded',
                 runtime: 'sidecar',
@@ -519,7 +520,7 @@ class Agent {
         }
         catch (error) {
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'status',
                 status: 'failed',
                 runtime: 'sidecar',
@@ -536,7 +537,7 @@ class Agent {
         const localShutdown = typeof localRuntime?.shutdown === 'function';
         if (!ownerShutdown && !localShutdown) {
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'shutdown',
                 status: 'skipped',
                 runtime: 'sidecar',
@@ -547,7 +548,7 @@ class Agent {
             return;
         }
         await this.recordAgentTrace({
-            path: 'sidecar.lifecycle',
+            path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
             stage: 'shutdown',
             status: 'started',
             runtime: 'sidecar',
@@ -564,7 +565,7 @@ class Agent {
                 await localRuntime?.shutdown?.();
             }
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'shutdown',
                 status: 'succeeded',
                 runtime: 'sidecar',
@@ -577,7 +578,7 @@ class Agent {
         }
         catch (error) {
             await this.recordAgentTrace({
-                path: 'sidecar.lifecycle',
+                path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'shutdown',
                 status: 'failed',
                 runtime: 'sidecar',

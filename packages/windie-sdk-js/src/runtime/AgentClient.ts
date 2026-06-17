@@ -14,7 +14,7 @@ import type {
   LocalToolExecutionLifecycle,
 } from '../conversation/types.js';
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
-import { SidecarConversationStore } from '../stores/SidecarConversationStore.js';
+import { LocalRuntimeConversationStore } from '../stores/SidecarConversationStore.js';
 import {
   shouldIncludeBuiltinTool,
   type AgentBuiltinSelection,
@@ -649,7 +649,7 @@ function createDefaultConversationStore({
   if (!localRuntime?.rpc) {
     throw new Error('Agent SDK persistence requires a local runtime with RPC support.');
   }
-  return new SidecarConversationStore({
+  return new LocalRuntimeConversationStore({
     userId,
     runtime: localRuntime,
   });

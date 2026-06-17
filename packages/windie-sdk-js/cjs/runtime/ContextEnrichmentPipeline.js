@@ -12,6 +12,7 @@ const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
     semanticLimit: 2,
     semanticMinScore: 0.2,
 });
+const MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH = 'memory.local_runtime_search';
 function escapeXml(value) {
     return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -199,7 +200,7 @@ async function enrichQueryPayload(input) {
                 message: 'Memory retrieval skipped because no local runtime RPC is available.',
             });
             await emitTrace(input, {
-                path: 'memory.sidecar_search',
+                path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
                 stage: 'search',
                 status: 'skipped',
                 data: {
@@ -249,7 +250,7 @@ async function enrichQueryPayload(input) {
                 const searchStartedAtMs = nowMs();
                 try {
                     await emitTrace(input, {
-                        path: 'memory.sidecar_search',
+                        path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
                         stage: 'search',
                         status: 'started',
                         data: {
@@ -278,23 +279,23 @@ async function enrichQueryPayload(input) {
                     const rpcError = rpcFailureMessage(searchResult, 'Memory search RPC failed');
                     if (rpcError) {
                         await emitMemoryDiagnostic(input, {
-                            stage: 'sidecar_search_failed',
-                            message: 'Memory retrieval skipped because sidecar memory search failed.',
+                            stage: 'local_runtime_search_failed',
+                            message: 'Memory retrieval skipped because local runtime memory search failed.',
                             error: rpcError,
                         });
                         await emitTrace(input, {
-                            path: 'memory.sidecar_search',
+                            path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
                             stage: 'search',
                             status: 'failed',
                             durationMs: durationSince(searchStartedAtMs),
-                            error: { code: 'sidecar_search_failed', message: rpcError },
+                            error: { code: 'local_runtime_search_failed', message: rpcError },
                         });
                     }
                     else {
                         memories = normalizeMemories(searchResult);
                         const searchTrace = normalizeMemorySearchTrace(searchResult);
                         await emitTrace(input, {
-                            path: 'memory.sidecar_search',
+                            path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
                             stage: 'search',
                             status: 'succeeded',
                             durationMs: durationSince(searchStartedAtMs),
@@ -316,12 +317,12 @@ async function enrichQueryPayload(input) {
                 }
                 catch (error) {
                     await emitMemoryDiagnostic(input, {
-                        stage: 'sidecar_search_failed',
-                        message: 'Memory retrieval skipped because sidecar memory search failed.',
+                        stage: 'local_runtime_search_failed',
+                        message: 'Memory retrieval skipped because local runtime memory search failed.',
                         error: errorMessage(error),
                     });
                     await emitTrace(input, {
-                        path: 'memory.sidecar_search',
+                        path: MEMORY_LOCAL_RUNTIME_SEARCH_TRACE_PATH,
                         stage: 'search',
                         status: 'failed',
                         durationMs: durationSince(searchStartedAtMs),
@@ -416,8 +417,8 @@ async function storeCompletedTurnMemory(input) {
     const rpcError = rpcFailureMessage(result, 'Memory store RPC failed');
     if (rpcError) {
         await emitMemoryPersistenceDiagnostic(input, {
-            stage: 'sidecar_store_failed',
-            message: 'Completed-turn memory storage failed because sidecar memory store failed.',
+            stage: 'local_runtime_store_failed',
+            message: 'Completed-turn memory storage failed because local runtime memory store failed.',
             error: rpcError,
             contentLength: content.length,
             memoryType: 'episodic',

@@ -12,6 +12,8 @@ import {
   WindieSdkClient,
   WindieAgentSession,
   InMemoryConversationStore,
+  LocalRuntimeConversationStore,
+  SidecarConversationStore,
   SdkConversationRuntime,
   SDK_RUNTIME_COMMANDS,
   ToolExecutionCoordinator,
@@ -85,6 +87,8 @@ describe('@windie/sdk package boundary', () => {
     expect(WindieSdkClient).toBeDefined();
     expect(WindieSdkClient).toBe(AgentHostedBackendClient);
     expect(InMemoryConversationStore).toBeDefined();
+    expect(LocalRuntimeConversationStore).toBeDefined();
+    expect(SidecarConversationStore).toBe(LocalRuntimeConversationStore);
     expect(SdkConversationRuntime).toBeDefined();
     expect(SDK_RUNTIME_COMMANDS).toBeDefined();
     expect(createConversationRuntime).toBeDefined();

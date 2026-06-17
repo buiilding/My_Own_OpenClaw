@@ -406,7 +406,7 @@ function createDefaultConversationStore({ localRuntime, persistenceEnabled, user
     if (!localRuntime?.rpc) {
         throw new Error('Agent SDK persistence requires a local runtime with RPC support.');
     }
-    return new SidecarConversationStore_js_1.SidecarConversationStore({
+    return new SidecarConversationStore_js_1.LocalRuntimeConversationStore({
         userId,
         runtime: localRuntime,
     });

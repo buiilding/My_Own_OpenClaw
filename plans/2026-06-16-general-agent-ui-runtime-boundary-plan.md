@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime conversation store alias
+
+- Finding: the SDK's durable local-runtime conversation store was still exposed
+  and instantiated primarily as `SidecarConversationStore`, making the reusable
+  store contract read like a sidecar implementation detail.
+- Change: promoted `LocalRuntimeConversationStore` as the canonical class and
+  option/write-hook type surface, kept `SidecarConversationStore` as a
+  compatibility value/type alias, switched the default `AgentClient` store and
+  focused tests to the generic name, and regenerated checked-in SDK CJS output.
+- Validation: SDK build, focused package-boundary/store/client tests, docs
+  listing, alias/export scan, and diff check.
+- Compatibility: no migration required. Existing `SidecarConversationStore`
+  imports construct the same store through the compatibility alias; new reusable
+  SDK code can import `LocalRuntimeConversationStore`.
+
 ### 2026-06-17 SDK conversation store local-runtime app diagnostics
 
 - Finding: SDK conversation metadata listing emitted SDK-owned app diagnostic
