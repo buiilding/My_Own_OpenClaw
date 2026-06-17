@@ -2649,3 +2649,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level stream event
   type imports still resolve, and direct compatibility-module imports can use
   `WindieAgentStreamEvents`.
+
+### 2026-06-17 BackendSocketFactory module compatibility wrapper
+
+- Finding: the canonical SDK backend socket factory still exported
+  `createWindieSdkBackendSocket` and `WindieSdkBackendSocketOptions` directly,
+  so the generic transport factory module owned historical product naming.
+- Change: moved the Windie-prefixed socket factory value and options type alias
+  to the `WindieBackendSocketFactory` compatibility module and package
+  boundary, leaving `BackendSocketFactory` as the canonical socket factory.
+- Validation: focused SDK package-boundary/private-export coverage, SDK client
+  transport coverage, docs listing, `git diff --check`, and source scans
+  confirming the canonical backend socket factory module no longer exports
+  Windie-prefixed compatibility names.
+- Compatibility: no migration required. Existing package-level socket factory
+  imports still resolve, and direct compatibility-module imports can use
+  `WindieBackendSocketFactory`.

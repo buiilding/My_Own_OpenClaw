@@ -54,6 +54,7 @@ import {
   type AgentRuntimeFeatureOption,
   type AgentSdkQueryOptions,
   type AgentStreamEvent,
+  type AgentBackendSocketOptions,
   type AgentStopOptions,
   type AgentStoreMemoryInput,
   type AgentTraceOptions,
@@ -65,6 +66,7 @@ import {
   type AgentToolDefinition,
   type WindieClientOptions,
   type WindieInstallIdentityResponse,
+  type WindieSdkBackendSocketOptions,
   type WindieSdkClientOptions,
   type WindieSdkQueryOptions,
   type WindieInstallAuthOptions,
@@ -156,6 +158,19 @@ describe('@windie/sdk package boundary', () => {
     expect(compatibilityQuery.text).toBe('hello');
     expect(compatibilityStop.conversationRef).toBe('conv-1');
     expect(compatibilityRuntime.isOpen()).toBe(true);
+  });
+
+  test('exports generic backend socket factory aliases', () => {
+    class FakeWebSocket {
+      constructor(readonly url: string) {}
+    }
+    const options: AgentBackendSocketOptions = {
+      WebSocketImpl: FakeWebSocket,
+      wsUrl: 'wss://socket.example.test/ws',
+    };
+    const compatibilityOptions: WindieSdkBackendSocketOptions = options;
+
+    expect(createWindieSdkBackendSocket(compatibilityOptions)).toBeInstanceOf(FakeWebSocket);
   });
 
   test('exports generic chat session input aliases', () => {

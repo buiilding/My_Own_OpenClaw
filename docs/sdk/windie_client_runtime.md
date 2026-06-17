@@ -67,9 +67,10 @@ Ownership rules:
   canonical websocket session module; `WindieAgentSession.ts` is the
   compatibility wrapper for historical Windie-prefixed session names.
   `BackendSocketFactory.ts` exposes
-  `createAgentBackendSocket` and `AgentBackendSocketOptions`, with
-  `createWindieSdkBackendSocket` and `WindieSdkBackendSocketOptions` kept as
-  compatibility aliases. `ManagedAgentSession.ts` is the canonical managed
+  `createAgentBackendSocket` and `AgentBackendSocketOptions`.
+  `WindieBackendSocketFactory.ts` is the compatibility wrapper for
+  `createWindieSdkBackendSocket` and `WindieSdkBackendSocketOptions`.
+  `ManagedAgentSession.ts` is the canonical managed
   hosted session module through `ManagedAgentBackendEndpoint`,
   `ManagedAgentSessionOptions`, `ManagedAgentSession`, and
   `createManagedAgentSession`; `ManagedWindieAgentSession.ts` is the

@@ -3,7 +3,6 @@
  * Provides the backend socket factory module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createWindieSdkBackendSocket = void 0;
 exports.createAgentBackendSocket = createAgentBackendSocket;
 function createAgentBackendSocket({ WebSocketImpl, wsUrl, wsOrigin, headers, }) {
     if (!WebSocketImpl) {
@@ -17,4 +16,3 @@ function createAgentBackendSocket({ WebSocketImpl, wsUrl, wsOrigin, headers, }) 
         headers: headers || {},
     });
 }
-exports.createWindieSdkBackendSocket = createAgentBackendSocket;

@@ -49,6 +49,8 @@ Object.defineProperty(exports, "WindieClient", { enumerable: true, get: function
 __exportStar(require("./runtime/LocalSidecarRuntime.js"), exports);
 __exportStar(require("./transport/backendEventNormalizer.js"), exports);
 __exportStar(require("./transport/BackendSocketFactory.js"), exports);
+var WindieBackendSocketFactory_js_1 = require("./transport/WindieBackendSocketFactory.js");
+Object.defineProperty(exports, "createWindieSdkBackendSocket", { enumerable: true, get: function () { return WindieBackendSocketFactory_js_1.createWindieSdkBackendSocket; } });
 __exportStar(require("./transport/HostedBackendHttpClient.js"), exports);
 __exportStar(require("./transport/ManagedBackendSession.js"), exports);
 __exportStar(require("./transport/ManagedAgentSession.js"), exports);

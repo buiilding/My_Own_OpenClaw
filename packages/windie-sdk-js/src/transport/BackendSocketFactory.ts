@@ -11,8 +11,6 @@ export type AgentBackendSocketOptions = {
   headers?: Record<string, string>;
 };
 
-export type WindieSdkBackendSocketOptions = AgentBackendSocketOptions;
-
 export function createAgentBackendSocket({
   WebSocketImpl,
   wsUrl,
@@ -30,5 +28,3 @@ export function createAgentBackendSocket({
     headers: headers || {},
   });
 }
-
-export const createWindieSdkBackendSocket = createAgentBackendSocket;
