@@ -11,18 +11,18 @@ npm install
 npm run build
 ```
 
-The public package surface for external app authors is `WindieClient`,
-`WindieAgent`, `moduleTool`, hosted SDK route clients, local-runtime adapter
+The public package surface for external app authors is `AgentClient`,
+`Agent`, `moduleTool`, hosted SDK route clients, local-runtime adapter
 options, and conversation APIs. The built-in Electron desktop may use
 lower-level SDK runtime modules behind first-party facades, but public examples
-should model the high-level `WindieClient` path.
+should model the high-level `AgentClient` path.
 
 ```ts
-import { WindieClient } from '@windie/sdk';
+import { AgentClient } from '@windie/sdk';
 
-const windie = new WindieClient({ backendUrl: 'https://api.windieos.com' });
-const catalog = await windie.listModels();
-const agent = await windie.wakeUp({
+const client = new AgentClient({ backendUrl: 'https://api.windieos.com' });
+const catalog = await client.listModels();
+const agent = await client.wakeUp({
   plugins: [{ path: './plugins/repo-agent' }],
   model: {
     modelProvider: 'openai',
@@ -69,11 +69,11 @@ for await (const event of agent.stream('Run the repo checks and report progress.
 }
 ```
 
-Node examples that need local sidecar execution can let `WindieClient` own
+Node examples that need local sidecar execution can let `AgentClient` own
 daemon discovery and startup:
 
 ```ts
-const windie = new WindieClient({
+const client = new AgentClient({
   backendUrl: 'https://api.windieos.com',
   autoSidecar: {
     pythonCommand: './scripts/python-in-env',
@@ -82,7 +82,7 @@ const windie = new WindieClient({
 });
 ```
 
-When `workspacePath` is omitted in a Node runtime, `WindieClient` uses
+When `workspacePath` is omitted in a Node runtime, `AgentClient` uses
 `process.cwd()` and falls back to the user home path exposed by the environment.
 
 For custom clients that need durable local state, use the conversation runtime
