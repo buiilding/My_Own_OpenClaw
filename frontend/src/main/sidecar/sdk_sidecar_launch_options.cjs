@@ -14,7 +14,7 @@ const {
 } = require('../app/runtime_paths.cjs');
 const {
   shouldForwardStderrLine,
-  withLocalBackendNodeOptions,
+  withLocalRuntimeNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
 const {
   appendLayerLogLine,
@@ -95,7 +95,7 @@ function buildSidecarDaemonEnv({
     isPackaged,
   });
   const sourceIdentity = resolveSidecarSourceStamp(launchTarget);
-  const backendEnv = withLocalBackendNodeOptions({
+  const backendEnv = withLocalRuntimeNodeOptions({
     ...process.env,
     PYTHONUNBUFFERED: '1',
     WINDIE_BACKEND_HTTP_URL: endpointConfig.httpUrl,

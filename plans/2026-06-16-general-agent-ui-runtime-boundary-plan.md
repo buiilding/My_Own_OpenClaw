@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime node options helper alias deletion
+
+- Finding: Electron main still exported and consumed
+  `withLocalBackendNodeOptions` after the sidecar launch path had become a
+  local-runtime host concern.
+- Change: renamed the helper to `withLocalRuntimeNodeOptions`, removed the
+  legacy local-backend-named export, and added focused launch-options coverage
+  that keeps the old export absent.
+- Validation: focused SDK sidecar launch-options Jest test, stale helper scan,
+  docs listing, and diff check.
+- Compatibility: no migration required for first-party code. Main-process
+  callers must use `withLocalRuntimeNodeOptions`.
+
 ### 2026-06-17 Main screenshot temp compatibility deletion
 
 - Finding: Electron main still treated `windie-shot-` filenames and

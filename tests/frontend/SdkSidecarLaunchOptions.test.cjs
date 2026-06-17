@@ -8,6 +8,7 @@ const {
   createDesktopLocalRuntimeLaunchPlan,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
 const launchOptionsModule = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
+const bridgeUtilsModule = require('../../frontend/src/main/sidecar/local_backend_bridge_utils.cjs');
 const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
@@ -15,6 +16,11 @@ const {
 describe('sdk local runtime launch options', () => {
   test('removes the legacy auto-sidecar launch plan export', () => {
     expect(launchOptionsModule.createDesktopAutoSidecarLaunchPlan).toBeUndefined();
+  });
+
+  test('removes the legacy local-backend node options helper export', () => {
+    expect(bridgeUtilsModule.withLocalBackendNodeOptions).toBeUndefined();
+    expect(typeof bridgeUtilsModule.withLocalRuntimeNodeOptions).toBe('function');
   });
 
   test('uses host skin copy for packaged missing Python guidance', () => {

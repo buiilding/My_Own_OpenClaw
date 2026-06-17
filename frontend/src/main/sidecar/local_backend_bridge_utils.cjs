@@ -17,7 +17,7 @@ function getErrorMessage(error) {
   return String(error);
 }
 
-function withLocalBackendNodeOptions(baseEnv) {
+function withLocalRuntimeNodeOptions(baseEnv) {
   const env = { ...baseEnv };
   const nodeOptions = (env.NODE_OPTIONS || '').trim();
 
@@ -74,5 +74,5 @@ function shouldForwardStderrLine(line, env = process.env) {
 module.exports = {
   getErrorMessage,
   shouldForwardStderrLine,
-  withLocalBackendNodeOptions,
+  withLocalRuntimeNodeOptions,
 };
