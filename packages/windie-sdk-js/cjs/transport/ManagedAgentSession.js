@@ -39,11 +39,10 @@ class ManagedAgentSession {
                     },
                 });
             },
-            buildHandshake: () => ({
-                type: 'handshake',
-                user_id: options.userId,
-                operating_system: options.operatingSystem,
-                agent_definition: options.agentDefinition,
+            buildHandshake: () => (0, AgentSession_js_1.buildAgentSessionHandshake)({
+                userId: options.userId,
+                operatingSystem: options.operatingSystem,
+                agentDefinition: options.agentDefinition,
             }),
             getUserId: () => options.userId,
             normalizePayload: options.normalizePayload ?? backendPayloadContract_js_1.filterBackendPayload,

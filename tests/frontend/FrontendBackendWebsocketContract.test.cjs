@@ -257,6 +257,51 @@ describe('frontend/backend websocket incoming contract', () => {
     expect(extractSdkBackendPayloadKeysByType()).toEqual(expectedPayloadKeysByType());
   });
 
+  test('managed agent session sends canonical agent-definition handshake shape', async () => {
+    const sockets = [];
+    class FakeWebSocket extends FakeSocket {
+      constructor(url, options) {
+        super(url, options);
+        sockets.push(this);
+      }
+    }
+    const session = createManagedAgentSession({
+      backendUrl: 'http://backend.test',
+      wsUrl: 'ws://backend.test/ws',
+      WebSocketImpl: FakeWebSocket,
+      userId: 'user-1',
+      operatingSystem: 'Windows',
+      agentDefinition: {
+        id: 'agent-1',
+        runtime: {
+          workspace_path: 'C:/work',
+        },
+      },
+    });
+
+    try {
+      const connected = session.waitForOpen();
+      sockets[0].open();
+      await connected;
+
+      const handshake = JSON.parse(sockets[0].sent[0]);
+      expect(Object.keys(handshake)).toEqual(['type', 'user_id', 'agent_definition']);
+      expect(handshake).toEqual({
+        type: 'handshake',
+        user_id: 'user-1',
+        agent_definition: {
+          id: 'agent-1',
+          runtime: {
+            workspace_path: 'C:/work',
+            operating_system: 'Windows',
+          },
+        },
+      });
+    } finally {
+      session.close('test-cleanup');
+    }
+  });
+
   test('query builder output is exact backend payload contract and excludes envelope context', () => {
     const payload = buildBackendQueryPayload({
       text: 'hello',

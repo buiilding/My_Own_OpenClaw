@@ -10,6 +10,7 @@ import {
 import type { JsonRecord } from '../conversation/types.js';
 import {
   deriveWsUrl,
+  buildAgentSessionHandshake,
   resolveWebSocketImplementation,
   type WebSocketConstructor,
   type WebSocketLike,
@@ -111,11 +112,10 @@ export class ManagedAgentSession implements AgentSessionRuntime {
           },
         });
       },
-      buildHandshake: () => ({
-        type: 'handshake',
-        user_id: options.userId,
-        operating_system: options.operatingSystem,
-        agent_definition: options.agentDefinition,
+      buildHandshake: () => buildAgentSessionHandshake({
+        userId: options.userId,
+        operatingSystem: options.operatingSystem,
+        agentDefinition: options.agentDefinition,
       }),
       getUserId: () => options.userId,
       normalizePayload: options.normalizePayload ?? filterBackendPayload,

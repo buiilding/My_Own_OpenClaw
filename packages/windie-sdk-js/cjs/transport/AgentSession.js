@@ -10,6 +10,7 @@ exports.AgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
 exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
+exports.buildAgentSessionHandshake = buildAgentSessionHandshake;
 exports.createAgentSession = createAgentSession;
 exports.createAgentBackendTransport = createAgentBackendTransport;
 exports.mergeQueryAgentDefinition = mergeQueryAgentDefinition;
@@ -49,6 +50,32 @@ function createMessageId() {
     }
     return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
+function normalizeOptionalString(value) {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+function isJsonRecord(value) {
+    return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+function buildAgentSessionHandshake({ userId, operatingSystem, agentDefinition, }) {
+    const normalizedOperatingSystem = normalizeOptionalString(operatingSystem);
+    const nextAgentDefinition = isJsonRecord(agentDefinition)
+        ? { ...agentDefinition }
+        : (normalizedOperatingSystem ? {} : null);
+    if (nextAgentDefinition && normalizedOperatingSystem) {
+        const runtime = isJsonRecord(nextAgentDefinition.runtime)
+            ? { ...nextAgentDefinition.runtime }
+            : {};
+        if (!normalizeOptionalString(runtime.operating_system)) {
+            runtime.operating_system = normalizedOperatingSystem;
+        }
+        nextAgentDefinition.runtime = runtime;
+    }
+    return {
+        type: 'handshake',
+        user_id: userId,
+        ...(nextAgentDefinition ? { agent_definition: nextAgentDefinition } : {}),
+    };
+}
 function createAgentSession(options) {
     const wsUrl = options.wsUrl
         ? normalizeWsUrl(options.wsUrl)
@@ -58,11 +85,11 @@ function createAgentSession(options) {
         ? { headers: options.headers }
         : undefined;
     const socket = new WebSocketImpl(wsUrl, socketOptions);
-    return new AgentSession(socket, {
-        user_id: options.userId,
-        operating_system: options.operatingSystem,
-        agent_definition: options.agentDefinition,
-    });
+    return new AgentSession(socket, buildAgentSessionHandshake({
+        userId: options.userId,
+        operatingSystem: options.operatingSystem,
+        agentDefinition: options.agentDefinition,
+    }));
 }
 function attachSocketListener(socket, event, listener) {
     if (typeof socket.addEventListener === 'function') {
@@ -109,12 +136,7 @@ class AgentSession {
             this.rejectReady = reject;
         });
         this.detachSocketListeners.push(attachSocketListener(this.socket, 'open', () => {
-            this.socket.send(JSON.stringify({
-                type: 'handshake',
-                user_id: handshake.user_id,
-                operating_system: handshake.operating_system,
-                agent_definition: handshake.agent_definition,
-            }));
+            this.socket.send(JSON.stringify(handshake));
             this.isReady = true;
             this.resolveReady?.();
             this.emit('open', undefined);

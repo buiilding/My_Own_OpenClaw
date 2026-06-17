@@ -1493,12 +1493,16 @@ describe('Agent SDK client behavior', () => {
     FakeWebSocket.instances[0].emit('open', {});
     await openPromise;
 
-    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+    const handshake = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(handshake).toMatchObject({
       type: 'handshake',
       user_id: 'transport-user',
-      operating_system: 'macOS',
-      agent_definition: { id: 'transport-agent' },
+      agent_definition: {
+        id: 'transport-agent',
+        runtime: { operating_system: 'macOS' },
+      },
     });
+    expect(handshake).not.toHaveProperty('operating_system');
   });
 
   test('SDK backend transport exposes websocket model-list messages', async () => {

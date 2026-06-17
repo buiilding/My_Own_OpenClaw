@@ -421,7 +421,9 @@ user-message ordinal fallbacks.
 7. Read the sidecar tool manifest.
 8. Build the low-level backend `agent_definition`.
 9. Connect to the backend websocket.
-10. Send the websocket handshake with `agent_definition`.
+10. Send the websocket handshake with `agent_definition`; SDK transports put
+    detected OS facts under `agent_definition.runtime.operating_system` and do
+    not emit removed top-level handshake capability fields.
 11. Normalize backend events into SDK conversation events.
 12. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
 13. Project display transcript and rehydrate snapshots from normalized events.

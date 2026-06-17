@@ -130,6 +130,45 @@ export function createMessageId(): string {
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function normalizeOptionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+export function buildAgentSessionHandshake({
+  userId,
+  operatingSystem,
+  agentDefinition,
+}: {
+  userId: string;
+  operatingSystem?: string;
+  agentDefinition?: JsonRecord;
+}): JsonRecord {
+  const normalizedOperatingSystem = normalizeOptionalString(operatingSystem);
+  const nextAgentDefinition = isJsonRecord(agentDefinition)
+    ? { ...agentDefinition }
+    : (normalizedOperatingSystem ? {} : null);
+
+  if (nextAgentDefinition && normalizedOperatingSystem) {
+    const runtime = isJsonRecord(nextAgentDefinition.runtime)
+      ? { ...nextAgentDefinition.runtime }
+      : {};
+    if (!normalizeOptionalString(runtime.operating_system)) {
+      runtime.operating_system = normalizedOperatingSystem;
+    }
+    nextAgentDefinition.runtime = runtime;
+  }
+
+  return {
+    type: 'handshake',
+    user_id: userId,
+    ...(nextAgentDefinition ? { agent_definition: nextAgentDefinition } : {}),
+  };
+}
+
 export function createAgentSession(options: AgentSessionOptions): AgentSession {
   const wsUrl = options.wsUrl
     ? normalizeWsUrl(options.wsUrl)
@@ -139,11 +178,11 @@ export function createAgentSession(options: AgentSessionOptions): AgentSession {
     ? { headers: options.headers }
     : undefined;
   const socket = new WebSocketImpl(wsUrl, socketOptions);
-  return new AgentSession(socket, {
-    user_id: options.userId,
-    operating_system: options.operatingSystem,
-    agent_definition: options.agentDefinition,
-  });
+  return new AgentSession(socket, buildAgentSessionHandshake({
+    userId: options.userId,
+    operatingSystem: options.operatingSystem,
+    agentDefinition: options.agentDefinition,
+  }));
 }
 
 function attachSocketListener(
@@ -194,7 +233,7 @@ export class AgentSession {
 
   constructor(
     private readonly socket: WebSocketLike,
-    private readonly handshake: { user_id: string; operating_system?: string; agent_definition?: JsonRecord },
+    private readonly handshake: JsonRecord,
   ) {
     this.readyPromise = new Promise<void>((resolve, reject) => {
       this.resolveReady = resolve;
@@ -203,12 +242,7 @@ export class AgentSession {
 
     this.detachSocketListeners.push(
       attachSocketListener(this.socket, 'open', () => {
-        this.socket.send(JSON.stringify({
-          type: 'handshake',
-          user_id: handshake.user_id,
-          operating_system: handshake.operating_system,
-          agent_definition: handshake.agent_definition,
-        }));
+        this.socket.send(JSON.stringify(handshake));
         this.isReady = true;
         this.resolveReady?.();
         this.emit('open', undefined);
