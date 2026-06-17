@@ -716,7 +716,7 @@ Non-Electron SDK hosts can override that behavior with:
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
   an `AgentLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.
-- `sidecar`: a custom `AgentLocalRuntimeClient` implementation.
+- `localRuntime`: a custom `AgentLocalRuntimeClient` implementation.
 - `localRuntimeDaemon`: public client option for an already-known daemon `baseUrl`
   and per-process `token`; `AgentClient` creates an `AgentLocalRuntimeHttpClient`
   and uses `/status`, registration endpoints, `/tools`, and `/execute-tool`.
@@ -735,7 +735,7 @@ The SDK no longer exposes the historical `Windie*` local-runtime aliases; SDK
 callers should import the `Agent*` local-runtime names directly.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
-`sidecar`, `localRuntimeDaemon`, or `ensureLocalRuntime` explicitly
+`localRuntime`, `localRuntimeDaemon`, or `ensureLocalRuntime` explicitly
 when they need local execution.
 
 After any SDK path resolves a local runtime, `AgentClient.status()`,

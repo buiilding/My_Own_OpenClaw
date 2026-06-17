@@ -270,7 +270,7 @@ class AgentClient {
         }
     }
     resolveConfiguredLocalRuntime() {
-        const explicitRuntime = this.defaultOptions.sidecar;
+        const explicitRuntime = this.defaultOptions.localRuntime;
         if (explicitRuntime) {
             return explicitRuntime;
         }

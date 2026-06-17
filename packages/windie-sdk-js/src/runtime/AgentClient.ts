@@ -120,7 +120,7 @@ export type AgentClientOptions = {
   defaultUserId?: string;
   installToken?: string;
   installAuth?: AgentInstallAuthOptions;
-  sidecar?: AgentLocalRuntimeClient;
+  localRuntime?: AgentLocalRuntimeClient;
   localToolLifecycle?: LocalToolExecutionLifecycle;
   localRuntimeDaemon?: AgentLocalRuntimeHttpClientOptions;
   ensureLocalRuntime?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
@@ -460,7 +460,7 @@ export class AgentClient {
   }
 
   private resolveConfiguredLocalRuntime(): AgentLocalRuntimeClient | undefined {
-    const explicitRuntime = this.defaultOptions.sidecar;
+    const explicitRuntime = this.defaultOptions.localRuntime;
     if (explicitRuntime) {
       return explicitRuntime;
     }

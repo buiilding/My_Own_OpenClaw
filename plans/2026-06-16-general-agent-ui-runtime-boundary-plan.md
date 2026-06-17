@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 AgentClient explicit local runtime option
+
+- Finding: the reusable SDK `AgentClient` still accepted an explicit local
+  runtime client through the `sidecar` option name.
+- Change: renamed the option to `localRuntime`, updated SDK behavior tests and
+  docs, regenerated CommonJS output, and added source coverage so the
+  sidecar-named explicit-runtime option stays removed.
+- Validation: SDK package build, focused SDK client test, stale option scan,
+  docs listing, and diff check.
+- Compatibility: no migration required for persisted data or wire contracts.
+  This changes SDK constructor source/tests/docs only; local-runtime behavior
+  and daemon contracts are unchanged.
+
 ### 2026-06-17 Main local-runtime stdout debug flag
 
 - Finding: Electron main's local-runtime bridge still used the

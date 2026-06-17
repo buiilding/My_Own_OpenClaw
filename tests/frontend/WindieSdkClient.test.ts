@@ -740,6 +740,18 @@ describe('Agent SDK client behavior', () => {
     expect(sdkCjsSource).not.toContain('isHostedWindieBackendUrl');
   });
 
+  test('AgentClient source uses localRuntime for explicit local runtime clients', async () => {
+    const sdkSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentClient.ts'),
+      'utf8',
+    );
+
+    expect(sdkSource).toContain('localRuntime?: AgentLocalRuntimeClient');
+    expect(sdkSource).toContain('this.defaultOptions.localRuntime');
+    expect(sdkSource).not.toContain('sidecar?: AgentLocalRuntimeClient');
+    expect(sdkSource).not.toContain('this.defaultOptions.sidecar');
+  });
+
   test('AgentClient uses env backend URL and install token when constructor options omit them', async () => {
     const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
     const previousApiKey = process.env.WINDIE_API_KEY;
@@ -1002,7 +1014,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -1074,7 +1086,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({ agentId: 'memory-chat-agent' });
@@ -1142,7 +1154,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -1187,7 +1199,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -1411,7 +1423,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({ agentId: 'facade-agent' });
@@ -2227,7 +2239,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -2271,7 +2283,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -2323,7 +2335,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -2361,7 +2373,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -2403,7 +2415,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -2461,7 +2473,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -2621,7 +2633,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -3675,7 +3687,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -3769,7 +3781,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -3853,7 +3865,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
       localToolLifecycle: {
         beforeExecute: jest.fn(async (call) => {
           lifecycleCalls.push(`before:${call.toolName}`);
@@ -4080,7 +4092,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
@@ -4251,7 +4263,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
 
     const wakePromise = client.wakeUp({
