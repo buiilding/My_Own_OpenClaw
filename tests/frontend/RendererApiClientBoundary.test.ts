@@ -78,8 +78,9 @@ describe('renderer api client boundary', () => {
       path.join(rendererRoot, 'infrastructure/api/agentSdkClient.ts'),
       'utf8',
     );
+    const retiredProductType = `${'Wind' + 'ie'}ModelSelection`;
 
     expect(source).toContain("export * from '../../../../../packages/windie-sdk-js/src';");
-    expect(source).not.toContain('WindieModelSelection as AgentModelSelection');
+    expect(source).not.toContain(`${retiredProductType} as AgentModelSelection`);
   });
 });

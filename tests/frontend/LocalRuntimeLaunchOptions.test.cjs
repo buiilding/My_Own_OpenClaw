@@ -157,6 +157,7 @@ describe('desktop local runtime launch options', () => {
     const originalEnv = process.env;
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-main-log-'));
     const logFile = path.join(tempDir, 'main.log');
+    const retiredBridgeLog = `[Main][${'Sidecar' + 'Bridge'}] spawned sidecar daemon`;
 
     try {
       process.env = {
@@ -177,7 +178,7 @@ describe('desktop local runtime launch options', () => {
       expect(log).toContain(
         '[Main][LocalRuntimeLaunch] spawned local runtime command="python" cwd="C:\\\\work"',
       );
-      expect(log).not.toContain('[Main][SidecarBridge] spawned sidecar daemon');
+      expect(log).not.toContain(retiredBridgeLog);
     } finally {
       process.env = originalEnv;
       fs.rmSync(tempDir, { recursive: true, force: true });

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend boundary tests to construct retired product SDK helper names and SidecarBridge log labels dynamically. No migration is required.
+
 - Updated the SDK private-export regression test to construct retired product and sidecar compatibility names dynamically. No migration is required.
 
 - Updated architecture, reference, contracts, tool, and renderer docs to describe Electron main sidecar transport as the local-runtime bridge. No migration is required.

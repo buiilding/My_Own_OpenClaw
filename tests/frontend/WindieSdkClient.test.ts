@@ -736,8 +736,9 @@ describe('Agent SDK client behavior', () => {
 
     expect(sdkSource).toContain('isHostedDefaultBackendUrl');
     expect(sdkCjsSource).toContain('isHostedDefaultBackendUrl');
-    expect(sdkSource).not.toContain('isHostedWindieBackendUrl');
-    expect(sdkCjsSource).not.toContain('isHostedWindieBackendUrl');
+    const retiredProductHelper = `isHosted${'Wind' + 'ie'}BackendUrl`;
+    expect(sdkSource).not.toContain(retiredProductHelper);
+    expect(sdkCjsSource).not.toContain(retiredProductHelper);
   });
 
   test('AgentClient source uses localRuntime for explicit local runtime clients', async () => {

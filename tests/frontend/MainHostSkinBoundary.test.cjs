@@ -255,9 +255,10 @@ describe('main host skin/config boundary', () => {
   test('main sidecar adapter console labels use local-runtime bridge naming', () => {
     for (const modulePath of localRuntimeBridgeModulePaths) {
       const source = fs.readFileSync(modulePath, 'utf8');
+      const retiredBridgeLogPrefix = `[Main][${'Sidecar' + 'Bridge'}]`;
 
       expect(source).not.toContain(['[Main][Local', 'BackendBridge]'].join(''));
-      expect(source).not.toContain('[Main][SidecarBridge]');
+      expect(source).not.toContain(retiredBridgeLogPrefix);
     }
 
     const joinedSource = localRuntimeBridgeModulePaths

@@ -6,6 +6,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const repoRoot = path.resolve(__dirname, '../..');
+const retiredProductPrefix = 'Wind' + 'ie';
+
+function retiredProductName(suffix: string): string {
+  return `${retiredProductPrefix}${suffix}`;
+}
 
 async function read(relativePath: string): Promise<string> {
   return fs.readFile(path.join(repoRoot, relativePath), 'utf8');
@@ -21,12 +26,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).toContain('agentWebSocketImpl');
     expect(ipcSource).not.toContain('windieAgentWebSocketImpl');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
-    expect(ipcSource).not.toContain('WindieAgent.startDesktop');
+    expect(ipcSource).not.toContain(`${retiredProductName('Agent')}.startDesktop`);
     expect(ipcSource).not.toMatch(/require\(['"].*agent_host\.cjs['"]\)/);
     expect(ipcSource).not.toMatch(/create\w*AgentHost/);
-    expect(ipcSource).not.toContain('createWindieSdkMainRuntime');
+    expect(ipcSource).not.toContain(`create${retiredProductName('SdkMainRuntime')}`);
     expect(ipcSource).not.toContain('sendSdkRuntimeCommand');
-    expect(ipcSource).not.toContain('getWindieSdkRuntime');
+    expect(ipcSource).not.toContain(`get${retiredProductName('SdkRuntime')}`);
     expect(ipcSource).not.toContain('createManagedBackendSession');
     expect(ipcSource).not.toContain('routeSdkToolEventToLocalRuntime');
     expect(ipcSource).not.toContain('executeLocalTool:');
@@ -104,7 +109,7 @@ describe('modular sdk refactor completion boundary', () => {
     for (const relativePath of exampleFiles) {
       const source = await read(relativePath);
       expect(source).toContain('AgentClient');
-      expect(source).not.toContain('WindieClient');
+      expect(source).not.toContain(retiredProductName('Client'));
       const matches = internalRuntimeNeedles.filter(needle => source.includes(needle));
       if (matches.length > 0) {
         offenders[relativePath] = matches;

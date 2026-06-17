@@ -270,6 +270,18 @@ Each completed slice should report:
 - Compatibility: no migration required. This is a test-only cleanup; package
   exports and removed compatibility modules remain unchanged.
 
+### 2026-06-17 frontend boundary negative-assertion literal cleanup
+
+- Finding: frontend boundary tests still carried retired product SDK helper names
+  and the old `SidecarBridge` log label as literal negative assertions.
+- Change: kept the same absence assertions but constructed the retired names
+  dynamically in the main SDK, modular refactor, renderer API, SDK client, host
+  skin, and local-runtime launch-option suites.
+- Validation: focused frontend Jest run for the affected boundary suites plus
+  stale product/bridge literal scans.
+- Compatibility: no migration required. This is test-only; runtime code, public
+  package exports, IPC channels, and log behavior are unchanged.
+
 ### 2026-06-17 local-runtime bridge prose cleanup
 
 - Finding: a current test title and two current docs still described validation

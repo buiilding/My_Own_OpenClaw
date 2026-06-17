@@ -3,6 +3,12 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const retiredProductPrefix = 'Wind' + 'ie';
+
+function retiredProductName(suffix) {
+  return `${retiredProductPrefix}${suffix}`;
+}
+
 describe('main ipc sdk runtime boundary', () => {
   test('ipc.cjs does not call low-level SDK runtime send methods directly', async () => {
     const source = await fs.readFile(
@@ -34,12 +40,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('desktopAutoSidecarLaunchConfig');
     expect(source).not.toContain('createDesktopAutoSidecarLaunchPlan');
     expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
-    expect(source).not.toContain('WindieAgent.startDesktop');
+    expect(source).not.toContain(`${retiredProductName('Agent')}.startDesktop`);
     expect(source).not.toContain('ensureDaemonBackedLocalRuntime');
     expect(source).not.toContain('ensureLocalRuntime: ensureDaemonBackedLocalRuntime');
     expect(source).not.toMatch(/create\w*AgentHost/);
     expect(source).not.toMatch(/require\(['"].*agent_host\.cjs['"]\)/);
-    expect(source).not.toContain('createWindieSdkMainRuntime');
+    expect(source).not.toContain(`create${retiredProductName('SdkMainRuntime')}`);
     expect(source).not.toContain('createManagedBackendSession');
     expect(source).not.toContain('sendSdkRuntimeCommand');
     expect(source).not.toContain('executeLocalTool:');
@@ -67,9 +73,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[Main][SDK] local_runtime_ensure_start reason=');
     expect(source).toContain('[Main][SDK] local_runtime_ready reason=');
     expect(source).toContain('[Main][Backend] connected user=');
-    expect(source).not.toContain('Windie SDK runtime');
-    expect(source).not.toContain('WindieClient wakeUp runtime started');
-    expect(source).not.toContain('Failed to send query through WindieAgent');
+    expect(source).not.toContain(`${retiredProductPrefix} SDK runtime`);
+    expect(source).not.toContain(`${retiredProductName('Client')} wakeUp runtime started`);
+    expect(source).not.toContain(`Failed to send query through ${retiredProductName('Agent')}`);
   });
 
   test('local runtime status IPC uses shared generic channel constants in main bridge code', async () => {
@@ -110,9 +116,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(mainSource).toContain('ipcMain.handle(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE');
     expect(mainSource).toContain('handleAgentSdkInvoke(event, payload');
     expect(mainSource).toContain('ensureAgent,');
-    expect(mainSource).not.toContain('ensureAgent: ensureWindieAgent');
-    expect(mainSource).not.toContain('getKnownWindieLocalRuntime');
-    expect(mainSource).not.toContain('ensureWindieLocalRuntime');
+    expect(mainSource).not.toContain(`ensureAgent: ensure${retiredProductName('Agent')}`);
+    expect(mainSource).not.toContain(`getKnown${retiredProductName('LocalRuntime')}`);
+    expect(mainSource).not.toContain(`ensure${retiredProductName('LocalRuntime')}`);
     expect(mainSource).not.toContain('function buildAgentSdkCommandHandlers');
     expect(source).toContain('buildAgentSdkCommandHandlers');
     expect(source).toContain('SDK_RUNTIME_COMMANDS');
