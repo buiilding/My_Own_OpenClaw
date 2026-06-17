@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime bridge log labels
+
+- Finding: Electron main local-runtime bridge modules still emitted active
+  `[Main][SidecarBridge]` log labels from generic host adapter paths.
+- Change: renamed the active bridge log prefix to `[Main][LocalRuntimeBridge]`
+  across the local-runtime bridge, tool execution, and screenshot materializer
+  modules, and tightened the main host skin boundary test against the old label.
+- Validation: focused main host skin boundary test, stale label scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Runtime behavior and sidecar process
+  contracts are unchanged; only development/diagnostic log labels changed.
+
 ### 2026-06-17 SDK local-runtime node helper naming
 
 - Finding: the TypeScript SDK local-runtime module still used sidecar-named

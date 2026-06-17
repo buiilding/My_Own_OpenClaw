@@ -37,6 +37,7 @@ const {
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
 const { createLocalRuntimeSupervisor } = require('./local_backend_supervisor.cjs');
 
+const LOCAL_RUNTIME_BRIDGE_LOG_PREFIX = '[Main][LocalRuntimeBridge]';
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
 const DEFAULT_BROWSER_WARMUP_EXPLANATION = 'Open the browser for onboarding and profile setup.';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
@@ -74,7 +75,7 @@ function appendBrowserSessionDiagnostic(input = {}) {
     });
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[Main][SidecarBridge] browser_session_diagnostic_failed message=${JSON.stringify(getErrorMessage(error))}`);
+      console.warn(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} browser_session_diagnostic_failed message=${JSON.stringify(getErrorMessage(error))}`);
     }
   }
 }
@@ -161,7 +162,7 @@ function resolveKnownLocalRuntime({ quiet = false } = {}) {
     return runtime && typeof runtime === 'object' ? runtime : null;
   } catch (error) {
     if (!quiet && process.env.NODE_ENV !== 'production') {
-      console.warn(`[Main][SidecarBridge] known_sdk_runtime_lookup_failed message=${JSON.stringify(getErrorMessage(error))}`);
+      console.warn(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} known_sdk_runtime_lookup_failed message=${JSON.stringify(getErrorMessage(error))}`);
     }
     return null;
   }
@@ -353,7 +354,7 @@ async function getSystemStateFromBackend(fields) {
     }
     return result.data || result;
   } catch (error) {
-    console.error(`[Main][SidecarBridge] system_state_request_failed message=${JSON.stringify(getErrorMessage(error))}`);
+    console.error(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} system_state_request_failed message=${JSON.stringify(getErrorMessage(error))}`);
     return null;
   }
 }
@@ -369,7 +370,7 @@ function stopLocalRuntime() {
 
 async function loadArtifactUploadHeaders() {
   const authState = await loadInstallAuthStateFromDisk((message) => {
-    console.warn(`[Main][SidecarBridge] install_auth_state_warning message=${JSON.stringify(message)}`);
+    console.warn(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} install_auth_state_warning message=${JSON.stringify(message)}`);
   });
   const installToken = typeof authState?.installToken === 'string'
     ? authState.installToken.trim()
@@ -560,7 +561,7 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
     ...buildLocalRuntimeDiagnosticData(),
   });
   if (process.env.WINDIE_DEBUG_LOCAL_BACKEND_STDOUT === '1') {
-    console.log('[Main][SidecarBridge] initialized');
+    console.log(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} initialized`);
   }
 }
 

@@ -28,6 +28,9 @@ const {
   resolveActiveSurfaceDisplayAffinityForWindows,
   toScreenshotDisplayBounds,
 } = require('../surfaces/display_affinity_runtime.cjs');
+
+const LOCAL_RUNTIME_BRIDGE_LOG_PREFIX = '[Main][LocalRuntimeBridge]';
+
 function normalizeToolName(toolName) {
   return typeof toolName === 'string' ? toolName.trim().toLowerCase() : '';
 }
@@ -127,7 +130,7 @@ function createLocalRuntimeExecuteToolRuntime({
         data: result.data || result,
       };
     } catch (error) {
-      console.error(`[Main][SidecarBridge] tool_execution_failed message=${JSON.stringify(getErrorMessage(error))}`);
+      console.error(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} tool_execution_failed message=${JSON.stringify(getErrorMessage(error))}`);
       return {
         success: false,
         error: getErrorMessage(error),
@@ -146,7 +149,7 @@ function createLocalRuntimeExecuteToolRuntime({
           await fs.promises.unlink(screenshotPath);
         } catch (error) {
           console.warn(
-            `[Main][SidecarBridge] screen_capture_verification_cleanup_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
+            `${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} screen_capture_verification_cleanup_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
           );
         }
       };

@@ -235,17 +235,18 @@ describe('main host skin/config boundary', () => {
     }
   });
 
-  test('main sidecar adapter console labels use generic bridge naming', () => {
+  test('main sidecar adapter console labels use local-runtime bridge naming', () => {
     for (const modulePath of localBackendBridgeModulePaths) {
       const source = fs.readFileSync(modulePath, 'utf8');
 
       expect(source).not.toContain('[Main][LocalBackendBridge]');
+      expect(source).not.toContain('[Main][SidecarBridge]');
     }
 
     const joinedSource = localBackendBridgeModulePaths
       .map(modulePath => fs.readFileSync(modulePath, 'utf8'))
       .join('\n');
-    expect(joinedSource).toContain('[Main][SidecarBridge]');
+    expect(joinedSource).toContain('[Main][LocalRuntimeBridge]');
   });
 
   test('main sidecar adapter active dependencies use local-runtime names', () => {

@@ -8,6 +8,7 @@ const path = require('path');
 
 const SCREENSHOT_TEMP_DIR_NAME = 'desktop-agent-screenshots';
 const SCREENSHOT_TEMP_FILE_PREFIX = 'desktop-agent-shot-';
+const LOCAL_RUNTIME_BRIDGE_LOG_PREFIX = '[Main][LocalRuntimeBridge]';
 
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -97,7 +98,7 @@ async function unlinkQuietly(targetPath, warn = console.warn) {
     await fsPromises.unlink(targetPath);
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
-      warn(`[Main][SidecarBridge] temp_screenshot_delete_failed path=${JSON.stringify(targetPath)}`, error);
+      warn(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} temp_screenshot_delete_failed path=${JSON.stringify(targetPath)}`, error);
     }
   }
 }
@@ -131,7 +132,7 @@ async function isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage) {
     return parentRealpath === dirRealpath && stat.isFile() && !stat.isSymbolicLink();
   } catch (error) {
     warn(
-      `[Main][SidecarBridge] screenshot_temp_path_rejected path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
+      `${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} screenshot_temp_path_rejected path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
     );
     return false;
   }
@@ -157,7 +158,7 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
     return result;
   }
   if (!(await isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage))) {
-    warn(`[Main][SidecarBridge] screenshot_temp_path_unowned path=${JSON.stringify(screenshotPath)}`);
+    warn(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} screenshot_temp_path_unowned path=${JSON.stringify(screenshotPath)}`);
     delete data.screenshot_path;
     return result;
   }
@@ -193,13 +194,13 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
     }
   } catch (error) {
     warn(
-      `[Main][SidecarBridge] screenshot_artifact_upload_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
+      `${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} screenshot_artifact_upload_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
     );
     try {
       data.screenshot = await readScreenshotInlinePayload(screenshotPath);
     } catch (fallbackError) {
       warn(
-        `[Main][SidecarBridge] screenshot_inline_fallback_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(fallbackError))}`,
+        `${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} screenshot_inline_fallback_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(fallbackError))}`,
       );
     }
   } finally {
