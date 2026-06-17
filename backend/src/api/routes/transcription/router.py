@@ -1,4 +1,4 @@
-"""WindieOS-owned local transcription websocket route."""
+"""Backend-owned local transcription websocket route."""
 
 import asyncio
 import contextlib

@@ -21,7 +21,7 @@ class TranscriptionProviderSession(Protocol):
         """Handle one PCM16 mono audio chunk from the local renderer gateway."""
 
     async def stream_events(self, send_event: GatewayEventSender) -> None:
-        """Forward provider events to the local WindieOS gateway protocol."""
+        """Forward provider events to the local transcription gateway protocol."""
 
     async def close(self) -> None:
         """Release provider-side resources."""

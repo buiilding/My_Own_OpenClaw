@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Backend module docstrings use role-based wording
+
+- Finding: several backend parser, validation, cache, event bus, transcription,
+  token, tool registry, tool orchestrator, and simulation docstrings still
+  branded generic backend infrastructure as WindieOS-specific.
+- Change: reworded those comments/docstrings to describe the owning backend
+  role: agent backend streams, backend API validation, backend cache/event bus,
+  local transcription gateway, normalized chat history, flat agent tool specs,
+  backend tool registry, and dedicated browser simulation.
+- Validation: Python syntax compile, retired-copy source scan, and diff check.
+- Compatibility: no migration required. This is source documentation and
+  simulation prompt copy only; runtime behavior and public contracts are
+  unchanged.
+
 ### 2026-06-17 Backend tool descriptions use generic local-runtime copy
 
 - Finding: backend model-visible tool descriptions still referred to the

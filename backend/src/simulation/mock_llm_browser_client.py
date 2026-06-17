@@ -56,7 +56,7 @@ BROWSER_SIMULATION_RESPONSES: list[NormalizedLLMResponse] = [
     _browser_tool_turn(
         0,
         {"action": "connect"},
-        explanation="Connect to the WindieOS Browser Use session.",
+        explanation="Connect to the dedicated browser session.",
     ),
     _browser_tool_turn(
         1,
@@ -148,7 +148,7 @@ class MockLLMBrowserClient(BaseSimulationLLMClient):
     Mock LLM Client that demonstrates browser tool.
 
     Simulates an agent that:
-    1. Connects to the WindieOS Browser Use session
+    1. Connects to the dedicated browser session
     2. Navigates to Amazon
     3. Searches for "shoes"
     4. Sorts by price (low to high)

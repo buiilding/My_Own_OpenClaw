@@ -1,5 +1,5 @@
 """
-Enhanced event bus for WindieOS.
+Backend event bus.
 
 Provides a robust event bus with priority support, filtering, error handling,
 and global listener capabilities for decoupling components.

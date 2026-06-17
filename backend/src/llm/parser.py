@@ -1,5 +1,5 @@
 """
-Response parser for WindieOS.
+Response parser for agent backend streams.
 
 SECURITY: This module is a TRUST BOUNDARY.
 - All inputs are treated as HOSTILE/UNTRUSTED

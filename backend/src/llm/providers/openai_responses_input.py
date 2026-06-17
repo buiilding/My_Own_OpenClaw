@@ -221,7 +221,7 @@ def build_openai_responses_input(
     *,
     previous_response_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Convert WindieOS chat history to OpenAI Responses input items."""
+    """Convert normalized chat history to OpenAI Responses input items."""
     if isinstance(previous_response_id, str) and previous_response_id.strip():
         continuation_items = _build_openai_responses_continuation_input(messages)
         if continuation_items:

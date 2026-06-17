@@ -1,4 +1,4 @@
-"""OpenAI Realtime-backed transcription provider mapped to the WindieOS gateway."""
+"""OpenAI Realtime-backed transcription provider mapped to the local gateway."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 """
-Tool registry for WindieOS.
+Backend tool registry.
 
 This module manages the registration and provision of tool schemas for the LLM.
 In the current architecture, most tools are executed on the frontend, and the

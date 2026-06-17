@@ -1,5 +1,5 @@
 """
-Tool result orchestrator for WindieOS.
+Tool result orchestrator for the agent backend.
 
 This module coordinates tool execution requests by waiting for local-runtime
 tool results and assembling tool result objects for the agent loop.

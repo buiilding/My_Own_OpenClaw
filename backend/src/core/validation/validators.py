@@ -1,5 +1,5 @@
 """
-Centralized validation framework for WindieOS.
+Centralized validation framework for backend API inputs.
 
 Provides Pydantic-based validation for all API inputs with consistent error handling.
 """

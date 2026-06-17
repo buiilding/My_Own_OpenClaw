@@ -1,5 +1,5 @@
 """
-Caching layer for WindieOS.
+Backend caching layer.
 
 Provides in-memory caching with TTL support for:
 - Tool schemas

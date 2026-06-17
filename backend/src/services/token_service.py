@@ -225,7 +225,7 @@ def _fallback_tool_token_estimate(
 def _normalize_tools_for_litellm_token_counter(
     tools: Optional[Iterable[Any]],
 ) -> Optional[list[Dict[str, Any]]]:
-    """Normalize WindieOS flat tool specs to LiteLLM/OpenAI tool shape."""
+    """Normalize flat agent tool specs to LiteLLM/OpenAI tool shape."""
     if tools is None:
         return None
     normalized: list[Dict[str, Any]] = []
@@ -403,7 +403,7 @@ class TokenService:
     @staticmethod
     def get_model_max_input_tokens(model: str) -> Optional[int]:
         """
-        Resolve model max input context tokens from WindieOS catalog metadata,
+        Resolve model max input context tokens from catalog metadata,
         then fallback to LiteLLM model metadata.
 
         Args:
