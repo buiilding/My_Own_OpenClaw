@@ -31,11 +31,23 @@ describe('extractTranscriptSessionSyncPayload', () => {
     });
   });
 
-  test('ignores session aliases because conversationRef owns chat identity', () => {
-    expect(extractTranscriptSessionSyncPayload({
+  test('rejects session aliases because conversationRef owns chat identity', () => {
+    expect(() => extractTranscriptSessionSyncPayload({
       session_id: 'session-2',
       sessionId: 'session-3',
-    })).toBeNull();
+    })).toThrow(
+      'Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.',
+    );
+  });
+
+  test('rejects session aliases even when canonical fields are present', () => {
+    expect(() => extractTranscriptSessionSyncPayload({
+      conversationRef: 'conv-2',
+      sessionId: 'session-2',
+      userId: 'user-2',
+    })).toThrow(
+      'Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.',
+    );
   });
 
   test('supports partial payload updates', () => {

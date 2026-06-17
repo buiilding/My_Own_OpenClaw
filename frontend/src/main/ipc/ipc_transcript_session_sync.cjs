@@ -14,10 +14,18 @@ function hasOwnProperty(target, key) {
   return Object.prototype.hasOwnProperty.call(target, key);
 }
 
+function rejectRemovedSessionIdentityKeys(payload) {
+  if (hasOwnProperty(payload, 'sessionId') || hasOwnProperty(payload, 'session_id')) {
+    throw new Error('Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.');
+  }
+}
+
 function normalizeTranscriptSessionSyncPayload(payload = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
   }
+
+  rejectRemovedSessionIdentityKeys(payload);
 
   const hasConversationRef = (
     hasOwnProperty(payload, 'conversationRef')

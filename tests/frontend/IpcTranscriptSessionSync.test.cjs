@@ -42,15 +42,17 @@ describe('ipc_transcript_session_sync', () => {
     expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
-  test('ignores session aliases without broadcasting', () => {
+  test('rejects session aliases without broadcasting', () => {
     const broadcastToRenderers = jest.fn();
 
-    expect(applyTranscriptSessionSync({
+    expect(() => applyTranscriptSessionSync({
       payload: { session_id: 'session-next', sessionId: 'session-next' },
       currentConversationRef: 'conv-current',
       currentUserId: 'user-current',
       broadcastToRenderers,
-    })).toBeNull();
+    })).toThrow(
+      'Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.',
+    );
 
     expect(broadcastToRenderers).not.toHaveBeenCalled();
   });

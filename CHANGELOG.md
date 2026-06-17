@@ -1,10 +1,12 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
 ### Changed
+
+- Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - Changed extension contribution manifest loading to reject removed alias and camelCase fields instead of silently ignoring them. Extension authors must use documented snake_case manifest fields; no persisted-data, wire, storage, settings, or event-payload migration is required.
 
@@ -2159,6 +2161,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
+
 - frontend/renderer: rename dashboard memory row delete-routing fields to
   runtimeMemoryId/runtimeMemoryKind so UI state stays runtime-shaped.
 
@@ -3930,6 +3934,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
+
 - frontend/renderer: rename dashboard memory row delete-routing fields to
   runtimeMemoryId/runtimeMemoryKind so UI state stays runtime-shaped.
 
@@ -4355,6 +4361,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to
   runtimeMemoryId/runtimeMemoryKind so UI state stays runtime-shaped.
@@ -4811,6 +4819,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to
   runtimeMemoryId/runtimeMemoryKind so UI state stays runtime-shaped.
@@ -7223,6 +7233,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to
   runtimeMemoryId/runtimeMemoryKind so UI state stays runtime-shaped.

@@ -42,6 +42,14 @@ User identity keys:
 
 If neither conversation nor user key is present, function returns `null` (ignore packet).
 
+Removed session identity keys are rejected:
+
+- `sessionId`
+- `session_id`
+
+These keys belong to backend runtime session context, not durable transcript
+conversation identity.
+
 ## Payload-Type Gate
 
 Function returns `null` for non-object payloads:
@@ -88,7 +96,7 @@ The transcript session runtime merges these via session-state update rules, pres
 - rejection of non-object payloads
 - camelCase extraction and trim behavior
 - snake_case conversation/user key support
-- rejection of `sessionId`/`session_id` because `conversationRef` owns chat identity
+- fail-fast rejection of `sessionId`/`session_id` because `conversationRef` owns chat identity
 - partial update output shape with `undefined` missing field
 
 `tests/frontend/TranscriptSessionState.test.ts` and the app runtime tests lock integration behavior:

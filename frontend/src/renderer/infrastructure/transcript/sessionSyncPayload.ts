@@ -15,6 +15,12 @@ const normalizeOptionalSessionField = (value: unknown): string | null => {
   return normalizeOptionalIncomingText(value);
 };
 
+const rejectRemovedSessionIdentityKeys = (payload: object): void => {
+  if (hasOwnProperty(payload, 'sessionId') || hasOwnProperty(payload, 'session_id')) {
+    throw new Error('Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.');
+  }
+};
+
 export const extractTranscriptSessionSyncPayload = (
   payload: unknown,
 ): {
@@ -24,6 +30,8 @@ export const extractTranscriptSessionSyncPayload = (
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
   }
+
+  rejectRemovedSessionIdentityKeys(payload);
 
   const hasConversationRef = (
     hasOwnProperty(payload, 'conversationRef')

@@ -97,8 +97,13 @@ Accepted conversation keys:
 
 - `conversationRef`
 - `conversation_ref`
+
+Removed session identity keys are rejected:
+
 - `sessionId`
 - `session_id`
+
+Backend runtime session ids are not durable transcript conversation identity.
 
 Accepted user keys:
 
@@ -111,6 +116,7 @@ Normalization semantics:
 - non-string/empty values normalize to `null`
 - missing fields are returned as `undefined` (no write intent)
 - payloads with no recognized conversation or user key are ignored
+- payloads containing removed `sessionId` or `session_id` keys fail fast
 
 Main update behavior:
 
@@ -123,7 +129,8 @@ Main update behavior:
 
 ### Renderer normalization (`extractTranscriptSessionSyncPayload`)
 
-Renderer accepts the same key aliases and normalization semantics, then applies:
+Renderer accepts the same keys, rejects the same removed session identity keys, and
+applies the same normalization semantics before calling:
 
 - `applyTranscriptSessionUpdate(conversationRef, userId, { syncToMainProcess: false })`
 
@@ -140,7 +147,7 @@ Durability side effects:
 
 1. Replacing turn-scoped replay append logic with unconditional append can leak stale-turn packets into late window replays.
 2. Removing sender exclusion from transcript sync rebroadcast can create duplicate self-applies and extra render churn.
-3. Diverging key alias handling between main and renderer (`conversation_ref`/`session_id`/`user_id`) can desync conversation/user identity across windows.
+3. Diverging key handling between main and renderer (`conversation_ref`/`user_id`, plus rejected `session_id`) can desync conversation/user identity across windows.
 4. Dropping `clear()` on reconnect/failure paths can replay outdated events into newly connected windows.
 
 ## Related Pages
