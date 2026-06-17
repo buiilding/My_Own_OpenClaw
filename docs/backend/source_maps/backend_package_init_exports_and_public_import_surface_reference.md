@@ -33,7 +33,6 @@ public re-export surfaces.
 - `backend/src/api/processing/formatters/__init__.py`
 - `backend/src/api/processing/tts/__init__.py`
 - `backend/src/api/routes/memory/__init__.py`
-- `backend/src/api/services/__init__.py`
 - `backend/src/api/transport/__init__.py`
 - `backend/src/core/__init__.py`
 - `backend/src/core/bootstrap/__init__.py`
@@ -96,6 +95,9 @@ Some entrypoints intentionally expose little or nothing:
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
+- `backend/src/api/services/__init__.py` is a marker package; API services are
+  imported directly from their owning modules such as
+  `api.services.query_execution` and `api.services.wakeword_execution`
 
 These files still matter for package discovery and should be retained unless package layout is intentionally reworked.
 
