@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Electron main local-runtime overview cleanup
+
+- Finding: the current Electron main IPC overview still described the
+  local-runtime bridge as spawning local_backend.py and owning sidecar
+  request correlation, even after daemon lifetime and /rpc unwrapping moved
+  behind the SDK local runtime provider.
+- Change: updated the overview to describe Electron main as the SDK host for
+  desktop launch facts, status broadcasts, host helper mapping, and
+  renderer-facing fail-closed envelopes while leaving daemon lifecycle and
+  local tool execution behind SDK/sidecar contracts.
+- Validation: docs listing, focused stale overview scan, and diff check.
+- Compatibility: no migration required. This is a docs-only ownership
+  correction; IPC channels, launch behavior, daemon protocol, and helper result
+  envelopes are unchanged.
+
 ### 2026-06-17 OpenAI Responses import cleanup
 
 - Finding: the backend OpenAI Responses input/runtime helpers still imported

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the `EventHandlerWrapper` compatibility import from the backend event bus runtime; direct imports now use the registry helper module. No persisted-data, storage, API, wire, or settings migration is required.
+
+- Corrected the Electron main local-runtime overview so it describes SDK-owned sidecar daemon lifecycle and Electron-owned host adapters. No migration is required.
+
 - Removed an unused OpenAI Responses runtime import and documented the provider import cleanup. No migration is required.
 
 - Removed an unused OpenAI Responses input-builder import. No migration is required.

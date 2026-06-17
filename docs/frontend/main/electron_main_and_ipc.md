@@ -104,7 +104,7 @@ Adds backend-facing context before query send:
 - user query XML payload
 - runtime-only system state subset (`screen_resolution`) for backend coordinate normalization
 
-## Local Sidecar Bridge
+## Local Runtime Bridge
 
 Module:
 
@@ -112,15 +112,21 @@ Module:
 
 Responsibilities:
 
-- Spawns `local_backend.py` subprocess.
-- Performs readiness ping handshake with retry/backoff.
-- Handles JSON-RPC request/response correlation for tool and memory operations.
-- Exposes IPC handlers to renderer/main callers for tool execution, memory operations, and system state.
+- Supplies desktop launch facts, backend endpoint context, host window helpers,
+  and artifact/screenshot adapters to the SDK local runtime provider.
+- Wakes/resolves the SDK-owned sidecar daemon and publishes normalized
+  `local-runtime-status` snapshots to renderer windows.
+- Routes Electron helper calls through SDK local-runtime `/rpc` and
+  `executeTool(...)` APIs while keeping Python `LocalBackend` method execution
+  inside the sidecar daemon.
+- Converts local-runtime/provider failures into stable renderer-facing
+  `{ success:false, error }` envelopes for helper IPC callers.
 
 Safety behavior:
 
-- Rejects all pending requests on sidecar exit.
-- Marks sidecar unavailable and notifies renderer.
+- Fails closed when no SDK local runtime provider is available.
+- Marks the local runtime unavailable and notifies renderer windows when
+  provider resolution or helper RPC fails.
 - For detailed handler/mapper/window-hide internals, see [Local Runtime Bridge Handler and Window Guard Reference](local_runtime_bridge_handler_and_window_guard_reference.md).
 
 ## Wakeword Bridge
